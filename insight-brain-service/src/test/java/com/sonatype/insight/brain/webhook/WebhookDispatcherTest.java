@@ -455,7 +455,7 @@ public class WebhookDispatcherTest
     event.application.organizationId = organization.getId();
     event.applicationEvaluation = evaluationEvent;
     event.policyFacts.add(new PolicyFact("id", "name", 5)
-        .with(new ComponentFact(createMavenCoordinates("com.group", "artifact", "1.0"), "123")));
+        .with(new ComponentFact(createMavenCoordinates("com.group", "artifact", "1.0", "test", "jar"), "123")));
     asyncEventBus.post(event);
 
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
@@ -481,8 +481,8 @@ public class WebhookDispatcherTest
     assertThat(policyAlertDTO.componentFacts).isNotEmpty();
     ApiComponentIdentifierDTOV2 componentIdentifier = policyAlertDTO.componentFacts.get(0).componentIdentifier;
     assertThat(componentIdentifier.getFormat()).isEqualTo("maven");
-    assertThat(componentIdentifier.getCoordinates()).containsExactly(
-        entry("artifactId", "artifact"), entry("groupId", "com.group"), entry("version", "1.0"));
+    assertThat(componentIdentifier.getCoordinates()).containsExactly(entry("artifactId", "artifact"),
+        entry("classifier", "test"), entry("extension", "jar"), entry("groupId", "com.group"), entry("version", "1.0"));
   }
 
   @Test
@@ -553,7 +553,7 @@ public class WebhookDispatcherTest
     tempEntity
         .newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT));
     Organization organization = tempEntity.newOrganization();
-    ComponentIdentifier mavenCoordinates = createMavenCoordinates("com.group", "artifact", "1.0");
+    ComponentIdentifier mavenCoordinates = createMavenCoordinates("com.group", "artifact", "1.0", "test", "jar");
     LicenseOverride givenOverride = tempEntity.newLicenseOverride(organization.getId(), mavenCoordinates,
         LicenseOverrideStatus.ACKNOWLEDGED, Collections.emptySet());
 

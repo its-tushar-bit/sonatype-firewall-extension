@@ -28,13 +28,13 @@ class DbDiagnostics
 
   static String getDBFileInfo() throws IOException {
     log.trace("getting db file info");
-    final StringBuilder result = new StringBuilder("");
+    final StringBuilder result = new StringBuilder();
 
     DataSource dataSource = OperationalDataStoreProvider.getDataSource();
     String databaseProductName = getDatabaseProductName(dataSource);
     result.append("-- Database Diagnostics --\n");
-    result.append("Database product name: " + databaseProductName + "\n");
-    result.append("Database product version: " + getDatabaseProductVersion(dataSource) + "\n");
+    result.append("Database product name: ").append(databaseProductName).append("\n");
+    result.append("Database product version: ").append(getDatabaseProductVersion(dataSource)).append("\n");
 
     if ("h2".equalsIgnoreCase(databaseProductName)) {
       final DatabaseConfig databaseConfig = OperationalDataStoreProvider.getDatabaseConfig();
@@ -46,16 +46,16 @@ class DbDiagnostics
       final File ods = H2DatabaseUtil.getDatabasePath(databaseConfig);
       final File h2 = new File(ods.getPath() + ".h2.db");
       if (!h2.isFile()) {
-        result.append("Found no database file at " + h2.getCanonicalPath() + "\n");
+        result.append("Found no database file at ").append(h2.getCanonicalPath()).append("\n");
       }
       else {
-        result.append("Database path: " + ods.getCanonicalPath() + "\n");
-        result.append("Total database size: " + h2.length() + " bytes\n");
+        result.append("Database path: ").append(ods.getCanonicalPath()).append("\n");
+        result.append("Total database size: ").append(h2.length()).append(" bytes\n");
       }
     }
 
     final int version = DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStoreProvider.ID);
-    result.append("Schema version: " + version + "\n");
+    result.append("Schema version: ").append(version).append("\n");
     return result.toString();
   }
 

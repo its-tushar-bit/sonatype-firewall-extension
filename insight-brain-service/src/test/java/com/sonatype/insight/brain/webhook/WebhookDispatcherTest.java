@@ -12,7 +12,10 @@ import java.util.EnumSet;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.TestLicenseManager;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
@@ -44,6 +47,7 @@ import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload.Appli
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload.LicenseOverrideDTO;
 import com.sonatype.insight.brain.webhook.dto.PolicyAlertPayload;
+import com.sonatype.insight.brain.webhook.dto.PolicyAlertPayload.PolicyAlertDTO;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementType;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload;
@@ -57,9 +61,11 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_ALERT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -448,6 +454,8 @@ public class WebhookDispatcherTest
     event.application.id = application.getId();
     event.application.organizationId = organization.getId();
     event.applicationEvaluation = evaluationEvent;
+    event.policyFacts.add(new PolicyFact("id", "name", 5)
+        .with(new ComponentFact(createMavenCoordinates("com.group", "artifact", "1.0"), "123")));
     asyncEventBus.post(event);
 
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
@@ -464,6 +472,17 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.initiator).isEqualTo("initiator");
     assertThat(webhookPayload.application.organizationId).isEqualTo(organization.getId());
     assertThat(webhookPayload.application.id).isEqualTo(application.getId());
+
+    assertThat(webhookPayload.policyAlerts).isNotEmpty();
+    PolicyAlertDTO policyAlertDTO = webhookPayload.policyAlerts.get(0);
+    assertThat(policyAlertDTO.policyId).isEqualTo("id");
+    assertThat(policyAlertDTO.policyName).isEqualTo("name");
+    assertThat(policyAlertDTO.threatLevel).isEqualTo(5);
+    assertThat(policyAlertDTO.componentFacts).isNotEmpty();
+    ApiComponentIdentifierDTOV2 componentIdentifier = policyAlertDTO.componentFacts.get(0).componentIdentifier;
+    assertThat(componentIdentifier.getFormat()).isEqualTo("maven");
+    assertThat(componentIdentifier.getCoordinates()).containsExactly(
+        entry("artifactId", "artifact"), entry("groupId", "com.group"), entry("version", "1.0"));
   }
 
   @Test
@@ -534,7 +553,7 @@ public class WebhookDispatcherTest
     tempEntity
         .newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT));
     Organization organization = tempEntity.newOrganization();
-    ComponentIdentifier mavenCoordinates = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentIdentifier mavenCoordinates = createMavenCoordinates("com.group", "artifact", "1.0");
     LicenseOverride givenOverride = tempEntity.newLicenseOverride(organization.getId(), mavenCoordinates,
         LicenseOverrideStatus.ACKNOWLEDGED, Collections.emptySet());
 

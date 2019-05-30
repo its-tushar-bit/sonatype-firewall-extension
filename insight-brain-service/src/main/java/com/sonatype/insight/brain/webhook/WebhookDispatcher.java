@@ -315,6 +315,10 @@ public class WebhookDispatcher
         else {
           componentFactDTO.displayName = "Unknown Component";
         }
+        if (componentFact.getComponentIdentifier() != null) {
+          componentFactDTO.componentIdentifier = ApiComponentIdentifierDTOV2
+              .fromComponentIdentifier(componentFact.getComponentIdentifier());
+        }
         componentFactDTO.pathNames = componentFact.getPathnames();
 
         for (final ConstraintFact constraintFact : componentFact.getConstraintFacts()) {

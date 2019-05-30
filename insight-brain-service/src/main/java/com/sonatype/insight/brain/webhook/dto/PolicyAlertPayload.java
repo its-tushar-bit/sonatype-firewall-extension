@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.webhook.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.policy.ConstraintFactDTO;
 import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload.ApplicationEvaluationDTO;
 
@@ -48,6 +49,8 @@ public class PolicyAlertPayload
     public String hash;
 
     public String displayName;
+
+    public ApiComponentIdentifierDTOV2 componentIdentifier;
 
     public List<String> pathNames = new ArrayList<>();
 

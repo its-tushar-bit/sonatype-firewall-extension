@@ -20,7 +20,7 @@ describe('pad.to.top.directive.spec.js', function() {
     beforeEach(inject(function($compile) {
       container = $compile(angular.element(
           '<div id="container" style="height:100px;"><div pad-to-top style="height:10px;' +
-          'margin-bottom:-1px;"><div id="innerElement" style="height:10px;">' +
+          'margin-bottom:1px;"><div id="innerElement" style="height:10px;">' +
           '</div></div></div>'))(scope);
       topTarget = element = container.children();
 
@@ -39,7 +39,7 @@ describe('pad.to.top.directive.spec.js', function() {
     beforeEach(inject(function($compile) {
       container = $compile(angular.element(
           '<div id="container" style="height:100px;"><div pad-to-top="#innerElement" style="height:10px;' +
-          'margin-bottom:-1px;"><div id="innerElement" style="height:10px;">' +
+          'margin-bottom:1px;"><div id="innerElement" style="height:10px;">' +
           '</div></div></div>'))(scope);
       element = container.children();
       topTarget = element.children();
@@ -57,7 +57,7 @@ describe('pad.to.top.directive.spec.js', function() {
 
   function testPadToTop() {
     it('Properly Updates Padding', function() {
-      expect(element.css('margin-bottom')).toBe('-1px');
+      expect(element.css('margin-bottom')).toBe('1px');
       expect($interval.cancel).not.toHaveBeenCalled();
       $interval.flush(200);
 

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.support;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
@@ -56,6 +57,9 @@ class DbDiagnostics
 
     final int version = DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStoreProvider.ID);
     result.append("Schema version: ").append(version).append("\n");
+
+    addLatencyInformation(result, dataSource);
+
     return result.toString();
   }
 
@@ -74,6 +78,36 @@ class DbDiagnostics
     }
     catch (Exception e) {
       throw new IllegalStateException("Failed attempt to get database product version.", e);
+    }
+  }
+
+  private static void addLatencyInformation(StringBuilder sb, DataSource ds) {
+    try (Connection connection = ds.getConnection()) {
+      long latencyMinimum = Long.MAX_VALUE;
+      long latencyMaximum = Long.MIN_VALUE;
+      long latencyCumulative = 0;
+
+      // Ping database 5 times, find out the minimum, maximum and average latency
+      int tryCount = 5;
+      for (int i = 0; i < tryCount; i++) {
+        long start = System.nanoTime();
+        connection.isValid(/* timeout in seconds */ 3);
+        long latency = (System.nanoTime() - start) / 1000;
+
+        latencyMinimum = Math.min(latency, latencyMinimum);
+        latencyMaximum = Math.max(latency, latencyMaximum);
+        latencyCumulative = latencyCumulative + latency;
+      }
+      long averageLatency = latencyCumulative / tryCount;
+
+      // Add the information
+      sb.append("-- Latency Information --\n");
+      sb.append("Minimum: ").append(latencyMinimum).append(" microseconds\n");
+      sb.append("Average: ").append(averageLatency).append(" microseconds\n");
+      sb.append("Maximum: ").append(latencyMaximum).append(" microseconds\n");
+    }
+    catch (SQLException e) {
+      throw new IllegalStateException("Failed attempt to get database latency.", e);
     }
   }
 }

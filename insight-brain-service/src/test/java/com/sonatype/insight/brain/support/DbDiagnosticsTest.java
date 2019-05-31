@@ -53,6 +53,10 @@ public class DbDiagnosticsTest
         .contains("Database product version: ")
         .contains("Database path: " + tempDir.getRoot().getCanonicalPath())
         .contains("Total database size: ")
-        .contains("Schema version: ");
+        .contains("Schema version: ")
+        .contains("Latency Information")
+        .contains("Minimum")
+        .contains("Maximum")
+        .contains("Average");
   }
 }

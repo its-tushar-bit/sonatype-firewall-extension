@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
@@ -16,7 +17,6 @@ import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker.Item;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
@@ -105,9 +105,12 @@ public abstract class AbstractLTGEditorTest
     assertThat(ltg.getThreatLevel()).isEqualTo(6);
     assertThat(includedLicenses).hasSize(3);
 
+    List<String> includedLicensesLongDisplayNames = includedLicenses.stream()
+        .map(includedLicense -> licenseDAO.getById(includedLicense.getLicenseId()).getLongDisplayName()).sorted()
+        .collect(Collectors.toList());
+
     for (int i = 0; i < includedLicenses.size(); i++) {
-      picker.pickedItem(i).label()
-          .shouldHave(text(licenseDAO.getById(includedLicenses.get(i).getLicenseId()).getLongDisplayName()));
+      picker.pickedItem(i).label().shouldHave(text(includedLicensesLongDisplayNames.get(i)));
     }
 
     testDeleteLTG(ltg);
@@ -210,9 +213,9 @@ public abstract class AbstractLTGEditorTest
 
     String filterText = "Adobe";
     picker.filter().val(filterText);
-    picker.availableItems().shouldHaveSize(3);
+    picker.availableItems().shouldHaveSize(4);
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
       Item item = picker.availableItem(i);
       item.label().shouldBe(visible).shouldHave(text(filterText));
     }

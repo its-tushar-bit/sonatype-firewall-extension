@@ -177,7 +177,7 @@ public abstract class AbstractPolicyEditorTest
     assertCondition(constraint.getConditions().get(3), CoordinatesConditionType.ID, "match",
         "pypi:MarkupSafe:1.1.0:cp37:tar.gz");
     assertCondition(constraint.getConditions().get(4), LabelConditionType.ID, "is", sampleLabel.getId());
-    assertCondition(constraint.getConditions().get(5), LicenseConditionType.ID, "is", "AFL-1.2");
+    assertCondition(constraint.getConditions().get(5), LicenseConditionType.ID, "is", "AdaptiveLINQ-EULA");
     assertCondition(constraint.getConditions().get(6), LicenseStatusConditionType.ID, "is not",
         LicenseOverrideStatus.CONFIRMED.name());
     assertCondition(constraint.getConditions().get(7), LicenseThreatGroupConditionType.ID, "is",
@@ -961,8 +961,8 @@ public abstract class AbstractPolicyEditorTest
 
     DropdownConditionEditSection licenseCondition = addDropdownCondition(newConstraint, LicenseConditionType.class, 5);
     licenseCondition.operator().selectedItem().shouldHave(text("is"));
-    licenseCondition.value().selectedItem().shouldHave(text("AAL")).click();
-    licenseCondition.value().listItem(5).shouldHave(text("AFL-1.2")).click();
+    licenseCondition.value().selectedItem().shouldHave(text("0BSD")).click();
+    licenseCondition.value().listItem(5).shouldHave(text("AdaptiveLINQ-EULA")).click();
 
     DropdownConditionEditSection licenseStatus =
         addDropdownCondition(newConstraint, LicenseStatusConditionType.class, 6);

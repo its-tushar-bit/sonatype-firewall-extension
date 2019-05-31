@@ -1,7 +1,5 @@
 schema.sql
 
-license_spdx.sql
-license_sonatype.sql
-multi_license_spdx.sql
-multi_license_sonatype.sql
+license.sql
+multi_license.sql
 multi_license_license.sql

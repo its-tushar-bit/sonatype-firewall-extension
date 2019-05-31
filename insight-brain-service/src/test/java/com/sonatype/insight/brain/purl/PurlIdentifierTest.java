@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.purl;
 
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -144,7 +145,7 @@ public class PurlIdentifierTest
   }
 
   @Test
-  public void testPurlIdentifier_Generic_ResolvePackageIdWithNamespace() {
+  public void testPurlIdentifier_Generic_ResolvePackageIdWithNamespace() throws Exception {
     Map<String, String> coordinates = new HashMap<>();
     coordinates.put("packageId", "namespace/name");
     coordinates.put(ComponentIdentifier.VERSION, "version");
@@ -152,7 +153,7 @@ public class PurlIdentifierTest
         PurlIdentifier.fromComponentIdentifier(new ComponentIdentifier("generic", coordinates));
     String packageUrl = "pkg:generic/namespace/name@version";
 
-    assertThat(URLDecoder.decode(purlIdentifier.getPackageUrl())).isEqualTo(packageUrl);
+    assertThat(URLDecoder.decode(purlIdentifier.getPackageUrl(), StandardCharsets.UTF_8.name())).isEqualTo(packageUrl);
   }
 
   @Test

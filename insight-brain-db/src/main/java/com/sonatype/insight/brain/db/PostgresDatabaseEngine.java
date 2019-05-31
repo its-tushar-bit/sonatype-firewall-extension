@@ -5,6 +5,13 @@
  */
 package com.sonatype.insight.brain.db;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 import com.sonatype.insight.db.DatabaseEngine;
 
 public class PostgresDatabaseEngine
@@ -24,5 +31,19 @@ public class PostgresDatabaseEngine
   @Override
   public String buildSetSchemaSql(String schemaName) {
     return "SET SCHEMA '" + schemaName + "'";
+  }
+
+  @Override
+  public SortedMap<String, String> getDatabaseSettings(Connection connection) throws SQLException {
+    SortedMap<String, String> databaseSettings = new TreeMap<>();
+    try (Statement statement = connection.createStatement(); ResultSet result = statement
+        .executeQuery("SHOW ALL")) {
+      while (result.next()) {
+        String name = result.getString(1);
+        String value = result.getString(2);
+        databaseSettings.put(name, value);
+      }
+    }
+    return databaseSettings;
   }
 }

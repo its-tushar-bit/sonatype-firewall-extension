@@ -9,9 +9,11 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -57,9 +59,10 @@ class DbDiagnostics
 
     final int version = DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStoreProvider.ID);
     result.append("Schema version: ").append(version).append("\n");
-
     addLatencyInformation(result, dataSource);
-
+    result.append("-- Database Settings --\n");
+    getDatabaseSettings(dataSource)
+        .forEach((name, value) -> result.append(name).append(": ").append(value).append("\n"));
     return result.toString();
   }
 
@@ -78,6 +81,15 @@ class DbDiagnostics
     }
     catch (Exception e) {
       throw new IllegalStateException("Failed attempt to get database product version.", e);
+    }
+  }
+
+  private static Map<String, String> getDatabaseSettings(DataSource dataSource) {
+    try (Connection connection = dataSource.getConnection()) {
+      return DataSourceFactory.getDatabaseEngine(dataSource).getDatabaseSettings(connection);
+    }
+    catch (Exception e) {
+      throw new IllegalStateException("Failed attempt to get database settings.", e);
     }
   }
 

@@ -57,6 +57,8 @@ public class DbDiagnosticsTest
         .contains("Latency Information")
         .contains("Minimum")
         .contains("Maximum")
-        .contains("Average");
+        .contains("Average")
+        .contains("-- Database Settings --\n")
+        .contains("DATABASE_TO_UPPER: FALSE");
   }
 }

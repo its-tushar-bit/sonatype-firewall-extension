@@ -183,6 +183,13 @@ import exceptionHandler from './exception.handler.factory';
           });
         }]);
       },
+      'registerOpenViewListener': function (listener) {
+        waitOnInjector(['$rootScope', function ($rootScope) {
+          $rootScope.$on('openView', function (event, view) {
+            listener(view);
+          });
+        }]);
+      },
       /**
        * @since 1.13.0
        */

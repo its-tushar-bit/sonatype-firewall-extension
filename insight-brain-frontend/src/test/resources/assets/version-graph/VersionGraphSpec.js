@@ -879,6 +879,20 @@ var clmEndpointTemplate = {
       }));
     });
 
+    describe('Insight.registerOpenViewListener', function() {
+      var listener, scope;
+      beforeEach(inject(function($rootScope) {
+        listener = jasmine.createSpy('listener');
+        scope = $rootScope.$new();
+        Insight.registerOpenViewListener(listener);
+      }));
+
+      it('openView emitted with action calls listener with action', inject(function($rootScope) {
+        scope.$emit('openView', 'action');
+        expect(listener).toHaveBeenCalledWith('action');
+      }));
+    });
+
     describe('graph', function() {
       var scope = null,
           parentScope = null;
@@ -1079,5 +1093,30 @@ var clmEndpointTemplate = {
         expect(version).toEqual('5.5.23');
       }));
     });
+
+    describe('StatusController', function(){
+      var scope = null, eventName = null;
+      describe('initialization', function() {
+        beforeEach(inject(function($controller, $rootScope) {
+          scope = $rootScope.$new();
+          clmEndpoint.selectApplication = true;
+          clmEndpoint.openView = function (scope, event){
+            eventName = event;
+          };
+          $controller('StatusController', {
+            $scope: scope
+          });
+        }));
+        describe('$scope.openView()', function () {
+          it('calls clmEndpoint.openView() and prevents default', function(){
+            var mockEvent = new Event('ng-click');
+            spyOn(mockEvent, 'preventDefault');
+            scope.openView(mockEvent, 'event');
+            expect(eventName).toBe('event');
+            expect(mockEvent.preventDefault).toHaveBeenCalled();
+          });
+        });
+      });
+    })
   });
 }());

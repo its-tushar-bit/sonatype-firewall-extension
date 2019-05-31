@@ -7,7 +7,7 @@
 export default function StatusController($scope, State, Coordinates, OwnerContext) {
   $scope.openView = function($event, action) {
     $event.preventDefault();
-    clmEndpoint.openView(action);
+    clmEndpoint.openView($scope, action);
   };
 
   $scope.$watch(function() {

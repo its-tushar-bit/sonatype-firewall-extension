@@ -8,7 +8,9 @@ window.clmEndpoint = {
   migrate: true,
   selectApplication: false,
   viewDetails: true,
-  openView: window.Eclipse_openView,
+  openView: function(scope, value){
+    scope.$emit('openView', value);
+  },
   linkTarget: '_self',
   path: '../../'
 };

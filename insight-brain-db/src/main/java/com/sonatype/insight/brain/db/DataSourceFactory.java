@@ -6,9 +6,7 @@
 package com.sonatype.insight.brain.db;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -47,7 +45,7 @@ public class DataSourceFactory
     DatabaseEngine databaseEngine = getDatabaseEngine(dataSource);
     boolean isNew = populateDatabaseSchema(dataSource, databaseEngine, databaseName);
     if (H2DatabaseEngine.INSTANCE.equals(databaseEngine)) {
-      logDatabaseSettings(dataSource);
+      logDatabaseSettings(dataSource, databaseEngine);
     }
     newDataSources.put(dataSource, isNew);
 
@@ -86,19 +84,10 @@ public class DataSourceFactory
     }
   }
 
-  private void logDatabaseSettings(DataSource dataSource) {
+  private void logDatabaseSettings(DataSource dataSource, DatabaseEngine databaseEngine) {
     try (Connection connection = dataSource.getConnection()) {
-      try (Statement statement = connection.createStatement()) {
-        try (ResultSet result = statement
-            .executeQuery("SELECT name, value FROM INFORMATION_SCHEMA.SETTINGS ORDER BY name")) {
-          log.debug("Database settings:");
-          while (result.next()) {
-            String name = result.getString(1);
-            String value = result.getString(2);
-            log.debug("\t{}={}", name, value);
-          }
-        }
-      }
+      log.debug("Database settings:");
+      databaseEngine.getDatabaseSettings(connection).forEach((key, value) -> log.debug("\t{}={}", key, value));
     }
     catch (Exception e) {
       log.error("Failed to load database settings: " + e.getMessage(), e);

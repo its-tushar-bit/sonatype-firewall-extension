@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.db;
 
 import java.io.File;
 import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.Statement;
 
 import javax.sql.DataSource;
@@ -15,6 +17,8 @@ import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.Test;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -87,6 +91,30 @@ public abstract class AbstractDatabaseProviderTest
       // Existing database
       DataSourceFactory.clear_ForTestsOnly();
       verifyDatabaseCreation(databaseConfig);
+    }
+  }
+
+  @Test
+  public void testInit_Migrate_Postgres() throws Exception {
+    try (PostgresServer postgres = new PostgresServer()) {
+      DatabaseConfig databaseConfig = getDatabaseConfig(postgres);
+
+      ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
+      resourceDatabasePopulator
+          .addScript(new ClassPathResource(getClass().getSimpleName() + "/Migrate/postgres-initial-version.sql"));
+      try (Connection connection =
+          DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())) {
+        resourceDatabasePopulator.populate(connection);
+        try (Statement statement = connection.createStatement();
+            ResultSet results = statement.executeQuery("SELECT * FROM " + getSchemaName() + ".schema_version")) {
+          assertThat(results.next()).isTrue();
+        }
+      }
+
+      initDatabase(databaseConfig);
+
+      int desiredDbVersion = DatabaseMigrator.determineDesiredVersion(getSchemaName());
+      assertThat(DatabaseUtil.getDatabaseSchemaVersion(getDataSource(), getSchemaName())).isEqualTo(desiredDbVersion);
     }
   }
 }

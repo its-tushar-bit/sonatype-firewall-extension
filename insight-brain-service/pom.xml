@@ -478,6 +478,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>postgres-server</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-test</artifactId>
       <scope>test</scope>

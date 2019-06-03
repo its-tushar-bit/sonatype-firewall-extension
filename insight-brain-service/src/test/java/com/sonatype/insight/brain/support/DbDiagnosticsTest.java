@@ -8,9 +8,10 @@ package com.sonatype.insight.brain.support;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.postgres.PostgresServer;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -25,18 +26,18 @@ public class DbDiagnosticsTest
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
-  @BeforeClass
-  public static void setup() {
+  @Before
+  public void setup() {
     DataSourceFactory.clear_ForTestsOnly();
   }
 
-  @AfterClass
-  public static void cleanup() {
+  @After
+  public void cleanup() {
     DataSourceFactory.clear_ForTestsOnly();
   }
 
   @Test
-  public void testGetDBFileInfo() throws Exception {
+  public void testGetDBFileInfo_H2() throws Exception {
     // We need an on-disk database for this test.
     final DatabaseConfig databaseConfig = new DatabaseConfig();
     databaseConfig.setDriverClassName("org.h2.Driver");
@@ -60,5 +61,30 @@ public class DbDiagnosticsTest
         .contains("Average")
         .contains("-- Database Settings --\n")
         .contains("DATABASE_TO_UPPER: FALSE");
+  }
+
+  @Test
+  public void testGetDBFileInfo_Postgres() throws Exception {
+    try (PostgresServer postgres = new PostgresServer()) {
+      DatabaseConfig databaseConfig = new DatabaseConfig();
+      databaseConfig.setDriverClassName(org.postgresql.Driver.class.getName());
+      databaseConfig.setUrl(postgres.getJdbcUrl());
+      databaseConfig.setUsername(postgres.getUsername());
+      databaseConfig.setPassword(postgres.getPassword());
+      OperationalDataStoreProvider.init(databaseConfig, false);
+
+      final String dbDiagnostics = DbDiagnostics.getDBFileInfo();
+      assertThat(dbDiagnostics) //
+          .startsWith("-- Database Diagnostics --\n") //
+          .contains("Database product name: PostgreSQL") //
+          .containsPattern("Database product version: [0-9]+") //
+          .containsPattern("Schema version: [0-9]+") //
+          .contains("Latency Information") //
+          .containsPattern("Minimum: [0-9]+ microseconds") //
+          .containsPattern("Maximum: [0-9]+ microseconds") //
+          .containsPattern("Average: [0-9]+ microseconds") //
+          .contains("-- Database Settings --\n") //
+          .contains("server_encoding: UTF8");
+    }
   }
 }

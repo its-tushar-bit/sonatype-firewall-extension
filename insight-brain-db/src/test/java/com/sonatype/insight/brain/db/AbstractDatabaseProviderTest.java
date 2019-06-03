@@ -12,6 +12,7 @@ import java.sql.Statement;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.Test;
 
@@ -42,7 +43,7 @@ public abstract class AbstractDatabaseProviderTest
       String databaseURL = conn.getMetaData().getURL();
       assertThat(databaseURL).isNotNull();
       if (databaseConfig != null) {
-        assertThat(databaseConfig.getUrl()).startsWith(databaseURL + ";");
+        assertThat(databaseConfig.getUrl()).startsWith(databaseURL);
       }
       else {
         assertThat(databaseURL).isEqualTo("jdbc:h2:mem:inMemoryDatabase");
@@ -53,7 +54,7 @@ public abstract class AbstractDatabaseProviderTest
   }
 
   @Test
-  public void testDatabaseCreation_OnDisk() throws Exception {
+  public void testDatabaseCreation_H2_OnDisk() throws Exception {
     File databaseDir = tempDir.newFolder();
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "test");
 
@@ -71,7 +72,21 @@ public abstract class AbstractDatabaseProviderTest
   }
 
   @Test
-  public void testDatabaseCreation_InMemory() throws Exception {
+  public void testDatabaseCreation_H2_InMemory() throws Exception {
     verifyDatabaseCreation(null);
+  }
+
+  @Test
+  public void testDatabaseCreation_Postgres() throws Exception {
+    try (PostgresServer postgres = new PostgresServer()) {
+      DatabaseConfig databaseConfig = getDatabaseConfig(postgres);
+
+      // New database
+      verifyDatabaseCreation(databaseConfig);
+
+      // Existing database
+      DataSourceFactory.clear_ForTestsOnly();
+      verifyDatabaseCreation(databaseConfig);
+    }
   }
 }

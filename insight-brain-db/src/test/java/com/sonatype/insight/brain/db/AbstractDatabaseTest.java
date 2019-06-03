@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.postgres.PostgresServer;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
@@ -38,6 +39,16 @@ public abstract class AbstractDatabaseTest
         "jdbc:h2:" + databasePath.getAbsolutePath() + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
     databaseConfig.setUsername("sa");
     databaseConfig.setPassword("");
+    databaseConfig.setMaxConnections(50);
+    return databaseConfig;
+  }
+
+  protected DatabaseConfig getDatabaseConfig(PostgresServer postgres) {
+    DatabaseConfig databaseConfig = new DatabaseConfig();
+    databaseConfig.setDriverClassName(org.postgresql.Driver.class.getName());
+    databaseConfig.setUrl(postgres.getJdbcUrl());
+    databaseConfig.setUsername(postgres.getUsername());
+    databaseConfig.setPassword(postgres.getPassword());
     databaseConfig.setMaxConnections(50);
     return databaseConfig;
   }

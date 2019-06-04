@@ -75,7 +75,7 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
         }
       }),
       ProductFeatures.load().then(function() {
-        loadWebhooksIfSupported();
+        return loadWebhooksIfSupported();
       })
     ];
 
@@ -83,6 +83,7 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
       vm.actionStages = results[0];
       vm.roles = results[1].membersByRole;
       var jiraResults = results[2];
+      var webhookResults = results[3];
 
       if (!jiraResults) {
         // JIRA is disabled
@@ -95,6 +96,16 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
           vm.recipientTypeOptions.push(vm.recipientTypes.JIRA);
         }
         jiraProjects = jiraResults.projects;
+      }
+
+      if (!webhookResults || !vm.isWebhooksSupported) {
+        // webhooks is disabled or not licensed
+      }
+      else if (webhookResults.webhookError) {
+        vm.webhookError = webhookResults.webhookError;
+      }
+      else {
+        vm.webhooks = webhookResults.webhooks;
       }
 
       roleNames = vm.roles ? mapRoleNames() : {};
@@ -127,12 +138,17 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
     vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks-for-applications') ||
         ProductFeatures.isAvailable('webhooks-for-repositories');
     if (vm.isWebhooksSupported) {
+      var getWebhooksDeferred = $q.defer();
       WebhookStore[vm.loadError ? 'refresh' : 'get']().then(function(results) {
-        vm.webhooks = results;
-        updateAvailableWebhooks();
+        getWebhooksDeferred.resolve({
+          webhooks: results
+        });
       }, function(error) {
-        vm.webhookError = error;
+        getWebhooksDeferred.resolve({
+          webhookError: error
+        });
       });
+      return getWebhooksDeferred.promise;
     }
   }
 

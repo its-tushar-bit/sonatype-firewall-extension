@@ -27,6 +27,7 @@
   font-style: normal;
   text-decoration: none;
   word-wrap: break-word;
+  word-break: break-word;
 }
 
 #infoPanelArtifactTable tr td:first-child {

@@ -259,6 +259,12 @@ public class InsightConfig
   @JsonProperty
   private boolean cspEnabled = true;
 
+  /**
+   * @since 1.66
+   */
+  @JsonProperty
+  private boolean enablePolicyReportPreviousVersionLink = true;
+
   @NotNull
   public ProxyConfig getProxyConfig() {
     return proxy;
@@ -678,5 +684,14 @@ public class InsightConfig
   @JsonIgnore
   public boolean isDatabaseEmbedded() {
     return database == null;
+  }
+
+  @JsonIgnore
+  public boolean isEnablePolicyReportPreviousVersionLink() {
+    return enablePolicyReportPreviousVersionLink;
+  }
+
+  public void setEnablePolicyReportPreviousVersionLink(final boolean enablePolicyReportPreviousVersionLink) {
+    this.enablePolicyReportPreviousVersionLink = enablePolicyReportPreviousVersionLink;
   }
 }

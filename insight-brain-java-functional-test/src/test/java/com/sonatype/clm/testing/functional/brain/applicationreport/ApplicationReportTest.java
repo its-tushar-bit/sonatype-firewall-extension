@@ -205,6 +205,17 @@ public class ApplicationReportTest
   }
 
   @Test
+  public void testSettingConfigControlsDisplayOfOldReportLinkTile() {
+    testCLMServer.getCLMServer().getConfiguration().setEnablePolicyReportPreviousVersionLink(false);
+    refresh();
+    reportPage.oldReportLinkTile().shouldNotBe(visible);
+
+    testCLMServer.getCLMServer().getConfiguration().setEnablePolicyReportPreviousVersionLink(true);
+    refresh();
+    reportPage.oldReportLinkTile().shouldBe(visible);
+  }
+
+  @Test
   public void testTextIndicators() throws Exception {
     Policy licenseBanned = new PolicyDAO().getByName("License-Banned").get(0);
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());

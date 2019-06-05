@@ -101,4 +101,17 @@ public class FeatureServiceTest
     when(licenseManager.isValid()).thenReturn(true);
     assertThat(featuresService.getFeatures()).contains(Feature.ALLOW_EXTERNAL_HYPERLINKS);
   }
+
+  @Test
+  public void testGetFeatures_WithoutEnablePolicyReportPreviousVersionLink() {
+    when(licenseManager.isValid()).thenReturn(true);
+    insightConfig.setEnablePolicyReportPreviousVersionLink(false);
+    assertThat(featuresService.getFeatures()).doesNotContain(Feature.ENABLE_POLICY_REPORT_PREVIOUS_VERSION_LINK);
+  }
+
+  @Test
+  public void testGetFeatures_WithEnablePolicyReportPreviousVersionLink() {
+    when(licenseManager.isValid()).thenReturn(true);
+    assertThat(featuresService.getFeatures()).contains(Feature.ENABLE_POLICY_REPORT_PREVIOUS_VERSION_LINK);
+  }
 }

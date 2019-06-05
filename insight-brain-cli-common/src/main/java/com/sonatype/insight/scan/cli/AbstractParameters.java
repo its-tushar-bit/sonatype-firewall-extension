@@ -6,6 +6,7 @@
 package com.sonatype.insight.scan.cli;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.ProxySelector;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.scan.model.ScanMetadata;
 
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.IValueValidator;
@@ -23,6 +25,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.converters.StringConverter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public abstract class AbstractParameters
 {
@@ -87,6 +90,11 @@ public abstract class AbstractParameters
   @Parameter(names = {"-e", "--ignore-system-errors"}, description = "Ignore system errors (IO, network, server, etc)")
   private boolean ignoreSystemErrors;
 
+  @Parameter(names = { "-m", "--metadata-file" }, converter = ScanMetadataFileParameterConverter.class,
+      description = "Path to a JSON file where meta information about the evaluation request, such as commit hash, " +
+          "is located")
+  private ScanMetadata scanMetadata;
+
   @Parameter(names = { "-h", "--help" }, description = "Show this help screen")
   private boolean help;
 
@@ -94,6 +102,7 @@ public abstract class AbstractParameters
   }
 
   public String createUsageHelp() {
+
     JCommander jc;
     try {
       // NOTE: Be sure to use a fresh params instance to not have current state spoil default values
@@ -216,6 +225,10 @@ public abstract class AbstractParameters
     return ignoreSystemErrors;
   }
 
+  public ScanMetadata getScanMetadata() {
+    return scanMetadata;
+  }
+
   /*
    * Validator for the stage parameter
    */
@@ -239,6 +252,25 @@ public abstract class AbstractParameters
     @Override
     public Stage convert(String value) {
       return new Stage(value.toLowerCase(Locale.ENGLISH));
+    }
+  }
+
+  /*
+   * Converter to convert the metadata filename into a Metadata object by loading the contents of the metadata file
+   */
+  public static class ScanMetadataFileParameterConverter
+      implements IStringConverter<ScanMetadata>
+  {
+    @Override
+    public ScanMetadata convert(final String value) {
+      try {
+        File file = new File(value);
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(file, ScanMetadata.class);
+      }
+      catch (IOException e) {
+        throw new ParameterException("The specified metadata file '" + value + "' is invalid due to " + e.getMessage());
+      }
     }
   }
 }

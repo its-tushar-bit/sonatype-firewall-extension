@@ -123,7 +123,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       for (String scanTarget : params.getScanTargets()) {
         files.add(new File(scanTarget));
       }
-      scanner.scan(scanFile, files, getScanConfiguration(params, proprietaryConfig));
+      scanner.scan(scanFile, files, getScanConfiguration(params, proprietaryConfig), params.getScanMetadata());
       return scanFile;
     }
     catch (IOException e) {

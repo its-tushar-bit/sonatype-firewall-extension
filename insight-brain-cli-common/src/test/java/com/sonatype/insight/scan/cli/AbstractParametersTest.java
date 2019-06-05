@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.scan.cli;
 
+import java.io.File;
 import java.util.List;
 
 import org.junit.Test;
@@ -44,5 +45,28 @@ public class AbstractParametersTest
     TestParameters params = new TestParameters();
     String help = params.createUsageHelp();
     assertThat(help).contains("--debug");
+  }
+
+  @Test
+  public void testParse_WithValidMetadataJsonFile() {
+    TestParameters params = new TestParameters();
+    params.parse("-m", getFilePath("valid-metadata.json"), "-i", "appId", "-s", "http://localhost:8070");
+    assertThat(params.getError()).isNull();
+  }
+
+  @Test
+  public void testParse_WithInvalidMetadaJsonFile() {
+    TestParameters params = new TestParameters();
+    params.parse("--metadata-file", getFilePath("invalid-metadata.json"), "-i", "appId", "-s",
+        "http://localhost:8070");
+    assertThat(params.getError()).isNotNull();
+    assertThat(params.getError()).hasMessageStartingWith("The specified metadata file ")
+        .hasMessageContaining(" is invalid due to Unrecognized token 'commitHash'");
+  }
+
+  private String getFilePath(String filename) {
+    ClassLoader classLoader = getClass().getClassLoader();
+    File file = new File(classLoader.getResource("AbstractParametersTest/" + filename).getFile());
+    return file.getAbsolutePath();
   }
 }

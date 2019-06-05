@@ -21,6 +21,7 @@ import com.sonatype.insight.scan.file.FileScanner;
 import com.sonatype.insight.scan.file.ScanSession;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
+import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.insight.scan.model.io.ScanWriter;
 import com.sonatype.insight.scan.model.io.ScanWriterFactory;
 
@@ -53,13 +54,19 @@ public class Scanner
   }
 
   public void scan(File scanFile, List<File> targets, Properties config) throws IOException {
+    this.scan(scanFile, targets, config, null);
+  }
+
+  public void scan(File scanFile, List<File> targets, Properties config, ScanMetadata metadata) throws IOException {
     log.info("Starting scan...");
 
     Scan scan = new Scan();
     scan.setConfiguration(new ScanConfiguration(getScanConfigProps(config)));
+    scan.setMetadata(metadata);
     try (ScanWriter writer = writerFactory.newWriter(scanFile)) {
       writer.openScan(scan);
       writer.writeConfiguration(scan.getConfiguration());
+      writer.writeMetadata(metadata);
       scan.getSummary().setStartTime();
       ScanSession scanSession = new ScanSession(scan, writer);
       clientScanner.scan(new ClientScanRequest(scan));

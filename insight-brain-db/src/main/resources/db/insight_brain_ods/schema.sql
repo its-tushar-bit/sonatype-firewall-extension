@@ -522,6 +522,7 @@ CREATE TABLE proprietary_config (
 CREATE TABLE webhook (
   webhook_id varchar(50) NOT NULL,
   url varchar(2048) NOT NULL,
+  description varchar(2048),
   secret_key varchar(512),
   CONSTRAINT webhook_pk PRIMARY KEY (webhook_id)
 );

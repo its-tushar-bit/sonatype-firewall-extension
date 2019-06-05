@@ -1518,11 +1518,15 @@ public class TemporaryEntity
     return config;
   }
 
-  public Webhook newWebhookWithSecret(String url, Set<WebhookEventType> events) {
-    Webhook webhook = new Webhook(url, WEBHOOK_SECRET_KEY_ENCRYPTED, events);
+  public Webhook newWebhookWithSecret(String url, Set<WebhookEventType> events, String description) {
+    Webhook webhook = new Webhook(url, WEBHOOK_SECRET_KEY_ENCRYPTED, events, description);
     webhookDAO.insert(webhook);
     webhooks.add(webhook);
     return webhook;
+  }
+
+  public Webhook newWebhookWithSecret(String url, Set<WebhookEventType> events) {
+    return newWebhookWithSecret(url, events, null);
   }
 
   public Webhook newWebhookWithSecret(Set<WebhookEventType> events) {

@@ -145,6 +145,9 @@ public abstract class AbstractPolicyEditorTest
     Label sampleLabel = tempEntity.newLabel(currentOwner.getId(), "Sample Label");
     Webhook webhook =
         tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.POLICY_ALERT));
+    Webhook webhookWithDescription = tempEntity.newWebhookWithSecret("http://localhost",
+        Collections.singleton(WebhookEventType.POLICY_ALERT), "description");
+
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     OwnerSummaryPage.policyTile().addPolicyButton().click();
 
@@ -205,10 +208,12 @@ public abstract class AbstractPolicyEditorTest
     assertThat(newPolicy.getNotifications().getRoleNotifications().get(0).getStageIds())
         .containsExactlyInAnyOrder(Notification.CONTINUOUS_MONITORING);
 
-    assertThat(newPolicy.getNotifications().getWebhookNotifications()).hasSize(1);
+    assertThat(newPolicy.getNotifications().getWebhookNotifications()).hasSize(2);
     assertThat(newPolicy.getNotifications().getWebhookNotifications().get(0).getWebhookId()).isEqualTo(webhook.getId());
     assertThat(newPolicy.getNotifications().getWebhookNotifications().get(0).getStageIds())
         .containsExactlyInAnyOrder(Stage.ID_STAGE_RELEASE);
+    assertThat(newPolicy.getNotifications().getWebhookNotifications().get(1).getWebhookId())
+        .isEqualTo(webhookWithDescription.getId());
 
     testCreatePolicy_navigatingAwayWithUnsavedData();
   }
@@ -1081,9 +1086,18 @@ public abstract class AbstractPolicyEditorTest
     addNotification.webhook().listItems().findBy(text("http://localhost")).click();
     addNotification.addButton().shouldNotHave(DISABLED).click();
 
+    // add webhook with description
+    addNotification.notificationType().selectedItem().click();
+    addNotification.notificationType().listItem(2).click();
+    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.webhook().shouldBe(visible).selectedItem().click();
+    addNotification.webhook().listItems().findBy(text("description")).click();
+    addNotification.addButton().shouldNotHave(DISABLED).click();
+
     NotificationsSection.notifications().get(0).shouldHave(text("Application Evaluator"));
     NotificationsSection.notifications().get(1).shouldHave(text("aaa@sonatype.com"));
     NotificationsSection.notifications().get(2).shouldHave(text("Webhook: http://localhost"));
+    NotificationsSection.notifications().get(3).shouldHave(text("Webhook: description"));
 
     // check stages
     NotificationsSection.notificationFor("aaa@sonatype.com").build().click();

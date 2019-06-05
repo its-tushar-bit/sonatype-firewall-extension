@@ -39,6 +39,9 @@ public class Webhook
   @Column(name = "secret_key")
   private String secretKey;
 
+  @Column(name = "description")
+  private String description;
+
   @ElementCollection(targetClass = WebhookEventType.class)
   @CollectionTable(name = "webhook_event_type", joinColumns = @JoinColumn(name = "webhook_id"))
   @Column(name = "event_type", nullable = false)
@@ -49,17 +52,25 @@ public class Webhook
   }
 
   public Webhook(final String url, final String secretKey) {
-    this.url = url;
-    this.secretKey = secretKey;
+    this(url, secretKey, null);
   }
 
   public Webhook(final String url,
                  final String secretKey,
                  final Set<WebhookEventType> eventTypes)
   {
+    this(url, secretKey, eventTypes, null);
+  }
+
+  public Webhook(final String url,
+                 final String secretKey,
+                 final Set<WebhookEventType> eventTypes,
+                 final String description)
+  {
     this.url = url;
     this.secretKey = secretKey;
     this.eventTypes = eventTypes;
+    this.description = description;
   }
 
   @Override
@@ -94,5 +105,13 @@ public class Webhook
 
   public void setEventTypes(final Set<WebhookEventType> eventTypes) {
     this.eventTypes = eventTypes;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(final String description) {
+    this.description = description;
   }
 }

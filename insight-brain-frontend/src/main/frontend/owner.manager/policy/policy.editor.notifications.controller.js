@@ -246,7 +246,7 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
         return recipient.webhookId === webhook.id;
       });
       if (webhook) {
-        return 'Webhook: ' + webhook.url;
+        return 'Webhook: ' + (webhook.description ? webhook.description : webhook.url);
       }
       else {
         return 'Undefined webhook';
@@ -382,14 +382,19 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
   function updateAvailableWebhooks() {
     if (!vm.notifications.webhookNotifications || vm.notifications.webhookNotifications.length === 0) {
       availableWebhooks = vm.webhooks;
-      return;
     }
-
-    availableWebhooks = vm.webhooks.filter(function(webhook) {
-      return !vm.notifications.webhookNotifications.some(function(notification) {
-        return webhook.id === notification.webhookId;
+    else {
+      availableWebhooks = vm.webhooks.filter(function(webhook) {
+        return !vm.notifications.webhookNotifications.some(function(notification) {
+          return webhook.id === notification.webhookId;
+        });
       });
-    });
+    }
+    if (availableWebhooks) {
+      availableWebhooks.forEach(function(webhook) {
+        webhook.displayName = webhook.description ? webhook.description : webhook.url;
+      });
+    }
   }
 
   function getAvailableWebhooks() {

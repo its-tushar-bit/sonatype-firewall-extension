@@ -42,6 +42,19 @@
                    clm-input/>
           </div>
           <div class="iq-form-group">
+            <label class="iq-label" for="editor-webhook-url">
+              Webhook description - optional
+              <div class="iq-sub-label">a description for your webhook used in the UI</div>
+            </label>
+            <input class="iq-text-input iq-text-input--long"
+                   id="editor-webhook-description"
+                   type="text"
+                   name="description"
+                   ng-model="vm.dirtyWebhook.description"
+                   ng-maxlength="2048"
+                   clm-input/>
+          </div>
+          <div class="iq-form-group">
             <label class="iq-label" for="editor-webhook-secret-key">
               Secret Key <span class="optional">- optional</span>
               <div class="iq-sub-label">used for the HMAC payload digest</div>

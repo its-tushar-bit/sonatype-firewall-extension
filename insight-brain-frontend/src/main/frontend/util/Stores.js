@@ -255,6 +255,7 @@ storesModule.service('WebhookStore', [
       template: {
         id: null,
         url: null,
+        description: null,
         secretKey: '',
         eventTypes: []
       },

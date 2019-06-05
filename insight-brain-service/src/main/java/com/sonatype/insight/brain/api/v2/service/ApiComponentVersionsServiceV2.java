@@ -15,8 +15,10 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentOrPurlIdentifierDTOV2;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.purl.PurlIdentifier;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
@@ -40,17 +42,43 @@ public class ApiComponentVersionsServiceV2
     this.hdsClient = hdsClient;
   }
 
-  public List<String> getComponentVersions(final ApiComponentIdentifierDTOV2 componentIdentifierDTO) {
-    long start = System.currentTimeMillis();
+  public List<String> getComponentVersions(final ApiComponentOrPurlIdentifierDTOV2 componentOrPurlIdentifierDTOV2) {
+    if (componentOrPurlIdentifierDTOV2 != null) {
+      if (componentOrPurlIdentifierDTOV2.getPackageUrl() != null) {
+        return getComponentVersions(componentOrPurlIdentifierDTOV2.getPackageUrl());
+      }
+      else {
+        return getComponentVersions((ApiComponentIdentifierDTOV2) componentOrPurlIdentifierDTOV2);
+      }
+    }
+    else {
+      throw new BadRequestException("Missing component identifier");
+    }
+  }
 
-    ComponentIdentifier componentIdentifier;
+  private List<String> getComponentVersions(final ApiComponentIdentifierDTOV2 componentIdentifierDTO) {
     try {
-      componentIdentifier = new ComponentIdentifier(componentIdentifierDTO.getFormat(),
-          componentIdentifierDTO.getCoordinates());
+      ComponentIdentifier componentIdentifier =
+          new ComponentIdentifier(componentIdentifierDTO.getFormat(), componentIdentifierDTO.getCoordinates());
+      return getComponentVersions(componentIdentifier);
     }
     catch (InvalidComponentIdentifierException e) {
       throw new BadRequestException(e.getMessage(), e);
     }
+  }
+
+  private List<String> getComponentVersions(final String packageUrl) {
+    try {
+      PurlIdentifier purlIdentifier = new PurlIdentifier(packageUrl);
+      return getComponentVersions(purlIdentifier.toComponentIdentifier());
+    }
+    catch (IllegalArgumentException e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
+  }
+
+  private List<String> getComponentVersions(final ComponentIdentifier componentIdentifier) {
+    long start = System.currentTimeMillis();
 
     List<String> versions = hdsClient.get(List.class, HDS_COMPONENT_VERSIONS_LIST_PATH,
         Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier)));

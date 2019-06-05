@@ -100,7 +100,7 @@ public class PurlIdentifier
       this.packageUrl = new PackageURL(packageUrl);
     }
     catch (MalformedPackageURLException e) {
-      throw new IllegalArgumentException(e);
+      throw new IllegalArgumentException("Invalid package url", e);
     }
   }
 

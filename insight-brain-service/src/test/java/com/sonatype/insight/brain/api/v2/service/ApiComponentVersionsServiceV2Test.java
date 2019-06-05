@@ -12,7 +12,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentOrPurlIdentifierDTOV2;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -47,10 +47,28 @@ public class ApiComponentVersionsServiceV2Test
 
     when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
         Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier))))
-            .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
-    
-    List<String> versions = apiComponentVersionsServiceV2
-        .getComponentVersions(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+        .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
+
+    ApiComponentOrPurlIdentifierDTOV2 apiComponentOrPurlIdentifierDTOV2 =
+        ApiComponentOrPurlIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
+
+    List<String> versions = apiComponentVersionsServiceV2.getComponentVersions(apiComponentOrPurlIdentifierDTOV2);
+
+    assertThat(versions).containsExactly("v1", "v2", "v3", "v4");
+  }
+
+  @Test
+  public void testGetComponentVersions_PurlIdentifier() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+
+    when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
+        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier))))
+        .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
+
+    ApiComponentOrPurlIdentifierDTOV2 apiComponentOrPurlIdentifierDTOV2 = new ApiComponentOrPurlIdentifierDTOV2();
+    apiComponentOrPurlIdentifierDTOV2.setPackageUrl("pkg:maven/g1/a1@v1?classifier=c1&extension=e1");
+
+    List<String> versions = apiComponentVersionsServiceV2.getComponentVersions(apiComponentOrPurlIdentifierDTOV2);
 
     assertThat(versions).containsExactly("v1", "v2", "v3", "v4");
   }
@@ -61,10 +79,28 @@ public class ApiComponentVersionsServiceV2Test
 
     when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
         Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier))))
-            .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
+        .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
 
-    List<String> versions = apiComponentVersionsServiceV2
-        .getComponentVersions(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    ApiComponentOrPurlIdentifierDTOV2 apiComponentOrPurlIdentifierDTOV2 =
+        ApiComponentOrPurlIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
+
+    List<String> versions = apiComponentVersionsServiceV2.getComponentVersions(apiComponentOrPurlIdentifierDTOV2);
+
+    assertThat(versions).containsExactly("v1", "v2", "v3", "v4");
+  }
+
+  @Test
+  public void testGetComponentVersions_PurlIdentifier_EmptyVersion() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "");
+
+    when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
+        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier))))
+        .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
+
+    ApiComponentOrPurlIdentifierDTOV2 apiComponentOrPurlIdentifierDTOV2 = new ApiComponentOrPurlIdentifierDTOV2();
+    apiComponentOrPurlIdentifierDTOV2.setPackageUrl("pkg:maven/g1/a1@");
+
+    List<String> versions = apiComponentVersionsServiceV2.getComponentVersions(apiComponentOrPurlIdentifierDTOV2);
 
     assertThat(versions).containsExactly("v1", "v2", "v3", "v4");
   }
@@ -75,22 +111,46 @@ public class ApiComponentVersionsServiceV2Test
 
     when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
         Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier))))
-            .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
+        .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
 
-    List<String> versions = apiComponentVersionsServiceV2
-        .getComponentVersions(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    ApiComponentOrPurlIdentifierDTOV2 apiComponentOrPurlIdentifierDTOV2 =
+        ApiComponentOrPurlIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
+
+    List<String> versions = apiComponentVersionsServiceV2.getComponentVersions(apiComponentOrPurlIdentifierDTOV2);
 
     assertThat(versions).containsExactly("v1", "v2", "v3", "v4");
   }
 
   @Test
+  public void testGetComponentVersions_PurlIdentifier_NullVersion() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", null);
+
+    when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
+        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier))))
+        .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
+
+    ApiComponentOrPurlIdentifierDTOV2 apiComponentOrPurlIdentifierDTOV2 = new ApiComponentOrPurlIdentifierDTOV2();
+    apiComponentOrPurlIdentifierDTOV2.setPackageUrl("pkg:maven/g1/a1");
+
+    List<String> versions = apiComponentVersionsServiceV2.getComponentVersions(apiComponentOrPurlIdentifierDTOV2);
+    assertThat(versions).containsExactly("v1", "v2", "v3", "v4");
+  }
+
+  @Test
   public void testGetComponentVersions_InvalidComponentIdentifier() throws Exception {
-    ApiComponentIdentifierDTOV2 apiComponentIdentifierDTOV2 = new ApiComponentIdentifierDTOV2();
-    apiComponentIdentifierDTOV2.setFormat(ComponentIdentifier.FORMAT_MAVEN);
-    apiComponentIdentifierDTOV2.setCoordinates(Collections.singletonMap("no-such-coordinate", "x"));
+    ApiComponentOrPurlIdentifierDTOV2 apiComponentOrPurlIdentifierDTOV2 = new ApiComponentOrPurlIdentifierDTOV2();
+    apiComponentOrPurlIdentifierDTOV2.setFormat(ComponentIdentifier.FORMAT_MAVEN);
+    apiComponentOrPurlIdentifierDTOV2.setCoordinates(Collections.singletonMap("no-such-coordinate", "x"));
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiComponentVersionsServiceV2.getComponentVersions(apiComponentIdentifierDTOV2);
+      apiComponentVersionsServiceV2.getComponentVersions(apiComponentOrPurlIdentifierDTOV2);
     }).withMessage("Coordinates contain the following incorrect entries for the given format: [no-such-coordinate]");
+  }
+
+  @Test
+  public void testGetComponentVersions_NullValue() throws Exception {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      apiComponentVersionsServiceV2.getComponentVersions(null);
+    }).withMessage("Missing component identifier");
   }
 }

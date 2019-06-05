@@ -16,7 +16,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentOrPurlIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentVersionsServiceV2;
 
 import com.codahale.metrics.annotation.Timed;
@@ -39,7 +39,7 @@ public class ApiComponentVersionsResourceV2
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<String> getComponentVersions(final ApiComponentIdentifierDTOV2 componentIdentifier) {
-    return componentVersionsService.getComponentVersions(componentIdentifier);
+  public List<String> getComponentVersions(final ApiComponentOrPurlIdentifierDTOV2 componentOrPurlIdentifier) {
+    return componentVersionsService.getComponentVersions(componentOrPurlIdentifier);
   }
 }

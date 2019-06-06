@@ -50,6 +50,7 @@
     <class>com.sonatype.insight.brain.model.configuration.webhook.Webhook</class>
     <class>com.sonatype.insight.brain.model.configuration.SystemNotice</class>
     <class>com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty</class>
+    <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControl</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

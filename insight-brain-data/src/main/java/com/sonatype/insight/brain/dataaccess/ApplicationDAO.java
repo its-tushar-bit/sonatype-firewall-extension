@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -357,6 +358,9 @@ public class ApplicationDAO
     if (proprietaryConfig != null) {
       proprietaryConfigDAO.delete(tx, proprietaryConfig);
     }
+
+    // Cascade to SourceControl config
+    new SourceControlDAO().deleteByApplicationId(tx, application.getId());
 
     super.delete(tx, application);
 

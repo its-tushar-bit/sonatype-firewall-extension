@@ -158,7 +158,11 @@ public enum AuditEvent
 
   CREATE_JIRA_ISSUE(Domain.NOTIFICATION_ISSUE_JIRA, Type.CREATE),
 
-  CONFIGURE_PROXY(Domain.SERVER_PROXY, Type.CONFIGURE);
+  CONFIGURE_PROXY(Domain.SERVER_PROXY, Type.CONFIGURE),
+  
+  CREATE_SCM(Domain.SERVER_SOURCE_CONTROL, Type.CREATE),
+  UPDATE_SCM(Domain.SERVER_SOURCE_CONTROL, Type.UPDATE),
+  DELETE_SCM(Domain.SERVER_SOURCE_CONTROL, Type.DELETE);
 
   private final String domain;
 
@@ -272,6 +276,8 @@ public enum AuditEvent
     String SERVER_WEBHOOK = join(SERVER, "webhook");
 
     String SERVER_PROXY = join(SERVER, "proxy");
+    
+    String SERVER_SOURCE_CONTROL = join(SERVER, "source-control");
 
     String REPORTING_APPLICATION_COMPOSITION = join(REPORTING, "application-composition");
 

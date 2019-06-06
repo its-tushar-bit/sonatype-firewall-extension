@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDataDAO;
@@ -104,6 +105,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
@@ -227,6 +229,8 @@ public class TemporaryEntity
 
   private final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
       new AutomaticApplicationsConfigurationDAO();
+  
+  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
   private Collection<Application> apps;
 
@@ -271,6 +275,8 @@ public class TemporaryEntity
   private Collection<SuccessMetricsReport> successMetricsReports;
 
   private Collection<SuccessMetricsReportData> successMetricsReportDatas;
+  
+  private Collection<SourceControl> sourceControls;
 
   @Override
   protected void before() {
@@ -296,6 +302,7 @@ public class TemporaryEntity
     policyViolationAggregations = new ArrayList<>();
     successMetricsReports = new ArrayList<>();
     successMetricsReportDatas = new ArrayList<>();
+    sourceControls = new ArrayList<>();
   }
 
   @Override
@@ -330,6 +337,7 @@ public class TemporaryEntity
     delete(policyViolationAggregations, policyViolationAggregationDAO);
     delete(successMetricsReportDatas, successMetricsReportDataDAO);
     delete(successMetricsReports, successMetricsReportDAO);
+    delete(sourceControls, sourceControlDAO);
 
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     if (config != null) {
@@ -1705,5 +1713,12 @@ public class TemporaryEntity
     automaticApplicationsConfigurationDAO.setOrganizationId(organization.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
     return organization;
+  }
+
+  public SourceControl newSourceControl(String applicationId, String repositoryUrl, String token) {
+    SourceControl sourceControl = new SourceControl(applicationId, repositoryUrl, token);
+    sourceControlDAO.insert(sourceControl);
+    sourceControls.add(sourceControl);
+    return sourceControl;
   }
 }

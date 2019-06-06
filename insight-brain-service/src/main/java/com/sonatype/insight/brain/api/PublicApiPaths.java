@@ -47,4 +47,6 @@ public class PublicApiPaths
       API_VERSION_PATH_V2 + "components/remediation/{ownerType: application|organization}/{ownerId}";
 
   public static final String PROXY_CONFIG_PATH_V2 = API_VERSION_PATH_V2 + "config/proxy";
+  
+  public static final String SOURCE_CONTROL_PATH_V2 = API_VERSION_PATH_V2 + "sourceControl";
 }

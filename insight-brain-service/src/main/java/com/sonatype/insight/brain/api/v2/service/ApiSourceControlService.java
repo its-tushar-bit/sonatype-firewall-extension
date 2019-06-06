@@ -1,0 +1,180 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2.service;
+
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
+import com.sonatype.insight.error.exception.NotFoundException;
+
+import org.sonatype.plexus.components.cipher.PlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
+@Named
+@Singleton
+public class ApiSourceControlService
+{
+  private static final Logger log = LoggerFactory.getLogger(ApiSourceControlService.class);
+
+  private static final String ENC = "CMMDwoV";
+
+  private final PlexusCipher plexusCipher;
+
+  private final SourceControlDAO sourceControlDAO;
+
+  private final CLMLicenseManager clmLicenseManager;
+
+  @Inject
+  public ApiSourceControlService(final PlexusCipher plexusCipher, final SourceControlDAO sourceControlDAO, 
+      final CLMLicenseManager clmLicenseManager) 
+  {
+    this.plexusCipher = plexusCipher;
+    this.sourceControlDAO = sourceControlDAO;
+    this.clmLicenseManager = clmLicenseManager;
+  }
+
+  @Authorize(permission = Permission.READ)
+  public List<SourceControl> getAll() {
+    checkLicense();
+    List<SourceControl> sourceControlDAOAll = sourceControlDAO.getAll();
+    sourceControlDAOAll.forEach(this::encryptToken);
+    return sourceControlDAOAll;
+  }
+
+  @Authorize(permission = Permission.READ)
+  public SourceControl getSourceControlByApplicationId(@AuthzContext(Key.APPLICATION_ID) final String applicationId) {
+    checkLicense();
+    SourceControl sourceControl = sourceControlDAO.getByApplicationId(applicationId);
+    if (null == sourceControl) {
+      throw new NotFoundException("Cannot find SourceControl for Application with id: " + applicationId);
+    }
+    sourceControl.setToken(FAKE_SECRET_KEY);
+    return sourceControl;
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public SourceControl addSourceControl(@AuthzContext(Key.APPLICATION_ID) final String applicationId,
+      SourceControl sourceControl) 
+  {
+    checkLicense();
+    encryptToken(sourceControl);
+    sourceControl.setApplicationId(applicationId);
+    sourceControlDAO.insert(sourceControl);
+    auditSourceControl(sourceControl);
+    sourceControl.setToken(FAKE_SECRET_KEY);
+    return sourceControl;
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public SourceControl updateSourceControl(@AuthzContext(Key.APPLICATION_ID) final String applicationId,
+      SourceControl sourceControl) 
+  {
+    checkLicense();
+    // updates may come with our 'fake' token or simply omit it
+    if (isEmpty(sourceControl.getToken()) || FAKE_SECRET_KEY.equalsIgnoreCase(sourceControl.getToken())) {
+      SourceControl storedSourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
+      sourceControl.setToken(storedSourceControl.getToken());
+    }
+    else {
+      encryptToken(sourceControl);
+    }
+    validateApplicationId(applicationId, sourceControl);
+    sourceControlDAO.update(sourceControl);
+    auditSourceControl(sourceControl);
+    sourceControl.setToken(FAKE_SECRET_KEY);
+    return sourceControl;
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public void deleteSourceControl(@AuthzContext(Key.APPLICATION_ID) final String applicationId,
+      String sourceControlId) 
+  {
+    checkLicense();
+    SourceControl sourceControl = sourceControlDAO.getByIdNotNull(sourceControlId);
+    validateApplicationId(applicationId, sourceControl);
+    sourceControlDAO.delete(sourceControl);
+    auditSourceControl(sourceControl);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public SourceControl getSourceControlDecrypted(@AuthzContext(Key.APPLICATION_ID) final String applicationId,
+      String sourceControlId) 
+  {
+    SourceControl sourceControl = sourceControlDAO.getByIdNotNull(sourceControlId);
+    validateApplicationId(applicationId, sourceControl);
+    decryptToken(sourceControl);
+    return sourceControl;
+  }
+
+  public void maybeRespond(final ApplicationEvaluationEvent event) {
+    // TODO - https://issues.sonatype.org/browse/INT-1651
+  }
+
+  private void validateApplicationId(final String applicationId, final SourceControl sourceControl) {
+    if (!sourceControl.getApplicationId().equals(applicationId)) {
+      throw new NotFoundException(
+          "Cannot find SourceControl with id: " + sourceControl.getId() + " for Application with id: " + applicationId);
+    }
+  }
+
+  private void encryptToken(final SourceControl sourceControl) {
+    synchronized (plexusCipher) {
+      try {
+        sourceControl.setToken(plexusCipher.encrypt(sourceControl.getToken(), ENC));
+      }
+      catch (PlexusCipherException e) {
+        log.error("Unable to encrypt SourceControl token", e);
+        throw new IllegalStateException(e);
+      }
+    }
+  }
+
+  private void decryptToken(final SourceControl sourceControl) {
+    synchronized (plexusCipher) {
+      try {
+        sourceControl.setToken(plexusCipher.decrypt(sourceControl.getToken(), ENC));
+      }
+      catch (PlexusCipherException e) {
+        log.error("Unable to decrypt SourceControl token", e);
+        throw new IllegalStateException(e);
+      }
+    }
+  }
+
+  private void auditSourceControl(final SourceControl sourceControl) {
+    AuditData.get()
+        .setData("sourceControlId", sourceControl.getId())
+        .setData("repositoryUrl", sourceControl.getRepositoryUrl());
+  }
+
+  private void checkLicense() {
+    if (!clmLicenseManager.hasFeature(Feature.NOTIFICATIONS)) {
+      log.debug("License does not support SourceControl notification features");
+      throw new InvalidLicenseException();
+    }
+  }
+}
+          

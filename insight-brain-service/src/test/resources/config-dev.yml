@@ -3,6 +3,8 @@ hdsUrl: https://clm-staging.sonatype.com/
 
 baseUrl: http://localhost:8070
 
+enablePolicyReportPreviousVersionLink: true
+
 consentToUpgradeToVersion_1_45: true
 
 enableDefaultPasswordWarning: false

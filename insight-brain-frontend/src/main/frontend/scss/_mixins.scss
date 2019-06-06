@@ -40,9 +40,15 @@
 
     .iq-cell {
       width: calc(100% / #{$numColumns});
+
+      // fixes problem in IE11 where the last column wraps when all of the columns are exactly equal
+      &:last-child {
+        width: calc((100% / #{$numColumns}) - 1px);
+      }
     }
 
-    .iq-cell--empty {
+    // :last-child here is required to override the :last-child rule on iq-cell above
+    .iq-cell--empty:last-child {
       width: 100%;
     }
   }
@@ -53,8 +59,9 @@
         width: calc((100% + #{$iq-scrollbar-width}) / #{$numColumns});
       }
 
+      // fixes problem in IE11 where the last column wraps when all of the columns are exactly equal
       .iq-cell:last-child {
-        width: calc(((100% + #{$iq-scrollbar-width}) / #{$numColumns}) - #{$iq-scrollbar-width});
+        width: calc(((100% + #{$iq-scrollbar-width}) / #{$numColumns}) - #{$iq-scrollbar-width} - 1px);
       }
     }
   }

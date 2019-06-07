@@ -260,3 +260,7 @@ form.form-horizontal .control-label {
 .list-style-none {
   list-style: none;
 }
+
+.hover-pointer {
+  cursor: pointer;
+}

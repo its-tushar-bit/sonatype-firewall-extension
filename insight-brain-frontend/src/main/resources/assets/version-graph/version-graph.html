@@ -101,7 +101,7 @@
                 <li id="next-no-violation-version-link"
                     ng-show="nextNoViolationAvailableAndNotCurrent()"
                     class="version-graph-container-text">
-                  <a id="select-no-violation" ng-click="markNextNoViolation()" href><!--
+                  <a class="hover-pointer" id="select-no-violation" ng-click="markNextNoViolation()"><!--
                   -->Select {{getNoViolationVersion()}}<!--
                   --></a><!--
                   -->: Next version with no policy violation
@@ -109,7 +109,7 @@
                 <li id="next-no-fail-version-link"
                     ng-show="nextNoFailAvailableAndNotCurrent()"
                     class="version-graph-container-text">
-                  <a id="select-no-fail" ng-click="markNextNoFail()" href><!--
+                  <a class="hover-pointer" id="select-no-fail" ng-click="markNextNoFail()"><!--
                   -->Select {{getNoFailVersion()}}<!--
                   --></a><!--
                   -->: Next version with no build failure violations

@@ -80,5 +80,9 @@ public class FeaturesService
 
   private void addLicenseSpecificFeatures(Set<Feature> features) {
     features.addAll(licenseManager.getFeatures());
+    if (features.contains(Feature.FIREWALL_FOR_ARTIFACTORY)) {
+      features.remove(Feature.FIREWALL_FOR_ARTIFACTORY);
+      features.add(Feature.FIREWALL);
+    }
   }
 }

@@ -114,4 +114,13 @@ public class FeatureServiceTest
     when(licenseManager.isValid()).thenReturn(true);
     assertThat(featuresService.getFeatures()).contains(Feature.ENABLE_POLICY_REPORT_PREVIOUS_VERSION_LINK);
   }
+
+  @Test
+  public void testGetFeatures_WithFirewallForArtifactoryFeature_BecomesFirewallFeature() {
+    Set<Feature> features = EnumSet.of(Feature.FIREWALL_FOR_ARTIFACTORY);
+    when(licenseManager.isValid()).thenReturn(true);
+    when(licenseManager.getFeatures()).thenReturn(features);
+    assertThat(featuresService.getFeatures()).contains(Feature.FIREWALL)
+        .doesNotContain(Feature.FIREWALL_FOR_ARTIFACTORY);
+  }
 }

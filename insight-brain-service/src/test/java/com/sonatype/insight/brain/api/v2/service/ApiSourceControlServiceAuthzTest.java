@@ -7,14 +7,12 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,13 +25,6 @@ public class ApiSourceControlServiceAuthzTest
 {
   @Inject
   public ApiSourceControlService sourceControlService;
-
-  private Application app;
-
-  @Before
-  public void setup() {
-    app = tempEntity.newApplicationWithParent();
-  }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetAll_Unauthenticated() {

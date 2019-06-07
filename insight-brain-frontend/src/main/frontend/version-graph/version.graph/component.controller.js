@@ -5,6 +5,9 @@
  */
 /*global angular, Brain, clmEndpoint*/
 
+const NEXT_NO_VIOLATIONS = 'next-no-violations';
+const NEXT_NON_FAILING = 'next-non-failing';
+
 export default function ComponentController($scope, Coordinates, OwnerContext, errorMessage, Properties, $http,
                                             $injector) {
   function coordinatesChanged() {
@@ -29,7 +32,82 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
         }, function(error) {
           $scope.setError(error);
         });
+        populateSuggestedRemediationVersions();
       }
+    }
+  }
+
+  function populateSuggestedRemediationVersions() {
+
+    if ($scope.recommendations === null || $scope.recommendations === false) {
+      return;
+    }
+
+    if (OwnerContext.ownerType !== 'application') {
+      return;
+    }
+
+    ensureApplicationInternalIdAndApply(function() {
+      $scope.suggestedRemediations = new Map();
+
+      if (!$scope.applicationInternalIds.get(OwnerContext.ownerId)
+          || !Coordinates.get()
+          || !Coordinates.getFormat()) {
+        return;
+      }
+
+      let applicationId = $scope.applicationInternalIds.get(OwnerContext.ownerId);
+
+      let componentIdentifier = {
+        componentIdentifier: {
+          format: Coordinates.getFormat(),
+          coordinates: Coordinates.get()
+        }
+      };
+
+      let path = Brain.getSuggestedRemediationUrlForApplication(applicationId);
+      let request = {
+        method: 'post',
+        url: path,
+        data: componentIdentifier
+      };
+
+      if (typeof Brain.getCsrfHeaders === 'function') {
+        request.headers = Brain.getCsrfHeaders();
+      }
+      return $http(request).then(handleRemediationResponse);
+    });
+  }
+
+  function handleRemediationResponse(response) {
+    if (response.data.remediation.versionChanges) {
+      $.each(response.data.remediation.versionChanges, function(index, item) {
+        $scope.suggestedRemediations.set(item.type,
+            item.data.component.componentIdentifier);
+      });
+    }
+  }
+
+  function ensureApplicationInternalIdAndApply(action) {
+    if (!OwnerContext.ownerId) {
+      return;
+    }
+
+    if (!$scope.applicationInternalIds) {
+      $scope.applicationInternalIds = new Map();
+    }
+
+    if ($scope.applicationInternalIds.get(OwnerContext.ownerId)) {
+      action.apply();
+    } else {
+      $http.get(Brain.getInternalApplicationIdUrlForApplicationId(OwnerContext.ownerId)).then(function(response) {
+        if (response.data.applications && response.data.applications.length > 0) {
+          $scope.applicationInternalIds.set(OwnerContext.ownerId, response.data.applications[0].id);
+          action.apply();
+        }
+      }, function(error) {
+        $scope.setError(error);
+      });
     }
   }
 
@@ -78,6 +156,75 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
     // SelectedComponent is available only in the context of CIP (if clmEndpoint.canAddProprietary)
     var SelectedComponent = $injector.get('SelectedComponent');
     return SelectedComponent.get().pathnames.filter(isNotDependency);
+  }
+
+  $scope.markNextNoViolation = function() {
+    changeSelectedVersionToSuggestedRemediation(NEXT_NO_VIOLATIONS);
+  };
+
+  $scope.nextNoViolationAvailableAndNotCurrent = function() {
+    return isSuggestedRemediationOfTypeAvailableAndDifferentFromCurrent(NEXT_NO_VIOLATIONS);
+  };
+
+  $scope.markNextNoFail = function() {
+    changeSelectedVersionToSuggestedRemediation(NEXT_NON_FAILING);
+  };
+
+  $scope.nextNoFailAvailableAndNotCurrent = function() {
+    return isSuggestedRemediationOfTypeAvailableAndDifferentFromCurrent(NEXT_NON_FAILING);
+  };
+
+  $scope.getNoViolationVersion = function() {
+    return getSuggestedVersion(NEXT_NO_VIOLATIONS);
+  };
+
+  $scope.getNoFailVersion = function() {
+    return getSuggestedVersion(NEXT_NON_FAILING);
+  };
+
+  $scope.isApplicationOwnerContext = function() {
+    if (OwnerContext.ownerType !== 'application') {
+      return false;
+    }
+
+    if (!OwnerContext.ownerId) {
+      return false;
+    }
+    return true;
+  };
+
+  $scope.isRecommendationsAvailable = function() {
+    if ($scope.recommendations === false) {
+      return false;
+    }
+    return true;
+  };
+
+  function changeSelectedVersionToSuggestedRemediation(type) {
+
+    let version = $scope.suggestedRemediations.get(type);
+    $.each($scope.componentDetailsList, function(index, item) {
+      if (item.componentIdentifier.coordinates.version === version.coordinates.version) {
+        Coordinates.setSelected(version.coordinates);
+        Properties.setHash(item.hash);
+        Insight.updateBars(index);
+      }
+    });
+  }
+
+  function isSuggestedRemediationOfTypeAvailableAndDifferentFromCurrent(type) {
+    if (!$scope.suggestedRemediations) {
+      return false;
+    }
+    return $scope.suggestedRemediations.get(type) &&
+        $scope.suggestedRemediations.get(type).coordinates.version !== $scope.coordinates.coordinates.version;
+  }
+
+  function getSuggestedVersion(type) {
+    if (!isSuggestedRemediationOfTypeAvailableAndDifferentFromCurrent(type)) {
+      return null;
+    }
+    return $scope.suggestedRemediations.get(type).coordinates.version;
   }
 }
 

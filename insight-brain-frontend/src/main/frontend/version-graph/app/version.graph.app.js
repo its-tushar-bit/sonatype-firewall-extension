@@ -54,12 +54,14 @@ import exceptionHandler from './exception.handler.factory';
           $rootScope.selectApplication = clmEndpoint.selectApplication;
           $rootScope.migrateSupported = clmEndpoint.migrate;
           $rootScope.viewDetailsSupported = clmEndpoint.viewDetails;
+          $rootScope.recommendations = true;
           $rootScope.type = clmEndpoint.type;
 
           if (clmEndpoint.type === 'rm') {
             // In RM, everything is proxied through the RM server to which we are already logged in, so start pendo
             // immediately
             pendoService.start();
+            $rootScope.recommendations = false;
           }
         }
       ]);

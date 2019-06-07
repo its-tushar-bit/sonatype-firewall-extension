@@ -6,4 +6,3 @@ import './app/version.graph.app';
 import './appcheck';
 import './buttons.css';
 import './content.css';
-import './detail-table.css';

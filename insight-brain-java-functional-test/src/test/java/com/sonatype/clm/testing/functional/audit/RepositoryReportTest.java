@@ -396,11 +396,14 @@ public class RepositoryReportTest
     VersionsCIP.observedLicenses().shouldHave(texts("GPL-2.0"));
     VersionsCIP.effectiveLicenses().shouldHave(texts("Apache-2.0", "GPL-2.0"));
     VersionsCIP.highestPolicyThreat().shouldHave(text(String.valueOf(extremelyBadPolicy.getThreatLevel())));
-    VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"), cssClass("critical"));
+    VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"));
     VersionsCIP.securityCount().shouldHave(text("3"));
     VersionsCIP.matchState().shouldHave(text("exact"));
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
     VersionsCIP.componentCategory().shouldHave(text("Other"));
+    VersionsCIP.recommendedVersionsHeader().shouldNotBe(visible);
+    VersionsCIP.nextNoViolationVersionLink().shouldNotBe(visible);
+    VersionsCIP.nextNoFailVersionLink().shouldNotBe(visible);
     eyesWatcher.eyesCheck("Repository report version graph");
     
     VersionsCIP.showDetailsLink().shouldBe(visible).click();

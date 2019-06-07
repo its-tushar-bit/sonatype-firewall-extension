@@ -11,7 +11,9 @@
        "coordinates" : {
           "artifactId" : "logback-access",
           "groupId" : "ch.qos.logback",
-          "version" : "0.6"
+          "version" : "0.6",
+          "extension": "jar",
+          "classifier": ""
        }
     },
     "groupId" : "ch.qos.logback",
@@ -33,7 +35,9 @@
        "coordinates" : {
           "artifactId" : "jetty",
           "groupId" : "org.mortbay.jetty",
-          "version" : "6.1.15"
+          "version" : "6.1.15",
+          "extension": "jar",
+          "classifier": ""
        }
     },
     "groupId" : "org.mortbay.jetty",
@@ -55,7 +59,9 @@
        "coordinates" : {
           "artifactId" : "geronimo-security",
           "groupId" : "org.apache.geronimo.framework",
-          "version" : "2.1"
+          "version" : "2.1",
+          "extension": "jar",
+          "classifier": ""
        }
     },
     "groupId" : "org.apache.geronimo.framework",
@@ -77,7 +83,9 @@
        "coordinates" : {
           "artifactId" : "javancss",
           "groupId" : "javancss",
-          "version" : "29.50"
+          "version" : "29.50",
+          "extension": "jar",
+          "classifier": ""
        }
     },
     "groupId" : "javancss",

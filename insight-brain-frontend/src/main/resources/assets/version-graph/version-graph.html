@@ -91,9 +91,51 @@
 
       </div>
       <div ng-show='!isUnknown && !errorMessage'>
+        <div class="cip-box">
+          <div id="version-graph-container" ng-show="loaded">
+            <div id="suggested-remediation-version-links"
+                 ng-controller="ComponentController"
+                 ng-show="loaded && isApplicationOwnerContext() && isRecommendationsAvailable()">
+              <h5 id="recommended-versions-header">Recommended Version(s)</h5>
+              <ul class="list-style-none">
+                <li id="next-no-violation-version-link"
+                    ng-show="nextNoViolationAvailableAndNotCurrent()"
+                    class="version-graph-container-text">
+                  <a id="select-no-violation" ng-click="markNextNoViolation()" href><!--
+                  -->Select {{getNoViolationVersion()}}<!--
+                  --></a><!--
+                  -->: Next version with no policy violation
+                </li>
+                <li id="next-no-fail-version-link"
+                    ng-show="nextNoFailAvailableAndNotCurrent()"
+                    class="version-graph-container-text">
+                  <a id="select-no-fail" ng-click="markNextNoFail()" href><!--
+                  -->Select {{getNoFailVersion()}}<!--
+                  --></a><!--
+                  -->: Next version with no build failure violations
+                </li>
+                <li id="no-versions-available"
+                    ng-hide="nextNoFailAvailableAndNotCurrent() || nextNoViolationAvailableAndNotCurrent()"
+                    class="version-graph-container-text">
+                  No recommended versions are available for the current component
+                </li>
+              </ul>
+            </div>
+            <h5 id="version-graph-header">Version Graph</h5>
+            <div id="aiVersionChart" graph="componentDetailsList">
+            </div>
+            <p class="version-graph-container-text">
+              Click on the graph above to see details about different versions
+            </p>
+          </div>
+        </div>
         <div ng-show='loaded' class='cip-box' ng-controller='DetailsController'>
           <div id='detailsparent'>
             <table ng-show='componentDetails' id='infoPanelArtifactTable' style='border-collapse: collapse'>
+              <tr id="info-panel-heading">
+                <td class="info-panel-heading">Selected Version:</td>
+                <td class="info-panel-heading">{{componentDetails.componentIdentifier.coordinates.version}}</td>
+              </tr>
               <tr ng-repeat='part in componentDetails.displayName.parts | namePart' id='artifactInfo-{{part.field}}' class='component-name'>
                 <td>{{part.field}}:</td>
                 <td>{{part.value}}</td>
@@ -136,7 +178,7 @@
                   Unavailable, Claimed Component
                 </td>
                 <td ng-if="!isManual()">
-                  <div class="clm-chiclet {{getColorClass()}}">{{getMaximumSeverity()}}</div>
+                  {{getMaximumSeverity()}}
                   <span ng-if='componentDetails.securityVulnerabilities.length > 1'> within {{componentDetails.securityVulnerabilities.length}} security issues</span>
                 </td>
               </tr>
@@ -157,7 +199,7 @@
                 <td>Category:</td>
                 <td>
                   <span ng-repeat="category in componentDetails.componentCategories">{{category.path}}<!--
-                 --><span ng-show="!$last">, 
+                 --><span ng-show="!$last">,
                     </span>
                   </span>
                 </td>
@@ -173,22 +215,22 @@
                 <td>{{componentDetails.identificationSourceComment}}</td>
               </tr>
               <tfoot>
-                <!-- Links rather than buttons for JavaFX 7, in tfoot to avoid bold font styling -->
-                <tr>
-                  <td>
-                    <a class='btn' href='#' id='view-details-button'
-                       ng-click='viewDetails()'
-                       ng-if='viewDetailsSupported'>View Details</a>
-                  </td>
-                  <td>
-                    <a class='btn' href='#' id='migrate-button'
-                       ng-class='{ disabled : !canMigrate()}'
-                       ng-click='canMigrate() && markUpgrade()'
-                       ng-if='migrateSupported'>
-                      Migrate
-                    </a>
-                  </td>
-                </tr>
+              <!-- Links rather than buttons for JavaFX 7, in tfoot to avoid bold font styling -->
+              <tr>
+                <td>
+                  <a class='btn' href='#' id='view-details-button'
+                     ng-click='viewDetails()'
+                     ng-if='viewDetailsSupported'>View Details</a>
+                </td>
+                <td>
+                  <a class='btn' href='#' id='migrate-button'
+                     ng-class='{ disabled : !canMigrate()}'
+                     ng-click='canMigrate() && markUpgrade()'
+                     ng-if='migrateSupported'>
+                    Migrate to Selected
+                  </a>
+                </td>
+              </tr>
               </tfoot>
             </table>
           </div>
@@ -196,7 +238,7 @@
             <h5><i class='icon-time'></i> Loading...</h5>
           </div>
         </div>
-        <div class='cip-box' id='aiVersionChart' graph='componentDetailsList' class='margin-left:10px'></div>
+
         <div ng-if='coordinates && !componentDetailsList && !errorMessage'>
           <h5><i class='icon-time'></i> Loading...</h5>
         </div>

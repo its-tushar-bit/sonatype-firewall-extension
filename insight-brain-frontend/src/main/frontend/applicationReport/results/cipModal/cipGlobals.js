@@ -50,6 +50,24 @@ window.Brain = {
     }
 
     return url;
+  },
+
+  /**
+   * Gets the component remediation URL
+   *
+   * @since 1.66.0
+   */
+  getSuggestedRemediationUrlForApplication: function (internalApplicationId) {
+    return window.CLM.path + 'api/v2/components/remediation/application/' + encodeURIComponent(internalApplicationId);
+  },
+
+  /**
+   * Gets the URL for the internal application ID
+   *
+   * @since 1.66.0
+   */
+  getInternalApplicationIdUrlForApplicationId: function (applicationId) {
+    return window.CLM.path + 'api/v2/applications?publicId=' + encodeURIComponent(applicationId);
   }
 };
 

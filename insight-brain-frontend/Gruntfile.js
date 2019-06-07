@@ -34,7 +34,10 @@
         frontend: 'src/main/frontend',
         test: 'src/test/frontend',
         generated: 'target/classes/assets',
-        temp: '.tmp'
+        temp: '.tmp',
+        resources: 'src/main/resources/assets',
+        filteredResources: 'src/main/filtered-resources/assets',
+        main: 'src/main'
       },
       configure_override: {
         build: {
@@ -69,16 +72,40 @@
           dest: '<%= config.generated %>'
         },
         develop: {
-          expand: true,
-          cwd: '<%= config.frontend %>',
-          src: [
-            '**/*.{html,css,ttf,woff,woff2,png,gif,jpg,ico}',
-            '!lib/*',
-            'lib/**/*.{js,css,ttf,woff,woff2}',
-            '!lib/**/test/*',
-            'brain.client.js'
-          ],
-          dest: '<%= config.generated %>'
+          files: [
+            {
+              expand: true,
+              cwd: '<%= config.frontend %>',
+              src: [
+                '**/*.{html,css,ttf,woff,woff2,png,gif,jpg,ico}',
+                '!lib/*',
+                'lib/**/*.{js,css,ttf,woff,woff2}',
+                '!lib/**/test/*',
+                'brain.client.js'
+              ],
+              dest: '<%= config.generated %>'
+            }, {
+              expand: true,
+              cwd: '<%= config.resources %>',
+              src: [
+                '**/*.{html,css}',
+                '!lib/*',
+                'lib/**/*.{js,css,ttf,woff,woff2}',
+                '!lib/**/test/*'
+              ],
+              dest: '<%= config.generated %>'
+            }, {
+              expand: true,
+              cwd: '<%= config.filteredResources %>',
+              src: [
+                '**/*.{html,css}',
+                '!lib/*',
+                'lib/**/*.{js,css,ttf,woff,woff2}',
+                '!lib/**/test/*'
+              ],
+              dest: '<%= config.generated %>'
+            }
+          ]
         }
       },
       eslint: {
@@ -105,7 +132,7 @@
       },
       watch: {
         options: {
-          cwd: '<%= config.frontend %>'
+          cwd: '<%= config.main %>'
         },
         assets: {
           files: [
@@ -136,6 +163,7 @@
         },
         'webpack-watch': webpackDevServerCmd,
         'webpack-watch-brain': webpackDevServerCmd + ' --env.brainOnly',
+        'webpack-watch-versionGraph': webpackDevServerCmd + ' --env.versionGraphOnly',
         'webpack-watch-gallery': webpackDevServerCmd + ' --config webpack.config.gallery.js',
         'webpack-brain-test': webpackCmd + ' --config webpack.config.brain-test.js',
         'webpack-watch-brain-test': webpackDevServerCmd + ' --config webpack.config.brain-test.js'
@@ -149,6 +177,9 @@
         },
         watchBrain: {
           tasks: ['focus:dev', 'exec:webpack-watch-brain']
+        },
+        watchVersionGraph: {
+          tasks: ['focus:dev', 'exec:webpack-watch-versionGraph']
         },
         watchGallery: {
           tasks: ['focus:dev', 'exec:webpack-watch-gallery']
@@ -206,6 +237,17 @@
       'copy:develop',
       'template:dev',
       'concurrent:watchBrain',
+      'clean:temp'
+    ]);
+
+    grunt.registerTask('develop-versionGraph', [
+      'configure_override:develop',
+
+      'eslint',
+      'clean:temp',
+      'copy:develop',
+      'template:dev',
+      'concurrent:watchVersionGraph',
       'clean:temp'
     ]);
 

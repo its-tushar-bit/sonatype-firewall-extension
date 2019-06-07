@@ -460,4 +460,10 @@ public abstract class AbstractFunctionalTest
     Role role = tempEntity.newRole(false /* global */, perms);
     tempEntity.newMembershipMapping(contextId, role.getId(), username);
   }
+
+  protected static void executeJavaScript(String script) {
+    WebDriver driver = WebDriverRunner.getWebDriver();
+    JavascriptExecutor js = (JavascriptExecutor)driver;
+    js.executeScript(script);
+  }
 }

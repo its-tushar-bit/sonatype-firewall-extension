@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.openqa.selenium.support.ui.Select;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
@@ -65,7 +66,7 @@ public class VersionsCIP
   }
 
   public static SelenideElement highestSecurityThreat() {
-    return artifactTable().find("#artifactInfoSecurityThreatRow .clm-chiclet");
+    return artifactTable().find("#artifactInfoSecurityThreatRow td:last-child");
   }
 
   public static SelenideElement securityCount() {
@@ -114,5 +115,37 @@ public class VersionsCIP
 
   public static SelenideElement versionBarHoverText(int i) {
     return versionBar(i).parent().parent().find("text");
+  }
+
+  public static SelenideElement recommendedVersionsHeader() {
+    return root().find("#recommended-versions-header");
+  }
+
+  public static SelenideElement nextNoViolationVersionLink() {
+    return root().find("#next-no-violation-version-link");
+  }
+
+  public static SelenideElement nextNoFailVersionLink() {
+    return root().find("#next-no-fail-version-link");
+  }
+
+  public static SelenideElement selectNoViolation() {
+    return root().find("#select-no-violation");
+  }
+
+  public static SelenideElement viewDetailsButton() {
+    return root().find("#view-details-button");
+  }
+
+  public static SelenideElement migrateButton() {
+    return root().find("#migrate-button");
+  }
+
+  public static Select selectApplications() {
+    return new Select(root().find("#selectApp"));
+  }
+
+  public static SelenideElement noVersionsAvailable() {
+    return root().find("#no-versions-available");
   }
 }

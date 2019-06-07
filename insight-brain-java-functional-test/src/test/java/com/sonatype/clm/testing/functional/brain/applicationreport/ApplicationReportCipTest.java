@@ -84,7 +84,7 @@ public class ApplicationReportCipTest
     extends AbstractFunctionalTest
 {
   private static final ComponentIdentifier JAVANCSS_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("javancss",
-      "javancss", "29.50");
+      "javancss", "29.50", "", "jar");
 
   private static final String JAVANCSS_HASH = "9aba4af169a1a3baa67f";
 
@@ -128,6 +128,7 @@ public class ApplicationReportCipTest
   @Test
   public void testCIP() throws Exception {
     setupHdsResponses();
+    mockHdsResponseForRemediation();
     CipModal cipModal = reportPage.cipModal();
 
     // Close, Prev and Next buttons
@@ -189,7 +190,6 @@ public class ApplicationReportCipTest
 
   private void testComponentInfoTab() {
     mockHdsResponseForFirstComponent();
-
     CipModal cipModal = reportPage.cipModal();
     reportPage.resultRow(1).click();
     cipModal.getElement().shouldBe(visible);
@@ -202,11 +202,15 @@ public class ApplicationReportCipTest
     VersionsCIP.effectiveLicenses().shouldHave(texts("Apache-2.0", "GPL-2.0"));
     VersionsCIP.highestPolicyThreat().shouldHave(text("10"), cssClass("critical"));
     VersionsCIP.policyCount().shouldHave(exactText("within 3 policies"));
-    VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"), cssClass("critical"));
+    VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"));
     VersionsCIP.securityCount().shouldHave(exactText("within 3 security issues"));
     VersionsCIP.matchState().shouldHave(text("exact"));
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
     VersionsCIP.componentCategory().shouldHave(text("Programming Language Utilites"));
+    VersionsCIP.recommendedVersionsHeader().shouldBe(visible);
+    VersionsCIP.nextNoViolationVersionLink().shouldBe(visible);
+    VersionsCIP.nextNoViolationVersionLink().shouldHave(text("Select 31.52"));
+    VersionsCIP.nextNoFailVersionLink().shouldNotBe(visible);
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);
@@ -237,7 +241,22 @@ public class ApplicationReportCipTest
     VersionsCIP.effectiveLicenses().shouldHave(texts("Not Declared", "No Sources"));
     VersionsCIP.highestPolicyThreat().shouldHave(text("1"), cssClass("none"));
     VersionsCIP.policyCount().shouldNotBe(visible);
-    VersionsCIP.highestSecurityThreat().shouldHave(text("NA"), cssClass("unspecified"));
+    VersionsCIP.highestSecurityThreat().shouldHave(text("NA"));
+    VersionsCIP.securityCount().shouldNotBe(visible);
+
+    // mock request for version 31.52
+    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
+        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails-31.52.json"), 200);
+
+    VersionsCIP.selectNoViolation().shouldBe(visible).click();
+
+    VersionsCIP.version().shouldHave(text("31.52"));
+    VersionsCIP.declaredLicenses().shouldHave(texts("BSD-3-Clause"));
+    VersionsCIP.observedLicenses().shouldHave(texts("BSD-3-Clause"));
+    VersionsCIP.effectiveLicenses().shouldHave(texts("BSD-3-Clause"));
+    VersionsCIP.highestPolicyThreat().shouldHave(text("NA"), cssClass("unspecified"));
+    VersionsCIP.policyCount().shouldNotBe(visible);
+    VersionsCIP.highestSecurityThreat().shouldHave(text("NA"));
     VersionsCIP.securityCount().shouldNotBe(visible);
 
     // check that tab loads next component when using Next button
@@ -836,7 +855,12 @@ public class ApplicationReportCipTest
   private void setupHdsResponses() {
     mockHdsResponseForFirstComponent();
     testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails/list",
-        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetailsList.json"), 200);
+        getClass().getClassLoader().getResource(
+            "componentDetails/javancssComponentDetailsListWithNoViolationsVersion.json"), 200);
+  }
+
+  private void mockHdsResponseForRemediation() {
+    testCLMServer.getHdsServer().setResponseForURI("rest/component/summary", "{\"known\":true}", 200);
   }
 
   private void mockHdsResponseForClaimedComponent() {

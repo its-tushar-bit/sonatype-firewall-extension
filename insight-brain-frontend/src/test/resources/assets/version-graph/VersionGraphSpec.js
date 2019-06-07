@@ -623,6 +623,297 @@ var clmEndpointTemplate = {
           });
         })
       });
+
+      describe('When coordinates changed', function (){
+        var scope = null;
+
+        beforeEach(inject(function($controller, $rootScope) {
+          clmEndpoint.selectApplication = true;
+          scope = $rootScope.$new();
+          $controller('ComponentController', {
+            $scope: scope,
+            SelectedComponent: {}
+          });
+        }));
+
+        var coords = {
+          groupId: 'foo',
+          artifactId: 'bar',
+          version: '1',
+          extension: 'jar',
+          classifier: ''
+        };
+
+        var properties = {
+          matchState: 'exact"',
+          proprietary: 'false',
+          filename: 'filename',
+          hash: 'hash',
+          appId: 'myFirstApp'
+        };
+
+        it('retrieves the application internal ID and suggested remediations',
+            inject(function($httpBackend, $rootScope) {
+          $httpBackend.verifyNoOutstandingRequest();
+          spyOn(Brain, 'getInternalApplicationIdUrlForApplicationId').and.returnValue('bar');
+          $httpBackend.expectGET('bar').respond({
+            "applications": [
+              {
+                "id": "InternalAppId"
+              }
+            ]
+          });
+
+          spyOn(Brain, 'getSuggestedRemediationUrlForApplication').and.returnValue('foo');
+          $httpBackend.expectPOST('foo').respond({
+            "remediation" : {
+              "versionChanges" : [ {
+                "type" : "next-no-violations",
+                "data" : {
+                  "component" : {
+                    "componentIdentifier" : "C1"
+                  }
+                }
+              }, {
+                "type": "next-non-failing",
+                "data": {
+                  "component": {
+                    "componentIdentifier": "C2"
+                  }
+                }
+              }]
+            }
+          });
+
+          Insight.setCoordinates('maven', coords, properties);
+          $httpBackend.flush();
+          expect(Brain.getInternalApplicationIdUrlForApplicationId).toHaveBeenCalledWith('myFirstApp');
+          expect(Brain.getSuggestedRemediationUrlForApplication).toHaveBeenCalledWith('InternalAppId');
+          expect(scope.applicationInternalIds).not.toBeNull();
+          expect(scope.applicationInternalIds.size).toEqual(1);
+          expect(scope.applicationInternalIds.get('myFirstApp')).toEqual('InternalAppId');
+          expect(scope.suggestedRemediations.size).toEqual(2);
+          expect(scope.suggestedRemediations.has('next-non-failing'));
+          expect(scope.suggestedRemediations.get('next-non-failing')).toEqual("C2");
+          expect(scope.suggestedRemediations.has('next-no-violations'));
+          expect(scope.suggestedRemediations.get('next-no-violations')).toEqual("C1");
+        }));
+
+        it('does not retrieve internal app ids for know apps', inject(function($httpBackend, $rootScope) {
+          $httpBackend.verifyNoOutstandingRequest();
+          spyOn(Brain, 'getInternalApplicationIdUrlForApplicationId');
+
+          scope.applicationInternalIds = new Map();
+          scope.applicationInternalIds.set('myFirstApp', 'InternalAppId')
+
+          spyOn(Brain, 'getSuggestedRemediationUrlForApplication').and.returnValue('foo');
+          $httpBackend.expectPOST('foo').respond({});
+
+          Insight.setCoordinates('maven', coords, properties);
+          $httpBackend.flush();
+          expect(Brain.getInternalApplicationIdUrlForApplicationId).not.toHaveBeenCalled();
+          expect(Brain.getSuggestedRemediationUrlForApplication).toHaveBeenCalledWith('InternalAppId');
+          expect(scope.applicationInternalIds).not.toBeNull();
+          expect(scope.applicationInternalIds.size).toEqual(1);
+          expect(scope.applicationInternalIds.get('myFirstApp')).toEqual('InternalAppId');
+        }));
+
+        it('does not retrieve remediations when app id is invalid', inject(function($httpBackend, $rootScope) {
+          $httpBackend.verifyNoOutstandingRequest();
+          spyOn(Brain, 'getInternalApplicationIdUrlForApplicationId').and.returnValue('bar');
+          $httpBackend.expectGET('bar').respond({
+            "applications": []
+          });
+          spyOn(Brain, 'getSuggestedRemediationUrlForApplication');
+
+          Insight.setCoordinates('maven', coords, properties);
+          $httpBackend.flush();
+          expect(Brain.getInternalApplicationIdUrlForApplicationId).toHaveBeenCalledWith('myFirstApp');
+          expect(Brain.getSuggestedRemediationUrlForApplication).not.toHaveBeenCalled();
+          expect(scope.applicationInternalIds).not.toBeNull();
+          expect(scope.applicationInternalIds.size).toEqual(0);
+        }));
+      });
+
+      describe('Suggested Remediations', function() {
+        var scope = null;
+
+        beforeEach(inject(function($controller, $rootScope) {
+          clmEndpoint.selectApplication = true;
+          scope = $rootScope.$new();
+          $controller('ComponentController', {
+            $scope: scope,
+          });
+          $controller;
+        }));
+
+        describe('Validate that remediation type exists and is valid', function (){
+          it('Returns true when valid version of type exists', inject(function() {
+            scope.suggestedRemediations = new Map();
+            scope.suggestedRemediations.set('next-no-violations', {coordinates:{version:'3'}});
+            scope.suggestedRemediations.set('next-non-failing', {coordinates:{version:'2'}});
+            scope.coordinates = {coordinates:{version:'1'}};
+            expect(scope.nextNoViolationAvailableAndNotCurrent()).toBeTruthy();
+            expect(scope.nextNoFailAvailableAndNotCurrent()).toBeTruthy();
+          }));
+
+          it('Returns false when same version of type exists', inject(function() {
+            scope.suggestedRemediations = new Map();
+            scope.suggestedRemediations.set('next-no-violations', {coordinates:{version:'1'}});
+            scope.suggestedRemediations.set('next-non-failing', {coordinates:{version:'1'}});
+            scope.coordinates = {coordinates:{version:'1'}};
+            expect(scope.nextNoViolationAvailableAndNotCurrent()).toBeFalsy();
+            expect(scope.nextNoFailAvailableAndNotCurrent()).toBeFalsy();
+          }));
+
+          it('Returns false when no version of type exists', inject(function() {
+            scope.suggestedRemediations = new Map();
+            scope.suggestedRemediations.set('invalid-type', {coordinates:{version:'2'}});
+            scope.coordinates = {coordinates:{version:'1'}};
+            expect(scope.nextNoViolationAvailableAndNotCurrent()).toBeFalsy();
+            expect(scope.nextNoFailAvailableAndNotCurrent()).toBeFalsy();
+          }));
+        });
+
+        describe('When marking next suggested version', function () {
+          describe('If suggested version exists in component details list', function(){
+
+            beforeEach(function() {
+              scope.suggestedRemediations = new Map();
+              scope.suggestedRemediations.set('next-no-violations', {coordinates:{version:'2'}});
+              scope.suggestedRemediations.set('next-non-failing', {coordinates:{version:'3'}});
+              scope.coordinates = {coordinates:{version:'1'}};
+              scope.componentDetailsList = [
+                {componentIdentifier: {coordinates: {version: '1'}}},
+                {componentIdentifier: {coordinates: {version: '2'}}},
+                {componentIdentifier: {coordinates: {version: '3'}}}
+              ];
+            });
+
+            describe('For next-no-violations', function(){
+
+              beforeEach(function() {
+                spyOn(Insight, 'updateBars');
+                scope.markNextNoViolation();
+              });
+
+              it('Coordinates are updated', inject(function(Coordinates) {
+                expect(Coordinates.getSelected().version).toEqual('2');
+              }));
+
+              it('Bars are updated', function () {
+                expect(Insight.updateBars).toHaveBeenCalledWith(1);
+              });
+            });
+
+            describe('For next-no-fail', function(){
+
+              beforeEach(function() {
+                spyOn(Insight, 'updateBars');
+                scope.markNextNoFail();
+              });
+
+              it('updates the coordinates', inject(function(Coordinates) {
+                expect(Coordinates.getSelected().version).toEqual('3');
+              }));
+
+              it('updates the bars', function() {
+                expect(Insight.updateBars).toHaveBeenCalledWith(2);
+              });
+            });
+          });
+
+          describe('If suggested version does not exist in component details list', function(){
+
+            beforeEach(inject(function(Coordinates) {
+              Coordinates.setSelected({version:'1'});
+              scope.suggestedRemediations = new Map();
+              scope.suggestedRemediations.set('next-no-violations', {coordinates:{version:'2'}});
+              scope.suggestedRemediations.set('next-non-failing', {coordinates:{version:'3'}});
+              scope.coordinates = {coordinates:{version:'1'}};
+              scope.componentDetailsList = [
+                {componentIdentifier: {coordinates: {version: '1'}}},
+                {componentIdentifier: {coordinates: {version: '4'}}}
+              ];
+            }));
+
+            describe('For next-no-violations', function(){
+
+              beforeEach(function() {
+                spyOn(Insight, 'updateBars');
+                scope.markNextNoViolation();
+              });
+
+              it('does not update coordinates', inject(function(Coordinates) {
+                expect(Coordinates.getSelected().version).toEqual('1');
+              }));
+
+              it('does not update bars', function() {
+                expect(Insight.updateBars).not.toHaveBeenCalled;
+              });
+            })
+
+            describe('For next-no-fail', function(){
+
+              beforeEach(function() {
+                spyOn(Insight, 'updateBars');
+                scope.markNextNoFail();
+              });
+
+              it('does not not update coordinates', inject(function(Coordinates) {
+                expect(Coordinates.getSelected().version).toEqual('1');
+              }));
+
+              it('does not update bars', function() {
+                expect(Insight.updateBars).not.toHaveBeenCalled;
+              });
+            })
+          });
+        });
+
+        describe('When fetching next suggested version', function () {
+          describe('If suggested version type is available', function() {
+            beforeEach(function() {
+              scope.suggestedRemediations = new Map();
+              scope.suggestedRemediations.set('next-no-violations', {coordinates:{version:'2'}});
+              scope.suggestedRemediations.set('next-non-failing', {coordinates:{version:'3'}});
+              scope.coordinates = {coordinates:{version:'1'}};
+            });
+
+            describe('For next-no-violations', function(){
+              it('returns the correct version (2)', inject(function() {
+                expect(scope.getNoViolationVersion()).toEqual('2');
+              }));
+            });
+
+            describe('For next-no-fail', function(){
+              it('returns the correct version (3)', inject(function() {
+                expect(scope.getNoFailVersion()).toEqual('3');
+              }));
+            })
+          });
+
+          describe('If suggested version type is not available', function() {
+            beforeEach(function() {
+              scope.suggestedRemediations = new Map();
+              scope.suggestedRemediations.set('incompatible-type', {coordinates:{version:'2'}});
+              scope.coordinates = {coordinates:{version:'1'}};
+            });
+
+            describe('For next-no-violations', function(){
+              it('the correct version is returned', inject(function() {
+                expect(scope.getNoViolationVersion()).toEqual(null);
+              }));
+            });
+
+            describe('For next-no-fail', function(){
+              it('the correct version is returned', inject(function() {
+                expect(scope.getNoFailVersion()).toEqual(null);
+              }));
+            })
+          });
+        });
+      });
     });
 
     describe('DetailsController', function() {
@@ -759,33 +1050,6 @@ var clmEndpointTemplate = {
         $httpBackend.flush();
 
         expect(scope.getMaximumSeverity()).toEqual(9);
-      }));
-
-      it('getColorClass', inject(function($httpBackend, Coordinates) {
-        scope.componentDetails = {
-          securityVulnerabilities: []
-        };
-        expect(scope.getColorClass()).toEqual(' unspecified');
-
-        scope.componentDetails = {
-          securityVulnerabilities: [{severity: null}]
-        };
-        expect(scope.getColorClass()).toEqual(' moderate');
-
-        scope.componentDetails = {
-          securityVulnerabilities: [{severity: 0}]
-        };
-        expect(scope.getColorClass()).toEqual(' moderate');
-
-        scope.componentDetails = {
-          securityVulnerabilities: [{severity: 4}]
-        };
-        expect(scope.getColorClass()).toEqual(' severe');
-
-        scope.componentDetails = {
-          securityVulnerabilities: [{severity: 7}]
-        };
-        expect(scope.getColorClass()).toEqual(' critical');
       }));
 
       it('calculates highestPolicyThreat', inject(function($httpBackend, Coordinates, OwnerContext) {

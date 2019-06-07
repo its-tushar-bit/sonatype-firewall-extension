@@ -148,6 +148,19 @@ module.exports = function(env) {
         env
       }),
 
+      versionGraphConfig = config({
+        entryPath: './version-graph/view-details-index.js',
+        outputPath: 'viewdetails.js',
+        cssOutputPath: 'viewdetails.css',
+        env
+      }),
+      versionGraphAppConfig = config({
+        entryPath: './version-graph/version-graph-app-index.js',
+        outputPath: 'version.graph.app.js',
+        cssOutputPath: 'version.graph.app.css',
+        env
+      }),
+
       // to be used as the `externals` config on bundles that expect jquery to already be defined.  Prevents
       // loading of multiple copies of jquery
       jqueryExternals = {
@@ -160,47 +173,40 @@ module.exports = function(env) {
   if (env.brainOnly) {
     return brainConfig;
   }
-  else {
-    return [
-      brainConfig,
-      config({
-        entryPath: './audit-report/audit-report-index.js',
-        outputPath: 'audit-report.js',
-        cssOutputPath: 'audit-report.css',
-        env,
-        externals: Object.assign({}, jqueryExternals, angularExternals)
-      }),
-      config({
-        entryPath: './cip/cip-loader-index.js',
-        outputPath: 'cip-loader.js',
-        cssOutputPath: 'cip-loader.css',
-        env,
-        externals: jqueryExternals
-      }),
-      config({
-        entryPath: './cip/cip-index.js',
-        outputPath: 'cip.js',
-        cssOutputPath: 'cip.css',
-        env,
-        externals: Object.assign({}, jqueryExternals, angularExternals)
-      }),
-      config({
-        entryPath: './audit-report/external-index.js',
-        outputPath: 'external.js',
-        env
-      }),
-      config({
-        entryPath: './version-graph/version-graph-app-index.js',
-        outputPath: 'version.graph.app.js',
-        cssOutputPath: 'version.graph.app.css',
-        env
-      }),
-      config({
-        entryPath: './version-graph/view-details-index.js',
-        outputPath: 'viewdetails.js',
-        cssOutputPath: 'viewdetails.css',
-        env
-      })
-    ];
+
+  if (env.versionGraphOnly) {
+    return [versionGraphConfig, versionGraphAppConfig];
   }
+
+  return [
+    brainConfig,
+    versionGraphConfig,
+    versionGraphAppConfig,
+    config({
+      entryPath: './audit-report/audit-report-index.js',
+      outputPath: 'audit-report.js',
+      cssOutputPath: 'audit-report.css',
+      env,
+      externals: Object.assign({}, jqueryExternals, angularExternals)
+    }),
+    config({
+      entryPath: './cip/cip-loader-index.js',
+      outputPath: 'cip-loader.js',
+      cssOutputPath: 'cip-loader.css',
+      env,
+      externals: jqueryExternals
+    }),
+    config({
+      entryPath: './cip/cip-index.js',
+      outputPath: 'cip.js',
+      cssOutputPath: 'cip.css',
+      env,
+      externals: Object.assign({}, jqueryExternals, angularExternals)
+    }),
+    config({
+      entryPath: './audit-report/external-index.js',
+      outputPath: 'external.js',
+      env
+    })
+  ];
 };

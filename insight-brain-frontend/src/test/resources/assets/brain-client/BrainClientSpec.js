@@ -9,4 +9,22 @@ describe('brain.client.js', function() {
       expect(Brain.getCsrfHeaders()).toEqual({ 'X-CSRF-TOKEN' : 'csrfToken' });
     });
   });
+
+  describe('getSuggestedRemediationUrlForApplication', function() {
+    it('can get the suggested remediation URL', function() {
+      var appId = 'APPID';
+      expect(Brain.getSuggestedRemediationUrlForApplication(appId)).toEqual(
+          '/api/v2/components/remediation/application/' + appId
+        );
+    });
+  });
+
+  describe('getInternalApplicationIdUrlForApplicationId', function() {
+    it('can get the suggested remediation URL', function() {
+      var appId = 'APPID';
+      expect(Brain.getInternalApplicationIdUrlForApplicationId(appId)).toEqual(
+          '/api/v2/applications?publicId=' + appId
+      );
+    });
+  });
 });

@@ -95,23 +95,6 @@ export default function DetailsController($scope, $http, OwnerContext, Coordinat
     }
   };
 
-  $scope.getColorClass = function() {
-    if ($scope.componentDetails) {
-      if ($scope.componentDetails.securityVulnerabilities.length === 0) {
-        return ' unspecified';
-      }
-      else if ($scope.componentDetails.securityVulnerabilities[0].severity >= 7) {
-        return ' critical';
-      }
-      else if ($scope.componentDetails.securityVulnerabilities[0].severity >= 4) {
-        return ' severe';
-      }
-      else {
-        return ' moderate';
-      }
-    }
-  };
-
   $scope.viewDetails = function() {
     $scope.$emit('viewDetails', Coordinates.getSelected().version);
   };

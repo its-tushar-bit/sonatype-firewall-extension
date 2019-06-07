@@ -12,6 +12,22 @@
   font-size: 12px;
 }
 
+#version-graph-container {
+  color: #333333;
+  font-family: Arial, sans-serif;
+}
+
+.version-graph-container-text {
+  font-size: 12px;
+}
+
+.info-panel-heading {
+  color: #333333;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+}
+
 /* "View Details" and "Migrate" buttons had faint button text on MacOS w/out the font-family below. */
 #infoPanelArtifactTable .btn {
   font-family: Arial, sans-serif;
@@ -118,20 +134,22 @@
 
 .cipContentBox {
   margin: auto;
-  width: 50%
+  width: 50%;
+  padding: 4px;
 }
 
 #detailsparent {
-  background-image:url("../version-graph/artifactInfoIcon.png");
   background-repeat: no-repeat;
   width: 328px;
   min-height: 50px;
   padding-left: 24px;
+  margin-top: 4px;
 }
 
 .cip-box {
   display: inline-block;
   vertical-align: top;
+  margin-bottom: 4px;
 }
 
 #custom {
@@ -225,4 +243,20 @@ form.form-horizontal .control-label {
 
 #add-proprietary-matchers-modal input[type=checkbox] + span {
   word-wrap: break-word;
+}
+
+#infoPanelArtifactTable tfoot tr td {
+  padding-top: 14px;
+}
+
+#recommended-versions-header {
+  margin-top: 0;
+}
+
+#version-graph-header {
+  margin-top: 0;
+}
+
+.list-style-none {
+  list-style: none;
 }

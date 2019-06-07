@@ -166,6 +166,24 @@ var clmBuildTimestamp = '<%= config.buildTimestamp %>';
       return basePath + path;
     },
 
+    /**
+     * Gets the component remediation URL
+     *
+     * @since 1.66.0
+     */
+    'getSuggestedRemediationUrlForApplication': function (internalApplicationId) {
+        return basePath + 'api/v2/components/remediation/application/' + encodeURIComponent(internalApplicationId);
+    },
+
+    /**
+     * Gets the URL for the internal application ID
+     *
+     * @since 1.66.0
+     */
+    'getInternalApplicationIdUrlForApplicationId': function (applicationId) {
+      return basePath + 'api/v2/applications?publicId=' + encodeURIComponent(applicationId);
+    },
+
     'ci': {
       /**
        * Get the URL for the agnostic coordinate ComponentDetails resource

@@ -27,7 +27,13 @@
       ComponentInformation,
       highlightPanel,
       verticalRule,
-      showThreatCategories;
+      showThreatCategories,
+      globalVizContent,
+      bars,
+      selectedIndex,
+      xIndex = 0,
+      innerWidth,
+      currentVersionIndex;
 
   function getAge(reportDate, endDate) {
     var val,
@@ -381,78 +387,79 @@
 
   ComponentInformation = (function() {
     var defaults = {
-        partialDisplay: false,
-        selectable: false,
-        barGap: 3,
-        barWidth: 8,
-        contentWidth: 375,
-        labelTop: 14,
-        labelWidth: 100,
-        topPadding: 20,
-        vizPadding: 6,
-        versionClick: $.noop,
-        versionDblClick: $.noop
-      },
-      derivedValues = {
-        actualHeight: function(config) {
-          return this.height(config) + 11 + this.bottomPadding(config);
+          partialDisplay: false,
+          selectable: false,
+          barGap: 3,
+          barWidth: 8,
+          contentWidth: 375,
+          labelTop: 14,
+          labelWidth: 100,
+          topPadding: 20,
+          vizPadding: 6,
+          versionClick: $.noop,
+          versionDblClick: $.noop
         },
-        noCategoriesActualHeight: function(config) {
-          return this.noCategoriesHeight(config) + 11 + this.bottomPadding(config);
-        },
-        barHeight: function(config) {
-          return (config.barWidth + config.barGap) * 3 - 1;
-        },
-        height: function(config) {
-          return config.topPadding + this.contentRows(config) * (config.barWidth + config.barGap) + 1;
-        },
-        noCategoriesHeight: function(config) {
-          return config.topPadding + this.contentRowsNoCategories(config) * (config.barWidth + config.barGap) + 1;
-        },
-        contentRows: function(config) {
-          return config.partialDisplay ? 4 : 11;
-        },
-        contentRowsNoCategories: function(config) {
-          return config.partialDisplay ? 4 : 6;
-        },
-        bottomPadding: function(config) {
-          return config.partialDisplay ? 20 : 0;
-        },
-        versionCount: function(config) {
-          return config.data.versions ? config.data.versions.length : 0;
-        },
-        contentActualWidth: function(config) {
-          return (config.barWidth + config.barGap) * this.versionCount(config);
-        },
-        width: function(config) {
-          var currentIndex = config.data.currentVersionIndex ? config.data.currentVersionIndex : 0;
+        derivedValues = {
+          actualHeight: function(config) {
+            return this.height(config) + 11 + this.bottomPadding(config);
+          },
+          noCategoriesActualHeight: function(config) {
+            return this.noCategoriesHeight(config) + 11 + this.bottomPadding(config);
+          },
+          barHeight: function(config) {
+            return (config.barWidth + config.barGap) * 3 - 1;
+          },
+          height: function(config) {
+            return config.topPadding + this.contentRows(config) * (config.barWidth + config.barGap) + 1;
+          },
+          noCategoriesHeight: function(config) {
+            return config.topPadding + this.contentRowsNoCategories(config) * (config.barWidth + config.barGap) + 1;
+          },
+          contentRows: function(config) {
+            return config.partialDisplay ? 4 : 11;
+          },
+          contentRowsNoCategories: function(config) {
+            return config.partialDisplay ? 4 : 6;
+          },
+          bottomPadding: function(config) {
+            return config.partialDisplay ? 20 : 0;
+          },
+          versionCount: function(config) {
+            return config.data.versions ? config.data.versions.length : 0;
+          },
+          contentActualWidth: function(config) {
+            return (config.barWidth + config.barGap) * this.versionCount(config);
+          },
+          width: function(config) {
+            var currentIndex = config.data.currentVersionIndex ? config.data.currentVersionIndex : 0;
 
-          //the inner width is twice the size of the area needed for the chart,
-          //simply so that the current version can always be directly in the middle
-          return Math.max(config.contentWidth, ((config.barWidth + config.barGap) *
-              (Math.max(currentIndex, config.data.versions.length - currentIndex) + 1) - config.barGap) * 2);
-        },
-        panning: function(config) {
-          return this.width(config) > config.contentWidth;
-        },
-        left: function(config) {
-          var currentIndex = config.data.currentVersionIndex;
+            //the inner width is twice the size of the area needed for the chart,
+            //simply so that the current version can always be directly in the middle
+            innerWidth = Math.max(config.contentWidth, ((config.barWidth + config.barGap) *
+                (Math.max(currentIndex, config.data.versions.length - currentIndex) + 1) - config.barGap) * 2);
+            return innerWidth;
+          },
+          panning: function(config) {
+            return this.width(config) > config.contentWidth;
+          },
+          left: function(config) {
+            var currentIndex = config.data.currentVersionIndex;
 
-          if (currentIndex < 0) {
-            return 0;
+            if (currentIndex < 0) {
+              return 0;
+            }
+
+            //calculate the point in the inner chart where we need to start drawing, is based off having the current version centered in the chart
+            return (this.width(config) / 2) -
+                (((currentIndex * (config.barWidth + config.barGap)) + (config.barWidth / 2)) + (config.barWidth / 2));
+          },
+          spacer: function(config) {
+            return config.barGap + config.barWidth;
+          },
+          top: function(config) {
+            return config.topPadding;
           }
-
-          //calculate the point in the inner chart where we need to start drawing, is based off having the current version centered in the chart
-          return (this.width(config) / 2) -
-              (((currentIndex * (config.barWidth + config.barGap)) + (config.barWidth / 2)) + (config.barWidth / 2));
-        },
-        spacer: function(config) {
-          return config.barGap + config.barWidth;
-        },
-        top: function(config) {
-          return config.topPadding;
-        }
-      };
+        };
 
     function getThreatSeverity(threatLevel) {
       if (threatLevel >= 8) {
@@ -473,11 +480,11 @@
     /* Convert JSON data to be consumed by the graphic */
     function parseJsonData(json) {
       var data = {
-          versions: [],
-          versionPopularity: [],
-          majorRevIndices: [],
-          policyThreatLevels: {HIGHEST_THREAT: [], SECURITY: [], LICENSE: [], QUALITY: [], OTHER: []}
-        };
+        versions: [],
+        versionPopularity: [],
+        majorRevIndices: [],
+        policyThreatLevels: {HIGHEST_THREAT: [], SECURITY: [], LICENSE: [], QUALITY: [], OTHER: []}
+      };
 
       $.each(json.versions, function(index, item) {
         data.versions.push(item.componentIdentifier.coordinates.version);
@@ -494,9 +501,9 @@
         data.policyThreatLevels.LICENSE.push(getThreatSeverity(threats.LICENSE));
         data.policyThreatLevels.QUALITY.push(getThreatSeverity(threats.QUALITY));
         data.policyThreatLevels.OTHER.push(getThreatSeverity(threats.OTHER));
-        data.policyThreatLevels.HIGHEST_THREAT.push(Math.min(data.policyThreatLevels.SECURITY[index], 
-            data.policyThreatLevels.LICENSE[index], 
-            data.policyThreatLevels.QUALITY[index], 
+        data.policyThreatLevels.HIGHEST_THREAT.push(Math.min(data.policyThreatLevels.SECURITY[index],
+            data.policyThreatLevels.LICENSE[index],
+            data.policyThreatLevels.QUALITY[index],
             data.policyThreatLevels.OTHER[index]));
       });
       return data;
@@ -512,7 +519,6 @@
     function createPanControls(labelViz, contentViz, panWrapper, config) {
       var leftPan = false,
           rightPan = false,
-          xIndex = 0,
           panTop = 50, // fix position pan triangles in between the 2 charts
           pan = function(val) {
             var m = contentViz.transform().translate(val, 0),
@@ -542,43 +548,43 @@
           };
 
       panWrapper.add(pv.Dot).left(config.contentWidth - 7).top(15 +
-              (panTop)).fillStyle(bgBlue).strokeStyle(darkGrey).angle(-Math.PI /
-              2).shape('triangle').lineWidth(1).size(30).cursor('pointer').events('all').event('mouseover',function() {
+          (panTop)).fillStyle(bgBlue).strokeStyle(darkGrey).angle(-Math.PI /
+          2).shape('triangle').lineWidth(1).size(30).cursor('pointer').events('all').event('mouseover', function() {
         this.fillStyle(darkGrey).render();
       }).event('mouseout',function() {
-            this.fillStyle(bgBlue).render();
-            rightPan = false;
-          }).event('mousedown',function() {
-            rightPan = true;
-            setTimeout(panRight, 0);
-          }).event('mouseup', function() {
-            rightPan = false;
-          });
+        this.fillStyle(bgBlue).render();
+        rightPan = false;
+      }).event('mousedown', function() {
+        rightPan = true;
+        setTimeout(panRight, 0);
+      }).event('mouseup', function() {
+        rightPan = false;
+      });
 
       panWrapper.add(pv.Dot).left(7).top(15 +
-              (panTop)).fillStyle(bgBlue).strokeStyle(darkGrey).angle(Math.PI /
-              2).shape('triangle').lineWidth(1).size(30).cursor('pointer').event('all').events('all').event('mouseover',
+          (panTop)).fillStyle(bgBlue).strokeStyle(darkGrey).angle(Math.PI /
+          2).shape('triangle').lineWidth(1).size(30).cursor('pointer').event('all').events('all').event('mouseover',
           function() {
             this.fillStyle(darkGrey).render();
           }).event('mouseout',function() {
-            this.fillStyle(bgBlue).render();
-            leftPan = false;
-          }).event('mousedown',function() {
-            leftPan = true;
-            setTimeout(panLeft, 0);
-          }).event('mouseup', function() {
-            leftPan = false;
-          });
+        this.fillStyle(bgBlue).render();
+        leftPan = false;
+      }).event('mousedown', function() {
+        leftPan = true;
+        setTimeout(panLeft, 0);
+      }).event('mouseup', function() {
+        leftPan = false;
+      });
 
       return pan;
     }
 
-    function createHighlights(vis, config) {
-      var inner = vis.add(pv.Panel).def('i', -1),
-          bars = inner.add(pv.Bar),
-          labels = bars.anchor('bottom').add(pv.Label).visible(false).textBaseline('top'),
-          leftPositionFn = getLeftPositionFn(config),
-          selectedIndex = null;
+    function createHighlights(vizContent, config) {
+      let inner = vizContent.add(pv.Panel).def('i', -1);
+      bars = inner.add(pv.Bar);
+      let labels = bars.anchor('bottom').add(pv.Label).visible(false).textBaseline('top');
+      let leftPositionFn = getLeftPositionFn(config);
+      selectedIndex = null;
 
       highlightPanel = bars;
       //the highlight sections
@@ -586,33 +592,33 @@
         return config.left + leftPositionFn(this.index) - 1;
         //though we don't show the stroke, we need the strokeStyle to catch events within it
       }).top(config.topPadding).height(defaults.partialDisplay ? config.height : config.height -
-              20).lineWidth(0).strokeStyle(bgBlue).fillStyle('transparent').events('all').event('mouseover',function() {
-            inner.i(this.index);
-            this.render();
-            labels.visible(function() {
-              return inner.i() === this.index;
-            }).textAlign(this.index === 0 ? 'left' : (this.index ===
-                    config.data.versions.length - 1) ? 'right' : 'center').render();
-          }).event('mouseout',function() {
-            inner.i(-1);
-            this.render();
-            labels.visible(false).render();
-          }).fillStyle(function() {
-            if (inner.i() === this.index) {
-              return pv.color('rgba(153, 204, 255, 0.5)');
-            }
-            else if (this.index === selectedIndex) {
-              return pv.color('rgba(10, 10, 10, 0.15)');
-            }
-            else {
-              return 'transparent';
-            }
-          }).strokeStyle(function() {
-            if (this.index === selectedIndex) {
-              return pv.color('rgba(10, 10, 10, 0.5)');
-            }
-            return pv.color('rgba(255, 255, 255,0.1)'); // Shennanigans to ensure Protovis creates invisible elements that have listeners attached
-          }).lineWidth(1);
+          20).lineWidth(0).strokeStyle(bgBlue).fillStyle('transparent').events('all').event('mouseover', function() {
+        inner.i(this.index);
+        this.render();
+        labels.visible(function() {
+          return inner.i() === this.index;
+        }).textAlign(this.index === 0 ? 'left' : (this.index ===
+            config.data.versions.length - 1) ? 'right' : 'center').render();
+      }).event('mouseout', function() {
+        inner.i(-1);
+        this.render();
+        labels.visible(false).render();
+      }).fillStyle(function() {
+        if (inner.i() === this.index) {
+          return pv.color('rgba(153, 204, 255, 0.5)');
+        }
+        else if (this.index === selectedIndex) {
+          return pv.color('rgba(10, 10, 10, 0.15)');
+        }
+        else {
+          return 'transparent';
+        }
+      }).strokeStyle(function() {
+        if (this.index === selectedIndex) {
+          return pv.color('rgba(10, 10, 10, 0.5)');
+        }
+        return pv.color('rgba(255, 255, 255,0.1)'); // Shennanigans to ensure Protovis creates invisible elements that have listeners attached
+      }).lineWidth(1);
       if (config.selectable) {
         selectedIndex = config.data.currentVersionIndex;
         bars.event('click', function() {
@@ -653,12 +659,12 @@
       inner.add(pv.Bar).data(data.versionPopularity).width(config.barWidth).left(function() {
         return leftPositionFn(this.index);
       }).height(function(d) {
-            //Note that i use a min height of 3 here as no bar looks silly
-            return (barHeight * d * maxValue) + 3;
-          }).bottom(0).fillStyle(
+        //Note that i use a min height of 3 here as no bar looks silly
+        return (barHeight * d * maxValue) + 3;
+      }).bottom(0).fillStyle(
           function() {
             return this.index < data.currentVersionIndex ? '#a8a9ad' : this.index >=
-                nextMajorRevIndex ? '#6d97d0' : this.index === data.currentVersionIndex ? '#58585a'
+            nextMajorRevIndex ? '#6d97d0' : this.index === data.currentVersionIndex ? '#58585a'
                 : '#8bc73e';
           });
 
@@ -718,20 +724,20 @@
 
       return vis;
     }
-    
+
     function createPolicyThreatDetailRow(vizLabels, vis, config, category) {
       vizLabels.add(pv.Label).left(28).top(config.top + 1).textAlign('left').text(category);
       createPolicyThreatPanel(vis, config, category.toUpperCase());
     }
-    
+
     function toggleThreatCategories(config, vizLabels, vizContent) {
       showThreatCategories = !showThreatCategories;
-      
+
       // the extra +1 on the actualHeight prevents shifting when toggling
       const actualHeight = showThreatCategories ? config.actualHeight + 1 : config.noCategoriesActualHeight;
       const height = showThreatCategories ? config.height : config.noCategoriesHeight;
       const verticalBarHeight = height - 20;
-      
+
       // adjust the vertical version bar and vertical rule
       highlightPanel.height(verticalBarHeight).render();
       verticalRule.height(verticalBarHeight).render();
@@ -750,6 +756,7 @@
           vizLabels,
           vizContent,
           i;
+      globalVizContent = null;
 
       showThreatCategories = true;
       config = $.extend({}, defaults, config);
@@ -811,7 +818,7 @@
 
       // fill in default heatmap rows
       $.each(config.partialDisplay ? [] : [6, 8, 9, 10, 11], function(index, row) {
-        fillRow(vizContent, $.extend({}, config, { top: config.top + (row - 1) * config.spacer }), lightGrey);
+        fillRow(vizContent, $.extend({}, config, {top: config.top + (row - 1) * config.spacer}), lightGrey);
       });
 
       // fill in empty rows
@@ -854,14 +861,14 @@
       //these values are all hidden unless paid for
       if (!config.partialDisplay) {
         config.top += config.spacer; // skip past the details link
-        createPolicyThreatDetailRow(vizLabels, vizContent, config, "Security");
-        createPolicyThreatDetailRow(vizLabels, vizContent, config, "License");
-        createPolicyThreatDetailRow(vizLabels, vizContent, config, "Quality");
-        createPolicyThreatDetailRow(vizLabels, vizContent, config, "Other");
+        createPolicyThreatDetailRow(vizLabels, vizContent, config, 'Security');
+        createPolicyThreatDetailRow(vizLabels, vizContent, config, 'License');
+        createPolicyThreatDetailRow(vizLabels, vizContent, config, 'Quality');
+        createPolicyThreatDetailRow(vizLabels, vizContent, config, 'Other');
       }
 
       if (config.versionCount === 0) {
-        _createLabel(vizContent, 'No Data', { width: config.contentWidth, height: config.actualHeight});
+        _createLabel(vizContent, 'No Data', {width: config.contentWidth, height: config.actualHeight});
         vizLabels.render();
         vizContent.render();
         return;
@@ -882,13 +889,38 @@
         //here we need to move the panel so that the center is centered in the viewable panel
         panningFn(-((config.width / 2) - config.contentWidth + (config.contentWidth / 2)));
       }
+      globalVizContent = vizContent;
     }
 
     return function(config) {
+      xIndex = 0;
+      globalVizContent = null;
+      currentVersionIndex = null;
+      innerWidth = null;
+
       config.data = parseJsonData(config.data);
       loadVersionChart(config);
+
+      currentVersionIndex = config.data.currentVersionIndex;
     };
   }());
+
+  function updateBars(index){
+    let currentIndex = selectedIndex ? selectedIndex : currentVersionIndex;
+    panToSelected((currentIndex - index) * 11);
+    selectedIndex = index;
+    bars.render();
+  }
+
+  function panToSelected(val) {
+
+    let m = globalVizContent.transform().translate(val, 0),
+        temp = xIndex + val;
+    if (temp < 10 && (innerWidth - 375 + temp > -10)) {
+      xIndex = temp;
+      globalVizContent.transform(m).render();
+    }
+  }
 
   $.extend(true, window, {
     'HealthCheck': {
@@ -899,7 +931,8 @@
       'punchCard': punchCard
     },
     'Insight': {
-      'ComponentInformation': ComponentInformation
+      'ComponentInformation': ComponentInformation,
+      'updateBars': updateBars
     }
   });
 }());

@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain.applicationreport;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.IqBackButton;
@@ -20,15 +21,17 @@ import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.Configuration;
-import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -76,8 +79,12 @@ public class ApplicationReportRawDataTest
 
   @Test
   public void testHeader() {
-    String expectedDate = DateTime.now().toString("yyyy-MM-dd");
-    String expectedTitle = "Raw Data for " + app.getName() + " Build Report - " + expectedDate;
+    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
+    Date policyEvaluationTime = policyEvaluation.getTime();
+
+    String policyEvaluationTimeStr = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z")
+        .print(policyEvaluationTime.getTime());
+    String expectedTitle = "Raw Data for " + app.getName() + " Build Report - " + policyEvaluationTimeStr;
 
     rawDataPage.shouldBe(visible);
     rawDataPage.reportTitle().shouldHave(text(expectedTitle));

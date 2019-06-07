@@ -13,7 +13,8 @@
            class="visual-testing-ignore"
            ng-class='{"report__title--expanded-coverage": expandedCoverage, "report__title": !expandedCoverage}'
            style="width:940px;">
-        <strong>{{application.name}}</strong> - {{reportTime | date:'yyyy-MM-dd'}} - <em>{{reportTitle}}</em>
+        <strong>{{application.name}}</strong> - {{reportTime | date: 'yyyy-MM-dd HH:mm:ss UTCZ'}} -
+        <em>{{reportTitle}}</em>
       </div>
       <div id='evaluation-report-container' expandable-iframe='reportUrl'></div>
     </div>

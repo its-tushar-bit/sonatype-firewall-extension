@@ -251,7 +251,7 @@ public class DataRetentionEditorTest
 
   private void checkInherit(String contextId, String inheritText) {
     RetentionEditor editor = EDITORS.get(contextId);
-    editor.getElement().scrollIntoView(true);
+    editor.scrollIntoView();
     editor.inheritRadioButton().shouldBe(visible, selected).shouldHave(textCaseSensitive(inheritText));
     editor.disableRadioButton().shouldBe(visible).shouldNotBe(selected);
     editor.customRadioButton().shouldBe(visible).shouldNotBe(selected);
@@ -260,7 +260,7 @@ public class DataRetentionEditorTest
 
   private void checkDisabled(String contextId, String inheritText) {
     RetentionEditor editor = EDITORS.get(contextId);
-    editor.getElement().scrollIntoView(true);
+    editor.scrollIntoView();
     editor.inheritRadioButton().shouldBe(visible).shouldNotBe(selected).shouldHave(textCaseSensitive(inheritText));
     editor.disableRadioButton().shouldBe(visible, selected);
     editor.customRadioButton().shouldBe(visible).shouldNotBe(selected);
@@ -273,7 +273,7 @@ public class DataRetentionEditorTest
 
   private void checkCustom(String contextId, String inheritText, String maxAgeValue) {
     RetentionEditor editor = EDITORS.get(contextId);
-    editor.getElement().scrollIntoView(true);
+    editor.scrollIntoView();
     editor.inheritRadioButton().shouldBe(visible).shouldNotBe(selected).shouldHave(textCaseSensitive(inheritText));
     editor.disableRadioButton().shouldBe(visible).shouldNotBe(selected);
     editor.customRadioButton().shouldBe(visible, selected);
@@ -353,20 +353,19 @@ public class DataRetentionEditorTest
 
   private void setInherit(String contextId) {
     RetentionEditor editor = EDITORS.get(contextId);
-    editor.getElement().scrollIntoView(true);
+    editor.scrollIntoView();
     editor.inheritRadioButton().click();
   }
 
   private void setDisabled(String contextId) {
     RetentionEditor editor = EDITORS.get(contextId);
-    editor.getElement().scrollIntoView(true);
+    editor.scrollIntoView();
     editor.disableRadioButton().click();
   }
 
   private void setCustom(String contextId, String maxAgeValue) {
     RetentionEditor editor = EDITORS.get(contextId);
-    editor.getElement().scrollIntoView(true);
-    editor.customRadioButton().label().shouldBe(visible);
+    editor.scrollIntoView();
     editor.customRadioButton().click();
     editor.maxAgeInput().setValue(maxAgeValue);
   }
@@ -377,8 +376,7 @@ public class DataRetentionEditorTest
                          String maxCount)
   {
     ApplicationReportRetentionEditor appEditor = (ApplicationReportRetentionEditor) EDITORS.get(contextId);
-    appEditor.getElement().scrollIntoView(true);
-    appEditor.customRadioButton().label().shouldBe(visible);
+    appEditor.scrollIntoView();
     appEditor.customRadioButton().click();
     // dropdown should be set before the input to avoid potential unwanted errors
     appEditor.maxAgeDropdown().shouldBe(visible).selectedItem().click();

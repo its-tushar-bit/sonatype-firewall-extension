@@ -9,8 +9,11 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.elements.IqRadio;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 
 import com.codeborne.selenide.SelenideElement;
+
+import static com.codeborne.selenide.Condition.exist;
 
 public class DataRetentionEditorPage
     extends BasicElement<DataRetentionEditorPage>
@@ -61,6 +64,10 @@ public class DataRetentionEditorPage
 
     public SelenideElement maxAgeInput() {
       return child("input[name='" + contextId + "-age-input']");
+    }
+
+    public void scrollIntoView() {
+      ScrollUtil.awaitEndOfScrolling(getElement().should(exist).scrollIntoView(true));
     }
   }
 

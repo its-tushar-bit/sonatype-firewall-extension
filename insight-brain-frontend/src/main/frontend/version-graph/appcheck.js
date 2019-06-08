@@ -33,7 +33,8 @@
       selectedIndex,
       xIndex = 0,
       innerWidth,
-      currentVersionIndex;
+      currentVersionIndex,
+      xIndexInitial = null;
 
   function getAge(reportDate, endDate) {
     var val,
@@ -525,6 +526,9 @@
                 temp = xIndex + val;
             if (temp < 10 && (config.width - config.contentWidth + temp > -10)) {
               xIndex = temp;
+              if (!xIndexInitial) {
+                xIndexInitial = xIndex;
+              }
               contentViz.transform(m).render();
             }
             else {
@@ -897,6 +901,7 @@
       globalVizContent = null;
       currentVersionIndex = null;
       innerWidth = null;
+      xIndexInitial = null;
 
       config.data = parseJsonData(config.data);
       loadVersionChart(config);
@@ -906,8 +911,8 @@
   }());
 
   function updateBars(index){
-    let currentIndex = selectedIndex ? selectedIndex : currentVersionIndex;
-    panToSelected((currentIndex - index) * 11);
+    let requiredXIndex = ((currentVersionIndex - index) * 11) + xIndexInitial - xIndex;
+    panToSelected(requiredXIndex);
     selectedIndex = index;
     bars.render();
   }

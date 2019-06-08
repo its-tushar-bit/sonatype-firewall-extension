@@ -19,6 +19,7 @@
     <clm.skip>true</clm.skip>
     <it.includes>**/*Test.*</it.includes>
     <selenide.driverManagerEnabled>false</selenide.driverManagerEnabled>
+    <selenide.timeout>4000</selenide.timeout>
     <docker.image.version>3.8.1-aluminum</docker.image.version>
     <docker.image>standalone-chrome:${docker.image.version}</docker.image>
     <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
@@ -52,6 +53,7 @@
             <slowmo.enable>true</slowmo.enable>
             <selenide.browserSize>1400x1050</selenide.browserSize>
             <selenide.driverManagerEnabled>${selenide.driverManagerEnabled}</selenide.driverManagerEnabled>
+            <selenide.timeout>${selenide.timeout}</selenide.timeout>
             <browser>chrome</browser>
           </systemPropertyVariables>
         </configuration>
@@ -192,6 +194,7 @@
       </activation>
       <properties>
         <skip.functional.tests>false</skip.functional.tests>
+        <selenide.timeout>8000</selenide.timeout>
       </properties>
       <build>
         <plugins>

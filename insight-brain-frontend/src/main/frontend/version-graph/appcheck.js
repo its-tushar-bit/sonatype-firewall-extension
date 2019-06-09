@@ -524,7 +524,7 @@
           pan = function(val) {
             var m = contentViz.transform().translate(val, 0),
                 temp = xIndex + val;
-            if (temp < 10 && (config.width - config.contentWidth + temp > -10)) {
+            if ((temp < 10 || val < 0) && (((config.width - config.contentWidth + temp) > -10) || val > 0)) {
               xIndex = temp;
               if (!xIndexInitial) {
                 xIndexInitial = xIndex;
@@ -921,7 +921,7 @@
 
     let m = globalVizContent.transform().translate(val, 0),
         temp = xIndex + val;
-    if (temp < 10 && (innerWidth - 375 + temp > -10)) {
+    if (Math.abs(temp - xIndex) > ((360 / 2) - 11)) {
       xIndex = temp;
       globalVizContent.transform(m).render();
     }

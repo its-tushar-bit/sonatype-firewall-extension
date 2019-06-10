@@ -504,8 +504,8 @@ dropdown-selector {
     background-color: $white;
     border-right: none;
     box-shadow: none;
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-left: 2px;
+    padding-right: 4px;
 
     // NOTE [type=text] was necessary to increase specificity above that of some of the styles from clm-form
     & + input[type=text] {

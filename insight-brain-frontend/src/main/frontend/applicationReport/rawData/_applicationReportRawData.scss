@@ -59,7 +59,7 @@ $iq-cell-report-raw-data-cvss-width: 120px;
       padding-left: 0;
       // this input + the icon must not be larger than the parent span
       // if we subtract the icon + padding & input's right padding it all works out
-      width: calc(100% - 33px - 6px);
+      width: calc(100% - 23px - 6px);
     }
   }
 }

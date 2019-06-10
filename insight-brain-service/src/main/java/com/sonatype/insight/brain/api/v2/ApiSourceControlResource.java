@@ -57,7 +57,7 @@ public class ApiSourceControlResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Audited(AuditEvent.CREATE_SCM)
+  @Audited(AuditEvent.CREATE_SOURCE_CONTROL)
   @Path(APPLICATION_ID)
   public ApiSourceControlDTO addSourceControl(@PathParam("applicationId") String applicationId,
       ApiSourceControlDTO sourceControl) 
@@ -68,7 +68,7 @@ public class ApiSourceControlResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Audited(AuditEvent.UPDATE_SCM)
+  @Audited(AuditEvent.UPDATE_SOURCE_CONTROL)
   @Path(APPLICATION_ID)
   public ApiSourceControlDTO updateSourceControl(@PathParam("applicationId") String applicationId,
       ApiSourceControlDTO sourceControl) 
@@ -78,7 +78,7 @@ public class ApiSourceControlResource
 
   @DELETE
   @Path(APP_AND_SOURCE_CONTROL_IDS)
-  @Audited(AuditEvent.DELETE_SCM)
+  @Audited(AuditEvent.DELETE_SOURCE_CONTROL)
   public void deleteSourceControl(@PathParam("applicationId") String applicationId,
       @PathParam("sourceControlId") String sourceControlId) 
   {

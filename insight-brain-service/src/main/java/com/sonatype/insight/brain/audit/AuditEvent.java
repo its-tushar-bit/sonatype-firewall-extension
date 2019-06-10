@@ -160,9 +160,9 @@ public enum AuditEvent
 
   CONFIGURE_PROXY(Domain.SERVER_PROXY, Type.CONFIGURE),
   
-  CREATE_SCM(Domain.SERVER_SOURCE_CONTROL, Type.CREATE),
-  UPDATE_SCM(Domain.SERVER_SOURCE_CONTROL, Type.UPDATE),
-  DELETE_SCM(Domain.SERVER_SOURCE_CONTROL, Type.DELETE);
+  CREATE_SOURCE_CONTROL(Domain.GOVERNANCE_SOURCE_CONTROL, Type.CREATE),
+  UPDATE_SOURCE_CONTROL(Domain.GOVERNANCE_SOURCE_CONTROL, Type.UPDATE),
+  DELETE_SOURCE_CONTROL(Domain.GOVERNANCE_SOURCE_CONTROL, Type.DELETE);
 
   private final String domain;
 
@@ -249,6 +249,8 @@ public enum AuditEvent
 
     String GOVERNANCE_AUTOMATIC_APPLICATIONS = join(GOVERNANCE, "automatic-applications");
 
+    String GOVERNANCE_SOURCE_CONTROL = join(GOVERNANCE, "source-control");
+
     String SECURITY = "security";
 
     String SECURITY_USER = join(SECURITY, "user");
@@ -277,8 +279,6 @@ public enum AuditEvent
 
     String SERVER_PROXY = join(SERVER, "proxy");
     
-    String SERVER_SOURCE_CONTROL = join(SERVER, "source-control");
-
     String REPORTING_APPLICATION_COMPOSITION = join(REPORTING, "application-composition");
 
     String REPORTING_APPLICATION_COMPOSITION_REPORT = join(REPORTING_APPLICATION_COMPOSITION, "report");
@@ -314,7 +314,7 @@ public enum AuditEvent
     String NOTIFICATION_MAIL = join(NOTIFICATION, "mail");
 
     String NOTIFICATION_ISSUE_JIRA = join(NOTIFICATION, join("issue", "jira"));
-
+    
     static String join(String parent, String child) {
       return parent + "." + child;
     }

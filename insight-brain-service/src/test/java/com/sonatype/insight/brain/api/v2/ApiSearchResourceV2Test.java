@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -40,16 +41,16 @@ public class ApiSearchResourceV2Test
     return restRequest().path(PublicApiPaths.SEARCH_RESOURCE_PATH_V2).query("stageId", stageId);
   }
 
-  private HttpRequest addHash(HttpRequest request, String hash) {
-    return request.query("hash", hash);
+  private Consumer<HttpRequest> hash(String hash) {
+    return httpRequest -> httpRequest.query("hash", hash);
   }
 
-  private HttpRequest addCoords(HttpRequest request, ComponentIdentifier componentIdentifier) {
-    return request.query("componentIdentifier", componentIdentifier);
+  private Consumer<HttpRequest> coords(ComponentIdentifier componentIdentifier) {
+    return httpRequest -> httpRequest.query("componentIdentifier", componentIdentifier);
   }
 
-  private HttpRequest addPurl(HttpRequest request, String packageUrl) {
-    return request.query("packageUrl", packageUrl);
+  private Consumer<HttpRequest> purl(String packageUrl) {
+    return httpRequest -> httpRequest.query("packageUrl", packageUrl);
   }
 
   private void assertSearchResult(ApiSearchResultDTOV2 result,
@@ -85,14 +86,14 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_MissingStageId() throws Exception {
-    HttpResponse response = addHash(searchRequest(""), "12345678901234567890").get();
+    HttpResponse response = searchRequest("").with(hash("12345678901234567890")).get();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Stage has not been specified.");
   }
 
   @Test
   public void testSearchComponent_InvalidStageId() throws Exception {
-    HttpResponse response = addHash(searchRequest("invalid"), "12345678901234567890").get();
+    HttpResponse response = searchRequest("invalid").with(hash("12345678901234567890")).get();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid stage: invalid.");
   }
@@ -107,14 +108,14 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_InvalidHash() throws Exception {
-    HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "invalid-hash").get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash("invalid-hash")).get();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid hash: invalid-hash.");
   }
 
   @Test
   public void testSearchComponent_TooShortHash() throws Exception {
-    HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bed").get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash("1249e25aebb15358bed")).get();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid hash: 1249e25aebb15358bed.");
   }
@@ -124,7 +125,7 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
     helper.createAppWithScan("search-app-2", Stage.ID_RELEASE, appToComponentMap.get("search-app-2"));
 
-    HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd").get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash("1249e25aebb15358bedd")).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results).isNotNull();
@@ -138,7 +139,7 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
-    HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd").get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash("1249e25aebb15358bedd")).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results).isNotNull();
@@ -153,7 +154,7 @@ public class ApiSearchResourceV2Test
   public void testSearchComponent_ByHash_FullHashString() throws Exception {
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
 
-    HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdd00000000000000000000").get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash("1249E25aEbb15358bEdd00000000000000000000")).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results).isNotNull();
@@ -166,7 +167,7 @@ public class ApiSearchResourceV2Test
   public void testSearchComponent_ByHash_UnknownComponent() throws Exception {
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
 
-    HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "69b58197caabec2e0d06").get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash("69b58197caabec2e0d06")).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results).isNotNull();
@@ -179,7 +180,7 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("", "tomcat-util", "");
-    HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(coords(componentIdentifier)).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results).isNotNull();
@@ -201,7 +202,7 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "*", "*");
-    HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(coords(componentIdentifier)).get();
     assertSearchComponent_ByGav(response);
   }
 
@@ -211,7 +212,7 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
     String packageUrl = "pkg:maven/tomcat/*@*";
-    HttpResponse response = addPurl(searchRequest(Stage.ID_BUILD), packageUrl).get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(purl(packageUrl)).get();
     assertSearchComponent_ByGav(response);
   }
 
@@ -249,7 +250,7 @@ public class ApiSearchResourceV2Test
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "*", "*", "sources",
         "jar");
-    HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(coords(componentIdentifier)).get();
     assertSearchComponent_ByGavec_WithNonEmptyClassifier(response);
   }
 
@@ -259,7 +260,7 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
     String pacakageUrl = "pkg:maven/tomcat/*@*?classifier=sources&extension=jar";
-    HttpResponse response = addPurl(searchRequest(Stage.ID_BUILD), pacakageUrl).get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(purl(pacakageUrl)).get();
     assertSearchComponent_ByGavec_WithNonEmptyClassifier(response);
   }
 
@@ -281,7 +282,7 @@ public class ApiSearchResourceV2Test
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "*",
         "", "jar");
-    HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(coords(componentIdentifier)).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results).isNotNull();
@@ -299,7 +300,7 @@ public class ApiSearchResourceV2Test
     // (inline with purl-spec). So effectively this is treated it as no classifier (null)
     // which will be wildcarded for the search query.
     String packageUrl = "pkg:maven/tomcat/tomcat-util@*?extension=jar&classifier=";
-    HttpResponse response = addPurl(searchRequest(Stage.ID_BUILD), packageUrl).get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(purl(packageUrl)).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results).isNotNull();
@@ -318,7 +319,7 @@ public class ApiSearchResourceV2Test
     
     ComponentIdentifier componentIdentifier = 
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", null, "jar");
-    HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(coords(componentIdentifier)).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results).isNotNull();
@@ -340,7 +341,7 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNugetCoordinates("simplejson", "*");
-    HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(coords(componentIdentifier)).get();
     assertSearchComponent_ByNugetComponent(response);
   }
 
@@ -350,7 +351,7 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
     String packageUrl = "pkg:nuget/simplejson@*";
-    HttpResponse response = addPurl(searchRequest(Stage.ID_BUILD), packageUrl).get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(purl(packageUrl)).get();
     assertSearchComponent_ByNugetComponent(response);
   }
 
@@ -373,8 +374,8 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "*", "*");
-    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"),
-        componentIdentifier).get();
+    HttpResponse response =
+        searchRequest(Stage.ID_BUILD).with(hash("1249e25aebb15358bedd")).with(coords(componentIdentifier)).get();
     assertSearchComponent_ByGavAndHash(response);
   }
 
@@ -384,8 +385,8 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
     String packageUrl = "pkg:maven/tomcat/*@*";
-    HttpResponse response = addPurl(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"),
-        packageUrl).get();
+    HttpResponse response =
+        searchRequest(Stage.ID_BUILD).with(hash("1249e25aebb15358bedd")).with(purl(packageUrl)).get();
     assertSearchComponent_ByGavAndHash(response);
   }
 
@@ -407,8 +408,8 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("*", "tomcat-util", "*");
-    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "a397f601582e5ccd4b1a"),
-        componentIdentifier).get();
+    HttpResponse response =
+        searchRequest(Stage.ID_BUILD).with(hash("a397f601582e5ccd4b1a")).with(coords(componentIdentifier)).get();
     assertSearchComponent_EmptyResults(response);
   }
 
@@ -418,16 +419,16 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
     String packageUrl = "pkg:maven/*/tomcat-util@*";
-    HttpResponse response = addPurl(addHash(searchRequest(Stage.ID_BUILD), "a397f601582e5ccd4b1a"),
-        packageUrl).get();
+    HttpResponse response =
+        searchRequest(Stage.ID_BUILD).with(hash("a397f601582e5ccd4b1a")).with(purl(packageUrl)).get();
     assertSearchComponent_EmptyResults(response);
   }
 
   @Test
   public void testSearchComponent_EchoCriteria() throws Exception {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("gid", "aid", "1");
-    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"),
-        componentIdentifier).get();
+    HttpResponse response =
+        searchRequest(Stage.ID_BUILD).with(hash("1249e25aebb15358bedd")).with(coords(componentIdentifier)).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results).isNotNull();
@@ -444,7 +445,7 @@ public class ApiSearchResourceV2Test
   public void testSearchComponent_NoHitsAmongAppComponents() throws Exception {
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
 
-    HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdf").get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash( "1249E25aEbb15358bEdf")).get();
     assertSearchComponent_EmptyResults(response);
   }
 
@@ -452,15 +453,15 @@ public class ApiSearchResourceV2Test
   public void testSearchComponent_AppWithoutAnyReports() throws Exception {
     tempEntity.newApplicationWithParent("search-app-1");
 
-    HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdd").get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash("1249E25aEbb15358bEdd")).get();
     assertSearchComponent_EmptyResults(response);
   }
 
   @Test
   public void testSearchComponent_Purl_InvalidPackageUrl() throws Exception {
     String packageUrl = "invalid package url";
-    HttpResponse response = addPurl(addHash(searchRequest(Stage.ID_BUILD), "a397f601582e5ccd4b1a"),
-        packageUrl).get();
+    HttpResponse response =
+        searchRequest(Stage.ID_BUILD).with(hash("a397f601582e5ccd4b1a")).with(purl(packageUrl)).get();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid package url");

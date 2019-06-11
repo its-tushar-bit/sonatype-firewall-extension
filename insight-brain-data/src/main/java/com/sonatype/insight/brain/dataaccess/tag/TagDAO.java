@@ -63,15 +63,6 @@ public class TagDAO
   }
 
   /**
-   * Retrieve list of Tags owned by the specified Organization, and applied to at least one Policy
-   */
-  public List<Tag> getAppliedToPolicyByOrganizationId(String organizationId) {
-    String sQuery = "SELECT DISTINCT tag FROM PolicyTag policyTag, Tag tag" + //
-        " WHERE policyTag.tagId = tag.id AND tag.organizationId =?1";
-    return getList(sQuery, organizationId);
-  }
-
-  /**
    * Retrieve list of Tags applied to specified Application
    */
   public List<Tag> getByApplicationId(String applicationId) {

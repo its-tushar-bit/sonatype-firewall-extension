@@ -498,6 +498,15 @@ public class PolicyImportExportTest
   }
 
   @Test
+  public void testExportOfUnreferencedApplicationCategory() {
+    tempEntity.newTag(fromOrg.getId(), "tagNotReferencedByPolicy");
+
+    // Export
+    PolicyExportResult policyExportResult = policyImportExport.exportOrganization(fromOrg);
+    assertThat(policyExportResult.tags).hasSize(1);
+  }
+
+  @Test
   public void testImportDeletionOfExistingOrgPolicy() throws Exception {
     tempEntity.newPolicy(fromOrg);
     Label orgLabel = tempEntity.newLabel(fromOrg.getId(), fromOrg.getId(), Color.light_green);

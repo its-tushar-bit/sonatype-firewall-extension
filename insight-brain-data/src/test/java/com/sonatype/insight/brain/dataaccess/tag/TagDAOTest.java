@@ -411,43 +411,6 @@ public class TagDAOTest
     assertThat(new PolicyTagDAO().getByTagId(tag.getId())).hasSize(1);
   }
 
-  @Test
-  public void testGetAppliedToPolicyByOrgId() {
-    Organization org1 = tempEntity.newOrganization("org1");
-    Organization org2 = tempEntity.newOrganization("org2");
-
-    List<Tag> org1Tags = new ArrayList<>();
-    List<Tag> org2Tags = new ArrayList<>();
-
-    Policy policy1 = tempEntity.newPolicy(org1);
-    Policy policy2 = tempEntity.newPolicy(org1);
-    Policy policy3 = tempEntity.newPolicy(org2);
-    Policy policy4 = tempEntity.newPolicy(org2);
-
-    // Create tags and apply to policies
-    org1Tags.add(tempEntity.newTag(org1.getId()));
-    tempEntity.newPolicyTag(policy1.getId(), org1Tags.get(0).getId());
-    org1Tags.add(tempEntity.newTag(org1.getId()));
-    tempEntity.newPolicyTag(policy2.getId(), org1Tags.get(1).getId());
-    org1Tags.add(tempEntity.newTag(org1.getId()));
-    tempEntity.newPolicyTag(policy1.getId(), org1Tags.get(2).getId());
-    tempEntity.newPolicyTag(policy2.getId(), org1Tags.get(2).getId());
-    org2Tags.add(tempEntity.newTag(org2.getId()));
-    tempEntity.newPolicyTag(policy3.getId(), org2Tags.get(0).getId());
-    org2Tags.add(tempEntity.newTag(org2.getId()));
-    tempEntity.newPolicyTag(policy4.getId(), org2Tags.get(1).getId());
-    org2Tags.add(tempEntity.newTag(org2.getId()));
-    tempEntity.newPolicyTag(policy3.getId(), org2Tags.get(2).getId());
-    tempEntity.newPolicyTag(policy4.getId(), org2Tags.get(2).getId());
-
-    // Create tags but do not apply to policies
-    tempEntity.newTag(org1.getId());
-    tempEntity.newTag(org2.getId());
-
-    assertAppliedTags(org1Tags, dao.getAppliedToPolicyByOrganizationId(org1.getId()));
-    assertAppliedTags(org2Tags, dao.getAppliedToPolicyByOrganizationId(org2.getId()));
-  }
-
   private void assertTag(String orgId, String name, String description, Color color, Tag actual) {
     assertThat(actual.getOrganizationId()).isEqualTo(orgId);
     assertThat(actual.getName()).isEqualTo(name);

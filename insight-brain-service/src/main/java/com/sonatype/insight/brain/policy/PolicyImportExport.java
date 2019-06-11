@@ -471,7 +471,7 @@ public class PolicyImportExport
     String orgId = organization.getId();
     PolicyExportResult policyExportResult = export(orgId);
     policyExportResult.policyTags = policyTagDAO.getByOrganizationId(orgId);
-    policyExportResult.tags = tagDAO.getAppliedToPolicyByOrganizationId(orgId);
+    policyExportResult.tags = tagDAO.getByOrganizationId(orgId);
     return policyExportResult;
   }
 

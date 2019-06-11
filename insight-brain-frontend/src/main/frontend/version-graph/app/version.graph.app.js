@@ -179,9 +179,9 @@ import exceptionHandler from './exception.handler.factory';
         }]);
       },
       'registerCoordsMarkUpgradeListener': function (listener) {
-        waitOnInjector(['$rootScope', function ($rootScope) {
-          $rootScope.$on('markUpgrade', function (event, gav) {
-            listener(gav.groupId, gav.artifactId, gav.version);
+        waitOnInjector(['Coordinates', '$rootScope', function (Coordinates, $rootScope) {
+          $rootScope.$on('markUpgrade', function (event, coordinates) {
+            listener(Coordinates.getFormat(), coordinates);
           });
         }]);
       },
@@ -276,7 +276,23 @@ import exceptionHandler from './exception.handler.factory';
       },
       'setPending': createStateFn('pending'),
       'setUnassigned': createStateFn('unassigned'),
-      'setFiltered': createStateFn('filtered')
+      'setFiltered': createStateFn('filtered'),
+      'setCapabilities': function(capabilities) {
+        waitOnInjector(['$rootScope', function ($rootScope) {
+          safeApply($rootScope, function () {
+            let viewDetails = capabilities.viewDetails;
+            let migrate = capabilities.migrate;
+
+            if (typeof viewDetails !== 'undefined' && viewDetails !== null) {
+              $rootScope.viewDetailsSupported = viewDetails;
+            }
+
+            if (typeof migrate !== 'undefined' && migrate !== null) {
+              $rootScope.migrateSupported = migrate;
+            }
+          });
+        }], true);
+      }
     }
   });
 }());

@@ -88,7 +88,12 @@ public abstract class AbstractVersionGraphMavenTest
     VersionsCIP.nextNoViolationVersionLink().shouldHave(text("Select 31.52"));
     VersionsCIP.nextNoFailVersionLink().shouldNotBe(visible);
     VersionsCIP.viewDetailsButton().shouldBe(visible);
-    verifyMigrateButton();
+    if (shouldShowMigrateButton()) {
+      VersionsCIP.migrateButton().shouldBe(visible);
+    }
+    else {
+      VersionsCIP.migrateButton().shouldNotBe(visible);
+    }
     VersionsCIP.noVersionsAvailable().shouldNotBe(visible);
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
@@ -147,7 +152,7 @@ public abstract class AbstractVersionGraphMavenTest
   }
 
   @Test
-  public void testCIPWithoutRemediation() throws Exception {
+  public void testCIPWithoutRemediation() {
     setupHdsResponsesForNoRemediation();
     mockHdsResponseForFirstComponent();
     mockHdsResponseForRemediation();
@@ -171,12 +176,59 @@ public abstract class AbstractVersionGraphMavenTest
     VersionsCIP.nextNoViolationVersionLink().shouldNotBe(visible);
     VersionsCIP.nextNoFailVersionLink().shouldNotBe(visible);
     VersionsCIP.viewDetailsButton().shouldBe(visible);
-    verifyMigrateButton();
+    if (shouldShowMigrateButton()) {
+      VersionsCIP.migrateButton().shouldBe(visible);
+    }
+    else {
+      VersionsCIP.migrateButton().shouldNotBe(visible);
+    }
     VersionsCIP.noVersionsAvailable().shouldBe(visible);
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);
     eyesWatcher.eyesCheck("Component Info Screen");
+  }
+
+  @Test
+  public void testCapabilitiesEnable() {
+    setupHdsResponses();
+    mockHdsResponseForRemediation();
+    mockHdsResponseForFirstComponent();
+
+    executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
+
+    VersionsCIP.groupId().shouldHave(text("javancss"));
+    VersionsCIP.viewDetailsButton().shouldBe(visible);
+    if (shouldShowMigrateButton()) {
+      VersionsCIP.migrateButton().shouldBe(visible);
+    }
+    else {
+      VersionsCIP.migrateButton().shouldNotBe(visible);
+    }
+
+    executeJavaScript("Insight.setCapabilities({viewDetails: false, migrate: false})");
+    VersionsCIP.viewDetailsButton().shouldNotBe(visible);
+    VersionsCIP.migrateButton().shouldNotBe(visible);
+
+    eyesWatcher.eyesCheck("Component Info Screen");
+
+    executeJavaScript("Insight.setCapabilities({\"viewDetails\": true, \"migrate\": true})");
+    VersionsCIP.viewDetailsButton().shouldBe(visible);
+    VersionsCIP.migrateButton().shouldBe(visible);
+
+    executeJavaScript("Insight.setCapabilities({'viewDetails': true, 'migrate': false})");
+    VersionsCIP.viewDetailsButton().shouldBe(visible);
+    VersionsCIP.migrateButton().shouldNotBe(visible);
+
+    executeJavaScript("Insight.setCapabilities({viewDetails: false})");
+    VersionsCIP.viewDetailsButton().shouldNotBe(visible);
+    VersionsCIP.migrateButton().shouldNotBe(visible);
+
+    executeJavaScript(
+        String.format("Insight.setCapabilities({viewDetails: null, migrate: true})"));
+    VersionsCIP.viewDetailsButton().shouldNotBe(visible);
+    VersionsCIP.migrateButton().shouldBe(visible);
+
   }
 
   protected Policy createPolicy(String ownerId,
@@ -231,5 +283,5 @@ public abstract class AbstractVersionGraphMavenTest
     testCLMServer.getHdsServer().setResponseForURI("rest/component/summary", "{\"known\":true}", 200);
   }
 
-  protected abstract void verifyMigrateButton();
+  protected abstract boolean shouldShowMigrateButton();
 }

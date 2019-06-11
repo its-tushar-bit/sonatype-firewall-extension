@@ -93,8 +93,8 @@ class NexusCIPSpec
       cip.viewDetails.displayed
       !cip.viewDetails.hasClass('disabled')
 
-    and: 'a "Migrate" button is absent'
-      !cip.migrate.present
+    and: 'a "Migrate" button is not visible'
+      !cip.migrate.displayed
 
     and: 'the version graph is present and has a fixed height'
       verifyVersionGraph(versionGraph as VersionGraphModule)

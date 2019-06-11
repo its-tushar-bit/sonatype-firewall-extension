@@ -1,6 +1,8 @@
 var clmEndpointTemplate = {
       openView: angular.noop,
-      type: 'ide'
+      type: 'ide',
+      viewDetails: true,
+      migrate: true
     },
     clmEndpoint = angular.copy(clmEndpointTemplate);
 
@@ -1146,14 +1148,34 @@ var clmEndpointTemplate = {
     describe('Insight.registerOpenViewListener', function() {
       var listener, scope;
       beforeEach(inject(function($rootScope) {
-        listener = jasmine.createSpy('listener');
         scope = $rootScope.$new();
+        listener = jasmine.createSpy('listener');
         Insight.registerOpenViewListener(listener);
       }));
 
       it('openView emitted with action calls listener with action', inject(function($rootScope) {
-        scope.$emit('openView', 'action');
+        $rootScope.$emit('openView', 'action');
         expect(listener).toHaveBeenCalledWith('action');
+      }));
+    });
+
+    describe('Insight.registerCoordsMarkUpgradeListener', function() {
+      var listener, scope;
+      beforeEach(inject(function($rootScope) {
+        scope = $rootScope.$new();
+        listener = jasmine.createSpy('listener');
+        Insight.registerCoordsMarkUpgradeListener(listener);
+      }));
+
+      it('emits migrate with entityframework 4.3.0 nuget package and calls listener',
+          inject(function(Coordinates, $rootScope) {
+        var coordinates = {
+          packageId: "EntityFramework",
+          version: "4.3.0"
+        };
+        Coordinates.set("nuget", coordinates);
+        $rootScope.$emit('markUpgrade', coordinates);
+        expect(listener).toHaveBeenCalledWith("nuget", coordinates);
       }));
     });
 
@@ -1382,5 +1404,69 @@ var clmEndpointTemplate = {
         });
       });
     })
+
+    describe('Insight.setCapabilities', function (){
+      var scope;
+      beforeEach(inject(function($rootScope) {
+        scope = $rootScope.$new();
+        scope.migrateSupported = clmEndpoint.migrate;
+        scope.viewDetailsSupported = clmEndpoint.viewDetails;
+      }));
+
+      it('overwrites capabilities when called without quotes', inject(function($rootScope) {
+        Insight.setCapabilities({viewDetails: false, migrate: false});
+        expect($rootScope.viewDetailsSupported).toEqual(false);
+        expect($rootScope.migrateSupported).toEqual(false);
+      }));
+
+      it('does not overwrite capabilities when called with null', inject(function($rootScope) {
+        Insight.setCapabilities({viewDetails: false, migrate: null});
+        expect($rootScope.viewDetailsSupported).toEqual(false);
+        expect($rootScope.migrateSupported).toEqual(true);
+      }));
+
+      it('does not overwrite capabilities when called with missing value', inject(function($rootScope) {
+        Insight.setCapabilities({migrate: false});
+        expect($rootScope.viewDetailsSupported).toEqual(true);
+        expect($rootScope.migrateSupported).toEqual(false);
+      }));
+
+      it('overwrites capabilities when called with quotes', inject(function($rootScope) {
+        Insight.setCapabilities({'viewDetails': false, 'migrate': false});
+        expect($rootScope.viewDetailsSupported).toEqual(false);
+        expect($rootScope.migrateSupported).toEqual(false);
+      }));
+
+      it('does not overwrite capabilities when called with quotes and null', inject(function($rootScope) {
+        Insight.setCapabilities({'viewDetails': false, 'migrate': null});
+        expect($rootScope.viewDetailsSupported).toEqual(false);
+        expect($rootScope.migrateSupported).toEqual(true);
+      }));
+
+      it('does not overwrite capabilities when called with quotes and missing value', inject(function($rootScope) {
+        Insight.setCapabilities({'migrate': false});
+        expect($rootScope.viewDetailsSupported).toEqual(true);
+        expect($rootScope.migrateSupported).toEqual(false);
+      }));
+
+      it('overwrites capabilities when called without double quotes', inject(function($rootScope) {
+        Insight.setCapabilities({"viewDetails": false, "migrate": false});
+        expect($rootScope.viewDetailsSupported).toEqual(false);
+        expect($rootScope.migrateSupported).toEqual(false);
+      }));
+
+      it('does not overwrite capabilities when called with double quotes and null', inject(function($rootScope) {
+        Insight.setCapabilities({'viewDetails': false, 'migrate': null});
+        expect($rootScope.viewDetailsSupported).toEqual(false);
+        expect($rootScope.migrateSupported).toEqual(true);
+      }));
+
+      it('does not overwrite capabilities when called with double quotes and missing value',
+          inject(function($rootScope) {
+            Insight.setCapabilities({'migrate': false});
+            expect($rootScope.viewDetailsSupported).toEqual(true);
+            expect($rootScope.migrateSupported).toEqual(false);
+          }));
+    });
   });
 }());

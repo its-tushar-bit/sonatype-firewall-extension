@@ -5,11 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.version.graph;
 
-import com.sonatype.clm.testing.functional.elements.VersionsCIP;
-
 import org.junit.Before;
-
-import static com.codeborne.selenide.Condition.visible;
 
 public class VersionGraphIdeaTest
     extends AbstractVersionGraphMavenTest
@@ -22,7 +18,7 @@ public class VersionGraphIdeaTest
   }
 
   @Override
-  protected void verifyMigrateButton() {
-    VersionsCIP.migrateButton().shouldNotBe(visible);
+  protected boolean shouldShowMigrateButton() {
+    return false;
   }
 }

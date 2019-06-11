@@ -164,6 +164,41 @@ public class VersionGraphVsTest
     eyesWatcher.eyesCheck("Component Info Screen");
   }
 
+  @Test
+  public void testCapabilitiesEnable() {
+    setupHdsResponses();
+    mockHdsResponseForRemediation();
+    mockHdsResponseForFirstComponent();
+
+    executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
+    VersionsCIP.version().shouldHave(text("4.3.0"));
+    VersionsCIP.viewDetailsButton().shouldBe(visible);
+    VersionsCIP.migrateButton().shouldNotBe(visible);
+
+    executeJavaScript("Insight.setCapabilities({viewDetails: false, migrate: false})");
+    VersionsCIP.viewDetailsButton().shouldNotBe(visible);
+    VersionsCIP.migrateButton().shouldNotBe(visible);
+
+    eyesWatcher.eyesCheck("Component Info Screen");
+
+    executeJavaScript("Insight.setCapabilities({\"viewDetails\": true, \"migrate\": true})");
+    VersionsCIP.viewDetailsButton().shouldBe(visible);
+    VersionsCIP.migrateButton().shouldBe(visible);
+
+    executeJavaScript("Insight.setCapabilities({'viewDetails': true, 'migrate': false})");
+    VersionsCIP.viewDetailsButton().shouldBe(visible);
+    VersionsCIP.migrateButton().shouldNotBe(visible);
+
+    executeJavaScript("Insight.setCapabilities({viewDetails: false})");
+    VersionsCIP.viewDetailsButton().shouldNotBe(visible);
+    VersionsCIP.migrateButton().shouldNotBe(visible);
+
+    executeJavaScript("Insight.setCapabilities({viewDetails: null, migrate: true})");
+    VersionsCIP.viewDetailsButton().shouldNotBe(visible);
+    VersionsCIP.migrateButton().shouldBe(visible);
+
+  }
+
   protected Policy createPolicy(String ownerId,
                               int threatLevel,
                               String name,

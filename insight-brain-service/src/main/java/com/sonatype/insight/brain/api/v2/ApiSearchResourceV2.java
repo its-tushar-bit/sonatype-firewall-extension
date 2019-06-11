@@ -41,9 +41,9 @@ public class ApiSearchResourceV2
 
   /**
    * Searches all currently registered applications for a component matching the given search criteria. A component can
-   * be searched for by its hash or its coordinates, the latter supporting wildcards like the equivalent policy
-   * condition. The mandatory stageId parameter restricts which scans/reports of the applications are inspected for the
-   * component.
+   * be searched for by its hash or its coordinates (or its equivalent packageUrl format), the latter supporting
+   * wildcards like the equivalent policy condition. The mandatory stageId parameter restricts which scans/reports
+   * of the applications are inspected for the component.
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
@@ -51,9 +51,9 @@ public class ApiSearchResourceV2
   public ApiSearchResultsDTOV2 searchComponent(
       @QueryParam("stageId") String stageId,
       @QueryParam("hash") String hash,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
+      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier,
+      @QueryParam("packageUrl") String packageUrl)
   {
-
-    return searchService.searchComponent(stageId, hash, componentIdentifier);
+    return searchService.searchComponent(stageId, hash, componentIdentifier, packageUrl);
   }
 }

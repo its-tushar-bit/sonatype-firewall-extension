@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.purl.PurlIdentifier;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -70,7 +71,11 @@ public class ApiSearchServiceV2
     this.policyViolationDAO = policyViolationDAO;
   }
 
-  public ApiSearchResultsDTOV2 searchComponent(String stageId, String hash, ComponentIdentifier componentIdentifier) {
+  public ApiSearchResultsDTOV2 searchComponent(String stageId,
+                                               String hash,
+                                               ComponentIdentifier componentIdentifier,
+                                               String packageUrl)
+  {
     AuditData.get().setComponentHash(hash).setComponentIdentifier(componentIdentifier);
 
     if (StringUtils.isEmpty(stageId)) {
@@ -81,9 +86,21 @@ public class ApiSearchServiceV2
     }
 
     ArtifactCoordinate coords = null;
-    if (componentIdentifier != null) {
-      componentIdentifier = new ComponentIdentifier(componentIdentifier.getFormat(),
-          convertToWildcardWhereNeeded(componentIdentifier.getFormat(), componentIdentifier.getCoordinates()));
+    if (packageUrl != null) {
+      try {
+        componentIdentifier = new PurlIdentifier(packageUrl).toComponentIdentifier();
+        AuditData.get().setComponentIdentifier(componentIdentifier);
+
+        componentIdentifier =
+            constructWildcardedComponentIdentifier(componentIdentifier);
+        coords = new ArtifactCoordinate(componentIdentifier);
+      }
+      catch (IllegalArgumentException e) {
+        throw new BadRequestException(e.getMessage(), e);
+      }
+    }
+    else if (componentIdentifier != null) {
+      componentIdentifier = constructWildcardedComponentIdentifier(componentIdentifier);
       coords = new ArtifactCoordinate(componentIdentifier);
     }
     else if (StringUtils.isEmpty(hash)) {
@@ -153,6 +170,11 @@ public class ApiSearchServiceV2
         componentIdentifier, System.currentTimeMillis() - start, results.results.size());
 
     return results;
+  }
+
+  private ComponentIdentifier constructWildcardedComponentIdentifier(final ComponentIdentifier componentIdentifier) {
+    return new ComponentIdentifier(componentIdentifier.getFormat(),
+        convertToWildcardWhereNeeded(componentIdentifier.getFormat(), componentIdentifier.getCoordinates()));
   }
 
   /**

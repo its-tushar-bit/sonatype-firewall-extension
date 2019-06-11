@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.purl.PurlIdentifier;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
@@ -59,6 +60,25 @@ public class ApiSearchResourceV2AuditTest
   }
 
   @Test
+  public void testSearchComponent_ByPackageUrl() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    String packageUrl = "pkg:maven/g/a@v";
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanId");
+    ComponentIdentifier componentIdentifier = new PurlIdentifier(packageUrl).toComponentIdentifier();
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "hash",
+        componentIdentifier);
+    tempEntity.newApplicationWithParent();
+
+    restRequest().query("packageUrl", packageUrl).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.SEARCH_COMPONENT_USES, null);
+    assertCustomData(auditDTO, "componentHash", null);
+    assertCustomObject(auditDTO, "componentIdentifier", componentIdentifier);
+    assertCustomData(auditDTO, "inspectedApplicationCount", 2);
+    assertCustomData(auditDTO, "resultRecordCount", 1);
+  }
+
+  @Test
   public void testSearchComponent_ByHashAndComponentIdentifier() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     String hash = "1249e25aebb15358bedd";
@@ -68,6 +88,25 @@ public class ApiSearchResourceV2AuditTest
     tempEntity.newApplicationWithParent();
 
     restRequest().query("hash", hash).query("componentIdentifier", componentIdentifier).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.SEARCH_COMPONENT_USES, null);
+    assertCustomData(auditDTO, "componentHash", hash);
+    assertCustomObject(auditDTO, "componentIdentifier", componentIdentifier);
+    assertCustomData(auditDTO, "inspectedApplicationCount", 2);
+    assertCustomData(auditDTO, "resultRecordCount", 1);
+  }
+
+  @Test
+  public void testSearchComponent_ByHashAndPackageUrl() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    String hash = "1249e25aebb15358bedd";
+    String packageUrl = "pkg:maven/g/a@v";
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanId");
+    ComponentIdentifier componentIdentifier = new PurlIdentifier(packageUrl).toComponentIdentifier();
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, hash, componentIdentifier);
+    tempEntity.newApplicationWithParent();
+
+    restRequest().query("hash", hash).query("packageUrl", packageUrl).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.SEARCH_COMPONENT_USES, null);
     assertCustomData(auditDTO, "componentHash", hash);

@@ -16,6 +16,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.sonatype.insight.db.DatabaseConfig;
+
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerClient.LogsParam;
@@ -190,6 +192,16 @@ public class PostgresServer
         dockerClient.close();
       }
     }
+  }
+
+  public DatabaseConfig getDatabaseConfig() {
+    DatabaseConfig databaseConfig = new DatabaseConfig();
+    databaseConfig.setDriverClassName(org.postgresql.Driver.class.getName());
+    databaseConfig.setUrl(getJdbcUrl());
+    databaseConfig.setUsername(username);
+    databaseConfig.setPassword(password);
+    databaseConfig.setMaxConnections(50);
+    return databaseConfig;
   }
 
   /**

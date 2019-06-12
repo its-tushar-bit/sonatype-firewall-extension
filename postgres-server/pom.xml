@@ -109,6 +109,11 @@
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
     </dependency>
+    
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-db-common</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>

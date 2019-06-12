@@ -83,7 +83,7 @@ public abstract class AbstractDatabaseProviderTest
   @Test
   public void testDatabaseCreation_Postgres() throws Exception {
     try (PostgresServer postgres = new PostgresServer()) {
-      DatabaseConfig databaseConfig = getDatabaseConfig(postgres);
+      DatabaseConfig databaseConfig = postgres.getDatabaseConfig();
 
       // New database
       verifyDatabaseCreation(databaseConfig);
@@ -97,7 +97,7 @@ public abstract class AbstractDatabaseProviderTest
   @Test
   public void testInit_Migrate_Postgres() throws Exception {
     try (PostgresServer postgres = new PostgresServer()) {
-      DatabaseConfig databaseConfig = getDatabaseConfig(postgres);
+      DatabaseConfig databaseConfig = postgres.getDatabaseConfig();
 
       ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
       resourceDatabasePopulator

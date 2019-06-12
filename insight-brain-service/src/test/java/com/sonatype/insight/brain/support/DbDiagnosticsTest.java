@@ -66,11 +66,7 @@ public class DbDiagnosticsTest
   @Test
   public void testGetDBFileInfo_Postgres() throws Exception {
     try (PostgresServer postgres = new PostgresServer()) {
-      DatabaseConfig databaseConfig = new DatabaseConfig();
-      databaseConfig.setDriverClassName(org.postgresql.Driver.class.getName());
-      databaseConfig.setUrl(postgres.getJdbcUrl());
-      databaseConfig.setUsername(postgres.getUsername());
-      databaseConfig.setPassword(postgres.getPassword());
+      DatabaseConfig databaseConfig = postgres.getDatabaseConfig();
       OperationalDataStoreProvider.init(databaseConfig, false);
 
       final String dbDiagnostics = DbDiagnostics.getDBFileInfo();

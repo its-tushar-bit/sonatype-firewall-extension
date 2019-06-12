@@ -13,6 +13,7 @@
     <class>com.sonatype.insight.brain.model.ApplicationComponent</class>
     <class>com.sonatype.insight.brain.model.Organization</class>
     <class>com.sonatype.insight.brain.model.SchemaInfo</class>
+    <class>com.sonatype.insight.brain.model.MigrationTracker</class>
     <class>com.sonatype.insight.brain.model.component.HashComponentIdentifier</class>
     <class>com.sonatype.insight.brain.model.label.Label</class>
     <class>com.sonatype.insight.brain.model.label.ComponentLabel</class>

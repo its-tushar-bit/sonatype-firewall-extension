@@ -593,3 +593,7 @@ CREATE TABLE schema_version (
 );
 INSERT INTO schema_version (schema_version) VALUES (-1);
 
+CREATE TABLE migration_tracker (
+    applied_migration varchar(100) NOT NULL,
+    CONSTRAINT applied_migration PRIMARY KEY (applied_migration)
+);

@@ -20,13 +20,13 @@ import com.sonatype.insight.model.HasStringId;
 public class MigrationTracker implements HasStringId
 {
   @Id
-  @Column(name = "id", length = 100)
+  @Column(name = "id")
   private String id;
 
-  @Column(name = "version", nullable = true)
+  @Column(name = "version")
   private Integer version;
 
-  @Column(name = "configuration", nullable = true)
+  @Column(name = "configuration")
   private String configuration;
 
   @Override

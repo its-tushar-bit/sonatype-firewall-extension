@@ -53,6 +53,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -473,7 +474,7 @@ public class RootOrganizationConfigMigratorTest
   }
 
   @Test
-  public void testBackup() throws Exception {
+  public void testMigrate_InternalDatabase_BackupIsCreated() throws Exception {
     DataSourceFactory.clear_ForTestsOnly();
 
     try {
@@ -512,6 +513,26 @@ public class RootOrganizationConfigMigratorTest
       createSourceOrg();
       migrator.migrate();
       assertThat(backupDir).doesNotExist();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  @Test
+  public void testMigrate_ExternalDatabase_BackupIsNotCreated() throws Exception {
+    DataSourceFactory.clear_ForTestsOnly();
+
+    try (PostgresServer postgres = new PostgresServer()) {
+      config.setDatabase(new com.sonatype.insight.brain.service.DatabaseConfig());
+      // Create a postgres ODS database
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      // Create an organization only to make it look like this is not a fresh install (that would not require a
+      // migration).
+      tempEntity.newOrganization();
+
+      createSourceOrg();
+      assertThat(migrator.migrate()).isTrue();
     }
     finally {
       DataSourceFactory.clear_ForTestsOnly();

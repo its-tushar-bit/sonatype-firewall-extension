@@ -159,6 +159,9 @@ public class RootOrganizationConfigMigrator
   }
 
   private void createBackup() {
+    if (!config.isDatabaseEmbedded()) {
+      return;
+    }
     if (OperationalDataStoreProvider.isDatabaseInMemory()) {
       return;
     }
@@ -176,6 +179,9 @@ public class RootOrganizationConfigMigrator
   }
 
   private void deleteBackup() {
+    if (!config.isDatabaseEmbedded()) {
+      return;
+    }
     if (OperationalDataStoreProvider.isDatabaseInMemory()) {
       return;
     }

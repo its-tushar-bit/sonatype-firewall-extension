@@ -21,8 +21,13 @@ public class MigrationTrackerDAOTest
     MigrationTracker migrationTracker = new MigrationTracker();
     String aMigrationIdentifier = "PolicySomePropertyMigration";
     migrationTracker.setId(aMigrationIdentifier);
+    migrationTracker.setVersion(null);
+    migrationTracker.setConfiguration(null);
     dao.insert(migrationTracker);
     assertThat(dao.getById(aMigrationIdentifier)).isNotNull();
+    assertThat(dao.getById(aMigrationIdentifier).getId()).isEqualTo(aMigrationIdentifier);
+    assertThat(dao.getById(aMigrationIdentifier).getVersion()).isNull();
+    assertThat(dao.getById(aMigrationIdentifier).getConfiguration()).isNull();
     dao.delete(migrationTracker);
     assertThat(dao.getById(aMigrationIdentifier)).isNull();
   }

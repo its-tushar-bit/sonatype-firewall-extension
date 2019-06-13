@@ -20,11 +20,14 @@ import com.sonatype.insight.model.HasStringId;
 public class MigrationTracker implements HasStringId
 {
   @Id
-  @Column(name = "applied_migration", length = 100)
+  @Column(name = "id", length = 100)
   private String id;
 
-  public MigrationTracker() {
-  }
+  @Column(name = "version", nullable = true)
+  private Integer version;
+
+  @Column(name = "configuration", nullable = true)
+  private String configuration;
 
   @Override
   public String getId() {
@@ -32,7 +35,23 @@ public class MigrationTracker implements HasStringId
   }
 
   @Override
-  public void setId(final String id) {
+  public void setId(String id) {
     this.id = id;
+  }
+
+  public Integer getVersion() {
+    return version;
+  }
+
+  public void setVersion(Integer version) {
+    this.version = version;
+  }
+
+  public String getConfiguration() {
+    return configuration;
+  }
+
+  public void setConfiguration(String configuration) {
+    this.configuration = configuration;
   }
 }

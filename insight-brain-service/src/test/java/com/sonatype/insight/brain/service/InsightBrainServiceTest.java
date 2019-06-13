@@ -45,14 +45,18 @@ import io.dropwizard.logging.FileAppenderFactory;
 import io.dropwizard.logging.SyslogAppenderFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
 import io.dropwizard.server.AbstractServerFactory;
+import io.dropwizard.server.DefaultServerFactory;
 import org.junit.Rule;
 import org.junit.Test;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class InsightBrainServiceTest
     extends AbstractBrainServiceTest
@@ -240,5 +244,30 @@ public class InsightBrainServiceTest
     // Manually initialize server with custom configurator to ensure it gets restarted if already running
     initServer(config -> {
     });
+  }
+
+  @Test
+  public void testStartupFailsIfSonatypeWorkIsInUse() {
+    TestCLMServer testCLMServerTwo = new TestCLMServer(false, null, null, null);
+    try {
+      assertThatExceptionOfType(IllegalStateException.class).isThrownBy(testCLMServerTwo::start)
+          .withStackTraceContaining(
+              "Work directory " + getCLMServer().getWorkDir().getAbsolutePath() + " is already in use.");
+    }
+    finally {
+      testCLMServerTwo.stop();
+    }
+  }
+
+  @Test
+  @ManualServerInit
+  public void testReleasesLockOnFailedRun() throws Exception {
+    Configurator configurator = config -> {
+      DefaultServerFactory mockDefaultServerFactory = mock(DefaultServerFactory.class);
+      when(mockDefaultServerFactory.getApplicationConnectors()).thenThrow(new RuntimeException());
+      config.setServerFactory(mockDefaultServerFactory);
+    };
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> initServer(configurator));
+    initServer(null);
   }
 }

@@ -205,6 +205,7 @@ public class TestInsightBrainService
         }
 
         private InsightConfig augment(InsightConfig config) {
+          config.setSonatypeWork(getWorkDir().getPath());
           if (configurator != null) {
             configurator.configure(config);
           }
@@ -230,7 +231,6 @@ public class TestInsightBrainService
     adminConnector.setPort(testAdminPort);
     // disable graceful shutdown, i.e. don't waste time waiting nor risk timeout errors
     defaultServerFactory.setShutdownGracePeriod(Duration.milliseconds(0));
-    config.setSonatypeWork(getWorkDir().getPath());
     if (testHdsUrl != null) {
       config.setHdsUrl(testHdsUrl);
     }
@@ -240,7 +240,7 @@ public class TestInsightBrainService
     }
     insightConfig = config;
 
-    new FileCleaner().delete(config.getSonatypeWork());
+    initWorkDirectory(config.getSonatypeWork());
 
     // Create file indicating the root org is available
     RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils =
@@ -300,5 +300,15 @@ public class TestInsightBrainService
 
   public InsightConfig getConfiguration() {
     return insightConfig;
+  }
+
+  private void initWorkDirectory(File workDir) throws Exception {
+    FileCleaner fileCleaner = new FileCleaner();
+    // lock has already been created by this point so ignore it
+    for (File file : workDir.listFiles()) {
+      if (!file.getName().equals("lock")) {
+        fileCleaner.delete(file);
+      }
+    }
   }
 }

@@ -129,10 +129,16 @@ public class InsightBrainService
     final Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(this);
     bootstrap.addCommand(new ServerCommand<InsightConfig>(this)
     {
+      private volatile InsightFileLock insightFileLock;
+
       @Override
       protected void run(Bootstrap<InsightConfig> bootstrap, Namespace namespace, InsightConfig configuration)
           throws Exception
       {
+        configuration.getSonatypeWork().mkdirs();
+        insightFileLock = new InsightFileLock(configuration);
+        insightFileLock.lock();
+
         MDCUsernameScope.forSystem();
         printVersion();
 
@@ -147,6 +153,14 @@ public class InsightBrainService
       public void onError(Cli cli, Namespace namespace, Throwable t) {
         // throw up to let our main() method do the desired error logging/handling
         throw new IllegalStateException("Fatal error trying to start server", t);
+      }
+
+      @Override
+      protected void cleanup() {
+        if (insightFileLock != null) {
+          insightFileLock.release();
+        }
+        super.cleanup();
       }
     });
     initialize(bootstrap);
@@ -306,8 +320,6 @@ public class InsightBrainService
   @Override
   protected void customize(final InsightConfig config, final Environment env) {
     replaceGenericExceptionMapper(env, config);
-
-    config.getSonatypeWork().mkdirs();
 
     addServletFilter(env, AuditFilter.class, AuditFilter.URL_PATTERNS);
     addServletFilter(env, HttpHeaderValidatorFilter.class, HttpHeaderValidatorFilter.URL_PATTERN);

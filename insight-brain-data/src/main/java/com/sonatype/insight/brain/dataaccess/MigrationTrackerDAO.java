@@ -14,12 +14,6 @@ public class MigrationTrackerDAO
     extends AbstractOperationalSqlDAO<MigrationTracker>
 {
   @Override
-  public void insert(MigrationTracker entity) {
-    Objects.requireNonNull(entity.getId(), "MigrationTracker entity can not be inserted without an id!");
-    super.insert(entity);
-  }
-
-  @Override
   public void insert(TransactionContext tx, MigrationTracker entity) {
     Objects.requireNonNull(entity.getId(), "MigrationTracker entity can not be inserted without an id!");
     super.insert(tx, entity);

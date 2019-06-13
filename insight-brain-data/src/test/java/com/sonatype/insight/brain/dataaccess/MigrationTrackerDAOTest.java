@@ -17,18 +17,38 @@ public class MigrationTrackerDAOTest
   private MigrationTrackerDAO dao = new MigrationTrackerDAO();
 
   @Test
-  public void testCRD() {
-    MigrationTracker migrationTracker = new MigrationTracker();
-    String aMigrationIdentifier = "PolicySomePropertyMigration";
-    migrationTracker.setId(aMigrationIdentifier);
-    migrationTracker.setVersion(null);
-    migrationTracker.setConfiguration(null);
-    dao.insert(migrationTracker);
-    assertThat(dao.getById(aMigrationIdentifier)).isNotNull();
-    assertThat(dao.getById(aMigrationIdentifier).getId()).isEqualTo(aMigrationIdentifier);
-    assertThat(dao.getById(aMigrationIdentifier).getVersion()).isNull();
-    assertThat(dao.getById(aMigrationIdentifier).getConfiguration()).isNull();
-    dao.delete(migrationTracker);
-    assertThat(dao.getById(aMigrationIdentifier)).isNull();
+  public void testCRUD() {
+    String id = "id";
+
+    MigrationTracker instance = new MigrationTracker();
+    instance.setId(id);
+    instance.setVersion(null);
+    instance.setConfiguration(null);
+
+    // Create
+    dao.insert(instance);
+
+    // Read
+    MigrationTracker byId = dao.getById(id);
+    assertThat(byId).isNotNull();
+    assertThat(byId.getId()).isEqualTo(id);
+    assertThat(byId.getVersion()).isNull();
+    assertThat(byId.getConfiguration()).isNull();
+
+    // Update
+    instance.setVersion(1);
+    instance.setConfiguration("Configuration");
+    dao.update(instance);
+
+    // Read Updated
+    byId = dao.getById(id);
+    assertThat(byId).isNotNull();
+    assertThat(byId.getId()).isEqualTo(id);
+    assertThat(byId.getVersion()).isEqualTo(1);
+    assertThat(byId.getConfiguration()).isEqualTo("Configuration");
+
+    // Delete
+    dao.delete(instance);
+    assertThat(dao.getById(id)).isNull();
   }
 }

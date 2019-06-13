@@ -20,7 +20,7 @@ import com.sonatype.insight.model.HasStringId;
 public class MigrationTracker implements HasStringId
 {
   @Id
-  @Column(name = "id")
+  @Column(name = "migration_tracker_id")
   private String id;
 
   @Column(name = "version")

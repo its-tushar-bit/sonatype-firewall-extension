@@ -29,6 +29,13 @@ public class MigrationTracker implements HasStringId
   @Column(name = "configuration")
   private String configuration;
 
+  public MigrationTracker() {
+  }
+
+  public MigrationTracker(String id) {
+    this.id = id;
+  }
+
   @Override
   public String getId() {
     return id;

@@ -20,8 +20,7 @@ public class MigrationTrackerDAOTest
   public void testCRUD() {
     String id = "id";
 
-    MigrationTracker instance = new MigrationTracker();
-    instance.setId(id);
+    MigrationTracker instance = new MigrationTracker(id);
     instance.setVersion(null);
     instance.setConfiguration(null);
 

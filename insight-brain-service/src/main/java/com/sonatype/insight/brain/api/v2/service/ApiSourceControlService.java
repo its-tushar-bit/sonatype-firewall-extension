@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -14,6 +16,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
@@ -21,8 +24,11 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
@@ -47,13 +53,18 @@ public class ApiSourceControlService
 
   private final CLMLicenseManager clmLicenseManager;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
-  public ApiSourceControlService(final PlexusCipher plexusCipher, final SourceControlDAO sourceControlDAO, 
-      final CLMLicenseManager clmLicenseManager) 
+  public ApiSourceControlService(final PlexusCipher plexusCipher,
+                                 final SourceControlDAO sourceControlDAO,
+                                 final CLMLicenseManager clmLicenseManager,
+                                 final TelemetrySender telemetrySender)
   {
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
     this.clmLicenseManager = clmLicenseManager;
+    this.telemetrySender = telemetrySender;
   }
 
   @Authorize(permission = Permission.READ)
@@ -72,6 +83,7 @@ public class ApiSourceControlService
       throw new NotFoundException("Cannot find SourceControl for Application with id: " + applicationId);
     }
     sourceControl.setToken(FAKE_SECRET_KEY);
+    sendSourceControlTelemetryData(METHOD.GET_BY_APP_ID, applicationId);
     return sourceControl;
   }
 
@@ -85,6 +97,7 @@ public class ApiSourceControlService
     sourceControlDAO.insert(sourceControl);
     auditSourceControl(sourceControl);
     sourceControl.setToken(FAKE_SECRET_KEY);
+    sendSourceControlTelemetryData(METHOD.ADD, applicationId, sourceControl);
     return sourceControl;
   }
 
@@ -105,6 +118,7 @@ public class ApiSourceControlService
     sourceControlDAO.update(sourceControl);
     auditSourceControl(sourceControl);
     sourceControl.setToken(FAKE_SECRET_KEY);
+    sendSourceControlTelemetryData(METHOD.UPDATE, applicationId, sourceControl);
     return sourceControl;
   }
 
@@ -117,6 +131,7 @@ public class ApiSourceControlService
     validateApplicationId(applicationId, sourceControl);
     sourceControlDAO.delete(sourceControl);
     auditSourceControl(sourceControl);
+    sendSourceControlTelemetryData(METHOD.DELETE, applicationId, sourceControl);
   }
 
   @Authorize(permission = Permission.READ)
@@ -175,6 +190,35 @@ public class ApiSourceControlService
       log.debug("License does not support SourceControl notification features");
       throw new InvalidLicenseException();
     }
+  }
+
+  private void sendSourceControlTelemetryData(final METHOD method, final String applicationId) {
+    sendSourceControlTelemetryData(method, applicationId, null);
+  }
+
+  private void sendSourceControlTelemetryData(
+      final METHOD method,
+      final String applicationId,
+      final SourceControl sourceControl)
+  {
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put("method", method);
+    attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
+    if (sourceControl != null) {
+      attributes.put("repository_url", HdsClientAnalytics.obfuscate(sourceControl.getRepositoryUrl()));
+    }
+
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL);
+    telemetryData.setAttributes(attributes);
+    telemetrySender.send(telemetryData);
+  }
+
+  enum METHOD
+  {
+    GET_BY_APP_ID,
+    ADD,
+    UPDATE,
+    DELETE
   }
 }
           

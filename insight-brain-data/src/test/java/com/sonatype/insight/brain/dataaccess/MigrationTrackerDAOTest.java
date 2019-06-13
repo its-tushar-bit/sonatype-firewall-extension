@@ -21,8 +21,6 @@ public class MigrationTrackerDAOTest
     String id = "id";
 
     MigrationTracker instance = new MigrationTracker(id);
-    instance.setVersion(null);
-    instance.setConfiguration(null);
 
     // Create
     dao.insert(instance);

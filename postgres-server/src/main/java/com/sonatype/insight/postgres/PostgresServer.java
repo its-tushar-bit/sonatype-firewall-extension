@@ -5,8 +5,12 @@
  */
 package com.sonatype.insight.postgres;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -15,11 +19,13 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPOutputStream;
 
 import com.sonatype.insight.db.DatabaseConfig;
 
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
+import com.spotify.docker.client.DockerClient.ExecCreateParam;
 import com.spotify.docker.client.DockerClient.LogsParam;
 import com.spotify.docker.client.LogMessage;
 import com.spotify.docker.client.LogStream;
@@ -27,8 +33,11 @@ import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.exceptions.ImageNotFoundException;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.PortBinding;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.junit.AssumptionViolatedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,7 +130,7 @@ public class PostgresServer
       ContainerInfo containerInfo = dockerClient.inspectContainer(containerId);
       port = Integer.parseInt(containerInfo.networkSettings().ports().get("5432/tcp").get(0).hostPort());
       LogStream logStream = dockerClient.logs(containerId, LogsParam.follow(), LogsParam.stdout(), LogsParam.stderr());
-      containerLog = new DockerLogger(logStream);
+      containerLog = new DockerLogger("postgres", logStream);
     }
     catch (Exception e) {
       throw new IllegalStateException("Could not start postgres server", e);
@@ -204,6 +213,41 @@ public class PostgresServer
     return databaseConfig;
   }
 
+  public void loadSqlDump(Path sqlFile) {
+    log.info("Loading SQL dump {}", sqlFile);
+    try {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      try (TarArchiveOutputStream tar = new TarArchiveOutputStream(new GZIPOutputStream(baos))) {
+        byte[] sql = Files.readAllBytes(sqlFile);
+        TarArchiveEntry tarEntry = new TarArchiveEntry("pq-dump.sql");
+        tarEntry.setSize(sql.length);
+        tar.putArchiveEntry(tarEntry);
+        tar.write(sql);
+        tar.closeArchiveEntry();
+      }
+      dockerClient.copyToContainer(new ByteArrayInputStream(baos.toByteArray()), containerId, "/tmp");
+      String[] cmd = {"/usr/local/bin/psql", "--variable", "ON_ERROR_STOP=1", "--dbname", databaseName, "--username",
+          username, "--file", "/tmp/pq-dump.sql"};
+      String execId = dockerClient
+          .execCreate(containerId, cmd, ExecCreateParam.attachStdout(), ExecCreateParam.attachStderr()).id();
+      try (DockerLogger execLog = new DockerLogger("psql", dockerClient.execStart(execId))) {
+        while (true) {
+          ExecState execState = dockerClient.execInspect(execId);
+          if (!execState.running()) {
+            if (execState.exitCode() != 0) {
+              throw new Exception("psql returned " + execState.exitCode());
+            }
+            break;
+          }
+          Thread.sleep(10);
+        }
+      }
+    }
+    catch (Exception e) {
+      throw new IllegalStateException("Could not load SQL dump into postgres server", e);
+    }
+  }
+
   /**
    * Forwards the stdout/stderr from the docker container to the test log to aid troubleshooting.
    */
@@ -215,9 +259,9 @@ public class PostgresServer
 
     private volatile boolean closed;
 
-    public DockerLogger(LogStream logStream) {
+    public DockerLogger(String processName, LogStream logStream) {
       this.logStream = logStream;
-      setName("postgres");
+      setName(processName);
       setDaemon(true);
       start();
     }

@@ -20,8 +20,15 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
+import javax.mail.BodyPart;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
@@ -41,8 +48,13 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.client.utils.Authentication;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryHeader;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
@@ -367,6 +379,64 @@ public abstract class AbstractBrainServiceTest
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);
+    }
+  }
+
+  protected List<TelemetryItem> getTelemetryItems(final Map<ByteArrayDataSource, Integer> responses)
+      throws MessagingException, IOException
+  {
+    List<TelemetryItem> telemetryItems = new ArrayList<>();
+    for (Map.Entry<ByteArrayDataSource, Integer> response : responses.entrySet()) {
+      Integer status = response.getValue();
+      MimeMultipart multipart = new MimeMultipart(response.getKey());
+      BodyPart bodyPart = multipart.getBodyPart(0);
+      String filename = bodyPart.getFileName();
+      assertThat(TelemetrySender.ZIP_FILENAME).isEqualTo(filename);
+      assertThat(status).isEqualTo(204);
+      try (ZipInputStream zipInputStream = new ZipInputStream(bodyPart.getInputStream())) {
+        telemetryItems.add(new TelemetryItem(zipInputStream).invoke());
+      }
+    }
+    return telemetryItems;
+  }
+
+  protected class TelemetryItem
+  {
+    private final ZipInputStream zipInputStream;
+
+    private TelemetryHeader telemetryHeaderReceived;
+
+    private TelemetryData telemetryDataReceived;
+
+    public TelemetryItem(final ZipInputStream zipInputStream) {
+      this.zipInputStream = zipInputStream;
+    }
+
+    public TelemetryHeader getTelemetryHeader() {
+      return telemetryHeaderReceived;
+    }
+
+    public TelemetryData getTelemetryData() {
+      return telemetryDataReceived;
+    }
+
+    public TelemetryPurpose getTelemetryPurpose() {
+      return telemetryDataReceived.getPurpose();
+    }
+
+    public TelemetryItem invoke() throws IOException {
+      byte[] buffer = new byte[1024];
+
+      ZipEntry zipEntryHeader = zipInputStream.getNextEntry();
+      assertThat(zipEntryHeader.getName()).isEqualTo(TelemetrySender.HEADER_ENTRY_NAME);
+      zipInputStream.read(buffer);
+      telemetryHeaderReceived = JsonUtils.parse(buffer, TelemetryHeader.class);
+
+      ZipEntry zipEntryData = zipInputStream.getNextEntry();
+      assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);
+      zipInputStream.read(buffer);
+      telemetryDataReceived = JsonUtils.parse(buffer, TelemetryData.class);
+      return this;
     }
   }
 }

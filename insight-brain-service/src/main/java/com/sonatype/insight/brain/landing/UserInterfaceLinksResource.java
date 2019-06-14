@@ -6,22 +6,29 @@
 package com.sonatype.insight.brain.landing;
 
 import java.net.URI;
+import java.util.Locale;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.codahale.metrics.annotation.Timed;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Provides URLs to parts of the UI for usage by enforcement points that wish to link to the CLM server's web interface.
@@ -52,9 +59,12 @@ public class UserInterfaceLinksResource
 
   private final BaseUrl baseUrl;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
-  public UserInterfaceLinksResource(BaseUrl baseUrl) {
+  public UserInterfaceLinksResource(BaseUrl baseUrl, TelemetrySender telemetrySender) {
     this.baseUrl = baseUrl;
+    this.telemetrySender = telemetrySender;
   }
 
   private Response redirect(UriBuilder uriBuilder, Object... parameters) {
@@ -76,8 +86,10 @@ public class UserInterfaceLinksResource
   @GET
   @Path(REPORT_PATH)
   public Response linkToReport(@PathParam("applicationPublicId") String applicationPublicId,
-                               @PathParam("scanId") String scanId)
+                               @PathParam("scanId") String scanId,
+                               @QueryParam("source") String source)
   {
+    sendSourceTelemetryData(applicationPublicId, scanId, source);
     return linkToReport(applicationPublicId, scanId, false);
   }
 
@@ -120,6 +132,18 @@ public class UserInterfaceLinksResource
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment("/" + REPO_RESULT_PATH);
     return redirect(uriBuilder, repositoryId);
+  }
+
+  private void sendSourceTelemetryData(final String applicationId, final String scanId, final String source) {
+    if (source == null) {
+      return;
+    }
+
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK);
+    telemetryData.setAttributes(ImmutableMap
+        .of("source", source.toLowerCase(Locale.ENGLISH), "applicationId", HdsClientAnalytics.obfuscate(applicationId),
+            "scanId", HdsClientAnalytics.obfuscate(scanId)));
+    telemetrySender.send(telemetryData);
   }
 
   private static String buildStableUrl(String path, Object... parameters) {

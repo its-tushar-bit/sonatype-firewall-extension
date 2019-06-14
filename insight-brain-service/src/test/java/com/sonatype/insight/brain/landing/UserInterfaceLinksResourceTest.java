@@ -5,11 +5,27 @@
  */
 package com.sonatype.insight.brain.landing;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.mail.MessagingException;
+import javax.mail.util.ByteArrayDataSource;
+
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.mock.hds.HttpResponseProcessor;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Test;
 
+import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserInterfaceLinksResourceTest
@@ -45,6 +61,53 @@ public class UserInterfaceLinksResourceTest
   }
 
   @Test
+  @ManualServerInit
+  public void testLinkToReport_WithSourceQuery() throws Exception {
+    final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
+    initServer(config -> {
+      getHdsServer().setResponseForURI(TelemetrySender.RESOURCE_PATH, (HttpResponseProcessor) (request, response) -> {
+        responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
+      }, 204);
+    });
+
+    assertThat(UserInterfaceLinksResource.getReportUrl("app id", "scan id"))
+        .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id");
+    HttpResponse redirect = restRequest()
+        .path(UserInterfaceLinksResource.RESOURCE_PATH, UserInterfaceLinksResource.REPORT_PATH)
+        .parameter("app id", "scan id").query("source=Foo").anon().get();
+    assertRedirect(redirect, "assets/index.html?source=Foo#/applicationReport/app%20id/scan%20id/policy");
+
+    Map<TelemetryPurpose, List<TelemetryItem>> telemetryItemsByPurpose = getTelemetryItemsByPurpose(responses);
+
+    List<TelemetryItem> telemetryItems = telemetryItemsByPurpose.get(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK);
+    assertThat(telemetryItems.size()).isEqualTo(1);
+    TelemetryData telemetryData = telemetryItems.get(0).getTelemetryData();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK);
+    assertThat(telemetryData.getAttributes().get("source")).isEqualTo("Foo".toLowerCase(Locale.ENGLISH));
+    assertThat(telemetryData.getAttributes().get("applicationId")).isEqualTo(HdsClientAnalytics.obfuscate("app id"));
+    assertThat(telemetryData.getAttributes().get("scanId")).isEqualTo(HdsClientAnalytics.obfuscate("scan id"));
+  }
+
+  @Test
+  @ManualServerInit
+  public void testLinkToReport_WithoutSourceQuery() throws Exception {
+    final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
+    initServer(config -> {
+      getHdsServer().setResponseForURI(TelemetrySender.RESOURCE_PATH, (HttpResponseProcessor) (request, response) -> {
+        responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
+      }, 204);
+    });
+
+    assertThat(UserInterfaceLinksResource.getReportUrl("app id", "scan id"))
+        .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id");
+    HttpResponse response = get(UserInterfaceLinksResource.REPORT_PATH, "app id", "scan id");
+    assertRedirect(response, "assets/index.html#/applicationReport/app%20id/scan%20id/policy");
+
+    Map<TelemetryPurpose, List<TelemetryItem>> telemetryDataByPurpose = getTelemetryItemsByPurpose(responses);
+    assertThat(telemetryDataByPurpose.get(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK)).isNull();
+  }
+
+  @Test
   public void testLinkToEmbeddableReport() throws Exception {
     assertThat(UserInterfaceLinksResource.getEmbeddableReportUrl("app id", "scan id"))
         .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id/embeddable");
@@ -66,5 +129,12 @@ public class UserInterfaceLinksResourceTest
     assertThat(url).isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/repository/repo%20id/result");
     HttpResponse response = get(UserInterfaceLinksResource.REPO_RESULT_PATH, "repo id");
     assertRedirect(response, "assets/index.html#/repository/repo%20id/result");
+  }
+
+  private Map<TelemetryPurpose, List<TelemetryItem>> getTelemetryItemsByPurpose(
+      final Map<ByteArrayDataSource, Integer> responses)
+      throws MessagingException, IOException
+  {
+    return getTelemetryItems(responses).stream().collect(groupingBy(TelemetryItem::getTelemetryPurpose));
   }
 }

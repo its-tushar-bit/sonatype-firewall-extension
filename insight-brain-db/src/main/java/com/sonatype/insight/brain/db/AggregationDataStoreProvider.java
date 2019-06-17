@@ -37,7 +37,15 @@ public class AggregationDataStoreProvider
   private AggregationDataStoreProvider() {
   }
 
-  public static synchronized void init(DatabaseConfig databaseConfig) {
+  public static void init(DatabaseConfig databaseConfig) {
+    init(databaseConfig, true);
+  }
+
+  public static void initWithoutMigration(DatabaseConfig databaseConfig) {
+    init(databaseConfig, false);
+  }
+
+  private static synchronized void init(DatabaseConfig databaseConfig, boolean migrateDatabase) {
     if (isInitialized) {
       return;
     }
@@ -47,7 +55,9 @@ public class AggregationDataStoreProvider
 
     AggregationDataStoreProvider.databaseConfig = databaseConfig;
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
-    new DatabaseMigrator().migrate(databaseConfig, ID, dataSource);
+    if (migrateDatabase) {
+      new DatabaseMigrator().migrate(databaseConfig, ID, dataSource);
+    }
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);
     entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainAggregation", props);

@@ -260,7 +260,7 @@ public class InsightBrainService
     bootstrap.setObjectMapper(configureObjectMapper(new ObjectMapper()));
 
     bootstrap.addCommand(new CompactCommand());
-
+    bootstrap.addCommand(new ExportEmbeddedDatabaseCommand());
     bootstrap.addCommand(new ResetAdminCommand());
 
     bootstrap.setConfigurationFactoryFactory(new DefaultConfigurationFactoryFactory<InsightConfig>()

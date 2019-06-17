@@ -1,0 +1,242 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.service;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+import javax.sql.DataSource;
+
+import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
+import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.error.exception.BadRequestException;
+
+import io.dropwizard.cli.ConfiguredCommand;
+import io.dropwizard.setup.Bootstrap;
+import net.sourceforge.argparse4j.inf.Namespace;
+import net.sourceforge.argparse4j.inf.Subparser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * @since 1.67
+ */
+public class ExportEmbeddedDatabaseCommand
+    extends ConfiguredCommand<InsightConfig>
+{
+  private static final Logger log = LoggerFactory.getLogger(ExportEmbeddedDatabaseCommand.class);
+
+  private static final String NULL_VALUE = "NULL";
+
+  private static final String TIMESTAMP_PREFIX = "TIMESTAMP ";
+
+  private static final String STRINGDECODE_PREFIX = "STRINGDECODE(";
+
+  ExportEmbeddedDatabaseCommand() {
+    super("export-embedded-db", "Exports the embedded database to a SQL file for import into an external database.");
+  }
+
+  @Override
+  public void configure(Subparser subparser) {
+    super.configure(subparser);
+    subparser.addArgument("-d", "--dump-file").help("path to the dump file to which the database is exported");
+  }
+
+  @Override
+  protected void run(final Bootstrap<InsightConfig> bootstrap, final Namespace namespace, final InsightConfig config)
+      throws Exception
+  {
+    if (!config.isDatabaseEmbedded()) {
+      throw new BadRequestException("The " + getName()
+          + " command can only be used when no external database is specified in the server's config.yml file.");
+    }
+
+    DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
+    OperationalDataStoreProvider.initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
+    AggregationDataStoreProvider
+        .initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.aggregation));
+
+    String path = namespace.getString("dump_file");
+    File dumpFile = path != null ? new File(path) : new File(config.getSonatypeWork(), "data/db-dump.sql");
+    dumpFile = dumpFile.getAbsoluteFile();
+
+    log.info("Exporting database to {}", dumpFile);
+    try (BufferedWriter writer =
+        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(dumpFile), StandardCharsets.UTF_8))) {
+      export(writer, OperationalDataStoreProvider.getDataSource());
+      export(writer, AggregationDataStoreProvider.getDataSource());
+    }
+    log.info("Completed export to {}", dumpFile);
+  }
+
+  /**
+   * Delegates to H2's SCRIPT command for the heavy lifting in generating the SQL dump and post-processes its output to
+   * be both compatible and efficient for use with PostgreSQL, specifically its psql client.
+   * 
+   * @see https://www.h2database.com/html/commands.html#script
+   * @see https://www.postgresql.org/docs/10/app-psql.html
+   */
+  private void export(BufferedWriter writer, DataSource dataSource) throws Exception {
+    log.info("Reading tables, please be patient");
+    try (Connection connection = dataSource.getConnection();
+        Statement statement = connection.createStatement();
+        ResultSet results = statement.executeQuery("SCRIPT SIMPLE NOSETTINGS BLOCKSIZE 10000000")) {
+      String currentTable = null;
+      while (results.next()) {
+        String sql = results.getString(1);
+        try {
+          if (sql.startsWith("INSERT INTO ")) {
+            String tableName = sql.substring("INSERT INTO ".length(), sql.indexOf('(')).trim();
+            int valuesBegin = sql.indexOf(" VALUES");
+            if (!tableName.equals(currentTable)) {
+              writer.write(sql.substring(0, valuesBegin).replace("INSERT INTO ", "COPY "));
+              writer.write(" FROM stdin;");
+              writer.newLine();
+              currentTable = tableName;
+            }
+            sql = transformInsertValues(sql.substring(sql.indexOf('(', valuesBegin) + 1, sql.lastIndexOf(");")));
+          }
+          else if (sql.startsWith("--")) {
+            continue;
+          }
+          else {
+            if (currentTable != null) {
+              currentTable = null;
+              writer.write("\\.");
+              writer.newLine();
+            }
+            if (sql.startsWith("CREATE USER ")) {
+              continue;
+            }
+            else if (sql.startsWith("CREATE SCHEMA ")) {
+              sql = sql.replace(" AUTHORIZATION SA", "");
+              sql = sql.replace(" IF NOT EXISTS", "");
+              String schemaName = sql.substring("CREATE SCHEMA ".length(), sql.lastIndexOf(';')).trim();
+              writer.write("DROP SCHEMA IF EXISTS ");
+              writer.write(schemaName);
+              writer.write(" CASCADE;");
+              writer.newLine();
+            }
+            else if (sql.startsWith("CREATE CACHED TABLE ")) {
+              String tableName = sql.substring("CREATE CACHED TABLE".length(), sql.indexOf('(')).trim();
+              log.info("Exporting table {}", tableName);
+              sql = sql.replace(" CACHED TABLE", " TABLE");
+              sql = sql.replaceAll(" SELECTIVITY [0-9]+", "");
+              sql = sql.replace(" DATETIME", " TIMESTAMP");
+              sql = sql.replace(" CLOB", " TEXT");
+            }
+            else if (sql.startsWith("ALTER TABLE ")) {
+              sql = sql.replaceAll("(?<= ADD CONSTRAINT )\"[^\"]+\"\\.", "");
+              sql = sql.replace(" NOCHECK", "");
+            }
+            else if (sql.startsWith("CREATE INDEX ")) {
+              sql = sql.replaceFirst("(?<=CREATE INDEX )\"[^\"]+\"\\.", "");
+            }
+          }
+        }
+        catch (Exception e) {
+          throw new IllegalStateException("Failed to transform SQL command:\n" + sql, e);
+        }
+        writer.write(sql);
+        writer.newLine();
+      }
+      writer.newLine();
+    }
+  }
+
+  /**
+   * Transforms the comma-separated values of a traditional INSERT statement into the tab-separated text format for
+   * PostgreSQL's COPY command.
+   * 
+   * @see https://www.postgresql.org/docs/10/sql-copy.html#id-1.9.3.52.9.2
+   */
+  static String transformInsertValues(String values) {
+    int length = values.length();
+    StringBuilder builder = new StringBuilder(length);
+    for (int i = 0; i < length;) {
+      char c = values.charAt(i);
+      if (c == ',') {
+        builder.append('\t');
+        i = skipOptionalWhitespace(values, i + 1);
+      }
+      else if (c == '\'') {
+        i = transformSingleQuotedString(builder, values, i, true);
+      }
+      else if (c == 'N' && values.regionMatches(i, NULL_VALUE, 0, NULL_VALUE.length())) {
+        i += NULL_VALUE.length();
+        builder.append("\\N");
+      }
+      else if (c == 'T' && values.regionMatches(i, TIMESTAMP_PREFIX, 0, TIMESTAMP_PREFIX.length())) {
+        i = skipOptionalWhitespace(values, i + TIMESTAMP_PREFIX.length());
+        if (values.charAt(i) != '\'') {
+          throw new IllegalStateException("Malformed TIMESTAMP: " + values.substring(i));
+        }
+        i = transformSingleQuotedString(builder, values, i, true);
+      }
+      else if (c == 'S' && values.regionMatches(i, STRINGDECODE_PREFIX, 0, STRINGDECODE_PREFIX.length())) {
+        i = skipOptionalWhitespace(values, i + STRINGDECODE_PREFIX.length());
+        if (values.charAt(i) != '\'') {
+          throw new IllegalStateException("Malformed STRINGDECODE argument: " + values.substring(i));
+        }
+        i = transformSingleQuotedString(builder, values, i, false);
+        i = skipOptionalWhitespace(values, i);
+        if (values.charAt(i) != ')') {
+          throw new IllegalStateException("Malformed STRINGDECODE argument list: " + values.substring(i));
+        }
+        i++;
+      }
+      else {
+        builder.append(c);
+        i++;
+      }
+    }
+    return builder.toString();
+  }
+
+  private static int skipOptionalWhitespace(String values, int start) {
+    for (int i = start;; i++) {
+      if (values.charAt(i) != ' ') {
+        return i;
+      }
+    }
+  }
+
+  private static int transformSingleQuotedString(
+      StringBuilder builder,
+      String values,
+      int singleQuote,
+      boolean stillNeedsEscaping)
+  {
+    for (int i = singleQuote + 1;; i++) {
+      char c = values.charAt(i);
+      if (c == '\'') {
+        if (i + 1 < values.length() && values.charAt(i + 1) == c) {
+          i++;
+        }
+        else {
+          return i + 1;
+        }
+      }
+      else if (c == '\\') {
+        if (stillNeedsEscaping) {
+          builder.append('\\');
+        }
+        else if (i + 5 < values.length() && values.charAt(i + 1) == 'u') {
+          c = (char) Integer.parseInt(values.substring(i + 2, i + 6), 16);
+          i += 5;
+        }
+      }
+      builder.append(c);
+    }
+  }
+}

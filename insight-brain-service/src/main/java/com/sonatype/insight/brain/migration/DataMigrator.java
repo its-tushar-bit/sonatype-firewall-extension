@@ -32,6 +32,8 @@ public class DataMigrator
 
   private final PolicySecurityVulnerabilityConditionTypeMigrator policySecurityVulnerabilityConditionTypeMigrator;
 
+  private final MarkerFileMigrator markerFileMigrator;
+
   @Inject
   public DataMigrator(PolicyJsonMigrator policyJsonMigrator,
                       PolicyDroolsCodeMigrator policyDroolsCodeMigrator,
@@ -39,7 +41,8 @@ public class DataMigrator
                       SecurityVulnerabilityOverrideMigrator securityVulnerabilityOverrideMigrator,
                       ProprietaryConfigMigrator proprietaryConfigMigrator,
                       PolicyCoordinatesConditionTypeMigrator policyCoordinatesConditionTypeMigrator,
-                      PolicySecurityVulnerabilityConditionTypeMigrator policySecurityVulnerabilityConditionTypeMigrator)
+                      PolicySecurityVulnerabilityConditionTypeMigrator policySecurityVulnerabilityConditionTypeMigrator,
+                      MarkerFileMigrator markerFileMigrator)
   {
     this.policyJsonMigrator = policyJsonMigrator;
     this.policyDroolsCodeMigrator = policyDroolsCodeMigrator;
@@ -48,12 +51,14 @@ public class DataMigrator
     this.proprietaryConfigMigrator = proprietaryConfigMigrator;
     this.policyCoordinatesConditionTypeMigrator = policyCoordinatesConditionTypeMigrator;
     this.policySecurityVulnerabilityConditionTypeMigrator = policySecurityVulnerabilityConditionTypeMigrator;
+    this.markerFileMigrator = markerFileMigrator;
   }
 
   /**
    * Runs the data migration steps (if any). Obviously, this is best invoked before the application starts.
    */
   public void migrate() throws IOException {
+    markerFileMigrator.migrate();
     policyJsonMigrator.migrate();
     policyDroolsCodeMigrator.migrate();
     rootOrganizationConfigMigrator.migrate();

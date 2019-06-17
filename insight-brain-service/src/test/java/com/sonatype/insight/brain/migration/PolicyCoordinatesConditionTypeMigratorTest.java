@@ -5,15 +5,16 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
+import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -21,8 +22,6 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.Lists;
@@ -30,8 +29,8 @@ import org.codehaus.plexus.util.IOUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
+import static com.sonatype.insight.brain.migration.PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -41,12 +40,7 @@ import static org.mockito.Mockito.when;
 public class PolicyCoordinatesConditionTypeMigratorTest
 {
   @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
-
-  @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
-
-  private InsightWork work;
 
   private PolicyCoordinatesConditionTypeMigrator migrator;
 
@@ -54,20 +48,21 @@ public class PolicyCoordinatesConditionTypeMigratorTest
 
   private PolicyInternalDAO policyInternalDAO;
 
+  private MigrationTrackerDAO migrationTrackerDAO;
+
   @Before
-  public void setUp() throws Exception {
-    InsightConfig insightConfig = new InsightConfig();
-    File workDir = tempDir.newFolder();
-    insightConfig.setSonatypeWork(workDir.getAbsolutePath());
-    work = new InsightWork(insightConfig);
-    work.getDataDir().mkdirs();
+  public void setUp() {
     policyDAO = new PolicyDAO();
     policyInternalDAO = new PolicyInternalDAO();
-    migrator = new PolicyCoordinatesConditionTypeMigrator(work, policyDAO);
+    migrationTrackerDAO = new MigrationTrackerDAO();
+    migrationTrackerDAO.delete(new MigrationTracker(MIGRATION_ID));
+    migrator = new PolicyCoordinatesConditionTypeMigrator(policyDAO, migrationTrackerDAO);
   }
 
   @Test
   public void testMigrate_OnlyModifiesCoordinateConditions() throws Exception {
+    assertThat(migrationTrackerDAO.getById(MIGRATION_ID)).isNull();
+
     // setup
     String originalCoordPolicyId = createObsoletePolicy("policy_gav.json");
     Policy originalVulnPolicy = newPolicy("vuln-policy", SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
@@ -82,20 +77,19 @@ public class PolicyCoordinatesConditionTypeMigratorTest
     assertThat(getFirstConditionValue(coordPolicy)).isEqualTo(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:*:*");
     assertThat(getFirstConditionValue(vulnPolicy)).isEqualTo(getFirstConditionValue(originalVulnPolicy));
 
-    File markerFile = new File(work.getWorkDir(), PolicyCoordinatesConditionTypeMigrator.MARKER_FILE_NAME);
-    assertThat(markerFile).isFile();
+    assertThat(migrationTrackerDAO.getById(MIGRATION_ID)).isNotNull();
   }
 
   @Test
-  public void testMigrate_WithNoPoliciesStillCreatesMarkerFile() throws Exception {
+  public void testMigrate_WithNoPoliciesStillTracksMigration() {
+    assertThat(migrationTrackerDAO.getById(MIGRATION_ID)).isNull();
+
     // execute
     migrator.migrate();
 
     // assert
     assertThat(policyDAO.getAll()).isEmpty();
-
-    File markerFile = new File(work.getWorkDir(), PolicyCoordinatesConditionTypeMigrator.MARKER_FILE_NAME);
-    assertThat(markerFile).isFile();
+    assertThat(migrationTrackerDAO.getById(MIGRATION_ID)).isNotNull();
   }
 
   /**
@@ -103,7 +97,7 @@ public class PolicyCoordinatesConditionTypeMigratorTest
    * policies more than once.
    */
   @Test
-  public void testMigrate_UsesSingleTransaction() throws Exception {
+  public void testMigrate_UsesSingleTransaction() {
     // setup
     TransactionContext txMock = mock(TransactionContext.class);
     PolicyDAO policyDAOMock = mock(PolicyDAO.class);
@@ -112,7 +106,7 @@ public class PolicyCoordinatesConditionTypeMigratorTest
     Policy policy2 = newPolicyObject("coord-policy2", CoordinatesConditionType.ID, "match", "maven:bar*");
     List<Policy> policies = Lists.newArrayList(policy1, policy2);
     when(policyDAOMock.getAll(txMock)).thenReturn(policies);
-    migrator = new PolicyCoordinatesConditionTypeMigrator(work, policyDAOMock);
+    migrator = new PolicyCoordinatesConditionTypeMigrator(policyDAOMock, migrationTrackerDAO);
 
     // execute
     migrator.migrate();
@@ -124,17 +118,15 @@ public class PolicyCoordinatesConditionTypeMigratorTest
   }
 
   @Test
-  public void testMigrate_AlreadyRunDoesNotMigratePolicies() throws Exception {
-    // setup
-    File markerFile = new File(work.getWorkDir(), PolicyCoordinatesConditionTypeMigrator.MARKER_FILE_NAME);
-    markerFile.createNewFile();
+  public void testMigrate_AlreadyRunDoesNotMigratePolicies() {
+    migrationTrackerDAO.insert(new MigrationTracker(MIGRATION_ID));
+
     Policy originalCoordPolicy = newPolicy("coord-policy", CoordinatesConditionType.ID, "match", "maven:foo*");
 
     // execute
     migrator.migrate();
 
     // assert
-    assertThat(markerFile).isFile();
     Policy coordPolicy = policyDAO.getById(originalCoordPolicy.getId());
     assertThat(getFirstConditionValue(coordPolicy)).isEqualTo(getFirstConditionValue(originalCoordPolicy));
   }
@@ -192,7 +184,6 @@ public class PolicyCoordinatesConditionTypeMigratorTest
     Policy migratedPolicy = policyDAO.getById(policyId);
     assertThat(getFirstConditionValue(migratedPolicy)).isEqualTo(expectedConditionValue);
 
-    File markerFile = new File(work.getWorkDir(), PolicyCoordinatesConditionTypeMigrator.MARKER_FILE_NAME);
-    assertThat(markerFile).isFile();
+    assertThat(migrationTrackerDAO.getById(MIGRATION_ID)).isNotNull();
   }
 }

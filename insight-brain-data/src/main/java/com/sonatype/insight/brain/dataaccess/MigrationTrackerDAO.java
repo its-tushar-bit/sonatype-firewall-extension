@@ -23,4 +23,12 @@ public class MigrationTrackerDAO
   public MigrationTracker getById(final String id) {
     return get("SELECT mt FROM MigrationTracker mt WHERE mt.id=?1", id);
   }
+
+  public boolean isTrackerPresent(String trackerId) {
+    return getById(trackerId) != null;
+  }
+
+  public void insertTracker(TransactionContext tx, String trackerId) {
+    this.insert(tx, new MigrationTracker(trackerId));
+  }
 }

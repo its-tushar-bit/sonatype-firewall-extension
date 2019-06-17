@@ -5,20 +5,18 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.slf4j.Logger;
@@ -34,25 +32,27 @@ public class PolicyCoordinatesConditionTypeMigrator
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyCoordinatesConditionTypeMigrator.class);
 
-  static final String MARKER_FILE_NAME = "policycoordinatesconditiontype-migrated";
-
-  private final InsightWork insightWork;
+  public static final String MIGRATION_ID = "policy-coordinates-condition-type";
 
   private final PolicyDAO policyDAO;
 
+  private final MigrationTrackerDAO migrationTrackerDAO;
+
   @Inject
-  public PolicyCoordinatesConditionTypeMigrator(InsightWork insightWork, PolicyDAO policyDAO) {
-    this.insightWork = insightWork;
+  public PolicyCoordinatesConditionTypeMigrator(
+      PolicyDAO policyDAO,
+      MigrationTrackerDAO migrationTrackerDAO)
+  {
     this.policyDAO = policyDAO;
+    this.migrationTrackerDAO = migrationTrackerDAO;
   }
 
-  public void migrate() throws IOException {
+  public void migrate() {
     long start = System.currentTimeMillis();
 
     log.debug("Migrating policy conditions for maven component coordinates...");
 
-    File markerFile = new File(insightWork.getWorkDir(), MARKER_FILE_NAME);
-    if (markerFile.exists()) {
+    if (migrationTrackerDAO.isTrackerPresent(MIGRATION_ID)) {
       log.info("Policy conditions for maven coordinates already migrated.");
       return;
     }
@@ -67,9 +67,9 @@ public class PolicyCoordinatesConditionTypeMigrator
           policyDAO.update(tx, policy);
         }
       }
+      migrationTrackerDAO.insertTracker(tx, MIGRATION_ID);
       tx.commit();
     }
-    markerFile.createNewFile();
 
     log.info("Migrated policy conditions for maven coordinates for {} policies in {} ms.", numPoliciesMigrated,
         System.currentTimeMillis() - start);

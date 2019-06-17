@@ -1167,15 +1167,19 @@ var clmEndpointTemplate = {
         Insight.registerCoordsMarkUpgradeListener(listener);
       }));
 
-      it('emits migrate with entityframework 4.3.0 nuget package and calls listener',
-          inject(function(Coordinates, $rootScope) {
+      it('calls listener with selected 4.5.0 and coordinates 4.3.0', inject(function(Coordinates, $rootScope) {
         var coordinates = {
-          packageId: "EntityFramework",
-          version: "4.3.0"
+              packageId: 'EntityFramework',
+              version: '4.3.0'
+            },
+            selected = {
+              packageId: 'EntityFramework',
+              version: '4.5.0'
         };
         Coordinates.set("nuget", coordinates);
-        $rootScope.$emit('markUpgrade', coordinates);
-        expect(listener).toHaveBeenCalledWith("nuget", coordinates);
+        Coordinates.setSelected(selected);
+        $rootScope.$emit('markUpgrade', Coordinates.getSelected());
+        expect(listener).toHaveBeenCalledWith('nuget', selected, coordinates);
       }));
     });
 

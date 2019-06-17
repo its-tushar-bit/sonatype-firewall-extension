@@ -181,7 +181,7 @@ import exceptionHandler from './exception.handler.factory';
       'registerCoordsMarkUpgradeListener': function (listener) {
         waitOnInjector(['Coordinates', '$rootScope', function (Coordinates, $rootScope) {
           $rootScope.$on('markUpgrade', function (event, coordinates) {
-            listener(Coordinates.getFormat(), coordinates);
+            listener(Coordinates.getFormat(), coordinates, Coordinates.get());
           });
         }]);
       },

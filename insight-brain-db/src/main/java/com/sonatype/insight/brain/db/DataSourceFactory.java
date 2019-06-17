@@ -40,8 +40,8 @@ public class DataSourceFactory
   }
 
   @Override
-  protected DataSource loadDataSource(DatabaseConfig databaseConfig, String databaseName) {
-    DataSource dataSource = super.loadDataSource(databaseConfig, databaseName);
+  protected DataSource loadDataSource(DatabaseConfig databaseConfig, String databaseName, boolean readOnly) {
+    DataSource dataSource = super.loadDataSource(databaseConfig, databaseName, readOnly);
     DatabaseEngine databaseEngine = getDatabaseEngine(dataSource);
     boolean isNew = populateDatabaseSchema(dataSource, databaseEngine, databaseName);
     if (H2DatabaseEngine.INSTANCE.equals(databaseEngine)) {

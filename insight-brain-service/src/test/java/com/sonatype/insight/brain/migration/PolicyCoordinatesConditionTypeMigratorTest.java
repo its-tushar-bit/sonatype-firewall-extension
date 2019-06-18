@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
@@ -38,6 +37,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PolicyCoordinatesConditionTypeMigratorTest
+    extends MigratorTest
 {
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
@@ -48,14 +48,10 @@ public class PolicyCoordinatesConditionTypeMigratorTest
 
   private PolicyInternalDAO policyInternalDAO;
 
-  private MigrationTrackerDAO migrationTrackerDAO;
-
   @Before
   public void setUp() {
     policyDAO = new PolicyDAO();
     policyInternalDAO = new PolicyInternalDAO();
-    migrationTrackerDAO = new MigrationTrackerDAO();
-    migrationTrackerDAO.delete(new MigrationTracker(MIGRATION_ID));
     migrator = new PolicyCoordinatesConditionTypeMigrator(policyDAO, migrationTrackerDAO);
   }
 

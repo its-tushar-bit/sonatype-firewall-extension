@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.migration;
 import java.io.File;
 import java.io.IOException;
 
-import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -23,13 +22,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 public class MarkerFileMigratorTest
+    extends MigratorTest
 {
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
   private InsightWork insightWork;
-
-  private MigrationTrackerDAO migrationTrackerDAO;
 
   private MarkerFileMigrator markerFileMigrator;
 
@@ -40,9 +38,6 @@ public class MarkerFileMigratorTest
     insightConfig.setSonatypeWork(workDir.getAbsolutePath());
     insightWork = new InsightWork(insightConfig);
     insightWork.getDataDir().mkdirs();
-    migrationTrackerDAO = new MigrationTrackerDAO();
-    migrationTrackerDAO.delete(new MigrationTracker(PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID));
-    migrationTrackerDAO.delete(new MigrationTracker(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID));
     markerFileMigrator = new MarkerFileMigrator(migrationTrackerDAO, insightWork);
   }
 

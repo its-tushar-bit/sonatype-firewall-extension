@@ -67,6 +67,11 @@ public class MarkerFileMigratorTest
   }
 
   @Test
+  public void testMigrate_MustMoveProprietaryConfigMarkerFileToDatabase() throws IOException {
+    testMigrate(ProprietaryConfigMigrator.MIGRATION_ID, MarkerFileMigrator.PROPRIETARY_CONFIG_MARKER_FILE);
+  }
+
+  @Test
   public void testMigrate_MustNotInsertTrackerIfMigrationFileDoesNotExist() {
     markerFileMigrator.migrate();
     assertThat(migrationTrackerDAO.getById(PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID)).isNull();

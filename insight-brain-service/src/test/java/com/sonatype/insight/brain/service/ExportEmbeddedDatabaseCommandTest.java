@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -13,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DataSourceFactory;
@@ -39,6 +42,26 @@ public class ExportEmbeddedDatabaseCommandTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       new ExportEmbeddedDatabaseCommand().run(null, null, config);
     }).withMessageContaining("can only be used when no external database is specified");
+  }
+
+  @Test
+  public void testRun_GzippedDump() throws Exception {
+    DataSourceFactory.clear_ForTestsOnly();
+    try {
+      File dumpFile = new File(tempDir.getRoot(), "dump.sql.gz");
+
+      new TestInsightBrainService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
+          dumpFile.getPath());
+
+      assertThat(dumpFile).isFile();
+
+      try (InputStream is = new GZIPInputStream(new FileInputStream(dumpFile))) {
+        assertThat(is.read()).isPositive();
+      }
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
   }
 
   @Test

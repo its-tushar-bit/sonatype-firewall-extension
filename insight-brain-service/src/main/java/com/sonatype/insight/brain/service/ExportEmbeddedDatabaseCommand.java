@@ -8,11 +8,13 @@ package com.sonatype.insight.brain.service;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.zip.GZIPOutputStream;
 
 import javax.sql.DataSource;
 
@@ -67,16 +69,24 @@ public class ExportEmbeddedDatabaseCommand
         .initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.aggregation));
 
     String path = namespace.getString("dump_file");
-    File dumpFile = path != null ? new File(path) : new File(config.getSonatypeWork(), "data/db-dump.sql");
+    File dumpFile = path != null ? new File(path) : new File(config.getSonatypeWork(), "data/db-dump.sql.gz");
     dumpFile = dumpFile.getAbsoluteFile();
 
     log.info("Exporting database to {}", dumpFile);
     try (BufferedWriter writer =
-        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(dumpFile), StandardCharsets.UTF_8))) {
+        new BufferedWriter(new OutputStreamWriter(newOutputStream(dumpFile), StandardCharsets.UTF_8))) {
       export(writer, OperationalDataStoreProvider.getDataSource());
       export(writer, AggregationDataStoreProvider.getDataSource());
     }
     log.info("Completed export to {}", dumpFile);
+  }
+
+  private OutputStream newOutputStream(File dumpFile) throws Exception {
+    OutputStream out = new FileOutputStream(dumpFile);
+    if (dumpFile.getName().endsWith(".gz")) {
+      out = new GZIPOutputStream(out);
+    }
+    return out;
   }
 
   /**

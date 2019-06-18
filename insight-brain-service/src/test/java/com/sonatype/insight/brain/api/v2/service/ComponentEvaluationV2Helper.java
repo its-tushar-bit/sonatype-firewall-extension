@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.purl.PurlIdentifier;
 
 import org.assertj.core.groups.Tuple;
 
@@ -70,11 +71,23 @@ public class ComponentEvaluationV2Helper
     return componentEvaluationData;
   }
 
-  public ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier, final String hash) {
+  private ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier,
+                                            final String hash,
+                                            final String packageUrl)
+  {
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     component.hash = hash;
+    component.packageUrl = packageUrl;
     return component;
+  }
+
+  public ApiComponentDTOV2 createComponent(final String packageUrl) {
+    return createComponent(null, null, packageUrl);
+  }
+
+  public ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier, final String hash) {
+    return createComponent(componentIdentifier, hash, null);
   }
 
   public List<SecurityVulnerability> createSecurityVulnerabilities() {
@@ -190,13 +203,23 @@ public class ComponentEvaluationV2Helper
     for (ApiComponentDTOV2 componentDTO : clmRequest.components) {
       ComponentEvaluationDataRequest componentEvaluationDataRequest = new ComponentEvaluationDataRequest();
       componentEvaluationDataRequest.hash = componentDTO.hash;
-      if (componentDTO.componentIdentifier != null) {
-        componentEvaluationDataRequest.componentIdentifier = new ComponentIdentifier(
-            componentDTO.componentIdentifier.getFormat(), componentDTO.componentIdentifier.getCoordinates());
-        componentEvaluationDataRequest.componentIdentifier.ensureComplete();
+      if (componentDTO.packageUrl != null) {
+        setComponentIdentifier(new PurlIdentifier(componentDTO.packageUrl).toComponentIdentifier(),
+            componentEvaluationDataRequest);
+      }
+      else if (componentDTO.componentIdentifier != null) {
+        setComponentIdentifier(new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
+            componentDTO.componentIdentifier.getCoordinates()), componentEvaluationDataRequest);
       }
       hdsRequest.components.add(componentEvaluationDataRequest);
     }
     return hdsRequest;
+  }
+
+  private void setComponentIdentifier(ComponentIdentifier componentIdentifier,
+                                      ComponentEvaluationDataRequest componentEvaluationDataRequest)
+  {
+    componentEvaluationDataRequest.componentIdentifier = componentIdentifier;
+    componentEvaluationDataRequest.componentIdentifier.ensureComplete();
   }
 }

@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.purl.PurlIdentifier;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -165,7 +166,7 @@ public class ApiComponentDetailsServiceV2Test
   }
 
   @Test
-  public void testGetComponentDetails_validation_nullComponentIdentifier() throws Exception {
+  public void testGetComponentDetails_validation_nullComponentIdentifierAndNullPackageUrl() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.hash = "h1";
@@ -183,7 +184,7 @@ public class ApiComponentDetailsServiceV2Test
   }
 
   @Test
-  public void testGetComponentDetails_validation_nullHash() throws Exception {
+  public void testGetComponentDetails_validation_nullHashAndNullPackageUrl() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
@@ -203,11 +204,31 @@ public class ApiComponentDetailsServiceV2Test
   public void testGetComponentDetails_validation_nullComponentIdentifierAndNullHash() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
+
+    PurlIdentifier purlIdentifier = new PurlIdentifier("pkg:maven/g1/a1@v1?extension=e1");
+    component.packageUrl = purlIdentifier.getPackageUrl();
+    request.components.add(component);
+
+    mockHdsRequest(componentEvaluationV2Helper.toHdsRequest(request), purlIdentifier.toComponentIdentifier(),
+        component.hash);
+
+    ApiComponentDetailsResultDTOV2 result = apiComponentDetailsServiceV2.getComponentDetails(request);
+
+    assertThat(result).isNotNull();
+    assertThat(result.componentDetails).hasSize(1);
+    assertComponentDetails(result.componentDetails.get(0),
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(purlIdentifier.toComponentIdentifier()), null);
+  }
+
+  @Test
+  public void testGetComponentDetails_validation_nullComponentIdentifierAndNullHashAndNullPackageUrl() {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+    ApiComponentDTOV2 component = new ApiComponentDTOV2();
     request.components.add(component);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       apiComponentDetailsServiceV2.getComponentDetails(request);
-    }).withMessage("One of either componentIdentifier or hash must be supplied.");
+    }).withMessage("One of either componentIdentifier, packageUrl, or hash must be supplied.");
   }
 
   @Test
@@ -251,6 +272,26 @@ public class ApiComponentDetailsServiceV2Test
     assertThat(result.componentDetails).hasSize(1);
     assertComponentDetails(result.componentDetails.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier1), "h1");
+  }
+
+  @Test
+  public void testGetComponentDetails_matchByPackageUrl() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+
+    PurlIdentifier purlIdentifier = new PurlIdentifier("pkg:maven/g1/a1@v1?classifier=c1&extension=e1");
+
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purlIdentifier.getPackageUrl());
+    request.components.add(component);
+
+    mockHdsRequest(componentEvaluationV2Helper.toHdsRequest(request), purlIdentifier.toComponentIdentifier(), "h1");
+
+    ApiComponentDetailsResultDTOV2 result = apiComponentDetailsServiceV2.getComponentDetails(request);
+
+    assertThat(result).isNotNull();
+    assertThat(result.componentDetails).isNotNull();
+    assertThat(result.componentDetails).hasSize(1);
+    assertComponentDetails(result.componentDetails.get(0),
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(purlIdentifier.toComponentIdentifier()), "h1");
   }
 
   @Test

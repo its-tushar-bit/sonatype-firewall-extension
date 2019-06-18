@@ -13,6 +13,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  */
 public class ApiComponentDTOV2
 {
+  @JsonInclude(Include.NON_NULL)
+  public String packageUrl;
+
   public String hash;
 
   public ApiComponentIdentifierDTOV2 componentIdentifier;

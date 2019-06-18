@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.purl.PurlIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Before;
@@ -95,7 +96,19 @@ public class ApiEvaluationResourceV2Test
   }
 
   @Test
-  public void testEvaluateComponents_validation_nullComponentIdentifier() throws Exception {
+  public void testEvaluateComponents_invalidPackageUrl() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+    ApiComponentDTOV2 component = new ApiComponentDTOV2();
+    component.packageUrl = "pkg/invalid_package_url";
+    request.components.add(component);
+
+    HttpResponse response = restRequest(app.getId()).body(request).post();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Invalid package url");
+  }
+
+  @Test
+  public void testEvaluateComponents_validation_nullComponentIdentifierAndNullPackageUrl() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.hash = "h1";
@@ -106,7 +119,7 @@ public class ApiEvaluationResourceV2Test
   }
 
   @Test
-  public void testEvaluateComponents_validation_nullHash() throws Exception {
+  public void testEvaluateComponents_validation_nullHashAndNullPackageUrl() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.componentIdentifier = ApiComponentIdentifierDTOV2
@@ -121,11 +134,23 @@ public class ApiEvaluationResourceV2Test
   public void testEvaluateComponents_validation_nullComponentIdentifierAndNullHash() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
+    component.packageUrl = "pkg:maven/g1/a1@v1?extension=e1";
+    request.components.add(component);
+
+    HttpResponse response = restRequest(app.getId()).body(request).post();
+    assertResponseStatus(200, response);
+  }
+
+  @Test
+  public void testEvaluateComponents_validation_nullComponentIdentifierAndNullPackageUrlAndNullHash() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+    ApiComponentDTOV2 component = new ApiComponentDTOV2();
     request.components.add(component);
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("One of either componentIdentifier or hash must be supplied.");
+    assertThat(response.getBodyText())
+        .isEqualTo("One of either componentIdentifier, packageUrl, or hash must be supplied.");
   }
 
   @Test
@@ -228,28 +253,36 @@ public class ApiEvaluationResourceV2Test
 
   @Test
   public void testEvaluateComponents_matchByComponentIdentifier() throws Exception {
-    Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, null);
+
+    assertEvaluateComponent(componentIdentifier, component);
+  }
+
+  @Test
+  public void testEvaluateComponents_matchByPackageUrl() throws Exception {
+    PurlIdentifier purlIdentifier = new PurlIdentifier("pkg:maven/g1/a1@v1?extension=e1");
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purlIdentifier.getPackageUrl());
+
+    assertEvaluateComponent(purlIdentifier.toComponentIdentifier(), component);
+  }
+
+  private void assertEvaluateComponent(ComponentIdentifier componentIdentifier, ApiComponentDTOV2 component)
+      throws Exception
+  {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+    request.components.add(component);
 
-    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
-    ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, null);
-    request.components.add(component1);
-
-    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2");
-    ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, null);
-    request.components.add(component2);
-
-    // Create a mock return for the first component
-    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("Apache-2.0",
-        "Apache-2.0")));
+    Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);
+    LinkedHashSet<License> declaredLicenseSet =
+        new LinkedHashSet<>(Arrays.asList(new License("Apache-2.0", "Apache-2.0")));
     LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
     List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
-    ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
-        componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
-            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 10),
-        componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
-            MatchState.UNKNOWN, 1, Collections.emptySet(), Collections.emptySet(), Collections.emptyList(), 20));
+    ComponentEvaluationDataList componentEvaluationDataList =
+        createComponentEvaluationDataList(componentEvaluationV2Helper
+            .createComponentEvaluationData(componentIdentifier, component.hash, MatchState.EXACT, 0, declaredLicenseSet,
+                observedLicenseSet, securityVulnerabilities, 10));
     mockComponentDetails(componentEvaluationDataList);
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
@@ -267,13 +300,12 @@ public class ApiEvaluationResourceV2Test
     assertThat(details.applicationId).isEqualTo(app.getId());
     assertThat(details.evaluationDate).isNotNull();
     assertThat(details.submittedDate).isNotNull();
-    assertThat(details.results).hasSize(2);
-    componentEvaluationV2Helper.assertComponentDetails(details.results.get(0), request.components.get(0),
-        MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
-        securityVulnerabilities, 10, policies);
-    componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
-        MatchState.UNKNOWN.getId(), Collections.emptyList(), Collections.emptyList(),
-        Collections.emptyList(), 20, Collections.emptyMap());
+    assertThat(details.results).hasSize(1);
+
+    componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier), null, MatchState.EXACT.getId(),
+        new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet), securityVulnerabilities, 10,
+        policies);
   }
 
   @Test

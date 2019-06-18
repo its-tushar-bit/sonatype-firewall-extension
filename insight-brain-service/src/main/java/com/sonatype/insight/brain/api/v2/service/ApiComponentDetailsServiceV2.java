@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.purl.PurlIdentifier;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
@@ -97,12 +98,24 @@ public class ApiComponentDetailsServiceV2
       throw new BadRequestException("No components provided in the request");
     }
     for (ApiComponentDTOV2 componentDTO : componentDetailsRequest.components) {
-      if (componentDTO.componentIdentifier != null) {
+      if (componentDTO.packageUrl != null) {
+        validatePackageUrl(componentDTO);
+      }
+      else if (componentDTO.componentIdentifier != null) {
         validateComponentIdentifier(componentDTO);
       }
       else if (componentDTO.hash == null) {
-        throw new BadRequestException("One of either componentIdentifier or hash must be supplied.");
+        throw new BadRequestException("One of either componentIdentifier, packageUrl, or hash must be supplied.");
       }
+    }
+  }
+
+  private void validatePackageUrl(ApiComponentDTOV2 componentDTO) {
+    try {
+      new PurlIdentifier(componentDTO.packageUrl).toComponentIdentifier().ensureComplete();
+    }
+    catch (IllegalArgumentException | InvalidComponentIdentifierException e) {
+      throw new BadRequestException(e.getMessage(), e);
     }
   }
 
@@ -180,11 +193,21 @@ public class ApiComponentDetailsServiceV2
   private ComponentEvaluationDataRequest convert(final ApiComponentDTOV2 componentDTO) {
     ComponentEvaluationDataRequest componentEvaluationDataRequest = new ComponentEvaluationDataRequest();
     componentEvaluationDataRequest.hash = componentDTO.hash;
-    if (componentDTO.componentIdentifier != null) {
-      componentEvaluationDataRequest.componentIdentifier = new ComponentIdentifier(
-          componentDTO.componentIdentifier.getFormat(), componentDTO.componentIdentifier.getCoordinates());
-      componentEvaluationDataRequest.componentIdentifier.ensureComplete();
+    if (componentDTO.packageUrl != null) {
+      setComponentIdentifier(new PurlIdentifier(componentDTO.packageUrl).toComponentIdentifier(),
+          componentEvaluationDataRequest);
+    }
+    else if (componentDTO.componentIdentifier != null) {
+      setComponentIdentifier(new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
+          componentDTO.componentIdentifier.getCoordinates()), componentEvaluationDataRequest);
     }
     return componentEvaluationDataRequest;
+  }
+
+  private void setComponentIdentifier(final ComponentIdentifier componentIdentifier,
+                                      ComponentEvaluationDataRequest componentEvaluationDataRequest)
+  {
+    componentEvaluationDataRequest.componentIdentifier = componentIdentifier;
+    componentEvaluationDataRequest.componentIdentifier.ensureComplete();
   }
 }

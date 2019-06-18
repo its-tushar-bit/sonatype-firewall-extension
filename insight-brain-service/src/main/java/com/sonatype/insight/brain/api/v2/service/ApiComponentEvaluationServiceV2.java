@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
+import com.sonatype.insight.brain.purl.PurlIdentifier;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.SystemRunnable;
@@ -143,12 +144,24 @@ public class ApiComponentEvaluationServiceV2
       throw new BadRequestException("No components provided for evaluation");
     }
     for (ApiComponentDTOV2 componentDTO : evaluationRequest.components) {
-      if (componentDTO.componentIdentifier != null) {
+      if (componentDTO.packageUrl != null) {
+        validatePackageUrl(componentDTO);
+      }
+      else if (componentDTO.componentIdentifier != null) {
         validateComponentIdentifier(componentDTO);
       }
       else if (componentDTO.hash == null) {
-        throw new BadRequestException("One of either componentIdentifier or hash must be supplied.");
+        throw new BadRequestException("One of either componentIdentifier, packageUrl, or hash must be supplied.");
       }
+    }
+  }
+
+  private void validatePackageUrl(final ApiComponentDTOV2 componentDTO) {
+    try {
+      new PurlIdentifier(componentDTO.packageUrl).toComponentIdentifier().ensureComplete();
+    }
+    catch (IllegalArgumentException | InvalidComponentIdentifierException e) {
+      throw new BadRequestException(e.getMessage(), e);
     }
   }
 

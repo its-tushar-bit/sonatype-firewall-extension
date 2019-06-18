@@ -94,7 +94,8 @@ public class ApiComponentDetailsServiceV2
   }
 
   private void validateRequest(ApiComponentDetailsRequestDTOV2 componentDetailsRequest) {
-    if (componentDetailsRequest.components == null || componentDetailsRequest.components.isEmpty()) {
+    if (componentDetailsRequest == null || componentDetailsRequest.components == null
+        || componentDetailsRequest.components.isEmpty()) {
       throw new BadRequestException("No components provided in the request");
     }
     for (ApiComponentDTOV2 componentDTO : componentDetailsRequest.components) {

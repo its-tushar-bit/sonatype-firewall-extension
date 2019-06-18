@@ -250,6 +250,13 @@ public class ApiComponentDetailsServiceV2Test
       apiComponentDetailsServiceV2.getComponentDetails(request);
     }).withMessage("No components provided in the request");
   }
+  
+  @Test
+  public void testGetComponentDetails_nullRequest() throws Exception {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      apiComponentDetailsServiceV2.getComponentDetails(null);
+    }).withMessage("No components provided in the request");
+  }
 
   @Test
   public void testGetComponentDetails_matchByComponentIdentifier() throws Exception {

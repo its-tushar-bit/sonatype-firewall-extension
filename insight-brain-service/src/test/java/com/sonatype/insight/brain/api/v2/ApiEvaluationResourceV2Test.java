@@ -255,7 +255,6 @@ public class ApiEvaluationResourceV2Test
   public void testEvaluateComponents_matchByComponentIdentifier() throws Exception {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, null);
-
     assertEvaluateComponent(componentIdentifier, component);
   }
 

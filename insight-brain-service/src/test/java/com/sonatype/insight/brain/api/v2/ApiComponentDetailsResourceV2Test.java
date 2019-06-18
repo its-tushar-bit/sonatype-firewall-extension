@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.purl.PurlIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
@@ -36,11 +37,46 @@ public class ApiComponentDetailsResourceV2Test
 
   @Test
   public void testGetComponentDetails() throws Exception {
-    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, null);
-    request.components.add(component);
 
+    assertGetComponentDetails(componentIdentifier, component);
+  }
+
+  @Test
+  public void testGetComponentDetails_Purl() throws Exception {
+    PurlIdentifier purlIdentifier = new PurlIdentifier("pkg:maven/g1/a1@v1?extension=e1");
+    ApiComponentDTOV2 component =
+        componentEvaluationV2Helper.createComponent(purlIdentifier.getPackageUrl());
+
+    assertGetComponentDetails(purlIdentifier.toComponentIdentifier(), component);
+  }
+  
+  private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier, String hash) {
+    ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
+    componentEvaluationData.hash = hash;
+    componentEvaluationData.componentIdentifier = componentIdentifier;
+    componentEvaluationData.declaredLicenses = new HashSet<>();
+    componentEvaluationData.observedLicenses = new HashSet<>();
+    componentEvaluationData.securityVulnerabilities = new ArrayList<>();
+    componentEvaluationData.matchState = MatchState.EXACT.getId();
+
+    return componentEvaluationData;
+  }
+
+  private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {
+    setHdsResponseForURI(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH.replace(
+        "{purpose: evaluation|integration}", ApiComponentDetailsServiceV2.PURPOSE_INTEGRATION),
+        componentEvaluationDataList, 200);
+  }
+   
+  private void assertGetComponentDetails(
+      final ComponentIdentifier componentIdentifier,
+      final ApiComponentDTOV2 component) throws Exception
+  {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();  
+    request.components.add(component);
+    
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     hdsResult.components = new ArrayList<>();
     ComponentEvaluationData componentData = createComponentEvaluationData(componentIdentifier, "h1");
@@ -75,23 +111,5 @@ public class ApiComponentDetailsResourceV2Test
         .containsExactlyInAnyOrder("GPL-2.0");
     assertThat(componentDetails.securityData.securityIssues).extracting(dto -> dto.reference)
         .containsExactlyInAnyOrder("SOME-REFID");
-  }
-
-  private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier, String hash) {
-    ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
-    componentEvaluationData.hash = hash;
-    componentEvaluationData.componentIdentifier = componentIdentifier;
-    componentEvaluationData.declaredLicenses = new HashSet<>();
-    componentEvaluationData.observedLicenses = new HashSet<>();
-    componentEvaluationData.securityVulnerabilities = new ArrayList<>();
-    componentEvaluationData.matchState = MatchState.EXACT.getId();
-
-    return componentEvaluationData;
-  }
-
-  private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {
-    setHdsResponseForURI(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH.replace(
-        "{purpose: evaluation|integration}", ApiComponentDetailsServiceV2.PURPOSE_INTEGRATION),
-        componentEvaluationDataList, 200);
   }
 }

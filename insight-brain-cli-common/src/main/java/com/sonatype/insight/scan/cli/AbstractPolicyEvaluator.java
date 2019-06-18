@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.client.RestClientFactory;
@@ -33,7 +34,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 {
   private static final Logger log = LoggerFactory.getLogger(AbstractPolicyEvaluator.class);
 
-  public static final String MINIMAL_SERVER_VERSION_REQUIRED = "1.50.0";
+  public static final String MINIMAL_SERVER_VERSION_REQUIRED = "1.67.0";
 
   private final Scanner scanner;
 
@@ -55,9 +56,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
     File scanFile = scan(params, getProprietaryConfiguration(params, restClient));
 
-    ScanReceipt receipt = uploadScan(params, restClient, scanFile, getClientScanType());
-
-    evaluatePolicy(params, restClient, receipt);
+    evaluatePolicy(params, restClient, scanFile, getClientScanType());
   }
 
   protected abstract ClientScanType getClientScanType();
@@ -152,45 +151,23 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     return props;
   }
 
-  private ScanReceipt uploadScan(P params, RestClient restClient, File scanFile, ClientScanType clientScanType)
+  protected void evaluatePolicy(P params, RestClient restClient, File scanFile, ClientScanType clientScanType)
       throws ExitException
   {
-    log.info("Submitting scan to the IQ Server...");
-    try {
-      ScanReceipt scanReceipt = restClient.uploadScan(params.getApplicationId(), scanFile, clientScanType);
-      log.info("Assigned scan ID {}", scanReceipt.getScanId());
-      return scanReceipt;
-    }
-    catch (HttpResponseException e) {
-      log.error("The scan could not be submitted to the IQ Server: {} ({})", e.getMessage(), e.getStatusCode());
-      throw new ExitException(params.isIgnoreSystemErrors(), e);
-    }
-    catch (IOException e) {
-      log.error("The scan could not be submitted to the IQ Server", e);
-      throw new ExitException(params.isIgnoreSystemErrors(), e);
-    }
-  }
 
-  protected void evaluatePolicy(P params, RestClient restClient, ScanReceipt receipt) throws ExitException {
-    String scanId = receipt.getScanId();
-    log.info("Fetching results of policy evaluation (ETA {}s)...", receipt.getTimeToReport());
-    PolicyEvaluationResult eval;
+    PolicyEvaluationPollingResult eval;
     try {
-      receipt.waitForReport();
-      eval = restClient.evaluatePolicy(params.getApplicationId(), scanId, params.getStage()
-          .getStageTypeId());
+      eval = restClient
+          .evaluatePolicy(params.getApplicationId(), params.getStage().getStageTypeId(), scanFile, clientScanType, 5);
     }
     catch (HttpResponseException e) {
-      log.error("The policy evaluation results for scan ID {} could not be fetched from the IQ Server: {} ({})",
-          scanId, e.getMessage(), e.getStatusCode());
+      log.error("The policy evaluation results for app ID {} could not be fetched from the IQ Server: {} ({})",
+          params.getApplicationId(), e.getMessage(), e.getStatusCode());
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (IOException e) {
-      log.error("The policy evaluation results for scan ID {} could not be fetched from the IQ Server", scanId, e);
-      throw new ExitException(params.isIgnoreSystemErrors(), e);
-    }
-    catch (InterruptedException e) {
-      log.error("The process was interrupted");
+      log.error("The policy evaluation results for application ID {} could not be fetched from the IQ Server",
+          params.getApplicationId(), e);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
 
@@ -200,7 +177,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     log.info("");
 
     PolicyAction outcome = PolicyAction.NONE;
-    for (PolicyAlert alert : eval.getAlerts()) {
+    for (PolicyAlert alert : eval.getResult().getAlerts()) {
       PolicyFact trigger = alert.getTrigger();
       for (final Action action : alert.getActions()) {
         final String actionTypeId = action.getActionTypeId();
@@ -215,7 +192,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       }
     }
 
-    processResults(params, receipt, eval, outcome, restClient);
+    processResults(params, eval.getScanReceipt(), eval.getResult(), outcome, restClient);
   }
 
   protected RestClient createClient(Configuration configuration) {

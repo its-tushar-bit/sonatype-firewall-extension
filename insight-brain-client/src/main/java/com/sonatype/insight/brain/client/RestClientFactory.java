@@ -12,7 +12,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -58,8 +58,8 @@ public class RestClientFactory
     }
 
     @Override
-    public ScanReceipt uploadScan(String appId, File scanFile, ClientScanType clientScanType) throws IOException {
-      return new ScanClient(config, appId).uploadCIScan(scanFile);
+    public ScanReceipt uploadScan(String appId, File scanFile, ClientScanType clientScanType) {
+      throw new UnsupportedOperationException("Uploading a scan file is not supported.");
     }
   }
 
@@ -103,8 +103,14 @@ public class RestClientFactory
       return new ConfigurationClient(config).getProprietaryConfigForComponentEvaluation(applicationPublicId);
     }
 
-    public PolicyEvaluationResult evaluatePolicy(String appId, String scanId, String stageId) throws IOException {
-      return new PolicyClient(config, appId).evaluate(scanId, new Stage(stageId));
+    public PolicyEvaluationPollingResult evaluatePolicy(String appId,
+                                                        String stageId,
+                                                        final File scanFile,
+                                                        final ClientScanType clientScanType,
+                                                        int intervalInSeconds)
+        throws IOException
+    {
+      return new PolicyClient(config, appId).evaluate(scanFile, clientScanType, new Stage(stageId), intervalInSeconds);
     }
 
     public void saveReportBundle(String appId, String scanId, File bundleFile) throws IOException {

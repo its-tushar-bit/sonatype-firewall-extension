@@ -302,7 +302,9 @@ public class RestClientFactory
         default:
           throw new IllegalStateException("unsupported stage " + stage);
       }
-      return new PolicyClient(config, appId).evaluate(scanId, st);
+      return new PolicyClient(config, appId)
+          .evaluate(null /* scanFile needed here */, null /* client type not be required for firewall */, st, 5)
+          .getResult();
     }
   }
 

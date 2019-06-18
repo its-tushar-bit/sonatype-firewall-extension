@@ -525,16 +525,4 @@ public class DefaultPolicyEvaluatorTest
     }
     return String.valueOf(Integer.valueOf(versionAsString) + 1);
   }
-
-  @Test
-  public void testRun_LogScanId() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("the-app-id");
-
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", app.getPublicId(), "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
-        "src/test/data/artifact.jar");
-    evaluator.run(params);
-
-    assertThat(logOutput).atInfoLevel().contains("Assigned scan ID SCAN-ID");
-  }
 }

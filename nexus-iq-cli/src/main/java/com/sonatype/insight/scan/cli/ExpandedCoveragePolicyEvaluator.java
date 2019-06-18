@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.http.client.HttpResponseException;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.Engine.Mode;
 import org.owasp.dependencycheck.dependency.Dependency;
@@ -150,24 +151,40 @@ public class ExpandedCoveragePolicyEvaluator
    * Policies are not evaluated for expanded coverage scans.
    */
   @Override
-  protected void evaluatePolicy(Parameters params, RestClient restClient, ScanReceipt receipt)
+  protected void evaluatePolicy(Parameters params, RestClient restClient, File scanFile, ClientScanType clientScanType)
       throws ExitException
   {
-    log.info("Awaiting expanded coverage report (ETA {}s)...", receipt.getTimeToReport());
+
+    log.info("Submitting scan to the IQ Server...");
+    ScanReceipt scanReceipt;
     try {
-      receipt.waitForReport();
-      restClient.prepareExpandedCoverageReport(params.getApplicationId(), receipt.getScanId());
+      scanReceipt = restClient.uploadScan(params.getApplicationId(), scanFile, clientScanType);
+      log.info("Assigned scan ID {}", scanReceipt.getScanId());
+    }
+    catch (HttpResponseException e) {
+      log.error("The scan could not be submitted to the IQ Server: {} ({})", e.getMessage(), e.getStatusCode());
+      throw new ExitException(params.isIgnoreSystemErrors(), e);
+    }
+    catch (IOException e) {
+      log.error("The scan could not be submitted to the IQ Server", e);
+      throw new ExitException(params.isIgnoreSystemErrors(), e);
+    }
+
+    log.info("Awaiting expanded coverage report (ETA {}s)...", scanReceipt.getTimeToReport());
+    try {
+      scanReceipt.waitForReport();
+      restClient.prepareExpandedCoverageReport(params.getApplicationId(), scanReceipt.getScanId());
     }
     catch (InterruptedException e) {
       log.error("The process was interrupted");
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (IOException e) {
-      log.error("The server failed to prepare the report for scan ID {}.", receipt.getScanId(), e);
+      log.error("The server failed to prepare the report for application ID {}.", params.getApplicationId(), e);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
 
-    String reportUrl = receipt.resolveReportUrl(params.getServerUrl());
+    String reportUrl = scanReceipt.resolveReportUrl(params.getServerUrl());
 
     log.info("*********************************************************************************************");
     log.info("Stage: {}", params.getStage().getStageTypeId());

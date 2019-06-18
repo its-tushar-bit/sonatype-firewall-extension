@@ -10,6 +10,7 @@ import java.util.zip.ZipFile;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
@@ -17,6 +18,7 @@ import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
@@ -72,13 +74,17 @@ public class ReportClientTest
     tempEntity.newApplicationWithParent(applicationPublicId);
     setLicenseFingerprint(licenseFingerprint);
 
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId(scanId);
+    mockScanReceipt(receipt);
     mockReport(scanId, reportFileName);
 
     File retrievedFile = tempDir.newFile();
 
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
-    new PolicyClient(config, applicationPublicId).evaluate(scanId, new Stage(Stage.ID_BUILD));
+    new PolicyClient(config, applicationPublicId)
+        .evaluate(tempDir.newFile(), ClientScanType.SONATYPE, new Stage(Stage.ID_BUILD), 5);
     ReportClient client = new ReportClient(config, applicationPublicId, scanId);
     client.downloadBundle(retrievedFile);
 

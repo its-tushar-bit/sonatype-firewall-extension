@@ -34,10 +34,6 @@ public class ScanClient
     this.appId = UrlUtils.encodeUrlComponent(appId);
   }
 
-  public ScanReceipt uploadCIScan(final File scanFile) throws IOException {
-    return handleUpload("rest/ci/scan", scanFile, ClientScanType.SONATYPE);
-  }
-
   public ScanReceipt uploadCLIScan(final File scanFile, ClientScanType clientScanType) throws IOException {
     return handleUpload("rest/cli/scan", scanFile, clientScanType);
   }

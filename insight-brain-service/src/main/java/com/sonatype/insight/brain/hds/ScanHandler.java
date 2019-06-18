@@ -90,20 +90,26 @@ public class ScanHandler
                      ClientScanType clientScanType)
       throws IOException
   {
+    File tempScanFile = createTempScanFile(httpRequest, applicationPublicId, clientScanType);
+    return handle(tempScanFile, applicationPublicId, clientScanType);
+  }
+
+  public ScanReceipt handle(File tempScanFile,
+                            String applicationPublicId,
+                            ClientScanType clientScanType)
+      throws IOException
+  {
     long start = System.currentTimeMillis();
     log.debug("Received {} scan for application public id {}.", clientScanType, applicationPublicId);
 
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
 
-    File tempScanFile = createTempScanFile(app, clientScanType);
     try {
-      saveScanFromHttpRequest(httpRequest, tempScanFile);
-
       if (ClientScanType.TWISTLOCK.equals(clientScanType)) {
         tempScanFile = convertTwistlockScan(tempScanFile, app);
       }
 
-      ScanReceipt scanReceipt = scanUploader.upload(httpRequest, tempScanFile, app);
+      ScanReceipt scanReceipt = scanUploader.upload(tempScanFile, app);
       if (ClientScanType.EXPANDED_COVERAGE.equals(clientScanType)) {
         Files.delete(tempScanFile.toPath());
       }
@@ -127,6 +133,31 @@ public class ScanHandler
 
       throw e;
     }
+  }
+
+  public File createTempScanFile(HttpServletRequest httpRequest,
+                                 String applicationPublicId,
+                                 ClientScanType clientScanType)
+      throws IOException
+  {
+    Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
+    File tempScanFile = createTempScanFile(app, clientScanType);
+
+    try {
+      saveScanFromHttpRequest(httpRequest, tempScanFile);
+    }
+    catch (Exception e) {
+      try {
+        Files.deleteIfExists(tempScanFile.toPath());
+      }
+      catch (IOException fileDeleteException) {
+        log.warn(fileDeleteException.getMessage(), fileDeleteException);
+      }
+
+      throw e;
+    }
+
+    return tempScanFile;
   }
 
   private File convertTwistlockScan(File twistlockScanFile, Application app) throws IOException {

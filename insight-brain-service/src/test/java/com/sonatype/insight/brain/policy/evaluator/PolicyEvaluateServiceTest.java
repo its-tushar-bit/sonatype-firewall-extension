@@ -6,18 +6,25 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.mail.Message;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
@@ -25,6 +32,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.jira.JiraConfig;
@@ -34,6 +42,7 @@ import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateRes
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -53,6 +62,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Binder;
@@ -60,12 +70,19 @@ import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.stubbing.Answer;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -85,6 +102,9 @@ public class PolicyEvaluateServiceTest
 
   private MockReportDownloader mockReportDownloader;
 
+  @Mock
+  private ScanHandler mockScanHandler;
+
   @Override
   public void configure(Binder binder) {
     mockReportDownloader = new MockReportDownloader();
@@ -92,6 +112,8 @@ public class PolicyEvaluateServiceTest
     mockJiraClientFactory = mock(JiraClientFactory.class);
     binder.bind(JiraClientFactory.class).toInstance(mockJiraClientFactory);
     binder.bind(TelemetrySender.class).toInstance(mock(TelemetrySender.class));
+    mockScanHandler = mock(ScanHandler.class);
+    binder.bind(ScanHandler.class).toInstance(mockScanHandler);
 
     super.configure(binder);
   }
@@ -144,91 +166,12 @@ public class PolicyEvaluateServiceTest
 
     String scanId = simulateReportIsAvailable("report.zip");
 
-    final List<Message> messagesA = Mailbox.get("manager@example.com");
-    final List<Message> messagesB = Mailbox.get("john.doe@example.com");
-
-    messagesA.clear();
-    messagesB.clear();
-
     ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
 
     // evaluate policy
     PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-    assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
-    assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(7);
-    assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(0);
-    assertThat(policyEvaluationResult.getModerateComponentCount()).isEqualTo(0);
-    List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
-    assertThat(policyAlerts).hasSize(72);
-    for (PolicyAlert policyAlert : policyAlerts) {
-      AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
-    }
-    assertPolicyEvaluation(app.getId(), scanId, false /* isReevaluation */);
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId())) {
-      if (policyViolation.getPolicyId().equals(policy1.getId())) {
-        assertThat(policyViolation.getActionTypeId()).isEqualTo(Action.ID_FAIL);
-      }
-      else {
-        assertThat(policyViolation.getActionTypeId()).isNull();
-      }
-    }
-
-    // check the calculated policy threat
-    InsightWork insightWork = lookup(InsightWork.class);
-    File reportFile = insightWork.getReportFile(app.getId(), scanId);
-    ReportEntry policyThreatsReportEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
-    final JsonNode policyThreats = JsonUtils.parse(policyThreatsReportEntry.buf).get("aaData");
-    assertThat(policyThreats).isNotEmpty();
-    assertThat(policyThreats.get(0).get("policyThreatLevel").asInt()).isEqualTo(8);
-
-    // check components are associated with the application and stage
-    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).hasSize(28);
-
-    // notification message should also have been sent
-    assertNotifications(messagesA, 1, 5000);
-    assertThat(messagesA.get(0).getSubject()).contains("Policy");
-    assertNotifications(messagesB, 1, 5000);
-    assertThat(messagesB.get(0).getSubject()).contains("Policy");
-
-    ArgumentCaptor<JiraIssueCreateRequest> createRequestArgumentCaptor = ArgumentCaptor
-        .forClass(JiraIssueCreateRequest.class);
-    verify(mockJiraClient, timeout(5000)).createIssue(createRequestArgumentCaptor.capture());
-    JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
-    assertThat(jiraIssueCreateRequest.getFields()).hasSize(4);
-    Map<String, String> projectMeta = jiraIssueCreateRequest.getField(JiraField.PROJECT);
-    assertThat(projectMeta).containsEntry("key", "projectKey1");
-
-    messagesA.clear();
-    messagesB.clear();
-
-    reset(mockJiraClient);
-
-    // evaluate policy again
-    policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
-    policyAlerts = policyEvaluationResult.getAlerts();
-    assertThat(policyAlerts).hasSize(72);
-    for (PolicyAlert policyAlert : policyAlerts) {
-      AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
-    }
-    assertPolicyEvaluation(app.getId(), scanId, true /* isReevaluation */);
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId())) {
-      if (policyViolation.getPolicyId().equals(policy1.getId())) {
-        assertThat(policyViolation.getActionTypeId()).isEqualTo(Action.ID_FAIL);
-      }
-      else {
-        assertThat(policyViolation.getActionTypeId()).isNull();
-      }
-    }
-
-    // notification message should not have been sent since the results are the same
-    assertNotifications(messagesA, 0, 5000);
-    assertNotifications(messagesB, 0, 1000);
-
-    verify(mockJiraClient, times(0)).createIssue(any(JiraIssueCreateRequest.class));
+    assertEvaluate(scanId, stage, policyEvaluationResult, policy1, mockJiraClient, appComponentDAO);
   }
 
   @Test
@@ -394,6 +337,7 @@ public class PolicyEvaluateServiceTest
 
     // Evaluate policy again for the same scan
     policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
+    policyAlerts = policyEvaluationResult.getAlerts();
     assertThat(policyAlerts).hasSize(36);
     assertPolicyEvaluation(app.getId(), scanId, true /* isReevaluation */);
 
@@ -401,11 +345,160 @@ public class PolicyEvaluateServiceTest
     assertNotifications(notifications, 0, 5000);
   }
 
+  @Test
+  public void testEvaluateWithPolling() throws Exception {
+    InsightConfig insightConfig = lookup(InsightConfig.class);
+    insightConfig.setBaseUrl("http://localhost");
+    insightConfig.setJiraConfig(new JiraConfig());
+    JiraClient mockJiraClient = mock(JiraClient.class);
+    when(mockJiraClientFactory.create()).thenReturn(mockJiraClient);
+    JiraIssueCreateResponse createResponse = new JiraIssueCreateResponse();
+    when(mockJiraClient.createIssue(any(JiraIssueCreateRequest.class))).thenReturn(createResponse);
+
+    final Policy policy1 = tempEntity.newPolicy(app, 8, LogicalOperator.AND,
+        new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    addNotificationsToPolicy(policy1, Stage.ID_BUILD, //
+        new UserNotification("manager@example.com", Stage.ID_BUILD),
+        new UserNotification("john.doe@example.com", Stage.ID_BUILD),
+        new JiraNotification("projectKey1", 1, Stage.ID_BUILD));
+
+    // same conditions, but lower threat-level => analysis should show highest threat-level
+    final Policy policy2 = tempEntity.newPolicy(app, 3, LogicalOperator.AND,
+        new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    addNotificationsToPolicy(policy2, Stage.ID_RELEASE, //
+        new UserNotification("Mark.MyWords@example.com", Stage.ID_RELEASE),
+        new JiraNotification("projectKey2", 2, Stage.ID_RELEASE));
+
+    final Stage stage = new Stage(Stage.ID_BUILD);
+
+    String scanId = simulateReportIsAvailable("report.zip");
+
+    ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
+
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+
+    when(mockScanHandler.createTempScanFile(eq(null), any(String.class), eq(ClientScanType.SONATYPE)))
+        .thenReturn(mock(File.class));
+    when(mockScanHandler.handle(any(File.class), any(String.class), eq(ClientScanType.SONATYPE)))
+        .thenReturn(scanReceipt);
+
+    // evaluate policy
+    PolicyEvaluationReceipt policyEvaluationReceipt =
+        policyEvaluateService.evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, stage);
+    policyEvaluateService.policyEvaluationPollingResults
+        .getIfPresent(app.getPublicId() + ":" + policyEvaluationReceipt.getStatusId()).get(1, TimeUnit.MINUTES);
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        policyEvaluateService.pollEvaluationResult(app.getPublicId(), policyEvaluationReceipt.getStatusId());
+    PolicyEvaluationResult policyEvaluationResult = policyEvaluationPollingResult.getResult();
+    assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
+    assertThat(policyEvaluationPollingResult.getReason()).isNull();
+    assertThat(policyEvaluationPollingResult.getResult()).isNotNull();
+    assertThat(policyEvaluationPollingResult.getScanReceipt()).isEqualTo(scanReceipt);
+
+    assertEvaluate(scanId, stage, policyEvaluationResult, policy1, mockJiraClient, appComponentDAO);
+  }
+
+  @Test
+  public void testPollEvaluationResult_Pending() throws Exception {
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanid");
+
+    PolicyEvaluateService policyEvaluationServiceSpy = spy(policyEvaluateService);
+
+    CountDownLatch countDownLatch = new CountDownLatch(1);
+    lenient().doAnswer((Answer<PolicyEvaluationResult>) invocationOnSpy -> {
+      countDownLatch.await(1, TimeUnit.MINUTES);
+      return null;
+    }).when(policyEvaluationServiceSpy).doPolicyEvaluation(any(String.class), any(String.class), any(Stage.class));
+
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluationReceipt receipt =
+        policyEvaluationServiceSpy
+            .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD));
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        policyEvaluateService.pollEvaluationResult(app.getPublicId(), receipt.getStatusId());
+    assertThat(policyEvaluationPollingResult).isNotNull();
+    assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.PENDING);
+    assertThat(policyEvaluationPollingResult.getReason()).isNull();
+    assertThat(policyEvaluationPollingResult.getResult()).isNull();
+    assertThat(policyEvaluationPollingResult.getScanReceipt()).isNull();
+  }
+
+  @Test
+  public void testPollEvaluationResult_Failure() throws Exception {
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanid");
+
+    Application app = tempEntity.newApplicationWithParent();
+
+    doThrow(new IOException("HDS Upload Scan Failure!!!"))
+        .when(mockScanHandler).handle(any(File.class), any(String.class), any(ClientScanType.class));
+
+    PolicyEvaluationReceipt receipt =
+        policyEvaluateService
+            .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD));
+
+    try {
+      policyEvaluateService.policyEvaluationPollingResults.getIfPresent(app.getPublicId() + ":" + receipt.getStatusId())
+          .get(1, TimeUnit.MINUTES);
+    }
+    catch (Exception e) {
+      // do nothing
+    }
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        policyEvaluateService.pollEvaluationResult(app.getPublicId(), receipt.getStatusId());
+    assertThat(policyEvaluationPollingResult).isNotNull();
+    assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.FAILED);
+    assertThat(policyEvaluationPollingResult.getReason()).startsWith("Internal Server Error");
+    assertThat(policyEvaluationPollingResult.getResult()).isNull();
+    assertThat(policyEvaluationPollingResult.getScanReceipt()).isNull();
+  }
+
+  @Test
+  public void testPollEvaluationResult_Success() throws Exception {
+    String scanId = simulateReportIsAvailable("report.zip");
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+
+    Application app = tempEntity.newApplicationWithParent();
+
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+
+    when(mockScanHandler.createTempScanFile(eq(null), any(String.class), eq(ClientScanType.SONATYPE)))
+        .thenReturn(mock(File.class));
+    when(mockScanHandler.handle(any(File.class), any(String.class), eq(ClientScanType.SONATYPE)))
+        .thenReturn(scanReceipt);
+
+    PolicyEvaluationReceipt receipt =
+        policyEvaluateService
+            .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD));
+    policyEvaluateService.policyEvaluationPollingResults.getIfPresent(app.getPublicId() + ":" + receipt.getStatusId())
+        .get(1, TimeUnit.MINUTES);
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        policyEvaluateService.pollEvaluationResult(app.getPublicId(), receipt.getStatusId());
+    assertThat(policyEvaluationPollingResult).isNotNull();
+    assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
+    assertThat(policyEvaluationPollingResult.getReason()).isNull();
+    assertThat(policyEvaluationPollingResult.getResult()).isNotNull();
+    assertThat(policyEvaluationPollingResult.getScanReceipt()).isEqualTo(scanReceipt);
+  }
+
+  @Test
+  public void testEvaluateWithPolling_InvalidStage() {
+    assertThatExceptionOfType(InvalidStageException.class).isThrownBy(() -> {
+      policyEvaluateService
+          .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage("invalidStage"));
+    }).withMessage("Invalid stage id=invalidStage");
+  }
+
   /**
    * Simulates that a report (based on the specified resource) exists.
-   * 
+   *
    * @param reportResourceName can be a report.zip file or a directory that will be zipped up into a report.
-   * 
    * @return A generated scan ID that can be used in subsequent calls to evaluate policies.
    */
   private String simulateReportIsAvailable(String reportResourceName) {
@@ -417,5 +510,94 @@ public class PolicyEvaluateServiceTest
     policy.getActions().clear();
     policy.setAction(stageId, Action.ID_FAIL);
     policyDAO.update(policy);
+  }
+
+  private void assertEvaluate(String scanId,
+                              Stage stage,
+                              PolicyEvaluationResult policyEvaluationResult,
+                              Policy policy1,
+                              JiraClient mockJiraClient,
+                              ApplicationComponentDAO appComponentDAO) throws Exception
+  {
+    final List<Message> messagesA = Mailbox.get("manager@example.com");
+    final List<Message> messagesB = Mailbox.get("john.doe@example.com");
+
+    messagesA.clear();
+    messagesB.clear();
+
+    assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getModerateComponentCount()).isEqualTo(0);
+    List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
+    assertThat(policyAlerts).hasSize(72);
+    for (PolicyAlert policyAlert : policyAlerts) {
+      AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
+    }
+    assertPolicyEvaluation(app.getId(), scanId, false /* isReevaluation */);
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId())) {
+      if (policyViolation.getPolicyId().equals(policy1.getId())) {
+        assertThat(policyViolation.getActionTypeId()).isEqualTo(Action.ID_FAIL);
+      }
+      else {
+        assertThat(policyViolation.getActionTypeId()).isNull();
+      }
+    }
+
+    // check the calculated policy threat
+    InsightWork insightWork = lookup(InsightWork.class);
+    File reportFile = insightWork.getReportFile(app.getId(), scanId);
+    ReportEntry policyThreatsReportEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+    final JsonNode policyThreats = JsonUtils.parse(policyThreatsReportEntry.buf).get("aaData");
+    assertThat(policyThreats).isNotEmpty();
+    assertThat(policyThreats.get(0).get("policyThreatLevel").asInt()).isEqualTo(8);
+
+    // check components are associated with the application and stage
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).hasSize(28);
+
+    // notification message should also have been sent
+    assertNotifications(messagesA, 1, 5000);
+    assertThat(messagesA.get(0).getSubject()).contains("Policy");
+    assertNotifications(messagesB, 1, 5000);
+    assertThat(messagesB.get(0).getSubject()).contains("Policy");
+
+    ArgumentCaptor<JiraIssueCreateRequest> createRequestArgumentCaptor = ArgumentCaptor
+        .forClass(JiraIssueCreateRequest.class);
+    verify(mockJiraClient, timeout(5000)).createIssue(createRequestArgumentCaptor.capture());
+    JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
+    assertThat(jiraIssueCreateRequest.getFields()).hasSize(4);
+    Map<String, String> projectMeta = jiraIssueCreateRequest.getField(JiraField.PROJECT);
+    assertThat(projectMeta).containsEntry("key", "projectKey1");
+
+    messagesA.clear();
+    messagesB.clear();
+
+    reset(mockJiraClient);
+
+    // evaluate policy again
+    policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
+    policyAlerts = policyEvaluationResult.getAlerts();
+    assertThat(policyAlerts).hasSize(72);
+    for (PolicyAlert policyAlert : policyAlerts) {
+      AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
+    }
+    assertPolicyEvaluation(app.getId(), scanId, true /* isReevaluation */);
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId())) {
+      if (policyViolation.getPolicyId().equals(policy1.getId())) {
+        assertThat(policyViolation.getActionTypeId()).isEqualTo(Action.ID_FAIL);
+      }
+      else {
+        assertThat(policyViolation.getActionTypeId()).isNull();
+      }
+    }
+
+    // notification message should not have been sent since the results are the same
+    assertNotifications(messagesA, 0, 5000);
+    assertNotifications(messagesB, 0, 1000);
+
+    verify(mockJiraClient, times(0)).createIssue(any(JiraIssueCreateRequest.class));
   }
 }

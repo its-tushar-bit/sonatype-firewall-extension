@@ -11,7 +11,6 @@ import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
@@ -39,19 +38,6 @@ public class ScanUploader
   public ScanUploader(final HdsClient client, final InsightConfig insightConfig) {
     this.client = client;
     this.insightConfig = insightConfig;
-  }
-
-  protected ScanReceipt upload(HttpServletRequest request, File scanFile, Application application)
-      throws IOException
-  {
-    request.setAttribute(HdsClient.UPLOAD_FILE_ATTRIBUTE, scanFile);
-
-    HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(application);
-    final ScanReceipt receipt = client.relay(request, analytics, ScanReceipt.class, HDS_PATH, null);
-
-    augmentScanReceipt(application.getPublicId(), receipt);
-
-    return receipt;
   }
 
   /**

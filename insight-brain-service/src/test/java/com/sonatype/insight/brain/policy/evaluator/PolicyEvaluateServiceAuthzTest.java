@@ -14,11 +14,15 @@ import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.google.inject.Binder;
+import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 public class PolicyEvaluateServiceAuthzTest
@@ -51,5 +55,45 @@ public class PolicyEvaluateServiceAuthzTest
   public void testEvaluate_Unauthorized() throws Exception {
     login();
     policyEvaluateService.evaluate(app.getPublicId(), "scanId", new Stage(BuildStageType.ID));
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testEvaluateWithPolling_Unauthenticated() throws Exception {
+    policyEvaluateService
+        .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(BuildStageType.ID));
+  }
+
+  @Test
+  public void testEvaluateWithPolling_Authorized() throws Exception {
+    grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
+    policyEvaluateService
+        .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(BuildStageType.ID));
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testEvaluateWithPolling_Unauthorized() throws Exception {
+    login();
+    policyEvaluateService
+        .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(BuildStageType.ID));
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testPollEvaluationResult_Unauthenticated() {
+    policyEvaluateService.pollEvaluationResult(app.getPublicId(), "statusId");
+  }
+
+  @Test
+  public void testPollEvaluationResult_Authorized() {
+    grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      policyEvaluateService.pollEvaluationResult(app.getPublicId(), "statusId");
+    }).withMessage("Policy evaluation status with id %s for public application id %s was not found.", "statusId",
+        app.getPublicId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testPollEvaluationResult_Unauthorized() {
+    login();
+    policyEvaluateService.pollEvaluationResult(app.getPublicId(), "statusId");
   }
 }

@@ -30,9 +30,14 @@ const pathnameRegex = /^(dependency:\/)?((.*?)\/)?([^/]+)$/;
 
 // @visibleForTesting
 export function parsePathname(pathname) {
-  const [/* overall match */, dependency, /* dirname including delimiter */, dirname, basename] =
+  const [/* overall match */, dependency, /* dirname including delimiter */, dirname, originalBasename] =
         pathnameRegex.exec(pathname),
       isDependency = !!dependency;
+
+  // component names which contains '/' are replaced with '\' by the Occurrence pathnames string in the backend. This is
+  // to avoid considering them as part of basename. Replacing them back as how it should be after resolving base name -
+  // CLM-12606
+  const basename = originalBasename.replace(/\\/g, '/');
 
   return { isDependency, dirname, basename };
 }

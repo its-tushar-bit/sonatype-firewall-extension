@@ -42,20 +42,6 @@ public class MarkerFileMigratorTest
   }
 
   @Test
-  public void testMigrate() throws IOException {
-    assertThat(migrationTrackerDAO.getById(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isNull();
-    File markerFile =
-        new File(insightWork.getWorkDir(), MarkerFileMigrator.POLICY_COORDINATES_CONDITION_TYPE_MARKER_FILE);
-    markerFile.createNewFile();
-
-    markerFileMigrator.migrate();
-
-    assertThat(migrationTrackerDAO.getById(PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID)).isNotNull();
-    assertThat(markerFile).isFile();
-    assertThat(migrationTrackerDAO.getById(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isNotNull();
-  }
-
-  @Test
   public void testMigrate_mustNotRunIfRunPreviously() throws IOException {
     migrationTrackerDAO.insert(new MigrationTracker(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID));
 
@@ -66,6 +52,18 @@ public class MarkerFileMigratorTest
     markerFileMigrator.migrate();
 
     assertThat(migrationTrackerDAO.getById(MarkerFileMigrator.POLICY_COORDINATES_CONDITION_TYPE_MARKER_FILE)).isNull();
+  }
+
+  @Test
+  public void testMigrate_MustMovePolicyCoordinatesConditionTypeMarkerFileToDatabase() throws IOException {
+    testMigrate(PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID,
+        MarkerFileMigrator.POLICY_COORDINATES_CONDITION_TYPE_MARKER_FILE);
+  }
+
+  @Test
+  public void testMigrate_MustMovePolicySecurityVulnerabilityConditionTypeMarkerFileToDatabase() throws IOException {
+    testMigrate(PolicySecurityVulnerabilityConditionTypeMigrator.MIGRATION_ID,
+        MarkerFileMigrator.POLICY_SECURITY_VULNERABILITY_CONDITION_TYPE_MARKER_FILE);
   }
 
   @Test
@@ -91,5 +89,18 @@ public class MarkerFileMigratorTest
       // Assert Migration Tracker itself is not tracked
       assertThat(migrationTrackerDAO.getById(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isNull();
     }
+  }
+
+  private void testMigrate(String migrationTrackerId, String markerFileName) throws IOException {
+    assertThat(migrationTrackerDAO.getById(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isNull();
+    assertThat(migrationTrackerDAO.getById(migrationTrackerId)).isNull();
+    File markerFile = new File(insightWork.getWorkDir(), markerFileName);
+    markerFile.createNewFile();
+
+    markerFileMigrator.migrate();
+
+    assertThat(migrationTrackerDAO.getById(migrationTrackerId)).isNotNull();
+    assertThat(markerFile).isFile();
+    assertThat(migrationTrackerDAO.getById(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isNotNull();
   }
 }

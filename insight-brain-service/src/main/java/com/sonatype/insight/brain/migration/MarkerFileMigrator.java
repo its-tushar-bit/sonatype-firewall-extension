@@ -26,6 +26,9 @@ public class MarkerFileMigrator
 
   static final String POLICY_COORDINATES_CONDITION_TYPE_MARKER_FILE = "policycoordinatesconditiontype-migrated";
 
+  static final String POLICY_SECURITY_VULNERABILITY_CONDITION_TYPE_MARKER_FILE =
+      "policysecurityvulnerabilityconditiontype-migrated";
+
   private final MigrationTrackerDAO migrationTrackerDAO;
 
   private final InsightWork insightWork;
@@ -50,6 +53,8 @@ public class MarkerFileMigrator
 
       migrateOne(POLICY_COORDINATES_CONDITION_TYPE_MARKER_FILE, PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID,
           tx);
+      migrateOne(POLICY_SECURITY_VULNERABILITY_CONDITION_TYPE_MARKER_FILE,
+          PolicySecurityVulnerabilityConditionTypeMigrator.MIGRATION_ID, tx);
 
       // Track `this` so it does not run again
       migrationTrackerDAO.insertTracker(tx, MARKER_FILE_MIGRATOR_ID);

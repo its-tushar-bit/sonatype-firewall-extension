@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.model.policy.conditions;
 
+import java.util.Locale;
 import java.util.Map.Entry;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -47,6 +48,14 @@ public class ArtifactCoordinate
   }
 
   public boolean matches(final ComponentIdentifier otherComponentIdentifier) {
+    return matchWithIgnoreCase(otherComponentIdentifier, false);
+  }
+
+  public boolean matchesIgnoreCase(final ComponentIdentifier otherComponentIdentifier) {
+    return matchWithIgnoreCase(otherComponentIdentifier, true);
+  }
+
+  private boolean matchWithIgnoreCase(final ComponentIdentifier otherComponentIdentifier, final boolean ignoreCase) {
     if (otherComponentIdentifier == null) {
       return false;
     }
@@ -59,20 +68,20 @@ public class ArtifactCoordinate
       return matchesGroup(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID),
           otherComponentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID))
           && matches(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
-              otherComponentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID))
+          otherComponentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID), ignoreCase)
           && matches(componentIdentifier.get(ComponentIdentifier.VERSION),
-              otherComponentIdentifier.get(ComponentIdentifier.VERSION))
+          otherComponentIdentifier.get(ComponentIdentifier.VERSION), ignoreCase)
           && matches(componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION),
-              otherComponentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION)) && matches(
-            componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER),
-            otherComponentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER));
+          otherComponentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION), ignoreCase) && matches(
+          componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER),
+          otherComponentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER), ignoreCase);
     }
 
     for (Entry<String, String> coord : componentIdentifier.getCoordinates().entrySet()) {
       String name = coord.getKey();
       String value = coord.getValue();
       String value2 = otherComponentIdentifier.getCoordinates().get(name);
-      if (!matches(value, value2)) {
+      if (!matches(value, value2, ignoreCase)) {
         return false;
       }
     }
@@ -118,12 +127,12 @@ public class ArtifactCoordinate
       }
       else {
         // coordinate ends with a joker, matches if it is prefix of value
-        return value.startsWith(coordinate.substring(0, coordinate.length() - 1));
+        return value.startsWith(coordWithoutPlaceholder(coordinate));
       }
     }
     else if (coordinate.endsWith(PLACEHOLDER)) {
       // coordinate ends with a joker, matches if it is prefix of value
-      return value.startsWith(coordinate.substring(0, coordinate.length() - 1));
+      return value.startsWith(coordWithoutPlaceholder(coordinate));
     }
     else {
       // coordinate has no joker, matches if equals
@@ -144,9 +153,10 @@ public class ArtifactCoordinate
    *
    * @param coordinate
    * @param value
+   * @param ignoreCase
    * @return
    */
-  private boolean matches(String coordinate, String value) {
+  private boolean matches(String coordinate, String value, final boolean ignoreCase) {
     if (StringUtils.isEmpty(coordinate)) {
       // coordinate empty, only empty value matches
       return StringUtils.isEmpty(value);
@@ -161,12 +171,22 @@ public class ArtifactCoordinate
     }
     else if (coordinate.endsWith(PLACEHOLDER)) {
       // coordinate ends with a joker, matches if it is prefix of value
-      return value.startsWith(coordinate.substring(0, coordinate.length() - 1));
+      if (ignoreCase) {
+        return value.toLowerCase(Locale.ROOT).startsWith(coordWithoutPlaceholder(coordinate).toLowerCase(Locale.ROOT));
+      }
+      return value.startsWith(coordWithoutPlaceholder(coordinate));
     }
     else {
       // coordinate has no joker, matches if equals
+      if (ignoreCase) {
+        return coordinate.equalsIgnoreCase(value);
+      }
       return coordinate.equals(value);
     }
+  }
+
+  private String coordWithoutPlaceholder(final String coordinate) {
+    return coordinate.substring(0, coordinate.length() - 1);
   }
 
   // Object

@@ -144,7 +144,7 @@ public class ApiSearchServiceV2
         }
 
         ComponentIdentifier candidateComponentIdentifier = applicationComponent.getComponentIdentifier();
-        if (coords != null && !coords.matches(candidateComponentIdentifier)) {
+        if (coords != null && coordsDoesNotMatch(coords, candidateComponentIdentifier)) {
           continue;
         }
 
@@ -170,6 +170,22 @@ public class ApiSearchServiceV2
         componentIdentifier, System.currentTimeMillis() - start, results.results.size());
 
     return results;
+  }
+
+  private boolean coordsDoesNotMatch(
+      final ArtifactCoordinate coords,
+      final ComponentIdentifier candidateComponentIdentifier)
+  {
+    if (candidateComponentIdentifier == null) {
+      return true;
+    }
+
+    switch (candidateComponentIdentifier.getFormat()) {
+      case ComponentIdentifier.FORMAT_PYPI:
+        return !coords.matchesIgnoreCase(candidateComponentIdentifier);
+      default:
+        return !coords.matches(candidateComponentIdentifier);
+    }
   }
 
   private ComponentIdentifier constructWildcardedComponentIdentifier(final ComponentIdentifier componentIdentifier) {

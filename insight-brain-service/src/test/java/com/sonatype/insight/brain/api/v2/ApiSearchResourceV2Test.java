@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -15,6 +16,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.SearchTestHelper.ComponentInfo;
+import com.sonatype.insight.brain.api.v2.SearchTestHelper.PolicyViolationInfo;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -447,6 +449,27 @@ public class ApiSearchResourceV2Test
 
     HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash( "1249E25aEbb15358bEdf")).get();
     assertSearchComponent_EmptyResults(response);
+  }
+
+  @Test
+  public void testSearchComponent_PypiCaseInsensitive() throws Exception {
+    List<ComponentInfo> pipyAppComponentInfos =  new ArrayList<>();
+    List<PolicyViolationInfo> appPolicyViolationInfos = new ArrayList<>();
+    appPolicyViolationInfos.add(new PolicyViolationInfo("Test Policy", "Found red Label", 4));
+    ComponentIdentifier pypiCoordinates = ComponentIdentifier.createPypiCoordinates(
+        "PyYAML", "3.11", "WIN32-py3.2", "TAR.gz");
+    pipyAppComponentInfos.add(new ComponentInfo("1249e25aebb15358bedd", pypiCoordinates, appPolicyViolationInfos));
+    helper.createAppWithScan("search-app-3", Stage.ID_BUILD, pipyAppComponentInfos);
+
+    String packageUrl = "pkg:pypi/pyyaml@3.11?qualifier=win*&extension=t*";
+    HttpResponse response =
+        searchRequest(Stage.ID_BUILD).with(hash("1249e25aebb15358bedd")).with(purl(packageUrl)).get();
+    assertResponseStatus(200, response);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
+    assertThat(results).isNotNull();
+    assertThat(results.results).hasSize(1);
+    assertSearchResult(results.results.get(0), "search-app-3", "SEARCH-APP-3", "1249e25aebb15358bedd", pypiCoordinates,
+        4);
   }
 
   @Test

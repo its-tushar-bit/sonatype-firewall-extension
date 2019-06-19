@@ -174,4 +174,48 @@ public class ArtifactCoordinateTest
     ComponentIdentifier anameValueWithNullVersion = ComponentIdentifier.createAnameCoordinates("n", "q", null);
     assertThat(anameCoordinate.matches(anameValueWithNullVersion)).isFalse();
   }
+
+  @Test
+  public void testMatchesIgnoreCase() {
+    ComponentIdentifier pypiCoordinate1 =
+        ComponentIdentifier.createPypiCoordinates("PyYAML", "3.11", "win-amd64-py2.7", "exe");
+    ComponentIdentifier pypiCoordinate2 =
+        ComponentIdentifier.createPypiCoordinates("PyYAML", "3.11", "WIN32-py3.2", "EXE");
+    ComponentIdentifier pypiCoordinate3 =
+        ComponentIdentifier.createPypiCoordinates("PyYAML", "3.12", "win-amd64-py2.8", "zip");
+
+    ArtifactCoordinate pypyExactCoordinate = new ArtifactCoordinate(
+        ComponentIdentifier.createPypiCoordinates("pyyaml", "3.11", "win-amd64-py2.7","exe"));
+    assertThat(pypyExactCoordinate.matches(pypiCoordinate1)).isFalse();
+    assertThat(pypyExactCoordinate.matchesIgnoreCase(pypiCoordinate1)).isTrue();
+    assertThat(pypyExactCoordinate.matchesIgnoreCase(pypiCoordinate2)).isFalse();
+
+    ArtifactCoordinate pypyCoordWithWildcardQualifier = new ArtifactCoordinate(
+        ComponentIdentifier.createPypiCoordinates("pyyaml", "3.11", "win*","exe"));
+    assertThat(pypyCoordWithWildcardQualifier.matchesIgnoreCase(pypiCoordinate1)).isTrue();
+    assertThat(pypyCoordWithWildcardQualifier.matchesIgnoreCase(pypiCoordinate2)).isTrue();
+    assertThat(pypyCoordWithWildcardQualifier.matchesIgnoreCase(pypiCoordinate3)).isFalse();
+
+    ArtifactCoordinate pypyCoordWithAllWildcards = new ArtifactCoordinate(
+        ComponentIdentifier.createPypiCoordinates("pyy*", "3*", "win*","*"));
+    assertThat(pypyCoordWithAllWildcards.matchesIgnoreCase(pypiCoordinate1)).isTrue();
+    assertThat(pypyCoordWithAllWildcards.matchesIgnoreCase(pypiCoordinate2)).isTrue();
+    assertThat(pypyCoordWithAllWildcards.matchesIgnoreCase(pypiCoordinate3)).isTrue();
+  }
+
+  @Test
+  public void testMatchesIgnoreCase_NullCandidateIdentifier() {
+    ArtifactCoordinate pypyCoord = new ArtifactCoordinate(
+        ComponentIdentifier.createPypiCoordinates("pyy*", "3*", "win*","*"));
+    assertThat(pypyCoord.matchesIgnoreCase(null)).isFalse();
+  }
+
+  @Test
+  public void testMatchesIgnoreCase_FormatMismatch() {
+    ComponentIdentifier mavenCoordinates = ComponentIdentifier.createMavenCoordinates("pyy", "*", "*", "*", "*");
+
+    ArtifactCoordinate pypyCoord = new ArtifactCoordinate(
+        ComponentIdentifier.createPypiCoordinates("pyy*", "3*", "win*","*"));
+    assertThat(pypyCoord.matchesIgnoreCase(mavenCoordinates)).isFalse();
+  }
 }

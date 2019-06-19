@@ -45,7 +45,7 @@ public class ApiComponentDetailsResourceV2Test
 
   @Test
   public void testGetComponentDetails_Purl() throws Exception {
-    PurlIdentifier purlIdentifier = new PurlIdentifier("pkg:maven/g1/a1@v1?extension=e1");
+    PurlIdentifier purlIdentifier = new PurlIdentifier("pkg:maven/g1/a1@v1?type=e1");
     ApiComponentDTOV2 component =
         componentEvaluationV2Helper.createComponent(purlIdentifier.getPackageUrl());
 

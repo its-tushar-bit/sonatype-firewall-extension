@@ -205,7 +205,7 @@ public class ApiComponentDetailsServiceV2Test
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
 
-    PurlIdentifier purlIdentifier = new PurlIdentifier("pkg:maven/g1/a1@v1?extension=e1");
+    PurlIdentifier purlIdentifier = new PurlIdentifier("pkg:maven/g1/a1@v1?type=e1");
     component.packageUrl = purlIdentifier.getPackageUrl();
     request.components.add(component);
 
@@ -285,7 +285,7 @@ public class ApiComponentDetailsServiceV2Test
   public void testGetComponentDetails_matchByPackageUrl() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
-    PurlIdentifier purlIdentifier = new PurlIdentifier("pkg:maven/g1/a1@v1?classifier=c1&extension=e1");
+    PurlIdentifier purlIdentifier = new PurlIdentifier("pkg:maven/g1/a1@v1?classifier=c1&type=e1");
 
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purlIdentifier.getPackageUrl());
     request.components.add(component);

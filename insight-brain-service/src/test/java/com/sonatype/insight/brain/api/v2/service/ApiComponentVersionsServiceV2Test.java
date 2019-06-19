@@ -66,7 +66,7 @@ public class ApiComponentVersionsServiceV2Test
         .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
 
     ApiComponentOrPurlIdentifierDTOV2 apiComponentOrPurlIdentifierDTOV2 = new ApiComponentOrPurlIdentifierDTOV2();
-    apiComponentOrPurlIdentifierDTOV2.setPackageUrl("pkg:maven/g1/a1@v1?classifier=c1&extension=e1");
+    apiComponentOrPurlIdentifierDTOV2.setPackageUrl("pkg:maven/g1/a1@v1?classifier=c1&type=e1");
 
     List<String> versions = apiComponentVersionsServiceV2.getComponentVersions(apiComponentOrPurlIdentifierDTOV2);
 

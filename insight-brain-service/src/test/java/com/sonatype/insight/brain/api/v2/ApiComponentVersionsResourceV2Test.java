@@ -44,7 +44,7 @@ public class ApiComponentVersionsResourceV2Test
     List<String> hdsResult = Arrays.asList("v1", "v2", "v3", "v4");
     setHdsResponseForURI(ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH, hdsResult, 200);
 
-    String packageUrl = "pkg:maven/g1/a1@v1?classifier=c1&extension=e1";
+    String packageUrl = "pkg:maven/g1/a1@v1?classifier=c1&type=e1";
     Map<String, String> request = ImmutableMap.of("packageUrl", packageUrl);
 
     HttpResponse response = restRequest().path(PublicApiPaths.COMPONENT_VERSIONS_PATH_V2).body(request).post();

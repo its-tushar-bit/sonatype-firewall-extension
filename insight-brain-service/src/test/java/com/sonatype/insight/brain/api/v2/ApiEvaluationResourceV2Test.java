@@ -134,7 +134,7 @@ public class ApiEvaluationResourceV2Test
   public void testEvaluateComponents_validation_nullComponentIdentifierAndNullHash() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
-    component.packageUrl = "pkg:maven/g1/a1@v1?extension=e1";
+    component.packageUrl = "pkg:maven/g1/a1@v1?type=e1";
     request.components.add(component);
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
@@ -260,7 +260,7 @@ public class ApiEvaluationResourceV2Test
 
   @Test
   public void testEvaluateComponents_matchByPackageUrl() throws Exception {
-    PurlIdentifier purlIdentifier = new PurlIdentifier("pkg:maven/g1/a1@v1?extension=e1");
+    PurlIdentifier purlIdentifier = new PurlIdentifier("pkg:maven/g1/a1@v1?type=e1");
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purlIdentifier.getPackageUrl());
 
     assertEvaluateComponent(purlIdentifier.toComponentIdentifier(), component);

@@ -31,8 +31,21 @@ public class PurlIdentifierTest
   public void testPurlIdentifier_Maven_OptionalCoordinates() {
     ComponentIdentifier coordinates = ComponentIdentifier.createMavenCoordinates("g",
         "a", "v", "c", "e");
-    String packageUrl = "pkg:maven/g/a@v?classifier=c&extension=e";
+    String packageUrl = "pkg:maven/g/a@v?classifier=c&type=e";
     testCoordinateWithPurl(coordinates, packageUrl);
+  }
+
+  @Test
+  public void testPurlIdentifier_Maven_Extension() {
+    String packageUrl1 = "pkg:maven/g/a@v?classifier=c&type=e";
+    String packageUrl2 = "pkg:maven/g/a@v?classifier=c&extension=e";
+    ComponentIdentifier coordinates = ComponentIdentifier.createMavenCoordinates("g",
+        "a", "v", "c", "e");
+
+    PurlIdentifier purlIdentifier1 = new PurlIdentifier(packageUrl1);
+    PurlIdentifier purlIdentifier2 = new PurlIdentifier(packageUrl2);
+    assertThat(purlIdentifier1.toComponentIdentifier()).isNotEqualTo(purlIdentifier2.toComponentIdentifier());
+    assertThat(PurlIdentifier.fromComponentIdentifier(coordinates)).isEqualTo(purlIdentifier1);
   }
 
   @Test

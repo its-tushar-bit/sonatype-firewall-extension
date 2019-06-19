@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.purl;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -32,7 +33,7 @@ public class PurlIdentifier
 
   public static final String PURL_MAVEN_CLASSIFIER = MAVEN_CLASSIFIER;
 
-  public static final String PURL_MAVEN_EXTENSION = MAVEN_EXTENSION;
+  public static final String PURL_MAVEN_EXTENSION = "type";
 
   public static final String PURL_RPM_ARCHITECTURE = "arch";
 
@@ -84,7 +85,7 @@ public class PurlIdentifier
         resolveGolangPackageUrl(componentIdentifier.getCoordinates(), builder);
         break;
       default:
-        resolveGenericPackageUrl(format, new HashMap<>(componentIdentifier.getCoordinates()), builder);
+        resolveGenericPackageUrl(format, new LinkedHashMap<>(componentIdentifier.getCoordinates()), builder);
         break;
     }
     try {

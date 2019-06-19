@@ -259,7 +259,7 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
-    String pacakageUrl = "pkg:maven/tomcat/*@*?classifier=sources&extension=jar";
+    String pacakageUrl = "pkg:maven/tomcat/*@*?classifier=sources&type=jar";
     HttpResponse response = searchRequest(Stage.ID_BUILD).with(purl(pacakageUrl)).get();
     assertSearchComponent_ByGavec_WithNonEmptyClassifier(response);
   }
@@ -299,7 +299,7 @@ public class ApiSearchResourceV2Test
     //With Purl we cannot represent an empty query param (which will be dropped/ignored by PackageURL constructor
     // (inline with purl-spec). So effectively this is treated it as no classifier (null)
     // which will be wildcarded for the search query.
-    String packageUrl = "pkg:maven/tomcat/tomcat-util@*?extension=jar&classifier=";
+    String packageUrl = "pkg:maven/tomcat/tomcat-util@*?type=jar&classifier=";
     HttpResponse response = searchRequest(Stage.ID_BUILD).with(purl(packageUrl)).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);

@@ -305,6 +305,7 @@ public class WebhookDispatcher
       policyAlertDTO.policyId = policyFact.getPolicyId();
       policyAlertDTO.policyName = policyFact.getPolicyName();
       policyAlertDTO.threatLevel = policyFact.getThreatLevel();
+      policyAlertDTO.policyViolationId = policyFact.getPolicyViolationId();
 
       for (final ComponentFact componentFact : policyFact.getComponentFacts()) {
         final ComponentFactDTO componentFactDTO = new ComponentFactDTO();

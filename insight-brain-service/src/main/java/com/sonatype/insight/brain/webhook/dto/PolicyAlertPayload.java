@@ -42,6 +42,8 @@ public class PolicyAlertPayload
     public int threatLevel;
 
     public List<ComponentFactDTO> componentFacts = new ArrayList<>();
+
+    public String policyViolationId;
   }
 
   public static class ComponentFactDTO

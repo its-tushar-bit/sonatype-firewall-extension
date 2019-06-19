@@ -32,7 +32,7 @@ public class PolicyAlertUtil
     for (PolicyViolation policyViolation : policyViolations) {
       String policyId = policyViolation.getPolicyId();
       PolicyFact policyFact = new PolicyFact(policyId, policyViolation.getPolicyName(),
-          policyViolation.getThreatLevel());
+          policyViolation.getThreatLevel(), policyViolation.getId());
       Policy policy = policyDAO.getById(policyId);
       List<? extends Action> actions;
       if (policy == null || !enableActions) {

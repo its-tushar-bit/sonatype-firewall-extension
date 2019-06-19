@@ -454,7 +454,7 @@ public class WebhookDispatcherTest
     event.application.id = application.getId();
     event.application.organizationId = organization.getId();
     event.applicationEvaluation = evaluationEvent;
-    event.policyFacts.add(new PolicyFact("id", "name", 5)
+    event.policyFacts.add(new PolicyFact("policyId", "name", 5, "policyViolationId")
         .with(new ComponentFact(createMavenCoordinates("com.group", "artifact", "1.0", "test", "jar"), "123")));
     asyncEventBus.post(event);
 
@@ -475,9 +475,10 @@ public class WebhookDispatcherTest
 
     assertThat(webhookPayload.policyAlerts).isNotEmpty();
     PolicyAlertDTO policyAlertDTO = webhookPayload.policyAlerts.get(0);
-    assertThat(policyAlertDTO.policyId).isEqualTo("id");
+    assertThat(policyAlertDTO.policyId).isEqualTo("policyId");
     assertThat(policyAlertDTO.policyName).isEqualTo("name");
     assertThat(policyAlertDTO.threatLevel).isEqualTo(5);
+    assertThat(policyAlertDTO.policyViolationId).isEqualTo("policyViolationId");
     assertThat(policyAlertDTO.componentFacts).isNotEmpty();
     ApiComponentIdentifierDTOV2 componentIdentifier = policyAlertDTO.componentFacts.get(0).componentIdentifier;
     assertThat(componentIdentifier.getFormat()).isEqualTo("maven");

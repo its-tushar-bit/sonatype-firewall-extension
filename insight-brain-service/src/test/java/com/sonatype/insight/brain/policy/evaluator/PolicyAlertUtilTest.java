@@ -111,6 +111,7 @@ public class PolicyAlertUtilTest
     PolicyAlert alert1 = alerts.get(0);
     assertThat(alert1.getTrigger().getPolicyId()).isEqualTo(policy.getId());
     assertThat(alert1.getTrigger().getPolicyName()).isEqualTo(policy.getName());
+    assertThat(alert1.getTrigger().getPolicyViolationId()).isEqualTo(policyViolation1.getId());
     assertThat(alert1.getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0).getConditionFacts().get(0)
         .getReason()).isEqualTo(reason1);
     assertThat(alert1.getActions()).isEmpty();
@@ -118,6 +119,7 @@ public class PolicyAlertUtilTest
     PolicyAlert alert2 = alerts.get(1);
     assertThat(alert2.getTrigger().getPolicyId()).isEqualTo(policy.getId());
     assertThat(alert2.getTrigger().getPolicyName()).isEqualTo(policy.getName());
+    assertThat(alert2.getTrigger().getPolicyViolationId()).isEqualTo(policyViolation2.getId());
     assertThat(alert2.getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0).getConditionFacts().get(0)
         .getReason()).isEqualTo(reason2);
     assertThat(alert2.getActions()).isEmpty();

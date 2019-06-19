@@ -64,7 +64,7 @@
           expand: true,
           cwd: '<%= config.frontend %>',
           src: [
-            '**/*.{html,ttf,woff,woff2,png,gif,jpg,ico}',
+            '**/*.{html,ttf,woff,woff2,png,svg,gif,jpg,ico}',
             '!lib/**',
             'brain.client.js',
             'reports.js'
@@ -77,7 +77,7 @@
               expand: true,
               cwd: '<%= config.frontend %>',
               src: [
-                '**/*.{html,css,ttf,woff,woff2,png,gif,jpg,ico}',
+                '**/*.{html,css,ttf,woff,woff2,png,svg,gif,jpg,ico}',
                 '!lib/*',
                 'lib/**/*.{js,css,ttf,woff,woff2}',
                 '!lib/**/test/*',
@@ -136,7 +136,7 @@
         },
         assets: {
           files: [
-            '**/*.{html,css,eot,svg,ttf,woff,png,gif,jpg}'
+            '**/*.{html,css,eot,svg,ttf,woff,png,svg,gif,jpg}'
           ],
           tasks: [
             'configure_override:develop',

@@ -72,12 +72,6 @@ public class MarkerFileMigratorTest
   }
 
   @Test
-  public void testMigrate_MustMoveSecurityVulnerabilityOverrideMarkerFileToDatabase() throws IOException {
-    testMigrate(SecurityVulnerabilityOverrideMigrator.MIGRATION_ID,
-        MarkerFileMigrator.SECURITY_VULNERABILITY_OVERRIDE_MIGRATOR_FILE);
-  }
-
-  @Test
   public void testMigrate_MustNotInsertTrackerIfMigrationFileDoesNotExist() {
     markerFileMigrator.migrate();
     assertThat(migrationTrackerDAO.getById(PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID)).isNull();

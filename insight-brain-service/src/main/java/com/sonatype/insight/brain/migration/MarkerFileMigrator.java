@@ -31,8 +31,6 @@ public class MarkerFileMigrator
 
   static final String PROPRIETARY_CONFIG_MARKER_FILE = "proprietaryconfig-migrated";
 
-  static final String SECURITY_VULNERABILITY_OVERRIDE_MIGRATOR_FILE = "svoverrides-migrated";
-
   private final MigrationTrackerDAO migrationTrackerDAO;
 
   private final InsightWork insightWork;
@@ -60,7 +58,6 @@ public class MarkerFileMigrator
       migrateOne(POLICY_SECURITY_VULNERABILITY_CONDITION_TYPE_MARKER_FILE,
           PolicySecurityVulnerabilityConditionTypeMigrator.MIGRATION_ID, tx);
       migrateOne(PROPRIETARY_CONFIG_MARKER_FILE, ProprietaryConfigMigrator.MIGRATION_ID, tx);
-      migrateOne(SECURITY_VULNERABILITY_OVERRIDE_MIGRATOR_FILE, SecurityVulnerabilityOverrideMigrator.MIGRATION_ID, tx);
 
       // Track `this` so it does not run again
       migrationTrackerDAO.insertTracker(tx, MARKER_FILE_MIGRATOR_ID);

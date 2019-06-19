@@ -59,6 +59,8 @@ public class TestInsightBrainService
 
   private Configurator configurator;
 
+  private File workDir = new File("target/test-brain-work");
+
   private int testPort;
 
   private int testAdminPort;
@@ -106,8 +108,13 @@ public class TestInsightBrainService
     this.configurator = configurator;
   }
 
+  public TestInsightBrainService setWorkDir(File workDir) {
+    this.workDir = workDir;
+    return this;
+  }
+
   public File getWorkDir() {
-    return new File("target/test-brain-work");
+    return workDir;
   }
 
   public Configuration getClientConfiguration() {

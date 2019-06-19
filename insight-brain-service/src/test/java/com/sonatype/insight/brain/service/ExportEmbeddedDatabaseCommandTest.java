@@ -44,14 +44,17 @@ public class ExportEmbeddedDatabaseCommandTest
     }).withMessageContaining("can only be used when no external database is specified");
   }
 
+  private InsightBrainService newService() {
+    return new TestInsightBrainService().setWorkDir(tempDir.getRoot());
+  }
+
   @Test
   public void testRun_GzippedDump() throws Exception {
     DataSourceFactory.clear_ForTestsOnly();
     try {
       File dumpFile = new File(tempDir.getRoot(), "dump.sql.gz");
 
-      new TestInsightBrainService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
-          dumpFile.getPath());
+      newService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
 
       assertThat(dumpFile).isFile();
 
@@ -70,8 +73,7 @@ public class ExportEmbeddedDatabaseCommandTest
     try (PostgresServer postgres = new PostgresServer()) {
       File dumpFile = new File(tempDir.getRoot(), "dump.sql");
 
-      new TestInsightBrainService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
-          dumpFile.getPath());
+      newService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
 
       assertThat(dumpFile).isFile();
 

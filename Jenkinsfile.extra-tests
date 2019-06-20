@@ -96,68 +96,6 @@ pipeline {
             }
           }
         }
-        // Firefox runs about twice as slow as chrome so splitting the tests into 4 parallel tests taking careful 
-        // consideration into grouping tests to balance out test execution run times. 
-        stage('Java Functional Tests - (Firefox) A') {
-          agent { label agentLabel }
-          environment {
-            bamboo_planRepository_branchName = "${gitBranch(env)}"
-            bamboo_buildNumber = "${env.BUILD_NUMBER}"
-          }
-          steps {
-            functionalTests('firefox', '.*/[A-B].*Test.class')
-          }
-          post {
-            always {
-              captureResultsAndCleanup()
-            }
-          }
-        }
-        stage('Java Functional Tests - (Firefox) B') {
-          agent { label agentLabel }
-          environment {
-            bamboo_planRepository_branchName = "${gitBranch(env)}"
-            bamboo_buildNumber = "${env.BUILD_NUMBER}"
-          }
-          steps {
-            functionalTests('firefox', '.*/[C-D].*Test.class')
-          }
-          post {
-            always {
-              captureResultsAndCleanup()
-            }
-          }
-        }
-        stage('Java Functional Tests - (Firefox) C') {
-          agent { label agentLabel }
-          environment {
-            bamboo_planRepository_branchName = "${gitBranch(env)}"
-            bamboo_buildNumber = "${env.BUILD_NUMBER}"
-          }
-          steps {
-            functionalTests('firefox', '.*/[E-O].*Test.class')
-          }
-          post {
-            always {
-              captureResultsAndCleanup()
-            }
-          }
-        }
-        stage('Java Functional Tests - (Firefox) D') {
-          agent { label agentLabel }
-          environment {
-            bamboo_planRepository_branchName = "${gitBranch(env)}"
-            bamboo_buildNumber = "${env.BUILD_NUMBER}"
-          }
-          steps {
-            functionalTests('firefox', '.*/[P-Z].*Test.class')
-          }
-          post {
-            always {
-              captureResultsAndCleanup()
-            }
-          }
-        }
         stage('Unit and Integration Tests') {
           agent { label agentLabel }
           steps {

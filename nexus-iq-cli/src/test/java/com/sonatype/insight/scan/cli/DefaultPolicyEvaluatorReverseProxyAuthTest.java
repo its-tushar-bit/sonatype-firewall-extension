@@ -62,7 +62,9 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
 
   @After
   public void after() throws Exception {
-    reverseProxy.stop();
+    if (reverseProxy != null) {
+      reverseProxy.stop();
+    }
     stopInsightServer();
   }
 

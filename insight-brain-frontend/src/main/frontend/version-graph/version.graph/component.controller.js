@@ -39,7 +39,7 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
 
   function populateSuggestedRemediationVersions() {
 
-    if ($scope.recommendations === null || $scope.recommendations === false) {
+    if ($scope.recommendationsSupported === null || $scope.recommendationsSupported === false) {
       return;
     }
 
@@ -48,11 +48,13 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
     }
 
     ensureApplicationInternalIdAndApply(function() {
+      $scope.recommendationsLoaded = false;
       $scope.suggestedRemediations = new Map();
 
       if (!$scope.applicationInternalIds.get(OwnerContext.ownerId)
           || !Coordinates.get()
           || !Coordinates.getFormat()) {
+        $scope.recommendationsLoaded = true;
         return;
       }
 
@@ -75,7 +77,7 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
       if (typeof Brain.getCsrfHeaders === 'function') {
         request.headers = Brain.getCsrfHeaders();
       }
-      return $http(request).then(handleRemediationResponse);
+      $http(request).then(handleRemediationResponse);
     });
   }
 
@@ -86,6 +88,7 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
             item.data.component.componentIdentifier);
       });
     }
+    $scope.recommendationsLoaded = true;
   }
 
   function ensureApplicationInternalIdAndApply(action) {
@@ -194,7 +197,7 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
   };
 
   $scope.isRecommendationsAvailable = function() {
-    if ($scope.recommendations === false) {
+    if ($scope.recommendationsSupported === false) {
       return false;
     }
     return true;

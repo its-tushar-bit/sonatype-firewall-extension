@@ -28,13 +28,12 @@
       highlightPanel,
       verticalRule,
       showThreatCategories,
-      globalVizContent,
-      bars,
-      selectedIndex,
-      xIndex = 0,
-      innerWidth,
-      currentVersionIndex,
-      xIndexInitial = null;
+      componentInfoVizContent,
+      componentInfoBars,
+      componentInfoSelectedIndex,
+      componentInfoXIndex = 0,
+      componentInfoXIndexInitial = null,
+      componentInfoConfig;
 
   function getAge(reportDate, endDate) {
     var val,
@@ -384,7 +383,7 @@
         .textAlign('center')
         .textBaseline('middle')
         .text(labelText);
-  }
+  };
 
   ComponentInformation = (function() {
     var defaults = {
@@ -436,9 +435,8 @@
 
             //the inner width is twice the size of the area needed for the chart,
             //simply so that the current version can always be directly in the middle
-            innerWidth = Math.max(config.contentWidth, ((config.barWidth + config.barGap) *
+            return Math.max(config.contentWidth, ((config.barWidth + config.barGap) *
                 (Math.max(currentIndex, config.data.versions.length - currentIndex) + 1) - config.barGap) * 2);
-            return innerWidth;
           },
           panning: function(config) {
             return this.width(config) > config.contentWidth;
@@ -459,6 +457,9 @@
           },
           top: function(config) {
             return config.topPadding;
+          },
+          itemWidth: function(config) {
+            return config.barGap + config.barWidth;
           }
         };
 
@@ -522,13 +523,39 @@
           rightPan = false,
           panTop = 50, // fix position pan triangles in between the 2 charts
           pan = function(val) {
-            var m = contentViz.transform().translate(val, 0),
-                temp = xIndex + val;
-            if ((temp < 10 || val < 0) && (((config.width - config.contentWidth + temp) > -10) || val > 0)) {
-              xIndex = temp;
-              if (!xIndexInitial) {
-                xIndexInitial = xIndex;
-              }
+            let m = contentViz.transform().translate(val, 0),
+                temp = componentInfoXIndex + val,
+                currentIndex = config.data.currentVersionIndex ? config.data.currentVersionIndex : 0,
+                initial = false;
+
+            if (!componentInfoXIndexInitial) {
+              componentInfoXIndexInitial = temp;
+              initial = true;
+            }
+
+            //X axis indexes are inverted, as you move right indexes decrease, therefore the index distances are
+            //multiplied by -1 for the right side
+            let distanceFromCenterToLeftEdge = config.contentWidth / 2,
+                distanceFromCenterToRightEdge = distanceFromCenterToLeftEdge * -1,
+                leftBufferBetweenEdgeAndLastItem = (config.itemWidth * 2),
+                rightBufferBetweenEdgeAndLastItem = leftBufferBetweenEdgeAndLastItem * -1,
+                xShiftFromCurrentVersionToLeftMostItem = currentIndex * config.itemWidth,
+                xShiftFromCurrentVersionToRightMostItem = (config.data.versions.length - currentIndex) *
+                    config.itemWidth * -1,
+                xShiftFromZeroToLeftMost = xShiftFromCurrentVersionToLeftMostItem + componentInfoXIndexInitial,
+                xShiftFromZeroToRightMost = xShiftFromCurrentVersionToRightMostItem + componentInfoXIndexInitial;
+
+            let leftMostIndex = xShiftFromZeroToLeftMost - distanceFromCenterToLeftEdge +
+                leftBufferBetweenEdgeAndLastItem;
+
+            let rightMostIndex = xShiftFromZeroToRightMost - distanceFromCenterToRightEdge +
+                rightBufferBetweenEdgeAndLastItem;
+
+            let validLeftMove = val > 0 && temp < leftMostIndex,
+                validRightMove = val < 0 && temp > rightMostIndex;
+
+            if (initial || validLeftMove || validRightMove) {
+              componentInfoXIndex = temp;
               contentViz.transform(m).render();
             }
             else {
@@ -585,14 +612,14 @@
 
     function createHighlights(vizContent, config) {
       let inner = vizContent.add(pv.Panel).def('i', -1);
-      bars = inner.add(pv.Bar);
-      let labels = bars.anchor('bottom').add(pv.Label).visible(false).textBaseline('top');
+      componentInfoBars = inner.add(pv.Bar);
+      let labels = componentInfoBars.anchor('bottom').add(pv.Label).visible(false).textBaseline('top');
       let leftPositionFn = getLeftPositionFn(config);
-      selectedIndex = null;
+      componentInfoSelectedIndex = null;
 
-      highlightPanel = bars;
+      highlightPanel = componentInfoBars;
       //the highlight sections
-      bars.data(config.data.versions).width(config.spacer - 1).left(function() {
+      componentInfoBars.data(config.data.versions).width(config.spacer - 1).left(function() {
         return config.left + leftPositionFn(this.index) - 1;
         //though we don't show the stroke, we need the strokeStyle to catch events within it
       }).top(config.topPadding).height(defaults.partialDisplay ? config.height : config.height -
@@ -611,26 +638,26 @@
         if (inner.i() === this.index) {
           return pv.color('rgba(153, 204, 255, 0.5)');
         }
-        else if (this.index === selectedIndex) {
+        else if (this.index === componentInfoSelectedIndex) {
           return pv.color('rgba(10, 10, 10, 0.15)');
         }
         else {
           return 'transparent';
         }
       }).strokeStyle(function() {
-        if (this.index === selectedIndex) {
+        if (this.index === componentInfoSelectedIndex) {
           return pv.color('rgba(10, 10, 10, 0.5)');
         }
         return pv.color('rgba(255, 255, 255,0.1)'); // Shennanigans to ensure Protovis creates invisible elements that have listeners attached
       }).lineWidth(1);
       if (config.selectable) {
-        selectedIndex = config.data.currentVersionIndex;
-        bars.event('click', function() {
+        componentInfoSelectedIndex = config.data.currentVersionIndex;
+        componentInfoBars.event('click', function() {
           config.versionClick(this.data());
-          selectedIndex = this.index;
+          componentInfoSelectedIndex = this.index;
           this.render();
         });
-        bars.event('dblclick', function() {
+        componentInfoBars.event('dblclick', function() {
           config.versionDblClick(this.data());
         });
       }
@@ -760,7 +787,7 @@
           vizLabels,
           vizContent,
           i;
-      globalVizContent = null;
+      componentInfoVizContent = null;
 
       showThreatCategories = true;
       config = $.extend({}, defaults, config);
@@ -893,37 +920,43 @@
         //here we need to move the panel so that the center is centered in the viewable panel
         panningFn(-((config.width / 2) - config.contentWidth + (config.contentWidth / 2)));
       }
-      globalVizContent = vizContent;
+      componentInfoVizContent = vizContent;
+      componentInfoConfig = config;
     }
 
     return function(config) {
-      xIndex = 0;
-      globalVizContent = null;
-      currentVersionIndex = null;
-      innerWidth = null;
-      xIndexInitial = null;
+      componentInfoXIndex = 0;
+      componentInfoVizContent = null;
+      componentInfoXIndexInitial = null;
+      componentInfoConfig = null;
 
       config.data = parseJsonData(config.data);
       loadVersionChart(config);
-
-      currentVersionIndex = config.data.currentVersionIndex;
     };
   }());
 
-  function updateBars(index){
-    let requiredXIndex = ((currentVersionIndex - index) * 11) + xIndexInitial - xIndex;
-    panToSelected(requiredXIndex);
-    selectedIndex = index;
-    bars.render();
-  }
+  function updateBars(index) {
+    //X axis indexes are inverted, as you move right indexes decrease, therefore the shift from current
+    //version is multiplied by -1
+    let versionCountToShiftFromCurrentVersion = index - componentInfoConfig.data.currentVersionIndex,
+        xAxisShiftFromCurrentVersion = versionCountToShiftFromCurrentVersion * componentInfoConfig.itemWidth * -1,
+        xAxisShiftAlreadyMoved = componentInfoXIndex - componentInfoXIndexInitial,
+        requiredXIndexMove = xAxisShiftFromCurrentVersion - xAxisShiftAlreadyMoved;
+    panToXIndex(requiredXIndexMove);
+    componentInfoSelectedIndex = index;
+    componentInfoBars.render();
+  };
 
-  function panToSelected(val) {
+  function panToXIndex(val) {
 
-    let m = globalVizContent.transform().translate(val, 0),
-        temp = xIndex + val;
-    if (Math.abs(temp - xIndex) > ((360 / 2) - 11)) {
-      xIndex = temp;
-      globalVizContent.transform(m).render();
+    let m = componentInfoVizContent.transform().translate(val, 0),
+        temp = componentInfoXIndex + val;
+    //Only pan the graph if the new x index is one of the last two displayed versions on either side of the graph currently
+    //Or if the new x index is not on the display at all.
+    if (Math.abs(temp - componentInfoXIndex) >
+        ((componentInfoConfig.contentWidth / 2) - (componentInfoConfig.itemWidth * 2))) {
+      componentInfoXIndex = temp;
+      componentInfoVizContent.transform(m).render();
     }
   }
 

@@ -257,10 +257,10 @@ form.form-horizontal .control-label {
   margin-top: 0;
 }
 
-.list-style-none {
+.version-graph-list {
   list-style: none;
 }
 
-.hover-pointer {
+.version-graph-link {
   cursor: pointer;
 }

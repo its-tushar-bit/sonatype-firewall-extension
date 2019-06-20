@@ -95,24 +95,24 @@
           <div id="version-graph-container" ng-show="loaded">
             <div id="suggested-remediation-version-links"
                  ng-controller="ComponentController"
-                 ng-show="loaded && isApplicationOwnerContext() && isRecommendationsAvailable()">
+                 ng-show="recommendationsLoaded && loaded && isApplicationOwnerContext() && isRecommendationsAvailable()">
               <h5 id="recommended-versions-header">Recommended Version(s)</h5>
-              <ul class="list-style-none">
+              <ul class="version-graph-list">
                 <li id="next-no-violation-version-link"
                     ng-show="nextNoViolationAvailableAndNotCurrent()"
                     class="version-graph-container-text">
-                  <a class="hover-pointer" id="select-no-violation" ng-click="markNextNoViolation()"><!--
-                  -->Select {{getNoViolationVersion()}}<!--
-                  --></a><!--
-                  -->: Next version with no policy violation
+                  <a class="version-graph-link" id="select-no-violation" ng-click="markNextNoViolation()"><!--
+                 -->Select {{getNoViolationVersion()}}<!--
+               --></a><!--
+               -->: Next version with no policy violation
                 </li>
                 <li id="next-no-fail-version-link"
                     ng-show="nextNoFailAvailableAndNotCurrent()"
                     class="version-graph-container-text">
-                  <a class="hover-pointer" id="select-no-fail" ng-click="markNextNoFail()"><!--
-                  -->Select {{getNoFailVersion()}}<!--
-                  --></a><!--
-                  -->: Next version with no build failure violations
+                  <a class="version-graph-link" id="select-no-fail" ng-click="markNextNoFail()"><!--
+                 -->Select {{getNoFailVersion()}}<!--
+               --></a><!--
+               -->: Next version with no build failure violations
                 </li>
                 <li id="no-versions-available"
                     ng-hide="nextNoFailAvailableAndNotCurrent() || nextNoViolationAvailableAndNotCurrent()"

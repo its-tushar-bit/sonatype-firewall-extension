@@ -59,6 +59,7 @@ public class ApplicationEvaluationEventService
     event.ownerId = policyEvaluation.getApplicationId();
     event.evaluationDate = policyEvaluation.getTime();
     event.initiator = currentUser.getUsernameOrSystem();
+    event.reportId = policyEvaluation.getScanId();
 
     event.affectedComponentCount = policyEvaluationResult.getAffectedComponentCount();
     event.criticalComponentCount = policyEvaluationResult.getCriticalComponentCount();

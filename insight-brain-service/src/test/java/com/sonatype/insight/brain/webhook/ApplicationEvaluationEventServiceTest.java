@@ -44,6 +44,7 @@ public class ApplicationEvaluationEventServiceTest
     policyEvaluation.setId("policyEvaluationId");
     policyEvaluation.setStageTypeId("stageTypeId");
     policyEvaluation.setApplicationId("applicationId");
+    policyEvaluation.setScanId("reportId");
     policyEvaluation.setTime(time);
 
     final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
@@ -69,6 +70,7 @@ public class ApplicationEvaluationEventServiceTest
     assertThat(event.moderateComponentCount).isEqualTo(7);
     assertThat(event.outcome).isEqualTo(ApplicationEvaluationEvent.ACTION_ID_NONE);
     assertThat(event.initiator).isEqualTo(USERNAME);
+    assertThat(event.reportId).isEqualTo("reportId");
 
     asyncEventBus.unregister(handler);
   }

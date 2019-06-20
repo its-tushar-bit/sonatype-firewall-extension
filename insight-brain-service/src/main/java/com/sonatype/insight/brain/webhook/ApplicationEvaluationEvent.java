@@ -35,6 +35,8 @@ public class ApplicationEvaluationEvent
 
   public String outcome;
 
+  public String reportId;
+
   @Override
   public String toString() {
     return getClass().getName() + "{policyEvaluationId=" + policyEvaluationId + "}";

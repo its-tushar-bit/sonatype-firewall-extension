@@ -293,6 +293,7 @@ public class WebhookDispatcher
     payload.applicationEvaluation.severeComponentCount = event.applicationEvaluation.severeComponentCount;
     payload.applicationEvaluation.moderateComponentCount = event.applicationEvaluation.moderateComponentCount;
     payload.applicationEvaluation.outcome = event.applicationEvaluation.outcome;
+    payload.applicationEvaluation.reportId = event.applicationEvaluation.reportId;
 
     payload.application.id = event.application.id;
     payload.application.name = event.application.name;

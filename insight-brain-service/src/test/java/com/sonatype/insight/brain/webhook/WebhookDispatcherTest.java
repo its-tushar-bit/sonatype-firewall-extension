@@ -447,6 +447,7 @@ public class WebhookDispatcherTest
     evaluationEvent.severeComponentCount = 5;
     evaluationEvent.moderateComponentCount = 7;
     evaluationEvent.outcome = "outcome";
+    evaluationEvent.reportId = "reportId";
     PolicyAlertEvent event = new PolicyAlertEvent(target.getId());
     event.initiator = "initiator";
     event.targetId = target.getId();
@@ -480,6 +481,7 @@ public class WebhookDispatcherTest
     assertThat(policyAlertDTO.threatLevel).isEqualTo(5);
     assertThat(policyAlertDTO.policyViolationId).isEqualTo("policyViolationId");
     assertThat(policyAlertDTO.componentFacts).isNotEmpty();
+    assertThat(webhookPayload.applicationEvaluation.reportId).isEqualTo("reportId");
     ApiComponentIdentifierDTOV2 componentIdentifier = policyAlertDTO.componentFacts.get(0).componentIdentifier;
     assertThat(componentIdentifier.getFormat()).isEqualTo("maven");
     assertThat(componentIdentifier.getCoordinates()).containsExactly(entry("artifactId", "artifact"),

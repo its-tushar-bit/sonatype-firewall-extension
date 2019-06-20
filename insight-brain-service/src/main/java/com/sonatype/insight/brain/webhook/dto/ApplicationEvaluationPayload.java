@@ -36,5 +36,7 @@ public class ApplicationEvaluationPayload
     public int moderateComponentCount;
 
     public String outcome;
+
+    public String reportId;
   }
 }

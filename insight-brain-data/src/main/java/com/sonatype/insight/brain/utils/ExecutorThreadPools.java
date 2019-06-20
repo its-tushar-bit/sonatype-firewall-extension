@@ -73,7 +73,7 @@ public class ExecutorThreadPools
       .build(CacheLoader.from(key -> namedForkJoinPool(SINGLE_THREAD_COUNT, SINGLE_THREAD_PREFIX)));
 
   private static ForkJoinPool namedForkJoinPool(int threadCount, String namePrefix) {
-    final ForkJoinWorkerThreadFactory factory = (pool) -> {
+    final ForkJoinWorkerThreadFactory factory = pool -> {
       final ForkJoinWorkerThread worker = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
       worker.setName(namePrefix + worker.getPoolIndex());
       return worker;

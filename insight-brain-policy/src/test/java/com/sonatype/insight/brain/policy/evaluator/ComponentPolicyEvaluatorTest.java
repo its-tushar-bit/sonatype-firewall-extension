@@ -699,7 +699,7 @@ public class ComponentPolicyEvaluatorTest
 
   private PolicyAlert findPolicyAlert(List<PolicyAlert> policyAlerts, Component component, Policy policy) {
     return policyAlerts.stream().filter( //
-        (policyAlert) -> policyAlert.getTrigger().getComponentFacts().get(0).getComponentIdentifier()
+        policyAlert -> policyAlert.getTrigger().getComponentFacts().get(0).getComponentIdentifier()
             .equals(component.getComponentIdentifier()) && //
             policyAlert.getTrigger().getPolicyId().equals(policy.getId()))
         .findFirst().get();

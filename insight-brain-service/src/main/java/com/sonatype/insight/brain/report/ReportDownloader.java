@@ -81,7 +81,8 @@ public class ReportDownloader
           IOUtil.close(is);
           IOUtil.close(os);
         }
-      } while (true);
+      }
+      while (true);
     }
     catch (final Exception e) {
       // don't leave an incomplete file around

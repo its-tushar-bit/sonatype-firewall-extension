@@ -41,7 +41,7 @@ public class UrlRunnerTest
   @Test
   public void testReturnMinimum() throws Exception {
     UrlRunner urlRunner = spy(UrlRunner.class);
-    urlRunner.run(getObjectGetRepeat(), serverUrl, "admin", "admin123", (it) -> {
+    urlRunner.run(getObjectGetRepeat(), serverUrl, "admin", "admin123", it -> {
     }, adminUrl, null);
     verify(urlRunner, times(3))
         .makeGetCall(Mockito.any(CloseableHttpClient.class), Mockito.any(TestUrl.class), Mockito.anyString(),

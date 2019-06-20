@@ -1,3 +1,5 @@
+--
+-- DO NOT CHANGE THIS FILE!
 -- 
 -- This is a dump of the database schema at the time PostgreSQL support was added.
 -- Given this as baseline, new migration scripts must be able to upgrade the PostgreSQL database.

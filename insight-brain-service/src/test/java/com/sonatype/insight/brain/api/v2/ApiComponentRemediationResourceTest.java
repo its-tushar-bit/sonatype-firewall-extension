@@ -52,6 +52,18 @@ public class ApiComponentRemediationResourceTest
 
   @Test
   public void testSuggestedRemediation_Application() throws Exception {
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1,null);
+    assertRemediationApplication(component);
+  }
+  
+  @Test
+  public void testSuggestedRemediation_Application_Purl() throws Exception {
+    String purl = "pkg:maven/g1/a1@v1?type=jar";
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purl);
+    assertRemediationApplication(component);
+  }
+  
+  private void assertRemediationApplication(ApiComponentDTOV2 component) throws Exception {
     mockComponentSummary(MAVEN_COORDINATES_V1, ComponentSummary.create(true));
     Application app = tempEntity.newApplicationWithParent("testApp");
     createPolicyWithSecurityVulnerabilityConstraint(app.getId());
@@ -67,7 +79,6 @@ public class ApiComponentRemediationResourceTest
     // no violations / alerts - we expect component version 3
     ApiComponentDTOV2 expectedComponent = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V3, null);
 
-    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
     HttpResponse response =
         restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.APPLICATION, app.getId())
             .body(component).post();
@@ -77,6 +88,18 @@ public class ApiComponentRemediationResourceTest
 
   @Test
   public void testSuggestedRemediation_Organization() throws Exception {
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
+    assertRemediationOrganization(component);
+  }
+  
+  @Test
+  public void testSuggestedRemediation_Organization_Purl() throws Exception {
+    String purl = "pkg:maven/g1/a1@v1?type=jar";
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purl);
+    assertRemediationOrganization(component);
+  }
+  
+  private void assertRemediationOrganization(final ApiComponentDTOV2 component) throws Exception {
     mockComponentSummary(MAVEN_COORDINATES_V1, ComponentSummary.create(true));
     Organization org = tempEntity.newOrganization("testOrg");
     createPolicyWithSecurityVulnerabilityConstraint(org.getId());
@@ -92,7 +115,6 @@ public class ApiComponentRemediationResourceTest
     // no violations / alerts - we expect component version 3
     ApiComponentDTOV2 expectedComponent = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V3, null);
 
-    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
     HttpResponse response =
         restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.ORGANIZATION, org.getId())
             .body(component).post();

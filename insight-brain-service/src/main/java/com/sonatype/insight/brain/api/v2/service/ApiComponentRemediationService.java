@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.purl.PurlIdentifier;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -95,13 +96,13 @@ public class ApiComponentRemediationService
 
     String publicOwnerId = ownerId;
 
-    ComponentIdentifier componentIdentifier = validateComponentIdentifier(componentDTO);
+    ComponentIdentifier componentIdentifier = validateRequest(componentDTO);
 
     ComponentSummary componentSummary = getComponentSummary(componentIdentifier);
 
     // Do not allow an empty or invalid version at this time
     if (!componentSummary.isKnown()) {
-      throw new BadRequestException("Invalid Component Identifier");
+      throw new BadRequestException("Invalid Component Identifier or packageUrl");
     }
 
     if (ownerType.equals(OwnerType.APPLICATION)) {
@@ -184,14 +185,43 @@ public class ApiComponentRemediationService
     return new ApiVersionChangeOptionDTO(apiVersionChangeOptionType, new ApiComponentChangeActionDTO(componentDTOV2));
   }
 
-  private ComponentIdentifier validateComponentIdentifier(ApiComponentDTOV2 componentDTO) {
-    if (componentDTO.componentIdentifier == null) {
-      throw new BadRequestException("ComponentIdentifier must be supplied.");
+  private ComponentIdentifier validateRequest(ApiComponentDTOV2 componentDTO) {
+    if (componentDTO == null || (componentDTO.componentIdentifier == null && componentDTO.packageUrl == null)) {
+      throw new BadRequestException("One of either componentIdentifier or packageUrl must be supplied.");
     }
 
+    if (componentDTO.componentIdentifier != null) {
+      return validateComponentIdentifier(componentDTO);
+    }
+    else {
+      return validatePackageUrl(componentDTO);
+    }
+  }
+  
+  private ComponentIdentifier validateComponentIdentifier(ApiComponentDTOV2 componentDTO) {
     try {
       ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
           componentDTO.componentIdentifier.getCoordinates());
+      return validateComponentIdentifier(componentIdentifier);
+    }
+    catch (InvalidComponentIdentifierException e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
+  }
+  
+  private ComponentIdentifier validatePackageUrl(ApiComponentDTOV2 componentDTO) {
+    try {
+      PurlIdentifier purlIdentifier = new PurlIdentifier(componentDTO.packageUrl);
+      ComponentIdentifier componentIdentifier = purlIdentifier.toComponentIdentifier();
+      return validateComponentIdentifier(componentIdentifier);
+    }
+    catch (IllegalArgumentException e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
+  }
+  
+  private ComponentIdentifier validateComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    try {
       componentIdentifier.ensureComplete();
       return componentIdentifier;
     }

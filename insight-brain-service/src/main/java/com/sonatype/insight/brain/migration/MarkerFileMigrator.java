@@ -55,12 +55,14 @@ public class MarkerFileMigrator
     try (TransactionContext tx = migrationTrackerDAO.createTransactionContext()) {
       tx.begin();
 
-      migrateOne(POLICY_COORDINATES_CONDITION_TYPE_MARKER_FILE, PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID,
-          tx);
-      migrateOne(POLICY_SECURITY_VULNERABILITY_CONDITION_TYPE_MARKER_FILE,
+      migrateOne(new File(insightWork.getWorkDir(), POLICY_COORDINATES_CONDITION_TYPE_MARKER_FILE),
+          PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID, tx);
+      migrateOne(new File(insightWork.getWorkDir(), POLICY_SECURITY_VULNERABILITY_CONDITION_TYPE_MARKER_FILE),
           PolicySecurityVulnerabilityConditionTypeMigrator.MIGRATION_ID, tx);
-      migrateOne(PROPRIETARY_CONFIG_MARKER_FILE, ProprietaryConfigMigrator.MIGRATION_ID, tx);
-      migrateOne(SECURITY_VULNERABILITY_OVERRIDE_MARKER_FILE, SecurityVulnerabilityOverrideMigrator.MIGRATION_ID, tx);
+      migrateOne(new File(insightWork.getWorkDir(), PROPRIETARY_CONFIG_MARKER_FILE),
+          ProprietaryConfigMigrator.MIGRATION_ID, tx);
+      migrateOne(new File(insightWork.getAuditDir(""), SECURITY_VULNERABILITY_OVERRIDE_MARKER_FILE),
+          SecurityVulnerabilityOverrideMigrator.MIGRATION_ID, tx);
 
       // Track `this` so it does not run again
       migrationTrackerDAO.insertTracker(tx, MARKER_FILE_MIGRATOR_ID);
@@ -68,8 +70,7 @@ public class MarkerFileMigrator
     }
   }
 
-  private void migrateOne(String filename, String migrationId, TransactionContext tx) {
-    File markerFile = new File(insightWork.getWorkDir(), filename);
+  private void migrateOne(File markerFile, String migrationId, TransactionContext tx) {
     if (markerFile.exists()) {
       migrationTrackerDAO.insertTracker(tx, migrationId);
       log.info("Migration state moved to database for: " + migrationId);

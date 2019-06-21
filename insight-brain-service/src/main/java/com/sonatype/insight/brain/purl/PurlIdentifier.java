@@ -53,6 +53,11 @@ public class PurlIdentifier
 
   private final PackageURL packageUrl;
 
+  public static String toPackageUrl(final ComponentIdentifier componentIdentifier) {
+    PurlIdentifier purlIdentifier = fromComponentIdentifier(componentIdentifier);
+    return purlIdentifier != null ? purlIdentifier.getPackageUrl() : null;
+  }
+
   public static PurlIdentifier fromComponentIdentifier(final ComponentIdentifier componentIdentifier) {
     if (componentIdentifier == null) {
       return null;

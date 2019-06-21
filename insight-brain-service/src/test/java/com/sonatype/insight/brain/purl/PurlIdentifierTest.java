@@ -247,6 +247,29 @@ public class PurlIdentifierTest
         .withMessage("The following coordinates are missing for given format: [extension]");
   }
 
+  @Test
+  public void testToPackageUrl() {
+    ComponentIdentifier coordinates = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "j");
+    assertThat(PurlIdentifier.toPackageUrl(coordinates)).isEqualTo("pkg:maven/g/a@v?classifier=c&type=j");
+  }
+
+  @Test
+  public void testToPackageUrl_NullComponentIdentifier() {
+    assertThat(PurlIdentifier.toPackageUrl(null)).isNull();
+  }
+
+  @Test
+  public void testToPackageUrl_InvalidCoordinates() {
+    Map<String, String> coordinates = new HashMap<>();
+    coordinates.put("blah", "blah");
+    ComponentIdentifier invalidCoords = new ComponentIdentifier("format", coordinates);
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> {
+          PurlIdentifier.toPackageUrl(invalidCoords);
+        })
+        .withMessageContaining("The PackageURL name specified is invalid");
+  }
+
   private void testCoordinateWithPurl(ComponentIdentifier identifier, String packageUrl) {
     PurlIdentifier purlUrlIdentifier = new PurlIdentifier(packageUrl);
     PurlIdentifier purlComponentIdentifier = PurlIdentifier.fromComponentIdentifier(identifier);

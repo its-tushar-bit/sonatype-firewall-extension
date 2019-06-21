@@ -25,7 +25,7 @@ public class MigrationTrackerDAO
     return get("SELECT mt FROM MigrationTracker mt WHERE mt.id=?1", id);
   }
 
-  private List<MigrationTracker> getAll() {
+  public List<MigrationTracker> getAll() {
     String sQuery = "SELECT entity FROM MigrationTracker entity";
     return getList(sQuery);
   }

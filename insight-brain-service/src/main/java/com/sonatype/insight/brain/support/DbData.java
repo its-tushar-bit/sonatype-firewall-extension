@@ -14,6 +14,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.SchemaInfoDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
@@ -102,6 +103,8 @@ class DbData
 
   private final PolicyMonitoringDAO policyMonitoringDAO;
 
+  private final MigrationTrackerDAO migrationTrackerDAO;
+
   @Inject
   DbData(final SchemaInfoDAO schemaInfoDAO,
          final RepositoryManagerDAO repositoryManagerDAO,
@@ -126,7 +129,8 @@ class DbData
          final LicenseDAO licenseDAO,
          final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO,
          final PolicyDAO policyDAO,
-         final PolicyMonitoringDAO policyMonitoringDAO)
+         final PolicyMonitoringDAO policyMonitoringDAO,
+         final MigrationTrackerDAO migrationTrackerDAO)
   {
     this.schemaInfoDAO = schemaInfoDAO;
     this.repositoryManagerDAO = repositoryManagerDAO;
@@ -153,6 +157,7 @@ class DbData
     this.licenseThreatGroupLicenseDAO = licenseThreatGroupLicenseDAO;
     this.policyDAO = policyDAO;
     this.policyMonitoringDAO = policyMonitoringDAO;
+    this.migrationTrackerDAO = migrationTrackerDAO;
   }
 
   Entry<String, Object> getSchemaInfo() {
@@ -262,6 +267,10 @@ class DbData
 
   Entry<String, Object> getPolicyMonitoring() {
     return wrapEntry("policyMonitoring", policyMonitoringDAO.getAll());
+  }
+
+  Entry<String, Object> getMigrationTracker() {
+    return wrapEntry("migrationTracker", migrationTrackerDAO.getAll());
   }
 
   private static Entry<String, Object> wrapEntry(final String entryName, final Object objectToPut) {

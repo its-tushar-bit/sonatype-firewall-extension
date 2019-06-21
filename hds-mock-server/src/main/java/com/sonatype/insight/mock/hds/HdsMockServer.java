@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -37,7 +39,6 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.util.B64Code;
 import org.eclipse.jetty.util.IO;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.security.Password;
@@ -389,7 +390,7 @@ public class HdsMockServer
       String auth = request.getHeader("Proxy-Authorization");
       if (auth != null) {
         auth = auth.substring(auth.indexOf(' ') + 1).trim();
-        auth = B64Code.decode(auth, "ISO-8859-1");
+        auth = new String(Base64.getDecoder().decode(auth), StandardCharsets.ISO_8859_1);
       }
 
       if (!(proxyUsername + ':' + proxyPassword).equals(auth)) {

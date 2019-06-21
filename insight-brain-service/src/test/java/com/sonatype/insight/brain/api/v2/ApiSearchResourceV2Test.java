@@ -59,6 +59,7 @@ public class ApiSearchResourceV2Test
                                   String appId,
                                   String appName,
                                   String hash,
+                                  String packageUrl,
                                   ComponentIdentifier componentIdentifier,
                                   Integer threatLevel) throws Exception
   {
@@ -67,6 +68,7 @@ public class ApiSearchResourceV2Test
     assertThat(result.reportUrl).isNotNull();
     assertResponseStatus(200, HttpRequest.to(result.reportUrl).followRedirects().get());
     assertThat(result.hash).isEqualTo(hash);
+    assertThat(result.packageUrl).isEqualTo(packageUrl);
     if (componentIdentifier != null) {
       assertThat(result.componentIdentifier).isNotNull();
       assertThat(result.componentIdentifier.getFormat()).isEqualTo(componentIdentifier.getFormat());
@@ -133,6 +135,7 @@ public class ApiSearchResourceV2Test
     assertThat(results).isNotNull();
     assertThat(results.results).hasSize(1);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
   }
 
@@ -147,8 +150,10 @@ public class ApiSearchResourceV2Test
     assertThat(results).isNotNull();
     assertThat(results.results).hasSize(2);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
     assertSearchResult(results.results.get(1), "search-app-2", "SEARCH-APP-2", "1249e25aebb15358bedd",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 4);
   }
 
@@ -162,6 +167,7 @@ public class ApiSearchResourceV2Test
     assertThat(results).isNotNull();
     assertThat(results.results).hasSize(1);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
   }
 
@@ -174,7 +180,8 @@ public class ApiSearchResourceV2Test
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results).isNotNull();
     assertThat(results.results).hasSize(1);
-    assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "69b58197caabec2e0d06", null, null);
+    assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "69b58197caabec2e0d06", null, null,
+        null);
   }
 
   @Test
@@ -189,12 +196,16 @@ public class ApiSearchResourceV2Test
     assertThat(results.results).hasSize(4);
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
     assertSearchResult(results.results.get(1), "search-app-1", "SEARCH-APP-1", "2aa135385b1f449292e8",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=zip",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "zip"), 8);
     assertSearchResult(results.results.get(2), "search-app-1", "SEARCH-APP-1", "a18da38b875b4658b4e9",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?classifier=sources&type=zip",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "zip"), 8);
     assertSearchResult(results.results.get(3), "search-app-1", "SEARCH-APP-1", "c85713867bef4a3b91c9",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?classifier=sources&type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"), 8);
   }
 
@@ -225,23 +236,31 @@ public class ApiSearchResourceV2Test
     assertThat(results.results).hasSize(9);
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
     assertSearchResult(results.results.get(1), "search-app-1", "SEARCH-APP-1", "2aa135385b1f449292e8",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=zip",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "zip"), 8);
     assertSearchResult(results.results.get(2), "search-app-1", "SEARCH-APP-1", "a18da38b875b4658b4e9",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?classifier=sources&type=zip",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "zip"), 8);
     assertSearchResult(results.results.get(3), "search-app-1", "SEARCH-APP-1", "a397f601582e5ccd4b1a",
+        "pkg:maven/tomcat/servlets-default@5.5.4?type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "servlets-default", "5.5.4", "", "jar"), null);
     assertSearchResult(results.results.get(4), "search-app-1", "SEARCH-APP-1", "c85713867bef4a3b91c9",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?classifier=sources&type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"), 8);
-
     assertSearchResult(results.results.get(5), "search-app-2", "SEARCH-APP-2", "1249e25aebb15358bedd",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 4);
     assertSearchResult(results.results.get(6), "search-app-2", "SEARCH-APP-2", "2aa135385b1f449292e8",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=zip",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "zip"), 4);
     assertSearchResult(results.results.get(7), "search-app-2", "SEARCH-APP-2", "a18da38b875b4658b4e9",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?classifier=sources&type=zip",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "zip"), 4);
     assertSearchResult(results.results.get(8), "search-app-2", "SEARCH-APP-2", "c85713867bef4a3b91c9",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?classifier=sources&type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"), 4);
   }
 
@@ -273,8 +292,10 @@ public class ApiSearchResourceV2Test
     assertThat(results.results).hasSize(2);
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "c85713867bef4a3b91c9",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?classifier=sources&type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"), 8);
     assertSearchResult(results.results.get(1), "search-app-2", "SEARCH-APP-2", "c85713867bef4a3b91c9",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?classifier=sources&type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"), 4);
   }
 
@@ -291,6 +312,7 @@ public class ApiSearchResourceV2Test
     assertThat(results.results).hasSize(1);
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
   }
 
@@ -309,8 +331,10 @@ public class ApiSearchResourceV2Test
     assertThat(results.results).hasSize(2);
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
     assertSearchResult(results.results.get(1), "search-app-1", "SEARCH-APP-1", "c85713867bef4a3b91c9",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?classifier=sources&type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"), 8);
   }
 
@@ -328,12 +352,16 @@ public class ApiSearchResourceV2Test
     assertThat(results.results).hasSize(4);
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
     assertSearchResult(results.results.get(1), "search-app-1", "SEARCH-APP-1", "c85713867bef4a3b91c9",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?classifier=sources&type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"), 8);
     assertSearchResult(results.results.get(2), "search-app-2", "SEARCH-APP-2", "1249e25aebb15358bedd",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 4);
     assertSearchResult(results.results.get(3), "search-app-2", "SEARCH-APP-2", "c85713867bef4a3b91c9",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?classifier=sources&type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"), 4);
   }
 
@@ -365,9 +393,9 @@ public class ApiSearchResourceV2Test
     assertThat(results.results).hasSize(2);
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "2143b68270b82576110f",
-        ComponentIdentifier.createNugetCoordinates("simplejson", "0.38.0"), 8);
+        "pkg:nuget/simplejson@0.38.0", ComponentIdentifier.createNugetCoordinates("simplejson", "0.38.0"), 8);
     assertSearchResult(results.results.get(1), "search-app-2", "SEARCH-APP-2", "2143b68270b82576110f",
-        ComponentIdentifier.createNugetCoordinates("simplejson", "0.38.0"), 4);
+        "pkg:nuget/simplejson@0.38.0", ComponentIdentifier.createNugetCoordinates("simplejson", "0.38.0"), 4);
   }
 
   @Test
@@ -399,8 +427,10 @@ public class ApiSearchResourceV2Test
     assertThat(results.results).hasSize(2);
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
     assertSearchResult(results.results.get(1), "search-app-2", "SEARCH-APP-2", "1249e25aebb15358bedd",
+        "pkg:maven/tomcat/tomcat-util@5.5.23?type=jar",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 4);
   }
 
@@ -468,8 +498,8 @@ public class ApiSearchResourceV2Test
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results).isNotNull();
     assertThat(results.results).hasSize(1);
-    assertSearchResult(results.results.get(0), "search-app-3", "SEARCH-APP-3", "1249e25aebb15358bedd", pypiCoordinates,
-        4);
+    assertSearchResult(results.results.get(0), "search-app-3", "SEARCH-APP-3", "1249e25aebb15358bedd",
+        "pkg:pypi/pyyaml@3.11?extension=TAR.gz&qualifier=WIN32-py3.2", pypiCoordinates, 4);
   }
 
   @Test

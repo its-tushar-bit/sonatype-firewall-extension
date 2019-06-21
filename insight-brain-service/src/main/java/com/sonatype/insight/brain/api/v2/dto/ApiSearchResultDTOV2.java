@@ -22,5 +22,7 @@ public class ApiSearchResultDTOV2
 
   public ApiComponentIdentifierDTOV2 componentIdentifier;
 
+  public String packageUrl;
+
   public Integer threatLevel;
 }

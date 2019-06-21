@@ -117,6 +117,7 @@ public class ApiSearchServiceV2
     ApiSearchResultsDTOV2 results = new ApiSearchResultsDTOV2();
     results.criteria.stageId = stageId;
     results.criteria.hash = hash;
+    results.criteria.packageUrl = packageUrl;
     results.criteria.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     String baseUrl = this.baseUrl.get();
 
@@ -149,6 +150,7 @@ public class ApiSearchServiceV2
         result.reportUrl = baseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), eval.getScanId());
         result.hash = candidateHash;
         result.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(candidateComponentIdentifier);
+        result.packageUrl = PurlIdentifier.toPackageUrl(candidateComponentIdentifier);
         results.results.add(result);
         result.threatLevel = getMaxThreatLevel(
             policyViolationDAO.getActiveByApplicationIdAndStageIdAndHash(app.getId(), stageId, candidateHash));

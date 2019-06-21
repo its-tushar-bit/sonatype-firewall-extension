@@ -17,4 +17,6 @@ public class ApiSearchCriteriaDTOV2
   public String hash;
 
   public ApiComponentIdentifierDTOV2 componentIdentifier;
+
+  public String packageUrl;
 }

@@ -1268,7 +1268,7 @@ describe('applicationReportService', function() {
         expect(result).toEqual([input[0]]);
       });
 
-      it('treats both empty numeric min and max filters as including blanks', () => {
+      it('treats both undefined numeric min and max filters as including blanks', () => {
         const input = [{
           derivedComponentName: 'junit.junit.4.8',
           licenseSortKey: 'Not Provided',
@@ -1282,6 +1282,25 @@ describe('applicationReportService', function() {
 
         const numericFilters = {
           cvssScore: [undefined, undefined]
+        };
+        const result = applicationReportService.filterReportEntries(undefined, undefined, numericFilters)(input);
+        expect(result).toEqual(input);
+      });
+
+      it('treats both empty numeric min and max filters as including blanks', () => {
+        const input = [{
+          derivedComponentName: 'junit.junit.4.8',
+          licenseSortKey: 'Not Provided',
+          securityCode: 'sonatype-123',
+          cvssScore: 7
+        }, {
+          derivedComponentName: 'junit.junit.4.12',
+          licenseSortKey: 'Not Provided',
+          securityCode: 'sonatype-123'
+        }];
+
+        const numericFilters = {
+          cvssScore: ['', '']
         };
         const result = applicationReportService.filterReportEntries(undefined, undefined, numericFilters)(input);
         expect(result).toEqual(input);

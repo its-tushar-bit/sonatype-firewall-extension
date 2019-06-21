@@ -53,7 +53,7 @@ $iq-cell-report-raw-data-cvss-width: 120px;
     // 60% for the first filter box subtract left padding and right margin
     width: calc((60%) - 2px - 4px);
 
-    input[type=number].iq-text-input--num-filter {
+    input.iq-text-input--num-filter {
       border-left: 0;
       box-shadow: none;
       padding-left: 0;
@@ -64,7 +64,7 @@ $iq-cell-report-raw-data-cvss-width: 120px;
   }
 }
 
-input[type=number].iq-text-input--num-filter {
+input.iq-text-input--num-filter {
   box-shadow: none;
   border-radius: 0;
   height: 20px;

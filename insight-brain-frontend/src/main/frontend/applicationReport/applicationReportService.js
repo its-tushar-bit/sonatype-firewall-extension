@@ -376,7 +376,7 @@ const filterBySubstring = makeFilterTransducer(filterString => {
 });
 
 const filterBetweenValues = makeFilterTransducer(([min, max]) => {
-  return (min == null && max == null) ? always(true) : both(gte(__, min || 0), lte(__, max || 10));
+  return (!min && !max) ? always(true) : both(gte(__, min || 0), lte(__, max || 10));
 });
 
 /**

@@ -37,6 +37,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
@@ -266,6 +267,40 @@ public class ApplicationReportRawDataTest
     rawDataPage.headers().securityCodeFilterInput().clear();
 
     // filter cvssScore
+    rawDataPage.headers().cvssMinFilterInput().setValue("XX");
+    rawDataPage.headers().cvssMinFilterInput().shouldHave(cssClass("ng-invalid"));
+    rawDataPage.headers().cvssMaxFilterInput().setValue("XX");
+    rawDataPage.headers().cvssMaxFilterInput().shouldHave(cssClass("ng-invalid"));
+
+    eyesWatcher.eyesCheck("Filter Raw Data invalid input");
+
+    rawDataPage.headers().cvssMinFilterInput().setValue("0");
+    rawDataPage.headers().cvssMinFilterInput().shouldNotHave(cssClass("ng-invalid"));
+    rawDataPage.headers().cvssMinFilterInput().setValue("0");
+    rawDataPage.headers().cvssMinFilterInput().shouldNotHave(cssClass("ng-invalid"));
+    rawDataPage.headers().cvssMinFilterInput().val("1.2");
+    rawDataPage.headers().cvssMinFilterInput().shouldNotHave(cssClass("ng-invalid"));
+    rawDataPage.headers().cvssMaxFilterInput().setValue("4.5");
+    rawDataPage.headers().cvssMaxFilterInput().shouldNotHave(cssClass("ng-invalid"));
+    rawDataPage.headers().cvssMinFilterInput().setValue("0.0");
+    rawDataPage.headers().cvssMinFilterInput().shouldNotHave(cssClass("ng-invalid"));
+    rawDataPage.headers().cvssMaxFilterInput().setValue("10");
+    rawDataPage.headers().cvssMaxFilterInput().shouldNotHave(cssClass("ng-invalid"));
+    rawDataPage.headers().cvssMaxFilterInput().setValue("10");
+    rawDataPage.headers().cvssMaxFilterInput().shouldNotHave(cssClass("ng-invalid"));
+    rawDataPage.headers().cvssMinFilterInput().setValue("3.");
+    rawDataPage.headers().cvssMinFilterInput().shouldNotHave(cssClass("ng-invalid"));
+    rawDataPage.headers().cvssMaxFilterInput().setValue("9.");
+    rawDataPage.headers().cvssMaxFilterInput().shouldNotHave(cssClass("ng-invalid"));
+    rawDataPage.headers().cvssMinFilterInput().setValue("23");
+    rawDataPage.headers().cvssMinFilterInput().shouldHave(cssClass("ng-invalid"));
+    rawDataPage.headers().cvssMaxFilterInput().setValue("23");
+    rawDataPage.headers().cvssMaxFilterInput().shouldHave(cssClass("ng-invalid"));
+    rawDataPage.headers().cvssMinFilterInput().setValue("5X");
+    rawDataPage.headers().cvssMinFilterInput().shouldHave(cssClass("ng-invalid"));
+    rawDataPage.headers().cvssMaxFilterInput().setValue("A1");
+    rawDataPage.headers().cvssMaxFilterInput().shouldHave(cssClass("ng-invalid"));
+
     rawDataPage.headers().cvssMinFilterInput().setValue("9");
     rawDataPage.headers().cvssMaxFilterInput().setValue("9.5");
     resultTable.resultRows().shouldHaveSize(2);

@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class PurlIdentifierTest
@@ -185,7 +186,7 @@ public class PurlIdentifierTest
 
   @Test
   public void testPurlIdentifier_invalidPurlUrl() {
-    assertThatExceptionOfType(IllegalArgumentException.class)
+    assertThatExceptionOfType(InvalidPackageURLException.class)
         .isThrownBy(() -> new PurlIdentifier("invalid-purl-url"));
   }
 
@@ -203,6 +204,47 @@ public class PurlIdentifierTest
         .fromComponentIdentifier(ComponentIdentifier.createRpmCoordinates("///the/path////", "version", null));
     String packageUrl = "pkg:rpm/the/path@version";
     assertThat(purlIdentifier.getPackageUrl()).isEqualTo(packageUrl);
+  }
+
+  @Test
+  public void testEnsureComplete_Maven() {
+    String packageUrl = "pkg:maven/g/a@v?type=t&classifier=c";
+    PurlIdentifier purlIdentifier = new PurlIdentifier(packageUrl);
+    assertThatCode(purlIdentifier::ensureCompleteIdentifier).doesNotThrowAnyException();
+  }
+
+  @Test
+  public void testEnsureComplete_Maven_MissingTypeForExtension() {
+    String packageUrl = "pkg:maven/g/a@v?extension=e&classifier=c";
+    PurlIdentifier purlIdentifier = new PurlIdentifier(packageUrl);
+    assertThatExceptionOfType(InvalidPackageURLException.class)
+        .isThrownBy(() -> purlIdentifier.ensureCompleteIdentifier())
+        .withMessage("The following coordinates are missing for given format: [type]");
+  }
+
+  @Test
+  public void testEnsureComplete_Rpm() {
+    String packageUrl = "pkg:rpm/n@v?arch=a&distro=d";
+    PurlIdentifier purlIdentifier = new PurlIdentifier(packageUrl);
+    assertThatCode(purlIdentifier::ensureCompleteIdentifier).doesNotThrowAnyException();
+  }
+
+  @Test
+  public void testEnsureComplete_Rpm_MissingArch() {
+    String packageUrl = "pkg:rpm/n@v?architecture=a&distro=d";
+    PurlIdentifier purlIdentifier = new PurlIdentifier(packageUrl);
+    assertThatExceptionOfType(InvalidPackageURLException.class)
+        .isThrownBy(() -> purlIdentifier.ensureCompleteIdentifier())
+        .withMessage("The following coordinates are missing for given format: [arch]");
+  }
+
+  @Test
+  public void testEnsureComplete_PyPi_MissingExtension() {
+    String packageUrl = "pkg:pypi/n@v";
+    PurlIdentifier purlIdentifier = new PurlIdentifier(packageUrl);
+    assertThatExceptionOfType(InvalidPackageURLException.class)
+        .isThrownBy(() -> purlIdentifier.ensureCompleteIdentifier())
+        .withMessage("The following coordinates are missing for given format: [extension]");
   }
 
   private void testCoordinateWithPurl(ComponentIdentifier identifier, String packageUrl) {

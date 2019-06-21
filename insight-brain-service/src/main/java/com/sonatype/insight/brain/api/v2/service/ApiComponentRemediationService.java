@@ -197,37 +197,25 @@ public class ApiComponentRemediationService
       return validatePackageUrl(componentDTO);
     }
   }
-  
+
   private ComponentIdentifier validateComponentIdentifier(ApiComponentDTOV2 componentDTO) {
+    if (componentDTO.componentIdentifier == null) {
+      throw new BadRequestException("ComponentIdentifier must be supplied.");
+    }
+
     try {
       ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
           componentDTO.componentIdentifier.getCoordinates());
-      return validateComponentIdentifier(componentIdentifier);
-    }
-    catch (InvalidComponentIdentifierException e) {
-      throw new BadRequestException(e.getMessage(), e);
-    }
-  }
-  
-  private ComponentIdentifier validatePackageUrl(ApiComponentDTOV2 componentDTO) {
-    try {
-      PurlIdentifier purlIdentifier = new PurlIdentifier(componentDTO.packageUrl);
-      ComponentIdentifier componentIdentifier = purlIdentifier.toComponentIdentifier();
-      return validateComponentIdentifier(componentIdentifier);
-    }
-    catch (IllegalArgumentException e) {
-      throw new BadRequestException(e.getMessage(), e);
-    }
-  }
-  
-  private ComponentIdentifier validateComponentIdentifier(ComponentIdentifier componentIdentifier) {
-    try {
       componentIdentifier.ensureComplete();
       return componentIdentifier;
     }
     catch (InvalidComponentIdentifierException e) {
       throw new BadRequestException(e.getMessage(), e);
     }
+  }
+
+  private ComponentIdentifier validatePackageUrl(ApiComponentDTOV2 componentDTO) {
+    return new PurlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
   }
 
   private ComponentSummary getComponentSummary(final ComponentIdentifier componentIdentifier) {

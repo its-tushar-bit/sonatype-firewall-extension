@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
@@ -101,7 +102,7 @@ public class PurlIdentifier
       this.packageUrl = new PackageURL(packageUrl);
     }
     catch (MalformedPackageURLException e) {
-      throw new IllegalArgumentException("Invalid package url", e);
+      throw new InvalidPackageURLException("Invalid package url", e);
     }
   }
 
@@ -134,6 +135,28 @@ public class PurlIdentifier
         return createGolangIdentifier();
       default:
         return createGenericIdentifier();
+    }
+  }
+
+  public ComponentIdentifier ensureCompleteIdentifier() {
+    ComponentIdentifier componentIdentifier = toComponentIdentifier();
+    try {
+      componentIdentifier.ensureComplete();
+      return componentIdentifier;
+    }
+    catch (InvalidComponentIdentifierException e) {
+      String message = e.getMessage();
+      switch (componentIdentifier.getFormat()) {
+        case FORMAT_MAVEN:
+          message = message.replace(MAVEN_EXTENSION, PURL_MAVEN_EXTENSION);
+          break;
+        case FORMAT_RPM:
+          message = message.replace(RPM_ARCHITECTURE, PURL_RPM_ARCHITECTURE);
+          break;
+        default:
+          //noop
+      }
+      throw new InvalidPackageURLException(message, e);
     }
   }
 

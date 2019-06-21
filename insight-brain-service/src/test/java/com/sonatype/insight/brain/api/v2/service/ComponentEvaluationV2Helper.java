@@ -204,22 +204,17 @@ public class ComponentEvaluationV2Helper
       ComponentEvaluationDataRequest componentEvaluationDataRequest = new ComponentEvaluationDataRequest();
       componentEvaluationDataRequest.hash = componentDTO.hash;
       if (componentDTO.packageUrl != null) {
-        setComponentIdentifier(new PurlIdentifier(componentDTO.packageUrl).toComponentIdentifier(),
-            componentEvaluationDataRequest);
+        componentEvaluationDataRequest.componentIdentifier =
+            new PurlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
       }
       else if (componentDTO.componentIdentifier != null) {
-        setComponentIdentifier(new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
-            componentDTO.componentIdentifier.getCoordinates()), componentEvaluationDataRequest);
+        componentEvaluationDataRequest.componentIdentifier =
+            new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
+                componentDTO.componentIdentifier.getCoordinates());
+        componentEvaluationDataRequest.componentIdentifier.ensureComplete();
       }
       hdsRequest.components.add(componentEvaluationDataRequest);
     }
     return hdsRequest;
-  }
-
-  private void setComponentIdentifier(ComponentIdentifier componentIdentifier,
-                                      ComponentEvaluationDataRequest componentEvaluationDataRequest)
-  {
-    componentEvaluationDataRequest.componentIdentifier = componentIdentifier;
-    componentEvaluationDataRequest.componentIdentifier.ensureComplete();
   }
 }

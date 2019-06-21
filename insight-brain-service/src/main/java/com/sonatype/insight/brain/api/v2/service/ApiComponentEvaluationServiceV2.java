@@ -157,12 +157,7 @@ public class ApiComponentEvaluationServiceV2
   }
 
   private void validatePackageUrl(final ApiComponentDTOV2 componentDTO) {
-    try {
-      new PurlIdentifier(componentDTO.packageUrl).toComponentIdentifier().ensureComplete();
-    }
-    catch (IllegalArgumentException | InvalidComponentIdentifierException e) {
-      throw new BadRequestException(e.getMessage(), e);
-    }
+    new PurlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
   }
 
   private void validateComponentIdentifier(final ApiComponentDTOV2 componentDTO) {

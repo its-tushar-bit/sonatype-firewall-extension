@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.purl.InvalidPackageURLException;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -167,7 +168,7 @@ public class ApiComponentRemediationServiceTest
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.packageUrl = "invalid-package-url";
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+    assertThatExceptionOfType(InvalidPackageURLException.class).isThrownBy(() -> {
       service.getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
     }).withMessage("Invalid package url");
   }
@@ -177,7 +178,9 @@ public class ApiComponentRemediationServiceTest
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.packageUrl = "pkg:maven/g1/a1@v1";
 
-    assertNoExtension(component);
+    assertThatExceptionOfType(InvalidPackageURLException.class).isThrownBy(() -> {
+      service.getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
+    }).withMessage(MISSING_COORDINATES + "[type]");
   }
 
   @Test
@@ -185,10 +188,6 @@ public class ApiComponentRemediationServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ApiComponentDTOV2 component = createComponent(componentIdentifier);
 
-    assertNoExtension(component);
-  }
-
-  private void assertNoExtension(final ApiComponentDTOV2 component ) {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
     }).withMessage(MISSING_COORDINATES + "[extension]");

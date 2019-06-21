@@ -112,12 +112,7 @@ public class ApiComponentDetailsServiceV2
   }
 
   private void validatePackageUrl(ApiComponentDTOV2 componentDTO) {
-    try {
-      new PurlIdentifier(componentDTO.packageUrl).toComponentIdentifier().ensureComplete();
-    }
-    catch (IllegalArgumentException | InvalidComponentIdentifierException e) {
-      throw new BadRequestException(e.getMessage(), e);
-    }
+    new PurlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
   }
 
   private void validateComponentIdentifier(ApiComponentDTOV2 componentDTO) {
@@ -195,20 +190,15 @@ public class ApiComponentDetailsServiceV2
     ComponentEvaluationDataRequest componentEvaluationDataRequest = new ComponentEvaluationDataRequest();
     componentEvaluationDataRequest.hash = componentDTO.hash;
     if (componentDTO.packageUrl != null) {
-      setComponentIdentifier(new PurlIdentifier(componentDTO.packageUrl).toComponentIdentifier(),
-          componentEvaluationDataRequest);
+      componentEvaluationDataRequest.componentIdentifier =
+          new PurlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
     }
     else if (componentDTO.componentIdentifier != null) {
-      setComponentIdentifier(new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
-          componentDTO.componentIdentifier.getCoordinates()), componentEvaluationDataRequest);
+      componentEvaluationDataRequest.componentIdentifier =
+          new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
+              componentDTO.componentIdentifier.getCoordinates());
+      componentEvaluationDataRequest.componentIdentifier.ensureComplete();
     }
     return componentEvaluationDataRequest;
-  }
-
-  private void setComponentIdentifier(final ComponentIdentifier componentIdentifier,
-                                      ComponentEvaluationDataRequest componentEvaluationDataRequest)
-  {
-    componentEvaluationDataRequest.componentIdentifier = componentIdentifier;
-    componentEvaluationDataRequest.componentIdentifier.ensureComplete();
   }
 }

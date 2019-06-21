@@ -66,6 +66,7 @@ public class ApiPolicyViolationResourceV2Test
         apiPolicyViolationDTO.component.componentIdentifier.getFormat(),
         apiPolicyViolationDTO.component.componentIdentifier.getCoordinates());
     assertThat(componentIdentifier).isEqualTo(pv1App1.getComponentIdentifier());
+    assertThat(apiPolicyViolationDTO.component.packageUrl).isEqualTo("pkg:maven/g1/a1@v1");
 
     assertThat(apiPolicyViolationDTO.constraintViolations).hasSize(1);
     ApiConstraintViolationDTO apiConstraintViolationDTO = apiPolicyViolationDTO.constraintViolations.get(0);

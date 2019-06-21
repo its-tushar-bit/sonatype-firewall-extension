@@ -39,6 +39,8 @@ public class ApiPolicyViolationServiceV2AuthzTest
   private static final String ORG_POLICY_NAME2 = "org-policy2";
 
   private static final String APP_POLICY_NAME2 = "app-policy2";
+  
+  private static final String PACKAGE_URL = "pkg:maven/g1/a1@v1";
 
   @Inject
   private ApiPolicyViolationServiceV2 apiPolicyViolationService;
@@ -102,6 +104,7 @@ public class ApiPolicyViolationServiceV2AuthzTest
         apiPolicyViolationDTO.component.componentIdentifier.getFormat(),
         apiPolicyViolationDTO.component.componentIdentifier.getCoordinates());
     assertThat(componentIdentifier).isEqualTo(pv1App1.getComponentIdentifier());
+    assertThat(apiPolicyViolationDTO.component.packageUrl).isEqualTo(PACKAGE_URL);
 
     assertThat(apiPolicyViolationDTO.constraintViolations).hasSize(1);
     ApiConstraintViolationDTO apiConstraintViolationDTO = apiPolicyViolationDTO.constraintViolations.get(0);

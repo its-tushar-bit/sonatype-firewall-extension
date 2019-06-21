@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
+import com.sonatype.insight.brain.purl.PurlIdentifier;
 
 /**
  * @since 1.13.0
@@ -111,6 +112,8 @@ public class ApiPolicyViolationServiceV2
             && applicationComponent.isProprietary();
         apiPolicyViolationDTO.component.componentIdentifier = ApiComponentIdentifierDTOV2
             .fromComponentIdentifier(policyViolation.getComponentIdentifier());
+        apiPolicyViolationDTO.component.packageUrl =
+            PurlIdentifier.toPackageUrl(policyViolation.getComponentIdentifier());
         apiPolicyViolationDTO.constraintViolations = policyViolationAdapter.convert(policyViolation);
       }
     }

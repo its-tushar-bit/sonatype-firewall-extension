@@ -36,6 +36,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiPolicyViolationServiceV2Test
     extends AbstractComponentTest
 {
+  private static final String PACKAGE_URL_MAVEN_V1 = "pkg:maven/g1/a1@v1";
+  
+  private static final String PACKAGE_URL_MAVEN_V2 = "pkg:maven/g2/a2@v2";
+
+  private static final String PACKAGE_URL_NUGET = "pkg:nuget/nuget1@v1";
+  
   @Inject
   private ApiPolicyViolationServiceV2 apiPolicyViolationService;
 
@@ -69,12 +75,12 @@ public class ApiPolicyViolationServiceV2Test
     ApiApplicationViolationDTOV2 apiApplicationViolationDTO2 = apiApplicationViolationListDTO.applicationViolations
         .get(1);
     if (appPolicyData1.application.getId().equals(apiApplicationViolationDTO1.application.id)) {
-      assertPolicyViolation(apiApplicationViolationDTO1, appPolicyData1);
-      assertPolicyViolation(apiApplicationViolationDTO2, appPolicyData2);
+      assertPolicyViolation(apiApplicationViolationDTO1, appPolicyData1, PACKAGE_URL_MAVEN_V1);
+      assertPolicyViolation(apiApplicationViolationDTO2, appPolicyData2, PACKAGE_URL_MAVEN_V2);
     }
     else {
-      assertPolicyViolation(apiApplicationViolationDTO1, appPolicyData2);
-      assertPolicyViolation(apiApplicationViolationDTO2, appPolicyData1);
+      assertPolicyViolation(apiApplicationViolationDTO1, appPolicyData2, PACKAGE_URL_MAVEN_V2);
+      assertPolicyViolation(apiApplicationViolationDTO2, appPolicyData1, PACKAGE_URL_MAVEN_V1);
     }
   }
 
@@ -92,7 +98,7 @@ public class ApiPolicyViolationServiceV2Test
     assertThat(apiApplicationViolationListDTO.applicationViolations).hasSize(1);
     ApiApplicationViolationDTOV2 apiApplicationViolationDTO1 = apiApplicationViolationListDTO.applicationViolations
         .get(0);
-    assertPolicyViolation(apiApplicationViolationDTO1, appPolicyData1);
+    assertPolicyViolation(apiApplicationViolationDTO1, appPolicyData1, PACKAGE_URL_NUGET);
   }
 
   @Test
@@ -106,7 +112,7 @@ public class ApiPolicyViolationServiceV2Test
     assertThat(apiApplicationViolationListDTO.applicationViolations).hasSize(1);
     ApiApplicationViolationDTOV2 apiApplicationViolationDTO = apiApplicationViolationListDTO.applicationViolations
         .get(0);
-    assertPolicyViolation(apiApplicationViolationDTO, appPolicyData);
+    assertPolicyViolation(apiApplicationViolationDTO, appPolicyData, null);
   }
 
   @Test
@@ -122,11 +128,11 @@ public class ApiPolicyViolationServiceV2Test
     assertThat(apiApplicationViolationListDTO.applicationViolations).hasSize(1);
     ApiApplicationViolationDTOV2 apiApplicationViolationDTO = apiApplicationViolationListDTO.applicationViolations
         .get(0);
-    assertPolicyViolation(apiApplicationViolationDTO, policyData);
+    assertPolicyViolation(apiApplicationViolationDTO, policyData, null);
   }
 
   private void assertPolicyViolation(ApiApplicationViolationDTOV2 apiApplicationViolationDTO,
-                                     PolicyData appPolicyData)
+                                     PolicyData appPolicyData, String packagerUrl)
   {
     assertThat(apiApplicationViolationDTO.application).isNotNull();
     assertThat(apiApplicationViolationDTO.application.id).isEqualTo(appPolicyData.application.getId());
@@ -143,15 +149,15 @@ public class ApiPolicyViolationServiceV2Test
 
     if (apiPolicyViolationDTO1.policyId.equals(appPolicyData.orgPolicy.getId())) {
       assertPolicyViolation(apiPolicyViolationDTO1, appPolicyData.application, appPolicyData.policyEvaluation1,
-          appPolicyData.policyViolation1, appPolicyData);
+          appPolicyData.policyViolation1, appPolicyData, packagerUrl);
       assertPolicyViolation(apiPolicyViolationDTO2, appPolicyData.application, appPolicyData.policyEvaluation2,
-          appPolicyData.policyViolation2, appPolicyData);
+          appPolicyData.policyViolation2, appPolicyData, packagerUrl);
     }
     else {
       assertPolicyViolation(apiPolicyViolationDTO1, appPolicyData.application, appPolicyData.policyEvaluation2,
-          appPolicyData.policyViolation2, appPolicyData);
+          appPolicyData.policyViolation2, appPolicyData, packagerUrl);
       assertPolicyViolation(apiPolicyViolationDTO2, appPolicyData.application, appPolicyData.policyEvaluation1,
-          appPolicyData.policyViolation1, appPolicyData);
+          appPolicyData.policyViolation1, appPolicyData, packagerUrl);
     }
   }
 
@@ -159,7 +165,8 @@ public class ApiPolicyViolationServiceV2Test
                                      Application application,
                                      PolicyEvaluation policyEvaluation,
                                      PolicyViolation policyViolation,
-                                     PolicyData appPolicyData)
+                                     PolicyData appPolicyData,
+                                     String packageUrl)
   {
     assertThat(apiPolicyViolationDTO.policyId).isEqualTo(policyViolation.getPolicyId());
     assertThat(apiPolicyViolationDTO.policyName).isEqualTo(policyViolation.getPolicyName());
@@ -175,9 +182,11 @@ public class ApiPolicyViolationServiceV2Test
           apiPolicyViolationDTO.component.componentIdentifier.getFormat(),
           apiPolicyViolationDTO.component.componentIdentifier.getCoordinates());
       assertThat(componentIdentifier).isEqualTo(policyViolation.getComponentIdentifier());
+      assertThat(apiPolicyViolationDTO.component.packageUrl).isEqualTo(packageUrl);
     }
     else {
       assertThat(apiPolicyViolationDTO.component.componentIdentifier).isNull();
+      assertThat(apiPolicyViolationDTO.component.packageUrl).isNull();
     }
 
     assertThat(apiPolicyViolationDTO.constraintViolations).hasSize(1);

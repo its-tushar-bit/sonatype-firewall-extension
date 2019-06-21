@@ -76,7 +76,8 @@ public class EyesWatcher
     try {
       // End visual testing. Validate visual correctness.
       if (eyes.getIsOpen()) {
-        eyes.close(true);
+        // only fail the build if on master
+        eyes.close(isMaster());
       }
     }
     finally {
@@ -118,5 +119,9 @@ public class EyesWatcher
     }
 
     eyes.check(tag, settings);
+  }
+
+  private boolean isMaster() {
+    return "master".equals(localBranchName);
   }
 }

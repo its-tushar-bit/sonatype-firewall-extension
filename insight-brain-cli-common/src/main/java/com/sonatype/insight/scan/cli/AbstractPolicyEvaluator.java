@@ -158,7 +158,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     PolicyEvaluationPollingResult eval;
     try {
       eval = restClient
-          .evaluatePolicy(params.getApplicationId(), params.getStage().getStageTypeId(), scanFile, clientScanType, 5);
+          .evaluatePolicy(params.getApplicationId(), params.getStage().getStageTypeId(), scanFile, clientScanType);
     }
     catch (HttpResponseException e) {
       log.error("The policy evaluation results for app ID {} could not be fetched from the IQ Server: {} ({})",

@@ -45,8 +45,7 @@ public class PolicyClient
 
   public PolicyEvaluationPollingResult evaluate(final File scanFile,
                                                 final ClientScanType clientScanType,
-                                                final Stage stage,
-                                                final int intervalInSeconds) throws IOException
+                                                final Stage stage) throws IOException
   {
 
     final FileEntity entity = new FileEntity(scanFile, GZIP_CONTENT_TYPE);
@@ -56,14 +55,12 @@ public class PolicyClient
             .query("scanType", clientScanType.name()).post(entity);
     PolicyEvaluationReceipt receipt = parseResult(evaluateResult, PolicyEvaluationReceipt.class);
     log.debug("Assigned status ID {}", receipt.getStatusId());
-    PolicyEvaluationPollingResult result = pollEvaluationResult(intervalInSeconds, receipt.getStatusId());
+    PolicyEvaluationPollingResult result = pollEvaluationResult(receipt.getStatusId());
     log.debug("Policy evaluation completed in {} seconds.", (System.currentTimeMillis() - start) / 1000);
     return result;
   }
 
-  private PolicyEvaluationPollingResult pollEvaluationResult(final int intervalInSeconds,
-                                                             final String statusId) throws IOException
-  {
+  private PolicyEvaluationPollingResult pollEvaluationResult(final String statusId) throws IOException {
     log.info("Waiting for policy evaluation to complete...");
     PolicyEvaluationPollingResult pollingStatus;
     ScanReceipt scanReceipt = null;
@@ -77,7 +74,7 @@ public class PolicyClient
       }
       if (pollingStatus.getStatus().equals(PolicyEvaluationStatus.PENDING)) {
         try {
-          Thread.sleep(intervalInSeconds * 1000);
+          Thread.sleep(pollingStatus.getNextPollingIntervalInSeconds() * 1000);
         }
         catch (InterruptedException e) {
           Thread.currentThread().interrupt();

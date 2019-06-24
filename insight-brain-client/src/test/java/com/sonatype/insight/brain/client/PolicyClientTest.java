@@ -120,7 +120,7 @@ public class PolicyClientTest
         .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
 
     PolicyEvaluationPollingResult policyEvaluationResult =
-        policyClient.evaluate(scanFile, ClientScanType.SONATYPE, stage, 1);
+        policyClient.evaluate(scanFile, ClientScanType.SONATYPE, stage);
     assertThat(policyEvaluationResult).isNotNull();
   }
 
@@ -146,7 +146,7 @@ public class PolicyClientTest
         .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
 
     PolicyEvaluationPollingResult policyEvaluationResult =
-        policyClient.evaluate(scanFile, ClientScanType.SONATYPE, stage, 1);
+        policyClient.evaluate(scanFile, ClientScanType.SONATYPE, stage);
     assertThat(policyEvaluationResult).isNotNull();
     verify(policyClient, times(3))
         .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
@@ -168,7 +168,7 @@ public class PolicyClientTest
         .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationReceipt.class));
 
     try {
-      policyClient.evaluate(scanFile, ClientScanType.SONATYPE, stage, 1);
+      policyClient.evaluate(scanFile, ClientScanType.SONATYPE, stage);
       fail("IOException expected to be thrown");
     }
     catch (IOException e) {
@@ -198,7 +198,7 @@ public class PolicyClientTest
         eq(PolicyEvaluationPollingResult.class));
 
     try {
-      policyClient.evaluate(scanFile, ClientScanType.SONATYPE, stage, 1);
+      policyClient.evaluate(scanFile, ClientScanType.SONATYPE, stage);
       fail("IOException expected to be thrown");
     }
     catch (IOException e) {
@@ -232,7 +232,7 @@ public class PolicyClientTest
     doReturn(pollingResult).when(policyClient).parseResult(ArgumentMatchers.any(Result.class),
         eq(PolicyEvaluationPollingResult.class));
 
-    policyClient.evaluate(scanFile, ClientScanType.SONATYPE, stage, 1);
+    policyClient.evaluate(scanFile, ClientScanType.SONATYPE, stage);
 
     assertThat(logOutput.getDebugMessages(PolicyClient.class.getName()))
         .contains("Assigned status ID evaluation-statusid");

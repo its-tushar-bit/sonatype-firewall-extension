@@ -397,6 +397,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationPollingResult.getReason()).isNull();
     assertThat(policyEvaluationPollingResult.getResult()).isNotNull();
     assertThat(policyEvaluationPollingResult.getScanReceipt()).isEqualTo(scanReceipt);
+    assertThat(policyEvaluationPollingResult.getNextPollingIntervalInSeconds()).isEqualTo(5);
 
     assertEvaluate(scanId, stage, policyEvaluationResult, policy1, mockJiraClient, appComponentDAO);
   }
@@ -425,6 +426,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationPollingResult.getReason()).isNull();
     assertThat(policyEvaluationPollingResult.getResult()).isNull();
     assertThat(policyEvaluationPollingResult.getScanReceipt()).isNull();
+    assertThat(policyEvaluationPollingResult.getNextPollingIntervalInSeconds()).isEqualTo(5);
   }
 
   @Test
@@ -455,6 +457,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationPollingResult.getReason()).startsWith("Internal Server Error");
     assertThat(policyEvaluationPollingResult.getResult()).isNull();
     assertThat(policyEvaluationPollingResult.getScanReceipt()).isNull();
+    assertThat(policyEvaluationPollingResult.getNextPollingIntervalInSeconds()).isEqualTo(5);
   }
 
   @Test
@@ -485,6 +488,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationPollingResult.getReason()).isNull();
     assertThat(policyEvaluationPollingResult.getResult()).isNotNull();
     assertThat(policyEvaluationPollingResult.getScanReceipt()).isEqualTo(scanReceipt);
+    assertThat(policyEvaluationPollingResult.getNextPollingIntervalInSeconds()).isEqualTo(5);
   }
 
   @Test

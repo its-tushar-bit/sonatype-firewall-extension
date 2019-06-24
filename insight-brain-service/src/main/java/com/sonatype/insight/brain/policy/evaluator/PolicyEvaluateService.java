@@ -48,6 +48,8 @@ public class PolicyEvaluateService
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluateService.class);
 
+  private static final int NEXT_POLLING_INTERVAL_IN_SECONDS = 5;
+
   private final ScanPolicyEvaluator scanPolicyEvaluator;
 
   private final PolicyAlertNotifier policyAlertNotifier;
@@ -148,6 +150,7 @@ public class PolicyEvaluateService
       String statusId)
   {
     PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
+    policyEvaluationPollingResult.setNextPollingIntervalInSeconds(NEXT_POLLING_INTERVAL_IN_SECONDS);
     Future<PolicyEvaluationPollingResult> evaluationPollingResultFuture =
         policyEvaluationPollingResults.getIfPresent(getPolicyEvaluationKey(applicationPublicId, statusId));
     if (evaluationPollingResultFuture == null) {

@@ -84,7 +84,7 @@ public class ReportClientTest
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
     new PolicyClient(config, applicationPublicId)
-        .evaluate(tempDir.newFile(), ClientScanType.SONATYPE, new Stage(Stage.ID_BUILD), 5);
+        .evaluate(tempDir.newFile(), ClientScanType.SONATYPE, new Stage(Stage.ID_BUILD));
     ReportClient client = new ReportClient(config, applicationPublicId, scanId);
     client.downloadBundle(retrievedFile);
 

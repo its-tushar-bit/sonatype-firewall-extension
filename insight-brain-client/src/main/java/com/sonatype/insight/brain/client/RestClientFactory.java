@@ -106,11 +106,10 @@ public class RestClientFactory
     public PolicyEvaluationPollingResult evaluatePolicy(String appId,
                                                         String stageId,
                                                         final File scanFile,
-                                                        final ClientScanType clientScanType,
-                                                        int intervalInSeconds)
+                                                        final ClientScanType clientScanType)
         throws IOException
     {
-      return new PolicyClient(config, appId).evaluate(scanFile, clientScanType, new Stage(stageId), intervalInSeconds);
+      return new PolicyClient(config, appId).evaluate(scanFile, clientScanType, new Stage(stageId));
     }
 
     public void saveReportBundle(String appId, String scanId, File bundleFile) throws IOException {

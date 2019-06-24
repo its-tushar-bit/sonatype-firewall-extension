@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.Collections;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
@@ -249,9 +250,9 @@ public class TestInsightBrainService
 
     initWorkDirectory(config.getSonatypeWork());
 
-    // Create file indicating the root org is available
+    // Insert migration tracker indicating the root org is available
     RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils =
-        new RootOrganizationConfigMigrationUtils(new InsightWork(insightConfig));
+        new RootOrganizationConfigMigrationUtils(new MigrationTrackerDAO());
     rootOrganizationConfigMigrationUtils.setMigrated();
 
     env.lifecycle().addServerLifecycleListener(new ServerLifecycleListener()

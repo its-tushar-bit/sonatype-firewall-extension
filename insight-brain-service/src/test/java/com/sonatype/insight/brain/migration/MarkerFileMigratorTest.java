@@ -7,11 +7,13 @@ package com.sonatype.insight.brain.migration;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.openjpa.persistence.RollbackException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -76,6 +78,31 @@ public class MarkerFileMigratorTest
   public void testMigrate_MustMoveSecurityVulnerabilityOverrideMarkerFileToDatabase() throws IOException {
     testMigrate(SecurityVulnerabilityOverrideMigrator.MIGRATION_ID,
         new File(insightWork.getAuditDir(""), MarkerFileMigrator.SECURITY_VULNERABILITY_OVERRIDE_MARKER_FILE));
+  }
+
+  @Test
+  public void testMigrate_MustMoveRootOrganizationConfigFileToDatabase() throws IOException {
+    assertThat(migrationTrackerDAO.isTrackerPresent(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isFalse();
+    assertThat(migrationTrackerDAO.isTrackerPresent(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID))
+        .isFalse();
+    File markerFile = new File(insightWork.getWorkDir(), MarkerFileMigrator.ROOT_ORGANIZATION_CONFIG_FILE);
+    String sourceOrganizationId = "sourceOrganizationId";
+    FileUtils.writeStringToFile(markerFile, sourceOrganizationId, StandardCharsets.UTF_8);
+
+    markerFileMigrator.migrate();
+
+    MigrationTracker migrationTracker =
+        migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID);
+    assertThat(migrationTracker).isNotNull();
+    assertThat(migrationTracker.getConfiguration()).isEqualTo(sourceOrganizationId);
+    assertThat(markerFile).isFile();
+    assertThat(migrationTrackerDAO.isTrackerPresent(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isTrue();
+  }
+
+  @Test
+  public void testMigrate_MustMoveRootOrganizationConfigMarkerFileToDatabase() throws IOException {
+    testMigrate(RootOrganizationConfigMigrationUtils.MIGRATION_ID,
+        new File(insightWork.getWorkDir(), MarkerFileMigrator.ROOT_ORGANIZATION_CONFIG_MARKER_FILE));
   }
 
   @Test

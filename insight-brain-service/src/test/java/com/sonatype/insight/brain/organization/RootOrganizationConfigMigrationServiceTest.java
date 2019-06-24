@@ -5,19 +5,16 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,23 +25,28 @@ public class RootOrganizationConfigMigrationServiceTest
     extends AbstractComponentTest
 {
   @Inject
-  private InsightConfig insightConfig;
-
   private RootOrganizationConfigMigrationService service;
 
+  @Inject
   private RootOrganizationConfigMigrationUtils migrationUtils;
 
-  @Before
-  public void setup() throws IOException {
-    insightConfig.setSonatypeWork(tempDir.newFolder().getAbsolutePath());
-    InsightWork insightWork = new InsightWork(insightConfig);
-    migrationUtils = new RootOrganizationConfigMigrationUtils(insightWork);
+  @Inject
+  private MigrationTrackerDAO migrationTrackerDAO;
 
-    service = new RootOrganizationConfigMigrationService(new OrganizationDAO(), migrationUtils);
+  @Before
+  public void before() {
+    migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
+    migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
+  }
+
+  @After
+  public void after() {
+    migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
+    migrationUtils.setMigrated();
   }
 
   @Test
-  public void testSetRootOrganizationTemplate() throws IOException {
+  public void testSetRootOrganizationTemplate() {
     Organization org = tempEntity.newOrganization();
     service.setRootOrganizationTemplate(org.getId());
 
@@ -53,7 +55,7 @@ public class RootOrganizationConfigMigrationServiceTest
   }
 
   @Test
-  public void testSetRootOrganizationTemplate_previouslyScheduled() throws IOException {
+  public void testSetRootOrganizationTemplate_previouslyScheduled() {
     migrationUtils.setSourceOrganizationId("bla");
     Organization org = tempEntity.newOrganization();
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
@@ -63,7 +65,7 @@ public class RootOrganizationConfigMigrationServiceTest
   }
 
   @Test
-  public void testSetRootOrganizationTemplate_previouslyMigrated() throws IOException {
+  public void testSetRootOrganizationTemplate_previouslyMigrated() {
     migrationUtils.setMigrated();
     Organization org = tempEntity.newOrganization();
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
@@ -79,13 +81,13 @@ public class RootOrganizationConfigMigrationServiceTest
   }
 
   @Test
-  public void testSetRootOrganizationEmptyTemplate() throws IOException {
+  public void testSetRootOrganizationEmptyTemplate() {
     service.setRootOrganizationEmptyTemplate();
     assertThat(migrationUtils.isMigrated()).isTrue();
   }
 
   @Test
-  public void testSetRootOrganizationEmptyTemplate_alreadyScheduled() throws IOException {
+  public void testSetRootOrganizationEmptyTemplate_alreadyScheduled() {
     migrationUtils.setSourceOrganizationId("bla");
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.setRootOrganizationEmptyTemplate();
@@ -94,7 +96,7 @@ public class RootOrganizationConfigMigrationServiceTest
   }
 
   @Test
-  public void testSetRootOrganizationEmptyTemplate_alreadyMigrated() throws IOException {
+  public void testSetRootOrganizationEmptyTemplate_alreadyMigrated() {
     migrationUtils.setMigrated();
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       service.setRootOrganizationEmptyTemplate();

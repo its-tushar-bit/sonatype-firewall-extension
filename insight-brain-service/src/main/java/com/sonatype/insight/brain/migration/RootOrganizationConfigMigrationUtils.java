@@ -5,17 +5,12 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.service.InsightWork;
-
-import org.codehaus.plexus.util.FileUtils;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.model.MigrationTracker;
 
 /**
  * @since 1.18
@@ -24,63 +19,39 @@ import org.codehaus.plexus.util.FileUtils;
 @Singleton
 public class RootOrganizationConfigMigrationUtils
 {
-  private static final String MARKER_FILE_NAME = "rootorganizationconfig-migrated";
+  public static final String MIGRATION_ID = "root-organization";
 
-  private static final String MIGRATION_CONFIG_FILE_NAME = "rootorganizationconfig-migration";
+  public static final String MIGRATION_CONFIG_ID = "root-organization-config";
 
-  private final InsightWork insightWork;
+  private final MigrationTrackerDAO migrationTrackerDAO;
 
   @Inject
-  public RootOrganizationConfigMigrationUtils(InsightWork insightWork) {
-    this.insightWork = insightWork;
+  public RootOrganizationConfigMigrationUtils(MigrationTrackerDAO migrationTrackerDAO) {
+    this.migrationTrackerDAO = migrationTrackerDAO;
   }
 
   public boolean isMigrated() {
-    return getMarkerFile().isFile();
+    return migrationTrackerDAO.isTrackerPresent(MIGRATION_ID);
   }
 
   public boolean isMigrationScheduled() {
-    return getMigrationConfigFile().isFile();
+    return migrationTrackerDAO.isTrackerPresent(MIGRATION_CONFIG_ID);
   }
 
-  private File getMigrationConfigFile() {
-    return new File(insightWork.getWorkDir(), MIGRATION_CONFIG_FILE_NAME);
+  public void setSourceOrganizationId(String orgId) {
+    MigrationTracker migrationTracker = new MigrationTracker(MIGRATION_CONFIG_ID);
+    migrationTracker.setConfiguration(orgId);
+    migrationTrackerDAO.insert(migrationTracker);
   }
 
-  private File getMarkerFile() {
-    return new File(insightWork.getWorkDir(), MARKER_FILE_NAME);
-  }
-
-  public void setSourceOrganizationId(String orgId) throws IOException {
-    File migrationConfigFile = getMigrationConfigFile();
-    migrationConfigFile.getParentFile().mkdirs();
-    FileUtils.fileWrite(migrationConfigFile, orgId);
+  public void setMigrated() {
+    if (!isMigrated()) {
+      migrationTrackerDAO.insert(new MigrationTracker(MIGRATION_ID));
+    }
   }
 
   public String getSourceOrganizationId() {
-    if (isMigrationScheduled()) {
-      try {
-        return FileUtils.fileRead(getMigrationConfigFile());
-      }
-      catch (IOException e) {
-        throw new UncheckedIOException("Cannot load the source organization ID from file: "
-            + getMigrationConfigFile().getAbsolutePath(), e);
-      }
-    }
-
-    return null;
-  }
-
-  public void setMigrated() throws IOException {
-    getMigrationConfigFile().delete();
-
-    File markerFile = getMarkerFile();
-    markerFile.getParentFile().mkdirs();
-    markerFile.createNewFile();
-  }
-
-  public void clean() {
-    getMarkerFile().delete();
-    getMigrationConfigFile().delete();
+    MigrationTracker migrationTracker = migrationTrackerDAO.getById(MIGRATION_CONFIG_ID);
+    return migrationTracker == null ? null : migrationTracker.getConfiguration();
   }
 }

@@ -5,13 +5,11 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.io.IOException;
-
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightWork;
 
 import org.junit.After;
 import org.junit.Before;
@@ -27,16 +25,15 @@ public class RootOrganizationConfigMigrationResourceTest
   private RootOrganizationConfigMigrationUtils migrationUtils;
 
   @Before
-  public void setup() throws Exception {
+  public void setup() {
     org = tempEntity.newOrganization();
-    InsightWork insightWork = new InsightWork(getCLMServer().getConfiguration());
-    migrationUtils = new RootOrganizationConfigMigrationUtils(insightWork);
-    migrationUtils.clean();
+    migrationUtils = new RootOrganizationConfigMigrationUtils(new MigrationTrackerDAO());
+    clean();
   }
 
   @After
-  public void tearDown() throws IOException {
-    migrationUtils.clean();
+  public void tearDown() {
+    clean();
     migrationUtils.setMigrated();
   }
 
@@ -53,5 +50,11 @@ public class RootOrganizationConfigMigrationResourceTest
     HttpResponse response = restRequest().path(RootOrganizationConfigMigrationResource.RESOURCE_PATH).post();
     assertResponseStatus(204, response);
     assertThat(migrationUtils.isMigrated()).isTrue();
+  }
+
+  public void clean() {
+    MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+    migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
+    migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
   }
 }

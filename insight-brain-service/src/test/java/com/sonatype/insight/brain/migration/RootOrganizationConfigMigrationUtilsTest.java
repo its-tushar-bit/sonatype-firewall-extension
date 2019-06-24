@@ -5,58 +5,38 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import javax.inject.Inject;
-
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RootOrganizationConfigMigrationUtilsTest
-    extends AbstractComponentTest
+    extends MigratorTest
 {
-  @Inject
-  private RootOrganizationConfigMigrationUtils migrationUtils;
-
-  @Before
-  public void before() {
-    migrationUtils.clean();
-  }
-
-  @After
-  public void after() {
-    migrationUtils.clean();
-  }
-
   @Test
-  public void testIsMigrated() throws Exception {
+  public void testSetMigrated() {
+    assertThat(migrationUtils.isMigrationScheduled()).isFalse();
     assertThat(migrationUtils.isMigrated()).isFalse();
 
     migrationUtils.setMigrated();
-    assertThat(migrationUtils.isMigrated()).isTrue();
 
-    migrationUtils.clean();
     assertThat(migrationUtils.isMigrationScheduled()).isFalse();
+    assertThat(migrationUtils.isMigrated()).isTrue();
   }
 
   @Test
-  public void testSetMigrated_RemovesMigrationFile() throws Exception {
+  public void testSetSourceOrganizationId_And_SetMigrated() {
+    assertThat(migrationUtils.isMigrationScheduled()).isFalse();
+    assertThat(migrationUtils.isMigrated()).isFalse();
+    String sourceOrganizationId = "bla";
+
+    migrationUtils.setSourceOrganizationId(sourceOrganizationId);
+
+    assertThat(migrationUtils.getSourceOrganizationId()).isEqualTo(sourceOrganizationId);
     assertThat(migrationUtils.isMigrated()).isFalse();
 
-    migrationUtils.setSourceOrganizationId("bla");
     migrationUtils.setMigrated();
-    assertThat(migrationUtils.isMigrated()).isTrue();
-    assertThat(migrationUtils.isMigrationScheduled()).isFalse();
-  }
 
-  @Test
-  public void testIsMigrationScheduled() throws Exception {
-    assertThat(migrationUtils.isMigrationScheduled()).isFalse();
-
-    migrationUtils.setSourceOrganizationId("bla");
     assertThat(migrationUtils.isMigrationScheduled()).isTrue();
+    assertThat(migrationUtils.isMigrated()).isTrue();
   }
 }

@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.POST;
@@ -33,13 +31,13 @@ public class RootOrganizationConfigMigrationResource
   }
 
   @POST
-  public void setRootOrganizationEmptyTemplate() throws IOException {
+  public void setRootOrganizationEmptyTemplate() {
     service.setRootOrganizationEmptyTemplate();
   }
 
   @POST
   @Path("{organizationId}")
-  public void setRootOrganizationTemplate(@PathParam("organizationId") String organizationId) throws IOException {
+  public void setRootOrganizationTemplate(@PathParam("organizationId") String organizationId) {
     service.setRootOrganizationTemplate(organizationId);
   }
 }

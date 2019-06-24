@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -43,7 +41,7 @@ public class RootOrganizationConfigMigrationService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public synchronized void setRootOrganizationTemplate(String organizationId) throws IOException {
+  public synchronized void setRootOrganizationTemplate(String organizationId) {
     Organization organization = organizationDAO.getByIdNotNull(organizationId);
 
     log.info("Setting template for root organization to {} with id {}", organization.getName(), organizationId);
@@ -55,7 +53,7 @@ public class RootOrganizationConfigMigrationService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public synchronized void setRootOrganizationEmptyTemplate() throws IOException {
+  public synchronized void setRootOrganizationEmptyTemplate() {
     log.info("Using empty root organization");
 
     if (!isEligibleForRootMigration()) {

@@ -14,9 +14,17 @@ public class MigratorTest
 {
   final MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
 
+  final RootOrganizationConfigMigrationUtils migrationUtils =
+      new RootOrganizationConfigMigrationUtils(migrationTrackerDAO);
+
   @Before
-  @After
-  public void cleanupMigrationTrackers() {
+  public void cleanupMigrationTrackersBefore() {
     migrationTrackerDAO.deleteAll();
+  }
+
+  @After
+  public void cleanupMigrationTrackersAfter() {
+    migrationTrackerDAO.deleteAll();
+    migrationUtils.setMigrated();
   }
 }

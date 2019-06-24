@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.migration;
 
 import java.io.File;
-import java.io.IOException;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.common.io.FileCleaner;
@@ -50,7 +49,6 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.postgres.PostgresServer;
@@ -64,6 +62,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class RootOrganizationConfigMigratorTest
+    extends MigratorTest
 {
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
@@ -72,8 +71,6 @@ public class RootOrganizationConfigMigratorTest
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
   private InsightConfig config;
-
-  private InsightWork work;
 
   private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
@@ -99,17 +96,12 @@ public class RootOrganizationConfigMigratorTest
 
   private RootOrganizationConfigMigrator migrator;
 
-  private RootOrganizationConfigMigrationUtils migrationUtils;
-
   @Before
   public void before() throws Exception {
     config = new InsightConfig();
     File workDir = tempDir.newFolder();
     workDir.mkdirs();
     config.setSonatypeWork(workDir.getAbsolutePath());
-
-    work = new InsightWork(config);
-    migrationUtils = new RootOrganizationConfigMigrationUtils(work);
 
     migrator = new RootOrganizationConfigMigrator(config, migrationUtils);
   }
@@ -142,8 +134,11 @@ public class RootOrganizationConfigMigratorTest
   }
 
   @Test
-  public void testMigrate_MigrationConfigFileDoesNotExist() throws Exception {
+  public void testMigrate_MigrationConfigDoesNotExist() throws Exception {
+    tempEntity.newOrganization(); // add an organization so it doesn't look like a fresh install
     assertThat(migrator.migrate()).isFalse();
+    assertThat(migrationUtils.isMigrated()).isFalse();
+    assertThat(migrationUtils.isMigrationScheduled()).isFalse();
   }
 
   @Test
@@ -510,6 +505,7 @@ public class RootOrganizationConfigMigratorTest
       // Delete the backup dir, fix the source org id and try again.
       // Migration should succeed and there should be no backup left on disk.
       new FileCleaner().delete(backupDir);
+      migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
       createSourceOrg();
       migrator.migrate();
       assertThat(backupDir).doesNotExist();
@@ -539,7 +535,7 @@ public class RootOrganizationConfigMigratorTest
     }
   }
 
-  private Organization createSourceOrg() throws IOException {
+  private Organization createSourceOrg() {
     Organization org = tempEntity.newOrganization("SourceOrg");
     migrationUtils.setSourceOrganizationId(org.getId());
     return org;

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.migration;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -117,7 +116,7 @@ public class RootOrganizationConfigMigrator
     this.migrationUtils = migrationUtils;
   }
 
-  boolean migrate() throws IOException {
+  boolean migrate() {
     long start = System.currentTimeMillis();
     log.debug("Migrating config for root organization...");
 

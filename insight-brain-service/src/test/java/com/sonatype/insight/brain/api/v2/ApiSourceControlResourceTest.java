@@ -21,6 +21,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class ApiSourceControlResourceTest
     extends AbstractResourceTest
 {
+  public static final String VALID_URL = "https://example/com/organization/project";
+  
   private Application app;
 
   @Before
@@ -35,7 +37,7 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testGetSourceControl() throws Exception {
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), "https://example/com", "token");
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
     HttpResponse response = restRequest().path(app.getId()).get();
     assertResponseStatus(200, response);
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
@@ -43,8 +45,8 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
-  public void testAdd() throws Exception {
-    SourceControl sourceControl = new SourceControl(app.getId(), "https://example.com", "token");
+  public void testAddSourceControl() throws Exception {
+    SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL, "token");
     HttpResponse response = restRequest().path(app.getId()).body(sourceControl).post();
     assertResponseStatus(200, response);
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
@@ -56,8 +58,8 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
-  public void testUpdate() throws Exception {
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), "https://example/com", "token");
+  public void testUpdateSourceControl() throws Exception {
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
     String updatedUrl = sourceControl.getRepositoryUrl() + ".1";
     sourceControl.setRepositoryUrl(updatedUrl);
     HttpResponse response = restRequest().path(app.getId()).body(sourceControl).put();
@@ -68,8 +70,8 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
-  public void testDelete() throws Exception {
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), "https://example.com", "token");
+  public void testDeleteSourceControl() throws Exception {
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
     HttpResponse response = restRequest().path(app.getId()).path(sourceControl.getId()).delete();
     assertResponseStatus(204, response);
   }

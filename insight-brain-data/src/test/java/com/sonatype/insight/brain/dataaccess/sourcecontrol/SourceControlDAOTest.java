@@ -24,7 +24,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class SourceControlDAOTest
     extends AbstractDbDAOTest
 {
-  private static final String VALID_URL = "https://example.com";
+  private static final String VALID_URL = "https://example.com/organization/project";
 
   private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
@@ -53,11 +53,13 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testInsert_NonHttpsUrl() {
-    SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL.replaceFirst("https", "http"), "token");
+  public void testInsert_MissingRepositoryUrl() {
+    SourceControl sourceControl = new SourceControl();
+    sourceControl.setApplicationId(app.getId());
+    sourceControl.setToken("token");
     assertThatThrownBy(() -> {
       sourceControlDAO.insert(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessage("SourceControl URL must start with https://");
+    }).isInstanceOf(BadRequestException.class).hasMessage("SourceControl repositoryUrl is required");
   }
 
   @Test
@@ -110,12 +112,12 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testUpdate_NonHttpsUrl() {
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
-    sourceControl.setRepositoryUrl(VALID_URL.replaceFirst("https", "http"));
+  public void testUpdate_MissingRepositoryUrl() {
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "bar");
+    sourceControl.setRepositoryUrl(null);
     assertThatThrownBy(() -> {
       sourceControlDAO.update(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessage("SourceControl URL must start with https://");
+    }).isInstanceOf(BadRequestException.class).hasMessage("SourceControl repositoryUrl is required");
   }
 
   @Test

@@ -31,7 +31,7 @@ public class ApiSourceControlResourceAuditTest
   @Test
   public void testAuditForCRUD() throws Exception {
     //CREATE
-    String repositoryUrl = "https://example.com";
+    String repositoryUrl = ApiSourceControlResourceTest.VALID_URL;
     SourceControl sourceControl = new SourceControl(app.getId(), repositoryUrl, "token");
     HttpResponse response = restRequest().path(SOURCE_CONTROL_PATH_V2).path(app.getId()).body(sourceControl).post();
     assertResponseStatus(200, response);

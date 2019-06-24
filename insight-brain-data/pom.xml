@@ -113,6 +113,10 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math3</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.nexus</groupId>
+      <artifactId>nexus-github-wrapper</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

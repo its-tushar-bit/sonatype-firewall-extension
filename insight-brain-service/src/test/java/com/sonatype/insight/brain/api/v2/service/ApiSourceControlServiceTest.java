@@ -40,7 +40,7 @@ import static org.mockito.Mockito.verify;
 public class ApiSourceControlServiceTest
     extends AbstractComponentTest
 {
-  private static final String VALID_URL = "https://example.com";
+  private static final String VALID_URL = "https://example.com/organization/project";
 
   private static final String TOKEN = "token";
 
@@ -152,7 +152,7 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testUpdateSourceControl_WrongAppId() {
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), "https://example.com", "token");
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
     sourceControl.setApplicationId("foo");
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
         sourceControlService.updateSourceControl(app.getId(), sourceControl)).withMessage(

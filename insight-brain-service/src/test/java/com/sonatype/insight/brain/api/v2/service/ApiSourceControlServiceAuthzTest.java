@@ -23,6 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiSourceControlServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
+  private static final String VALID_URL = "https://example.com/organization/project";
+  
   @Inject
   public ApiSourceControlService sourceControlService;
 
@@ -46,7 +48,7 @@ public class ApiSourceControlServiceAuthzTest
   @Test
   public void testGetSourceControlByApplicationId_Authorized() {
     grantReadPermission(app.getId());
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), "https://example.com", "token");
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
     SourceControl sourceControlByApplicationId = sourceControlService.getSourceControlByApplicationId(app.getId());
     assertThat(sourceControlByApplicationId.getId()).isEqualTo(sourceControl.getId());
   }
@@ -76,7 +78,7 @@ public class ApiSourceControlServiceAuthzTest
   @Test
   public void testAddSourceControl_Authorized() {
     grantWritePermission(app.getId());
-    sourceControlService.addSourceControl(app.getId(), new SourceControl(app.getId(), "https://example.com", "token"));
+    sourceControlService.addSourceControl(app.getId(), new SourceControl(app.getId(), VALID_URL, "token"));
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -94,7 +96,7 @@ public class ApiSourceControlServiceAuthzTest
   public void testUpdateSourceControl_Authorized() {
     grantWritePermission(app.getId());
     SourceControl sourceControl = sourceControlService
-        .addSourceControl(app.getId(), new SourceControl(app.getId(), "https://example.com", "token"));
+        .addSourceControl(app.getId(), new SourceControl(app.getId(), VALID_URL, "token"));
     sourceControl.setToken("newToken");
     sourceControlService.updateSourceControl(app.getId(), sourceControl);
   }
@@ -113,7 +115,7 @@ public class ApiSourceControlServiceAuthzTest
   @Test
   public void testDeleteSourceControl_Authorized() {
     grantWritePermission(app.getId());
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), "https://example.com", "token");
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
     sourceControlService.deleteSourceControl(app.getId(), sourceControl.getId());
   }
 }

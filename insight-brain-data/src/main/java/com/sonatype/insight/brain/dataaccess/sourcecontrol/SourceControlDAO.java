@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -15,6 +13,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.nexus.github.GitHubApiClientUtils;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -88,14 +87,14 @@ public class SourceControlDAO
     if (StringUtils.isBlank(sourceControl.getToken())) {
       throw new BadRequestException("SourceControl authentication token is required");
     }
-    if (sourceControl.getRepositoryUrl() == null || !sourceControl.getRepositoryUrl().startsWith("https://")) {
-      throw new BadRequestException("SourceControl URL must start with https://");
+    if (sourceControl.getRepositoryUrl() == null) {
+      throw new BadRequestException("SourceControl repositoryUrl is required");
     }
 
     try {
-      new URI(sourceControl.getRepositoryUrl());
+      GitHubApiClientUtils.createProjectUri(sourceControl.getRepositoryUrl());
     }
-    catch (URISyntaxException e) {
+    catch (IllegalArgumentException e) {
       throw new BadRequestException("SourceControl URL is invalid: " + e.getMessage(), e);
     }
   }

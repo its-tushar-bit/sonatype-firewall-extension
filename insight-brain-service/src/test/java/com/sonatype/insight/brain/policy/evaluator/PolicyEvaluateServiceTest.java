@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 import javax.mail.Message;
@@ -346,6 +347,42 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
+  public void testEvaluateWithPolling_Pending_StatusId() throws Exception {
+    InsightConfig insightConfig = lookup(InsightConfig.class);
+    insightConfig.setBaseUrl("http://localhost");
+
+    final Stage stage = new Stage(Stage.ID_BUILD);
+
+    String scanId = simulateReportIsAvailable("report.zip");
+
+    ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
+
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+
+    when(mockScanHandler.createTempScanFile(eq(null), any(String.class), eq(ClientScanType.SONATYPE)))
+        .thenReturn(mock(File.class));
+    when(mockScanHandler.handle(any(File.class), any(String.class), eq(ClientScanType.SONATYPE)))
+        .thenReturn(scanReceipt);
+
+    // evaluate policy
+    PolicyEvaluationReceipt policyEvaluationReceipt =
+        policyEvaluateService.evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, stage);
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        waitForResult(app.getPublicId(), policyEvaluationReceipt.getStatusId(),
+            p -> {
+              return p.getStatus().equals(PolicyEvaluationStatus.PENDING) && p.getScanReceipt() != null;
+            });
+
+    assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.PENDING);
+    assertThat(policyEvaluationPollingResult.getReason()).isNull();
+    assertThat(policyEvaluationPollingResult.getResult()).isNull();
+    assertThat(policyEvaluationPollingResult.getScanReceipt()).isEqualTo(scanReceipt);
+  }
+
+  @Test
   public void testEvaluateWithPolling() throws Exception {
     InsightConfig insightConfig = lookup(InsightConfig.class);
     insightConfig.setBaseUrl("http://localhost");
@@ -387,11 +424,11 @@ public class PolicyEvaluateServiceTest
     // evaluate policy
     PolicyEvaluationReceipt policyEvaluationReceipt =
         policyEvaluateService.evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, stage);
-    policyEvaluateService.policyEvaluationPollingResults
-        .getIfPresent(app.getPublicId() + ":" + policyEvaluationReceipt.getStatusId()).get(1, TimeUnit.MINUTES);
 
     PolicyEvaluationPollingResult policyEvaluationPollingResult =
-        policyEvaluateService.pollEvaluationResult(app.getPublicId(), policyEvaluationReceipt.getStatusId());
+        waitForResult(app.getPublicId(), policyEvaluationReceipt.getStatusId(),
+            p ->  p.getStatus().equals(PolicyEvaluationStatus.COMPLETED));
+
     PolicyEvaluationResult policyEvaluationResult = policyEvaluationPollingResult.getResult();
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
     assertThat(policyEvaluationPollingResult.getReason()).isNull();
@@ -399,6 +436,23 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationPollingResult.getScanReceipt()).isEqualTo(scanReceipt);
 
     assertEvaluate(scanId, stage, policyEvaluationResult, policy1, mockJiraClient, appComponentDAO);
+  }
+
+  private PolicyEvaluationPollingResult waitForResult(String appId, String scanId,
+                                                      Function<PolicyEvaluationPollingResult, Boolean> readyTest)
+      throws Exception
+  {
+    long endTime = System.currentTimeMillis() + 20000;
+    PolicyEvaluationPollingResult result;
+    while (System.currentTimeMillis() < endTime) {
+      result = policyEvaluateService.pollEvaluationResult(appId, scanId);
+      if (readyTest.apply(result)) {
+        System.out.println("Results ready in " + (20000 - (endTime - System.currentTimeMillis())));
+        return result;
+      }
+      Thread.sleep(50);
+    }
+    throw new RuntimeException("Evaluation did not complete within the expected 20 seconds to get the polling result.");
   }
 
   @Test
@@ -440,16 +494,10 @@ public class PolicyEvaluateServiceTest
         policyEvaluateService
             .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD));
 
-    try {
-      policyEvaluateService.policyEvaluationPollingResults.getIfPresent(app.getPublicId() + ":" + receipt.getStatusId())
-          .get(1, TimeUnit.MINUTES);
-    }
-    catch (Exception e) {
-      // do nothing
-    }
-
     PolicyEvaluationPollingResult policyEvaluationPollingResult =
-        policyEvaluateService.pollEvaluationResult(app.getPublicId(), receipt.getStatusId());
+        waitForResult(app.getPublicId(), receipt.getStatusId(),
+            p ->  !p.getStatus().equals(PolicyEvaluationStatus.PENDING));
+
     assertThat(policyEvaluationPollingResult).isNotNull();
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.FAILED);
     assertThat(policyEvaluationPollingResult.getReason()).startsWith("Internal Server Error");
@@ -475,11 +523,11 @@ public class PolicyEvaluateServiceTest
     PolicyEvaluationReceipt receipt =
         policyEvaluateService
             .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD));
-    policyEvaluateService.policyEvaluationPollingResults.getIfPresent(app.getPublicId() + ":" + receipt.getStatusId())
-        .get(1, TimeUnit.MINUTES);
 
     PolicyEvaluationPollingResult policyEvaluationPollingResult =
-        policyEvaluateService.pollEvaluationResult(app.getPublicId(), receipt.getStatusId());
+        waitForResult(app.getPublicId(), receipt.getStatusId(),
+            p -> p.getStatus().equals(PolicyEvaluationStatus.COMPLETED));
+
     assertThat(policyEvaluationPollingResult).isNotNull();
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
     assertThat(policyEvaluationPollingResult.getReason()).isNull();

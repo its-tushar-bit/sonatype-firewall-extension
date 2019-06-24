@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -60,7 +61,7 @@ public class PolicyEvaluateService
   private final ScanHandler scanHandler;
 
   @VisibleForTesting
-  final Cache<String, PolicyEvaluationPollingResult> policyEvaluationPollingResults =
+  final Cache<String, Future<PolicyEvaluationPollingResult>> policyEvaluationPollingResults =
       CacheBuilder.newBuilder().expireAfterWrite(2, TimeUnit.HOURS)
           .build();
 
@@ -131,17 +132,9 @@ public class PolicyEvaluateService
         applicationPublicId, clientScanType, stage.getStageTypeId(), statusId);
 
     File tempScanFile = scanHandler.createTempScanFile(req, applicationPublicId, clientScanType);
-
-    String policyEvaluationKey = getPolicyEvaluationKey(applicationPublicId, statusId);
-
-    // to avoid any race condition when the following task attempts to update
-    PolicyEvaluationPollingResult initialResult = new PolicyEvaluationPollingResult();
-    initialResult.setStatus(PolicyEvaluationStatus.PENDING);
-    policyEvaluationPollingResults.put(policyEvaluationKey, initialResult);
-
-    AuditData.get()
+    policyEvaluationPollingResults.put(getPolicyEvaluationKey(applicationPublicId, statusId), AuditData.get()
         .continueAsync(new EvaluationTask(applicationPublicId, clientScanType, statusId, stage, tempScanFile),
-            executor::submit);
+            executor::submit));
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
     policyEvaluationReceipt.setStatusId(statusId);
@@ -154,13 +147,29 @@ public class PolicyEvaluateService
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
       String statusId)
   {
-    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+    PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
+    Future<PolicyEvaluationPollingResult> evaluationPollingResultFuture =
         policyEvaluationPollingResults.getIfPresent(getPolicyEvaluationKey(applicationPublicId, statusId));
-    if (policyEvaluationPollingResult == null) {
+    if (evaluationPollingResultFuture == null) {
       throw new NotFoundException(String
           .format("Policy evaluation status with id %s for public application id %s was not found.", statusId,
               applicationPublicId));
     }
+    if (!evaluationPollingResultFuture.isDone()) {
+      policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.PENDING);
+      return policyEvaluationPollingResult;
+    }
+
+    try {
+      policyEvaluationPollingResult.setResult(evaluationPollingResultFuture.get().getResult());
+      policyEvaluationPollingResult.setScanReceipt(evaluationPollingResultFuture.get().getScanReceipt());
+    }
+    catch (Exception e) {
+      policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.FAILED);
+      policyEvaluationPollingResult.setReason(e.getCause().getMessage());
+      return policyEvaluationPollingResult;
+    }
+    policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.COMPLETED);
     return policyEvaluationPollingResult;
   }
 
@@ -193,16 +202,10 @@ public class PolicyEvaluateService
     @Override
     public PolicyEvaluationPollingResult call() {
       String scanId = null;
-      PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
-      policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.PENDING);
-      String policyEvaluationKey = getPolicyEvaluationKey(applicationPublicId, statusId);
-
       try {
+        PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
         ScanReceipt scanReceipt = scanHandler.handle(tempScanFile, applicationPublicId, clientScanType);
         scanId = scanReceipt.getScanId();
-
-        policyEvaluationPollingResult.setScanReceipt(scanReceipt);
-        policyEvaluationPollingResults.put(policyEvaluationKey, policyEvaluationPollingResult);
 
         final long start = System.currentTimeMillis();
 
@@ -218,22 +221,17 @@ public class PolicyEvaluateService
                 " The status ID of the operation is {}.",
             applicationPublicId, scanId, stage.getStageTypeId(), System.currentTimeMillis() - start, statusId);
 
-        policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
-        policyEvaluationPollingResult.setScanReceipt(scanReceipt);
         policyEvaluationPollingResult.setResult(policyEvaluationResult);
-        policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.COMPLETED);
+        policyEvaluationPollingResult.setScanReceipt(scanReceipt);
+        return policyEvaluationPollingResult;
       }
       catch (Exception e) {
         log.error(
             "Failed to evaluate policy for app public id {}, scan id {}, stageTypeId {}." +
                 " The status ID of the operation is {}.",
             applicationPublicId, scanId, stage.getStageTypeId(), statusId);
-        policyEvaluationPollingResult = new PolicyEvaluationPollingResult(policyEvaluationPollingResult);
-        policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.FAILED);
-        policyEvaluationPollingResult.setReason(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody());
+        throw new RuntimeException(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody(), e);
       }
-      policyEvaluationPollingResults.put(policyEvaluationKey, policyEvaluationPollingResult);
-      return policyEvaluationPollingResult;
     }
   }
 }

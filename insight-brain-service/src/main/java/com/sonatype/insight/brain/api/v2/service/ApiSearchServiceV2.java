@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.purl.InvalidPackageURLException;
 import com.sonatype.insight.brain.purl.PurlIdentifier;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -88,17 +87,12 @@ public class ApiSearchServiceV2
 
     ArtifactCoordinate coords = null;
     if (packageUrl != null) {
-      try {
-        componentIdentifier = new PurlIdentifier(packageUrl).toComponentIdentifier();
-        AuditData.get().setComponentIdentifier(componentIdentifier);
+      componentIdentifier = new PurlIdentifier(packageUrl).toComponentIdentifier();
+      AuditData.get().setComponentIdentifier(componentIdentifier);
 
-        componentIdentifier =
-            constructWildcardedComponentIdentifier(componentIdentifier);
-        coords = new ArtifactCoordinate(componentIdentifier);
-      }
-      catch (InvalidPackageURLException e) {
-        throw new BadRequestException(e.getMessage(), e);
-      }
+      componentIdentifier =
+          constructWildcardedComponentIdentifier(componentIdentifier);
+      coords = new ArtifactCoordinate(componentIdentifier);
     }
     else if (componentIdentifier != null) {
       componentIdentifier = constructWildcardedComponentIdentifier(componentIdentifier);

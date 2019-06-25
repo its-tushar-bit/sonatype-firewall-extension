@@ -9,6 +9,10 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -47,16 +51,17 @@ public class DatabaseTelemetryCollector
 
     if (config.isDatabaseEmbedded()) {
       attributes.put(DB_ENGINE, "h2");
-      attributes.put(ODS_SIZE_BYTES, getOdsSizeBytes());
+      attributes.put(ODS_SIZE_BYTES, getOdsSizeBytes_EmbeddedDatabase());
     }
     else {
       attributes.put(DB_ENGINE, config.getDatabase().getType());
+      attributes.put(ODS_SIZE_BYTES, getOdsSizeBytes_ExternalDatabase());
     }
 
     return telemetryData;
   }
 
-  private String getOdsSizeBytes() {
+  private String getOdsSizeBytes_EmbeddedDatabase() {
     try {
       if (OperationalDataStoreProvider.isDatabaseInMemory()) {
         return null;
@@ -66,6 +71,20 @@ public class DatabaseTelemetryCollector
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);
+    }
+  }
+
+  private String getOdsSizeBytes_ExternalDatabase() {
+    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection(); //
+        Statement statement = connection.createStatement()) {
+      ResultSet resultSet = statement.executeQuery(
+          "SELECT SUM(pg_total_relation_size(quote_ident(schemaname) || '.' || quote_ident(tablename)))::BIGINT " //
+              + "FROM pg_tables WHERE schemaname = '" + OperationalDataStoreProvider.ID + "'");
+      resultSet.next();
+      return String.valueOf(resultSet.getLong(1));
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e);
     }
   }
 }

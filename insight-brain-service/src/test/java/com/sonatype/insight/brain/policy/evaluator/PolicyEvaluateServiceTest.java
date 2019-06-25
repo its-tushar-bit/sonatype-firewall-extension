@@ -56,7 +56,6 @@ import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.Report;
@@ -98,9 +97,6 @@ public class PolicyEvaluateServiceTest
 {
   @Inject
   private PolicyEvaluateService policyEvaluateService;
-
-  @Inject
-  private CLMLicenseManager clmLicenseManager;
 
   @Inject
   private TestProductLicenseManager productLicenseManager;
@@ -372,8 +368,7 @@ public class PolicyEvaluateServiceTest
   }
 
   public void testEvaluateWithPolling(Feature requiredFeature, IntegrationType integrationType) throws Exception {
-    productLicenseManager.setFeatures(requiredFeature);
-    clmLicenseManager.installLicense(null);
+    productLicenseManager.setFeatures(requiredFeature, Feature.NOTIFICATIONS);
 
     InsightConfig insightConfig = lookup(InsightConfig.class);
     insightConfig.setBaseUrl("http://localhost");
@@ -527,9 +522,8 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  public void testEvaluateWithPolling_FailsWithoutFeature() throws Exception {
+  public void testEvaluateWithPolling_FailsWithoutFeature() {
     productLicenseManager.setFeatures();
-    clmLicenseManager.installLicense(null);
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       policyEvaluateService.evaluateWithPolling(IntegrationType.CI, app.getPublicId(), ClientScanType.SONATYPE, null,

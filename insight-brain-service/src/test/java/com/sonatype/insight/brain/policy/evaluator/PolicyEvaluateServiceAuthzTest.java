@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -39,6 +40,7 @@ public class PolicyEvaluateServiceAuthzTest
     mockReportDownloader = new MockReportDownloader();
     binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
     binder.bind(TelemetrySender.class).toInstance(mock(TelemetrySender.class));
+    binder.bind(ScanHandler.class).toInstance(mock(ScanHandler.class));
 
     super.configure(binder);
   }

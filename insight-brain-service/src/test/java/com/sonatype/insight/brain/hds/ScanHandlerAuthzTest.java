@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.hds;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -64,8 +64,8 @@ public class ScanHandlerAuthzTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(hdsClient.relay(eq(servletRequest), any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class),
-        eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class)))
+        .thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, appPublicId, ClientScanType.SONATYPE);
     assertThat(scanReceipt.getScanId()).isEqualTo(scanId);

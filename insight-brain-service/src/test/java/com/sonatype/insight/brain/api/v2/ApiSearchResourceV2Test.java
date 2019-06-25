@@ -474,6 +474,39 @@ public class ApiSearchResourceV2Test
   }
 
   @Test
+  public void testSearchComponent_VerifyCriteria_ComponentIdentifier() throws Exception {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("gid", "aid", "1");
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(coords(componentIdentifier)).get();
+    assertResponseStatus(200, response);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
+    assertThat(results.criteria.componentIdentifier.getFormat()).isEqualTo(componentIdentifier.getFormat());
+    assertThat(results.criteria.componentIdentifier.getCoordinates())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1", "*", "*").getCoordinates());
+    assertThat(results.criteria.hash).isNull();
+    assertThat(results.criteria.packageUrl).isNull();
+  }
+
+  @Test
+  public void testSearchComponent_VerifyCriteria_Hash() throws Exception {
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash("1249e25aebb15358bedd")).get();
+    assertResponseStatus(200, response);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
+    assertThat(results.criteria.hash).isEqualTo("1249e25aebb15358bedd");
+    assertThat(results.criteria.componentIdentifier).isNull();
+    assertThat(results.criteria.packageUrl).isNull();
+  }
+
+  @Test
+  public void testSearchComponent_VerifyCriteria_Purl() throws Exception {
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(purl("pkg:maven/gid/aid@1?type=*&classifier=*")).get();
+    assertResponseStatus(200, response);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
+    assertThat(results.criteria.packageUrl).isEqualTo("pkg:maven/gid/aid@1?type=*&classifier=*");
+    assertThat(results.criteria.componentIdentifier).isNull();
+    assertThat(results.criteria.hash).isNull();
+  }
+
+  @Test
   public void testSearchComponent_NoHitsAmongAppComponents() throws Exception {
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
 

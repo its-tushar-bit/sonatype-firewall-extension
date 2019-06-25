@@ -87,12 +87,11 @@ public class ApiSearchServiceV2
 
     ArtifactCoordinate coords = null;
     if (packageUrl != null) {
-      componentIdentifier = new PurlIdentifier(packageUrl).toComponentIdentifier();
-      AuditData.get().setComponentIdentifier(componentIdentifier);
+      ComponentIdentifier purlComponentIdentifier = new PurlIdentifier(packageUrl).toComponentIdentifier();
+      AuditData.get().setComponentIdentifier(purlComponentIdentifier);
 
-      componentIdentifier =
-          constructWildcardedComponentIdentifier(componentIdentifier);
-      coords = new ArtifactCoordinate(componentIdentifier);
+      purlComponentIdentifier = constructWildcardedComponentIdentifier(purlComponentIdentifier);
+      coords = new ArtifactCoordinate(purlComponentIdentifier);
     }
     else if (componentIdentifier != null) {
       componentIdentifier = constructWildcardedComponentIdentifier(componentIdentifier);

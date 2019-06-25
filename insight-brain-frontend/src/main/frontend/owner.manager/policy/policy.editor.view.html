@@ -91,9 +91,9 @@
             <i class="fa fa-info-circle"></i>Policy Violation Grandfathering is not supported by your license
           </div>
           <iq-checkbox id="editor-policy-violation-grandfathering"
-                       label="Do not allow this policy to be grandfathered"
+                       label="Allow this policy to be grandfathered"
                        on-click="vm.dirtyPolicy.policyViolationGrandfatheringAllowed = !vm.dirtyPolicy.policyViolationGrandfatheringAllowed"
-                       is-checked="!vm.dirtyPolicy.policyViolationGrandfatheringAllowed"
+                       is-checked="vm.dirtyPolicy.policyViolationGrandfatheringAllowed"
                        is-disabled="vm.readOnly || !vm.isGrandfatheringSupported">
           </iq-checkbox>
         </div>

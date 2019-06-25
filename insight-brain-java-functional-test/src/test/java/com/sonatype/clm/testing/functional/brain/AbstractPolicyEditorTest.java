@@ -465,7 +465,7 @@ public abstract class AbstractPolicyEditorTest
 
     SummarySection summary = PolicyEditorPage.summarySection();
     summary.policyName().val("updated name");
-    summary.policyViolationGrandfatheringCheckbox().shouldBe(visible).shouldBe(selected);
+    summary.policyViolationGrandfatheringCheckbox().shouldBe(visible).shouldNotBe(selected);
     summary.policyViolationGrandfatheringCheckbox().click();
     PolicyEditorPage.savePolicy();
 
@@ -476,7 +476,7 @@ public abstract class AbstractPolicyEditorTest
 
     PolicyEditorPage.title().shouldHave(text("Edit"));
     summary.policyName().shouldBe(visible).shouldHave(value("updated name"));
-    summary.policyViolationGrandfatheringCheckbox().shouldBe(visible).shouldNotBe(selected);
+    summary.policyViolationGrandfatheringCheckbox().shouldBe(visible).shouldBe(selected);
     ThreatLevelSelector.selectedThreatLevel().shouldBe(text("6"));
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
@@ -1215,7 +1215,7 @@ public abstract class AbstractPolicyEditorTest
     assertThreatLevelSelectorState(policy.getThreatLevel(), isReadOnly);
 
     com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly || grandfatheringReadOnly ? disabled : enabled;
-    summary.policyViolationGrandfatheringCheckbox().shouldBe(visible, disabledOrEnabled).shouldBe(selected);
+    summary.policyViolationGrandfatheringCheckbox().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
     if (grandfatheringReadOnly) {
       String expectedText = "Policy Violation Grandfathering is not supported by your license";
       PolicyEditorPage.disabledGrandfatheringMessage().shouldBe(text(expectedText));

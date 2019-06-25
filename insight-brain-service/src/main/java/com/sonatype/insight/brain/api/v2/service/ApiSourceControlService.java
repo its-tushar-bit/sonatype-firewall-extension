@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -89,7 +88,7 @@ public class ApiSourceControlService
 
   @Authorize(permission = Permission.WRITE)
   public SourceControl addSourceControl(@AuthzContext(Key.APPLICATION_ID) final String applicationId,
-      SourceControl sourceControl) 
+      SourceControl sourceControl)
   {
     checkLicense();
     encryptToken(sourceControl);
@@ -103,7 +102,7 @@ public class ApiSourceControlService
 
   @Authorize(permission = Permission.WRITE)
   public SourceControl updateSourceControl(@AuthzContext(Key.APPLICATION_ID) final String applicationId,
-      SourceControl sourceControl) 
+      SourceControl sourceControl)
   {
     checkLicense();
     // updates may come with our 'fake' token or simply omit it
@@ -124,7 +123,7 @@ public class ApiSourceControlService
 
   @Authorize(permission = Permission.WRITE)
   public void deleteSourceControl(@AuthzContext(Key.APPLICATION_ID) final String applicationId,
-      String sourceControlId) 
+      String sourceControlId)
   {
     checkLicense();
     SourceControl sourceControl = sourceControlDAO.getByIdNotNull(sourceControlId);
@@ -134,18 +133,25 @@ public class ApiSourceControlService
     sendSourceControlTelemetryData(METHOD.DELETE, applicationId, sourceControl);
   }
 
+  public SourceControl getSourceControlByApplicationIdDecrypted(final String applicationId) {
+    SourceControl sourceControl;
+    try {
+      sourceControl = getSourceControlByApplicationId(applicationId);
+    }
+    catch (NotFoundException e) {
+      return null;
+    }
+    return getSourceControlDecrypted(sourceControl.getApplicationId(), sourceControl.getId());
+  }
+
   @Authorize(permission = Permission.READ)
-  public SourceControl getSourceControlDecrypted(@AuthzContext(Key.APPLICATION_ID) final String applicationId,
-      String sourceControlId) 
+  SourceControl getSourceControlDecrypted(@AuthzContext(Key.APPLICATION_ID) final String applicationId,
+      String sourceControlId)
   {
     SourceControl sourceControl = sourceControlDAO.getByIdNotNull(sourceControlId);
     validateApplicationId(applicationId, sourceControl);
     decryptToken(sourceControl);
     return sourceControl;
-  }
-
-  public void maybeRespond(final ApplicationEvaluationEvent event) {
-    // TODO - https://issues.sonatype.org/browse/INT-1651
   }
 
   private void validateApplicationId(final String applicationId, final SourceControl sourceControl) {

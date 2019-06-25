@@ -188,7 +188,7 @@ public class ApiSourceControlServiceTest
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService.getAll());
   }
-  
+
   @Test
   public void testGetSourceControlByApplicationId() {
     tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
@@ -203,6 +203,12 @@ public class ApiSourceControlServiceTest
   public void testGetSourceControlByApplicationId_AppDoesNotExist() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
         sourceControlService.getSourceControlByApplicationId(app.getId()));
+  }
+
+  @Test
+  public void testGetSourceControlByApplicationIdDecrypted_AppDoesNotExist() {
+    SourceControl sourceControl = sourceControlService.getSourceControlByApplicationIdDecrypted(app.getId());
+    assertThat(sourceControl).isNull();
   }
 
   private void assertTelemetry(final METHOD method,

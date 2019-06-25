@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationBaseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
@@ -39,6 +40,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyCondition
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyConstraint;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
+import com.sonatype.insight.brain.purl.PurlIdentifier;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
@@ -148,8 +150,10 @@ public class ApiReportDataServiceV2
           ApiReportComponentPolicyViolationsDTOV2 component = new ApiReportComponentPolicyViolationsDTOV2();
           component.hash = JsonUtils.getNullableString(componentJson.get("hash"));
           component.matchState = JsonUtils.getNullableString(componentJson.get("matchState"));
+          ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(componentJson);
           component.componentIdentifier = ApiComponentIdentifierDTOV2
-              .fromComponentIdentifier(ComponentIdentifierAdapter.getComponentIdentifier(componentJson));
+              .fromComponentIdentifier(componentIdentifier);
+          component.packageUrl = PurlIdentifier.toPackageUrl(componentIdentifier);
           component.proprietary = componentJson.get("proprietary").booleanValue();
           component.pathnames = getPathnames(componentJson);
           component.violations = violationsByHash.getOrDefault(component.hash, Collections.emptyList());
@@ -259,6 +263,7 @@ public class ApiReportDataServiceV2
       component.hash = comp.getHash();
       component.componentIdentifier = ApiComponentIdentifierDTOV2
           .fromComponentIdentifier(comp.getComponentIdentifier());
+      component.packageUrl = PurlIdentifier.toPackageUrl(comp.getComponentIdentifier());
 
       component.matchState = comp.getMatchState().getId();
       component.proprietary = comp.isProprietary();

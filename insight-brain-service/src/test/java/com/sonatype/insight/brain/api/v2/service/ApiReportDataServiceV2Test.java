@@ -153,6 +153,7 @@ public class ApiReportDataServiceV2Test
     assertThat(component.componentIdentifier.getCoordinates().get(ComponentIdentifier.MAVEN_ARTIFACT_ID))
         .isEqualTo("tomcat-util");
     assertThat(component.componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION)).isEqualTo("5.5.23");
+    assertThat(component.packageUrl).isEqualTo("pkg:maven/tomcat/tomcat-util@5.5.23");
     assertThat(component.pathnames).containsExactlyInAnyOrder("sample-application.zip/tomcat-util-5.5.23.jar",
         "sample-application.zip/dupe.jar");
     assertThat(component.licenseData).isNotNull();
@@ -223,6 +224,7 @@ public class ApiReportDataServiceV2Test
     assertThat(component.componentIdentifier.getCoordinates().get(ComponentIdentifier.MAVEN_GROUP_ID))
         .isEqualTo("tomcat");
     assertThat(component.componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION)).isEqualTo("5.5.23");
+    assertThat(component.packageUrl).isEqualTo("pkg:maven/tomcat/tomcat-util@5.5.23");
 
     // violations
     assertThat(component.violations).hasSize(2);

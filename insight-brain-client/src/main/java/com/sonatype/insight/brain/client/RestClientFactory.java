@@ -42,6 +42,16 @@ public class RestClientFactory
     }
 
     @Override
+    public PolicyEvaluationPollingResult evaluatePolicy(String appId,
+                                                        String stageId,
+                                                        final File scanFile,
+                                                        final ClientScanType clientScanType) throws IOException
+    {
+      return new PolicyClient(config, appId)
+          .evaluateCLI(scanFile, clientScanType, new Stage(stageId));
+    }
+
+    @Override
     public ScanReceipt uploadScan(String appId, File scanFile, ClientScanType clientScanType) throws IOException {
       return new ScanClient(config, appId).uploadCLIScan(scanFile, clientScanType);
     }
@@ -55,6 +65,15 @@ public class RestClientFactory
   {
     RestCIClient(final Configuration config) {
       super(config);
+    }
+
+    @Override
+    public PolicyEvaluationPollingResult evaluatePolicy(String appId,
+                                                        String stageId,
+                                                        final File scanFile,
+                                                        final ClientScanType clientScanType) throws IOException
+    {
+      return new PolicyClient(config, appId).evaluateCI(scanFile, new Stage(stageId));
     }
 
     @Override
@@ -103,14 +122,11 @@ public class RestClientFactory
       return new ConfigurationClient(config).getProprietaryConfigForComponentEvaluation(applicationPublicId);
     }
 
-    public PolicyEvaluationPollingResult evaluatePolicy(String appId,
-                                                        String stageId,
-                                                        final File scanFile,
-                                                        final ClientScanType clientScanType)
-        throws IOException
-    {
-      return new PolicyClient(config, appId).evaluate(scanFile, clientScanType, new Stage(stageId));
-    }
+    public abstract PolicyEvaluationPollingResult evaluatePolicy(String appId,
+                                                                 String stageId,
+                                                                 final File scanFile,
+                                                                 final ClientScanType clientScanType)
+        throws IOException;
 
     public void saveReportBundle(String appId, String scanId, File bundleFile) throws IOException {
       new ReportClient(config, appId, scanId).downloadBundle(bundleFile);

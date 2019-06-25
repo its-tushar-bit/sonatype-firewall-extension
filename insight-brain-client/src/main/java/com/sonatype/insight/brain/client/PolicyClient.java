@@ -43,16 +43,44 @@ public class PolicyClient
     this.appId = UrlUtils.encodeUrlComponent(appId);
   }
 
-  public PolicyEvaluationPollingResult evaluate(final File scanFile,
-                                                final ClientScanType clientScanType,
-                                                final Stage stage) throws IOException
+  /**
+   * @since 1.68
+   */
+  public PolicyEvaluationPollingResult evaluateCLI(final File scanFile,
+                                                   final ClientScanType clientScanType,
+                                                   final Stage stage) throws IOException
   {
+    return evaluate("cli", scanFile, clientScanType, stage);
+  }
 
+  /**
+   * @since 1.68
+   */
+  public PolicyEvaluationPollingResult evaluateCI(final File scanFile,
+                                                  final Stage stage) throws IOException
+  {
+    return evaluate("ci", scanFile, ClientScanType.SONATYPE, stage);
+  }
+
+  /**
+   * @since 1.68
+   */
+  public PolicyEvaluationPollingResult evaluateRepoMan(final File scanFile,
+                                                       final Stage stage) throws IOException
+  {
+    return evaluate("rm", scanFile, ClientScanType.SONATYPE, stage);
+  }
+
+  // visible for testing
+  PolicyEvaluationPollingResult evaluate(final String integrationPath,
+                                         final File scanFile,
+                                         final ClientScanType clientScanType,
+                                         final Stage stage) throws IOException
+  {
     final FileEntity entity = new FileEntity(scanFile, GZIP_CONTENT_TYPE);
     long start = System.currentTimeMillis();
-    Result evaluateResult =
-        path("rest/integration/applications/", appId, "/evaluations/stages/", stage.getStageTypeId())
-            .query("scanType", clientScanType.name()).post(entity);
+    Result evaluateResult = path("rest/integration/applications/", appId, "/evaluations/", integrationPath, "/stages/",
+        stage.getStageTypeId()).query("scanType", clientScanType.name()).post(entity);
     PolicyEvaluationReceipt receipt = parseResult(evaluateResult, PolicyEvaluationReceipt.class);
     log.debug("Assigned status ID {}", receipt.getStatusId());
     PolicyEvaluationPollingResult result = pollEvaluationResult(receipt.getStatusId());

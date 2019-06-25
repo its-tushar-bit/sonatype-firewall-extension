@@ -70,6 +70,6 @@ public class ApplicationEvaluationResourceAuditTest
   {
     return restRequest().with(user)
         .path(ApplicationEvaluationResource.RESOURCE_PATH, ApplicationEvaluationResource.EVALUATE_PATH)
-        .query("scanType", ClientScanType.SONATYPE).parameter(applicationPublicId, stageId).post();
+        .query("scanType", ClientScanType.SONATYPE).parameter(applicationPublicId, IntegrationType.CLI, stageId).post();
   }
 }

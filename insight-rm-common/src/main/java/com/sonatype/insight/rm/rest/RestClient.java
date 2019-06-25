@@ -12,7 +12,6 @@ import java.util.Map;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.Resource;
-import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
@@ -38,7 +37,7 @@ public interface RestClient
     ProprietaryConfig getProprietaryConfigForApplicationEvaluation(String applicationPublicId)
         throws IOException;
 
-    App forApplication(String appId);
+    Scan forApplicationScan(String appId, File scanFile);
 
     Repository forRepository(final String repositoryManagerInstanceId,
                              final String repositoryPublicId,
@@ -57,13 +56,6 @@ public interface RestClient
      * @since 1.35
      */
     FirewallIgnorePatterns getFirewallIgnorePatterns() throws IOException;
-  }
-
-  interface App
-  {
-    ScanReceipt uploadScan(File scanFile) throws IOException;
-
-    Scan forScan(String scanId);
   }
 
   interface Scan

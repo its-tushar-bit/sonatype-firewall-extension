@@ -33,11 +33,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationEvaluationResourceTest
     extends AbstractResourceTest
 {
-  private HttpRequest evaluateWithPollingRequest(String applicationPublicId, String stageId) {
-    return restRequest().path(ApplicationEvaluationResource.RESOURCE_PATH, ApplicationEvaluationResource.EVALUATE_PATH)
-        .query(
-            "scanType", ClientScanType.SONATYPE)
-        .parameter(applicationPublicId, stageId);
+  private HttpRequest evaluateWithPollingRequest(IntegrationType integrationType,
+                                                 String applicationPublicId,
+                                                 String stageId)
+  {
+    return restRequest()
+        .path(ApplicationEvaluationResource.RESOURCE_PATH, ApplicationEvaluationResource.EVALUATE_PATH)
+        .query("scanType", ClientScanType.SONATYPE).parameter(applicationPublicId, integrationType, stageId);
   }
 
   private HttpRequest pollEvaluationResultRequest(String appId, String statusId) {
@@ -50,7 +52,8 @@ public class ApplicationEvaluationResourceTest
     Application app = tempEntity.newApplicationWithParent();
 
     // evaluate policy
-    HttpResponse response = evaluateWithPollingRequest(app.getPublicId(), BuildStageType.ID).post();
+    HttpResponse response =
+        evaluateWithPollingRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID).post();
     assertResponseStatus(200, response);
 
     PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
@@ -74,7 +77,8 @@ public class ApplicationEvaluationResourceTest
     mockScanReceipt(scanReceipt);
 
     // evaluate policy
-    HttpResponse response = evaluateWithPollingRequest(app.getPublicId(), BuildStageType.ID).post();
+    HttpResponse response =
+        evaluateWithPollingRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID).post();
     assertResponseStatus(200, response);
 
     PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);

@@ -27,12 +27,15 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.hds.ScanHandler;
+import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.jira.JiraConfig;
@@ -53,6 +56,8 @@ import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportDownloader;
@@ -93,6 +98,12 @@ public class PolicyEvaluateServiceTest
 {
   @Inject
   private PolicyEvaluateService policyEvaluateService;
+
+  @Inject
+  private CLMLicenseManager clmLicenseManager;
+
+  @Inject
+  private TestProductLicenseManager productLicenseManager;
 
   private PolicyDAO policyDAO = new PolicyDAO();
 
@@ -346,7 +357,24 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  public void testEvaluateWithPolling() throws Exception {
+  public void testEvaluateWithPolling_CI() throws Exception {
+    testEvaluateWithPolling(Feature.CI_INTEGRATION, IntegrationType.CI);
+  }
+
+  @Test
+  public void testEvaluateWithPolling_CLI() throws Exception {
+    testEvaluateWithPolling(Feature.CLI_INTEGRATION, IntegrationType.CLI);
+  }
+
+  @Test
+  public void testEvaluateWithPolling_RepoManager() throws Exception {
+    testEvaluateWithPolling(Feature.RM_STAGING_INTEGRATION, IntegrationType.RM);
+  }
+
+  public void testEvaluateWithPolling(Feature requiredFeature, IntegrationType integrationType) throws Exception {
+    productLicenseManager.setFeatures(requiredFeature);
+    clmLicenseManager.installLicense(null);
+
     InsightConfig insightConfig = lookup(InsightConfig.class);
     insightConfig.setBaseUrl("http://localhost");
     insightConfig.setJiraConfig(new JiraConfig());
@@ -385,8 +413,8 @@ public class PolicyEvaluateServiceTest
         .thenReturn(scanReceipt);
 
     // evaluate policy
-    PolicyEvaluationReceipt policyEvaluationReceipt =
-        policyEvaluateService.evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, stage);
+    PolicyEvaluationReceipt policyEvaluationReceipt = policyEvaluateService
+        .evaluateWithPolling(integrationType, app.getPublicId(), ClientScanType.SONATYPE, null, stage);
     policyEvaluateService.policyEvaluationPollingResults
         .getIfPresent(app.getPublicId() + ":" + policyEvaluationReceipt.getStatusId()).get(1, TimeUnit.MINUTES);
 
@@ -397,7 +425,6 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationPollingResult.getReason()).isNull();
     assertThat(policyEvaluationPollingResult.getResult()).isNotNull();
     assertThat(policyEvaluationPollingResult.getScanReceipt()).isEqualTo(scanReceipt);
-    assertThat(policyEvaluationPollingResult.getNextPollingIntervalInSeconds()).isEqualTo(5);
 
     assertEvaluate(scanId, stage, policyEvaluationResult, policy1, mockJiraClient, appComponentDAO);
   }
@@ -415,9 +442,9 @@ public class PolicyEvaluateServiceTest
     }).when(policyEvaluationServiceSpy).doPolicyEvaluation(any(String.class), any(String.class), any(Stage.class));
 
     Application app = tempEntity.newApplicationWithParent();
-    PolicyEvaluationReceipt receipt =
-        policyEvaluationServiceSpy
-            .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD));
+    PolicyEvaluationReceipt receipt = policyEvaluationServiceSpy
+        .evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
+            new Stage(Stage.ID_BUILD));
 
     PolicyEvaluationPollingResult policyEvaluationPollingResult =
         policyEvaluateService.pollEvaluationResult(app.getPublicId(), receipt.getStatusId());
@@ -438,9 +465,9 @@ public class PolicyEvaluateServiceTest
     doThrow(new IOException("HDS Upload Scan Failure!!!"))
         .when(mockScanHandler).handle(any(File.class), any(String.class), any(ClientScanType.class));
 
-    PolicyEvaluationReceipt receipt =
-        policyEvaluateService
-            .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD));
+    PolicyEvaluationReceipt receipt = policyEvaluateService
+        .evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
+            new Stage(Stage.ID_BUILD));
 
     try {
       policyEvaluateService.policyEvaluationPollingResults.getIfPresent(app.getPublicId() + ":" + receipt.getStatusId())
@@ -475,9 +502,9 @@ public class PolicyEvaluateServiceTest
     when(mockScanHandler.handle(any(File.class), any(String.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(scanReceipt);
 
-    PolicyEvaluationReceipt receipt =
-        policyEvaluateService
-            .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD));
+    PolicyEvaluationReceipt receipt = policyEvaluateService
+        .evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
+            new Stage(Stage.ID_BUILD));
     policyEvaluateService.policyEvaluationPollingResults.getIfPresent(app.getPublicId() + ":" + receipt.getStatusId())
         .get(1, TimeUnit.MINUTES);
 
@@ -494,9 +521,30 @@ public class PolicyEvaluateServiceTest
   @Test
   public void testEvaluateWithPolling_InvalidStage() {
     assertThatExceptionOfType(InvalidStageException.class).isThrownBy(() -> {
-      policyEvaluateService
-          .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage("invalidStage"));
+      policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
+          new Stage("invalidStage"));
     }).withMessage("Invalid stage id=invalidStage");
+  }
+
+  @Test
+  public void testEvaluateWithPolling_FailsWithoutFeature() throws Exception {
+    productLicenseManager.setFeatures();
+    clmLicenseManager.installLicense(null);
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      policyEvaluateService.evaluateWithPolling(IntegrationType.CI, app.getPublicId(), ClientScanType.SONATYPE, null,
+          new Stage(Stage.ID_BUILD));
+    }).withMessage("Your IQ Server license does not enable this feature.");
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
+          new Stage(Stage.ID_BUILD));
+    }).withMessage("Your IQ Server license does not enable this feature.");
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      policyEvaluateService.evaluateWithPolling(IntegrationType.RM, app.getPublicId(), ClientScanType.SONATYPE, null,
+          new Stage(Stage.ID_BUILD));
+    }).withMessage("Your IQ Server license does not enable this feature.");
   }
 
   /**

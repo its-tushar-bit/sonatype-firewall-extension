@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.rm.rest;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +16,6 @@ import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
 import com.sonatype.insight.brain.client.FirewallMigrationClient;
-import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.rm.rest.RestClient.FirewallMigration;
 import com.sonatype.insight.rm.rest.RestClient.Repository;
@@ -38,22 +36,6 @@ import static org.mockito.Mockito.when;
 
 public class RestClientFactoryTest
 {
-  @Test
-  public void testHdsUnreachable() throws Exception {
-    HttpResponseException hre = new HttpResponseException(504, "nobody there");
-    ScanClient scanClient = mock(ScanClient.class);
-    when(scanClient.uploadRepoManScan(any(File.class))).thenThrow(hre);
-    RestClientFactory factory = spy(new RestClientFactory());
-    doReturn(scanClient).when(factory).newScanClient(any(Configuration.class), eq("appId"));
-    RestClient.App client = factory.forConfiguration(new RestClientConfiguration()).forApplication("appId");
-    assertThatExceptionOfType(HttpException.class).isThrownBy(() -> {
-      client.uploadScan(new File(""));
-    }).satisfies(e -> {
-      assertThat(e.getReason()).isEqualTo(hre.getMessage());
-      assertThat(e.getStatus()).isEqualTo(hre.getStatusCode());
-    });
-  }
-
   @Test
   public void testGetProprietaryConfigForApplicationEvaluation() throws Exception {
     ProprietaryConfig config = new ProprietaryConfig();

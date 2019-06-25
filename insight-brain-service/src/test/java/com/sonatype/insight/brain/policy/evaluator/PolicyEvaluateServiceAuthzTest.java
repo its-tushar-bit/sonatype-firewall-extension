@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.report.MockReportDownloader;
@@ -59,22 +60,22 @@ public class PolicyEvaluateServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testEvaluateWithPolling_Unauthenticated() throws Exception {
-    policyEvaluateService
-        .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(BuildStageType.ID));
+    policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
+        new Stage(BuildStageType.ID));
   }
 
   @Test
   public void testEvaluateWithPolling_Authorized() throws Exception {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-    policyEvaluateService
-        .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(BuildStageType.ID));
+    policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
+        new Stage(BuildStageType.ID));
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testEvaluateWithPolling_Unauthorized() throws Exception {
     login();
-    policyEvaluateService
-        .evaluateWithPolling(app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(BuildStageType.ID));
+    policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
+        new Stage(BuildStageType.ID));
   }
 
   @Test(expected = UnauthenticatedException.class)

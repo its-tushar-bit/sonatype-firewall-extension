@@ -26,12 +26,17 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.hds.ScanHandler;
+import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -62,6 +67,8 @@ public class PolicyEvaluateService
 
   private final ScanHandler scanHandler;
 
+  private final CLMLicenseManager clmLicenseManager;
+
   @VisibleForTesting
   final Cache<String, Future<PolicyEvaluationPollingResult>> policyEvaluationPollingResults =
       CacheBuilder.newBuilder().expireAfterWrite(2, TimeUnit.HOURS)
@@ -71,12 +78,14 @@ public class PolicyEvaluateService
   public PolicyEvaluateService(ScanPolicyEvaluator scanPolicyEvaluator,
                                PolicyAlertNotifier policyAlertNotifier,
                                ErrorResponseGenerator errorResponseGenerator,
-                               ScanHandler scanHandler)
+                               ScanHandler scanHandler,
+                               CLMLicenseManager clmLicenseManager)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
     this.errorResponseGenerator = errorResponseGenerator;
     this.scanHandler = scanHandler;
+    this.clmLicenseManager = clmLicenseManager;
 
     executor = new ThreadPoolExecutor(5, 100, 5L, TimeUnit.MINUTES,
         new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("PolicyEvaluateService-%d").build());
@@ -118,11 +127,23 @@ public class PolicyEvaluateService
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public PolicyEvaluationReceipt evaluateWithPolling(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+      IntegrationType integrationType,
+      @AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
       ClientScanType clientScanType,
       HttpServletRequest req,
       Stage stage) throws IOException
   {
+    if (integrationType.equals(IntegrationType.CLI) && !clmLicenseManager.hasFeature(Feature.CLI_INTEGRATION)) {
+      throw new InvalidLicenseException();
+    }
+    else if (integrationType.equals(IntegrationType.CI) && !clmLicenseManager.hasFeature(Feature.CI_INTEGRATION)) {
+      throw new InvalidLicenseException();
+    }
+    else if (integrationType.equals(IntegrationType.RM) &&
+        !clmLicenseManager.hasFeature(Feature.RM_STAGING_INTEGRATION)) {
+      throw new InvalidLicenseException();
+    }
+
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
       throw new InvalidStageException("Invalid stage id=" + stage.getStageTypeId());
     }

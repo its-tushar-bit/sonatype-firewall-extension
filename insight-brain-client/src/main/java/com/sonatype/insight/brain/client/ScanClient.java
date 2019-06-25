@@ -38,10 +38,6 @@ public class ScanClient
     return handleUpload("rest/cli/scan", scanFile, clientScanType);
   }
 
-  public ScanReceipt uploadRepoManScan(final File scanFile) throws IOException {
-    return handleUpload("rest/rm/scan", scanFile, ClientScanType.SONATYPE);
-  }
-
   private ScanReceipt handleUpload(String url, File scanFile, ClientScanType clientScanType) throws IOException {
     final Result result = path(url, appId).query("scanType", clientScanType.name())
         .put(new FileEntity(scanFile, GZIP_CONTENT_TYPE));

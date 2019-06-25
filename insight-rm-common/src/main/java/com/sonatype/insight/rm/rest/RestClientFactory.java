@@ -14,7 +14,6 @@ import java.util.Map.Entry;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.Resource;
-import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
@@ -29,9 +28,7 @@ import com.sonatype.insight.brain.client.FirewallClient;
 import com.sonatype.insight.brain.client.FirewallMigrationClient;
 import com.sonatype.insight.brain.client.PolicyClient;
 import com.sonatype.insight.brain.client.ResourceClient;
-import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
-import com.sonatype.insight.rm.rest.RestClient.App;
 import com.sonatype.insight.rm.rest.RestClient.FirewallMigration;
 import com.sonatype.insight.rm.rest.RestClient.Repository;
 import com.sonatype.insight.rm.rest.RestClient.Scan;
@@ -65,8 +62,8 @@ public class RestClientFactory
     return new FirewallMigrationClient(config);
   }
 
-  ScanClient newScanClient(final Configuration config, final String appId) {
-    return new ScanClient(config, appId);
+  PolicyClient newPolicyClient(final Configuration configuration, final String appId) {
+    return new PolicyClient(configuration, appId);
   }
 
   private class BaseClient
@@ -99,8 +96,8 @@ public class RestClientFactory
     }
 
     @Override
-    public App forApplication(final String appId) {
-      return new AppSpecificClient(config, appId);
+    public Scan forApplicationScan(final String appId, final File scanFile) {
+      return new ScanSpecificClient(config, appId, scanFile);
     }
 
     protected IOException handleError(IOException e) {
@@ -178,7 +175,7 @@ public class RestClientFactory
     private final String repositoryManagerInstanceId;
 
     private final String repositoryPublicId;
-    
+
     private final RepositoryManagerType repositoryManagerType;
 
     public RepositorySpecificClient(final Configuration config,
@@ -248,42 +245,18 @@ public class RestClientFactory
     }
   }
 
-  private class AppSpecificClient
-      extends BaseClient
-      implements RestClient.App
-  {
-    protected final String appId;
-
-    public AppSpecificClient(final Configuration config, final String appId) {
-      super(config);
-      this.appId = appId;
-    }
-
-    @Override
-    public ScanReceipt uploadScan(File scanFile) throws IOException {
-      try {
-        return newScanClient(config, appId).uploadRepoManScan(scanFile);
-      }
-      catch (IOException e) {
-        throw handleError(e);
-      }
-    }
-
-    @Override
-    public Scan forScan(String scanId) {
-      return new ScanSpecificClient(config, appId, scanId);
-    }
-  }
-
   private class ScanSpecificClient
-      extends AppSpecificClient
+      extends BaseClient
       implements RestClient.Scan
   {
-    protected final String scanId;
+    private final String appId;
 
-    public ScanSpecificClient(final Configuration config, final String appId, final String scanId) {
-      super(config, appId);
-      this.scanId = scanId;
+    private final File scanFile;
+
+    public ScanSpecificClient(final Configuration config, final String appId, final File scanFile) {
+      super(config);
+      this.appId = appId;
+      this.scanFile = scanFile;
     }
 
     @Override
@@ -302,9 +275,7 @@ public class RestClientFactory
         default:
           throw new IllegalStateException("unsupported stage " + stage);
       }
-      return new PolicyClient(config, appId)
-          .evaluate(null /* scanFile needed here */, null /* client type not be required for firewall */, st)
-          .getResult();
+      return newPolicyClient(config, appId).evaluateRepoMan(scanFile, st).getResult();
     }
   }
 

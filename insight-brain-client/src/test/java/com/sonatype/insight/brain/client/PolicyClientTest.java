@@ -101,7 +101,7 @@ public class PolicyClientTest
   }
 
   @Test
-  public void testEvaluate() throws Exception {
+  public void testEvaluateCLI() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
     final String scanId = "test-scanid";
 
@@ -120,7 +120,53 @@ public class PolicyClientTest
         .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
 
     PolicyEvaluationPollingResult policyEvaluationResult =
-        policyClient.evaluate(scanFile, ClientScanType.SONATYPE, stage);
+        policyClient.evaluateCLI(scanFile, ClientScanType.SONATYPE, stage);
+    assertThat(policyEvaluationResult).isNotNull();
+  }
+
+  @Test
+  public void testEvaluateCI() throws Exception {
+    Stage stage = new Stage(Stage.ID_BUILD);
+    final String scanId = "test-scanid";
+
+    Application application = tempEntity.newApplicationWithParent("test-app");
+    File scanFile = createScanFile(application, scanId);
+    Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
+    mockScanReceiptAndReport(scanId);
+
+    PolicyEvaluationPollingResult completedResult = new PolicyEvaluationPollingResult();
+    completedResult.setStatus(PolicyEvaluationStatus.COMPLETED);
+    completedResult.setResult(new PolicyEvaluationResult());
+
+    PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId()));
+    doReturn(completedResult).when(policyClient)
+        .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
+
+    PolicyEvaluationPollingResult policyEvaluationResult = policyClient.evaluateCI(scanFile, stage);
+    assertThat(policyEvaluationResult).isNotNull();
+  }
+
+  @Test
+  public void testEvaluateRepoMan() throws Exception {
+    Stage stage = new Stage(Stage.ID_BUILD);
+    final String scanId = "test-scanid";
+
+    Application application = tempEntity.newApplicationWithParent("test-app");
+    File scanFile = createScanFile(application, scanId);
+    Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
+    mockScanReceiptAndReport(scanId);
+
+    PolicyEvaluationPollingResult completedResult = new PolicyEvaluationPollingResult();
+    completedResult.setStatus(PolicyEvaluationStatus.COMPLETED);
+    completedResult.setResult(new PolicyEvaluationResult());
+
+    PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId()));
+    doReturn(completedResult).when(policyClient)
+        .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
+
+    PolicyEvaluationPollingResult policyEvaluationResult = policyClient.evaluateRepoMan(scanFile, stage);
     assertThat(policyEvaluationResult).isNotNull();
   }
 
@@ -146,7 +192,7 @@ public class PolicyClientTest
         .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
 
     PolicyEvaluationPollingResult policyEvaluationResult =
-        policyClient.evaluate(scanFile, ClientScanType.SONATYPE, stage);
+        policyClient.evaluate("cli", scanFile, ClientScanType.SONATYPE, stage);
     assertThat(policyEvaluationResult).isNotNull();
     verify(policyClient, times(3))
         .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
@@ -168,7 +214,7 @@ public class PolicyClientTest
         .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationReceipt.class));
 
     try {
-      policyClient.evaluate(scanFile, ClientScanType.SONATYPE, stage);
+      policyClient.evaluate("cli", scanFile, ClientScanType.SONATYPE, stage);
       fail("IOException expected to be thrown");
     }
     catch (IOException e) {
@@ -198,7 +244,7 @@ public class PolicyClientTest
         eq(PolicyEvaluationPollingResult.class));
 
     try {
-      policyClient.evaluate(scanFile, ClientScanType.SONATYPE, stage);
+      policyClient.evaluate("cli", scanFile, ClientScanType.SONATYPE, stage);
       fail("IOException expected to be thrown");
     }
     catch (IOException e) {
@@ -232,7 +278,7 @@ public class PolicyClientTest
     doReturn(pollingResult).when(policyClient).parseResult(ArgumentMatchers.any(Result.class),
         eq(PolicyEvaluationPollingResult.class));
 
-    policyClient.evaluate(scanFile, ClientScanType.SONATYPE, stage);
+    policyClient.evaluate("cli", scanFile, ClientScanType.SONATYPE, stage);
 
     assertThat(logOutput.getDebugMessages(PolicyClient.class.getName()))
         .contains("Assigned status ID evaluation-statusid");

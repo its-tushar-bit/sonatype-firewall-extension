@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.purl.PurlIdentifier;
 
 /**
  * @since 1.13.0
@@ -79,6 +80,7 @@ public class ApiComponentDetailsAdapter
     componentDetailsDTO.component.componentIdentifier = ApiComponentIdentifierDTOV2
         .fromComponentIdentifier(componentDetailsFromHds.componentIdentifier);
     componentDetailsDTO.component.hash = componentDetailsFromHds.hash;
+    componentDetailsDTO.component.packageUrl = PurlIdentifier.toPackageUrl(componentDetailsFromHds.componentIdentifier);
     if (componentDetailsFromHds.matchState == null) {
       componentDetailsDTO.matchState = MatchState.UNKNOWN.getId();
     }

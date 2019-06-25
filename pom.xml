@@ -832,6 +832,12 @@
         <groupId>com.sonatype.nexus</groupId>
         <artifactId>nexus-github-wrapper</artifactId>
         <version>1.0</version>
+        <exclusions>
+          <exclusion>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
     </dependencies>
   </dependencyManagement>

@@ -107,7 +107,7 @@ public class ApiComponentDetailsServiceV2Test
             "a" + componentIndex, "v" + componentIndex, "", "e" + componentIndex);
         ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier,
             "h" + componentIndex);
-        component.packageUrl = PurlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
+        component.packageUrl = PurlIdentifier.toPackageUrl(componentIdentifier);
         request.components.add(component);
         requestChunk.components.add(component);
 
@@ -182,7 +182,7 @@ public class ApiComponentDetailsServiceV2Test
     assertThat(result.componentDetails).hasSize(1);
     assertComponentDetails(result.componentDetails.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(resultComponentIdentifier), "h1",
-        PurlIdentifier.fromComponentIdentifier(resultComponentIdentifier).getPackageUrl());
+        PurlIdentifier.toPackageUrl(resultComponentIdentifier));
   }
 
   @Test
@@ -200,7 +200,7 @@ public class ApiComponentDetailsServiceV2Test
     assertThat(result).isNotNull();
     assertThat(result.componentDetails).hasSize(1);
     assertComponentDetails(result.componentDetails.get(0), component.componentIdentifier, "h1",
-        PurlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl());
+        PurlIdentifier.toPackageUrl(componentIdentifier));
   }
 
   @Test
@@ -283,7 +283,7 @@ public class ApiComponentDetailsServiceV2Test
     assertThat(result.componentDetails).hasSize(1);
     assertComponentDetails(result.componentDetails.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier1), "h1",
-        PurlIdentifier.fromComponentIdentifier(componentIdentifier1).getPackageUrl());
+        PurlIdentifier.toPackageUrl(componentIdentifier1));
   }
 
   @Test
@@ -328,10 +328,10 @@ public class ApiComponentDetailsServiceV2Test
     assertThat(result.componentDetails).hasSize(2);
     assertComponentDetails(result.componentDetails.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier1), "h1",
-        PurlIdentifier.fromComponentIdentifier(componentIdentifier1).getPackageUrl());
+        PurlIdentifier.toPackageUrl(componentIdentifier1));
     assertComponentDetails(result.componentDetails.get(1),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier2), "h1",
-        PurlIdentifier.fromComponentIdentifier(componentIdentifier2).getPackageUrl());
+        PurlIdentifier.toPackageUrl(componentIdentifier2));
   }
 
   @Test
@@ -359,7 +359,7 @@ public class ApiComponentDetailsServiceV2Test
     assertThat(result.componentDetails).hasSize(1);
     assertComponentDetails(result.componentDetails.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier), hash,
-        PurlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl());
+        PurlIdentifier.toPackageUrl(componentIdentifier));
   }
 
   private void assertComponentDetails(ApiComponentDetailsDTOV2 resultComponentDTO,

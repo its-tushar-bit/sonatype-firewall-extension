@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.io.IOException;
-
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.RootOrgMigrate;
 import com.sonatype.clm.testing.functional.elements.RootOrgMigrateModal;
@@ -30,7 +28,7 @@ public class RootOrgMigrateTest
   private static final String ORG_NAME = "testModal";
 
   @Test
-  public void testEverything() throws IOException {
+  public void testEverything() {
     org = tempEntity.newOrganization(ORG_NAME);
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(false);
@@ -95,7 +93,7 @@ public class RootOrgMigrateTest
     RootOrgMigrate.migrateConfiguredBanner().shouldBe(hidden);
   }
 
-  private void testBannerChange() throws IOException {
+  private void testBannerChange() {
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(false);
 

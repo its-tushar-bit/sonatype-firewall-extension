@@ -190,8 +190,7 @@ public class ScanPolicyEvaluator
 
     updateReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
 
-    postEvents(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations,
-        extractCommitHash(Report.getEntry(reportFile, "data.json")));
+    postEvents(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations, reportFile);
 
     return scanPolicyEvaluatorResults;
   }
@@ -648,11 +647,10 @@ public class ScanPolicyEvaluator
   /**
    * @since 1.25.0
    */
-  private void postEvents(
-      PolicyEvaluation policyEvaluation,
-      List<PolicyViolation> policyViolations,
-      String commitHash)
+  private void postEvents(PolicyEvaluation policyEvaluation, List<PolicyViolation> policyViolations, File reportFile)
+      throws IOException
   {
+    String commitHash = extractCommitHash(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME));
     PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(policyEvaluation, policyViolations,
         true);
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash);

@@ -60,11 +60,16 @@ public class PolicyAlertEventService
     this.applicationDAO = applicationDAO;
   }
 
-  public void postEvent(final PolicyEvaluation policyEvaluation, final PolicyEvaluationResult policyEvaluationResult) {
+  public void postEvent(
+      final PolicyEvaluation policyEvaluation, 
+      final PolicyEvaluationResult policyEvaluationResult,
+      final String commitHash)
+  {
     try {
       final ApplicationSummary applicationSummary = populateApplicationSummary(policyEvaluation);
       final ApplicationEvaluationEvent applicationEvaluationEvent =
-          ApplicationEvaluationEventService.buildEvent(policyEvaluation, policyEvaluationResult, currentUser);
+          ApplicationEvaluationEventService
+              .buildEvent(policyEvaluation, policyEvaluationResult, commitHash, currentUser);
 
       // group by target
       Map<String, List<PolicyFact>> groupedAlerts = policyEvaluationResult.getAlerts().stream()

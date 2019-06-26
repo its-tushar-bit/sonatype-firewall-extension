@@ -37,6 +37,12 @@ public class ApplicationEvaluationEvent
 
   public String reportId;
 
+  /**
+   * Set only if available from underlying data
+   * @since 1.67.0 
+   */
+  public String commitHash;
+
   @Override
   public String toString() {
     return getClass().getName() + "{policyEvaluationId=" + policyEvaluationId + "}";

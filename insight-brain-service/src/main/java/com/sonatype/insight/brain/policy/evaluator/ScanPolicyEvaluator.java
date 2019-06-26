@@ -190,7 +190,8 @@ public class ScanPolicyEvaluator
 
     updateReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
 
-    postEvents(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations);
+    postEvents(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations,
+        extractCommitHash(Report.getEntry(reportFile, "data.json")));
 
     return scanPolicyEvaluatorResults;
   }
@@ -647,11 +648,15 @@ public class ScanPolicyEvaluator
   /**
    * @since 1.25.0
    */
-  private void postEvents(PolicyEvaluation policyEvaluation, List<PolicyViolation> policyViolations) {
+  private void postEvents(
+      PolicyEvaluation policyEvaluation,
+      List<PolicyViolation> policyViolations,
+      String commitHash)
+  {
     PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(policyEvaluation, policyViolations,
         true);
-    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult);
-    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult);
+    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash);
+    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash);
   }
 
   @VisibleForTesting
@@ -737,5 +742,12 @@ public class ScanPolicyEvaluator
       }
     }
     return attributes;
+  }
+
+  private String extractCommitHash(ReportEntry dataReportEntry) throws IOException {
+    if (null == dataReportEntry) {
+      return null;
+    }
+    return JsonUtils.parse(dataReportEntry.buf).path("commitHash").asText(null);
   }
 }

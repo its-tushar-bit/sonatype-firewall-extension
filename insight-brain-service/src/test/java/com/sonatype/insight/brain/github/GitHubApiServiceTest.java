@@ -5,22 +5,15 @@
  */
 package com.sonatype.insight.brain.github;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.UUID;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.report.Report;
-import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
@@ -28,15 +21,13 @@ import com.sonatype.nexus.github.GitHubApiClient;
 import com.sonatype.nexus.github.model.ProjectUri;
 import com.sonatype.nexus.github.model.StatusRequest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -52,15 +43,9 @@ public class GitHubApiServiceTest
 
   private ApiSourceControlService mockSourceControlService;
 
-  private PolicyEvaluationDAO mockPolicyEvaluationDAO;
-
-  private ReportService mockReportService;
-
   private GitHubApiClientFactory mockGitHubApiClientFactory;
 
   private BaseUrl mockBaseUrl;
-
-  private ApplicationDAO mockApplicationDAO;
 
   private Application application;
 
@@ -68,25 +53,22 @@ public class GitHubApiServiceTest
 
   private ApplicationEvaluationEvent event;
 
-  private PolicyEvaluation evaluation;
-
-  private GitHubApiClient mockGitHubApiClient;
+  private GitHubApiClient mockGitHubApiClient = mock(GitHubApiClient.class);
 
   @Override
   public void configure(Binder binder) {
     mockSourceControlService = mock(ApiSourceControlService.class);
     binder.bind(ApiSourceControlService.class).toInstance(mockSourceControlService);
-    mockPolicyEvaluationDAO = mock(PolicyEvaluationDAO.class);
-    binder.bind(PolicyEvaluationDAO.class).toInstance(mockPolicyEvaluationDAO);
-    mockReportService = mock(ReportService.class);
-    binder.bind(ReportService.class).toInstance(mockReportService);
     mockGitHubApiClientFactory = mock(GitHubApiClientFactory.class);
     binder.bind(GitHubApiClientFactory.class).toInstance(mockGitHubApiClientFactory);
     mockBaseUrl = mock(BaseUrl.class);
     binder.bind(BaseUrl.class).toInstance(mockBaseUrl);
-    mockApplicationDAO = mock(ApplicationDAO.class);
-    binder.bind(ApplicationDAO.class).toInstance(mockApplicationDAO);
     super.configure(binder);
+  }
+  
+  @Before
+  public void setup() {
+    application = tempEntity.newApplicationWithParent("app", "appId", "orgId");
   }
 
   @Test
@@ -114,9 +96,7 @@ public class GitHubApiServiceTest
   public void testMaybeRespondToApplicationEvaluationEvent_WithoutCommitHash()
       throws IOException
   {
-    setupPolicyEvaluation("Fail");
-    GitHubApiClient mockGitHubApiClient = setUpApplicationEvaluationResponse(application, event, evaluation, "{}");
-
+    event = getApplicationEvaluationEvent("foo", null, null, 0, 0, 0, 0, null);
     gitHubApiService.maybeRespond(event);
 
     verify(mockGitHubApiClient, never()).createStatus(any(), any(), any(), any());
@@ -124,21 +104,11 @@ public class GitHubApiServiceTest
 
   @Test
   public void testMaybeRespondToApplicationEvaluationEvent_SourceControlRecordNotFound() throws IOException {
-    setupPolicyEvaluation("Fail");
-
-    setupMockGitHubClientWithCommitHashInReport();
-
     doReturn(null).when(mockSourceControlService).getSourceControlByApplicationIdDecrypted(application.getId());
-
+    event = getApplicationEvaluationEvent(application.getId(), "release", "failure", 1, 1, 0, 0, "commitHash");
     gitHubApiService.maybeRespond(event);
 
     verify(mockGitHubApiClient, never()).createStatus(any(), any(), any(), any());
-  }
-
-  private void setupMockGitHubClientWithCommitHashInReport() throws IOException {
-    String commitHash = UUID.randomUUID().toString();
-    String dataJson = new ObjectMapper().writeValueAsString(ImmutableMap.of("commitHash", commitHash));
-    mockGitHubApiClient = setUpApplicationEvaluationResponse(application, event, evaluation, dataJson);
   }
 
   private void assertApplicationEvaluationOutcome(final String policyEvaluationOutcome, final String gitHubCommitStatus)
@@ -146,20 +116,15 @@ public class GitHubApiServiceTest
   {
     ProjectUri projectUri = setupPolicyEvaluation(policyEvaluationOutcome);
 
-    String commitHash = UUID.randomUUID().toString();
-    String dataJson = new ObjectMapper().writeValueAsString(ImmutableMap.of("commitHash", commitHash));
-    mockGitHubApiClient = setUpApplicationEvaluationResponse(application, event, evaluation, dataJson);
-
     doReturn(sourceControl).when(mockSourceControlService)
         .getSourceControlByApplicationIdDecrypted(application.getId());
 
     doReturn(mockGitHubApiClient).when(mockGitHubApiClientFactory).create(sourceControl.getRepositoryUrl(), TOKEN);
-    doReturn(application).when(mockApplicationDAO).getByIdNotNull(application.getId());
     doReturn("http://localhost:8070/").when(mockBaseUrl).get();
 
     gitHubApiService.maybeRespond(event);
 
-    assertGitHubStatusMessage(projectUri, event, commitHash, gitHubCommitStatus, mockGitHubApiClient);
+    assertGitHubStatusMessage(projectUri, event, "commitHash", gitHubCommitStatus, mockGitHubApiClient);
   }
 
   private ProjectUri setupPolicyEvaluation(final String policyEvaluationOutcome) {
@@ -168,29 +133,12 @@ public class GitHubApiServiceTest
     int severeComponentsCount = 6;
     int moderateComponentsCount = 3;
 
-    application = tempEntity.newApplicationWithParent("app", "appId", "orgId");
     ProjectUri projectUri = new ProjectUri("https://github.com/owner/repo/");
     sourceControl = new SourceControl(application.getId(), projectUri.getUrl(), TOKEN);
     event =
         getApplicationEvaluationEvent(application.getId(), "release", policyEvaluationOutcome, affectedComponentsCount,
-            criticalComponentsCount, severeComponentsCount, moderateComponentsCount);
-    evaluation = new PolicyEvaluation(application.getId(), event.stageTypeId, "scanId");
+            criticalComponentsCount, severeComponentsCount, moderateComponentsCount, "commitHash");
     return projectUri;
-  }
-
-  private GitHubApiClient setUpApplicationEvaluationResponse(
-      final Application application,
-      final ApplicationEvaluationEvent event,
-      final PolicyEvaluation evaluation,
-      final String dataJson) throws IOException
-  {
-    doReturn(evaluation).when(mockPolicyEvaluationDAO).getById(event.policyEvaluationId);
-
-    File report = new File("report");
-    doReturn(report).when(mockReportService).getReport(any(), eq(application.getId()), eq(evaluation.getScanId()));
-    Report.putEntry(report, Report.DATA_JSON_FILENAME, dataJson);
-
-    return mock(GitHubApiClient.class);
   }
 
   private void assertGitHubStatusMessage(
@@ -224,7 +172,8 @@ public class GitHubApiServiceTest
       final int affectedComponentCount,
       final int criticalComponentCount,
       final int severeComponentCount,
-      final int moderateComponentCount)
+      final int moderateComponentCount, 
+      final String commitHash)
   {
     ApplicationEvaluationEvent event = new ApplicationEvaluationEvent();
     event.outcome = outcome;
@@ -235,6 +184,8 @@ public class GitHubApiServiceTest
     event.criticalComponentCount = criticalComponentCount;
     event.severeComponentCount = severeComponentCount;
     event.moderateComponentCount = moderateComponentCount;
+    event.commitHash = commitHash;
+    event.reportId = "scanId";
     return event;
   }
 }

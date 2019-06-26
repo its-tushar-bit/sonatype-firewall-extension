@@ -9,11 +9,11 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.SchemaInfoDAO;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
-import com.sonatype.insight.brain.model.SchemaInfo;
+import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
@@ -36,7 +36,7 @@ public class PolicyJsonMigratorTest
   private PolicyJsonMigrator migrator;
 
   @Inject
-  private SchemaInfoDAO schemaInfoDAO;
+  private MigrationTrackerDAO migrationTrackerDAO;
 
   @Inject
   private PolicyInternalDAO policyInternalDAO;
@@ -44,18 +44,20 @@ public class PolicyJsonMigratorTest
   @Inject
   private PolicyDAO policyDAO;
 
+  private MigrationTracker savedMigrationTracker;
+
   @Before
   public void init() {
-    SchemaInfo schemaInfo = schemaInfoDAO.get();
-    schemaInfo.setPolicyJsonVersion(0);
-    schemaInfoDAO.update(schemaInfo);
+    savedMigrationTracker = migrationTrackerDAO.getById(PolicyJsonMigrator.MIGRATION_ID);
+    // fake version, tests here are written for version 0
+    MigrationTracker migrationTracker = new MigrationTracker(PolicyJsonMigrator.MIGRATION_ID);
+    migrationTracker.setVersion(0);
+    migrationTrackerDAO.update(migrationTracker);
   }
 
   @After
   public void exit() {
-    SchemaInfo schemaInfo = schemaInfoDAO.get();
-    schemaInfo.setPolicyJsonVersion(PolicyJsonMigrator.POLICY_JSON_VERSION);
-    schemaInfoDAO.update(schemaInfo);
+    migrationTrackerDAO.update(savedMigrationTracker);
   }
 
   private String getPolicyContent(String filename) throws Exception {
@@ -71,7 +73,8 @@ public class PolicyJsonMigratorTest
 
     migrator.migrate();
 
-    assertThat(schemaInfoDAO.get().getPolicyJsonVersion()).isEqualTo(PolicyJsonMigrator.POLICY_JSON_VERSION);
+    assertThat(migrationTrackerDAO.getById(PolicyJsonMigrator.MIGRATION_ID).getVersion())
+        .isEqualTo(PolicyJsonMigrator.POLICY_JSON_VERSION);
 
     Policy policy = policyDAO.getById(policyId);
     assertThat(policy.getConstraints()).hasSize(1);
@@ -103,7 +106,8 @@ public class PolicyJsonMigratorTest
 
     migrator.migrate();
 
-    assertThat(schemaInfoDAO.get().getPolicyJsonVersion()).isEqualTo(PolicyJsonMigrator.POLICY_JSON_VERSION);
+    assertThat(migrationTrackerDAO.getById(PolicyJsonMigrator.MIGRATION_ID).getVersion())
+        .isEqualTo(PolicyJsonMigrator.POLICY_JSON_VERSION);
 
     Policy policy = policyDAO.getById(policyId);
     Condition deprecatedCondition = policy.getConstraints().get(0).getConditions().get(0);

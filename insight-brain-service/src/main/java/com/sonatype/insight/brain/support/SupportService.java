@@ -356,7 +356,6 @@ class SupportService
   }
 
   void addAllDbData(final List<SupportFile> filesToZip, final File workDir) throws IOException {
-    addDbData(filesToZip, workDir, dbData.getSchemaInfo());
     addDbData(filesToZip, workDir, dbData.getRepositoryManager());
     addDbData(filesToZip, workDir, dbData.getRepository());
     addDbData(filesToZip, workDir, dbData.getOrganization());

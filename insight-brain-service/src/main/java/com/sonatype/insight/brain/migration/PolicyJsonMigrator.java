@@ -14,10 +14,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.dataaccess.SchemaInfoDAO;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
-import com.sonatype.insight.brain.model.SchemaInfo;
+import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
@@ -43,24 +43,23 @@ public class PolicyJsonMigrator
 
   static final int POLICY_JSON_VERSION = 1;
 
-  private final SchemaInfoDAO schemaInfoDAO;
+  static final String MIGRATION_ID = "policy-json";
 
   private final PolicyInternalDAO policyInternalDAO;
 
+  private final MigrationTrackerDAO migrationTrackerDAO;
+
   @Inject
-  public PolicyJsonMigrator(SchemaInfoDAO schemaInfoDAO,
-                            PolicyInternalDAO policyInternalDAO)
-  {
-    this.schemaInfoDAO = schemaInfoDAO;
+  public PolicyJsonMigrator(MigrationTrackerDAO migrationTrackerDAO, PolicyInternalDAO policyInternalDAO) {
+    this.migrationTrackerDAO = migrationTrackerDAO;
     this.policyInternalDAO = policyInternalDAO;
   }
 
   public void migrate() throws IOException {
     long start = System.currentTimeMillis();
 
-    SchemaInfo schemaInfo = schemaInfoDAO.get();
-
-    int policyJsonVersion = schemaInfo.getPolicyJsonVersion();
+    MigrationTracker migrationTracker = migrationTrackerDAO.getById(MIGRATION_ID);
+    int policyJsonVersion = migrationTracker.getVersion();
     if (policyJsonVersion >= POLICY_JSON_VERSION) {
       log.debug("Policy definitions already up to date.");
       return;
@@ -76,11 +75,10 @@ public class PolicyJsonMigrator
         policyInternalDAO.update(tx, policy);
       }
 
-      schemaInfo.setPolicyJsonVersion(POLICY_JSON_VERSION);
-      schemaInfoDAO.update(tx, schemaInfo);
+      migrationTracker.setVersion(POLICY_JSON_VERSION);
+      migrationTrackerDAO.update(tx, migrationTracker);
 
       tx.commit();
-
       log.info("Migrated definitions for {} policies in {} ms.", policies.size(), System.currentTimeMillis() - start);
     }
   }

@@ -30,10 +30,6 @@ public class MigrationTrackerDAO
     return getList(sQuery);
   }
 
-  public void deleteAll() {
-    getAll().forEach(this::delete);
-  }
-
   public boolean isTrackerPresent(String trackerId) {
     return getById(trackerId) != null;
   }

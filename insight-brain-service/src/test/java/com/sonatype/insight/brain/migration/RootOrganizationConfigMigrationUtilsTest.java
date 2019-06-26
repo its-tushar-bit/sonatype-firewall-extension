@@ -5,13 +5,35 @@
  */
 package com.sonatype.insight.brain.migration;
 
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.model.MigrationTracker;
+
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RootOrganizationConfigMigrationUtilsTest
-    extends MigratorTest
 {
+  private final MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+
+  private final RootOrganizationConfigMigrationUtils migrationUtils =
+      new RootOrganizationConfigMigrationUtils(migrationTrackerDAO);
+
+  @Before
+  public void before() {
+    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
+    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
+  }
+
+  @After
+  public void after() {
+    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
+    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
+    migrationUtils.setMigrated();
+  }
+
   @Test
   public void testSetMigrated() {
     assertThat(migrationUtils.isMigrationScheduled()).isFalse();

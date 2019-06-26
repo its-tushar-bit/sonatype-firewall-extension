@@ -7,13 +7,13 @@ package com.sonatype.insight.brain.migration;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.SchemaInfoDAO;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
+import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.SchemaInfo;
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -24,6 +24,8 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupCond
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.codehaus.plexus.util.IOUtil;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,10 +37,22 @@ public class PolicyDroolsCodeMigratorTest
   private PolicyDroolsCodeMigrator migrator;
 
   @Inject
-  private SchemaInfoDAO schemaInfoDAO;
+  private MigrationTrackerDAO migrationTrackerDAO;
 
   @Inject
   private PolicyDAO policyDAO;
+
+  private MigrationTracker savedMigrationTracker;
+
+  @Before
+  public void init() {
+    savedMigrationTracker = migrationTrackerDAO.getById(PolicyDroolsCodeMigrator.MIGRATION_ID);
+  }
+
+  @After
+  public void exit() {
+    migrationTrackerDAO.update(savedMigrationTracker);
+  }
 
   @Test
   public void testMigrate_GracefullyHandleInvalidPolicy() throws Exception {
@@ -59,7 +73,8 @@ public class PolicyDroolsCodeMigratorTest
 
     migrator.migrate();
 
-    assertThat(schemaInfoDAO.get().getDroolsCodeVersion()).isEqualTo(PolicyDroolsCodeMigrator.DROOLS_CODE_VERSION);
+    assertThat(migrationTrackerDAO.getById(PolicyDroolsCodeMigrator.MIGRATION_ID).getVersion())
+        .isEqualTo(PolicyDroolsCodeMigrator.DROOLS_CODE_VERSION);
   }
 
   @Test
@@ -98,7 +113,8 @@ public class PolicyDroolsCodeMigratorTest
     policy = policyDAO.getById(policyId);
     assertThat(policy.getDroolsCode()).contains("$conditionTriggers");
 
-    assertThat(schemaInfoDAO.get().getDroolsCodeVersion()).isEqualTo(PolicyDroolsCodeMigrator.DROOLS_CODE_VERSION);
+    assertThat(migrationTrackerDAO.getById(PolicyDroolsCodeMigrator.MIGRATION_ID).getVersion())
+        .isEqualTo(PolicyDroolsCodeMigrator.DROOLS_CODE_VERSION);
   }
 
   private String getPolicyContent(String filename) throws Exception {
@@ -106,8 +122,8 @@ public class PolicyDroolsCodeMigratorTest
   }
 
   private void fakeDroolsCodeVersion(int version) {
-    SchemaInfo schemaInfo = schemaInfoDAO.get();
-    schemaInfo.setDroolsCodeVersion(version);
-    schemaInfoDAO.update(schemaInfo);
+    MigrationTracker migrationTracker = new MigrationTracker(PolicyDroolsCodeMigrator.MIGRATION_ID);
+    migrationTracker.setVersion(version);
+    migrationTrackerDAO.update(migrationTracker);
   }
 }

@@ -9,6 +9,7 @@ import java.io.File;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
@@ -53,6 +55,7 @@ import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.postgres.PostgresServer;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -62,8 +65,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class RootOrganizationConfigMigratorTest
-    extends MigratorTest
 {
+  private final MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+
+  private final RootOrganizationConfigMigrationUtils migrationUtils =
+      new RootOrganizationConfigMigrationUtils(migrationTrackerDAO);
+
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
@@ -104,6 +111,16 @@ public class RootOrganizationConfigMigratorTest
     config.setSonatypeWork(workDir.getAbsolutePath());
 
     migrator = new RootOrganizationConfigMigrator(config, migrationUtils);
+
+    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
+    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
+  }
+
+  @After
+  public void after() {
+    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
+    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
+    migrationUtils.setMigrated();
   }
 
   @Test

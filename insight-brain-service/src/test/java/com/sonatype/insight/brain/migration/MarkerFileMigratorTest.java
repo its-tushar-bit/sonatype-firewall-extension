@@ -9,12 +9,14 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.openjpa.persistence.RollbackException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,8 +26,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 public class MarkerFileMigratorTest
-    extends MigratorTest
 {
+  private MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
@@ -41,6 +44,12 @@ public class MarkerFileMigratorTest
     insightWork = new InsightWork(insightConfig);
     insightWork.getDataDir().mkdirs();
     markerFileMigrator = new MarkerFileMigrator(migrationTrackerDAO, insightWork);
+    migrationTrackerDAO.delete(new MigrationTracker(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID));
+  }
+
+  @After
+  public void after() {
+    migrationTrackerDAO.delete(new MigrationTracker(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID));
   }
 
   @Test
@@ -82,21 +91,27 @@ public class MarkerFileMigratorTest
 
   @Test
   public void testMigrate_MustMoveRootOrganizationConfigFileToDatabase() throws IOException {
-    assertThat(migrationTrackerDAO.isTrackerPresent(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isFalse();
-    assertThat(migrationTrackerDAO.isTrackerPresent(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID))
-        .isFalse();
-    File markerFile = new File(insightWork.getWorkDir(), MarkerFileMigrator.ROOT_ORGANIZATION_CONFIG_FILE);
-    String sourceOrganizationId = "sourceOrganizationId";
-    FileUtils.writeStringToFile(markerFile, sourceOrganizationId, StandardCharsets.UTF_8);
+    try {
+      assertThat(migrationTrackerDAO.isTrackerPresent(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isFalse();
+      assertThat(migrationTrackerDAO.isTrackerPresent(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID))
+          .isFalse();
+      File markerFile = new File(insightWork.getWorkDir(), MarkerFileMigrator.ROOT_ORGANIZATION_CONFIG_FILE);
+      String sourceOrganizationId = "sourceOrganizationId";
+      FileUtils.writeStringToFile(markerFile, sourceOrganizationId, StandardCharsets.UTF_8);
 
-    markerFileMigrator.migrate();
+      markerFileMigrator.migrate();
 
-    MigrationTracker migrationTracker =
-        migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID);
-    assertThat(migrationTracker).isNotNull();
-    assertThat(migrationTracker.getConfiguration()).isEqualTo(sourceOrganizationId);
-    assertThat(markerFile).isFile();
-    assertThat(migrationTrackerDAO.isTrackerPresent(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isTrue();
+      MigrationTracker migrationTracker =
+          migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID);
+      assertThat(migrationTracker).isNotNull();
+      assertThat(migrationTracker.getConfiguration()).isEqualTo(sourceOrganizationId);
+      assertThat(markerFile).isFile();
+      assertThat(migrationTrackerDAO.isTrackerPresent(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isTrue();
+    }
+    finally {
+      migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
+      migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
+    }
   }
 
   @Test
@@ -128,18 +143,27 @@ public class MarkerFileMigratorTest
       // Assert Migration Tracker itself is not tracked
       assertThat(migrationTrackerDAO.getById(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isNull();
     }
+    finally {
+      migrationTrackerDAO
+          .delete(new MigrationTracker(PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID));
+    }
   }
 
   private void testMigrate(String migrationTrackerId, File markerFile) throws IOException {
+    migrationTrackerDAO.delete(new MigrationTracker(migrationTrackerId));
     assertThat(migrationTrackerDAO.getById(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isNull();
     assertThat(migrationTrackerDAO.getById(migrationTrackerId)).isNull();
     markerFile.getParentFile().mkdirs();
     markerFile.createNewFile();
-
-    markerFileMigrator.migrate();
-
-    assertThat(migrationTrackerDAO.getById(migrationTrackerId)).isNotNull();
-    assertThat(markerFile).isFile();
-    assertThat(migrationTrackerDAO.getById(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isNotNull();
+    try {
+      markerFileMigrator.migrate();
+      assertThat(migrationTrackerDAO.getById(migrationTrackerId)).isNotNull();
+      assertThat(markerFile).isFile();
+      assertThat(migrationTrackerDAO.getById(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isNotNull();
+    }
+    finally {
+      // Do not leave tracker in the db
+      migrationTrackerDAO.delete(new MigrationTracker(migrationTrackerId));
+    }
   }
 }

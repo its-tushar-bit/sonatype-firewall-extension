@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.Organization;
@@ -26,7 +27,6 @@ import org.junit.rules.TemporaryFolder;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProprietaryConfigMigratorTest
-    extends MigratorTest
 {
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
@@ -37,6 +37,8 @@ public class ProprietaryConfigMigratorTest
 
   private InsightWork work;
 
+  private MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+
   @Before
   public void setUp() throws Exception {
     InsightConfig insightConfig = new InsightConfig();
@@ -46,6 +48,8 @@ public class ProprietaryConfigMigratorTest
     work.getDataDir().mkdirs();
     proprietaryConfigDAO = new ProprietaryConfigDAO();
     migrator = new ProprietaryConfigMigrator(work, proprietaryConfigDAO, migrationTrackerDAO);
+
+    migrationTrackerDAO.delete(new MigrationTracker(ProprietaryConfigMigrator.MIGRATION_ID));
   }
 
   @After
@@ -55,6 +59,8 @@ public class ProprietaryConfigMigratorTest
     if (proprietaryConfig != null) {
       proprietaryConfigDAO.delete(proprietaryConfig);
     }
+    // do not leave tracker behind in MigrationTracker table
+    migrationTrackerDAO.delete(new MigrationTracker(ProprietaryConfigMigrator.MIGRATION_ID));
   }
 
   @Test

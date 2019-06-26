@@ -10,9 +10,9 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.dataaccess.SchemaInfoDAO;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.model.SchemaInfo;
+import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 
@@ -29,7 +29,9 @@ public class PolicyDroolsCodeMigrator
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyDroolsCodeMigrator.class);
 
-  private final SchemaInfoDAO schemaInfoDAO;
+  private final MigrationTrackerDAO migrationTrackerDAO;
+
+  static final String MIGRATION_ID = "policy-drools-code";
 
   // v2 since 1.16
   // v3 since 1.32
@@ -37,13 +39,13 @@ public class PolicyDroolsCodeMigrator
   static final int DROOLS_CODE_VERSION = 4;
 
   @Inject
-  public PolicyDroolsCodeMigrator(SchemaInfoDAO schemaInfoDAO) {
-    this.schemaInfoDAO = schemaInfoDAO;
+  public PolicyDroolsCodeMigrator(MigrationTrackerDAO migrationTrackerDAO) {
+    this.migrationTrackerDAO = migrationTrackerDAO;
   }
 
   void migrate() {
-    SchemaInfo schemaInfo = schemaInfoDAO.get();
-    int droolsCodeVersion = schemaInfo.getDroolsCodeVersion();
+    MigrationTracker migrationTracker = migrationTrackerDAO.getById(MIGRATION_ID);
+    int droolsCodeVersion = migrationTracker.getVersion();
     if (droolsCodeVersion < 2) {
       throw new IllegalStateException("Policy code is still at version " + droolsCodeVersion);
     }
@@ -65,8 +67,8 @@ public class PolicyDroolsCodeMigrator
       policyDAO.update(policy, false);
     }
 
-    schemaInfo.setDroolsCodeVersion(DROOLS_CODE_VERSION);
-    schemaInfoDAO.update(schemaInfo);
+    migrationTracker.setVersion(DROOLS_CODE_VERSION);
+    migrationTrackerDAO.update(migrationTracker);
 
     log.info("Generated policy code for {} policies in {} ms.", policies.size(), System.currentTimeMillis() - start);
   }

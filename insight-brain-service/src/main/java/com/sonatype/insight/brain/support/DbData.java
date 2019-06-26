@@ -16,7 +16,6 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.SchemaInfoDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
@@ -52,8 +51,6 @@ import org.apache.commons.lang.StringUtils;
 class DbData
 {
   // WARNING: Do not include the {@link SystemConfigurationProperty} data because it contains sensitive information.
-
-  private final SchemaInfoDAO schemaInfoDAO;
 
   private final RepositoryManagerDAO repositoryManagerDAO;
 
@@ -106,8 +103,7 @@ class DbData
   private final MigrationTrackerDAO migrationTrackerDAO;
 
   @Inject
-  DbData(final SchemaInfoDAO schemaInfoDAO,
-         final RepositoryManagerDAO repositoryManagerDAO,
+  DbData(final RepositoryManagerDAO repositoryManagerDAO,
          final RepositoryDAO repositoryDAO,
          final OrganizationDAO organizationDAO,
          final ApplicationDAO applicationDAO,
@@ -132,7 +128,6 @@ class DbData
          final PolicyMonitoringDAO policyMonitoringDAO,
          final MigrationTrackerDAO migrationTrackerDAO)
   {
-    this.schemaInfoDAO = schemaInfoDAO;
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
     this.organizationDAO = organizationDAO;
@@ -158,10 +153,6 @@ class DbData
     this.policyDAO = policyDAO;
     this.policyMonitoringDAO = policyMonitoringDAO;
     this.migrationTrackerDAO = migrationTrackerDAO;
-  }
-
-  Entry<String, Object> getSchemaInfo() {
-    return wrapEntry("schemaInfo", schemaInfoDAO.get());
   }
 
   Entry<String, Object> getRepositoryManager() {

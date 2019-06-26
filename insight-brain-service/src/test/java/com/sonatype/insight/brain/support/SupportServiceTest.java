@@ -228,7 +228,6 @@ public class SupportServiceTest
     supportService.addAllDbData(filesToZip, workDir);
 
     final String[] basenames = new String[]{
-        "schemaInfo",
         "repositoryManager",
         "repository",
         "organization",

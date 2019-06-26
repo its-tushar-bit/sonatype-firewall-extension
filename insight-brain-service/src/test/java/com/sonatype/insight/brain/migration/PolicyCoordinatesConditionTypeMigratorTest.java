@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
@@ -25,6 +26,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.Lists;
 import org.codehaus.plexus.util.IOUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,7 +39,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PolicyCoordinatesConditionTypeMigratorTest
-    extends MigratorTest
 {
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
@@ -48,11 +49,20 @@ public class PolicyCoordinatesConditionTypeMigratorTest
 
   private PolicyInternalDAO policyInternalDAO;
 
+  private MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+
   @Before
   public void setUp() {
     policyDAO = new PolicyDAO();
     policyInternalDAO = new PolicyInternalDAO();
     migrator = new PolicyCoordinatesConditionTypeMigrator(policyDAO, migrationTrackerDAO);
+
+    migrationTrackerDAO.delete(new MigrationTracker(MIGRATION_ID));
+  }
+
+  @After
+  public void cleanup() {
+    migrationTrackerDAO.delete(new MigrationTracker(MIGRATION_ID));
   }
 
   @Test

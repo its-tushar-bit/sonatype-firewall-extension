@@ -4,14 +4,6 @@ CREATE TABLE test_table (
   name varchar(50) NOT NULL
 );
 
-CREATE TABLE schema_info (
-  schema_info_id varchar(50) NOT NULL,
-  drools_code_version int NOT NULL,
-  policy_json_version int NOT NULL,
-  CONSTRAINT schema_info_pk PRIMARY KEY (schema_info_id)
-);
-INSERT INTO schema_info (schema_info_id, drools_code_version, policy_json_version) VALUES ('1', 2, 1);
-
 CREATE TABLE organization (
   organization_id varchar(50) NOT NULL,
   parent_organization_id varchar(50) NULL,
@@ -599,3 +591,6 @@ CREATE TABLE migration_tracker (
     configuration varchar(1000) NULL,
     CONSTRAINT migration_tracker_pk PRIMARY KEY (migration_tracker_id)
 );
+
+INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-drools-code', 2);
+INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-json', 1);

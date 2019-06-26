@@ -52,6 +52,7 @@ public class ApiComponentDetailsAdapter
     componentDetailsDTO.component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(component
         .getComponentIdentifier());
     componentDetailsDTO.component.hash = component.getHash();
+    componentDetailsDTO.component.packageUrl = PurlIdentifier.toPackageUrl(component.getComponentIdentifier());
     componentDetailsDTO.component.proprietary = component.isProprietary();
     componentDetailsDTO.matchState = component.getMatchState() == null ? MatchState.UNKNOWN.getId() : component
         .getMatchState().getId();

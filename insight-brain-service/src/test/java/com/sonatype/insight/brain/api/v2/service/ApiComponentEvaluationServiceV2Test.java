@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.purl.PurlIdentifier;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -104,8 +105,9 @@ public class ApiComponentEvaluationServiceV2Test
         int componentIndex = request.components.size();
         ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g" + componentIndex,
             "a" + componentIndex, "v" + componentIndex, "", "e" + componentIndex);
+        String packageUrl = PurlIdentifier.toPackageUrl(componentIdentifier);
         ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier,
-            "h" + componentIndex);
+            "h" + componentIndex, packageUrl);
         request.components.add(component);
         requestChunk.components.add(component);
         componentEvaluationDataList.components.add(componentEvaluationV2Helper.createComponentEvaluationData(

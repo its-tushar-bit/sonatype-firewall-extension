@@ -207,11 +207,13 @@ public class ApiEvaluationResourceV2Test
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
-    ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1");
+    String packageUrl1 = PurlIdentifier.toPackageUrl(componentIdentifier1);
+    ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1", packageUrl1);
     request.components.add(component1);
 
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2");
-    ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, "h2");
+    String packageUrl2 = PurlIdentifier.fromComponentIdentifier(componentIdentifier2).getPackageUrl();
+    ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, "h2", packageUrl2);
     request.components.add(component2);
 
     // Create a mock return for the first component
@@ -300,11 +302,11 @@ public class ApiEvaluationResourceV2Test
     assertThat(details.evaluationDate).isNotNull();
     assertThat(details.submittedDate).isNotNull();
     assertThat(details.results).hasSize(1);
-
+    String expectedPackageUrl = PurlIdentifier.toPackageUrl(componentIdentifier);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier), null, MatchState.EXACT.getId(),
-        new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet), securityVulnerabilities, 10,
-        policies);
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier), null, expectedPackageUrl,
+        MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
+        securityVulnerabilities, 10, policies);
   }
 
   @Test
@@ -322,8 +324,10 @@ public class ApiEvaluationResourceV2Test
     List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
+    String packageUrl1 = PurlIdentifier.toPackageUrl(componentIdentifier1);
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2");
-
+    String packageUrl2 = PurlIdentifier.toPackageUrl(componentIdentifier2);
+    
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
             MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 11),
@@ -347,16 +351,14 @@ public class ApiEvaluationResourceV2Test
     assertThat(details.evaluationDate).isNotNull();
     assertThat(details.submittedDate).isNotNull();
     assertThat(details.results).hasSize(2);
-    componentEvaluationV2Helper
-        .assertComponentDetails(details.results.get(0),
-            componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1"), MatchState.EXACT.getId(),
-            new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet), securityVulnerabilities, 11,
-            policies);
-    componentEvaluationV2Helper
-        .assertComponentDetails(details.results.get(1),
-            componentEvaluationV2Helper.createComponent(componentIdentifier2, "h1"), MatchState.EXACT.getId(),
-            new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet), securityVulnerabilities, 22,
-            policies);
+    componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
+        componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1", packageUrl1), MatchState.EXACT.getId(),
+        new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet), securityVulnerabilities, 11,
+        policies);
+    componentEvaluationV2Helper.assertComponentDetails(details.results.get(1),
+        componentEvaluationV2Helper.createComponent(componentIdentifier2, "h1", packageUrl2), MatchState.EXACT.getId(),
+        new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet), securityVulnerabilities, 22,
+        policies);
   }
 
   @Test
@@ -365,11 +367,13 @@ public class ApiEvaluationResourceV2Test
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
-    ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1");
+    String packageUrl1 = PurlIdentifier.toPackageUrl(componentIdentifier1);
+    ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1", packageUrl1);
     request.components.add(component1);
 
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2");
-    ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, "h2");
+    String packageUrl2 = PurlIdentifier.toPackageUrl(componentIdentifier2);
+    ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, "h2", packageUrl2);
     request.components.add(component2);
 
     tempEntity.newClaimedComponent("h2", componentIdentifier2);
@@ -458,12 +462,14 @@ public class ApiEvaluationResourceV2Test
     assertThat(details.evaluationDate).isNotNull();
     assertThat(details.submittedDate).isNotNull();
     assertThat(details.results).hasSize(2);
+    String expectedPackageUrl1 = PurlIdentifier.toPackageUrl(expectedComponentIdentifier1);
+    String expectedPackageUrl2 = PurlIdentifier.toPackageUrl(expectedComponentIdentifier2);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier1), "h1",
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier1), "h1", expectedPackageUrl1,
         MatchState.EXACT.getId(), Collections.emptyList(), Collections.emptyList(),
         Collections.emptyList(), null, Collections.emptyMap());
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1),
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier2), "h2",
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier2), "h2", expectedPackageUrl2,
         MatchState.EXACT.getId(), Collections.emptyList(), Collections.emptyList(),
         Collections.emptyList(), null, Collections.emptyMap());
   }

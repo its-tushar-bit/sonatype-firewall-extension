@@ -71,9 +71,9 @@ public class ComponentEvaluationV2Helper
     return componentEvaluationData;
   }
 
-  private ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier,
-                                            final String hash,
-                                            final String packageUrl)
+  public ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier,
+                                           final String hash,
+                                           final String packageUrl)
   {
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
@@ -144,12 +144,14 @@ public class ComponentEvaluationV2Helper
                                      final Map<String, Policy> policies)
   {
     assertComponentDetails(resultComponentDTO, requestComponentDTO.componentIdentifier, requestComponentDTO.hash,
-        matchState, declaredLicenses, observedLicenses, securityVulnerabilities, relativePopularity, policies);
+        requestComponentDTO.packageUrl, matchState, declaredLicenses, observedLicenses, securityVulnerabilities,
+        relativePopularity, policies);
   }
 
   public void assertComponentDetails(final ApiComponentDetailsDTOV2 resultComponentDTO,
                                      final ApiComponentIdentifierDTOV2 expectedComponentIdentifier,
                                      final String expectedHash,
+                                     final String expectedPackageUrl,
                                      final String matchState,
                                      final List<License> declaredLicenses,
                                      final List<License> observedLicenses,
@@ -164,6 +166,7 @@ public class ComponentEvaluationV2Helper
     assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates())
         .isEqualTo(expectedComponentIdentifier.getCoordinates());
     assertThat(resultComponentDTO.component.hash).isEqualTo(expectedHash);
+    assertThat(resultComponentDTO.component.packageUrl).isEqualTo(expectedPackageUrl);
     assertThat(resultComponentDTO.matchState).isEqualTo(matchState);
     assertThat(resultComponentDTO.relativePopularity).isEqualTo(relativePopularity);
 

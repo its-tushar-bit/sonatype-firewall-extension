@@ -50,7 +50,7 @@
     <geb.version>2.3.1</geb.version>
     <selenium.version>3.8.1</selenium.version>
     <failsafe.version>2.19</failsafe.version>
-    <httpcomponents.version>4.5.7</httpcomponents.version>
+    <httpcomponents.version>4.5.9</httpcomponents.version>
   </properties>
 
   <scm>

@@ -181,6 +181,7 @@ public class ApiComponentRemediationService
   {
     ApiComponentDTOV2 componentDTOV2 = new ApiComponentDTOV2();
     componentDTOV2.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(dto.componentIdentifier);
+    componentDTOV2.packageUrl = PurlIdentifier.toPackageUrl(dto.componentIdentifier);
     componentDTOV2.proprietary = null; // not applicable
     return new ApiVersionChangeOptionDTO(apiVersionChangeOptionType, new ApiComponentChangeActionDTO(componentDTOV2));
   }

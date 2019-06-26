@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.purl.PurlIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
@@ -83,7 +84,8 @@ public class ApiComponentRemediationResourceTest
         restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.APPLICATION, app.getId())
             .body(component).post();
 
-    assertResponse(response, expectedComponent, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    assertResponse(response, expectedComponent, PurlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
   }
 
   @Test
@@ -119,7 +121,8 @@ public class ApiComponentRemediationResourceTest
         restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.ORGANIZATION, org.getId())
             .body(component).post();
 
-    assertResponse(response, expectedComponent, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    assertResponse(response, expectedComponent, PurlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
   }
 
   private void createPolicyWithSecurityVulnerabilityConstraint(final String ownerId) {
@@ -153,6 +156,7 @@ public class ApiComponentRemediationResourceTest
 
   private void assertResponse(final HttpResponse response,
                               final ApiComponentDTOV2 expectedComponent,
+                              final String expectedPackageUrl,
                               final ApiVersionChangeOptionType optionType)
   {
     assertResponseStatus(200, response);
@@ -166,5 +170,6 @@ public class ApiComponentRemediationResourceTest
     assertThat(versionChangeOption.getType()).isEqualTo(optionType);
     assertThat(versionChangeOption.getData().getComponent().componentIdentifier)
         .isEqualToComparingFieldByField(expectedComponent.componentIdentifier);
+    assertThat(versionChangeOption.getData().getComponent().packageUrl).isEqualTo(expectedPackageUrl);
   }
 }

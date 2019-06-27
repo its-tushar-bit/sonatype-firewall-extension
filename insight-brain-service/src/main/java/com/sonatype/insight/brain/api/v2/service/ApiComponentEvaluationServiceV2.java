@@ -42,7 +42,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
-import com.sonatype.insight.brain.purl.PurlIdentifier;
+import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.SystemRunnable;
@@ -157,7 +157,7 @@ public class ApiComponentEvaluationServiceV2
   }
 
   private void validatePackageUrl(final ApiComponentDTOV2 componentDTO) {
-    new PurlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
+    new PackageUrlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
   }
 
   private void validateComponentIdentifier(final ApiComponentDTOV2 componentDTO) {

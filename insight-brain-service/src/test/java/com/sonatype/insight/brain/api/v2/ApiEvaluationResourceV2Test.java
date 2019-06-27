@@ -36,7 +36,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.purl.PurlIdentifier;
+import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Before;
@@ -207,12 +207,12 @@ public class ApiEvaluationResourceV2Test
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
-    String packageUrl1 = PurlIdentifier.toPackageUrl(componentIdentifier1);
+    String packageUrl1 = PackageUrlIdentifier.toPackageUrl(componentIdentifier1);
     ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1", packageUrl1);
     request.components.add(component1);
 
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2");
-    String packageUrl2 = PurlIdentifier.fromComponentIdentifier(componentIdentifier2).getPackageUrl();
+    String packageUrl2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2).getPackageUrl();
     ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, "h2", packageUrl2);
     request.components.add(component2);
 
@@ -262,10 +262,10 @@ public class ApiEvaluationResourceV2Test
 
   @Test
   public void testEvaluateComponents_matchByPackageUrl() throws Exception {
-    PurlIdentifier purlIdentifier = new PurlIdentifier("pkg:maven/g1/a1@v1?type=e1");
-    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purlIdentifier.getPackageUrl());
+    PackageUrlIdentifier packageURLIdentifier = new PackageUrlIdentifier("pkg:maven/g1/a1@v1?type=e1");
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(packageURLIdentifier.getPackageUrl());
 
-    assertEvaluateComponent(purlIdentifier.toComponentIdentifier(), component);
+    assertEvaluateComponent(packageURLIdentifier.toComponentIdentifier(), component);
   }
 
   private void assertEvaluateComponent(ComponentIdentifier componentIdentifier, ApiComponentDTOV2 component)
@@ -302,7 +302,7 @@ public class ApiEvaluationResourceV2Test
     assertThat(details.evaluationDate).isNotNull();
     assertThat(details.submittedDate).isNotNull();
     assertThat(details.results).hasSize(1);
-    String expectedPackageUrl = PurlIdentifier.toPackageUrl(componentIdentifier);
+    String expectedPackageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier), null, expectedPackageUrl,
         MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
@@ -324,9 +324,9 @@ public class ApiEvaluationResourceV2Test
     List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
-    String packageUrl1 = PurlIdentifier.toPackageUrl(componentIdentifier1);
+    String packageUrl1 = PackageUrlIdentifier.toPackageUrl(componentIdentifier1);
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2");
-    String packageUrl2 = PurlIdentifier.toPackageUrl(componentIdentifier2);
+    String packageUrl2 = PackageUrlIdentifier.toPackageUrl(componentIdentifier2);
     
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
@@ -367,12 +367,12 @@ public class ApiEvaluationResourceV2Test
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
-    String packageUrl1 = PurlIdentifier.toPackageUrl(componentIdentifier1);
+    String packageUrl1 = PackageUrlIdentifier.toPackageUrl(componentIdentifier1);
     ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1", packageUrl1);
     request.components.add(component1);
 
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2");
-    String packageUrl2 = PurlIdentifier.toPackageUrl(componentIdentifier2);
+    String packageUrl2 = PackageUrlIdentifier.toPackageUrl(componentIdentifier2);
     ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, "h2", packageUrl2);
     request.components.add(component2);
 
@@ -462,8 +462,8 @@ public class ApiEvaluationResourceV2Test
     assertThat(details.evaluationDate).isNotNull();
     assertThat(details.submittedDate).isNotNull();
     assertThat(details.results).hasSize(2);
-    String expectedPackageUrl1 = PurlIdentifier.toPackageUrl(expectedComponentIdentifier1);
-    String expectedPackageUrl2 = PurlIdentifier.toPackageUrl(expectedComponentIdentifier2);
+    String expectedPackageUrl1 = PackageUrlIdentifier.toPackageUrl(expectedComponentIdentifier1);
+    String expectedPackageUrl2 = PackageUrlIdentifier.toPackageUrl(expectedComponentIdentifier2);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier1), "h1", expectedPackageUrl1,
         MatchState.EXACT.getId(), Collections.emptyList(), Collections.emptyList(),

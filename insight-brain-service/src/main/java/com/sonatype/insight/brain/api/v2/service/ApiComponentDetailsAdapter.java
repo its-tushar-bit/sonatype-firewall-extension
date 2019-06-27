@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.purl.PurlIdentifier;
+import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 
 /**
  * @since 1.13.0
@@ -52,7 +52,7 @@ public class ApiComponentDetailsAdapter
     componentDetailsDTO.component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(component
         .getComponentIdentifier());
     componentDetailsDTO.component.hash = component.getHash();
-    componentDetailsDTO.component.packageUrl = PurlIdentifier.toPackageUrl(component.getComponentIdentifier());
+    componentDetailsDTO.component.packageUrl = PackageUrlIdentifier.toPackageUrl(component.getComponentIdentifier());
     componentDetailsDTO.component.proprietary = component.isProprietary();
     componentDetailsDTO.matchState = component.getMatchState() == null ? MatchState.UNKNOWN.getId() : component
         .getMatchState().getId();
@@ -81,7 +81,8 @@ public class ApiComponentDetailsAdapter
     componentDetailsDTO.component.componentIdentifier = ApiComponentIdentifierDTOV2
         .fromComponentIdentifier(componentDetailsFromHds.componentIdentifier);
     componentDetailsDTO.component.hash = componentDetailsFromHds.hash;
-    componentDetailsDTO.component.packageUrl = PurlIdentifier.toPackageUrl(componentDetailsFromHds.componentIdentifier);
+    componentDetailsDTO.component.packageUrl =
+        PackageUrlIdentifier.toPackageUrl(componentDetailsFromHds.componentIdentifier);
     if (componentDetailsFromHds.matchState == null) {
       componentDetailsDTO.matchState = MatchState.UNKNOWN.getId();
     }

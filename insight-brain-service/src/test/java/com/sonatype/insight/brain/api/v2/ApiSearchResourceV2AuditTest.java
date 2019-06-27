@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.purl.PurlIdentifier;
+import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
@@ -64,7 +64,7 @@ public class ApiSearchResourceV2AuditTest
     Application app = tempEntity.newApplicationWithParent();
     String packageUrl = "pkg:maven/g/a@v";
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanId");
-    ComponentIdentifier componentIdentifier = new PurlIdentifier(packageUrl).toComponentIdentifier();
+    ComponentIdentifier componentIdentifier = new PackageUrlIdentifier(packageUrl).toComponentIdentifier();
     tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "hash",
         componentIdentifier);
     tempEntity.newApplicationWithParent();
@@ -102,7 +102,7 @@ public class ApiSearchResourceV2AuditTest
     String hash = "1249e25aebb15358bedd";
     String packageUrl = "pkg:maven/g/a@v";
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanId");
-    ComponentIdentifier componentIdentifier = new PurlIdentifier(packageUrl).toComponentIdentifier();
+    ComponentIdentifier componentIdentifier = new PackageUrlIdentifier(packageUrl).toComponentIdentifier();
     tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, hash, componentIdentifier);
     tempEntity.newApplicationWithParent();
 

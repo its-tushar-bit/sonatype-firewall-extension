@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.purl.PurlIdentifier;
+import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -87,7 +87,7 @@ public class ApiSearchServiceV2
 
     ArtifactCoordinate coords = null;
     if (packageUrl != null) {
-      ComponentIdentifier purlComponentIdentifier = new PurlIdentifier(packageUrl).toComponentIdentifier();
+      ComponentIdentifier purlComponentIdentifier = new PackageUrlIdentifier(packageUrl).toComponentIdentifier();
       AuditData.get().setComponentIdentifier(purlComponentIdentifier);
 
       purlComponentIdentifier = constructWildcardedComponentIdentifier(purlComponentIdentifier);
@@ -149,7 +149,7 @@ public class ApiSearchServiceV2
         result.reportUrl = baseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), eval.getScanId());
         result.hash = candidateHash;
         result.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(candidateComponentIdentifier);
-        result.packageUrl = PurlIdentifier.toPackageUrl(candidateComponentIdentifier);
+        result.packageUrl = PackageUrlIdentifier.toPackageUrl(candidateComponentIdentifier);
         results.results.add(result);
         result.threatLevel = getMaxThreatLevel(
             policyViolationDAO.getActiveByApplicationIdAndStageIdAndHash(app.getId(), stageId, candidateHash));

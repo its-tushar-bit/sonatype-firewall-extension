@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class PurlIdentifierTest
+public class PackageUrlIdentifierTest
 {
   @Test
   public void testPurlIdentifier_Maven() {
@@ -43,10 +43,11 @@ public class PurlIdentifierTest
     ComponentIdentifier coordinates = ComponentIdentifier.createMavenCoordinates("g",
         "a", "v", "c", "e");
 
-    PurlIdentifier purlIdentifier1 = new PurlIdentifier(packageUrl1);
-    PurlIdentifier purlIdentifier2 = new PurlIdentifier(packageUrl2);
-    assertThat(purlIdentifier1.toComponentIdentifier()).isNotEqualTo(purlIdentifier2.toComponentIdentifier());
-    assertThat(PurlIdentifier.fromComponentIdentifier(coordinates)).isEqualTo(purlIdentifier1);
+    PackageUrlIdentifier packageUrlIdentifier1 = new PackageUrlIdentifier(packageUrl1);
+    PackageUrlIdentifier packageUrlIdentifier2 = new PackageUrlIdentifier(packageUrl2);
+    assertThat(packageUrlIdentifier1.toComponentIdentifier())
+        .isNotEqualTo(packageUrlIdentifier2.toComponentIdentifier());
+    assertThat(PackageUrlIdentifier.fromComponentIdentifier(coordinates)).isEqualTo(packageUrlIdentifier1);
   }
 
   @Test
@@ -136,8 +137,8 @@ public class PurlIdentifierTest
   @Test
   public void testPurlIdentifier_Generic() {
     Map<String, String> coordinates = new HashMap<>();
-    coordinates.put(PurlIdentifier.GENERIC_NAME, "name");
-    coordinates.put(PurlIdentifier.GENERIC_NAMESPACE, "namespace");
+    coordinates.put(PackageUrlIdentifier.GENERIC_NAME, "name");
+    coordinates.put(PackageUrlIdentifier.GENERIC_NAMESPACE, "namespace");
     coordinates.put(ComponentIdentifier.VERSION, "version");
     coordinates.put("foo", "bar");
     ComponentIdentifier componentIdentifier = new ComponentIdentifier("generic", coordinates);
@@ -151,11 +152,11 @@ public class PurlIdentifierTest
     coordinates.put("artifactId", "name");
     coordinates.put("groupId", "namespace");
     coordinates.put(ComponentIdentifier.VERSION, "version");
-    PurlIdentifier purlIdentifier =
-        PurlIdentifier.fromComponentIdentifier(new ComponentIdentifier("generic", coordinates));
+    PackageUrlIdentifier packageURLIdentifier =
+        PackageUrlIdentifier.fromComponentIdentifier(new ComponentIdentifier("generic", coordinates));
     String packageUrl = "pkg:generic/namespace/name@version";
 
-    assertThat(purlIdentifier.getPackageUrl()).isEqualTo(packageUrl);
+    assertThat(packageURLIdentifier.getPackageUrl()).isEqualTo(packageUrl);
   }
 
   @Test
@@ -163,11 +164,12 @@ public class PurlIdentifierTest
     Map<String, String> coordinates = new HashMap<>();
     coordinates.put("packageId", "namespace/name");
     coordinates.put(ComponentIdentifier.VERSION, "version");
-    PurlIdentifier purlIdentifier =
-        PurlIdentifier.fromComponentIdentifier(new ComponentIdentifier("generic", coordinates));
+    PackageUrlIdentifier packageURLIdentifier =
+        PackageUrlIdentifier.fromComponentIdentifier(new ComponentIdentifier("generic", coordinates));
     String packageUrl = "pkg:generic/namespace/name@version";
 
-    assertThat(URLDecoder.decode(purlIdentifier.getPackageUrl(), StandardCharsets.UTF_8.name())).isEqualTo(packageUrl);
+    assertThat(URLDecoder.decode(packageURLIdentifier.getPackageUrl(), StandardCharsets.UTF_8.name()))
+        .isEqualTo(packageUrl);
   }
 
   @Test
@@ -176,86 +178,86 @@ public class PurlIdentifierTest
     coordinates.put("blah", "blah");
 
     assertThatExceptionOfType(RuntimeException.class)
-        .isThrownBy(() -> PurlIdentifier.fromComponentIdentifier(new ComponentIdentifier("format", coordinates)));
+        .isThrownBy(() -> PackageUrlIdentifier.fromComponentIdentifier(new ComponentIdentifier("format", coordinates)));
   }
 
   @Test
   public void testPurlIdentifier_NullComponentIdentifier() {
-    assertThat(PurlIdentifier.fromComponentIdentifier(null)).isNull();
+    assertThat(PackageUrlIdentifier.fromComponentIdentifier(null)).isNull();
   }
 
   @Test
   public void testPurlIdentifier_invalidPurlUrl() {
     assertThatExceptionOfType(InvalidPackageURLException.class)
-        .isThrownBy(() -> new PurlIdentifier("invalid-purl-url"));
+        .isThrownBy(() -> new PackageUrlIdentifier("invalid-purl-url"));
   }
 
   @Test
   public void testPurlIdentifier_ResolveNameAndNamespace_WithMultipleSlashes() {
-    PurlIdentifier purlIdentifier = PurlIdentifier
+    PackageUrlIdentifier packageURLIdentifier = PackageUrlIdentifier
         .fromComponentIdentifier(ComponentIdentifier.createRpmCoordinates("some/path/to/module", "version", null));
     String packageUrl = "pkg:rpm/some/path/to/module@version";
-    assertThat(purlIdentifier.getPackageUrl()).isEqualTo(packageUrl);
+    assertThat(packageURLIdentifier.getPackageUrl()).isEqualTo(packageUrl);
   }
 
   @Test
   public void testPurlIdentifier_ResolveNameAndNamespace_WithoutLeadingOrTrailingSlashes() {
-    PurlIdentifier purlIdentifier = PurlIdentifier
+    PackageUrlIdentifier packageURLIdentifier = PackageUrlIdentifier
         .fromComponentIdentifier(ComponentIdentifier.createRpmCoordinates("///the/path////", "version", null));
     String packageUrl = "pkg:rpm/the/path@version";
-    assertThat(purlIdentifier.getPackageUrl()).isEqualTo(packageUrl);
+    assertThat(packageURLIdentifier.getPackageUrl()).isEqualTo(packageUrl);
   }
 
   @Test
   public void testEnsureComplete_Maven() {
     String packageUrl = "pkg:maven/g/a@v?type=t&classifier=c";
-    PurlIdentifier purlIdentifier = new PurlIdentifier(packageUrl);
-    assertThatCode(purlIdentifier::ensureCompleteIdentifier).doesNotThrowAnyException();
+    PackageUrlIdentifier packageURLIdentifier = new PackageUrlIdentifier(packageUrl);
+    assertThatCode(packageURLIdentifier::ensureCompleteIdentifier).doesNotThrowAnyException();
   }
 
   @Test
   public void testEnsureComplete_Maven_MissingTypeForExtension() {
     String packageUrl = "pkg:maven/g/a@v?extension=e&classifier=c";
-    PurlIdentifier purlIdentifier = new PurlIdentifier(packageUrl);
+    PackageUrlIdentifier packageURLIdentifier = new PackageUrlIdentifier(packageUrl);
     assertThatExceptionOfType(InvalidPackageURLException.class)
-        .isThrownBy(() -> purlIdentifier.ensureCompleteIdentifier())
+        .isThrownBy(() -> packageURLIdentifier.ensureCompleteIdentifier())
         .withMessage("The following coordinates are missing for given format: [type]");
   }
 
   @Test
   public void testEnsureComplete_Rpm() {
     String packageUrl = "pkg:rpm/n@v?arch=a&distro=d";
-    PurlIdentifier purlIdentifier = new PurlIdentifier(packageUrl);
-    assertThatCode(purlIdentifier::ensureCompleteIdentifier).doesNotThrowAnyException();
+    PackageUrlIdentifier packageURLIdentifier = new PackageUrlIdentifier(packageUrl);
+    assertThatCode(packageURLIdentifier::ensureCompleteIdentifier).doesNotThrowAnyException();
   }
 
   @Test
   public void testEnsureComplete_Rpm_MissingArch() {
     String packageUrl = "pkg:rpm/n@v?architecture=a&distro=d";
-    PurlIdentifier purlIdentifier = new PurlIdentifier(packageUrl);
+    PackageUrlIdentifier packageURLIdentifier = new PackageUrlIdentifier(packageUrl);
     assertThatExceptionOfType(InvalidPackageURLException.class)
-        .isThrownBy(() -> purlIdentifier.ensureCompleteIdentifier())
+        .isThrownBy(() -> packageURLIdentifier.ensureCompleteIdentifier())
         .withMessage("The following coordinates are missing for given format: [arch]");
   }
 
   @Test
   public void testEnsureComplete_PyPi_MissingExtension() {
     String packageUrl = "pkg:pypi/n@v";
-    PurlIdentifier purlIdentifier = new PurlIdentifier(packageUrl);
+    PackageUrlIdentifier packageURLIdentifier = new PackageUrlIdentifier(packageUrl);
     assertThatExceptionOfType(InvalidPackageURLException.class)
-        .isThrownBy(() -> purlIdentifier.ensureCompleteIdentifier())
+        .isThrownBy(() -> packageURLIdentifier.ensureCompleteIdentifier())
         .withMessage("The following coordinates are missing for given format: [extension]");
   }
 
   @Test
   public void testToPackageUrl() {
     ComponentIdentifier coordinates = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "j");
-    assertThat(PurlIdentifier.toPackageUrl(coordinates)).isEqualTo("pkg:maven/g/a@v?classifier=c&type=j");
+    assertThat(PackageUrlIdentifier.toPackageUrl(coordinates)).isEqualTo("pkg:maven/g/a@v?classifier=c&type=j");
   }
 
   @Test
   public void testToPackageUrl_NullComponentIdentifier() {
-    assertThat(PurlIdentifier.toPackageUrl(null)).isNull();
+    assertThat(PackageUrlIdentifier.toPackageUrl(null)).isNull();
   }
 
   @Test
@@ -265,14 +267,14 @@ public class PurlIdentifierTest
     ComponentIdentifier invalidCoords = new ComponentIdentifier("format", coordinates);
     assertThatExceptionOfType(RuntimeException.class)
         .isThrownBy(() -> {
-          PurlIdentifier.toPackageUrl(invalidCoords);
+          PackageUrlIdentifier.toPackageUrl(invalidCoords);
         })
         .withMessageContaining("The PackageURL name specified is invalid");
   }
 
   private void testCoordinateWithPurl(ComponentIdentifier identifier, String packageUrl) {
-    PurlIdentifier purlUrlIdentifier = new PurlIdentifier(packageUrl);
-    PurlIdentifier purlComponentIdentifier = PurlIdentifier.fromComponentIdentifier(identifier);
+    PackageUrlIdentifier purlUrlIdentifier = new PackageUrlIdentifier(packageUrl);
+    PackageUrlIdentifier purlComponentIdentifier = PackageUrlIdentifier.fromComponentIdentifier(identifier);
 
     assertThat(purlUrlIdentifier).isEqualTo(purlComponentIdentifier);
     ComponentIdentifier urlIdentifier = purlUrlIdentifier.toComponentIdentifier();

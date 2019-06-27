@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.HashHelper;
-import com.sonatype.insight.brain.purl.PurlIdentifier;
+import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
@@ -112,7 +112,7 @@ public class ApiComponentDetailsServiceV2
   }
 
   private void validatePackageUrl(ApiComponentDTOV2 componentDTO) {
-    new PurlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
+    new PackageUrlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
   }
 
   private void validateComponentIdentifier(ApiComponentDTOV2 componentDTO) {
@@ -191,7 +191,7 @@ public class ApiComponentDetailsServiceV2
     componentEvaluationDataRequest.hash = componentDTO.hash;
     if (componentDTO.packageUrl != null) {
       componentEvaluationDataRequest.componentIdentifier =
-          new PurlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
+          new PackageUrlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
     }
     else if (componentDTO.componentIdentifier != null) {
       componentEvaluationDataRequest.componentIdentifier =

@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.purl.PurlIdentifier;
+import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
@@ -38,7 +38,7 @@ public class ApiComponentDetailsResourceV2Test
   @Test
   public void testGetComponentDetails() throws Exception {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
-    String packageUrl = PurlIdentifier.toPackageUrl(componentIdentifier);
+    String packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, null);
 
     assertGetComponentDetails(componentIdentifier, component, packageUrl);
@@ -46,11 +46,12 @@ public class ApiComponentDetailsResourceV2Test
 
   @Test
   public void testGetComponentDetails_Purl() throws Exception {
-    PurlIdentifier purlIdentifier = new PurlIdentifier("pkg:maven/g1/a1@v1?type=e1");
+    PackageUrlIdentifier packageURLIdentifier = new PackageUrlIdentifier("pkg:maven/g1/a1@v1?type=e1");
     ApiComponentDTOV2 component =
-        componentEvaluationV2Helper.createComponent(purlIdentifier.getPackageUrl());
+        componentEvaluationV2Helper.createComponent(packageURLIdentifier.getPackageUrl());
 
-    assertGetComponentDetails(purlIdentifier.toComponentIdentifier(), component, purlIdentifier.getPackageUrl());
+    assertGetComponentDetails(packageURLIdentifier.toComponentIdentifier(), component,
+        packageURLIdentifier.getPackageUrl());
   }
   
   private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier, String hash) {

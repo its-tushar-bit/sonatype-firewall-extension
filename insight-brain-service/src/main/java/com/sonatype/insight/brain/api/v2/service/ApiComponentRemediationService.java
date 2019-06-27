@@ -37,7 +37,7 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.purl.PurlIdentifier;
+import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -181,7 +181,7 @@ public class ApiComponentRemediationService
   {
     ApiComponentDTOV2 componentDTOV2 = new ApiComponentDTOV2();
     componentDTOV2.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(dto.componentIdentifier);
-    componentDTOV2.packageUrl = PurlIdentifier.toPackageUrl(dto.componentIdentifier);
+    componentDTOV2.packageUrl = PackageUrlIdentifier.toPackageUrl(dto.componentIdentifier);
     componentDTOV2.proprietary = null; // not applicable
     return new ApiVersionChangeOptionDTO(apiVersionChangeOptionType, new ApiComponentChangeActionDTO(componentDTOV2));
   }
@@ -216,7 +216,7 @@ public class ApiComponentRemediationService
   }
 
   private ComponentIdentifier validatePackageUrl(ApiComponentDTOV2 componentDTO) {
-    return new PurlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
+    return new PackageUrlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
   }
 
   private ComponentSummary getComponentSummary(final ComponentIdentifier componentIdentifier) {

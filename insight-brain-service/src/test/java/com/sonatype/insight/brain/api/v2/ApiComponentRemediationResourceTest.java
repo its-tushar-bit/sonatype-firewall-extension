@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
-import com.sonatype.insight.brain.purl.PurlIdentifier;
+import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
@@ -84,7 +84,7 @@ public class ApiComponentRemediationResourceTest
         restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.APPLICATION, app.getId())
             .body(component).post();
 
-    assertResponse(response, expectedComponent, PurlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
+    assertResponse(response, expectedComponent, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
   }
 
@@ -121,7 +121,7 @@ public class ApiComponentRemediationResourceTest
         restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.ORGANIZATION, org.getId())
             .body(component).post();
 
-    assertResponse(response, expectedComponent, PurlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
+    assertResponse(response, expectedComponent, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
   }
 

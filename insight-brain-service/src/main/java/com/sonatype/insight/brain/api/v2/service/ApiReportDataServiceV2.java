@@ -40,7 +40,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyCondition
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyConstraint;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.purl.PurlIdentifier;
+import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
@@ -153,7 +153,7 @@ public class ApiReportDataServiceV2
           ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(componentJson);
           component.componentIdentifier = ApiComponentIdentifierDTOV2
               .fromComponentIdentifier(componentIdentifier);
-          component.packageUrl = PurlIdentifier.toPackageUrl(componentIdentifier);
+          component.packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
           component.proprietary = componentJson.get("proprietary").booleanValue();
           component.pathnames = getPathnames(componentJson);
           component.violations = violationsByHash.getOrDefault(component.hash, Collections.emptyList());
@@ -263,7 +263,7 @@ public class ApiReportDataServiceV2
       component.hash = comp.getHash();
       component.componentIdentifier = ApiComponentIdentifierDTOV2
           .fromComponentIdentifier(comp.getComponentIdentifier());
-      component.packageUrl = PurlIdentifier.toPackageUrl(comp.getComponentIdentifier());
+      component.packageUrl = PackageUrlIdentifier.toPackageUrl(comp.getComponentIdentifier());
 
       component.matchState = comp.getMatchState().getId();
       component.proprietary = comp.isProprietary();

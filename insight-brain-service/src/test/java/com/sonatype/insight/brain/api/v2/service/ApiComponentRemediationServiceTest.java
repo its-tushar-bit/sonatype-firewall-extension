@@ -33,7 +33,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.purl.InvalidPackageURLException;
-import com.sonatype.insight.brain.purl.PurlIdentifier;
+import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -244,7 +244,7 @@ public class ApiComponentRemediationServiceTest
         .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
     assertNoViolations(retVal.remediation,
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentDetailsDTO.componentIdentifier),
-        PurlIdentifier.toPackageUrl(componentDetailsDTO.componentIdentifier));
+        PackageUrlIdentifier.toPackageUrl(componentDetailsDTO.componentIdentifier));
     assertTelemetry("application", app.getId(), componentDetailsDTO.componentIdentifier, "option_next_no_violations",
         "option_next_non_failing");
   }
@@ -373,7 +373,7 @@ public class ApiComponentRemediationServiceTest
         .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
     assertNoViolations(retVal.remediation,
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(v2.componentIdentifier),
-        PurlIdentifier.toPackageUrl(v2.componentIdentifier));
+        PackageUrlIdentifier.toPackageUrl(v2.componentIdentifier));
     assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_no_violations",
         "option_next_non_failing");
   }
@@ -400,7 +400,7 @@ public class ApiComponentRemediationServiceTest
         .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
     assertNoViolations(retVal.remediation,
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(v1.componentIdentifier),
-        PurlIdentifier.toPackageUrl(v1.componentIdentifier));
+        PackageUrlIdentifier.toPackageUrl(v1.componentIdentifier));
     assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_no_violations",
         "option_next_non_failing");
   }
@@ -430,7 +430,7 @@ public class ApiComponentRemediationServiceTest
         .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
     assertNonFailing(retVal.remediation,
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(v2.componentIdentifier),
-        PurlIdentifier.toPackageUrl(v2.componentIdentifier));
+        PackageUrlIdentifier.toPackageUrl(v2.componentIdentifier));
     assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_non_failing");
   }
 
@@ -459,7 +459,7 @@ public class ApiComponentRemediationServiceTest
 
     ApiComponentIdentifierDTOV2 expectedComponentIdentifier =
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(v3.componentIdentifier);
-    String expectedPackageUrl = PurlIdentifier.toPackageUrl(v3.componentIdentifier);
+    String expectedPackageUrl = PackageUrlIdentifier.toPackageUrl(v3.componentIdentifier);
 
     assertThat(retVal.remediation.componentOverrides).hasSize(0);
     assertThat(retVal.remediation.policyWaivers).hasSize(0);

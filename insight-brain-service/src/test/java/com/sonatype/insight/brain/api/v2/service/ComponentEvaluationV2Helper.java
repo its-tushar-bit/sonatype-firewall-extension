@@ -36,7 +36,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
-import com.sonatype.insight.brain.purl.PurlIdentifier;
+import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 
 import org.assertj.core.groups.Tuple;
 
@@ -208,7 +208,7 @@ public class ComponentEvaluationV2Helper
       componentEvaluationDataRequest.hash = componentDTO.hash;
       if (componentDTO.packageUrl != null) {
         componentEvaluationDataRequest.componentIdentifier =
-            new PurlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
+            new PackageUrlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
       }
       else if (componentDTO.componentIdentifier != null) {
         componentEvaluationDataRequest.componentIdentifier =

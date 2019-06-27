@@ -26,7 +26,7 @@ import static com.sonatype.clm.dto.model.component.ComponentIdentifier.*;
 /**
  * Represents a <a href="https://github.com/package-url/purl-spec">purl-spec</a> identifier of a component
  */
-public class PurlIdentifier
+public class PackageUrlIdentifier
 {
   public static final String GENERIC_NAME = "name";
 
@@ -54,11 +54,11 @@ public class PurlIdentifier
   private final PackageURL packageUrl;
 
   public static String toPackageUrl(final ComponentIdentifier componentIdentifier) {
-    PurlIdentifier purlIdentifier = fromComponentIdentifier(componentIdentifier);
-    return purlIdentifier != null ? purlIdentifier.getPackageUrl() : null;
+    PackageUrlIdentifier packageURLIdentifier = fromComponentIdentifier(componentIdentifier);
+    return packageURLIdentifier != null ? packageURLIdentifier.getPackageUrl() : null;
   }
 
-  public static PurlIdentifier fromComponentIdentifier(final ComponentIdentifier componentIdentifier) {
+  public static PackageUrlIdentifier fromComponentIdentifier(final ComponentIdentifier componentIdentifier) {
     if (componentIdentifier == null) {
       return null;
     }
@@ -95,14 +95,14 @@ public class PurlIdentifier
         break;
     }
     try {
-      return new PurlIdentifier(builder.build());
+      return new PackageUrlIdentifier(builder.build());
     }
     catch (MalformedPackageURLException e) {
       throw new RuntimeException(e);
     }
   }
 
-  public PurlIdentifier(final String packageUrl) {
+  public PackageUrlIdentifier(final String packageUrl) {
     try {
       this.packageUrl = new PackageURL(packageUrl);
     }
@@ -111,7 +111,7 @@ public class PurlIdentifier
     }
   }
 
-  private PurlIdentifier(final PackageURL packageUrl) {
+  private PackageUrlIdentifier(final PackageURL packageUrl) {
     this.packageUrl = packageUrl;
   }
 
@@ -173,7 +173,7 @@ public class PurlIdentifier
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    PurlIdentifier that = (PurlIdentifier) o;
+    PackageUrlIdentifier that = (PackageUrlIdentifier) o;
     return Objects.equals(packageUrl.canonicalize(), that.packageUrl.canonicalize());
   }
 
@@ -184,7 +184,7 @@ public class PurlIdentifier
 
   @Override
   public String toString() {
-    return "PurlIdentifier{" +
+    return "PackageUrlIdentifier{" +
         "packageUrl=" + packageUrl +
         '}';
   }

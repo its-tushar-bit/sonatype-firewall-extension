@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentOrPurlIdentifierDTOV2;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.purl.PurlIdentifier;
+import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
@@ -69,8 +69,8 @@ public class ApiComponentVersionsServiceV2
 
   private List<String> getComponentVersions(final String packageUrl) {
     try {
-      PurlIdentifier purlIdentifier = new PurlIdentifier(packageUrl);
-      return getComponentVersions(purlIdentifier.toComponentIdentifier());
+      PackageUrlIdentifier packageURLIdentifier = new PackageUrlIdentifier(packageUrl);
+      return getComponentVersions(packageURLIdentifier.toComponentIdentifier());
     }
     catch (IllegalArgumentException e) {
       throw new BadRequestException(e.getMessage(), e);

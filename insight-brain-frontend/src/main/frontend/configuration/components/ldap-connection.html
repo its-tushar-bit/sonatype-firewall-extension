@@ -11,11 +11,11 @@
     <h4 class="iq-tile__section-header">Connection Details</h4>
     <div class="iq-form-group">
       <label class="iq-label" for="ldap-protocol">Protocol</label>
-      <select name="ldap-protocol"
-              id="ldap-protocol"
-              ng-model="ldapConn.protocol"
-              ng-options="p for p in ldapProtocols"
-              autofocus></select>
+      <dropdown-selector options="ldapProtocols"
+                         ng-model="ldapConn.protocol"
+                         id="ldap-protocol"
+                         name="ldap-protocol">
+      </dropdown-selector>
     </div>
     <div class="iq-form-group">
       <label class="iq-label" for="ldap-hostname">Hostname</label>
@@ -53,10 +53,11 @@
     <h4 class="iq-tile__section-header">Authentication</h4>
     <div class="iq-form-group">
       <label class="iq-label" for="ldap-authentication-method">Method</label>
-      <select name="ldap-authentication-method"
-              id="ldap-authentication-method"
-              ng-model="ldapConn.authenticationMethod"
-              ng-options="m for m in ldapMethods"></select>
+      <dropdown-selector options="ldapMethods"
+                         ng-model="ldapConn.authenticationMethod"
+                         id="ldap-authentication-method"
+                         name="ldap-authentication-method">
+      </dropdown-selector>
     </div>
     <div ng-show="ldapConn.authenticationMethod != 'NONE'">
       <div class="iq-form-group">

@@ -16,8 +16,14 @@
                ng-model="ldapUserMapping.userBaseDN">
       </div>
       <div class="iq-form-group">
-        <label for="ldap-user-subtree" class="iq-label">User Subtree</label>
-        <input type="checkbox" name="ldap-user-subtree" id="ldap-user-subtree" ng-model="ldapUserMapping.userSubtree">
+        <label for="ldap-user-subtree" class="iq-label">Include User Subtree?</label>
+        <div id="ldap-user-subtree" name="ldap-user-subtree" class="toggle-checkbox">
+          <input type="checkbox"
+                 toggle-checkbox
+                 data-on="Yes"
+                 data-off="No"
+                 ng-model="ldapUserMapping.userSubtree">
+        </div>
       </div>
       <div class="iq-form-group">
         <label for="ldap-user-object-class" class="iq-label">Object Class</label>
@@ -87,11 +93,11 @@
       <h4 class="iq-tile__section-header">Group Element Mapping</h4>
       <div class="iq-form-group">
         <label for="ldap-group-mapping-type">Group Type</label>
-        <select name="ldap-group-mapping-type"
-                id="ldap-group-mapping-type"
-                ng-model="ldapUserMapping.groupMappingType"
-                ng-options="p for p in groupMappingTypes"
-                required></select>
+        <dropdown-selector options="groupMappingTypes"
+                           ng-model="ldapUserMapping.groupMappingType"
+                           id="ldap-group-mapping-type"
+                           name="ldap-group-mapping-type">
+        </dropdown-selector>
       </div>
       <div ng-show="ldapUserMapping.groupMappingType == 'STATIC'">
         <div class="iq-form-group">
@@ -105,11 +111,14 @@
                  ng-model="ldapUserMapping.groupBaseDN">
         </div>
         <div class="iq-form-group">
-          <label for="ldap-group-subtree" class="iq-label">Group Subtree</label>
-          <input type="checkbox"
-                 name="ldap-group-subtree"
-                 id="ldap-group-subtree"
-                 ng-model="ldapUserMapping.groupSubtree">
+          <label for="ldap-group-subtree" class="iq-label">Include Group Subtree?</label>
+          <div id="ldap-group-subtree" name="ldap-group-subtree" class="toggle-checkbox">
+            <input type="checkbox"
+                   toggle-checkbox
+                   data-on="Yes"
+                   data-off="No"
+                   ng-model="ldapUserMapping.groupSubtree">
+          </div>
         </div>
         <div class="iq-form-group">
           <label for="ldap-group-object-class" class="iq-label">Object Class</label>

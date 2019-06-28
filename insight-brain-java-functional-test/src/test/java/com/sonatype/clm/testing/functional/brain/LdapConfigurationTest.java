@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
 import com.sonatype.clm.testing.functional.elements.ILdapForm;
 import com.sonatype.clm.testing.functional.elements.LdapConnectionForm;
 import com.sonatype.clm.testing.functional.elements.LdapNameEditor;
@@ -37,16 +38,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
-import static com.codeborne.selenide.Condition.appear;
-import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.empty;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LdapConfigurationTest
@@ -250,7 +242,7 @@ public class LdapConfigurationTest
     LdapConnectionForm connectionForm = LdapConfigurationPage.ldapConnectionForm();
     connectionForm.should(visible);
 
-    connectionForm.protocol().shouldHave(value("LDAP"));
+    connectionForm.protocol().selectedItem().shouldHave(text("LDAP"));
     connectionForm.hostname().shouldBe(visible).setValue(testLdapServer.getHostname());
     connectionForm.port().shouldBe(visible).shouldHave(value("389")).setValue("" + testLdapServer.getPort());
     connectionForm.searchBase().shouldBe(visible).setValue("ou=users,dc=company,dc=com");
@@ -262,10 +254,13 @@ public class LdapConfigurationTest
     connectionForm.successAlertBox().shouldBe(visible).shouldHave(text("Success!"));
 
     // fill all inputs to ensure persisted on save
-    connectionForm.authenticationMethod().shouldHave(value("NONE")).selectOption("SIMPLE");
+    connectionForm.authenticationMethod().selectedItem().shouldHave(text("NONE"));
+    connectionForm.authenticationMethod().chooseOption(new Option(1, "SIMPLE"));
     connectionForm.saslRealm().shouldBe(visible, empty).setValue("just checking if persisted");
-    connectionForm.systemUsername().shouldBe(visible, empty).setValue("just checking if persisted");
-    connectionForm.systemPassword().shouldBe(visible, empty).setValue("just checking if persisted");
+    connectionForm.systemUsername().scrollIntoView(false).shouldBe(visible, empty)
+        .setValue("just checking if persisted");
+    connectionForm.systemPassword().scrollIntoView(false).shouldBe(visible, empty)
+        .setValue("just checking if persisted");
     connectionForm.saveButton().scrollIntoView(false);
     connectionForm.connectionTimeout().shouldBe(value("30")).setValue("31");
     connectionForm.retryDelay().shouldBe(value("30")).setValue("31");
@@ -293,8 +288,9 @@ public class LdapConfigurationTest
     assertThat(persistedConnection.getRetryDelay()).isEqualTo(31);
 
     // Revert back to no authentication
-    connectionForm.authenticationMethod().shouldHave(value("SIMPLE")).selectOption("NONE");
-    connectionForm.saveButton().shouldBe(enabled).click();
+    connectionForm.authenticationMethod().selectedItem().shouldHave(text("SIMPLE"));
+    connectionForm.authenticationMethod().chooseOption(new Option(0, "NONE"));
+    connectionForm.saveButton().scrollIntoView(false).shouldBe(enabled).click();
     connectionForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
     connectionForm.saveButton().shouldBe(disabled);
   }
@@ -316,10 +312,12 @@ public class LdapConfigurationTest
     userAndGroupSettingsForm.userIDAttribute().shouldBe(empty).setValue("uid");
     userAndGroupSettingsForm.userRealNameAttribute().shouldBe(empty).setValue("cn");
     userAndGroupSettingsForm.userEmailAttribute().shouldBe(empty).setValue("mail");
-    userAndGroupSettingsForm.userSubtree().shouldNotBe(selected).click();
+    userAndGroupSettingsForm.userSubtree().shouldBe(visible, enabled).shouldNotBe(checked);
+    userAndGroupSettingsForm.userSubtree().click();
 
     userAndGroupSettingsForm.groupSearchWarning().shouldBe(hidden);
-    userAndGroupSettingsForm.groupMappingType().shouldBe(text("NONE")).selectOption("DYNAMIC");
+    userAndGroupSettingsForm.groupMappingType().selectedItem().scrollIntoView(true).shouldHave(text("NONE"));
+    userAndGroupSettingsForm.groupMappingType().chooseOption(new Option(2, "DYNAMIC"));
     userAndGroupSettingsForm.groupSearchWarning().scrollIntoView(true).shouldBe(visible)
         .shouldHave(text(LdapUserAndGroupSettingsForm.GROUP_SEARCH_WARNING));
     userAndGroupSettingsForm.userMemberOfGroupAttribute().shouldBe(empty).setValue("departmentNumber");
@@ -389,11 +387,13 @@ public class LdapConfigurationTest
     // Test Connection
     LdapConnectionForm connectionForm = LdapConfigurationPage.ldapConnectionForm();
     connectionForm.shouldBe(visible);
-    connectionForm.protocol().shouldHave(value(persistedConnection.getProtocol().getProtocol()));
+    connectionForm.protocol().selectedItem().shouldHave(
+        text(persistedConnection.getProtocol().getProtocol().toUpperCase()));
     connectionForm.hostname().shouldHave(value(persistedConnection.getHostname()));
     connectionForm.port().shouldHave(value("" + persistedConnection.getPort()));
     connectionForm.searchBase().shouldHave(value(persistedConnection.getSearchBase()));
-    connectionForm.authenticationMethod().shouldHave(value(persistedConnection.getAuthenticationMethod().getMethod()));
+    connectionForm.authenticationMethod().shouldHave(
+        text(persistedConnection.getAuthenticationMethod().getMethod().toUpperCase()));
     connectionForm.saslRealm().shouldHave(value(persistedConnection.getSaslRealm()));
     connectionForm.systemUsername().shouldHave(value(persistedConnection.getSystemUsername()));
     connectionForm.connectionTimeout().shouldHave(value("" + persistedConnection.getConnectionTimeout()));
@@ -409,10 +409,10 @@ public class LdapConfigurationTest
     userAndGroupSettingsForm.userIDAttribute().shouldHave(value(persistedUserMapping.getUserIDAttribute()));
     userAndGroupSettingsForm.userRealNameAttribute().shouldHave(value(persistedUserMapping.getUserRealNameAttribute()));
     userAndGroupSettingsForm.userEmailAttribute().shouldHave(value(persistedUserMapping.getUserEmailAttribute()));
-    assertThat(userAndGroupSettingsForm.userSubtree().isSelected()).isEqualTo(persistedUserMapping.isUserSubtree());
+    assertThat(userAndGroupSettingsForm.userSubtree().isChecked()).isEqualTo(persistedUserMapping.isUserSubtree());
 
-    userAndGroupSettingsForm.groupMappingType()
-        .shouldHave(value(persistedUserMapping.getGroupMappingType().toString()));
+    userAndGroupSettingsForm.groupMappingType().selectedItem().scrollIntoView(false)
+        .shouldHave(text(persistedUserMapping.getGroupMappingType().toString()));
     userAndGroupSettingsForm.userMemberOfGroupAttribute()
         .shouldHave(value(persistedUserMapping.getUserMemberOfGroupAttribute()));
   }

@@ -22,8 +22,8 @@ public class LdapConnectionForm
     super(selectors);
   }
 
-  public SelenideElement authenticationMethod() {
-    return child("#ldap-authentication-method");
+  public Dropdown authenticationMethod() {
+    return new Dropdown(childSelector("#ldap-authentication-method"));
   }
 
   public SelenideElement connectionTimeout() {
@@ -43,8 +43,8 @@ public class LdapConnectionForm
     return child("#ldap-port");
   }
 
-  public SelenideElement protocol() {
-    return child("#ldap-protocol");
+  public Dropdown protocol() {
+    return new Dropdown(childSelector("#ldap-protocol"));
   }
 
   public SelenideElement retryDelay() {

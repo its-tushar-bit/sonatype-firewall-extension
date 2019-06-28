@@ -32,8 +32,8 @@ public class LdapUserAndGroupSettingsForm
     return child("#ldap-user-base-dn");
   }
 
-  public SelenideElement userSubtree() {
-    return child("#ldap-user-subtree");
+  public Toggle userSubtree() {
+    return new Toggle(childSelector("#ldap-user-subtree"));
   }
 
   public SelenideElement userObjectClass() {
@@ -65,8 +65,8 @@ public class LdapUserAndGroupSettingsForm
     return Arrays.asList(userObjectClass(), userIDAttribute(), userRealNameAttribute(), userEmailAttribute());
   }
 
-  public SelenideElement groupMappingType() {
-    return child("#ldap-group-mapping-type");
+  public Dropdown groupMappingType() {
+    return new Dropdown(childSelector("#ldap-group-mapping-type"));
   }
 
   public SelenideElement groupBaseDN() {

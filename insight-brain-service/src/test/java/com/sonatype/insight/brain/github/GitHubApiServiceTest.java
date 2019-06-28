@@ -19,7 +19,9 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.nexus.github.GitHubApiClient;
 import com.sonatype.nexus.github.model.ProjectUri;
+import com.sonatype.nexus.github.model.Status;
 import com.sonatype.nexus.github.model.StatusRequest;
+import com.sonatype.nexus.github.model.User;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -32,6 +34,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class GitHubApiServiceTest
     extends AbstractComponentTest
@@ -55,6 +58,8 @@ public class GitHubApiServiceTest
 
   private GitHubApiClient mockGitHubApiClient = mock(GitHubApiClient.class);
 
+  private Status status;
+  
   @Override
   public void configure(Binder binder) {
     mockSourceControlService = mock(ApiSourceControlService.class);
@@ -69,6 +74,11 @@ public class GitHubApiServiceTest
   @Before
   public void setup() {
     application = tempEntity.newApplicationWithParent("app", "appId", "orgId");
+    User creator = new User();
+    creator.login = "foo";
+    status = new Status();
+    status.url = "http://example.com";
+    status.creator = creator;
   }
 
   @Test
@@ -115,13 +125,12 @@ public class GitHubApiServiceTest
       throws IOException
   {
     ProjectUri projectUri = setupPolicyEvaluation(policyEvaluationOutcome);
-
     doReturn(sourceControl).when(mockSourceControlService)
         .getSourceControlByApplicationIdDecrypted(application.getId());
-
     doReturn(mockGitHubApiClient).when(mockGitHubApiClientFactory).create(sourceControl.getRepositoryUrl(), TOKEN);
     doReturn("http://localhost:8070/").when(mockBaseUrl).get();
-
+    when(mockGitHubApiClient.createStatus(any(), any(), any(), any())).thenReturn(status);
+    
     gitHubApiService.maybeRespond(event);
 
     assertGitHubStatusMessage(projectUri, event, "commitHash", gitHubCommitStatus, mockGitHubApiClient);

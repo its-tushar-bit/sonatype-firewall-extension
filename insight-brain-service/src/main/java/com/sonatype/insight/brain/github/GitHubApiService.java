@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.nexus.github.GitHubApiClient;
 import com.sonatype.nexus.github.model.ProjectUri;
+import com.sonatype.nexus.github.model.Status;
 import com.sonatype.nexus.github.model.StatusRequest;
 
 import org.slf4j.Logger;
@@ -60,7 +61,7 @@ public class GitHubApiService
    * Responds to the application evaluation event by sending a GitHub status message indicating the evaluation outcome
    * and component counts if a commit hash was send with the policy evaluation request.
    */
-  public void maybeRespond(final ApplicationEvaluationEvent event) throws IOException {
+  public void maybeRespond(final ApplicationEvaluationEvent event) {
     if (null != event.commitHash) {
       SourceControl sourceControl = sourceControlService.getSourceControlByApplicationIdDecrypted(event.ownerId);
       if (null != sourceControl) {
@@ -70,8 +71,16 @@ public class GitHubApiService
         StatusRequest statusRequest = createStatusRequest(event);
         log.debug("Creating GitHub commit status for repository: {}, commit hash: {}, with outcome: {}, state: {}",
             projectUri.getUrl(), event.commitHash, event.outcome, statusRequest.state);
-        gitHubApiClient
-            .createStatus(projectUri.getOrganization(), projectUri.getProject(), event.commitHash, statusRequest);
+        try {
+          Status status = gitHubApiClient
+              .createStatus(projectUri.getOrganization(), projectUri.getProject(), event.commitHash, statusRequest);
+          log.debug("Status response from api url: {}, creator: {}", status.url, status.creator.login);
+        }
+        catch (IOException e) {
+          log.error("Failed to update status for applicationId: {}, repository: {}, commitHash: {}, " +
+                  "triggered by policyEvaluationId: {}",
+              event.ownerId, sourceControl.getRepositoryUrl(), event.commitHash, event.policyEvaluationId, e);
+        }
       }
     }
   }

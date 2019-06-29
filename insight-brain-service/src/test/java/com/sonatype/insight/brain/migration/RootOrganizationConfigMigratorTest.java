@@ -7,10 +7,11 @@ package com.sonatype.insight.brain.migration;
 
 import java.io.File;
 
+import javax.inject.Inject;
+
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -50,6 +51,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -57,61 +59,61 @@ import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class RootOrganizationConfigMigratorTest
+    extends AbstractComponentTest
 {
-  private final MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+  @Inject
+  private MigrationTrackerDAO migrationTrackerDAO;
 
-  private final RootOrganizationConfigMigrationUtils migrationUtils =
-      new RootOrganizationConfigMigrationUtils(migrationTrackerDAO);
+  @Inject
+  private RootOrganizationConfigMigrationUtils migrationUtils;
 
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
+  @Inject
   private InsightConfig config;
 
-  private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+  @Inject
+  private ComponentLabelDAO componentLabelDAO;
 
-  private LabelDAO labelDAO = new LabelDAO();
+  @Inject
+  private LabelDAO labelDAO;
 
-  private LicenseThreatGroupDAO ltgDAO = new LicenseThreatGroupDAO();
+  @Inject
+  private LicenseThreatGroupDAO ltgDAO;
 
-  private LicenseThreatGroupLicenseDAO ltglDAO = new LicenseThreatGroupLicenseDAO();
+  @Inject
+  private LicenseThreatGroupLicenseDAO ltglDAO;
 
-  private PolicyDAO policyDAO = new PolicyDAO();
+  @Inject
+  private PolicyDAO policyDAO;
 
-  private PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+  @Inject
+  private PolicyMonitoringDAO policyMonitoringDAO;
 
-  private PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+  @Inject
+  private PolicyWaiverDAO policyWaiverDAO;
 
-  private ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
+  @Inject
+  private ApplicationTagDAO appTagDAO;
 
-  private PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+  @Inject
+  private PolicyTagDAO policyTagDAO;
 
-  private PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+  @Inject
+  private PolicyViolationDAO policyViolationDAO;
 
-  private TagDAO tagDAO = new TagDAO();
+  @Inject
+  private TagDAO tagDAO;
 
+  @Inject
   private RootOrganizationConfigMigrator migrator;
 
   @Before
   public void before() throws Exception {
-    config = new InsightConfig();
-    File workDir = tempDir.newFolder();
-    workDir.mkdirs();
-    config.setSonatypeWork(workDir.getAbsolutePath());
-
-    migrator = new RootOrganizationConfigMigrator(config, migrationUtils);
-
     migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
     migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
   }

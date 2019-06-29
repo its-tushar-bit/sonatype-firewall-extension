@@ -6,11 +6,12 @@
 package com.sonatype.insight.brain.migration;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Arrays;
+
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
@@ -22,13 +23,12 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import com.google.common.collect.Lists;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.migration.PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID;
@@ -39,27 +39,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PolicyCoordinatesConditionTypeMigratorTest
+    extends AbstractComponentTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
+  @Inject
   private PolicyCoordinatesConditionTypeMigrator migrator;
 
+  @Inject
   private PolicyDAO policyDAO;
 
+  @Inject
   private PolicyInternalDAO policyInternalDAO;
 
-  private MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+  @Inject
+  private MigrationTrackerDAO migrationTrackerDAO;
 
   @Before
-  public void setUp() {
-    policyDAO = new PolicyDAO();
-    policyInternalDAO = new PolicyInternalDAO();
-    migrator = new PolicyCoordinatesConditionTypeMigrator(policyDAO, migrationTrackerDAO);
-
-    migrationTrackerDAO.delete(new MigrationTracker(MIGRATION_ID));
-  }
-
   @After
   public void cleanup() {
     migrationTrackerDAO.delete(new MigrationTracker(MIGRATION_ID));
@@ -110,8 +104,7 @@ public class PolicyCoordinatesConditionTypeMigratorTest
     when(policyDAOMock.createTransactionContext()).thenReturn(txMock);
     Policy policy1 = newPolicyObject("coord-policy1", CoordinatesConditionType.ID, "match", "maven:foo*");
     Policy policy2 = newPolicyObject("coord-policy2", CoordinatesConditionType.ID, "match", "maven:bar*");
-    List<Policy> policies = Lists.newArrayList(policy1, policy2);
-    when(policyDAOMock.getAll(txMock)).thenReturn(policies);
+    when(policyDAOMock.getAll(txMock)).thenReturn(Arrays.asList(policy1, policy2));
     migrator = new PolicyCoordinatesConditionTypeMigrator(policyDAOMock, migrationTrackerDAO);
 
     // execute

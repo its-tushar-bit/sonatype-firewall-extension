@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.migration;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.After;
 import org.junit.Before;
@@ -15,11 +18,13 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RootOrganizationConfigMigrationUtilsTest
+    extends AbstractComponentTest
 {
-  private final MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+  @Inject
+  private MigrationTrackerDAO migrationTrackerDAO;
 
-  private final RootOrganizationConfigMigrationUtils migrationUtils =
-      new RootOrganizationConfigMigrationUtils(migrationTrackerDAO);
+  @Inject
+  private RootOrganizationConfigMigrationUtils migrationUtils;
 
   @Before
   public void before() {

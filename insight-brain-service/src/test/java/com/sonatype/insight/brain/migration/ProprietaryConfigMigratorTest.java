@@ -5,55 +5,48 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProprietaryConfigMigratorTest
+    extends AbstractComponentTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
-
+  @Inject
   private ProprietaryConfigMigrator migrator;
 
+  @Inject
   private ProprietaryConfigDAO proprietaryConfigDAO;
 
+  @Inject
   private InsightWork work;
 
-  private MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+  @Inject
+  private MigrationTrackerDAO migrationTrackerDAO;
 
   @Before
-  public void setUp() throws Exception {
-    InsightConfig insightConfig = new InsightConfig();
-    File workDir = tempDir.newFolder();
-    insightConfig.setSonatypeWork(workDir.getAbsolutePath());
-    work = new InsightWork(insightConfig);
-    work.getDataDir().mkdirs();
-    proprietaryConfigDAO = new ProprietaryConfigDAO();
-    migrator = new ProprietaryConfigMigrator(work, proprietaryConfigDAO, migrationTrackerDAO);
-
+  public void before() throws Exception {
     migrationTrackerDAO.delete(new MigrationTracker(ProprietaryConfigMigrator.MIGRATION_ID));
   }
 
   @After
-  public void tearDown() {
+  public void after() {
     // clean up any migrated proprietary config, since it doesn't get cleaned up automatically due to the root org.
     ProprietaryConfig proprietaryConfig = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     if (proprietaryConfig != null) {

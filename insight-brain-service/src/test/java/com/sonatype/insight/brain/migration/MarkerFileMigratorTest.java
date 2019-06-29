@@ -9,46 +9,37 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.openjpa.persistence.RollbackException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class MarkerFileMigratorTest
+    extends AbstractComponentTest
 {
-  private MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+  @Inject
+  private MigrationTrackerDAO migrationTrackerDAO;
 
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
-
+  @Inject
   private InsightWork insightWork;
 
+  @Inject
   private MarkerFileMigrator markerFileMigrator;
 
   @Before
-  public void setUp() throws Exception {
-    InsightConfig insightConfig = new InsightConfig();
-    File workDir = tempDir.newFolder();
-    insightConfig.setSonatypeWork(workDir.getAbsolutePath());
-    insightWork = new InsightWork(insightConfig);
-    insightWork.getDataDir().mkdirs();
-    markerFileMigrator = new MarkerFileMigrator(migrationTrackerDAO, insightWork);
-    migrationTrackerDAO.delete(new MigrationTracker(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID));
-  }
-
   @After
-  public void after() {
+  public void cleanup() {
     migrationTrackerDAO.delete(new MigrationTracker(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID));
   }
 
@@ -136,16 +127,13 @@ public class MarkerFileMigratorTest
     migrationTrackerDAO.insert(new MigrationTracker(PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID));
 
     try {
-      markerFileMigrator.migrate();
-      fail("Transaction should have been rolled back!");
-    }
-    catch (RollbackException rollbackException) {
-      // Assert Migration Tracker itself is not tracked
+      assertThatExceptionOfType(RollbackException.class).isThrownBy(() -> {
+        markerFileMigrator.migrate();
+      });
       assertThat(migrationTrackerDAO.getById(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isNull();
     }
     finally {
-      migrationTrackerDAO
-          .delete(new MigrationTracker(PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID));
+      migrationTrackerDAO.delete(new MigrationTracker(PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID));
     }
   }
 

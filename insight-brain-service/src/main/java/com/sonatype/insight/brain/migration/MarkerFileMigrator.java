@@ -82,7 +82,7 @@ public class MarkerFileMigrator
   private void migrateOne(File markerFile, String migrationId, TransactionContext tx) {
     if (markerFile.exists()) {
       migrationTrackerDAO.insertTracker(tx, migrationId);
-      log.info("Migration state moved to database for: " + migrationId);
+      log.info("Migration state moved to database for: {}", migrationId);
     }
   }
 
@@ -106,6 +106,6 @@ public class MarkerFileMigrator
       migrationTracker.setConfiguration(sourceOrganizationId);
       migrationTrackerDAO.insert(tx, migrationTracker);
     }
-    log.info("Migration state moved to database for: " + RootOrganizationConfigMigrationUtils.MIGRATION_ID);
+    log.info("Migration state moved to database for: {}", RootOrganizationConfigMigrationUtils.MIGRATION_ID);
   }
 }

@@ -27,7 +27,7 @@ public class PingHdsClient
 {
   static final int SOCKET_TIMEOUT = 5000;
 
-  static int CONNECT_TIMEOUT = SOCKET_TIMEOUT;
+  static final int CONNECT_TIMEOUT = SOCKET_TIMEOUT;
 
   @Inject
   public PingHdsClient(InsightProxy proxy,

@@ -29,9 +29,8 @@ public class FirewallQuarantineHdsClient
                                      final CLMLicenseManager licenseManager,
                                      InsightConfig insightConfig,
                                      VersionService versionService,
-                                     IdleConnectionReaper idleConnectionReaper,
                                      TelemetryId telemetryId)
   {
-    super(proxy, licenseManager, insightConfig, versionService, idleConnectionReaper, telemetryId, 20);
+    super(proxy, licenseManager, insightConfig, versionService, telemetryId, 20);
   }
 }

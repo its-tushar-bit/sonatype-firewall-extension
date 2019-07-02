@@ -34,14 +34,13 @@ public class PingHdsClient
                        CLMLicenseManager licenseManager,
                        InsightConfig insightConfig,
                        VersionService versionService,
-                       IdleConnectionReaper idleConnectionReaper,
                        TelemetryId telemetryId)
   {
-    super(proxy, licenseManager, insightConfig, versionService, idleConnectionReaper, telemetryId);
+    super(proxy, licenseManager, insightConfig, versionService, telemetryId);
   }
 
   @Override
-  protected Configuration createConfiguration() {
+  protected Configuration createConfiguration(InsightConfig insightConfig) {
     Configuration configuration = new Configuration();
     configuration.setSocketTimeout(SOCKET_TIMEOUT);
     configuration.setConnectTimeout(CONNECT_TIMEOUT);

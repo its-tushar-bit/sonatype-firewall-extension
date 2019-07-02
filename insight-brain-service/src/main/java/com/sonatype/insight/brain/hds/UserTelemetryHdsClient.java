@@ -33,10 +33,9 @@ public class UserTelemetryHdsClient extends HdsClient
                                 CLMLicenseManager licenseManager,
                                 InsightConfig insightConfig,
                                 VersionService versionService,
-                                IdleConnectionReaper idleConnectionReaper,
                                 TelemetryId telemetryId)
   {
-    super(proxy, licenseManager, insightConfig, versionService, idleConnectionReaper, telemetryId);
+    super(proxy, licenseManager, insightConfig, versionService, telemetryId);
   }
 
   @Override

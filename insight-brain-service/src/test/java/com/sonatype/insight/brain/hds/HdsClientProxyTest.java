@@ -87,7 +87,7 @@ public class HdsClientProxyTest
     when(licenseManager.getLicenseFingerprint()).thenReturn("license-fingerprint");
     ApiProxyConfigurationServiceV2 proxyConfig = new ApiProxyConfigurationServiceV2(new ProxyConfigurationDAO());
     client = new HdsClient(new InsightProxy(config, proxyConfig), licenseManager, config, new VersionService(),
-        mock(IdleConnectionReaper.class), telemetryId);
+        telemetryId);
   }
 
   @After

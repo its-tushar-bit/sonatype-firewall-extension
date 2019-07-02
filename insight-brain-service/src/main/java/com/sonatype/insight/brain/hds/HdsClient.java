@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -48,7 +49,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.entity.ContentType;
@@ -56,7 +56,6 @@ import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,31 +94,31 @@ public class HdsClient
 
   static final String TELEMETRY_ID_HEADER = "X-CLM-Instance-Id";
 
+  private static final int MAX_IDLE_TIME = 30;
+
   @Inject
   public HdsClient(final InsightProxy proxy,
                    final CLMLicenseManager licenseManager,
                    InsightConfig insightConfig,
                    VersionService versionService,
-                   IdleConnectionReaper idleConnectionReaper,
                    TelemetryId telemetryId)
   {
-    this(proxy, licenseManager, insightConfig, versionService, idleConnectionReaper, telemetryId, 20);
+    this(proxy, licenseManager, insightConfig, versionService, telemetryId, 20);
   }
 
   protected HdsClient(final InsightProxy proxy,
                       final CLMLicenseManager licenseManager,
                       InsightConfig insightConfig,
                       VersionService versionService,
-                      IdleConnectionReaper idleConnectionReaper,
                       TelemetryId telemetryId,
                       int poolSize)
   {
     this.licenseManager = licenseManager;
-    config = proxy.contextualize(createConfiguration());
+    config = proxy.contextualize(createConfiguration(insightConfig));
     HttpClientBuilder clientBuilder = HttpClientUtils.create(config);
-    HttpClientConnectionManager connectionManager = buildHttpClientConnectionManager(poolSize);
-    idleConnectionReaper.register(connectionManager);
-    clientBuilder.setConnectionManager(connectionManager);
+    clientBuilder.setMaxConnTotal(poolSize);
+    clientBuilder.setMaxConnPerRoute(poolSize);
+    clientBuilder.evictIdleConnections(MAX_IDLE_TIME, TimeUnit.SECONDS);
     client = clientBuilder.build();
     this.versionService = versionService;
     rutHeader = insightConfig.getReverseProxyAuthentication().isEnabled()
@@ -129,8 +128,9 @@ public class HdsClient
     this.telemetryId = telemetryId;
   }
 
-  protected Configuration createConfiguration() {
+  protected Configuration createConfiguration(InsightConfig insightConfig) {
     Configuration configuration = new Configuration();
+    configuration.setConnectTimeout(insightConfig.getConnectTimeoutInSeconds() * 1000);
     return configuration;
   }
 
@@ -501,13 +501,6 @@ public class HdsClient
     }
 
     return uriBuilder.build((Object[]) uriParams).toString();
-  }
-
-  private HttpClientConnectionManager buildHttpClientConnectionManager(int poolSize) {
-    PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
-    connManager.setMaxTotal(poolSize);
-    connManager.setDefaultMaxPerRoute(connManager.getMaxTotal());
-    return connManager;
   }
 
   private void loadVersion() {

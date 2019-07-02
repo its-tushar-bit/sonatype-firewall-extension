@@ -44,7 +44,7 @@ public class PingHdsClientTest
     CLMLicenseManager licenseManager = mock(CLMLicenseManager.class);
     ApiProxyConfigurationServiceV2 proxyConfig = new ApiProxyConfigurationServiceV2(new ProxyConfigurationDAO());
     client = new PingHdsClient(new InsightProxy(config, proxyConfig), licenseManager, config, new VersionService(),
-        mock(IdleConnectionReaper.class), telemetryId);
+        telemetryId);
   }
 
   @Test

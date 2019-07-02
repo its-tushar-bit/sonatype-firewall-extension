@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.hds.IdleConnectionReaper;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -75,7 +74,7 @@ public class HdsIdeResourcePerformanceUtils
         .setPort(8877);
     return new HdsClient(new InsightProxy(config, proxyConfig),
         new CLMLicenseManager(new TestProductLicenseManager(), new TestLicenseFingerprinter(), null), config,
-        new VersionService(), Mockito.mock(IdleConnectionReaper.class), new TelemetryId(config));
+        new VersionService(), new TelemetryId(config));
   }
 
   static void addPolicy(Application app, Policy[] policies) throws Exception {

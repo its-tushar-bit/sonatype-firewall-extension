@@ -40,7 +40,7 @@ public class UserTelemetryHdsClientTest extends AbstractHdsClientTest
     ApiProxyConfigurationServiceV2 proxyConfig = new ApiProxyConfigurationServiceV2(new ProxyConfigurationDAO());
     when(licenseManager.getLicenseFingerprint()).thenReturn("license-fingerprint");
     client = new UserTelemetryHdsClient(new InsightProxy(config, proxyConfig), licenseManager, config,
-        new VersionService(), mock(IdleConnectionReaper.class), telemetryId);
+        new VersionService(), telemetryId);
   }
 
   @Test

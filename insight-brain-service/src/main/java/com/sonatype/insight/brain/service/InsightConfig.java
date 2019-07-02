@@ -694,4 +694,21 @@ public class InsightConfig
   public void setEnablePolicyReportPreviousVersionLink(final boolean enablePolicyReportPreviousVersionLink) {
     this.enablePolicyReportPreviousVersionLink = enablePolicyReportPreviousVersionLink;
   }
+
+  /**
+   * @since 1.67
+   */
+  @JsonProperty
+  @NotNull
+  @Min(5)
+  @Max(60 * 60)  // 1 hour
+  private int connectTimeoutInSeconds = 20;
+
+  public int getConnectTimeoutInSeconds() {
+    return connectTimeoutInSeconds;
+  }
+
+  public void setConnectTimeoutInSeconds(int connectTimeoutInSeconds) {
+    this.connectTimeoutInSeconds = connectTimeoutInSeconds;
+  }
 }

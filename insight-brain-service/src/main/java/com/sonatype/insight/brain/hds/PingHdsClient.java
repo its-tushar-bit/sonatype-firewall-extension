@@ -40,10 +40,8 @@ public class PingHdsClient
   }
 
   @Override
-  protected Configuration createConfiguration(InsightConfig insightConfig) {
-    Configuration configuration = new Configuration();
+  protected void customizeConfiguration(Configuration configuration) {
     configuration.setSocketTimeout(SOCKET_TIMEOUT);
     configuration.setConnectTimeout(CONNECT_TIMEOUT);
-    return configuration;
   }
 }

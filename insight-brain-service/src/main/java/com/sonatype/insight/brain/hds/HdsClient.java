@@ -94,8 +94,6 @@ public class HdsClient
 
   static final String TELEMETRY_ID_HEADER = "X-CLM-Instance-Id";
 
-  private static final int MAX_IDLE_TIME = 30;
-
   @Inject
   public HdsClient(final InsightProxy proxy,
                    final CLMLicenseManager licenseManager,
@@ -114,11 +112,14 @@ public class HdsClient
                       int poolSize)
   {
     this.licenseManager = licenseManager;
-    config = proxy.contextualize(createConfiguration(insightConfig));
+    config = new Configuration(); 
+    config.setConnectTimeout(insightConfig.getConnectTimeoutInSeconds() * 1000);
+    customizeConfiguration(config);
+    proxy.contextualize(config);
     HttpClientBuilder clientBuilder = HttpClientUtils.create(config);
     clientBuilder.setMaxConnTotal(poolSize);
     clientBuilder.setMaxConnPerRoute(poolSize);
-    clientBuilder.evictIdleConnections(MAX_IDLE_TIME, TimeUnit.SECONDS);
+    clientBuilder.evictIdleConnections(30, TimeUnit.SECONDS);
     client = clientBuilder.build();
     this.versionService = versionService;
     rutHeader = insightConfig.getReverseProxyAuthentication().isEnabled()
@@ -128,10 +129,7 @@ public class HdsClient
     this.telemetryId = telemetryId;
   }
 
-  protected Configuration createConfiguration(InsightConfig insightConfig) {
-    Configuration configuration = new Configuration();
-    configuration.setConnectTimeout(insightConfig.getConnectTimeoutInSeconds() * 1000);
-    return configuration;
+  protected void customizeConfiguration(Configuration configuration) {
   }
 
   public <T> T get(Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams) {

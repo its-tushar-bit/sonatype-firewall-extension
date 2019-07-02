@@ -176,12 +176,7 @@ public class ApiSearchServiceV2
       return true;
     }
 
-    switch (candidateComponentIdentifier.getFormat()) {
-      case ComponentIdentifier.FORMAT_PYPI:
-        return !coords.matchesIgnoreCase(candidateComponentIdentifier);
-      default:
-        return !coords.matches(candidateComponentIdentifier);
-    }
+    return !coords.matches(candidateComponentIdentifier);
   }
 
   private ComponentIdentifier constructWildcardedComponentIdentifier(final ComponentIdentifier componentIdentifier) {

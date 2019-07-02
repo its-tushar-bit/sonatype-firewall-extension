@@ -186,28 +186,28 @@ public class ArtifactCoordinateTest
 
     ArtifactCoordinate pypyExactCoordinate = new ArtifactCoordinate(
         ComponentIdentifier.createPypiCoordinates("pyyaml", "3.11", "win-amd64-py2.7","exe"));
-    assertThat(pypyExactCoordinate.matches(pypiCoordinate1)).isFalse();
-    assertThat(pypyExactCoordinate.matchesIgnoreCase(pypiCoordinate1)).isTrue();
-    assertThat(pypyExactCoordinate.matchesIgnoreCase(pypiCoordinate2)).isFalse();
+    assertThat(pypyExactCoordinate.matches(pypiCoordinate1)).isTrue();
+    assertThat(pypyExactCoordinate.matches(pypiCoordinate2)).isFalse();
+    assertThat(pypyExactCoordinate.matches(pypiCoordinate3)).isFalse();
 
     ArtifactCoordinate pypyCoordWithWildcardQualifier = new ArtifactCoordinate(
         ComponentIdentifier.createPypiCoordinates("pyyaml", "3.11", "win*","exe"));
-    assertThat(pypyCoordWithWildcardQualifier.matchesIgnoreCase(pypiCoordinate1)).isTrue();
-    assertThat(pypyCoordWithWildcardQualifier.matchesIgnoreCase(pypiCoordinate2)).isTrue();
-    assertThat(pypyCoordWithWildcardQualifier.matchesIgnoreCase(pypiCoordinate3)).isFalse();
+    assertThat(pypyCoordWithWildcardQualifier.matches(pypiCoordinate1)).isTrue();
+    assertThat(pypyCoordWithWildcardQualifier.matches(pypiCoordinate2)).isTrue();
+    assertThat(pypyCoordWithWildcardQualifier.matches(pypiCoordinate3)).isFalse();
 
     ArtifactCoordinate pypyCoordWithAllWildcards = new ArtifactCoordinate(
         ComponentIdentifier.createPypiCoordinates("pyy*", "3*", "win*","*"));
-    assertThat(pypyCoordWithAllWildcards.matchesIgnoreCase(pypiCoordinate1)).isTrue();
-    assertThat(pypyCoordWithAllWildcards.matchesIgnoreCase(pypiCoordinate2)).isTrue();
-    assertThat(pypyCoordWithAllWildcards.matchesIgnoreCase(pypiCoordinate3)).isTrue();
+    assertThat(pypyCoordWithAllWildcards.matches(pypiCoordinate1)).isTrue();
+    assertThat(pypyCoordWithAllWildcards.matches(pypiCoordinate2)).isTrue();
+    assertThat(pypyCoordWithAllWildcards.matches(pypiCoordinate3)).isTrue();
   }
 
   @Test
   public void testMatchesIgnoreCase_NullCandidateIdentifier() {
     ArtifactCoordinate pypyCoord = new ArtifactCoordinate(
         ComponentIdentifier.createPypiCoordinates("pyy*", "3*", "win*","*"));
-    assertThat(pypyCoord.matchesIgnoreCase(null)).isFalse();
+    assertThat(pypyCoord.matches(null)).isFalse();
   }
 
   @Test
@@ -216,6 +216,6 @@ public class ArtifactCoordinateTest
 
     ArtifactCoordinate pypyCoord = new ArtifactCoordinate(
         ComponentIdentifier.createPypiCoordinates("pyy*", "3*", "win*","*"));
-    assertThat(pypyCoord.matchesIgnoreCase(mavenCoordinates)).isFalse();
+    assertThat(pypyCoord.matches(mavenCoordinates)).isFalse();
   }
 }

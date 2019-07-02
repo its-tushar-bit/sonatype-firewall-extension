@@ -48,14 +48,6 @@ public class ArtifactCoordinate
   }
 
   public boolean matches(final ComponentIdentifier otherComponentIdentifier) {
-    return matchWithIgnoreCase(otherComponentIdentifier, false);
-  }
-
-  public boolean matchesIgnoreCase(final ComponentIdentifier otherComponentIdentifier) {
-    return matchWithIgnoreCase(otherComponentIdentifier, true);
-  }
-
-  private boolean matchWithIgnoreCase(final ComponentIdentifier otherComponentIdentifier, final boolean ignoreCase) {
     if (otherComponentIdentifier == null) {
       return false;
     }
@@ -63,6 +55,8 @@ public class ArtifactCoordinate
     if (!componentIdentifier.getFormat().equals(otherComponentIdentifier.getFormat())) {
       return false;
     }
+
+    final boolean ignoreCase = !otherComponentIdentifier.isCaseSensitive();
 
     if (otherComponentIdentifier.isMaven()) {
       return matchesGroup(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID),

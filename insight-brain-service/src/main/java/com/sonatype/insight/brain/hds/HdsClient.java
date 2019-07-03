@@ -129,7 +129,7 @@ public class HdsClient
     this.telemetryId = telemetryId;
   }
 
-  protected void customizeConfiguration(Configuration configuration) {
+  protected void customizeConfiguration(@SuppressWarnings("unused") Configuration configuration) {
   }
 
   public <T> T get(Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams) {

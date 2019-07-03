@@ -35,6 +35,10 @@ public class MainHeader
     return new MainHeaderNavigationButton("#labs-navigation-button");
   }
 
+  public static MainHeaderNavigationButton vulnerabilityDetailsNavigationButton() {
+    return new MainHeaderNavigationButton("#vulnerability-navigation-button");
+  }
+
   public static UserMenu userMenu() {
     return new UserMenu();
   }

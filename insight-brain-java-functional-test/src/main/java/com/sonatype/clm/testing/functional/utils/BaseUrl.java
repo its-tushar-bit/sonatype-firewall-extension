@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.URI;
 import java.net.URL;
 import java.util.Enumeration;
 
@@ -19,11 +20,19 @@ import com.codeborne.selenide.Configuration;
 public class BaseUrl
 {
   public static String resolvePageUrl(String path, Object... parameters) {
-    return pageUriBuilder().fragment(path).build(parameters).toString().replaceAll("%2F", "/");
+    return undoUnnecessaryUrlEscapes(pageUriBuilder().fragment(path).build(parameters));
   }
 
   public static String resolveRestUrl(String path, Object... parameters) {
-    return restUriBuilder().path(path).build(parameters).toString().replaceAll("%2F", "/");
+    return undoUnnecessaryUrlEscapes(restUriBuilder().path(path).build(parameters));
+  }
+
+  public static String resolveUiLinksUrl(String path, Object... parameters) {
+    return undoUnnecessaryUrlEscapes(uiLinksUriBuilder().path(path).build(parameters));
+  }
+
+  private static String undoUnnecessaryUrlEscapes(URI uri) {
+    return uri.toString().replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%2C", ",").replaceAll("%3A", ":");
   }
 
   private static UriBuilder pageUriBuilder() {
@@ -32,6 +41,10 @@ public class BaseUrl
 
   private static UriBuilder restUriBuilder() {
     return rootUriBuilder().path("rest");
+  }
+
+  private static UriBuilder uiLinksUriBuilder() {
+    return rootUriBuilder().path("ui/links");
   }
 
   public static UriBuilder rootUriBuilder() {

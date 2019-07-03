@@ -5,10 +5,12 @@
  */
 package com.sonatype.insight.brain.model.policy.conditions;
 
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public abstract class AbstractConditionType
@@ -79,5 +81,10 @@ public abstract class AbstractConditionType
   @Override
   public String convertIfNeeded(final String value) {
     return value;
+  }
+
+  @Override
+  public TriggerReference getTriggerReference(Condition condition, MatchFact matchFact) {
+    return null;
   }
 }

@@ -20,6 +20,7 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
@@ -225,9 +226,10 @@ public class ComponentPolicyEvaluator
 
     String summary = conditionType.explainCondition(condition);
     String reason = conditionType.explainMatch(condition, matchFact);
+    TriggerReference reference = conditionType.getTriggerReference(condition, matchFact);
 
     ConditionFact conditionFact = new ConditionFact(condition.getConditionTypeId(), condition.getConditionIndex(),
-        summary, reason);
+        summary, reason, reference);
     if (matchFact != null && !matchFact.getConditionTriggers().isEmpty()) {
       ConditionTrigger conditionTrigger = matchFact.getConditionTriggerByConditionIndex(condition.getConditionIndex());
       if (conditionTrigger != null) {

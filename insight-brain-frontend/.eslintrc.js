@@ -34,9 +34,13 @@ module.exports = {
     "LabelMockData": false,
     "AccessMockData": false,
     "WebhookMockData": false,
-    "ApplicationMockData": false
+    "ApplicationMockData": false,
+    "Promise": false
   },
-  "extends": "eslint:recommended",
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended"
+  ],
   "rules": {
     "camelcase": [
       "error",
@@ -60,7 +64,24 @@ module.exports = {
         "VariableDeclarator": 2,
         "FunctionDeclaration": {"parameters": "first"},
         "FunctionExpression": {"parameters": "first"},
-        "CallExpression": {"arguments": 2}
+        "CallExpression": {"arguments": 2},
+
+        // handled by jsx-indent and jsx-indent-props
+        "ignoredNodes": [
+          'JSXElement',
+          'JSXElement > *',
+          'JSXAttribute',
+          'JSXIdentifier',
+          'JSXNamespacedName',
+          'JSXMemberExpression',
+          'JSXSpreadAttribute',
+          'JSXExpressionContainer',
+          'JSXOpeningElement',
+          'JSXClosingElement',
+          'JSXText',
+          'JSXEmptyExpression',
+          'JSXSpreadChild'
+        ]
       }
     ],
     "new-cap": "off",
@@ -137,6 +158,13 @@ module.exports = {
     "no-debugger": isProd ? 'error' : 'off',
     "array-bracket-spacing": ["error", "never"],
     "object-property-newline": ["error", { "allowMultiplePropertiesPerLine": true }],
-    "brace-style": ["error", "stroustrup", { "allowSingleLine": true }]
+    "brace-style": ["error", "stroustrup", { "allowSingleLine": true }],
+    "react/jsx-indent": ["error", 2],
+    "react/jsx-indent-props": ["error", 'first']
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
   }
 }

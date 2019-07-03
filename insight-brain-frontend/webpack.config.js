@@ -4,6 +4,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CSSSplitPlugin = require('css-split-webpack-plugin').default;
 const StyleLintPlugin = require('stylelint-webpack-plugin');
 const transformObjectRestSpread = require('babel-plugin-transform-object-rest-spread');
+const transformJsx = require('babel-plugin-transform-react-jsx');
 const transformRuntime = require('babel-plugin-transform-runtime');
 
 const CopyModulesPlugin = require('copy-modules-webpack-plugin');
@@ -52,9 +53,12 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
       path: webpackOutputDir,
       filename: outputPath
     },
+    resolve: {
+      extensions: ['.js', '.jsx']
+    },
     module: {
       rules: [{
-        test: /\.js$/,
+        test: /\.jsx?$/,
         // NOTE: babel's transformRuntime and webpack's exports-loader cannot be used on the
         // same files due to https://github.com/webpack/webpack/issues/4039#issuecomment-274094298
         exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib[\/\\](protovis|Base64)/,
@@ -64,12 +68,13 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
             presets: [['env', { modules: false }]],
             plugins: [
               transformObjectRestSpread,
+              transformJsx,
               [transformRuntime, { polyfill: false }]
             ]
           }
         }
       }, {
-        test: /\.js$/,
+        test: /\.jsx?$/,
         enforce: 'pre',
         exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\](lib|cip|audit-report|version-graph)/,
         use: 'eslint-loader'

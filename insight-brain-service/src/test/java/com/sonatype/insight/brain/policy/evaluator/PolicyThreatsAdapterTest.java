@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -212,7 +213,7 @@ public class PolicyThreatsAdapterTest
     PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(null);
 
     assertThat(threats.aaData).isEmpty();
-    assertThat(threats.version).isEqualTo(4);
+    assertThat(threats.version).isEqualTo(5);
   }
 
   private PolicyViolation buildPolicyViolation(String policyId,
@@ -241,8 +242,12 @@ public class PolicyThreatsAdapterTest
 
   private List<ConstraintFact> buildConstraintFact(String policyId) {
     ConstraintFact fact = new ConstraintFact("constraint-" + policyId, "constraint-" + policyId, "test-operator");
+
+    TriggerReference triggerReference = new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID,
+        "vun-refId");
+
     ConditionFact condition = new ConditionFact(ConditionTypes.MatchStateConditionType.getId(), 0 /* conditionIndex */,
-        "Match state condition.", "Unknown match state.");
+        "Match state condition.", "Unknown match state.", triggerReference);
     fact.addConditionFact(condition);
 
     return Lists.newArrayList(fact);
@@ -373,6 +378,8 @@ public class PolicyThreatsAdapterTest
                                                    List<ConditionFact> conditionFacts)
   {
     for (ConditionFact fact : conditionFacts) {
+      assertPolicyConditionTriggerReference(condition.conditionTriggerReference, fact.getReference());
+
       if (fact.getConditionTypeId().equals(condition.conditionType)
           && fact.getReason().equals(condition.conditionReason)
           && fact.getSummary().equals(condition.conditionSummary)) {
@@ -381,5 +388,18 @@ public class PolicyThreatsAdapterTest
     }
 
     fail("Unable to find matching policy threats condition fact " + condition.toString() + ".");
+  }
+
+  private void assertPolicyConditionTriggerReference(
+      PolicyThreats.PolicyConditionTriggerReference policyThreatsTriggerReference,
+      TriggerReference conditionFactTriggerReference)
+  {
+    if (conditionFactTriggerReference == null) {
+      assertThat(policyThreatsTriggerReference).isNull();
+    }
+    else {
+      assertThat(policyThreatsTriggerReference.type).isEqualTo(conditionFactTriggerReference.getType());
+      assertThat(policyThreatsTriggerReference.value).isEqualTo(conditionFactTriggerReference.getValue());
+    }
   }
 }

@@ -17,6 +17,9 @@ import '../../main/frontend/lib/bootstrap-loader';
 import '../../main/frontend/utility/Polyfills';
 import * as d3 from 'd3/index.js';
 import Fuse from 'fuse.js';
+import Enzyme from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
+import jasmineEnzyme from 'jasmine-enzyme';
 
 import 'angular-mocks/ngMock';
 
@@ -34,7 +37,10 @@ import './assets/MockData';
 
 import '../../main/frontend/util/Globals';
 
-importAll(require.context('.', true, /[sS]pec.js$/));
+importAll(require.context('.', true, /[sS]pec.jsx?$/));
 
 window.d3 = d3;
 window.Fuse = Fuse;
+
+Enzyme.configure({ adapter: new Adapter() });
+beforeEach(jasmineEnzyme);

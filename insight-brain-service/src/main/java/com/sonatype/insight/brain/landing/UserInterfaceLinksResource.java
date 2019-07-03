@@ -57,6 +57,8 @@ public class UserInterfaceLinksResource
 
   public static final String REPO_RESULT_PATH = "repository/{repositoryId}/result";
 
+  public static final String VULNERABILITY_DETAILS_PATH = "vln/{vulnerabilityId}";
+
   private final BaseUrl baseUrl;
 
   private final TelemetrySender telemetrySender;
@@ -132,6 +134,14 @@ public class UserInterfaceLinksResource
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment("/" + REPO_RESULT_PATH);
     return redirect(uriBuilder, repositoryId);
+  }
+
+  @GET
+  @Path(VULNERABILITY_DETAILS_PATH)
+  public Response linkToVulnerabilityDetails(@PathParam("vulnerabilityId") String vulnerabilityId) {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment("/vulnerabilities/{vulnerabilityId}");
+    return redirect(uriBuilder, vulnerabilityId);
   }
 
   private void sendSourceTelemetryData(final String applicationId, final String scanId, final String source) {

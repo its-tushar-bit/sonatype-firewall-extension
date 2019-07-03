@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -137,5 +138,14 @@ public class PolicyThreats
     public String conditionSummary;
 
     public String conditionReason;
+
+    public PolicyConditionTriggerReference conditionTriggerReference;
+  }
+
+  public static class PolicyConditionTriggerReference
+  {
+    public String value;
+
+    public TriggerReference.Type type;
   }
 }

@@ -15,7 +15,7 @@ public class IqBackButton
    * @param context the context selector, within which the back-button is located
    */
   public IqBackButton(String context) {
-    super(context, "iq-back-button");
+    super(context, ".iq-back-button");
   }
 
   @Override

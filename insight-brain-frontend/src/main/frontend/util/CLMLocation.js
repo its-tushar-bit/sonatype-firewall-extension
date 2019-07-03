@@ -7,7 +7,23 @@
 import { pick } from 'ramda';
 
 import commonServicesModule from '../util/CommonServices';
-import {toURIParams} from './jsUtil';
+import {getBaseUrl, toURIParams} from './urlUtil';
+
+export function getVulnerabilityDetailUrl(source, refId, componentIdentifier, hash) {
+  const url = getBaseUrl(window.location.href) + '/rest/vulnerability/details/' +
+      encodeURIComponent(source) + '/' + encodeURIComponent(refId);
+
+  const params = toURIParams({
+    hash,
+    componentIdentifier: componentIdentifier && JSON.stringify(componentIdentifier)
+  });
+
+  if (params.length > 0) {
+    return url + '?' + params;
+  }
+
+  return url;
+}
 
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
@@ -384,21 +400,7 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
         return hash ? `${base}/${encodeURIComponent(hash)}` : base;
       },
 
-      getVulnerabilityDetailUrl: (source, refId, componentIdentifier, hash) => {
-        const url = baseUrl.get() + '/rest/vulnerability/details/' +
-            encodeURIComponent(source) + '/' + encodeURIComponent(refId);
-
-        const params = toURIParams({
-          hash,
-          componentIdentifier: componentIdentifier && JSON.stringify(componentIdentifier)
-        });
-
-        if (params.length > 0) {
-          return url + '?' + params;
-        }
-
-        return url;
-      }
+      getVulnerabilityDetailUrl
     };
   }
 ]);

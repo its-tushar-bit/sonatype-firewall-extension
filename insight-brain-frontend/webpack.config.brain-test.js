@@ -1,6 +1,7 @@
 const path = require('path');
 const JasmineWebpackPlugin = require('jasmine-webpack-plugin');
 const transformObjectRestSpread = require('babel-plugin-transform-object-rest-spread');
+const transformJsx = require('babel-plugin-transform-react-jsx');
 
 const outputPath = path.resolve(__dirname, 'target/classes/assets');
 
@@ -12,16 +13,19 @@ module.exports = {
     filename: 'test-bundle.js'
   },
   plugins: [new JasmineWebpackPlugin()],
+  resolve: {
+    extensions: ['.js', '.jsx']
+  },
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: /\.jsx?$/,
         exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib[\/\\](protovis|Base64)/,
         use: {
           loader: 'babel-loader',
           options: {
             presets: ['env'],
-            plugins: [transformObjectRestSpread]
+            plugins: [transformObjectRestSpread, transformJsx]
           }
         }
       },
@@ -33,6 +37,10 @@ module.exports = {
             attrs: false
           }
         }
+      },
+      {
+        test: /\.s?css$/,
+        use: 'null-loader'
       }
     ]
   },

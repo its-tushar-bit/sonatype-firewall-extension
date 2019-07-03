@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.model.policy;
 
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -51,6 +52,11 @@ public interface ConditionType
   String explainCondition(Condition condition);
 
   String explainMatch(Condition condition, MatchFact matchFact);
+
+  /**
+   * @since 1.67
+   */
+  TriggerReference getTriggerReference(Condition condition, MatchFact matchFact);
 
   void validateCondition(TransactionContext tx, Condition condition, String ownerId) throws InvalidConditionException;
 

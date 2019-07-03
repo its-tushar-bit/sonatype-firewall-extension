@@ -507,7 +507,7 @@
           "conditions": [
             {
               "conditionTypeId": "SecurityVulnerabilitySeverity",
-              "operator": ">=",
+              "operator": ">",
               "value": "0"
             },
             {

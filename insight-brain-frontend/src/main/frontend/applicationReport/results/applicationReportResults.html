@@ -32,6 +32,16 @@
             <a id="raw-data-link" class="link iq-dropdown-menu__link" ui-sref="^.rawData">
               <i class="fa fa-file fa-fw"/>View raw data
             </a>
+            <a id="report-vulnerabilities-list-link"
+               class="link iq-dropdown-menu__link"
+               ui-sref="^.vulnerabilities"
+               ng-click="vm.vulnerabilitiesPageEnabled || $event.preventDefault()"
+               ng-class="{'disabled': !vm.vulnerabilitiesPageEnabled}"
+               tooltip="{{vm.vulnerabilitiesPageEnabled ? undefined :
+                 'Reevaluate the report in order to enable Vulnerabilities view'}}"
+               tooltip-append-to-body="true">
+              <i class="fa fa-file fa-fw"/>View vulnerabilities
+            </a>
           </div>
         </div>
       </div>

@@ -184,7 +184,10 @@ describe('applicationReportActions', function() {
 
       store.dispatch(applicationReportActions[actionCreatorName]()).catch(errorSpy);
 
-      expect(store.getActions().length).toBe(1);
+      expect(store.getActions().length).toBe(2);
+      expect(store.getActions()[1]).toEqual({
+        type: 'LOAD_COMMON_DATA_UNNECESSARY'
+      });
 
       expectAdditionalCalls();
       $httpBackend.flush();
@@ -196,7 +199,10 @@ describe('applicationReportActions', function() {
 
       store.dispatch(applicationReportActions[actionCreatorName]()).catch(errorSpy);
 
-      expect(store.getActions().length).toBe(1);
+      expect(store.getActions().length).toBe(2);
+      expect(store.getActions()[1]).toEqual({
+        type: 'LOAD_COMMON_DATA_UNNECESSARY'
+      });
 
       expectAdditionalCalls();
       $httpBackend.flush();
@@ -268,7 +274,7 @@ describe('applicationReportActions', function() {
       const errorSpy = jasmine.createSpy('errorSpy');
       store.dispatch(applicationReportActions.loadReport()).catch(errorSpy);
 
-      expect(store.getActions().length).toBe(1);
+      expect(store.getActions().length).toBe(2);
       expect(store.getActions()[0]).toEqual({
         type: 'LOAD_REPORT_REQUESTED'
       });
@@ -321,7 +327,7 @@ describe('applicationReportActions', function() {
       const errorSpy = jasmine.createSpy('errorSpy');
       store.dispatch(applicationReportActions.loadReport()).catch(errorSpy);
 
-      expect(store.getActions().length).toBe(1);
+      expect(store.getActions().length).toBe(2);
       expect(store.getActions()[0]).toEqual({
         type: 'LOAD_REPORT_REQUESTED'
       });
@@ -331,8 +337,8 @@ describe('applicationReportActions', function() {
       $httpBackend.flush();
 
       expect(errorSpy).not.toHaveBeenCalled();
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[1]).toEqual({
+      expect(store.getActions().length).toBe(3);
+      expect(store.getActions()[2]).toEqual({
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
           allEntries: [
@@ -359,7 +365,7 @@ describe('applicationReportActions', function() {
       const errorSpy = jasmine.createSpy('errorSpy');
       store.dispatch(applicationReportActions.loadReportRawData()).catch(errorSpy);
 
-      expect(store.getActions().length).toBe(1);
+      expect(store.getActions().length).toBe(2);
       expect(store.getActions()[0]).toEqual({
         type: 'LOAD_REPORT_RAW_DATA_REQUESTED'
       });
@@ -397,7 +403,7 @@ describe('applicationReportActions', function() {
       const errorSpy = jasmine.createSpy('errorSpy');
       store.dispatch(applicationReportActions.loadReportRawData()).catch(errorSpy);
 
-      expect(store.getActions().length).toBe(1);
+      expect(store.getActions().length).toBe(2);
       expect(store.getActions()[0]).toEqual({
         type: 'LOAD_REPORT_RAW_DATA_REQUESTED'
       });
@@ -407,8 +413,8 @@ describe('applicationReportActions', function() {
       $httpBackend.flush();
 
       expect(errorSpy).not.toHaveBeenCalled();
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[1]).toEqual({
+      expect(store.getActions().length).toBe(3);
+      expect(store.getActions()[2]).toEqual({
         type: 'LOAD_REPORT_RAW_DATA_FULFILLED',
         payload: [{
           derivedComponentName: 'unknown',
@@ -641,6 +647,83 @@ describe('applicationReportActions', function() {
 
       expect(action.type).toBe('REEVALUATE_REPORT_CANCELLED');
       expect(action.payload).not.toBeDefined();
+    });
+  });
+
+  describe('loadReportAllData', function() {
+    it('dispatches a LOAD_REPORT_ALL_DATA_REQUESTED action', function() {
+      const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
+      const errorSpy = jasmine.createSpy('errorSpy');
+      store.dispatch(applicationReportActions.loadReportAllData()).catch(errorSpy);
+
+      expect(store.getActions().length).toBe(2);
+      expect(store.getActions()[0]).toEqual({
+        type: 'LOAD_REPORT_ALL_DATA_REQUESTED'
+      });
+
+      expectReportRawDataCalls(false);
+      expectReportDataCalls(false);
+      $httpBackend.flush();
+    });
+
+    testCommonDataLoading('loadReportAllData', () => {
+      expectReportRawDataCalls(true);
+      expectReportDataCalls(true);
+    });
+
+    it('does not load the raw data if it is already loaded', function() {
+      const state = createMockState(false, mockBomData, mockUnknownJsData, mockMetadata);
+
+      state.applicationReport.reportRawData = [];
+
+      const store = SpecUtil.mockReduxStore(state),
+          errorSpy = jasmine.createSpy('errorSpy');
+
+      store.dispatch(applicationReportActions.loadReportAllData()).catch(errorSpy);
+
+      expect(store.getActions().length).toBe(2);
+      expect(store.getActions()[0]).toEqual({
+        type: 'LOAD_REPORT_ALL_DATA_REQUESTED'
+      });
+
+      // no raw data calls
+      expectReportDataCalls(false);
+      $httpBackend.flush();
+    });
+
+    it('does not load the policy data if it is already loaded', function() {
+      const state = createMockState(false, mockBomData, mockUnknownJsData, mockMetadata);
+
+      state.applicationReport.selectedReport = {};
+
+      const store = SpecUtil.mockReduxStore(state),
+          errorSpy = jasmine.createSpy('errorSpy');
+
+      store.dispatch(applicationReportActions.loadReportAllData()).catch(errorSpy);
+
+      expect(store.getActions().length).toBe(2);
+      expect(store.getActions()[0]).toEqual({
+        type: 'LOAD_REPORT_ALL_DATA_REQUESTED'
+      });
+
+      // no policy data calls
+      expectReportRawDataCalls(true);
+      $httpBackend.flush();
+    });
+
+    it('dispatches GENERATE_VULNERABILITY_ENTRIES after all data is loaded', function() {
+      const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
+      const errorSpy = jasmine.createSpy('errorSpy');
+      store.dispatch(applicationReportActions.loadReportAllData()).catch(errorSpy);
+
+      expect(store.getActions().length).toBe(2);
+
+      expectReportRawDataCalls(true);
+      expectReportDataCalls(true);
+      $httpBackend.flush();
+
+      expect(store.getActions().length).toBe(5);
+      expect(store.getActions()[4]).toEqual({ type: 'GENERATE_VULNERABILITY_ENTRIES' });
     });
   });
 

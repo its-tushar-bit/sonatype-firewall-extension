@@ -6,6 +6,7 @@
 import { getComponentName } from '../util/componentNameUtils';
 
 import template from './componentDisplay.html';
+import isFilenameOrUnknown from './isFilenameOrUnknown';
 
 export default {
   controllerAs: 'vm',
@@ -31,19 +32,10 @@ function ComponentDisplayController($scope) {
     },
 
     updateDisplay() {
-      const { displayName } = vm.component;
-
       vm.componentName = getComponentName(vm.component);
-      vm.isFilenameOrUnknown = !displayName || isDisplayNameFilename(displayName);
+      vm.isFilenameOrUnknown = isFilenameOrUnknown(vm.component);
     }
   });
 }
 
 ComponentDisplayController.$inject = ['$scope'];
-
-/**
- * @return true if the displayName consists of only a single part whose field name is "Filename"
- */
-function isDisplayNameFilename({ parts }) {
-  return parts.length === 1 && parts[0].field === 'Filename';
-}

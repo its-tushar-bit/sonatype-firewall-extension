@@ -107,6 +107,7 @@ export function mapStateToThis({applicationReport}) {
 
   return {
     ...applicationReport,
+    loading: !!applicationReport.pendingLoads.size,
     policyNameSubstringFilter: policyName,
     derivedComponentNameSubstringFilter: derivedComponentName
   };

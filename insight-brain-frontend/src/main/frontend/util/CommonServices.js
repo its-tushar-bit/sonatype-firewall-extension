@@ -4,51 +4,55 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, window */
+import StableBodyService from './StableBodyService';
+import {getBaseUrl} from './urlUtil';
 
 var services = angular.module('CommonServices', []);
 
-services.service('Messages', function() {
-  return {
-    getHttpErrorMessage: function(args) {
-      if (!args) {
-        return;
-      }
-      if (typeof args === 'string') {
-        return args;
-      }
-      if (angular.isArray(args) || args.toString() === '[object Arguments]') {
-        args = {
-          status: args[1],
-          data: args[0],
-          headers: args.length >= 3 ? args[2] : null
-        };
-      }
-      var message = '',
-          headers = args.headers ? args.headers() : null;
-      if (args.status <= 0 || args.status >= 1000) {
-        message = 'Unable to reach Nexus IQ Server';
-      }
-      else if (args.data && (!headers || !headers['content-type'] ||
-          headers['content-type'].indexOf('text/html') === -1)) {
-        message = args.data;
-      }
-      // Angular misses statusText (cf. https://github.com/angular/angular.js/pull/2665)
-      // , so at least ensure message for typical proxy errors
-      else if (args.status === 502) {
-        message = 'Bad Gateway';
-      }
-      else if (args.status === 503) {
-        message = 'Service Unavailable';
-      }
-      else if (args.status === 504) {
-        message = 'Gateway Timeout';
-      }
-      else {
-        message = 'Error ' + args.status;
-      }
-      return message;
+export const Messages = {
+  getHttpErrorMessage: function(args) {
+    if (!args) {
+      return;
     }
-  };
+    if (typeof args === 'string') {
+      return args;
+    }
+    if (angular.isArray(args) || args.toString() === '[object Arguments]') {
+      args = {
+        status: args[1],
+        data: args[0],
+        headers: args.length >= 3 ? args[2] : null
+      };
+    }
+    let message = '',
+        headers = angular.isFunction(args.headers) ? args.headers() : args.headers;
+    if (args.status <= 0 || args.status >= 1000) {
+      message = 'Unable to reach Nexus IQ Server';
+    }
+    else if (args.data && (!headers || !headers['content-type'] ||
+      headers['content-type'].indexOf('text/html') === -1)) {
+      message = args.data;
+    }
+    // Angular misses statusText (cf. https://github.com/angular/angular.js/pull/2665)
+    // , so at least ensure message for typical proxy errors
+    else if (args.status === 502) {
+      message = 'Bad Gateway';
+    }
+    else if (args.status === 503) {
+      message = 'Service Unavailable';
+    }
+    else if (args.status === 504) {
+      message = 'Gateway Timeout';
+    }
+    else {
+      message = 'Error ' + args.status;
+    }
+    return message;
+  }
+};
+
+services.service('Messages', function() {
+  return Messages;
 });
 
 /**
@@ -233,27 +237,7 @@ services.filter('truncate', function() {
 services.service('BaseUrl', [
   function() {
     return {
-      get: function() {
-        var baseSegments = ['/assets/'],
-            idx = -1;
-
-        for (var i = 0; i < baseSegments.length; i++) {
-          idx = window.location.href.indexOf(baseSegments[i]);
-          if (idx !== -1) {
-            break;
-          }
-        }
-
-        // check if we are in a report
-        if (idx < 0) {
-          idx = window.location.href.indexOf('/rest/report/');
-        }
-
-        if (idx > -1) {
-          return window.location.href.substring(0, idx);
-        }
-        return '';
-      }
+      get: () => getBaseUrl(window.location.href)
     };
   }
 ]);
@@ -332,5 +316,7 @@ services.filter('fileName', function() {
     return stringPath;
   };
 });
+
+services.service('stable.body.service', StableBodyService);
 
 export default services;

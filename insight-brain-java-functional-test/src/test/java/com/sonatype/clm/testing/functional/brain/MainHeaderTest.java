@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
+import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
@@ -102,5 +103,11 @@ public class MainHeaderTest
   public void testNavigation_ToLabs() {
     MainHeader.labsNavigationButton().click();
     waitUntilUrl(SuccessMetricsReportListPage.URL);
+  }
+
+  @Test
+  public void testNavigation_ToVulnerabilityDetails() {
+    MainHeader.vulnerabilityDetailsNavigationButton().click();
+    waitUntilUrl(VulnerabilitySearchPage.url());
   }
 }

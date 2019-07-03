@@ -124,6 +124,7 @@ describe('applicationReportRawData', function() {
     it('spreads the applicationReport object from state', () => {
       let state = {
         applicationReport: {
+          pendingLoads: new Set(),
           foo: 'bar',
           rawDataSubstringFilters: {},
           rawDataNumericFilters: {}
@@ -137,6 +138,7 @@ describe('applicationReportRawData', function() {
     it('maps substring filters to fields appropriately', () => {
       let state = {
         applicationReport: {
+          pendingLoads: new Set(),
           rawDataSubstringFilters: {
             derivedComponentName: 'filter1',
             licenseSortKey: 'filter2',
@@ -155,6 +157,7 @@ describe('applicationReportRawData', function() {
     it('maps the numeric filters from the cvssScore array to fields appropriately', () => {
       let state = {
         applicationReport: {
+          pendingLoads: new Set(),
           rawDataSubstringFilters: {},
           rawDataNumericFilters: {
             cvssScore: [1, 3.5]
@@ -170,6 +173,7 @@ describe('applicationReportRawData', function() {
     it('sets default cvss filters if filters inside rawDataNumericFilters are not arrays', () => {
       let state = {
         applicationReport: {
+          pendingLoads: new Set(),
           rawDataSubstringFilters: {},
           rawDataNumericFilters: {
             cvssScore: 9
@@ -180,6 +184,26 @@ describe('applicationReportRawData', function() {
       let output = mapStateToThis(state);
       expect(output.cvssMinNumericFilter).toBeUndefined();
       expect(output.cvssMaxNumericFilter).toBeUndefined();
+    });
+
+    it('sets the loading flag based on whether pendingLoads is empty', function() {
+      const loadingState = {
+            applicationReport: {
+              pendingLoads: new Set(['foo']),
+              rawDataSubstringFilters: {},
+              rawDataNumericFilters: {}
+            }
+          },
+          nonLoadingState = {
+            applicationReport: {
+              pendingLoads: new Set(),
+              rawDataSubstringFilters: {},
+              rawDataNumericFilters: {}
+            }
+          };
+
+      expect(mapStateToThis(loadingState).loading).toBe(true);
+      expect(mapStateToThis(nonLoadingState).loading).toBe(false);
     });
   });
 

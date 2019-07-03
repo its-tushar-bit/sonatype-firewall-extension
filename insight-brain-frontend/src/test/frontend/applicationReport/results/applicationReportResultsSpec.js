@@ -191,6 +191,7 @@ describe('applicationReportResults', function() {
     it('spreads the applicationReport object from state', () => {
       let state = {
         applicationReport: {
+          pendingLoads: new Set(),
           foo: 'bar',
           substringFilters: {}
         }
@@ -203,6 +204,7 @@ describe('applicationReportResults', function() {
     it('maps substring filters to fields appropriately', () => {
       let state = {
         applicationReport: {
+          pendingLoads: new Set(),
           substringFilters: {
             derivedComponentName: 'filter1',
             policyName: 'filter2'
@@ -213,6 +215,24 @@ describe('applicationReportResults', function() {
       let output = mapStateToThis(state);
       expect(output.derivedComponentNameSubstringFilter).toEqual('filter1');
       expect(output.policyNameSubstringFilter).toEqual('filter2');
+    });
+
+    it('sets the loading flag based on whether pendingLoads is empty', function() {
+      const loadingState = {
+            applicationReport: {
+              pendingLoads: new Set(['foo']),
+              substringFilters: {}
+            }
+          },
+          nonLoadingState = {
+            applicationReport: {
+              pendingLoads: new Set(),
+              substringFilters: {}
+            }
+          };
+
+      expect(mapStateToThis(loadingState).loading).toBe(true);
+      expect(mapStateToThis(nonLoadingState).loading).toBe(false);
     });
   });
 

@@ -6,6 +6,7 @@
 /* global angular*/
 
 import AngularCommonModule from '../../util/AngularCommon';
+import CommonServicesModule from '../../util/CommonServices';
 import copiedTooltip from './copied.tooltip.directive';
 import copyToClipboard from './copy.to.clipboard.directive';
 import detectScrollbar from './detect.scrollbar.directive';
@@ -19,7 +20,7 @@ import SortController from './sort.controller';
 import sort from './sort.directive';
 import submitValidation from './submit.validation.directive';
 
-export default angular.module('utility.directives', [AngularCommonModule.name])
+export default angular.module('utility.directives', [AngularCommonModule.name, CommonServicesModule.name])
     .directive('copiedTooltip', copiedTooltip)
     .directive('copyToClipboard', copyToClipboard)
     .directive('detectScrollbar', detectScrollbar)

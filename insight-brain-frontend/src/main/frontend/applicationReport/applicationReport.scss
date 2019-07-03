@@ -7,6 +7,10 @@ $iq-application-report-policy-name-filter-width:
   $iq-application-report-policy-threat-level-width
   + $iq-application-report-policy-name-width;
 
+$iq-application-report-vulnerability-security-issue-width: 130px;
+$iq-application-report-vulnerability-cvss-issue-width: 100px;
+$iq-application-report-vulnerability-threat-level-width: 62px;
+
 #application-report-sidebar {
   &.iq-sidebar {
     padding-top: 12px;
@@ -31,7 +35,7 @@ $iq-application-report-policy-name-filter-width:
   width: $iq-application-report-policy-threat-level-width;
 }
 
-.iq-table--fixed__content .iq-cell--application-report-policy-threat-level {
+tbody .iq-cell--application-report-policy-threat-level {
   padding-left: 0;
 }
 
@@ -42,10 +46,6 @@ $iq-application-report-policy-name-filter-width:
 .iq-cell--application-report-component-display {
   width: calc(100% - #{$iq-application-report-policy-threat-level-width + $iq-application-report-policy-name-width});
   min-width: 0;
-
-  .iq-text-indicator {
-    margin-left: 12px;
-  }
 }
 
 .iq-cell--application-report-policy-name-filter {
@@ -54,4 +54,28 @@ $iq-application-report-policy-name-filter-width:
 
 .iq-cell--application-report-component-name-filter {
   width: calc(100% - #{$iq-application-report-policy-threat-level-width + $iq-application-report-policy-name-width});
+}
+
+#application-report-vulnerabilities-table {
+  table-layout: fixed;
+
+  .iq-vulnerability-printable-link {
+    display: none;
+  }
+}
+
+.iq-cell--vulnerability-policy-threat-level {
+  width: $iq-application-report-vulnerability-threat-level-width;
+}
+
+tbody .iq-cell--vulnerability-policy-threat-level {
+  padding-left: 0;
+}
+
+.iq-cell--vulnerability-security-code {
+  width: $iq-application-report-vulnerability-security-issue-width;
+}
+
+.iq-cell--vulnerability-cvss {
+  width: $iq-application-report-vulnerability-cvss-issue-width;
 }

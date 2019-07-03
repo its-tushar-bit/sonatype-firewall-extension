@@ -5,6 +5,9 @@
  */
 /* global angular, window, clmBuildTimestamp, jQuery, $ */
 import CommonServicesModule from './CommonServices';
+import getPolicyThreatIndicatorLevel from '../util/getPolicyThreatIndicatorLevel';
+
+export let maximizeHeightServiceInstance;
 
 var angularCommon = angular.module('AngularCommon',
     [CommonServicesModule.name, 'ui.bootstrap', 'ngSanitize', 'vs-repeat']);
@@ -654,11 +657,11 @@ angularCommon.directive('threatClass', function() {
     },
     link: function(scope, element) {
       function updateClass(threatClass) {
-        element.toggleClass('critical', threatClass >= 8);
-        element.toggleClass('severe', threatClass >= 4 && threatClass < 8);
-        element.toggleClass('moderate', threatClass >= 2 && threatClass < 4);
-        element.toggleClass('none', threatClass === 1);
-        element.toggleClass('ignore', threatClass < 1);
+        const indicatorLevel = getPolicyThreatIndicatorLevel(threatClass);
+
+        ['critical', 'severe', 'moderate', 'none', 'ignore'].forEach(function(cls) {
+          element.toggleClass(cls, indicatorLevel === cls);
+        });
       }
 
       scope.$watch('threatClass', updateClass);
@@ -666,51 +669,95 @@ angularCommon.directive('threatClass', function() {
   };
 });
 
-angularCommon.service('maximizeHeightService', ['$timeout', '$window', function ($timeout, $window) {
-  return {
-    getOffset: function (element) {
-      return element.offset().top;
-    },
-    setDimensions: function (element, options) {
-      const { overflowY } = element[0].style;
+angularCommon.service('maximizeHeightService', ['$timeout', '$window', '$rootScope', 'stable.body.service',
+  function ($timeout, $window, $rootScope, StableBodyService) {
+    const maximizeHeightService = {
+      maximizeHeight(element) {
+        var timerId;
 
-      options = angular.extend({
-        bottomPadding: 35,
-        checkBodyScroll: false,
-        minHeight: 400
-      }, options);
+        // This directive can optionally be provided an argument that is taken as an initial height value to be
+        // applied immediately (as opposed to after the page settles down).  This can help avoid certain race
+        // conditions
+        const initialHeight = element.attr('maximize-container-height');
 
-      // first decrease to min height in order to pre-remove any possible container scrollbars which might cause
-      // narrowing and thus extra word-wrapping that can change the calculations
-      element[0].style.height = options.minHeight + 'px';
-      element[0].style.overflowY = 'hidden';
+        function debounce() {
+          if (timerId) {
+            $timeout.cancel(timerId);
+          }
+          timerId = $timeout(function() {
+            var updateDimensionsTimerId = maximizeHeightService.updateDimensions(element, {
+              bottomPadding: 0,
+              checkBodyScroll: true,
+              minHeight: 0
+            });
+            timerId = updateDimensionsTimerId || timerId;
+          }, 20);
+        }
 
-      var windowHeight = ($window.innerHeight) ? $window.innerHeight : $(document.body).height(),
-          containerTop = this.getOffset(element) + parseInt(element.css('padding-top')),
-          bottomPadding = options.bottomPadding,
-          scrollWidth = options.checkBodyScroll ? (windowHeight - $('body')[0].clientHeight) : 0,
-          height = Math.max(options.minHeight, windowHeight - containerTop - bottomPadding - scrollWidth);
+        $rootScope.$on('recalculateContainerHeights', debounce);
 
-      // use native CSS API to set height, not jquery, because jquery will only set the content-box height and we want
-      // to set the border-box height (NOTE: this assumes box-sizing: border-box is applied to element)
-      element[0].style.height = height + 'px';
-      element[0].style.overflowY = overflowY;
+        if (initialHeight) {
+          element.css('height', initialHeight);
+        }
 
-    },
-    updateDimensions: function (element, options) {
-      var me = this;
-      if (element.is(':visible')) {
-        me.setDimensions(element, options);
+        $($window).resize(debounce);
+        StableBodyService.whenStable(debounce);
+        debounce();
+
+        return function() {
+          if (timerId) {
+            $timeout.cancel(timerId);
+          }
+          $($window).unbind('resize', debounce);
+        };
+      },
+
+      getOffset: function (element) {
+        return element.offset().top;
+      },
+      setDimensions: function (element, options) {
+        const { overflowY } = element[0].style;
+
+        options = angular.extend({
+          bottomPadding: 35,
+          checkBodyScroll: false,
+          minHeight: 400
+        }, options);
+
+        // first decrease to min height in order to pre-remove any possible container scrollbars which might cause
+        // narrowing and thus extra word-wrapping that can change the calculations
+        element[0].style.height = options.minHeight + 'px';
+        element[0].style.overflowY = 'hidden';
+
+        var windowHeight = ($window.innerHeight) ? $window.innerHeight : $(document.body).height(),
+            containerTop = this.getOffset(element) + parseInt(element.css('padding-top')),
+            bottomPadding = options.bottomPadding,
+            scrollWidth = options.checkBodyScroll ? (windowHeight - $('body')[0].clientHeight) : 0,
+            height = Math.max(options.minHeight, windowHeight - containerTop - bottomPadding - scrollWidth);
+
+        // use native CSS API to set height, not jquery, because jquery will only set the content-box height and we want
+        // to set the border-box height (NOTE: this assumes box-sizing: border-box is applied to element)
+        element[0].style.height = height + 'px';
+        element[0].style.overflowY = overflowY;
+
+      },
+      updateDimensions: function (element, options) {
+        var me = this;
+        if (element.is(':visible')) {
+          me.setDimensions(element, options);
+        }
+        // guard against infinitely checking an element that was removed from DOM
+        else if (document.body.contains(element[0])) {
+          return $timeout(function () {
+            me.updateDimensions(element, options);
+          }, 100);
+        }
       }
-      // guard against infinitely checking an element that was removed from DOM
-      else if (document.body.contains(element[0])) {
-        return $timeout(function () {
-          me.updateDimensions(element, options);
-        }, 100);
-      }
-    }
-  };
-}]);
+    };
+
+    return maximizeHeightService;
+  }
+]);
 
 angularCommon.directive('maximizeHeight', ['$timeout', '$window', 'maximizeHeightService',
   function ($timeout, $window, maximizeHeightService) {
@@ -740,44 +787,11 @@ angularCommon.directive('maximizeHeight', ['$timeout', '$window', 'maximizeHeigh
   }]);
 
 angularCommon.directive('maximizeContainerHeight', ['$timeout', '$window', 'maximizeHeightService',
-  'stable.body.service', function ($timeout, $window, maximizeHeightService, StableBodyService) {
+  function ($timeout, $window, maximizeHeightService) {
     return function(scope, element) {
-      var timerId;
+      const teardown = maximizeHeightService.maximizeHeight(element);
 
-      // This directive can optionally be provided an argument that is taken as an initial height value to be applied
-      // immediately (as opposed to after the page settles down).  This can help avoid certain race conditions
-      const initialHeight = element.attr('maximize-container-height');
-
-      function debounce() {
-        if (timerId) {
-          $timeout.cancel(timerId);
-        }
-        timerId = $timeout(function() {
-          var updateDimensionsTimerId = maximizeHeightService.updateDimensions(element, {
-            bottomPadding: 0,
-            checkBodyScroll: true,
-            minHeight: 0
-          });
-          timerId = updateDimensionsTimerId || timerId;
-        }, 20);
-      }
-
-      scope.$on('recalculateContainerHeights', debounce);
-
-      scope.$on('$destroy', function() {
-        if (timerId) {
-          $timeout.cancel(timerId);
-        }
-        $($window).unbind('resize', debounce);
-      });
-
-      if (initialHeight) {
-        element.css('height', initialHeight);
-      }
-
-      $($window).resize(debounce);
-      StableBodyService.whenStable(debounce);
-      debounce();
+      scope.$on('$destroy', teardown);
     };
   }
 ]);
@@ -799,5 +813,9 @@ angularCommon.directive('entersubmit', function() {
     }
   };
 });
+
+angularCommon.run(['$injector', function($injector) {
+  maximizeHeightServiceInstance = $injector.get('maximizeHeightService');
+}]);
 
 export default angularCommon;

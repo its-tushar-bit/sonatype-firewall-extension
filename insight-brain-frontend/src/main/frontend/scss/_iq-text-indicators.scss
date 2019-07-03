@@ -1,6 +1,8 @@
 .iq-text-indicator {
   @include semi-bold();
 
+  margin-left: 12px;
+
   .fa {
     margin-left: 6px;
   }

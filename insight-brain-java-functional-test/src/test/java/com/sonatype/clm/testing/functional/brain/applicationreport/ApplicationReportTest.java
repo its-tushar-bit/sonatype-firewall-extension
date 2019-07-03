@@ -21,7 +21,6 @@ import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
@@ -30,6 +29,8 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.MatchStat
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.PolicyTypeFilter;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ProprietaryFilter;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ViolationStateFilter;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportVulnerabilitiesPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ExpandedCoverageReportPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -60,7 +61,6 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.joda.time.format.DateTimeFormat;
@@ -70,15 +70,16 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchesText;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -163,7 +164,7 @@ public class ApplicationReportTest
     IQDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.shouldBe(visible).menu().shouldNotBe(visible);
     optionsDropdown.button().shouldHave(text("Options")).click();
-    optionsDropdown.menu().shouldBe(visible).entries().shouldHaveSize(2);
+    optionsDropdown.menu().shouldBe(visible).entries().shouldHaveSize(3);
 
     eyesWatcher.eyesCheck();
   }
@@ -198,10 +199,20 @@ public class ApplicationReportTest
   public void testRawDataLink() {
     IQDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
-    optionsDropdown.menu().entries().last().shouldHave(text("View raw data")).click();
+    optionsDropdown.menu().entries().get(1).shouldHave(text("View raw data")).click();
 
     waitUntilUrl(ApplicationReportRawDataPage.url(app, SCAN_ID));
     new ApplicationReportRawDataPage().reportTitle().shouldHave(text(app.getName()));
+  }
+
+  @Test
+  public void testVulnerabilitiesLink() {
+    IQDropdown optionsDropdown = reportPage.optionsDropdown();
+    optionsDropdown.button().click();
+    optionsDropdown.menu().entries().last().shouldHave(text("View vulnerabilities")).click();
+
+    waitUntilUrl(ApplicationReportVulnerabilitiesPage.url(app, SCAN_ID));
+    new ApplicationReportVulnerabilitiesPage().title().shouldHave(text(app.getName()));
   }
 
   @Test
@@ -768,6 +779,27 @@ public class ApplicationReportTest
     policyTypeFilter.security().shouldBe(disabled);
     policyTypeFilter.security().shouldNotBe(selected);
     violations.shouldHaveSize(63);
+  }
+
+  @Test
+  public void testViewVulnerabilitiesOptionDisabledInV4Report() throws IOException {
+    // Setup
+    final String SCAN_ID2 = "e16caf35769f4b3186a7e3476d34c2798";
+    Application app2 = tempEntity.newApplicationWithParent();
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/evaluated-v4-report", tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    File reportDestination = work.getReportFile(app2.getId(), SCAN_ID2);
+    FileUtils.copyURLToFile(zippedReport, reportDestination);
+    tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_BUILD, SCAN_ID2);
+    refreshOrOpen(ApplicationReportPage.url(app2, SCAN_ID2));
+
+    reportPage.shouldBe(visible);
+    // Assertions
+    IQDropdown optionsDropdown = reportPage.optionsDropdown();
+    optionsDropdown.button().click();
+    optionsDropdown.menu().entries().get(2).shouldHave(DISABLED).click();
+    // should remain on report page
+    reportPage.shouldBe(visible);
   }
 
   @Test

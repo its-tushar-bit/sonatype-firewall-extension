@@ -1,5 +1,5 @@
-import componentsModule from '../../../main/frontend/components/module';
-import legacyConfigurationModule from '../../../main/frontend/LegacyConfigurationModule';
+import componentsModule from '../../../../main/frontend/components/module';
+import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigurationModule';
 
 describe('iq-back-button component', function() {
 

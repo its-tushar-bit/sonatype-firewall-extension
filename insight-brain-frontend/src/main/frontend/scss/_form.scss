@@ -230,6 +230,27 @@ textarea {
   &.iq-text-input--long, &.iq-textarea--long {
     width: 374px;
   }
+
+  // The following NX styles override Bootstrap's overly specific form element styles
+  &.nx-text-input {
+    @extend .iq-text-input;
+  }
+
+  &.nx-text-input--long {
+    @extend .iq-text-input--long;
+  }
+
+  &.nx-text-input--valid:focus {
+    @include iq-valid();
+  }
+
+  &.nx-textarea {
+    @extend .iq-textarea;
+  }
+
+  &.nx-textarea--long {
+    @extend .iq-textarea--long;
+  }
 }
 
 .iq-text-input--wide {

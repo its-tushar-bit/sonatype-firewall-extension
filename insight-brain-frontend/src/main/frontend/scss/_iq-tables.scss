@@ -251,6 +251,10 @@ thead {
   }
 }
 
+.iq-scrollable > .iq-table {
+  margin-top: 0;
+}
+
 /*
   #Table with a fixed header and scrolling contents
  */
@@ -263,7 +267,7 @@ thead {
   position: relative;
 }
 
-.iq-scrollable--fixed-table {
+.iq-scrollable--fixed-table, .iq-scrollable--full-height {
   max-height: 100%;
 }
 

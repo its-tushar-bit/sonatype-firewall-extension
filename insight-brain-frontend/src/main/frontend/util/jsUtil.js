@@ -4,22 +4,18 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
-  compose,
+  chain,
   curry,
   either,
-  filter,
   flip,
   isEmpty,
   isNil,
-  join,
   lensPath,
   lensProp,
   map,
-  not,
-  nth,
   prop,
   set,
-  toPairs
+  transduce
 } from 'ramda';
 
 /**
@@ -59,15 +55,31 @@ export const lookup = flip(prop);
 
 export const getDaysFromNow = timestamp => Math.floor((timestamp - Date.now()) / (1000 * 60 * 60 * 24));
 
-const toNonNullPairs = compose(filter(compose(not, isNil, nth(1))), toPairs);
-const pairToURIParam = compose(join('='), map(encodeURIComponent));
-
-/**
- * {k: String} -> String
- * Converts object to URI params string omitting empty values
- */
-export const toURIParams = compose(join('&'), map(pairToURIParam), toNonNullPairs);
-
 export const isNilOrEmpty = either(isNil, isEmpty);
 
 export const union = (set1, set2) => new Set(setToArray(set1).concat(setToArray(set2)));
+
+/**
+ * Like groupBy, but where the key function returns a list of strings instead of a single string, and items
+ * are grouped according to each string in their list.
+ */
+export function multiGroupBy(keyFn, items) {
+  // For a given item, returns a series of 2-val tuples holding each distinct key value for the item and the item
+  // itself
+  const pairsForItem = item => map(k => [k, item], keyFn(item)),
+      pairIterator = function(acc, [key, item]) {
+        // for efficiency, mutably build up the accumulator.  This is alright since the construction of the
+        // accumulator is internal to multiGroupBy
+        const currentValAtKey = acc[key];
+        if (currentValAtKey) {
+          currentValAtKey.push(item);
+        }
+        else {
+          acc[key] = [item];
+        }
+
+        return acc;
+      };
+
+  return transduce(chain(pairsForItem), pairIterator, {}, items);
+}

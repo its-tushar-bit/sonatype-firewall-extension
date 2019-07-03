@@ -14,6 +14,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -36,7 +37,7 @@ public class PolicyThreatsAdapter
     Map<String, PolicyThreats.Component> components = processPolicyViolations(policyViolations);
 
     PolicyThreats policyThreats = new PolicyThreats();
-    policyThreats.version = 4;
+    policyThreats.version = 5;
     policyThreats.aaData = new ArrayList<>(components.values());
 
     return policyThreats;
@@ -120,10 +121,19 @@ public class PolicyThreatsAdapter
   private List<PolicyThreats.PolicyCondition> toPolicyThreatsPolicyConditions(ConstraintFact fact) {
     List<PolicyThreats.PolicyCondition> result = new ArrayList<>();
     for (ConditionFact conditionFact : fact.getConditionFacts()) {
+      TriggerReference conditionReference = conditionFact.getReference();
+
       PolicyThreats.PolicyCondition condition = new PolicyThreats.PolicyCondition();
       condition.conditionReason = conditionFact.getReason();
       condition.conditionSummary = conditionFact.getSummary();
       condition.conditionType = conditionFact.getConditionTypeId();
+
+      if (conditionReference != null) {
+        condition.conditionTriggerReference = new PolicyThreats.PolicyConditionTriggerReference();
+        condition.conditionTriggerReference.value = conditionReference.getValue();
+        condition.conditionTriggerReference.type = conditionReference.getType();
+      }
+
       result.add(condition);
     }
     return result;

@@ -1286,5 +1286,26 @@
     "score" : 7.5,
     "matchState" : "similar",
     "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tiles-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tiles",
+        "version" : "2.2.2"
+      }
+    },
+    "groupId" : "org.apache.tiles",
+    "artifactId" : "tiles-core",
+    "version" : "2.2.2",
+    "hash" : "01db730fbe26c148e3d0",
+    "url" : null,
+    "reference" : "sonatype-0000-0000",
+    "source" : "sonatype",
+    "score" : 0,
+    "matchState" : "exact",
+    "proprietary" : false
   } ]
 }

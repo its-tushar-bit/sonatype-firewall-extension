@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import {toURIParams} from '../../../util/jsUtil';
+import {toURIParams} from '../../../util/urlUtil';
 
 window.CLM = {
   path: '../',

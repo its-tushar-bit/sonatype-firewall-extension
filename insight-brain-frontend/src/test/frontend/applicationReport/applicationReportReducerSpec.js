@@ -29,7 +29,7 @@ describe('applicationReportReducer', function() {
     it('has default fields', function() {
       const action = {type: 'UNKNOWN'};
       const newState = reduce(undefined, action);
-      expect(newState.loading).toBe(false);
+      expect(newState.pendingLoads).toEqual(new Set());
       expect(newState.loadError).toBe(null);
       expect(newState.reevaluating).toBe(false);
       expect(newState.reevaluationError).toBe(null);
@@ -44,6 +44,8 @@ describe('applicationReportReducer', function() {
       expect(newState.rawDataNumericFilters).toEqual({});
       expect(newState.isUnknownJs).toBe(false);
       expect(newState.policyTypeFilterEnabled).toBe(true);
+      expect(newState.vulnerabilities).toBe(null);
+      expect(newState.vulnerabilitiesPageEnabled).toBe(true);
     });
 
     it('is immutable', function() {
@@ -71,6 +73,8 @@ describe('applicationReportReducer', function() {
       expect(() => {
         state.substringFilters.newProp = 'newProp';
       }).toThrowError(TypeError);
+
+      // NOTE pendingLoads Set is not actually immutable, as Object.freeze doesn't work on Sets
     });
   });
 
@@ -106,7 +110,7 @@ describe('applicationReportReducer', function() {
         }
       });
       expect(newState).toEqual({
-        loading: false,
+        pendingLoads: new Set(),
         reevaluating: false,
         loadError: null,
         reevaluationError: null,
@@ -126,22 +130,24 @@ describe('applicationReportReducer', function() {
         selectedReport: null,
         selectedComponentIndex: null,
         policyTypeFilterEnabled: true,
-        isUnknownJs: false
+        isUnknownJs: false,
+        vulnerabilities: null,
+        vulnerabilitiesPageEnabled: true
       });
     });
   });
 
   describe('LOAD_REPORT_REQUESTED action', function() {
-    it('sets loading flag and unsets error and selectedReport values', function() {
+    it('adds "policy" and "common" to pendingLoads and unsets error and selectedReport values', function() {
       const state = Object.freeze({
-        loading: false,
+        pendingLoads: new Set(['foo']),
         loadError: 'test error',
         selectedReport: 'test report',
         other: otherObject
       });
       const newState = reduce(state, {type: 'LOAD_REPORT_REQUESTED'});
       expect(newState).toEqual({
-        loading: true,
+        pendingLoads: new Set(['foo', 'policy', 'common']),
         loadError: null,
         selectedReport: null,
         other: otherObject
@@ -150,10 +156,44 @@ describe('applicationReportReducer', function() {
     });
   });
 
-  describe('LOAD_REPORT_FULFILLED action', function() {
-    it('unsets loading flag and sets selectedReport values', function() {
+  describe('LOAD_COMMON_DATA_FULFILLED', function() {
+    it('sets the specified bomData, metatdata, and unknownJsData on the state', function() {
       const state = Object.freeze({
-        loading: true,
+        pendingLoads: new Set(['foo']),
+        other: otherObject
+      });
+
+      const bomData = {},
+          metadata = {},
+          unknownJsData = {};
+
+      const newState = reduce(state, {
+        type: 'LOAD_COMMON_DATA_FULFILLED',
+        payload: { bomData, metadata, unknownJsData }
+      });
+
+      expect(newState.bomData).toBe(bomData);
+      expect(newState.metadata).toBe(metadata);
+      expect(newState.unknownJsData).toBe(unknownJsData);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('removes "common" from pendingLoads', function() {
+      const state = Object.freeze({
+        pendingLoads: new Set(['foo', 'common']),
+        other: otherObject
+      });
+
+      const newState = reduce(state, { type: 'LOAD_COMMON_DATA_FULFILLED', payload: {} });
+
+      expect(newState.pendingLoads).toEqual(new Set(['foo']));
+    });
+  });
+
+  describe('LOAD_REPORT_FULFILLED action', function() {
+    it('removes "policy" from pendingLoads and sets selectedReport values', function() {
+      const state = Object.freeze({
+        pendingLoads: new Set(['foo', 'policy']),
         loadError: null,
         selectedReport: null,
         policyTypeFilterEnabled: null,
@@ -171,7 +211,7 @@ describe('applicationReportReducer', function() {
         }
       });
       expect(newState).toEqual({
-        loading: false,
+        pendingLoads: new Set(['foo']),
         loadError: null,
         selectedReport: {
           allEntries: entries,
@@ -183,9 +223,54 @@ describe('applicationReportReducer', function() {
           reportVersion: 3
         },
         policyTypeFilterEnabled: false,
+        vulnerabilitiesPageEnabled: jasmine.anything(),
         other: otherObject
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets vulnerabilitiesPageEnabled to true if the reportVersion is at least 5', function() {
+      const state = Object.freeze({
+            pendingLoads: new Set()
+          }),
+          newStateV6 = reduce(state, {
+            type: 'LOAD_REPORT_FULFILLED',
+            payload: {
+              allEntries: [],
+              reportVersion: 6
+            }
+          }),
+          newStateV5 = reduce(state, {
+            type: 'LOAD_REPORT_FULFILLED',
+            payload: {
+              allEntries: [],
+              reportVersion: 5
+            }
+          }),
+          newStateV4 = reduce(state, {
+            type: 'LOAD_REPORT_FULFILLED',
+            payload: {
+              allEntries: [],
+              reportVersion: 4
+            }
+          }),
+          newStateV1 = reduce(state, {
+            type: 'LOAD_REPORT_FULFILLED',
+            payload: {
+              allEntries: [],
+              reportVersion: 1
+            }
+          }),
+          newStateVNil = reduce(state, {
+            type: 'LOAD_REPORT_FULFILLED',
+            payload: { allEntries: [] }
+          });
+
+      expect(newStateVNil.vulnerabilitiesPageEnabled).toBe(false);
+      expect(newStateV1.vulnerabilitiesPageEnabled).toBe(false);
+      expect(newStateV4.vulnerabilitiesPageEnabled).toBe(false);
+      expect(newStateV5.vulnerabilitiesPageEnabled).toBe(true);
+      expect(newStateV6.vulnerabilitiesPageEnabled).toBe(true);
     });
 
     it('sets the displayedEntries in the selectedReport based on the current aggregation etc settings', function() {
@@ -261,7 +346,7 @@ describe('applicationReportReducer', function() {
 
     it('sets selectedComponentIndex while in aggregated mode if a component was previously selected', function() {
       const state = Object.freeze({
-        loading: true,
+        pendingLoads: new Set(['policy']),
         loadError: null,
         aggregate: true,
         sortFields: ['derivedComponentName'],
@@ -305,7 +390,7 @@ describe('applicationReportReducer', function() {
 
     it('sets selectedComponentIndex while in non aggregated mode if a component was previously selected', function() {
       const state = Object.freeze({
-        loading: true,
+        pendingLoads: new Set(['policy']),
         loadError: null,
         aggregate: false,
         sortFields: ['derivedComponentName', 'policyName'],
@@ -399,16 +484,16 @@ describe('applicationReportReducer', function() {
   });
 
   describe('LOAD_REPORT_RAW_DATA_REQUESTED', () => {
-    it('sets loading flag and unsets error and reportRawData values', function() {
+    it('adds "raw" and "common" to the pendingLoads and unsets error and reportRawData values', function() {
       const state = Object.freeze({
-        loading: false,
+        pendingLoads: new Set(['foo']),
         loadError: 'test error',
         reportRawData: 'test report',
         other: otherObject
       });
       const newState = reduce(state, {type: 'LOAD_REPORT_RAW_DATA_REQUESTED'});
       expect(newState).toEqual({
-        loading: true,
+        pendingLoads: new Set(['foo', 'raw', 'common']),
         loadError: null,
         reportRawData: null,
         other: otherObject
@@ -417,17 +502,32 @@ describe('applicationReportReducer', function() {
     });
   });
 
-  describe('LOAD_REPORT_RAW_DATA_FULFILLED action', () => {
-    it('unsets loading flag and does not change other values on the state', function() {
+  describe('LOAD_REPORT_ALL_DATA_REQUESTED', () => {
+    it('adds "policy", "raw" and "common" to the pendingLoads', function() {
       const state = Object.freeze({
-        loading: true,
+        pendingLoads: new Set(['foo']),
+        other: otherObject
+      });
+      const newState = reduce(state, {type: 'LOAD_REPORT_ALL_DATA_REQUESTED'});
+      expect(newState).toEqual({
+        pendingLoads: new Set(['foo', 'raw', 'common', 'policy']),
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('LOAD_REPORT_RAW_DATA_FULFILLED action', () => {
+    it('removes "raw" from pendingLoads and does not change other values on the state', function() {
+      const state = Object.freeze({
+        pendingLoads: new Set(['foo', 'raw']),
         other: otherObject
       });
       const newState = reduce(state, {
         type: 'LOAD_REPORT_RAW_DATA_FULFILLED',
         payload: []
       });
-      expect(newState.loading).toBe(false);
+      expect(newState.pendingLoads).toEqual(new Set(['foo']));
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
 
@@ -536,16 +636,16 @@ describe('applicationReportReducer', function() {
   });
 
   describe('LOAD_REPORT_FAILED action', function() {
-    it('unsets loading flag and sets error value', function() {
+    it('removes "policy" from pendingLoads and sets error value', function() {
       const state = Object.freeze({
-        loading: true,
+        pendingLoads: new Set(['foo', 'policy']),
         loadError: null,
         selectedReport: null,
         other: otherObject
       });
       const newState = reduce(state, {type: 'LOAD_REPORT_FAILED', payload: 'test error'});
       expect(newState).toEqual({
-        loading: false,
+        pendingLoads: new Set(['foo']),
         loadError: 'test error',
         selectedReport: null,
         other: otherObject
@@ -555,18 +655,52 @@ describe('applicationReportReducer', function() {
   });
 
   describe('LOAD_REPORT_RAW_DATA_FAILED action', function() {
-    it('unsets loading flag and sets error value', function() {
+    it('removes "raw" from pendingLoads and sets error value', function() {
       const state = Object.freeze({
-        loading: true,
+        pendingLoads: new Set(['foo', 'raw']),
         loadError: null,
         reportRawData: null,
         other: otherObject
       });
-      const newState = reduce(state, {type: 'LOAD_REPORT_FAILED', payload: 'test error'});
+      const newState = reduce(state, {type: 'LOAD_REPORT_RAW_DATA_FAILED', payload: 'test error'});
       expect(newState).toEqual({
-        loading: false,
+        pendingLoads: new Set(['foo']),
         loadError: 'test error',
         reportRawData: null,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('LOAD_COMMON_DATA_FAILED action', function() {
+    it('removes "common" from pendingLoads and sets error value', function() {
+      const state = Object.freeze({
+        pendingLoads: new Set(['foo', 'common']),
+        loadError: null,
+        reportRawData: null,
+        other: otherObject
+      });
+      const newState = reduce(state, {type: 'LOAD_COMMON_DATA_FAILED', payload: 'test error'});
+      expect(newState).toEqual({
+        pendingLoads: new Set(['foo']),
+        loadError: 'test error',
+        reportRawData: null,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('LOAD_COMMON_DATA_UNNECESSARY', function() {
+    it('removes "common" from pendingLoads', function() {
+      const state = Object.freeze({
+        pendingLoads: new Set(['foo', 'common']),
+        other: otherObject
+      });
+      const newState = reduce(state, { type: 'LOAD_COMMON_DATA_UNNECESSARY' });
+      expect(newState).toEqual({
+        pendingLoads: new Set(['foo']),
         other: otherObject
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
@@ -1168,6 +1302,347 @@ describe('applicationReportReducer', function() {
       }]);
 
       expect(newState.reportRawData.allEntries).toBe(state.reportRawData.allEntries);
+    });
+  });
+
+  describe('GENERATE_VULNERABILITY_ENTRIES', function() {
+    it('sets and sorts the vulnerabilities if the selectedReport and rawDataEntries are both present', function() {
+      const state = Object.freeze({
+        vulnerabilities: [],
+        selectedReport: {
+          allEntries: [{
+            policyThreatLevel: 7,
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            constraints: [{
+              conditions: [{
+                conditionTriggerReference: {
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                  value: 'CVE-1234'
+                }
+              }]
+            }]
+          }, {
+            policyThreatLevel: 6,
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                // different component from above
+                foo: 'baz'
+              }
+            },
+            constraints: [{
+              conditions: [{
+                conditionTriggerReference: {
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                  value: 'CVE-1235'
+                }
+              }]
+            }]
+          }, {
+            policyThreatLevel: 6,
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            constraints: [{
+              conditions: [{
+                conditionTriggerReference: {
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                  value: 'CVE-1235'
+                }
+              }]
+            }]
+          }, {
+            policyThreatLevel: 9,
+            waived: true,
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            constraints: [{
+              conditions: [{
+                conditionTriggerReference: {
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                  value: 'CVE-1237'
+                }
+              }]
+            }]
+          }, {
+            policyThreatLevel: 6,
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            constraints: [{
+              conditions: [{
+                conditionTriggerReference: {
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                  value: 'CVE-1236'
+                }
+              }]
+            }]
+          }]
+        },
+        reportRawData: {
+          allEntries: [{
+            derivedComponentName: 'bar',
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            securityCode: 'CVE-1234',
+            cvssScore: 5
+          }, {
+            derivedComponentName: 'baz',
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'baz'
+              }
+            },
+            securityCode: 'CVE-1235',
+            cvssScore: 4
+          }, {
+            derivedComponentName: 'bar',
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            securityCode: 'CVE-1235',
+            cvssScore: 4
+          }, {
+            derivedComponentName: 'bar',
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            securityCode: 'CVE-1236',
+            cvssScore: 3
+          }, {
+            derivedComponentName: 'bar',
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            securityCode: 'CVE-1237',
+            cvssScore: 9
+          }]
+        }
+      });
+
+      const newState = reduce(state, { type: 'GENERATE_VULNERABILITY_ENTRIES' });
+
+      expect(newState.vulnerabilities).toEqual([
+        jasmine.objectContaining({
+          policyThreatLevel: 7,
+          securityCode: 'CVE-1234',
+          cvssScore: 5,
+          derivedComponentName: 'bar'
+        }),
+        jasmine.objectContaining({
+          policyThreatLevel: 6,
+          securityCode: 'CVE-1235',
+          cvssScore: 4,
+          derivedComponentName: 'bar'
+        }),
+        jasmine.objectContaining({
+          policyThreatLevel: 6,
+          securityCode: 'CVE-1235',
+          cvssScore: 4,
+          derivedComponentName: 'baz'
+        }),
+        jasmine.objectContaining({
+          policyThreatLevel: 6,
+          securityCode: 'CVE-1236',
+          cvssScore: 3,
+          derivedComponentName: 'bar'
+        }),
+        jasmine.objectContaining({
+          policyThreatLevel: 0,
+          securityCode: 'CVE-1237',
+          cvssScore: 9,
+          waived: true,
+          derivedComponentName: 'bar'
+        })
+      ]);
+    });
+
+    it('returns the unchanged state if selectedReport is not present', function() {
+      const state = Object.freeze({
+        vulnerabilities: [],
+        selectedReport: null,
+        reportRawData: {
+          allEntries: [{
+            derivedComponentName: 'bar',
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            securityCode: 'CVE-1234',
+            cvssScore: 5
+          }, {
+            derivedComponentName: 'baz',
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'baz'
+              }
+            },
+            securityCode: 'CVE-1235',
+            cvssScore: 4
+          }, {
+            derivedComponentName: 'bar',
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            securityCode: 'CVE-1235',
+            cvssScore: 4
+          }, {
+            derivedComponentName: 'bar',
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            securityCode: 'CVE-1236',
+            cvssScore: 3
+          }, {
+            derivedComponentName: 'bar',
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            securityCode: 'CVE-1237',
+            cvssScore: 9
+          }]
+        }
+      });
+
+      const newState = reduce(state, { type: 'GENERATE_VULNERABILITY_ENTRIES' });
+
+      expect(newState.vulnerabilities).toEqual([]);
+    });
+
+    it('returns the unchanged state if rawDataEntries is not present', function() {
+      const state = Object.freeze({
+        vulnerabilities: [],
+        selectedReport: {
+          allEntries: [{
+            policyThreatLevel: 7,
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            constraints: [{
+              conditions: [{
+                conditionTriggerReference: {
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                  value: 'CVE-1234'
+                }
+              }]
+            }]
+          }, {
+            policyThreatLevel: 6,
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                // different component from above
+                foo: 'baz'
+              }
+            },
+            constraints: [{
+              conditions: [{
+                conditionTriggerReference: {
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                  value: 'CVE-1235'
+                }
+              }]
+            }]
+          }, {
+            policyThreatLevel: 6,
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            constraints: [{
+              conditions: [{
+                conditionTriggerReference: {
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                  value: 'CVE-1235'
+                }
+              }]
+            }]
+          }, {
+            policyThreatLevel: 9,
+            waived: true,
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            constraints: [{
+              conditions: [{
+                conditionTriggerReference: {
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                  value: 'CVE-1237'
+                }
+              }]
+            }]
+          }, {
+            policyThreatLevel: 6,
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            },
+            constraints: [{
+              conditions: [{
+                conditionTriggerReference: {
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                  value: 'CVE-1236'
+                }
+              }]
+            }]
+          }]
+        }
+      });
+
+      const newState = reduce(state, { type: 'GENERATE_VULNERABILITY_ENTRIES' });
+
+      expect(newState.vulnerabilities).toEqual([]);
     });
   });
 });

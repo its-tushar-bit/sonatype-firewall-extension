@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -807,10 +808,12 @@ public class ComponentPolicyEvaluatorTest
     assertThat(conditionFacts).hasSize(2);
     assertConditionFact(conditionFacts.get(0), 0, SecurityVulnerabilitySeverityConditionType.ID,
         "Found security vulnerability CVE-1234-1234 with severity 8.0.", "Security Vulnerability Severity >= 7",
-        newConditionTriggerWithSeverity(0, securityVulnerability));
+        newConditionTriggerWithSeverity(0, securityVulnerability),
+        new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID, "CVE-1234-1234"));
     assertConditionFact(conditionFacts.get(1), 1, SecurityVulnerabilityStatusConditionType.ID,
         "Found security vulnerability CVE-1234-1234 with status 'Open'.", "Security Vulnerability Status is OPEN",
-        newConditionTriggerWithStatus(1, securityVulnerability));
+        newConditionTriggerWithStatus(1, securityVulnerability),
+        new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID, "CVE-1234-1234"));
   }
 
   @Test
@@ -838,7 +841,8 @@ public class ComponentPolicyEvaluatorTest
     assertThat(conditionFacts1).hasSize(1);
     assertConditionFact(conditionFacts1.get(0), 0, SecurityVulnerabilitySeverityConditionType.ID,
         "Found security vulnerability CVE-1234-1234 with severity 8.0.", "Security Vulnerability Severity >= 7",
-        newConditionTriggerWithSeverity(0, securityVulnerability));
+        newConditionTriggerWithSeverity(0, securityVulnerability),
+        new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID, "CVE-1234-1234"));
 
     PolicyAlert policyAlert2 = policyAlerts.get(1);
     assertFactCounts(1, 1, policyAlert2);
@@ -847,7 +851,8 @@ public class ComponentPolicyEvaluatorTest
     assertThat(conditionFacts2).hasSize(1);
     assertConditionFact(conditionFacts2.get(0), 1, SecurityVulnerabilityStatusConditionType.ID,
         "Found security vulnerability CVE-1234-1234 with status 'Open'.", "Security Vulnerability Status is OPEN",
-        newConditionTriggerWithStatus(1, securityVulnerability));
+        newConditionTriggerWithStatus(1, securityVulnerability),
+        new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID, "CVE-1234-1234"));
   }
 
   @Test
@@ -1021,7 +1026,8 @@ public class ComponentPolicyEvaluatorTest
                                    String expectedConditionTypeId,
                                    String expectedReason,
                                    String expectedSummary,
-                                   ConditionTrigger expectedConditionTrigger)
+                                   ConditionTrigger expectedConditionTrigger,
+                                   TriggerReference expectedTriggerReference)
   {
     assertThat(actual.getConditionIndex()).isEqualTo(expectedConditionIndex);
     assertThat(actual.getConditionTypeId()).isEqualTo(expectedConditionTypeId);
@@ -1029,6 +1035,14 @@ public class ComponentPolicyEvaluatorTest
     assertThat(actual.getSummary()).isEqualTo(expectedSummary);
     assertThat(actual.getTriggerJson()).isEqualTo(JsonUtils.writeUnformatted(expectedConditionTrigger))
         .doesNotContain("\n", "\r", "\\n", "\\r");
+
+    if (expectedTriggerReference == null) {
+      assertThat(actual.getReference()).isNull();
+    }
+    else {
+      assertThat(actual.getReference().getType()).isEqualTo(expectedTriggerReference.getType());
+      assertThat(actual.getReference().getValue()).isEqualTo(expectedTriggerReference.getValue());
+    }
   }
 
   private ConditionTrigger newConditionTriggerWithSeverity(int conditionIndex,

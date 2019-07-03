@@ -1,5 +1,5 @@
 import * as applicationReportService from '../../../main/frontend/applicationReport/applicationReportService';
-import {ascend, map, prop, props, sortWith} from 'ramda';
+import {ascend, isNil, map, prop, props, reject, sortWith} from 'ramda';
 
 describe('applicationReportService', function() {
 
@@ -1351,6 +1351,384 @@ describe('applicationReportService', function() {
             result = applicationReportService.filterReportEntries(exactValueFilters, undefined, undefined)(input);
 
         expect(result).toEqual(input);
+      });
+    });
+  });
+
+  describe('getVulnerabilities', function() {
+    function mkPolicyEntry(cveNums, additionalProps = {}, componentName = 'bar', additionalConditions = [],
+                           additionalConstraints = []) {
+      const cveNumList = [].concat(cveNums),
+          cveConditions = map(num => ({
+            conditionTriggerReference: {
+              type: 'SECURITY_VULNERABILITY_REFID',
+              value: `CVE-${num}`
+            }
+          }), reject(isNil, cveNumList)),
+          conditions = cveConditions.concat(additionalConditions),
+          constraints = (conditions.length ? [{ conditions }] : []).concat(additionalConstraints);
+
+      return {
+        componentIdentifier: {
+          format: 'compFormat',
+          coordinates: {
+            foo: componentName
+          }
+        },
+        constraints,
+        ...additionalProps
+      };
+    }
+
+    function mkRawDataEntry(cveNum, cvssScore = 5, componentName = 'bar', additionalProps = {}) {
+      // props that would be on any raw data entry, not just a security entry
+      const baseEntry = {
+        componentIdentifier: {
+          format: 'compFormat',
+          coordinates: {
+            foo: componentName
+          }
+        },
+        ...additionalProps
+      };
+
+      return cveNum ? {
+        ...baseEntry,
+        securityCode: `CVE-${cveNum}`,
+        cvssScore
+      } : baseEntry;
+    }
+
+    it('returns an empty list when rawDataEntries is an empty list', function() {
+      expect(applicationReportService.getVulnerabilities([], [])).toEqual([]);
+    });
+
+    it('outputs an entry for each security vulnerability rawDataEntry that matches a policy violation, ' +
+        'containing the fields in that rawDataEntry', function() {
+      const policyEntries = [
+            mkPolicyEntry(1235),
+            mkPolicyEntry(1234),
+            mkPolicyEntry(null, null, 'bar', [{
+              conditionTriggerReference: {
+                type: 'OTHER',
+                value: 'asdf'
+              }
+            }]),
+            mkPolicyEntry(1236, null, 'baz', [{
+              // a non-security condition in a policy that also has a security condition.
+              // Should be ignored while the security condition is still picked up
+              conditionTriggerReference: {
+                type: 'OTHER',
+                value: 'asdf'
+              }
+            }])
+          ],
+          rawDataEntries = [
+            mkRawDataEntry(1234, 5, undefined, { foo: 'bar' }),
+            mkRawDataEntry(1235, 4, undefined, { foo: 'bar', baz: 'qwerty' }),
+            mkRawDataEntry(1236, 3, 'baz'),
+
+            // non-security entry
+            mkRawDataEntry(null, null, 'baz'),
+
+            // no violation for this vulnerability
+            mkRawDataEntry(1237, 2)
+          ];
+
+      expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
+        jasmine.objectContaining({
+          foo: 'bar',
+          securityCode: 'CVE-1234',
+          cvssScore: 5
+        }),
+        jasmine.objectContaining({
+          foo: 'bar',
+          baz: 'qwerty',
+          securityCode: 'CVE-1235',
+          cvssScore: 4
+        }),
+        jasmine.objectContaining({
+          securityCode: 'CVE-1236',
+          cvssScore: 3
+        })
+      ]);
+    });
+
+    it('calculates a distinct key for each row that includes the component identifier and security code', function() {
+      const policyEntries = [
+            mkPolicyEntry(1235, {}, 'baz'),
+            mkPolicyEntry(1234),
+            mkPolicyEntry(null, {}, 'bar', [{
+              conditionTriggerReference: {
+                type: 'OTHER',
+                value: 'asdf'
+              }
+            }])
+          ],
+          rawDataEntries = [mkRawDataEntry(1234), mkRawDataEntry(1235, null, 'baz'), mkRawDataEntry(1236)];
+
+      expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
+        jasmine.objectContaining({
+          key: jasmine.stringMatching(/bar.*CVE-1234/)
+        }),
+        jasmine.objectContaining({
+          key: jasmine.stringMatching(/baz.*CVE-1235/)
+        })
+      ]);
+    });
+
+    it('handles policy entries that have no constraints', function() {
+      const policyEntries = [{
+            componentIdentifier: {
+              format: 'compFormat',
+              coordinates: {
+                foo: 'bar'
+              }
+            }
+          }],
+          rawDataEntries = [mkRawDataEntry(1234, 5)];
+
+      expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([]);
+    });
+
+    describe('vulnerability aggregation', function() {
+      const policyEntries = [
+            // CVE-1234 has two open violations (one of which is shared with CVE-1235)
+            mkPolicyEntry(1234, {
+              waived: false,
+              grandfathered: false,
+              policyThreatLevel: 1,
+              derivedViolationState: 'open'
+            }),
+            mkPolicyEntry([1234, 1235], {
+              waived: false,
+              grandfathered: false,
+              policyThreatLevel: 2,
+              derivedViolationState: 'open'
+            }),
+
+            // CVE-1235 has one open violation (shared with CVE-1234) and one waived violation
+            mkPolicyEntry(1235, {
+              waived: true,
+              grandfathered: false,
+              policyThreatLevel: 3,
+              derivedViolationState: 'waived'
+            }),
+
+            // CVE-1236 has one open violation and one grandfathered violation
+            mkPolicyEntry(1236, {
+              waived: false,
+              grandfathered: false,
+              policyThreatLevel: 1,
+              derivedViolationState: 'open'
+            }),
+            mkPolicyEntry(1236, {
+              waived: false,
+              grandfathered: true,
+              policyThreatLevel: 2,
+              derivedViolationState: 'waived'
+            }),
+
+            // CVE-1236 on baz only has one grandfathered violation
+            mkPolicyEntry(1236, {
+              waived: false,
+              grandfathered: true,
+              policyThreatLevel: 1,
+              derivedViolationState: 'grandfathered'
+            }, 'baz'),
+
+            // CVE-1238 has two waived violations
+            mkPolicyEntry(1238, {
+              waived: true,
+              grandfathered: false,
+              policyThreatLevel: 1,
+              derivedViolationState: 'waived'
+            }),
+            mkPolicyEntry(1238, {
+              waived: true,
+              grandfathered: false,
+              policyThreatLevel: 2,
+              derivedViolationState: 'waived'
+            }),
+
+            // CVE-1239 has one violation that is waived, one violation that is both, and one violation that
+            // is open
+            mkPolicyEntry(1239, {
+              waived: true,
+              grandfathered: false,
+              policyThreatLevel: 1,
+              derivedViolationState: 'waived'
+            }),
+            mkPolicyEntry(1239, {
+              waived: true,
+              grandfathered: true,
+              policyThreatLevel: 2,
+              derivedViolationState: 'waived+grandfathered'
+            }),
+            mkPolicyEntry(1239, {
+              waived: false,
+              grandfathered: false,
+              policyThreatLevel: 3,
+              derivedViolationState: 'open'
+            }),
+
+            // CVE-1240 has one violation that is both
+            mkPolicyEntry(1240, {
+              waived: true,
+              grandfathered: true,
+              policyThreatLevel: 1,
+              derivedViolationState: 'waived+grandfathered'
+            }),
+
+            // CVE-1241 has one violation that is waived and one that is grandfathered
+            mkPolicyEntry(1241, {
+              waived: true,
+              grandfathered: false,
+              policyThreatLevel: 1,
+              derivedViolationState: 'waived'
+            }),
+            mkPolicyEntry(1241, {
+              waived: false,
+              grandfathered: true,
+              policyThreatLevel: 2,
+              derivedViolationState: 'grandfathered'
+            })
+
+            // CVE-1242 does not have any violations
+          ],
+          rawDataEntries = [
+            mkRawDataEntry(1234),
+            mkRawDataEntry(1235),
+            mkRawDataEntry(1236),
+            mkRawDataEntry(1236, null, 'baz'),
+            mkRawDataEntry(1238),
+            mkRawDataEntry(1239),
+            mkRawDataEntry(1240),
+            mkRawDataEntry(1241),
+            mkRawDataEntry(1242)
+          ];
+
+      it('includes the waived flag and grandfathered flags only if every matching violation is waived or grandfathered',
+          function() {
+            expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
+              jasmine.objectContaining({
+                securityCode: 'CVE-1234',
+                waived: false,
+                grandfathered: false
+              }),
+              jasmine.objectContaining({
+                securityCode: 'CVE-1235',
+                waived: false,
+                grandfathered: false
+              }),
+              jasmine.objectContaining({
+                securityCode: 'CVE-1236',
+                waived: false,
+                grandfathered: false
+              }),
+              jasmine.objectContaining({
+                securityCode: 'CVE-1236',
+                waived: false,
+                grandfathered: true
+              }),
+              jasmine.objectContaining({
+                securityCode: 'CVE-1238',
+                waived: true,
+                grandfathered: false
+              }),
+              jasmine.objectContaining({
+                securityCode: 'CVE-1239',
+                waived: false,
+                grandfathered: false
+              }),
+              jasmine.objectContaining({
+                securityCode: 'CVE-1240',
+                waived: true,
+                grandfathered: true
+              }),
+              jasmine.objectContaining({
+                securityCode: 'CVE-1241',
+                waived: true,
+                grandfathered: true
+              })
+            ]);
+          }
+      );
+
+      it('calculates a violationSortState that sorts open violations first, followed by non-violating, ' +
+          'followed by waived, grandfathered & waived, and then finally grandfathered', function() {
+        expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
+          jasmine.objectContaining({
+            securityCode: 'CVE-1234',
+            violationSortState: 0
+          }),
+          jasmine.objectContaining({
+            securityCode: 'CVE-1235',
+            violationSortState: 0
+          }),
+          jasmine.objectContaining({
+            securityCode: 'CVE-1236',
+            violationSortState: 0
+          }),
+          jasmine.objectContaining({
+            securityCode: 'CVE-1236',
+            violationSortState: 4
+          }),
+          jasmine.objectContaining({
+            securityCode: 'CVE-1238',
+            violationSortState: 2
+          }),
+          jasmine.objectContaining({
+            securityCode: 'CVE-1239',
+            violationSortState: 0
+          }),
+          jasmine.objectContaining({
+            securityCode: 'CVE-1240',
+            violationSortState: 3
+          }),
+          jasmine.objectContaining({
+            securityCode: 'CVE-1241',
+            violationSortState: 3
+          })
+        ]);
+      });
+
+      it('includes the highest matching policyThreatLevel for each vulnerability, ' +
+          'treating waived and grandfathered violations as 0', function() {
+        expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
+          jasmine.objectContaining({
+            securityCode: 'CVE-1234',
+            policyThreatLevel: 2
+          }),
+          jasmine.objectContaining({
+            securityCode: 'CVE-1235',
+            policyThreatLevel: 2
+          }),
+          jasmine.objectContaining({
+            securityCode: 'CVE-1236',
+            policyThreatLevel: 1
+          }),
+          jasmine.objectContaining({
+            securityCode: 'CVE-1236',
+            policyThreatLevel: 0
+          }),
+          jasmine.objectContaining({
+            securityCode: 'CVE-1238',
+            policyThreatLevel: 0
+          }),
+          jasmine.objectContaining({
+            securityCode: 'CVE-1239',
+            policyThreatLevel: 3
+          }),
+          jasmine.objectContaining({
+            securityCode: 'CVE-1240',
+            policyThreatLevel: 0
+          }),
+          jasmine.objectContaining({
+            securityCode: 'CVE-1241',
+            policyThreatLevel: 0
+          })
+        ]);
       });
     });
   });

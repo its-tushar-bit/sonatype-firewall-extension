@@ -67,12 +67,17 @@ i.iq-navigation-menu__icon {
   white-space: nowrap;
   width: $iq-sidebar-width;
   min-width: 280px;
+}
 
-  .iq-logo {
-    float: left;
-    height: 36px;
-    margin: 2px 4px 0 1px;
-  }
+.iq-logo {
+  float: left;
+  height: 36px;
+  width: 32px;
+  margin: 2px 4px 0 1px;
+}
+
+.iq-logo--print {
+  display: none;
 }
 
 .iq-title__brand {

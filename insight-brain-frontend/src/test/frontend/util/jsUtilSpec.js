@@ -1,20 +1,6 @@
-import {isNilOrEmpty, toURIParams, union} from '../../../main/frontend/util/jsUtil';
+import {isNilOrEmpty, multiGroupBy, union} from '../../../main/frontend/util/jsUtil';
 
 describe('jsUtil', function() {
-  describe('toURIParams', function() {
-    it('encodes only defined parameters', function() {
-      const params = {
-        foo: null,
-        'f o o': '?x=шеллы',
-        baz: undefined,
-        bar: '?x=test'
-      };
-      expect(toURIParams(params)).toEqual('f%20o%20o=%3Fx%3D%D1%88%D0%B5%D0%BB%D0%BB%D1%8B&bar=%3Fx%3Dtest');
-    });
-    it('handles empty object', function() {
-      expect(toURIParams({})).toEqual('');
-    });
-  });
 
   describe('isNilOrEmpty', function() {
     it('returns true if the argument is null or undefined', function() {
@@ -67,6 +53,56 @@ describe('jsUtil', function() {
 
       expect(result).toEqual(set1);
       expect(result).not.toBe(set1);
+    });
+  });
+
+  describe('multiGroupBy', function() {
+    it('groups items by their multiple keys', function() {
+      const data = [{
+            foo: ['bar', 'baz'],
+            a: 1
+          }, {
+            foo: ['baz', 'asdf'],
+            a: 2
+          }, {
+            foo: ['asdf'],
+            a: 3
+          }],
+          keyFn = item => item.foo,
+          results = multiGroupBy(keyFn, data);
+
+      expect(results.bar.length).toBe(1);
+      expect(results.bar).toContain(data[0]);
+
+      expect(results.baz.length).toBe(2);
+      expect(results.baz).toContain(data[0]);
+      expect(results.baz).toContain(data[1]);
+
+      expect(results.asdf.length).toBe(2);
+      expect(results.asdf).toContain(data[1]);
+      expect(results.asdf).toContain(data[2]);
+    });
+
+    it('drops items that do not have any values for the key', function() {
+      const data = [{
+            foo: ['bar'],
+            a: 1
+          }, {
+            foo: [],
+            a: 2
+          }],
+          keyFn = item => item.foo,
+          results = multiGroupBy(keyFn, data);
+
+      expect(results).toEqual({ bar: [data[0]] });
+    });
+
+    it('returns an empty object if given an empty list', function() {
+      const data = [],
+          keyFn = item => item.foo,
+          results = multiGroupBy(keyFn, data);
+
+      expect(results).toEqual({});
     });
   });
 });

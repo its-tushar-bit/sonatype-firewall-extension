@@ -67,21 +67,6 @@ describe('AngularCommon', function() {
     expect(scope.form.control.$error.validNameCharacters).not.toBeTruthy();
   });
 
-  it('Messages', inject(function(Messages) {
-    expect(Messages.getHttpErrorMessage(['Internal Error', 500, null, null])).toEqual('Internal Error');
-    expect(Messages.getHttpErrorMessage(
-        ['Unable to reach Nexus IQ Server', 0, null, null])).toEqual('Unable to reach Nexus IQ Server');
-    expect(Messages.getHttpErrorMessage({ data: null, status: -1 })).toEqual('Unable to reach Nexus IQ Server');
-
-    expect(Messages.getHttpErrorMessage({ data: 'Internal Error', status: 500 })).toEqual('Internal Error');
-    expect(Messages.getHttpErrorMessage({ data: 'Bogus String', status: 0 }))
-        .toEqual('Unable to reach Nexus IQ Server');
-    expect(
-        Messages.getHttpErrorMessage(['<html>Error</html>', 503, () => ({'content-type': 'text/html'})])
-    ).toEqual('Service Unavailable');
-    expect(Messages.getHttpErrorMessage({ data: '', status: 500 })).toEqual('Error 500');
-  }));
-
   it('isDuplicate should respect casesensitive param', function() {
     var elm = angular.element(
         '<form name="form">' +

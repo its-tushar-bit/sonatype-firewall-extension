@@ -1,0 +1,6 @@
+// Tweaks necessary to get RSC nx-* classes to work within iq-* containers
+.iq-body-container {
+  .nx-loading-spinner {
+    padding: 8px;
+  }
+}

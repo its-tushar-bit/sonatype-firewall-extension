@@ -1,0 +1,94 @@
+// NOTE: These styles are only fleshed-out enough to get specific pages, which we want to be printable, to work.
+// Currently the only such page is the application report vulnerabilities list
+@media print {
+  * {
+    // prevent chrome bug that causes spurious attempts to redownload fonts and then text disappearing because
+    // the font wasn't done downloading when it generated the print preview
+    font-family: sans-serif !important;
+  }
+
+  body {
+    overflow-y: initial;
+    position: static;
+  }
+
+  .iq-scrollable {
+    max-height: unset;
+  }
+
+  .maximized-container {
+    height: auto !important;
+  }
+
+  .iq-logo {
+    display: none;
+  }
+
+  .iq-logo--print {
+    display: inline-block;
+  }
+
+  main-header, application-report-root, application-report-vulnerabilities, ui-view, .iq-body-container {
+    border: none;
+    display: block;
+  }
+
+  #main-header-buttons, .iq-tile--back-button {
+    display: none;
+  }
+
+  #application-report-vulnerabilities-table {
+
+    // override bootstrap css for printed <a> tags
+    a {
+      color: $iq-link-color !important;
+
+      &::after {
+        content: normal;
+      }
+    }
+
+    // include PDF friendly vulnerability link
+    $cell-padding-top: 8px;
+    $cell-padding-bottom: 10px;
+    $main-line-height: 24px;
+    $link-line-height: 12px;
+    $row-height: $cell-padding-top + $main-line-height + $link-line-height + $cell-padding-bottom;
+    tbody {
+      .iq-cell {
+        height: $main-line-height + $link-line-height;
+        line-height: $main-line-height;
+        padding: $cell-padding-top 0 $cell-padding-bottom 0;
+        vertical-align: top;
+      }
+
+      .iq-cell--vulnerability-security-code {
+        overflow: visible;
+
+        .iq-vulnerability-printable-link {
+          display: block;
+          line-height: $link-line-height;
+          font-size: $link-line-height;
+        }
+      }
+
+      .iq-cell--vulnerability-component-display {
+        .iq-text-indicator {
+          i {
+            display: none;
+          }
+        }
+      }
+    }
+
+    .iq-threat-indication {
+      height: $row-height;
+      margin: (-$cell-padding-top) 0 (-$cell-padding-bottom) 0; // fill entire row height (include cell padding)
+      vertical-align: top;
+    }
+  }
+}
+
+@page {
+  margin: 0.75in 0.25in;
+}

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { pick } from 'ramda';
+import { map, pick } from 'ramda';
 
 import { createReportEntries, createRawDataEntries } from './applicationReportService';
 import { mappedPayloadParamActionCreator, noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
@@ -11,11 +11,15 @@ import { mappedPayloadParamActionCreator, noPayloadActionCreator, payloadParamAc
 export const LOAD_REPORT_REQUESTED = 'LOAD_REPORT_REQUESTED';
 export const LOAD_REPORT_FULFILLED = 'LOAD_REPORT_FULFILLED';
 export const LOAD_REPORT_FAILED = 'LOAD_REPORT_FAILED';
+export const LOAD_REPORT_UNNECESSARY = 'LOAD_REPORT_UNNECESSARY';
 export const LOAD_REPORT_RAW_DATA_REQUESTED = 'LOAD_REPORT_RAW_DATA_REQUESTED';
 export const LOAD_REPORT_RAW_DATA_FULFILLED = 'LOAD_REPORT_RAW_DATA_FULFILLED';
 export const LOAD_REPORT_RAW_DATA_FAILED = 'LOAD_REPORT_RAW_DATA_FAILED';
+export const LOAD_REPORT_RAW_DATA_UNNECESSARY = 'LOAD_REPORT_RAW_DATA_UNNECESSARY';
 export const LOAD_COMMON_DATA_FULFILLED = 'LOAD_COMMON_DATA_FULFILLED';
 export const LOAD_COMMON_DATA_FAILED = 'LOAD_COMMON_DATA_FAILED';
+export const LOAD_COMMON_DATA_UNNECESSARY = 'LOAD_COMMON_DATA_UNNECESSARY';
+export const LOAD_REPORT_ALL_DATA_REQUESTED = 'LOAD_REPORT_ALL_DATA_REQUESTED';
 export const SET_AGGREGATE_REPORT_ENTRIES = 'SET_AGGREGATE_REPORT_ENTRIES';
 export const SET_REPORT_PARAMETERS = 'SET_REPORT_PARAMETERS';
 export const SELECT_COMPONENT = 'SELECT_COMPONENT';
@@ -23,6 +27,7 @@ export const REEVALUATE_REPORT_REQUESTED = 'REEVALUATE_REPORT_REQUESTED';
 export const REEVALUATE_REPORT_FULFILLED = 'REEVALUATE_REPORT_FULFILLED';
 export const REEVALUATE_REPORT_FAILED = 'REEVALUATE_REPORT_FAILED';
 export const REEVALUATE_REPORT_CANCELLED = 'REEVALUATE_REPORT_CANCELLED';
+export const GENERATE_VULNERABILITY_ENTRIES = 'GENERATE_VULNERABILITY_ENTRIES';
 
 // To be used for filters that are done by substring matching, as opposed to matching a discrete set of values
 export const SET_SUBSTRING_FIELD_FILTER = 'SET_SUBSTRING_FIELD_FILTER';
@@ -95,57 +100,69 @@ export default function applicationReportActions($http, $q, $state, $window, CLM
             });
       }
 
-      return $q.resolve();
+      return $q.resolve(dispatch(loadCommonDataUnnecessary()));
     };
   }
 
-  function fetchReportData() {
+  function fetchReportData(forceReload = true) {
     return (dispatch, getState) => {
-      const { bomData, unknownJsData, reportParameters } = getState().applicationReport;
+      const { bomData, unknownJsData, reportParameters, selectedReport } = getState().applicationReport;
       const { appId, scanId } = reportParameters;
-      const promises = {
-        policyResult: $http.get(CLMLocations.getReportPolicyThreatsUrl(appId, scanId)),
-        dataResult: $http.get(CLMLocations.getReportDataUrl(appId, scanId)),
-        partialMatches: $http.get(CLMLocations.getReportPartialMatchedUrl(appId, scanId))
-      };
 
-      return $q.all(promises)
-          .then((results) => {
-            const policyResult = results.policyResult.data || undefined;
-            const dataResult = results.dataResult.data;
-            const partialMatches = results.partialMatches.data || undefined;
+      if (forceReload || !selectedReport) {
+        const promises = {
+          policyResult: $http.get(CLMLocations.getReportPolicyThreatsUrl(appId, scanId)),
+          dataResult: $http.get(CLMLocations.getReportDataUrl(appId, scanId)),
+          partialMatches: $http.get(CLMLocations.getReportPartialMatchedUrl(appId, scanId))
+        };
 
-            const allEntries = createReportEntries(policyResult, bomData, unknownJsData, partialMatches);
-            const reportVersion = policyResult && policyResult.version || null;
-            return dispatch(loadReportFulfilled({ allEntries, reportVersion, ...dataResult }));
-          })
-          .catch(error => {
-            dispatch(loadReportFailed(error));
-            return $q.reject(error);
-          });
+        return $q.all(promises)
+            .then((results) => {
+              const policyResult = results.policyResult.data || undefined;
+              const dataResult = results.dataResult.data;
+              const partialMatches = results.partialMatches.data || undefined;
+
+              const allEntries = createReportEntries(policyResult, bomData, unknownJsData, partialMatches);
+              const reportVersion = policyResult && policyResult.version || null;
+              return dispatch(loadReportFulfilled({ allEntries, reportVersion, ...dataResult }));
+            })
+            .catch(error => {
+              dispatch(loadReportFailed(error));
+              return $q.reject(error);
+            });
+      }
+      else {
+        return $q.resolve(dispatch(loadReportUnnecessary()));
+      }
     };
   }
 
-  function fetchReportRawData() {
+  function fetchReportRawData(forceReload = true) {
     return (dispatch, getState) => {
-      const {bomData, unknownJsData, reportParameters} = getState().applicationReport;
+      const {bomData, unknownJsData, reportParameters, reportRawData } = getState().applicationReport;
       const { appId, scanId } = reportParameters;
-      const promises = {
-        securityResult: $http.get(CLMLocations.getReportSecurityUrl(appId, scanId)),
-        licenseResult: $http.get(CLMLocations.getReportLicenseUrl(appId, scanId))
-      };
 
-      return $q.all(promises)
-          .then((results) => {
-            const securityResult = results.securityResult.data;
-            const licenseResult = results.licenseResult.data;
-            const allEntries = createRawDataEntries(securityResult, licenseResult, bomData, unknownJsData);
-            return dispatch(loadReportRawDataFulfilled(allEntries));
-          })
-          .catch(error => {
-            dispatch(loadReportRawDataFailed(error));
-            return $q.reject(error);
-          });
+      if (forceReload || !reportRawData) {
+        const promises = {
+          securityResult: $http.get(CLMLocations.getReportSecurityUrl(appId, scanId)),
+          licenseResult: $http.get(CLMLocations.getReportLicenseUrl(appId, scanId))
+        };
+
+        return $q.all(promises)
+            .then((results) => {
+              const securityResult = results.securityResult.data;
+              const licenseResult = results.licenseResult.data;
+              const allEntries = createRawDataEntries(securityResult, licenseResult, bomData, unknownJsData);
+              return dispatch(loadReportRawDataFulfilled(allEntries));
+            })
+            .catch(error => {
+              dispatch(loadReportRawDataFailed(error));
+              return $q.reject(error);
+            });
+      }
+      else {
+        return $q.resolve(dispatch(loadReportRawDataUnnecessary()));
+      }
     };
   }
 
@@ -168,19 +185,34 @@ export default function applicationReportActions($http, $q, $state, $window, CLM
     };
   }
 
+  function loadReportAllData() {
+    return (dispatch) => {
+      dispatch({
+        type: LOAD_REPORT_ALL_DATA_REQUESTED
+      });
+      return dispatch(fetchCommonData())
+          .then(() => $q.all(map(dispatch, [fetchReportRawData(false), fetchReportData(false)])))
+          .then(() => dispatch(generateVulnerabilityEntries()));
+    };
+  }
+
   const httpErrorMessageActionCreator = type => mappedPayloadParamActionCreator(type, Messages.getHttpErrorMessage);
 
   const loadCommonDataFulfilled = mappedPayloadParamActionCreator(LOAD_COMMON_DATA_FULFILLED,
       pick(['bomData', 'metadata', 'unknownJsData']));
 
   const loadCommonDataFailed = httpErrorMessageActionCreator(LOAD_COMMON_DATA_FAILED);
+  const loadCommonDataUnnecessary = noPayloadActionCreator(LOAD_COMMON_DATA_UNNECESSARY);
   const loadReportFulfilled = payloadParamActionCreator(LOAD_REPORT_FULFILLED);
   const loadReportFailed = httpErrorMessageActionCreator(LOAD_REPORT_FAILED);
+  const loadReportUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_UNNECESSARY);
   const loadReportRawDataFulfilled = payloadParamActionCreator(LOAD_REPORT_RAW_DATA_FULFILLED);
   const loadReportRawDataFailed = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_FAILED);
+  const loadReportRawDataUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_UNNECESSARY);
   const setAggregateReportEntries = payloadParamActionCreator(SET_AGGREGATE_REPORT_ENTRIES);
   const setSorting = payloadParamActionCreator(SET_SORTING);
   const setSortingRawData = payloadParamActionCreator(SET_SORTING_RAW_DATA);
+  const generateVulnerabilityEntries = noPayloadActionCreator(GENERATE_VULNERABILITY_ENTRIES);
 
   function setStringFieldFilter(fieldName, filterString) {
     return {
@@ -247,6 +279,7 @@ export default function applicationReportActions($http, $q, $state, $window, CLM
     setReportParameters,
     loadReport,
     loadReportRawData,
+    loadReportAllData,
     reevaluateReport,
     reevaluateReportCancelled,
     setAggregateReportEntries,

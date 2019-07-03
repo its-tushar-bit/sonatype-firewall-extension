@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { react2angular } from 'react2angular';
+
 import cipModalModule from './results/cipModal/module';
 import CLMLocationsModule from '../util/CLMLocation';
 import utilityModule from '../utility/utility.module';
@@ -19,11 +21,13 @@ import reevaluationErrorModal from './reevaluationErrorModal/reevaluationErrorMo
 import applicationReportRoot from './applicationReportRoot';
 import rawLicenseDisplay from './rawData/rawLicenseDisplay/rawLicenseDisplay';
 import applicationReportRawData from './rawData/applicationReportRawData';
+import applicationReportVulnerabilities from './vulnerabilities/ApplicationReportVulnerabilities';
 
 export default angular.module('applicationReportModule',
     [
       cipModalModule.name, CLMLocationsModule.name, utilityModule.name, utilityDirectivesModule.name,
-      ComponentDisplayModule.name, vulnerabilityDetailsServiceModule.name, selectedComponentServiceModule.name
+      ComponentDisplayModule.name, vulnerabilityDetailsServiceModule.name, selectedComponentServiceModule.name,
+      'ngRedux'
     ])
     .component('applicationReport', applicationReport)
     .component('applicationReportRoot', applicationReportRoot)
@@ -31,6 +35,8 @@ export default angular.module('applicationReportModule',
     .component('reevaluationErrorModal', reevaluationErrorModal)
     .component('rawLicenseDisplay', rawLicenseDisplay)
     .component('applicationReportRawData', applicationReportRawData)
+    .component('applicationReportVulnerabilities', react2angular(applicationReportVulnerabilities, [],
+        ['$ngRedux', '$state', 'applicationReportActions']))
     .value('applicationReportReducer', applicationReportReducer) // add to angular so we can test it
     .factory('applicationReportActions', applicationReportActions)
     .config(routes);
@@ -54,6 +60,13 @@ function routes($stateProvider, $urlRouterProvider) {
         component: 'applicationReportRawData',
         data: {
           title: 'Application Report Raw Data'
+        }
+      })
+      .state('applicationReport.vulnerabilities', {
+        url: '/vulnerabilities',
+        component: 'applicationReportVulnerabilities',
+        data: {
+          title: 'Application Report Vulnerabilities List'
         }
       });
 

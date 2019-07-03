@@ -170,6 +170,11 @@ public abstract class AbstractFunctionalTest
 
   @BeforeClass
   public static void setup() {
+    setupWebDriver();
+    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(staticTempEntity);
+  }
+
+  protected static void setupWebDriver() {
     WebDriver driver = WebDriverRunner.getAndCheckWebDriver();
 
     // Enforcing specific view port size for stable applitools validations.
@@ -178,8 +183,6 @@ public abstract class AbstractFunctionalTest
     if (!(driver instanceof PageTweakingWebDriver)) {
       WebDriverRunner.setWebDriver(new PageTweakingWebDriver(driver));
     }
-
-    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(staticTempEntity);
   }
 
   @AfterClass

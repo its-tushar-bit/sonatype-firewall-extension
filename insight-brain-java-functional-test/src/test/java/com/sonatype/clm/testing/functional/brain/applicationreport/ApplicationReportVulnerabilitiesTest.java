@@ -1,0 +1,239 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.functional.brain.applicationreport;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.Iterator;
+import java.util.Set;
+
+import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportVulnerabilitiesPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportVulnerabilitiesPage.VulnerabilityRow;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportVulnerabilitiesPage.VulnerabilityTable;
+import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
+import com.sonatype.clm.testing.functional.utils.ReportHelper;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
+import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.policy.PolicyExportResult;
+import com.sonatype.insight.brain.policy.PolicyImportExport;
+import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
+import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.json.store.JsonUtils;
+
+import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.WebDriverRunner;
+import org.joda.time.DateTime;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.openqa.selenium.WebDriver;
+
+import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class ApplicationReportVulnerabilitiesTest
+    extends AbstractFunctionalTest
+{
+  public static final String SCAN_ID = "e16caf35769f4b3186a7e416d34c2797";
+
+  private final ApplicationReportPage applicationReportPage = new ApplicationReportPage();
+
+  private final ApplicationReportVulnerabilitiesPage vulnerabilitiesPage = new ApplicationReportVulnerabilitiesPage();
+
+  private Application app;
+
+  private TestReportEvaluator evaluator;
+
+  private ApplicationDAO applicationDAO = new ApplicationDAO();
+
+  private PolicyDAO policyDAO = new PolicyDAO();
+
+  private PolicyViolationGrandfatheringService policyViolationGrandfatheringService =
+      new PolicyViolationGrandfatheringService(applicationDAO, new OrganizationDAO(), policyDAO,
+          new PolicyViolationDAO(), new PolicyViolationPersistenceLocks(), clmLicenseManager,
+          new PolicyViolationLoggerFactory(clmLicenseManager));
+
+  @Before
+  public void starts() throws IOException {
+    URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
+    PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
+    PolicyImportExport policyImportExport = new PolicyImportExport();
+
+    Organization org = tempEntity.newOrganization();
+    policyImportExport.importOrganization(org, referencePolicies);
+    app = tempEntity.newApplication("ApplicationReportVulnerabilitiesTest", "ApplicationReportVulnerabilitiesTest",
+        org.getId());
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+
+    Policy securityLow = policyDAO.getByName("Security-Low").get(0);
+    Policy securityHigh = policyDAO.getByName("Security-High").get(0);
+
+    // grandfather the security-low policy
+    app.setPolicyViolationGrandfatheringEnabled(true);
+    applicationDAO.update(app);
+    policyViolationGrandfatheringService.grandfather(app.getPublicId());
+
+    // waive a few violations, one of which is also grandfathered
+    tempEntity.newWaiver("1e48256a2341047e7d72", securityLow.getId(), app.getId()); // commons-fileupload
+    tempEntity.newWaiver("edde2efe828f5890f57a", securityHigh.getId(), app.getId()); // spring-expression
+
+    evaluator.evaluatePolicy();
+
+    setupWebDriver();
+    refreshOrOpen(ApplicationReportVulnerabilitiesPage.url(app, SCAN_ID));
+    loginAsAdmin();
+  }
+
+  @After
+  public void after() {
+    hardreset();
+  }
+
+  @Test
+  public void testHeader() {
+    String expectedDate = DateTime.now().toString("yyyy-MM-dd");
+    String expectedTitle = "Vulnerabilities for " + app.getName() + " Build Report - " + expectedDate;
+
+    vulnerabilitiesPage.shouldBe(visible);
+    vulnerabilitiesPage.title().shouldHave(text(expectedTitle));
+    NxBackButton backButton = vulnerabilitiesPage.backButton();
+    backButton.shouldHave(text("Back to Application Report"));
+
+    backButton.click();
+    applicationReportPage.should(appear);
+  }
+
+  @Test
+  public void testResults() {
+    VulnerabilityTable vulnerabilityTable = vulnerabilitiesPage.table();
+    vulnerabilityTable.shouldBe(visible);
+
+    vulnerabilityTable.rows().shouldHaveSize(59);
+
+    eyesWatcher.eyesCheck("Test Raw Data View");
+
+    VulnerabilityRow jacksonDatabindRow = vulnerabilityTable.row(2);
+    checkRow(jacksonDatabindRow, "com.fasterxml.jackson.core : jackson-databind : 2.0.4", "CVE-2017-7525", "9.8", "9",
+        false, false);
+
+    VulnerabilityRow angularRow = vulnerabilityTable.row(59);
+    ScrollUtil.scrollIntoView(angularRow.getElement());
+    checkRow(angularRow, "angular 1.2.17", "sonatype-2014-0059", "3.6", "0", false, true);
+
+    VulnerabilityRow waivedRow = vulnerabilityTable.row(20);
+    ScrollUtil.scrollIntoView(waivedRow.getElement());
+    checkRow(waivedRow, "org.springframework : spring-expression : 3.2.4.RELEASE", "CVE-2018-1270", "9.8", "0", true,
+        false);
+
+    VulnerabilityRow waivedGrandfatheredRow = vulnerabilityTable.row(21);
+    ScrollUtil.scrollIntoView(waivedGrandfatheredRow.getElement());
+    checkRow(waivedGrandfatheredRow, "commons-fileupload : commons-fileupload : 1.2.2", "CVE-2013-0248", "3.3", "0",
+        true, true);
+  }
+
+  // NOTE This test does not pass in headless mode (e.g. with -Dselenide.headless=true)
+  @Test
+  public void testPrintPreview() {
+    if ("firefox".equals(System.getProperty("browser"))) {
+      // this test is for chrome only
+      return;
+    }
+
+    // wait for data to load
+    vulnerabilitiesPage.title().shouldBe(visible);
+
+    WebDriver driver = WebDriverRunner.getWebDriver();
+    Set<String> existingWindowHandles = driver.getWindowHandles();
+    Set<String> newWindowHandles;
+    Selenide.executeJavaScript("setTimeout(function() { window.print(); }, 0);");
+
+    int maxWaitTime = 5000;
+    int totalWaitTime = 0;
+    int waitLoopInterval = 500;
+    do {
+      newWindowHandles = driver.getWindowHandles();
+      Selenide.sleep(waitLoopInterval);
+      totalWaitTime += waitLoopInterval;
+    }
+    while (totalWaitTime < maxWaitTime && existingWindowHandles.equals(newWindowHandles));
+
+    newWindowHandles.removeAll(existingWindowHandles);
+
+    Iterator<String> handleIterator = newWindowHandles.iterator();
+    assertThat(handleIterator).hasNext();
+
+    String printWindowHandle = newWindowHandles.iterator().next();
+
+    Selenide.switchTo().window(printWindowHandle);
+
+    eyesWatcher.eyesCheck();
+
+    // all attempts to programmatically close just the print window seem to hang the browser, so instead close
+    // the whole browser and re-init the webdriver
+    WebDriverRunner.closeWebDriver();
+  }
+
+  @Test
+  public void testSecurityIssueLink() {
+    final String refId = "CVE-2016-1000031";
+    String uiLinksUrl = VulnerabilitySearchPage.uiLinksUrl(refId);
+    String detailsUrl = VulnerabilitySearchPage.url(refId);
+
+    VulnerabilityTable vulnerabilityTable = vulnerabilitiesPage.table();
+    VulnerabilityRow vulnerabilityRow = vulnerabilityTable.row(1);
+    vulnerabilityRow.detailsLink().shouldHave(attribute("href", uiLinksUrl));
+    vulnerabilityRow.detailsLink().shouldHave(text(refId)).click();
+
+    waitUntilUrl(detailsUrl);
+  }
+
+  private void checkRow(final VulnerabilityRow row,
+                        final String componentName,
+                        final String securityIssue,
+                        final String cvssScore,
+                        final String policyThreatLevel,
+                        final boolean waived,
+                        final boolean grandfathered)
+  {
+    row.component().shouldHave(text(componentName));
+    row.securityIssue().shouldHave(exactText(securityIssue));
+    row.cvssScore().shouldHave(exactText(cvssScore));
+    row.policyThreatLevel().shouldHave(exactText(policyThreatLevel));
+
+    if (waived) {
+      row.waived().shouldBe(visible);
+    }
+    else {
+      row.waived().shouldNotBe(visible);
+    }
+
+    if (grandfathered) {
+      row.grandfathered().shouldBe(visible);
+    }
+    else {
+      row.grandfathered().shouldNotBe(visible);
+    }
+  }
+}

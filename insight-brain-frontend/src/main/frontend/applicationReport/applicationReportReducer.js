@@ -5,6 +5,7 @@
  */
 import {
   both,
+  curryN,
   findIndex,
   identity,
   inc,
@@ -21,12 +22,16 @@ import {
 import {
   LOAD_COMMON_DATA_FAILED,
   LOAD_COMMON_DATA_FULFILLED,
+  LOAD_COMMON_DATA_UNNECESSARY,
   LOAD_REPORT_FAILED,
   LOAD_REPORT_FULFILLED,
   LOAD_REPORT_REQUESTED,
+  LOAD_REPORT_UNNECESSARY,
   LOAD_REPORT_RAW_DATA_FAILED,
   LOAD_REPORT_RAW_DATA_FULFILLED,
   LOAD_REPORT_RAW_DATA_REQUESTED,
+  LOAD_REPORT_RAW_DATA_UNNECESSARY,
+  LOAD_REPORT_ALL_DATA_REQUESTED,
   SET_AGGREGATE_REPORT_ENTRIES,
   SET_SUBSTRING_FIELD_FILTER,
   SET_RAW_DATA_SUBSTRING_FIELD_FILTER,
@@ -40,14 +45,20 @@ import {
   REEVALUATE_REPORT_CANCELLED,
   SET_SORTING,
   SET_SORTING_RAW_DATA,
-  SELECT_COMPONENT
+  SELECT_COMPONENT,
+  GENERATE_VULNERABILITY_ENTRIES
 } from './applicationReportActions';
 
-import { aggregateReportEntries, filterReportEntries, sortReportEntries } from './applicationReportService';
+import {
+  aggregateReportEntries,
+  filterReportEntries,
+  sortReportEntries,
+  getVulnerabilities
+} from './applicationReportService';
 import { pathSet } from '../util/jsUtil';
 
 const initState = Object.freeze({
-  loading: false,
+  pendingLoads: new Set(),
   reevaluating: false,
   loadError: null,
   reevaluationError: null,
@@ -71,7 +82,10 @@ const initState = Object.freeze({
   selectedReport: null,
   selectedComponentIndex: null,
   policyTypeFilterEnabled: true,
-  isUnknownJs: false
+  isUnknownJs: false,
+
+  vulnerabilities: null,
+  vulnerabilitiesPageEnabled: true
 });
 
 export default function(state = initState, {type, payload}) {
@@ -80,21 +94,24 @@ export default function(state = initState, {type, payload}) {
       return setReportParameters(state, payload);
 
     case LOAD_REPORT_REQUESTED:
-      return {...state, loading: true, loadError: null, selectedReport: null};
+      return setPendingLoads(['common', 'policy'], {...state, loadError: null, selectedReport: null});
 
     case LOAD_REPORT_FULFILLED:
       return setSelectedReport(state, payload);
 
     case LOAD_COMMON_DATA_FULFILLED: {
       const {bomData, metadata, unknownJsData} = payload;
-      return {...state, bomData, metadata, unknownJsData};
+      return unsetPendingLoads(['common'], {...state, bomData, metadata, unknownJsData});
     }
 
     case LOAD_REPORT_RAW_DATA_REQUESTED:
-      return {...state, loading: true, loadError: null, reportRawData: null};
+      return setPendingLoads(['common', 'raw'], {...state, loadError: null, reportRawData: null});
 
     case LOAD_REPORT_RAW_DATA_FULFILLED:
       return setRawDataInformation(state, payload);
+
+    case LOAD_REPORT_ALL_DATA_REQUESTED:
+      return setPendingLoads(['common', 'raw', 'policy'], state);
 
     case REEVALUATE_REPORT_REQUESTED:
       return {...state, reevaluating: true, reevaluationError: null};
@@ -104,16 +121,25 @@ export default function(state = initState, {type, payload}) {
       return {...state, reevaluating: false, reevaluationError: null};
 
     case LOAD_REPORT_FAILED:
-      return {...state, loading: false, loadError: payload};
+      return unsetPendingLoads(['policy'], {...state, loadError: payload});
 
     case LOAD_REPORT_RAW_DATA_FAILED:
-      return {...state, loading: false, loadError: payload};
+      return unsetPendingLoads(['raw'], {...state, loadError: payload});
 
     case LOAD_COMMON_DATA_FAILED:
-      return {...state, loading: false, loadError: payload};
+      return unsetPendingLoads(['common'], {...state, loadError: payload});
 
     case REEVALUATE_REPORT_FAILED:
       return {...state, reevaluating: false, reevaluationError: payload};
+
+    case LOAD_COMMON_DATA_UNNECESSARY:
+      return unsetPendingLoads(['common'], state);
+
+    case LOAD_REPORT_RAW_DATA_UNNECESSARY:
+      return unsetPendingLoads(['raw'], state);
+
+    case LOAD_REPORT_UNNECESSARY:
+      return unsetPendingLoads(['policy'], state);
 
     case SET_AGGREGATE_REPORT_ENTRIES:
       return updateDisplayedEntries({...state, aggregate: payload});
@@ -154,6 +180,9 @@ export default function(state = initState, {type, payload}) {
     case SELECT_COMPONENT:
       return {...state, selectedComponentIndex: payload};
 
+    case GENERATE_VULNERABILITY_ENTRIES:
+      return generateVulnerabilityEntries(state);
+
     default:
       return state;
   }
@@ -166,10 +195,13 @@ function setReportParameters(state, payload) {
 }
 
 function setSelectedReport(state, report) {
-  const newState = updateDisplayedEntries({
+  const newState = pipe(
+      updateDisplayedEntries,
+      unsetPendingLoads(['policy'])
+  )({
     ...state,
-    loading: false,
     policyTypeFilterEnabled: report.reportVersion && report.reportVersion >= 4,
+    vulnerabilitiesPageEnabled: !!(report.reportVersion && report.reportVersion >= 5),
     selectedReport: {...report, ...getViolationCountsPerThreatLevel(report.allEntries)}
   });
 
@@ -188,13 +220,35 @@ function setSelectedReport(state, report) {
 }
 
 function setRawDataInformation(state, rawDataEntries) {
-  return updateRawDataDisplayedEntries({
+  return pipe(
+      updateRawDataDisplayedEntries,
+      unsetPendingLoads(['raw'])
+  )({
     ...state,
-    loading: false,
     reportRawData: {
       allEntries: rawDataEntries
     }
   });
+}
+
+function generateVulnerabilityEntries(state) {
+  const { reportRawData, selectedReport } = state;
+
+  if (reportRawData == null || selectedReport == null) {
+    return state;
+  }
+  else {
+    const rawDataEntries = reportRawData.allEntries,
+        policyEntries = selectedReport.allEntries,
+        vulnerabilityEntries = getVulnerabilities(policyEntries, rawDataEntries);
+
+    return {
+      ...state,
+      vulnerabilities: sortReportEntries(
+          ['violationSortState', '-policyThreatLevel', '-cvssScore', 'securityCode', 'derivedComponentName'],
+          vulnerabilityEntries)
+    };
+  }
 }
 
 /**
@@ -253,3 +307,14 @@ function getViolationCountsPerThreatLevel(entries) {
   return {...zeroCounts, ...nonZeroCounts, nonLowViolationCount};
 }
 
+const mutatePendingLoads = curryN(3, function mutatePendingLoads(setMutator, loads, state) {
+  const { pendingLoads } = state,
+      newPendingLoads = new Set(pendingLoads);
+
+  loads.forEach(setMutator(newPendingLoads));
+
+  return { ...state, pendingLoads: newPendingLoads };
+});
+
+const setPendingLoads = mutatePendingLoads(set => val => set.add(val)),
+    unsetPendingLoads = mutatePendingLoads(set => val => set.delete(val));

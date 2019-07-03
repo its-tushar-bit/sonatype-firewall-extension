@@ -9,6 +9,7 @@ import {
   append,
   apply,
   both,
+  chain,
   complement,
   compose,
   concat,
@@ -22,6 +23,7 @@ import {
   identity,
   groupBy,
   gte,
+  has,
   into,
   isNil,
   lte,
@@ -32,8 +34,10 @@ import {
   pick,
   pipe,
   prop,
+  propEq,
   reduce,
   reduceBy,
+  reject,
   toLower,
   sortBy,
   sortWith,
@@ -42,12 +46,11 @@ import {
   values
 } from 'ramda';
 
-import { isNilOrEmpty, setToArray } from '../util/jsUtil';
+import { isNilOrEmpty, multiGroupBy, setToArray } from '../util/jsUtil';
 import { getComponentName } from '../util/componentNameUtils';
 import { getDeclaredLicensesDisplay, getObservedLicensesDisplay } from './licenseDisplayUtils';
 
-const flatMap = pipe(map, flatten),
-    joinPathnames = join('\t'),
+const joinPathnames = join('\t'),
     toKey = component => component.hash || joinPathnames(component.pathnames || []),
     nullHashCheck = ({ hash }) => !!hash && hash !== 'null',
     indexBy = reduceBy((acc, c) => c, null),
@@ -67,7 +70,7 @@ const flatMap = pipe(map, flatten),
  * for each.
  * Note that v3 violations have no `policyThreatCategory`
  */
-function makeViolationEntriesV3V4(policyResult, bomDataByKey) {
+function makeViolationEntriesV3Plus(policyResult, bomDataByKey) {
   function makeEntriesForComponent(component) {
     const key = toKey(component),
         bomComponent = bomDataByKey[key],
@@ -75,7 +78,7 @@ function makeViolationEntriesV3V4(policyResult, bomDataByKey) {
           const { waived, grandfathered } = violation;
 
           return {
-            ...pick(['policyThreatLevel', 'policyName', 'policyThreatCategory'], violation),
+            ...pick(['policyThreatLevel', 'policyName', 'policyThreatCategory', 'constraints'], violation),
             ...bomComponent,
             waived,
             grandfathered,
@@ -87,7 +90,7 @@ function makeViolationEntriesV3V4(policyResult, bomDataByKey) {
     return map(makeEntryForViolation, component.allViolations);
   }
 
-  return flatMap(makeEntriesForComponent, filter(nullHashCheck, policyResult.aaData));
+  return chain(makeEntriesForComponent, filter(nullHashCheck, policyResult.aaData));
 }
 
 /**
@@ -113,7 +116,7 @@ function makeViolationEntriesV1V2(policyResult, bomDataByKey) {
     );
   }
 
-  return flatMap(makeEntriesForComponent, filter(nullHashCheck, policyResult.aaData));
+  return chain(makeEntriesForComponent, filter(nullHashCheck, policyResult.aaData));
 }
 
 /**
@@ -157,9 +160,10 @@ const deriveViolationState = (waived, grandfathered) => waived && grandfathered 
       'open';
 
 // A map of makeViolationEntries functions, indexed by policyResult version
-const makeViolationEntriesMap = new window.Map([
-  [4, makeViolationEntriesV3V4],
-  [3, makeViolationEntriesV3V4],
+const violationEntryMakersByPolicyThreatsVersion = new window.Map([
+  [5, makeViolationEntriesV3Plus],
+  [4, makeViolationEntriesV3Plus],
+  [3, makeViolationEntriesV3Plus],
   [2, makeViolationEntriesV1V2],
   [1, makeViolationEntriesV1V2],
   [null, makeViolationEntriesNoVersion]
@@ -181,7 +185,7 @@ export function createReportEntries(policyResult = defaultParamValue, bomResult 
       partialMatchesByKey = indexByKey(partialMatches.aaData),
 
       // select the right processing function for this version of the data
-      makeViolationEntries = makeViolationEntriesMap.get(policyResult.version || null),
+      makeViolationEntries = violationEntryMakersByPolicyThreatsVersion.get(policyResult.version || null),
 
       // make entries for all violations
       violationEntries = makeViolationEntries(policyResult, bomDataByKey),
@@ -217,8 +221,7 @@ export function createRawDataEntries(securityResult = defaultParamValue, license
 
     // distinct security entries associated with any detected hash of this component id
     const securityEntries = pipe(
-            map(hash => securityEntriesByKey[hash] || []),
-            flatten,
+            chain(hash => securityEntriesByKey[hash] || []),
             uniqBy(prop('reference'))
         )(hashes),
         license = licenseEntriesByComponentId[componentId],
@@ -417,3 +420,62 @@ export const sortReportEntries = curry(function sortReportEntries(sortFields, en
     return entries;
   }
 });
+
+/**
+ * Combine policy and vulnerability information (matching via component id and security issue id)
+ * to get policy-oriented information for each vulnerability.
+ * policyEntries must be from a V5+ policythreats.json
+ */
+export function getVulnerabilities(policyEntries, rawDataEntries) {
+  const getVulnIdsFromPolicyEntry = pipe(
+          prop('constraints'),
+          defaultTo([]),
+          into([], compose(
+              chain(prop('conditions')),
+              map(prop('conditionTriggerReference')),
+              reject(isNil),
+              filter(propEq('type', 'SECURITY_VULNERABILITY_REFID')),
+              map(prop('value'))
+          ))
+      ),
+
+      // map from CVE -> list of policy entries that reference that CVE
+      policyEntriesBySecurityCode = multiGroupBy(getVulnIdsFromPolicyEntry, policyEntries),
+
+      // two level map: CVE -> Component Id -> highest threat policy entry for that CVE and component
+      highestPolicyEntryBySecurityCodeByComponentId =
+          map(reduceBy(highestViolationReducer, null, serializeComponentId), policyEntriesBySecurityCode),
+
+      // make a vulnerability entry by matching a raw data entry with a policy entry. If there is no policy
+      // entry, null is returned because non-violating vulnerabilities are not to be included
+      mkVulnerabilityEntry = rawDataEntry => {
+        const { securityCode } = rawDataEntry,
+            serializedComponentId = serializeComponentId(rawDataEntry),
+            policyEntry = pipe(
+                prop(securityCode),
+                defaultTo({}),
+                prop(serializedComponentId)
+            )(highestPolicyEntryBySecurityCodeByComponentId);
+
+        return policyEntry ? {
+          ...pick(['policyThreatLevel', 'waived', 'grandfathered'], policyEntry),
+          ...rawDataEntry,
+          violationSortState: vulnerabilitySortStateMap[policyEntry.derivedViolationState],
+          key: `${serializedComponentId}\u001D${securityCode}`
+        } : null;
+      };
+
+  return into([], compose(
+      filter(has('securityCode')),
+      map(mkVulnerabilityEntry),
+      reject(isNil)
+  ), rawDataEntries);
+}
+
+const vulnerabilitySortStateMap = {
+  'open': 0,
+  'notViolating': 1,
+  'waived': 2,
+  'waived+grandfathered': 3,
+  'grandfathered': 4
+};

@@ -36,6 +36,9 @@
     <slf4j.version>1.7.26</slf4j.version>
     <logback.version>1.2.3</logback.version>
     <jackson.version>2.9.9</jackson.version>
+    <!-- some of the sub projects of jackson yet to release 2.9.9.1
+    This can be removed once the entire jackson stack can be upgraded. CLM-12839 -->
+    <jackson.databind.version>2.9.9.1</jackson.databind.version>
     <openjpa.version>3.1.0</openjpa.version>
     <shiro.version>1.4.0</shiro.version>
     <sisu-inject.version>0.3.3</sisu-inject.version>
@@ -436,7 +439,7 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>${jackson.version}</version>
+        <version>${jackson.databind.version}</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.dataformat</groupId>

@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional;
 
+import java.util.Locale;
+
 import com.applitools.eyes.BatchInfo;
 import com.applitools.eyes.selenium.Eyes;
 import com.applitools.eyes.selenium.fluent.SeleniumCheckSettings;
@@ -34,7 +36,7 @@ public class EyesWatcher
 
   static {
     localBranchName = System.getProperty("branchName", System.getenv("GIT_LOCAL_BRANCH"));
-    eyes.setIsDisabled(APPLITOOLS_KEY == null);
+    eyes.setIsDisabled(APPLITOOLS_KEY == null || !isApplitoolsEnabled());
 
     if (!eyes.getIsDisabled()) {
       batchId = System.getenv("APPLITOOLS_BATCH_ID"); // batch id set by Applitools jenkins plugin
@@ -121,7 +123,11 @@ public class EyesWatcher
     eyes.check(tag, settings);
   }
 
-  private boolean isMaster() {
+  private static boolean isMaster() {
     return "master".equals(localBranchName);
+  }
+
+  private static boolean isApplitoolsEnabled() {
+    return isMaster() || localBranchName.toLowerCase(Locale.ENGLISH).contains("_ui");
   }
 }

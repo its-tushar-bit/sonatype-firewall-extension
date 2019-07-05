@@ -124,6 +124,9 @@ public class PolicyEvaluateService
     return doPolicyEvaluation(applicationPublicId, scanId, stage);
   }
 
+  /**
+   * @since 1.69
+   */
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public PolicyEvaluationReceipt evaluateWithPolling(
       IntegrationType integrationType,
@@ -173,6 +176,9 @@ public class PolicyEvaluateService
     return policyEvaluationReceipt;
   }
 
+  /**
+   * @since 1.69
+   */
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public PolicyEvaluationPollingResult pollEvaluationResult(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
@@ -188,6 +194,9 @@ public class PolicyEvaluateService
     return policyEvaluationPollingResult;
   }
 
+  /**
+   * @since 1.69
+   */
   class EvaluationTask
       implements Callable<PolicyEvaluationPollingResult>
   {

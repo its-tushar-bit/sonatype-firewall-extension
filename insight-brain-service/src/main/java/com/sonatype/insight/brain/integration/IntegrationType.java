@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.integration;
 import java.util.Locale;
 
 /**
- * @since 1.68
+ * @since 1.69
  */
 public enum IntegrationType
 {

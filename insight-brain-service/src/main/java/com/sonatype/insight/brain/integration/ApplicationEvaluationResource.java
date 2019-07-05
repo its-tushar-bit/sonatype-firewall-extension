@@ -29,6 +29,9 @@ import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.codahale.metrics.annotation.Timed;
 
+/**
+ * @since 1.69
+ */
 @Path(ApplicationEvaluationResource.RESOURCE_PATH)
 @Named
 @Timed

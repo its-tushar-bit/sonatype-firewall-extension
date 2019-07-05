@@ -44,7 +44,7 @@ public class PolicyClient
   }
 
   /**
-   * @since 1.68
+   * @since 1.69
    */
   public PolicyEvaluationPollingResult evaluateCLI(final File scanFile,
                                                    final ClientScanType clientScanType,
@@ -54,7 +54,7 @@ public class PolicyClient
   }
 
   /**
-   * @since 1.68
+   * @since 1.69
    */
   public PolicyEvaluationPollingResult evaluateCI(final File scanFile,
                                                   final Stage stage) throws IOException
@@ -63,7 +63,7 @@ public class PolicyClient
   }
 
   /**
-   * @since 1.68
+   * @since 1.69
    */
   public PolicyEvaluationPollingResult evaluateRepoMan(final File scanFile,
                                                        final Stage stage) throws IOException

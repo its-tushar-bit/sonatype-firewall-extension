@@ -16,7 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.TelemetryId;
-import com.sonatype.insight.brain.hds.UserTelemetryHdsClient;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PendoService.PendoConfig;
 import com.sonatype.insight.brain.version.VersionService;
@@ -53,15 +52,11 @@ public class PendoServiceTest
   @Mock
   private HdsClient hdsClient;
 
-  @Mock
-  private UserTelemetryHdsClient userTelemetryHdsClient;
-
   private String hashedVisitorId;
 
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClient);
-    binder.bind(UserTelemetryHdsClient.class).toInstance(userTelemetryHdsClient);
     super.configure(binder);
   }
 
@@ -119,20 +114,19 @@ public class PendoServiceTest
     HttpServletRequest request = mock(HttpServletRequest.class);
     InputStream result = mock(InputStream.class);
 
-    when(userTelemetryHdsClient.relay(eq(request), eq(InputStream.class),
-        eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar"))).thenReturn(result);
+    when(hdsClient.relay(eq(request), eq(InputStream.class), eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar")))
+        .thenReturn(result);
 
     assertThat(pendoService.proxy(request, "foo/bar")).isEqualTo(result);
-    verify(userTelemetryHdsClient).relay(eq(request), eq(InputStream.class),
-        eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar"));
+    verify(hdsClient).relay(eq(request), eq(InputStream.class), eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar"));
   }
 
   @Test
   public void testProxy_error() throws Exception {
     HttpServletRequest request = mock(HttpServletRequest.class);
 
-    when(userTelemetryHdsClient.relay(eq(request), eq(InputStream.class),
-        eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar"))).thenThrow(new IOException());
+    when(hdsClient.relay(eq(request), eq(InputStream.class), eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar")))
+        .thenThrow(new IOException());
 
     try (InputStream in = pendoService.proxy(request, "foo/bar")) {
       assertThat(in).hasContent("");

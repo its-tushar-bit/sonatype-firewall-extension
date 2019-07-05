@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.hds.TelemetryId;
-import com.sonatype.insight.brain.hds.UserTelemetryHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
@@ -47,12 +47,12 @@ public class PendoService
 
   private final PendoCache pendoCache;
 
-  private final UserTelemetryHdsClient hdsClient;
+  private final HdsClient hdsClient;
 
   private final VersionService versionService;
 
   @Inject
-  public PendoService(UserTelemetryHdsClient hdsClient,
+  public PendoService(HdsClient hdsClient,
                       PendoCache pendoCache,
                       TelemetryId telemetryId,
                       VersionService versionService)

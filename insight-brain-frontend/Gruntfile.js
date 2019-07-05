@@ -31,6 +31,10 @@
           clmVersion: extractFromPom('version')
         },
         angularDebug: false,
+
+        // NOTE This is distinct from the value that goes into the window.clmBuildTimestamp javascript variable.
+        // That one is provided by webpack's DefinePlugin.
+        buildTimestamp: new Date().getTime(),
         frontend: 'src/main/frontend',
         test: 'src/test/frontend',
         generated: 'target/classes/assets',

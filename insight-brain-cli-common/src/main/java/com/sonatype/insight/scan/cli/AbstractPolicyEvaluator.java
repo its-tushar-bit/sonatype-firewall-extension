@@ -34,7 +34,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 {
   private static final Logger log = LoggerFactory.getLogger(AbstractPolicyEvaluator.class);
 
-  public static final String MINIMAL_SERVER_VERSION_REQUIRED = "1.68.0";
+  public static final String MINIMAL_SERVER_VERSION_REQUIRED = "1.69.0";
 
   private final Scanner scanner;
 

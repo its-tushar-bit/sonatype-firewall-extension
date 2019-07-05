@@ -18,15 +18,22 @@ import javax.mail.util.ByteArrayDataSource;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.mock.hds.HttpResponseProcessor;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 public class UserInterfaceLinksResourceTest
     extends AbstractResourceTest
@@ -86,6 +93,24 @@ public class UserInterfaceLinksResourceTest
     assertThat(telemetryData.getAttributes().get("source")).isEqualTo("Foo".toLowerCase(Locale.ENGLISH));
     assertThat(telemetryData.getAttributes().get("applicationId")).isEqualTo(HdsClientAnalytics.obfuscate("app id"));
     assertThat(telemetryData.getAttributes().get("scanId")).isEqualTo(HdsClientAnalytics.obfuscate("scan id"));
+    assertThat(telemetryData.getAttributes().get("isLoggedIn")).isEqualTo(false);
+  }
+
+  @Test
+  public void testSendSourceTelemetryData_WhenUserIsLoggedIn() {
+    Subject subject = mock(Subject.class);
+    doReturn("principal").when(subject).getPrincipal();
+    ThreadContext.bind(subject);
+
+    TelemetrySender telemetrySender = mock(TelemetrySender.class);
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    doNothing().when(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+
+    new UserInterfaceLinksResource(mock(BaseUrl.class), telemetrySender)
+        .sendSourceTelemetryData("appId", "scanId", "source");
+
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+    assertThat(telemetryData.getAttributes().get("isLoggedIn")).isEqualTo(true);
   }
 
   @Test

@@ -28,7 +28,9 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.codahale.metrics.annotation.Timed;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import org.apache.shiro.SecurityUtils;
 
 /**
  * Provides URLs to parts of the UI for usage by enforcement points that wish to link to the CLM server's web interface.
@@ -144,7 +146,8 @@ public class UserInterfaceLinksResource
     return redirect(uriBuilder, vulnerabilityId);
   }
 
-  private void sendSourceTelemetryData(final String applicationId, final String scanId, final String source) {
+  @VisibleForTesting
+  void sendSourceTelemetryData(final String applicationId, final String scanId, final String source) {
     if (source == null) {
       return;
     }
@@ -152,7 +155,8 @@ public class UserInterfaceLinksResource
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK);
     telemetryData.setAttributes(ImmutableMap
         .of("source", source.toLowerCase(Locale.ENGLISH), "applicationId", HdsClientAnalytics.obfuscate(applicationId),
-            "scanId", HdsClientAnalytics.obfuscate(scanId)));
+            "scanId", HdsClientAnalytics.obfuscate(scanId), "isLoggedIn",
+            SecurityUtils.getSubject().getPrincipal() != null));
     telemetrySender.send(telemetryData);
   }
 

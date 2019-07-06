@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -137,7 +136,7 @@ import static com.sonatype.insight.brain.utils.ThreatLevel.CRITICAL;
 import static com.sonatype.insight.brain.utils.ThreatLevel.LOW;
 import static com.sonatype.insight.brain.utils.ThreatLevel.MODERATE;
 import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Like TemporaryFolder, just for apps and orgs etc.
@@ -237,7 +236,7 @@ public class TemporaryEntity
   
   private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
-  private Map<String, MigrationTracker> migrationTrackersById;
+  private Collection<MigrationTracker> migrationTrackers;
 
   private Collection<Application> apps;
 
@@ -287,8 +286,7 @@ public class TemporaryEntity
 
   @Override
   protected void before() {
-    migrationTrackersById =
-        migrationTrackerDAO.getAll().stream().collect(toMap(MigrationTracker::getId, Function.identity()));
+    migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
     apps = new ArrayList<>();
     orgs = new ArrayList<>();
     licenseOverrides = new ArrayList<>();
@@ -312,6 +310,13 @@ public class TemporaryEntity
     successMetricsReports = new ArrayList<>();
     successMetricsReportDatas = new ArrayList<>();
     sourceControls = new ArrayList<>();
+  }
+
+  private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
+    MigrationTracker copy = new MigrationTracker(migrationTracker.getId());
+    copy.setVersion(migrationTracker.getVersion());
+    copy.setConfiguration(migrationTracker.getConfiguration());
+    return copy;
   }
 
   @Override
@@ -352,10 +357,8 @@ public class TemporaryEntity
     if (config != null) {
       proprietaryConfigDAO.delete(config);
     }
-    migrationTrackerDAO.getAll().stream()
-        .filter(migrationTracker -> !migrationTrackersById.containsKey(migrationTracker.getId()))
-        .forEach(migrationTrackerDAO::delete);
-    migrationTrackersById.values().forEach(migrationTrackerDAO::update);
+    migrationTrackerDAO.getAll().forEach(migrationTrackerDAO::delete);
+    migrationTrackers.forEach(migrationTrackerDAO::insert);
   }
 
   private <T extends HasStringId> void delete(Collection<T> entities, AbstractDAO<T> dao) {

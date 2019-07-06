@@ -59,7 +59,6 @@ import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.postgres.PostgresServer;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -118,13 +117,6 @@ public class RootOrganizationConfigMigratorTest
   public void before() throws Exception {
     migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
     migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
-  }
-
-  @After
-  public void after() {
-    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
-    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
-    migrationUtils.setMigrated();
   }
 
   @Test

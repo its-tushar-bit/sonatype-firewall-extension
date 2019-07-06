@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,19 +25,10 @@ public class RootOrganizationConfigMigrationServiceAuthzTest
   @Inject
   private MigrationTrackerDAO migrationTrackerDAO;
 
-  @Inject
-  private RootOrganizationConfigMigrationUtils migrationUtils;
-
   @Before
   public void before() {
     migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
     migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
-  }
-
-  @After
-  public void after() {
-    migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
-    migrationUtils.setMigrated();
   }
 
   @Test(expected = UnauthenticatedException.class)

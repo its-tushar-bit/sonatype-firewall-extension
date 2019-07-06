@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -60,6 +61,7 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerability
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
@@ -135,6 +137,7 @@ import static com.sonatype.insight.brain.utils.ThreatLevel.CRITICAL;
 import static com.sonatype.insight.brain.utils.ThreatLevel.LOW;
 import static com.sonatype.insight.brain.utils.ThreatLevel.MODERATE;
 import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Like TemporaryFolder, just for apps and orgs etc.
@@ -150,6 +153,8 @@ public class TemporaryEntity
   public static final String WEBHOOK_SECRET_KEY_CLEAR = "secret_key";
 
   public static final String WEBHOOK_SECRET_KEY_ENCRYPTED = "yt81KDLODoAH7i0U4G5lEr53mhus9kOCjB3dMtcDVFY=";
+
+  private final MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
 
   private final ApplicationDAO appDAO = new ApplicationDAO();
 
@@ -232,6 +237,8 @@ public class TemporaryEntity
   
   private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
+  private Map<String, MigrationTracker> migrationTrackersById;
+
   private Collection<Application> apps;
 
   private Collection<Organization> orgs;
@@ -280,6 +287,8 @@ public class TemporaryEntity
 
   @Override
   protected void before() {
+    migrationTrackersById =
+        migrationTrackerDAO.getAll().stream().collect(toMap(MigrationTracker::getId, Function.identity()));
     apps = new ArrayList<>();
     orgs = new ArrayList<>();
     licenseOverrides = new ArrayList<>();
@@ -343,6 +352,10 @@ public class TemporaryEntity
     if (config != null) {
       proprietaryConfigDAO.delete(config);
     }
+    migrationTrackerDAO.getAll().stream()
+        .filter(migrationTracker -> !migrationTrackersById.containsKey(migrationTracker.getId()))
+        .forEach(migrationTrackerDAO::delete);
+    migrationTrackersById.values().forEach(migrationTrackerDAO::update);
   }
 
   private <T extends HasStringId> void delete(Collection<T> entities, AbstractDAO<T> dao) {

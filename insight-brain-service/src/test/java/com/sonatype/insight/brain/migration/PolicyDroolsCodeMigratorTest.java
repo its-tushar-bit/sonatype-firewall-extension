@@ -24,8 +24,6 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupCond
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.codehaus.plexus.util.IOUtil;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,18 +39,6 @@ public class PolicyDroolsCodeMigratorTest
 
   @Inject
   private PolicyDAO policyDAO;
-
-  private MigrationTracker savedMigrationTracker;
-
-  @Before
-  public void init() {
-    savedMigrationTracker = migrationTrackerDAO.getById(PolicyDroolsCodeMigrator.MIGRATION_ID);
-  }
-
-  @After
-  public void exit() {
-    migrationTrackerDAO.update(savedMigrationTracker);
-  }
 
   @Test
   public void testMigrate_GracefullyHandleInvalidPolicy() throws Exception {

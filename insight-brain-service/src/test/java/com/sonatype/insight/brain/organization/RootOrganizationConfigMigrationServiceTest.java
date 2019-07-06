@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,12 +36,6 @@ public class RootOrganizationConfigMigrationServiceTest
   public void before() {
     migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
     migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
-  }
-
-  @After
-  public void after() {
-    migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
-    migrationUtils.setMigrated();
   }
 
   @Test

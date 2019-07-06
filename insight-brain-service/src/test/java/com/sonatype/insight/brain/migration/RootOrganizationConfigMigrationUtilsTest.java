@@ -11,7 +11,6 @@ import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,13 +29,6 @@ public class RootOrganizationConfigMigrationUtilsTest
   public void before() {
     migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
     migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
-  }
-
-  @After
-  public void after() {
-    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
-    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
-    migrationUtils.setMigrated();
   }
 
   @Test

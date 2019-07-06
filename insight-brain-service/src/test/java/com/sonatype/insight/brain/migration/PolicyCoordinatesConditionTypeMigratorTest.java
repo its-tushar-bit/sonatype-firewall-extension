@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.codehaus.plexus.util.IOUtil;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,8 +53,7 @@ public class PolicyCoordinatesConditionTypeMigratorTest
   private MigrationTrackerDAO migrationTrackerDAO;
 
   @Before
-  @After
-  public void cleanup() {
+  public void before() {
     migrationTrackerDAO.delete(new MigrationTracker(MIGRATION_ID));
   }
 

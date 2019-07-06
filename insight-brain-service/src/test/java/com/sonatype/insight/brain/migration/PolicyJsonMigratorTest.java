@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.codehaus.plexus.util.IOUtil;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,20 +43,12 @@ public class PolicyJsonMigratorTest
   @Inject
   private PolicyDAO policyDAO;
 
-  private MigrationTracker savedMigrationTracker;
-
   @Before
   public void init() {
-    savedMigrationTracker = migrationTrackerDAO.getById(PolicyJsonMigrator.MIGRATION_ID);
     // fake version, tests here are written for version 0
     MigrationTracker migrationTracker = new MigrationTracker(PolicyJsonMigrator.MIGRATION_ID);
     migrationTracker.setVersion(0);
     migrationTrackerDAO.update(migrationTracker);
-  }
-
-  @After
-  public void exit() {
-    migrationTrackerDAO.update(savedMigrationTracker);
   }
 
   private String getPolicyContent(String filename) throws Exception {

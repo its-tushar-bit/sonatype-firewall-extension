@@ -132,12 +132,6 @@ public class RootOrganizationConfigMigrator
       return false;
     }
 
-    if (orgDAO.getAll().size() == 1) {
-      log.info("Fresh install. No migration for root organization configuration is needed.");
-      migrationUtils.setMigrated();
-      return false;
-    }
-
     if (!migrationUtils.isMigrationScheduled()) {
       log.debug("Root organization config migration was not configured yet.");
       return false;

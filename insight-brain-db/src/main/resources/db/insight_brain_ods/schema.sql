@@ -591,6 +591,6 @@ CREATE TABLE migration_tracker (
     configuration varchar(1000) NULL,
     CONSTRAINT migration_tracker_pk PRIMARY KEY (migration_tracker_id)
 );
-
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('root-organization');
 INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-drools-code', 2);
 INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-json', 1);

@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.migration;
 
 import java.io.File;
+import java.sql.Connection;
+import java.sql.Statement;
 
 import javax.inject.Inject;
 
@@ -146,7 +148,14 @@ public class RootOrganizationConfigMigratorTest
 
   @Test
   public void testMigrate_FreshInstall() throws Exception {
-    assertThat(migrationUtils.isMigrated()).isFalse();
+    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+        Statement statement = connection.createStatement()) {
+      statement.execute("DROP SCHEMA " + OperationalDataStoreProvider.ID);
+    }
+    DataSourceFactory.clear_ForTestsOnly();
+    OperationalDataStoreProvider.initWithoutMigration(null);
+
+    assertThat(migrationUtils.isMigrated()).isTrue();
 
     assertThat(migrator.migrate()).isFalse();
     assertThat(migrationUtils.isMigrated()).isTrue();

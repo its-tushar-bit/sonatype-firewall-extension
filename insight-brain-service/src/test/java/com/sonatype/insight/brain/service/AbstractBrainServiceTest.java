@@ -39,13 +39,11 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
-import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
@@ -120,10 +118,6 @@ public abstract class AbstractBrainServiceTest
   @Before
   public void initTest() throws Exception {
     log.info("Before: {}", testName.getMethodName());
-    // Insert migration tracker indicating the root org is available
-    RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils =
-        new RootOrganizationConfigMigrationUtils(new MigrationTrackerDAO());
-    rootOrganizationConfigMigrationUtils.setMigrated();
     if (!isTestUsingManualServerInit()) {
       initServer(null);
     }

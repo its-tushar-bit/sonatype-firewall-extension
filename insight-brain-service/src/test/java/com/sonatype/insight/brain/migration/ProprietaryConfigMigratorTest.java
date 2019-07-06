@@ -41,18 +41,8 @@ public class ProprietaryConfigMigratorTest
   private MigrationTrackerDAO migrationTrackerDAO;
 
   @Before
-  public void before() throws Exception {
-    migrationTrackerDAO.delete(new MigrationTracker(ProprietaryConfigMigrator.MIGRATION_ID));
-  }
-
   @After
-  public void after() {
-    // clean up any migrated proprietary config, since it doesn't get cleaned up automatically due to the root org.
-    ProprietaryConfig proprietaryConfig = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
-    if (proprietaryConfig != null) {
-      proprietaryConfigDAO.delete(proprietaryConfig);
-    }
-    // do not leave tracker behind in MigrationTracker table
+  public void cleanup() {
     migrationTrackerDAO.delete(new MigrationTracker(ProprietaryConfigMigrator.MIGRATION_ID));
   }
 

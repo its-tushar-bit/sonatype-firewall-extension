@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,12 +21,14 @@ import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage.Applica
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage.RetentionEditor;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage.SuccessMetricsRetentionEditor;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
+import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import com.codeborne.selenide.SelenideElement;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -65,9 +68,25 @@ public class DataRetentionEditorTest
 
   private Organization organization;
 
+  private Collection<DataRetentionPolicy> rootOrgDataRetentionPolicies;
+
   @Before
   public void before() {
     organization = tempEntity.newOrganization("Retention Test Org");
+    rootOrgDataRetentionPolicies =
+        new DataRetentionPolicyDAO().getByOwnerId(Organization.ROOT_ORGANIZATION_ID).values();
+  }
+
+  @After
+  public void after() {
+    DataRetentionPolicyDAO dao = new DataRetentionPolicyDAO();
+    dao.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).values().forEach(dao::delete);
+    for (DataRetentionPolicy rootOrgDataRetentionPolicy : rootOrgDataRetentionPolicies) {
+      DataRetentionPolicy copy = new DataRetentionPolicy(rootOrgDataRetentionPolicy.getOwnerId(),
+          rootOrgDataRetentionPolicy.getContextId(), rootOrgDataRetentionPolicy.isPurgingEnabled(),
+          rootOrgDataRetentionPolicy.getMaxCount(), rootOrgDataRetentionPolicy.getMaxAgeInDays());
+      dao.insert(copy);
+    }
   }
 
   @Test

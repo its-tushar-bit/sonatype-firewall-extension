@@ -184,7 +184,7 @@ public class HdsMockServer
   }
 
   private Connector newHttpsConnector() {
-    SslContextFactory ssl = new SslContextFactory();
+    SslContextFactory ssl = new SslContextFactory.Server();
     ssl.setKeyStorePath(new File(keyStoreLocation).getAbsolutePath());
     ssl.setKeyStorePassword(keyStorePassword);
     ssl.setKeyManagerPassword(keyStorePassword);

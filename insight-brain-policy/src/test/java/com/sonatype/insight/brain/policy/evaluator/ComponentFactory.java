@@ -23,7 +23,7 @@ public class ComponentFactory
     return component;
   }
 
-  public static Component forCoordinates(MatchState matchState, String format, String... coord) {
+  public static Component forCoordinates(String format, String... coord) {
     ComponentIdentifier componentIdentifier;
     switch (format) {
       case ComponentIdentifier.FORMAT_MAVEN:
@@ -46,7 +46,7 @@ public class ComponentFactory
         throw new IllegalArgumentException("Unsupported component identifier format:" + format);
     }
     Component component = new Component(componentIdentifier);
-    component.setMatchState(matchState);
+    component.setMatchState(MatchState.EXACT);
     return component;
   }
 }

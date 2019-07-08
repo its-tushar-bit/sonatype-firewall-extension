@@ -61,12 +61,11 @@ public class CoordinatesConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1", "e1");
+    Component component1 = ComponentFactory.forCoordinates(format, "g1", "a1", "v1", "e1");
     components.add(component1);
-    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2", "e2");
+    Component component2 = ComponentFactory.forCoordinates(format, "g2", "a2", "v2", "e2");
     components.add(component2);
     Component component3 = new Component();
-    component3.setMatchState(MatchState.UNKNOWN);
     components.add(component3);
 
     // Evaluate the policy
@@ -82,9 +81,9 @@ public class CoordinatesConditionTypeTest
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:e:c");
 
     Component componentGavec = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
+        .forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
     Component componentGavce = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "c", "e");
+        .forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "c", "e");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGavec, componentGavce));
     assertThat(policyAlerts).hasSize(1);
@@ -98,9 +97,9 @@ public class CoordinatesConditionTypeTest
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:e:");
 
     Component componentGave = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
+        .forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
     Component componentGavc = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "e");
+        .forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "e");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGave, componentGavc));
     assertThat(policyAlerts).hasSize(1);
@@ -114,15 +113,15 @@ public class CoordinatesConditionTypeTest
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v");
 
     Component componentGav3 = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v");
+        .forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v");
     Component componentGav5 = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "");
+        .forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "");
     Component componentGave = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
+        .forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
     Component componentGavc = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "c");
+        .forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "c");
     Component componentGavec = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
+        .forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
 
     List<PolicyAlert> policyAlerts = evaluate(policy,
         Arrays.asList(componentGav3, componentGav5, componentGave, componentGavc, componentGavec));
@@ -158,11 +157,11 @@ public class CoordinatesConditionTypeTest
     Policy policy = createPolicy(coordinatesValue);
 
     Component componentGav = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v");
+        .forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v");
     Component componentGave = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
+        .forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
     Component componentGavec = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
+        .forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGav, componentGave, componentGavec));
     assertThat(policyAlerts).hasSize(3);
@@ -189,8 +188,7 @@ public class CoordinatesConditionTypeTest
   private void testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates(final String coordinatesValue) throws Exception {
     Policy policy = createPolicy(coordinatesValue);
     
-    Component componentNqv = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_ANAME, "n", "q", "v");
+    Component componentNqv = ComponentFactory.forCoordinates(ComponentIdentifier.FORMAT_ANAME, "n", "q", "v");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Collections.singletonList(componentNqv));
     assertThat(policyAlerts).hasSize(1);
@@ -203,10 +201,9 @@ public class CoordinatesConditionTypeTest
   public void testEvaluate_Maven_EmptyClassifierCoordinate_Matches_EmptyClassifierValue() throws Exception {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:e:");
 
-    Component componentGave = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
-    Component componentGavec = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
+    Component componentGave = ComponentFactory.forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
+    Component componentGavec =
+        ComponentFactory.forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGave, componentGavec));
     assertThat(policyAlerts).hasSize(1);
@@ -220,9 +217,9 @@ public class CoordinatesConditionTypeTest
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:e:*");
 
     Component componentGave = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
+        .forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
     Component componentGavec = ComponentFactory
-        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
+        .forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGave, componentGavec));
     assertThat(policyAlerts).hasSize(2);
@@ -292,12 +289,11 @@ public class CoordinatesConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1", "e1");
+    Component component1 = ComponentFactory.forCoordinates(format, "g1", "a1", "v1", "e1");
     components.add(component1);
-    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2", "e2");
+    Component component2 = ComponentFactory.forCoordinates(format, "g2", "a2", "v2", "e2");
     components.add(component2);
     Component component3 = new Component();
-    component3.setMatchState(MatchState.UNKNOWN);
     components.add(component3);
 
     // Evaluate the policy
@@ -335,12 +331,11 @@ public class CoordinatesConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1", "e1");
+    Component component1 = ComponentFactory.forCoordinates(format, "g1", "a1", "v1", "e1");
     components.add(component1);
-    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2", "e2");
+    Component component2 = ComponentFactory.forCoordinates(format, "g2", "a2", "v2", "e2");
     components.add(component2);
     Component component3 = new Component();
-    component3.setMatchState(MatchState.UNKNOWN);
     components.add(component3);
 
     // Evaluate the policy
@@ -378,12 +373,11 @@ public class CoordinatesConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1", "e1");
+    Component component1 = ComponentFactory.forCoordinates(format, "g1", "a1", "v1", "e1");
     components.add(component1);
-    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2", "e2");
+    Component component2 = ComponentFactory.forCoordinates(format, "g2", "a2", "v2", "e2");
     components.add(component2);
     Component component3 = new Component();
-    component3.setMatchState(MatchState.UNKNOWN);
     components.add(component3);
 
     // Evaluate the policy
@@ -405,7 +399,7 @@ public class CoordinatesConditionTypeTest
 
     List<Component> components = new ArrayList<>();
     Component component =
-        ComponentFactory.forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_PYPI, "pyyaml", "1", "*", "*");
+        ComponentFactory.forCoordinates(ComponentIdentifier.FORMAT_PYPI, "pyyaml", "1", "*", "*");
     components.add(component);
 
     List<PolicyAlert> policyAlerts = evaluate(policy, components);

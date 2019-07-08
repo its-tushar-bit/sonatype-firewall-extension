@@ -34,7 +34,6 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
-import com.sonatype.insight.brain.product.license.ProductLicenseService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -75,8 +74,6 @@ class SupportService
 
   private final VersionService versionService;
 
-  private final ProductLicenseService productLicenseService;
-
   private final LdapService ldapService;
 
   private final JmxInfo jmxInfo;
@@ -88,7 +85,6 @@ class SupportService
   @Inject
   public SupportService(final InsightConfig config,
                         final VersionService versionService,
-                        final ProductLicenseService productLicenseService,
                         final LdapService ldapService,
                         final JmxInfo jmxInfo,
                         final DbData dbData,
@@ -96,7 +92,6 @@ class SupportService
   {
     this.config = config;
     this.versionService = versionService;
-    this.productLicenseService = productLicenseService;
     this.ldapService = ldapService;
     this.jmxInfo = jmxInfo;
     this.dbData = dbData;
@@ -259,7 +254,7 @@ class SupportService
             new File(workDir, "product-version.json")), "product-version", SupportFileType.INFO, true);
 
     addFileIfExists(filesToZip,
-        writeTextToFile(systemInfo.getProductLicense(productLicenseService.getLicenseInfo()),
+        writeTextToFile(systemInfo.getProductLicense(),
             new File(workDir, "product-license.json")), "product-license", SupportFileType.INFO, true);
 
     addFileIfExists(filesToZip,

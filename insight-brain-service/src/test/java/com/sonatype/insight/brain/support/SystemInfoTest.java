@@ -14,6 +14,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.nio.file.FileStore;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -28,8 +29,9 @@ import java.util.TreeSet;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
-import com.sonatype.insight.brain.product.license.LicenseInfo;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -37,8 +39,12 @@ import com.sonatype.insight.brain.support.SystemInfo.NetworkInterfaceWrapper;
 
 import ch.qos.logback.access.spi.IAccessEvent;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.ImmutableList;
 import io.dropwizard.logging.DefaultLoggingFactory;
 import io.dropwizard.logging.FileAppenderFactory;
@@ -428,23 +434,29 @@ public class SystemInfoTest
   }
 
   @Test
-  public void testGetProduceLicense() {
-    final LicenseInfo licenseInfo = new LicenseInfo("fprint", -1, -2, -3, -4, "Contact Name",
-        "Contact Company", "contact@example.com", new String[]{"Pro+"}, "edition");
+  public void testGetProduceLicense() throws IOException {
+    final String json = systemInfo.getProductLicense();
 
-    final String json = systemInfo.getProductLicense(licenseInfo);
-    assertThat(json).isEqualTo("{" + lineSeparator +
-        "  \"productEdition\" : \"edition\"," + lineSeparator +
-        "  \"fingerprint\" : \"fprint\"," + lineSeparator +
-        "  \"expiryTimestamp\" : -1," + lineSeparator +
-        "  \"licensedUsersToDisplay\" : -2," + lineSeparator +
-        "  \"applicationLimitToDisplay\" : -4," + lineSeparator +
-        "  \"firewallUsersToDisplay\" : -3," + lineSeparator +
-        "  \"contactName\" : \"Contact Name\"," + lineSeparator +
-        "  \"contactCompany\" : \"Contact Company\"," + lineSeparator +
-        "  \"contactEmail\" : \"contact@example.com\"," + lineSeparator +
-        "  \"products\" : [ \"Pro+\" ]" + lineSeparator +
-        "}");
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    SupportZipLicenseInfo supportZipLicenseInfo = objectMapper.readValue(json, SupportZipLicenseInfo.class);
+
+    assertThat(supportZipLicenseInfo.licenseInfo.productEdition).isEqualTo("Lifecycle");
+    assertThat(supportZipLicenseInfo.licenseInfo.fingerprint).isEqualTo("1234");
+    assertThat(supportZipLicenseInfo.licenseInfo.licensedUsersToDisplay).isEqualTo(50);
+    assertThat(supportZipLicenseInfo.licenseInfo.applicationLimitToDisplay).isNull();
+    assertThat(supportZipLicenseInfo.licenseInfo.firewallUsersToDisplay).isEqualTo(45);
+    assertThat(supportZipLicenseInfo.licenseInfo.contactName).isEqualTo("Billy");
+    assertThat(supportZipLicenseInfo.licenseInfo.contactCompany).isEqualTo("Acme");
+    assertThat(supportZipLicenseInfo.licenseInfo.contactEmail).isEqualTo("billy@example.com");
+    assertThat(supportZipLicenseInfo.licenseInfo.products).isEqualTo(new String[]{"Nexus Lifecycle", "Nexus Firewall"});
+    assertThat(supportZipLicenseInfo.licenseInfo.expiryTimestamp).isPositive();
+
+    Collection<Feature> features = supportZipLicenseInfo.features;
+    assertThat(features).hasSize(15).contains(Feature.CI_INTEGRATION);
+    assertThat(supportZipLicenseInfo.applicationCountLimit).isEqualTo(100);
+    assertThat(supportZipLicenseInfo.stageIds).
+        containsExactlyInAnyOrder("proxy", "operate", "build", "release", "develop", "stage-release");
   }
 
   @Test

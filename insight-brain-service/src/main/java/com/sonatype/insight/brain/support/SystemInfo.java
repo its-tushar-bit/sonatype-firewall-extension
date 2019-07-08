@@ -31,12 +31,14 @@ import java.util.SortedMap;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.product.license.LicenseSummary;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -68,10 +70,17 @@ class SystemInfo
 
   private final InsightWork insightWork;
 
+  private final CLMLicenseManager clmLicenseManager;
+
   @Inject
-  SystemInfo(final InsightConfig insightConfig, final InsightWork insightWork) {
+  SystemInfo(
+      final InsightConfig insightConfig,
+      final InsightWork insightWork,
+      final CLMLicenseManager clmLicenseManager)
+  {
     this.insightConfig = insightConfig;
     this.insightWork = insightWork;
+    this.clmLicenseManager = clmLicenseManager;
   }
 
   boolean isSensitiveKey(final String key) {
@@ -346,8 +355,13 @@ class SystemInfo
     return JsonUtils.format(mapEntry);
   }
 
-  String getProductLicense(final LicenseSummary licenseSummary) {
-    return JsonUtils.format(licenseSummary);
+  String getProductLicense() {
+    SupportZipLicenseInfo supportZipLicenseInfo =
+        new SupportZipLicenseInfo(clmLicenseManager.getLicenseInfo(),
+            clmLicenseManager.getFeatures(),
+            clmLicenseManager.getStageTypes().stream().map(StageType::getId).collect(Collectors.toSet()),
+            clmLicenseManager.getApplicationCountLimit());
+    return JsonUtils.format(supportZipLicenseInfo);
   }
 
   String getThreadDump() throws IOException {

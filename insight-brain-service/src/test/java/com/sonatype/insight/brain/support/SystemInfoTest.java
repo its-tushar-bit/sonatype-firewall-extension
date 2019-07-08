@@ -30,7 +30,6 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.features.Feature;
-import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -39,12 +38,8 @@ import com.sonatype.insight.brain.support.SystemInfo.NetworkInterfaceWrapper;
 
 import ch.qos.logback.access.spi.IAccessEvent;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.ImmutableList;
 import io.dropwizard.logging.DefaultLoggingFactory;
 import io.dropwizard.logging.FileAppenderFactory;
@@ -455,8 +450,8 @@ public class SystemInfoTest
     Collection<Feature> features = supportZipLicenseInfo.features;
     assertThat(features).hasSize(15).contains(Feature.CI_INTEGRATION);
     assertThat(supportZipLicenseInfo.applicationCountLimit).isEqualTo(100);
-    assertThat(supportZipLicenseInfo.stageIds).
-        containsExactlyInAnyOrder("proxy", "operate", "build", "release", "develop", "stage-release");
+    assertThat(supportZipLicenseInfo.stageIds).containsExactlyInAnyOrder("proxy", "operate", "build", "release",
+        "develop", "stage-release");
   }
 
   @Test

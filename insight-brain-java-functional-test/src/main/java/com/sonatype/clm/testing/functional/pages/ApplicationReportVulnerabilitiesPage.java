@@ -44,7 +44,7 @@ public class ApplicationReportVulnerabilitiesPage
   public static class VulnerabilityTable
       extends BasicElement<VulnerabilityTable>
   {
-    static final String ROW_SELECTOR = "tbody .iq-table-row";
+    static final String ROW_SELECTOR = "tbody .nx-table-row";
 
     VulnerabilityTable() {
       super(ROOT, "#application-report-vulnerabilities-table");
@@ -67,23 +67,23 @@ public class ApplicationReportVulnerabilitiesPage
     }
 
     public SelenideElement component() {
-      return child(".iq-cell", nthChild(4));
+      return child(".nx-cell", nthChild(4));
     }
 
     public SelenideElement securityIssue() {
-      return child(".iq-cell", nthChild(2));
+      return child(".nx-cell", nthChild(2));
     }
 
     public SelenideElement detailsLink() {
-      return child(".iq-cell", nthChild(2), "a");
+      return child(".nx-cell", nthChild(2), "a");
     }
 
     public SelenideElement cvssScore() {
-      return child(".iq-cell", nthChild(3));
+      return child(".nx-cell", nthChild(3));
     }
 
     public SelenideElement policyThreatLevel() {
-      return child(".iq-cell", nthChild(1));
+      return child(".nx-cell", nthChild(1));
     }
 
     public SelenideElement waived() {

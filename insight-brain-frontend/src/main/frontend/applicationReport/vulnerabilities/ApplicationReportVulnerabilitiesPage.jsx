@@ -18,11 +18,9 @@ export default class ApplicationReportVulnerabilitiesPage extends Component {
         'Re-evaluate in order to enable this page') || undefined;
 
     return (
-      <div id="application-report-vulnerabilities" className="iq-root-container">
-        <div className="iq-body-container iq-body-container--single-pane">
-          <div className="iq-tile iq-tile--back-button">
-            <BackButton stateName="applicationReport.policy" $state={this.props.$state} />
-          </div>
+      <div id="application-report-vulnerabilities" className="nx-root-container">
+        <div className="nx-page-main">
+          <BackButton stateName="applicationReport.policy" $state={this.props.$state} />
           <LoadWrapper loading={!this.props.metadata || this.props.loading}
                        error={error}
                        retryHandler={this.props.loadReportAllData}>

@@ -5,7 +5,6 @@
  */
 /* global angular, window, clmBuildTimestamp, jQuery, $ */
 import CommonServicesModule from './CommonServices';
-import getPolicyThreatIndicatorLevel from '../util/getPolicyThreatIndicatorLevel';
 
 export let maximizeHeightServiceInstance;
 
@@ -657,11 +656,11 @@ angularCommon.directive('threatClass', function() {
     },
     link: function(scope, element) {
       function updateClass(threatClass) {
-        const indicatorLevel = getPolicyThreatIndicatorLevel(threatClass);
-
-        ['critical', 'severe', 'moderate', 'none', 'ignore'].forEach(function(cls) {
-          element.toggleClass(cls, indicatorLevel === cls);
-        });
+        element.toggleClass('critical', threatClass >= 8);
+        element.toggleClass('severe', threatClass >= 4 && threatClass < 8);
+        element.toggleClass('moderate', threatClass >= 2 && threatClass < 4);
+        element.toggleClass('none', threatClass === 1);
+        element.toggleClass('ignore', threatClass < 1);
       }
 
       scope.$watch('threatClass', updateClass);

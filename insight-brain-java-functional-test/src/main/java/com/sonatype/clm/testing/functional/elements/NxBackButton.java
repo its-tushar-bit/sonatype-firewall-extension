@@ -17,10 +17,4 @@ public class NxBackButton
   public NxBackButton(String context) {
     super(context, ".nx-back-button");
   }
-
-  @Override
-  public NxBackButton click() {
-    child("a").click();
-    return me();
-  }
 }

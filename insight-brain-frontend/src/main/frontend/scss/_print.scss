@@ -28,13 +28,14 @@
     display: inline-block;
   }
 
-  main-header, application-report-root, application-report-vulnerabilities, ui-view, .iq-body-container {
-    border: none;
-    display: block;
+  main-header, application-report-root, application-report-vulnerabilities, ui-view, .iq-body-container,
+  .nx-root-container {
+    border: none !important;
+    display: block !important;
   }
 
-  #main-header-buttons, .iq-tile--back-button, .iq-alert {
-    display: none;
+  #main-header-buttons, .iq-tile--back-button, .iq-alert, .nx-back-button {
+    display: none !important;
   }
 
   #application-report-vulnerabilities-table {
@@ -55,7 +56,7 @@
     $link-line-height: 12px;
     $row-height: $cell-padding-top + $main-line-height + $link-line-height + $cell-padding-bottom;
     tbody {
-      .iq-cell {
+      .nx-cell {
         height: $main-line-height + $link-line-height;
         line-height: $main-line-height;
         padding: $cell-padding-top 0 $cell-padding-bottom 0;
@@ -69,6 +70,7 @@
           display: block;
           line-height: $link-line-height;
           font-size: $link-line-height;
+          white-space: nowrap;
         }
       }
 
@@ -79,12 +81,17 @@
           }
         }
       }
-    }
 
-    .iq-threat-indication {
-      height: $row-height;
-      margin: (-$cell-padding-top) 0 (-$cell-padding-bottom) 0; // fill entire row height (include cell padding)
-      vertical-align: top;
+      .nx-threat-bar {
+        height: $row-height;
+
+        // fill entire row height (include cell padding)
+        margin-top: -$cell-padding-top;
+        margin-bottom: -$cell-padding-bottom;
+        margin-left: 0;
+
+        vertical-align: top;
+      }
     }
   }
 }

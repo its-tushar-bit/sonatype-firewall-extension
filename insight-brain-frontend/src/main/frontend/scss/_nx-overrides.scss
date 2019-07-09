@@ -4,3 +4,17 @@
     padding: 8px;
   }
 }
+
+.iq-scrollable {
+  .nx-table:first-child {
+    margin-top: 0;
+  }
+
+  .nx-table:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.nx-cell > .iq-text-indicator:first-child {
+  margin-left: 12px;
+}

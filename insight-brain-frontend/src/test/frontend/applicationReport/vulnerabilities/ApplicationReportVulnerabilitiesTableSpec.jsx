@@ -1,6 +1,6 @@
-import * as enzymeUtils from '../../enzymeUtils';
+import { NxThreatBar } from '@sonatype/react-shared-components';
 
-import ThreatIndication from '../../../../main/frontend/react/ThreatIndication';
+import * as enzymeUtils from '../../enzymeUtils';
 
 import MaximizedContainer from '../../../../main/frontend/react/MaximizedContainer';
 import ComponentDisplay from '../../../../main/frontend/ComponentDisplay/ReactComponentDisplay';
@@ -20,10 +20,10 @@ describe('ApplicationReportVulnerabilitiesTable', function() {
 
   const getShallowComponent = enzymeUtils.getShallowComponent(ApplicationReportVulnerabilitiesTable, minimalProps);
 
-  it('renders a maximized nx-tile-content containing a scrollable iq-table', function() {
+  it('renders a maximized nx-tile-content containing a scrollable nx-table', function() {
     expect(getShallowComponent()).toMatchSelector(MaximizedContainer);
     expect(getShallowComponent()).toMatchSelector('.nx-tile-content');
-    expect(getShallowComponent().find('.iq-scrollable .iq-table')).toExist();
+    expect(getShallowComponent().find('.iq-scrollable .nx-table')).toExist();
   });
 
   it('renders a row for each vulnerability', function() {
@@ -55,12 +55,12 @@ describe('ApplicationReportVulnerabilitiesTable', function() {
         secondRowTds = rows.at(1).find('td'),
         thirdRowTds = rows.at(2).find('td');
 
-    expect(firstRowTds.at(0).find(ThreatIndication)).toHaveProp('policyThreatLevel', 5);
-    expect(firstRowTds.at(0).find('.iq-threat-number')).toHaveText('5');
-    expect(secondRowTds.at(0).find(ThreatIndication)).toHaveProp('policyThreatLevel', 9);
-    expect(secondRowTds.at(0).find('.iq-threat-number')).toHaveText('9');
-    expect(thirdRowTds.at(0).find(ThreatIndication)).toHaveProp('policyThreatLevel', 1);
-    expect(thirdRowTds.at(0).find('.iq-threat-number')).toHaveText('1');
+    expect(firstRowTds.at(0).find(NxThreatBar)).toHaveProp('policyThreatLevel', 5);
+    expect(firstRowTds.at(0).find('.nx-threat-number')).toHaveText('5');
+    expect(secondRowTds.at(0).find(NxThreatBar)).toHaveProp('policyThreatLevel', 9);
+    expect(secondRowTds.at(0).find('.nx-threat-number')).toHaveText('9');
+    expect(thirdRowTds.at(0).find(NxThreatBar)).toHaveProp('policyThreatLevel', 1);
+    expect(thirdRowTds.at(0).find('.nx-threat-number')).toHaveText('1');
 
     expect(firstRowTds.at(1).find('a').first()).toHaveText('CVE-1234');
     expect(secondRowTds.at(1).find('a').first()).toHaveText('CVE-0000');

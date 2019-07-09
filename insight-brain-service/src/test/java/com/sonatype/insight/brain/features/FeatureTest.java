@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.features;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
@@ -15,7 +19,10 @@ public class FeatureTest
   @Test
   public void testJsonSerializationUsesToString() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
-    for (Feature feature : Feature.values()) {
+    Collection<Feature> allFeatures = new HashSet<>();
+    Collections.addAll(allFeatures, LicensedFeature.values());
+    Collections.addAll(allFeatures, NonLicensedFeature.values());
+    for (Feature feature : allFeatures) {
       String json = mapper.writeValueAsString(feature);
       assertThat(json).isEqualTo('"' + feature.toString() + '"');
     }

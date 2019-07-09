@@ -35,7 +35,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -201,7 +201,7 @@ public class ScanPolicyEvaluator
                                                boolean forMonitoring,
                                                List<PolicyViolation> activeViolations)
   {
-    boolean enableActions = clmLicenseManager.hasFeature(Feature.ENFORCEMENT);
+    boolean enableActions = clmLicenseManager.hasFeature(LicensedFeature.ENFORCEMENT);
     if (!enableActions) {
       log.debug("Ignoring actions in policy alerts for application {} and scan {} in stage {}, "
           + "license does not support enforcement.", applicationId, scanId, stageTypeId);
@@ -444,7 +444,7 @@ public class ScanPolicyEvaluator
     // The check if this is the first evaluation can be expensive. Do it only if grandfathering is enabled.
     if (policyViolationGrandfatheringService.isPolicyViolationGrandfatheringEnabled(tx, app.getId())
         && isFirstEvaluation(tx, app)) {
-      if (!clmLicenseManager.hasFeature(Feature.POLICY_GRANDFATHERING)) {
+      if (!clmLicenseManager.hasFeature(LicensedFeature.POLICY_GRANDFATHERING)) {
         log.debug("Not grandfathering violations in the first evaluation for application {}, " +
             "license does not support policy violation grandfathering.", app.getId());
         return;

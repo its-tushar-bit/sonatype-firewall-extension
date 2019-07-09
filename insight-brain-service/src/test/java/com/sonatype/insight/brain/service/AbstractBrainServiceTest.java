@@ -41,7 +41,7 @@ import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
@@ -347,13 +347,13 @@ public abstract class AbstractBrainServiceTest
     assertThat(licenseManager.isValid()).isFalse();
   }
 
-  protected void setFeatures(Feature... features) throws Exception {
+  protected void setFeatures(LicensedFeature... features) throws Exception {
     licenseManager.setFeatures(features);
     installLicense();
   }
 
-  protected void setMissingFeature(Feature feature) throws Exception {
-    licenseManager.setFeatures(EnumSet.complementOf(EnumSet.of(feature)).toArray(new Feature[0]));
+  protected void setMissingFeature(LicensedFeature feature) throws Exception {
+    licenseManager.setFeatures(EnumSet.complementOf(EnumSet.of(feature)).toArray(new LicensedFeature[0]));
     installLicense();
   }
 

@@ -13,7 +13,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.METHOD;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -161,7 +161,7 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testAddSourceControl_unlicensed() {
-    testLicenseManager.setMissingFeatures(Feature.NOTIFICATIONS);
+    testLicenseManager.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService
             .addSourceControl("foo", new SourceControl(testName.getMethodName(), "bar", "baz")));
@@ -169,7 +169,7 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testUpdateSourceControl_unlicensed() {
-    testLicenseManager.setMissingFeatures(Feature.NOTIFICATIONS);
+    testLicenseManager.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService
             .updateSourceControl("foo", new SourceControl(testName.getMethodName(), "bar", "baz")));
@@ -177,14 +177,14 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testDeleteSourceControl_unlicensed() {
-    testLicenseManager.setMissingFeatures(Feature.NOTIFICATIONS);
+    testLicenseManager.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService.deleteSourceControl("foo", "bar"));
   }
 
   @Test
   public void testGetAll_unlicensed() {
-    testLicenseManager.setMissingFeatures(Feature.NOTIFICATIONS);
+    testLicenseManager.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService.getAll());
   }

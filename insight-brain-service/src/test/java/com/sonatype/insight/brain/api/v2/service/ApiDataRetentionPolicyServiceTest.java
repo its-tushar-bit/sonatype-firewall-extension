@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPolicyDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSuccessMetricsRetentionPolicyDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -86,7 +86,7 @@ public class ApiDataRetentionPolicyServiceTest
     assertThat(dto.applicationReports.stages).containsOnlyKeys(Stage.ID_STAGE_RELEASE, Stage.ID_RELEASE,
         DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING);
 
-    licenseManager.setMissingFeatures(Feature.POLICY_MONITORING);
+    licenseManager.setMissingFeatures(LicensedFeature.POLICY_MONITORING);
 
     dto = dataRetentionPolicyService.getDataRetentionPolicies(org.getId());
 

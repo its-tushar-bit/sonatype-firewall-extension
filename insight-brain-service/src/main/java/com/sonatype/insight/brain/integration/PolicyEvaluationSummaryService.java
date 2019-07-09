@@ -13,7 +13,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -79,7 +79,7 @@ public class PolicyEvaluationSummaryService
   }
 
   private void validateLicensed() {
-    if (!licenseManager.hasFeature(Feature.QUALITY)) {
+    if (!licenseManager.hasFeature(LicensedFeature.QUALITY)) {
       throw new InvalidLicenseException();
     }
   }

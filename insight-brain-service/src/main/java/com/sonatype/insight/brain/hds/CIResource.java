@@ -18,14 +18,14 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.codahale.metrics.annotation.Timed;
 
 @Path(CIResource.RESOURCE_PATH)
-@ProductLicenseEnforcementPoint(Feature.CI_INTEGRATION)
+@ProductLicenseEnforcementPoint(LicensedFeature.CI_INTEGRATION)
 @Named
 @Timed
 public class CIResource

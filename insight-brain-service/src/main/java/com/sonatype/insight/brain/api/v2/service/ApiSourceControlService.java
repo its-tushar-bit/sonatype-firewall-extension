@@ -15,7 +15,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -192,7 +192,7 @@ public class ApiSourceControlService
   }
 
   private void checkLicense() {
-    if (!clmLicenseManager.hasFeature(Feature.NOTIFICATIONS)) {
+    if (!clmLicenseManager.hasFeature(LicensedFeature.NOTIFICATIONS)) {
       log.debug("License does not support SourceControl notification features");
       throw new InvalidLicenseException();
     }

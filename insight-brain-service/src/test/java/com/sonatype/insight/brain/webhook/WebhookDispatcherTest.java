@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -157,7 +157,8 @@ public class WebhookDispatcherTest
 
   @Test
   public void test_WebhooksAppAndRepoLicensed_SendsAllEvents() {
-    testLicenseManager.setFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS, Feature.WEBHOOKS_FOR_REPOSITORIES);
+    testLicenseManager.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
     Organization organization = tempEntity.newOrganization();
     Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
@@ -181,7 +182,8 @@ public class WebhookDispatcherTest
 
   @Test
   public void test_WebhooksNotLicensed_DoesNotSendEvents() {
-    testLicenseManager.setMissingFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS, Feature.WEBHOOKS_FOR_REPOSITORIES);
+    testLicenseManager.setMissingFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
     Organization organization = tempEntity.newOrganization();
     Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
@@ -200,7 +202,7 @@ public class WebhookDispatcherTest
 
   @Test
   public void test_WebhooksRepositoryLicensed_SendsOnlyRepositoryEvents() {
-    testLicenseManager.setFeatures(Feature.WEBHOOKS_FOR_REPOSITORIES);
+    testLicenseManager.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
     Organization organization = tempEntity.newOrganization();
     Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
@@ -224,7 +226,7 @@ public class WebhookDispatcherTest
 
   @Test
   public void test_ApplicationWebhooksLicensed_SendsOnlyApplicationEvents() {
-    testLicenseManager.setFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS);
+    testLicenseManager.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
 
     Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
     Organization organization = tempEntity.newOrganization();

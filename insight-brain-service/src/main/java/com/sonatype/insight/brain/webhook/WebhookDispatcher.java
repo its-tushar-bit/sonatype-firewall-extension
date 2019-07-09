@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.configuration.webhook.WebhookService;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
@@ -410,10 +410,10 @@ public class WebhookDispatcher
         RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(ownerId) || repositoryDAO.getById(ownerId) != null;
     boolean eventApplicableToApps = Organization.ROOT_ORGANIZATION_ID.equals(ownerId) || !eventApplicableToRepos;
 
-    if (eventApplicableToRepos && clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_REPOSITORIES)) {
+    if (eventApplicableToRepos && clmLicenseManager.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES)) {
       return true;
     }
-    if (eventApplicableToApps && clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_APPLICATIONS)) {
+    if (eventApplicableToApps && clmLicenseManager.hasFeature(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS)) {
       return true;
     }
 

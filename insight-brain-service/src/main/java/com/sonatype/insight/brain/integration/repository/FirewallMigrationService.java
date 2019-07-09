@@ -20,7 +20,7 @@ import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -70,7 +70,7 @@ public class FirewallMigrationService
   }
 
   private void checkLicenseFeature() {
-    if (!licenseManager.hasFeature(Feature.FIREWALL)) {
+    if (!licenseManager.hasFeature(LicensedFeature.FIREWALL)) {
       throw new InvalidLicenseException();
     }
   }

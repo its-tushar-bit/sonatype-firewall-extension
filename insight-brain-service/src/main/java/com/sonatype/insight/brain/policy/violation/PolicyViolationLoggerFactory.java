@@ -11,7 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -42,23 +42,25 @@ public class PolicyViolationLoggerFactory
 
   public OrganizationPolicyViolationLogger newLogger(Date logTimestamp, Organization organization) {
     return new OrganizationPolicyViolationLogger(
-        licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS), logTimestamp, organization);
+        licenseManager.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS), logTimestamp,
+        organization);
   }
 
   public ApplicationPolicyViolationLogger newLogger(Date logTimestamp, Application application) {
     return new ApplicationPolicyViolationLogger(
-        licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS), logTimestamp, application);
+        licenseManager.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS), logTimestamp,
+        application);
   }
 
   public RepositoryPolicyViolationLogger newLogger(Date logTimestamp, Repository repository) {
     return new RepositoryPolicyViolationLogger(
-        licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES), logTimestamp, repository);
+        licenseManager.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES), logTimestamp, repository);
   }
 
   private void logPotentialMisconfiguration() {
     if (LoggerFactory.getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME).isInfoEnabled()
-        && !licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS)) {
-      if (!licenseManager.hasFeature(Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES)) {
+        && !licenseManager.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS)) {
+      if (!licenseManager.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES)) {
         log.warn(
             "Disabling policy violation logging for logger {}."
                 + " Installed license does not support policy violation logging.",

@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
@@ -77,7 +77,7 @@ public class PolicyMonitor
 
   public void run() {
     // not licensed, back on outta here
-    if (!licenseManager.hasFeature(Feature.POLICY_MONITORING)) {
+    if (!licenseManager.hasFeature(LicensedFeature.POLICY_MONITORING)) {
       log.debug("Ending task, not licensed for Policy Monitoring.");
       return;
     }

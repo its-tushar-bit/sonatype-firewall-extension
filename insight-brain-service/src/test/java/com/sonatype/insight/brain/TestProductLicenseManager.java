@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -108,12 +108,12 @@ public class TestProductLicenseManager
     mockProductLicenseManager.setMaxFirewallUsers(maxFirewallUsers);
   }
 
-  public void setFeatures(Feature... features) {
+  public void setFeatures(LicensedFeature... features) {
     wasChanged = true;
     mockProductLicenseManager.setFeatures(features);
   }
 
-  public Set<Feature> getFeatures() {
+  public Set<LicensedFeature> getFeatures() {
     return mockProductLicenseManager.features;
   }
 
@@ -178,7 +178,7 @@ public class TestProductLicenseManager
     private String[] products = { ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
         ProductLicenseDetails.PRODUCT_FIREWALL };
 
-    private Set<Feature> features;
+    private Set<LicensedFeature> features;
 
     private Set<StageType> stageTypes;
 
@@ -279,11 +279,11 @@ public class TestProductLicenseManager
       return valid;
     }
 
-    public void setFeatures(Feature... features) {
+    public void setFeatures(LicensedFeature... features) {
       if (valid) {
-        this.features = EnumSet.noneOf(Feature.class);
+        this.features = EnumSet.noneOf(LicensedFeature.class);
 
-        for (Feature feature : features) {
+        for (LicensedFeature feature : features) {
           this.features.add(feature);
         }
 

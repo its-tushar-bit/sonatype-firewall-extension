@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -91,7 +91,7 @@ public class ApplicationSummaryService
   }
 
   public ApplicationSummaryList getApplications(Goal goal) {
-    if (!licenseManager.hasFeature(Feature.ENFORCEMENT) && Goal.EVALUATE_COMPONENT.equals(goal)) {
+    if (!licenseManager.hasFeature(LicensedFeature.ENFORCEMENT) && Goal.EVALUATE_COMPONENT.equals(goal)) {
       log.debug("License does not support IDE plugins.");
       throw new InvalidLicenseException();
     }

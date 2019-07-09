@@ -9,7 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
@@ -34,7 +34,7 @@ public class RepositoryService extends AbstractRepositoryService
 
   @Override
   protected void checkLicenseFeature() {
-    if (!licenseManager.hasFeature(Feature.FIREWALL)) {
+    if (!licenseManager.hasFeature(LicensedFeature.FIREWALL)) {
       throw new InvalidLicenseException();
     }
   }

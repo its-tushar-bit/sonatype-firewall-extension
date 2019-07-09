@@ -17,7 +17,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
@@ -396,7 +396,7 @@ public class IdeResourceTest
 
   @Test
   public void testDoScan_FeatureUnlicensed() throws Exception {
-    setMissingFeature(Feature.IDE_INTEGRATION);
+    setMissingFeature(LicensedFeature.IDE_INTEGRATION);
 
     HttpResponse response = simpleScanRequest("unlicensedappId", "ulh").get();
     assertResponseStatus(402, response);
@@ -429,7 +429,7 @@ public class IdeResourceTest
 
   @Test
   public void testDoScan_enhanced_FeatureUnlicensed() throws Exception {
-    setMissingFeature(Feature.IDE_INTEGRATION);
+    setMissingFeature(LicensedFeature.IDE_INTEGRATION);
 
     HttpResponse response = enhancedScanRequest("unlicensedappId", "ulh").get();
     assertResponseStatus(402, response);
@@ -603,7 +603,7 @@ public class IdeResourceTest
 
   @Test
   public void testGetComponentVersions_FeatureUnlicensed() throws Exception {
-    setMissingFeature(Feature.IDE_INTEGRATION);
+    setMissingFeature(LicensedFeature.IDE_INTEGRATION);
 
     HttpResponse response = versionsRequest("ulg", "ula").get();
     assertResponseStatus(402, response);

@@ -15,7 +15,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 
@@ -48,23 +48,23 @@ public class TestLicenseManager
   }
 
   @Override
-  public Set<Feature> getFeatures() {
+  public Set<LicensedFeature> getFeatures() {
     // features are normally derived based on the products
     // for precise testing, we allow them to be manually overridden to a specific set
-    Set<Feature> features = licenseManager.getFeatures();
+    Set<LicensedFeature> features = licenseManager.getFeatures();
     if (features != null) {
       return features;
     }
     return super.getFeatures();
   }
 
-  public void setFeatures(Feature... features) {
+  public void setFeatures(LicensedFeature... features) {
     licenseManager.setFeatures(features);
     reloadLicenseData();
   }
 
-  public void setMissingFeatures(Feature feature, Feature... features) {
-    licenseManager.setFeatures(EnumSet.complementOf(EnumSet.of(feature, features)).toArray(new Feature[0]));
+  public void setMissingFeatures(LicensedFeature feature, LicensedFeature... features) {
+    licenseManager.setFeatures(EnumSet.complementOf(EnumSet.of(feature, features)).toArray(new LicensedFeature[0]));
     reloadLicenseData();
   }
 

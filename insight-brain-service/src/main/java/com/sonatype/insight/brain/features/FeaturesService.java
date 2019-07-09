@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.features;
 
 import java.util.Collections;
-import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -48,24 +48,24 @@ public class FeaturesService
    * expose available functionality. If there's currently no valid license installed, the feature set is deemed empty.
    */
   public Set<Feature> getFeatures() {
-    Set<Feature> features = EnumSet.noneOf(Feature.class);
+    Set<Feature> features = new HashSet<>();
     if (licenseManager.isValid()) {
       addVersionSpecificFeatures(features);
       addLicenseSpecificFeatures(features);
 
       if (rootOrganizationConfigMigrationUtils.isMigrated()) {
-        features.add(Feature.ROOT_ORG);
+        features.add(NonLicensedFeature.ROOT_ORG);
       }
       else if (!rootOrganizationConfigMigrationUtils.isMigrationScheduled()) {
-        features.add(Feature.ROOT_ORG_MIGRATE);
+        features.add(NonLicensedFeature.ROOT_ORG_MIGRATE);
       }
 
       if (insightConfig.isExternalHyperlinksAllowed()) {
-        features.add(Feature.ALLOW_EXTERNAL_HYPERLINKS);
+        features.add(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS);
       }
 
       if (insightConfig.isEnablePolicyReportPreviousVersionLink()) {
-        features.add(Feature.ENABLE_POLICY_REPORT_PREVIOUS_VERSION_LINK);
+        features.add(NonLicensedFeature.ENABLE_POLICY_REPORT_PREVIOUS_VERSION_LINK);
       }
     }
     log.debug("Found features: {}", features);
@@ -74,15 +74,15 @@ public class FeaturesService
 
   private void addVersionSpecificFeatures(Set<Feature> features) {
     // Changes to this list should be replicated in brain.client.js
-    Collections.addAll(features, Feature.POLICY, Feature.LABELS, Feature.RELEASE_GRAPH, Feature.POLICY_VIOLATIONS, 
-         Feature.REEVALUATE_POLICY);
+    Collections.addAll(features, NonLicensedFeature.POLICY, NonLicensedFeature.LABELS, NonLicensedFeature.RELEASE_GRAPH,
+        NonLicensedFeature.POLICY_VIOLATIONS, NonLicensedFeature.REEVALUATE_POLICY);
   }
 
   private void addLicenseSpecificFeatures(Set<Feature> features) {
     features.addAll(licenseManager.getFeatures());
-    if (features.contains(Feature.FIREWALL_FOR_ARTIFACTORY)) {
-      features.remove(Feature.FIREWALL_FOR_ARTIFACTORY);
-      features.add(Feature.FIREWALL);
+    if (features.contains(LicensedFeature.FIREWALL_FOR_ARTIFACTORY)) {
+      features.remove(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
+      features.add(LicensedFeature.FIREWALL);
     }
   }
 }

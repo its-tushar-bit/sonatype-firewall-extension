@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 
 import org.junit.Before;
 
@@ -15,7 +15,7 @@ public class ArtifactoryRepositoryResourceTest
 {
   @Before
   public void init() {
-    getTestProductLicenseManager().setFeatures(Feature.FIREWALL_FOR_ARTIFACTORY);
+    getTestProductLicenseManager().setFeatures(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
   }
 
   @Override

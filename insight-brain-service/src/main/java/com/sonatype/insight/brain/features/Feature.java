@@ -9,66 +9,12 @@ import java.util.Locale;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-/**
- * Denotes a feature of the CLM server.
- *
- * @since 1.9
- */
-public enum Feature
+public interface Feature
 {
-  ALLOW_EXTERNAL_HYPERLINKS,
+  String name();
 
-  CI_INTEGRATION,
-
-  CLI_INTEGRATION,
-
-  DASHBOARD,
-
-  ENABLE_POLICY_REPORT_PREVIOUS_VERSION_LINK,
-
-  ENFORCEMENT,
-
-  FIREWALL,
-
-  FIREWALL_FOR_ARTIFACTORY,
-
-  IDE_INTEGRATION,
-
-  LABELS,
-
-  NOTIFICATIONS,
-
-  POLICY,
-
-  POLICY_GRANDFATHERING,
-
-  POLICY_MONITORING,
-
-  POLICY_VIOLATIONS,
-
-  POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS,
-
-  POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES,
-
-  QUALITY,
-
-  REEVALUATE_POLICY,
-
-  RELEASE_GRAPH,
-
-  RM_STAGING_INTEGRATION,
-
-  ROOT_ORG,
-
-  ROOT_ORG_MIGRATE,
-  
-  WEBHOOKS_FOR_APPLICATIONS,
-
-  WEBHOOKS_FOR_REPOSITORIES;
-
-  @Override
   @JsonValue
-  public String toString() {
+  public default String getId() {
     return name().toLowerCase(Locale.ENGLISH).replace('_', '-');
   }
 }

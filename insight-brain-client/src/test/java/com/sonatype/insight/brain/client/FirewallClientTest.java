@@ -22,7 +22,7 @@ import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -69,7 +69,7 @@ public class FirewallClientTest
   @Before
   public void start() {
     if (resourcePath.equals(FirewallClient.ARTIFACTORY_RESOURCE_PATH)) {
-      getTestProductLicenseManager().setFeatures(Feature.FIREWALL_FOR_ARTIFACTORY);
+      getTestProductLicenseManager().setFeatures(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
     }
     repositoryManager = tempEntity.newRepositoryManager();
     rmInstanceId = repositoryManager.getInstanceId();

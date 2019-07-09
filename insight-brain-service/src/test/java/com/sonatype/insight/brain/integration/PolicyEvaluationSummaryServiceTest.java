@@ -9,7 +9,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -43,7 +43,7 @@ public class PolicyEvaluationSummaryServiceTest
 
   @Test
   public void testGetEvaluationSummaryByApplicationId() throws Exception {
-    when(licenseManager.hasFeature(Feature.QUALITY)).thenReturn(true);
+    when(licenseManager.hasFeature(LicensedFeature.QUALITY)).thenReturn(true);
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "test-scanid";
@@ -68,7 +68,7 @@ public class PolicyEvaluationSummaryServiceTest
 
   @Test
   public void testGetEvaluationSummaryByApplicationId_NoApplication() throws Exception {
-    when(licenseManager.hasFeature(Feature.QUALITY)).thenReturn(true);
+    when(licenseManager.hasFeature(LicensedFeature.QUALITY)).thenReturn(true);
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String appId = "invalidAppId";
@@ -79,7 +79,7 @@ public class PolicyEvaluationSummaryServiceTest
 
   @Test
   public void testGetEvaluationSummaryByApplicationId_NoPolicyEvaluationAvailable() throws Exception {
-    when(licenseManager.hasFeature(Feature.QUALITY)).thenReturn(true);
+    when(licenseManager.hasFeature(LicensedFeature.QUALITY)).thenReturn(true);
 
     Stage stage = new Stage(Stage.ID_BUILD);
     Application application = tempEntity.newApplicationWithParent("test-app");
@@ -90,7 +90,7 @@ public class PolicyEvaluationSummaryServiceTest
 
   @Test
   public void testGetEvaluationSummaryByApplicationId_Unlicensed() throws Exception {
-    when(licenseManager.hasFeature(Feature.QUALITY)).thenReturn(false);
+    when(licenseManager.hasFeature(LicensedFeature.QUALITY)).thenReturn(false);
 
     Stage stage = new Stage(Stage.ID_BUILD);
     Application application = tempEntity.newApplicationWithParent("test-app");

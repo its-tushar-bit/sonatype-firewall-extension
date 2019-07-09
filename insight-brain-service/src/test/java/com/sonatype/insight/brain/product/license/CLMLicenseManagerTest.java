@@ -15,7 +15,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -89,18 +89,18 @@ public class CLMLicenseManagerTest
   public void testLicenseCache() throws Exception {
     assertThat(clmLicenseManager.isValid()).isTrue();
     assertThat(clmLicenseManager.getApplicationCountLimit()).isEqualTo(100);
-    assertThat(clmLicenseManager.hasFeature(Feature.POLICY_MONITORING)).isTrue();
+    assertThat(clmLicenseManager.hasFeature(LicensedFeature.POLICY_MONITORING)).isTrue();
 
     // now change the value and make sure the cache is still stale
     licenseManager.setApplicationLimit(10);
     assertThat(clmLicenseManager.getApplicationCountLimit()).isEqualTo(100);
     licenseManager.setProducts("");
-    assertThat(clmLicenseManager.hasFeature(Feature.POLICY_MONITORING)).isTrue();
+    assertThat(clmLicenseManager.hasFeature(LicensedFeature.POLICY_MONITORING)).isTrue();
 
     // now install the license (which causes the cache to be cleared) and make sure the cache is no longer stale
     installLicense();
     assertThat(clmLicenseManager.getApplicationCountLimit()).isEqualTo(10);
-    assertThat(clmLicenseManager.hasFeature(Feature.POLICY_MONITORING)).isFalse();
+    assertThat(clmLicenseManager.hasFeature(LicensedFeature.POLICY_MONITORING)).isFalse();
   }
 
   @Test
@@ -108,8 +108,8 @@ public class CLMLicenseManagerTest
     licenseManager.setProperty(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, "Invalid,Build,Procure");
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
-    assertThat(clmLicenseManager.getFeatures()).contains(Feature.CI_INTEGRATION, Feature.IDE_INTEGRATION,
-        Feature.RM_STAGING_INTEGRATION);
+    assertThat(clmLicenseManager.getFeatures()).contains(LicensedFeature.CI_INTEGRATION,
+        LicensedFeature.IDE_INTEGRATION, LicensedFeature.RM_STAGING_INTEGRATION);
   }
 
   @Test
@@ -117,11 +117,11 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     installLicense();
     assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
-        Feature.RM_STAGING_INTEGRATION, //
-        Feature.ENFORCEMENT, //
-        Feature.NOTIFICATIONS, //
-        Feature.POLICY_GRANDFATHERING, //
-        Feature.WEBHOOKS_FOR_APPLICATIONS);
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.ENFORCEMENT, //
+        LicensedFeature.NOTIFICATIONS, //
+        LicensedFeature.POLICY_GRANDFATHERING, //
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
   }
 
   @Test
@@ -129,15 +129,15 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
     assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
-        Feature.RM_STAGING_INTEGRATION, //
-        Feature.DASHBOARD, //
-        Feature.POLICY_MONITORING, //
-        Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
-        Feature.CLI_INTEGRATION, //
-        Feature.ENFORCEMENT, //
-        Feature.NOTIFICATIONS, //
-        Feature.POLICY_GRANDFATHERING, //
-        Feature.WEBHOOKS_FOR_APPLICATIONS);
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.DASHBOARD, //
+        LicensedFeature.POLICY_MONITORING, //
+        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
+        LicensedFeature.CLI_INTEGRATION, //
+        LicensedFeature.ENFORCEMENT, //
+        LicensedFeature.NOTIFICATIONS, //
+        LicensedFeature.POLICY_GRANDFATHERING, //
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
   }
 
   @Test
@@ -145,18 +145,18 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
     assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
-        Feature.IDE_INTEGRATION, //
-        Feature.CI_INTEGRATION, //
-        Feature.RM_STAGING_INTEGRATION, //
-        Feature.DASHBOARD, //
-        Feature.POLICY_MONITORING, //
-        Feature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
-        Feature.CLI_INTEGRATION, //
-        Feature.QUALITY, //
-        Feature.ENFORCEMENT, //
-        Feature.NOTIFICATIONS, //
-        Feature.POLICY_GRANDFATHERING, //
-        Feature.WEBHOOKS_FOR_APPLICATIONS);
+        LicensedFeature.IDE_INTEGRATION, //
+        LicensedFeature.CI_INTEGRATION, //
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.DASHBOARD, //
+        LicensedFeature.POLICY_MONITORING, //
+        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
+        LicensedFeature.CLI_INTEGRATION, //
+        LicensedFeature.QUALITY, //
+        LicensedFeature.ENFORCEMENT, //
+        LicensedFeature.NOTIFICATIONS, //
+        LicensedFeature.POLICY_GRANDFATHERING, //
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
   }
 
   @Test
@@ -164,10 +164,10 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
     assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
-        Feature.FIREWALL, //
-        Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
-        Feature.RM_STAGING_INTEGRATION, //
-        Feature.WEBHOOKS_FOR_REPOSITORIES);
+        LicensedFeature.FIREWALL, //
+        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
   }
 
   @Test
@@ -175,9 +175,9 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
     installLicense();
     assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
-        Feature.FIREWALL_FOR_ARTIFACTORY, //
-        Feature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
-        Feature.RM_STAGING_INTEGRATION);
+        LicensedFeature.FIREWALL_FOR_ARTIFACTORY, //
+        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
+        LicensedFeature.RM_STAGING_INTEGRATION);
   }
 
   @Test
@@ -185,11 +185,11 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     installLicense();
     assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
-        Feature.DASHBOARD, //
-        Feature.CI_INTEGRATION, //
-        Feature.CLI_INTEGRATION, //
-        Feature.RM_STAGING_INTEGRATION, //
-        Feature.QUALITY);
+        LicensedFeature.DASHBOARD, //
+        LicensedFeature.CI_INTEGRATION, //
+        LicensedFeature.CLI_INTEGRATION, //
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.QUALITY);
   }
 
   @Test

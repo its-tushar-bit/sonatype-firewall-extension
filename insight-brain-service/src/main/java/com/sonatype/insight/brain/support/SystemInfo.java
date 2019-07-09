@@ -37,6 +37,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -358,7 +359,7 @@ class SystemInfo
   String getProductLicense() {
     SupportZipLicenseInfo supportZipLicenseInfo =
         new SupportZipLicenseInfo(clmLicenseManager.getLicenseInfo(),
-            clmLicenseManager.getFeatures(),
+            clmLicenseManager.getFeatures().stream().map(Feature::getId).collect(Collectors.toSet()),
             clmLicenseManager.getStageTypes().stream().map(StageType::getId).collect(Collectors.toSet()),
             clmLicenseManager.getApplicationCountLimit());
     return JsonUtils.format(supportZipLicenseInfo);

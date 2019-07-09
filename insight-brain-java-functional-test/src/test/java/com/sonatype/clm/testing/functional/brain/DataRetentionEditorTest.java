@@ -22,7 +22,7 @@ import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage.Retenti
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage.SuccessMetricsRetentionEditor;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -141,7 +141,7 @@ public class DataRetentionEditorTest
   @Test
   public void testDataRetentionEditor_LicensingAware() {
     clmLicenseManager.setStageTypes(StageTypes.RELEASE);
-    clmLicenseManager.setMissingFeatures(Feature.POLICY_MONITORING);
+    clmLicenseManager.setMissingFeatures(LicensedFeature.POLICY_MONITORING);
 
     refreshOrOpen(DataRetentionEditorPage.url(organization.getId()));
 

@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
@@ -71,7 +71,7 @@ public class PolicyAlertEmailer
                                 final List<PolicyNotification> policyNotifications,
                                 final int grandfatheredPolicyViolationCount)
   {
-    if (!clmLicenseManager.hasFeature(Feature.NOTIFICATIONS)) {
+    if (!clmLicenseManager.hasFeature(LicensedFeature.NOTIFICATIONS)) {
       log.debug("Not sending notifications for application {} and scan {} in stage {}" +
           ", license does not support notifications", app.getPublicId(), scanId, stage.getStageTypeId());
       return;

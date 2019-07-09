@@ -29,7 +29,7 @@ import java.util.TreeSet;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -447,8 +447,8 @@ public class SystemInfoTest
     assertThat(supportZipLicenseInfo.licenseInfo.products).isEqualTo(new String[]{"Nexus Lifecycle", "Nexus Firewall"});
     assertThat(supportZipLicenseInfo.licenseInfo.expiryTimestamp).isPositive();
 
-    Collection<Feature> features = supportZipLicenseInfo.features;
-    assertThat(features).hasSize(15).contains(Feature.CI_INTEGRATION);
+    Collection<String> features = supportZipLicenseInfo.features;
+    assertThat(features).hasSize(15).contains(LicensedFeature.CI_INTEGRATION.getId());
     assertThat(supportZipLicenseInfo.applicationCountLimit).isEqualTo(100);
     assertThat(supportZipLicenseInfo.stageIds).containsExactlyInAnyOrder("proxy", "operate", "build", "release",
         "develop", "stage-release");

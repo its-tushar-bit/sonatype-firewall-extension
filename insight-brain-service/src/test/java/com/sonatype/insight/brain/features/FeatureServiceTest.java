@@ -51,17 +51,18 @@ public class FeatureServiceTest
 
   @Test
   public void testGetFeatures_WithVersionSpecificFeatures() {
-    Set<Feature> features = EnumSet.of(Feature.POLICY, Feature.LABELS, Feature.RELEASE_GRAPH, Feature.POLICY_VIOLATIONS,
-        Feature.REEVALUATE_POLICY);
+    Set<NonLicensedFeature> features = EnumSet.of(NonLicensedFeature.POLICY, NonLicensedFeature.LABELS,
+        NonLicensedFeature.RELEASE_GRAPH, NonLicensedFeature.POLICY_VIOLATIONS, NonLicensedFeature.REEVALUATE_POLICY);
     when(licenseManager.isValid()).thenReturn(true);
     assertThat(featuresService.getFeatures()).containsAll(features);
   }
 
   @Test
   public void testGetFeatures_WithLicenseSpecificFeatures() {
-    Set<Feature> features = EnumSet.of(Feature.QUALITY, Feature.POLICY_MONITORING, Feature.DASHBOARD,
-        Feature.CLI_INTEGRATION, Feature.ENFORCEMENT, Feature.NOTIFICATIONS, Feature.POLICY_GRANDFATHERING,
-        Feature.WEBHOOKS_FOR_APPLICATIONS, Feature.FIREWALL);
+    Set<LicensedFeature> features =
+        EnumSet.of(LicensedFeature.QUALITY, LicensedFeature.POLICY_MONITORING, LicensedFeature.DASHBOARD,
+            LicensedFeature.CLI_INTEGRATION, LicensedFeature.ENFORCEMENT, LicensedFeature.NOTIFICATIONS,
+            LicensedFeature.POLICY_GRANDFATHERING, LicensedFeature.WEBHOOKS_FOR_APPLICATIONS, LicensedFeature.FIREWALL);
     when(licenseManager.isValid()).thenReturn(true);
     when(licenseManager.getFeatures()).thenReturn(features);
     assertThat(featuresService.getFeatures()).containsAll(features);
@@ -71,14 +72,16 @@ public class FeatureServiceTest
   public void testGetFeatures_WithRootMigrated() {
     when(licenseManager.isValid()).thenReturn(true);
     when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
-    assertThat(featuresService.getFeatures()).contains(Feature.ROOT_ORG).doesNotContain(Feature.ROOT_ORG_MIGRATE);
+    assertThat(featuresService.getFeatures()).contains(NonLicensedFeature.ROOT_ORG)
+        .doesNotContain(NonLicensedFeature.ROOT_ORG_MIGRATE);
   }
 
   @Test
   public void testGetFeatures_WithoutRootMigrated() {
     when(licenseManager.isValid()).thenReturn(true);
     when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
-    assertThat(featuresService.getFeatures()).contains(Feature.ROOT_ORG_MIGRATE).doesNotContain(Feature.ROOT_ORG);
+    assertThat(featuresService.getFeatures()).contains(NonLicensedFeature.ROOT_ORG_MIGRATE)
+        .doesNotContain(NonLicensedFeature.ROOT_ORG);
   }
 
   @Test
@@ -86,41 +89,43 @@ public class FeatureServiceTest
     when(licenseManager.isValid()).thenReturn(true);
     when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
     when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(true);
-    assertThat(featuresService.getFeatures()).doesNotContain(Feature.ROOT_ORG_MIGRATE, Feature.ROOT_ORG);
+    assertThat(featuresService.getFeatures()).doesNotContain(NonLicensedFeature.ROOT_ORG_MIGRATE,
+        NonLicensedFeature.ROOT_ORG);
   }
 
   @Test
   public void testGetFeatures_WithoutAllowExternalLinks() {
     when(licenseManager.isValid()).thenReturn(true);
     insightConfig.setExternalHyperlinksAllowed(false);
-    assertThat(featuresService.getFeatures()).doesNotContain(Feature.ALLOW_EXTERNAL_HYPERLINKS);
+    assertThat(featuresService.getFeatures()).doesNotContain(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS);
   }
 
   @Test
   public void testGetFeatures_WithAllowExternalLinks() {
     when(licenseManager.isValid()).thenReturn(true);
-    assertThat(featuresService.getFeatures()).contains(Feature.ALLOW_EXTERNAL_HYPERLINKS);
+    assertThat(featuresService.getFeatures()).contains(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS);
   }
 
   @Test
   public void testGetFeatures_WithoutEnablePolicyReportPreviousVersionLink() {
     when(licenseManager.isValid()).thenReturn(true);
     insightConfig.setEnablePolicyReportPreviousVersionLink(false);
-    assertThat(featuresService.getFeatures()).doesNotContain(Feature.ENABLE_POLICY_REPORT_PREVIOUS_VERSION_LINK);
+    assertThat(featuresService.getFeatures())
+        .doesNotContain(NonLicensedFeature.ENABLE_POLICY_REPORT_PREVIOUS_VERSION_LINK);
   }
 
   @Test
   public void testGetFeatures_WithEnablePolicyReportPreviousVersionLink() {
     when(licenseManager.isValid()).thenReturn(true);
-    assertThat(featuresService.getFeatures()).contains(Feature.ENABLE_POLICY_REPORT_PREVIOUS_VERSION_LINK);
+    assertThat(featuresService.getFeatures()).contains(NonLicensedFeature.ENABLE_POLICY_REPORT_PREVIOUS_VERSION_LINK);
   }
 
   @Test
   public void testGetFeatures_WithFirewallForArtifactoryFeature_BecomesFirewallFeature() {
-    Set<Feature> features = EnumSet.of(Feature.FIREWALL_FOR_ARTIFACTORY);
+    Set<LicensedFeature> features = EnumSet.of(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
     when(licenseManager.isValid()).thenReturn(true);
     when(licenseManager.getFeatures()).thenReturn(features);
-    assertThat(featuresService.getFeatures()).contains(Feature.FIREWALL)
-        .doesNotContain(Feature.FIREWALL_FOR_ARTIFACTORY);
+    assertThat(featuresService.getFeatures()).contains(LicensedFeature.FIREWALL)
+        .doesNotContain(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
   }
 }

@@ -25,7 +25,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
@@ -135,14 +135,15 @@ public class PolicyEvaluateService
       HttpServletRequest req,
       Stage stage) throws IOException
   {
-    if (integrationType.equals(IntegrationType.CLI) && !clmLicenseManager.hasFeature(Feature.CLI_INTEGRATION)) {
+    if (integrationType.equals(IntegrationType.CLI) && !clmLicenseManager.hasFeature(LicensedFeature.CLI_INTEGRATION)) {
       throw new InvalidLicenseException();
     }
-    else if (integrationType.equals(IntegrationType.CI) && !clmLicenseManager.hasFeature(Feature.CI_INTEGRATION)) {
+    else if (integrationType.equals(IntegrationType.CI)
+        && !clmLicenseManager.hasFeature(LicensedFeature.CI_INTEGRATION)) {
       throw new InvalidLicenseException();
     }
     else if (integrationType.equals(IntegrationType.RM) &&
-        !clmLicenseManager.hasFeature(Feature.RM_STAGING_INTEGRATION)) {
+        !clmLicenseManager.hasFeature(LicensedFeature.RM_STAGING_INTEGRATION)) {
       throw new InvalidLicenseException();
     }
 

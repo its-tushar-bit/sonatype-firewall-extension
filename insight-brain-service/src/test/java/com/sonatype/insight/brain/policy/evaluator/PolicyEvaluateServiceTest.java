@@ -34,7 +34,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.jira.JiraClient;
@@ -362,21 +362,23 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluateWithPolling_CI() throws Exception {
-    testEvaluateWithPolling(Feature.CI_INTEGRATION, IntegrationType.CI);
+    testEvaluateWithPolling(LicensedFeature.CI_INTEGRATION, IntegrationType.CI);
   }
 
   @Test
   public void testEvaluateWithPolling_CLI() throws Exception {
-    testEvaluateWithPolling(Feature.CLI_INTEGRATION, IntegrationType.CLI);
+    testEvaluateWithPolling(LicensedFeature.CLI_INTEGRATION, IntegrationType.CLI);
   }
 
   @Test
   public void testEvaluateWithPolling_RepoManager() throws Exception {
-    testEvaluateWithPolling(Feature.RM_STAGING_INTEGRATION, IntegrationType.RM);
+    testEvaluateWithPolling(LicensedFeature.RM_STAGING_INTEGRATION, IntegrationType.RM);
   }
 
-  public void testEvaluateWithPolling(Feature requiredFeature, IntegrationType integrationType) throws Exception {
-    productLicenseManager.setFeatures(requiredFeature, Feature.NOTIFICATIONS);
+  public void testEvaluateWithPolling(LicensedFeature requiredFeature, IntegrationType integrationType)
+      throws Exception
+  {
+    productLicenseManager.setFeatures(requiredFeature, LicensedFeature.NOTIFICATIONS);
     InsightConfig insightConfig = lookup(InsightConfig.class);
     insightConfig.setBaseUrl("http://localhost");
     insightConfig.setJiraConfig(new JiraConfig());

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.support;
 
 import java.util.Set;
 
-import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.product.license.LicenseInfo;
 
 /**
@@ -17,7 +16,7 @@ public class SupportZipLicenseInfo
 {
   public LicenseInfo licenseInfo;
 
-  public Set<Feature> features;
+  public Set<String> features;
 
   public Set<String> stageIds;
 
@@ -28,7 +27,7 @@ public class SupportZipLicenseInfo
 
   public SupportZipLicenseInfo(
       LicenseInfo licenseInfo,
-      Set<Feature> features,
+      Set<String> features,
       Set<String> stageIds,
       Integer applicationCountLimit)
   {

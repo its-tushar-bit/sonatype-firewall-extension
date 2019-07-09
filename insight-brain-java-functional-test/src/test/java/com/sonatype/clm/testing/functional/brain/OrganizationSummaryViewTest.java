@@ -29,7 +29,7 @@ import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -345,7 +345,7 @@ public class OrganizationSummaryViewTest
   @Test
   public void testDataRetentionTile_LicensingAware() {
     clmLicenseManager.setStageTypes(StageTypes.RELEASE);
-    clmLicenseManager.setMissingFeatures(Feature.POLICY_MONITORING);
+    clmLicenseManager.setMissingFeatures(LicensedFeature.POLICY_MONITORING);
     refresh();
 
     DataRetentionTile tile = OwnerSummaryPage.dataRetentionTile();

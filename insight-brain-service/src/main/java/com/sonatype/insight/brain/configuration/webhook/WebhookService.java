@@ -16,7 +16,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -91,8 +91,8 @@ public class WebhookService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public Webhook addWebhook(Webhook webhook) {
-    if (!clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_APPLICATIONS) &&
-        !clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_REPOSITORIES)) {
+    if (!clmLicenseManager.hasFeature(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS) &&
+        !clmLicenseManager.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES)) {
       log.debug("Not adding Webhook, license does not support Webhooks.");
       throw new InvalidLicenseException();
     }
@@ -105,8 +105,8 @@ public class WebhookService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public Webhook updateWebhook(Webhook webhook) {
-    if (!clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_APPLICATIONS) &&
-        !clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_REPOSITORIES)) {
+    if (!clmLicenseManager.hasFeature(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS) &&
+        !clmLicenseManager.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES)) {
       log.debug("Not updating Webhook, license does not support Webhooks.");
       throw new InvalidLicenseException();
     }
@@ -126,8 +126,8 @@ public class WebhookService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteWebhook(String webhookId) {
-    if (!clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_APPLICATIONS) &&
-        !clmLicenseManager.hasFeature(Feature.WEBHOOKS_FOR_REPOSITORIES)) {
+    if (!clmLicenseManager.hasFeature(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS) &&
+        !clmLicenseManager.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES)) {
       log.debug("Not deleting Webhook, license does not support Webhooks.");
       throw new InvalidLicenseException();
     }

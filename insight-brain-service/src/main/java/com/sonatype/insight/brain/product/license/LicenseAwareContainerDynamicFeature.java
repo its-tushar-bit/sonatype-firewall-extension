@@ -18,7 +18,7 @@ import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.core.Response;
 
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 
@@ -44,9 +44,9 @@ public class LicenseAwareContainerDynamicFeature
   {
     private final Logger log = LoggerFactory.getLogger(Filter.class);
 
-    private final Feature feature;
+    private final LicensedFeature feature;
 
-    public Filter(Feature feature) {
+    public Filter(LicensedFeature feature) {
       this.feature = feature;
     }
 

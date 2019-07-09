@@ -11,7 +11,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -72,7 +72,8 @@ public class WebhookServiceTest
 
   @Test
   public void testAddWebhook_Unlicensed_NotAllowed() {
-    testLicenseManager.setMissingFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS, Feature.WEBHOOKS_FOR_REPOSITORIES);
+    testLicenseManager.setMissingFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
     final String secretKey = "some secret key";
     final Webhook webhook = new Webhook();
@@ -85,7 +86,7 @@ public class WebhookServiceTest
 
   @Test
   public void testAddAndDeleteWebhook_RepositoryLicensed_Allowed() {
-    testLicenseManager.setFeatures(Feature.WEBHOOKS_FOR_REPOSITORIES);
+    testLicenseManager.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
     final String secretKey = "some secret key";
     final Webhook webhook = new Webhook();
@@ -99,7 +100,7 @@ public class WebhookServiceTest
 
   @Test
   public void testAddAndDeleteWebhook_ApplicationLicensed_Allowed() {
-    testLicenseManager.setFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS);
+    testLicenseManager.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
 
     final String secretKey = "some secret key";
     final Webhook webhook = new Webhook();
@@ -136,7 +137,8 @@ public class WebhookServiceTest
 
   @Test
   public void testUpdateWebhook_Unlicensed_NotAllowed() {
-    testLicenseManager.setMissingFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS, Feature.WEBHOOKS_FOR_REPOSITORIES);
+    testLicenseManager.setMissingFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
     final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
     webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
@@ -146,7 +148,7 @@ public class WebhookServiceTest
 
   @Test
   public void testUpdateWebhook_ApplicationLicensed_Allowed() {
-    testLicenseManager.setFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS);
+    testLicenseManager.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
 
     final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
     webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
@@ -156,7 +158,7 @@ public class WebhookServiceTest
 
   @Test
   public void testUpdateWebhook_RepositoryLicensed_Allowed() {
-    testLicenseManager.setFeatures(Feature.WEBHOOKS_FOR_REPOSITORIES);
+    testLicenseManager.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
     final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
     webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
@@ -198,7 +200,8 @@ public class WebhookServiceTest
 
   @Test
   public void testDeleteWebhook_Unlicensed_NotAllowed() {
-    testLicenseManager.setMissingFeatures(Feature.WEBHOOKS_FOR_APPLICATIONS, Feature.WEBHOOKS_FOR_REPOSITORIES);
+    testLicenseManager.setMissingFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
     final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
 

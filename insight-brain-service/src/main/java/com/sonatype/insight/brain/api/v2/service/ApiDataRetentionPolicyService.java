@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPolicyDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSuccessMetricsRetentionPolicyDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -68,7 +68,7 @@ public class ApiDataRetentionPolicyService
   private List<String> getLicensedReportContextIds() {
     Set<String> licensed = Stream.concat( //
         licenseManager.getStageTypes().stream().map(StageType::getId),
-        licenseManager.hasFeature(Feature.POLICY_MONITORING)
+        licenseManager.hasFeature(LicensedFeature.POLICY_MONITORING)
             ? Stream.of(DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING)
             : Stream.empty())
         .collect(toSet());

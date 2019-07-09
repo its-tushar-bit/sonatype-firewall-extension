@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.dashboard.StageDetailDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -230,7 +230,7 @@ public class ComponentDetailService
   }
 
   private void validateDashboardLicensed() {
-    if (!licenseManager.hasFeature(Feature.DASHBOARD)) {
+    if (!licenseManager.hasFeature(LicensedFeature.DASHBOARD)) {
       throw new InvalidLicenseException();
     }
   }

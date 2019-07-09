@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.integration.repository;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 
 import org.junit.Before;
 
@@ -28,6 +28,6 @@ public class ArtifactoryRepositoryServiceAuthzTest
 
   @Before
   public void init() {
-    licenseManager.setFeatures(Feature.FIREWALL_FOR_ARTIFACTORY);
+    licenseManager.setFeatures(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
   }
 }

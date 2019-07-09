@@ -10,7 +10,7 @@ import javax.ws.rs.core.UriBuilder;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.telemetry.PendoCache;
 import com.sonatype.insight.brain.telemetry.PendoService;
@@ -63,7 +63,7 @@ public class RepoManResourceTest
 
   @Test
   public void testUploadScan_FeatureUnlicensed() throws Exception {
-    setMissingFeature(Feature.RM_STAGING_INTEGRATION);
+    setMissingFeature(LicensedFeature.RM_STAGING_INTEGRATION);
 
     HttpResponse response = scanRequest("unlicensedappid").put();
     assertResponseStatus(402, response);

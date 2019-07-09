@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.hds;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 
 import org.junit.Test;
 
@@ -16,7 +16,7 @@ public class CIResourceTest
 {
   @Test
   public void testScan_FeatureUnlicensed() throws Exception {
-    setMissingFeature(Feature.CI_INTEGRATION);
+    setMissingFeature(LicensedFeature.CI_INTEGRATION);
 
     HttpResponse response = scanRequest("unlicensedapp").put();
     assertResponseStatus(402, response);

@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.features.Feature;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -74,7 +74,7 @@ public class PolicyViolationGrandfatheringService
   }
 
   private void validateGrandfatheringIsLicensed() {
-    if (!clmLicenseManager.hasFeature(Feature.POLICY_GRANDFATHERING)) {
+    if (!clmLicenseManager.hasFeature(LicensedFeature.POLICY_GRANDFATHERING)) {
       log.debug("Policy violation grandfathering is not supported by the current license.");
       throw new InvalidLicenseException();
     }

@@ -17,6 +17,8 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.scan.model.ClientScanType;
 
+import org.slf4j.Logger;
+
 /**
  * @since 1.12.1
  */
@@ -24,7 +26,11 @@ import com.sonatype.insight.scan.model.ClientScanType;
 public class RestClientFactory
 {
   public RestClient newRestCIClient(Configuration config) {
-    return new RestCIClient(config);
+    return newRestCIClient(config, null);
+  }
+
+  public RestClient newRestCIClient(Configuration config, Logger logger) {
+    return new RestCIClient(config, logger);
   }
 
   public RestClient newRestCLIClient(Configuration config) {
@@ -47,8 +53,7 @@ public class RestClientFactory
                                                         final File scanFile,
                                                         final ClientScanType clientScanType) throws IOException
     {
-      return new PolicyClient(config, appId)
-          .evaluateCLI(scanFile, clientScanType, new Stage(stageId));
+      return new PolicyClient(config, appId).evaluateCLI(scanFile, clientScanType, new Stage(stageId));
     }
 
     @Override
@@ -63,8 +68,11 @@ public class RestClientFactory
   public static class RestCIClient
       extends RestClient
   {
-    RestCIClient(final Configuration config) {
+    private final Logger logger;
+
+    RestCIClient(final Configuration config, final Logger logger) {
       super(config);
+      this.logger = logger;
     }
 
     @Override
@@ -73,7 +81,7 @@ public class RestClientFactory
                                                         final File scanFile,
                                                         final ClientScanType clientScanType) throws IOException
     {
-      return new PolicyClient(config, appId).evaluateCI(scanFile, new Stage(stageId));
+      return new PolicyClient(config, appId, logger).evaluateCI(scanFile, new Stage(stageId));
     }
 
     @Override

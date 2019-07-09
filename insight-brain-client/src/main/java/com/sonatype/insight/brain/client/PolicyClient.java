@@ -28,17 +28,21 @@ import org.slf4j.LoggerFactory;
 public class PolicyClient
     extends AbstractRequestClient
 {
-  private static final Logger log = LoggerFactory.getLogger(PolicyClient.class);
-
   private static final ContentType GZIP_CONTENT_TYPE = ContentType.create("application/x-gzip");
+
+  private final Logger log;
 
   private final String serverUrl;
 
   private final String appId;
 
   public PolicyClient(final Configuration config, final String appId) {
-    super(config);
+    this(config, appId, null);
+  }
 
+  public PolicyClient(final Configuration config, final String appId, final Logger log) {
+    super(config);
+    this.log = log != null ? log : LoggerFactory.getLogger(PolicyClient.class);
     this.serverUrl = config.getServerUrl();
     this.appId = UrlUtils.encodeUrlComponent(appId);
   }
@@ -83,13 +87,13 @@ public class PolicyClient
         stage.getStageTypeId()).query("scanType", clientScanType.name()).post(entity);
     PolicyEvaluationReceipt receipt = parseResult(evaluateResult, PolicyEvaluationReceipt.class);
     log.debug("Assigned status ID {}", receipt.getStatusId());
+    log.info("Waiting for policy evaluation to complete...");
     PolicyEvaluationPollingResult result = pollEvaluationResult(receipt.getStatusId());
-    log.debug("Policy evaluation completed in {} seconds.", (System.currentTimeMillis() - start) / 1000);
+    log.info("Policy evaluation completed in {} seconds.", (System.currentTimeMillis() - start) / 1000);
     return result;
   }
 
   private PolicyEvaluationPollingResult pollEvaluationResult(final String statusId) throws IOException {
-    log.info("Waiting for policy evaluation to complete...");
     PolicyEvaluationPollingResult pollingStatus;
     ScanReceipt scanReceipt = null;
     do {
@@ -98,7 +102,7 @@ public class PolicyClient
       pollingStatus = parseResult(pollingResult, PolicyEvaluationPollingResult.class);
       if (scanReceipt == null && pollingStatus.getScanReceipt() != null) {
         scanReceipt = pollingStatus.getScanReceipt();
-        log.info("Assigned scan ID " + scanReceipt.getScanId());
+        log.info("Assigned scan ID {}", scanReceipt.getScanId());
       }
       if (pollingStatus.getStatus().equals(PolicyEvaluationStatus.PENDING)) {
         try {

@@ -30,18 +30,18 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.scan.model.ClientScanType;
-import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
+import org.slf4j.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -50,9 +50,6 @@ import static org.mockito.Mockito.verify;
 public class PolicyClientTest
     extends AbstractBrainServiceTest
 {
-  @Rule
-  public LogOutput logOutput = new LogOutput(PolicyClient.class);
-
   InsightWork insightWork;
 
   @Before
@@ -268,7 +265,8 @@ public class PolicyClientTest
 
     PolicyEvaluationReceipt receipt = new PolicyEvaluationReceipt();
     receipt.setStatusId("evaluation-statusid");
-    PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId()));
+    Logger logger = mock(Logger.class);
+    PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId(), logger));
     doReturn(receipt).when(policyClient).parseResult(ArgumentMatchers.any(Result.class),
         eq(PolicyEvaluationReceipt.class));
 
@@ -280,9 +278,8 @@ public class PolicyClientTest
 
     policyClient.evaluate("cli", scanFile, ClientScanType.SONATYPE, stage);
 
-    assertThat(logOutput.getDebugMessages(PolicyClient.class.getName()))
-        .contains("Assigned status ID evaluation-statusid");
-    assertThat(logOutput.getInfoMessages(PolicyClient.class.getName())).contains("Assigned scan ID test-scanid");
+    verify(logger).debug("Assigned status ID {}", "evaluation-statusid");
+    verify(logger).info("Assigned scan ID {}", "test-scanid");
   }
 
   private File createScanFile(Application app, String scanId) {

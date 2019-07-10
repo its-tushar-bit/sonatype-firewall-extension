@@ -154,9 +154,19 @@ $iq-modal-bottom-spacing: 8px;
   Fix for non-scrolling vulnerability modal
 */
 #sv-info-modal .iq-modal-content {
+  $sv-info-blockquote-width: 600px;
   height: 100%;
   max-height: 400px;
   overflow: auto;
+
+  blockquote {
+    overflow-wrap: break-word;
+    width: $sv-info-blockquote-width;
+  }
+
+  a {
+    word-break: break-all;
+  }
 }
 
 .iq-modal--sv {

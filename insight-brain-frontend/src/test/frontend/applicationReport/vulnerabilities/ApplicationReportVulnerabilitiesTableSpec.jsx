@@ -26,6 +26,12 @@ describe('ApplicationReportVulnerabilitiesTable', function() {
     expect(getShallowComponent().find('.iq-scrollable .nx-table')).toExist();
   });
 
+  it('renders a single row with a single nx-cell--empty when there are no vulnerabilities', function() {
+    expect(getShallowComponent().find('tbody tr').length).toBe(1);
+    expect(getShallowComponent().find('tbody tr td').length).toBe(1);
+    expect(getShallowComponent().find('tbody tr td')).toHaveClassName('nx-cell--empty');
+  });
+
   it('renders a row for each vulnerability', function() {
     const vulnerabilities = [{
           key: '1',

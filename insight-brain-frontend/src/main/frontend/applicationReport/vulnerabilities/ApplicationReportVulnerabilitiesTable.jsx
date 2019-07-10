@@ -38,7 +38,17 @@ function createRow(data) {
   );
 }
 
+const emptyRow = (
+  <tr className="nx-table-row">
+    <td colSpan="4" className="nx-cell nx-cell--empty">
+      This report contains no vulnerabilities.
+    </td>
+  </tr>
+);
+
 export default function ApplicationReportVulnerabilitiesTable({ vulnerabilities }) {
+  const rows = vulnerabilities.length ? vulnerabilities.map(createRow) : emptyRow;
+
   return (
     <MaximizedContainer className="nx-tile-content">
       <div className="iq-scrollable iq-scrollable--full-height">
@@ -51,9 +61,7 @@ export default function ApplicationReportVulnerabilitiesTable({ vulnerabilities 
               <th className="nx-cell nx-cell--header iq-cell--vulnerability-component-display">Component</th>
             </tr>
           </thead>
-          <tbody>
-            { vulnerabilities.map(createRow) }
-          </tbody>
+          <tbody>{ rows }</tbody>
         </table>
       </div>
     </MaximizedContainer>

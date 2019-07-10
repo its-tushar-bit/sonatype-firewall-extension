@@ -56,13 +56,17 @@ public class ApplicationReportVulnerabilitiesTest
 {
   public static final String SCAN_ID = "e16caf35769f4b3186a7e416d34c2797";
 
+  public static final String EMPTY_RESULTS_SCAN_ID = "e16caf35769f4b3186a7e416d34c2798";
+
   private final ApplicationReportPage applicationReportPage = new ApplicationReportPage();
 
   private final ApplicationReportVulnerabilitiesPage vulnerabilitiesPage = new ApplicationReportVulnerabilitiesPage();
 
   private Application app;
 
-  private TestReportEvaluator evaluator;
+  private Organization org;
+
+  private InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -79,13 +83,12 @@ public class ApplicationReportVulnerabilitiesTest
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
     PolicyImportExport policyImportExport = new PolicyImportExport();
 
-    Organization org = tempEntity.newOrganization();
+    org = tempEntity.newOrganization();
     policyImportExport.importOrganization(org, referencePolicies);
     app = tempEntity.newApplication("ApplicationReportVulnerabilitiesTest", "ApplicationReportVulnerabilitiesTest",
         org.getId());
     URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
-    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    TestReportEvaluator evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
 
     Policy securityLow = policyDAO.getByName("Security-Low").get(0);
     Policy securityHigh = policyDAO.getByName("Security-High").get(0);
@@ -151,6 +154,26 @@ public class ApplicationReportVulnerabilitiesTest
     ScrollUtil.scrollIntoView(waivedGrandfatheredRow.getElement());
     checkRow(waivedGrandfatheredRow, "commons-fileupload : commons-fileupload : 1.2.2", "CVE-2013-0248", "3.3", "0",
         true, true);
+  }
+
+  @Test
+  public void testEmptyResults() throws Exception {
+    Application emptyResultsApp = tempEntity.newApplication("ApplicationReportVulnerabilitiesTest-testEmptyResults",
+        "ApplicationReportVulnerabilitiesTest-testEmptyResults", org.getId());
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/empty-report", tempDir);
+    TestReportEvaluator evaluator = new TestReportEvaluator(emptyResultsApp, EMPTY_RESULTS_SCAN_ID, zippedReport,
+        Configuration.baseUrl, work);
+
+    evaluator.evaluatePolicy();
+    refreshOrOpen(ApplicationReportVulnerabilitiesPage.url(emptyResultsApp, EMPTY_RESULTS_SCAN_ID));
+
+    VulnerabilityTable vulnerabilityTable = vulnerabilitiesPage.table();
+    vulnerabilityTable.shouldBe(visible);
+
+    vulnerabilityTable.rows().shouldHaveSize(1);
+    vulnerabilityTable.row(1).shouldHave(text("no vulnerabilities"));
+
+    eyesWatcher.eyesCheck();
   }
 
   // NOTE This test does not pass in headless mode (e.g. with -Dselenide.headless=true)

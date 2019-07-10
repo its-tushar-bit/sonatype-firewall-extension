@@ -232,8 +232,8 @@ public class PackageUrlIdentifier
                                                 final PackageURLBuilder builder)
   {
     builder.withType(FORMAT_RUBYGEMS)
-        .withName(coordinates.get(RUBYGEMS_NAME))
         .withVersion(coordinates.get(VERSION));
+    resolveNameAndNamespace(builder, coordinates.get(RUBYGEMS_NAME));
     addQualiferIfExists(coordinates, builder, RUBYGEMS_PLATFORM, PURL_RUBYGEMS_PLATFORM);
   }
 
@@ -247,23 +247,23 @@ public class PackageUrlIdentifier
 
   private static void resolvePypiPackageUrl(final Map<String, String> coordinates, final PackageURLBuilder builder) {
     builder.withType(FORMAT_PYPI)
-        .withName(coordinates.get(PYPI_NAME))
         .withVersion(coordinates.get(VERSION));
+    resolveNameAndNamespace(builder, coordinates.get(PYPI_NAME));
     addQualiferIfExists(coordinates, builder, PYPI_QUALIFIER, PURL_PYPI_QUALIFIER);
     addQualiferIfExists(coordinates, builder, PYPI_EXTENSION, PURL_PYPI_EXTENSION);
   }
 
   private static void resolveAnamePackageUrl(final Map<String, String> coordinates, final PackageURLBuilder builder) {
     builder.withType(FORMAT_ANAME)
-        .withName(coordinates.get(ANAME_NAME))
         .withVersion(coordinates.get(VERSION));
+    resolveNameAndNamespace(builder, coordinates.get(ANAME_NAME));
     addQualiferIfExists(coordinates, builder, ANAME_QUALIFIER, ANAME_QUALIFIER);
   }
 
   private static void resolveNugetPackageUrl(final Map<String, String> coordinates, final PackageURLBuilder builder) {
     builder.withType(FORMAT_NUGET)
-        .withName(coordinates.get(NUGET_PACKAGE_ID))
         .withVersion(coordinates.get(VERSION));
+    resolveNameAndNamespace(builder, coordinates.get(NUGET_PACKAGE_ID));
   }
 
   private static void resolveNpmPackageUrl(final Map<String, String> coordinates, final PackageURLBuilder builder) {
@@ -304,7 +304,9 @@ public class PackageUrlIdentifier
     if (packageUrl.getQualifiers() != null) {
       platform = packageUrl.getQualifiers().get(PURL_RUBYGEMS_PLATFORM);
     }
-    return ComponentIdentifier.createRubyGemsCoordinates(packageUrl.getName(), packageUrl.getVersion(), platform);
+    return ComponentIdentifier
+        .createRubyGemsCoordinates(concat(packageUrl.getNamespace(), packageUrl.getName()), packageUrl.getVersion(),
+            platform);
   }
 
   private ComponentIdentifier createRpmIdentifier() {
@@ -312,7 +314,9 @@ public class PackageUrlIdentifier
     if (packageUrl.getQualifiers() != null) {
       architecture = packageUrl.getQualifiers().get(PURL_RPM_ARCHITECTURE);
     }
-    return ComponentIdentifier.createRpmCoordinates(packageUrl.getName(), packageUrl.getVersion(), architecture);
+    return ComponentIdentifier
+        .createRpmCoordinates(concat(packageUrl.getNamespace(), packageUrl.getName()), packageUrl.getVersion(),
+            architecture);
   }
 
   private ComponentIdentifier createPypiIdentifier() {
@@ -323,7 +327,8 @@ public class PackageUrlIdentifier
       extension = packageUrl.getQualifiers().get(PURL_PYPI_EXTENSION);
     }
     return ComponentIdentifier
-        .createPypiCoordinates(packageUrl.getName(), packageUrl.getVersion(), qualifier, extension);
+        .createPypiCoordinates(concat(packageUrl.getNamespace(), packageUrl.getName()), packageUrl.getVersion(),
+            qualifier, extension);
   }
 
   private ComponentIdentifier createAnameIdentifier() {
@@ -331,11 +336,14 @@ public class PackageUrlIdentifier
     if (packageUrl.getQualifiers() != null) {
       qualifier = packageUrl.getQualifiers().get(ANAME_QUALIFIER);
     }
-    return ComponentIdentifier.createAnameCoordinates(packageUrl.getName(), qualifier, packageUrl.getVersion());
+    return ComponentIdentifier
+        .createAnameCoordinates(concat(packageUrl.getNamespace(), packageUrl.getName()), qualifier,
+            packageUrl.getVersion());
   }
 
   private ComponentIdentifier createNugetIdentifier() {
-    return ComponentIdentifier.createNugetCoordinates(packageUrl.getName(), packageUrl.getVersion());
+    return ComponentIdentifier
+        .createNugetCoordinates(concat(packageUrl.getNamespace(), packageUrl.getName()), packageUrl.getVersion());
   }
 
   private ComponentIdentifier createNpmIdentifier() {

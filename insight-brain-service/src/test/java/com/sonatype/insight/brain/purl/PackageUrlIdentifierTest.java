@@ -261,6 +261,24 @@ public class PackageUrlIdentifierTest
   }
 
   @Test
+  public void testToComponentIdentifier_PurlContainsPath() {
+    assertToComponentIdentifier("pkg:maven/g/a@v?classifier=c&type=e");
+    assertToComponentIdentifier("pkg:npm/path/name@v");
+    assertToComponentIdentifier("pkg:nuget/path/n@v");
+    assertToComponentIdentifier("pkg:a-name/path/n@v?qualifier=q");
+    assertToComponentIdentifier("pkg:pypi/path/n@v?extension=e&qualifier=q");
+    assertToComponentIdentifier("pkg:rpm/some/path/to/module@version");
+    assertToComponentIdentifier("pkg:gem/path/n@v?platform=p");
+    assertToComponentIdentifier("pkg:golang/path/name@v");
+  }
+
+  private void assertToComponentIdentifier(String purl) {
+    PackageUrlIdentifier purlIdentifier = new PackageUrlIdentifier(purl);
+    ComponentIdentifier componentIdentifier = purlIdentifier.toComponentIdentifier();
+    assertThat(PackageUrlIdentifier.toPackageUrl(componentIdentifier)).isEqualTo(purl);
+  }
+
+  @Test
   public void testToPackageUrl_InvalidCoordinates() {
     Map<String, String> coordinates = new HashMap<>();
     coordinates.put("blah", "blah");

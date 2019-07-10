@@ -171,7 +171,8 @@ public class GitHubApiServiceTest
         .format("Components: Critical: %d, Severe: %d, Moderate: %d", event.criticalComponentCount,
             event.severeComponentCount, event.moderateComponentCount));
     assertThat(actualStatusRequest.state).isEqualTo(status);
-    assertThat(actualStatusRequest.targetUrl).isEqualTo("http://localhost:8070/ui/links/application/app/report/scanId");
+    assertThat(actualStatusRequest.targetUrl)
+        .isEqualTo("http://localhost:8070/ui/links/application/app/report/scanId?source=github");
   }
 
   private ApplicationEvaluationEvent getApplicationEvaluationEvent(

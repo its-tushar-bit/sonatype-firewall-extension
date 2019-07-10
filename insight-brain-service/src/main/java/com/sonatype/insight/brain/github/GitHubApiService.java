@@ -10,6 +10,7 @@ import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -97,9 +98,14 @@ public class GitHubApiService
   private String getReportUrl(final String ownerId, final String scanId) {
     Application application = applicationDAO.getByIdNotNull(ownerId);
     String reportPath = UserInterfaceLinksResource.getReportUrl(application.getPublicId(), scanId);
+    reportPath = addGitHubSourceQuery(reportPath);
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setReportUrl(reportPath);
     return scanReceipt.resolveReportUrl(baseUrl.get());
+  }
+
+  private String addGitHubSourceQuery(final String reportPath) {
+    return UriBuilder.fromPath(reportPath).queryParam("source", "github").toString();
   }
 
   private static String getState(final ApplicationEvaluationEvent event) {

@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -262,6 +263,7 @@ public class TestInsightBrainService
 
     getInjector().getInstance(PolicyMonitorScheduler.class).disableForTesting = true;
     getInjector().getInstance(ScanFileCleaner.class).disableForTesting = true;
+    getInjector().getInstance(PolicyEvaluateService.class).disablePollingIntervalForTesting = true;
   }
 
   public void stop() throws Exception {

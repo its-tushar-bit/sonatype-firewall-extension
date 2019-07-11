@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -48,11 +49,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
+@Singleton
 public class PolicyEvaluateService
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluateService.class);
 
   private static final int NEXT_POLLING_INTERVAL_IN_SECONDS = 5;
+
+  public boolean disablePollingIntervalForTesting = false;
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
 
@@ -164,7 +168,7 @@ public class PolicyEvaluateService
     // to avoid any race condition when the following task attempts to update
     PolicyEvaluationPollingResult initialResult = new PolicyEvaluationPollingResult();
     initialResult.setStatus(PolicyEvaluationStatus.PENDING);
-    initialResult.setNextPollingIntervalInSeconds(NEXT_POLLING_INTERVAL_IN_SECONDS);
+    initialResult.setNextPollingIntervalInSeconds(getNextPollingInterval());
     policyEvaluationPollingResults.put(policyEvaluationKey, initialResult);
 
     AuditData.get()
@@ -229,7 +233,7 @@ public class PolicyEvaluateService
       String scanId = null;
       PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
       policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.PENDING);
-      policyEvaluationPollingResult.setNextPollingIntervalInSeconds(NEXT_POLLING_INTERVAL_IN_SECONDS);
+      policyEvaluationPollingResult.setNextPollingIntervalInSeconds(getNextPollingInterval());
 
       String policyEvaluationKey = getPolicyEvaluationKey(applicationPublicId, statusId);
 
@@ -284,5 +288,9 @@ public class PolicyEvaluateService
       result.setNextPollingIntervalInSeconds(from.getNextPollingIntervalInSeconds());
       return result;
     }
+  }
+
+  private int getNextPollingInterval() {
+    return disablePollingIntervalForTesting ? 1 : NEXT_POLLING_INTERVAL_IN_SECONDS;
   }
 }

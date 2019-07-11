@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -139,15 +138,14 @@ public class PolicyEvaluateService
       HttpServletRequest req,
       Stage stage) throws IOException
   {
-    if (integrationType.equals(IntegrationType.CLI) && !productLicense.hasFeature(LicensedFeature.CLI_INTEGRATION)) {
-      throw new InvalidLicenseException();
+    if (integrationType.equals(IntegrationType.CLI)) {
+      productLicense.validateFeature(LicensedFeature.CLI_INTEGRATION);
     }
-    else if (integrationType.equals(IntegrationType.CI) && !productLicense.hasFeature(LicensedFeature.CI_INTEGRATION)) {
-      throw new InvalidLicenseException();
+    else if (integrationType.equals(IntegrationType.CI)) {
+      productLicense.validateFeature(LicensedFeature.CI_INTEGRATION);
     }
-    else if (integrationType.equals(IntegrationType.RM) &&
-        !productLicense.hasFeature(LicensedFeature.RM_STAGING_INTEGRATION)) {
-      throw new InvalidLicenseException();
+    else if (integrationType.equals(IntegrationType.RM)) {
+      productLicense.validateFeature(LicensedFeature.RM_STAGING_INTEGRATION);
     }
 
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {

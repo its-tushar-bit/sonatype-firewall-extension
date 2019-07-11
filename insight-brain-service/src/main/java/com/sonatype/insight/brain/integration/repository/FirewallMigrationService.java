@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -70,9 +69,7 @@ public class FirewallMigrationService
   }
 
   private void checkLicenseFeature() {
-    if (!productLicense.hasFeature(LicensedFeature.FIREWALL)) {
-      throw new InvalidLicenseException();
-    }
+    productLicense.validateFeature(LicensedFeature.FIREWALL);
   }
 
   /**

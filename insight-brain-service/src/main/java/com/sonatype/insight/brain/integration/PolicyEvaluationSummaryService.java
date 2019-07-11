@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -79,8 +78,6 @@ public class PolicyEvaluationSummaryService
   }
 
   private void validateLicensed() {
-    if (!productLicense.hasFeature(LicensedFeature.QUALITY)) {
-      throw new InvalidLicenseException();
-    }
+    productLicense.validateFeature(LicensedFeature.QUALITY);
   }
 }

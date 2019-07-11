@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.Polic
 import com.sonatype.insight.brain.dashboard.StageDetailDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -28,6 +29,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -43,6 +46,9 @@ public class ComponentDetailServiceTest
 {
   @Inject
   private ComponentDetailService componentDetailService;
+
+  @Inject
+  private TestProductLicense testProductLicense;
 
   @Test
   public void testGetApplicationDetailsByHash() {
@@ -107,6 +113,14 @@ public class ComponentDetailServiceTest
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(2), StageTypes.RELEASE, null, null, null);
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
+  }
+
+  @Test
+  public void testGetApplicationDetailsByHash_MissingLicenseFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      componentDetailService.getApplicationDetailsByHash("some-hash");
+    });
   }
 
   @Test
@@ -294,6 +308,14 @@ public class ComponentDetailServiceTest
 
     List<ComponentDisplayNamePart> name = componentDetailService.getComponentNameByHash(hash).parts;
     assertDisplayFieldValuesForGAV(name, "groupId2", "artifactId2", "version2");
+  }
+
+  @Test
+  public void testGetComponentNameByHash_MissingLicenseFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      componentDetailService.getComponentNameByHash("some-hash");
+    });
   }
 
   @Test

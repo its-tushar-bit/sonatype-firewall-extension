@@ -20,7 +20,6 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.features.LicensedFeature;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.scan.model.ClientScanType;
 
@@ -60,9 +59,7 @@ public class CLIResource
                              @QueryParam("scanType") ClientScanType clientScanType,
                              @Context HttpServletRequest req) throws IOException
   {
-    if (!productLicense.hasFeature(LicensedFeature.CLI_INTEGRATION)) {
-      throw new InvalidLicenseException();
-    }
+    productLicense.validateFeature(LicensedFeature.CLI_INTEGRATION);
     return scanHandler.handle(req, applicationPublicId, clientScanType);
   }
 }

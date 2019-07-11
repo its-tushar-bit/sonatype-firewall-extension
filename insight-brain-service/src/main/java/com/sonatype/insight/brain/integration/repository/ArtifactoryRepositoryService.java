@@ -11,7 +11,6 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 
@@ -24,13 +23,7 @@ public class ArtifactoryRepositoryService extends AbstractRepositoryService
                                       HdsClient hdsClient,
                                       PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
-    super(repositoryPolicyEvaluator, productLicense, hdsClient, policyViolationLoggerFactory);
-  }
-
-  @Override
-  protected void checkLicenseFeature() {
-    if (!productLicense.hasFeature(LicensedFeature.FIREWALL_FOR_ARTIFACTORY)) {
-      throw new InvalidLicenseException();
-    }
+    super(repositoryPolicyEvaluator, productLicense, hdsClient, policyViolationLoggerFactory,
+        LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
   }
 }

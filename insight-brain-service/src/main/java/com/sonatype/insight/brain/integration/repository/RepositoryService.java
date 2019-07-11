@@ -12,7 +12,6 @@ import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.error.exception.BadGatewayException;
@@ -29,14 +28,7 @@ public class RepositoryService extends AbstractRepositoryService
                            HdsClient hdsClient,
                            PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
-    super(repositoryPolicyEvaluator, productLicense, hdsClient, policyViolationLoggerFactory);
-  }
-
-  @Override
-  protected void checkLicenseFeature() {
-    if (!productLicense.hasFeature(LicensedFeature.FIREWALL)) {
-      throw new InvalidLicenseException();
-    }
+    super(repositoryPolicyEvaluator, productLicense, hdsClient, policyViolationLoggerFactory, LicensedFeature.FIREWALL);
   }
 
   FirewallIgnorePatterns getIgnorePatterns() {

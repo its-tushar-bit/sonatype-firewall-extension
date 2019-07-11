@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.HashHelper;
@@ -69,19 +70,25 @@ public abstract class AbstractRepositoryService
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  final LicensedFeature requiredFeature;
+
   @Inject
   public AbstractRepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator,
                                    ProductLicense productLicense,
                                    HdsClient hdsClient,
-                                   PolicyViolationLoggerFactory policyViolationLoggerFactory)
+                                   PolicyViolationLoggerFactory policyViolationLoggerFactory,
+                                   LicensedFeature requiredFeature)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.productLicense = productLicense;
     this.hdsClient = hdsClient;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
+    this.requiredFeature = requiredFeature;
   }
 
-  protected abstract void checkLicenseFeature();
+  private void checkLicenseFeature() {
+    productLicense.validateFeature(requiredFeature);
+  }
 
   private void auditComponentPath(final String pathname) {
     AuditData.get().setData("componentPathname", pathname);

@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -230,8 +229,6 @@ public class ComponentDetailService
   }
 
   private void validateDashboardLicensed() {
-    if (!productLicense.hasFeature(LicensedFeature.DASHBOARD)) {
-      throw new InvalidLicenseException();
-    }
+    productLicense.validateFeature(LicensedFeature.DASHBOARD);
   }
 }

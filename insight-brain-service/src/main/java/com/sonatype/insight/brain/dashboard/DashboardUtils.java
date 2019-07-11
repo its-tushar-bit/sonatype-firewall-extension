@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.StageTypeService;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -43,9 +42,7 @@ public class DashboardUtils
   }
 
   void validateDashboardLicensed() {
-    if (!productLicense.hasFeature(LicensedFeature.DASHBOARD)) {
-      throw new InvalidLicenseException();
-    }
+    productLicense.validateFeature(LicensedFeature.DASHBOARD);
   }
 
   Set<StageType> getStageTypes(Set<String> stageTypeIds) {

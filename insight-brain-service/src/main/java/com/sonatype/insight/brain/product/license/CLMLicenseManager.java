@@ -395,6 +395,7 @@ public class CLMLicenseManager
       throw new IllegalArgumentException("listener not specified");
     }
     listeners.add(listener);
+    log.debug("Added listener {}", listener);
   }
 
   /**
@@ -404,11 +405,13 @@ public class CLMLicenseManager
    */
   public void removeListener(LicenseListener listener) {
     listeners.remove(listener);
+    log.debug("Removed listener {}", listener);
   }
 
   private void notifyListeners() {
     for (LicenseListener listener : listeners) {
       try {
+        log.debug("Notifying listener {}", listener);
         listener.licenseChanged();
       }
       catch (RuntimeException e) {

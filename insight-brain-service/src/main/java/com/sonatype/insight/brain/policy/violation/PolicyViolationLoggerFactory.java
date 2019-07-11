@@ -15,8 +15,8 @@ import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.product.license.LicenseListener;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 
 import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class PolicyViolationLoggerFactory
-    implements Managed, LicenseListener
+    implements Managed, ProductLicenseListener
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyViolationLoggerFactory.class);
 
@@ -85,7 +85,7 @@ public class PolicyViolationLoggerFactory
   }
 
   @Override
-  public void licenseChanged() {
+  public void productLicenseChanged() {
     logPotentialMisconfiguration();
   }
 }

@@ -15,8 +15,8 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.features.LicensedFeature;
-import com.sonatype.insight.brain.product.license.LicenseListener;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.service.InsightConfig;
 
@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class PolicyMonitorScheduler
-    implements Managed, LicenseListener
+    implements Managed, ProductLicenseListener
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyMonitorScheduler.class);
 
@@ -100,7 +100,7 @@ public class PolicyMonitorScheduler
   }
 
   @Override
-  public void licenseChanged() {
+  public void productLicenseChanged() {
     if (productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)) {
       startMonitoring();
     }

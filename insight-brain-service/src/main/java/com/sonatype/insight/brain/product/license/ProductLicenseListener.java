@@ -10,11 +10,11 @@ package com.sonatype.insight.brain.product.license;
  * 
  * @since 1.9
  */
-public interface LicenseListener
+public interface ProductLicenseListener
 {
   /**
    * Notifies the listener that the license has changed (e.g. got installed or uninstalled). Querying the
-   * {@link CLMLicenseManager} at this point will indicate the state of the current license.
+   * {@link ProductLicense} at this point will indicate the state of the current license.
    */
-  void licenseChanged();
+  void productLicenseChanged();
 }

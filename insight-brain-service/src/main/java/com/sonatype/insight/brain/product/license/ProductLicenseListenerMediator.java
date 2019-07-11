@@ -11,19 +11,19 @@ import org.eclipse.sisu.BeanEntry;
 import org.eclipse.sisu.Mediator;
 
 /**
- * Automatically un-/registers {@link LicenseListener}s with {@link CLMLicenseManager}.
+ * Automatically un-/registers {@link ProductLicenseListener}s with {@link CLMLicenseManager}.
  */
 @Named
 class ProductLicenseListenerMediator
-    implements Mediator<Named, LicenseListener, CLMLicenseManager>
+    implements Mediator<Named, ProductLicenseListener, CLMLicenseManager>
 {
   @Override
-  public void add(BeanEntry<Named, LicenseListener> entry, CLMLicenseManager watcher) throws Exception {
+  public void add(BeanEntry<Named, ProductLicenseListener> entry, CLMLicenseManager watcher) throws Exception {
     watcher.addListener(entry.getValue());
   }
 
   @Override
-  public void remove(BeanEntry<Named, LicenseListener> entry, CLMLicenseManager watcher) throws Exception {
+  public void remove(BeanEntry<Named, ProductLicenseListener> entry, CLMLicenseManager watcher) throws Exception {
     watcher.removeListener(entry.getValue());
   }
 }

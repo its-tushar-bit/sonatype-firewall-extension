@@ -66,7 +66,7 @@ public class CLMLicenseManager
 
   private static final Logger log = LoggerFactory.getLogger(CLMLicenseManager.class);
 
-  private final List<LicenseListener> listeners = new CopyOnWriteArrayList<>();
+  private final List<ProductLicenseListener> listeners = new CopyOnWriteArrayList<>();
   
   private final AuditRecorder auditRecorder;
 
@@ -390,7 +390,7 @@ public class CLMLicenseManager
    *
    * @since 1.9
    */
-  public void addListener(LicenseListener listener) {
+  public void addListener(ProductLicenseListener listener) {
     if (listener == null) {
       throw new IllegalArgumentException("listener not specified");
     }
@@ -403,16 +403,16 @@ public class CLMLicenseManager
    *
    * @since 1.9
    */
-  public void removeListener(LicenseListener listener) {
+  public void removeListener(ProductLicenseListener listener) {
     listeners.remove(listener);
     log.debug("Removed listener {}", listener);
   }
 
   private void notifyListeners() {
-    for (LicenseListener listener : listeners) {
+    for (ProductLicenseListener listener : listeners) {
       try {
         log.debug("Notifying listener {}", listener);
-        listener.licenseChanged();
+        listener.productLicenseChanged();
       }
       catch (RuntimeException e) {
         log.warn("Failed to notify {} of license update", listener, e);

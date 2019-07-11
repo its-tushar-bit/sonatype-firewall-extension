@@ -77,39 +77,39 @@ public class PolicyMonitorSchedulerTest
   }
 
   @Test
-  public void testLicenseChanged_MonitoringWasAdded() {
+  public void testProductLicenseChanged_MonitoringWasAdded() {
     when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(false);
     scheduler.start();
     when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(true);
-    scheduler.licenseChanged();
+    scheduler.productLicenseChanged();
     verify(executor).scheduleAtFixedRate(any(Runnable.class), anyLong(), eq(TimeUnit.DAYS.toMillis(1)),
         eq(TimeUnit.MILLISECONDS));
   }
 
   @Test
-  public void testLicenseChanged_MonitoringWasRemoved() {
+  public void testProductLicenseChanged_MonitoringWasRemoved() {
     when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(true);
     scheduler.start();
     when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(false);
-    scheduler.licenseChanged();
+    scheduler.productLicenseChanged();
     verify(executor).shutdown();
   }
 
   @Test
-  public void testLicenseChanged_MonitoringStillAvailable() {
+  public void testProductLicenseChanged_MonitoringStillAvailable() {
     when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(true);
     scheduler.start();
     reset(executor);
-    scheduler.licenseChanged();
+    scheduler.productLicenseChanged();
     verifyZeroInteractions(executor);
   }
 
   @Test
-  public void testLicenseChanged_MonitoringStillUnavailable() {
+  public void testProductLicenseChanged_MonitoringStillUnavailable() {
     when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(false);
     scheduler.start();
     reset(executor);
-    scheduler.licenseChanged();
+    scheduler.productLicenseChanged();
     verifyZeroInteractions(executor);
   }
 }

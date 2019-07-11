@@ -34,6 +34,7 @@ public class ProductLicenseTest
 
   @Before
   public void before() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     refreshOrOpen(ProductLicensePage.url());
   }
 
@@ -59,7 +60,6 @@ public class ProductLicenseTest
   @Test
   public void testLicenseInformation_Auditor() throws Exception {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK);
-    updateLicenseManager();
 
     refreshOrOpen(ProductLicensePage.url());
 
@@ -73,7 +73,6 @@ public class ProductLicenseTest
   @Test
   public void testLicenseInformation_FirewallOnly() throws Exception {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
-    updateLicenseManager();
 
     refreshOrOpen(ProductLicensePage.url());
 
@@ -86,9 +85,8 @@ public class ProductLicenseTest
 
   @Test
   public void testLicenseInformation_LifecycleOnly() throws Exception {
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     productLicenseManager.setMaxFirewallUsers(null);
-    updateLicenseManager();
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
 
     refreshOrOpen(ProductLicensePage.url());
 
@@ -99,9 +97,8 @@ public class ProductLicenseTest
 
   @Test
   public void testLicenseInformation_NexusPlus() throws Exception {
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     productLicenseManager.setMaxFirewallUsers(null);
-    updateLicenseManager();
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
 
     refreshOrOpen(ProductLicensePage.url());
 
@@ -179,9 +176,5 @@ public class ProductLicenseTest
     eulaModal.acceptBtn().shouldBe(visible).click();
 
     FormMask.seeAndWaitForDismissal();
-  }
-
-  private void updateLicenseManager() throws Exception {
-    clmLicenseManager.installLicense(null);
   }
 }

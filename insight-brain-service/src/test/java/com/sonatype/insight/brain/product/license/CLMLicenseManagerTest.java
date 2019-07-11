@@ -91,18 +91,14 @@ public class CLMLicenseManagerTest
   @Test
   public void testLicenseCache() throws Exception {
     assertThat(productLicense.isValid()).isTrue();
-    assertThat(productLicense.getMaxApplications()).isEqualTo(100);
     assertThat(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).isTrue();
 
     // now change the value and make sure the cache is still stale
-    licenseManager.setApplicationLimit(10);
-    assertThat(productLicense.getMaxApplications()).isEqualTo(100);
     licenseManager.setProducts("");
     assertThat(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).isTrue();
 
     // now install the license (which causes the cache to be cleared) and make sure the cache is no longer stale
     installLicense();
-    assertThat(productLicense.getMaxApplications()).isEqualTo(10);
     assertThat(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).isFalse();
   }
 

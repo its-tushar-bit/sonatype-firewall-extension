@@ -15,7 +15,6 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.sonatype.clm.dto.model.repository.migration.MigrationState;
-import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -23,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -31,12 +31,11 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.joda.time.DateTime;
 import org.junit.After;
@@ -65,10 +64,7 @@ public class FirewallMigrationServiceTest
   private static final String TARGET_REPOSITORY_PUBLIC_ID = "repository";
 
   @Inject
-  private CLMLicenseManager clmLicenseManager;
-
-  @Inject
-  private TestProductLicenseManager productLicenseManager;
+  private TestProductLicense testProductLicense;
 
   @Inject
   private FirewallMigrationService migrationService;
@@ -103,8 +99,7 @@ public class FirewallMigrationServiceTest
 
   @Test
   public void testVerifyMigrationSupport_MissingLicenseFeature() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
-    clmLicenseManager.installLicense(null);
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       migrationService.verifyMigrationSupport(PROTOCOL_V1);
     }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
@@ -112,8 +107,7 @@ public class FirewallMigrationServiceTest
 
   @Test
   public void testMigrateRepositoryHistory_MissingLicenseFeature() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
-    clmLicenseManager.installLicense(null);
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       migrationService.migrateRepositoryHistory(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID, SOURCE_REPOSITORY_PUBLIC_ID,
           TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID);

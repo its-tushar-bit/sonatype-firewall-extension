@@ -103,6 +103,10 @@ public class TestProductLicenseManager
     mockProductLicenseManager.setApplicationLimit(applicationLimit);
   }
 
+  public Integer getApplicationLimit() {
+    return mockProductLicenseManager.applicationLimit;
+  }
+
   public void setMaxFirewallUsers(Integer maxFirewallUsers) {
     wasChanged = true;
     mockProductLicenseManager.setMaxFirewallUsers(maxFirewallUsers);
@@ -176,7 +180,7 @@ public class TestProductLicenseManager
     private Date expirationDate = new Date(System.currentTimeMillis() + 6000 * 1000);
 
     private String[] products = { ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
-        ProductLicenseDetails.PRODUCT_FIREWALL };
+        ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY };
 
     private Set<LicensedFeature> features;
 

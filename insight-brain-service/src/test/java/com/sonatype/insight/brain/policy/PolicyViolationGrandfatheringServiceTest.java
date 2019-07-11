@@ -13,11 +13,11 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -30,11 +30,10 @@ import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Rule;
@@ -55,10 +54,7 @@ public class PolicyViolationGrandfatheringServiceTest
   private PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
 
   @Inject
-  private TestProductLicenseManager licenseManager;
-
-  @Inject
-  private CLMLicenseManager clmLicenseManager;
+  private TestProductLicense testProductLicense;
 
   @Test
   public void testRevokeGrandfathering() throws Exception {
@@ -91,9 +87,8 @@ public class PolicyViolationGrandfatheringServiceTest
   }
 
   @Test
-  public void testRevokeGrandfathering_LifecycleFoundationLicense() throws Exception {
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+  public void testRevokeGrandfathering_MissingLicenseFeature() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.POLICY_GRANDFATHERING);
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
         policyViolationGrandfatheringService.revokeGrandfathering("APPID")
     );
@@ -282,9 +277,8 @@ public class PolicyViolationGrandfatheringServiceTest
   }
 
   @Test
-  public void testGrandfather_LifecycleFoundationLicense() throws Exception {
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+  public void testGrandfather_MissingLicenseFeature() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.POLICY_GRANDFATHERING);
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       policyViolationGrandfatheringService.grandfather("APPID");
     });
@@ -452,9 +446,8 @@ public class PolicyViolationGrandfatheringServiceTest
   }
 
   @Test
-  public void testSetGrandfathering_LifecycleFoundationLicense() throws Exception {
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+  public void testSetGrandfathering_MissingLicenseFeature() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.POLICY_GRANDFATHERING);
     Organization org = tempEntity.newOrganization();
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
         policyViolationGrandfatheringService.setGrandfathering(OwnerType.ORGANIZATION, org.getId(),

@@ -9,29 +9,24 @@ import java.util.Collections;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class DashboardUtilsTest
-    extends InjectedTest
+    extends AbstractComponentTest
 {
   @Inject
   private DashboardUtils dashboardUtils;
 
   @Inject
-  private CLMLicenseManager clmLicenseManager;
-
-  @Inject
-  private TestProductLicenseManager productLicenseManager;
+  private TestProductLicense testProductLicense;
 
   @Test
   public void testGetStageTypes_StageTypeIdsNull() {
@@ -54,8 +49,7 @@ public class DashboardUtilsTest
 
   @Test
   public void testGetStageTypes_UnlicensedStageTypeId() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
-    clmLicenseManager.installLicense(null);
+    testProductLicense.setStageTypes(StageTypes.RELEASE);
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       dashboardUtils.getStageTypes(Collections.singleton(StageTypes.BUILD.getId()));
     }).withMessage("Current license does not support stage type: build.");

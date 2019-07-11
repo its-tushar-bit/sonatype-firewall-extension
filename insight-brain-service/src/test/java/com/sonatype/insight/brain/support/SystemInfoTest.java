@@ -444,11 +444,12 @@ public class SystemInfoTest
     assertThat(supportZipLicenseInfo.licenseInfo.contactName).isEqualTo("Billy");
     assertThat(supportZipLicenseInfo.licenseInfo.contactCompany).isEqualTo("Acme");
     assertThat(supportZipLicenseInfo.licenseInfo.contactEmail).isEqualTo("billy@example.com");
-    assertThat(supportZipLicenseInfo.licenseInfo.products).isEqualTo(new String[]{"Nexus Lifecycle", "Nexus Firewall"});
+    assertThat(supportZipLicenseInfo.licenseInfo.products).containsExactlyInAnyOrder("Nexus Lifecycle",
+        "Nexus Firewall", "Nexus Firewall for Artifactory");
     assertThat(supportZipLicenseInfo.licenseInfo.expiryTimestamp).isPositive();
 
     Collection<String> features = supportZipLicenseInfo.features;
-    assertThat(features).hasSize(15).contains(LicensedFeature.CI_INTEGRATION.getId());
+    assertThat(features).hasSize(LicensedFeature.values().length).contains(LicensedFeature.CI_INTEGRATION.getId());
     assertThat(supportZipLicenseInfo.applicationCountLimit).isEqualTo(100);
     assertThat(supportZipLicenseInfo.stageIds).containsExactlyInAnyOrder("proxy", "operate", "build", "release",
         "develop", "stage-release");

@@ -27,7 +27,6 @@ import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -62,14 +61,13 @@ import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.repository.PendingRepositoryPolicyNotifications;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
@@ -99,10 +97,7 @@ public abstract class AbstractRepositoryServiceTest
       AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
   @Inject
-  protected TestProductLicenseManager productLicenseManager;
-
-  @Inject
-  protected CLMLicenseManager clmLicenseManager;
+  private TestProductLicense testProductLicense;
 
   @Inject
   private PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications;
@@ -186,8 +181,7 @@ public abstract class AbstractRepositoryServiceTest
 
   @Test
   public void testSetEnabled_MissingLicenseFeature() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
-    clmLicenseManager.installLicense(null);
+    testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
     }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
@@ -332,8 +326,7 @@ public abstract class AbstractRepositoryServiceTest
 
   @Test
   public void testGetPolicyEvaluationSummary_MissingLicenseFeature() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
-    clmLicenseManager.installLicense(null);
+    testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
@@ -1531,8 +1524,7 @@ public abstract class AbstractRepositoryServiceTest
 
   @Test
   public void testEvaluateComponents_MissingLicenseFeature() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
-    clmLicenseManager.installLicense(null);
+    testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       getRepositoryService().evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, false, null);
     }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);

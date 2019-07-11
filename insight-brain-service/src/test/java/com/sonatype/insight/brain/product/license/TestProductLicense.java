@@ -30,6 +30,15 @@ public class TestProductLicense
   }
 
   @Override
+  public Integer getMaxApplications() {
+    return testProductLicenseManager.getApplicationLimit();
+  }
+
+  public void setMaxApplications(Integer maxApplications) {
+    testProductLicenseManager.setApplicationLimit(maxApplications);
+  }
+
+  @Override
   public Set<LicensedFeature> getFeatures() {
     // features are normally derived based on the products
     // for precise testing, we allow them to be manually overridden to a specific set

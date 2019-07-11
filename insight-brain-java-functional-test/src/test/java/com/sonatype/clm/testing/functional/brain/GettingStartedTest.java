@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
 import com.sonatype.clm.testing.functional.pages.GettingStartedPage.ProductLicenseSummaryTile;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.After;
 import org.junit.Test;
@@ -45,6 +46,7 @@ public class GettingStartedTest
 
   @Test
   public void testGettingStartedPage() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     testCLMServer.getHdsServer().setResponseForURI("ping", "alive", 200);
     refreshOrOpen(GettingStartedPage.URL);
     loginAsAdmin();

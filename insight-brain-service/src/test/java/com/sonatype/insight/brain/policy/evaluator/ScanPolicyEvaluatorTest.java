@@ -31,7 +31,6 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -40,6 +39,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -80,7 +80,7 @@ import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.Pdf;
 import com.sonatype.insight.brain.report.Report;
@@ -96,7 +96,6 @@ import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
@@ -150,10 +149,7 @@ public class ScanPolicyEvaluatorTest
   private TelemetrySender mockTelemetrySender;
 
   @Inject
-  private CLMLicenseManager clmLicenseManager;
-
-  @Inject
-  private TestProductLicenseManager productLicenseManager;
+  private TestProductLicense testProductLicense;
 
   @Override
   public void configure(Binder binder) {
@@ -361,9 +357,8 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_GrandfatherIgnoredOnFirstEvaluation_FoundationLicense() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+  public void testEvaluate_GrandfatherIgnoredOnFirstEvaluation_MissingLicenseFeature() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.POLICY_GRANDFATHERING);
 
     application = tempEntity.newApplicationWithParent();
     Policy policy = newSecurityPolicy();
@@ -372,7 +367,7 @@ public class ScanPolicyEvaluatorTest
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 
-    // This is the first evaluation with foundation license. No policy violations should be grandfathered.
+    // This is the first evaluation. No policy violations should be grandfathered given the license doesn't allow it.
     String scanId1 = simulateReportIsAvailable("report");
     Stage stage1 = new Stage(Stage.ID_BUILD);
     ScanPolicyEvaluatorResults results1 = scanPolicyEvaluator.evaluate(application, scanId1, stage1);
@@ -380,7 +375,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_GrandfatherContinuesAfterFirstEvaluation_FoundationLicense() throws Exception {
+  public void testEvaluate_GrandfatherContinuesAfterFirstEvaluation_MissingLicenseFeature() throws Exception {
     application = tempEntity.newApplicationWithParent();
     Policy policy = newSecurityPolicy();
     policy.setPolicyViolationGrandfatheringAllowed(true);
@@ -399,10 +394,9 @@ public class ScanPolicyEvaluatorTest
       assertThat(inactiveViolation.isWaived()).isFalse();
     });
 
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+    testProductLicense.setMissingFeatures(LicensedFeature.POLICY_GRANDFATHERING);
 
-    // Evaluate again with foundation license. Policy violations continue to be grandfathered.
+    // Evaluate again with license without grandfathering. Policy violations continue to be grandfathered.
     String scanId2 = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results2 = scanPolicyEvaluator.evaluate(application, scanId2, stage1);
     assertThat(results2.activeViolations).hasSize(0);
@@ -1501,9 +1495,8 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_UpdatesReportFiles_LifecycleFoundationLicense() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+  public void testEvaluate_UpdatesReportFiles_MissingLicenseFeature() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
     // The policy will cause three policy violations.
     Policy policy = newPolicy(new Condition(LicenseConditionType.ID, "is", "GPL-2.0"));
     // The waiver will waive one policy violation, leaving two active policy violations.
@@ -1549,11 +1542,10 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_LifecycleFoundationLicense() throws Exception {
+  public void testEvaluate_MissingLicenseFeature() throws Exception {
     newPolicy(new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4"));
 
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+    testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
     String scanBuildId = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator
         .evaluate(application, scanBuildId, new Stage(Stage.ID_BUILD));

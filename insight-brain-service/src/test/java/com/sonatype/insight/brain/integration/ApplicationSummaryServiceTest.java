@@ -16,20 +16,19 @@ import javax.mail.util.ByteArrayDataSource;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
-import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -57,10 +56,7 @@ public class ApplicationSummaryServiceTest
   private HdsClient mockHdsClient = mock(HdsClient.class);
 
   @Inject
-  private TestProductLicenseManager productLicenseManager;
-
-  @Inject
-  private CLMLicenseManager clmLicenseManager;
+  private TestProductLicense testProductLicense;
 
   @Override
   public void configure(Binder binder) {
@@ -203,16 +199,14 @@ public class ApplicationSummaryServiceTest
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
-    productLicenseManager.setApplicationLimit(0);
-    clmLicenseManager.installLicense(null);
+    testProductLicense.setMaxApplications(0);
 
     assertThatExceptionOfType(PaymentRequiredException.class).isThrownBy(() -> {
       service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
     });
     assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNull();
 
-    productLicenseManager.setApplicationLimit(1);
-    clmLicenseManager.installLicense(null);
+    testProductLicense.setMaxApplications(1);
 
     boolean result = service
         .verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
@@ -254,9 +248,8 @@ public class ApplicationSummaryServiceTest
   }
 
   @Test
-  public void testGetApplications_Foundation() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+  public void testGetApplications_NoEnforcementFeature() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
     Application app1 = tempEntity.newApplicationWithParent("y", "AA");
     Application app0 = tempEntity.newApplicationWithParent("z", "a b");
     Application app2 = tempEntity.newApplicationWithParent("x", "c");
@@ -268,9 +261,8 @@ public class ApplicationSummaryServiceTest
   }
 
   @Test
-  public void testGetApplications_Foundation_FromIDE() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+  public void testGetApplications_NoEnforcementFeature_FromIDE() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
         () -> service.getApplications(Goal.EVALUATE_COMPONENT));

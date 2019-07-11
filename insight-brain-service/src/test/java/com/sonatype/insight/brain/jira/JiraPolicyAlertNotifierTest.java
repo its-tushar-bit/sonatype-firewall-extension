@@ -17,8 +17,8 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -30,11 +30,10 @@ import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.policy.evaluator.PolicyNotificationUtil;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
@@ -69,10 +68,7 @@ public class JiraPolicyAlertNotifierTest
   private InsightConfig config;
 
   @Inject
-  private CLMLicenseManager clmLicenseManager;
-
-  @Inject
-  private TestProductLicenseManager productLicenseManager;
+  private TestProductLicense testProductLicense;
 
   @Mock
   private JiraClient jiraClient;
@@ -243,9 +239,8 @@ public class JiraPolicyAlertNotifierTest
   }
 
   @Test
-  public void testSendNotifications_Foundation() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    clmLicenseManager.installLicense(null);
+  public void testSendNotifications_MissingLicenseFeature() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
 
     Application application = tempEntity.newApplicationWithParent("app");
 
@@ -253,33 +248,6 @@ public class JiraPolicyAlertNotifierTest
     final Long issueTypeId = 1L;
 
     Stage stage = new Stage(Stage.ID_BUILD);
-    String scanId = "scan-id";
-    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
-    Policy policy = tempEntity.newPolicy(application);
-    policy.getNotifications().add(new JiraNotification(projectKey, issueTypeId, evaluation.getStageTypeId()));
-    new PolicyDAO().update(policy);
-
-    List<PolicyViolation> policyViolations = new ArrayList<>();
-    policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, evaluation.getStageTypeId(), evaluation.isForMonitoring());
-
-    jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
-
-    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT).times(0)).createIssue(any());
-  }
-
-  @Test
-  public void testSendNotifications_FoundationAndFirewall() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
-    clmLicenseManager.installLicense(null);
-
-    Application application = tempEntity.newApplicationWithParent("app");
-
-    final String projectKey = "projectKey";
-    final Long issueTypeId = 1L;
-
-    Stage stage = new Stage(Stage.ID_BUILD, "BUILD");
     String scanId = "scan-id";
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(application);

@@ -14,7 +14,6 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
@@ -33,11 +32,11 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.google.common.collect.Sets;
 import org.junit.Before;
@@ -55,10 +54,7 @@ public class ComponentRiskServiceTest
   private ComponentRiskService componentRiskService;
 
   @Inject
-  private CLMLicenseManager clmLicenseManager;
-
-  @Inject
-  private TestProductLicenseManager productLicenseManager;
+  private TestProductLicense testProductLicense;
 
   private Organization org;
 
@@ -130,8 +126,7 @@ public class ComponentRiskServiceTest
 
   @Test
   public void testGetPolicyViolationsWithUnlicensedStageTypeIds() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
-    clmLicenseManager.installLicense(null);
+    testProductLicense.setStageTypes(StageTypes.RELEASE);
 
     // Since we are not licensed for the build stage existing violations will not be returned.
     List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null,

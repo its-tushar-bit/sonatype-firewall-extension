@@ -15,7 +15,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.features.LicensedFeature;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.LicenseListener;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.SystemRunnable;
@@ -50,16 +49,10 @@ public class PolicyMonitorScheduler
   public boolean disableForTesting;
 
   @Inject
-  public PolicyMonitorScheduler(
-      InsightConfig config,
-      ProductLicense productLicense,
-      CLMLicenseManager licenseManager,
-      PolicyMonitor policyMonitor)
-  {
+  public PolicyMonitorScheduler(InsightConfig config, ProductLicense productLicense, PolicyMonitor policyMonitor) {
     this.config = config;
     this.productLicense = productLicense;
     this.policyMonitor = policyMonitor;
-    licenseManager.addListener(this);
   }
 
   private synchronized void startMonitoring() {

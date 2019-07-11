@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.LicenseListener;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 
@@ -36,9 +35,8 @@ public class PolicyViolationLoggerFactory
   private final ProductLicense productLicense;
 
   @Inject
-  public PolicyViolationLoggerFactory(ProductLicense productLicense, CLMLicenseManager licenseManager) {
+  public PolicyViolationLoggerFactory(ProductLicense productLicense) {
     this.productLicense = productLicense;
-    licenseManager.addListener(this);
   }
 
   public OrganizationPolicyViolationLogger newLogger(Date logTimestamp, Organization organization) {

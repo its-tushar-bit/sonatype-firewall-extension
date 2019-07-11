@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.features.LicensedFeature;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -23,7 +22,6 @@ import org.mockito.Mock;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -43,13 +41,9 @@ public class PolicyMonitorSchedulerTest
   @Mock
   private ProductLicense productLicense;
 
-  @Mock
-  private CLMLicenseManager licenseManager;
-
   @Override
   public void configure(Binder binder) {
     binder.bind(ProductLicense.class).toInstance(productLicense);
-    binder.bind(CLMLicenseManager.class).toInstance(licenseManager);
     super.configure(binder);
   }
 
@@ -57,11 +51,6 @@ public class PolicyMonitorSchedulerTest
   public void init() {
     scheduler = spy(scheduler);
     lenient().doReturn(executor).when(scheduler).newExecutor();
-  }
-
-  @Test
-  public void testLicenseListenerAddition() {
-    verify(licenseManager).addListener(isA(PolicyMonitorScheduler.class));
   }
 
   @Test

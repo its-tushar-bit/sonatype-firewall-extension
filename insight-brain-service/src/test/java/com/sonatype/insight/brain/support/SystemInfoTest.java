@@ -429,7 +429,7 @@ public class SystemInfoTest
   }
 
   @Test
-  public void testGetProduceLicense() throws IOException {
+  public void testGetProductLicense() throws IOException {
     final String json = systemInfo.getProductLicense();
 
     ObjectMapper objectMapper = new ObjectMapper();

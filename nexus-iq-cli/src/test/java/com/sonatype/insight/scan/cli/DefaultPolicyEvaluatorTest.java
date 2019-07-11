@@ -478,7 +478,7 @@ public class DefaultPolicyEvaluatorTest
         "-i", app.getPublicId(), "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
 
-    VersionService versionService = testInsightServer.getCLMServer().getInjector().getInstance(VersionService.class);
+    VersionService versionService = testInsightServer.getCLMServer().getInstance(VersionService.class);
     String savedServerVersion = versionService.getVersion();
 
     // Verify older server version. There should be an exception because the client requires a minimal server version

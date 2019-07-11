@@ -108,8 +108,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
     // disable continuous monitoring checkboxes in notification area
     PolicyEditorPage.notificationsPill().click();
     NotificationsSection notificationsSection = PolicyEditorPage.notificationsSection();
-    cmIndex =
-        testCLMServer.getCLMServer().getInjector().getInstance(StageTypeService.class).getLicensedStageTypes().size();
+    cmIndex = testCLMServer.getCLMServer().getInstance(StageTypeService.class).getLicensedStageTypes().size();
     notificationsSection.headers().get(cmIndex).shouldBe(DISABLED);
     if (notificationsReadOnly) {
       NotificationsSection.addNotification().email().shouldBe(disabled);

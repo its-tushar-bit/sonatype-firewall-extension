@@ -106,8 +106,8 @@ public class InsightBrainServiceTest
     await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(3));
     Date expectedMaxCreateTime = new Date();
 
-    VersionService versionService = getCLMServer().getInjector().getInstance(VersionService.class);
-    TelemetryId telemetryId = getCLMServer().getInjector().getInstance(TelemetryId.class);
+    VersionService versionService = getCLMServer().getInstance(VersionService.class);
+    TelemetryId telemetryId = getCLMServer().getInstance(TelemetryId.class);
     List<TelemetryPurpose> telemetryPurposes = new ArrayList<>();
     for (Map.Entry<ByteArrayDataSource, Integer> response : responses.entrySet()) {
       Integer status = response.getValue();

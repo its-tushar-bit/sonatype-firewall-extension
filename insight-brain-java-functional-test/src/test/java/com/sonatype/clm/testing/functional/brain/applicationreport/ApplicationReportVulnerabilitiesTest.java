@@ -73,7 +73,7 @@ public class ApplicationReportVulnerabilitiesTest
   @Before
   public void starts() throws IOException {
     policyViolationGrandfatheringService =
-        testCLMServer.getCLMServer().getInjector().getInstance(PolicyViolationGrandfatheringService.class);
+        testCLMServer.getCLMServer().getInstance(PolicyViolationGrandfatheringService.class);
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
     PolicyImportExport policyImportExport = new PolicyImportExport();

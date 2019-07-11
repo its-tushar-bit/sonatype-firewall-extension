@@ -261,9 +261,9 @@ public class TestInsightBrainService
 
     super.run(config, env);
 
-    getInjector().getInstance(PolicyMonitorScheduler.class).disableForTesting = true;
-    getInjector().getInstance(ScanFileCleaner.class).disableForTesting = true;
-    getInjector().getInstance(PolicyEvaluateService.class).disablePollingIntervalForTesting = true;
+    getInstance(PolicyMonitorScheduler.class).disableForTesting = true;
+    getInstance(ScanFileCleaner.class).disableForTesting = true;
+    getInstance(PolicyEvaluateService.class).disablePollingIntervalForTesting = true;
   }
 
   public void stop() throws Exception {

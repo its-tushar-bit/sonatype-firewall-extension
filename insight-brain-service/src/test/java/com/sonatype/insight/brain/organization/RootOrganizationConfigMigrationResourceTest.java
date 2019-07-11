@@ -26,7 +26,7 @@ public class RootOrganizationConfigMigrationResourceTest
   @Before
   public void setup() {
     org = tempEntity.newOrganization();
-    migrationUtils = getCLMServer().getInjector().getInstance(RootOrganizationConfigMigrationUtils.class);
+    migrationUtils = getCLMServer().getInstance(RootOrganizationConfigMigrationUtils.class);
     MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
     migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
     migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_ID));

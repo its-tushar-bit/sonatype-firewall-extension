@@ -19,7 +19,7 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
 {
   @Before
   public void setup() {
-    getCLMServer().getInjector().getInstance(PendoCache.class).invalidate();
+    getCLMServer().getInstance(PendoCache.class).invalidate();
   }
 
   @Test

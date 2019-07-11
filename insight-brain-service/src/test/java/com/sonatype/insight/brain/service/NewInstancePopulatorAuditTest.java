@@ -35,7 +35,7 @@ public class NewInstancePopulatorAuditTest
       hdsServer.setResponseForURI(ReferencePolicyFetcher.REFERENCE_POLICY_PATH, policyExportResult, 200);
     });
 
-    getCLMServer().getInjector().getInstance(NewInstancePopulator.class).populateIfNewInstance();
+    getCLMServer().getInstance(NewInstancePopulator.class).populateIfNewInstance();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, null, SYSTEM_USER);
     assertOrganizationData(auditDTO, Organization.ROOT_ORGANIZATION_ID, "Root Organization");
@@ -50,7 +50,7 @@ public class NewInstancePopulatorAuditTest
     initServer((HdsConfigurator) hdsServer -> hdsServer
         .setResponseForURI(ReferencePolicyFetcher.REFERENCE_POLICY_PATH, new PolicyExportResult(), 500));
 
-    getCLMServer().getInjector().getInstance(NewInstancePopulator.class).populateIfNewInstance();
+    getCLMServer().getInstance(NewInstancePopulator.class).populateIfNewInstance();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-gateway", SYSTEM_USER);
     assertOrganizationData(auditDTO, Organization.ROOT_ORGANIZATION_ID, "Root Organization");

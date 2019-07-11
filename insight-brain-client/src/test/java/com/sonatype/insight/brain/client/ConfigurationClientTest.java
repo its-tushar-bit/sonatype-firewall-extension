@@ -433,7 +433,7 @@ public class ConfigurationClientTest
 
   @Test
   public void testValidateServerVersion() throws Exception {
-    VersionService versionService = getCLMServer().getInjector().getInstance(VersionService.class);
+    VersionService versionService = getCLMServer().getInstance(VersionService.class);
     String currentServerVersion = versionService.getVersion();
     currentServerVersion = currentServerVersion.replace("-SNAPSHOT", "");
 

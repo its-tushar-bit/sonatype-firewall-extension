@@ -13,6 +13,7 @@ import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
+import com.sonatype.insight.brain.product.license.ProductLicenseService;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
@@ -48,9 +49,11 @@ public class MainHeaderTest
     // version is the same as what we display in the startup message for product and version except that:
     // 1. point release numbers are not included unless nonzero
     // 2. build numbers (or SNAPSHOT) are not included in the version number
-    String version = new VersionService().getLogDisplayVersion();
+    String version = testCLMServer.getCLMServer().getInstance(VersionService.class).getLogDisplayVersion();
     version = version.substring(0, version.indexOf("-")).replace(".0", "");
-    String productVersion = clmLicenseManager.getLicenseSummary().productEdition + " release " + version;
+    String productVersion =
+        testCLMServer.getCLMServer().getInstance(ProductLicenseService.class).validateLicense().productEdition
+            + " release " + version;
     MainHeader.productVersion().shouldHave(text(productVersion));
   }
 

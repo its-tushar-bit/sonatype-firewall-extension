@@ -85,12 +85,12 @@ public class PolicyMonitorTest
 
   @Before
   public void setup() {
-    insightConfig = getCLMServer().getInjector().getInstance(InsightConfig.class);
+    insightConfig = getCLMServer().getInstance(InsightConfig.class);
     savedBaseUrl = insightConfig.getBaseUrl();
     insightConfig.setBaseUrl("http://clm.sonatype.com/test");
-    insightWork = getCLMServer().getInjector().getInstance(InsightWork.class);
-    policyMonitor = getCLMServer().getInjector().getInstance(PolicyMonitor.class);
-    asyncEventBus = getCLMServer().getInjector().getInstance(AsyncEventBus.class);
+    insightWork = getCLMServer().getInstance(InsightWork.class);
+    policyMonitor = getCLMServer().getInstance(PolicyMonitor.class);
+    asyncEventBus = getCLMServer().getInstance(AsyncEventBus.class);
   }
 
   @After

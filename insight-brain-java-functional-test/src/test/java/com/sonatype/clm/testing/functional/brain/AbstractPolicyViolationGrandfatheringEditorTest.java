@@ -54,7 +54,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     this.currentOwner = currentOwner;
     this.parentOrg = organizationDAO.getById(currentOwner.getParentOwnerId());
     policyViolationGrandfatheringService =
-        testCLMServer.getCLMServer().getInjector().getInstance(PolicyViolationGrandfatheringService.class);
+        testCLMServer.getCLMServer().getInstance(PolicyViolationGrandfatheringService.class);
   }
 
   @Test

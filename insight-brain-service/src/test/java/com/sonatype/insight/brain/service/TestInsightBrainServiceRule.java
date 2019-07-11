@@ -12,7 +12,6 @@ import java.util.List;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
-import com.google.inject.Injector;
 import com.google.inject.Module;
 import org.junit.rules.ExternalResource;
 
@@ -119,8 +118,8 @@ public class TestInsightBrainServiceRule
     return brain.getApplicationIconDir();
   }
 
-  public Injector getInjector() {
-    return brain.getInjector();
+  public <T> T getInstance(Class<T> type) {
+    return brain.getInstance(type);
   }
 
   public File getReportDir(String appId, String scanId) {

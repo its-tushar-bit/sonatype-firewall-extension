@@ -54,7 +54,7 @@ public class PolicyClientTest
 
   @Before
   public void setup() {
-    insightWork = getCLMServer().getInjector().getInstance(InsightWork.class);
+    insightWork = getCLMServer().getInstance(InsightWork.class);
   }
 
   @Test

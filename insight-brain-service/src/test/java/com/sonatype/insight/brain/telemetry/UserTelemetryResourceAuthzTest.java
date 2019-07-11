@@ -16,7 +16,7 @@ public class UserTelemetryResourceAuthzTest
 {
   @Before
   public void setup() {
-    getCLMServer().getInjector().getInstance(PendoCache.class).invalidate();
+    getCLMServer().getInstance(PendoCache.class).invalidate();
   }
 
   @Test

@@ -53,7 +53,7 @@ public class ReportResourceAuthzTest
   public void testDownloadBundle() throws Exception {
     String scanId = "scanId";
     mockReport(scanId, "/ReportResourceTest/report");
-    ScanPolicyEvaluator scanPolicyEvaluator = getCLMServer().getInjector().getInstance(ScanPolicyEvaluator.class);
+    ScanPolicyEvaluator scanPolicyEvaluator = getCLMServer().getInstance(ScanPolicyEvaluator.class);
     scanPolicyEvaluator.evaluate(app, scanId, new Stage(Stage.ID_BUILD));
 
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);

@@ -372,7 +372,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void createScanFile(String applicationId, String scanId) {
-    File scanFile = getCLMServer().getInjector().getInstance(InsightWork.class).getScanFile(applicationId, scanId);
+    File scanFile = getCLMServer().getInstance(InsightWork.class).getScanFile(applicationId, scanId);
     try {
       Files.createDirectories(scanFile.getParentFile().toPath());
       Files.write(scanFile.toPath(), new byte[0]);

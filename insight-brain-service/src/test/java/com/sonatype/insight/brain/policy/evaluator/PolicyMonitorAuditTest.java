@@ -27,7 +27,7 @@ public class PolicyMonitorAuditTest
 
   @Before
   public void setup() {
-    policyMonitor = getCLMServer().getInjector().getInstance(PolicyMonitor.class);
+    policyMonitor = getCLMServer().getInstance(PolicyMonitor.class);
     app = tempEntity.newApplicationWithParent("MonitoredApp");
     stage = new Stage(ReleaseStageType.ID);
     tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());

@@ -13,8 +13,6 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.security.Permission
 import com.sonatype.insight.brain.model.security.Role
-import com.sonatype.insight.brain.product.license.CLMLicenseManager
-import com.sonatype.insight.brain.product.license.ProductLicense
 import com.sonatype.insight.brain.service.HdsMockServerRule
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -66,23 +64,12 @@ extends GebReportingSpec {
 
   static ApplicationDAO applicationDAO = new ApplicationDAO()
 
-  public static TestProductLicenseManager productLicenseManager = new TestProductLicenseManager()
-
-  public static TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter()
-
-  public static ProductLicense productLicense = new ProductLicense()
-
-  public static CLMLicenseManager clmLicenseManager = new CLMLicenseManager(productLicense, productLicenseManager,
-      licenseFingerprinter, null)
-
   def getBrainModules() {
     return Arrays.asList(new AbstractModule() {
       @Override
       protected void configure() {
-        bind(ProductLicense.class).toInstance(productLicense)
-        bind(ProductLicenseManager.class).toInstance(productLicenseManager)
-        bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter)
-        bind(CLMLicenseManager.class).toInstance(clmLicenseManager)
+        bind(ProductLicenseManager.class).to(TestProductLicenseManager.class)
+        bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class)
       }
     });
   }
@@ -103,8 +90,6 @@ extends GebReportingSpec {
   def setupSpec() {
     // Use port as reported by service under test since it's not known until runtime.
     System.setProperty("geb.build.baseUrl", "http://localhost:" + serviceRule.getPort() + "/")
-    productLicenseManager.reset()
-    clmLicenseManager.installLicense(null)
     BrowserInfo.init(driver)
   }
 
@@ -227,11 +212,6 @@ extends GebReportingSpec {
 
   public <T> T loginAsUserVia(Class<T> initialPage = ReportViolationsPage, Object[] args) {
     return loginAsUserVia(getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR, initialPage, args)
-  }
-
-  void setLicensedProducts(String... products) {
-    productLicenseManager.setProducts(products)
-    clmLicenseManager.installLicense(null)
   }
 
   /**

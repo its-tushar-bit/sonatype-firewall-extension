@@ -23,7 +23,7 @@ import javax.net.ssl.SSLException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
@@ -74,7 +74,7 @@ public class HdsClient
 
   private final HttpClient client;
 
-  private final CLMLicenseManager licenseManager;
+  private final ProductLicense productLicense;
 
   private final TelemetryId telemetryId;
 
@@ -96,22 +96,22 @@ public class HdsClient
 
   @Inject
   public HdsClient(final InsightProxy proxy,
-                   final CLMLicenseManager licenseManager,
+                   ProductLicense productLicense,
                    InsightConfig insightConfig,
                    VersionService versionService,
                    TelemetryId telemetryId)
   {
-    this(proxy, licenseManager, insightConfig, versionService, telemetryId, 20);
+    this(proxy, productLicense, insightConfig, versionService, telemetryId, 20);
   }
 
   protected HdsClient(final InsightProxy proxy,
-                      final CLMLicenseManager licenseManager,
+                      ProductLicense productLicense,
                       InsightConfig insightConfig,
                       VersionService versionService,
                       TelemetryId telemetryId,
                       int poolSize)
   {
-    this.licenseManager = licenseManager;
+    this.productLicense = productLicense;
     config = new Configuration(); 
     config.setConnectTimeout(insightConfig.getConnectTimeoutInSeconds() * 1000);
     customizeConfiguration(config);
@@ -448,7 +448,7 @@ public class HdsClient
     }
 
     req.setHeader("X-Brain-Version", version);
-    req.setHeader("X-CLM-Token", licenseManager.getLicenseFingerprint());
+    req.setHeader("X-CLM-Token", productLicense.getFingerprint());
 
     populateUserAgents(orig, req);
   }

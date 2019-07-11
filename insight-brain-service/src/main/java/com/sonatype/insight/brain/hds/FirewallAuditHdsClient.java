@@ -9,7 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
@@ -26,11 +26,11 @@ public class FirewallAuditHdsClient
 {
   @Inject
   public FirewallAuditHdsClient(final InsightProxy proxy,
-                                final CLMLicenseManager licenseManager,
+                                ProductLicense productLicense,
                                 InsightConfig insightConfig,
                                 VersionService versionService,
                                 TelemetryId telemetryId)
   {
-    super(proxy, licenseManager, insightConfig, versionService, telemetryId, 20);
+    super(proxy, productLicense, insightConfig, versionService, telemetryId, 20);
   }
 }

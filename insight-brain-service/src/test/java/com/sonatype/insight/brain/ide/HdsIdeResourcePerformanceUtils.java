@@ -11,8 +11,6 @@ import java.util.NoSuchElementException;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.sonatype.insight.brain.TestLicenseFingerprinter;
-import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -23,7 +21,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
@@ -31,6 +29,8 @@ import com.sonatype.insight.brain.version.VersionService;
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.server.DefaultServerFactory;
 import org.mockito.Mockito;
+
+import static org.mockito.Mockito.mock;
 
 public class HdsIdeResourcePerformanceUtils
 {
@@ -72,8 +72,7 @@ public class HdsIdeResourcePerformanceUtils
     config.setHdsUrl(hdsUrl);
     ((HttpConnectorFactory) ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors().get(0))
         .setPort(8877);
-    return new HdsClient(new InsightProxy(config, proxyConfig),
-        new CLMLicenseManager(new TestProductLicenseManager(), new TestLicenseFingerprinter(), null), config,
+    return new HdsClient(new InsightProxy(config, proxyConfig), mock(ProductLicense.class), config,
         new VersionService(), new TelemetryId(config));
   }
 

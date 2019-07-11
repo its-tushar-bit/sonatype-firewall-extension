@@ -20,8 +20,8 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.features.LicensedFeature;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.codahale.metrics.annotation.Timed;
@@ -40,12 +40,12 @@ public class CLIResource
 
   private final ScanHandler scanHandler;
 
-  private CLMLicenseManager clmLicenseManager;
+  private final ProductLicense productLicense;
 
   @Inject
-  public CLIResource(ScanHandler scanHandler, CLMLicenseManager clmLicenseManager) {
+  public CLIResource(ScanHandler scanHandler, ProductLicense productLicense) {
     this.scanHandler = scanHandler;
-    this.clmLicenseManager = clmLicenseManager;
+    this.productLicense = productLicense;
   }
 
   /**
@@ -60,7 +60,7 @@ public class CLIResource
                              @QueryParam("scanType") ClientScanType clientScanType,
                              @Context HttpServletRequest req) throws IOException
   {
-    if (!clmLicenseManager.hasFeature(LicensedFeature.CLI_INTEGRATION)) {
+    if (!productLicense.hasFeature(LicensedFeature.CLI_INTEGRATION)) {
       throw new InvalidLicenseException();
     }
     return scanHandler.handle(req, applicationPublicId, clientScanType);

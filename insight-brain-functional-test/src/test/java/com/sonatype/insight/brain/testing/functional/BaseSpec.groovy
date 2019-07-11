@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.security.Permission
 import com.sonatype.insight.brain.model.security.Role
 import com.sonatype.insight.brain.product.license.CLMLicenseManager
+import com.sonatype.insight.brain.product.license.ProductLicense
 import com.sonatype.insight.brain.service.HdsMockServerRule
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -69,13 +70,16 @@ extends GebReportingSpec {
 
   public static TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter()
 
-  public static CLMLicenseManager clmLicenseManager = new CLMLicenseManager(productLicenseManager, licenseFingerprinter,
-      null)
+  public static ProductLicense productLicense = new ProductLicense()
+
+  public static CLMLicenseManager clmLicenseManager = new CLMLicenseManager(productLicense, productLicenseManager,
+      licenseFingerprinter, null)
 
   def getBrainModules() {
     return Arrays.asList(new AbstractModule() {
       @Override
       protected void configure() {
+        bind(ProductLicense.class).toInstance(productLicense)
         bind(ProductLicenseManager.class).toInstance(productLicenseManager)
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter)
         bind(CLMLicenseManager.class).toInstance(clmLicenseManager)

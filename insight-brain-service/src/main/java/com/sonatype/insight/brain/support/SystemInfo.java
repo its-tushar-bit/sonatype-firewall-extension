@@ -40,6 +40,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.features.Feature;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -71,16 +72,20 @@ class SystemInfo
 
   private final InsightWork insightWork;
 
+  private final ProductLicense productLicense;
+
   private final CLMLicenseManager clmLicenseManager;
 
   @Inject
   SystemInfo(
       final InsightConfig insightConfig,
       final InsightWork insightWork,
+      final ProductLicense productLicense,
       final CLMLicenseManager clmLicenseManager)
   {
     this.insightConfig = insightConfig;
     this.insightWork = insightWork;
+    this.productLicense = productLicense;
     this.clmLicenseManager = clmLicenseManager;
   }
 
@@ -359,9 +364,9 @@ class SystemInfo
   String getProductLicense() {
     SupportZipLicenseInfo supportZipLicenseInfo =
         new SupportZipLicenseInfo(clmLicenseManager.getLicenseInfo(),
-            clmLicenseManager.getFeatures().stream().map(Feature::getId).collect(Collectors.toSet()),
-            clmLicenseManager.getStageTypes().stream().map(StageType::getId).collect(Collectors.toSet()),
-            clmLicenseManager.getApplicationCountLimit());
+            productLicense.getFeatures().stream().map(Feature::getId).collect(Collectors.toSet()),
+            productLicense.getStageTypes().stream().map(StageType::getId).collect(Collectors.toSet()),
+            productLicense.getMaxApplications());
     return JsonUtils.format(supportZipLicenseInfo);
   }
 

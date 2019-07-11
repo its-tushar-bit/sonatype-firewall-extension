@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 
 /**
  * @since 1.11
@@ -43,13 +43,13 @@ public class StageTypeService
 
   public static final String DASHBOARD_CONTEXT = "dashboard";
 
-  private final CLMLicenseManager licenseManager;
+  private final ProductLicense productLicense;
 
   private final Map<String, Predicate<StageType>> contextFilterMap = new HashMap<>();
 
   @Inject
-  public StageTypeService(final CLMLicenseManager licenseManager) {
-    this.licenseManager = licenseManager;
+  public StageTypeService(final ProductLicense productLicense) {
+    this.productLicense = productLicense;
     contextFilterMap.put(ALL_CONTEXT, x -> true);
     contextFilterMap.put(CI_CONTEXT, new CIFilter());
     contextFilterMap.put(CLI_CONTEXT, new BuildFilter());
@@ -83,7 +83,7 @@ public class StageTypeService
     if (filter == null) {
       throw new IllegalArgumentException("Invalid context " + context);
     }
-    Collection<StageType> allowed = orderStages(licenseManager.getStageTypes());
+    Collection<StageType> allowed = orderStages(productLicense.getStageTypes());
     allowed = allowed.stream().filter(filter).collect(Collectors.toList());
     return Collections.unmodifiableCollection(allowed);
   }

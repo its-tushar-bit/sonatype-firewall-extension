@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.BadGatewayException;
@@ -41,9 +41,9 @@ public class PingHdsClientTest
 
   @Override
   protected void initClient() {
-    CLMLicenseManager licenseManager = mock(CLMLicenseManager.class);
+    ProductLicense productLicense = mock(ProductLicense.class);
     ApiProxyConfigurationServiceV2 proxyConfig = new ApiProxyConfigurationServiceV2(new ProxyConfigurationDAO());
-    client = new PingHdsClient(new InsightProxy(config, proxyConfig), licenseManager, config, new VersionService(),
+    client = new PingHdsClient(new InsightProxy(config, proxyConfig), productLicense, config, new VersionService(),
         telemetryId);
   }
 

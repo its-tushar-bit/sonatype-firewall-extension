@@ -41,6 +41,9 @@ public class CLMLicenseManagerTest
   private CLMLicenseManager clmLicenseManager;
 
   @Inject
+  private ProductLicense productLicense;
+
+  @Inject
   private TestLicenseFingerprinter licenseFingerprinter;
 
   @Inject
@@ -53,9 +56,9 @@ public class CLMLicenseManagerTest
   @Test
   public void testMissingLicense_BasicLicenseInformationCanStillBeQueried() throws Exception {
     clmLicenseManager.uninstallLicense();
-    assertThat(clmLicenseManager.getLicenseFingerprint()).isNull();
-    assertThat(clmLicenseManager.getFeatures()).isEmpty();
-    assertThat(clmLicenseManager.getStageTypes()).isEmpty();
+    assertThat(productLicense.getFingerprint()).isNull();
+    assertThat(productLicense.getFeatures()).isEmpty();
+    assertThat(productLicense.getStageTypes()).isEmpty();
     assertThat(clmLicenseManager.getLicenseSummary()).isNotNull();
     assertThat(clmLicenseManager.getLicenseInfo()).isNotNull();
   }
@@ -69,7 +72,7 @@ public class CLMLicenseManagerTest
     }).isInstanceOf(LicensingException.class)
         .hasMessage("License does not permit use of feature '" + CLMFeature.ID + "' or '" + FirewallFeature.ID + "'");
 
-    assertThat(clmLicenseManager.getLicenseFingerprint()).isNull();
+    assertThat(productLicense.getFingerprint()).isNull();
   }
 
   @Test
@@ -78,29 +81,29 @@ public class CLMLicenseManagerTest
     long before = System.currentTimeMillis();
     installLicense();
 
-    assertThat(clmLicenseManager.isValid()).isTrue();
+    assertThat(productLicense.isValid()).isTrue();
 
     Thread.sleep(2100 - (System.currentTimeMillis() - before));
 
-    assertThat(clmLicenseManager.isValid()).isFalse();
+    assertThat(productLicense.isValid()).isFalse();
   }
 
   @Test
   public void testLicenseCache() throws Exception {
-    assertThat(clmLicenseManager.isValid()).isTrue();
-    assertThat(clmLicenseManager.getApplicationCountLimit()).isEqualTo(100);
-    assertThat(clmLicenseManager.hasFeature(LicensedFeature.POLICY_MONITORING)).isTrue();
+    assertThat(productLicense.isValid()).isTrue();
+    assertThat(productLicense.getMaxApplications()).isEqualTo(100);
+    assertThat(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).isTrue();
 
     // now change the value and make sure the cache is still stale
     licenseManager.setApplicationLimit(10);
-    assertThat(clmLicenseManager.getApplicationCountLimit()).isEqualTo(100);
+    assertThat(productLicense.getMaxApplications()).isEqualTo(100);
     licenseManager.setProducts("");
-    assertThat(clmLicenseManager.hasFeature(LicensedFeature.POLICY_MONITORING)).isTrue();
+    assertThat(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).isTrue();
 
     // now install the license (which causes the cache to be cleared) and make sure the cache is no longer stale
     installLicense();
-    assertThat(clmLicenseManager.getApplicationCountLimit()).isEqualTo(10);
-    assertThat(clmLicenseManager.hasFeature(LicensedFeature.POLICY_MONITORING)).isFalse();
+    assertThat(productLicense.getMaxApplications()).isEqualTo(10);
+    assertThat(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).isFalse();
   }
 
   @Test
@@ -108,7 +111,7 @@ public class CLMLicenseManagerTest
     licenseManager.setProperty(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, "Invalid,Build,Procure");
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
-    assertThat(clmLicenseManager.getFeatures()).contains(LicensedFeature.CI_INTEGRATION,
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.CI_INTEGRATION,
         LicensedFeature.IDE_INTEGRATION, LicensedFeature.RM_STAGING_INTEGRATION);
   }
 
@@ -116,7 +119,7 @@ public class CLMLicenseManagerTest
   public void testGetFeatures_NexusProPlus() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     installLicense();
-    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.ENFORCEMENT, //
         LicensedFeature.NOTIFICATIONS, //
@@ -128,7 +131,7 @@ public class CLMLicenseManagerTest
   public void testGetFeatures_Auditor() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
-    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.DASHBOARD, //
         LicensedFeature.POLICY_MONITORING, //
@@ -144,7 +147,7 @@ public class CLMLicenseManagerTest
   public void testGetFeatures_Lifecycle() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
-    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.IDE_INTEGRATION, //
         LicensedFeature.CI_INTEGRATION, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
@@ -163,7 +166,7 @@ public class CLMLicenseManagerTest
   public void testGetFeatures_Firewall() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
-    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.FIREWALL, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
@@ -174,7 +177,7 @@ public class CLMLicenseManagerTest
   public void testGetFeatures_FirewallForArtifactory() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
     installLicense();
-    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
         LicensedFeature.RM_STAGING_INTEGRATION);
@@ -184,7 +187,7 @@ public class CLMLicenseManagerTest
   public void testGetFeatures_Foundation() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     installLicense();
-    assertThat(clmLicenseManager.getFeatures()).containsExactlyInAnyOrder( //
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.DASHBOARD, //
         LicensedFeature.CI_INTEGRATION, //
         LicensedFeature.CLI_INTEGRATION, //
@@ -197,7 +200,7 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
 
-    assertThat(clmLicenseManager.getStageTypes()).containsExactlyInAnyOrder( //
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
         StageTypes.RELEASE, //
         StageTypes.PROXY);
   }
@@ -207,7 +210,7 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     installLicense();
 
-    assertThat(clmLicenseManager.getStageTypes()).containsExactlyInAnyOrder( //
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //
         StageTypes.PROXY);
@@ -218,7 +221,7 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
 
-    assertThat(clmLicenseManager.getStageTypes()).containsExactlyInAnyOrder( //
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //
         StageTypes.PROXY);
@@ -229,7 +232,7 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
     installLicense();
 
-    assertThat(clmLicenseManager.getStageTypes()).containsExactlyInAnyOrder( //
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
         StageTypes.PROXY);
   }
 
@@ -238,7 +241,7 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
 
-    assertThat(clmLicenseManager.getStageTypes()).containsExactlyInAnyOrder( //
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
         StageTypes.DEVELOP, //
         StageTypes.BUILD, //
         StageTypes.STAGE_RELEASE, //
@@ -252,7 +255,7 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     installLicense();
 
-    assertThat(clmLicenseManager.getStageTypes()).containsExactlyInAnyOrder( //
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
         StageTypes.DEVELOP, //
         StageTypes.BUILD, //
         StageTypes.STAGE_RELEASE, //
@@ -548,7 +551,7 @@ public class CLMLicenseManagerTest
 
     clmLicenseManager.installLicenseIfUnlicensed(null);
 
-    assertThat(clmLicenseManager.getLicenseFingerprint()).isNull();
+    assertThat(productLicense.getFingerprint()).isNull();
   }
 
   @Test
@@ -569,7 +572,7 @@ public class CLMLicenseManagerTest
     clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath);
 
     assertThat(logOutput).atInfoLevel().contains(licenseFilePath);
-    assertThat(clmLicenseManager.getLicenseFingerprint()).isNotNull();
+    assertThat(productLicense.getFingerprint()).isNotNull();
   }
 
   @Test
@@ -580,7 +583,7 @@ public class CLMLicenseManagerTest
       clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath);
     }).isInstanceOf(FileNotFoundException.class).hasMessageContaining(new File(licenseFilePath).getPath());
     assertThat(logOutput).atInfoLevel().contains(licenseFilePath);
-    assertThat(clmLicenseManager.getLicenseFingerprint()).isNull();
+    assertThat(productLicense.getFingerprint()).isNull();
   }
 
   @Test
@@ -592,6 +595,6 @@ public class CLMLicenseManagerTest
       clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath);
     }).isInstanceOf(LicensingException.class);
     assertThat(logOutput).atInfoLevel().contains(licenseFilePath);
-    assertThat(clmLicenseManager.getLicenseFingerprint()).isNull();
+    assertThat(productLicense.getFingerprint()).isNull();
   }
 }

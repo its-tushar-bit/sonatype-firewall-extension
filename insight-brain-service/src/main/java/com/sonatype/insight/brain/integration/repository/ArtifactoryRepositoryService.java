@@ -11,8 +11,8 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 
 @Named
@@ -20,16 +20,16 @@ public class ArtifactoryRepositoryService extends AbstractRepositoryService
 {
   @Inject
   public ArtifactoryRepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-                                      CLMLicenseManager licenseManager,
+                                      ProductLicense productLicense,
                                       HdsClient hdsClient,
                                       PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
-    super(repositoryPolicyEvaluator, licenseManager, hdsClient, policyViolationLoggerFactory);
+    super(repositoryPolicyEvaluator, productLicense, hdsClient, policyViolationLoggerFactory);
   }
 
   @Override
   protected void checkLicenseFeature() {
-    if (!licenseManager.hasFeature(LicensedFeature.FIREWALL_FOR_ARTIFACTORY)) {
+    if (!productLicense.hasFeature(LicensedFeature.FIREWALL_FOR_ARTIFACTORY)) {
       throw new InvalidLicenseException();
     }
   }

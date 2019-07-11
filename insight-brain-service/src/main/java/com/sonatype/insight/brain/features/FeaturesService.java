@@ -12,7 +12,7 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 
 import org.slf4j.Logger;
@@ -27,18 +27,18 @@ public class FeaturesService
 {
   private static final Logger log = LoggerFactory.getLogger(FeaturesService.class);
 
-  private final CLMLicenseManager licenseManager;
+  private final ProductLicense productLicense;
 
   private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
   private final InsightConfig insightConfig;
 
   @Inject
-  public FeaturesService(CLMLicenseManager licenseManager,
+  public FeaturesService(ProductLicense productLicense,
                          RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils,
                          InsightConfig insightConfig)
   {
-    this.licenseManager = licenseManager;
+    this.productLicense = productLicense;
     this.rootOrganizationConfigMigrationUtils = rootOrganizationConfigMigrationUtils;
     this.insightConfig = insightConfig;
   }
@@ -49,7 +49,7 @@ public class FeaturesService
    */
   public Set<Feature> getFeatures() {
     Set<Feature> features = new HashSet<>();
-    if (licenseManager.isValid()) {
+    if (productLicense.isValid()) {
       addVersionSpecificFeatures(features);
       addLicenseSpecificFeatures(features);
 
@@ -79,7 +79,7 @@ public class FeaturesService
   }
 
   private void addLicenseSpecificFeatures(Set<Feature> features) {
-    features.addAll(licenseManager.getFeatures());
+    features.addAll(productLicense.getFeatures());
     if (features.contains(LicensedFeature.FIREWALL_FOR_ARTIFACTORY)) {
       features.remove(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
       features.add(LicensedFeature.FIREWALL);

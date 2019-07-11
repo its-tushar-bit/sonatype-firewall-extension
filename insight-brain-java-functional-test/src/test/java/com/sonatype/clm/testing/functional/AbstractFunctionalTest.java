@@ -26,7 +26,10 @@ import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -44,6 +47,10 @@ import com.codeborne.selenide.ex.UIAssertionError;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import io.dropwizard.server.DefaultServerFactory;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.subject.SubjectContext;
+import org.apache.shiro.util.ThreadContext;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -73,6 +80,9 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 
 public abstract class AbstractFunctionalTest
 {
@@ -83,6 +93,8 @@ public abstract class AbstractFunctionalTest
   protected static final TestLicenseFingerprinter licenseFingerprinter;
 
   protected static final TestLicenseManager clmLicenseManager;
+
+  private static final ProductLicense productLicense;
 
   protected static final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
@@ -111,7 +123,8 @@ public abstract class AbstractFunctionalTest
   static {
     productLicenseManager = new TestProductLicenseManager();
     licenseFingerprinter = new TestLicenseFingerprinter();
-    clmLicenseManager = new TestLicenseManager(productLicenseManager, licenseFingerprinter, null);
+    productLicense = new TestProductLicense(productLicenseManager);
+    clmLicenseManager = new TestLicenseManager(productLicense, productLicenseManager, licenseFingerprinter, null);
     rootOrganizationConfigMigrationUtils = Mockito.mock(RootOrganizationConfigMigrationUtils.class);
     jiraService = Mockito.mock(JiraService.class);
     initMocks();
@@ -169,9 +182,15 @@ public abstract class AbstractFunctionalTest
   }
 
   @BeforeClass
-  public static void setup() {
+  public static void setUpClass() {
     setupWebDriver();
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(staticTempEntity);
+    Subject subject = mock(Subject.class);
+    lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Admin", true));
+    SecurityManager securityManager = mock(SecurityManager.class);
+    lenient().when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
+    ThreadContext.bind(securityManager);
+    ThreadContext.bind(subject);
   }
 
   protected static void setupWebDriver() {
@@ -186,6 +205,12 @@ public abstract class AbstractFunctionalTest
   }
 
   @AfterClass
+  public static void tearDownClass() {
+    ThreadContext.unbindSecurityManager();
+    ThreadContext.unbindSubject();
+    hardreset();
+  }
+
   public static void hardreset() {
     WebDriverRunner.getWebDriver().manage().deleteAllCookies();
   }
@@ -239,7 +264,9 @@ public abstract class AbstractFunctionalTest
     {
       @Override
       protected void configure() {
-        bind(ProductLicenseManager.class).toInstance(productLicenseManager);
+        bind(ProductLicense.class).toInstance(productLicense);
+        bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
+        bind(TestProductLicenseManager.class).toInstance(productLicenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
         bind(CLMLicenseManager.class).toInstance(clmLicenseManager);
         bind(RootOrganizationConfigMigrationUtils.class).toInstance(rootOrganizationConfigMigrationUtils);

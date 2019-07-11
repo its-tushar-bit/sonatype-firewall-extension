@@ -21,17 +21,13 @@ import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
-import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
-import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -72,13 +68,12 @@ public class ApplicationReportVulnerabilitiesTest
 
   private PolicyDAO policyDAO = new PolicyDAO();
 
-  private PolicyViolationGrandfatheringService policyViolationGrandfatheringService =
-      new PolicyViolationGrandfatheringService(applicationDAO, new OrganizationDAO(), policyDAO,
-          new PolicyViolationDAO(), new PolicyViolationPersistenceLocks(), clmLicenseManager,
-          new PolicyViolationLoggerFactory(clmLicenseManager));
+  private PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
 
   @Before
   public void starts() throws IOException {
+    policyViolationGrandfatheringService =
+        testCLMServer.getCLMServer().getInjector().getInstance(PolicyViolationGrandfatheringService.class);
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
     PolicyImportExport policyImportExport = new PolicyImportExport();

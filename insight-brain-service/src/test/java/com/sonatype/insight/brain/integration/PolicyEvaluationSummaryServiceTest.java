@@ -13,17 +13,17 @@ import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PolicyEvaluationSummaryServiceTest
@@ -32,18 +32,18 @@ public class PolicyEvaluationSummaryServiceTest
   @Inject
   private PolicyEvaluationSummaryService policyEvaluationSummaryService;
 
-  private CLMLicenseManager licenseManager;
+  @Mock
+  private ProductLicense productLicense;
 
   @Override
   public void configure(Binder binder) {
-    licenseManager = mock(CLMLicenseManager.class);
-    binder.bind(CLMLicenseManager.class).toInstance(licenseManager);
+    binder.bind(ProductLicense.class).toInstance(productLicense);
     super.configure(binder);
   }
 
   @Test
   public void testGetEvaluationSummaryByApplicationId() throws Exception {
-    when(licenseManager.hasFeature(LicensedFeature.QUALITY)).thenReturn(true);
+    when(productLicense.hasFeature(LicensedFeature.QUALITY)).thenReturn(true);
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "test-scanid";
@@ -68,7 +68,7 @@ public class PolicyEvaluationSummaryServiceTest
 
   @Test
   public void testGetEvaluationSummaryByApplicationId_NoApplication() throws Exception {
-    when(licenseManager.hasFeature(LicensedFeature.QUALITY)).thenReturn(true);
+    when(productLicense.hasFeature(LicensedFeature.QUALITY)).thenReturn(true);
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String appId = "invalidAppId";
@@ -79,7 +79,7 @@ public class PolicyEvaluationSummaryServiceTest
 
   @Test
   public void testGetEvaluationSummaryByApplicationId_NoPolicyEvaluationAvailable() throws Exception {
-    when(licenseManager.hasFeature(LicensedFeature.QUALITY)).thenReturn(true);
+    when(productLicense.hasFeature(LicensedFeature.QUALITY)).thenReturn(true);
 
     Stage stage = new Stage(Stage.ID_BUILD);
     Application application = tempEntity.newApplicationWithParent("test-app");
@@ -90,7 +90,7 @@ public class PolicyEvaluationSummaryServiceTest
 
   @Test
   public void testGetEvaluationSummaryByApplicationId_Unlicensed() throws Exception {
-    when(licenseManager.hasFeature(LicensedFeature.QUALITY)).thenReturn(false);
+    when(productLicense.hasFeature(LicensedFeature.QUALITY)).thenReturn(false);
 
     Stage stage = new Stage(Stage.ID_BUILD);
     Application application = tempEntity.newApplicationWithParent("test-app");

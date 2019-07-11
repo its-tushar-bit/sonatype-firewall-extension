@@ -25,8 +25,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
@@ -68,7 +68,7 @@ public class ApplicationSummaryService
 
   private final OrganizationDAO organizationDAO;
 
-  private final CLMLicenseManager licenseManager;
+  private final ProductLicense productLicense;
 
   @Inject
   public ApplicationSummaryService(final ApplicationSummaryAdapter applicationAdapter,
@@ -78,7 +78,7 @@ public class ApplicationSummaryService
                                    TelemetrySender telemetrySender,
                                    final ApplicationHelper applicationHelper,
                                    final OrganizationDAO organizationDAO,
-                                   final CLMLicenseManager licenseManager)
+                                   final ProductLicense productLicense)
   {
     this.applicationAdapter = applicationAdapter;
     this.applicationDAO = applicationDAO;
@@ -87,11 +87,11 @@ public class ApplicationSummaryService
     this.telemetrySender = telemetrySender;
     this.applicationHelper = applicationHelper;
     this.organizationDAO = organizationDAO;
-    this.licenseManager = licenseManager;
+    this.productLicense = productLicense;
   }
 
   public ApplicationSummaryList getApplications(Goal goal) {
-    if (!licenseManager.hasFeature(LicensedFeature.ENFORCEMENT) && Goal.EVALUATE_COMPONENT.equals(goal)) {
+    if (!productLicense.hasFeature(LicensedFeature.ENFORCEMENT) && Goal.EVALUATE_COMPONENT.equals(goal)) {
       log.debug("License does not support IDE plugins.");
       throw new InvalidLicenseException();
     }

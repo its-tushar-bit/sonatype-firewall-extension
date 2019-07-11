@@ -24,12 +24,15 @@ import org.slf4j.LoggerFactory;
 public class ProductLicenseService
 {
   private final CLMLicenseManager licenseManager;
+  
+  private final ProductLicense productLicense;
 
   private final Logger log = LoggerFactory.getLogger(ProductLicenseService.class);
 
   @Inject
-  public ProductLicenseService(CLMLicenseManager licenseManager) {
+  public ProductLicenseService(CLMLicenseManager licenseManager, ProductLicense productLicense) {
     this.licenseManager = licenseManager;
+    this.productLicense = productLicense;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -67,7 +70,7 @@ public class ProductLicenseService
   }
 
   public LicenseSummary validateLicense() {
-    licenseManager.validate();
+    productLicense.validate();
     return licenseManager.getLicenseSummary();
   }
 

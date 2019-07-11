@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -50,19 +50,19 @@ public class ApiSourceControlService
 
   private final SourceControlDAO sourceControlDAO;
 
-  private final CLMLicenseManager clmLicenseManager;
+  private final ProductLicense productLicense;
 
   private final TelemetrySender telemetrySender;
 
   @Inject
   public ApiSourceControlService(final PlexusCipher plexusCipher,
                                  final SourceControlDAO sourceControlDAO,
-                                 final CLMLicenseManager clmLicenseManager,
+                                 final ProductLicense productLicense,
                                  final TelemetrySender telemetrySender)
   {
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
-    this.clmLicenseManager = clmLicenseManager;
+    this.productLicense = productLicense;
     this.telemetrySender = telemetrySender;
   }
 
@@ -192,7 +192,7 @@ public class ApiSourceControlService
   }
 
   private void checkLicense() {
-    if (!clmLicenseManager.hasFeature(LicensedFeature.NOTIFICATIONS)) {
+    if (!productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)) {
       log.debug("License does not support SourceControl notification features");
       throw new InvalidLicenseException();
     }

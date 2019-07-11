@@ -25,25 +25,25 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.StageTypeService;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 @Named
 public class DashboardUtils
 {
-  private final CLMLicenseManager licenseManager;
+  private final ProductLicense productLicense;
 
   private final StageTypeService stageTypeService;
 
   @Inject
-  public DashboardUtils(CLMLicenseManager licenseManager, StageTypeService stageTypeService) {
-    this.licenseManager = licenseManager;
+  public DashboardUtils(ProductLicense productLicense, StageTypeService stageTypeService) {
+    this.productLicense = productLicense;;
     this.stageTypeService = stageTypeService;
   }
 
   void validateDashboardLicensed() {
-    if (!licenseManager.hasFeature(LicensedFeature.DASHBOARD)) {
+    if (!productLicense.hasFeature(LicensedFeature.DASHBOARD)) {
       throw new InvalidLicenseException();
     }
   }

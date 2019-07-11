@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 
@@ -36,18 +36,18 @@ public class PolicyEvaluationSummaryService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final CLMLicenseManager licenseManager;
+  private final ProductLicense productLicense;
 
   @Inject
   public PolicyEvaluationSummaryService(final ApplicationDAO applicationDAO,
                                         final ScanPolicyEvaluator scanPolicyEvaluator,
                                         final PolicyEvaluationDAO policyEvaluationDAO,
-                                        final CLMLicenseManager licenseManager)
+                                        final ProductLicense productLicense)
   {
     this.applicationDAO = applicationDAO;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.licenseManager = licenseManager;
+    this.productLicense = productLicense;
   }
 
   @Authorize(permission = Permission.READ)
@@ -79,7 +79,7 @@ public class PolicyEvaluationSummaryService
   }
 
   private void validateLicensed() {
-    if (!licenseManager.hasFeature(LicensedFeature.QUALITY)) {
+    if (!productLicense.hasFeature(LicensedFeature.QUALITY)) {
       throw new InvalidLicenseException();
     }
   }

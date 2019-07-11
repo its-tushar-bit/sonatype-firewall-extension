@@ -51,7 +51,7 @@ import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
 import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
@@ -107,7 +107,7 @@ public class ScanPolicyEvaluator
 
   private final TelemetrySender telemetrySender;
 
-  private final CLMLicenseManager clmLicenseManager;
+  private final ProductLicense productLicense;
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
@@ -122,7 +122,7 @@ public class ScanPolicyEvaluator
                              final TelemetrySender telemetrySender,
                              final PolicyViolationPersistenceLocks policyViolationPersistenceLocks,
                              final PolicyViolationLoggerFactory policyViolationLoggerFactory,
-                             final CLMLicenseManager clmLicenseManager)
+                             final ProductLicense productLicense)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -134,7 +134,7 @@ public class ScanPolicyEvaluator
     this.telemetrySender = telemetrySender;
     this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
-    this.clmLicenseManager = clmLicenseManager;
+    this.productLicense = productLicense;
   }
 
   public ScanPolicyEvaluatorResults evaluate(final Application application, final String scanId, final Stage stage)
@@ -201,7 +201,7 @@ public class ScanPolicyEvaluator
                                                boolean forMonitoring,
                                                List<PolicyViolation> activeViolations)
   {
-    boolean enableActions = clmLicenseManager.hasFeature(LicensedFeature.ENFORCEMENT);
+    boolean enableActions = productLicense.hasFeature(LicensedFeature.ENFORCEMENT);
     if (!enableActions) {
       log.debug("Ignoring actions in policy alerts for application {} and scan {} in stage {}, "
           + "license does not support enforcement.", applicationId, scanId, stageTypeId);
@@ -444,7 +444,7 @@ public class ScanPolicyEvaluator
     // The check if this is the first evaluation can be expensive. Do it only if grandfathering is enabled.
     if (policyViolationGrandfatheringService.isPolicyViolationGrandfatheringEnabled(tx, app.getId())
         && isFirstEvaluation(tx, app)) {
-      if (!clmLicenseManager.hasFeature(LicensedFeature.POLICY_GRANDFATHERING)) {
+      if (!productLicense.hasFeature(LicensedFeature.POLICY_GRANDFATHERING)) {
         log.debug("Not grandfathering violations in the first evaluation for application {}, " +
             "license does not support policy violation grandfathering.", app.getId());
         return;

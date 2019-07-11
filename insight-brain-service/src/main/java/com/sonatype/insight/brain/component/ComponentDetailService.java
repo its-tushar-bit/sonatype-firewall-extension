@@ -32,8 +32,8 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
@@ -55,20 +55,20 @@ public class ComponentDetailService
 
   private final StageTypeService stageTypeService;
 
-  private final CLMLicenseManager licenseManager;
+  private final ProductLicense productLicense;
 
   @Inject
   public ComponentDetailService(ApplicationService appService,
                                 ApplicationAdapter appAdapter,
                                 ApplicationComponentDAO applicationComponentDAO,
                                 StageTypeService stageTypeService,
-                                CLMLicenseManager licenseManager)
+                                ProductLicense productLicense)
   {
     this.appService = appService;
     this.appAdapter = appAdapter;
     this.applicationComponentDAO = applicationComponentDAO;
     this.stageTypeService = stageTypeService;
-    this.licenseManager = licenseManager;
+    this.productLicense = productLicense;
   }
 
   public List<ApplicationComponentDetailsDTO> getApplicationDetailsByHash(String hash) {
@@ -230,7 +230,7 @@ public class ComponentDetailService
   }
 
   private void validateDashboardLicensed() {
-    if (!licenseManager.hasFeature(LicensedFeature.DASHBOARD)) {
+    if (!productLicense.hasFeature(LicensedFeature.DASHBOARD)) {
       throw new InvalidLicenseException();
     }
   }

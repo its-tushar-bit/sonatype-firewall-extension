@@ -32,7 +32,7 @@ import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.utils.TemplateUtils;
@@ -64,7 +64,7 @@ public class JiraPolicyAlertNotifier
 
   private final AuditRecorder auditRecorder;
 
-  private final CLMLicenseManager clmLicenseManager;
+  private final ProductLicense productLicense;
 
   @Inject
   public JiraPolicyAlertNotifier(final InsightConfig insightConfig,
@@ -72,14 +72,14 @@ public class JiraPolicyAlertNotifier
                                  final JiraService jiraService,
                                  final BaseUrl baseUrl,
                                  final AuditRecorder auditRecorder,
-                                 final CLMLicenseManager clmLicenseManager)
+                                 final ProductLicense productLicense)
   {
     this.insightConfig = insightConfig;
     this.applicationAdapter = applicationAdapter;
     this.jiraService = jiraService;
     this.baseUrl = baseUrl;
     this.auditRecorder = auditRecorder;
-    this.clmLicenseManager = clmLicenseManager;
+    this.productLicense = productLicense;
 
     // resolve template used to render issue description
     try {
@@ -97,7 +97,7 @@ public class JiraPolicyAlertNotifier
                                 final Stage stage,
                                 final List<PolicyNotification> policyNotifications)
   {
-    if (!clmLicenseManager.hasFeature(LicensedFeature.NOTIFICATIONS)) {
+    if (!productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)) {
       log.debug("Not sending JIRA notifications for application {} and scan {} in stage {}" +
           ", license does not support notifications", app.getPublicId(), scanId, stage.getStageTypeId());
       return;

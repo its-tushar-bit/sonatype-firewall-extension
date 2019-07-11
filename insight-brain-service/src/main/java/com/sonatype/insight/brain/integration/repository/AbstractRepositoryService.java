@@ -35,7 +35,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -61,7 +61,7 @@ public abstract class AbstractRepositoryService
 
   private static final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
-  protected final CLMLicenseManager licenseManager;
+  protected final ProductLicense productLicense;
 
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
@@ -71,12 +71,12 @@ public abstract class AbstractRepositoryService
 
   @Inject
   public AbstractRepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-                                   CLMLicenseManager licenseManager,
+                                   ProductLicense productLicense,
                                    HdsClient hdsClient,
                                    PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
-    this.licenseManager = licenseManager;
+    this.productLicense = productLicense;
     this.hdsClient = hdsClient;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }

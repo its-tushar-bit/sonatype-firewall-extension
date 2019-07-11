@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -54,21 +54,21 @@ public class ApiDataRetentionPolicyService
 
   private final DataRetentionPolicyDAO dataRetentionPolicyDAO;
 
-  private final CLMLicenseManager licenseManager;
+  private final ProductLicense productLicense;
 
   @Inject
   public ApiDataRetentionPolicyService(
       DataRetentionPolicyDAO dataRetentionPolicyDAO,
-      CLMLicenseManager licenseManager)
+      ProductLicense productLicense)
   {
     this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
-    this.licenseManager = licenseManager;
+    this.productLicense = productLicense;
   }
 
   private List<String> getLicensedReportContextIds() {
     Set<String> licensed = Stream.concat( //
-        licenseManager.getStageTypes().stream().map(StageType::getId),
-        licenseManager.hasFeature(LicensedFeature.POLICY_MONITORING)
+        productLicense.getStageTypes().stream().map(StageType::getId),
+        productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)
             ? Stream.of(DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING)
             : Stream.empty())
         .collect(toSet());

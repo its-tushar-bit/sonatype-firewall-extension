@@ -32,8 +32,8 @@ import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -70,7 +70,7 @@ public class PolicyEvaluateService
 
   private final ScanHandler scanHandler;
 
-  private final CLMLicenseManager clmLicenseManager;
+  private final ProductLicense productLicense;
 
   @VisibleForTesting
   final Cache<String, PolicyEvaluationPollingResult> policyEvaluationPollingResults =
@@ -82,13 +82,13 @@ public class PolicyEvaluateService
                                PolicyAlertNotifier policyAlertNotifier,
                                ErrorResponseGenerator errorResponseGenerator,
                                ScanHandler scanHandler,
-                               CLMLicenseManager clmLicenseManager)
+                               ProductLicense productLicense)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
     this.errorResponseGenerator = errorResponseGenerator;
     this.scanHandler = scanHandler;
-    this.clmLicenseManager = clmLicenseManager;
+    this.productLicense = productLicense;
 
     executor = new ThreadPoolExecutor(5, 100, 5L, TimeUnit.MINUTES,
         new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("PolicyEvaluateService-%d").build());
@@ -139,15 +139,14 @@ public class PolicyEvaluateService
       HttpServletRequest req,
       Stage stage) throws IOException
   {
-    if (integrationType.equals(IntegrationType.CLI) && !clmLicenseManager.hasFeature(LicensedFeature.CLI_INTEGRATION)) {
+    if (integrationType.equals(IntegrationType.CLI) && !productLicense.hasFeature(LicensedFeature.CLI_INTEGRATION)) {
       throw new InvalidLicenseException();
     }
-    else if (integrationType.equals(IntegrationType.CI)
-        && !clmLicenseManager.hasFeature(LicensedFeature.CI_INTEGRATION)) {
+    else if (integrationType.equals(IntegrationType.CI) && !productLicense.hasFeature(LicensedFeature.CI_INTEGRATION)) {
       throw new InvalidLicenseException();
     }
     else if (integrationType.equals(IntegrationType.RM) &&
-        !clmLicenseManager.hasFeature(LicensedFeature.RM_STAGING_INTEGRATION)) {
+        !productLicense.hasFeature(LicensedFeature.RM_STAGING_INTEGRATION)) {
       throw new InvalidLicenseException();
     }
 

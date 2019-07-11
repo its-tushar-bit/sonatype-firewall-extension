@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 
@@ -48,7 +48,7 @@ public class PolicyAlertEmailer
   
   private final AuditRecorder auditRecorder;
 
-  private final CLMLicenseManager clmLicenseManager;
+  private final ProductLicense productLicense;
 
   @Inject
   public PolicyAlertEmailer(final InsightMail mail,
@@ -56,13 +56,13 @@ public class PolicyAlertEmailer
                             final ApplicationAdapter applicationAdapter,
                             final PolicyAlertEmailResolver policyAlertEmailResolver,
                             final AuditRecorder auditRecorder,
-                            final CLMLicenseManager clmLicenseManager)
+                            final ProductLicense productLicense)
   {
     super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;
     this.applicationAdapter = applicationAdapter;
     this.auditRecorder = auditRecorder;
-    this.clmLicenseManager = clmLicenseManager;
+    this.productLicense = productLicense;
   }
 
   public void sendNotifications(final Application app,
@@ -71,7 +71,7 @@ public class PolicyAlertEmailer
                                 final List<PolicyNotification> policyNotifications,
                                 final int grandfatheredPolicyViolationCount)
   {
-    if (!clmLicenseManager.hasFeature(LicensedFeature.NOTIFICATIONS)) {
+    if (!productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)) {
       log.debug("Not sending notifications for application {} and scan {} in stage {}" +
           ", license does not support notifications", app.getPublicId(), scanId, stage.getStageTypeId());
       return;

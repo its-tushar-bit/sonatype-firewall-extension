@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -97,6 +98,9 @@ public class PolicyAlertEmailerTest
 
   @Inject
   private CLMLicenseManager clmLicenseManager;
+
+  @Inject
+  private ProductLicense productLicense;
 
   @Inject
   private TestProductLicenseManager productLicenseManager;
@@ -469,7 +473,7 @@ public class PolicyAlertEmailerTest
     PolicyAlertEmailer undertest = new PolicyAlertEmailer(mailer, lookup(BaseUrl.class),
         new ApplicationAdapter(userDirectory),
         new PolicyAlertEmailResolver(userDirectory, ldapServiceSpy, new OwnerDAO(), new MembershipMappingDAO()),
-        new AuditRecorder(null), clmLicenseManager);
+        new AuditRecorder(null), productLicense);
 
     undertest.sendNotifications(app, scanId, stage, policyNotifications, 0);
     // make sure emails from server 2 still go out

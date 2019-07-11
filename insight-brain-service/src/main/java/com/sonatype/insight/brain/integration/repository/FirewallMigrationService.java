@@ -24,8 +24,8 @@ import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -61,16 +61,16 @@ public class FirewallMigrationService
 
   private final VersionService versionService;
 
-  private final CLMLicenseManager licenseManager;
+  private final ProductLicense productLicense;
 
   @Inject
-  public FirewallMigrationService(final VersionService versionService, final CLMLicenseManager licenseManager) {
+  public FirewallMigrationService(final VersionService versionService, final ProductLicense productLicense) {
     this.versionService = versionService;
-    this.licenseManager = licenseManager;
+    this.productLicense = productLicense;
   }
 
   private void checkLicenseFeature() {
-    if (!licenseManager.hasFeature(LicensedFeature.FIREWALL)) {
+    if (!productLicense.hasFeature(LicensedFeature.FIREWALL)) {
       throw new InvalidLicenseException();
     }
   }

@@ -9,7 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
@@ -31,12 +31,12 @@ public class PingHdsClient
 
   @Inject
   public PingHdsClient(InsightProxy proxy,
-                       CLMLicenseManager licenseManager,
+                       ProductLicense productLicense,
                        InsightConfig insightConfig,
                        VersionService versionService,
                        TelemetryId telemetryId)
   {
-    super(proxy, licenseManager, insightConfig, versionService, telemetryId);
+    super(proxy, productLicense, insightConfig, versionService, telemetryId);
   }
 
   @Override

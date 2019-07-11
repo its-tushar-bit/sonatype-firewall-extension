@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.policy.ConstraintFactDTO;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LabelEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LicenseThreatGroupEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
@@ -85,7 +85,7 @@ public class WebhookDispatcher
 
   private final AuditRecorder auditRecorder;
 
-  private final CLMLicenseManager clmLicenseManager;
+  private final ProductLicense productLicense;
 
   private final RepositoryDAO repositoryDAO;
 
@@ -95,7 +95,7 @@ public class WebhookDispatcher
                            final WebhookClientUtil webhookClientUtil,
                            final OwnerDTOUtil ownerDTOUtil,
                            final AuditRecorder auditRecorder,
-                           final CLMLicenseManager clmLicenseManager,
+                           final ProductLicense productLicense,
                            final RepositoryDAO repositoryDAO)
   {
     this.webhookService = webhookService;
@@ -103,7 +103,7 @@ public class WebhookDispatcher
     this.asyncEventBus = asyncEventBus;
     this.ownerDTOUtil = ownerDTOUtil;
     this.auditRecorder = auditRecorder;
-    this.clmLicenseManager = clmLicenseManager;
+    this.productLicense = productLicense;
     this.repositoryDAO = repositoryDAO;
   }
 
@@ -410,10 +410,10 @@ public class WebhookDispatcher
         RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(ownerId) || repositoryDAO.getById(ownerId) != null;
     boolean eventApplicableToApps = Organization.ROOT_ORGANIZATION_ID.equals(ownerId) || !eventApplicableToRepos;
 
-    if (eventApplicableToRepos && clmLicenseManager.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES)) {
+    if (eventApplicableToRepos && productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES)) {
       return true;
     }
-    if (eventApplicableToApps && clmLicenseManager.hasFeature(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS)) {
+    if (eventApplicableToApps && productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS)) {
       return true;
     }
 

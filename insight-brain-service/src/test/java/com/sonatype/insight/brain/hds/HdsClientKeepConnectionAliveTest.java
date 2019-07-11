@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
@@ -37,7 +37,7 @@ public class HdsClientKeepConnectionAliveTest
 
   private TelemetryId telemetryId;
 
-  private CLMLicenseManager licenseManager;
+  private ProductLicense productLicense;
 
   private InsightProxy insightProxy;
 
@@ -86,8 +86,8 @@ public class HdsClientKeepConnectionAliveTest
     config.setConnectTimeoutInSeconds(1);
     telemetryId = new TelemetryId(config);
 
-    licenseManager = mock(CLMLicenseManager.class);
-    when(licenseManager.getLicenseFingerprint()).thenReturn("license-fingerprint");
+    productLicense = mock(ProductLicense.class);
+    when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
     ApiProxyConfigurationServiceV2 proxyConfigService = new ApiProxyConfigurationServiceV2(new ProxyConfigurationDAO());
 
     stallingServerThread = new Thread(stallingServer);
@@ -101,7 +101,7 @@ public class HdsClientKeepConnectionAliveTest
 
   @Test
   public void testConnectTimeoutMustNotAffectRequestConfigSocketTimeout() throws InterruptedException {
-    HdsClient client = new HdsClient(insightProxy, licenseManager, config, new VersionService(), telemetryId, 20);
+    HdsClient client = new HdsClient(insightProxy, productLicense, config, new VersionService(), telemetryId, 20);
 
     stallingServerThread.start();
 

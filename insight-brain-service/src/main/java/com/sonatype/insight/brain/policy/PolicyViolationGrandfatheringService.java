@@ -26,8 +26,8 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -51,7 +51,7 @@ public class PolicyViolationGrandfatheringService
 
   private final PolicyViolationPersistenceLocks policyViolationPersistenceLocks;
 
-  private final CLMLicenseManager clmLicenseManager;
+  private final ProductLicense productLicense;
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
@@ -61,7 +61,7 @@ public class PolicyViolationGrandfatheringService
                                               PolicyDAO policyDAO,
                                               PolicyViolationDAO policyViolationDAO,
                                               PolicyViolationPersistenceLocks policyViolationPersistenceLocks,
-                                              CLMLicenseManager clmLicenseManager,
+                                              ProductLicense productLicense,
                                               PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.applicationDAO = applicationDAO;
@@ -69,12 +69,12 @@ public class PolicyViolationGrandfatheringService
     this.policyDAO = policyDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
-    this.clmLicenseManager = clmLicenseManager;
+    this.productLicense = productLicense;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }
 
   private void validateGrandfatheringIsLicensed() {
-    if (!clmLicenseManager.hasFeature(LicensedFeature.POLICY_GRANDFATHERING)) {
+    if (!productLicense.hasFeature(LicensedFeature.POLICY_GRANDFATHERING)) {
       log.debug("Policy violation grandfathering is not supported by the current license.");
       throw new InvalidLicenseException();
     }

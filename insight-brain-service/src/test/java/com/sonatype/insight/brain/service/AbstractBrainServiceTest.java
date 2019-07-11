@@ -45,7 +45,9 @@ import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -183,6 +185,7 @@ public abstract class AbstractBrainServiceTest
       @Override
       protected void configure() {
         bind(CLMLicenseManager.class).to(TestLicenseManager.class);
+        bind(ProductLicense.class).to(TestProductLicense.class);
         bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
         bind(TestProductLicenseManager.class).toInstance(licenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);

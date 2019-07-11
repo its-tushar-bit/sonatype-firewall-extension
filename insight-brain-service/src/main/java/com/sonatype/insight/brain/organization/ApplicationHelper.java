@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -46,7 +46,7 @@ public class ApplicationHelper
 
   private final ApplicationCleaner applicationCleaner;
 
-  private final CLMLicenseManager licenseManager;
+  private final ProductLicense productLicense;
 
   private final CurrentUser currentUser;
 
@@ -58,12 +58,12 @@ public class ApplicationHelper
                            final MembershipMappingDAO membershipMappingDAO,
                            final UserDirectory userDirectory,
                            final ApplicationCleaner applicationCleaner,
-                           final CLMLicenseManager licenseManager,
+                           final ProductLicense productLicense,
                            final CurrentUser currentUser,
                            final PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.applicationDAO = applicationDAO;
-    this.licenseManager = licenseManager;
+    this.productLicense = productLicense;
     this.organizationDAO = organizationDAO;
     this.userDirectory = userDirectory;
     this.applicationCleaner = applicationCleaner;
@@ -107,7 +107,7 @@ public class ApplicationHelper
   }
 
   public void validateNewApplication(final Application application) {
-    Integer appLimit = licenseManager.getApplicationCountLimit();
+    Integer appLimit = productLicense.getMaxApplications();
     if (appLimit != null && applicationDAO.getAll().size() >= appLimit) {
       throw new PaymentRequiredException("You have exceeded the licensed limit of " + appLimit + " applications.");
     }

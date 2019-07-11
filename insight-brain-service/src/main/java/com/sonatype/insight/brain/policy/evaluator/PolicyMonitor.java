@@ -32,7 +32,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -55,7 +55,7 @@ public class PolicyMonitor
 
   private final PolicyAlertNotifier policyAlertNotifier;
 
-  private final CLMLicenseManager licenseManager;
+  private final ProductLicense productLicense;
 
   private final AuditRecorder auditRecorder;
 
@@ -64,20 +64,20 @@ public class PolicyMonitor
                        ScanUploader uploader,
                        ScanPolicyEvaluator scanPolicyEvaluator,
                        PolicyAlertNotifier policyAlertNotifier,
-                       CLMLicenseManager licenseManager,
+                       ProductLicense productLicense,
                        AuditRecorder auditRecorder)
   {
     this.work = work;
     this.uploader = uploader;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
-    this.licenseManager = licenseManager;
+    this.productLicense = productLicense;
     this.auditRecorder = auditRecorder;
   }
 
   public void run() {
     // not licensed, back on outta here
-    if (!licenseManager.hasFeature(LicensedFeature.POLICY_MONITORING)) {
+    if (!productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)) {
       log.debug("Ending task, not licensed for Policy Monitoring.");
       return;
     }

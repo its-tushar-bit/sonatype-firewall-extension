@@ -12,17 +12,12 @@ import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyViolationGrandfatheringEditorPage;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService.PolicyViolationGrandfatheringDTO;
-import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
-import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Condition;
@@ -47,10 +42,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
 
   private OrganizationDAO organizationDAO = new OrganizationDAO();
 
-  private PolicyViolationGrandfatheringService policyViolationGrandfatheringService =
-      new PolicyViolationGrandfatheringService(new ApplicationDAO(), organizationDAO, new PolicyDAO(),
-          new PolicyViolationDAO(), new PolicyViolationPersistenceLocks(), clmLicenseManager,
-          new PolicyViolationLoggerFactory(clmLicenseManager));
+  private PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
 
   @BeforeClass
   public static void boot() {
@@ -61,6 +53,8 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
   protected void init(Owner currentOwner) {
     this.currentOwner = currentOwner;
     this.parentOrg = organizationDAO.getById(currentOwner.getParentOwnerId());
+    policyViolationGrandfatheringService =
+        testCLMServer.getCLMServer().getInjector().getInstance(PolicyViolationGrandfatheringService.class);
   }
 
   @Test

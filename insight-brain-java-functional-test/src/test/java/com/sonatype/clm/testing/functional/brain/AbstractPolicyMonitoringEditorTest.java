@@ -43,8 +43,6 @@ public abstract class AbstractPolicyMonitoringEditorTest
 
   private OrganizationDAO orgDao = new OrganizationDAO();
 
-  private StageTypeService stageTypeService = new StageTypeService(clmLicenseManager);
-
   @BeforeClass
   public static void boot() {
     refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
@@ -110,7 +108,8 @@ public abstract class AbstractPolicyMonitoringEditorTest
     // disable continuous monitoring checkboxes in notification area
     PolicyEditorPage.notificationsPill().click();
     NotificationsSection notificationsSection = PolicyEditorPage.notificationsSection();
-    cmIndex = stageTypeService.getLicensedStageTypes().size();
+    cmIndex =
+        testCLMServer.getCLMServer().getInjector().getInstance(StageTypeService.class).getLicensedStageTypes().size();
     notificationsSection.headers().get(cmIndex).shouldBe(DISABLED);
     if (notificationsReadOnly) {
       NotificationsSection.addNotification().email().shouldBe(disabled);

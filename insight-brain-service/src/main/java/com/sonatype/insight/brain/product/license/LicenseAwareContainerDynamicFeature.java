@@ -29,13 +29,13 @@ import org.slf4j.LoggerFactory;
 public class LicenseAwareContainerDynamicFeature
     implements DynamicFeature
 {
-  private final CLMLicenseManager licenseManager;
+  private final ProductLicense productLicense;
 
   private final BaseUrl baseUrl;
 
   @Inject
-  public LicenseAwareContainerDynamicFeature(CLMLicenseManager licenseManager, BaseUrl baseUrl) {
-    this.licenseManager = licenseManager;
+  public LicenseAwareContainerDynamicFeature(ProductLicense productLicense, BaseUrl baseUrl) {
+    this.productLicense = productLicense;
     this.baseUrl = baseUrl;
   }
 
@@ -55,9 +55,9 @@ public class LicenseAwareContainerDynamicFeature
       String path = request.getUriInfo().getPath();
 
       try {
-        licenseManager.validate();
+        productLicense.validate();
         if (feature != null) {
-          licenseManager.validateFeature(feature);
+          productLicense.validateFeature(feature);
         }
       }
       catch (InvalidLicenseException e) {

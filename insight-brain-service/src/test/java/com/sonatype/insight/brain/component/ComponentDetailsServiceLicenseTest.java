@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.component;
 
 import com.sonatype.insight.brain.features.LicensedFeature;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,11 +29,11 @@ public class ComponentDetailsServiceLicenseTest
   private ComponentDetailService componentDetailsService;
 
   @Mock
-  private CLMLicenseManager licenseManager;
+  private ProductLicense productLicense;
 
   @Before
   public void setup() {
-    when(licenseManager.hasFeature(LicensedFeature.DASHBOARD)).thenReturn(false);
+    when(productLicense.hasFeature(LicensedFeature.DASHBOARD)).thenReturn(false);
   }
 
   @Test(expected = InvalidLicenseException.class)

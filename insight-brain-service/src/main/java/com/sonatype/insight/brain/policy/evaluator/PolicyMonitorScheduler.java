@@ -17,6 +17,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.LicenseListener;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.service.InsightConfig;
 
@@ -40,7 +41,7 @@ public class PolicyMonitorScheduler
 
   private final InsightConfig config;
 
-  private final CLMLicenseManager licenseManager;
+  private final ProductLicense productLicense;
 
   private final PolicyMonitor policyMonitor;
 
@@ -49,9 +50,14 @@ public class PolicyMonitorScheduler
   public boolean disableForTesting;
 
   @Inject
-  public PolicyMonitorScheduler(InsightConfig config, CLMLicenseManager licenseManager, PolicyMonitor policyMonitor) {
+  public PolicyMonitorScheduler(
+      InsightConfig config,
+      ProductLicense productLicense,
+      CLMLicenseManager licenseManager,
+      PolicyMonitor policyMonitor)
+  {
     this.config = config;
-    this.licenseManager = licenseManager;
+    this.productLicense = productLicense;
     this.policyMonitor = policyMonitor;
     licenseManager.addListener(this);
   }
@@ -67,7 +73,7 @@ public class PolicyMonitorScheduler
       @Override
       public void run() {
         policyMonitor.run();
-        if (licenseManager.hasFeature(LicensedFeature.POLICY_MONITORING)) {
+        if (productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)) {
           log.info("Next Policy Monitor execution scheduled for {}", determineNextExecutionTime());
         }
       }
@@ -102,7 +108,7 @@ public class PolicyMonitorScheduler
 
   @Override
   public void licenseChanged() {
-    if (licenseManager.hasFeature(LicensedFeature.POLICY_MONITORING)) {
+    if (productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)) {
       startMonitoring();
     }
     else {
@@ -112,7 +118,7 @@ public class PolicyMonitorScheduler
 
   @Override
   public void start() {
-    if (licenseManager.hasFeature(LicensedFeature.POLICY_MONITORING)) {
+    if (productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)) {
       startMonitoring();
     }
   }

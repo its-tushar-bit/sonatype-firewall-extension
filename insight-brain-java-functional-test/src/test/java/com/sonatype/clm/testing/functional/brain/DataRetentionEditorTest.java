@@ -140,8 +140,8 @@ public class DataRetentionEditorTest
 
   @Test
   public void testDataRetentionEditor_LicensingAware() {
-    clmLicenseManager.setStageTypes(StageTypes.RELEASE);
-    clmLicenseManager.setMissingFeatures(LicensedFeature.POLICY_MONITORING);
+    testProductLicense.setStageTypes(StageTypes.RELEASE);
+    testProductLicense.setMissingFeatures(LicensedFeature.POLICY_MONITORING);
 
     refreshOrOpen(DataRetentionEditorPage.url(organization.getId()));
 

@@ -10,7 +10,6 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.METHOD;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.features.LicensedFeature;
@@ -18,6 +17,7 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -51,7 +51,7 @@ public class ApiSourceControlServiceTest
   private PlexusCipher plexusCipher;
 
   @Inject
-  private TestLicenseManager testLicenseManager;
+  private TestProductLicense testProductLicense;
 
   @Mock
   private TelemetrySender telemetrySenderMock;
@@ -161,7 +161,7 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testAddSourceControl_unlicensed() {
-    testLicenseManager.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
+    testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService
             .addSourceControl("foo", new SourceControl(testName.getMethodName(), "bar", "baz")));
@@ -169,7 +169,7 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testUpdateSourceControl_unlicensed() {
-    testLicenseManager.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
+    testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService
             .updateSourceControl("foo", new SourceControl(testName.getMethodName(), "bar", "baz")));
@@ -177,14 +177,14 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testDeleteSourceControl_unlicensed() {
-    testLicenseManager.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
+    testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService.deleteSourceControl("foo", "bar"));
   }
 
   @Test
   public void testGetAll_unlicensed() {
-    testLicenseManager.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
+    testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService.getAll());
   }

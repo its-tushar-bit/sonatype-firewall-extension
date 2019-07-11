@@ -14,7 +14,6 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
-import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
@@ -34,6 +33,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LabelEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LicenseThreatGroupEvent;
@@ -89,7 +89,7 @@ public class WebhookDispatcherTest
   private AsyncEventBus asyncEventBus;
 
   @Inject
-  private TestLicenseManager testLicenseManager;
+  private TestProductLicense testProductLicense;
 
   @Mock
   private WebhookClientUtil webhookClientUtil;
@@ -157,7 +157,7 @@ public class WebhookDispatcherTest
 
   @Test
   public void test_WebhooksAppAndRepoLicensed_SendsAllEvents() {
-    testLicenseManager.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
     Organization organization = tempEntity.newOrganization();
@@ -182,7 +182,7 @@ public class WebhookDispatcherTest
 
   @Test
   public void test_WebhooksNotLicensed_DoesNotSendEvents() {
-    testLicenseManager.setMissingFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
+    testProductLicense.setMissingFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
     Organization organization = tempEntity.newOrganization();
@@ -202,7 +202,7 @@ public class WebhookDispatcherTest
 
   @Test
   public void test_WebhooksRepositoryLicensed_SendsOnlyRepositoryEvents() {
-    testLicenseManager.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
     Organization organization = tempEntity.newOrganization();
     Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
@@ -226,7 +226,7 @@ public class WebhookDispatcherTest
 
   @Test
   public void test_ApplicationWebhooksLicensed_SendsOnlyApplicationEvents() {
-    testLicenseManager.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
 
     Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
     Organization organization = tempEntity.newOrganization();

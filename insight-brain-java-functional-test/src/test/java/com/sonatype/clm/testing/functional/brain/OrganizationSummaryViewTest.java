@@ -344,8 +344,8 @@ public class OrganizationSummaryViewTest
 
   @Test
   public void testDataRetentionTile_LicensingAware() {
-    clmLicenseManager.setStageTypes(StageTypes.RELEASE);
-    clmLicenseManager.setMissingFeatures(LicensedFeature.POLICY_MONITORING);
+    testProductLicense.setStageTypes(StageTypes.RELEASE);
+    testProductLicense.setMissingFeatures(LicensedFeature.POLICY_MONITORING);
     refresh();
 
     DataRetentionTile tile = OwnerSummaryPage.dataRetentionTile();

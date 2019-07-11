@@ -37,14 +37,12 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
-import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -184,7 +182,6 @@ public abstract class AbstractBrainServiceTest
     {
       @Override
       protected void configure() {
-        bind(CLMLicenseManager.class).to(TestLicenseManager.class);
         bind(ProductLicense.class).to(TestProductLicense.class);
         bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
         bind(TestProductLicenseManager.class).toInstance(licenseManager);

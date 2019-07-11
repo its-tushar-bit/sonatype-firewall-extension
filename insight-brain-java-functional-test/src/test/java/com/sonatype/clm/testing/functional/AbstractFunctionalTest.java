@@ -17,7 +17,6 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
-import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
@@ -92,9 +91,9 @@ public abstract class AbstractFunctionalTest
 
   protected static final TestLicenseFingerprinter licenseFingerprinter;
 
-  protected static final TestLicenseManager clmLicenseManager;
+  protected static final CLMLicenseManager clmLicenseManager;
 
-  private static final ProductLicense productLicense;
+  protected static final TestProductLicense testProductLicense;
 
   protected static final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
@@ -123,8 +122,8 @@ public abstract class AbstractFunctionalTest
   static {
     productLicenseManager = new TestProductLicenseManager();
     licenseFingerprinter = new TestLicenseFingerprinter();
-    productLicense = new TestProductLicense(productLicenseManager);
-    clmLicenseManager = new TestLicenseManager(productLicense, productLicenseManager, licenseFingerprinter, null);
+    testProductLicense = new TestProductLicense(productLicenseManager);
+    clmLicenseManager = new CLMLicenseManager(testProductLicense, productLicenseManager, licenseFingerprinter, null);
     rootOrganizationConfigMigrationUtils = Mockito.mock(RootOrganizationConfigMigrationUtils.class);
     jiraService = Mockito.mock(JiraService.class);
     initMocks();
@@ -264,7 +263,7 @@ public abstract class AbstractFunctionalTest
     {
       @Override
       protected void configure() {
-        bind(ProductLicense.class).toInstance(productLicense);
+        bind(ProductLicense.class).toInstance(testProductLicense);
         bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
         bind(TestProductLicenseManager.class).toInstance(productLicenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);

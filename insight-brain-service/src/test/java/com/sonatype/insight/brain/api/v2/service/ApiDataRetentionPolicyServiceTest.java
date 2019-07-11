@@ -10,7 +10,6 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.api.v2.dto.ApiAgeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiAgeDTO.AgeUnit;
 import com.sonatype.insight.brain.api.v2.dto.ApiDataRetentionPoliciesDTO;
@@ -22,6 +21,7 @@ import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -37,7 +37,7 @@ public class ApiDataRetentionPolicyServiceTest
   private ApiDataRetentionPolicyService dataRetentionPolicyService;
 
   @Inject
-  private TestLicenseManager licenseManager;
+  private TestProductLicense testProductLicense;
 
   private DataRetentionPolicyDAO dataRetentionPolicyDAO = new DataRetentionPolicyDAO();
 
@@ -77,7 +77,7 @@ public class ApiDataRetentionPolicyServiceTest
   public void testGetDataRetentionPolicies_AppReports_LicensedStages() {
     Organization org = tempEntity.newOrganization();
 
-    licenseManager.setStageTypes(StageTypes.STAGE_RELEASE, StageTypes.RELEASE);
+    testProductLicense.setStageTypes(StageTypes.STAGE_RELEASE, StageTypes.RELEASE);
 
     ApiDataRetentionPoliciesDTO dto = dataRetentionPolicyService.getDataRetentionPolicies(org.getId());
 
@@ -86,7 +86,7 @@ public class ApiDataRetentionPolicyServiceTest
     assertThat(dto.applicationReports.stages).containsOnlyKeys(Stage.ID_STAGE_RELEASE, Stage.ID_RELEASE,
         DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING);
 
-    licenseManager.setMissingFeatures(LicensedFeature.POLICY_MONITORING);
+    testProductLicense.setMissingFeatures(LicensedFeature.POLICY_MONITORING);
 
     dto = dataRetentionPolicyService.getDataRetentionPolicies(org.getId());
 

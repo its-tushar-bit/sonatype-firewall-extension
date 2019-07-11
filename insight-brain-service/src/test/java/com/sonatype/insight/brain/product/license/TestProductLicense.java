@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -38,6 +40,15 @@ public class TestProductLicense
     return super.getFeatures();
   }
 
+  public void setFeatures(LicensedFeature... features) {
+    testProductLicenseManager.setFeatures(features);
+  }
+
+  public void setMissingFeatures(LicensedFeature feature, LicensedFeature... features) {
+    testProductLicenseManager
+        .setFeatures(EnumSet.complementOf(EnumSet.of(feature, features)).toArray(new LicensedFeature[0]));
+  }
+
   @Override
   public Set<StageType> getStageTypes() {
     // stage types are normally derived based on the products
@@ -47,5 +58,13 @@ public class TestProductLicense
       return stageTypes;
     }
     return super.getStageTypes();
+  }
+
+  public void setStageTypes(StageType... stageTypes) {
+    testProductLicenseManager.setStageTypes(stageTypes);
+  }
+
+  public void setStageTypes(Collection<StageType> stageTypes) {
+    setStageTypes(stageTypes.toArray(new StageType[stageTypes.size()]));
   }
 }

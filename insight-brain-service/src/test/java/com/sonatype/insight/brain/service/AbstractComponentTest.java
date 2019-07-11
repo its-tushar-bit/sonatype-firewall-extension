@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
-import com.sonatype.insight.brain.TestLicenseManager;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
@@ -112,7 +111,7 @@ public class AbstractComponentTest
     config.setHdsUrl("http://unknownhost");
     customizeConfig(config);
     binder.bind(InsightConfig.class).toInstance(config);
-    binder.bind(CLMLicenseManager.class).to(TestLicenseManager.class).asEagerSingleton();
+    binder.bind(CLMLicenseManager.class).asEagerSingleton();
     binder.bind(ProductLicense.class).to(TestProductLicense.class);
     binder.bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
     binder.bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class);

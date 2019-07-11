@@ -751,7 +751,6 @@
                 <include>**/TestCLMServer*</include>
                 <include>**/AbstractResourceTest*</include>
                 <include>**/TestLicenseFingerprinter*</include>
-                <include>**/TestLicenseManager*</include>
                 <include>**/TestProductLicense*</include>
                 <include>**/TestProductLicenseManager*</include>
                 <include>**/productlicense/license.lic</include>

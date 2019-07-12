@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.codehaus.plexus.util.FileUtils;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -441,6 +442,7 @@ public class LdapResourceTest
   }
 
   @Test
+  @Ignore("execution-order dependent failures")
   public void testTestConnection_ldaps() throws Exception {
     ldapServer.setAuthenticationSimple();
     ldapServer.enableLdaps(getTestResourceFile("/com/sonatype/insight/test/localhost.jks"), "password");

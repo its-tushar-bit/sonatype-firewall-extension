@@ -33,8 +33,6 @@ public class ReportClientTest
 
   private static final String scanId = "ReportResourceClient_ScanId";
 
-  private static final String licenseFingerprint = "ReportResourceClient_LicenseFingerprint";
-
   private static final String reportFileName = "report.zip";
 
   @Test
@@ -72,7 +70,6 @@ public class ReportClientTest
   @Test
   public void testDownloadBundle() throws Exception {
     tempEntity.newApplicationWithParent(applicationPublicId);
-    setLicenseFingerprint(licenseFingerprint);
 
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId(scanId);
@@ -97,7 +94,6 @@ public class ReportClientTest
   @Test
   public void testPrepareExpandedCoverageReport() throws Exception {
     Application app = tempEntity.newApplicationWithParent(applicationPublicId);
-    setLicenseFingerprint(licenseFingerprint);
 
     mockReport(scanId, "report-expanded-coverage");
 
@@ -115,7 +111,6 @@ public class ReportClientTest
   @Test
   public void testUnauthorizedError() throws Exception {
     tempEntity.newApplicationWithParent(applicationPublicId);
-    setLicenseFingerprint(licenseFingerprint);
 
     mockReport(scanId, reportFileName);
 

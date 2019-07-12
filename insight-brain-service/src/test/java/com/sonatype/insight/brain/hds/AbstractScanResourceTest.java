@@ -24,9 +24,7 @@ public abstract class AbstractScanResourceTest
   @Test
   public void testScan() throws Exception {
     final String applicationPublicId = className + "_AppId";
-    final String licenseFingerprint = className + "_LicenseFingerprint";
     tempEntity.newApplicationWithParent(applicationPublicId);
-    setLicenseFingerprint(licenseFingerprint);
 
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("f75365d9d93b4f1ea2dd8457a25dc44d");

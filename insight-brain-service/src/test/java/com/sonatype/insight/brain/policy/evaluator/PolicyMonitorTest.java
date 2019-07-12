@@ -110,8 +110,6 @@ public class PolicyMonitorTest
 
     tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
 
-    String licenseFingerprint = "PolicyMonitorTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
     String scanId1 = "PolicyMonitorTest_scanId";
 
     createScanFile(app, scanId1);
@@ -158,8 +156,6 @@ public class PolicyMonitorTest
 
     tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
 
-    String licenseFingerprint = "PolicyMonitorTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
     String scanId1 = "PolicyMonitorTest_scanId";
 
     createScanFile(app, scanId1);
@@ -295,8 +291,6 @@ public class PolicyMonitorTest
     }
     tempEntity.newPolicyMonitoring(policyMonitoring);
 
-    String licenseFingerprint = "PolicyMonitorTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
     String scanId1 = "PolicyMonitorTest_scanId1";
 
     String notifyEmail = "developer@sonatype.com";

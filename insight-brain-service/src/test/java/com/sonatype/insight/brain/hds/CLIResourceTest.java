@@ -29,9 +29,7 @@ public class CLIResourceTest
   @Test
   public void testPutScan_ExpandedCoverageScan() throws Exception {
     String applicationPublicId = "TestAppId";
-    String licenseFingerprint = "TestLicenseFingerprint";
     tempEntity.newApplicationWithParent(applicationPublicId);
-    setLicenseFingerprint(licenseFingerprint);
 
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("f75365d9d93b4f1ea2dd8457a25dc44a");
@@ -55,9 +53,7 @@ public class CLIResourceTest
   @Test
   public void testPutScan_TwistlockScan() throws Exception {
     String applicationPublicId = "TestAppId";
-    String licenseFingerprint = "TestLicenseFingerprint";
     tempEntity.newApplicationWithParent(applicationPublicId);
-    setLicenseFingerprint(licenseFingerprint);
 
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("f75365d9d93b4f1ea2dd8457a25dc44d");

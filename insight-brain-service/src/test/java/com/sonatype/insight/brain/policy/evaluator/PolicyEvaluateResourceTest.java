@@ -29,8 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PolicyEvaluateResourceTest
     extends AbstractResourceTest
 {
-  private String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
-
   private HttpRequest evaluateRequest(String appId, String scanId, Stage stage) {
     return restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId).parameter(appId)
         .body(stage);
@@ -39,7 +37,6 @@ public class PolicyEvaluateResourceTest
   @Test
   public void testEvaluate() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    setLicenseFingerprint(licenseFingerprint);
 
     Policy policy = tempEntity.newPolicy(app);
     policy.setAction(BuildStageType.ID, Action.ID_FAIL);
@@ -73,11 +70,9 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testEvaluate_LifecycleFoundationLicense() throws Exception {
-    getTestProductLicenseManager().setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    getTestProductLicenseManager().installLicense(null);
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
 
     Application app = tempEntity.newApplicationWithParent();
-    setLicenseFingerprint(licenseFingerprint);
 
     Policy policy = tempEntity.newPolicy(app);
     policy.setAction(BuildStageType.ID, Action.ID_FAIL);

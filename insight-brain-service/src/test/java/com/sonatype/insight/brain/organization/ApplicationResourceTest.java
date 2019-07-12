@@ -210,10 +210,8 @@ public class ApplicationResourceTest
     // Create an application
     final String applicationPublicId = "ApplicationResourceTest-getApplicationsTest-AppId";
     final String applicationName = "ApplicationResourceTest-getApplicationsTest-Name";
-    final String licenseFingerprint = "ApplicationResourceTest-getApplicationsTest-LicenseFingerprint";
 
     Application application = tempEntity.newApplicationWithParent(applicationPublicId, applicationName);
-    setLicenseFingerprint(licenseFingerprint);
 
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
@@ -254,7 +252,6 @@ public class ApplicationResourceTest
     // Create an application
     final String applicationPublicId = "ApplicationResourceTest-getApplicationsTest-AppId";
     final String applicationName = "ApplicationResourceTest-getApplicationsTest-Name";
-    final String licenseFingerprint = "ApplicationResourceTest-getApplicationsTest-LicenseFingerprint";
     final String organizationName = "OrgName";
 
     Organization organization = tempEntity.newOrganization(organizationName);
@@ -262,7 +259,6 @@ public class ApplicationResourceTest
     Application application = tempEntity.newApplication(applicationName, applicationPublicId, organization.getId());
     application.setContactInternalName("admin");
     new ApplicationDAO().update(application);
-    setLicenseFingerprint(licenseFingerprint);
 
     // Create policy
     tempEntity.newPolicy(application);

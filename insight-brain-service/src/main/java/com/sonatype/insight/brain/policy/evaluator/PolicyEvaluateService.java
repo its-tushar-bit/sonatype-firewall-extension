@@ -240,8 +240,7 @@ public class PolicyEvaluateService
 
         policyEvaluationPollingResult.setScanReceipt(scanReceipt);
         policyEvaluationPollingResults.put(policyEvaluationKey, policyEvaluationPollingResult);
-        // temporarily added to to flush out random failures in maven around report download from mock hds server.
-        Thread.sleep(2000);
+
         final long start = System.currentTimeMillis();
 
         log.debug(

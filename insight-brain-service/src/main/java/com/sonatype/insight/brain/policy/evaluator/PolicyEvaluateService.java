@@ -154,7 +154,7 @@ public class PolicyEvaluateService
 
     String statusId = UUID.randomUUID().toString().replace("-", "");
     log.debug(
-        "Received request to evaluate policy for app public id {}, clientScanType{}, stageTypeId {}. " +
+        "Received request to evaluate policy for app public id {}, clientScanType {}, stageTypeId {}. " +
             "The status ID of the operation is {}.",
         applicationPublicId, clientScanType, stage.getStageTypeId(), statusId);
 

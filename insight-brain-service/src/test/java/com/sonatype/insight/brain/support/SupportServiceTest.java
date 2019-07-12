@@ -157,6 +157,8 @@ public class SupportServiceTest
         .isEqualTo(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/dbFileInfo.txt");
     assertThat(entries.nextElement().getName())
         .isEqualTo(zipFileBasename + "/" + SupportFileType.DB.getDirName() + "/migrationTracker.json");
+    assertThat(entries.nextElement().getName())
+        .isEqualTo(zipFileBasename + "/" + SupportFileType.DB.getDirName() + "/systemConfiguration.json");
   }
 
   private static String getZipFileBasename(final File supportZipFile) {

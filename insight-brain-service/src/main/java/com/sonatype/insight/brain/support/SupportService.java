@@ -284,6 +284,7 @@ class SupportService
         true);
 
     addDbData(filesToZip, workDir, dbData.getMigrationTracker());
+    addDbData(filesToZip, workDir, dbData.getSystemConfiguration());
     if (includeDb) {
       addAllDbData(filesToZip, workDir);
     }

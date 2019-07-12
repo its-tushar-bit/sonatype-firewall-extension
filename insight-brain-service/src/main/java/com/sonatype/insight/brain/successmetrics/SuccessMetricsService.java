@@ -22,7 +22,7 @@ public class SuccessMetricsService
 {
   private static final Logger log = LoggerFactory.getLogger(SuccessMetricsService.class);
 
-  static final String PROPERTY_ENABLED = "SUCCESS_METRICS_ENABLED";
+  public static final String PROPERTY_ENABLED = "SUCCESS_METRICS_ENABLED";
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 

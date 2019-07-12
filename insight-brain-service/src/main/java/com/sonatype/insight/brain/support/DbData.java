@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.support;
 
 import java.util.AbstractMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -17,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
@@ -37,11 +39,16 @@ import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.InternalRealm;
 
 import org.apache.commons.lang.StringUtils;
+
+import static com.sonatype.insight.brain.hds.TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.PROXY_EXCLUDE_HOSTS;
 
 /**
  * @since 1.35
@@ -50,8 +57,6 @@ import org.apache.commons.lang.StringUtils;
 @Singleton
 class DbData
 {
-  // WARNING: Do not include the {@link SystemConfigurationProperty} data because it contains sensitive information.
-
   private final RepositoryManagerDAO repositoryManagerDAO;
 
   private final RepositoryDAO repositoryDAO;
@@ -102,6 +107,8 @@ class DbData
 
   private final MigrationTrackerDAO migrationTrackerDAO;
 
+  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Inject
   DbData(final RepositoryManagerDAO repositoryManagerDAO,
          final RepositoryDAO repositoryDAO,
@@ -126,7 +133,8 @@ class DbData
          final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO,
          final PolicyDAO policyDAO,
          final PolicyMonitoringDAO policyMonitoringDAO,
-         final MigrationTrackerDAO migrationTrackerDAO)
+         final MigrationTrackerDAO migrationTrackerDAO,
+         final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
   {
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
@@ -153,6 +161,7 @@ class DbData
     this.policyDAO = policyDAO;
     this.policyMonitoringDAO = policyMonitoringDAO;
     this.migrationTrackerDAO = migrationTrackerDAO;
+    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
 
   Entry<String, Object> getRepositoryManager() {
@@ -262,6 +271,28 @@ class DbData
 
   Entry<String, Object> getMigrationTracker() {
     return wrapEntry("migrationTracker", migrationTrackerDAO.getAll());
+  }
+
+  Entry<String, Object> getSystemConfiguration() {
+    List<SystemConfigurationProperty> systemConfigurationPropertyList = systemConfigurationPropertyDAO.getAll();
+
+    HashSet<String> needsMasking = new HashSet<>();
+    needsMasking.add(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
+    needsMasking.add(AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID);
+    needsMasking.add(PROXY_EXCLUDE_HOSTS);
+
+    // Obfuscation (CLM-12603)
+    for (SystemConfigurationProperty scp : systemConfigurationPropertyList) {
+      if (!needsMasking.contains(scp.getName())) {
+        continue;
+      }
+      if (StringUtils.isBlank(scp.getValue())) {
+        continue;
+      }
+      scp.setValue(SystemInfo.MASK);
+    }
+
+    return wrapEntry("systemConfiguration", systemConfigurationPropertyList);
   }
 
   private static Entry<String, Object> wrapEntry(final String entryName, final Object objectToPut) {

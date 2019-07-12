@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import java.util.List;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -16,6 +18,11 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class SystemConfigurationPropertyDAO
     extends AbstractOperationalSqlDAO<SystemConfigurationProperty>
 {
+  @Override
+  public SystemConfigurationProperty getById(final TransactionContext tx, final String id) {
+    return get(tx, "SELECT entity FROM SystemConfigurationProperty entity WHERE entity.id=?1", id);
+  }
+
   public SystemConfigurationProperty getByNameNotNull(String name) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByNameNotNull(tx, name);
@@ -39,6 +46,10 @@ public class SystemConfigurationPropertyDAO
       throw new NotFoundException("A system configuration property '" + name + "' does not exist.");
     }
     return property;
+  }
+
+  public List<SystemConfigurationProperty> getAll() {
+    return getList("SELECT scp FROM SystemConfigurationProperty scp");
   }
 
   @Override

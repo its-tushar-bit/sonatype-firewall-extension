@@ -284,6 +284,8 @@ public class TemporaryEntity
   
   private Collection<SourceControl> sourceControls;
 
+  private Collection<SystemConfigurationProperty> systemConfigurationProperties;
+
   @Override
   protected void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -310,6 +312,7 @@ public class TemporaryEntity
     successMetricsReports = new ArrayList<>();
     successMetricsReportDatas = new ArrayList<>();
     sourceControls = new ArrayList<>();
+    systemConfigurationProperties = new ArrayList<>();
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
@@ -352,6 +355,7 @@ public class TemporaryEntity
     delete(successMetricsReportDatas, successMetricsReportDataDAO);
     delete(successMetricsReports, successMetricsReportDAO);
     delete(sourceControls, sourceControlDAO);
+    delete(systemConfigurationProperties, systemConfigurationPropertyDAO);
 
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     if (config != null) {
@@ -1736,5 +1740,12 @@ public class TemporaryEntity
     sourceControlDAO.insert(sourceControl);
     sourceControls.add(sourceControl);
     return sourceControl;
+  }
+
+  public SystemConfigurationProperty newSystemConfigurationProperty(String name, String value) {
+    SystemConfigurationProperty scp = new SystemConfigurationProperty(name, value);
+    systemConfigurationPropertyDAO.insert(scp);
+    systemConfigurationProperties.add(scp);
+    return scp;
   }
 }

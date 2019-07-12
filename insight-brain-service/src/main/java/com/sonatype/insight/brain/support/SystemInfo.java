@@ -60,7 +60,7 @@ class SystemInfo
 {
   private static final Logger log = LoggerFactory.getLogger(SystemInfo.class);
 
-  static final String MASK = "****";
+  public static final String MASK = "****";
 
   private static Entry<String, SortedMap<String, Object>> wrapEntry(final String entryName,
                                                                     final SortedMap<String, Object> objectToPut)

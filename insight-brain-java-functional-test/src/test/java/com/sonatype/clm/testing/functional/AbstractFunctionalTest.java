@@ -91,8 +91,6 @@ public abstract class AbstractFunctionalTest
 
   protected static final TestLicenseFingerprinter licenseFingerprinter;
 
-  protected static final CLMLicenseManager clmLicenseManager;
-
   protected static final TestProductLicense testProductLicense;
 
   protected static final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
@@ -123,7 +121,6 @@ public abstract class AbstractFunctionalTest
     productLicenseManager = new TestProductLicenseManager();
     licenseFingerprinter = new TestLicenseFingerprinter();
     testProductLicense = new TestProductLicense(productLicenseManager);
-    clmLicenseManager = new CLMLicenseManager(testProductLicense, productLicenseManager, licenseFingerprinter, null);
     rootOrganizationConfigMigrationUtils = Mockito.mock(RootOrganizationConfigMigrationUtils.class);
     jiraService = Mockito.mock(JiraService.class);
     initMocks();
@@ -226,7 +223,7 @@ public abstract class AbstractFunctionalTest
     testCLMServer.getHdsServer().reset();
     if (productLicenseManager.wasChanged()) {
       productLicenseManager.reset();
-      clmLicenseManager.installLicense(null);
+      testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class).installLicense(null);
     }
     // so we aren't on app between page loads
     navigate(() -> {
@@ -239,7 +236,7 @@ public abstract class AbstractFunctionalTest
   protected void setLicensedProducts(String... products) {
     productLicenseManager.setProducts(products);
     try {
-      clmLicenseManager.installLicense(null);
+      testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class).installLicense(null);
     }
     catch (Exception e) {
       throw new RuntimeException(e);
@@ -267,7 +264,6 @@ public abstract class AbstractFunctionalTest
         bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
         bind(TestProductLicenseManager.class).toInstance(productLicenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
-        bind(CLMLicenseManager.class).toInstance(clmLicenseManager);
         bind(RootOrganizationConfigMigrationUtils.class).toInstance(rootOrganizationConfigMigrationUtils);
         bind(JiraService.class).toInstance(jiraService);
       }

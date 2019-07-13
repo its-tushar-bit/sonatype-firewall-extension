@@ -44,12 +44,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
 public class PolicyEvaluateService
+    implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluateService.class);
 
@@ -92,6 +94,15 @@ public class PolicyEvaluateService
     executor = new ThreadPoolExecutor(5, 100, 5L, TimeUnit.MINUTES,
         new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("PolicyEvaluateService-%d").build());
     executor.allowCoreThreadTimeOut(true);
+  }
+
+  @Override
+  public void start() throws Exception {
+  }
+
+  @Override
+  public void stop() throws Exception {
+    executor.shutdown();
   }
 
   private String getPolicyEvaluationKey(String applicationId, String statusId) {

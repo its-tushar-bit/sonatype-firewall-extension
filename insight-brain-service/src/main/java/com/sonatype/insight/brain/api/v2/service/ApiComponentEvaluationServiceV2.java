@@ -53,6 +53,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.dropwizard.lifecycle.Managed;
 import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +64,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class ApiComponentEvaluationServiceV2
+    implements Managed
 {
   public static final String PURPOSE_EVALUATION = "evaluation";
 
@@ -100,6 +102,15 @@ public class ApiComponentEvaluationServiceV2
     this.componentDetailsAdapter = componentDetailsAdapter;
     this.work = work;
     this.errorResponseGenerator = errorResponseGenerator;
+  }
+
+  @Override
+  public void start() throws Exception {
+  }
+
+  @Override
+  public void stop() throws Exception {
+    executor.shutdown();
   }
 
   @Authorize(permission = Permission.READ)

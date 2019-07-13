@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 
 import com.google.inject.TypeLiteral;
 import com.google.inject.binder.AnnotatedBindingBuilder;
+import io.dropwizard.lifecycle.Managed;
 import org.apache.shiro.authc.Authenticator;
 import org.apache.shiro.guice.ShiroModule;
 import org.apache.shiro.mgt.SecurityManager;
@@ -59,6 +60,8 @@ public class SecurityModule
 
   @Override
   protected void configureShiro() {
+    bind(Managed.class).toInstance(new Destroyer());
+    expose(Managed.class);
     TypeLiteral<Collection<SessionListener>> sessionListenerCollectionType =
         new TypeLiteral<Collection<SessionListener>>()
       {
@@ -211,6 +214,20 @@ public class SecurityModule
     public void customize(DefaultWebSessionManager sessionManager) {
       // customize cookie name to avoid clash with other webapps running on same host+contextRoot
       sessionManager.getSessionIdCookie().setName(SESSION_COOKIE_NAME);
+    }
+  }
+
+  private class Destroyer
+      implements Managed
+  {
+    @Override
+    public void start() throws Exception {
+    }
+
+    @Override
+    public void stop() throws Exception {
+      // stop Shiro components, especially its thread pools which otherwise leak memory during tests
+      destroy();
     }
   }
 }

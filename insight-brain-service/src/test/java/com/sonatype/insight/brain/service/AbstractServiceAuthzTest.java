@@ -23,7 +23,6 @@ import org.apache.shiro.guice.ShiroModule;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
-import org.junit.Before;
 
 /**
  * Common fixture for authorization tests of the service layer components.
@@ -39,25 +38,27 @@ public class AbstractServiceAuthzTest
 
   private User user;
 
+  private ShiroModule shiroModule;
+
   @Inject
   private SecurityManager securityManager;
 
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-    binder.install(new ShiroModule()
+    shiroModule = new ShiroModule()
     {
       @Override
       protected void configureShiro() {
         bindRealm().to(InternalRealm.class);
       }
-    });
+    };
+    binder.install(shiroModule);
     binder.install(new SecurityAopModule(true));
   }
 
   @Override
-  @Before
-  public void setUpSecurity() {
+  protected void setUpSecurity() {
     repository = tempEntity.newRepository();
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
@@ -65,6 +66,15 @@ public class AbstractServiceAuthzTest
     ThreadContext.bind(securityManager);
     subject = (new Subject.Builder()).buildSubject();
     ThreadContext.bind(subject);
+  }
+
+  @Override
+  protected void tearDownSecurity() {
+    if (shiroModule != null) {
+      // stop worker threads
+      shiroModule.destroy();
+    }
+    super.tearDownSecurity();
   }
 
   protected void login() {

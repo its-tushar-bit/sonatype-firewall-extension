@@ -53,7 +53,7 @@ public class FirewallMigrationService
 
   private static final RepositoryDAO repositoryDAO = new RepositoryDAO();
 
-  private final ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+  private final ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 3, TimeUnit.SECONDS,
       new LinkedBlockingQueue<Runnable>(), new ThreadFactoryBuilder().setNameFormat("FirewallMigration-%d").build());
 
   private final ConcurrentMap<String, MigrationDetails> migrationDetailsMap = new ConcurrentHashMap<>();
@@ -66,6 +66,7 @@ public class FirewallMigrationService
   public FirewallMigrationService(final VersionService versionService, final ProductLicense productLicense) {
     this.versionService = versionService;
     this.productLicense = productLicense;
+    executor.allowCoreThreadTimeOut(true);
   }
 
   private void checkLicenseFeature() {

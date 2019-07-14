@@ -225,6 +225,7 @@ public class TestInsightBrainService
   @Override
   public void run(final InsightConfig config, final Environment env) throws Exception {
     DefaultServerFactory defaultServerFactory = (DefaultServerFactory) config.getServerFactory();
+    defaultServerFactory.setIdleThreadTimeout(Duration.seconds(1));
     if (testKeystore != null) {
       HttpsConnectorFactory applicationHttpsConnector = new HttpsConnectorFactory();
       applicationHttpsConnector.setKeyStorePath(new File(testKeystore).getAbsolutePath());

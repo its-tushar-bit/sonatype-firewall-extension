@@ -76,6 +76,9 @@ public abstract class AbstractHdsClientTest
     if (server != null) {
       server.stop();
     }
+    if (client != null) {
+      client.stop();
+    }
   }
 
   protected abstract void initClient();

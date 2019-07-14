@@ -38,12 +38,12 @@ import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.dropwizard.lifecycle.Managed;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -55,6 +55,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
@@ -66,13 +67,14 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class HdsClient
+    implements Managed
 {
   // Logger is instance variable so that subclasses will have a different one which can be configured differently
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   protected final Configuration config;
 
-  private final HttpClient client;
+  private final CloseableHttpClient client;
 
   private final ProductLicense productLicense;
 
@@ -130,6 +132,15 @@ public class HdsClient
   }
 
   protected void customizeConfiguration(@SuppressWarnings("unused") Configuration configuration) {
+  }
+
+  @Override
+  public void start() throws Exception {
+  }
+
+  @Override
+  public void stop() throws Exception {
+    client.close();
   }
 
   public <T> T get(Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams) {

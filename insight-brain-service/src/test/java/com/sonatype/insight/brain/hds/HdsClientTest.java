@@ -45,11 +45,11 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -488,7 +488,7 @@ public class HdsClientTest
     Class<?> clientClass = client.getClass();
     Field httpClientField = clientClass.getDeclaredField("client");
     httpClientField.setAccessible(true);
-    HttpClient httpClient = mock(HttpClient.class);
+    CloseableHttpClient httpClient = mock(CloseableHttpClient.class);
     httpClientField.set(client, httpClient);
 
     when(httpClient.execute(any(HttpUriRequest.class))).thenThrow(new IOException("Test"));

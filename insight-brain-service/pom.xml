@@ -17,6 +17,7 @@
   <name>Insight Brain Service</name>
 
   <properties>
+    <test.forkCount>0.5C</test.forkCount>
     <freemarker.version>2.3.19</freemarker.version>
     <licensing.version>1.4</licensing.version>
     <truezipVersion>7.7.10</truezipVersion>
@@ -622,6 +623,11 @@
           <trimStackTrace>false</trimStackTrace>
           <reuseForks>true</reuseForks>
           <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
+          <forkCount>${test.forkCount}</forkCount>
+          <argLine>-Xmx768M</argLine>
+          <systemPropertyVariables>
+            <test.forkId>#${surefire.forkNumber}</test.forkId>
+          </systemPropertyVariables>
           <!-- Exclude the dependencies we obfuscate in order to ensure the un-obfuscated code is not available. -->
           <classpathDependencyExcludes>
             <classpathDependencyExcludes>com.sonatype.insight.scan:insight-scanner-hashing*</classpathDependencyExcludes>

@@ -48,6 +48,8 @@ public class TestInsightBrainService
   
   private static final String DEFAULT_CONFIG_FILE_PATH = "target/test-classes/config-test.yml";
 
+  private static final String FORK_ID = System.getProperty("test.forkId", "");
+
   public interface Configurator
   {
     void configure(InsightConfig config);
@@ -59,7 +61,7 @@ public class TestInsightBrainService
 
   private Configurator configurator;
 
-  private File workDir = new File("target/test-brain-work");
+  private File workDir = new File("target/test-brain-work" + FORK_ID);
 
   private int testPort;
 

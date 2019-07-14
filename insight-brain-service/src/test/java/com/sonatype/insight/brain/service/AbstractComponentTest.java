@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.service;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
@@ -21,6 +23,12 @@ import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
 import com.google.inject.Binder;
+import com.google.inject.TypeLiteral;
+import com.google.inject.matcher.AbstractMatcher;
+import com.google.inject.spi.InjectionListener;
+import com.google.inject.spi.TypeEncounter;
+import com.google.inject.spi.TypeListener;
+import io.dropwizard.lifecycle.Managed;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.SubjectContext;
@@ -69,6 +77,8 @@ public class AbstractComponentTest
   @Mock
   private SecurityManager securityManager;
 
+  private Collection<Managed> managedComponents = new ArrayList<>();
+
   @Before
   public final void beforeTest() {
     log.info("Before: {}", testName.getMethodName());
@@ -79,6 +89,7 @@ public class AbstractComponentTest
   @After
   public final void afterTest() {
     log.info("After: {}", testName.getMethodName());
+    stopManagedComponents();
     tearDownSecurity();
   }
 
@@ -99,8 +110,45 @@ public class AbstractComponentTest
     ThreadContext.unbindSubject();
   }
 
+  private void bindManagedComponentObserver(Binder binder) {
+    InjectionListener<Object> injectionListener = new InjectionListener<Object>()
+    {
+      @Override
+      public void afterInjection(Object injectee) {
+        managedComponents.add((Managed) injectee);
+      }
+    };
+    TypeListener typeListener = new TypeListener()
+    {
+      @Override
+      public <I> void hear(TypeLiteral<I> type, TypeEncounter<I> encounter) {
+        encounter.register(injectionListener);
+      }
+    };
+    binder.bindListener(new AbstractMatcher<TypeLiteral<?>>()
+    {
+      @Override
+      public boolean matches(TypeLiteral<?> typeLiteral) {
+        return Managed.class.isAssignableFrom(typeLiteral.getRawType());
+      }
+    }, typeListener);
+  }
+
+  private void stopManagedComponents() {
+    // avoid leaking resources like thread pools
+    for (Managed managedComponent : managedComponents) {
+      try {
+        managedComponent.stop();
+      }
+      catch (Exception ignored) {
+        // irrelevant
+      }
+    }
+  }
+
   @Override
   public void configure(Binder binder) {
+    bindManagedComponentObserver(binder);
     InsightConfig config = new InsightConfig();
     try {
       config.setSonatypeWork(tempDir.newFolder("sonatype-work").getAbsolutePath());

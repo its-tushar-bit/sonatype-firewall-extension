@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.sourcecontrol;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -17,7 +18,6 @@ import com.sonatype.nexus.github.GitHubApiClient;
 import com.sonatype.nexus.github.JsonUtils;
 
 import com.google.common.collect.ImmutableMap;
-import jersey.repackaged.com.google.common.collect.Maps;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -36,9 +36,9 @@ public class GitHubApiRule
 
   private Server server;
 
-  private final Map<String, JsonResponseHandler> responseHandlers = Maps.newHashMap();
+  private final Map<String, JsonResponseHandler> responseHandlers = new ConcurrentHashMap<>();
 
-  private final Map<String, Integer> requests = Maps.newHashMap();
+  private final Map<String, Integer> requests = new ConcurrentHashMap<>();
 
   public GitHubApiRule(final int port) {
     this.port = port;
@@ -129,15 +129,12 @@ public class GitHubApiRule
         throws IOException, ServletException
     {
       JsonResponseHandler handler = getJsonResponseHandler(request.getRequestURI());
-      if (null != handler) {
-        handler.render(request, response);
-        requests.put(request.getRequestURI(), handler.status);
-      }
-      else {
+      if (null == handler) {
+        handler = fourOhFour;
         log.debug("No handler matching uri {}, returning 404", request.getRequestURI());
-        fourOhFour.render(request, response);
-        requests.put(request.getRequestURI(), 404);
       }
+      requests.put(request.getRequestURI(), handler.status);
+      handler.render(request, response);
       consume(baseRequest);
     }
 

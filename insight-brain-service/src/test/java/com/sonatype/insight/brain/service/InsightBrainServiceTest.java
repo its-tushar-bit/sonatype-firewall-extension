@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.DatabaseTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.HierarchyMetricsTelemetryCollector;
+import com.sonatype.insight.brain.telemetry.PropertiesTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.PolicyStatusOverrideTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.version.VersionService;
@@ -103,7 +104,7 @@ public class InsightBrainServiceTest
         responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
       }, 204);
     });
-    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(3));
+    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(4));
     Date expectedMaxCreateTime = new Date();
 
     VersionService versionService = getCLMServer().getInstance(VersionService.class);
@@ -156,6 +157,10 @@ public class InsightBrainServiceTest
             assertThat(telemetryDataReceived.getAttributes()).containsEntry(DatabaseTelemetryCollector.ODS_SIZE_BYTES,
                 null);
             break;
+          case CONFIGURATION_PROPERTIES:
+            assertThat(telemetryDataReceived.getAttributes())
+                .containsEntry(PropertiesTelemetryCollector.REPORT_TIMEOUT_SECONDS, 900);
+            break;
           default:
             fail("Unexpected telemetry purpose: " + telemetryPurpose);
             break;
@@ -164,7 +169,7 @@ public class InsightBrainServiceTest
     }
 
     assertThat(telemetryPurposes).containsExactlyInAnyOrder(TelemetryPurpose.HIERARCHY_METRICS,
-        TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE);
+        TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE, TelemetryPurpose.CONFIGURATION_PROPERTIES);
   }
 
   @Test

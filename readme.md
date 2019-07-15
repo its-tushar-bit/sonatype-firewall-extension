@@ -15,6 +15,9 @@ See https://docs.sonatype.com/display/INSIGHT/Insight+Brain for more information
 
 Standard Maven build, i.e. `mvn clean install`.
 
+Be sure to have both Maven and npm set up to use repository.sonatype.org.  See
+https://docs.sonatype.com/display/CDI/Setting+up+npm+to+use+repository.sonatype.org for npm instructions
+
 ## Functional Tests ##
 
 Add `-D skip-functional-test` to the `mvn` invocation to skip just the expensive functional tests but still run other

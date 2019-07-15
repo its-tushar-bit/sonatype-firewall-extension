@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -57,7 +58,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadGatewayException;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.After;
 import org.junit.Before;
@@ -119,7 +119,7 @@ public class PolicyMonitorTest
 
     evaluatePolicy(app.getPublicId(), scanId1, stage);
 
-    setLicenseProducts();
+    setMissingFeature(LicensedFeature.POLICY_MONITORING);
 
     Collection<StageType> stageTypes = StageTypes.getAll();
 
@@ -146,39 +146,6 @@ public class PolicyMonitorTest
         assertThat(eval.getTime()).isEqualTo(val);
       }
     }
-  }
-
-  @Test
-  public void testMonitoringEnabledForAuditorProductLicense() throws Exception {
-    Organization org = tempEntity.newOrganization();
-    Application app = tempEntity.newApplication("MonitoredApp", org.getId());
-    Stage stage = new Stage(ReleaseStageType.ID);
-
-    tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
-
-    String scanId1 = "PolicyMonitorTest_scanId";
-
-    createScanFile(app, scanId1);
-
-    // Simulate that the report is available
-    mockScanReceiptAndReport(scanId1);
-
-    evaluatePolicy(app.getPublicId(), scanId1, stage);
-
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    PolicyEvaluation policyEvaluationBefore = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId());
-
-    // Set the product license to Auditor (aka Risk).
-    setLicenseProducts(ProductLicenseDetails.PRODUCT_RISK);
-
-    String scanId2 = "PolicyMonitorTest_scanId2";
-    mockScanReceiptAndReport(scanId2);
-    policyMonitor.run();
-
-    PolicyEvaluation policyEvaluationAfter = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId());
-    assertThat(policyEvaluationAfter.getId()).isNotEqualTo(policyEvaluationBefore.getId());
   }
 
   @Test

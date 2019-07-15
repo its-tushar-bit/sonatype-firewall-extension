@@ -48,3 +48,9 @@
     width: 159px;
   }
 }
+
+@media (max-width: 1366px) {
+  .iq-logo {
+    margin-left: 9px; // 1px border + 8px padding
+  }
+}

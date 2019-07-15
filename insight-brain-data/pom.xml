@@ -117,6 +117,11 @@
       <groupId>com.sonatype.nexus</groupId>
       <artifactId>nexus-github-wrapper</artifactId>
     </dependency>
+    
+    <dependency>
+      <groupId>com.github.package-url</groupId>
+      <artifactId>packageurl-java</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

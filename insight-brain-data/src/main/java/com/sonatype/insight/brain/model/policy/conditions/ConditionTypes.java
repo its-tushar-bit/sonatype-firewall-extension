@@ -21,6 +21,8 @@ public class ConditionTypes
 
   public static final CoordinatesConditionType CoordinatesConditionType = new CoordinatesConditionType();
 
+  public static final PackageUrlConditionType PackageUrlConditionType = new PackageUrlConditionType();
+  
   public static final LabelConditionType LabelConditionType = new LabelConditionType();
 
   public static final LicenseConditionType LicenseConditionType = new LicenseConditionType();
@@ -56,6 +58,7 @@ public class ConditionTypes
   static {
     add(AgeInDaysConditionType);
     add(CoordinatesConditionType);
+    add(PackageUrlConditionType);
     add(IdentificationSourceConditionType);
     add(LabelConditionType);
     add(LicenseConditionType);

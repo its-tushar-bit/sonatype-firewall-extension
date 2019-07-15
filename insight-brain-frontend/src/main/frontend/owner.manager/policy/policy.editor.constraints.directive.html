@@ -228,6 +228,18 @@
                  --></coordinates-input><!--
                --></span>
 
+                  <span ng-switch-when="PackageUrlValueType">
+                    <input type="text"
+                           class="iq-text-input"
+                           placeholder="Package URL"
+                           name="conditionPackageUrlValue-{{::constraintIndex}}-{{::$index}}"
+                           ng-model="condition.value"
+                           ng-pattern="/^(pkg:)[a-z0-9\-\+\.]+\/((\S+\/[^\^\s*]+@)|([^\^\s*]+@))\S+/i"
+                           messages="{pattern: 'Value must be a valid Package URL: pkg:type/name@version'}"
+                           clm-input
+                           ng-required="true">
+                  </span>
+
                   <input type="number"
                          min="0"
                          max="100"

@@ -68,6 +68,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusCondition
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.PackageUrlConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
@@ -170,7 +171,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraint.getName()).isEqualTo("New Constraint");
     assertThat(constraint.getOperator()).isEqualTo(LogicalOperator.OR);
 
-    assertThat(constraint.getConditions()).hasSize(15);
+    assertThat(constraint.getConditions()).hasSize(21);
     assertCondition(constraint.getConditions().get(0), AgeInDaysConditionType.ID, "older than",
         Integer.toString(3 * 365));
     assertCondition(constraint.getConditions().get(1), CoordinatesConditionType.ID, "match",
@@ -195,6 +196,16 @@ public abstract class AbstractPolicyEditorTest
     assertCondition(constraint.getConditions().get(13), ProprietaryConditionType.ID, "is false", null);
     assertCondition(constraint.getConditions().get(14), IdentificationSourceConditionType.ID, "is not",
         IdentificationSource.MANUAL.getId());
+    assertCondition(constraint.getConditions().get(15), PackageUrlConditionType.ID, "matches",
+        "pkg:maven/g/a@v?classifier=*&type=jar");
+    assertCondition(constraint.getConditions().get(16), PackageUrlConditionType.ID, "matches",
+        "pkg:maven/*/a@*?classifier=*&type=jar");
+    assertCondition(constraint.getConditions().get(17), PackageUrlConditionType.ID, "does not match",
+        "pkg:npm/a@v");
+    assertCondition(constraint.getConditions().get(18), PackageUrlConditionType.ID, "matches",
+        "pkg:pypi/a@*?extension=*&qualifier=*");
+    assertCondition(constraint.getConditions().get(19), PackageUrlConditionType.ID, "matches", "pkg:golang/*/*/a@*");
+    assertCondition(constraint.getConditions().get(20), PackageUrlConditionType.ID, "matches", "pkg:conan/*/*/a@*");
 
     assertThat(newPolicy.getActions().get(Stage.ID_BUILD)).isEqualTo("warn");
 
@@ -1026,6 +1037,62 @@ public abstract class AbstractPolicyEditorTest
     identificationSource.operator().listItem(1).shouldHave(text("is not")).click();
     identificationSource.value().selectedItem().shouldHave(text(IdentificationSource.SONATYPE.getName())).click();
     identificationSource.value().listItem(1).shouldHave(text(IdentificationSource.MANUAL.getName())).click();
+
+    newConstraint.addConditionButton().click();
+    InputConditionEditSection packageUrlCondition = newConstraint.inputCondition(15);
+    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.operator().selectedItem().shouldHave(text("matches"));
+    packageUrlCondition.value().shouldBe(empty).val("pkg:maven/g/a@v?type=jar");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    newConstraint.addConditionButton().click();
+    packageUrlCondition = newConstraint.inputCondition(16);
+    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.operator().selectedItem().shouldHave(text("matches"));
+    packageUrlCondition.value().shouldBe(empty).val("pkg:maven/*/a@*?type=jar");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    newConstraint.addConditionButton().click();
+    packageUrlCondition = newConstraint.inputCondition(17);
+    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.operator().click().listItem(1).click();
+    packageUrlCondition.operator().selectedItem().shouldHave(text("does not match"));
+    packageUrlCondition.value().shouldBe(empty).val("pkg:npm/a@v");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    newConstraint.addConditionButton().click();
+    packageUrlCondition = newConstraint.inputCondition(18);
+    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.value().shouldBe(empty).val("pkg:pypi/*/*/a@*?type=jar");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    newConstraint.addConditionButton().click();
+    packageUrlCondition = newConstraint.inputCondition(19);
+    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.value().shouldBe(empty).val("pkg:golang/*/*/a@*");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    newConstraint.addConditionButton().click();
+    packageUrlCondition = newConstraint.inputCondition(20);
+    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.value().shouldBe(empty).val("pkg:conan/*/*/a@*");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    newConstraint.addConditionButton().click();
+    packageUrlCondition = newConstraint.inputCondition(21);
+    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.value().shouldBe(empty).val("pkg:golang/*/*/*@*");
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
+    packageUrlCondition.deleteConditionButton().click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    newConstraint.addConditionButton().click();
+    packageUrlCondition = newConstraint.inputCondition(21);
+    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.value().shouldBe(empty).val("pkg:*/*/*/*@*");
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
+    packageUrlCondition.deleteConditionButton().click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
   }
 
   private void toggleAndCheckSave(final SelenideElement element) {

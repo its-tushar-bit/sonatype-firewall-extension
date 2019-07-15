@@ -15,6 +15,7 @@ import java.util.Objects;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
+import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
 
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
@@ -162,6 +163,45 @@ public class PackageUrlIdentifier
           //noop
       }
       throw new InvalidPackageURLException(message, e);
+    }
+  }
+  
+  public String wildcardPackageUrl() {
+    String format = this.packageUrl.getType();
+    PackageURLBuilder builder = PackageURLBuilder.aPackageURL();
+    switch (format) {
+      case FORMAT_MAVEN:
+        wildCardMaven(builder);
+        break;
+      case FORMAT_PYPI:
+        wildCardPypi(builder);
+        break;
+      case FORMAT_ANAME:
+        wildCardAName(builder);
+        break;
+      case FORMAT_RUBYGEMS:
+        wildCardRubygems(builder);
+        break;
+      case FORMAT_RPM:
+        wildCardRpm(builder);
+        break;
+      case FORMAT_GOLANG:
+        wildCardGolang(builder);
+        break;
+      case FORMAT_NPM:
+        wildCardNpm(builder);
+        break;
+      case FORMAT_NUGET:
+        wildCardNuget(builder);
+        break;
+      default:
+        wildCardUnknown(builder);
+    }
+    try {
+      return new PackageUrlIdentifier(builder.build()).getPackageUrl();
+    }
+    catch (MalformedPackageURLException e) {
+      throw new InvalidPackageURLException("Invalid package url", e);
     }
   }
 
@@ -395,5 +435,114 @@ public class PackageUrlIdentifier
     if (namespace != null) {
       builder.withNamespace(namespace);
     }
+  }
+
+  private void wildCardMaven(PackageURLBuilder builder) {
+    builder.withType(FORMAT_MAVEN).withName(packageUrl.getName());
+    wildcardNamespace(builder);
+    wildcardVersion(builder);
+
+    wildcardQualifier(builder, PURL_MAVEN_EXTENSION);
+    wildcardQualifier(builder, PURL_MAVEN_CLASSIFIER);
+  }
+
+  private void wildCardPypi(PackageURLBuilder builder) {
+    builder.withType(FORMAT_PYPI).withName(packageUrl.getName());
+
+    wildcardVersion(builder);
+    wildcardQualifier(builder, PURL_PYPI_EXTENSION);
+    wildcardQualifier(builder, PURL_PYPI_QUALIFIER);
+  }
+
+  private void wildCardAName(PackageURLBuilder builder) {
+    builder.withType(FORMAT_ANAME).withName(packageUrl.getName());
+    addNamespaceIfExists(builder);
+    wildcardVersion(builder);
+    wildcardQualifier(builder, ANAME_QUALIFIER);
+  }
+  
+  private void wildCardRpm(PackageURLBuilder builder) {
+    builder.withType(FORMAT_RPM).withName(packageUrl.getName());
+    addNamespaceIfExists(builder);
+    wildcardVersion(builder);
+    wildcardQualifier(builder, PURL_RPM_ARCHITECTURE);
+  }
+
+  private void wildCardRubygems(PackageURLBuilder builder) {
+    builder.withType(FORMAT_RUBYGEMS).withName(packageUrl.getName());
+    addNamespaceIfExists(builder);
+    wildcardVersion(builder);
+    wildcardQualifier(builder, PURL_RUBYGEMS_PLATFORM);
+  }
+
+  private void wildCardGolang(PackageURLBuilder builder) {
+    builder.withType(FORMAT_GOLANG).withName(packageUrl.getName());
+    addNamespaceIfExists(builder);
+    wildcardVersion(builder);
+  }
+
+  private void wildCardNpm(PackageURLBuilder builder) {
+    builder.withType(FORMAT_NPM).withName(packageUrl.getName());
+    addNamespaceIfExists(builder);
+    wildcardVersion(builder);
+  }
+
+  private void wildCardNuget(PackageURLBuilder builder) {
+    builder.withType(FORMAT_NUGET);
+    addNamespaceIfExists(builder);
+    wildcardName(builder);
+    wildcardVersion(builder);
+  }
+
+  private void wildCardUnknown(PackageURLBuilder builder) {
+    builder.withType(packageUrl.getType()).withName(packageUrl.getName());
+    addNamespaceIfExists(builder);
+    wildcardVersion(builder);
+
+    Map<String, String> qualifiers = packageUrl.getQualifiers();
+    if (qualifiers != null && !qualifiers.isEmpty()) {
+      for (Entry<String, String> entry : qualifiers.entrySet()) {
+        builder.withQualifier(entry.getKey(), entry.getValue());
+      }
+    }
+  }
+
+  private void wildcardVersion(PackageURLBuilder builder) {
+    builder.withVersion(wildcardElement(packageUrl.getVersion()));
+  }
+  
+  private void wildcardQualifier(PackageURLBuilder builder, String coordinateName) {
+    Map<String, String> qualifiers = packageUrl.getQualifiers();
+    if (qualifiers == null || qualifiers.isEmpty() || !qualifiers.containsKey(coordinateName)) {
+      builder.withQualifier(coordinateName, ArtifactCoordinate.PLACEHOLDER);
+    }
+    else {
+      builder.withQualifier(coordinateName, qualifiers.get(coordinateName));
+    }
+  }
+
+  private void wildcardName(PackageURLBuilder builder) {
+    builder.withName(wildcardElement(packageUrl.getName()));
+  }
+
+  private void wildcardNamespace(PackageURLBuilder builder) {
+    builder.withNamespace(wildcardElement(packageUrl.getNamespace()));
+  }
+  
+  private void addNamespaceIfExists(PackageURLBuilder builder) {
+    if (!StringUtils.isBlank(packageUrl.getNamespace())) {
+      builder.withNamespace(packageUrl.getNamespace());
+    }
+  }
+
+  private String wildcardElement(String element) {
+    String newElement;
+    if (!StringUtils.isBlank(element)) {
+      newElement = element;
+    }
+    else {
+      newElement = ArtifactCoordinate.PLACEHOLDER;
+    }
+    return newElement;
   }
 }

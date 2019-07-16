@@ -31,7 +31,10 @@ import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -72,6 +75,8 @@ public class PolicyEvaluateService
   private final ScanHandler scanHandler;
 
   private final ProductLicense productLicense;
+  
+  private final StageTypeService stageTypeService;
 
   @VisibleForTesting
   final Cache<String, PolicyEvaluationPollingResult> policyEvaluationPollingResults =
@@ -83,13 +88,15 @@ public class PolicyEvaluateService
                                PolicyAlertNotifier policyAlertNotifier,
                                ErrorResponseGenerator errorResponseGenerator,
                                ScanHandler scanHandler,
-                               ProductLicense productLicense)
+                               ProductLicense productLicense,
+                               StageTypeService stageTypeService)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
     this.errorResponseGenerator = errorResponseGenerator;
     this.scanHandler = scanHandler;
     this.productLicense = productLicense;
+    this.stageTypeService = stageTypeService;
 
     executor = new ThreadPoolExecutor(5, 100, 5L, TimeUnit.MINUTES,
         new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("PolicyEvaluateService-%d").build());
@@ -161,6 +168,10 @@ public class PolicyEvaluateService
 
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
       throw new InvalidStageException("Invalid stage id=" + stage.getStageTypeId());
+    }
+
+    if (!stageTypeService.getLicensedStageTypes().contains(StageTypes.getById(stage.getStageTypeId()))) {
+      throw new InvalidLicenseException("Stage '" + stage.getStageTypeId() + "' is not supported by your license.");
     }
 
     String statusId = UUID.randomUUID().toString().replace("-", "");

@@ -56,6 +56,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.report.MockReportDownloader;
@@ -588,6 +589,16 @@ public class PolicyEvaluateServiceTest
       policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
           new Stage("invalidStage"));
     }).withMessage("Invalid stage id=invalidStage");
+  }
+
+  @Test
+  public void testEvaluateWithPolling_StageNotLicensed() {
+    productLicenseManager.setStageTypes(StageTypes.RELEASE);
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
+          new Stage("build"));
+    }).withMessage("Stage 'build' is not supported by your license.");
   }
 
   @Test

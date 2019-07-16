@@ -101,7 +101,7 @@ public class ReportServiceTest
     assertThat(report).isNotNull();
     assertThat(report).isFile();
     assertThat(report.getName()).isEqualTo("report.zip");
-    verify(reportDownloader).downloadReport(eq(scanId), any(File.class), eq(900), eq(5));
+    verify(reportDownloader).downloadReport(eq(scanId), any(File.class), eq(2100), eq(5));
   }
 
   @Test

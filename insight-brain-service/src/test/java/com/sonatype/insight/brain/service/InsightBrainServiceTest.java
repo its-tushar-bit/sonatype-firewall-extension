@@ -159,7 +159,7 @@ public class InsightBrainServiceTest
             break;
           case CONFIGURATION_PROPERTIES:
             assertThat(telemetryDataReceived.getAttributes())
-                .containsEntry(PropertiesTelemetryCollector.REPORT_TIMEOUT_SECONDS, 900);
+                .containsEntry(PropertiesTelemetryCollector.REPORT_TIMEOUT_SECONDS, 2100);
             break;
           default:
             fail("Unexpected telemetry purpose: " + telemetryPurpose);

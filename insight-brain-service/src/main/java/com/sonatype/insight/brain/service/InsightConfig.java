@@ -198,7 +198,7 @@ public class InsightConfig
   @JsonProperty
   @Min(30)
   @Max(60 * 60)
-  private int reportTimeoutInSeconds = 15 * 60;
+  private int reportTimeoutInSeconds = 35 * 60;
 
   /**
    * If true, users must configure and acknowledge a filter before being able to see any data in the dashboard.

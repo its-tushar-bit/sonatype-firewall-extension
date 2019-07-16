@@ -10,6 +10,10 @@
   margin: 8px 0;
   padding: 0 12px;
 
+  // necessary for IE11
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+
   &:first-child {
     border: none;
     padding-left: 0;

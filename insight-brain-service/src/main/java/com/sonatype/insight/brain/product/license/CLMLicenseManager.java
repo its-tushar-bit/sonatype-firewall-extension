@@ -90,7 +90,7 @@ public class CLMLicenseManager
     }
   }
 
-  public void installLicenseIfUnlicensed(String licenseFilePath) throws IOException, LicensingException {
+  public void installLicenseIfUnlicensed(String licenseFilePath) throws IOException {
     if (licenseFilePath == null) {
       return;
     }
@@ -111,13 +111,13 @@ public class CLMLicenseManager
     }
   }
 
-  public synchronized void installLicense(InputStream is) throws IOException, LicensingException {
+  public synchronized void installLicense(InputStream is) throws IOException {
     licenseManager.installLicense(is);
     populateLicenseCache();
     log.info("License installed successfully");
   }
 
-  public synchronized void uninstallLicense() throws LicensingException {
+  public synchronized void uninstallLicense() {
     licenseManager.uninstallLicense();
     clearLicenseCache();
     log.info("License uninstalled successfully");
@@ -227,7 +227,7 @@ public class CLMLicenseManager
     return "";
   }
 
-  private void validateFeatures(final ProductLicenseKey key) throws LicensingException {
+  private void validateFeatures(final ProductLicenseKey key) {
     try {
       licenseManager.verifyFeature(key, new CLMFeature());
     }
@@ -242,7 +242,7 @@ public class CLMLicenseManager
     }
   }
 
-  private void populateLicenseCache() throws LicensingException {
+  private void populateLicenseCache() {
     ProductLicenseKey key = licenseManager.getLicenseDetails();
 
     validateFeatures(key);
@@ -331,7 +331,7 @@ public class CLMLicenseManager
     return key.getProperties().getProperty(property);
   }
 
-  private int getVersion(ProductLicenseKey key) throws LicensingException {
+  private int getVersion(ProductLicenseKey key) {
     String prop = getProperty(key, ProductLicenseDetails.PROPERTY_VERSION);
     try {
       return Integer.parseInt(prop);
@@ -341,7 +341,7 @@ public class CLMLicenseManager
     }
   }
 
-  private Integer getApplicationLimit(ProductLicenseKey key) throws LicensingException {
+  private Integer getApplicationLimit(ProductLicenseKey key) {
     String prop = getProperty(key, ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT);
     try {
       return prop != null ? Integer.decode(prop) : null;
@@ -360,7 +360,7 @@ public class CLMLicenseManager
     return products;
   }
 
-  private Integer getMaxUsers(ProductLicenseKey key) throws LicensingException {
+  private Integer getMaxUsers(ProductLicenseKey key) {
     String prop = getProperty(key, ProductLicenseDetails.PROPERTY_MAX_USERS);
     try {
       return prop != null ? Integer.decode(prop) : null;
@@ -370,7 +370,7 @@ public class CLMLicenseManager
     }
   }
 
-  private Integer getMaxFirewallUsers(ProductLicenseKey key) throws LicensingException {
+  private Integer getMaxFirewallUsers(ProductLicenseKey key) {
     String prop = getProperty(key, ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS);
     try {
       return prop != null ? Integer.decode(prop) : null;

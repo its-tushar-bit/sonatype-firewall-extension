@@ -19,7 +19,7 @@
   <properties>
     <test.forkCount>0.5C</test.forkCount>
     <freemarker.version>2.3.19</freemarker.version>
-    <licensing.version>1.4</licensing.version>
+    <licensing.version>1.4.4</licensing.version>
     <truezipVersion>7.7.10</truezipVersion>
   </properties>
 

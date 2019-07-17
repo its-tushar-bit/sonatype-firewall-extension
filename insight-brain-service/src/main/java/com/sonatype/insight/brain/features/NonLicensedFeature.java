@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.features;
 
+import com.sonatype.insight.license.model.Feature;
+
 /**
  * Denotes a feature that is not controlled by the product license.
  */

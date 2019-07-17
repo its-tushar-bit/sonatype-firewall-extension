@@ -14,6 +14,8 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.license.model.Feature;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

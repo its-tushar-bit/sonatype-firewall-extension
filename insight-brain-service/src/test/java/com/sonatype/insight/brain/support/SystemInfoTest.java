@@ -29,12 +29,12 @@ import java.util.TreeSet;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
-import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.support.SystemInfo.NetworkInterfaceWrapper;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import ch.qos.logback.access.spi.IAccessEvent;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -449,7 +449,7 @@ public class SystemInfoTest
     assertThat(supportZipLicenseInfo.licenseInfo.expiryTimestamp).isPositive();
 
     Collection<String> features = supportZipLicenseInfo.features;
-    assertThat(features).hasSize(LicensedFeature.values().length).contains(LicensedFeature.CI_INTEGRATION.getId());
+    assertThat(features).hasSizeGreaterThan(15).contains(LicensedFeature.CI_INTEGRATION.getId());
     assertThat(supportZipLicenseInfo.applicationCountLimit).isEqualTo(100);
     assertThat(supportZipLicenseInfo.stageIds).containsExactlyInAnyOrder("proxy", "operate", "build", "release",
         "develop", "stage-release");

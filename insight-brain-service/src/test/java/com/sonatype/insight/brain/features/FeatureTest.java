@@ -9,6 +9,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 
+import com.sonatype.insight.license.model.Feature;
+import com.sonatype.insight.license.model.LicensedFeature;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 

@@ -22,10 +22,10 @@ import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage.Retenti
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage.SuccessMetricsRetentionEditor;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
-import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;

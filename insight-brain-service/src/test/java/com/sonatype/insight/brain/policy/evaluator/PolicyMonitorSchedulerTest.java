@@ -10,9 +10,9 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.inject.Binder;
 import org.junit.Before;

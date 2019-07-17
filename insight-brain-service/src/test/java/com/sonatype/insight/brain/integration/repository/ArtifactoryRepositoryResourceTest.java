@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.features.LicensedFeature;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
 

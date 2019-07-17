@@ -11,8 +11,8 @@ import java.util.Set;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.sonatype.licensing.product.ProductLicenseKey;
 

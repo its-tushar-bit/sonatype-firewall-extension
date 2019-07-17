@@ -10,11 +10,11 @@ import javax.ws.rs.core.UriBuilder;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.features.LicensedFeature;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.telemetry.PendoCache;
 import com.sonatype.insight.brain.telemetry.PendoService;
 import com.sonatype.insight.brain.telemetry.PendoService.PendoConfig;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.brain.telemetry.UserTelemetryResource;
 
 import org.junit.Test;

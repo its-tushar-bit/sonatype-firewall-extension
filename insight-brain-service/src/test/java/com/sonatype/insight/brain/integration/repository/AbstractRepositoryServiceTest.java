@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1530,9 +1529,10 @@ public abstract class AbstractRepositoryServiceTest
     }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
-  private void mockHdsRequest(RepositoryComponentEvaluationDataRequestList serviceRequest,
-                              ComponentEvaluationDataList hdsResult,
-                              boolean quarantine) throws IOException
+  private void mockHdsRequest(
+      RepositoryComponentEvaluationDataRequestList serviceRequest,
+      ComponentEvaluationDataList hdsResult,
+      boolean quarantine)
   {
     RepositoryComponentEvaluationDataRequestList hdsRequest = new RepositoryComponentEvaluationDataRequestList();
     hdsRequest.cause = serviceRequest.cause;

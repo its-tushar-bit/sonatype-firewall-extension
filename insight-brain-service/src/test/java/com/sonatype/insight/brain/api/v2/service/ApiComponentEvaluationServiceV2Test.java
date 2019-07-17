@@ -77,8 +77,7 @@ public class ApiComponentEvaluationServiceV2Test
     apiComponentEvaluationService.setChunkSize(CHUNK_SIZE);
   }
 
-  private void mockHdsRequest(ComponentEvaluationDataRequestList hdsRequest, ComponentEvaluationDataList hdsResult)
-  {
+  private void mockHdsRequest(ComponentEvaluationDataRequestList hdsRequest, ComponentEvaluationDataList hdsResult) {
     doReturn(hdsResult).when(client).post(eq(ComponentEvaluationDataList.class),
         eq(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest),
         eq(ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));

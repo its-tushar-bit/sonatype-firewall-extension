@@ -80,8 +80,7 @@ public class ApiComponentDetailsServiceV2Test
     mockHdsRequest(hdsRequest, hdsResult);
   }
 
-  private void mockHdsRequest(ComponentEvaluationDataRequestList hdsRequest, ComponentEvaluationDataList hdsResult)
-  {
+  private void mockHdsRequest(ComponentEvaluationDataRequestList hdsRequest, ComponentEvaluationDataList hdsResult) {
     doReturn(hdsResult).when(client).post(eq(ComponentEvaluationDataList.class),
         eq(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest),
         eq(ApiComponentDetailsServiceV2.PURPOSE_INTEGRATION));

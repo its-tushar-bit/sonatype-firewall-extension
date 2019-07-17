@@ -37,7 +37,7 @@ public class DashboardUtils
 
   @Inject
   public DashboardUtils(ProductLicense productLicense, StageTypeService stageTypeService) {
-    this.productLicense = productLicense;;
+    this.productLicense = productLicense;
     this.stageTypeService = stageTypeService;
   }
 

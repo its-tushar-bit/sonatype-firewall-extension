@@ -321,9 +321,7 @@ public class HdsClient
   /**
    * @since 1.13.0
    */
-  public <T> T post(Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams)
-      throws IOException
-  {
+  public <T> T post(Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams) {
     return post(null /* analytics */, clazz, path, null /* clientUserAgent */, jsonSerializableObject, uriParams);
   }
 
@@ -351,13 +349,11 @@ public class HdsClient
                     final String clientUserAgent,
                     Object jsonSerializableObject,
                     String... uriParams)
-      throws IOException
   {
     HttpPost cloudReq = createPostRequest(buildUri(path, uriParams), analytics, clientUserAgent);
-    StringEntity entity = new StringEntity(JsonUtils.format(jsonSerializableObject));
+    HttpEntity entity = new StringEntity(JsonUtils.format(jsonSerializableObject), ContentType.APPLICATION_JSON);
     cloudReq.setEntity(entity);
     cloudReq.setHeader(HttpHeaders.ACCEPT, "application/json");
-    cloudReq.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
     return execute(cloudReq, clazz);
   }

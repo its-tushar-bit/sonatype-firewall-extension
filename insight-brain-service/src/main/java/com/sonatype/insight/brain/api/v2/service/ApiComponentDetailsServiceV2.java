@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -145,13 +143,8 @@ public class ApiComponentDetailsServiceV2
     for (List<ApiComponentDTOV2> componentChunk : componentChunks) {
       ComponentEvaluationDataRequestList componentEvaluationDataRequestList = convert(componentChunk);
       ComponentEvaluationDataList componentEvaluationDataList;
-      try {
-        componentEvaluationDataList = client.post(ComponentEvaluationDataList.class, HDS_COMPONENT_DETAILS_PATH,
-            componentEvaluationDataRequestList, purpose);
-      }
-      catch (IOException e) {
-        throw new UncheckedIOException("Failed to get component details from HDS: " + e.getMessage(), e);
-      }
+      componentEvaluationDataList = client.post(ComponentEvaluationDataList.class, HDS_COMPONENT_DETAILS_PATH,
+          componentEvaluationDataRequestList, purpose);
 
       for (ComponentEvaluationData componentEvaluationData : componentEvaluationDataList.components) {
         componentEvaluationData.requestIndex += indexAdjust * chunkSize;

@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.repository;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -366,20 +364,15 @@ public class RepositoryPolicyEvaluator
       final RepositoryComponentEvaluationDataRequestList hdsRequest,
       final String clientUserAgent)
   {
-    try {
-      long start = System.currentTimeMillis();
+    long start = System.currentTimeMillis();
 
-      HdsClient hdsClient = withQuarantine ? quarantineHdsClient : auditHdsClient;
-      ComponentEvaluationDataList result = hdsClient.post(HdsClientAnalytics.forOwner(repository),
-          ComponentEvaluationDataList.class, HDS_COMPONENT_DETAILS_PATH, clientUserAgent, hdsRequest);
+    HdsClient hdsClient = withQuarantine ? quarantineHdsClient : auditHdsClient;
+    ComponentEvaluationDataList result = hdsClient.post(HdsClientAnalytics.forOwner(repository),
+        ComponentEvaluationDataList.class, HDS_COMPONENT_DETAILS_PATH, clientUserAgent, hdsRequest);
 
-      log.debug("Got component details from HDS for {} components in {} ms.", hdsRequest.components.size(),
-          System.currentTimeMillis() - start);
+    log.debug("Got component details from HDS for {} components in {} ms.", hdsRequest.components.size(),
+        System.currentTimeMillis() - start);
 
-      return result;
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException("Failed to get component details from HDS: " + e.getMessage(), e);
-    }
+    return result;
   }
 }

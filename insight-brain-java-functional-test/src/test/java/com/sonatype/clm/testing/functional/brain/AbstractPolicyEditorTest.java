@@ -171,7 +171,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraint.getName()).isEqualTo("New Constraint");
     assertThat(constraint.getOperator()).isEqualTo(LogicalOperator.OR);
 
-    assertThat(constraint.getConditions()).hasSize(21);
+    assertThat(constraint.getConditions()).hasSize(22);
     assertCondition(constraint.getConditions().get(0), AgeInDaysConditionType.ID, "older than",
         Integer.toString(3 * 365));
     assertCondition(constraint.getConditions().get(1), CoordinatesConditionType.ID, "match",
@@ -1082,12 +1082,10 @@ public abstract class AbstractPolicyEditorTest
     packageUrlCondition = newConstraint.inputCondition(21);
     packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
     packageUrlCondition.value().shouldBe(empty).val("pkg:golang/*/*/*@*");
-    PolicyEditorPage.saveButton().shouldHave(DISABLED);
-    packageUrlCondition.deleteConditionButton().click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
-    packageUrlCondition = newConstraint.inputCondition(21);
+    packageUrlCondition = newConstraint.inputCondition(22);
     packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
     packageUrlCondition.value().shouldBe(empty).val("pkg:*/*/*/*@*");
     PolicyEditorPage.saveButton().shouldHave(DISABLED);

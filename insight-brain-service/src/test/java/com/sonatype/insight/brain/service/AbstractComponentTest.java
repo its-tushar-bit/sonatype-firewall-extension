@@ -17,7 +17,9 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelpe
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
@@ -161,6 +163,7 @@ public class AbstractComponentTest
     binder.bind(InsightConfig.class).toInstance(config);
     binder.bind(CLMLicenseManager.class).asEagerSingleton();
     binder.bind(ProductLicense.class).to(TestProductLicense.class);
+    binder.bind(ProductLicenseDetailsCache.class).to(TestProductLicenseDetailsCache.class);
     binder.bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
     binder.bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class);
   }

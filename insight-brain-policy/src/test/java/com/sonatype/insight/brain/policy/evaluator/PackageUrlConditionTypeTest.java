@@ -78,6 +78,12 @@ public class PackageUrlConditionTypeTest
     Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_NUGET + "/a2@v2");
     testEvaluate_MatchExact(ComponentIdentifier.FORMAT_NUGET, constraint);
   }
+
+  @Test
+  public void testEvaluate_Nuget_MatchExact_IgnoreCase() {
+    Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_NUGET + "/A2@v2");
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_NUGET, constraint);
+  }
   
   @Test
   public void testEvaluate_Golang_MatchExact() {

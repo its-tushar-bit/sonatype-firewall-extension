@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -106,11 +107,11 @@ public final class JsonUtils
   }
 
   public static <T extends ContainerNode<?>> T parse(final String json) throws IOException {
-    return parse(json.getBytes("UTF-8"));
+    return parse(json.getBytes(StandardCharsets.UTF_8));
   }
 
   public static <T> T parse(final String json, final Class<? extends T> type) throws IOException {
-    return parse(json.getBytes("UTF-8"), type);
+    return parse(json.getBytes(StandardCharsets.UTF_8), type);
   }
 
   public static <T> T parse(final InputStream stream, final Class<? extends T> type) throws IOException {
@@ -137,7 +138,7 @@ public final class JsonUtils
 
   public static String format(Object pojo) {
     try {
-      return new String(generate(pojo), "UTF-8");
+      return new String(generate(pojo), StandardCharsets.UTF_8);
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);

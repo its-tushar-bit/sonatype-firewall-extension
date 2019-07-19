@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional;
 
+import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -223,7 +224,8 @@ public abstract class AbstractFunctionalTest
     testCLMServer.getHdsServer().reset();
     if (productLicenseManager.wasChanged()) {
       productLicenseManager.reset();
-      testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class).installLicense(null);
+      testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class)
+          .installLicense(new ByteArrayInputStream(new byte[1]));
     }
     // so we aren't on app between page loads
     navigate(() -> {
@@ -236,7 +238,8 @@ public abstract class AbstractFunctionalTest
   protected void setLicensedProducts(String... products) {
     productLicenseManager.setProducts(products);
     try {
-      testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class).installLicense(null);
+      testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class)
+          .installLicense(new ByteArrayInputStream(new byte[1]));
     }
     catch (Exception e) {
       throw new RuntimeException(e);

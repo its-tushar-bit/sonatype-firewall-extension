@@ -23,7 +23,7 @@ public class ProductLicenseServiceAuthzTest
   private ProductLicenseService productLicenseService;
 
   private InputStream getLicense() {
-    return new ByteArrayInputStream(new byte[0]);
+    return new ByteArrayInputStream(new byte[1]);
   }
 
   @Test

@@ -24,9 +24,7 @@ public class ProductLicenseResourceTest
 
   @Test
   public void testInstallFailedWithNormalBrowser() throws Exception {
-    getTestProductLicenseManager().forceInstallLicenseFailure(true);
-
-    HttpResponse response = uploadLicense(licenseRequest());
+    HttpResponse response = uploadLicense(licenseRequest(new byte[0]));
     assertResponseStatus(400, response);
 
     assertThat(response.getBodyText())
@@ -36,10 +34,8 @@ public class ProductLicenseResourceTest
 
   @Test
   public void testInstallFailedWithIE() throws Exception {
-    getTestProductLicenseManager().forceInstallLicenseFailure(true);
-
     // IE is expecting a 200 response back, so we need to validate the error
-    HttpResponse response = uploadLicense(licenseRequest().query("noFormData", true));
+    HttpResponse response = uploadLicense(licenseRequest(new byte[0]).query("noFormData", true));
     assertResponseStatus(200, response);
 
     assertThat(response.getBodyText())

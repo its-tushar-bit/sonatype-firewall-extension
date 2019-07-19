@@ -89,11 +89,6 @@ public class TestProductLicenseManager
     mockProductLicenseManager = new MockProductLicenseManager();
   }
 
-  public void forceInstallLicenseFailure(boolean forceInstallFailure) {
-    wasChanged = true;
-    mockProductLicenseManager.forceInstallLicenseFailure(forceInstallFailure);
-  }
-
   public boolean isValid() {
     return mockProductLicenseManager.isValid();
   }
@@ -188,31 +183,40 @@ public class TestProductLicenseManager
 
     private Map<String, String> properties = new HashMap<>();
 
-    private boolean forceInstallLicenseFailure = false;
-
     private boolean forceInstallIOFailure = false;
 
     private boolean forceVerificationFailure;
 
     public MockProductLicenseManager() {
-      createKey();
+      setKey();
+    }
+
+    /**
+     * To verify proper use of the input stream (e.g. only read once), mimic the real component by at least consuming
+     * the stream, deeming it invalid if empty.
+     */
+    private void readLicenseFile(InputStream licenseFile) throws IOException {
+      if (licenseFile.read() < 0) {
+        throw new LicensingException("Invalid license file");
+      }
+      while (licenseFile.read() >= 0) {
+        // consume the stream
+      }
     }
 
     @Override
     public void installLicense(final InputStream licenseFile) throws IOException, LicensingException {
-      if (forceInstallLicenseFailure) {
-        throw new LicensingException("An error occurred");
-      }
+      readLicenseFile(licenseFile);
 
       if (forceInstallIOFailure) {
         throw new IOException("An IO error occurred");
       }
 
       valid = true;
-      createKey();
+      setKey();
     }
 
-    private void createKey() {
+    private ProductLicenseKey createKey() {
       Map<String, org.sonatype.licensing.feature.Feature> featureMap = new HashMap<>();
       featureMap.put(CLMFeature.ID, new CLMFeature());
       Properties properties = new Properties();
@@ -239,7 +243,12 @@ public class TestProductLicenseManager
       key.setContactCompany("Acme");
       key.setContactEmailAddress("billy@example.com");
       key.setProperties(properties);
-      this.key = key;
+
+      return key;
+    }
+
+    private void setKey() {
+      this.key = createKey();
     }
 
     @Override
@@ -258,10 +267,8 @@ public class TestProductLicenseManager
 
     @Override
     public ProductLicenseKey getLicenseDetails(final InputStream licenseFile) throws IOException, LicensingException {
-      if (!valid) {
-        throw new LicensingException("Not licensed");
-      }
-      return key;
+      readLicenseFile(licenseFile);
+      return createKey();
     }
 
     @Override
@@ -291,7 +298,7 @@ public class TestProductLicenseManager
           this.features.add(feature);
         }
 
-        createKey();
+        setKey();
       }
     }
 
@@ -299,47 +306,43 @@ public class TestProductLicenseManager
       if (valid) {
         this.stageTypes = new LinkedHashSet<>();
         Collections.addAll(this.stageTypes, stageTypes);
-        createKey();
+        setKey();
       }
     }
 
     public void setVersion(int version) {
       if (valid) {
         this.version = version;
-        createKey();
+        setKey();
       }
     }
 
     public void setApplicationLimit(Integer applicationLimit) {
       if (valid) {
         this.applicationLimit = applicationLimit;
-        createKey();
+        setKey();
       }
     }
 
     public void setMaxFirewallUsers(Integer maxFirewallUsers) {
       if (valid) {
         this.maxFirewallUsers = maxFirewallUsers;
-        createKey();
+        setKey();
       }
     }
 
     public void setProducts(String... products) {
       if (valid) {
         this.products = products;
-        createKey();
+        setKey();
       }
     }
 
     public void setExpirationDate(Date date) {
       if (valid) {
         this.expirationDate = date;
-        createKey();
+        setKey();
       }
-    }
-
-    public void forceInstallLicenseFailure(boolean forceInstallFailure) {
-      this.forceInstallLicenseFailure = forceInstallFailure;
     }
 
     public void setForceInstallIOFailure(boolean forceInstallIOFailure) {

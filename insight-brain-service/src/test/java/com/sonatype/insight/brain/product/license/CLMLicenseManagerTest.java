@@ -50,7 +50,7 @@ public class CLMLicenseManagerTest
   private TestProductLicenseManager licenseManager;
 
   private void installLicense() throws IOException, LicensingException {
-    clmLicenseManager.installLicense(new ByteArrayInputStream(new byte[0]));
+    clmLicenseManager.installLicense(new ByteArrayInputStream(new byte[1]));
   }
 
   @Test

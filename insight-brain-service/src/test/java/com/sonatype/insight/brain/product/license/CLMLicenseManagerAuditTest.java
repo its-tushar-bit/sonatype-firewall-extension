@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.product.license;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -35,6 +36,7 @@ public class CLMLicenseManagerAuditTest
   public void testInstallLicenseIfUnlicensed() throws Exception {
     licenseManager.uninstallLicense();
     File licenseFile = tempDir.newFile();
+    Files.write(licenseFile.toPath(), new byte[1]);
 
     licenseManager.installLicenseIfUnlicensed(licenseFile.getAbsolutePath());
 

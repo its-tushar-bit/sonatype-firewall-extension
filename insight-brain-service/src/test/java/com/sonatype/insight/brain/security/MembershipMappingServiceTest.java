@@ -61,7 +61,7 @@ public class MembershipMappingServiceTest
   }
 
   @Test
-  public void testUpdateMembershipMappings_PostsEvent() throws Exception {
+  public void testSetMembershipMappings_PostsEvent() throws Exception {
     TestEventHandler<RoleEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
     eventBus.register(handler);
 

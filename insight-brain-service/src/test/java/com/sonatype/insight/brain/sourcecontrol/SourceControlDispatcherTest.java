@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
-import com.sonatype.insight.test.PortAllocator;
 import com.sonatype.nexus.github.JsonUtils;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
@@ -34,7 +33,7 @@ public class SourceControlDispatcherTest
     extends AbstractComponentTest
 {
   @Rule
-  public final GitHubApiRule github = new GitHubApiRule(PortAllocator.findFreePort(8070));
+  public final GitHubApiRule github = new GitHubApiRule();
 
   @Inject
   private SourceControlDispatcher dispatcher;

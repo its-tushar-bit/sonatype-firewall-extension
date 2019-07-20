@@ -20,7 +20,6 @@ import com.sonatype.nexus.github.JsonUtils;
 import com.google.common.collect.ImmutableMap;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.util.IO;
 import org.junit.rules.ExternalResource;
@@ -32,17 +31,11 @@ public class GitHubApiRule
 {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private final int port;
-
   private Server server;
 
   private final Map<String, JsonResponseHandler> responseHandlers = new ConcurrentHashMap<>();
 
   private final Map<String, Integer> requests = new ConcurrentHashMap<>();
-
-  public GitHubApiRule(final int port) {
-    this.port = port;
-  }
 
   @Override
   protected void before() throws Throwable {
@@ -50,10 +43,7 @@ public class GitHubApiRule
       log.warn("Server already initialized");
     }
     else {
-      server = new Server();
-      ServerConnector connector = new ServerConnector(server);
-      connector.setPort(port);
-      server.addConnector(connector);
+      server = new Server(0);
       server.setHandler(new RestHandler());
     }
     server.start();

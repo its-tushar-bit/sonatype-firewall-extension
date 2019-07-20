@@ -21,6 +21,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.inject.Binder;
 import org.codehaus.plexus.util.FileUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -42,6 +43,9 @@ public class ScanServiceTest
 {
   @Inject
   private ScanService scanService;
+
+  @Inject
+  private ScanTaskRepository scanTaskRepository;
 
   @Mock
   private ScanUploader scanUploader;
@@ -78,6 +82,15 @@ public class ScanServiceTest
             return true;
           }
         });
+  }
+
+  @After
+  public void exit() {
+    // wait for any submitted scan to finish processing or its activity can affect following tests
+    for (long start = System.currentTimeMillis();
+        System.currentTimeMillis() - start < 60 * 1000 && scanTaskRepository.getUnfinishedTaskCount() > 0;) {
+      Thread.yield();
+    }
   }
 
   @Test

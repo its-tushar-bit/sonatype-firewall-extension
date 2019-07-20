@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.8
  */
 @Named
+@Singleton
 public class ScanTaskRepository
 {
   private static final Logger log = LoggerFactory.getLogger(ScanTaskRepository.class);
@@ -52,6 +54,10 @@ public class ScanTaskRepository
     executor = new ThreadPoolExecutor(2, 2, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
         new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ScanTask-%s").build());
     executor.allowCoreThreadTimeOut(true);
+  }
+
+  int getUnfinishedTaskCount() {
+    return executor.getActiveCount() + executor.getQueue().size();
   }
 
   /**

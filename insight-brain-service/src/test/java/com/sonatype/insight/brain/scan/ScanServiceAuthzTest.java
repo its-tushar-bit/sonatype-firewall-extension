@@ -35,6 +35,7 @@ public class ScanServiceAuthzTest
   public void configure(Binder binder) {
     super.configure(binder);
     binder.bind(ScanUploader.class).toInstance(Mockito.mock(ScanUploader.class));
+    binder.bind(ScanTask.class).toProvider(() -> Mockito.mock(ScanTask.class, Mockito.RETURNS_SMART_NULLS));
   }
 
   @Test(expected = UnauthenticatedException.class)

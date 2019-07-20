@@ -204,7 +204,7 @@ public class PolicyDAO
 
     Set<String> tagIds = new HashSet<>();
     Owner owner = ownerDAO.getById(tx, ownerId);
-    if (OwnerType.APPLICATION.equals(owner.getType())) {
+    if (owner != null && OwnerType.APPLICATION.equals(owner.getType())) {
       // ownerId is an app id
       for (ApplicationTag appTag : appTagDAO.getByApplicationId(tx, ownerId)) {
         tagIds.add(appTag.getTagId());

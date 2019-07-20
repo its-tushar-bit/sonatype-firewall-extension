@@ -471,6 +471,11 @@ public class PolicyDAOTest
   }
 
   @Test
+  public void testGetApplicable_UnknownOwnerId() {
+    assertThat(policyDAO.getApplicableByOwnerId("unknown-owner-id")).isEmpty();
+  }
+
+  @Test
   public void testCascadeDeleteToPolicyWaivers() throws Exception {
     Policy policy = new Policy();
     policy.setName("PolicyDAOTest new policy 1");

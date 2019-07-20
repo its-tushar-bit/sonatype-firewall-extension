@@ -24,6 +24,10 @@ public class HdsMockServerRule
 
   protected HdsMockServer hdsMockServer;
 
+  public HdsMockServerRule() {
+    this(0, false);
+  }
+
   public HdsMockServerRule(int port, boolean isProxyRequired) {
     this.port = port;
     this.isProxyRequired = isProxyRequired;
@@ -51,7 +55,8 @@ public class HdsMockServerRule
       hdsMockServer.setProxyAuthentication("proxyuser", "proxypass");
     }
     hdsMockServer.start();
-    System.out.println("Started HDS mock in " + (System.currentTimeMillis() - start) + " ms.");
+    System.out.println("Started HDS mock on port " + hdsMockServer.getHttpPort() + " in "
+        + (System.currentTimeMillis() - start) + " ms.");
   }
 
   public void stop() {
@@ -79,5 +84,9 @@ public class HdsMockServerRule
 
   public HdsConfigurator getConfigurator() {
     return configurator;
+  }
+
+  public String getHttpUrl() {
+    return hdsMockServer.getHttpUrl();
   }
 }

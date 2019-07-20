@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.report;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
@@ -68,7 +68,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.io.RawInputStreamFacade;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -499,60 +498,58 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
     assertThat(response.getContentType()).isEqualTo("application/zip");
     assertThat(response.getHeader("Content-Disposition")).contains("filename=");
-    try (InputStream actual = response.getBodyStream()) {
-      File temp = tempDir.newFile();
-      FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
-      try (ZipFile zip = new ZipFile(temp)) {
-        assertThat(zip.getEntry("data/report.pdf")).isNotNull();
-        assertThat(zip.getEntry("detail.rptdesign")).isNull();
-        assertThat(zip.getEntry("data/index.html")).isNull();
-        assertThat(zip.getEntry("data/components.json")).isNotNull();
-        assertThat(zip.getEntry("data/release-graph/tomcat/tomcat-util/5.5.23.png")).isNotNull();
-        assertThat(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).isNotNull();
+    File temp = tempDir.newFile();
+    Files.write(temp.toPath(), response.getBodyBytes());
+    try (ZipFile zip = new ZipFile(temp)) {
+      assertThat(zip.getEntry("data/report.pdf")).isNotNull();
+      assertThat(zip.getEntry("detail.rptdesign")).isNull();
+      assertThat(zip.getEntry("data/index.html")).isNull();
+      assertThat(zip.getEntry("data/components.json")).isNotNull();
+      assertThat(zip.getEntry("data/release-graph/tomcat/tomcat-util/5.5.23.png")).isNotNull();
+      assertThat(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).isNotNull();
 
-        assertThat(zip.getEntry("cip/details/f0776db1593e215146d2.json")).isNull();
-        ComponentDetails details = JsonUtils.parse(
-            zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")), ComponentDetails.class);
-        assertThat(details.getMatchState()).isEqualTo("exact");
-        assertComponentIdentifier(details, claimedComponent.getComponentIdentifier());
-        assertThat(details.getComponentIdentifier()).isEqualTo(claimedComponent.getComponentIdentifier());
-        assertThat(details.getCatalogDate()).isEqualTo(claimedComponent.getCreateTimeLong());
-        assertThat(details.getOverriddenLicenses()).hasSize(1);
-        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId())
-            .isEqualTo(licenseOverride.getLicenseIds().iterator().next());
-        assertThat(details.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Copyleft");
-        assertThat(details.getLicenseThreatLevel()).isEqualTo(9);
-        assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.MANUAL.getId());
-        assertThat(details.getIdentificationSourceComment()).isEqualTo(claimedComponent.getComment());
-        ComponentDetailsList list = JsonUtils.parse(
-            zip.getInputStream(zip.getEntry("data/cip/list/"
-                + componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID) + "/"
-                + componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID) + "/"
-                + componentIdentifier.get(ComponentIdentifier.VERSION) + ".json")), ComponentDetailsList.class);
-        assertThat(list.getList()).isEmpty();
+      assertThat(zip.getEntry("cip/details/f0776db1593e215146d2.json")).isNull();
+      ComponentDetails details = JsonUtils.parse(
+          zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")), ComponentDetails.class);
+      assertThat(details.getMatchState()).isEqualTo("exact");
+      assertComponentIdentifier(details, claimedComponent.getComponentIdentifier());
+      assertThat(details.getComponentIdentifier()).isEqualTo(claimedComponent.getComponentIdentifier());
+      assertThat(details.getCatalogDate()).isEqualTo(claimedComponent.getCreateTimeLong());
+      assertThat(details.getOverriddenLicenses()).hasSize(1);
+      assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId())
+          .isEqualTo(licenseOverride.getLicenseIds().iterator().next());
+      assertThat(details.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Copyleft");
+      assertThat(details.getLicenseThreatLevel()).isEqualTo(9);
+      assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.MANUAL.getId());
+      assertThat(details.getIdentificationSourceComment()).isEqualTo(claimedComponent.getComment());
+      ComponentDetailsList list = JsonUtils.parse(
+          zip.getInputStream(zip.getEntry("data/cip/list/"
+              + componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID) + "/"
+              + componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID) + "/"
+              + componentIdentifier.get(ComponentIdentifier.VERSION) + ".json")), ComponentDetailsList.class);
+      assertThat(list.getList()).isEmpty();
 
-        details = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/details/1249e25aebb15358bedd.json")),
-            ComponentDetails.class);
-        assertThat(details.getMatchState()).isEqualTo("exact");
-        assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
-        assertThat(details.getIdentificationSourceComment()).isNull();
-        assertThat(details.getPolicyAlerts()).hasSize(4);
-        for (PolicyAlert policyAlert : details.getPolicyAlerts()) {
-          assertThat(policyAlert.getTrigger().getPolicyId()).isEqualTo(policy.getId());
-          assertThat(policyAlert.getTrigger().getComponentFacts()).hasSize(1);
-        }
-
-        list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/tomcat/tomcat-util/5.5.23.json")),
-            ComponentDetailsList.class);
-        details = findDetailsForComponent(list,
-            ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"));
-        assertThat(details).isNotNull();
-        assertThat(details.getOverriddenLicenses()).hasSize(1);
-        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId()).isEqualTo(licenseOverride2
-            .getLicenseIds().iterator().next());
-        assertThat(details.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Weak Copyleft");
-        assertThat(details.getLicenseThreatLevel()).isEqualTo(2);
+      details = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/details/1249e25aebb15358bedd.json")),
+          ComponentDetails.class);
+      assertThat(details.getMatchState()).isEqualTo("exact");
+      assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
+      assertThat(details.getIdentificationSourceComment()).isNull();
+      assertThat(details.getPolicyAlerts()).hasSize(4);
+      for (PolicyAlert policyAlert : details.getPolicyAlerts()) {
+        assertThat(policyAlert.getTrigger().getPolicyId()).isEqualTo(policy.getId());
+        assertThat(policyAlert.getTrigger().getComponentFacts()).hasSize(1);
       }
+
+      list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/tomcat/tomcat-util/5.5.23.json")),
+          ComponentDetailsList.class);
+      details = findDetailsForComponent(list,
+          ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"));
+      assertThat(details).isNotNull();
+      assertThat(details.getOverriddenLicenses()).hasSize(1);
+      assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId()).isEqualTo(licenseOverride2
+          .getLicenseIds().iterator().next());
+      assertThat(details.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Weak Copyleft");
+      assertThat(details.getLicenseThreatLevel()).isEqualTo(2);
     }
   }
 
@@ -588,76 +585,74 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
     assertThat(response.getContentType()).isEqualTo("application/zip");
     assertThat(response.getHeader("Content-Disposition")).contains("filename=");
-    try (InputStream actual = response.getBodyStream()) {
-      File temp = tempDir.newFile();
-      FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
-      try (ZipFile zip = new ZipFile(temp)) {
-        assertThat(zip.getEntry("data/report.pdf")).isNotNull();
-        assertThat(zip.getEntry("detail.rptdesign")).isNull();
-        assertThat(zip.getEntry("data/index.html")).isNull();
+    File temp = tempDir.newFile();
+    Files.write(temp.toPath(), response.getBodyBytes());
+    try (ZipFile zip = new ZipFile(temp)) {
+      assertThat(zip.getEntry("data/report.pdf")).isNotNull();
+      assertThat(zip.getEntry("detail.rptdesign")).isNull();
+      assertThat(zip.getEntry("data/index.html")).isNull();
 
-        ZipEntry componentEntry = zip.getEntry("data/components.json");
-        assertThat(componentEntry).isNotNull();
-        ApiReportRawDataDTOV2 components = JsonUtils
-            .parse(zip.getInputStream(componentEntry), ApiReportRawDataDTOV2.class);
+      ZipEntry componentEntry = zip.getEntry("data/components.json");
+      assertThat(componentEntry).isNotNull();
+      ApiReportRawDataDTOV2 components = JsonUtils
+          .parse(zip.getInputStream(componentEntry), ApiReportRawDataDTOV2.class);
 
-        assertThat(components.matchSummary.knownComponentCount).isEqualTo(5);
-        assertThat(components.matchSummary.totalComponentCount).isEqualTo(29);
-        assertComponent("tomcat", "tomcat-util", "5.5.23", "Weak Copyleft", 2, components.components);
+      assertThat(components.matchSummary.knownComponentCount).isEqualTo(5);
+      assertThat(components.matchSummary.totalComponentCount).isEqualTo(29);
+      assertComponent("tomcat", "tomcat-util", "5.5.23", "Weak Copyleft", 2, components.components);
 
-        assertThat(zip.getEntry("data/release-graph/maven/"
-            + "artifactId=tomcat-util/classifier=/extension=jar/groupId=tomcat/version=5.5.23/releases.png"))
-                .isNotNull();
-        assertThat(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).isNotNull();
+      assertThat(zip.getEntry("data/release-graph/maven/"
+          + "artifactId=tomcat-util/classifier=/extension=jar/groupId=tomcat/version=5.5.23/releases.png"))
+              .isNotNull();
+      assertThat(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).isNotNull();
 
-        assertThat(zip.getEntry("cip/details/f0776db1593e215146d2.json")).isNull();
-        TestNamedComponentDetails details = JsonUtils.parse(
-            zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")),
-            TestNamedComponentDetails.class);
-        assertThat(details.getMatchState()).isEqualTo("exact");
-        assertComponentIdentifier(details, claimedComponent.getComponentIdentifier());
-        assertThat(details.getDisplayName().toString())
-            .isEqualTo("commons-httpclient : commons-httpclient : 3.1.SONATYPE");
-        assertThat(details.getCatalogDate()).isEqualTo(claimedComponent.getCreateTimeLong());
-        assertThat(details.getOverriddenLicenses()).hasSize(1);
-        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId())
-            .isEqualTo(licenseOverride.getLicenseIds().iterator().next());
-        assertThat(details.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Copyleft");
-        assertThat(details.getLicenseThreatLevel()).isEqualTo(9);
-        assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.MANUAL.getId());
-        assertThat(details.getIdentificationSourceComment()).isEqualTo(claimedComponent.getComment());
-        ComponentDetailsList list = JsonUtils.parse(
-            zip.getInputStream(zip.getEntry("data/cip/list/maven/artifactId="
-                + componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID) + "/classifier="
-                + componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER) + "/extension="
-                + componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION) + "/groupId="
-                + componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID) + "/version="
-                + componentIdentifier.get(ComponentIdentifier.VERSION) + "/list.json")), ComponentDetailsList.class);
-        assertThat(list.getList()).isEmpty();
+      assertThat(zip.getEntry("cip/details/f0776db1593e215146d2.json")).isNull();
+      TestNamedComponentDetails details = JsonUtils.parse(
+          zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")),
+          TestNamedComponentDetails.class);
+      assertThat(details.getMatchState()).isEqualTo("exact");
+      assertComponentIdentifier(details, claimedComponent.getComponentIdentifier());
+      assertThat(details.getDisplayName().toString())
+          .isEqualTo("commons-httpclient : commons-httpclient : 3.1.SONATYPE");
+      assertThat(details.getCatalogDate()).isEqualTo(claimedComponent.getCreateTimeLong());
+      assertThat(details.getOverriddenLicenses()).hasSize(1);
+      assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId())
+          .isEqualTo(licenseOverride.getLicenseIds().iterator().next());
+      assertThat(details.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Copyleft");
+      assertThat(details.getLicenseThreatLevel()).isEqualTo(9);
+      assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.MANUAL.getId());
+      assertThat(details.getIdentificationSourceComment()).isEqualTo(claimedComponent.getComment());
+      ComponentDetailsList list = JsonUtils.parse(
+          zip.getInputStream(zip.getEntry("data/cip/list/maven/artifactId="
+              + componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID) + "/classifier="
+              + componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER) + "/extension="
+              + componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION) + "/groupId="
+              + componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID) + "/version="
+              + componentIdentifier.get(ComponentIdentifier.VERSION) + "/list.json")), ComponentDetailsList.class);
+      assertThat(list.getList()).isEmpty();
 
-        details = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/details/1249e25aebb15358bedd.json")),
-            TestNamedComponentDetails.class);
-        assertThat(details.getMatchState()).isEqualTo("exact");
-        assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
-        assertThat(details.getIdentificationSourceComment()).isNull();
-        assertThat(details.getPolicyAlerts()).hasSize(4);
-        for (PolicyAlert policyAlert : details.getPolicyAlerts()) {
-          assertThat(policyAlert.getTrigger().getPolicyId()).isEqualTo(policy.getId());
-          assertThat(policyAlert.getTrigger().getComponentFacts()).hasSize(1);
-        }
-
-        list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/maven/"
-            + "artifactId=tomcat-util/classifier=/extension=jar/groupId=tomcat/version=5.5.23/list.json")),
-            ComponentDetailsList.class);
-        ComponentDetails detailsFromList = findDetailsForComponent(list,
-            ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"));
-        assertThat(detailsFromList).isNotNull();
-        assertThat(detailsFromList.getOverriddenLicenses()).hasSize(1);
-        assertThat(detailsFromList.getOverriddenLicenses().iterator().next().getLicenseId()).isEqualTo(licenseOverride2
-            .getLicenseIds().iterator().next());
-        assertThat(detailsFromList.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Weak Copyleft");
-        assertThat(detailsFromList.getLicenseThreatLevel()).isEqualTo(2);
+      details = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/details/1249e25aebb15358bedd.json")),
+          TestNamedComponentDetails.class);
+      assertThat(details.getMatchState()).isEqualTo("exact");
+      assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
+      assertThat(details.getIdentificationSourceComment()).isNull();
+      assertThat(details.getPolicyAlerts()).hasSize(4);
+      for (PolicyAlert policyAlert : details.getPolicyAlerts()) {
+        assertThat(policyAlert.getTrigger().getPolicyId()).isEqualTo(policy.getId());
+        assertThat(policyAlert.getTrigger().getComponentFacts()).hasSize(1);
       }
+
+      list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/maven/"
+          + "artifactId=tomcat-util/classifier=/extension=jar/groupId=tomcat/version=5.5.23/list.json")),
+          ComponentDetailsList.class);
+      ComponentDetails detailsFromList = findDetailsForComponent(list,
+          ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"));
+      assertThat(detailsFromList).isNotNull();
+      assertThat(detailsFromList.getOverriddenLicenses()).hasSize(1);
+      assertThat(detailsFromList.getOverriddenLicenses().iterator().next().getLicenseId()).isEqualTo(licenseOverride2
+          .getLicenseIds().iterator().next());
+      assertThat(detailsFromList.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Weak Copyleft");
+      assertThat(detailsFromList.getLicenseThreatLevel()).isEqualTo(2);
     }
   }
 
@@ -678,53 +673,51 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
     assertThat(response.getContentType()).isEqualTo("application/zip");
     assertThat(response.getHeader("Content-Disposition")).contains("filename=");
-    try (InputStream actual = response.getBodyStream()) {
-      File temp = tempDir.newFile();
-      FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
-      try (ZipFile zip = new ZipFile(temp)) {
-        assertThat(zip.getEntry("data/report.pdf")).isNotNull();
-        assertThat(zip.getEntry("detail.rptdesign")).isNull();
-        assertThat(zip.getEntry("data/index.html")).isNull();
+    File temp = tempDir.newFile();
+    Files.write(temp.toPath(), response.getBodyBytes());
+    try (ZipFile zip = new ZipFile(temp)) {
+      assertThat(zip.getEntry("data/report.pdf")).isNotNull();
+      assertThat(zip.getEntry("detail.rptdesign")).isNull();
+      assertThat(zip.getEntry("data/index.html")).isNull();
 
-        ZipEntry componentEntry = zip.getEntry("data/components.json");
-        assertThat(componentEntry).isNotNull();
-        ApiReportRawDataDTOV2 components = JsonUtils
-            .parse(zip.getInputStream(componentEntry), ApiReportRawDataDTOV2.class);
+      ZipEntry componentEntry = zip.getEntry("data/components.json");
+      assertThat(componentEntry).isNotNull();
+      ApiReportRawDataDTOV2 components = JsonUtils
+          .parse(zip.getInputStream(componentEntry), ApiReportRawDataDTOV2.class);
 
-        assertThat(components.matchSummary.knownComponentCount).isEqualTo(1);
-        assertThat(components.matchSummary.totalComponentCount).isEqualTo(481); // Jar has a lot of JS in it
-        assertComponent("org.webjars.npm", "reactivex:rxjs", "5.0.0-alpha.7", "Sonatype Special Licenses", 5,
-            components.components);
+      assertThat(components.matchSummary.knownComponentCount).isEqualTo(1);
+      assertThat(components.matchSummary.totalComponentCount).isEqualTo(481); // Jar has a lot of JS in it
+      assertComponent("org.webjars.npm", "reactivex:rxjs", "5.0.0-alpha.7", "Sonatype Special Licenses", 5,
+          components.components);
 
-        assertThat(zip.getEntry("data/sv/maven/"
-            + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7/"
-            + "9276b9bfccfcd3614dc2.cve.CVE-2013-1624.json")).isNotNull();
-        assertThat(zip.getEntry("data/release-graph/maven/"
-            + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7/"
-            + "releases.png")).isNotNull();
-        assertThat(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).isNotNull();
+      assertThat(zip.getEntry("data/sv/maven/"
+          + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7/"
+          + "9276b9bfccfcd3614dc2.cve.CVE-2013-1624.json")).isNotNull();
+      assertThat(zip.getEntry("data/release-graph/maven/"
+          + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7/"
+          + "releases.png")).isNotNull();
+      assertThat(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).isNotNull();
 
-        assertThat(zip.getEntry("cip/details/9276b9bfccfcd3614dc2.json")).isNull();
-        TestNamedComponentDetails details = JsonUtils.parse(
-            zip.getInputStream(zip.getEntry("data/cip/details/9276b9bfccfcd3614dc2.json")),
-            TestNamedComponentDetails.class);
-        assertThat(details.getMatchState()).isEqualTo("exact");
-        assertComponentIdentifier(details, componentIdentifier);
-        assertThat(details.getDisplayName().toString()).isEqualTo("org.webjars.npm : reactivex:rxjs : 5.0.0-alpha.7");
-        assertThat(details.getCatalogDate()).isEqualTo(1447958674000L);
-        assertThat(details.getOverriddenLicenses()).isEmpty();
-        assertThat(details.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Sonatype Special Licenses");
-        assertThat(details.getLicenseThreatLevel()).isEqualTo(5);
-        assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
-        assertThat(details.getPolicyAlerts()).hasSize(1);
-        assertThat(details.getPolicyAlerts().get(0).getTrigger().getPolicyId()).isEqualTo(policy.getId());
-        assertThat(details.getPolicyAlerts().get(0).getTrigger().getComponentFacts()).hasSize(1);
+      assertThat(zip.getEntry("cip/details/9276b9bfccfcd3614dc2.json")).isNull();
+      TestNamedComponentDetails details = JsonUtils.parse(
+          zip.getInputStream(zip.getEntry("data/cip/details/9276b9bfccfcd3614dc2.json")),
+          TestNamedComponentDetails.class);
+      assertThat(details.getMatchState()).isEqualTo("exact");
+      assertComponentIdentifier(details, componentIdentifier);
+      assertThat(details.getDisplayName().toString()).isEqualTo("org.webjars.npm : reactivex:rxjs : 5.0.0-alpha.7");
+      assertThat(details.getCatalogDate()).isEqualTo(1447958674000L);
+      assertThat(details.getOverriddenLicenses()).isEmpty();
+      assertThat(details.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Sonatype Special Licenses");
+      assertThat(details.getLicenseThreatLevel()).isEqualTo(5);
+      assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
+      assertThat(details.getPolicyAlerts()).hasSize(1);
+      assertThat(details.getPolicyAlerts().get(0).getTrigger().getPolicyId()).isEqualTo(policy.getId());
+      assertThat(details.getPolicyAlerts().get(0).getTrigger().getComponentFacts()).hasSize(1);
 
-        ComponentDetailsList list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/maven/"
-            + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7"
-            + "/list.json")), ComponentDetailsList.class);
-        assertThat(list.getList()).hasSize(1);
-      }
+      ComponentDetailsList list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/maven/"
+          + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7"
+          + "/list.json")), ComponentDetailsList.class);
+      assertThat(list.getList()).hasSize(1);
     }
   }
 

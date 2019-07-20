@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.scan;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -23,9 +25,6 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.io.RawInputStreamFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,12 +89,12 @@ class ScanService
   }
 
   File saveBinary(InputStream is, String filename) throws IOException {
-    try {
+    try (InputStream in = is) {
       String ext = getFileExtension(filename);
       File file = File.createTempFile("clm-", ext);
       log.debug("Saving binary to {}", file);
       try {
-        FileUtils.copyStreamToFile(new RawInputStreamFacade(is), file);
+        Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
       }
       catch (RuntimeException | IOException e) {
         try {
@@ -107,9 +106,6 @@ class ScanService
         throw e;
       }
       return file;
-    }
-    finally {
-      IOUtil.close(is);
     }
   }
 

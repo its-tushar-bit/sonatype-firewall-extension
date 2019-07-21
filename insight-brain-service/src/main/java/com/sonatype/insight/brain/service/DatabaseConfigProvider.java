@@ -40,11 +40,12 @@ public class DatabaseConfigProvider
   public DatabaseConfig getDatabaseConfig(DatabaseName databaseName) {
     com.sonatype.insight.brain.service.DatabaseConfig dbConfig = config.getDatabase();
     if (dbConfig != null) {
+      log.info("Using external database at {}", dbConfig.getHostname());
       return getExternalDatabaseConfig(dbConfig);
     }
 
     File databaseDir = new File(config.getSonatypeWork(), "data");
-    log.debug("Data directory: {}", databaseDir.getAbsolutePath());
+    log.info("Using embedded database at {}", databaseDir.getAbsolutePath());
 
     DatabaseConfig databaseConfig = new DatabaseConfig();
     databaseConfig.setDriverClassName("org.h2.Driver");

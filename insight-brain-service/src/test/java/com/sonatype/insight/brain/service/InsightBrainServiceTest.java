@@ -253,7 +253,7 @@ public class InsightBrainServiceTest
 
   @Test
   public void testStartupFailsIfSonatypeWorkIsInUse() {
-    TestCLMServer testCLMServerTwo = new TestCLMServer(false, null, null, null);
+    TestCLMServer testCLMServerTwo = new TestCLMServer(false, null, null);
     try {
       assertThatExceptionOfType(IllegalStateException.class).isThrownBy(testCLMServerTwo::start)
           .withStackTraceContaining(

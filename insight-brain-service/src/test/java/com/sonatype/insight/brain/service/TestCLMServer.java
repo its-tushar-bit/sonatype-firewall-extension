@@ -14,7 +14,6 @@ import java.net.ServerSocket;
 import java.nio.channels.FileLock;
 import java.util.List;
 
-import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import com.google.inject.Module;
@@ -27,6 +26,8 @@ import com.google.inject.Module;
 public class TestCLMServer
 {
   private final HdsMockServerRule hdsMockServer;
+
+  private final boolean hdsMockServerOwned;
 
   private final TestInsightBrainServiceRule brain;
 
@@ -49,7 +50,7 @@ public class TestCLMServer
    * collaborate with other/forked JVMs. The key feature of this port allocation is that a found port is not
    * reused/refound until the entire port range is exhausted.
    */
-  private static synchronized int nextFreePort() {
+  static synchronized int nextFreePort() {
     int minPort = 10000;
     int maxPort = 30000;
     try (RandomAccessFile raf = new RandomAccessFile(NEXT_PORT_FILE, "rw"); FileLock lock = raf.getChannel().lock()) {
@@ -80,29 +81,37 @@ public class TestCLMServer
   public TestCLMServer(boolean isProxyRequiredToReachHds,
                        List<Module> modules,
                        Configurator configurator,
-                       HdsConfigurator hdsConfigurator)
+                       HdsMockServerRule hdsMockServer)
   {
+    this.isProxyRequiredToReachHds = isProxyRequiredToReachHds;
+
+    this.hdsMockServer = hdsMockServer;
+    hdsMockServerOwned = false;
+
+    brain = new TestInsightBrainServiceRule(nextFreePort(), nextFreePort(), hdsMockServer.getHttpUrl(),
+        isProxyRequiredToReachHds, modules).setConfigurator(configurator);
+  }
+
+  public TestCLMServer(boolean isProxyRequiredToReachHds, List<Module> modules, Configurator configurator) {
     this.isProxyRequiredToReachHds = isProxyRequiredToReachHds;
 
     int hdsMockServerPort = nextFreePort();
 
-    hdsMockServer = new HdsMockServerRule(hdsMockServerPort, isProxyRequiredToReachHds)
-        .setConfigurator(hdsConfigurator);
+    hdsMockServer = new HdsMockServerRule(hdsMockServerPort, isProxyRequiredToReachHds);
+    hdsMockServerOwned = true;
 
     brain = new TestInsightBrainServiceRule(nextFreePort(), nextFreePort(),
         "http://localhost:" + hdsMockServerPort, isProxyRequiredToReachHds, modules)
         .setConfigurator(configurator);
   }
 
-  public TestCLMServer(boolean isProxyRequiredToReachHds, List<Module> modules, Configurator configurator) {
-    this(isProxyRequiredToReachHds, modules, configurator, null);
-  }
-
   public void start() throws Exception {
     long start = System.currentTimeMillis();
     startCount++;
 
-    hdsMockServer.start();
+    if (hdsMockServerOwned) {
+      hdsMockServer.start();
+    }
     brain.start();
 
     long startTime = System.currentTimeMillis() - start;
@@ -117,7 +126,9 @@ public class TestCLMServer
     stopCount++;
 
     brain.stop();
-    hdsMockServer.stop();
+    if (hdsMockServerOwned) {
+      hdsMockServer.stop();
+    }
 
     long stopTime = System.currentTimeMillis() - start;
     totalStopTime += stopTime;
@@ -134,12 +145,7 @@ public class TestCLMServer
     return hdsMockServer;
   }
 
-  public boolean isReusable(boolean proxyRequired, Configurator configurator, HdsConfigurator hdsConfigurator) {
-    return proxyRequired == isProxyRequiredToReachHds && configurator == brain.getConfigurator()
-        && hdsConfigurator == hdsMockServer.getConfigurator();
-  }
-
   public boolean isReusable(boolean proxyRequired, Configurator configurator) {
-    return isReusable(proxyRequired, configurator, null);
+    return proxyRequired == isProxyRequiredToReachHds && configurator == brain.getConfigurator();
   }
 }

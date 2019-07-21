@@ -22,8 +22,6 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.mock.hds.HdsMockServer;
-import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 
 import org.junit.After;
 import org.junit.Before;
@@ -100,15 +98,9 @@ public class ReferencePolicyImportIntegrationTest
       }
     };
 
-    HdsConfigurator hdsConfigurator = new HdsConfigurator()
-    {
-      @Override
-      public void configure(HdsMockServer hdsServer) {
-        hdsServer.respondWith(referencePolicyUrl).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
-      }
-    };
+    hdsRespondWith(referencePolicyUrl).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
 
-    initServer(configurator, hdsConfigurator);
+    initServer(configurator);
 
     PolicyExportResult importData = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
     int policyCount = importData.policies.size();

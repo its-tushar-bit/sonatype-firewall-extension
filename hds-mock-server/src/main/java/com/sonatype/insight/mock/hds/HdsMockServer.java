@@ -49,8 +49,6 @@ public class HdsMockServer
     SslProperties.use();
   }
 
-  private HdsConfigurator configurator;
-
   private int httpPort = 0;
 
   private int httpsPort = -1;
@@ -71,11 +69,6 @@ public class HdsMockServer
 
   private Deque<HdsMockResponse> responses = new ConcurrentLinkedDeque<>();
 
-  public interface HdsConfigurator
-  {
-    void configure(HdsMockServer hdsMockServer);
-  }
-
   public void reset() {
     responses.clear();
   }
@@ -84,14 +77,6 @@ public class HdsMockServer
     HdsMockResponse response = new HdsMockResponse(body);
     responses.addFirst(response);
     return response;
-  }
-
-  public void setConfigurator(HdsConfigurator configurator) {
-    this.configurator = configurator;
-  }
-
-  public HdsConfigurator getConfigurator() {
-    return configurator;
   }
 
   private HdsMockResponse getMockResponse(String method, ParsedUri uri) {
@@ -223,10 +208,6 @@ public class HdsMockServer
     server.setHandler(handlers);
     server.setRequestLog(new HdsRequestLog());
     server.start();
-
-    if (configurator != null) {
-      configurator.configure(this);
-    }
 
     return this;
   }

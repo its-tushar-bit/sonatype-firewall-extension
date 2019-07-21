@@ -30,8 +30,6 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
-import com.sonatype.insight.mock.hds.HdsMockServer;
-import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 
 import org.junit.After;
 import org.junit.Test;
@@ -181,19 +179,11 @@ public class NewInstancePopulatorTest
       }
     };
 
-    HdsConfigurator hdsConfigurator = new HdsConfigurator()
-    {
-      @Override
-      public void configure(HdsMockServer hdsServer) {
-        Class<?> cls = getClass();
+    hdsRespondWith(getClass().getResource("/NewInstancePopulatorTest/referencePolicies.json"))
+        .atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
+    hdsRespondWith(getClass().getResource("/NewInstancePopulatorTest/licenses.json")).atUri("rest/license");
 
-        hdsServer.respondWith(cls.getResource("/NewInstancePopulatorTest/referencePolicies.json"))
-            .atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
-        hdsServer.respondWith(cls.getResource("/NewInstancePopulatorTest/licenses.json")).atUri("rest/license");
-      }
-    };
-
-    initServer(configurator, hdsConfigurator);
+    initServer(configurator);
   }
 
   private void assertSampleDataCreated(boolean shouldHaveBeenCreated) {

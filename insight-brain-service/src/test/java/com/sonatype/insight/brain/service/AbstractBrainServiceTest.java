@@ -52,7 +52,6 @@ import com.sonatype.insight.client.utils.Authentication;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.mock.hds.HdsMockResponse;
-import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -105,6 +104,8 @@ public abstract class AbstractBrainServiceTest
 
   private static String savedLicenseFingerprint;
 
+  private static HdsMockServerRule hdsMockServer;
+
   private static TestCLMServer testCLMServer;
 
   // The mock service that would normally talk to HDS for product notifications
@@ -119,11 +120,26 @@ public abstract class AbstractBrainServiceTest
   @Before
   public void initTest() throws Exception {
     log.info("Before: {}", testName.getMethodName());
+    initHds();
     if (!isTestUsingManualServerInit()) {
       initServer(null);
     }
 
     setUpTestLicenseThreatGroups();
+  }
+
+  private void initHds() throws Exception {
+    if (hdsMockServer != null && !hdsMockServer.isReusable(isProxyRequiredToReachHds())) {
+      hdsMockServer.stop();
+      hdsMockServer = null;
+    }
+    if (hdsMockServer == null) {
+      hdsMockServer = new HdsMockServerRule(TestCLMServer.nextFreePort(), isProxyRequiredToReachHds());
+      hdsMockServer.start();
+    }
+    else {
+      hdsMockServer.reset();
+    }
   }
 
   protected boolean isTestUsingManualServerInit() throws Exception {
@@ -135,21 +151,16 @@ public abstract class AbstractBrainServiceTest
     return getClass().getMethod(testMethod).isAnnotationPresent(ManualServerInit.class);
   }
 
-  protected void initServer(Configurator configurator, HdsConfigurator hdsConfigurator) throws Exception {
-    if (testCLMServer != null
-        && !testCLMServer.isReusable(isProxyRequiredToReachHds(), configurator, hdsConfigurator)) {
+  protected void initServer(Configurator configurator) throws Exception {
+    if (testCLMServer != null && !testCLMServer.isReusable(isProxyRequiredToReachHds(), configurator)) {
       testCLMServer.stop();
       testCLMServer = null;
     }
 
     if (testCLMServer == null) {
-      testCLMServer = new TestCLMServer(isProxyRequiredToReachHds(), getBrainModules(), configurator, hdsConfigurator);
+      testCLMServer = new TestCLMServer(isProxyRequiredToReachHds(), getBrainModules(), configurator, hdsMockServer);
       testCLMServer.start();
     }
-  }
-
-  protected void initServer(Configurator configurator) throws Exception {
-    initServer(configurator, null);
   }
 
   @After
@@ -301,7 +312,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected HdsMockServerRule getHdsServer() {
-    return testCLMServer.getHdsServer();
+    return hdsMockServer;
   }
 
   protected TestProductLicenseManager getTestProductLicenseManager() {

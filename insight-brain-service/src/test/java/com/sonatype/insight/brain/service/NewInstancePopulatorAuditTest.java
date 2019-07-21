@@ -14,8 +14,6 @@ import com.sonatype.insight.brain.hds.ReferencePolicyFetcher;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.AbstractPolicyImportAuditTest;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
-import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 
 import org.junit.Test;
 
@@ -26,14 +24,12 @@ public class NewInstancePopulatorAuditTest
   @ManualServerInit
   public void testPopulateIfNewInstance() throws Exception {
     PolicyExportResult policyExportResult = new PolicyExportResult();
-    initServer((HdsConfigurator) hdsServer -> {
-      policyExportResult.policies = Arrays.asList(aComplexPolicy(), policy());
-      policyExportResult.labels = Arrays.asList(label(), label(), label());
-      policyExportResult.licenseThreatGroups = Collections.singletonList(licenseThreatGroup());
-      policyExportResult.tags = Arrays.asList(tag(), tag(), tag(), tag());
-
-      hdsServer.respondWith(policyExportResult).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
-    });
+    policyExportResult.policies = Arrays.asList(aComplexPolicy(), policy());
+    policyExportResult.labels = Arrays.asList(label(), label(), label());
+    policyExportResult.licenseThreatGroups = Collections.singletonList(licenseThreatGroup());
+    policyExportResult.tags = Arrays.asList(tag(), tag(), tag(), tag());
+    hdsRespondWith(policyExportResult).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
+    initServer();
 
     getCLMServer().getInstance(NewInstancePopulator.class).populateIfNewInstance();
 
@@ -47,8 +43,8 @@ public class NewInstancePopulatorAuditTest
   @Test
   @ManualServerInit
   public void testPopulateIfNewInstance_BadGateway() throws Exception {
-    initServer((HdsConfigurator) hdsServer -> hdsServer.respondWith("Internal Server Error").andStatus(500)
-        .atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH));
+    hdsRespondWith("Internal Server Error").andStatus(500).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
+    initServer();
 
     getCLMServer().getInstance(NewInstancePopulator.class).populateIfNewInstance();
 
@@ -57,10 +53,7 @@ public class NewInstancePopulatorAuditTest
     assertPolicyImportData(auditDTO, null, null, null, null);
   }
 
-  private void initServer(HdsConfigurator hdsConfigurator) throws Exception {
-    // disable startup import and instead call it manually to properly setup log capture after DropWizard's log setup
-    Configurator configurator = config -> config.setImportRefrencePoliciesFromHDS(false);
-    initServer(configurator, hdsConfigurator);
-    getCLMServer().getConfiguration().setImportRefrencePoliciesFromHDS(true);
+  private void initServer() throws Exception {
+    initServer(config -> config.setImportRefrencePoliciesFromHDS(true));
   }
 }

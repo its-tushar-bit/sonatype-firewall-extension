@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.service;
 
 import com.sonatype.insight.mock.hds.HdsMockResponse;
 import com.sonatype.insight.mock.hds.HdsMockServer;
-import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 
 import org.junit.rules.ExternalResource;
 
@@ -20,8 +19,6 @@ public class HdsMockServerRule
   private final int port;
 
   private final boolean isProxyRequired;
-
-  private HdsConfigurator configurator;
 
   protected HdsMockServer hdsMockServer;
 
@@ -50,7 +47,6 @@ public class HdsMockServerRule
     System.out.println("Starting HDS mock on port " + port);
     hdsMockServer = new HdsMockServer();
     hdsMockServer.setHttpPort(port);
-    hdsMockServer.setConfigurator(configurator);
     if (isProxyRequired) {
       hdsMockServer.setKeyStore(System.getProperty("javax.net.ssl.trustStore"), "server-pwd");
       hdsMockServer.setProxyAuthentication("proxyuser", "proxypass");
@@ -78,13 +74,8 @@ public class HdsMockServerRule
     hdsMockServer.reset();
   }
 
-  public HdsMockServerRule setConfigurator(HdsConfigurator configurator) {
-    this.configurator = configurator;
-    return this;
-  }
-
-  public HdsConfigurator getConfigurator() {
-    return configurator;
+  public boolean isReusable(boolean isProxyRequired) {
+    return this.isProxyRequired == isProxyRequired;
   }
 
   public String getHttpUrl() {

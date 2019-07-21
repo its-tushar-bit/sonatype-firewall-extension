@@ -165,7 +165,7 @@ public class RepositoryResourceAuditTest
       componentEvaluationData.observedLicenses = Collections.emptySet();
       componentEvaluationDataList.components.add(componentEvaluationData);
     }
-    setHdsResponseForURI(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH, componentEvaluationDataList, 200);
+    hdsRespondWith(componentEvaluationDataList).atUri(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH);
   }
 
   private void assertRepositoryEvaluationData(AuditDTO auditDTO, int componentCount, String evaluationCause) {

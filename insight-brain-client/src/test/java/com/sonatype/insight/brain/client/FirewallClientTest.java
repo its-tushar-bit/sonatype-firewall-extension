@@ -246,7 +246,7 @@ public class FirewallClientTest
     componentEvaluationData.declaredLicenses = new HashSet<>();
     componentEvaluationData.observedLicenses = new HashSet<>();
     hdsResult.components.add(componentEvaluationData);
-    setHdsResponseForURI("/rest/component/details/firewall", hdsResult, 200);
+    hdsRespondWith(hdsResult).atUri("/rest/component/details/firewall");
 
     RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
         new RepositoryComponentEvaluationDataRequest();

@@ -488,9 +488,8 @@ public class ApiEvaluationResourceV2Test
   }
 
   private void mockHDSInternalServiceError() {
-    setHdsResponseForURI(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH.replace(
-        "{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION), "Internal Error",
-        500);
+    hdsRespondWith("Internal Error").andStatus(500).atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
+        .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));
   }
 
   @Test
@@ -529,9 +528,8 @@ public class ApiEvaluationResourceV2Test
   }
 
   private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {
-    setHdsResponseForURI(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH.replace(
-        "{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION),
-        componentEvaluationDataList, 200);
+    hdsRespondWith(componentEvaluationDataList).atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
+        .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));
   }
 
   private ComponentEvaluationDataList createComponentEvaluationDataList(

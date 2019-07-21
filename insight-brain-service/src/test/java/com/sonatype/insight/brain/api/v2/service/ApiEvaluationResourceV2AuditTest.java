@@ -85,9 +85,8 @@ public class ApiEvaluationResourceV2AuditTest
 
   @Test
   public void testEvaluateComponents() throws Exception {
-    setHdsResponseForURI(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
-            .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION),
-        new ComponentEvaluationDataList(), 200);
+    hdsRespondWith(new ComponentEvaluationDataList()).atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
+        .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));
     int componentCount = 3;
 
     ApiComponentEvaluationTicketDTOV2 result = evaluateComponents(createEvaluateRequest(componentCount)).post()
@@ -101,9 +100,8 @@ public class ApiEvaluationResourceV2AuditTest
 
   @Test
   public void testEvaluateComponents_ErrorDuringAsyncComponentEvaluationTask() throws Exception {
-    setHdsResponseForURI(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
-            .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION),
-        "Service Unavailable", 503);
+    hdsRespondWith("Service Unavailable").andStatus(503).atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
+        .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));
 
     evaluateComponents(createEvaluateRequest(1)).post();
 

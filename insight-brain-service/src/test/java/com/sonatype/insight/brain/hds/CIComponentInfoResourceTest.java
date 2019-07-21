@@ -80,8 +80,8 @@ public class CIComponentInfoResourceTest
   public void testGetLicenses() throws Exception {
     ComponentDetails hdsComponentDetails = new ComponentDetails(MAVEN_COORDINATES);
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0"));
-    setHdsResponseForURI(convertToHdsUrl(detailsRequest(getOwnerId(), MAVEN_COORDINATES, null, null, null).getUrl()),
-        hdsComponentDetails, 200);
+    hdsRespondWith(hdsComponentDetails)
+        .atUri(convertToHdsUrl(detailsRequest(getOwnerId(), MAVEN_COORDINATES, null, null, null).getUrl()));
 
     HttpResponse response = licensesRequest(MAVEN_COORDINATES).get();
     assertResponseStatus(200, response);
@@ -109,8 +109,8 @@ public class CIComponentInfoResourceTest
     SecurityVulnerability vulnerability = new SecurityVulnerability("refId", "source", 5.0f, "summary");
     hdsComponentDetails.setSecurityVulnerabilities(Collections.singletonList(vulnerability));
 
-    setHdsResponseForURI(convertToHdsUrl(detailsRequest(repository.getId(), MAVEN_COORDINATES, hash, null, null)
-        .getUrl()), hdsComponentDetails, 200);
+    hdsRespondWith(hdsComponentDetails)
+        .atUri(convertToHdsUrl(detailsRequest(repository.getId(), MAVEN_COORDINATES, hash, null, null).getUrl()));
 
     HttpResponse response = vulnerabilitiesRequest(OwnerType.REPOSITORY, repository.getId(), hash, MAVEN_COORDINATES)
         .get();

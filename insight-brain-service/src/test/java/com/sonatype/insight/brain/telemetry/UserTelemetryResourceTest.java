@@ -24,7 +24,7 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
 
   @Test
   public void testGetJavascript() throws Exception {
-    getHdsServer().setResponseForURI(PendoCache.HDS_PENDO_JS_PATH, "some javascript", 200);
+    getHdsServer().respondWith("some javascript").atUri(PendoCache.HDS_PENDO_JS_PATH);
 
     HttpResponse response = restRequest()
         .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH).get();
@@ -36,7 +36,7 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
 
   @Test
   public void testGetJavascript_error() throws Exception {
-    getHdsServer().setResponseForURI(PendoCache.HDS_PENDO_JS_PATH, "some error message", 404);
+    getHdsServer().respondWith("some error message").andStatus(404).atUri(PendoCache.HDS_PENDO_JS_PATH);
 
     HttpResponse response = restRequest()
         .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH).get();
@@ -47,7 +47,7 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
 
   @Test
   public void testProxyGet() throws Exception {
-    getHdsServer().setResponseForURI(PendoService.HDS_TELEMETRY_PATH + "/foo/bar", "some response", 200);
+    getHdsServer().respondWith("some response").atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
 
     String url = UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH).path(UserTelemetryResource.EVENTS_PATH)
         .build("foo/bar").toString();
@@ -67,7 +67,7 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
 
   @Test
   public void testProxyPost() throws Exception {
-    getHdsServer().setResponseForURI(PendoService.HDS_TELEMETRY_PATH + "/foo/bar", "some response", 200);
+    getHdsServer().respondWith("some response").atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
 
     String url = UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH).path(UserTelemetryResource.EVENTS_PATH)
         .build("foo/bar").toString();

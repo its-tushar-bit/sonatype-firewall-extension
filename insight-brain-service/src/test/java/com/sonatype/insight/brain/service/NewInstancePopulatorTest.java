@@ -187,9 +187,9 @@ public class NewInstancePopulatorTest
       public void configure(HdsMockServer hdsServer) {
         Class<?> cls = getClass();
 
-        hdsServer.setResponseForURI(ReferencePolicyFetcher.REFERENCE_POLICY_PATH,
-            cls.getResource("/NewInstancePopulatorTest/referencePolicies.json"), 200);
-        hdsServer.setResponseForURI("rest/license", cls.getResource("/NewInstancePopulatorTest/licenses.json"), 200);
+        hdsServer.respondWith(cls.getResource("/NewInstancePopulatorTest/referencePolicies.json"))
+            .atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
+        hdsServer.respondWith(cls.getResource("/NewInstancePopulatorTest/licenses.json")).atUri("rest/license");
       }
     };
 

@@ -46,7 +46,7 @@ extends AbstractClaimComponentSpec {
     given: 'A GAV not found in our data'
     ComponentIdentifier identifier = ComponentIdentifier.
         createMavenCoordinates(CID.coordinates.groupId, CID.coordinates.artifactId, CID.coordinates.version, '', 'jar')
-    hdsRule.setResponseForURI(createUri(identifier), '{"isKnown": false }', 200)
+    hdsRule.respondWith('{"isKnown": false }').atUri(createUri(identifier))
     PolicyReportRow firstRow = results[0]
     Cip cip = firstRow.cip as Cip
     ClaimComponentModule component = cip.claimComponent as ClaimComponentModule
@@ -74,7 +74,7 @@ extends AbstractClaimComponentSpec {
     ComponentIdentifier updatedIdentifier = ComponentIdentifier.
         createMavenCoordinates(CID.coordinates.groupId, CID.coordinates.artifactId, CID.coordinates.version,
         CID.coordinates.classifier, 'jar')
-    hdsRule.setResponseForURI(createUri(updatedIdentifier), '{"isKnown": false }', 200)
+    hdsRule.respondWith('{"isKnown": false }').atUri(createUri(updatedIdentifier))
     PolicyReportRow firstRow = results[0]
     Cip cip = firstRow.cip as Cip
     ClaimComponentModule component = cip.claimComponent as ClaimComponentModule

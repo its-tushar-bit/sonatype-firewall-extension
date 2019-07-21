@@ -409,7 +409,7 @@ public class ConfigurationClientTest
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
     hdsResult.regexpsByRepositoryFormat.put("foo", Collections.singletonList("bar"));
-    setHdsResponseForURI("/rest/component/details/firewall/ignorePatterns", hdsResult, 200);
+    hdsRespondWith(hdsResult).atUri("/rest/component/details/firewall/ignorePatterns");
 
     Configuration config = getCLMServer().getClientConfiguration();
     ConfigurationClient client = new ConfigurationClient(config);

@@ -39,7 +39,7 @@ public class DefaultLicenseDataUpdaterTest
   @Test
   public void testLicense() throws Exception {
     LicenseData licenseData = createLicenseData();
-    setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
+    hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     String newId = "New license id";
     LicenseDAO licenseDAO = new LicenseDAO();
     assertThat(licenseDAO.getById(newId)).isNull();
@@ -49,14 +49,14 @@ public class DefaultLicenseDataUpdaterTest
     newLicense.setShortDisplayName("New short name");
     newLicense.setLongDisplayName("New long name");
     licenseData.licenses.add(newLicense);
-    setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
+    hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     assertThat(licenseDAO.getById(newId)).isNotNull();
   }
 
   @Test
   public void testMultiLicense_ById() throws Exception {
     LicenseData licenseData = createLicenseData();
-    setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
+    hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     String newId = "New license id1";
     MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     assertThat(multiLicenseDAO.getById(newId)).isNull();
@@ -69,7 +69,7 @@ public class DefaultLicenseDataUpdaterTest
     Set<String> multiLicenseMappings = new LinkedHashSet<>();
     multiLicenseMappings.add("GPL-2.0");
     licenseData.multiLicenseMappings.put(newId, multiLicenseMappings);
-    setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
+    hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     assertThat(multiLicenseDAO.getById(newId)).isNotNull();
     assertThat(multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(newId).iterator().next().getId())
         .isEqualTo("GPL-2.0");
@@ -78,7 +78,7 @@ public class DefaultLicenseDataUpdaterTest
   @Test
   public void testMultiLicense_ByName() throws Exception {
     LicenseData licenseData = createLicenseData();
-    setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
+    hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     String newId = "New license id2";
     String newName = "New short name2";
     MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
@@ -92,7 +92,7 @@ public class DefaultLicenseDataUpdaterTest
     Set<String> multiLicenseMappings = new LinkedHashSet<>();
     multiLicenseMappings.add("GPL-2.0");
     licenseData.multiLicenseMappings.put(newId, multiLicenseMappings);
-    setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
+    hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     assertThat(multiLicenseDAO.getByName(newName)).isNotNull();
     assertThat(multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(newId).iterator().next().getId())
         .isEqualTo("GPL-2.0");
@@ -117,13 +117,13 @@ public class DefaultLicenseDataUpdaterTest
   @Test
   public void testMultiLicense_WithNullMappedLicenses_IsNotAdded() throws Exception {
     LicenseData licenseData = createLicenseData();
-    setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
+    hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     MultiLicense mlWithNullMappedLicenses = new MultiLicense("mlWithNullMappedLicenses",
         "mlWithNullMappedLicensesShort", "mlWithNullMappedLicensesLong");
     assertThat(multiLicenseDAO.getById(mlWithNullMappedLicenses.getId())).isNull();
 
     licenseData.multiLicenses.add(mlWithNullMappedLicenses);
-    setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
+    hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
 
     assertThat(multiLicenseDAO.getById(mlWithNullMappedLicenses.getId())).isNull();
   }
@@ -131,14 +131,14 @@ public class DefaultLicenseDataUpdaterTest
   @Test
   public void testMultiLicense_WithEmptyMappedLicenses_IsNotAdded() throws Exception {
     LicenseData licenseData = createLicenseData();
-    setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
+    hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     MultiLicense mlWithEmptyMappedLicenses = new MultiLicense("mlWithEmptyMappedLicenses",
         "mlWithEmptyMappedLicensesShort", "mlWithEmptyMappedLicensesLong");
     assertThat(multiLicenseDAO.getById(mlWithEmptyMappedLicenses.getId())).isNull();
 
     licenseData.multiLicenses.add(mlWithEmptyMappedLicenses);
     licenseData.multiLicenseMappings.put(mlWithEmptyMappedLicenses.getId(), new HashSet<String>());
-    setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
+    hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
 
     assertThat(multiLicenseDAO.getById(mlWithEmptyMappedLicenses.getId())).isNull();
   }
@@ -152,7 +152,7 @@ public class DefaultLicenseDataUpdaterTest
     licenseData.licenses.add(license2);
     licenseData.multiLicenses.add(existingMultiLicense);
     licenseData.multiLicenseMappings.put(existingMultiLicense.getId(), new HashSet<>(Arrays.asList(license1.getId())));
-    setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
+    hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     MultiLicense storedMultiLicense = multiLicenseDAO.getById(existingMultiLicense.getId());
     assertThat(licenseDAO.getAll()).contains(license1, license2);
     assertThat(storedMultiLicense).isEqualTo(existingMultiLicense);
@@ -160,7 +160,7 @@ public class DefaultLicenseDataUpdaterTest
         .containsExactly(license1);
 
     licenseData.multiLicenseMappings.get(existingMultiLicense.getId()).add(license2.getId());
-    setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
+    hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     LicenseDataUpdater.update();
     storedMultiLicense = multiLicenseDAO.getById(existingMultiLicense.getId());
     assertThat(storedMultiLicense).isEqualTo(existingMultiLicense);

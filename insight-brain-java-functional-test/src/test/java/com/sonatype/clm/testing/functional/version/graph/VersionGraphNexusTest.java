@@ -112,10 +112,12 @@ public class VersionGraphNexusTest
     VersionsCIP.versionBarHoverText(6).shouldHave(text("30.51"));
 
     // mock request for version 21.41
-    testCLMServer.getHdsServer().setResponseForURI("rest/ide/componentDetails",
-        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails-21.41.json"), 200);
-    testCLMServer.getHdsServer().setResponseForURI("rest/rm/componentDetails",
-        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails-21.41.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-21.41.json"))
+        .atUri("rest/ide/componentDetails");
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-21.41.json"))
+        .atUri("rest/rm/componentDetails");
 
     VersionsCIP.versionBar(1).shouldBe(visible).click();
     VersionsCIP.version().shouldHave(text("21.41"));
@@ -219,36 +221,44 @@ public class VersionGraphNexusTest
   }
 
   protected void mockHdsResponseForFirstComponent() {
-    testCLMServer.getHdsServer().setResponseForURI("rest/ide/componentDetails",
-        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails-29.50.json"), 200);
-    testCLMServer.getHdsServer().setResponseForURI("rest/rm/componentDetails",
-        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails-29.50.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-29.50.json"))
+        .atUri("rest/ide/componentDetails");
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-29.50.json"))
+        .atUri("rest/rm/componentDetails");
   }
 
   protected void setupHdsResponses() {
     mockHdsResponseForFirstComponent();
-    testCLMServer.getHdsServer().setResponseForURI("rest/ide/componentDetails/list",
-        getClass().getClassLoader().getResource(
-            "componentDetails/javancssComponentDetailsListWithNoViolationsVersion.json"), 200);
-    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails/list",
-        getClass().getClassLoader().getResource(
-            "componentDetails/javancssComponentDetailsListWithNoViolationsVersion.json"), 200);
-    testCLMServer.getHdsServer().setResponseForURI("rest/rm/componentDetails/list",
-        getClass().getClassLoader().getResource(
-            "componentDetails/javancssComponentDetailsListWithNoViolationsVersion.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(
+            getClass().getResource("/componentDetails/javancssComponentDetailsListWithNoViolationsVersion.json"))
+        .atUri("rest/ide/componentDetails/list");
+    testCLMServer.getHdsServer()
+        .respondWith(
+            getClass().getResource("/componentDetails/javancssComponentDetailsListWithNoViolationsVersion.json"))
+        .atUri("rest/ci/componentDetails/list");
+    testCLMServer.getHdsServer()
+        .respondWith(
+            getClass().getResource("/componentDetails/javancssComponentDetailsListWithNoViolationsVersion.json"))
+        .atUri("rest/rm/componentDetails/list");
   }
 
   protected void setupHdsResponsesForNoRemediation() {
     mockHdsResponseForFirstComponent();
-    testCLMServer.getHdsServer().setResponseForURI("rest/ide/componentDetails/list",
-        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetailsList.json"), 200);
-    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails/list",
-        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetailsList.json"), 200);
-    testCLMServer.getHdsServer().setResponseForURI("rest/rm/componentDetails/list",
-        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetailsList.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/javancssComponentDetailsList.json"))
+        .atUri("rest/ide/componentDetails/list");
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/javancssComponentDetailsList.json"))
+        .atUri("rest/ci/componentDetails/list");
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/javancssComponentDetailsList.json"))
+        .atUri("rest/rm/componentDetails/list");
   }
 
   protected void mockHdsResponseForRemediation() {
-    testCLMServer.getHdsServer().setResponseForURI("rest/component/summary", "{\"known\":true}", 200);
+    testCLMServer.getHdsServer().respondWith("{\"known\":true}").atUri("rest/component/summary");
   }
 }

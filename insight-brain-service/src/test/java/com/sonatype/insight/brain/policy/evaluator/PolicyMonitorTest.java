@@ -587,7 +587,7 @@ public class PolicyMonitorTest
     evaluatePolicy(app.getPublicId(), scanId, stage);
 
     // Mock an HDS error on scan upload and evaluate policies again.
-    setHdsResponseForURI("rest/application/analysis", "HDS Error", 500);
+    hdsRespondWith("HDS Error").andStatus(500).atUri("rest/application/analysis");
     assertThatExceptionOfType(BadGatewayException.class)
         .isThrownBy(() -> policyMonitor.evaluate(app, policyMonitoring));
 

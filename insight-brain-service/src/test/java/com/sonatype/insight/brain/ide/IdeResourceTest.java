@@ -68,12 +68,12 @@ public class IdeResourceTest
 
   private void mockHdsScanResponse(HttpRequest request, int status, String resource) {
     String hdsUrl = convertScanUrlToHdsUrl(request.getUrl());
-    setHdsResponseForURI(hdsUrl, status, "/IdeResourceTest/" + resource);
+    hdsRespondWithResource("/IdeResourceTest/" + resource).andStatus(status).atUri(hdsUrl);
   }
 
   private void mockHdsResponse(HttpRequest request, Object body, int status) {
     String hdsUrl = convertScanUrlToHdsUrl(request.getUrl());
-    setHdsResponseForURI(hdsUrl, body, status);
+    hdsRespondWith(body).andStatus(status).atUri(hdsUrl);
   }
 
   private String convertScanUrlToHdsUrl(String brainUrl) {
@@ -576,7 +576,7 @@ public class IdeResourceTest
   @Test
   public void testGetComponentVersions() throws Exception {
     HttpRequest request = versionsRequest("gid", "aid");
-    setHdsResponseForURI(convertVersionsUrlToHdsUrl(request.getUrl()), "[\"1.1\", \"2.0\"]", 200);
+    hdsRespondWith("[\"1.1\", \"2.0\"]").atUri(convertVersionsUrlToHdsUrl(request.getUrl()));
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     String[] versions = response.getBody(String[].class);
@@ -587,7 +587,7 @@ public class IdeResourceTest
   public void testGetComponentVersions_ByComponentIdentifier() throws Exception {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("gid", "aid", null);
     HttpRequest request = versionsRequest(componentIdentifier);
-    setHdsResponseForURI(convertVersionsUrlToHdsUrl(request.getUrl()), "[\"1.1\", \"2.0\"]", 200);
+    hdsRespondWith("[\"1.1\", \"2.0\"]").atUri(convertVersionsUrlToHdsUrl(request.getUrl()));
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     String[] versions = response.getBody(String[].class);

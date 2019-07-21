@@ -46,7 +46,7 @@ public class GzipTest
 
   @Test
   public void testCompressedRequestBody() throws Exception {
-    setHdsResponseForURI(ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH, Arrays.asList("1.0"), 200);
+    hdsRespondWith(Arrays.asList("1.0")).atUri(ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH);
 
     ApiComponentIdentifierDTOV2 request = ApiComponentIdentifierDTOV2
         .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));

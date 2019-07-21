@@ -27,7 +27,7 @@ public class ApiComponentVersionsResourceV2Test
   @Test
   public void testGetComponentVersions() throws Exception {
     List<String> hdsResult = Arrays.asList("v1", "v2", "v3", "v4");
-    setHdsResponseForURI(ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH, hdsResult, 200);
+    hdsRespondWith(hdsResult).atUri(ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH);
 
     ApiComponentIdentifierDTOV2 request = ApiComponentIdentifierDTOV2
         .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
@@ -42,7 +42,7 @@ public class ApiComponentVersionsResourceV2Test
   @Test
   public void testGetComponentVersions_Purl() throws Exception {
     List<String> hdsResult = Arrays.asList("v1", "v2", "v3", "v4");
-    setHdsResponseForURI(ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH, hdsResult, 200);
+    hdsRespondWith(hdsResult).atUri(ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH);
 
     String packageUrl = "pkg:maven/g1/a1@v1?classifier=c1&type=e1";
     Map<String, String> request = ImmutableMap.of("packageUrl", packageUrl);

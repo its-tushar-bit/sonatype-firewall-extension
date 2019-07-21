@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.client.utils.Authentication;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.mock.hds.HdsMockResponse;
 import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
@@ -223,16 +224,16 @@ public abstract class AbstractBrainServiceTest
     return HttpRequest.to(getCLMServer().getClientConfiguration().getServerAdminUrl());
   }
 
-  protected void setHdsResponseForURI(String uri, Object body, int status) {
-    getHdsServer().setResponseForURI(uri, body, status);
+  protected HdsMockResponse hdsRespondWith(Object body) {
+    return getHdsServer().respondWith(body);
   }
 
-  protected void setHdsResponseForURI(String uri, int status, String bodyResource) {
-    setHdsResponseForURI(uri, getClass().getResource(bodyResource), status);
+  protected HdsMockResponse hdsRespondWithResource(String bodyResource) {
+    return hdsRespondWith(getClass().getResource(bodyResource));
   }
 
   protected void mockScanReceipt(ScanReceipt scanReceipt) {
-    setHdsResponseForURI("rest/application/analysis", scanReceipt, 200);
+    hdsRespondWith(scanReceipt).atUri("rest/application/analysis");
   }
 
   protected String mockReport(String resourceName) {
@@ -255,7 +256,7 @@ public abstract class AbstractBrainServiceTest
     else {
       resourceUrl = getClass().getResource(resourceName);
     }
-    setHdsResponseForURI("rest/application/analysis/" + scanId, resourceUrl, 200);
+    hdsRespondWith(resourceUrl).atUri("rest/application/analysis/" + scanId);
   }
 
   protected File zipResourceDir(String resourceName) {
@@ -277,9 +278,8 @@ public abstract class AbstractBrainServiceTest
   protected void mockComponentSummary(ComponentIdentifier componentIdentifier, ComponentSummary componentSummary)
       throws Exception
   {
-    String uri = UriBuilder.fromPath("rest/component/summary")
-        .queryParam("componentIdentifier", URLEncoder.encode(toJson(componentIdentifier), "UTF-8")).build().toString();
-    setHdsResponseForURI(uri, componentSummary, 200);
+    hdsRespondWith(componentSummary).atUri(UriBuilder.fromPath("rest/component/summary")
+        .queryParam("componentIdentifier", URLEncoder.encode(toJson(componentIdentifier), "UTF-8")).build());
   }
 
   protected static void assertResponseStatus(final int expectedStatus, final HttpResponse response) {

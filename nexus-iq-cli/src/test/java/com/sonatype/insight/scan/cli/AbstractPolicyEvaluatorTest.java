@@ -69,8 +69,8 @@ public abstract class AbstractPolicyEvaluatorTest
     startInsightServer();
 
     // return a valid report zip file when asked
-    testInsightServer.getHdsServer().setResponseForURI("rest/application/analysis/SCAN-ID",
-        new File("src/test/resources/small-report.zip"), 200);
+    testInsightServer.getHdsServer().respondWith(new File("src/test/resources/small-report.zip"))
+        .atUri("rest/application/analysis/SCAN-ID");
 
     insightServerUrl = testInsightServer.getCLMServer().getClientConfiguration().getServerUrl();
   }

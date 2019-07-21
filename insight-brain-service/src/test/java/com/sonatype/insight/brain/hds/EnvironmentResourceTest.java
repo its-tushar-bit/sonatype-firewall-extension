@@ -16,7 +16,7 @@ public class EnvironmentResourceTest
   @Test
   public void testSubmitClientEnvironment() throws Exception {
     String queryParams = "p=eclipse&version=2.0.1.qualifier";
-    setHdsResponseForURI("session/environment?" + queryParams, "", 200);
+    hdsRespondWith("").atUri("session/environment?" + queryParams);
     final HttpResponse response = restRequest().path(EnvironmentResource.RESOURCE_PATH).query(queryParams).get();
     assertResponseStatus(200, response);
   }

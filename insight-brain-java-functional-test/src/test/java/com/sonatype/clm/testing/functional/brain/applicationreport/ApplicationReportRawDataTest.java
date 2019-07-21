@@ -131,8 +131,8 @@ public class ApplicationReportRawDataTest
 
   @Test
   public void testVulnerabilityModal() {
-    testCLMServer.getHdsServer().setResponseForURI("rest/vulnerability/details/sonatype/sonatype-2017-0507",
-        getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails2.json"), 200);
+    testCLMServer.getHdsServer().respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails2.json"))
+        .atUri("rest/vulnerability/details/sonatype/sonatype-2017-0507");
 
     ResultTable resultTable = rawDataPage.resultTable();
     ResultRow springSecurity = resultTable.resultRow(94);

@@ -100,9 +100,9 @@ public class InsightBrainServiceTest
 
     Date expectedMinCreateTime = new Date();
     initServer(config -> {
-      getHdsServer().setResponseForURI(TelemetrySender.RESOURCE_PATH, (HttpResponseProcessor) (request, response) -> {
+      getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
         responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
-      }, 204);
+      }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
     });
     await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(4));
     Date expectedMaxCreateTime = new Date();
@@ -177,10 +177,10 @@ public class InsightBrainServiceTest
   public void testRun_TelemetryFail() throws Exception {
     final HttpServletResponse[] responses = new HttpServletResponse[1];
     initServer(config -> {
-      getHdsServer().setResponseForURI(TelemetrySender.RESOURCE_PATH, (HttpResponseProcessor) (request, response) -> {
+      getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
         responses[0] = response;
         throw new RuntimeException();
-      }, 204);
+      }).atUri(TelemetrySender.RESOURCE_PATH);
     });
     await().atMost(5, SECONDS).until(() -> responses[0] != null);
     HttpResponse response = adminRequest().path("/healthcheck").get();

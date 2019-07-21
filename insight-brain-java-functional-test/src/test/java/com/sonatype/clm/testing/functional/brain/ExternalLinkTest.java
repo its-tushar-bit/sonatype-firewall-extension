@@ -26,7 +26,7 @@ public class ExternalLinkTest
 {
   @After
   public void before() {
-    testCLMServer.getHdsServer().setResponseForURI("ping", "alive", 200);
+    testCLMServer.getHdsServer().respondWith("alive").atUri("ping");
   }
 
   @After

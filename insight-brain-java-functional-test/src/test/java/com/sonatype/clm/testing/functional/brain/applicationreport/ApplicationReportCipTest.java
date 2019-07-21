@@ -231,8 +231,9 @@ public class ApplicationReportCipTest
     VersionsCIP.versionBarHoverText(6).shouldHave(text("30.51"));
 
     // mock request for version 21.41
-    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
-        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails-21.41.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails-21.41.json"))
+        .atUri("rest/ci/componentDetails");
 
     VersionsCIP.versionBar(1).shouldBe(visible).click();
     VersionsCIP.version().shouldHave(text("21.41"));
@@ -245,8 +246,9 @@ public class ApplicationReportCipTest
     VersionsCIP.securityCount().shouldNotBe(visible);
 
     // mock request for version 31.52
-    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
-        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails-31.52.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails-31.52.json"))
+        .atUri("rest/ci/componentDetails");
 
     VersionsCIP.selectNoViolation().shouldBe(visible).click();
 
@@ -599,10 +601,10 @@ public class ApplicationReportCipTest
 
     String componentIdentifier = URLEncoder.encode(ComponentIdentifierAdapter.toJson(JAVANCSS_IDENTIFIER), "UTF-8");
 
-    testCLMServer.getHdsServer().setResponseForURI(
-        "rest/vulnerability/details/cve/CVE-1234-56789?componentIdentifier=" + componentIdentifier + "&hash="
-            + JAVANCSS_HASH,
-        getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails.json"))
+        .atUri("rest/vulnerability/details/cve/CVE-1234-56789?componentIdentifier=" + componentIdentifier + "&hash="
+            + JAVANCSS_HASH);
 
     SVTableRow row = VulnerabilityCIP.row(0);
     row.info().click();
@@ -843,28 +845,31 @@ public class ApplicationReportCipTest
   }
 
   private void mockHdsResponseForFirstComponent() {
-    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
-        getClass().getClassLoader().getResource("componentDetails/javancssComponentDetails-29.50.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-29.50.json"))
+        .atUri("rest/ci/componentDetails");
   }
 
   private void mockHdsResponseForSecondComponent() {
-    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
-        getClass().getClassLoader().getResource("componentDetails/logback-accessComponentDetails-0.6.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/logback-accessComponentDetails-0.6.json"))
+        .atUri("rest/ci/componentDetails");
   }
 
   private void setupHdsResponses() {
     mockHdsResponseForFirstComponent();
-    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails/list",
-        getClass().getClassLoader().getResource(
-            "componentDetails/javancssComponentDetailsListWithNoViolationsVersion.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(
+            getClass().getResource("/componentDetails/javancssComponentDetailsListWithNoViolationsVersion.json"))
+        .atUri("rest/ci/componentDetails/list");
   }
 
   private void mockHdsResponseForRemediation() {
-    testCLMServer.getHdsServer().setResponseForURI("rest/component/summary", "{\"known\":true}", 200);
+    testCLMServer.getHdsServer().respondWith("{\"known\":true}").atUri("rest/component/summary");
   }
 
   private void mockHdsResponseForClaimedComponent() {
-    testCLMServer.getHdsServer().setResponseForURI("rest/component/summary", "{\"known\":false}", 200);
+    testCLMServer.getHdsServer().respondWith("{\"known\":false}").atUri("rest/component/summary");
   }
     
   private static void assertRow(SVTableRow actualRow, Integer threatLevel, String identifier) {

@@ -47,7 +47,7 @@ public class GettingStartedTest
   @Test
   public void testGettingStartedPage() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL);
-    testCLMServer.getHdsServer().setResponseForURI("ping", "alive", 200);
+    testCLMServer.getHdsServer().respondWith("alive").atUri("ping");
     refreshOrOpen(GettingStartedPage.URL);
     loginAsAdmin();
     GettingStartedPage gettingStartedPage = new GettingStartedPage();
@@ -64,7 +64,7 @@ public class GettingStartedTest
     logout();
     createUser();
     login();
-    testCLMServer.getHdsServer().setResponseForURI("ping", "", 503);
+    testCLMServer.getHdsServer().respondWith("").andStatus(503).atUri("ping");
     refreshOrOpen(GettingStartedPage.URL);
 
     // non-admin user only sees the HDS connectivity warning and learning topics tile
@@ -94,7 +94,7 @@ public class GettingStartedTest
     eyesWatcher.eyesCheck("Non-default admin user");
     scrollIntoView(gettingStartedPage.learningTopics()).shouldBe(visible);
 
-    testCLMServer.getHdsServer().setResponseForURI("ping", "alive", 200);
+    testCLMServer.getHdsServer().respondWith("alive").atUri("ping");
     refresh();
 
     // just check that the HDS connectivity warning is gone

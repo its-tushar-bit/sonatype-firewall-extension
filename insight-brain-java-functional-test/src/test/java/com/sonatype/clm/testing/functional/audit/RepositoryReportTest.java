@@ -272,14 +272,16 @@ public class RepositoryReportTest
     componentEvaluationData.declaredLicenses = new HashSet<>();
     componentEvaluationData.observedLicenses = new HashSet<>();
     hdsResult.components.add(componentEvaluationData);
-    testCLMServer.getHdsServer().setResponseForURI("/rest/component/details/firewall", hdsResult, 200);
+    testCLMServer.getHdsServer().respondWith(hdsResult).atUri("/rest/component/details/firewall");
   }
 
   private void setupHdsResponse() {
-    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails",
-        getClass().getClassLoader().getResource("componentDetails/componentDetails.json"), 200);
-    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails/list",
-        getClass().getClassLoader().getResource("componentDetails/componentDetailsList.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getClassLoader().getResource("componentDetails/componentDetails.json"))
+        .atUri("rest/ci/componentDetails");
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getClassLoader().getResource("componentDetails/componentDetailsList.json"))
+        .atUri("rest/ci/componentDetails/list");
   }
 
   private void cipSetup() {
@@ -623,10 +625,10 @@ public class RepositoryReportTest
 
     String componentIdentifier = URLEncoder.encode(ComponentIdentifierAdapter.toJson(CRITICAL_IDENTIFIER), "UTF-8");
 
-    testCLMServer.getHdsServer().setResponseForURI(
-        "rest/vulnerability/details/cve/CVE-1234-56789?componentIdentifier=" + componentIdentifier + "&hash="
-            + criticalComponentHash,
-        getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails.json"))
+        .atUri("rest/vulnerability/details/cve/CVE-1234-56789?componentIdentifier=" + componentIdentifier + "&hash="
+            + criticalComponentHash);
 
     SVTableRow row = VulnerabilityCIP.row(0);
     row.info().click();
@@ -732,7 +734,7 @@ public class RepositoryReportTest
     component.matchState = MatchState.EXACT.toString();
     ComponentEvaluationDataList response = new ComponentEvaluationDataList();
     response.components.add(component);
-    testCLMServer.getHdsServer().setResponseForURI("rest/component/details/firewall", response, 200);
+    testCLMServer.getHdsServer().respondWith(response).atUri("rest/component/details/firewall");
   }
 
   private static void assertRows(ExpectedRow... expectedRows) {

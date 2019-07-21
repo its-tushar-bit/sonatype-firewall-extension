@@ -81,7 +81,7 @@ public class RepoManResourceTest
 
   @Test
   public void testProxyTelemetry_JavaScript() throws Exception {
-    getHdsServer().setResponseForURI(PendoCache.HDS_PENDO_JS_PATH, "some javascript", 200);
+    getHdsServer().respondWith("some javascript").atUri(PendoCache.HDS_PENDO_JS_PATH);
 
     HttpResponse response = restRequest().path(RepoManResource.RESOURCE_PATH)
         .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.JAVASCRIPT_PATH).get();
@@ -94,7 +94,7 @@ public class RepoManResourceTest
 
   @Test
   public void testProxyTelemetry_EventsGet() throws Exception {
-    getHdsServer().setResponseForURI(PendoService.HDS_TELEMETRY_PATH + "/foo/bar", "some response", 200);
+    getHdsServer().respondWith("some response").atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
 
     String url = UriBuilder.fromPath(RepoManResource.RESOURCE_PATH)
         .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.EVENTS_PATH).build("/foo/bar")
@@ -108,7 +108,7 @@ public class RepoManResourceTest
 
   @Test
   public void testProxyTelemetry_EventsPost() throws Exception {
-    getHdsServer().setResponseForURI(PendoService.HDS_TELEMETRY_PATH + "/foo/bar", "some response", 200);
+    getHdsServer().respondWith("some response").atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
 
     String url = UriBuilder.fromPath(RepoManResource.RESOURCE_PATH)
         .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.EVENTS_PATH).build("/foo/bar")

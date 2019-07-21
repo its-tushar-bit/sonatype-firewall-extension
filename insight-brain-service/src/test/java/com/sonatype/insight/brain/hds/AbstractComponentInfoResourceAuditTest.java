@@ -56,7 +56,7 @@ public abstract class AbstractComponentInfoResourceAuditTest
     ComponentDetails hdsComponentDetails = newComponentDetails(COMPONENT_IDENTIFIER);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
-    setHdsResponseForURI(convertToHdsUrl(httpRequest.getUrl()), hdsComponentDetailsList, 200);
+    hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(httpRequest.getUrl()));
   }
 
   private void assertOwnerData(final AuditDTO auditDTO, final Owner owner) {

@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -73,6 +74,10 @@ public class HdsMockResponse
     return this;
   }
 
+  public HdsMockResponse atUri(URI uri) {
+    return atUri(uri.toString());
+  }
+
   public HdsMockResponse atUri(String uri) {
     if (!uri.startsWith("/")) {
       uri = "/" + uri;
@@ -118,7 +123,7 @@ public class HdsMockResponse
     }
     response.setStatus(status);
     response.setContentType(contentType);
-    try (OutputStream os = response.getOutputStream();) {
+    try (OutputStream os = response.getOutputStream()) {
       if (body instanceof String) {
         os.write(body.toString().getBytes(StandardCharsets.UTF_8));
       }

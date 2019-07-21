@@ -67,9 +67,8 @@ public class ApiComponentDetailsResourceV2Test
   }
 
   private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {
-    setHdsResponseForURI(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH.replace(
-        "{purpose: evaluation|integration}", ApiComponentDetailsServiceV2.PURPOSE_INTEGRATION),
-        componentEvaluationDataList, 200);
+    hdsRespondWith(componentEvaluationDataList).atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
+        .replace("{purpose: evaluation|integration}", ApiComponentDetailsServiceV2.PURPOSE_INTEGRATION));
   }
    
   private void assertGetComponentDetails(

@@ -16,7 +16,7 @@ public class EnvironmentResourceAuthzTest
 
   @Test
   public void testSubmitClientEnvironment() throws Exception {
-    setHdsResponseForURI("session/environment?" + QUERY_PARAMS, "", 200);
+    hdsRespondWith("").atUri("session/environment?" + QUERY_PARAMS);
     testAuthcGet(restRequest().path(EnvironmentResource.RESOURCE_PATH).query(QUERY_PARAMS));
   }
 }

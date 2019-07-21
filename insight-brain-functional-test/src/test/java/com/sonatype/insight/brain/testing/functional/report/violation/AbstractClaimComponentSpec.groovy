@@ -99,7 +99,7 @@ extends BaseSpec {
 
   def "Should be able to claim an unknown component"() {
     given: 'A GAV not found in our data'
-    hdsRule.setResponseForURI(createUri(CID), '{"isKnown": false }', 200)
+    hdsRule.respondWith('{"isKnown": false }').atUri(createUri(CID))
     PolicyReportRow firstRow = results[0]
     Cip cip = firstRow.cip as Cip
     def claimForm = cip.claimComponent.claimForm
@@ -143,7 +143,7 @@ extends BaseSpec {
 
   def "Should be able to update an already claimed component"() {
     given: 'A GAV not found in our data'
-    hdsRule.setResponseForURI(createUri(UCID), '{"isKnown": false }', 200)
+    hdsRule.respondWith('{"isKnown": false }').atUri(createUri(UCID))
     PolicyReportRow firstRow = results[0]
     Cip cip = firstRow.cip as Cip
     ClaimComponentModule component = cip.claimComponent as ClaimComponentModule
@@ -270,8 +270,8 @@ extends BaseSpec {
   }
 
   void mockHdsComponentDetailsListResponse(ComponentIdentifier identifier) {
-    hdsRule.setResponseForURI("rest/ci/componentDetails/list?componentIdentifier=" +
-        UrlEncoded.encodeString(JsonUtils.writeUnformatted(identifier)), '{"list":[]}', 200)
+    hdsRule.respondWith('{"list":[]}').atUri("rest/ci/componentDetails/list?componentIdentifier=" +
+        UrlEncoded.encodeString(JsonUtils.writeUnformatted(identifier)))
   }
 
   abstract String getReportPath()

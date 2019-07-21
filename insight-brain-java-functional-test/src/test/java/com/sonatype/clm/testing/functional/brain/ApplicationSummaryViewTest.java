@@ -390,10 +390,10 @@ public class ApplicationSummaryViewTest
     }
     finally {
       if (tempFile != null) {
-        testCLMServer.getHdsServer().setResponseForURI("rest/application/analysis",
-            "{\"scanId\": \"blah\", \"timeToReport\": 0}", 200);
-        testCLMServer.getHdsServer().setResponseForURI("rest/application/analysis/blah",
-            getClass().getResource("/AppEvalReport/report.zip"), 200);
+        testCLMServer.getHdsServer().respondWith("{\"scanId\": \"blah\", \"timeToReport\": 0}")
+            .atUri("rest/application/analysis");
+        testCLMServer.getHdsServer().respondWith(getClass().getResource("/AppEvalReport/report.zip"))
+            .atUri("rest/application/analysis/blah");
 
         ActionDropDown.actionButton().click();
         ActionDropDown.evaluateBinaryButton().shouldBe(visible).shouldNotBe(DISABLED).click();

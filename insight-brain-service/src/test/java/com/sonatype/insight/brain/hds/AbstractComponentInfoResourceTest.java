@@ -118,7 +118,7 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
     HttpRequest request = listRequest(getOwnerId(), MAVEN_COORDINATES);
-    setHdsResponseForURI(convertToHdsUrl(request.getUrl()), hdsComponentDetailsList, 200);
+    hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(request.getUrl()));
 
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
@@ -150,7 +150,7 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
     HttpRequest request = listRequest(getOwnerId(), MAVEN_COORDINATES);
-    setHdsResponseForURI(convertToHdsUrl(request.getUrl()), hdsComponentDetailsList, 200);
+    hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(request.getUrl()));
 
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
@@ -168,7 +168,7 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
     HttpRequest request = allVersionsRequest(getOwnerId(), MAVEN_COORDINATES);
-    setHdsResponseForURI(convertToHdsUrl(request.getUrl()), hdsComponentDetailsList, 200);
+    hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(request.getUrl()));
 
     HttpResponse response = request.get();
     assertResponseStatus(200, response);

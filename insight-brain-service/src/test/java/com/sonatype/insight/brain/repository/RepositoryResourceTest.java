@@ -102,7 +102,7 @@ public class RepositoryResourceTest
     componentEvaluationData.declaredLicenses = new HashSet<>();
     componentEvaluationData.observedLicenses = new HashSet<>();
     hdsResult.components.add(componentEvaluationData);
-    getHdsServer().setResponseForURI("/rest/component/details/firewall", hdsResult, 200);
+    getHdsServer().respondWith(hdsResult).atUri("/rest/component/details/firewall");
 
     HttpResponse response = restRequest()
         .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.EVALUATE_COMPONENT_PATH)

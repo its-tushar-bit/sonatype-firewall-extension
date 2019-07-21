@@ -32,7 +32,7 @@ public class NewInstancePopulatorAuditTest
       policyExportResult.licenseThreatGroups = Collections.singletonList(licenseThreatGroup());
       policyExportResult.tags = Arrays.asList(tag(), tag(), tag(), tag());
 
-      hdsServer.setResponseForURI(ReferencePolicyFetcher.REFERENCE_POLICY_PATH, policyExportResult, 200);
+      hdsServer.respondWith(policyExportResult).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
     });
 
     getCLMServer().getInstance(NewInstancePopulator.class).populateIfNewInstance();
@@ -47,8 +47,8 @@ public class NewInstancePopulatorAuditTest
   @Test
   @ManualServerInit
   public void testPopulateIfNewInstance_BadGateway() throws Exception {
-    initServer((HdsConfigurator) hdsServer -> hdsServer
-        .setResponseForURI(ReferencePolicyFetcher.REFERENCE_POLICY_PATH, new PolicyExportResult(), 500));
+    initServer((HdsConfigurator) hdsServer -> hdsServer.respondWith("Internal Server Error").andStatus(500)
+        .atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH));
 
     getCLMServer().getInstance(NewInstancePopulator.class).populateIfNewInstance();
 

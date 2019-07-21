@@ -62,7 +62,7 @@ public class IdeResourceAuditTest
     HttpRequest request = restRequest().path(IdeResource.RESOURCE_PATH).path("scan", scanType, app.getPublicId(), hash);
 
     String hdsUrl = "rest/ide/scan/" + scanType + "/" + hash;
-    setHdsResponseForURI(hdsUrl, 200, "/IdeResourceAuditTest/SimpleMatch_abababababababababab.json");
+    hdsRespondWithResource("/IdeResourceAuditTest/SimpleMatch_abababababababababab.json").atUri(hdsUrl);
 
     return request;
   }

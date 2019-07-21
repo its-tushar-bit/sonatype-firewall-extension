@@ -22,7 +22,7 @@ class NotificationSpec
     Date now = new Date()
     long tenMinutesAgo = now.getTime() - (1000 * 60 * 10)
     long tenHoursAgo = now.getTime() - (1000 * 60 * 60 * 10)
-    hdsRule.setResponseForURI('rest/productNotifications', '{"productNotifications":[{' +
+    hdsRule.respondWith('{"productNotifications":[{' +
         '"id" : "1",' +
         '"type" : "DEFAULT",' +
         '"summaryText" : "summary1",' +
@@ -34,7 +34,7 @@ class NotificationSpec
         '"summaryText" : "summary2",' +
         '"detailHtml" : "<a href=\'http://www.google.com/ncr\' target=\'_blank\'>detail2</a>",' +
         '"dateCreated" : ' + tenHoursAgo +
-        '}]}', 200)
+        '}]}').atUri('rest/productNotifications')
     ReportViolationsPage reportViolationsPage = loginAsAdminVia(ReportViolationsPage)
     notificationMenu = reportViolationsPage.notificationMenu as NotificationModule
   }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.mock.hds.HdsMockResponse;
 import com.sonatype.insight.mock.hds.HdsMockServer;
 import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 
@@ -69,8 +70,8 @@ public class HdsMockServerRule
     System.out.println("Stopped HDS mock in " + (System.currentTimeMillis() - start) + " ms.");
   }
 
-  public void setResponseForURI(String uri, Object body, int status) {
-    hdsMockServer.setResponseForURI(uri, body, status);
+  public HdsMockResponse respondWith(Object body) {
+    return hdsMockServer.respondWith(body);
   }
 
   public void reset() {

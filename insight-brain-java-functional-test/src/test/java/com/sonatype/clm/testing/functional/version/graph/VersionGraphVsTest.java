@@ -101,9 +101,9 @@ public class VersionGraphVsTest
     VersionsCIP.versionBarHoverText(6).shouldHave(text("4.3.1"));
 
     // mock request for version 21.41
-    testCLMServer.getHdsServer().setResponseForURI("rest/ide/componentDetails",
-        getClass().getClassLoader().getResource(
-            "componentDetails/componentDetailsEntityFramework-4-1-10311.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/componentDetailsEntityFramework-4-1-10311.json"))
+        .atUri("rest/ide/componentDetails");
 
     VersionsCIP.versionBar(1).shouldBe(visible).click();
     VersionsCIP.version().shouldHave(text("4.1.10311.0"));
@@ -116,8 +116,9 @@ public class VersionGraphVsTest
     VersionsCIP.securityCount().shouldNotBe(visible);
 
     // mock request for version 31.52
-    testCLMServer.getHdsServer().setResponseForURI("rest/ide/componentDetails",
-        getClass().getClassLoader().getResource("componentDetails/componentDetailsEntityFramework-5-beta.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/componentDetailsEntityFramework-5-beta.json"))
+        .atUri("rest/ide/componentDetails");
 
     VersionsCIP.selectNoViolation().shouldBe(visible).click();
 
@@ -218,31 +219,32 @@ public class VersionGraphVsTest
   }
 
   protected void mockHdsResponseForFirstComponent() {
-    testCLMServer.getHdsServer().setResponseForURI("rest/ide/componentDetails",
-        getClass().getClassLoader().getResource("componentDetails/componentDetailsEntityFramework-4-3-0.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/componentDetailsEntityFramework-4-3-0.json"))
+        .atUri("rest/ide/componentDetails");
   }
 
   protected void setupHdsResponses() {
     mockHdsResponseForFirstComponent();
-    testCLMServer.getHdsServer().setResponseForURI("rest/ide/componentDetails/list",
-        getClass().getClassLoader().getResource(
-            "componentDetails/componentDetailsListEntityFramework.json"), 200);
-    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails/list",
-        getClass().getClassLoader().getResource(
-            "componentDetails/componentDetailsListEntityFramework.json"), 200);
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/componentDetailsListEntityFramework.json"))
+        .atUri("rest/ide/componentDetails/list");
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/componentDetailsListEntityFramework.json"))
+        .atUri("rest/ci/componentDetails/list");
   }
 
   protected void setupHdsResponsesForNoRemediation() {
     mockHdsResponseForFirstComponent();
-    testCLMServer.getHdsServer().setResponseForURI("rest/ide/componentDetails/list",
-        getClass().getClassLoader().getResource(
-            "componentDetails/componentDetailsListEntityFrameworkNoGoodVersion.json"), 200);
-    testCLMServer.getHdsServer().setResponseForURI("rest/ci/componentDetails/list",
-        getClass().getClassLoader().getResource(
-            "componentDetails/componentDetailsListEntityFrameworkNoGoodVersion.json"), 200);
+    testCLMServer.getHdsServer().respondWith(
+        getClass().getResource("/componentDetails/componentDetailsListEntityFrameworkNoGoodVersion.json"))
+        .atUri("rest/ide/componentDetails/list");
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/componentDetailsListEntityFrameworkNoGoodVersion.json"))
+        .atUri("rest/ci/componentDetails/list");
   }
 
   protected void mockHdsResponseForRemediation() {
-    testCLMServer.getHdsServer().setResponseForURI("rest/component/summary", "{\"known\":true}", 200);
+    testCLMServer.getHdsServer().respondWith("{\"known\":true}").atUri("rest/component/summary");
   }
 }

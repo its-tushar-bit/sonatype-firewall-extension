@@ -359,7 +359,7 @@ public class ApplicationResourceTest
 
     // create eval log entry pointing at missing report
     tempEntity.newPolicyEvaluation(appId, Stage.ID_BUILD, scanId);
-    setHdsResponseForURI("/rest/ci/report?scanId=" + scanId, "Not Found", 404);
+    hdsRespondWith("Not Found").andStatus(404).atUri("/rest/ci/report?scanId=" + scanId);
 
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);

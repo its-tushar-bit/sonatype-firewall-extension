@@ -72,9 +72,9 @@ public class UserInterfaceLinksResourceTest
   public void testLinkToReport_WithSourceQuery() throws Exception {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
     initServer(config -> {
-      getHdsServer().setResponseForURI(TelemetrySender.RESOURCE_PATH, (HttpResponseProcessor) (request, response) -> {
+      getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
         responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
-      }, 204);
+      }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
     });
 
     assertThat(UserInterfaceLinksResource.getReportUrl("app id", "scan id"))
@@ -118,9 +118,9 @@ public class UserInterfaceLinksResourceTest
   public void testLinkToReport_WithoutSourceQuery() throws Exception {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
     initServer(config -> {
-      getHdsServer().setResponseForURI(TelemetrySender.RESOURCE_PATH, (HttpResponseProcessor) (request, response) -> {
+      getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
         responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
-      }, 204);
+      }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
     });
 
     assertThat(UserInterfaceLinksResource.getReportUrl("app id", "scan id"))

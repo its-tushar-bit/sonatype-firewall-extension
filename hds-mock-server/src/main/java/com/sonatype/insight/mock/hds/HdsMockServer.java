@@ -94,10 +94,6 @@ public class HdsMockServer
     return configurator;
   }
 
-  public void setResponseForURI(String uri, Object body, int status) {
-    respondWith(body).andStatus(status).atUri(uri);
-  }
-
   private HdsMockResponse getMockResponse(String method, ParsedUri uri) {
     for (HdsMockResponse response : responses) {
       if (response.matches(method, uri)) {

@@ -151,7 +151,7 @@ public class ApiComponentRemediationResourceTest
   }
 
   private void mockComponentDetails(final ComponentDetailsList componentEvaluationDataList) {
-    setHdsResponseForURI("rest/ci/componentDetails/list", componentEvaluationDataList, 200);
+    hdsRespondWith(componentEvaluationDataList).atUri("rest/ci/componentDetails/list");
   }
 
   private void assertResponse(final HttpResponse response,

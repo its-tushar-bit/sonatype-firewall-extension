@@ -22,7 +22,7 @@ public class IdeResourceAuthzTest
   @Test
   public void testDoScan() throws Exception {
     String hash = "0123456789";
-    setHdsResponseForURI("rest/ide/scan/simple/" + hash, "{}", 200);
+    hdsRespondWith("{}").atUri("rest/ide/scan/simple/" + hash);
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
 
     HttpRequest request = restRequest().path("scan/simple/{appPublicId}/{hash}").parameter(app.getPublicId(), hash);
@@ -32,7 +32,7 @@ public class IdeResourceAuthzTest
   @Test
   public void testPostScan() throws Exception {
     String hash = "0123456789";
-    setHdsResponseForURI("rest/ide/scan/enhanced/" + hash, "{}", 200);
+    hdsRespondWith("{}").atUri("rest/ide/scan/enhanced/" + hash);
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
 
     HttpRequest request = restRequest().path("scan/enhanced/{appPublicId}/{hash}").parameter(app.getPublicId(), hash)

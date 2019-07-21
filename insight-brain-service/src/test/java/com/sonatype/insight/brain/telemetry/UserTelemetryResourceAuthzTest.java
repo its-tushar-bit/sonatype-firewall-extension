@@ -21,7 +21,7 @@ public class UserTelemetryResourceAuthzTest
 
   @Test
   public void testGetJavascript() throws Exception {
-    getHdsServer().setResponseForURI(PendoCache.HDS_PENDO_JS_PATH, "function foo() {}", 200);
+    getHdsServer().respondWith("function foo() {}").atUri(PendoCache.HDS_PENDO_JS_PATH);
     HttpResponse response = restRequest()
         .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH).get();
     assertResponseStatus(200, response);
@@ -34,13 +34,13 @@ public class UserTelemetryResourceAuthzTest
 
   @Test
   public void testGetProxy() throws Exception {
-    setHdsResponseForURI(PendoService.HDS_TELEMETRY_PATH, 204, "");
+    hdsRespondWith("").andStatus(204).atUri(PendoService.HDS_TELEMETRY_PATH);
     testAuthcGet(restRequest().path(UserTelemetryResource.RESOURCE_PATH, "events/"));
   }
 
   @Test
   public void testPostProxy() throws Exception {
-    setHdsResponseForURI(PendoService.HDS_TELEMETRY_PATH, 204, "");
+    hdsRespondWith("").andStatus(204).atUri(PendoService.HDS_TELEMETRY_PATH);
     testAuthcPost(restRequest().path(UserTelemetryResource.RESOURCE_PATH, "events/"));
   }
 }

@@ -104,7 +104,7 @@ public class ReferencePolicyImportIntegrationTest
     {
       @Override
       public void configure(HdsMockServer hdsServer) {
-        hdsServer.setResponseForURI(ReferencePolicyFetcher.REFERENCE_POLICY_PATH, referencePolicyUrl, 200);
+        hdsServer.respondWith(referencePolicyUrl).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
       }
     };
 

@@ -17,7 +17,7 @@ public class HdsPingResourceTest
 {
   @Test
   public void testPingHds() throws Exception {
-    getHdsServer().setResponseForURI("ping", "alive", 200);
+    getHdsServer().respondWith("alive").atUri("ping");
 
     HttpResponse response = restRequest().path(HdsPingResource.RESOURCE_PATH).get();
 

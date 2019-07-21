@@ -53,7 +53,7 @@ public class ApplicationEvaluationResourceAuditTest
 
   @Test
   public void testEvaluate_ErrorDuringAsyncEvaluationTask() throws Exception {
-    setHdsResponseForURI("rest/application/analysis", "Service Unavailable", 503);
+    hdsRespondWith("Service Unavailable").andStatus(503).atUri("rest/application/analysis");
     assertResponseStatus(200, evaluate(null, app.getPublicId(), Stage.ID_BUILD));
     assertAuditLog(AuditEvent.EVALUATE_APPLICATION, "bad-gateway");
   }

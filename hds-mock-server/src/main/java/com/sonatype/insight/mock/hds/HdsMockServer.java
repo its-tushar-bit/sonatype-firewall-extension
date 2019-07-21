@@ -8,11 +8,10 @@ package com.sonatype.insight.mock.hds;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Deque;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -70,7 +69,7 @@ public class HdsMockServer
 
   private Server server;
 
-  private Map<RequestMatcher, ResponseProvider> responseProviders = new LinkedHashMap<>();
+  private Deque<HdsMockResponse> responses = new ConcurrentLinkedDeque<>();
 
   public interface HdsConfigurator
   {
@@ -78,7 +77,13 @@ public class HdsMockServer
   }
 
   public void reset() {
-    responseProviders.clear();
+    responses.clear();
+  }
+
+  public HdsMockResponse respondWith(Object body) {
+    HdsMockResponse response = new HdsMockResponse(body);
+    responses.addFirst(response);
+    return response;
   }
 
   public void setConfigurator(HdsConfigurator configurator) {
@@ -90,38 +95,13 @@ public class HdsMockServer
   }
 
   public void setResponseForURI(String uri, Object body, int status) {
-    ResponseProvider responseProvider;
-    if (body == null) {
-      throw new IllegalArgumentException("response body missing for " + uri);
-    }
-    else if (body instanceof String) {
-      responseProvider = new BytesResponseProvider(status, (String) body);
-    }
-    else if (body instanceof byte[]) {
-      responseProvider = new BytesResponseProvider(status, (byte[]) body);
-    }
-    else if (body instanceof File) {
-      responseProvider = new UrlResponseProvider(status, (File) body);
-    }
-    else if (body instanceof URL) {
-      responseProvider = new UrlResponseProvider(status, (URL) body);
-    }
-    else if (body instanceof HttpResponseProcessor) {
-      responseProvider = new HttpResponseProvider(status, (HttpResponseProcessor) body);
-    }
-    else {
-      responseProvider = new BytesResponseProvider(status, ResponseProvider.CONTENT_TYPE_JSON, Json.write(body));
-    }
-    if (!uri.startsWith("/")) {
-      uri = "/" + uri;
-    }
-    responseProviders.put(new SimpleRequestMatcher(uri), responseProvider);
+    respondWith(body).andStatus(status).atUri(uri);
   }
 
-  private ResponseProvider getResponseProvider(String uri) {
-    for (Map.Entry<RequestMatcher, ResponseProvider> entry : responseProviders.entrySet()) {
-      if (entry.getKey().matches(uri)) {
-        return entry.getValue();
+  private HdsMockResponse getMockResponse(String method, ParsedUri uri) {
+    for (HdsMockResponse response : responses) {
+      if (response.matches(method, uri)) {
+        return response;
       }
     }
     return null;
@@ -278,7 +258,7 @@ public class HdsMockServer
   }
 
   private void sendJson(HttpServletResponse response, String json) throws IOException {
-    send(response, ResponseProvider.CONTENT_TYPE_JSON, json);
+    send(response, "application/json; charset=UTF-8", json);
   }
 
   private void send(HttpServletResponse response, String contentType, String content) throws IOException {
@@ -314,10 +294,9 @@ public class HdsMockServer
       }
 
       try {
-        ResponseProvider responseProvider = getResponseProvider(uriWithParams);
-        if (responseProvider != null) {
-          validateLicense(request);
-          responseProvider.render(request, response);
+        HdsMockResponse mockResponse = getMockResponse(request.getMethod(), new ParsedUri(uriWithParams));
+        if (mockResponse != null) {
+          mockResponse.render(request, response);
           consume(baseRequest);
         }
         else if (uri.equals("/rest/license") && "GET".equals(request.getMethod())) {
@@ -400,20 +379,6 @@ public class HdsMockServer
             "Proxy authentication required, got " + auth);
       }
     }
-  }
-
-  interface RequestMatcher
-  {
-    boolean matches(String uri);
-  }
-
-  interface ResponseProvider
-  {
-    static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
-
-    static final String CONTENT_TYPE_OCTET_STREAM = "application/octet-stream";
-
-    void render(HttpServletRequest request, HttpServletResponse response) throws IOException;
   }
 
   public static void main(String[] args) throws Exception {

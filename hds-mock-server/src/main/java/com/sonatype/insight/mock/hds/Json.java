@@ -6,6 +6,7 @@
 package com.sonatype.insight.mock.hds;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +25,7 @@ class Json
       return JSON.writeValueAsBytes(dto);
     }
     catch (IOException e) {
-      throw new IllegalArgumentException(e);
+      throw new UncheckedIOException(e);
     }
   }
 }

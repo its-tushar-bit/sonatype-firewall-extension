@@ -28,20 +28,20 @@ import org.junit.Before;
 public class AbstractMembershipMappingAuditTest
     extends AbstractAuditTest
 {
-  private List<MembershipMapping> originalMembershipMapppings;
+  private List<MembershipMapping> originalMembershipMappings;
 
   @Before
-  public void saveOriginalMembershipMapppings() {
-    originalMembershipMapppings = new MembershipMappingDAO().getAll().stream()
+  public void saveOriginalMembershipMappings() {
+    originalMembershipMappings = new MembershipMappingDAO().getAll().stream()
         .map(mm -> new MembershipMapping(mm.getContextId(), mm.getRoleId(), mm.getMemberName(), mm.getMemberType()))
         .collect(Collectors.toList());
   }
 
   @After
-  public void restoreOriginalMembershipMapppings() {
+  public void restoreOriginalMembershipMappings() {
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
     membershipMappingDAO.getAll().forEach(membershipMappingDAO::delete);
-    originalMembershipMapppings.forEach(membershipMappingDAO::insert);
+    originalMembershipMappings.forEach(membershipMappingDAO::insert);
   }
 
   protected void assertRoleMembershipData(AuditDTO auditDTO, String roleId, List<Member> members) {

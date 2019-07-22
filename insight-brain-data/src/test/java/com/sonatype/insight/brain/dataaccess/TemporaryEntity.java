@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -246,6 +247,8 @@ public class TemporaryEntity
 
   private Collection<User> users;
 
+  private Collection<String> usernames;
+
   private Collection<Role> roles;
 
   private Collection<LdapServer> ldapServers;
@@ -293,6 +296,7 @@ public class TemporaryEntity
     orgs = new ArrayList<>();
     licenseOverrides = new ArrayList<>();
     users = new ArrayList<>();
+    usernames = new ArrayList<>();
     roles = new ArrayList<>();
     ldapServers = new ArrayList<>();
     claimedComponents = new ArrayList<>();
@@ -338,6 +342,7 @@ public class TemporaryEntity
     delete(licenseOverrides, entity -> licenseOverrideDAO.getById(entity.getId()), licenseOverrideDAO::delete);
     delete(securityVulnerabilityOverrides, securityVulnerabilityOverrideDAO);
     delete(users, userDAO);
+    delete(usernames, userDAO);
     delete(roles, roleDAO);
     delete(ldapServers, ldapServerDAO);
     delete(claimedComponents, hashComponentIdentifierDAO);
@@ -367,6 +372,10 @@ public class TemporaryEntity
 
   private <T extends HasStringId> void delete(Collection<T> entities, AbstractDAO<T> dao) {
     delete(entities, entity -> dao.getById(entity.getId()), dao::delete);
+  }
+
+  private void delete(Collection<String> usernames, UserDAO dao) {
+    usernames.stream().map(dao::getByUsername).filter(Objects::nonNull).forEach(dao::delete);
   }
 
   private <T> void delete(Collection<T> entities, Function<T, T> reloader, Consumer<T> deleter) {
@@ -471,6 +480,10 @@ public class TemporaryEntity
 
   public void register(User... users) {
     Collections.addAll(this.users, users);
+  }
+
+  public void registerUsernames(String... usernames) {
+    Collections.addAll(this.usernames, usernames);
   }
 
   public void register(HashComponentIdentifier... hashComponentIdentifiers) {

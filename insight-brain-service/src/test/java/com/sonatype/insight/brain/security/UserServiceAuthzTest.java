@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -21,6 +22,8 @@ import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToAdd;
+import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToUpdate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserServiceAuthzTest
@@ -232,5 +235,82 @@ public class UserServiceAuthzTest
   public void testShouldDisplayDefaultPasswordWarning_Unauthorized() {
     login();
     userService.shouldDisplayDefaultPasswordWarning();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetApiUserDTOByUsername_Unauthenticated() {
+    userService.getApiUserDTOByUsername(tempEntity.newUser().getUsername());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApiUserDTOByUsername_Unauthorized() {
+    login();
+    userService.getApiUserDTOByUsername(tempEntity.newUser().getUsername());
+  }
+
+  @Test
+  public void testGetApiUserDTOByUsername_Authorized() {
+    grantConfigureSystemPermission();
+    userService.getApiUserDTOByUsername(tempEntity.newUser().getUsername());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddUser_ByApiUserDTO_Unauthenticated() {
+    ApiUserDTO inputUserDTO = createUserDTOToAdd();
+    tempEntity.registerUsernames(inputUserDTO.username);
+    userService.addUser(inputUserDTO);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddUser_ByApiUserDTO_Unauthorized() {
+    login();
+    ApiUserDTO inputUserDTO = createUserDTOToAdd();
+    tempEntity.registerUsernames(inputUserDTO.username);
+    userService.addUser(inputUserDTO);
+  }
+
+  @Test
+  public void testAddUser_ByApiUserDTO_Authorized() {
+    grantConfigureSystemPermission();
+    ApiUserDTO inputUserDTO = createUserDTOToAdd();
+    tempEntity.registerUsernames(inputUserDTO.username);
+    userService.addUser(inputUserDTO);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdateUser_ByApiUserDTO_Unauthenticated() {
+    User user = tempEntity.newUser();
+    userService.updateUser(user.getUsername(), createUserDTOToUpdate(user));
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdateUser_ByApiUserDTO_Unauthorized() {
+    login();
+    User user = tempEntity.newUser();
+    userService.updateUser(user.getUsername(), createUserDTOToUpdate(user));
+  }
+
+  @Test
+  public void testUpdateUser_ByApiUserDTO_Authorized() {
+    grantConfigureSystemPermission();
+    User user = tempEntity.newUser();
+    userService.updateUser(user.getUsername(), createUserDTOToUpdate(user));
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteUserByUsername_Unauthenticated() {
+    userService.deleteUserByUsername(tempEntity.newUser().getUsername());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeleteUserByUsername_Unauthorized() {
+    login();
+    userService.deleteUserByUsername(tempEntity.newUser().getUsername());
+  }
+
+  @Test
+  public void testDeleteUserByUsername_Authorized() {
+    grantConfigureSystemPermission();
+    userService.deleteUserByUsername(tempEntity.newUser().getUsername());
   }
 }

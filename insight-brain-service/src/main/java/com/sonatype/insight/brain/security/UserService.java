@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.naming.NamingException;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
@@ -170,7 +171,10 @@ public class UserService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   void deleteUser(String userId) {
-    User user = userDAO.getByIdNotNull(userId);
+    deleteUser(userDAO.getByIdNotNull(userId));
+  }
+
+  private void deleteUser(User user) {
     String username = SecurityUtils.getSubject().getPrincipal().toString();
     if (user.getUsername().equalsIgnoreCase(username)) {
       throw new BadRequestException("Cannot delete the currently logged in user.");
@@ -314,5 +318,66 @@ public class UserService
       this.members = members;
       this.error = error;
     }
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public ApiUserDTO getApiUserDTOByUsername(String username) {
+    return convert(userDAO.getByUsernameNotNull(username));
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public ApiUserDTO addUser(ApiUserDTO userDTO) {
+    User user = convert(userDTO);
+    addUser(user);
+    return convert(user);
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public ApiUserDTO updateUser(String username, ApiUserDTO userDTO) {
+    if (userDTO.username != null && !userDTO.username.equals(username)) {
+      throw new BadRequestException("Cannot change username.");
+    }
+    if (userDTO.password != null) {
+      throw new BadRequestException("Cannot change user password.");
+    }
+    User user = userDAO.getByUsernameNotNull(username);
+    if (userDTO.firstName != null) {
+      user.setFirstName(userDTO.firstName);
+    }
+    if (userDTO.lastName != null) {
+      user.setLastName(userDTO.lastName);
+    }
+    if (userDTO.email != null) {
+      user.setEmail(userDTO.email);
+    }
+    userDAO.update(user);
+    auditUser(user);
+    return convert(user);
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void deleteUserByUsername(String username) {
+    deleteUser(userDAO.getByUsernameNotNull(username));
+  }
+
+  private ApiUserDTO convert(User user) {
+    ApiUserDTO userDTO = new ApiUserDTO();
+    userDTO.username = user.getUsername();
+    // exclude password
+    userDTO.firstName = user.getFirstName();
+    userDTO.lastName = user.getLastName();
+    userDTO.email = user.getEmail();
+    return userDTO;
+  }
+
+  private User convert(ApiUserDTO userDTO) {
+    User user = new User();
+    // exclude id
+    user.setUsername(userDTO.username);
+    user.setPassword(userDTO.password);
+    user.setFirstName(userDTO.firstName);
+    user.setLastName(userDTO.lastName);
+    user.setEmail(userDTO.email);
+    return user;
   }
 }

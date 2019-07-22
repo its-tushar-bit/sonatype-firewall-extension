@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
 import org.apache.commons.lang.StringUtils;
@@ -31,6 +33,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.assertEqualExceptNullDTOPassword;
+import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.assertEqualIgnoringPassword;
+import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToAdd;
+import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToUpdate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -378,6 +384,128 @@ public class UserServiceTest
       admin.setUsername(User.ADMIN_USERNAME);
       userDAO.update(admin);
     }
+  }
+
+  @Test
+  public void testGetApiUserDTOByUsername() {
+    User user = tempEntity.newUser();
+
+    assertEqualExceptNullDTOPassword(user, userService.getApiUserDTOByUsername(user.getUsername()));
+  }
+
+  @Test
+  public void testGetApiUserDTOByUsername_UserDoesNotExist() {
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> userService.getApiUserDTOByUsername("doesNotExist"))
+        .withMessage("Cannot find a user with username doesNotExist.");
+  }
+
+  @Test
+  public void testAddUser() {
+    ApiUserDTO inputUserDTO = createUserDTOToAdd();
+    tempEntity.registerUsernames(inputUserDTO.username);
+
+    ApiUserDTO outputUserDTO = userService.addUser(inputUserDTO);
+
+    assertEqualIgnoringPassword(inputUserDTO, outputUserDTO);
+    assertMatchingUser(outputUserDTO);
+  }
+
+  @Test
+  public void testUpdateUser() {
+    ApiUserDTO inputUserDTO = createUserDTOToUpdate(tempEntity.newUser());
+
+    ApiUserDTO outputUserDTO = userService.updateUser(inputUserDTO.username, inputUserDTO);
+
+    assertOnlyPasswordNull(outputUserDTO);
+    assertInputNullOrEqualToOutputIgnoringPassword(inputUserDTO, outputUserDTO);
+    assertMatchingUser(outputUserDTO);
+  }
+
+  @Test
+  public void testUpdateUser_NoUsername() {
+    User user = tempEntity.newUser();
+    ApiUserDTO inputUserDTO = createUserDTOToUpdate(user);
+    inputUserDTO.username = null;
+
+    ApiUserDTO outputUserDTO = userService.updateUser(user.getUsername(), inputUserDTO);
+
+    assertOnlyPasswordNull(outputUserDTO);
+    assertInputNullOrEqualToOutputIgnoringPassword(inputUserDTO, outputUserDTO);
+    assertMatchingUser(outputUserDTO);
+  }
+
+  @Test
+  public void testUpdateUser_OnlyUsername() {
+    ApiUserDTO inputUserDTO = new ApiUserDTO();
+    inputUserDTO.username = tempEntity.newUser().getUsername();
+
+    ApiUserDTO outputUserDTO = userService.updateUser(inputUserDTO.username, inputUserDTO);
+
+    assertOnlyPasswordNull(outputUserDTO);
+    assertInputNullOrEqualToOutputIgnoringPassword(inputUserDTO, outputUserDTO);
+    assertMatchingUser(outputUserDTO);
+  }
+
+  @Test
+  public void testUpdateUser_Username() {
+    ApiUserDTO inputUserDTO = createUserDTOToUpdate(tempEntity.newUser());
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> userService.updateUser("differentUsername", inputUserDTO))
+        .withMessage("Cannot change username.");
+  }
+
+  @Test
+  public void testUpdateUser_Password() {
+    ApiUserDTO inputUserDTO = createUserDTOToUpdate(tempEntity.newUser());
+    inputUserDTO.password = "";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> userService.updateUser(inputUserDTO.username, inputUserDTO))
+        .withMessage("Cannot change user password.");
+  }
+
+  @Test
+  public void testDeleteUserByUsername() {
+    User user = tempEntity.newUser();
+
+    userService.deleteUserByUsername(user.getUsername());
+
+    assertThat(userDAO.getById(user.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteUserByUsername_UserDoesNotExist() {
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> userService.deleteUserByUsername("doesNotExist"))
+        .withMessage("Cannot find a user with username doesNotExist.");
+  }
+
+  private void assertMatchingUser(ApiUserDTO inputUserDTO) {
+    User user = userDAO.getByUsernameNotNull(inputUserDTO.username);
+    assertThat(inputUserDTO.firstName).isEqualTo(user.getFirstName());
+    assertThat(inputUserDTO.lastName).isEqualTo(user.getLastName());
+    assertThat(inputUserDTO.email).isEqualTo(user.getEmail());
+  }
+
+  private void assertOnlyPasswordNull(ApiUserDTO userDTO) {
+    assertThat(userDTO.username).isNotNull();
+    assertThat(userDTO.password).isNull();
+    assertThat(userDTO.firstName).isNotNull();
+    assertThat(userDTO.lastName).isNotNull();
+    assertThat(userDTO.email).isNotNull();
+  }
+
+  private void assertInputNullOrEqualToOutputIgnoringPassword(ApiUserDTO inputUserDTO, ApiUserDTO outputUserDTO) {
+    assertInputNullOrEqualToOutput(inputUserDTO.username, outputUserDTO.username);
+    assertInputNullOrEqualToOutput(inputUserDTO.firstName, outputUserDTO.firstName);
+    assertInputNullOrEqualToOutput(inputUserDTO.lastName, outputUserDTO.lastName);
+    assertInputNullOrEqualToOutput(inputUserDTO.email, outputUserDTO.email);
+  }
+
+  private void assertInputNullOrEqualToOutput(String input, String output) {
+    assertThat(input).satisfiesAnyOf(s -> assertThat(s).isNull(), s -> assertThat(s).isEqualTo(output));
   }
 
   private void assertMember(FindMembersDTO findMembersDTO,

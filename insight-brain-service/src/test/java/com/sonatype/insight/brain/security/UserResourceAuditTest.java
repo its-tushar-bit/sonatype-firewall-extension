@@ -23,13 +23,6 @@ public class UserResourceAuditTest
     return super.restRequest().path(UserResource.RESOURCE_PATH);
   }
 
-  private void assertUserData(AuditDTO auditDTO, User user) {
-    assertCustomData(auditDTO, "username", user.getUsername());
-    assertCustomData(auditDTO, "firstName", user.getFirstName());
-    assertCustomData(auditDTO, "lastName", user.getLastName());
-    assertCustomData(auditDTO, "emailAddress", user.getEmail());
-  }
-
   @Test
   public void testAddUser() throws Exception {
     User user = new User("john.doe", "secret", "John", "Doe", "john.doe@sonatype.com");

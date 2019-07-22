@@ -69,6 +69,14 @@ public class UserDAO
     }
   }
 
+  public User getByUsernameNotNull(String username) {
+    User user = getByUsername(username);
+    if (user == null) {
+      throw new NotFoundException("Cannot find a user with username " + username + ".");
+    }
+    return user;
+  }
+
   /**
    * Find users in the database by matching case-insensitive the supplied name query against their full name.
    * 

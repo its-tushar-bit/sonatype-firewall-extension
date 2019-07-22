@@ -233,4 +233,11 @@ public interface AuditTestSupport
         OrganizationAuditDTO[].class);
     assertThat(actuals).containsExactlyInAnyOrder(expected);
   }
+
+  default void assertUserData(AuditDTO auditDTO, User user) {
+    assertCustomData(auditDTO, "username", user.getUsername());
+    assertCustomData(auditDTO, "firstName", user.getFirstName());
+    assertCustomData(auditDTO, "lastName", user.getLastName());
+    assertCustomData(auditDTO, "emailAddress", user.getEmail());
+  }
 }

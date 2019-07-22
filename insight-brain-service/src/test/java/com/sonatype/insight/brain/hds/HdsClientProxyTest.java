@@ -24,10 +24,10 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.ProxyConfig;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
-import com.sonatype.insight.test.PortAllocator;
 import com.sonatype.insight.test.SslProperties;
 
 import com.google.common.net.HttpHeaders;
+import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -57,8 +57,7 @@ public class HdsClientProxyTest
 
   @Before
   public void init() throws Exception {
-    int port = PortAllocator.findFreePort(8090);
-    server = new Server(port);
+    server = new Server(0);
     server.setHandler(new AbstractHandler()
     {
       @Override
@@ -75,7 +74,7 @@ public class HdsClientProxyTest
     config = new InsightConfig();
     ProxyConfig proxyConfig = new ProxyConfig();
     proxyConfig.setHostname("localhost");
-    proxyConfig.setPort(port);
+    proxyConfig.setPort(((NetworkConnector) server.getConnectors()[0]).getLocalPort());
     config.setProxyConfig(proxyConfig);
     config.setHdsUrl("https://www.somehost.com/");
     telemetryId = new TelemetryId(config);

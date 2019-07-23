@@ -119,7 +119,7 @@ public class PackageUrlConditionType
     PackageURLBuilder builder = PackageURLBuilder.aPackageURL();
     try {
       // Since package URL lower cases namespaces and names for some types which are case sensitive
-      // All of them are using generic type for wildcard conversion, so they are not changed and mixed cases are kept
+      // Using generic type for wildcard conversion, so they are not changed and mixed cases are kept
       String format = StringUtils.substringBetween(packageUrl, ":", "/");
       String genericPackageUrl = StringUtils.replaceIgnoreCase(packageUrl, format, StandardTypes.GENERIC, 1);
       PackageURL newPackageUrl = new PackageURL(genericPackageUrl);
@@ -253,14 +253,14 @@ public class PackageUrlConditionType
   }
 
   private void addNamespaceIfExists(PackageURLBuilder builder, PackageURL packageUrl) {
-    if (!StringUtils.isBlank(packageUrl.getNamespace())) {
+    if (StringUtils.isNotBlank(packageUrl.getNamespace())) {
       builder.withNamespace(packageUrl.getNamespace());
     }
   }
 
   private String wildcardElement(String element) {
     String newElement;
-    if (!StringUtils.isBlank(element)) {
+    if (StringUtils.isNotBlank(element)) {
       newElement = element;
     }
     else {

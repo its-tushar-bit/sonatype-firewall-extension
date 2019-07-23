@@ -6,6 +6,8 @@
 package com.sonatype.insight.scan.cli;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -13,7 +15,13 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.insight.brain.TestLicenseFingerprinter;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -21,6 +29,11 @@ import com.sonatype.insight.scan.model.io.ScanReader;
 import com.sonatype.insight.test.InjectedTest;
 import com.sonatype.insight.test.LogOutput;
 
+import org.sonatype.licensing.product.ProductLicenseManager;
+import org.sonatype.licensing.product.util.LicenseFingerprinter;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Module;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
@@ -85,7 +98,7 @@ public abstract class AbstractPolicyEvaluatorTest
       return;
     }
 
-    testInsightServer = new TestCLMServer(false, null, new Configurator()
+    testInsightServer = new TestCLMServer(false, getBrainModules(), new Configurator()
     {
       @Override
       public void configure(InsightConfig config) {
@@ -93,6 +106,20 @@ public abstract class AbstractPolicyEvaluatorTest
       }
     });
     testInsightServer.start();
+  }
+
+  protected List<Module> getBrainModules() {
+    Module testModule = new AbstractModule()
+    {
+      @Override
+      protected void configure() {
+        bind(ProductLicense.class).to(TestProductLicense.class);
+        bind(ProductLicenseDetailsCache.class).to(TestProductLicenseDetailsCache.class);
+        bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
+        bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class);
+      }
+    };
+    return Arrays.asList(testModule);
   }
 
   protected static void stopInsightServer() throws Exception {

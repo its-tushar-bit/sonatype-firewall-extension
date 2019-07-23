@@ -125,7 +125,7 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
   @Override
   protected void startInsightServer() throws Exception {
     // start Insight server
-    testInsightServer = new TestCLMServer(false, null, new Configurator()
+    testInsightServer = new TestCLMServer(false, getBrainModules(), new Configurator()
     {
       @Override
       public void configure(InsightConfig config) {

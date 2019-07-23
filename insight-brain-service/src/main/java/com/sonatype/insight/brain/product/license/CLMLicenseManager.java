@@ -81,6 +81,9 @@ public class CLMLicenseManager
     this.licenseManager = licenseManager;
     this.licenseFingerprinter = licenseFingerprinter;
     this.auditRecorder = auditRecorder;
+  }
+
+  public void loadLicense() {
     try {
       populateLicenseCache();
     }

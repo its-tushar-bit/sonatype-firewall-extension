@@ -64,6 +64,7 @@ public class ApplicationLifecycle
 
   public void boot() throws Exception {
     auditServerLifecycle(AuditEvent.START_SERVER);
+    licenseManager.loadLicense();
     // If a license is not installed and the config has a license file path, then try to install it from there.
     licenseManager.installLicenseIfUnlicensed(configuration.getLicenseFile());
 

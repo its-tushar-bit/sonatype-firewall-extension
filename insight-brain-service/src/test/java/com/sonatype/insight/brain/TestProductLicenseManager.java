@@ -48,35 +48,33 @@ public class TestProductLicenseManager
   private boolean wasChanged;
 
   @Override
-  public ProductLicenseKey getLicenseDetails() throws LicensingException {
+  public ProductLicenseKey getLicenseDetails() {
     return mockProductLicenseManager.getLicenseDetails();
   }
 
   @Override
-  public ProductLicenseKey getLicenseDetails(InputStream licenseFile) throws IOException, LicensingException {
+  public ProductLicenseKey getLicenseDetails(InputStream licenseFile) throws IOException {
     return mockProductLicenseManager.getLicenseDetails(licenseFile);
   }
 
   @Override
-  public void installLicense(InputStream licenseFile) throws IOException, LicensingException {
+  public void installLicense(InputStream licenseFile) throws IOException {
     mockProductLicenseManager.installLicense(licenseFile);
   }
 
   @Override
-  public void uninstallLicense() throws LicensingException {
+  public void uninstallLicense() {
     wasChanged = true;
     mockProductLicenseManager.uninstallLicense();
   }
 
   @Override
-  public void verifyFeature(ProductLicenseKey key, org.sonatype.licensing.feature.Feature feature)
-      throws LicensingException
-  {
+  public void verifyFeature(ProductLicenseKey key, org.sonatype.licensing.feature.Feature feature) {
     mockProductLicenseManager.verifyFeature(key, feature);
   }
 
   @Override
-  public void verifyLicenseAndFeature(org.sonatype.licensing.feature.Feature feature) throws LicensingException {
+  public void verifyLicenseAndFeature(org.sonatype.licensing.feature.Feature feature) {
     mockProductLicenseManager.verifyLicenseAndFeature(feature);
   }
 
@@ -205,7 +203,7 @@ public class TestProductLicenseManager
     }
 
     @Override
-    public void installLicense(final InputStream licenseFile) throws IOException, LicensingException {
+    public void installLicense(final InputStream licenseFile) throws IOException {
       readLicenseFile(licenseFile);
 
       if (forceInstallIOFailure) {
@@ -252,13 +250,13 @@ public class TestProductLicenseManager
     }
 
     @Override
-    public void uninstallLicense() throws LicensingException {
+    public void uninstallLicense() {
       valid = false;
       key = null;
     }
 
     @Override
-    public ProductLicenseKey getLicenseDetails() throws LicensingException {
+    public ProductLicenseKey getLicenseDetails() {
       if (!valid) {
         throw new LicensingException("Not licensed");
       }
@@ -266,21 +264,17 @@ public class TestProductLicenseManager
     }
 
     @Override
-    public ProductLicenseKey getLicenseDetails(final InputStream licenseFile) throws IOException, LicensingException {
+    public ProductLicenseKey getLicenseDetails(final InputStream licenseFile) throws IOException {
       readLicenseFile(licenseFile);
       return createKey();
     }
 
     @Override
-    public void verifyLicenseAndFeature(final org.sonatype.licensing.feature.Feature feature)
-        throws LicensingException
-    {
+    public void verifyLicenseAndFeature(final org.sonatype.licensing.feature.Feature feature) {
     }
 
     @Override
-    public void verifyFeature(final ProductLicenseKey key, final org.sonatype.licensing.feature.Feature feature)
-        throws LicensingException
-    {
+    public void verifyFeature(final ProductLicenseKey key, final org.sonatype.licensing.feature.Feature feature) {
       if (forceVerificationFailure) {
         throw new LicensingException("License does not permit use of feature '" + feature.getId() + "'");
       }

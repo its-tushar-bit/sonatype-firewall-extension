@@ -95,11 +95,27 @@ public class ProductLicense
       Integer maxUsers,
       Integer maxFirewallUsers)
   {
-    productLicenseData = new ProductLicenseData(fingerprint, productLicenseKey.getExpirationDate().getTime(),
-        productLicenseKey.getContactName(), productLicenseKey.getContactCompany(),
-        productLicenseKey.getContactEmailAddress(), Collections.unmodifiableSet(products),
-        Collections.unmodifiableSet(features), Collections.unmodifiableSet(stageTypes), maxApplications, maxUsers,
-        maxFirewallUsers);
+    set(fingerprint, productLicenseKey.getExpirationDate().getTime(), productLicenseKey.getContactName(),
+        productLicenseKey.getContactCompany(), productLicenseKey.getContactEmailAddress(), products, features,
+        stageTypes, maxApplications, maxUsers, maxFirewallUsers);
+  }
+
+  void set(
+      String fingerprint,
+      long expirationTimestamp,
+      String contactName,
+      String contactCompany,
+      String contactEmail,
+      Set<String> products,
+      Set<LicensedFeature> features,
+      Set<StageType> stageTypes,
+      Integer maxApplications,
+      Integer maxUsers,
+      Integer maxFirewallUsers)
+  {
+    productLicenseData = new ProductLicenseData(fingerprint, expirationTimestamp, contactName, contactCompany,
+        contactEmail, Collections.unmodifiableSet(products), Collections.unmodifiableSet(features),
+        Collections.unmodifiableSet(stageTypes), maxApplications, maxUsers, maxFirewallUsers);
   }
 
   /**

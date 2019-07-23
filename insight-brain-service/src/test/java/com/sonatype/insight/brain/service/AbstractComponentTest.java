@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -161,7 +160,6 @@ public class AbstractComponentTest
     config.setHdsUrl("http://unknownhost");
     customizeConfig(config);
     binder.bind(InsightConfig.class).toInstance(config);
-    binder.bind(CLMLicenseManager.class).asEagerSingleton();
     binder.bind(ProductLicense.class).to(TestProductLicense.class);
     binder.bind(ProductLicenseDetailsCache.class).to(TestProductLicenseDetailsCache.class);
     binder.bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);

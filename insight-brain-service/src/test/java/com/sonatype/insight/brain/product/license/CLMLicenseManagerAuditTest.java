@@ -18,7 +18,10 @@ import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
+import com.sonatype.insight.brain.service.HdsMockServerRule;
+import com.sonatype.insight.brain.service.InsightConfig;
 
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -26,11 +29,19 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class CLMLicenseManagerAuditTest
     extends AbstractComponentAuditTest
 {
+  @ClassRule
+  public static HdsMockServerRule hdsMockServer = new HdsMockServerRule();
+
   @Inject
   private CLMLicenseManager licenseManager;
 
   @Inject
   private TestProductLicenseManager testProductLicenseManager;
+
+  @Override
+  protected void customizeConfig(InsightConfig config) {
+    config.setHdsUrl(hdsMockServer.getHttpUrl());
+  }
 
   @Test
   public void testInstallLicenseIfUnlicensed() throws Exception {

@@ -405,6 +405,18 @@
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.portal</groupId>
+        <artifactId>insight-license-util</artifactId>
+        <version>${hds.version}</version>
+        <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>com.sonatype.insight.portal</groupId>
+            <artifactId>insight-portal-model</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.portal</groupId>
         <artifactId>insight-jaxrs-utils</artifactId>
         <version>${hds.version}</version>
       </dependency>

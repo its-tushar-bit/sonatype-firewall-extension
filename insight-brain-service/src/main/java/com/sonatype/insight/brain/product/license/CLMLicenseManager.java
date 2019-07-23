@@ -5,10 +5,15 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
+import java.security.Signature;
+import java.security.cert.Certificate;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -29,16 +34,20 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
 
 import org.sonatype.licensing.LicensingException;
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
+import org.sonatype.licensing.util.LicensingUtil;
 
+import com.google.common.io.ByteStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,9 +69,13 @@ public class CLMLicenseManager
 
   private final ProductLicense productLicense;
 
+  private final ProductLicenseDetailsCache productLicenseDetailsCache;
+
   private final ProductLicenseManager licenseManager;
 
   private final LicenseFingerprinter licenseFingerprinter;
+
+  private final HdsClient hdsClient;
 
   private static final Logger log = LoggerFactory.getLogger(CLMLicenseManager.class);
 
@@ -73,13 +86,17 @@ public class CLMLicenseManager
   @Inject
   public CLMLicenseManager(
       final ProductLicense productLicense,
+      final ProductLicenseDetailsCache productLicenseDetailsCache,
       final ProductLicenseManager licenseManager,
       final LicenseFingerprinter licenseFingerprinter,
+      final HdsClient hdsClient,
       final AuditRecorder auditRecorder)
   {
     this.productLicense = productLicense;
+    this.productLicenseDetailsCache = productLicenseDetailsCache;
     this.licenseManager = licenseManager;
     this.licenseFingerprinter = licenseFingerprinter;
+    this.hdsClient = hdsClient;
     this.auditRecorder = auditRecorder;
   }
 
@@ -115,9 +132,55 @@ public class CLMLicenseManager
   }
 
   public synchronized void installLicense(InputStream is) throws IOException {
-    licenseManager.installLicense(is);
+    byte[] licenseData = ByteStreams.toByteArray(is);
+    ProductLicenseKey licenseKey = licenseManager.getLicenseDetails(new ByteArrayInputStream(licenseData));
+    String licenseFingerprint = licenseFingerprinter.calculate(licenseKey);
+    SignedProductLicenseDetailsDTO licenseDetails =
+        hdsClient.post(SignedProductLicenseDetailsDTO.class, "rest/productLicense/v1", licenseData);
+    verifySignature(licenseDetails, licenseFingerprint);
+    licenseManager.installLicense(new ByteArrayInputStream(licenseData));
+    productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
     populateLicenseCache();
     log.info("License installed successfully");
+  }
+
+  private void verifySignature(SignedProductLicenseDetailsDTO licenseDetails, String licenseFingerprint) {
+    try {
+      Signature signature = Signature.getInstance("SHA256withRSA");
+      signature.initVerify(loadCertificateForSignatureVerification(licenseDetails.signatureKeyAlias));
+      for (String feature : licenseDetails.features) {
+        signature.update(feature.getBytes(StandardCharsets.UTF_8));
+      }
+      for (String stageId : licenseDetails.stageIds) {
+        signature.update(stageId.getBytes(StandardCharsets.UTF_8));
+      }
+      signature.update((licenseDetails.maxApplications == null ? "0" : licenseDetails.maxApplications.toString())
+          .getBytes(StandardCharsets.UTF_8));
+      signature.update(licenseFingerprint.getBytes(StandardCharsets.UTF_8));
+      if (!signature.verify(licenseDetails.signature)) {
+        throw new Exception("Signature mismatch");
+      }
+    }
+    catch (Exception e) {
+      throw new LicensingException("Could not verify signature of license details", e);
+    }
+  }
+
+  private Certificate loadCertificateForSignatureVerification(String keyAlias) {
+    Certificate certificate;
+    try {
+      KeyStore keyStore = KeyStore.getInstance("pkcs12");
+      keyStore.load(getClass().getResourceAsStream("licensing-keystore.p12"), LicensingUtil
+          .unobfuscate(new long[]{0xA8874A6C58A5CD5BL, 0xDADEE6943E19F478L, 0x34D18D0FE23233C2L}).toCharArray());
+      certificate = keyStore.getCertificate(keyAlias);
+    }
+    catch (Exception e) {
+      throw new IllegalStateException("Could not load certificates for signature verification", e);
+    }
+    if (certificate == null) {
+      throw new IllegalStateException("Could not load certificate " + keyAlias + " for signature verification");
+    }
+    return certificate;
   }
 
   public synchronized void uninstallLicense() {

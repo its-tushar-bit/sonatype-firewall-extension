@@ -272,6 +272,9 @@ public class HdsMockServer
 
       try {
         HdsMockResponse mockResponse = getMockResponse(request.getMethod(), new ParsedUri(uriWithParams));
+        if (mockResponse == null && uri.equals("/rest/productLicense/v1") && "POST".equals(request.getMethod())) {
+          mockResponse = new HdsMockResponse(getClass().getResource("productLicenseDetails.json")).withoutLicense();
+        }
         if (mockResponse != null) {
           mockResponse.render(request, response);
           consume(baseRequest);

@@ -9,7 +9,11 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Properties;
+import java.util.TreeSet;
 
 import javax.inject.Inject;
 
@@ -17,16 +21,24 @@ import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.HdsMockServerRule;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
+import com.sonatype.insight.productlicense.ProductLicenseSigner;
 import com.sonatype.insight.test.LogOutput;
 
 import org.sonatype.licensing.LicensingException;
 
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -34,6 +46,9 @@ import static org.mockito.Mockito.verify;
 public class CLMLicenseManagerTest
     extends AbstractComponentTest
 {
+  @ClassRule
+  public static HdsMockServerRule hdsMockServer = new HdsMockServerRule();
+
   @Rule
   public LogOutput logOutput = new LogOutput(CLMLicenseManager.class);
   
@@ -44,10 +59,51 @@ public class CLMLicenseManagerTest
   private ProductLicense productLicense;
 
   @Inject
+  private ProductLicenseDetailsCache productLicenseDetailsCache;
+
+  @Inject
   private TestLicenseFingerprinter licenseFingerprinter;
 
   @Inject
   private TestProductLicenseManager licenseManager;
+
+  @Inject
+  private ProductLicenseSigner productLicenseSigner;
+
+  @Before
+  public void before() throws Exception {
+    Files.copy(getClass().getResourceAsStream("/CLMLicenseManagerTest/licensing-keystore-hds.p12"),
+        new File(tempDir.getRoot(), "hds.p12").toPath());
+    hdsMockServer.reset();
+  }
+
+  @Override
+  public void configure(Properties properties) {
+    super.configure(properties);
+    properties.setProperty("licensing.keystore.path", new File(tempDir.getRoot(), "hds.p12").getAbsolutePath());
+    properties.setProperty("licensing.keystore.aliasgroup", "licensing-key-test");
+  }
+
+  @Override
+  protected void customizeConfig(InsightConfig config) {
+    config.setHdsUrl(hdsMockServer.getHttpUrl());
+  }
+
+  private void mockHdsProductLicenseDetails() {
+    SignedProductLicenseDetailsDTO licenseDetails = new SignedProductLicenseDetailsDTO();
+    licenseDetails.version = 1;
+    licenseDetails.features = new TreeSet<>();
+    licenseDetails.stageIds = new TreeSet<>();
+    licenseDetails.maxApplications = 100;
+    mockHdsProductLicenseDetails(licenseDetails);
+  }
+
+  private void mockHdsProductLicenseDetails(SignedProductLicenseDetailsDTO licenseDetails) {
+    if (licenseDetails.signature == null) {
+      productLicenseSigner.sign(licenseDetails, licenseFingerprinter.calculate());
+    }
+    hdsMockServer.respondWith(licenseDetails).atUri("/rest/productLicense/v1").withoutLicense();
+  }
 
   private void installLicense() throws IOException, LicensingException {
     clmLicenseManager.installLicense(new ByteArrayInputStream(new byte[1]));
@@ -297,6 +353,46 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testInstallLicense_LicenseDetailsFromHds() throws Exception {
+    SignedProductLicenseDetailsDTO licenseDetails = new SignedProductLicenseDetailsDTO();
+    licenseDetails.features = new TreeSet<>(Arrays.asList("featureA", "featureB"));
+    licenseDetails.stageIds = new TreeSet<>(Arrays.asList("stageA", "stageB"));
+    licenseDetails.maxApplications = 12345;
+    mockHdsProductLicenseDetails(licenseDetails);
+    installLicense();
+    licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
+    assertThat(licenseDetails).isNotNull();
+    assertThat(licenseDetails.features).containsExactly("featureA", "featureB");
+    assertThat(licenseDetails.stageIds).contains("stageA", "stageB");
+    assertThat(licenseDetails.maxApplications).isEqualTo(12345);
+  }
+
+  @Test
+  public void testInstallLicense_LicenseDetailsFromHds_InvalidSignature() throws Exception {
+    clmLicenseManager.uninstallLicense();
+    SignedProductLicenseDetailsDTO licenseDetails = new SignedProductLicenseDetailsDTO();
+    licenseDetails.features = new TreeSet<>();
+    licenseDetails.stageIds = new TreeSet<>();
+    licenseDetails.signature = new byte[256];
+    mockHdsProductLicenseDetails(licenseDetails);
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
+      installLicense();
+    }).withMessage("Could not verify signature of license details");
+    assertThat(licenseManager.isValid()).isFalse();
+    assertThat(productLicense.isValid()).isFalse();
+  }
+
+  @Test
+  public void testInstallLicense_LicenseDetailsFromHds_RequestFailure() throws Exception {
+    clmLicenseManager.uninstallLicense();
+    hdsMockServer.respondWith("error").andStatus(503).atUri("/rest/productLicense/v1").withoutLicense();
+    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
+      installLicense();
+    }).withMessageContaining("Data Services are currently out of service");
+    assertThat(licenseManager.isValid()).isFalse();
+    assertThat(productLicense.isValid()).isFalse();
+  }
+
   public void testNotifyListener_LoadLicense() throws Exception {
     ProductLicenseListener listener = mock(ProductLicenseListener.class);
     clmLicenseManager.addListener(listener);
@@ -391,6 +487,7 @@ public class CLMLicenseManagerTest
   public void testGetLicenseInfo_IncludesFingerprint() throws Exception {
     String fingerprint = "test-passed";
     licenseFingerprinter.setDummyLicenseFingerprint(fingerprint);
+    mockHdsProductLicenseDetails();
     installLicense();
     LicenseInfo summary = clmLicenseManager.getLicenseInfo();
     assertThat(summary).isNotNull();

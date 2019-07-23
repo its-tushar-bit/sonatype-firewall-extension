@@ -11,6 +11,7 @@ import java.io.InputStream;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.BadGatewayException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -32,7 +33,7 @@ public class ProductLicenseServiceAuthzTest
     productLicenseService.validateLicense();
   }
 
-  @Test
+  @Test(expected = BadGatewayException.class /* no HDS around to query license details from */)
   public void testInstallLicense_Authorized() {
     grantConfigureSystemPermission();
     productLicenseService.installLicense(getLicense(), "test.lic");

@@ -51,6 +51,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.entity.BufferedHttpEntity;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
@@ -351,7 +352,13 @@ public class HdsClient
                     String... uriParams)
   {
     HttpPost cloudReq = createPostRequest(buildUri(path, uriParams), analytics, clientUserAgent);
-    HttpEntity entity = new StringEntity(JsonUtils.format(jsonSerializableObject), ContentType.APPLICATION_JSON);
+    HttpEntity entity;
+    if (jsonSerializableObject instanceof byte[]) {
+      entity = new ByteArrayEntity((byte[]) jsonSerializableObject, ContentType.APPLICATION_OCTET_STREAM);
+    }
+    else {
+      entity = new StringEntity(JsonUtils.format(jsonSerializableObject), ContentType.APPLICATION_JSON);
+    }
     cloudReq.setEntity(entity);
     cloudReq.setHeader(HttpHeaders.ACCEPT, "application/json");
 

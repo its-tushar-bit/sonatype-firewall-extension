@@ -624,6 +624,9 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:maven/g/a@v?type=&classifier=", "pkg:maven/g/a@v?classifier=*&type=*");
     assertConvertIfNeeded("pkg:maven/a@v?type=&classifier=", "pkg:maven/*/a@v?classifier=*&type=*");
     assertConvertIfNeeded("pkg:maven/g/a@v?type=e&classifier=c", "pkg:maven/g/a@v?classifier=c&type=e");
+    assertConvertIfNeeded("pkg:maven/G/A@v?Type=e&Classifier=c", "pkg:maven/G/A@v?classifier=c&type=e");
+    assertConvertIfNeeded("pkg:maven/G/A@v?type=e&classifier=c", "pkg:maven/G/A@v?classifier=c&type=e");
+    assertConvertIfNeeded("pkg:maven/G/A@v?type=E&classifier=C", "pkg:maven/G/A@v?classifier=C&type=E");
   }
   
   private void convertIfNeededAname() {
@@ -632,6 +635,8 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:a-name/n@v?qualifier=q", "pkg:a-name/n@v?qualifier=q");
     assertConvertIfNeeded("pkg:a-name/n@v", "pkg:a-name/n@v?qualifier=*");
     assertConvertIfNeeded("pkg:a-name/n@v?qualifier=", "pkg:a-name/n@v?qualifier=*");
+    assertConvertIfNeeded("pkg:a-name/N@V?qualifier=", "pkg:a-name/N@V?qualifier=*");
+    assertConvertIfNeeded("pkg:a-name/N@V?qualifier=Q", "pkg:a-name/N@V?qualifier=Q");
   }
   
   private void convertIfNeededPypi() {
@@ -645,18 +650,22 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:pypi/n@v?extension=e&qualifier=", "pkg:pypi/n@v?extension=e&qualifier=*");
     assertConvertIfNeeded("pkg:pypi/n@v?extension=&qualifier=q", "pkg:pypi/n@v?extension=*&qualifier=q");
     assertConvertIfNeeded("pkg:pypi/n?extension=e&qualifier=q", "pkg:pypi/n@*?extension=e&qualifier=q");
+    assertConvertIfNeeded("pkg:pypi/N?extension=e&qualifier=q", "pkg:pypi/N@*?extension=e&qualifier=q");
+    assertConvertIfNeeded("pkg:pypi/N/name/*?extension=E&qualifier=q", "pkg:pypi/N/name/*@*?extension=E&qualifier=q");
   }
 
   private void convertIfNeededNuget() {
     assertConvertIfNeeded("pkg:nuget/n", "pkg:nuget/n@*");
     assertConvertIfNeeded("pkg:nuget/n@v", "pkg:nuget/n@v");
     assertConvertIfNeeded("pkg:nuget/n/n@v", "pkg:nuget/n/n@v");
+    assertConvertIfNeeded("pkg:nuget/N/n@V", "pkg:nuget/N/n@V");
   }
 
   private void convertIfNeededNpm() {
     assertConvertIfNeeded("pkg:npm/n", "pkg:npm/n@*");
     assertConvertIfNeeded("pkg:npm/n@v", "pkg:npm/n@v");
     assertConvertIfNeeded("pkg:npm/a/n@v", "pkg:npm/a/n@v");
+    assertConvertIfNeeded("pkg:npm/A/n@V", "pkg:npm/A/n@V");
   }
 
   private void convertIfNeededRpm() {
@@ -666,6 +675,7 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:rpm/n@v?arch=", "pkg:rpm/n@v?arch=*");
     assertConvertIfNeeded("pkg:rpm/n@v", "pkg:rpm/n@v?arch=*");
     assertConvertIfNeeded("pkg:rpm/a/n@v", "pkg:rpm/a/n@v?arch=*");
+    assertConvertIfNeeded("pkg:rpm/A/N@v", "pkg:rpm/A/N@v?arch=*");
   }
 
   private void convertIfNeededGolang() {
@@ -673,6 +683,9 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:golang/n@v", "pkg:golang/n@v");
     assertConvertIfNeeded("pkg:golang/a/n@v", "pkg:golang/a/n@v");
     assertConvertIfNeeded("pkg:golang/a/n", "pkg:golang/a/n@*");
+    assertConvertIfNeeded("pkg:golang/A/n", "pkg:golang/A/n@*");
+    assertConvertIfNeeded("pkg:golang/A/N/*", "pkg:golang/A/N/*@*");
+    assertConvertIfNeeded("pkg:golang/A/N/*@V", "pkg:golang/A/N/*@V");
   }
 
   private void convertIfNeededRubygems() {
@@ -682,6 +695,8 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:gem/n@v?platform=", "pkg:gem/n@v?platform=*");
     assertConvertIfNeeded("pkg:gem/n@v", "pkg:gem/n@v?platform=*");
     assertConvertIfNeeded("pkg:gem/a/n@v", "pkg:gem/a/n@v?platform=*");
+    assertConvertIfNeeded("pkg:gem/A/n@V", "pkg:gem/A/n@V?platform=*");
+    assertConvertIfNeeded("pkg:gem/A/N@V", "pkg:gem/A/N@V?platform=*");
   }
   
   private void convertIfNeededUnknown() {
@@ -693,6 +708,9 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:unknown/namespace/name@v?qualifier=q", "pkg:unknown/namespace/name@v?qualifier=q");
     assertConvertIfNeeded("pkg:unknown/namespace/name@v?qualifier=q&type=t&arch=a",
         "pkg:unknown/namespace/name@v?arch=a&qualifier=q&type=t");
+    assertConvertIfNeeded("pkg:unknown/NAMEspace/name@v?qualifier=q&type=t&Arch=A",
+        "pkg:unknown/NAMEspace/name@v?arch=A&qualifier=q&type=t");
+    assertConvertIfNeeded("pkg:unknown/NAME@v?qualifier=", "pkg:unknown/NAME@v");
   }
   
   private void assertConvertIfNeeded(final String value, final String expectedConvertedValue) {

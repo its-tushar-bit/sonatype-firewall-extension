@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -21,6 +24,8 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import org.sonatype.licensing.product.ProductLicenseKey;
+
 @Named
 @Singleton
 public class TestProductLicense
@@ -35,10 +40,18 @@ public class TestProductLicense
   }
 
   public void reset() {
-    set("1234", System.currentTimeMillis() + 6000 * 1000, "Engineering", "Sonatype Inc", "test@sonatype.com",
-        new HashSet<>(Arrays.asList(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
-            ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY)),
-        EnumSet.allOf(LicensedFeature.class), new HashSet<>(StageTypes.getAll()), 100, 50, 45);
+    try {
+      testProductLicenseManager.reset();
+      ProductLicenseKey productLicenseKey =
+          testProductLicenseManager.getLicenseDetails(new ByteArrayInputStream(new byte[1]));
+      set(productLicenseKey, "1234",
+          new HashSet<>(Arrays.asList(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
+              ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY)),
+          EnumSet.allOf(LicensedFeature.class), new HashSet<>(StageTypes.getAll()), 100, 50, 45);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   @Override

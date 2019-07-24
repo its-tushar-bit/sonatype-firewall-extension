@@ -216,12 +216,11 @@ public class ApplicationReportVulnerabilitiesTest
   @Test
   public void testSecurityIssueLink() {
     final String refId = "CVE-2016-1000031";
-    String uiLinksUrl = VulnerabilitySearchPage.uiLinksUrl(refId);
     String detailsUrl = VulnerabilitySearchPage.url(refId);
 
     VulnerabilityTable vulnerabilityTable = vulnerabilitiesPage.table();
     VulnerabilityRow vulnerabilityRow = vulnerabilityTable.row(1);
-    vulnerabilityRow.detailsLink().shouldHave(attribute("href", uiLinksUrl));
+    vulnerabilityRow.detailsLink().shouldHave(attribute("href", detailsUrl));
     vulnerabilityRow.detailsLink().shouldHave(text(refId)).click();
 
     waitUntilUrl(detailsUrl);

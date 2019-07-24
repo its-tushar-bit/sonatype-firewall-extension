@@ -7,7 +7,12 @@ import ComponentDisplay from '../../../../main/frontend/ComponentDisplay/ReactCo
 
 describe('ApplicationReportVulnerabilitiesTable', function() {
   const minimalProps = {
-    vulnerabilities: []
+    vulnerabilities: [],
+    $state: {
+      href: jasmine.createSpy().and.callFake(function(stateName, params) {
+        return 'http://localhost/vulnerabilities/' + params.id;
+      })
+    }
   };
 
   const ApplicationReportVulnerabilitiesTable =
@@ -147,7 +152,7 @@ describe('ApplicationReportVulnerabilitiesTable', function() {
 
     expect(firstRowLinks.first()).not.toHaveClassName('iq-vulnerability-printable-link');
     expect(firstRowLinks.first()).toHaveText('CVE-1234');
-    expect(firstRowLinks.first()).toHaveProp('href', 'http://localhost/ui/links/vln/CVE-1234');
+    expect(firstRowLinks.first()).toHaveProp('href', 'http://localhost/vulnerabilities/CVE-1234');
 
     expect(firstRowLinks.last()).toHaveClassName('iq-vulnerability-printable-link');
     expect(firstRowLinks.last()).toHaveText('http://localhost/ui/links/vln/CVE-1234');
@@ -155,7 +160,7 @@ describe('ApplicationReportVulnerabilitiesTable', function() {
 
     expect(secondRowLinks.first()).not.toHaveClassName('iq-vulnerability-printable-link');
     expect(secondRowLinks.first()).toHaveText('CVE-1235');
-    expect(secondRowLinks.first()).toHaveProp('href', 'http://localhost/ui/links/vln/CVE-1235');
+    expect(secondRowLinks.first()).toHaveProp('href', 'http://localhost/vulnerabilities/CVE-1235');
 
     expect(secondRowLinks.last()).toHaveClassName('iq-vulnerability-printable-link');
     expect(secondRowLinks.last()).toHaveText('http://localhost/ui/links/vln/CVE-1235');

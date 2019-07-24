@@ -53,8 +53,8 @@ public class ApiUserResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_USER)
-  public ApiUserDTO add(ApiUserDTO userDTO) {
-    return userService.addUser(userDTO);
+  public void add(ApiUserDTO userDTO) {
+    userService.addUser(userDTO);
   }
 
   @PUT

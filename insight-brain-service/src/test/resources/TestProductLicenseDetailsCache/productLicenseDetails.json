@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "maxApplications": 100,
+  "features": [
+    "CI_INTEGRATION",
+    "CLI_INTEGRATION",
+    "DASHBOARD",
+    "ENFORCEMENT",
+    "EXTERNAL_DATABASE",
+    "FIREWALL",
+    "FIREWALL_FOR_ARTIFACTORY",
+    "IDE_INTEGRATION",
+    "NOTIFICATIONS",
+    "POLICY_GRANDFATHERING",
+    "POLICY_MONITORING",
+    "POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS",
+    "POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES",
+    "QUALITY",
+    "RM_STAGING_INTEGRATION",
+    "WEBHOOKS_FOR_APPLICATIONS",
+    "WEBHOOKS_FOR_REPOSITORIES"
+  ],
+  "stageIds": [
+    "build",
+    "develop",
+    "operate",
+    "proxy",
+    "release",
+    "stage-release"
+  ],
+  "signature": "CzQDU28GdBQSwY10A4unnGb29C/gTjsn2uY3LqTgbtWkMmSi2SW6eMDiDZtkIDn1yuUFCKcQN3/62M8Gk70S/e0KX+t3Ek/rixlyXzx7p75rBBg8/e2lThTt2cbTIliuvZiMurb0Ck9Oc2Po/dM13BdbriFPyztudHjY2YHyRpbm7pOFSPMKmS5ZDHMjzaHRQuP7aoTT6Lp4udVTT22mAshJXI7n5PUfhu1yN/z7nmXG8Kr+gVLSuKHleBNE+1CyWecRiUqkuBHFTNoIaO71GpxBzIikHxGhlMwesWBXByckLUr8PkCz+VZkzqHZLywVmzq8hmSNOGrIbbbv+b7tkw==",
+  "signatureKeyAlias": "licensing-key-test"
+}

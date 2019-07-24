@@ -222,7 +222,7 @@ CREATE TABLE membership_mapping (
   membership_mapping_id varchar(50) NOT NULL,
   context_id varchar(50) NOT NULL, -- either 'global' or id of org/app
   role_id varchar(50) NOT NULL,
-  member_name varchar(60) NOT NULL,
+  member_name varchar(200) NOT NULL,
   member_type varchar(20) NOT NULL,
   CONSTRAINT membership_mapping_pk PRIMARY KEY (membership_mapping_id),
   CONSTRAINT membership_mapping_uk UNIQUE (context_id, role_id, member_name, member_type),

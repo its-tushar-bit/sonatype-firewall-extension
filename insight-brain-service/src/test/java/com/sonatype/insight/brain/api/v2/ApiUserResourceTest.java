@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.assertEqualExceptNullDTOPassword;
 import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.assertEqualIgnoringPassword;
+import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.assertMatchingUser;
 import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToAdd;
 import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToUpdate;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,17 +40,15 @@ public class ApiUserResourceTest
 
     HttpResponse response = restRequest().body(inputUserDTO).post();
 
-    assertResponseStatus(200, response);
-    ApiUserDTO outputUserDTO = response.getBody(ApiUserDTO.class);
-    assertEqualIgnoringPassword(inputUserDTO, outputUserDTO);
+    assertResponseStatus(204, response);
     User user = userDAO.getByUsernameNotNull(inputUserDTO.username);
-    assertEqualExceptNullDTOPassword(user, outputUserDTO);
+    assertMatchingUser(inputUserDTO);
 
     // Read
     response = restRequest().path(ApiUserResource.USERNAME_PATH).parameter(inputUserDTO.username).get();
 
     assertResponseStatus(200, response);
-    outputUserDTO = response.getBody(ApiUserDTO.class);
+    ApiUserDTO outputUserDTO = response.getBody(ApiUserDTO.class);
     assertEqualExceptNullDTOPassword(user, outputUserDTO);
 
     // Update

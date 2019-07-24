@@ -34,7 +34,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.assertEqualExceptNullDTOPassword;
-import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.assertEqualIgnoringPassword;
+import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.assertMatchingUser;
 import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToAdd;
 import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToUpdate;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -405,10 +405,9 @@ public class UserServiceTest
     ApiUserDTO inputUserDTO = createUserDTOToAdd();
     tempEntity.registerUsernames(inputUserDTO.username);
 
-    ApiUserDTO outputUserDTO = userService.addUser(inputUserDTO);
+    userService.addUser(inputUserDTO);
 
-    assertEqualIgnoringPassword(inputUserDTO, outputUserDTO);
-    assertMatchingUser(outputUserDTO);
+    assertMatchingUser(inputUserDTO);
   }
 
   @Test
@@ -480,13 +479,6 @@ public class UserServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> userService.deleteUserByUsername("doesNotExist"))
         .withMessage("Cannot find a user with username doesNotExist.");
-  }
-
-  private void assertMatchingUser(ApiUserDTO inputUserDTO) {
-    User user = userDAO.getByUsernameNotNull(inputUserDTO.username);
-    assertThat(inputUserDTO.firstName).isEqualTo(user.getFirstName());
-    assertThat(inputUserDTO.lastName).isEqualTo(user.getLastName());
-    assertThat(inputUserDTO.email).isEqualTo(user.getEmail());
   }
 
   private void assertOnlyPasswordNull(ApiUserDTO userDTO) {

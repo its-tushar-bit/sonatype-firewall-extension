@@ -13,6 +13,8 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.security.Permission
 import com.sonatype.insight.brain.model.security.Role
+import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache
+import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache
 import com.sonatype.insight.brain.service.HdsMockServerRule
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -70,6 +72,7 @@ extends GebReportingSpec {
       protected void configure() {
         bind(ProductLicenseManager.class).to(TestProductLicenseManager.class)
         bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class)
+        bind(ProductLicenseDetailsCache.class).to(TestProductLicenseDetailsCache.class)
       }
     });
   }

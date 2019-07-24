@@ -757,6 +757,7 @@
                 <include>**/TestLicenseFingerprinter*</include>
                 <include>**/TestProductLicense*</include>
                 <include>**/TestProductLicenseManager*</include>
+                <include>**/TestProductLicenseDetailsCache/*.json</include>
                 <include>**/productlicense/license.lic</include>
                 <include>**/SlowMoFilter*</include>
                 <include>**/TemporaryEntity*</include>

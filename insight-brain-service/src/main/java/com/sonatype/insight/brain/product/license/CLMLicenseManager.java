@@ -44,10 +44,12 @@ import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
 import org.sonatype.licensing.LicensingException;
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
+import org.sonatype.licensing.product.util.LicenseContent;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 import org.sonatype.licensing.util.LicensingUtil;
 
 import com.google.common.io.ByteStreams;
+import de.schlichtherle.license.NoLicenseInstalledException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +77,8 @@ public class CLMLicenseManager
 
   private final LicenseFingerprinter licenseFingerprinter;
 
+  private final LicenseContent licenseContent;
+
   private final HdsClient hdsClient;
 
   private static final Logger log = LoggerFactory.getLogger(CLMLicenseManager.class);
@@ -89,6 +93,7 @@ public class CLMLicenseManager
       final ProductLicenseDetailsCache productLicenseDetailsCache,
       final ProductLicenseManager licenseManager,
       final LicenseFingerprinter licenseFingerprinter,
+      final LicenseContent licenseContent,
       final HdsClient hdsClient,
       final AuditRecorder auditRecorder)
   {
@@ -96,16 +101,42 @@ public class CLMLicenseManager
     this.productLicenseDetailsCache = productLicenseDetailsCache;
     this.licenseManager = licenseManager;
     this.licenseFingerprinter = licenseFingerprinter;
+    this.licenseContent = licenseContent;
     this.hdsClient = hdsClient;
     this.auditRecorder = auditRecorder;
   }
 
   public void loadLicense() {
     try {
-      populateLicenseCache();
+      ProductLicenseKey licenseKey = licenseManager.getLicenseDetails();
+      String licenseFingerprint = licenseFingerprinter.calculate(licenseKey);
+      byte[] licenseData = licenseContent.raw();
+      SignedProductLicenseDetailsDTO licenseDetails;
+      try {
+        licenseDetails = queryLicenseDetailsFromHds(licenseData, licenseFingerprint);
+        productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
+      }
+      catch (RuntimeException hdsException) {
+        log.info("Could not retrieve current license details, falling back to local cache: {}",
+            hdsException.getMessage(), log.isDebugEnabled() ? hdsException : null);
+        try {
+          licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
+          verifySignature(licenseDetails, licenseFingerprint);
+        }
+        catch (LicensingException cacheException) {
+          hdsException.addSuppressed(cacheException);
+          throw hdsException;
+        }
+      }
+      populateLicenseCache(licenseKey, licenseDetails);
     }
-    catch (LicensingException e) {
-      log.debug("Unable to load license details", e);
+    catch (RuntimeException e) {
+      if (e.getCause() instanceof NoLicenseInstalledException) {
+        log.info("No license installed", log.isDebugEnabled() ? e : null);
+      }
+      else {
+        log.error("Unable to load license details, a valid license needs to be installed", e);
+      }
       clearLicenseCache();
     }
   }
@@ -135,13 +166,18 @@ public class CLMLicenseManager
     byte[] licenseData = ByteStreams.toByteArray(is);
     ProductLicenseKey licenseKey = licenseManager.getLicenseDetails(new ByteArrayInputStream(licenseData));
     String licenseFingerprint = licenseFingerprinter.calculate(licenseKey);
+    SignedProductLicenseDetailsDTO licenseDetails = queryLicenseDetailsFromHds(licenseData, licenseFingerprint);
+    licenseManager.installLicense(new ByteArrayInputStream(licenseData));
+    productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
+    populateLicenseCache(licenseKey, licenseDetails);
+    log.info("License installed successfully");
+  }
+
+  private SignedProductLicenseDetailsDTO queryLicenseDetailsFromHds(byte[] licenseData, String licenseFingerprint) {
     SignedProductLicenseDetailsDTO licenseDetails =
         hdsClient.post(SignedProductLicenseDetailsDTO.class, "rest/productLicense/v1", licenseData);
     verifySignature(licenseDetails, licenseFingerprint);
-    licenseManager.installLicense(new ByteArrayInputStream(licenseData));
-    productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
-    populateLicenseCache();
-    log.info("License installed successfully");
+    return licenseDetails;
   }
 
   private void verifySignature(SignedProductLicenseDetailsDTO licenseDetails, String licenseFingerprint) {
@@ -308,9 +344,7 @@ public class CLMLicenseManager
     }
   }
 
-  private void populateLicenseCache() {
-    ProductLicenseKey key = licenseManager.getLicenseDetails();
-
+  private void populateLicenseCache(ProductLicenseKey key, SignedProductLicenseDetailsDTO licenseDetails) {
     validateFeatures(key);
 
     String licenseFingerprint = licenseFingerprinter.calculate(key);
@@ -321,7 +355,7 @@ public class CLMLicenseManager
       throw new LicensingException("Invalid license version: " + version);
     }
 
-    Integer applicationCount = getApplicationLimit(key);
+    Integer applicationCount = licenseDetails.maxApplications;
     Integer maxFirewallUsers = getMaxFirewallUsers(key);
     Integer maxUsers = getMaxUsers(key);
 
@@ -387,6 +421,9 @@ public class CLMLicenseManager
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
     }
     stageTypes.add(StageTypes.PROXY);
+    if (licenseDetails.features.contains(LicensedFeature.EXTERNAL_DATABASE.name())) {
+      features.add(LicensedFeature.EXTERNAL_DATABASE);
+    }
 
     productLicense.set(key, licenseFingerprint, products, features, stageTypes, applicationCount,
         maxUsers, maxFirewallUsers);
@@ -404,16 +441,6 @@ public class CLMLicenseManager
     }
     catch (IllegalArgumentException e) {
       throw new LicensingException("Invalid license version: " + prop, e);
-    }
-  }
-
-  private Integer getApplicationLimit(ProductLicenseKey key) {
-    String prop = getProperty(key, ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT);
-    try {
-      return prop != null ? Integer.decode(prop) : null;
-    }
-    catch (IllegalArgumentException e) {
-      throw new LicensingException("Invalid application limit: " + prop, e);
     }
   }
 

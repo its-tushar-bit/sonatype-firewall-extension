@@ -14,11 +14,14 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
 import java.util.TreeSet;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
@@ -90,15 +93,34 @@ public class CLMLicenseManagerTest
   }
 
   private void mockHdsProductLicenseDetails() {
+    mockHdsProductLicenseDetails(null);
+  }
+
+  private Consumer<SignedProductLicenseDetailsDTO> withInvalidSignature() {
+    return licenseDetails -> licenseDetails.signature = new byte[256];
+  }
+
+  private Consumer<SignedProductLicenseDetailsDTO> withMaxApplications(Integer maxApplications) {
+    return licenseDetails -> licenseDetails.maxApplications = maxApplications;
+  }
+
+  private Consumer<SignedProductLicenseDetailsDTO> withStages(StageType... stages) {
+    return licenseDetails -> Stream.of(stages).forEach(stage -> licenseDetails.stageIds.add(stage.getId()));
+  }
+
+  private Consumer<SignedProductLicenseDetailsDTO> withFeatures(LicensedFeature... features) {
+    return licenseDetails -> Stream.of(features).forEach(feature -> licenseDetails.features.add(feature.name()));
+  }
+
+  private void mockHdsProductLicenseDetails(Consumer<SignedProductLicenseDetailsDTO> licenseDetailsCustomization) {
     SignedProductLicenseDetailsDTO licenseDetails = new SignedProductLicenseDetailsDTO();
     licenseDetails.version = 1;
     licenseDetails.features = new TreeSet<>();
     licenseDetails.stageIds = new TreeSet<>();
     licenseDetails.maxApplications = 100;
-    mockHdsProductLicenseDetails(licenseDetails);
-  }
-
-  private void mockHdsProductLicenseDetails(SignedProductLicenseDetailsDTO licenseDetails) {
+    if (licenseDetailsCustomization != null) {
+      licenseDetailsCustomization.accept(licenseDetails);
+    }
     if (licenseDetails.signature == null) {
       productLicenseSigner.sign(licenseDetails, licenseFingerprinter.calculate());
     }
@@ -170,6 +192,7 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetFeatures_NexusProPlus() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.RM_STAGING_INTEGRATION, //
@@ -182,6 +205,7 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetFeatures_Auditor() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.RM_STAGING_INTEGRATION, //
@@ -198,6 +222,7 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetFeatures_Lifecycle() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.IDE_INTEGRATION, //
@@ -217,6 +242,7 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetFeatures_Firewall() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
+    mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.FIREWALL, //
@@ -228,6 +254,7 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetFeatures_FirewallForArtifactory() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
+    mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY, //
@@ -238,6 +265,7 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetFeatures_Foundation() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.DASHBOARD, //
@@ -250,6 +278,7 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetStageTypes_Auditor() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    mockHdsProductLicenseDetails(withStages());
     installLicense();
 
     assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
@@ -260,6 +289,7 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetStageTypes_NexusProPlus() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    mockHdsProductLicenseDetails(withStages());
     installLicense();
 
     assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
@@ -271,6 +301,7 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetStageTypes_Firewall() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
+    mockHdsProductLicenseDetails(withStages());
     installLicense();
 
     assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
@@ -282,6 +313,7 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetStageTypes_FirewallForArtifactory() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
+    mockHdsProductLicenseDetails(withStages());
     installLicense();
 
     assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
@@ -291,6 +323,7 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetStageTypes_Lifecycle() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    mockHdsProductLicenseDetails(withStages());
     installLicense();
 
     assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
@@ -305,6 +338,7 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetStageTypes_Foundation() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    mockHdsProductLicenseDetails(withStages());
     installLicense();
 
     assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
@@ -314,6 +348,78 @@ public class CLMLicenseManagerTest
         StageTypes.RELEASE, //
         StageTypes.OPERATE, //
         StageTypes.PROXY);
+  }
+
+  @Test
+  public void testLoadLicense() {
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.CI_INTEGRATION, LicensedFeature.DASHBOARD)
+        .andThen(withStages(StageTypes.BUILD, StageTypes.RELEASE).andThen(withMaxApplications(12345))));
+
+    clmLicenseManager.loadLicense();
+
+    assertThat(productLicense.isValid());
+    SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
+    assertThat(licenseDetails).isNotNull();
+    assertThat(licenseDetails.features).containsExactly(LicensedFeature.CI_INTEGRATION.name(),
+        LicensedFeature.DASHBOARD.name());
+    assertThat(licenseDetails.stageIds).contains(StageTypes.BUILD.getId(), StageTypes.RELEASE.getId());
+    assertThat(licenseDetails.maxApplications).isEqualTo(12345);
+  }
+
+  @Test
+  public void testLoadLicense_InvalidSignatureFromHdsAndNoLocalCache() {
+    mockHdsProductLicenseDetails(withInvalidSignature());
+    productLicenseDetailsCache.saveJson(null);
+
+    clmLicenseManager.loadLicense();
+
+    assertThat(productLicense.isValid()).isFalse();
+    assertThat(productLicenseDetailsCache.getProductLicenseDetails()).isNull();
+  }
+
+  @Test
+  public void testLoadLicense_HdsRequestFailureAndNoLocalCache() {
+    hdsMockServer.respondWith("error").andStatus(503).atUri("/rest/productLicense/v1").withoutLicense();
+    productLicenseDetailsCache.saveJson(null);
+
+    clmLicenseManager.loadLicense();
+
+    assertThat(productLicense.isValid()).isFalse();
+    assertThat(productLicenseDetailsCache.getProductLicenseDetails()).isNull();
+  }
+
+  @Test
+  public void testLoadLicense_HdsRequestFailureAndValidLocalCache() {
+    hdsMockServer.respondWith("error").andStatus(503).atUri("/rest/productLicense/v1").withoutLicense();
+    SignedProductLicenseDetailsDTO licenseDetails = new SignedProductLicenseDetailsDTO();
+    licenseDetails.features = new TreeSet<>(Arrays.asList("featureA", "featureB"));
+    licenseDetails.stageIds = new TreeSet<>(Arrays.asList("stageA", "stageB"));
+    licenseDetails.maxApplications = 12345;
+    productLicenseSigner.sign(licenseDetails, licenseFingerprinter.calculate());
+    productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
+
+    clmLicenseManager.loadLicense();
+
+    assertThat(productLicense.isValid()).isTrue();
+    licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
+    assertThat(licenseDetails).isNotNull();
+    assertThat(licenseDetails.features).containsExactly("featureA", "featureB");
+    assertThat(licenseDetails.stageIds).contains("stageA", "stageB");
+    assertThat(licenseDetails.maxApplications).isEqualTo(12345);
+  }
+
+  @Test
+  public void testLoadLicense_HdsRequestFailureAndInvalidLocalSignature() {
+    hdsMockServer.respondWith("error").andStatus(503).atUri("/rest/productLicense/v1").withoutLicense();
+    SignedProductLicenseDetailsDTO licenseDetails = new SignedProductLicenseDetailsDTO();
+    licenseDetails.features = new TreeSet<>();
+    licenseDetails.stageIds = new TreeSet<>();
+    licenseDetails.signature = new byte[256];
+    productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
+
+    clmLicenseManager.loadLicense();
+
+    assertThat(productLicense.isValid()).isFalse();
   }
 
   @Test
@@ -327,12 +433,6 @@ public class CLMLicenseManagerTest
   @Test(expected = LicensingException.class)
   public void testInstallLicense_BadVersion() throws Exception {
     licenseManager.setProperty(ProductLicenseDetails.PROPERTY_VERSION, "Invalid");
-    installLicense();
-  }
-
-  @Test(expected = LicensingException.class)
-  public void testInstallLicense_BadAppLimit() throws Exception {
-    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, "Invalid");
     installLicense();
   }
 
@@ -354,27 +454,21 @@ public class CLMLicenseManagerTest
 
   @Test
   public void testInstallLicense_LicenseDetailsFromHds() throws Exception {
-    SignedProductLicenseDetailsDTO licenseDetails = new SignedProductLicenseDetailsDTO();
-    licenseDetails.features = new TreeSet<>(Arrays.asList("featureA", "featureB"));
-    licenseDetails.stageIds = new TreeSet<>(Arrays.asList("stageA", "stageB"));
-    licenseDetails.maxApplications = 12345;
-    mockHdsProductLicenseDetails(licenseDetails);
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.CI_INTEGRATION, LicensedFeature.DASHBOARD)
+        .andThen(withStages(StageTypes.BUILD, StageTypes.RELEASE).andThen(withMaxApplications(12345))));
     installLicense();
-    licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
+    SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
     assertThat(licenseDetails).isNotNull();
-    assertThat(licenseDetails.features).containsExactly("featureA", "featureB");
-    assertThat(licenseDetails.stageIds).contains("stageA", "stageB");
+    assertThat(licenseDetails.features).containsExactly(LicensedFeature.CI_INTEGRATION.name(),
+        LicensedFeature.DASHBOARD.name());
+    assertThat(licenseDetails.stageIds).contains(StageTypes.BUILD.getId(), StageTypes.RELEASE.getId());
     assertThat(licenseDetails.maxApplications).isEqualTo(12345);
   }
 
   @Test
   public void testInstallLicense_LicenseDetailsFromHds_InvalidSignature() throws Exception {
     clmLicenseManager.uninstallLicense();
-    SignedProductLicenseDetailsDTO licenseDetails = new SignedProductLicenseDetailsDTO();
-    licenseDetails.features = new TreeSet<>();
-    licenseDetails.stageIds = new TreeSet<>();
-    licenseDetails.signature = new byte[256];
-    mockHdsProductLicenseDetails(licenseDetails);
+    mockHdsProductLicenseDetails(withInvalidSignature());
     assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
       installLicense();
     }).withMessage("Could not verify signature of license details");
@@ -391,6 +485,25 @@ public class CLMLicenseManagerTest
     }).withMessageContaining("Data Services are currently out of service");
     assertThat(licenseManager.isValid()).isFalse();
     assertThat(productLicense.isValid()).isFalse();
+  }
+
+  @Test
+  public void testInstallLicense_MaxApplicationsFromHdsAndNotLicenseKey() throws Exception {
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, "123");
+    mockHdsProductLicenseDetails(withMaxApplications(12345));
+    installLicense();
+    assertThat(productLicense.getMaxApplications()).isEqualTo(12345);
+  }
+
+  @Test
+  public void testInstallLicense_ExternalDatabaseFeatureFromHds() throws Exception {
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).doesNotContain(LicensedFeature.EXTERNAL_DATABASE);
+
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE));
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.EXTERNAL_DATABASE);
   }
 
   public void testNotifyListener_LoadLicense() throws Exception {

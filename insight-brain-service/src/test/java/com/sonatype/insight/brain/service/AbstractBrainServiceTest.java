@@ -98,6 +98,8 @@ public abstract class AbstractBrainServiceTest
   // by default license is always valid, to override, simply uninstall the license
   private static final TestProductLicenseManager licenseManager = new TestProductLicenseManager();
 
+  private static final TestProductLicense testProductLicense = new TestProductLicense(licenseManager);
+
   private static boolean productlicenseWasUninstalled;
 
   private static final TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
@@ -179,6 +181,7 @@ public abstract class AbstractBrainServiceTest
     if (productlicenseWasUninstalled) {
       installLicense = true;
     }
+    testProductLicense.reset();
 
     if (testCLMServer != null) {
       testCLMServer.getHdsServer().reset();
@@ -195,6 +198,7 @@ public abstract class AbstractBrainServiceTest
       @Override
       protected void configure() {
         bind(ProductLicense.class).to(TestProductLicense.class);
+        bind(TestProductLicense.class).toInstance(testProductLicense);
         bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
         bind(TestProductLicenseManager.class).toInstance(licenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
@@ -373,8 +377,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void setApplicationLimit(Integer applicationLimit) throws Exception {
-    licenseManager.setApplicationLimit(applicationLimit);
-    installLicense();
+    testProductLicense.setMaxApplications(applicationLimit);
   }
 
   protected void setLicenseProducts(String... products) throws Exception {

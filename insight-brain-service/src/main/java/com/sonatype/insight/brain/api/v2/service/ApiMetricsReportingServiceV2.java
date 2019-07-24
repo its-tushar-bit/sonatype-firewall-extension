@@ -142,6 +142,10 @@ public class ApiMetricsReportingServiceV2
    * Validate that all required fields are present on the queryDTO, and throw BadRequestException if not
    */
   private void validateRequiredFields(ApiMetricsReportingQueryDTOV2 queryDTO) {
+    if (queryDTO == null) {
+      throw new BadRequestException("Request parameters must be defined");
+    }
+
     if (queryDTO.timePeriod == null) {
       throw new BadRequestException("timePeriod must be defined");
     }

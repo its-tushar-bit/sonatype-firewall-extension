@@ -326,10 +326,9 @@ public class UserService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public ApiUserDTO addUser(ApiUserDTO userDTO) {
+  public void addUser(ApiUserDTO userDTO) {
     User user = convert(userDTO);
     addUser(user);
-    return convert(user);
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)

@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -33,6 +34,8 @@ public class TestProductLicense
 {
   private final TestProductLicenseManager testProductLicenseManager;
 
+  private Optional<Integer> maxApplications;
+
   @Inject
   public TestProductLicense(TestProductLicenseManager testProductLicenseManager) {
     this.testProductLicenseManager = testProductLicenseManager;
@@ -42,6 +45,7 @@ public class TestProductLicense
   public void reset() {
     try {
       testProductLicenseManager.reset();
+      maxApplications = null;
       ProductLicenseKey productLicenseKey =
           testProductLicenseManager.getLicenseDetails(new ByteArrayInputStream(new byte[1]));
       set(productLicenseKey, "1234",
@@ -56,11 +60,14 @@ public class TestProductLicense
 
   @Override
   public Integer getMaxApplications() {
-    return testProductLicenseManager.getApplicationLimit();
+    if (maxApplications != null) {
+      return maxApplications.orElse(null);
+    }
+    return super.getMaxApplications();
   }
 
   public void setMaxApplications(Integer maxApplications) {
-    testProductLicenseManager.setApplicationLimit(maxApplications);
+    this.maxApplications = Optional.ofNullable(maxApplications);
   }
 
   @Override

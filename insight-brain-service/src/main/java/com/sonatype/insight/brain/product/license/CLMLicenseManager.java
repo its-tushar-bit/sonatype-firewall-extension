@@ -128,7 +128,7 @@ public class CLMLicenseManager
           throw hdsException;
         }
       }
-      populateLicenseCache();
+      populateLicenseCache(licenseKey, licenseDetails);
     }
     catch (RuntimeException e) {
       if (e.getCause() instanceof NoLicenseInstalledException) {
@@ -169,7 +169,7 @@ public class CLMLicenseManager
     SignedProductLicenseDetailsDTO licenseDetails = queryLicenseDetailsFromHds(licenseData, licenseFingerprint);
     licenseManager.installLicense(new ByteArrayInputStream(licenseData));
     productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
-    populateLicenseCache();
+    populateLicenseCache(licenseKey, licenseDetails);
     log.info("License installed successfully");
   }
 
@@ -344,9 +344,7 @@ public class CLMLicenseManager
     }
   }
 
-  private void populateLicenseCache() {
-    ProductLicenseKey key = licenseManager.getLicenseDetails();
-
+  private void populateLicenseCache(ProductLicenseKey key, SignedProductLicenseDetailsDTO licenseDetails) {
     validateFeatures(key);
 
     String licenseFingerprint = licenseFingerprinter.calculate(key);
@@ -357,7 +355,7 @@ public class CLMLicenseManager
       throw new LicensingException("Invalid license version: " + version);
     }
 
-    Integer applicationCount = getApplicationLimit(key);
+    Integer applicationCount = licenseDetails.maxApplications;
     Integer maxFirewallUsers = getMaxFirewallUsers(key);
     Integer maxUsers = getMaxUsers(key);
 
@@ -423,6 +421,9 @@ public class CLMLicenseManager
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
     }
     stageTypes.add(StageTypes.PROXY);
+    if (licenseDetails.features.contains(LicensedFeature.EXTERNAL_DATABASE.name())) {
+      features.add(LicensedFeature.EXTERNAL_DATABASE);
+    }
 
     productLicense.set(key, licenseFingerprint, products, features, stageTypes, applicationCount,
         maxUsers, maxFirewallUsers);
@@ -440,16 +441,6 @@ public class CLMLicenseManager
     }
     catch (IllegalArgumentException e) {
       throw new LicensingException("Invalid license version: " + prop, e);
-    }
-  }
-
-  private Integer getApplicationLimit(ProductLicenseKey key) {
-    String prop = getProperty(key, ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT);
-    try {
-      return prop != null ? Integer.decode(prop) : null;
-    }
-    catch (IllegalArgumentException e) {
-      throw new LicensingException("Invalid application limit: " + prop, e);
     }
   }
 

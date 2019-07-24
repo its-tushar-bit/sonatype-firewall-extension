@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -115,6 +118,45 @@ public class MembershipMappingService
     return result;
   }
 
+  /**
+   * @since 1.70
+   */
+  // Authorization is checked in grantMembershipMappingForGlobalContext and grantMembershipMappingForNonGlobalContext
+  public void grantMembershipMapping(
+      OwnerType ownerType,
+      String ownerId,
+      String roleId,
+      MemberType memberType,
+      String memberName)
+  {
+    MembershipMapping existing =
+        memberMapDAO.getByContextIdAndRoleIdAndMemberNameAndMemberType(ownerId, roleId, memberName, memberType);
+
+    if (existing != null) {
+      return;  // Already granted
+    }
+
+    Member member = new Member();
+    member.setInternalName(memberName);
+    member.setType(memberType);
+    validateMember(member);
+
+    validateContextId(ownerType, ownerId);
+    validateRole(ownerType, roleId);
+
+    MembershipMapping membershipMapping = new MembershipMapping(ownerId, roleId, memberName, memberType);
+    if (OwnerType.GLOBAL.equals(ownerType)) {
+      grantMembershipMappingForGlobalContext(membershipMapping);
+    }
+    else {
+      grantMembershipMappingForNonGlobalContext(ownerType, membershipMapping.getContextId(), membershipMapping);
+    }
+
+    Map<String, List<Member>> roleToMembers = new HashMap<>();
+    roleToMembers.put(membershipMapping.getRoleId(), Arrays.asList(member));
+    managementEventService.postEvent(EventAction.CREATED, roleToMembers, membershipMapping.getContextId());
+  }
+
   @Authorize(permission = Permission.READ)
   protected void loadMembersByRoleForNonGlobalContext(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
                                                       @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
@@ -174,6 +216,20 @@ public class MembershipMappingService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   protected void setMembershipMappingsForGlobalContext(Map<String, List<Member>> roleToMembers) {
     setMembershipMappingsForRoles(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roleToMembers);
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  void grantMembershipMappingForNonGlobalContext(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
+      MembershipMapping membershipMapping)
+  {
+    memberMapDAO.insert(membershipMapping);
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  void grantMembershipMappingForGlobalContext(MembershipMapping membershipMapping) {
+    memberMapDAO.insert(membershipMapping);
   }
 
   private void setMembershipMappingsForRoles(OwnerType ownerType,

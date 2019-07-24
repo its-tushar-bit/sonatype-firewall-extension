@@ -88,6 +88,24 @@ public class MembershipMappingDAO
   }
 
   /**
+   * @since 1.70
+   */
+  public MembershipMapping getByContextIdAndRoleIdAndMemberNameAndMemberType(
+      String contextId,
+      String roleId,
+      String memberName,
+      MemberType memberType)
+  {
+    String sQuery =
+        "SELECT mm FROM MembershipMapping mm " +
+            "WHERE mm.contextId=?1 " +
+            "and mm.roleId=?2 " +
+            "and mm.memberName=?3 " +
+            "and mm.memberType=?4";
+    return get(sQuery, contextId, roleId, memberName, memberType);
+  }
+
+  /**
    * Sets the membership mappings for a given context and role.
    */
   public void setMembershipMappingsForContextAndRole(String contextId,

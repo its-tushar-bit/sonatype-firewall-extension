@@ -51,4 +51,6 @@ public class PublicApiPaths
   public static final String SOURCE_CONTROL_PATH_V2 = API_VERSION_PATH_V2 + "sourceControl";
 
   public static final String USER_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "users";
+
+  public static final String MEMBERSHIP_MAPPING_PATH_V2 = API_VERSION_PATH_V2 + "membershipMappings";
 }

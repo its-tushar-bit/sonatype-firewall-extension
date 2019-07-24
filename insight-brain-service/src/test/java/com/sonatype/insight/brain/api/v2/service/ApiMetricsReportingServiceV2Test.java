@@ -58,6 +58,13 @@ public class ApiMetricsReportingServiceV2Test
   public FakeDateRule fakeDateRule = new FakeDateRule();
 
   @Test
+  public void testGetMetrics_NullQuery() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      service.getMetrics(null);
+    }).withMessage("Request parameters must be defined");
+  }
+
+  @Test
   public void testGetMetrics_NullTimePeriod() {
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(null, "2018-02", "2018-02",
         Collections.emptySet(), Collections.emptySet());

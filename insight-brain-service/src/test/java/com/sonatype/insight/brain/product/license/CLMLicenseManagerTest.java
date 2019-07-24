@@ -317,6 +317,84 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testLoadLicense() {
+    SignedProductLicenseDetailsDTO licenseDetails = new SignedProductLicenseDetailsDTO();
+    licenseDetails.features = new TreeSet<>(Arrays.asList("featureA", "featureB"));
+    licenseDetails.stageIds = new TreeSet<>(Arrays.asList("stageA", "stageB"));
+    licenseDetails.maxApplications = 12345;
+    mockHdsProductLicenseDetails(licenseDetails);
+
+    clmLicenseManager.loadLicense();
+
+    assertThat(productLicense.isValid());
+    licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
+    assertThat(licenseDetails).isNotNull();
+    assertThat(licenseDetails.features).containsExactly("featureA", "featureB");
+    assertThat(licenseDetails.stageIds).contains("stageA", "stageB");
+    assertThat(licenseDetails.maxApplications).isEqualTo(12345);
+  }
+
+  @Test
+  public void testLoadLicense_InvalidSignatureFromHdsAndNoLocalCache() {
+    SignedProductLicenseDetailsDTO licenseDetails = new SignedProductLicenseDetailsDTO();
+    licenseDetails.features = new TreeSet<>();
+    licenseDetails.stageIds = new TreeSet<>();
+    licenseDetails.signature = new byte[256];
+    mockHdsProductLicenseDetails(licenseDetails);
+    productLicenseDetailsCache.saveJson(null);
+
+    clmLicenseManager.loadLicense();
+
+    assertThat(productLicense.isValid()).isFalse();
+    assertThat(productLicenseDetailsCache.getProductLicenseDetails()).isNull();
+  }
+
+  @Test
+  public void testLoadLicense_HdsRequestFailureAndNoLocalCache() {
+    hdsMockServer.respondWith("error").andStatus(503).atUri("/rest/productLicense/v1").withoutLicense();
+    productLicenseDetailsCache.saveJson(null);
+
+    clmLicenseManager.loadLicense();
+
+    assertThat(productLicense.isValid()).isFalse();
+    assertThat(productLicenseDetailsCache.getProductLicenseDetails()).isNull();
+  }
+
+  @Test
+  public void testLoadLicense_HdsRequestFailureAndValidLocalCache() {
+    hdsMockServer.respondWith("error").andStatus(503).atUri("/rest/productLicense/v1").withoutLicense();
+    SignedProductLicenseDetailsDTO licenseDetails = new SignedProductLicenseDetailsDTO();
+    licenseDetails.features = new TreeSet<>(Arrays.asList("featureA", "featureB"));
+    licenseDetails.stageIds = new TreeSet<>(Arrays.asList("stageA", "stageB"));
+    licenseDetails.maxApplications = 12345;
+    productLicenseSigner.sign(licenseDetails, licenseFingerprinter.calculate());
+    productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
+
+    clmLicenseManager.loadLicense();
+
+    assertThat(productLicense.isValid()).isTrue();
+    licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
+    assertThat(licenseDetails).isNotNull();
+    assertThat(licenseDetails.features).containsExactly("featureA", "featureB");
+    assertThat(licenseDetails.stageIds).contains("stageA", "stageB");
+    assertThat(licenseDetails.maxApplications).isEqualTo(12345);
+  }
+
+  @Test
+  public void testLoadLicense_HdsRequestFailureAndInvalidLocalSignature() {
+    hdsMockServer.respondWith("error").andStatus(503).atUri("/rest/productLicense/v1").withoutLicense();
+    SignedProductLicenseDetailsDTO licenseDetails = new SignedProductLicenseDetailsDTO();
+    licenseDetails.features = new TreeSet<>();
+    licenseDetails.stageIds = new TreeSet<>();
+    licenseDetails.signature = new byte[256];
+    productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
+
+    clmLicenseManager.loadLicense();
+
+    assertThat(productLicense.isValid()).isFalse();
+  }
+
+  @Test
   public void testInstallLicense_LegacyVersion() throws Exception {
     licenseManager.setVersion(0);
     assertThatThrownBy(() -> {

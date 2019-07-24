@@ -5,8 +5,14 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
+
+import com.google.common.io.Resources;
 
 @Named
 @Singleton
@@ -14,6 +20,16 @@ public class TestProductLicenseDetailsCache
     extends ProductLicenseDetailsCache
 {
   private String json;
+
+  public TestProductLicenseDetailsCache() {
+    try {
+      json = Resources.toString(getClass().getResource("/TestProductLicenseDetailsCache/productLicenseDetails.json"),
+          StandardCharsets.UTF_8);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
 
   @Override
   String loadJson() {

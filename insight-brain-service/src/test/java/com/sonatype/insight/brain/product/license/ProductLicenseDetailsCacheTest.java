@@ -25,6 +25,7 @@ public class ProductLicenseDetailsCacheTest
 
   @Test
   public void testGetProductLicenseDetails_Null() {
+    productLicenseDetailsCache.saveJson(null);
     assertThat(productLicenseDetailsCache.getProductLicenseDetails()).isNull();
   }
 

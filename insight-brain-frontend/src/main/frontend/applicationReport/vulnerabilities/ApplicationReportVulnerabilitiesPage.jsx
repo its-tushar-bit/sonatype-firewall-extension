@@ -27,7 +27,8 @@ export default class ApplicationReportVulnerabilitiesPage extends Component {
             {() =>
               <div className="nx-tile">
                 <ApplicationReportVulnerabilitiesHeader metadata={this.props.metadata} />
-                <ApplicationReportVulnerabilitiesTable vulnerabilities={this.props.vulnerabilities} />
+                <ApplicationReportVulnerabilitiesTable vulnerabilities={this.props.vulnerabilities}
+                                                       $state = {this.props.$state} />
               </div>
             }
           </LoadWrapper>

@@ -6,7 +6,7 @@ import ComponentDisplay, { componentPropTypes } from '../../ComponentDisplay/Rea
 import MaximizedContainer from '../../react/MaximizedContainer';
 import { getBaseUrl } from '../../util/urlUtil';
 
-function createRow(data) {
+function createRow(data, $state) {
   const { securityCode, cvssScore, key, policyThreatLevel } = data;
   const linkUrl = getBaseUrl(window.location.href) + '/ui/links/vln/' + encodeURIComponent(securityCode);
 
@@ -17,7 +17,9 @@ function createRow(data) {
         <span className="nx-threat-number">{policyThreatLevel}</span>
       </td>
       <td className="nx-cell iq-cell--vulnerability-security-code">
-        <a href={linkUrl}>{securityCode}</a>
+        <a href={$state.href('vulnerabilitySearchDetail', { id: securityCode })}>
+          {securityCode}
+        </a>
         <a className="iq-vulnerability-printable-link" href={linkUrl}>{linkUrl}</a>
       </td>
       <td className="nx-cell iq-cell--vulnerability-cvss">{cvssScore.toFixed(1)}</td>
@@ -46,8 +48,8 @@ const emptyRow = (
   </tr>
 );
 
-export default function ApplicationReportVulnerabilitiesTable({ vulnerabilities }) {
-  const rows = vulnerabilities.length ? vulnerabilities.map(createRow) : emptyRow;
+export default function ApplicationReportVulnerabilitiesTable({ vulnerabilities, $state }) {
+  const rows = vulnerabilities.length ? vulnerabilities.map(vuln => createRow(vuln, $state)) : emptyRow;
 
   return (
     <MaximizedContainer className="nx-tile-content">
@@ -75,5 +77,8 @@ export const vulnerabilitiesPropType = PropTypes.arrayOf(PropTypes.shape({
 }));
 
 ApplicationReportVulnerabilitiesTable.propTypes = {
-  vulnerabilities: vulnerabilitiesPropType.isRequired
+  vulnerabilities: vulnerabilitiesPropType.isRequired,
+  $state: PropTypes.shape({
+    href: PropTypes.func.isRequired
+  }).isRequired
 };

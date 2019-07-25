@@ -35,6 +35,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
+import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -82,8 +83,6 @@ public class MembershipMappingServiceTest
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
     assertThat(handler.getEvent().action).isEqualTo(UPDATED);
-
-    eventBus.unregister(handler);
   }
 
   @Test
@@ -146,8 +145,6 @@ public class MembershipMappingServiceTest
     Member member = handler.getEvent().roleIdToMemberMap.entrySet().iterator().next().getValue().get(0);
     assertThat(member.getInternalName()).isEqualTo(membershipMapping.getMemberName());
     assertThat(member.getType()).isEqualTo(membershipMapping.getMemberType());
-
-    eventBus.unregister(handler);
   }
 
   @Test
@@ -239,6 +236,56 @@ public class MembershipMappingServiceTest
             .grantMembershipMapping(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.DEVELOPER_ROLE_ID,
                 MemberType.USER, username))
         .withMessageContaining("Cannot map members to application role in global context.");
+  }
+
+  @Test
+  public void testRevokeMembershipMapping() throws InterruptedException {
+    TestEventHandler<RoleEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    eventBus.register(handler);
+
+    String contextId = tempEntity.newApplicationWithParent().getId();
+    String memberName = tempEntity.newUser("a-user").getUsername();
+    MemberType memberType = MemberType.USER;
+
+    MembershipMapping membershipMapping =
+        tempEntity.newMembershipMapping(contextId, Role.DEVELOPER_ROLE_ID, memberName, memberType);
+
+    membershipMappingService
+        .revokeMembershipMapping(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID, memberType, memberName);
+    assertThat(membershipMappingDAO.getById(membershipMapping.getId())).isNull();
+
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(DELETED);
+
+    Member member = handler.getEvent().roleIdToMemberMap.entrySet().iterator().next().getValue().get(0);
+    assertThat(member.getInternalName()).isEqualTo(membershipMapping.getMemberName());
+    assertThat(member.getType()).isEqualTo(membershipMapping.getMemberType());
+  }
+
+  @Test
+  public void testRevokeMembershipMapping_Global() {
+    String contextId = MembershipMapping.GLOBAL_CONTEXT_ID;
+    String memberName = tempEntity.newUser("a-user").getUsername();
+    MemberType memberType = MemberType.USER;
+
+    MembershipMapping membershipMapping =
+        tempEntity.newMembershipMapping(contextId, Role.POLICY_ADMIN_ROLE_ID, memberName, memberType);
+
+    membershipMappingService
+        .revokeMembershipMapping(OwnerType.GLOBAL, contextId, Role.POLICY_ADMIN_ROLE_ID, memberType, memberName);
+    assertThat(membershipMappingDAO.getById(membershipMapping.getId())).isNull();
+  }
+
+  @Test
+  public void testRevokeMembershipMapping_NotExisting() {
+    String contextId = tempEntity.newApplicationWithParent().getId();
+    String memberName = tempEntity.newUser("a-user").getUsername();
+    MemberType memberType = MemberType.USER;
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> membershipMappingService
+            .revokeMembershipMapping(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID, memberType, memberName))
+        .withMessageContaining("Membership mapping not found.");
   }
 
   private void setupLdapWithNonDynamicGroupType(String serverName, LdapGroupMappingType groupMappingType) {

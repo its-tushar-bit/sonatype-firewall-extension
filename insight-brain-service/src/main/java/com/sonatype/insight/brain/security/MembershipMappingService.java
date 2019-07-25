@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.webhook.EventAction;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,6 +158,37 @@ public class MembershipMappingService
     managementEventService.postEvent(EventAction.CREATED, roleToMembers, membershipMapping.getContextId());
   }
 
+  /**
+   * @since 1.70
+   */
+  // Authorization is checked in revokeMembershipMappingForGlobalContext and revokeMembershipForNonGlobalContext
+  public void revokeMembershipMapping(
+      OwnerType ownerType,
+      String ownerId,
+      String roleId,
+      MemberType memberType,
+      String memberName)
+  {
+    MembershipMapping membershipMapping =
+        memberMapDAO.getByContextIdAndRoleIdAndMemberNameAndMemberType(ownerId, roleId, memberName, memberType);
+
+    if (OwnerType.GLOBAL.equals(ownerType)) {
+      revokeMembershipMappingForGlobalContext(membershipMapping);
+    }
+    else {
+      revokeMembershipForNonGlobalContext(ownerType, ownerId, membershipMapping);
+    }
+
+    Map<String, List<Member>> roleToMembers = new HashMap<>();
+
+    Member member = new Member();
+    member.setInternalName(memberName);
+    member.setType(memberType);
+
+    roleToMembers.put(roleId, Arrays.asList(member));
+    managementEventService.postEvent(EventAction.DELETED, roleToMembers, ownerId);
+  }
+
   @Authorize(permission = Permission.READ)
   protected void loadMembersByRoleForNonGlobalContext(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
                                                       @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
@@ -230,6 +262,26 @@ public class MembershipMappingService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   void grantMembershipMappingForGlobalContext(MembershipMapping membershipMapping) {
     memberMapDAO.insert(membershipMapping);
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  void revokeMembershipForNonGlobalContext(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
+      MembershipMapping membershipMapping)
+  {
+    if (membershipMapping == null) {
+      throw new NotFoundException("Membership mapping not found.");
+    }
+    memberMapDAO.delete(membershipMapping);
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  void revokeMembershipMappingForGlobalContext(MembershipMapping membershipMapping) {
+    if (membershipMapping == null) {
+      throw new NotFoundException("Membership mapping not found.");
+    }
+    memberMapDAO.delete(membershipMapping);
   }
 
   private void setMembershipMappingsForRoles(OwnerType ownerType,

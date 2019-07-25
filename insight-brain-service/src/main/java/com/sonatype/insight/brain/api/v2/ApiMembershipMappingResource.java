@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -30,13 +31,19 @@ public class ApiMembershipMappingResource
 {
   private MembershipMappingService membershipMappingService;
 
+  static final String APPLICATION_OR_ORGANIZATION =
+      "{ownerType: application|organization}/{ownerId}/role/{roleId}/{memberType: user|group}/{memberName}";
+
+  static final String GLOBAL_OR_REPOSITORY_CONTAINER =
+      "{ownerType: global|repository_container}/role/{roleId}/{memberType: user|group}/{memberName}";
+
   @Inject
   public ApiMembershipMappingResource(MembershipMappingService membershipMappingService) {
     this.membershipMappingService = membershipMappingService;
   }
 
   @PUT
-  @Path("{ownerType: application|organization}/{ownerId}/role/{roleId}/{memberType: user|group}/{memberName}")
+  @Path(APPLICATION_OR_ORGANIZATION)
   public void grantMembershipMappingApplicationOrOrganization(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId,
@@ -48,7 +55,7 @@ public class ApiMembershipMappingResource
   }
 
   @PUT
-  @Path("{ownerType: global|repository_container}/role/{roleId}/{memberType: user|group}/{memberName}")
+  @Path(GLOBAL_OR_REPOSITORY_CONTAINER)
   public void grantMembershipMappingGlobalOrRepositoryContainer(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("roleId") String roleId,
@@ -65,5 +72,37 @@ public class ApiMembershipMappingResource
     }
 
     membershipMappingService.grantMembershipMapping(ownerType, ownerId, roleId, memberType, memberName);
+  }
+
+  @DELETE
+  @Path(APPLICATION_OR_ORGANIZATION)
+  public void revokeMembershipMappingApplicationOrOrganization(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @PathParam("roleId") String roleId,
+      @PathParam("memberType") MemberType memberType,
+      @PathParam("memberName") String memberName)
+  {
+    membershipMappingService.revokeMembershipMapping(ownerType, ownerId, roleId, memberType, memberName);
+  }
+
+  @DELETE
+  @Path(GLOBAL_OR_REPOSITORY_CONTAINER)
+  public void revokeMembershipMappingGlobalOrRepositoryContainer(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("roleId") String roleId,
+      @PathParam("memberType") MemberType memberType,
+      @PathParam("memberName") String memberName)
+  {
+    String ownerId;
+
+    if (ownerType == OwnerType.GLOBAL) {
+      ownerId = MembershipMapping.GLOBAL_CONTEXT_ID;
+    }
+    else {
+      ownerId = RepositoryContainer.REPOSITORY_CONTAINER_ID;
+    }
+
+    membershipMappingService.revokeMembershipMapping(ownerType, ownerId, roleId, memberType, memberName);
   }
 }

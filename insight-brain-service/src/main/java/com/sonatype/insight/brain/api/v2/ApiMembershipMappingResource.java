@@ -13,6 +13,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -32,7 +34,7 @@ public class ApiMembershipMappingResource
   private MembershipMappingService membershipMappingService;
 
   static final String APPLICATION_OR_ORGANIZATION =
-      "{ownerType: application|organization}/{ownerId}/role/{roleId}/{memberType: user|group}/{memberName}";
+      "{ownerType: application|organization}/{internalOwnerId}/role/{roleId}/{memberType: user|group}/{memberName}";
 
   static final String GLOBAL_OR_REPOSITORY_CONTAINER =
       "{ownerType: global|repository_container}/role/{roleId}/{memberType: user|group}/{memberName}";
@@ -44,18 +46,20 @@ public class ApiMembershipMappingResource
 
   @PUT
   @Path(APPLICATION_OR_ORGANIZATION)
+  @Audited(AuditEvent.GRANT_ROLE_MEMBERSHIP)
   public void grantMembershipMappingApplicationOrOrganization(
       @PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerId,
+      @PathParam("internalOwnerId") String internalOwnerId,
       @PathParam("roleId") String roleId,
       @PathParam("memberType") MemberType memberType,
       @PathParam("memberName") String memberName)
   {
-    membershipMappingService.grantMembershipMapping(ownerType, ownerId, roleId, memberType, memberName);
+    membershipMappingService.grantMembershipMapping(ownerType, internalOwnerId, roleId, memberType, memberName);
   }
 
   @PUT
   @Path(GLOBAL_OR_REPOSITORY_CONTAINER)
+  @Audited(AuditEvent.GRANT_ROLE_MEMBERSHIP)
   public void grantMembershipMappingGlobalOrRepositoryContainer(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("roleId") String roleId,
@@ -76,18 +80,20 @@ public class ApiMembershipMappingResource
 
   @DELETE
   @Path(APPLICATION_OR_ORGANIZATION)
+  @Audited(AuditEvent.REVOKE_ROLE_MEMBERSHIP)
   public void revokeMembershipMappingApplicationOrOrganization(
       @PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerId,
+      @PathParam("internalOwnerId") String internalOwnerId,
       @PathParam("roleId") String roleId,
       @PathParam("memberType") MemberType memberType,
       @PathParam("memberName") String memberName)
   {
-    membershipMappingService.revokeMembershipMapping(ownerType, ownerId, roleId, memberType, memberName);
+    membershipMappingService.revokeMembershipMapping(ownerType, internalOwnerId, roleId, memberType, memberName);
   }
 
   @DELETE
   @Path(GLOBAL_OR_REPOSITORY_CONTAINER)
+  @Audited(AuditEvent.REVOKE_ROLE_MEMBERSHIP)
   public void revokeMembershipMappingGlobalOrRepositoryContainer(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("roleId") String roleId,

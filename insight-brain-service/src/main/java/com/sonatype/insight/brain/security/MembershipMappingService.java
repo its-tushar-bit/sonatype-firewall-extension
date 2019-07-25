@@ -143,9 +143,13 @@ public class MembershipMappingService
     validateMember(member);
 
     validateContextId(ownerType, ownerId);
-    validateRole(ownerType, roleId);
+    Role role = validateRole(ownerType, roleId);
 
     MembershipMapping membershipMapping = new MembershipMapping(ownerId, roleId, memberName, memberType);
+
+    AuditData auditData = AuditData.get();
+    auditRoleMemberData(auditData, role, member);
+
     if (OwnerType.GLOBAL.equals(ownerType)) {
       grantMembershipMappingForGlobalContext(membershipMapping);
     }
@@ -172,6 +176,14 @@ public class MembershipMappingService
     MembershipMapping membershipMapping =
         memberMapDAO.getByContextIdAndRoleIdAndMemberNameAndMemberType(ownerId, roleId, memberName, memberType);
 
+    Member member = new Member();
+    member.setInternalName(memberName);
+    member.setType(memberType);
+
+    AuditData auditData = AuditData.get();
+    Role role = validateRole(ownerType, roleId);
+    auditRoleMemberData(auditData, role, member);
+
     if (OwnerType.GLOBAL.equals(ownerType)) {
       revokeMembershipMappingForGlobalContext(membershipMapping);
     }
@@ -180,11 +192,6 @@ public class MembershipMappingService
     }
 
     Map<String, List<Member>> roleToMembers = new HashMap<>();
-
-    Member member = new Member();
-    member.setInternalName(memberName);
-    member.setType(memberType);
-
     roleToMembers.put(roleId, Arrays.asList(member));
     managementEventService.postEvent(EventAction.DELETED, roleToMembers, ownerId);
   }
@@ -407,5 +414,11 @@ public class MembershipMappingService
     }
 
     return byRole;
+  }
+
+  private void auditRoleMemberData(AuditData auditData, Role role, Member member) {
+    auditData.setData("roleId", role.getId());
+    auditData.setData("roleName", role.getName());
+    auditData.setData("roleMember", MemberDTO.transcribe(member));
   }
 }

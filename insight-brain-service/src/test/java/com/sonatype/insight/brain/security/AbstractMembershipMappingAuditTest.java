@@ -45,10 +45,19 @@ public class AbstractMembershipMappingAuditTest
   }
 
   protected void assertRoleMembershipData(AuditDTO auditDTO, String roleId, List<Member> members) {
+    assertRoleData(auditDTO, roleId);
+    assertCustomObject(auditDTO, "roleMembers", MemberDTO.transcribe(members));
+  }
+
+  protected void assertRoleMembershipData(AuditDTO auditDTO, String roleId, Member member) {
+    assertRoleData(auditDTO, roleId);
+    assertCustomObject(auditDTO, "roleMember", MemberDTO.transcribe(member));
+  }
+
+  private void assertRoleData(final AuditDTO auditDTO, final String roleId) {
     Role role = new RoleDAO().getByIdNotNull(roleId);
     assertCustomData(auditDTO, "roleId", role.getId());
     assertCustomData(auditDTO, "roleName", role.getName());
-    assertCustomObject(auditDTO, "roleMembers", MemberDTO.transcribe(members));
   }
 
   protected ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO() {

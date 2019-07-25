@@ -42,7 +42,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -145,10 +144,9 @@ public class CLMLicenseManagerTest
   public void testLicenseLacksClmFeatureAndFirewallFeature() throws Exception {
     clmLicenseManager.uninstallLicense();
     licenseManager.setForceVerificationFailure(true);
-    assertThatThrownBy(() -> {
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
       installLicense();
-    }).isInstanceOf(LicensingException.class)
-        .hasMessage("License does not permit use of feature '" + CLMFeature.ID + "' or '" + FirewallFeature.ID + "'");
+    }).withMessage("License does not permit use of feature '" + CLMFeature.ID + "' or '" + FirewallFeature.ID + "'");
 
     assertThat(productLicense.getFingerprint()).isNull();
   }
@@ -425,9 +423,9 @@ public class CLMLicenseManagerTest
   @Test
   public void testInstallLicense_LegacyVersion() throws Exception {
     licenseManager.setVersion(0);
-    assertThatThrownBy(() -> {
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
       installLicense();
-    }).isInstanceOf(LicensingException.class).hasMessage("Invalid license version: 0");
+    }).withMessage("Invalid license version: 0");
   }
 
   @Test(expected = LicensingException.class)
@@ -438,18 +436,18 @@ public class CLMLicenseManagerTest
 
   @Test
   public void testInstallLicense_BadMaxFirewallUsers() throws Exception {
-    assertThatThrownBy(() -> {
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
       licenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS, "Invalid");
       installLicense();
-    }).isInstanceOf(LicensingException.class).hasMessage("Invalid value for max firewall users: Invalid");
+    }).withMessage("Invalid value for max firewall users: Invalid");
   }
 
   @Test
   public void testInstallLicense_BadMaxUsers() throws Exception {
-    assertThatThrownBy(() -> {
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
       licenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_USERS, "Invalid");
       installLicense();
-    }).isInstanceOf(LicensingException.class).hasMessage("Invalid value for max users: Invalid");
+    }).withMessage("Invalid value for max users: Invalid");
   }
 
   @Test
@@ -797,9 +795,9 @@ public class CLMLicenseManagerTest
   public void testInstallLicenseIfUnlicensed_FileNotFoundException() throws Exception {
     clmLicenseManager.uninstallLicense();
     String licenseFilePath = "path/to/license/file";
-    assertThatThrownBy(() -> {
+    assertThatExceptionOfType(FileNotFoundException.class).isThrownBy(() -> {
       clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath);
-    }).isInstanceOf(FileNotFoundException.class).hasMessageContaining(new File(licenseFilePath).getPath());
+    }).withMessageContaining(new File(licenseFilePath).getPath());
     assertThat(logOutput).atInfoLevel().contains(licenseFilePath);
     assertThat(productLicense.getFingerprint()).isNull();
   }
@@ -809,9 +807,9 @@ public class CLMLicenseManagerTest
     licenseManager.setForceVerificationFailure(true);
     clmLicenseManager.uninstallLicense();
     String licenseFilePath = getClass().getClassLoader().getResource("CLMLicenseManagerTest/license.lic").getFile();
-    assertThatThrownBy(() -> {
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
       clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath);
-    }).isInstanceOf(LicensingException.class);
+    });
     assertThat(logOutput).atInfoLevel().contains(licenseFilePath);
     assertThat(productLicense.getFingerprint()).isNull();
   }

@@ -259,8 +259,8 @@ public class MembershipMappingService
 
   @Authorize(permission = Permission.WRITE)
   void grantMembershipMappingForNonGlobalContext(
-      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       MembershipMapping membershipMapping)
   {
     memberMapDAO.insert(membershipMapping);
@@ -273,20 +273,21 @@ public class MembershipMappingService
 
   @Authorize(permission = Permission.WRITE)
   void revokeMembershipForNonGlobalContext(
-      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       MembershipMapping membershipMapping)
   {
-    if (membershipMapping == null) {
-      throw new NotFoundException("Membership mapping not found.");
-    }
-    memberMapDAO.delete(membershipMapping);
+    revokeMembershipMapping(membershipMapping);
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   void revokeMembershipMappingForGlobalContext(MembershipMapping membershipMapping) {
+    revokeMembershipMapping(membershipMapping);
+  }
+
+  private void revokeMembershipMapping(MembershipMapping membershipMapping) {
     if (membershipMapping == null) {
-      throw new NotFoundException("Membership mapping not found.");
+      throw new NotFoundException("Role membership not found.");
     }
     memberMapDAO.delete(membershipMapping);
   }

@@ -28,8 +28,8 @@ import com.codahale.metrics.annotation.Timed;
  */
 @Named
 @Timed
-@Path(PublicApiPaths.MEMBERSHIP_MAPPING_PATH_V2)
-public class ApiMembershipMappingResource
+@Path(PublicApiPaths.ROLE_MEMBERSHIP_PATH_V2)
+public class ApiRoleMembershipResource
 {
   private MembershipMappingService membershipMappingService;
 
@@ -40,7 +40,7 @@ public class ApiMembershipMappingResource
       "{ownerType: global|repository_container}/role/{roleId}/{memberType: user|group}/{memberName}";
 
   @Inject
-  public ApiMembershipMappingResource(MembershipMappingService membershipMappingService) {
+  public ApiRoleMembershipResource(MembershipMappingService membershipMappingService) {
     this.membershipMappingService = membershipMappingService;
   }
 

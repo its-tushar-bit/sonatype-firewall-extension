@@ -17,13 +17,13 @@ import com.sonatype.insight.brain.security.Member;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.v2.ApiMembershipMappingResource.APPLICATION_OR_ORGANIZATION;
-import static com.sonatype.insight.brain.api.v2.ApiMembershipMappingResource.GLOBAL_OR_REPOSITORY_CONTAINER;
+import static com.sonatype.insight.brain.api.v2.ApiRoleMembershipResource.APPLICATION_OR_ORGANIZATION;
+import static com.sonatype.insight.brain.api.v2.ApiRoleMembershipResource.GLOBAL_OR_REPOSITORY_CONTAINER;
 import static com.sonatype.insight.brain.model.security.MembershipMapping.*;
 import static com.sonatype.insight.brain.model.security.Role.DEVELOPER_ROLE_ID;
 import static com.sonatype.insight.brain.model.security.Role.SYSTEM_ADMIN_ROLE_ID;
 
-public class ApiMembershipMappingResourceAuditTest
+public class ApiRoleMembershipResourceAuditTest
     extends AbstractMembershipMappingAuditTest
 {
   @Test
@@ -190,6 +190,6 @@ public class ApiMembershipMappingResourceAuditTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.MEMBERSHIP_MAPPING_PATH_V2);
+    return super.restRequest().path(PublicApiPaths.ROLE_MEMBERSHIP_PATH_V2);
   }
 }

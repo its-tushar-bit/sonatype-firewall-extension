@@ -34,9 +34,12 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
@@ -69,6 +72,12 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_AUDITOR = "Auditor";
 
+  public static final String MIGRATION_TRACKER_EXTERNAL_DB = "external-database";
+
+  private final InsightConfig config;
+
+  private final MigrationTrackerDAO migrationTrackerDAO;
+
   private final ProductLicense productLicense;
 
   private final ProductLicenseDetailsCache productLicenseDetailsCache;
@@ -89,6 +98,8 @@ public class CLMLicenseManager
 
   @Inject
   public CLMLicenseManager(
+      final InsightConfig config,
+      final MigrationTrackerDAO migrationTrackerDAO,
       final ProductLicense productLicense,
       final ProductLicenseDetailsCache productLicenseDetailsCache,
       final ProductLicenseManager licenseManager,
@@ -97,6 +108,8 @@ public class CLMLicenseManager
       final HdsClient hdsClient,
       final AuditRecorder auditRecorder)
   {
+    this.config = config;
+    this.migrationTrackerDAO = migrationTrackerDAO;
     this.productLicense = productLicense;
     this.productLicenseDetailsCache = productLicenseDetailsCache;
     this.licenseManager = licenseManager;
@@ -138,7 +151,22 @@ public class CLMLicenseManager
         log.error("Unable to load license details, a valid license needs to be installed", e);
       }
       clearLicenseCache();
+      return;
     }
+    if (!config.isDatabaseEmbedded() && !migrationTrackerDAO.isTrackerPresent(MIGRATION_TRACKER_EXTERNAL_DB)) {
+      if (!productLicense.hasFeature(LicensedFeature.EXTERNAL_DATABASE)) {
+        throw new ExternalDatabaseNotSupportedException(
+            "The product license does not support use of an external database"
+                + ", please reconfigure IQ Server to use the embedded database.");
+      }
+      recordSupportForExternalDatabase();
+    }
+  }
+
+  private void recordSupportForExternalDatabase() {
+    MigrationTracker tracker = new MigrationTracker(MIGRATION_TRACKER_EXTERNAL_DB);
+    tracker.setConfiguration(productLicense.getFingerprint()); // pointer to the license that enabled it
+    migrationTrackerDAO.insert(tracker);
   }
 
   public void installLicenseIfUnlicensed(String licenseFilePath) throws IOException {
@@ -167,10 +195,18 @@ public class CLMLicenseManager
     ProductLicenseKey licenseKey = licenseManager.getLicenseDetails(new ByteArrayInputStream(licenseData));
     String licenseFingerprint = licenseFingerprinter.calculate(licenseKey);
     SignedProductLicenseDetailsDTO licenseDetails = queryLicenseDetailsFromHds(licenseData, licenseFingerprint);
+    if (!config.isDatabaseEmbedded() && !licenseDetails.features.contains(LicensedFeature.EXTERNAL_DATABASE.name())
+        && !migrationTrackerDAO.isTrackerPresent(MIGRATION_TRACKER_EXTERNAL_DB)) {
+      throw new ExternalDatabaseNotSupportedException("The product license does not support use of an external database"
+          + ", please reconfigure IQ Server to use the embedded database before installing the license.");
+    }
     licenseManager.installLicense(new ByteArrayInputStream(licenseData));
     productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
     populateLicenseCache(licenseKey, licenseDetails);
     log.info("License installed successfully");
+    if (!config.isDatabaseEmbedded() && !migrationTrackerDAO.isTrackerPresent(MIGRATION_TRACKER_EXTERNAL_DB)) {
+      recordSupportForExternalDatabase();
+    }
   }
 
   private SignedProductLicenseDetailsDTO queryLicenseDetailsFromHds(byte[] licenseData, String licenseFingerprint) {

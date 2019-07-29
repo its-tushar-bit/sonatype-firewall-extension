@@ -81,6 +81,7 @@ public class PolicyThreatsAdapter
   private PolicyThreats.PolicyViolation toPolicyThreatsPolicyViolation(PolicyViolation violation) {
     PolicyThreats.PolicyViolation result = new PolicyThreats.PolicyViolation();
     result.policyId = violation.getPolicyId();
+    result.policyViolationId = violation.getId();
     result.policyName = violation.getPolicyName();
     result.policyThreatLevel = violation.getThreatLevel();
     result.waived = violation.isWaived();

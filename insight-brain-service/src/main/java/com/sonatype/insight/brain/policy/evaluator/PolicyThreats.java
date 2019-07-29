@@ -84,6 +84,11 @@ public class PolicyThreats
   {
     public String policyId;
 
+    /**
+     * @since 1.70
+     */
+    public String policyViolationId;
+
     public String policyName;
 
     public int policyThreatLevel;

@@ -285,7 +285,7 @@ public class MembershipMappingServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> membershipMappingService
             .revokeMembershipMapping(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID, memberType, memberName))
-        .withMessageContaining("Membership mapping not found.");
+        .withMessageContaining("Role membership not found.");
   }
 
   private void setupLdapWithNonDynamicGroupType(String serverName, LdapGroupMappingType groupMappingType) {

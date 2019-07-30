@@ -11,6 +11,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -74,7 +75,7 @@ public class SourceControlDispatcherTest
       encryptedToken = plexusCipher.encrypt("token", "CMMDwoV");
     }
     String repositoryUrl = github.getUri() + "owner/repo";
-    tempEntity.newSourceControl(application.getId(), repositoryUrl, encryptedToken);
+    tempEntity.newSourceControl(application.getId(), repositoryUrl, encryptedToken, SourceControlProvider.GITHUB);
     event = createEvent();
   }
   

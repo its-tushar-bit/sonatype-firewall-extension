@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -48,7 +49,8 @@ public class ApiSourceControlServiceAuthzTest
   @Test
   public void testGetSourceControlByApplicationId_Authorized() {
     grantReadPermission(app.getId());
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
     SourceControl sourceControlByApplicationId = sourceControlService.getSourceControlByApplicationId(app.getId());
     assertThat(sourceControlByApplicationId.getId()).isEqualTo(sourceControl.getId());
   }
@@ -78,7 +80,9 @@ public class ApiSourceControlServiceAuthzTest
   @Test
   public void testAddSourceControl_Authorized() {
     grantWritePermission(app.getId());
-    sourceControlService.addSourceControl(app.getId(), new SourceControl(app.getId(), VALID_URL, "token"));
+    sourceControlService
+        .addSourceControl(app.getId(),
+            new SourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB));
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -96,7 +100,8 @@ public class ApiSourceControlServiceAuthzTest
   public void testUpdateSourceControl_Authorized() {
     grantWritePermission(app.getId());
     SourceControl sourceControl = sourceControlService
-        .addSourceControl(app.getId(), new SourceControl(app.getId(), VALID_URL, "token"));
+        .addSourceControl(app.getId(),
+            new SourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB));
     sourceControl.setToken("newToken");
     sourceControlService.updateSourceControl(app.getId(), sourceControl);
   }
@@ -115,7 +120,8 @@ public class ApiSourceControlServiceAuthzTest
   @Test
   public void testDeleteSourceControl_Authorized() {
     grantWritePermission(app.getId());
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
     sourceControlService.deleteSourceControl(app.getId(), sourceControl.getId());
   }
 }

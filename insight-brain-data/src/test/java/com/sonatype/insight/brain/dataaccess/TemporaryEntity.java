@@ -108,6 +108,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
@@ -1748,8 +1749,12 @@ public class TemporaryEntity
     return organization;
   }
 
-  public SourceControl newSourceControl(String applicationId, String repositoryUrl, String token) {
-    SourceControl sourceControl = new SourceControl(applicationId, repositoryUrl, token);
+  public SourceControl newSourceControl(String applicationId,
+                                        String repositoryUrl,
+                                        String token,
+                                        SourceControlProvider provider)
+  {
+    SourceControl sourceControl = new SourceControl(applicationId, repositoryUrl, token, provider);
     sourceControlDAO.insert(sourceControl);
     sourceControls.add(sourceControl);
     return sourceControl;

@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Before;
@@ -32,7 +33,7 @@ public class ApiSourceControlResourceAuditTest
   public void testAuditForCRUD() throws Exception {
     //CREATE
     String repositoryUrl = ApiSourceControlResourceTest.VALID_URL;
-    SourceControl sourceControl = new SourceControl(app.getId(), repositoryUrl, "token");
+    SourceControl sourceControl = new SourceControl(app.getId(), repositoryUrl, "token", SourceControlProvider.GITHUB);
     HttpResponse response = restRequest().path(SOURCE_CONTROL_PATH_V2).path(app.getId()).body(sourceControl).post();
     assertResponseStatus(200, response);
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
@@ -40,6 +41,7 @@ public class ApiSourceControlResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_SOURCE_CONTROL, null);
     assertCustomData(auditDTO, "repositoryUrl", repositoryUrl);
     assertCustomData(auditDTO, "sourceControlId", result.id);
+    assertCustomData(auditDTO, "provider", result.provider.toString());
 
     //UPDATE
     String updatedUrl = sourceControl.getRepositoryUrl() + ".1";
@@ -50,6 +52,7 @@ public class ApiSourceControlResourceAuditTest
     auditDTO = assertAuditLog(AuditEvent.UPDATE_SOURCE_CONTROL, null);
     assertCustomData(auditDTO, "repositoryUrl", updatedUrl);
     assertCustomData(auditDTO, "sourceControlId", result.id);
+    assertCustomData(auditDTO, "provider", result.provider.toString());
 
     //DELETE
     response = restRequest().path(SOURCE_CONTROL_PATH_V2).path(app.getId()).path(result.id).delete();

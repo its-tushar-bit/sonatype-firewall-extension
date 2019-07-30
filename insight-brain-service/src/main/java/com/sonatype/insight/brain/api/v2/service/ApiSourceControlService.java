@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
@@ -93,6 +94,7 @@ public class ApiSourceControlService
     checkLicense();
     encryptToken(sourceControl);
     sourceControl.setApplicationId(applicationId);
+    addDefaultProviderIfNotSpecified(sourceControl);
     sourceControlDAO.insert(sourceControl);
     auditSourceControl(sourceControl);
     sourceControl.setToken(FAKE_SECRET_KEY);
@@ -114,6 +116,7 @@ public class ApiSourceControlService
       encryptToken(sourceControl);
     }
     validateApplicationId(applicationId, sourceControl);
+    addDefaultProviderIfNotSpecified(sourceControl);
     sourceControlDAO.update(sourceControl);
     auditSourceControl(sourceControl);
     sourceControl.setToken(FAKE_SECRET_KEY);
@@ -188,7 +191,8 @@ public class ApiSourceControlService
   private void auditSourceControl(final SourceControl sourceControl) {
     AuditData.get()
         .setData("sourceControlId", sourceControl.getId())
-        .setData("repositoryUrl", sourceControl.getRepositoryUrl());
+        .setData("repositoryUrl", sourceControl.getRepositoryUrl())
+        .setData("provider", sourceControl.getProvider());
   }
 
   private void checkLicense() {
@@ -212,11 +216,18 @@ public class ApiSourceControlService
     attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
     if (sourceControl != null) {
       attributes.put("repository_url", HdsClientAnalytics.obfuscate(sourceControl.getRepositoryUrl()));
+      attributes.put("provider", sourceControl.getProvider().toString());
     }
 
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL);
     telemetryData.setAttributes(attributes);
     telemetrySender.send(telemetryData);
+  }
+
+  private void addDefaultProviderIfNotSpecified(SourceControl sourceControl) {
+    if (sourceControl.getProvider() == null) {
+      sourceControl.setProvider(SourceControlProvider.GITHUB);
+    }
   }
 
   enum METHOD

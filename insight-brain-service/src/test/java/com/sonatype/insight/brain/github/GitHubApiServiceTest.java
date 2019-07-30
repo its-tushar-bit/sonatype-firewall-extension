@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
@@ -143,7 +144,7 @@ public class GitHubApiServiceTest
     int moderateComponentsCount = 3;
 
     ProjectUri projectUri = new ProjectUri("https://github.com/owner/repo/");
-    sourceControl = new SourceControl(application.getId(), projectUri.getUrl(), TOKEN);
+    sourceControl = new SourceControl(application.getId(), projectUri.getUrl(), TOKEN, SourceControlProvider.GITHUB);
     event =
         getApplicationEvaluationEvent(application.getId(), "release", policyEvaluationOutcome, affectedComponentsCount,
             criticalComponentsCount, severeComponentsCount, moderateComponentsCount, "commitHash");

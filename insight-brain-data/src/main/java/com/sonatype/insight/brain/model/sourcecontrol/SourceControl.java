@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.model.sourcecontrol;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -35,13 +37,22 @@ public class SourceControl
   @Column(name = "token")
   private String token;
 
+  @Column(name = "provider")
+  @Enumerated(EnumType.STRING)
+  private SourceControlProvider provider;
+
   public SourceControl() {
   }
 
-  public SourceControl(final String applicationId, final String repositoryUrl, final String token) {
+  public SourceControl(final String applicationId,
+                       final String repositoryUrl,
+                       final String token,
+                       final SourceControlProvider provider)
+  {
     this.applicationId = applicationId;
     this.repositoryUrl = repositoryUrl;
     this.token = token;
+    this.provider = provider;
   }
 
   @Override
@@ -76,5 +87,13 @@ public class SourceControl
 
   public void setToken(final String token) {
     this.token = token;
+  }
+
+  public SourceControlProvider getProvider() {
+    return provider;
+  }
+
+  public void setProvider(final SourceControlProvider provider) {
+    this.provider = provider;
   }
 }

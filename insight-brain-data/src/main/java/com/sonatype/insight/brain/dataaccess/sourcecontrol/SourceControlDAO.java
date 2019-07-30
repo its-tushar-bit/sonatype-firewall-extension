@@ -90,6 +90,9 @@ public class SourceControlDAO
     if (sourceControl.getRepositoryUrl() == null) {
       throw new BadRequestException("SourceControl repositoryUrl is required");
     }
+    if (sourceControl.getProvider() == null) {
+      throw new BadRequestException("SourceControl provider is required");
+    }
 
     try {
       GitHubApiClientUtils.createProjectUri(sourceControl.getRepositoryUrl());

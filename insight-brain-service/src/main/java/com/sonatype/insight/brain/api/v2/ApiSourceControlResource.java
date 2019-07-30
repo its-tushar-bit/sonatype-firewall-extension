@@ -91,12 +91,13 @@ public class ApiSourceControlResource
     apiSourceControlDTO.applicationId = sourceControl.getApplicationId();
     apiSourceControlDTO.repositoryUrl = sourceControl.getRepositoryUrl();
     apiSourceControlDTO.token = sourceControl.getToken();
+    apiSourceControlDTO.provider = sourceControl.getProvider();
     return apiSourceControlDTO;
   }
 
   private SourceControl convert(ApiSourceControlDTO apiSourceControlDTO) {
     SourceControl sourceControl = new SourceControl(apiSourceControlDTO.applicationId,
-        apiSourceControlDTO.repositoryUrl, apiSourceControlDTO.token);
+        apiSourceControlDTO.repositoryUrl, apiSourceControlDTO.token, apiSourceControlDTO.provider);
     sourceControl.setId(apiSourceControlDTO.id);
     return sourceControl;
   }

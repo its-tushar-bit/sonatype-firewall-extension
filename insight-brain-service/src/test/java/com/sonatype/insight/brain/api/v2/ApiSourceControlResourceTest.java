@@ -11,8 +11,11 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,7 +40,8 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testGetSourceControl() throws Exception {
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
     HttpResponse response = restRequest().path(app.getId()).get();
     assertResponseStatus(200, response);
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
@@ -46,7 +50,7 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testAddSourceControl() throws Exception {
-    SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL, "token");
+    SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
     HttpResponse response = restRequest().path(app.getId()).body(sourceControl).post();
     assertResponseStatus(200, response);
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
@@ -55,23 +59,93 @@ public class ApiSourceControlResourceTest
     assertThat(result.applicationId).isEqualTo(app.getId());
     assertThat(result.repositoryUrl).isEqualTo(sourceControl.getRepositoryUrl());
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
+    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB);
   }
 
   @Test
   public void testUpdateSourceControl() throws Exception {
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
     String updatedUrl = sourceControl.getRepositoryUrl() + ".1";
     sourceControl.setRepositoryUrl(updatedUrl);
+    sourceControl.setProvider(SourceControlProvider.GITLAB);
     HttpResponse response = restRequest().path(app.getId()).body(sourceControl).put();
     assertResponseStatus(200, response);
 
     SourceControl result = response.getBody(SourceControl.class);
     assertThat(result.getRepositoryUrl()).isEqualTo(updatedUrl);
+    assertThat(result.getProvider()).isEqualTo(SourceControlProvider.GITLAB);
+  }
+
+  @Test
+  public void testAddSourceControl_MissingSourceControlProvider() throws Exception {
+    SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL, "token", null);
+    HttpResponse response = restRequest().path(app.getId()).body(sourceControl).post();
+    assertResponseStatus(200, response);
+    ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
+
+    assertThat(result.id).isNotNull();
+    assertThat(result.applicationId).isEqualTo(app.getId());
+    assertThat(result.repositoryUrl).isEqualTo(sourceControl.getRepositoryUrl());
+    assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
+    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB);
+  }
+
+  @Test
+  public void testUpdateSourceControl_MissingSourceControlProvider() throws Exception {
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITLAB);
+    String updatedUrl = sourceControl.getRepositoryUrl() + ".1";
+    sourceControl.setRepositoryUrl(updatedUrl);
+    sourceControl.setProvider(null);
+    HttpResponse response = restRequest().path(app.getId()).body(sourceControl).put();
+    assertResponseStatus(200, response);
+
+    SourceControl result = response.getBody(SourceControl.class);
+    assertThat(result.getRepositoryUrl()).isEqualTo(updatedUrl);
+    assertThat(result.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
+  }
+
+  @Test
+  public void testAddSourceControl_InvalidSourceControlProvider() throws Exception {
+    SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    String body = objectMapper.writeValueAsString(sourceControl);
+    ObjectNode node = (ObjectNode) new ObjectMapper().readTree(body);
+    node.put("provider", "invalid_scm");
+    body = node.toString();
+
+    HttpResponse response = restRequest().path(app.getId()).body(body).post();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText())
+        .isEqualTo(
+            "SourceControl provider value 'invalid_scm' is invalid, valid options are: github, gitlab");
+  }
+
+  @Test
+  public void testUpdateSourceControl_InvalidSourceControlProvider() throws Exception {
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
+    sourceControl.setProvider(null);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    String body = objectMapper.writeValueAsString(sourceControl);
+    ObjectNode node = (ObjectNode) new ObjectMapper().readTree(body);
+    node.put("provider", "invalid_scm");
+    body = node.toString();
+
+    HttpResponse response = restRequest().path(app.getId()).body(body).put();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText())
+        .isEqualTo(
+            "SourceControl provider value 'invalid_scm' is invalid, valid options are: github, gitlab");
   }
 
   @Test
   public void testDeleteSourceControl() throws Exception {
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
     HttpResponse response = restRequest().path(app.getId()).path(sourceControl.getId()).delete();
     assertResponseStatus(204, response);
   }

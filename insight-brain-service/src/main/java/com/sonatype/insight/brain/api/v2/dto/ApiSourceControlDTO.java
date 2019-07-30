@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
+
 public class ApiSourceControlDTO
 {
   public String id;
@@ -14,4 +16,6 @@ public class ApiSourceControlDTO
   public String repositoryUrl;
 
   public String token;
+
+  public SourceControlProvider provider;
 }

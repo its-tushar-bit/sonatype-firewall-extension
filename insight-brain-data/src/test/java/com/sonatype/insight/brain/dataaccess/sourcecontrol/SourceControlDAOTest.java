@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Before;
@@ -65,23 +66,23 @@ public class SourceControlDAOTest
   @Test
   public void testInsert_InvalidUrl() {
     assertThatThrownBy(() -> {
-      sourceControlDAO.insert(new SourceControl(app.getId(), "https://not valid", "bar"));
+      sourceControlDAO.insert(new SourceControl(app.getId(), "https://not valid", "bar", SourceControlProvider.GITHUB));
     }).isInstanceOf(BadRequestException.class).hasMessageContaining("URL is invalid");
   }
 
   @Test
   public void testInsert_AppPublicIdDoesNotExist() {
     assertThatThrownBy(() -> {
-      sourceControlDAO.insert(new SourceControl("baz", VALID_URL, "bar"));
+      sourceControlDAO.insert(new SourceControl("baz", VALID_URL, "bar", SourceControlProvider.GITHUB));
     }).isInstanceOf(BadRequestException.class)
         .hasMessageContaining("SourceControl applicationId 'baz' cannot be found");
   }
 
   @Test
   public void testInsert_DuplicateApplicationId() {
-    tempEntity.newSourceControl(app.getId(), VALID_URL, "bar");
+    tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
     assertThatThrownBy(() -> {
-      sourceControlDAO.insert(new SourceControl(app.getId(), VALID_URL + ".1", "bar"));
+      sourceControlDAO.insert(new SourceControl(app.getId(), VALID_URL + ".1", "bar", SourceControlProvider.GITHUB));
     }).isInstanceOf(BadRequestException.class)
         .hasMessageContaining("SourceControl already configured for application with id: '" + app.getId() + "'");
   }
@@ -89,13 +90,21 @@ public class SourceControlDAOTest
   @Test
   public void testInsert_DuplicateRepositoryUrlAllowed() {
     Application baz = tempEntity.newApplicationWithParent("baz");
-    tempEntity.newSourceControl(baz.getId(), VALID_URL, "bar");
-    sourceControlDAO.insert(new SourceControl(app.getId(), VALID_URL, "bar"));
+    tempEntity.newSourceControl(baz.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
+    sourceControlDAO.insert(new SourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB));
+  }
+
+  @Test
+  public void testInsert_MissingSourceControlProvider() {
+    assertThatThrownBy(() -> {
+      sourceControlDAO.insert(new SourceControl(app.getId(), VALID_URL, "bar", null));
+    }).isInstanceOf(BadRequestException.class).hasMessageContaining("SourceControl provider is required");
   }
 
   @Test
   public void testUpdate_MissingAppId() {
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "bar");
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
     sourceControl.setApplicationId(null);
     assertThatThrownBy(() -> {
       sourceControlDAO.update(sourceControl);
@@ -104,7 +113,8 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_MissingToken() {
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "bar");
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
     sourceControl.setToken(null);
     assertThatThrownBy(() -> {
       sourceControlDAO.update(sourceControl);
@@ -113,7 +123,8 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_MissingRepositoryUrl() {
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "bar");
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
     sourceControl.setRepositoryUrl(null);
     assertThatThrownBy(() -> {
       sourceControlDAO.update(sourceControl);
@@ -122,7 +133,8 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_InvalidUrl() {
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "bar");
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
     sourceControl.setRepositoryUrl("https://not valid");
     assertThatThrownBy(() -> {
       sourceControlDAO.update(sourceControl);
@@ -133,15 +145,26 @@ public class SourceControlDAOTest
   public void testUpdate_DuplicateRepositoryUrlAllowed() {
     Application baz = tempEntity.newApplicationWithParent();
     Application foo = tempEntity.newApplicationWithParent();
-    tempEntity.newSourceControl(baz.getId(), VALID_URL, "bar");
-    SourceControl sourceControl = tempEntity.newSourceControl(foo.getId(), VALID_URL + ".1", "bar");
+    tempEntity.newSourceControl(baz.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(foo.getId(), VALID_URL + ".1", "bar", SourceControlProvider.GITHUB);
     sourceControl.setRepositoryUrl(VALID_URL);
     sourceControlDAO.update(sourceControl);
   }
 
   @Test
+  public void testUpdate_MissingSourceControlProvider() {
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
+    sourceControl.setProvider(null);
+    assertThatThrownBy(() -> {
+      sourceControlDAO.update(sourceControl);
+    }).isInstanceOf(BadRequestException.class).hasMessageContaining("SourceControl provider is required");
+  }
+
+  @Test
   public void testCRUD() {
-    SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL, "bar");
+    SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
     assertThat(sourceControl.getId()).isNull();
     sourceControlDAO.insert(sourceControl);
     assertThat(sourceControl.getId()).isNotNull();
@@ -165,8 +188,8 @@ public class SourceControlDAOTest
   public void testGetAll() {
     assertThat(sourceControlDAO.getAll().isEmpty()).isTrue();
     Application app2 = tempEntity.newApplicationWithParent("bar");
-    tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
-    tempEntity.newSourceControl(app2.getId(), VALID_URL, "token");
+    tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(app2.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
 
     List<SourceControl> scms = sourceControlDAO.getAll();
     assertThat(scms.size()).isEqualTo(2);

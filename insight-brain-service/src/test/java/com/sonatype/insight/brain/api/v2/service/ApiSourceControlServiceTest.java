@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -73,7 +74,7 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testAddSourceControl_TokenEncryption() throws Exception {
-    SourceControl validSourceControl = new SourceControl(app.getId(), VALID_URL, TOKEN);
+    SourceControl validSourceControl = new SourceControl(app.getId(), VALID_URL, TOKEN, SourceControlProvider.GITHUB);
     SourceControl sourceControl = sourceControlService.addSourceControl(app.getId(), validSourceControl);
     assertThat(sourceControl.getToken()).isNotEqualTo(TOKEN);
     assertThat(sourceControl.getToken()).isEqualTo(SourceControl.FAKE_SECRET_KEY);
@@ -85,20 +86,23 @@ public class ApiSourceControlServiceTest
       decrypted = plexusCipher.decrypt(sourceControl.getToken(), "CMMDwoV");
     }
     assertThat(decrypted).isEqualTo(TOKEN);
-    assertTelemetry(METHOD.ADD, app.getId(), sourceControl.getRepositoryUrl());
+    assertTelemetry(METHOD.ADD, app.getId(), sourceControl.getRepositoryUrl(),
+        sourceControl.getProvider());
   }
 
   @Test
   public void testUpdateSourceControl_TokenEncryption() throws Exception {
-    SourceControl validSourceControl = new SourceControl(app.getId(), VALID_URL, TOKEN);
+    SourceControl validSourceControl = new SourceControl(app.getId(), VALID_URL, TOKEN, SourceControlProvider.GITHUB);
 
     SourceControl sourceControl = sourceControlService.addSourceControl(app.getId(), validSourceControl);
     sourceControl.setToken("updatedToken");
-    assertTelemetry(METHOD.ADD, app.getId(), sourceControl.getRepositoryUrl());
+    assertTelemetry(METHOD.ADD, app.getId(), sourceControl.getRepositoryUrl(),
+        sourceControl.getProvider());
 
     SourceControl updatedScm = sourceControlService.updateSourceControl(app.getId(), sourceControl);
     assertThat(updatedScm.getToken()).isEqualTo(SourceControl.FAKE_SECRET_KEY);
-    assertTelemetry(METHOD.UPDATE, app.getId(), sourceControl.getRepositoryUrl());
+    assertTelemetry(METHOD.UPDATE, app.getId(), sourceControl.getRepositoryUrl(),
+        sourceControl.getProvider());
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
 
@@ -111,7 +115,7 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testGetSourceControlDecrypted() {
-    SourceControl validSourceControl = new SourceControl(app.getId(), VALID_URL, TOKEN);
+    SourceControl validSourceControl = new SourceControl(app.getId(), VALID_URL, TOKEN, SourceControlProvider.GITHUB);
     SourceControl sourceControl = sourceControlService.addSourceControl(app.getId(), validSourceControl);
     assertThat(sourceControlService.getSourceControlDecrypted(app.getId(), sourceControl.getId()).getToken())
         .isEqualTo(TOKEN);
@@ -119,21 +123,23 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testDeleteSourceControl() {
-    SourceControl validSourceControl = new SourceControl(app.getId(), VALID_URL, TOKEN);
+    SourceControl validSourceControl = new SourceControl(app.getId(), VALID_URL, TOKEN, SourceControlProvider.GITHUB);
 
     SourceControl sourceControl = sourceControlService.addSourceControl(app.getId(), validSourceControl);
     assertThat(sourceControlService.getAll().size()).isEqualTo(1);
-    assertTelemetry(METHOD.ADD, app.getId(), sourceControl.getRepositoryUrl());
+    assertTelemetry(METHOD.ADD, app.getId(), sourceControl.getRepositoryUrl(),
+        sourceControl.getProvider());
 
     sourceControlService.deleteSourceControl(app.getId(), sourceControl.getId());
     assertThat(sourceControlService.getAll().isEmpty()).isTrue();
-    assertTelemetry(METHOD.DELETE, app.getId(), sourceControl.getRepositoryUrl());
+    assertTelemetry(METHOD.DELETE, app.getId(), sourceControl.getRepositoryUrl(),
+        sourceControl.getProvider());
   }
 
   @Test
   public void testUpdateSourceControl_WithFakeToken() {
     SourceControl sourceControl = sourceControlService
-        .addSourceControl(app.getId(), new SourceControl(app.getId(), VALID_URL, TOKEN));
+        .addSourceControl(app.getId(), new SourceControl(app.getId(), VALID_URL, TOKEN, SourceControlProvider.GITHUB));
     sourceControl.setToken(SourceControl.FAKE_SECRET_KEY);
     sourceControlService.updateSourceControl(app.getId(), sourceControl);
     assertThat(sourceControlService.getSourceControlDecrypted(app.getId(), sourceControl.getId()).getToken())
@@ -143,7 +149,7 @@ public class ApiSourceControlServiceTest
   @Test
   public void testUpdateSourceControl_WithEmptyToken() {
     SourceControl sourceControl = sourceControlService
-        .addSourceControl(app.getId(), new SourceControl(app.getId(), VALID_URL, TOKEN));
+        .addSourceControl(app.getId(), new SourceControl(app.getId(), VALID_URL, TOKEN, SourceControlProvider.GITHUB));
     sourceControl.setToken(null);
     sourceControlService.updateSourceControl(app.getId(), sourceControl);
     assertThat(sourceControlService.getSourceControlDecrypted(app.getId(), sourceControl.getId()).getToken())
@@ -152,7 +158,8 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testUpdateSourceControl_WrongAppId() {
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
     sourceControl.setApplicationId("foo");
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
         sourceControlService.updateSourceControl(app.getId(), sourceControl)).withMessage(
@@ -164,7 +171,8 @@ public class ApiSourceControlServiceTest
     testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService
-            .addSourceControl("foo", new SourceControl(testName.getMethodName(), "bar", "baz")));
+            .addSourceControl("foo",
+                new SourceControl(testName.getMethodName(), "bar", "baz", SourceControlProvider.GITHUB)));
   }
 
   @Test
@@ -172,7 +180,8 @@ public class ApiSourceControlServiceTest
     testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService
-            .updateSourceControl("foo", new SourceControl(testName.getMethodName(), "bar", "baz")));
+            .updateSourceControl("foo",
+                new SourceControl(testName.getMethodName(), "bar", "baz", SourceControlProvider.GITHUB)));
   }
 
   @Test
@@ -191,7 +200,7 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testGetSourceControlByApplicationId() {
-    tempEntity.newSourceControl(app.getId(), VALID_URL, "token");
+    tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
     SourceControl sourceControlByApplicationId = sourceControlService.getSourceControlByApplicationId(app.getId());
     assertThat(sourceControlByApplicationId.getId()).isEqualTo(sourceControlByApplicationId.getId());
     assertThat(sourceControlByApplicationId.getRepositoryUrl())
@@ -211,9 +220,26 @@ public class ApiSourceControlServiceTest
     assertThat(sourceControl).isNull();
   }
 
+  @Test
+  public void testAddSourceControl_NoSourceControlProviderProvided() {
+    SourceControl validSourceControl = new SourceControl(app.getId(), VALID_URL, TOKEN, null);
+    SourceControl sourceControl = sourceControlService.addSourceControl(app.getId(), validSourceControl);
+    assertThat(sourceControl.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
+  }
+
+  @Test
+  public void testUpdateSourceControl_NoSourceControlProviderProvided() {
+    SourceControl validSourceControl = sourceControlService
+        .addSourceControl(app.getId(), new SourceControl(app.getId(), VALID_URL, TOKEN, SourceControlProvider.GITLAB));
+    validSourceControl.setProvider(null);
+    SourceControl sourceControl = sourceControlService.updateSourceControl(app.getId(), validSourceControl);
+    assertThat(sourceControl.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
+  }
+
   private void assertTelemetry(final METHOD method,
                                final String applicationId,
-                               final String repositoryUrl)
+                               final String repositoryUrl,
+                               final SourceControlProvider provider)
   {
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
@@ -222,6 +248,7 @@ public class ApiSourceControlServiceTest
     expectedAttributes.put("method", method);
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
     expectedAttributes.put("repository_url", HdsClientAnalytics.obfuscate(repositoryUrl));
+    expectedAttributes.put("provider", provider.toString());
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL);
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());

@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -36,6 +37,24 @@ public class RoleServiceAuthzTest
   public void testGetAllRoles_Unauthorized() {
     login();
     roleService.getAllRoles();
+  }
+
+  @Test
+  public void testGetRolesAsApiRoleListDTO_Authorized() {
+    grantGlobalPermission(Permission.VIEW_ROLES);
+    ApiRoleListDTO rolesAsApiRoleListDTO = roleService.getRolesAsApiRoleListDTO();
+    assertThat(rolesAsApiRoleListDTO.roles).isNotEmpty();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetRolesAsApiRoleListDTO_Unauthorized() {
+    login();
+    roleService.getRolesAsApiRoleListDTO();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetRolesAsApiRoleListDTO_Unauthenticated() {
+    roleService.getRolesAsApiRoleListDTO();
   }
 
   @Test(expected = UnauthenticatedException.class)

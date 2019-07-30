@@ -43,9 +43,16 @@ public class ProductLicenseService
       licenseManager.auditLicense(filename);
     }
     catch (LicensingException e) {
-      // as per CLM-870, the actual exception msg is deemed inappropriate so we provide a stock msg
-      String msg = "The provided license file " + filename + " is invalid. Please verify you selected the correct file."
-          + " If the problem persists, please contact our support team.";
+      String msg;
+      if (e instanceof ExternalDatabaseNotSupportedException) {
+        // this exception type carries a proper (and more specific) message
+        msg = e.getMessage();
+      }
+      else {
+        // as per CLM-870, the actual exception msg is deemed inappropriate so we provide a stock msg
+        msg = "The provided license file " + filename + " is invalid. Please verify you selected the correct file."
+            + " If the problem persists, please contact our support team.";
+      }
 
       // log the actual exception (especially its message which isn't otherwise revealed) to help support
       log.debug("Unable to install license {}", filename, e);

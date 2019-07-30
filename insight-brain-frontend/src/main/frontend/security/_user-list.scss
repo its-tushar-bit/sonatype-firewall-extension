@@ -1,27 +1,36 @@
 // System Preferences - Users page
-.iq-list__item.accordion-heading {
-  padding-top: 0;
-  padding-bottom: 0;
-
-  .accordion-toggle {
-    @extend .truncate-ellipsis;
-    height: 45px;
-    line-height: 45px;
-    padding: 0;
+.iq-list-item {
+  &:hover {
+    .accordion-body dd {
+      color: $iq-slate
+    }
   }
 
-  .iq-btn-group {
-    padding-top: 7px;
-  }
+  &.accordion-heading {
+    padding-top: 0;
+    padding-bottom: 0;
 
-  &:not(.iq-list__item--empty):not(.iq-disabled):not([disabled]) {
-    &:active {
-      background-color: $iq-off-white;
-      border-top: 1px solid inherit;
-      border-bottom: 1px solid inherit;
+    .accordion-toggle {
+      @extend .truncate-ellipsis;
+      height: 45px;
+      line-height: 45px;
+      padding: 0;
+    }
+
+    .iq-btn-group {
+      padding-top: 7px;
+    }
+
+    &:not(.iq-list__item--empty):not(.iq-disabled):not([disabled]) {
+      &:active {
+        background-color: $iq-off-white;
+        border-top: 1px solid inherit;
+        border-bottom: 1px solid inherit;
+      }
     }
   }
 }
+
 
 .iq-user-details {
   padding: 0 15px;

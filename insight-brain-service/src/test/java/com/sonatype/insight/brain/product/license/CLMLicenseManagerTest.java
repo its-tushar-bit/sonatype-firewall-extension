@@ -21,9 +21,12 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.DatabaseConfig;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadGatewayException;
@@ -72,9 +75,15 @@ public class CLMLicenseManagerTest
   @Inject
   private ProductLicenseSigner productLicenseSigner;
 
+  @Inject
+  private InsightConfig config;
+
+  @Inject
+  private MigrationTrackerDAO migrationTrackerDAO;
+
   @Before
   public void before() throws Exception {
-    Files.copy(getClass().getResourceAsStream("/CLMLicenseManagerTest/licensing-keystore-hds.p12"),
+    Files.copy(getClass().getResourceAsStream("/productlicense/licensing-keystore-hds.p12"),
         new File(tempDir.getRoot(), "hds.p12").toPath());
     hdsMockServer.reset();
   }
@@ -421,6 +430,47 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testLoadLicense_ExternalDatabaseAllowedAndNotCurrentlyUsed() {
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE));
+
+    clmLicenseManager.loadLicense();
+
+    assertThat(migrationTrackerDAO.isTrackerPresent(CLMLicenseManager.MIGRATION_TRACKER_EXTERNAL_DB)).isFalse();
+  }
+
+  @Test
+  public void testLoadLicense_ExternalDatabaseAllowedAndCurrentlyUsed() {
+    config.setDatabase(new DatabaseConfig());
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE));
+
+    clmLicenseManager.loadLicense();
+
+    assertThat(migrationTrackerDAO.isTrackerPresent(CLMLicenseManager.MIGRATION_TRACKER_EXTERNAL_DB)).isTrue();
+  }
+
+  @Test
+  public void testLoadLicense_ExternalDatabaseNotAllowedButCurrentlyUsed() {
+    config.setDatabase(new DatabaseConfig());
+    mockHdsProductLicenseDetails(withFeatures());
+
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
+      clmLicenseManager.loadLicense();
+    }).withMessageContaining("license does not support use of an external database");
+
+    assertThat(migrationTrackerDAO.isTrackerPresent(CLMLicenseManager.MIGRATION_TRACKER_EXTERNAL_DB)).isFalse();
+  }
+
+  @Test
+  public void testLoadLicense_ExternalDatabaseCurrentlyUsedAndUnlicensed() {
+    clmLicenseManager.uninstallLicense();
+    config.setDatabase(new DatabaseConfig());
+
+    clmLicenseManager.loadLicense();
+
+    assertThat(migrationTrackerDAO.isTrackerPresent(CLMLicenseManager.MIGRATION_TRACKER_EXTERNAL_DB)).isFalse();
+  }
+
+  @Test
   public void testInstallLicense_LegacyVersion() throws Exception {
     licenseManager.setVersion(0);
     assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
@@ -502,6 +552,49 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE));
     installLicense();
     assertThat(productLicense.getFeatures()).contains(LicensedFeature.EXTERNAL_DATABASE);
+  }
+
+  @Test
+  public void testInstallLicense_ExternalDatabaseNotAllowedButCurrentlyUsed() throws Exception {
+    config.setDatabase(new DatabaseConfig());
+    mockHdsProductLicenseDetails(withFeatures());
+    clmLicenseManager.uninstallLicense();
+
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
+      installLicense();
+    }).withMessageContaining("license does not support use of an external database");
+    assertThat(productLicense.isValid()).isFalse();
+    assertThat(migrationTrackerDAO.isTrackerPresent(CLMLicenseManager.MIGRATION_TRACKER_EXTERNAL_DB)).isFalse();
+  }
+
+  @Test
+  public void testInstallLicense_ExternalDatabaseNotAllowedButPreviouslyAllowed() throws Exception {
+    config.setDatabase(new DatabaseConfig());
+    migrationTrackerDAO.insert(new MigrationTracker(CLMLicenseManager.MIGRATION_TRACKER_EXTERNAL_DB));
+    mockHdsProductLicenseDetails(withFeatures());
+
+    installLicense();
+    assertThat(productLicense.isValid()).isTrue();
+    assertThat(migrationTrackerDAO.isTrackerPresent(CLMLicenseManager.MIGRATION_TRACKER_EXTERNAL_DB)).isTrue();
+  }
+
+  @Test
+  public void testInstallLicense_ExternalDatabaseAllowedAndCurrentlyUsed() throws Exception {
+    config.setDatabase(new DatabaseConfig());
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE));
+
+    installLicense();
+    assertThat(productLicense.isValid()).isTrue();
+    assertThat(migrationTrackerDAO.isTrackerPresent(CLMLicenseManager.MIGRATION_TRACKER_EXTERNAL_DB)).isTrue();
+  }
+
+  @Test
+  public void testInstallLicense_ExternalDatabaseAllowedAndNotCurrentlyUsed() throws Exception {
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE));
+
+    installLicense();
+    assertThat(productLicense.isValid()).isTrue();
+    assertThat(migrationTrackerDAO.isTrackerPresent(CLMLicenseManager.MIGRATION_TRACKER_EXTERNAL_DB)).isFalse();
   }
 
   public void testNotifyListener_LoadLicense() throws Exception {

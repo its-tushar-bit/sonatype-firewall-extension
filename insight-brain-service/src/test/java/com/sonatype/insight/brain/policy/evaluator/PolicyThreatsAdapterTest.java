@@ -323,6 +323,7 @@ public class PolicyThreatsAdapterTest
                                                    PolicyViolation violation)
   {
     assertThat(policyViolation.policyId).isEqualTo(violation.getPolicyId());
+    assertThat(policyViolation.policyViolationId).isEqualTo(violation.getId());
     assertThat(policyViolation.policyName).isEqualTo(violation.getPolicyName());
     assertThat(policyViolation.waived).isEqualTo(violation.isWaived());
     assertThat(policyViolation.grandfathered).isEqualTo(violation.isGrandfathered());

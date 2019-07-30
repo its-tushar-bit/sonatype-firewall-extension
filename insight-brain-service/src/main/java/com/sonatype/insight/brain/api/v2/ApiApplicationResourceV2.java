@@ -121,9 +121,13 @@ public class ApiApplicationResourceV2
     return apiApplicationService.updateApplication(applicationDTO);
   }
 
+  /**
+   * @deprecated Replaced in 1.70 with {@link ApiRoleResource#getRoles()}
+   */
   @GET
   @Path(ROLE_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Deprecated
   public ApiRoleListDTO getApplicationRoles() {
     return apiApplicationService.getApplicationRoles();
   }

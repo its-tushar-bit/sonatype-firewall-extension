@@ -27,7 +27,7 @@ public class ApiRoleMembershipResourceAuditTest
     extends AbstractMembershipMappingAuditTest
 {
   @Test
-  public void testGrantMembershipMapping_Application() throws Exception {
+  public void testGrantRoleMembership_Application() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
 
     restRequest().path(APPLICATION_OR_ORGANIZATION)
@@ -43,7 +43,7 @@ public class ApiRoleMembershipResourceAuditTest
   }
 
   @Test
-  public void testGrantMembershipMapping_Organization() throws Exception {
+  public void testGrantRoleMembership_Organization() throws Exception {
     Organization org = tempEntity.newOrganization();
 
     restRequest().path(APPLICATION_OR_ORGANIZATION)
@@ -59,7 +59,7 @@ public class ApiRoleMembershipResourceAuditTest
   }
 
   @Test
-  public void testGrantMembershipMapping_Global() throws Exception {
+  public void testGrantRoleMembership_Global() throws Exception {
     restRequest().path(GLOBAL_OR_REPOSITORY_CONTAINER)
         .parameter("global", SYSTEM_ADMIN_ROLE_ID, "user", "username").put();
 
@@ -73,7 +73,7 @@ public class ApiRoleMembershipResourceAuditTest
   }
 
   @Test
-  public void testGrantMembershipMapping_Application_Unauthorized() throws Exception {
+  public void testGrantRoleMembership_Application_Unauthorized() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
 
     Member member = new Member();
@@ -89,7 +89,7 @@ public class ApiRoleMembershipResourceAuditTest
   }
 
   @Test
-  public void testGrantMembershipMapping_Organization_Unauthorized() throws Exception {
+  public void testGrantRoleMembership_Organization_Unauthorized() throws Exception {
     Organization org = tempEntity.newOrganization();
 
     Member member = new Member();
@@ -105,7 +105,7 @@ public class ApiRoleMembershipResourceAuditTest
   }
 
   @Test
-  public void testRevokeMembershipMapping_Application() throws Exception {
+  public void testRevokeRoleMembership_Application() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newMembershipMapping(app.getId(), DEVELOPER_ROLE_ID, "username", MemberType.USER);
 
@@ -122,7 +122,7 @@ public class ApiRoleMembershipResourceAuditTest
   }
 
   @Test
-  public void testRevokeMembershipMapping_Global() throws Exception {
+  public void testRevokeRoleMembership_Global() throws Exception {
     tempEntity.newMembershipMapping(GLOBAL_CONTEXT_ID, SYSTEM_ADMIN_ROLE_ID, "username", MemberType.USER);
 
     restRequest().path(GLOBAL_OR_REPOSITORY_CONTAINER)
@@ -138,7 +138,7 @@ public class ApiRoleMembershipResourceAuditTest
   }
 
   @Test
-  public void testRevokeMembershipMapping_Organization() throws Exception {
+  public void testRevokeRoleMembership_Organization() throws Exception {
     Organization org = tempEntity.newOrganization();
     tempEntity.newMembershipMapping(org.getId(), DEVELOPER_ROLE_ID, "username", MemberType.USER);
 
@@ -155,7 +155,7 @@ public class ApiRoleMembershipResourceAuditTest
   }
 
   @Test
-  public void testRevokeMembershipMapping_Application_Unauthorized() throws Exception {
+  public void testRevokeRoleMembership_Application_Unauthorized() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newMembershipMapping(app.getId(), DEVELOPER_ROLE_ID, "username", MemberType.USER);
 
@@ -172,7 +172,7 @@ public class ApiRoleMembershipResourceAuditTest
   }
 
   @Test
-  public void testRevokeMembershipMapping_Organization_Unauthorized() throws Exception {
+  public void testRevokeRoleMembership_Organization_Unauthorized() throws Exception {
     Organization org = tempEntity.newOrganization();
     tempEntity.newMembershipMapping(org.getId(), DEVELOPER_ROLE_ID, "username", MemberType.USER);
 

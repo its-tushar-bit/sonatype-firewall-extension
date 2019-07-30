@@ -13,10 +13,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v2.ApiMemberMappingAdapter;
+import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -27,6 +30,7 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -63,6 +67,8 @@ public class MembershipMappingService
 
   private final ManagementEventService managementEventService;
 
+  private final ApiMemberMappingAdapter apiMemberMappingAdapter;
+
   @Inject
   public MembershipMappingService(final ApplicationDAO appDAO,
                                   OrganizationDAO orgDAO,
@@ -70,7 +76,8 @@ public class MembershipMappingService
                                   final MembershipMappingDAO memberMapDAO,
                                   final OwnerDAO ownerDAO,
                                   UserDirectory userDirectory,
-                                  final ManagementEventService managementEventService)
+                                  final ManagementEventService managementEventService,
+                                  ApiMemberMappingAdapter apiMemberMappingAdapter)
   {
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
@@ -79,6 +86,7 @@ public class MembershipMappingService
     this.ownerDAO = ownerDAO;
     this.userDirectory = userDirectory;
     this.managementEventService = managementEventService;
+    this.apiMemberMappingAdapter = apiMemberMappingAdapter;
   }
 
   // Authorization is checked in loadMembersByRoleForGlobalContext and loadMembersByRoleForNonGlobalContext
@@ -119,11 +127,21 @@ public class MembershipMappingService
     return result;
   }
 
+  public ApiRoleMemberMappingListDTO getRoleMembershipsOmitEmpty(OwnerType type, String internalOwnerId) {
+    ApplicableMembershipMappings applicableMembershipMappings = getApplicableMembershipMappings(type, internalOwnerId);
+    ApiRoleMemberMappingListDTO roleMemberMappingList =
+        apiMemberMappingAdapter.convert(applicableMembershipMappings, type);
+    roleMemberMappingList.memberMappings =
+        roleMemberMappingList.memberMappings.stream().filter(dto -> !dto.members.isEmpty())
+            .collect(Collectors.toList());
+    return roleMemberMappingList;
+  }
+
   /**
    * @since 1.70
    */
-  // Authorization is checked in grantMembershipMappingForGlobalContext and grantMembershipMappingForNonGlobalContext
-  public void grantMembershipMapping(
+  // Authorization is checked in grantRoleMembershipForGlobalContext and grantRoleMembershipForNonGlobalContext
+  public void grantRoleMembership(
       OwnerType ownerType,
       String ownerId,
       String roleId,
@@ -151,10 +169,10 @@ public class MembershipMappingService
     auditRoleMemberData(auditData, role, member);
 
     if (OwnerType.GLOBAL.equals(ownerType)) {
-      grantMembershipMappingForGlobalContext(membershipMapping);
+      grantRoleMembershipForGlobalContext(membershipMapping);
     }
     else {
-      grantMembershipMappingForNonGlobalContext(ownerType, membershipMapping.getContextId(), membershipMapping);
+      grantRoleMembershipForNonGlobalContext(ownerType, membershipMapping.getContextId(), membershipMapping);
     }
 
     Map<String, List<Member>> roleToMembers = new HashMap<>();
@@ -165,8 +183,8 @@ public class MembershipMappingService
   /**
    * @since 1.70
    */
-  // Authorization is checked in revokeMembershipMappingForGlobalContext and revokeMembershipForNonGlobalContext
-  public void revokeMembershipMapping(
+  // Authorization is checked in revokeRoleMembershipForGlobalContext and revokeRoleMembershipForNonGlobalContext
+  public void revokeRoleMembership(
       OwnerType ownerType,
       String ownerId,
       String roleId,
@@ -185,10 +203,10 @@ public class MembershipMappingService
     auditRoleMemberData(auditData, role, member);
 
     if (OwnerType.GLOBAL.equals(ownerType)) {
-      revokeMembershipMappingForGlobalContext(membershipMapping);
+      revokeRoleMembershipForGlobalContext(membershipMapping);
     }
     else {
-      revokeMembershipForNonGlobalContext(ownerType, ownerId, membershipMapping);
+      revokeRoleMembershipForNonGlobalContext(ownerType, ownerId, membershipMapping);
     }
 
     Map<String, List<Member>> roleToMembers = new HashMap<>();
@@ -258,7 +276,7 @@ public class MembershipMappingService
   }
 
   @Authorize(permission = Permission.WRITE)
-  void grantMembershipMappingForNonGlobalContext(
+  void grantRoleMembershipForNonGlobalContext(
       @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @SuppressWarnings("unused") @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       MembershipMapping membershipMapping)
@@ -267,29 +285,42 @@ public class MembershipMappingService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  void grantMembershipMappingForGlobalContext(MembershipMapping membershipMapping) {
+  void grantRoleMembershipForGlobalContext(MembershipMapping membershipMapping) {
     memberMapDAO.insert(membershipMapping);
   }
 
   @Authorize(permission = Permission.WRITE)
-  void revokeMembershipForNonGlobalContext(
+  void revokeRoleMembershipForNonGlobalContext(
       @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @SuppressWarnings("unused") @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       MembershipMapping membershipMapping)
   {
-    revokeMembershipMapping(membershipMapping);
+    revokeRoleMembership(membershipMapping);
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  void revokeMembershipMappingForGlobalContext(MembershipMapping membershipMapping) {
-    revokeMembershipMapping(membershipMapping);
+  void revokeRoleMembershipForGlobalContext(MembershipMapping membershipMapping) {
+    revokeRoleMembership(membershipMapping);
   }
 
-  private void revokeMembershipMapping(MembershipMapping membershipMapping) {
+  private void revokeRoleMembership(MembershipMapping membershipMapping) {
     if (membershipMapping == null) {
       throw new NotFoundException("Role membership not found.");
     }
     memberMapDAO.delete(membershipMapping);
+  }
+
+  public String getIdGlobalOrRepositoryContainer(OwnerType ownerType) {
+    if (ownerType == OwnerType.GLOBAL) {
+      return MembershipMapping.GLOBAL_CONTEXT_ID;
+    }
+    else if (ownerType == OwnerType.REPOSITORY_CONTAINER) {
+      return RepositoryContainer.REPOSITORY_CONTAINER_ID;
+    }
+    else {
+      throw new UnsupportedOperationException(
+          "Only for " + OwnerType.GLOBAL + " and " + OwnerType.REPOSITORY_CONTAINER);
+    }
   }
 
   private void setMembershipMappingsForRoles(OwnerType ownerType,

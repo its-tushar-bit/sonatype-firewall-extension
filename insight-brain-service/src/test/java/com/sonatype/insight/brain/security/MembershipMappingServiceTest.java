@@ -13,14 +13,18 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -34,6 +38,9 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.security.Role.DEVELOPER_ROLE_ID;
+import static com.sonatype.insight.brain.model.security.Role.POLICY_ADMIN_ROLE_ID;
+import static com.sonatype.insight.brain.model.security.Role.SYSTEM_ADMIN_ROLE_ID;
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
@@ -120,7 +127,7 @@ public class MembershipMappingServiceTest
   }
 
   @Test
-  public void testGrantMembershipMapping_NonGlobal() throws InterruptedException {
+  public void testGrantRoleMembership_NonGlobal() throws InterruptedException {
     TestEventHandler<RoleEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
     eventBus.register(handler);
 
@@ -128,7 +135,7 @@ public class MembershipMappingServiceTest
     String applicationId = tempEntity.newApplicationWithParent().getId();
 
     membershipMappingService
-        .grantMembershipMapping(OwnerType.APPLICATION, applicationId, Role.DEVELOPER_ROLE_ID, MemberType.USER,
+        .grantRoleMembership(OwnerType.APPLICATION, applicationId, Role.DEVELOPER_ROLE_ID, MemberType.USER,
             username);
 
     MembershipMapping membershipMapping = membershipMappingDAO
@@ -148,11 +155,11 @@ public class MembershipMappingServiceTest
   }
 
   @Test
-  public void testGrantMembershipMapping_Global() {
+  public void testGrantRoleMembership_Global() {
     String username = tempEntity.newUser("a-user").getUsername();
 
     membershipMappingService
-        .grantMembershipMapping(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.SYSTEM_ADMIN_ROLE_ID,
+        .grantRoleMembership(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.SYSTEM_ADMIN_ROLE_ID,
             MemberType.USER, username);
 
     MembershipMapping membershipMapping = membershipMappingDAO
@@ -166,7 +173,7 @@ public class MembershipMappingServiceTest
   }
 
   @Test
-  public void testGrantMembershipMapping_AlreadyExisting() {
+  public void testGrantRoleMembership_AlreadyExisting() {
     Application application = tempEntity.newApplicationWithParent();
     String username = tempEntity.newUser("a-user").getUsername();
 
@@ -177,69 +184,69 @@ public class MembershipMappingServiceTest
     tempEntity.newMembershipMapping(contextId, Role.DEVELOPER_ROLE_ID, memberName, memberType);
 
     membershipMappingService
-        .grantMembershipMapping(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID, memberType, memberName);
+        .grantRoleMembership(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID, memberType, memberName);
   }
 
   @Test
-  public void testGrantMembershipMapping_NoMemberName() {
+  public void testGrantRoleMembership_NoMemberName() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
             () -> membershipMappingService
-                .grantMembershipMapping(OwnerType.APPLICATION, "owner-id", Role.DEVELOPER_ROLE_ID, MemberType.USER, ""))
+                .grantRoleMembership(OwnerType.APPLICATION, "owner-id", Role.DEVELOPER_ROLE_ID, MemberType.USER, ""))
         .withMessageContaining("Internal name of role member has not been specified");
   }
 
   @Test
-  public void testGrantMembershipMapping_NoMemberType() {
+  public void testGrantRoleMembership_NoMemberType() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> membershipMappingService
-            .grantMembershipMapping(OwnerType.APPLICATION, "owner-id", Role.DEVELOPER_ROLE_ID, null, "username"))
+            .grantRoleMembership(OwnerType.APPLICATION, "owner-id", Role.DEVELOPER_ROLE_ID, null, "username"))
         .withMessageContaining("Type of role member has not been specified");
   }
 
   @Test
-  public void testGrantMembershipMapping_UnknownContextId() {
+  public void testGrantRoleMembership_UnknownContextId() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> membershipMappingService
-            .grantMembershipMapping(OwnerType.APPLICATION, "owner-id", Role.DEVELOPER_ROLE_ID, MemberType.USER,
+            .grantRoleMembership(OwnerType.APPLICATION, "owner-id", Role.DEVELOPER_ROLE_ID, MemberType.USER,
                 "username"))
         .withMessageContaining("Could not find an application with ID owner-id.");
   }
 
   @Test
-  public void testGrantMembershipMapping_ContextTypeAndIdMismatch() {
+  public void testGrantRoleMembership_ContextTypeAndIdMismatch() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> membershipMappingService
-            .grantMembershipMapping(OwnerType.ORGANIZATION, "no-such-application", Role.DEVELOPER_ROLE_ID,
+            .grantRoleMembership(OwnerType.ORGANIZATION, "no-such-application", Role.DEVELOPER_ROLE_ID,
                 MemberType.USER, "username"))
         .withMessageContaining("Cannot find organization with ID no-such-application");
   }
 
   @Test
-  public void testGrantMembershipMapping_RoleValidationOwnerNotGlobalRoleGlobal() {
+  public void testGrantRoleMembership_RoleValidationOwnerNotGlobalRoleGlobal() {
     String username = tempEntity.newUser("a-user").getUsername();
     String applicationId = tempEntity.newApplicationWithParent().getId();
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> membershipMappingService
-            .grantMembershipMapping(OwnerType.APPLICATION, applicationId, Role.SYSTEM_ADMIN_ROLE_ID, MemberType.USER,
+            .grantRoleMembership(OwnerType.APPLICATION, applicationId, Role.SYSTEM_ADMIN_ROLE_ID, MemberType.USER,
                 username))
         .withMessageContaining("Cannot map members to global role in context of application.");
   }
 
   @Test
-  public void testGrantMembershipMapping_RoleValidationOwnerGlobalRoleNotGlobal() {
+  public void testGrantRoleMembership_RoleValidationOwnerGlobalRoleNotGlobal() {
     String username = tempEntity.newUser("a-user").getUsername();
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> membershipMappingService
-            .grantMembershipMapping(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.DEVELOPER_ROLE_ID,
+            .grantRoleMembership(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.DEVELOPER_ROLE_ID,
                 MemberType.USER, username))
         .withMessageContaining("Cannot map members to application role in global context.");
   }
 
   @Test
-  public void testRevokeMembershipMapping() throws InterruptedException {
+  public void testRevokeRoleMembership() throws InterruptedException {
     TestEventHandler<RoleEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
     eventBus.register(handler);
 
@@ -251,7 +258,7 @@ public class MembershipMappingServiceTest
         tempEntity.newMembershipMapping(contextId, Role.DEVELOPER_ROLE_ID, memberName, memberType);
 
     membershipMappingService
-        .revokeMembershipMapping(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID, memberType, memberName);
+        .revokeRoleMembership(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID, memberType, memberName);
     assertThat(membershipMappingDAO.getById(membershipMapping.getId())).isNull();
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
@@ -263,7 +270,7 @@ public class MembershipMappingServiceTest
   }
 
   @Test
-  public void testRevokeMembershipMapping_Global() {
+  public void testRevokeRoleMembership_Global() {
     String contextId = MembershipMapping.GLOBAL_CONTEXT_ID;
     String memberName = tempEntity.newUser("a-user").getUsername();
     MemberType memberType = MemberType.USER;
@@ -272,20 +279,72 @@ public class MembershipMappingServiceTest
         tempEntity.newMembershipMapping(contextId, Role.POLICY_ADMIN_ROLE_ID, memberName, memberType);
 
     membershipMappingService
-        .revokeMembershipMapping(OwnerType.GLOBAL, contextId, Role.POLICY_ADMIN_ROLE_ID, memberType, memberName);
+        .revokeRoleMembership(OwnerType.GLOBAL, contextId, Role.POLICY_ADMIN_ROLE_ID, memberType, memberName);
     assertThat(membershipMappingDAO.getById(membershipMapping.getId())).isNull();
   }
 
   @Test
-  public void testRevokeMembershipMapping_NotExisting() {
+  public void testRevokeRoleMembership_NotExisting() {
     String contextId = tempEntity.newApplicationWithParent().getId();
     String memberName = tempEntity.newUser("a-user").getUsername();
     MemberType memberType = MemberType.USER;
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> membershipMappingService
-            .revokeMembershipMapping(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID, memberType, memberName))
+            .revokeRoleMembership(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID, memberType, memberName))
         .withMessageContaining("Role membership not found.");
+  }
+
+  @Test
+  public void testGetRoleMembershipsOmitEmpty() {
+    Organization organization = tempEntity.newOrganization();
+    tempEntity.newMembershipMapping(organization.getId(), Role.DEVELOPER_ROLE_ID, "a-user");
+
+    ApiRoleMemberMappingListDTO listDTO = membershipMappingService
+        .getRoleMembershipsOmitEmpty(OwnerType.ORGANIZATION, organization.getId());
+
+    List<ApiRoleMemberMappingDTO> memberMappings = listDTO.memberMappings;
+    assertThat(memberMappings).hasSize(1);
+
+    ApiRoleMemberMappingDTO apiRoleMemberMappingDTO = memberMappings.get(0);
+    assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(DEVELOPER_ROLE_ID);
+    assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).containsExactly("a-user");
+  }
+
+  @Test
+  public void testGetRoleMembershipsOmitEmpty_Global() {
+    ApiRoleMemberMappingListDTO listDTO = membershipMappingService
+        .getRoleMembershipsOmitEmpty(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
+
+    List<ApiRoleMemberMappingDTO> memberMappings = listDTO.memberMappings;
+    assertThat(memberMappings).hasSize(2);
+
+    ApiRoleMemberMappingDTO apiRoleMemberMappingDTO = memberMappings.get(0);
+    assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(POLICY_ADMIN_ROLE_ID);
+    assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).containsExactly("admin");
+
+    apiRoleMemberMappingDTO = memberMappings.get(1);
+    assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(SYSTEM_ADMIN_ROLE_ID);
+    assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).containsExactly("admin");
+  }
+
+  @Test
+  public void testGetIdGlobalOrRepositoryContainer_Global() {
+    String id = membershipMappingService.getIdGlobalOrRepositoryContainer(OwnerType.GLOBAL);
+    assertThat(id).isEqualTo(MembershipMapping.GLOBAL_CONTEXT_ID);
+  }
+
+  @Test
+  public void testGetIdGlobalOrRepositoryContainer_RepositoryContainer() {
+    String id = membershipMappingService.getIdGlobalOrRepositoryContainer(OwnerType.REPOSITORY_CONTAINER);
+    assertThat(id).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+  }
+
+  @Test
+  public void testGetIdGlobalOrRepositoryContainer_UnsupportedOwnerType() {
+    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
+      membershipMappingService.getIdGlobalOrRepositoryContainer(OwnerType.APPLICATION);
+    }).withMessage("Only for global and repository_container");
   }
 
   private void setupLdapWithNonDynamicGroupType(String serverName, LdapGroupMappingType groupMappingType) {

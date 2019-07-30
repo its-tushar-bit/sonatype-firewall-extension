@@ -130,138 +130,138 @@ public class MembershipMappingServiceAuthzTest
   }
 
   @Test
-  public void testGrantMembershipMapping_Application_Authorized() {
+  public void testGrantRoleMembership_Application_Authorized() {
     grantWritePermission(app.getId());
     membershipMappingService
-        .grantMembershipMapping(OwnerType.APPLICATION, app.getId(), DEVELOPER_ROLE_ID, MemberType.USER, "username");
+        .grantRoleMembership(OwnerType.APPLICATION, app.getId(), DEVELOPER_ROLE_ID, MemberType.USER, "username");
   }
 
   @Test
-  public void testRevokeMembershipMapping_Application_Authorized() {
+  public void testRevokeRoleMembership_Application_Authorized() {
     grantWritePermission(app.getId());
     tempEntity.newMembershipMapping(app.getId(), DEVELOPER_ROLE_ID, getUsername(), MemberType.USER);
     membershipMappingService
-        .revokeMembershipMapping(OwnerType.APPLICATION, app.getId(), DEVELOPER_ROLE_ID, MemberType.USER, getUsername());
+        .revokeRoleMembership(OwnerType.APPLICATION, app.getId(), DEVELOPER_ROLE_ID, MemberType.USER, getUsername());
   }
 
   @Test
-  public void testGrantMembershipMapping_Organization_Authorized() {
+  public void testGrantRoleMembership_Organization_Authorized() {
     grantWritePermission(org.getId());
     membershipMappingService
-        .grantMembershipMapping(OwnerType.ORGANIZATION, org.getId(), DEVELOPER_ROLE_ID, MemberType.USER, "username");
+        .grantRoleMembership(OwnerType.ORGANIZATION, org.getId(), DEVELOPER_ROLE_ID, MemberType.USER, "username");
   }
 
   @Test
-  public void testRevokeMembershipMapping_Organization_Authorized() {
+  public void testRevokeRoleMembership_Organization_Authorized() {
     grantWritePermission(org.getId());
     tempEntity.newMembershipMapping(org.getId(), DEVELOPER_ROLE_ID, getUsername(), MemberType.USER);
     membershipMappingService
-        .revokeMembershipMapping(OwnerType.ORGANIZATION, org.getId(), DEVELOPER_ROLE_ID, MemberType.USER,
+        .revokeRoleMembership(OwnerType.ORGANIZATION, org.getId(), DEVELOPER_ROLE_ID, MemberType.USER,
             getUsername());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGrantMembershipMapping_Application_Unauthorized() {
+  public void testGrantRoleMembership_Application_Unauthorized() {
     login();
     membershipMappingService
-        .grantMembershipMapping(OwnerType.APPLICATION, app.getId(), DEVELOPER_ROLE_ID, MemberType.USER, "username");
+        .grantRoleMembership(OwnerType.APPLICATION, app.getId(), DEVELOPER_ROLE_ID, MemberType.USER, "username");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testRevokeMembershipMapping_Application_Unauthorized() {
+  public void testRevokeRoleMembership_Application_Unauthorized() {
     login();
     membershipMappingService
-        .revokeMembershipMapping(OwnerType.APPLICATION, app.getId(), DEVELOPER_ROLE_ID, MemberType.USER, getUsername());
+        .revokeRoleMembership(OwnerType.APPLICATION, app.getId(), DEVELOPER_ROLE_ID, MemberType.USER, getUsername());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGrantMembershipMapping_Organization_Unauthorized() {
+  public void testGrantRoleMembership_Organization_Unauthorized() {
     login();
     membershipMappingService
-        .grantMembershipMapping(OwnerType.ORGANIZATION, org.getId(), DEVELOPER_ROLE_ID, MemberType.USER, "username");
+        .grantRoleMembership(OwnerType.ORGANIZATION, org.getId(), DEVELOPER_ROLE_ID, MemberType.USER, "username");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testRevokeMembershipMapping_Organization_Unauthorized() {
+  public void testRevokeRoleMembership_Organization_Unauthorized() {
     login();
     membershipMappingService
-        .revokeMembershipMapping(OwnerType.ORGANIZATION, org.getId(), DEVELOPER_ROLE_ID, MemberType.USER,
+        .revokeRoleMembership(OwnerType.ORGANIZATION, org.getId(), DEVELOPER_ROLE_ID, MemberType.USER,
             getUsername());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGrantMembershipMapping_Application_Unauthenticated() {
+  public void testGrantRoleMembership_Application_Unauthenticated() {
     membershipMappingService
-        .grantMembershipMapping(OwnerType.APPLICATION, app.getId(), DEVELOPER_ROLE_ID, MemberType.USER, "username");
+        .grantRoleMembership(OwnerType.APPLICATION, app.getId(), DEVELOPER_ROLE_ID, MemberType.USER, "username");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testRevokeMembershipMapping_Application_Unauthenticated() {
+  public void testRevokeRoleMembership_Application_Unauthenticated() {
     membershipMappingService
-        .revokeMembershipMapping(OwnerType.APPLICATION, app.getId(), DEVELOPER_ROLE_ID, MemberType.USER, getUsername());
+        .revokeRoleMembership(OwnerType.APPLICATION, app.getId(), DEVELOPER_ROLE_ID, MemberType.USER, getUsername());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGrantMembershipMapping_Organization_Unauthenticated() {
+  public void testGrantRoleMembership_Organization_Unauthenticated() {
     membershipMappingService
-        .grantMembershipMapping(OwnerType.ORGANIZATION, org.getId(), DEVELOPER_ROLE_ID, MemberType.USER, "username");
+        .grantRoleMembership(OwnerType.ORGANIZATION, org.getId(), DEVELOPER_ROLE_ID, MemberType.USER, "username");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testRevokeMembershipMapping_Organization_Unauthenticated() {
+  public void testRevokeRoleMembership_Organization_Unauthenticated() {
     membershipMappingService
-        .revokeMembershipMapping(OwnerType.ORGANIZATION, org.getId(), DEVELOPER_ROLE_ID, MemberType.USER,
+        .revokeRoleMembership(OwnerType.ORGANIZATION, org.getId(), DEVELOPER_ROLE_ID, MemberType.USER,
             getUsername());
   }
 
   @Test
-  public void testGrantMembershipMapping_Global_Authorized() {
+  public void testGrantRoleMembership_Global_Authorized() {
     grantConfigureSystemPermission();
     String username = tempEntity.newUser("different-user").getUsername();
     membershipMappingService
-        .grantMembershipMapping(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, POLICY_ADMIN_ROLE_ID,
+        .grantRoleMembership(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, POLICY_ADMIN_ROLE_ID,
             MemberType.USER, username);
   }
 
   @Test
-  public void testRevokeMembershipMapping_Global_Authorized() {
+  public void testRevokeRoleMembership_Global_Authorized() {
     grantConfigureSystemPermission();
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, POLICY_ADMIN_ROLE_ID, getUsername(),
         MemberType.USER);
     membershipMappingService
-        .revokeMembershipMapping(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, POLICY_ADMIN_ROLE_ID,
+        .revokeRoleMembership(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, POLICY_ADMIN_ROLE_ID,
             MemberType.USER, getUsername());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGrantMembershipMapping_Global_Unauthorized() {
+  public void testGrantRoleMembership_Global_Unauthorized() {
     login();
     String username = tempEntity.newUser("different-user").getUsername();
     membershipMappingService
-        .grantMembershipMapping(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, POLICY_ADMIN_ROLE_ID,
+        .grantRoleMembership(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, POLICY_ADMIN_ROLE_ID,
             MemberType.USER, username);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testRevokeMembershipMapping_Global_Unauthorized() {
+  public void testRevokeRoleMembership_Global_Unauthorized() {
     login();
     membershipMappingService
-        .revokeMembershipMapping(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, POLICY_ADMIN_ROLE_ID,
+        .revokeRoleMembership(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, POLICY_ADMIN_ROLE_ID,
             MemberType.USER, getUsername());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGrantMembershipMapping_Global_Unauthenticated() {
+  public void testGrantRoleMembership_Global_Unauthenticated() {
     String username = tempEntity.newUser("different-user").getUsername();
     membershipMappingService
-        .grantMembershipMapping(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, POLICY_ADMIN_ROLE_ID,
+        .grantRoleMembership(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, POLICY_ADMIN_ROLE_ID,
             MemberType.USER, username);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testRevokeMembershipMapping_Global_Unauthenticated() {
+  public void testRevokeRoleMembership_Global_Unauthenticated() {
     membershipMappingService
-        .revokeMembershipMapping(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, POLICY_ADMIN_ROLE_ID,
+        .revokeRoleMembership(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, POLICY_ADMIN_ROLE_ID,
             MemberType.USER, getUsername());
   }
 }

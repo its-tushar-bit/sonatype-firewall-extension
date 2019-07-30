@@ -14,6 +14,8 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiRoleAdapter;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
@@ -37,10 +39,17 @@ public class RoleService
 
   private final RolePermissionDAO rolePermissionDAO;
 
+  private final ApiRoleAdapter apiRoleAdapter;
+
   @Inject
-  public RoleService(final RoleDAO roleDAO, final RolePermissionDAO rolePermissionDAO) {
+  public RoleService(
+      final RoleDAO roleDAO,
+      final RolePermissionDAO rolePermissionDAO,
+      final ApiRoleAdapter apiRoleAdapter)
+  {
     this.roleDAO = roleDAO;
     this.rolePermissionDAO = rolePermissionDAO;
+    this.apiRoleAdapter = apiRoleAdapter;
   }
 
   /**
@@ -49,6 +58,11 @@ public class RoleService
   @Authorize(permission = Permission.VIEW_ROLES)
   public List<RoleDTO> getAllRoles() {
     return convertRolesToDTO(roleDAO.getAll());
+  }
+
+  @Authorize(permission = Permission.VIEW_ROLES)
+  public ApiRoleListDTO getRolesAsApiRoleListDTO() {
+    return apiRoleAdapter.convertToDTO(roleDAO.getAll());
   }
 
   @Authorize(permission = Permission.VIEW_ROLES)

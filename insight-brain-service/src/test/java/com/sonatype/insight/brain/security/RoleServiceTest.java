@@ -10,6 +10,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiRoleDTO;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.PermissionCategory;
 import com.sonatype.insight.brain.model.security.Role;
@@ -104,6 +106,20 @@ public class RoleServiceTest
     assertListedPermissions(category, Permission.MANAGE_PROPRIETARY, Permission.CLAIM_COMPONENT, Permission.WRITE,
         Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION,
         Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
+  }
+
+  @Test
+  public void testGetRolesAsApiRoleListDTO() {
+    List<Role> allRoles = new RoleDAO().getAll();
+    List<ApiRoleDTO> roles = roleService.getRolesAsApiRoleListDTO().roles;
+
+    assertThat(roles).hasSize(allRoles.size());
+    for (Role role : allRoles) {
+      ApiRoleDTO roleDTO = roles.stream().filter(r -> role.getId().equals(r.id)).findFirst().orElse(null);
+      assertThat(roleDTO).isNotNull();
+      assertThat(roleDTO.name).isEqualTo(role.getName());
+      assertThat(roleDTO.description).isEqualTo(role.getDescription());
+    }
   }
 
   private void setAllowedPermissions(final RoleDTO roleDTO, final List<Permission> permissions) {

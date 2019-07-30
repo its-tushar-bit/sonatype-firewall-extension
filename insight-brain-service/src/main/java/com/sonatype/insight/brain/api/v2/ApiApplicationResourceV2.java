@@ -132,9 +132,14 @@ public class ApiApplicationResourceV2
     return apiApplicationService.getApplicationRoles();
   }
 
+  /**
+   * @deprecated Replaced in 1.70 with
+   *             {@link ApiRoleMembershipResource#getRoleMembershipsApplicationOrOrganization}
+   */
   @GET
   @Path(ROLE_MEMBERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Deprecated
   public ApiRoleMemberMappingListDTO getApplicableMembershipMappings(
       @PathParam("applicationId") final String applicationId)
   {
@@ -143,10 +148,17 @@ public class ApiApplicationResourceV2
     return apiMemberMappingAdapter.convert(mappings, OwnerType.APPLICATION);
   }
 
+  /**
+   * @deprecated Replaced in 1.70 with
+   *             {@link ApiRoleMembershipResource#grantRoleMembershipApplicationOrOrganization}
+   *             and
+   *             {@link ApiRoleMembershipResource#revokeRoleMembershipApplicationOrOrganization}
+   */
   @PUT
   @Path(ROLE_MEMBERS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP)
+  @Deprecated
   public void setMembershipMappingForRole(@PathParam("applicationId") final String applicationId,
                                           final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)
   {

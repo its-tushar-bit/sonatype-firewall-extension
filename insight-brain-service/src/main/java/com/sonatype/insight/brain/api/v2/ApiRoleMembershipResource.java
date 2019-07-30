@@ -68,8 +68,7 @@ public class ApiRoleMembershipResource
       @PathParam("memberType") MemberType memberType,
       @PathParam("memberName") String memberName)
   {
-    String id = membershipMappingService.getIdGlobalOrRepositoryContainer(ownerType);
-    membershipMappingService.grantRoleMembership(ownerType, id, roleId, memberType, memberName);
+    membershipMappingService.grantRoleMembership(ownerType, null, roleId, memberType, memberName);
   }
 
   @GET
@@ -88,8 +87,7 @@ public class ApiRoleMembershipResource
   public ApiRoleMemberMappingListDTO getRoleMembershipsGlobalOrRepositoryContainer(
       @PathParam("ownerType") OwnerType ownerType)
   {
-    String id = membershipMappingService.getIdGlobalOrRepositoryContainer(ownerType);
-    return membershipMappingService.getRoleMembershipsOmitEmpty(ownerType, id);
+    return membershipMappingService.getRoleMembershipsOmitEmpty(ownerType, null);
   }
 
   @DELETE
@@ -114,7 +112,6 @@ public class ApiRoleMembershipResource
       @PathParam("memberType") MemberType memberType,
       @PathParam("memberName") String memberName)
   {
-    String id = membershipMappingService.getIdGlobalOrRepositoryContainer(ownerType);
-    membershipMappingService.revokeRoleMembership(ownerType, id, roleId, memberType, memberName);
+    membershipMappingService.revokeRoleMembership(ownerType, null, roleId, memberType, memberName);
   }
 }

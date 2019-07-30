@@ -127,13 +127,16 @@ public class MembershipMappingService
     return result;
   }
 
-  public ApiRoleMemberMappingListDTO getRoleMembershipsOmitEmpty(OwnerType type, String internalOwnerId) {
-    ApplicableMembershipMappings applicableMembershipMappings = getApplicableMembershipMappings(type, internalOwnerId);
+  public ApiRoleMemberMappingListDTO getRoleMembershipsOmitEmpty(OwnerType ownerType, String internalOwnerId) {
+    if (internalOwnerId == null) {
+      internalOwnerId = getIdGlobalOrRepositoryContainer(ownerType);
+    }
+    ApplicableMembershipMappings applicableMembershipMappings =
+        getApplicableMembershipMappings(ownerType, internalOwnerId);
     ApiRoleMemberMappingListDTO roleMemberMappingList =
-        apiMemberMappingAdapter.convert(applicableMembershipMappings, type);
-    roleMemberMappingList.memberMappings =
-        roleMemberMappingList.memberMappings.stream().filter(dto -> !dto.members.isEmpty())
-            .collect(Collectors.toList());
+        apiMemberMappingAdapter.convert(applicableMembershipMappings, ownerType);
+    roleMemberMappingList.memberMappings = roleMemberMappingList.memberMappings.stream()
+        .filter(dto -> !dto.members.isEmpty()).collect(Collectors.toList());
     return roleMemberMappingList;
   }
 
@@ -143,13 +146,16 @@ public class MembershipMappingService
   // Authorization is checked in grantRoleMembershipForGlobalContext and grantRoleMembershipForNonGlobalContext
   public void grantRoleMembership(
       OwnerType ownerType,
-      String ownerId,
+      String internalOwnerId,
       String roleId,
       MemberType memberType,
       String memberName)
   {
+    if (internalOwnerId == null) {
+      internalOwnerId = getIdGlobalOrRepositoryContainer(ownerType);
+    }
     MembershipMapping existing =
-        memberMapDAO.getByContextIdAndRoleIdAndMemberNameAndMemberType(ownerId, roleId, memberName, memberType);
+        memberMapDAO.getByContextIdAndRoleIdAndMemberNameAndMemberType(internalOwnerId, roleId, memberName, memberType);
 
     if (existing != null) {
       return;  // Already granted
@@ -160,10 +166,10 @@ public class MembershipMappingService
     member.setType(memberType);
     validateMember(member);
 
-    validateContextId(ownerType, ownerId);
+    validateContextId(ownerType, internalOwnerId);
     Role role = validateRole(ownerType, roleId);
 
-    MembershipMapping membershipMapping = new MembershipMapping(ownerId, roleId, memberName, memberType);
+    MembershipMapping membershipMapping = new MembershipMapping(internalOwnerId, roleId, memberName, memberType);
 
     AuditData auditData = AuditData.get();
     auditRoleMemberData(auditData, role, member);
@@ -186,13 +192,16 @@ public class MembershipMappingService
   // Authorization is checked in revokeRoleMembershipForGlobalContext and revokeRoleMembershipForNonGlobalContext
   public void revokeRoleMembership(
       OwnerType ownerType,
-      String ownerId,
+      String internalOwnerId,
       String roleId,
       MemberType memberType,
       String memberName)
   {
+    if (internalOwnerId == null) {
+      internalOwnerId = getIdGlobalOrRepositoryContainer(ownerType);
+    }
     MembershipMapping membershipMapping =
-        memberMapDAO.getByContextIdAndRoleIdAndMemberNameAndMemberType(ownerId, roleId, memberName, memberType);
+        memberMapDAO.getByContextIdAndRoleIdAndMemberNameAndMemberType(internalOwnerId, roleId, memberName, memberType);
 
     Member member = new Member();
     member.setInternalName(memberName);
@@ -206,12 +215,12 @@ public class MembershipMappingService
       revokeRoleMembershipForGlobalContext(membershipMapping);
     }
     else {
-      revokeRoleMembershipForNonGlobalContext(ownerType, ownerId, membershipMapping);
+      revokeRoleMembershipForNonGlobalContext(ownerType, internalOwnerId, membershipMapping);
     }
 
     Map<String, List<Member>> roleToMembers = new HashMap<>();
     roleToMembers.put(roleId, Arrays.asList(member));
-    managementEventService.postEvent(EventAction.DELETED, roleToMembers, ownerId);
+    managementEventService.postEvent(EventAction.DELETED, roleToMembers, internalOwnerId);
   }
 
   @Authorize(permission = Permission.READ)
@@ -310,7 +319,7 @@ public class MembershipMappingService
     memberMapDAO.delete(membershipMapping);
   }
 
-  public String getIdGlobalOrRepositoryContainer(OwnerType ownerType) {
+  String getIdGlobalOrRepositoryContainer(OwnerType ownerType) {
     if (ownerType == OwnerType.GLOBAL) {
       return MembershipMapping.GLOBAL_CONTEXT_ID;
     }

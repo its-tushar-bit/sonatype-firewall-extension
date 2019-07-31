@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.UUID;
+import java.nio.charset.StandardCharsets;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.assertj.core.util.Arrays;
 import org.codehaus.plexus.util.FileUtils;
 import org.cyclonedx.BomParser;
 import org.cyclonedx.exception.ParseException;
@@ -31,11 +30,10 @@ import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiCycloneDxServiceV2Test
     extends AbstractComponentTest
@@ -46,16 +44,13 @@ public class ApiCycloneDxServiceV2Test
   @Inject
   private InsightWork work;
 
-  @Rule
-  public ExpectedException expected = ExpectedException.none();
-
   private Application application;
 
   private String scanId;
 
   @Before
   public void setup() throws IOException {
-    scanId = UUID.randomUUID().toString();
+    scanId = tempEntity.uuid();
     application = tempEntity.newApplication(tempEntity.newOrganization().getId());
 
     File reportFile = work.getReportFile(application.getId(), scanId);
@@ -67,18 +62,16 @@ public class ApiCycloneDxServiceV2Test
 
   @Test
   public void testGetByScanId_unknownApplicationId() {
-    expected.expect(NotFoundException.class);
-    expected.expectMessage("Could not find an application with ID fake-app");
-
-    service.getByScanId("fake-app", "fake-scan-id");
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      service.getByScanId("fake-app", "fake-scan-id");
+    }).withMessageContaining("Could not find an application with ID fake-app");
   }
 
   @Test
   public void testGetByScanId_unknownScanId() {
-    expected.expect(NotFoundException.class);
-    expected.expectMessage("Could not find a report with ID fake-scan-id");
-
-    service.getByScanId(application.getId(), "fake-scan-id");
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      service.getByScanId(application.getId(), "fake-scan-id");
+    }).withMessageContaining("Could not find a report with ID fake-scan-id");
   }
 
   @Test
@@ -89,18 +82,16 @@ public class ApiCycloneDxServiceV2Test
 
   @Test
   public void testGetLatest_unknownApplicationId() {
-    expected.expect(NotFoundException.class);
-    expected.expectMessage("Could not find an application with ID fake-app");
-
-    service.getLatest("fake-app", ReleaseStageType.ID);
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      service.getLatest("fake-app", ReleaseStageType.ID);
+    }).withMessageContaining("Could not find an application with ID fake-app");
   }
 
   @Test
   public void testGetLatest_noScanInStage() {
-    expected.expect(NotFoundException.class);
-    expected.expectMessage("Unable to locate a scan for " + application.getId() + " in stage release");
-
-    service.getLatest(application.getId(), ReleaseStageType.ID);
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      service.getLatest(application.getId(), ReleaseStageType.ID);
+    }).withMessageContaining("Unable to locate a scan for " + application.getId() + " in stage release");
   }
 
   @Test
@@ -111,7 +102,7 @@ public class ApiCycloneDxServiceV2Test
 
   private void assertBom(Response response) throws ParseException {
     BomParser parser = new BomParser();
-    Bom bom = parser.parse(response.getEntity().toString().getBytes());
+    Bom bom = parser.parse(response.getEntity().toString().getBytes(StandardCharsets.UTF_8));
 
     assertThat(bom.getSerialNumber()).isEqualTo(scanId);
     assertThat(bom.getExternalReferences()).hasSize(1);
@@ -146,11 +137,11 @@ public class ApiCycloneDxServiceV2Test
     component.addHash(new Hash(Algorithm.SHA1, hashStr));
 
     LicenseChoice licenseChoice = new LicenseChoice();
-    Arrays.asList(licenses).forEach(licenseName -> {
+    for (String licenseName : licenses) {
       License license = new License();
-      license.setId((String) licenseName);
+      license.setId(licenseName);
       licenseChoice.addLicense(license);
-    });
+    }
     component.setLicenseChoice(licenseChoice);
     return component;
   }

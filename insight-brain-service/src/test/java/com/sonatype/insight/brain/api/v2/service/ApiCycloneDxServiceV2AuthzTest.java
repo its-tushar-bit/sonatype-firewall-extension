@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.UUID;
 
 import javax.inject.Inject;
 
@@ -20,9 +19,7 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class ApiCycloneDxServiceV2AuthzTest
     extends AbstractServiceAuthzTest
@@ -33,16 +30,13 @@ public class ApiCycloneDxServiceV2AuthzTest
   @Inject
   private InsightWork work;
 
-  @Rule
-  public ExpectedException expected = ExpectedException.none();
-
   private Application application;
 
   private String scanId;
 
   @Before
   public void setup() throws IOException {
-    scanId = UUID.randomUUID().toString();
+    scanId = tempEntity.uuid();
     application = tempEntity.newApplication(tempEntity.newOrganization().getId());
 
     File reportFile = work.getReportFile(application.getId(), scanId);

@@ -20,6 +20,9 @@ import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
 
+/**
+ * @since 1.70
+ */
 @Named
 @Timed
 @Singleton

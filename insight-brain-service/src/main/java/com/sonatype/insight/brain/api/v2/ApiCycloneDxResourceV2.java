@@ -29,7 +29,11 @@ import com.codahale.metrics.annotation.Timed;
 @Path(PublicApiPaths.CYCLONE_DX_RESOURCE_PATH)
 public class ApiCycloneDxResourceV2
 {
-  private ApiCycloneDxServiceV2 apiCycloneDxService;
+  static final String GET_BY_STAGE_PATH = "{applicationId}/stages/{stageId}";
+
+  static final String GET_BY_REPORT_PATH = "{applicationId}/reports/{reportId}";
+
+  private final ApiCycloneDxServiceV2 apiCycloneDxService;
 
   @Inject
   public ApiCycloneDxResourceV2(ApiCycloneDxServiceV2 apiCycloneDxService) {
@@ -37,16 +41,19 @@ public class ApiCycloneDxResourceV2
   }
 
   @GET
-  @Path("{applicationId}/{stageId}")
+  @Path(GET_BY_STAGE_PATH)
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
   public Response getLatest(@PathParam("applicationId") String applicationId, @PathParam("stageId") String stageId) {
     return apiCycloneDxService.getLatest(applicationId, stageId);
   }
 
   @GET
-  @Path("{applicationId}/scans/{scanId}")
+  @Path(GET_BY_REPORT_PATH)
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
-  public Response getByScanId(@PathParam("applicationId") String applicationId, @PathParam("scanId") String scanId) {
-    return apiCycloneDxService.getByScanId(applicationId, scanId);
+  public Response getByReportId(
+      @PathParam("applicationId") String applicationId,
+      @PathParam("reportId") String reportId)
+  {
+    return apiCycloneDxService.getByScanId(applicationId, reportId);
   }
 }

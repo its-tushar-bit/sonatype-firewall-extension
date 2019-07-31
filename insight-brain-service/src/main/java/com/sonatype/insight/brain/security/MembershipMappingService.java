@@ -133,8 +133,7 @@ public class MembershipMappingService
     }
     ApplicableMembershipMappings applicableMembershipMappings =
         getApplicableMembershipMappings(ownerType, internalOwnerId);
-    ApiRoleMemberMappingListDTO roleMemberMappingList =
-        apiMemberMappingAdapter.convert(applicableMembershipMappings, ownerType);
+    ApiRoleMemberMappingListDTO roleMemberMappingList = apiMemberMappingAdapter.convert(applicableMembershipMappings);
     roleMemberMappingList.memberMappings = roleMemberMappingList.memberMappings.stream()
         .filter(dto -> !dto.members.isEmpty()).collect(Collectors.toList());
     return roleMemberMappingList;

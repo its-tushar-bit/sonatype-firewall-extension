@@ -296,6 +296,27 @@ public class MembershipMappingServiceTest
   }
 
   @Test
+  public void testGetRoleMembershipsOmitEmpty_InheritedMembers() {
+    tempEntity.newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, Role.DEVELOPER_ROLE_ID,
+        tempEntity.newUser("root-org-user").getUsername());
+    Organization organization = tempEntity.newOrganization();
+    tempEntity.newMembershipMapping(organization.getId(), Role.DEVELOPER_ROLE_ID, "org-user");
+    Application application = tempEntity.newApplication(organization.getId());
+    tempEntity.newMembershipMapping(application.getId(), Role.DEVELOPER_ROLE_ID, "app-user");
+
+    ApiRoleMemberMappingListDTO listDTO =
+        membershipMappingService.getRoleMembershipsOmitEmpty(OwnerType.APPLICATION, application.getId());
+
+    List<ApiRoleMemberMappingDTO> memberMappings = listDTO.memberMappings;
+    assertThat(memberMappings).hasSize(1);
+
+    ApiRoleMemberMappingDTO apiRoleMemberMappingDTO = memberMappings.get(0);
+    assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(DEVELOPER_ROLE_ID);
+    assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName)
+        .containsExactlyInAnyOrder("root-org-user", "org-user", "app-user");
+  }
+
+  @Test
   public void testGetRoleMembershipsOmitEmpty() {
     Organization organization = tempEntity.newOrganization();
     tempEntity.newMembershipMapping(organization.getId(), Role.DEVELOPER_ROLE_ID, "a-user");

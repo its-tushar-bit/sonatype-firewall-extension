@@ -27,6 +27,10 @@ import com.sonatype.insight.brain.security.MembersByRole;
 @Named
 public class ApiMemberMappingAdapter
 {
+  public ApiRoleMemberMappingListDTO convert(ApplicableMembershipMappings mappings) {
+    return convert(mappings, null);
+  }
+
   public ApiRoleMemberMappingListDTO convert(final ApplicableMembershipMappings mappings, final OwnerType ownerType) {
     final List<ApiRoleMemberMappingDTO> roleMemberMappingDTOs = new ArrayList<>();
     for (final MembersByRole membersByRole : mappings.membersByRole) {
@@ -35,7 +39,7 @@ public class ApiMemberMappingAdapter
       final List<ApiMemberDTO> memberDTOs = new ArrayList<>();
 
       for (final MembersByOwner membersByOwner : membersByRole.membersByOwner) {
-        if (ownerType.equals(membersByOwner.ownerType)) {
+        if (ownerType == null || ownerType.equals(membersByOwner.ownerType)) {
           for (final Member member : membersByOwner.members) {
             final ApiMemberDTO memberDTO = new ApiMemberDTO(member.getInternalName(), member.getType());
             memberDTOs.add(memberDTO);

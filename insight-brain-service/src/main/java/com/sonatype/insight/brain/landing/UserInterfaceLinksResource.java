@@ -154,9 +154,10 @@ public class UserInterfaceLinksResource
 
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK);
     telemetryData.setAttributes(ImmutableMap
-        .of("source", source.toLowerCase(Locale.ENGLISH), "applicationId", HdsClientAnalytics.obfuscate(applicationId),
-            "scanId", HdsClientAnalytics.obfuscate(scanId), "isLoggedIn",
-            SecurityUtils.getSubject().getPrincipal() != null));
+        .of("source", source.toLowerCase(Locale.ENGLISH),
+            "application_id", HdsClientAnalytics.obfuscate(applicationId),
+            "scan_id", HdsClientAnalytics.obfuscate(scanId),
+            "is_logged_in", SecurityUtils.getSubject().getPrincipal() != null));
     telemetrySender.send(telemetryData);
   }
 

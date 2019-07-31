@@ -91,9 +91,9 @@ public class UserInterfaceLinksResourceTest
     TelemetryData telemetryData = telemetryItems.get(0).getTelemetryData();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK);
     assertThat(telemetryData.getAttributes().get("source")).isEqualTo("Foo".toLowerCase(Locale.ENGLISH));
-    assertThat(telemetryData.getAttributes().get("applicationId")).isEqualTo(HdsClientAnalytics.obfuscate("app id"));
-    assertThat(telemetryData.getAttributes().get("scanId")).isEqualTo(HdsClientAnalytics.obfuscate("scan id"));
-    assertThat(telemetryData.getAttributes().get("isLoggedIn")).isEqualTo(false);
+    assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo(HdsClientAnalytics.obfuscate("app id"));
+    assertThat(telemetryData.getAttributes().get("scan_id")).isEqualTo(HdsClientAnalytics.obfuscate("scan id"));
+    assertThat(telemetryData.getAttributes().get("is_logged_in")).isEqualTo(false);
   }
 
   @Test
@@ -110,7 +110,7 @@ public class UserInterfaceLinksResourceTest
         .sendSourceTelemetryData("appId", "scanId", "source");
 
     TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
-    assertThat(telemetryData.getAttributes().get("isLoggedIn")).isEqualTo(true);
+    assertThat(telemetryData.getAttributes().get("is_logged_in")).isEqualTo(true);
   }
 
   @Test

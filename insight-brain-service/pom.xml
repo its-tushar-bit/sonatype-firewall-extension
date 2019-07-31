@@ -598,7 +598,28 @@
       <groupId>com.sonatype.nexus</groupId>
       <artifactId>nexus-github-wrapper</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.cyclonedx</groupId>
+      <artifactId>cyclonedx-core-java</artifactId>
+      <version>2.0.2</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-slf4j-impl</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
   </dependencies>
+
 
   <build>
     <plugins>

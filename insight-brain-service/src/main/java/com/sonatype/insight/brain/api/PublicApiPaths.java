@@ -20,6 +20,8 @@ public class PublicApiPaths
 
   public static final String POLICY_RESOURCE_PATH = API_VERSION_PATH_V2 + "policies";
 
+  public static final String CYCLONE_DX_RESOURCE_PATH = API_VERSION_PATH_V2 + "cyclone-dx";
+
   public static final String POLICY_VIOLATION_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "policyViolations";
 
   public static final String SEARCH_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "search/component";

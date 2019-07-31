@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,6 +25,7 @@ import javax.naming.InvalidNameException;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
+import javax.naming.NoPermissionException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchControls;
@@ -88,6 +90,8 @@ class LdapQuery
       return StringUtils.endsWithIgnoreCase(str, searchStr);
     }
   };
+
+  private static final Set<String> serversWithoutPaging = ConcurrentHashMap.newKeySet();
 
   private final LdapCtxFactory ctxFactory;
 
@@ -614,7 +618,7 @@ class LdapQuery
     return search(ctx, umap.getGroupBaseDN(), ldapFilter.toString(), controls);
   }
 
-  private SearchResults search(LdapContext ctx, String baseDN, String filter, SearchControls controls)
+  SearchResults search(LdapContext ctx, String baseDN, String filter, SearchControls controls)
       throws NamingException
   {
     baseDN = StringUtils.defaultString(baseDN);
@@ -626,7 +630,15 @@ class LdapQuery
     }
     else {
       // when asking for all results, use paged search to overcome server-side result limits (usually 1000)
-      results = new PagedNamingEnumeration(ctx, baseDN, filter, controls, 100);
+      try {
+        results = new PagedNamingEnumeration(ctx, baseDN, filter, controls, 100);
+      }
+      catch (NoPermissionException e) {
+        boolean notYetLogged = serversWithoutPaging.add(ctxFactory.getUrl());
+        log.warn("Paged search not allowed by LDAP server, {}, falling back to non-paged search", e.getMessage(),
+            notYetLogged ? e : null);
+        results = ctx.search(baseDN, filter, controls);
+      }
     }
     return new SearchResults(results);
   }

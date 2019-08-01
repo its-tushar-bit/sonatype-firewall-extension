@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
+import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.apache.http.client.HttpResponseException;
@@ -80,8 +81,9 @@ public class ReportClientTest
 
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
+    ClientScanResult clientScanResult = new ClientScanResult(tempDir.newFile(), false);
     new PolicyClient(config, applicationPublicId)
-        .evaluateCLI(tempDir.newFile(), ClientScanType.SONATYPE, new Stage(Stage.ID_BUILD));
+        .evaluateCLI(clientScanResult, ClientScanType.SONATYPE, new Stage(Stage.ID_BUILD));
     ReportClient client = new ReportClient(config, applicationPublicId, scanId);
     client.downloadBundle(retrievedFile);
 

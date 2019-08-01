@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.test.SslProperties;
@@ -246,7 +247,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
     Parameters params = new Parameters("-o", tmpDir.newFolder().getAbsolutePath(),
         getClass().getResource("/" + getClass().getSimpleName() + "/" + scanTarget).getFile());
 
-    File scanFile = evaluator.scan(params, new ProprietaryConfig());
+    ClientScanResult clientScanResult = evaluator.scan(params, new ProprietaryConfig());
 
     assertThat(logOutput)
         // Assert that the disclaimer banner is logged
@@ -254,7 +255,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
         // Assert applied client settings are logged in debug move
         .atDebugLevel().contains("Setting: " + KEYS.ANALYZER_EXPERIMENTAL_ENABLED + "='true'");
 
-    Scan scan = scanReader.read(scanFile);
+    Scan scan = scanReader.read(clientScanResult.getScanFile());
 
     assertThat(scan.getExpandedCoverage()).isNotNull();
     assertThat(scan.getExpandedCoverage().getVersion().matches("[0-9]+\\.[0-9]+.*")).isTrue();

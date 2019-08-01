@@ -29,6 +29,7 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.scan.client.ClientScanRequest;
 import com.sonatype.insight.scan.client.ClientScanner;
+import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
@@ -71,7 +72,9 @@ public class TwistlockPolicyEvaluator
   }
 
   @Override
-  protected File scan(TwistlockParameters params, ProprietaryConfig proprietaryConfig) throws ExitException {
+  protected ClientScanResult scan(TwistlockParameters params,
+                                  ProprietaryConfig proprietaryConfig) throws ExitException
+  {
     params.getOutputDirectory().mkdirs();
 
     Scan scan = createScan(getScanConfiguration(params, proprietaryConfig));
@@ -82,7 +85,7 @@ public class TwistlockPolicyEvaluator
 
     File scanFile = writeScanFile(params.getOutputDirectory(), twistlockScanFile, scan);
 
-    return scanFile;
+    return new ClientScanResult(scanFile, scan.hasThirdPartyScanContent());
   }
 
   /**

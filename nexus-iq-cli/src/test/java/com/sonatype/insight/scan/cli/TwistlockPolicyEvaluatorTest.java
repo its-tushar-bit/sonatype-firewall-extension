@@ -17,6 +17,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.mock.twistlock.TwistlockMockServerRule;
+import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.io.ScanReader;
 
@@ -76,7 +77,8 @@ public class TwistlockPolicyEvaluatorTest
     twistlockMockServer.setResponseForURI(DEFAULT_TWISTLOCK_RESULTS_PATH,
         getClass().getResource("/TwistlockPolicyEvaluatorTest/scan-results.tar.gz"), 200);
 
-    File scanFile = evaluator.scan(params, new ProprietaryConfig());
+    ClientScanResult clientScanResult = evaluator.scan(params, new ProprietaryConfig());
+    File scanFile = clientScanResult.getScanFile();
     // scanFileZip.close() closes all InputStreams retrieved from this archive
     try (ZipFile scanFileZip = new ZipFile(scanFile)) {
       // Verify the Twistlock scan in the scan zip file

@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.brain.client.UnsupportedServerVersionException;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
+import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.apache.http.client.HttpResponseException;
@@ -54,9 +55,9 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
     validateScanTargets(params.getScanTargets());
 
-    File scanFile = scan(params, getProprietaryConfiguration(params, restClient));
+    ClientScanResult clientScanResult = scan(params, getProprietaryConfiguration(params, restClient));
 
-    evaluatePolicy(params, restClient, scanFile, getClientScanType());
+    evaluatePolicy(params, restClient, clientScanResult, getClientScanType());
   }
 
   protected abstract ClientScanType getClientScanType();
@@ -114,7 +115,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
   }
 
-  protected File scan(P params, ProprietaryConfig proprietaryConfig) throws ExitException {
+  protected ClientScanResult scan(P params, ProprietaryConfig proprietaryConfig) throws ExitException {
     try {
       params.getOutputDirectory().mkdirs();
       File scanFile = File.createTempFile("scan-", ".xml.gz", params.getOutputDirectory());
@@ -122,8 +123,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       for (String scanTarget : params.getScanTargets()) {
         files.add(new File(scanTarget));
       }
-      scanner.scan(scanFile, files, getScanConfiguration(params, proprietaryConfig), params.getScanMetadata());
-      return scanFile;
+      return scanner.scan(scanFile, files, getScanConfiguration(params, proprietaryConfig), params.getScanMetadata());
     }
     catch (IOException e) {
       log.error("The scan could not be performed", e);
@@ -151,14 +151,17 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     return props;
   }
 
-  protected void evaluatePolicy(P params, RestClient restClient, File scanFile, ClientScanType clientScanType)
-      throws ExitException
+  protected void evaluatePolicy(P params,
+                                RestClient restClient,
+                                ClientScanResult clientScanResult,
+                                ClientScanType clientScanType) throws ExitException
   {
 
     PolicyEvaluationPollingResult eval;
     try {
       eval = restClient
-          .evaluatePolicy(params.getApplicationId(), params.getStage().getStageTypeId(), scanFile, clientScanType);
+          .evaluatePolicy(params.getApplicationId(), params.getStage().getStageTypeId(), clientScanResult,
+              clientScanType);
     }
     catch (HttpResponseException e) {
       log.error("The policy evaluation results for app ID {} could not be fetched from the IQ Server: {} ({})",

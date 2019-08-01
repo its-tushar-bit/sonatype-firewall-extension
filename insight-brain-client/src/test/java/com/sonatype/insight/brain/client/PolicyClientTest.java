@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
+import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.junit.Before;
@@ -99,6 +100,15 @@ public class PolicyClientTest
 
   @Test
   public void testEvaluateCLI() throws Exception {
+    assertEvaluationCLIwithThirdPartyScanContent(false);
+  }
+
+  @Test
+  public void testEvaluateCLI_withThirdPartyScanContent() throws Exception {
+    assertEvaluationCLIwithThirdPartyScanContent(true);
+  }
+
+  private void assertEvaluationCLIwithThirdPartyScanContent(boolean thirdPartyScanningEnabled) throws IOException {
     Stage stage = new Stage(Stage.ID_BUILD);
     final String scanId = "test-scanid";
 
@@ -113,11 +123,11 @@ public class PolicyClientTest
     completedResult.setResult(new PolicyEvaluationResult());
 
     PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId()));
-    doReturn(completedResult).when(policyClient)
-        .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
-
+    doReturn(completedResult).when(policyClient).parseResult(ArgumentMatchers.any(Result.class),
+        eq(PolicyEvaluationPollingResult.class));
+    ClientScanResult clientScanResult = new ClientScanResult(scanFile, thirdPartyScanningEnabled);
     PolicyEvaluationPollingResult policyEvaluationResult =
-        policyClient.evaluateCLI(scanFile, ClientScanType.SONATYPE, stage);
+        policyClient.evaluateCLI(clientScanResult, ClientScanType.SONATYPE, stage);
     assertThat(policyEvaluationResult).isNotNull();
   }
 
@@ -139,8 +149,8 @@ public class PolicyClientTest
     PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId()));
     doReturn(completedResult).when(policyClient)
         .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
-
-    PolicyEvaluationPollingResult policyEvaluationResult = policyClient.evaluateCI(scanFile, stage);
+    ClientScanResult clientScanResult = new ClientScanResult(scanFile, false);
+    PolicyEvaluationPollingResult policyEvaluationResult = policyClient.evaluateCI(clientScanResult, stage);
     assertThat(policyEvaluationResult).isNotNull();
   }
 

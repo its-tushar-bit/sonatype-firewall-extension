@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
+import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.apache.http.entity.ContentType;
@@ -50,20 +51,28 @@ public class PolicyClient
   /**
    * @since 1.69
    */
-  public PolicyEvaluationPollingResult evaluateCLI(final File scanFile,
+  public PolicyEvaluationPollingResult evaluateCLI(final ClientScanResult clientScanResult,
                                                    final ClientScanType clientScanType,
                                                    final Stage stage) throws IOException
   {
-    return evaluate("cli", scanFile, clientScanType, stage);
+    return evaluate("cli", clientScanResult.getScanFile(), getClientScanType(clientScanResult, clientScanType), stage);
   }
 
   /**
    * @since 1.69
    */
-  public PolicyEvaluationPollingResult evaluateCI(final File scanFile,
+  public PolicyEvaluationPollingResult evaluateCI(final ClientScanResult clientScanResult,
                                                   final Stage stage) throws IOException
   {
-    return evaluate("ci", scanFile, ClientScanType.SONATYPE, stage);
+    return evaluate("ci", clientScanResult.getScanFile(), getClientScanType(clientScanResult, ClientScanType.SONATYPE),
+        stage);
+  }
+
+  private ClientScanType getClientScanType(ClientScanResult clientScanResult, ClientScanType clientScanType) {
+    if (clientScanResult.hasThirdPartyScanContent()) {
+      return ClientScanType.SONATYPE_THIRD_PARTY;
+    }
+    return clientScanType;
   }
 
   /**

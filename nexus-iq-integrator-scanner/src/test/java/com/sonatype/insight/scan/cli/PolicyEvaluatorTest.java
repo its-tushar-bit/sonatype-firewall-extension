@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
@@ -135,7 +136,7 @@ public class PolicyEvaluatorTest
     when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     PolicyEvaluationPollingResult result = newPolicyEvaluationPollingResult(newReceipt());
     when(restClient
-        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), any(File.class), eq(ClientScanType.SONATYPE)))
+        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), any(ClientScanResult.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(result);
     Parameters params = new Parameters("-s", "http://localhost:87/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
@@ -156,7 +157,7 @@ public class PolicyEvaluatorTest
     PolicyEvaluationPollingResult result = newPolicyEvaluationPollingResult(newReceipt());
     result.setResult(eval);
     when(restClient
-        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), any(File.class), eq(ClientScanType.SONATYPE)))
+        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), any(ClientScanResult.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(result);
     Parameters params = new Parameters("-s", "http://localhost:87/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
@@ -183,7 +184,7 @@ public class PolicyEvaluatorTest
     PolicyEvaluationPollingResult result = newPolicyEvaluationPollingResult(newReceipt());
     result.setResult(eval);
     when(restClient
-        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), any(File.class), eq(ClientScanType.SONATYPE)))
+        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), any(ClientScanResult.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(result);
     Parameters params = new Parameters("-s", "http://localhost:87/", "-i", "the-app-id", "src/test/data/artifact.jar");
 
@@ -225,17 +226,18 @@ public class PolicyEvaluatorTest
   public void testScan() throws Exception {
     ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
     proprietaryConfig.setPackages(Arrays.asList("com.sonatype"));
-    ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass(File.class);
+    ArgumentCaptor<ClientScanResult> clientScanResult = ArgumentCaptor.forClass(ClientScanResult.class);
     when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenReturn(proprietaryConfig);
     PolicyEvaluationPollingResult result = newPolicyEvaluationPollingResult(newReceipt());
     when(restClient
-        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), scanFile.capture(), eq(ClientScanType.SONATYPE)))
+        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), clientScanResult.capture(), eq(ClientScanType.SONATYPE)))
         .thenReturn(result);
     Parameters params = new Parameters("-s", "http://localhost:87/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
-    assertThat(scanFile.getValue()).isNotNull();
-    Scan scan = scanReader.read(scanFile.getValue());
+    assertThat(clientScanResult.getValue().getScanFile()).isNotNull();
+    assertThat(clientScanResult.getValue().hasThirdPartyScanContent()).isFalse();
+    Scan scan = scanReader.read(clientScanResult.getValue().getScanFile());
     assertThat(scan).isNotNull();
     ScanSummary summary = scan.getSummary();
     assertThat(summary).isNotNull();
@@ -259,21 +261,46 @@ public class PolicyEvaluatorTest
   }
 
   @Test
+  public void testScan_thirdPartyScan() throws Exception {
+    ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
+    proprietaryConfig.setPackages(Arrays.asList("com.sonatype"));
+    ArgumentCaptor<ClientScanResult> clientScanResult = ArgumentCaptor.forClass(ClientScanResult.class);
+    when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
+    when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenReturn(proprietaryConfig);
+    PolicyEvaluationPollingResult result = newPolicyEvaluationPollingResult(newReceipt());
+    when(restClient.evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), clientScanResult.capture(),
+        eq(ClientScanType.SONATYPE))).thenReturn(result);
+    Parameters params = new Parameters("-s", "http://localhost:87/", "-i", "the-app-id", "-D",
+        "thirdPartyScanningEnabled=true", "src/test/data/clair-scanner-output.json");
+    evaluator.run(params);
+    assertThat(clientScanResult.getValue().getScanFile()).isNotNull();
+    assertThat(clientScanResult.getValue().hasThirdPartyScanContent()).isTrue();
+    Scan scan = scanReader.read(clientScanResult.getValue().getScanFile());
+    assertThat(scan).isNotNull();
+    ScanSummary summary = scan.getSummary();
+    assertThat(summary).isNotNull();
+    ScanConfiguration config = scan.getConfiguration();
+    assertThat(config).isNotNull();
+    assertThat(config.getString("", "thirdPartyScanningEnabled")).isEqualTo("true");
+  }
+
+  @Test
   public void testGlobalProprietaryConfigOverriddenByClient() throws Exception {
     ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
     proprietaryConfig.setPackages(Arrays.asList("com.overridden"));
-    ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass(File.class);
+    ArgumentCaptor<ClientScanResult> clientScanResult = ArgumentCaptor.forClass(ClientScanResult.class);
     when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenReturn(proprietaryConfig);
     PolicyEvaluationPollingResult result = newPolicyEvaluationPollingResult(newReceipt());
     when(restClient
-        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), scanFile.capture(), eq(ClientScanType.SONATYPE)))
+        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), clientScanResult.capture(), eq(ClientScanType.SONATYPE)))
         .thenReturn(result);
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
         "src/test/data/artifact.jar", "-D", "proprietaryPackages=com.sonatype");
     evaluator.run(params);
-    assertThat(scanFile.getValue()).isNotNull();
-    Scan scan = scanReader.read(scanFile.getValue());
+    assertThat(clientScanResult.getValue()).isNotNull();
+    assertThat(clientScanResult.getValue().getScanFile()).isNotNull();
+    Scan scan = scanReader.read(clientScanResult.getValue().getScanFile());
     assertThat(scan).isNotNull();
     ScanConfiguration config = scan.getConfiguration();
     assertThat(config).isNotNull();
@@ -294,18 +321,19 @@ public class PolicyEvaluatorTest
   public void testGlobalProprietaryConfigRegexOverriddenByClient() throws Exception {
     ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
     proprietaryConfig.setRegexes(Arrays.asList("com.overridden.*"));
-    ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass(File.class);
+    ArgumentCaptor<ClientScanResult> clientScanResult = ArgumentCaptor.forClass(ClientScanResult.class);
     when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenReturn(proprietaryConfig);
     PolicyEvaluationPollingResult result = newPolicyEvaluationPollingResult(newReceipt());
     when(restClient
-        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), scanFile.capture(), eq(ClientScanType.SONATYPE)))
+        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), clientScanResult.capture(), eq(ClientScanType.SONATYPE)))
         .thenReturn(result);
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
         "src/test/data/artifact.jar", "-D", "proprietaryRegexes=com.sonatype.*");
     evaluator.run(params);
-    assertThat(scanFile.getValue()).isNotNull();
-    Scan scan = scanReader.read(scanFile.getValue());
+    assertThat(clientScanResult.getValue()).isNotNull();
+    assertThat(clientScanResult.getValue().getScanFile()).isNotNull();
+    Scan scan = scanReader.read(clientScanResult.getValue().getScanFile());
     assertThat(scan).isNotNull();
     ScanConfiguration config = scan.getConfiguration();
     assertThat(config).isNotNull();
@@ -340,13 +368,15 @@ public class PolicyEvaluatorTest
     when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     PolicyEvaluationPollingResult result = newPolicyEvaluationPollingResult(newReceipt());
     when(restClient
-        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_RELEASE), any(File.class), eq(ClientScanType.SONATYPE)))
+        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_RELEASE), any(ClientScanResult.class),
+            eq(ClientScanType.SONATYPE)))
         .thenReturn(result);
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
         "src/test/data/artifact.jar", "-t", Stage.ID_RELEASE);
     evaluator.run(params);
     verify(restClient)
-        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_RELEASE), any(File.class), eq(ClientScanType.SONATYPE));
+        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_RELEASE), any(ClientScanResult.class),
+            eq(ClientScanType.SONATYPE));
   }
 
   private PolicyEvaluationPollingResult newPolicyEvaluationPollingResult(final ScanReceipt scanReceipt) {
@@ -361,12 +391,12 @@ public class PolicyEvaluatorTest
     when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     PolicyEvaluationPollingResult result = newPolicyEvaluationPollingResult(newReceipt());
     when(restClient
-        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), any(File.class), eq(ClientScanType.SONATYPE)))
+        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), any(ClientScanResult.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(result);
     Parameters params = new Parameters("-s", "http://localhost:87/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
     verify(restClient)
-        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), any(File.class), eq(ClientScanType.SONATYPE));
+        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), any(ClientScanResult.class), eq(ClientScanType.SONATYPE));
   }
 
   @Test
@@ -382,7 +412,7 @@ public class PolicyEvaluatorTest
     PolicyEvaluationPollingResult result = newPolicyEvaluationPollingResult(receipt);
     when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     when(restClient
-        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), any(File.class), eq(ClientScanType.SONATYPE)))
+        .evaluatePolicy(eq("the-app-id"), eq(Stage.ID_BUILD), any(ClientScanResult.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(result);
     File reportBundleFile = new File(tmpDir.getRoot(), "not-yet-existent/reportBundle.zip");
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",

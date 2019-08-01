@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.slf4j.Logger;
@@ -50,10 +51,10 @@ public class RestClientFactory
     @Override
     public PolicyEvaluationPollingResult evaluatePolicy(String appId,
                                                         String stageId,
-                                                        final File scanFile,
+                                                        final ClientScanResult clientScanResult,
                                                         final ClientScanType clientScanType) throws IOException
     {
-      return new PolicyClient(config, appId).evaluateCLI(scanFile, clientScanType, new Stage(stageId));
+      return new PolicyClient(config, appId).evaluateCLI(clientScanResult, clientScanType, new Stage(stageId));
     }
 
     @Override
@@ -78,10 +79,10 @@ public class RestClientFactory
     @Override
     public PolicyEvaluationPollingResult evaluatePolicy(String appId,
                                                         String stageId,
-                                                        final File scanFile,
+                                                        final ClientScanResult clientScanResult,
                                                         final ClientScanType clientScanType) throws IOException
     {
-      return new PolicyClient(config, appId, logger).evaluateCI(scanFile, new Stage(stageId));
+      return new PolicyClient(config, appId, logger).evaluateCI(clientScanResult, new Stage(stageId));
     }
 
     @Override
@@ -132,7 +133,7 @@ public class RestClientFactory
 
     public abstract PolicyEvaluationPollingResult evaluatePolicy(String appId,
                                                                  String stageId,
-                                                                 final File scanFile,
+                                                                 final ClientScanResult clientScanResult,
                                                                  final ClientScanType clientScanType)
         throws IOException;
 

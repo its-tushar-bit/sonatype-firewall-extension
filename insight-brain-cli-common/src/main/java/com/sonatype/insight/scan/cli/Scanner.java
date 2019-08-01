@@ -19,6 +19,7 @@ import com.sonatype.insight.scan.config.ScanPropertiesLoader;
 import com.sonatype.insight.scan.file.FileScanRequest;
 import com.sonatype.insight.scan.file.FileScanner;
 import com.sonatype.insight.scan.file.ScanSession;
+import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanMetadata;
@@ -53,11 +54,15 @@ public class Scanner
     this.writerFactory = writerFactory;
   }
 
-  public void scan(File scanFile, List<File> targets, Properties config) throws IOException {
-    this.scan(scanFile, targets, config, null);
+  public ClientScanResult scan(File scanFile, List<File> targets, Properties config) throws IOException {
+    return this.scan(scanFile, targets, config, null);
   }
 
-  public void scan(File scanFile, List<File> targets, Properties config, ScanMetadata metadata) throws IOException {
+  public ClientScanResult scan(File scanFile,
+                               List<File> targets,
+                               Properties config,
+                               ScanMetadata metadata) throws IOException
+  {
     log.info("Starting scan...");
 
     Scan scan = new Scan();
@@ -78,6 +83,7 @@ public class Scanner
     }
     log.info("Fingerprinting completed in {} seconds for {} archives, {} total files",
         scan.getSummary().getElapsedSeconds(), scan.getSummary().getArchives(), scan.getSummary().getFiles());
+    return new ClientScanResult(scanFile, scan.hasThirdPartyScanContent());
   }
 
   private Properties getScanConfigProps(Properties properties) throws IOException {

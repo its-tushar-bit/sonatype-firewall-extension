@@ -12,6 +12,7 @@ import java.util.Properties;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.test.InjectedTest;
 import com.sonatype.insight.test.LogOutput;
 
@@ -41,5 +42,16 @@ public class ScannerTest
 
     assertThat(logOutput).atInfoLevel()
         .containsPattern("Fingerprinting completed in \\d+ seconds for 4 archives, 60 total files");
+  }
+
+  @Test
+  public void testScan_ReturnResult() throws Exception {
+    List<File> targets = Collections.singletonList(new File("src/test/resources/ScannerTest/app.ear"));
+
+    ClientScanResult clientScanResult = scanner.scan(tmpDir.newFile("scan-test.xml.gz"), targets, new Properties());
+
+    assertThat(clientScanResult).isNotNull();
+    assertThat(clientScanResult.getScanFile()).isNotNull();
+    assertThat(clientScanResult.hasThirdPartyScanContent()).isFalse();
   }
 }

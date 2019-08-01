@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.scan.client.ClientScanRequest;
 import com.sonatype.insight.scan.client.ClientScanner;
+import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ExpandedCoverage;
 import com.sonatype.insight.scan.model.Scan;
@@ -71,7 +72,7 @@ public class ExpandedCoveragePolicyEvaluator
   }
 
   @Override
-  protected File scan(Parameters params, ProprietaryConfig proprietaryConfig) throws ExitException {
+  protected ClientScanResult scan(Parameters params, ProprietaryConfig proprietaryConfig) throws ExitException {
     if (!params.getOutputDirectory().exists() && !params.getOutputDirectory().mkdirs()) {
       throw new RuntimeException("Unable to create output directory " + params.getOutputDirectory());
     }
@@ -116,7 +117,7 @@ public class ExpandedCoveragePolicyEvaluator
         writer.writeSummary(scan.getSummary());
         writer.closeScan();
       }
-      return scanFile;
+      return new ClientScanResult(scanFile, scan.hasThirdPartyScanContent());
     }
     catch (Exception e) {
       log.error("The scan could not be performed: " + e.getMessage(), e);
@@ -151,14 +152,16 @@ public class ExpandedCoveragePolicyEvaluator
    * Policies are not evaluated for expanded coverage scans.
    */
   @Override
-  protected void evaluatePolicy(Parameters params, RestClient restClient, File scanFile, ClientScanType clientScanType)
-      throws ExitException
+  protected void evaluatePolicy(Parameters params,
+                                RestClient restClient,
+                                ClientScanResult clientScanResult,
+                                ClientScanType clientScanType) throws ExitException
   {
 
     log.info("Submitting scan to the IQ Server...");
     ScanReceipt scanReceipt;
     try {
-      scanReceipt = restClient.uploadScan(params.getApplicationId(), scanFile, clientScanType);
+      scanReceipt = restClient.uploadScan(params.getApplicationId(), clientScanResult.getScanFile(), clientScanType);
       log.info("Assigned scan ID {}", scanReceipt.getScanId());
     }
     catch (HttpResponseException e) {

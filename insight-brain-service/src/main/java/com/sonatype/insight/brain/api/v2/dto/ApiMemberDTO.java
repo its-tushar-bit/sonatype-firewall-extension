@@ -12,6 +12,10 @@ import com.sonatype.insight.brain.model.security.MemberType;
  */
 public class ApiMemberDTO
 {
+  public String ownerId;
+
+  public String ownerType;
+
   public MemberType type;
 
   public String userOrGroupName;
@@ -19,7 +23,9 @@ public class ApiMemberDTO
   public ApiMemberDTO() {
   }
 
-  public ApiMemberDTO(final String userOrGroupName, final MemberType type) {
+  public ApiMemberDTO(String ownerId, String ownerType, final String userOrGroupName, final MemberType type) {
+    this.ownerId = ownerId;
+    this.ownerType = ownerType;
     this.userOrGroupName = userOrGroupName;
     this.type = type;
   }

@@ -15,6 +15,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.api.v2.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
@@ -41,7 +42,18 @@ public class ApiMemberMappingAdapter
       for (final MembersByOwner membersByOwner : membersByRole.membersByOwner) {
         if (ownerType == null || ownerType.equals(membersByOwner.ownerType)) {
           for (final Member member : membersByOwner.members) {
-            final ApiMemberDTO memberDTO = new ApiMemberDTO(member.getInternalName(), member.getType());
+            // If the owner is an application, then MembersByOwner stores the app public id in ownerId.
+            // We need to convert it to internal app id when converting to ApiMemberDTO.
+            String internalOwnerId;
+            if (OwnerType.APPLICATION.equals(membersByOwner.ownerType)) {
+              internalOwnerId = new ApplicationDAO().getByPublicId(membersByOwner.ownerId).getId();
+            }
+            else {
+              internalOwnerId = membersByOwner.ownerId;
+            }
+
+            final ApiMemberDTO memberDTO = new ApiMemberDTO(internalOwnerId, membersByOwner.ownerType.name(),
+                member.getInternalName(), member.getType());
             memberDTOs.add(memberDTO);
           }
         }

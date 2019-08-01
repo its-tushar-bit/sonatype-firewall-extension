@@ -260,7 +260,7 @@ public class ApiOrganizationResourceV2Test
   }
 
   private ApiMemberDTO newMember(final MemberType type, final String name) {
-    return new ApiMemberDTO(name, type);
+    return new ApiMemberDTO(null /* ownerId */, null /* ownerType */, name, type);
   }
 
   private List<ApiMemberDTO> newMemberList(final ApiMemberDTO... members) {

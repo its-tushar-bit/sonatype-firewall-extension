@@ -12,26 +12,27 @@ import java.util.Map;
 import com.sonatype.insight.brain.api.v2.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembersByOwner;
 import com.sonatype.insight.brain.security.MembersByRole;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class ApiMemberMappingAdapterTest
+    extends AbstractComponentTest
 {
   private ApiMemberMappingAdapter apiMemberMappingAdapter = new ApiMemberMappingAdapter();
 
   private final String roleId = "testRoleId";
-
-  private final String ownerId = "ownerId";
-
-  private final String ownerName = "ownerName";
 
   private final String testUserName = "testUserName";
 
@@ -104,8 +105,20 @@ public class ApiMemberMappingAdapterTest
     membersByRole.roleId = roleId;
     membersByRole.membersByOwner = new ArrayList<>();
     final MembersByOwner membersByOwner = new MembersByOwner();
-    membersByOwner.ownerId = ownerId;
-    membersByOwner.ownerName = ownerName;
+    switch (ownerType) {
+      case APPLICATION:
+        Application app = tempEntity.newApplicationWithParent();
+        membersByOwner.ownerId = app.getPublicId();
+        membersByOwner.ownerName = app.getName();
+        break;
+      case ORGANIZATION:
+        Organization org = tempEntity.newOrganization();
+        membersByOwner.ownerId = org.getPublicId();
+        membersByOwner.ownerName = org.getName();
+        break;
+      default:
+        fail("Unexpected owner type " + ownerType);
+    }
     membersByOwner.ownerType = ownerType;
     final Member member = new Member();
     member.setInternalName(testUserName);

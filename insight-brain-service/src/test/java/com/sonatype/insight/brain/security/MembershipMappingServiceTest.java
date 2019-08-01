@@ -13,6 +13,7 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
@@ -312,8 +313,13 @@ public class MembershipMappingServiceTest
 
     ApiRoleMemberMappingDTO apiRoleMemberMappingDTO = memberMappings.get(0);
     assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(DEVELOPER_ROLE_ID);
-    assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName)
-        .containsExactlyInAnyOrder("root-org-user", "org-user", "app-user");
+    assertThat(apiRoleMemberMappingDTO.members).hasSize(3);
+    assertApiMemberDTO(apiRoleMemberMappingDTO.members.get(0), application.getId(), OwnerType.APPLICATION,
+        MemberType.USER, "app-user");
+    assertApiMemberDTO(apiRoleMemberMappingDTO.members.get(1), organization.getId(), OwnerType.ORGANIZATION,
+        MemberType.USER, "org-user");
+    assertApiMemberDTO(apiRoleMemberMappingDTO.members.get(2), Organization.ROOT_ORGANIZATION_ID,
+        OwnerType.ORGANIZATION, MemberType.USER, "root-org-user");
   }
 
   @Test
@@ -329,7 +335,9 @@ public class MembershipMappingServiceTest
 
     ApiRoleMemberMappingDTO apiRoleMemberMappingDTO = memberMappings.get(0);
     assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(DEVELOPER_ROLE_ID);
-    assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).containsExactly("a-user");
+    assertThat(apiRoleMemberMappingDTO.members).hasSize(1);
+    assertApiMemberDTO(apiRoleMemberMappingDTO.members.get(0), organization.getId(), OwnerType.ORGANIZATION,
+        MemberType.USER, "a-user");
   }
 
   @Test
@@ -346,7 +354,9 @@ public class MembershipMappingServiceTest
 
     apiRoleMemberMappingDTO = memberMappings.get(1);
     assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(SYSTEM_ADMIN_ROLE_ID);
-    assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).containsExactly("admin");
+    assertThat(apiRoleMemberMappingDTO.members).hasSize(1);
+    assertApiMemberDTO(apiRoleMemberMappingDTO.members.get(0), MembershipMapping.GLOBAL_CONTEXT_ID, OwnerType.GLOBAL,
+        MemberType.USER, "admin");
   }
 
   @Test
@@ -388,5 +398,18 @@ public class MembershipMappingServiceTest
     umap.setDynamicGroupSearchEnabled(isDynamicGroupSearchEnabled);
 
     new LdapUserMappingDAO().update(umap);
+  }
+
+  private void assertApiMemberDTO(
+      ApiMemberDTO actual,
+      String expectedOwnerId,
+      OwnerType expectedOwnerType,
+      MemberType expectedMemberType,
+      String expectedUserOrGroupName)
+  {
+    assertThat(actual.ownerId).isEqualTo(expectedOwnerId);
+    assertThat(actual.ownerType).isEqualTo(expectedOwnerType.name());
+    assertThat(actual.type).isEqualTo(expectedMemberType);
+    assertThat(actual.userOrGroupName).isEqualTo(expectedUserOrGroupName);
   }
 }

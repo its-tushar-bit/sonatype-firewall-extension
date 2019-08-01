@@ -16,6 +16,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -176,10 +178,9 @@ public class ApiRoleMembershipResourceTest
     assertThat(roleMappingDto.roleId).isEqualTo(DEVELOPER_ROLE_ID);
 
     List<ApiMemberDTO> members = roleMappingDto.members;
-    assertThat(members).extracting(apiMemberDTO -> apiMemberDTO.userOrGroupName)
-        .containsExactlyInAnyOrder("user-one", "user-two");
-    assertThat(members).extracting(apiMemberDTO -> apiMemberDTO.type)
-        .containsExactlyInAnyOrder(USER, USER);
+    assertThat(members).hasSize(2);
+    assertApiMemberDTO(members.get(0), application.getId(), OwnerType.APPLICATION, USER, "user-one");
+    assertApiMemberDTO(members.get(1), application.getId(), OwnerType.APPLICATION, USER, "user-two");
   }
 
   @Test
@@ -196,19 +197,15 @@ public class ApiRoleMembershipResourceTest
 
     ApiRoleMemberMappingDTO apiRoleMemberMappingDTO = memberMappings.get(0);
     assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(DEVELOPER_ROLE_ID);
-    assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).containsExactly("user-one");
-
+    assertThat(apiRoleMemberMappingDTO.members).hasSize(1);
     ApiMemberDTO apiMemberDTO = apiRoleMemberMappingDTO.members.get(0);
-    assertThat(apiMemberDTO.userOrGroupName).isEqualTo("user-one");
-    assertThat(apiMemberDTO.type).isEqualTo(USER);
+    assertApiMemberDTO(apiMemberDTO, org.getId(), OwnerType.ORGANIZATION, USER, "user-one");
 
     apiRoleMemberMappingDTO = memberMappings.get(1);
     assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(OWNER_ROLE_ID);
-    assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).containsExactly("user-two");
-
+    assertThat(apiRoleMemberMappingDTO.members).hasSize(1);
     apiMemberDTO = apiRoleMemberMappingDTO.members.get(0);
-    assertThat(apiMemberDTO.userOrGroupName).isEqualTo("user-two");
-    assertThat(apiMemberDTO.type).isEqualTo(USER);
+    assertApiMemberDTO(apiMemberDTO, org.getId(), OwnerType.ORGANIZATION, USER, "user-two");
   }
 
   @Test
@@ -222,23 +219,19 @@ public class ApiRoleMembershipResourceTest
 
     ApiRoleMemberMappingDTO apiRoleMemberMappingDTO = memberMappings.get(0);
     assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(POLICY_ADMIN_ROLE_ID);
-    assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).containsExactly("admin");
-
+    assertThat(apiRoleMemberMappingDTO.members).hasSize(1);
     ApiMemberDTO apiMemberDTO = apiRoleMemberMappingDTO.members.get(0);
-    assertThat(apiMemberDTO.userOrGroupName).isEqualTo("admin");
-    assertThat(apiMemberDTO.type).isEqualTo(USER);
+    assertApiMemberDTO(apiMemberDTO, MembershipMapping.GLOBAL_CONTEXT_ID, OwnerType.GLOBAL, USER, "admin");
 
     apiRoleMemberMappingDTO = memberMappings.get(1);
     assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(SYSTEM_ADMIN_ROLE_ID);
-    assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).containsExactly("admin");
-
+    assertThat(apiRoleMemberMappingDTO.members).hasSize(1);
     apiMemberDTO = apiRoleMemberMappingDTO.members.get(0);
-    assertThat(apiMemberDTO.userOrGroupName).isEqualTo("admin");
-    assertThat(apiMemberDTO.type).isEqualTo(USER);
+    assertApiMemberDTO(apiMemberDTO, MembershipMapping.GLOBAL_CONTEXT_ID, OwnerType.GLOBAL, USER, "admin");
   }
 
   @Test
-  public void testGetRoleMembershipsGlobalOrRepositoryContainer_Repository() throws Exception {
+  public void testGetRoleMembershipsGlobalOrRepositoryContainer_RepositoryContainer_User() throws Exception {
     tempEntity.newMembershipMapping(REPOSITORY_CONTAINER_ID, DEVELOPER_ROLE_ID, "a-user");
 
     HttpResponse response = restRequest().path("repository_container").get();
@@ -254,12 +247,11 @@ public class ApiRoleMembershipResourceTest
     assertThat(members).hasSize(1);
 
     ApiMemberDTO apiMemberDTO = members.get(0);
-    assertThat(apiMemberDTO.userOrGroupName).isEqualTo("a-user");
-    assertThat(apiMemberDTO.type).isEqualTo(USER);
+    assertApiMemberDTO(apiMemberDTO, REPOSITORY_CONTAINER_ID, OwnerType.REPOSITORY_CONTAINER, USER, "a-user");
   }
 
   @Test
-  public void testGetRoleMembershipsGlobalOrRepositoryContainer_GlobalTypeGroup() throws Exception {
+  public void testGetRoleMembershipsGlobalOrRepositoryContainer_RepositoryContainer_Group() throws Exception {
     tempEntity.newMembershipMapping(REPOSITORY_CONTAINER_ID, OWNER_ROLE_ID, "a-group", GROUP);
     HttpResponse response = restRequest().path("repository_container").get();
     assertResponseStatus(200, response);
@@ -274,12 +266,24 @@ public class ApiRoleMembershipResourceTest
     assertThat(members).hasSize(1);
 
     ApiMemberDTO apiMemberDTO = members.get(0);
-    assertThat(apiMemberDTO.userOrGroupName).isEqualTo("a-group");
-    assertThat(apiMemberDTO.type).isEqualTo(GROUP);
+    assertApiMemberDTO(apiMemberDTO, REPOSITORY_CONTAINER_ID, OwnerType.REPOSITORY_CONTAINER, GROUP, "a-group");
   }
 
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.ROLE_MEMBERSHIP_PATH_V2);
+  }
+
+  private void assertApiMemberDTO(
+      ApiMemberDTO actual,
+      String expectedOwnerId,
+      OwnerType expectedOwnerType,
+      MemberType expectedMemberType,
+      String expectedUserOrGroupName)
+  {
+    assertThat(actual.ownerId).isEqualTo(expectedOwnerId);
+    assertThat(actual.ownerType).isEqualTo(expectedOwnerType.name());
+    assertThat(actual.type).isEqualTo(expectedMemberType);
+    assertThat(actual.userOrGroupName).isEqualTo(expectedUserOrGroupName);
   }
 }

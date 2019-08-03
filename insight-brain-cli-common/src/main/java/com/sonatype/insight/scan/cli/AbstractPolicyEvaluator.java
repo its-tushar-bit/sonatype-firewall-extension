@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.insight.brain.client.PolicyAction;
 import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.brain.client.UnsupportedServerVersionException;

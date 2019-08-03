@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.insight.brain.client.PolicyAction;
 import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;

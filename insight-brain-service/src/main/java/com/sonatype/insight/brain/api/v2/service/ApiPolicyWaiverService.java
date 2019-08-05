@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.stream.Collectors;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditData;
@@ -15,6 +16,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -23,7 +25,10 @@ import com.sonatype.insight.brain.policy.ConstraintFactDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 /**
  * @since 1.70
@@ -31,6 +36,17 @@ import com.sonatype.insight.error.exception.NotFoundException;
 @Named
 public class ApiPolicyWaiverService
 {
+  private static final String OWNER_TYPE_ATTR = "owner_type";
+
+  private static final String OWNER_ID_ATTR = "owner_id";
+
+  private final TelemetrySender telemetrySender;
+
+  @Inject
+  public ApiPolicyWaiverService(TelemetrySender telemetrySender) {
+    this.telemetrySender = telemetrySender;
+  }
+
   public void addPolicyWaiver(final String policyViolationId,
                               final OwnerType ownerType,
                               final String comment)
@@ -72,6 +88,7 @@ public class ApiPolicyWaiverService
 
     new PolicyWaiverDAO().insert(policyWaiver);
     auditPolicyWaiver(policyWaiver);
+    sendTelemetry(ownerType, ownerId);
   }
 
   private void auditPolicyWaiver(PolicyWaiver policyWaiver) {
@@ -81,5 +98,12 @@ public class ApiPolicyWaiverService
         .setComponentHash(policyWaiver.getHash());
     AuditData.get().setData("policyConstraints",
         policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
+  }
+
+  private void sendTelemetry(OwnerType ownerType, String ownerId) {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.POLICY_WAIVER_API);
+    telemetryData.getAttributes().put(OWNER_TYPE_ATTR, ownerType.toString());
+    telemetryData.getAttributes().put(OWNER_ID_ATTR, HdsClientAnalytics.obfuscate(ownerId));
+    telemetrySender.send(telemetryData);
   }
 }

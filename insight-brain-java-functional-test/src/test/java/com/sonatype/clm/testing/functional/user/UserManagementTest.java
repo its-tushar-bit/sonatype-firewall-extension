@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.user;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -96,13 +97,16 @@ public class UserManagementTest
   @Test
   public void testCreateUserInputs__invalidCharacters() {
     NewUserForm newUserForm = goToCreateUserForm(new UserManagementPage());
-    String validationText = "Use valid characters: alphanumeric, \"_\", \".\", \"-\", or spaces";
+    String nameValidationText = "Use valid characters: alphanumeric, \"_\", \".\", \"-\", or spaces";
+    String usernameValidationText = "Use valid characters: alphanumeric, \"_\", \".\" or \"-\"";
 
-    List<SelenideElement> inputElements = asList(newUserForm.firstNameInput(), newUserForm.lastNameInput(),
-        newUserForm.usernameInput());
-    keyInElementValue("#", inputElements);
+    List<SelenideElement> nameInputElements = asList(newUserForm.firstNameInput(), newUserForm.lastNameInput());
+    List<SelenideElement> usernameInputElements = Collections.singletonList(newUserForm.usernameInput());
+    keyInElementValue("#", nameInputElements);
+    keyInElementValue("#", usernameInputElements);
 
-    assertPopoverValidation(validationText, inputElements);
+    assertPopoverValidation(nameValidationText, nameInputElements);
+    assertPopoverValidation(usernameValidationText, usernameInputElements);
   }
 
   @Test

@@ -16,6 +16,8 @@ export default {
   controller: UserFormController
 };
 
+const invalidCharactersMessage = 'Use valid characters: alphanumeric, "_", "." or "-"';
+
 function UserFormController($scope, UserStore, Dialog) {
   var vm = this;
 
@@ -25,6 +27,12 @@ function UserFormController($scope, UserStore, Dialog) {
   // clone if existing user
   vm.user = (vm.user && vm.user.id) ? vm.user.$clone() : UserStore.create();
   vm.passwordValidate = '';
+
+  vm.usernameMessages = {
+    duplicate: 'Username already taken',
+    pattern: invalidCharactersMessage,
+    validNameCharacters: invalidCharactersMessage
+  };
 
   vm.identifier = Math.random();
 

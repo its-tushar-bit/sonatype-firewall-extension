@@ -59,7 +59,7 @@
              is-duplicate-case-sensitive="false"
              placeholder="ex. iasimov"
              ng-model="vm.user.username"
-             messages="{pattern: 'Must not contain spaces', duplicate: 'Username already taken'}">
+             messages="vm.usernameMessages">
     </div>
     <div class="iq-form-group">
       <label class="iq-label" for="password">Password</label>

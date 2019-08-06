@@ -38,7 +38,7 @@
     <jackson.version>2.9.9</jackson.version>
     <!-- some of the sub projects of jackson yet to release 2.9.9.1
     This can be removed once the entire jackson stack can be upgraded. CLM-12839 -->
-    <jackson.databind.version>2.9.9.1</jackson.databind.version>
+    <jackson.databind.version>2.9.9.3</jackson.databind.version>
     <openjpa.version>3.1.0</openjpa.version>
     <shiro.version>1.4.0</shiro.version>
     <sisu-inject.version>0.3.3</sisu-inject.version>

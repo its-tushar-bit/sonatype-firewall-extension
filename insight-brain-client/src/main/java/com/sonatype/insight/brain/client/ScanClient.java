@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
@@ -49,13 +50,19 @@ public class ScanClient
    * 
    * @since 1.9.1
    */
-  public void saveResultData(File resultFile, ScanReceipt receipt) throws IOException {
+  public void saveResultData(File resultFile,
+                             ScanReceipt receipt,
+                             PolicyEvaluationResult eval,
+                             String outcome) throws IOException
+  {
     ResultData resultData = new ResultData();
     resultData.applicationId = appId;
     resultData.scanId = receipt.getScanId();
     resultData.reportHtmlUrl = receipt.resolveReportUrl(serverUrl);
     resultData.reportPdfUrl = receipt.resolvePdfUrl(serverUrl);
     resultData.reportDataUrl = receipt.resolveDataUrl(serverUrl);
+    resultData.policyEvaluationResult = eval;
+    resultData.policyAction = outcome;
     JsonUtils.write(resultFile, resultData);
   }
 }

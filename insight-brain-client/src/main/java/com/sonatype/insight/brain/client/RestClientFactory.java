@@ -13,6 +13,7 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.scan.model.ClientScanResult;
@@ -151,8 +152,13 @@ public class RestClientFactory
       new ReportClient(config, appId, scanId).prepareExpandedCoverageReport();
     }
 
-    public void saveResults(String appId, File resultFile, ScanReceipt receipt) throws IOException {
-      new ScanClient(config, appId).saveResultData(resultFile, receipt);
+    public void saveResults(String appId,
+                            File resultFile,
+                            ScanReceipt receipt,
+                            PolicyEvaluationResult eval,
+                            String outcome) throws IOException
+    {
+      new ScanClient(config, appId).saveResultData(resultFile, receipt, eval, outcome);
     }
 
     /**

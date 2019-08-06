@@ -36,7 +36,7 @@ abstract class PolicyEvaluator<P extends AbstractCliParameters>
   {
     String reportUrl = receipt.resolveReportUrl(params.getServerUrl());
 
-    saveResultFile(params, restClient, receipt);
+    saveResultFile(params, restClient, receipt, eval, outcome);
 
     if (!PolicyAction.NONE.equals(outcome)) {
       log.info("");
@@ -62,10 +62,16 @@ abstract class PolicyEvaluator<P extends AbstractCliParameters>
     }
   }
 
-  private void saveResultFile(P params, RestClient restClient, ScanReceipt receipt) throws ExitException {
+  private void saveResultFile(
+      P params,
+      RestClient restClient,
+      ScanReceipt receipt,
+      PolicyEvaluationResult eval,
+      PolicyAction outcome) throws ExitException
+  {
     if (params.getResultFile() != null) {
       try {
-        restClient.saveResults(params.getApplicationId(), params.getResultFile(), receipt);
+        restClient.saveResults(params.getApplicationId(), params.getResultFile(), receipt, eval, outcome.toString());
       }
       catch (IOException e) {
         log.error("The policy evaluation results could not be exported to {}", params.getResultFile(), e);

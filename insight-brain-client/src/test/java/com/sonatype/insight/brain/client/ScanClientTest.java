@@ -6,8 +6,11 @@
 package com.sonatype.insight.brain.client;
 
 import java.io.File;
+import java.util.Collections;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -27,6 +30,20 @@ public class ScanClientTest
 {
   private static final String APP_ID = "ScanClientTest_AppId";
 
+  private static final int CRITICAL_COMPONENT_COUNT = 5;
+
+  private static final int SEVERE_COMPONENT_COUNT = 4;
+
+  private static final int MODERATE_COMPONENT_COUNT = 3;
+
+  private static final int CRITICAL_POLICY_VIOLATION_COUNT = 9;
+
+  private static final int SEVERE_POLICY_VIOLATION_COUNT = 8;
+
+  private static final int MODERATE_POLICY_VIOLATION_COUNT = 7;
+
+  private static final int GRANDFATHERED_POLICY_VIOLATION_COUNT = 50;
+
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
@@ -43,14 +60,34 @@ public class ScanClientTest
     receipt.setReportUrl("the-report-url");
     receipt.setPdfUrl("the-pdf-url");
     receipt.setDataUrl("the-data-url");
+    PolicyEvaluationResult evaluationResult = new PolicyEvaluationResult();
+    evaluationResult.setAlerts(Collections.<PolicyAlert>emptyList());
+    evaluationResult.setCriticalComponentCount(CRITICAL_COMPONENT_COUNT);
+    evaluationResult.setSevereComponentCount(SEVERE_COMPONENT_COUNT);
+    evaluationResult.setModerateComponentCount(MODERATE_COMPONENT_COUNT);
+    evaluationResult.setCriticalPolicyViolationCount(CRITICAL_POLICY_VIOLATION_COUNT);
+    evaluationResult.setSeverePolicyViolationCount(SEVERE_POLICY_VIOLATION_COUNT);
+    evaluationResult.setModeratePolicyViolationCount(MODERATE_POLICY_VIOLATION_COUNT);
+    evaluationResult.setGrandfatheredPolicyViolationCount(GRANDFATHERED_POLICY_VIOLATION_COUNT);
     File resultFile = new File(tmpDir.getRoot(), "missing-dir/result.json");
-    new ScanClient(config, "the-app-id").saveResultData(resultFile, receipt);
+    new ScanClient(config, "the-app-id").saveResultData(resultFile, receipt, evaluationResult, "Failure");
     ResultData data = JsonUtils.read(resultFile, ResultData.class);
     assertThat(data.scanId).isEqualTo(receipt.getScanId());
     assertThat(data.applicationId).isEqualTo("the-app-id");
     assertThat(data.reportHtmlUrl).isEqualTo(receipt.resolveReportUrl(config.getServerUrl()));
     assertThat(data.reportPdfUrl).isEqualTo(receipt.resolvePdfUrl(config.getServerUrl()));
     assertThat(data.reportDataUrl).isEqualTo(receipt.resolveDataUrl(config.getServerUrl()));
+    assertThat(data.policyEvaluationResult.getCriticalComponentCount()).isEqualTo(CRITICAL_COMPONENT_COUNT);
+    assertThat(data.policyEvaluationResult.getSevereComponentCount()).isEqualTo(SEVERE_COMPONENT_COUNT);
+    assertThat(data.policyEvaluationResult.getModerateComponentCount()).isEqualTo(MODERATE_COMPONENT_COUNT);
+    assertThat(data.policyEvaluationResult.getCriticalPolicyViolationCount())
+        .isEqualTo(CRITICAL_POLICY_VIOLATION_COUNT);
+    assertThat(data.policyEvaluationResult.getSeverePolicyViolationCount()).isEqualTo(SEVERE_POLICY_VIOLATION_COUNT);
+    assertThat(data.policyEvaluationResult.getModeratePolicyViolationCount())
+        .isEqualTo(MODERATE_POLICY_VIOLATION_COUNT);
+    assertThat(data.policyEvaluationResult.getGrandfatheredPolicyViolationCount())
+        .isEqualTo(GRANDFATHERED_POLICY_VIOLATION_COUNT);
+    assertThat(data.policyAction).isEqualTo("Failure");
   }
 
   @Test

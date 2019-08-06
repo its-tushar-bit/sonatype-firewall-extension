@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.client;
 
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+
 /**
  * DTO that presents the data structure for the exported result file.
  * 
@@ -21,4 +23,8 @@ public class ResultData
   public String reportPdfUrl;
 
   public String reportDataUrl;
+
+  public String policyAction;
+
+  public PolicyEvaluationResult policyEvaluationResult;
 }

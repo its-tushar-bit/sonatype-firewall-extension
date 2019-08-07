@@ -29,8 +29,8 @@ import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.DatabaseTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.HierarchyMetricsTelemetryCollector;
-import com.sonatype.insight.brain.telemetry.PropertiesTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.PolicyStatusOverrideTelemetryCollector;
+import com.sonatype.insight.brain.telemetry.PropertiesTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -124,8 +124,8 @@ public class InsightBrainServiceTest
         assertThat(zipEntryHeader.getName()).isEqualTo(TelemetrySender.HEADER_ENTRY_NAME);
         zipInputStream.read(buffer);
         TelemetryHeader telemetryHeaderReceived = JsonUtils.parse(buffer, TelemetryHeader.class);
-        assertThat(telemetryHeaderReceived.getCreateTime()).isAfterOrEqualsTo(expectedMinCreateTime)
-            .isBeforeOrEqualsTo(expectedMaxCreateTime);
+        assertThat(telemetryHeaderReceived.getCreateTime()).isAfterOrEqualTo(expectedMinCreateTime)
+            .isBeforeOrEqualTo(expectedMaxCreateTime);
         assertThat(telemetryHeaderReceived.getTelemetryId()).isEqualTo(telemetryId.getId());
         assertThat(telemetryHeaderReceived.getProduct())
             .isEqualTo(TelemetrySender.PRODUCT_PREFIX + "/" + versionService.getVersion());

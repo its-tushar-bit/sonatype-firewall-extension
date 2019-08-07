@@ -190,7 +190,7 @@ public class RepositoryReevaluationTaskTest
         assertThat(component.getIdentificationSourceId()).isEqualTo(identificationSource);
         assertThat(component.getComponentIdentifier()).isEqualTo(componentIdentifier);
         assertThat(component.isQuarantined()).isEqualTo(quarantined);
-        assertThat(component.getLastEvaluationTime()).isAfterOrEqualsTo(timeBeforeReevaluation);
+        assertThat(component.getLastEvaluationTime()).isAfterOrEqualTo(timeBeforeReevaluation);
         return;
       }
     }

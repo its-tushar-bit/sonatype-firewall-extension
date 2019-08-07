@@ -91,8 +91,8 @@ public class TelemetrySenderTest
       assertThat(zipEntryHeader.getName()).isEqualTo(TelemetrySender.HEADER_ENTRY_NAME);
       zipInputStream.read(buffer);
       TelemetryHeader telemetryHeaderReceived = JsonUtils.parse(buffer, TelemetryHeader.class);
-      assertThat(telemetryHeaderReceived.getCreateTime()).isAfterOrEqualsTo(expectedMinCreateTime)
-          .isBeforeOrEqualsTo(expectedMaxCreateTime);
+      assertThat(telemetryHeaderReceived.getCreateTime()).isAfterOrEqualTo(expectedMinCreateTime)
+          .isBeforeOrEqualTo(expectedMaxCreateTime);
       assertThat(telemetryHeaderReceived.getTelemetryId()).isEqualTo(telemetryId.getId());
       assertThat(telemetryHeaderReceived.getProduct())
           .isEqualTo(TelemetrySender.PRODUCT_PREFIX + "/" + versionService.getVersion());

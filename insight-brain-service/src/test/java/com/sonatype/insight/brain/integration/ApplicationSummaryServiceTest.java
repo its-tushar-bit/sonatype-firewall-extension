@@ -233,7 +233,7 @@ public class ApplicationSummaryServiceTest
       assertThat(zipEntryHeader.getName()).isEqualTo(TelemetrySender.HEADER_ENTRY_NAME);
       zipInputStream.read(buffer);
       TelemetryHeader telemetryHeader = JsonUtils.parse(buffer, TelemetryHeader.class);
-      assertThat(telemetryHeader.getCreateTime()).isAfterOrEqualsTo(before).isBeforeOrEqualsTo(after);
+      assertThat(telemetryHeader.getCreateTime()).isAfterOrEqualTo(before).isBeforeOrEqualTo(after);
 
       ZipEntry zipEntryData = zipInputStream.getNextEntry();
       assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);

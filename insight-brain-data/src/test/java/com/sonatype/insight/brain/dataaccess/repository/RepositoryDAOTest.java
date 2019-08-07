@@ -235,6 +235,6 @@ public class RepositoryDAOTest
 
     repositoryComponent = new RepositoryComponentDAO().getById(repositoryComponent.getId());
     assertThat(repositoryComponent.isQuarantined()).isFalse();
-    assertThat(repositoryComponent.getUnquarantineTime()).isAfterOrEqualsTo(before).isBeforeOrEqualsTo(after);
+    assertThat(repositoryComponent.getUnquarantineTime()).isAfterOrEqualTo(before).isBeforeOrEqualTo(after);
   }
 }

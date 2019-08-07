@@ -62,7 +62,7 @@ public class PolicyWaiverDAOTest
     assertThat(policyWaiver.getId()).isNotNull();
     assertThat(policyWaiver.getCreateTime()).isNotNull();
     Date createTime = policyWaiver.getCreateTime();
-    assertThat(createTime).isAfterOrEqualsTo(beforeInsert).isBeforeOrEqualsTo(afterInsert);
+    assertThat(createTime).isAfterOrEqualTo(beforeInsert).isBeforeOrEqualTo(afterInsert);
 
     // Read
     policyWaiver = dao.getById(policyWaiver.getId());

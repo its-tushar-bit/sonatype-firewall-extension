@@ -285,8 +285,8 @@ public class PolicyViolationGrandfatheringServiceTest
   }
 
   private void assertPolicyViolationGrandfatherTime(PolicyViolation policyViolation, Date before, Date after) {
-    assertThat(policyViolation.getGrandfatherTime()).isAfterOrEqualsTo(before);
-    assertThat(policyViolation.getGrandfatherTime()).isBeforeOrEqualsTo(after);
+    assertThat(policyViolation.getGrandfatherTime()).isAfterOrEqualTo(before);
+    assertThat(policyViolation.getGrandfatherTime()).isBeforeOrEqualTo(after);
   }
 
   @Test

@@ -859,7 +859,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositoryComponents).hasSize(1);
     repositoryComponent = repositoryComponents.get(0);
     assertThat(repositoryComponent.getPathname()).isEqualTo(pathname);
-    assertThat(repositoryComponent.getQuarantineTime()).isAfterOrEqualsTo(before).isBeforeOrEqualsTo(after);
+    assertThat(repositoryComponent.getQuarantineTime()).isAfterOrEqualTo(before).isBeforeOrEqualTo(after);
     assertThat(repositoryComponent.isQuarantined()).isFalse();
   }
 
@@ -1599,14 +1599,14 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(actual.getRepositoryId()).isEqualTo(repositoryId);
     assertThat(actual.getPathname()).isEqualTo(pathname);
     assertThat(actual.getHash()).isEqualTo(hash);
-    assertThat(actual.getTime()).isAfterOrEqualsTo(beforeCreate).isBeforeOrEqualsTo(afterCreate);
+    assertThat(actual.getTime()).isAfterOrEqualTo(beforeCreate).isBeforeOrEqualTo(afterCreate);
     assertThat(actual.getComponentIdentifier()).isEqualTo(componentIdentifier);
     assertThat(actual.getMatchStateId()).isEqualTo(matchStateId);
     assertThat(actual.getIdentificationSourceId()).isEqualTo(identificationSourceId);
-    assertThat(actual.getLastEvaluationTime()).isAfterOrEqualsTo(beforeLastEvaluation)
-        .isBeforeOrEqualsTo(afterLastEvaluation);
+    assertThat(actual.getLastEvaluationTime()).isAfterOrEqualTo(beforeLastEvaluation)
+        .isBeforeOrEqualTo(afterLastEvaluation);
     if (afterQuarantineTime != null) {
-      assertThat(actual.getQuarantineTime()).isBeforeOrEqualsTo(afterQuarantineTime);
+      assertThat(actual.getQuarantineTime()).isBeforeOrEqualTo(afterQuarantineTime);
     }
     else {
       assertThat(actual.getQuarantineTime()).isNull();
@@ -1647,7 +1647,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(actual.getThreatCategory()).isEqualTo(threatCategory);
     assertThat(actual.getHash()).isEqualTo(hash);
     assertThat(actual.getComponentIdentifier()).isEqualTo(componentIdentifier);
-    assertThat(actual.getTime()).isAfterOrEqualsTo(before).isBeforeOrEqualsTo(after);
+    assertThat(actual.getTime()).isAfterOrEqualTo(before).isBeforeOrEqualTo(after);
   }
 
   @Test

@@ -496,7 +496,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
       Date lastEvaluationTime = repositoryComponentDAO.getByRepositoryId(repository.getId()).get(0)
           .getLastEvaluationTime();
-      assertThat(lastEvaluationTime).isAfterOrEqualsTo(beforeEvaluation);
+      assertThat(lastEvaluationTime).isAfterOrEqualTo(beforeEvaluation);
     });
   }
 

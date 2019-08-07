@@ -19,10 +19,10 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiSourceControlAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -38,20 +38,27 @@ public class ApiSourceControlResource
 
   private static final String APPLICATION_ID = "{applicationId}";
 
-  public static final String APP_AND_SOURCE_CONTROL_IDS = APPLICATION_ID + "/" + SOURCE_CONTROL_ID;
+  private static final String APP_AND_SOURCE_CONTROL_IDS = APPLICATION_ID + "/" + SOURCE_CONTROL_ID;
 
   private final ApiSourceControlService sourceControlService;
 
+  private final ApiSourceControlAdapter apiSourceControlAdapter;
+
   @Inject
-  public ApiSourceControlResource(final ApiSourceControlService apiSourceControlService) {
+  public ApiSourceControlResource(
+      final ApiSourceControlService apiSourceControlService,
+      final ApiSourceControlAdapter apiSourceControlAdapter)
+  {
     this.sourceControlService = apiSourceControlService;
+    this.apiSourceControlAdapter = apiSourceControlAdapter;
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(APPLICATION_ID)
   public ApiSourceControlDTO getSourceControl(@PathParam("applicationId") String applicationId) {
-    return convert(sourceControlService.getSourceControlByApplicationId(applicationId));
+    return apiSourceControlAdapter.convertToDTO(
+        sourceControlService.getSourceControlByApplicationId(applicationId));
   }
 
   @POST
@@ -62,7 +69,10 @@ public class ApiSourceControlResource
   public ApiSourceControlDTO addSourceControl(@PathParam("applicationId") String applicationId,
       ApiSourceControlDTO sourceControl) 
   {
-    return convert(sourceControlService.addSourceControl(applicationId, convert(sourceControl)));
+    return apiSourceControlAdapter.convertToDTO(
+        sourceControlService.addSourceControl(
+            applicationId,
+            apiSourceControlAdapter.convertFromDTO(sourceControl)));
   }
 
   @PUT
@@ -73,7 +83,10 @@ public class ApiSourceControlResource
   public ApiSourceControlDTO updateSourceControl(@PathParam("applicationId") String applicationId,
       ApiSourceControlDTO sourceControl) 
   {
-    return convert(sourceControlService.updateSourceControl(applicationId, convert(sourceControl)));
+    return apiSourceControlAdapter.convertToDTO(
+        sourceControlService.updateSourceControl(
+            applicationId,
+            apiSourceControlAdapter.convertFromDTO(sourceControl)));
   }
 
   @DELETE
@@ -83,22 +96,5 @@ public class ApiSourceControlResource
       @PathParam("sourceControlId") String sourceControlId) 
   {
     sourceControlService.deleteSourceControl(applicationId, sourceControlId);
-  }
-
-  private ApiSourceControlDTO convert(SourceControl sourceControl) {
-    ApiSourceControlDTO apiSourceControlDTO = new ApiSourceControlDTO();
-    apiSourceControlDTO.id = sourceControl.getId();
-    apiSourceControlDTO.applicationId = sourceControl.getApplicationId();
-    apiSourceControlDTO.repositoryUrl = sourceControl.getRepositoryUrl();
-    apiSourceControlDTO.token = sourceControl.getToken();
-    apiSourceControlDTO.provider = sourceControl.getProvider();
-    return apiSourceControlDTO;
-  }
-
-  private SourceControl convert(ApiSourceControlDTO apiSourceControlDTO) {
-    SourceControl sourceControl = new SourceControl(apiSourceControlDTO.applicationId,
-        apiSourceControlDTO.repositoryUrl, apiSourceControlDTO.token, apiSourceControlDTO.provider);
-    sourceControl.setId(apiSourceControlDTO.id);
-    return sourceControl;
   }
 }

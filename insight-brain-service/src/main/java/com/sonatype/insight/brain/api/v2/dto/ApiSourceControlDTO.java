@@ -12,7 +12,9 @@ public class ApiSourceControlDTO
   public String id;
 
   public String applicationId;
-  
+
+  public String ownerId;
+
   public String repositoryUrl;
 
   public String token;

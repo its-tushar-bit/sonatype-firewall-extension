@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Color;
@@ -43,6 +44,8 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
@@ -540,6 +543,17 @@ public class OrganizationDAOTest
     dao.delete(organization);
 
     assertThat(dataRetentionPolicyDAO.getByOwnerId(organization.getId())).isEmpty();
+  }
+
+  @Test
+  public void testCascadeDeleteToSourceControl() {
+    Organization organization = tempEntity.newOrganization();
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        organization.getId(), null, "token", SourceControlProvider.GITHUB);
+
+    dao.delete(organization);
+
+    assertThat(new SourceControlDAO().getById(sourceControl.getId())).isNull();
   }
 
   @Test

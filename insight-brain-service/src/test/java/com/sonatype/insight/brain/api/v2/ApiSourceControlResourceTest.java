@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiSourceControlAdapter;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
@@ -25,6 +26,8 @@ public class ApiSourceControlResourceTest
     extends AbstractResourceTest
 {
   public static final String VALID_URL = "https://example/com/organization/project";
+
+  private static final ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
   
   private Application app;
 
@@ -50,31 +53,34 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testAddSourceControl() throws Exception {
-    SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB));
     HttpResponse response = restRequest().path(app.getId()).body(sourceControl).post();
     assertResponseStatus(200, response);
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
 
     assertThat(result.id).isNotNull();
     assertThat(result.applicationId).isEqualTo(app.getId());
-    assertThat(result.repositoryUrl).isEqualTo(sourceControl.getRepositoryUrl());
+    assertThat(result.ownerId).isEqualTo(app.getId());
+    assertThat(result.repositoryUrl).isEqualTo(sourceControl.repositoryUrl);
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB);
   }
 
   @Test
   public void testUpdateSourceControl() throws Exception {
-    SourceControl sourceControl =
-        tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
     String updatedUrl = sourceControl.getRepositoryUrl() + ".1";
     sourceControl.setRepositoryUrl(updatedUrl);
     sourceControl.setProvider(SourceControlProvider.GITLAB);
-    HttpResponse response = restRequest().path(app.getId()).body(sourceControl).put();
+    HttpResponse response = restRequest().path(app.getId())
+        .body(apiSourceControlAdapter.convertToDTO(sourceControl)).put();
     assertResponseStatus(200, response);
 
-    SourceControl result = response.getBody(SourceControl.class);
-    assertThat(result.getRepositoryUrl()).isEqualTo(updatedUrl);
-    assertThat(result.getProvider()).isEqualTo(SourceControlProvider.GITLAB);
+    ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
+    assertThat(result.repositoryUrl).isEqualTo(updatedUrl);
+    assertThat(result.provider).isEqualTo(SourceControlProvider.GITLAB);
   }
 
   @Test
@@ -98,12 +104,13 @@ public class ApiSourceControlResourceTest
     String updatedUrl = sourceControl.getRepositoryUrl() + ".1";
     sourceControl.setRepositoryUrl(updatedUrl);
     sourceControl.setProvider(null);
-    HttpResponse response = restRequest().path(app.getId()).body(sourceControl).put();
+    HttpResponse response = restRequest().path(app.getId())
+        .body(apiSourceControlAdapter.convertToDTO(sourceControl)).put();
     assertResponseStatus(200, response);
 
-    SourceControl result = response.getBody(SourceControl.class);
-    assertThat(result.getRepositoryUrl()).isEqualTo(updatedUrl);
-    assertThat(result.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
+    ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
+    assertThat(result.repositoryUrl).isEqualTo(updatedUrl);
+    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB);
   }
 
   @Test

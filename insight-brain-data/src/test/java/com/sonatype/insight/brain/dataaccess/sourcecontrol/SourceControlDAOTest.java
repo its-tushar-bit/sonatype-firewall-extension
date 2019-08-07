@@ -12,10 +12,12 @@ import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,36 +33,60 @@ public class SourceControlDAOTest
 
   private Application app;
 
+  private Organization org;
+
   @Override
   @Before
   public void setup() {
     app = tempEntity.newApplicationWithParent();
+    org = tempEntity.newOrganization();
+  }
+
+  @After
+  public void cleanup() {
+    sourceControlDAO.getAll().stream().forEach(sourceControlDAO::delete);
   }
 
   @Test
-  public void testInsert_MissingAppId() {
+  public void testInsert_MissingOwnerId() {
     assertThatThrownBy(() -> {
       sourceControlDAO.insert(new SourceControl());
-    }).isInstanceOf(BadRequestException.class).hasMessage("SourceControl application id is required");
+    }).isInstanceOf(BadRequestException.class).hasMessage("SourceControl owner id is required");
   }
 
   @Test
   public void testInsert_MissingToken() {
     SourceControl sourceControl = new SourceControl();
-    sourceControl.setApplicationId(app.getId());
+    sourceControl.setOwnerId(app.getId());
     assertThatThrownBy(() -> {
       sourceControlDAO.insert(sourceControl);
     }).isInstanceOf(BadRequestException.class).hasMessage("SourceControl authentication token is required");
   }
 
   @Test
-  public void testInsert_MissingRepositoryUrl() {
+  public void testInsert_MissingRepositoryUrlForApplication() {
     SourceControl sourceControl = new SourceControl();
-    sourceControl.setApplicationId(app.getId());
+    sourceControl.setOwnerId(app.getId());
     sourceControl.setToken("token");
-    assertThatThrownBy(() -> {
-      sourceControlDAO.insert(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessage("SourceControl repositoryUrl is required");
+    sourceControl.setProvider(SourceControlProvider.GITHUB);
+    sourceControl.setRepositoryUrl(null);
+    assertThatThrownBy(() ->
+        sourceControlDAO.insert(sourceControl)
+    ).isInstanceOf(BadRequestException.class).hasMessage(
+        "SourceControl repositoryUrl is required for application");
+  }
+
+  @Test
+  public void testInsert_RepositoryUrlForOrganization() {
+    SourceControl sourceControl = new SourceControl();
+    sourceControl.setOwnerId(org.getId());
+    sourceControl.setToken("token");
+    sourceControl.setProvider(SourceControlProvider.GITHUB);
+    sourceControl.setRepositoryUrl(VALID_URL);
+    assertThatThrownBy(() ->
+        sourceControlDAO.insert(sourceControl)
+    ).isInstanceOf(BadRequestException.class).hasMessage(
+        "SourceControl repositoryUrl is not allowed for organization");
   }
 
   @Test
@@ -75,16 +101,16 @@ public class SourceControlDAOTest
     assertThatThrownBy(() -> {
       sourceControlDAO.insert(new SourceControl("baz", VALID_URL, "bar", SourceControlProvider.GITHUB));
     }).isInstanceOf(BadRequestException.class)
-        .hasMessageContaining("SourceControl applicationId 'baz' cannot be found");
+        .hasMessageContaining("SourceControl ownerId 'baz' cannot be found");
   }
 
   @Test
-  public void testInsert_DuplicateApplicationId() {
+  public void testInsert_DuplicateOwnerId() {
     tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
     assertThatThrownBy(() -> {
       sourceControlDAO.insert(new SourceControl(app.getId(), VALID_URL + ".1", "bar", SourceControlProvider.GITHUB));
     }).isInstanceOf(BadRequestException.class)
-        .hasMessageContaining("SourceControl already configured for application with id: '" + app.getId() + "'");
+        .hasMessageContaining("SourceControl already configured for owner with id: '" + app.getId() + "'");
   }
 
   @Test
@@ -102,13 +128,13 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testUpdate_MissingAppId() {
+  public void testUpdate_MissingOwnerId() {
     SourceControl sourceControl =
         tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
-    sourceControl.setApplicationId(null);
+    sourceControl.setOwnerId(null);
     assertThatThrownBy(() -> {
       sourceControlDAO.update(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessage("SourceControl application id is required");
+    }).isInstanceOf(BadRequestException.class).hasMessage("SourceControl owner id is required");
   }
 
   @Test
@@ -122,13 +148,23 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testUpdate_MissingRepositoryUrl() {
-    SourceControl sourceControl =
-        tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
+  public void testUpdate_MissingRepositoryUrlForApplication() {
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
     sourceControl.setRepositoryUrl(null);
-    assertThatThrownBy(() -> {
-      sourceControlDAO.update(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessage("SourceControl repositoryUrl is required");
+    assertThatThrownBy(() ->
+        sourceControlDAO.update(sourceControl)
+    ).isInstanceOf(BadRequestException.class).hasMessage("SourceControl repositoryUrl is required for application");
+  }
+
+  @Test
+  public void testUpdate_RepositoryUrlForOrganization() {
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        org.getId(), null, "bar", SourceControlProvider.GITHUB);
+    sourceControl.setRepositoryUrl(VALID_URL);
+    assertThatThrownBy(() ->
+        sourceControlDAO.update(sourceControl)
+    ).isInstanceOf(BadRequestException.class).hasMessage("SourceControl repositoryUrl is not allowed for organization");
   }
 
   @Test
@@ -170,8 +206,29 @@ public class SourceControlDAOTest
     assertThat(sourceControl.getId()).isNotNull();
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
-    assertThat(sourceControl.getApplicationId()).isEqualTo(app.getId());
+    assertThat(sourceControl.getOwnerId()).isEqualTo(app.getId());
     assertThat(sourceControl.getRepositoryUrl()).isEqualTo(VALID_URL);
+    assertThat(sourceControl.getToken()).isEqualTo("bar");
+
+    sourceControl.setToken("baz");
+    sourceControlDAO.update(sourceControl);
+
+    sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
+    assertThat(sourceControl.getToken()).isEqualTo("baz");
+
+    sourceControlDAO.delete(sourceControl);
+    assertThat(sourceControlDAO.getById(sourceControl.getId())).isNull();
+  }
+
+  @Test
+  public void testCRUD_Organization() {
+    SourceControl sourceControl = new SourceControl(org.getId(), null, "bar", SourceControlProvider.GITHUB);
+    assertThat(sourceControl.getId()).isNull();
+    sourceControlDAO.insert(sourceControl);
+    assertThat(sourceControl.getId()).isNotNull();
+
+    sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
+    assertThat(sourceControl.getOwnerId()).isEqualTo(org.getId());
     assertThat(sourceControl.getToken()).isEqualTo("bar");
 
     sourceControl.setToken("baz");
@@ -193,7 +250,7 @@ public class SourceControlDAOTest
 
     List<SourceControl> scms = sourceControlDAO.getAll();
     assertThat(scms.size()).isEqualTo(2);
-    Stream<String> appIds = scms.stream().map(SourceControl::getApplicationId);
+    Stream<String> appIds = scms.stream().map(SourceControl::getOwnerId);
     assertThat(appIds.collect(Collectors.toList()).containsAll(Arrays.asList(app.getId(), "bar")));
   }
 }

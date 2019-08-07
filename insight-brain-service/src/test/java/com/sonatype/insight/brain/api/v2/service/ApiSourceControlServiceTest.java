@@ -160,7 +160,7 @@ public class ApiSourceControlServiceTest
   public void testUpdateSourceControl_WrongAppId() {
     SourceControl sourceControl =
         tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
-    sourceControl.setApplicationId("foo");
+    sourceControl.setOwnerId("foo");
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
         sourceControlService.updateSourceControl(app.getId(), sourceControl)).withMessage(
         "Cannot find SourceControl with id: " + sourceControl.getId() + " for Application with id: " + app.getId());

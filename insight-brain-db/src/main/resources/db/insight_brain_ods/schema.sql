@@ -569,16 +569,15 @@ INSERT INTO data_retention_policy (data_retention_policy_id, owner_id, context_i
 INSERT INTO data_retention_policy (data_retention_policy_id, owner_id, context_id, purging_enabled, max_age_in_days) VALUES('5575c590071c438c95ff3980ee9c71a5', 'ROOT_ORGANIZATION_ID', 'continuous-monitoring', true, 90);
 INSERT INTO data_retention_policy (data_retention_policy_id, owner_id, context_id, purging_enabled, max_age_in_days) VALUES('5575c590071c438c95ff3980ee9c71a6', 'ROOT_ORGANIZATION_ID', 'success-metrics', true, 365);
 
--- source control repository data associated with an application
+-- source control repository data associated with an organization or application (owner)
 CREATE TABLE source_control (
   source_control_id varchar(50) NOT NULL,
-  application_id varchar(50) NOT NULL,
-  repository_url varchar(2048) NOT NULL,
+  owner_id varchar(50) NOT NULL,
+  repository_url varchar(2048) NULL,
   token varchar(512) NOT NULL,
   provider varchar(20) NOT NULL,
   CONSTRAINT source_control_pk PRIMARY KEY (source_control_id),
-  CONSTRAINT source_control_application_id_uk UNIQUE (application_id),
-  CONSTRAINT source_control_application_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
+  CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id)
 );
 
 CREATE TABLE schema_version (

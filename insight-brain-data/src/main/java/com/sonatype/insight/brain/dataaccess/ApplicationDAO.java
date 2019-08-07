@@ -360,7 +360,7 @@ public class ApplicationDAO
     }
 
     // Cascade to SourceControl config
-    new SourceControlDAO().deleteByApplicationId(tx, application.getId());
+    new SourceControlDAO().deleteByOwnerId(tx, application.getId());
 
     super.delete(tx, application);
 

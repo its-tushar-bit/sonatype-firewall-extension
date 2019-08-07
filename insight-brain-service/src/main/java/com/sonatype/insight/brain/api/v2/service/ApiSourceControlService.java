@@ -78,7 +78,7 @@ public class ApiSourceControlService
   @Authorize(permission = Permission.READ)
   public SourceControl getSourceControlByApplicationId(@AuthzContext(Key.APPLICATION_ID) final String applicationId) {
     checkLicense();
-    SourceControl sourceControl = sourceControlDAO.getByApplicationId(applicationId);
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(applicationId);
     if (null == sourceControl) {
       throw new NotFoundException("Cannot find SourceControl for Application with id: " + applicationId);
     }
@@ -93,7 +93,7 @@ public class ApiSourceControlService
   {
     checkLicense();
     encryptToken(sourceControl);
-    sourceControl.setApplicationId(applicationId);
+    sourceControl.setOwnerId(applicationId);
     addDefaultProviderIfNotSpecified(sourceControl);
     sourceControlDAO.insert(sourceControl);
     auditSourceControl(sourceControl);
@@ -144,7 +144,7 @@ public class ApiSourceControlService
     catch (NotFoundException e) {
       return null;
     }
-    return getSourceControlDecrypted(sourceControl.getApplicationId(), sourceControl.getId());
+    return getSourceControlDecrypted(sourceControl.getOwnerId(), sourceControl.getId());
   }
 
   @Authorize(permission = Permission.READ)
@@ -158,7 +158,7 @@ public class ApiSourceControlService
   }
 
   private void validateApplicationId(final String applicationId, final SourceControl sourceControl) {
-    if (!sourceControl.getApplicationId().equals(applicationId)) {
+    if (! sourceControl.getOwnerId().equals(applicationId)) {
       throw new NotFoundException(
           "Cannot find SourceControl with id: " + sourceControl.getId() + " for Application with id: " + applicationId);
     }
@@ -192,7 +192,8 @@ public class ApiSourceControlService
     AuditData.get()
         .setData("sourceControlId", sourceControl.getId())
         .setData("repositoryUrl", sourceControl.getRepositoryUrl())
-        .setData("provider", sourceControl.getProvider());
+        .setData("provider", sourceControl.getProvider())
+        .setData("ownerId", sourceControl.getOwnerId());
   }
 
   private void checkLicense() {

@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
@@ -55,6 +56,8 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -813,6 +816,17 @@ public class ApplicationDAOTest
     applicationDAO.delete(application);
 
     assertThat(policyViolationAggregationDAO.getById(aggregation.getId())).isNull();
+  }
+
+  @Test
+  public void testCascadeDeleteToSourceControl() {
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        application.getId(), "http://valid.sonatype.com/repository/project",
+        "token", SourceControlProvider.GITHUB);
+
+    applicationDAO.delete(application);
+
+    assertThat(new SourceControlDAO().getById(sourceControl.getId())).isNull();
   }
 
   @Test

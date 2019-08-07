@@ -28,8 +28,8 @@ public class SourceControl
   @Column(name = "source_control_id")
   private String id;
 
-  @Column(name = "application_id")
-  private String applicationId;
+  @Column(name = "owner_id")
+  private String ownerId;
 
   @Column(name = "repository_url")
   private String repositoryUrl;
@@ -44,12 +44,12 @@ public class SourceControl
   public SourceControl() {
   }
 
-  public SourceControl(final String applicationId,
+  public SourceControl(final String ownerId,
                        final String repositoryUrl,
                        final String token,
                        final SourceControlProvider provider)
   {
-    this.applicationId = applicationId;
+    this.ownerId = ownerId;
     this.repositoryUrl = repositoryUrl;
     this.token = token;
     this.provider = provider;
@@ -65,12 +65,12 @@ public class SourceControl
     this.id = id;
   }
 
-  public String getApplicationId() {
-    return applicationId;
+  public String getOwnerId() {
+    return ownerId;
   }
 
-  public void setApplicationId(final String applicationId) {
-    this.applicationId = applicationId;
+  public void setOwnerId(final String ownerId) {
+    this.ownerId = ownerId;
   }
 
   public String getRepositoryUrl() {

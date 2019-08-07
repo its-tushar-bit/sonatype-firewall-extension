@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
+
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -49,7 +51,8 @@ public class ApiPolicyWaiverResourceTest
   @Test
   public void testAddPolicyWaiver_Application() throws Exception {
     HttpResponse response = restRequest().path(PublicApiPaths.POLICY_WAIVER_PATH)
-        .parameter(policyViolation.getId(), OwnerType.APPLICATION.toString()).body("waiver comment").post();
+        .parameter(policyViolation.getId(), OwnerType.APPLICATION.toString())
+        .body("waiver comment", MediaType.TEXT_PLAIN).post();
 
     assertResponseStatus(204, response);
     assertPolicyWaiver(app.getId(), "waiver comment");
@@ -58,7 +61,8 @@ public class ApiPolicyWaiverResourceTest
   @Test
   public void testAddPolicyWaiver_Organization() throws Exception {
     HttpResponse response = restRequest().path(PublicApiPaths.POLICY_WAIVER_PATH)
-        .parameter(policyViolation.getId(), OwnerType.ORGANIZATION.toString()).body("waiver comment").post();
+        .parameter(policyViolation.getId(), OwnerType.ORGANIZATION.toString())
+        .body("waiver comment", MediaType.TEXT_PLAIN).post();
 
     assertResponseStatus(204, response);
     assertPolicyWaiver(org.getId(), "waiver comment");

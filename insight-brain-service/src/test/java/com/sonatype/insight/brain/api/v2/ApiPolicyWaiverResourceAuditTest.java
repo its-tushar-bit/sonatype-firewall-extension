@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.stream.Collectors;
 
+import javax.ws.rs.core.MediaType;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditDTO;
@@ -49,7 +51,7 @@ public class ApiPolicyWaiverResourceAuditTest
 
   @Test
   public void testAddPolicyWaiver_Application() throws Exception {
-    restRequest(policyViolation.getId(), OwnerType.APPLICATION).body("waiver comment").post();
+    restRequest(policyViolation.getId(), OwnerType.APPLICATION).body("waiver comment", MediaType.TEXT_PLAIN).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER, null);
     assertPolicyWaiverData(auditDTO);
@@ -58,7 +60,7 @@ public class ApiPolicyWaiverResourceAuditTest
 
   @Test
   public void testAddPolicyWaiver_Organization() throws Exception {
-    restRequest(policyViolation.getId(), OwnerType.ORGANIZATION).body("waiver comment").post();
+    restRequest(policyViolation.getId(), OwnerType.ORGANIZATION).body("waiver comment", MediaType.TEXT_PLAIN).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER, null);
     assertPolicyWaiverData(auditDTO);
@@ -67,7 +69,8 @@ public class ApiPolicyWaiverResourceAuditTest
 
   @Test
   public void testAddPolicyWaiver_Application_Unauthorized() throws Exception {
-    restRequest(policyViolation.getId(), OwnerType.APPLICATION).with(unauthorizedUser()).body("waiver comment").post();
+    restRequest(policyViolation.getId(), OwnerType.APPLICATION).with(unauthorizedUser())
+        .body("waiver comment", MediaType.TEXT_PLAIN).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER, "unauthorized");
     assertApplicationData(auditDTO, app);
@@ -75,7 +78,8 @@ public class ApiPolicyWaiverResourceAuditTest
 
   @Test
   public void testAddPolicyWaiver_Organization_Unauthorized() throws Exception {
-    restRequest(policyViolation.getId(), OwnerType.ORGANIZATION).with(unauthorizedUser()).body("waiver comment").post();
+    restRequest(policyViolation.getId(), OwnerType.ORGANIZATION).with(unauthorizedUser())
+        .body("waiver comment", MediaType.TEXT_PLAIN).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER, "unauthorized");
     assertOrganizationData(auditDTO, org);

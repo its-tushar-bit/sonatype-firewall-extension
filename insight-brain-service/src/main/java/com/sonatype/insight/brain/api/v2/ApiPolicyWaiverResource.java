@@ -37,7 +37,7 @@ public class ApiPolicyWaiverResource
   }
 
   @POST
-  @Consumes(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.TEXT_PLAIN)
   @Audited(AuditEvent.CREATE_WAIVER)
   public void addPolicyWaiver(@PathParam("policyViolationId") String policyViolationId,
                               @PathParam("ownerType") OwnerType ownerType,

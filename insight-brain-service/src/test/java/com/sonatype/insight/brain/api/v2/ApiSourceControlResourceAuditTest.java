@@ -42,7 +42,7 @@ public class ApiSourceControlResourceAuditTest
     assertCustomData(auditDTO, "repositoryUrl", repositoryUrl);
     assertCustomData(auditDTO, "sourceControlId", result.id);
     assertCustomData(auditDTO, "provider", result.provider.toString());
-    assertCustomData(auditDTO, "ownerId", result.applicationId);
+    assertApplicationData(auditDTO, app);
 
     //UPDATE
     String updatedUrl = sourceControl.getRepositoryUrl() + ".1";
@@ -54,7 +54,7 @@ public class ApiSourceControlResourceAuditTest
     assertCustomData(auditDTO, "repositoryUrl", updatedUrl);
     assertCustomData(auditDTO, "sourceControlId", result.id);
     assertCustomData(auditDTO, "provider", result.provider.toString());
-    assertCustomData(auditDTO, "ownerId", result.applicationId);
+    assertApplicationData(auditDTO, app);
 
     //DELETE
     response = restRequest().path(SOURCE_CONTROL_PATH_V2).path(app.getId()).path(result.id).delete();
@@ -62,6 +62,6 @@ public class ApiSourceControlResourceAuditTest
 
     auditDTO = assertAuditLog(AuditEvent.DELETE_SOURCE_CONTROL, null);
     assertCustomData(auditDTO, "sourceControlId", result.id);
-    assertCustomData(auditDTO, "ownerId", result.applicationId);
+    assertApplicationData(auditDTO, app);
   }
 }

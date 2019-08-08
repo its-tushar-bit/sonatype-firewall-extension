@@ -192,8 +192,7 @@ public class ApiSourceControlService
     AuditData.get()
         .setData("sourceControlId", sourceControl.getId())
         .setData("repositoryUrl", sourceControl.getRepositoryUrl())
-        .setData("provider", sourceControl.getProvider())
-        .setData("ownerId", sourceControl.getOwnerId());
+        .setData("provider", sourceControl.getProvider());
   }
 
   private void checkLicense() {

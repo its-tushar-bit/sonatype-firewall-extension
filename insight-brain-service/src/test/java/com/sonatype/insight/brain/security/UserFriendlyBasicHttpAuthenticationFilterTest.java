@@ -31,7 +31,7 @@ public class UserFriendlyBasicHttpAuthenticationFilterTest
       new UserFriendlyBasicHttpAuthenticationFilter();
 
   @Test
-  public void testOnLoginFailureCallsSendError() throws IOException {
+  public void testOnLoginFailure_CallsSendError() throws IOException {
     final HttpServletResponse response = mock(HttpServletResponse.class);
     final PrintWriter writer = mock(PrintWriter.class);
     when(response.getWriter()).thenReturn(writer);
@@ -51,7 +51,7 @@ public class UserFriendlyBasicHttpAuthenticationFilterTest
   }
 
   @Test
-  public void testSendChallengeWhenResponseIsCommitted() {
+  public void testSendChallenge_WhenResponseIsAlreadyCommitted() {
     final ServletResponse response = mock(ServletResponse.class);
     when(response.isCommitted()).thenReturn(true);
 
@@ -62,7 +62,7 @@ public class UserFriendlyBasicHttpAuthenticationFilterTest
   }
 
   @Test
-  public void testSendChallengeWhenSuperHandlesResponse() {
+  public void testSendChallenge_WhenResponseIsNotYetCommitted() {
     final HttpServletResponse response = mock(HttpServletResponse.class);
     when(response.isCommitted()).thenReturn(false);
 

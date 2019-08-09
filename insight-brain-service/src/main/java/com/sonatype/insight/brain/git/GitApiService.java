@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.github;
+package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 
@@ -19,21 +19,22 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
-import com.sonatype.nexus.github.GitHubApiClient;
-import com.sonatype.nexus.github.model.ProjectUri;
-import com.sonatype.nexus.github.model.Status;
-import com.sonatype.nexus.github.model.StatusRequest;
+import com.sonatype.nexus.scm.api.GitApiClient;
+import com.sonatype.nexus.scm.api.GitApiClient.StateType;
+import com.sonatype.nexus.scm.api.model.Status;
+import com.sonatype.nexus.scm.api.model.StatusRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
-public class GitHubApiService
+public class GitApiService
 {
-  private static final Logger log = LoggerFactory.getLogger(GitHubApiService.class);
+  private static final Logger log = LoggerFactory.getLogger(GitApiService.class);
 
   private static final String IQ_POLICY_EVALUATION = "IQ Policy Evaluation";
 
@@ -43,39 +44,38 @@ public class GitHubApiService
 
   private final ApplicationDAO applicationDAO;
 
-  private final GitHubApiClientFactory gitHubApiClientFactory;
+  private final GitClientFactory gitClientFactory;
 
   @Inject
-  public GitHubApiService(
+  public GitApiService(
       final ApiSourceControlService sourceControlService,
       final BaseUrl baseUrl,
       final ApplicationDAO applicationDAO,
-      final GitHubApiClientFactory gitHubApiClientFactory)
+      final GitClientFactory gitClientFactory)
   {
     this.sourceControlService = sourceControlService;
     this.baseUrl = baseUrl;
     this.applicationDAO = applicationDAO;
-    this.gitHubApiClientFactory = gitHubApiClientFactory;
+    this.gitClientFactory = gitClientFactory;
   }
 
   /**
-   * Responds to the application evaluation event by sending a GitHub status message indicating the evaluation outcome
-   * and component counts if a commit hash was send with the policy evaluation request.
+   * Responds to the application evaluation event by sending a SCM provider specific status message indicating
+   * the evaluation outcome and component counts if a commit hash was send with the policy evaluation request.
    */
   public void maybeRespond(final ApplicationEvaluationEvent event) {
     if (null != event.commitHash) {
       SourceControl sourceControl = sourceControlService.getSourceControlByApplicationIdDecrypted(event.ownerId);
       if (null != sourceControl) {
-        ProjectUri projectUri = new ProjectUri(sourceControl.getRepositoryUrl());
-        GitHubApiClient gitHubApiClient =
-            gitHubApiClientFactory.create(sourceControl.getRepositoryUrl(), sourceControl.getToken());
-        StatusRequest statusRequest = createStatusRequest(event);
-        log.debug("Creating GitHub commit status for repository: {}, commit hash: {}, with outcome: {}, state: {}",
-            projectUri.getUrl(), event.commitHash, event.outcome, statusRequest.state);
+        GitApiClient gitApiClient = gitClientFactory.create(sourceControl);
+        StatusRequest statusRequest = createStatusRequest(event, gitApiClient, sourceControl.getProvider());
+        log.debug("Creating a {} commit status for repository: {}, commit hash: {}, with outcome: {}, state: {}",
+            sourceControl.getProvider(), gitApiClient.getProjectUri().getUrl(),
+            event.commitHash, event.outcome, statusRequest.getState());
         try {
-          Status status = gitHubApiClient
-              .createStatus(projectUri.getOrganization(), projectUri.getProject(), event.commitHash, statusRequest);
-          log.debug("Status response from api url: {}, creator: {}", status.url, status.creator.login);
+          Status status = gitApiClient.createStatus(event.commitHash, statusRequest);
+          log.debug("Status response from api url: {}, creator: {}",
+              status.getTargetUrl(), status.getUser().getUsername());
         }
         catch (IOException e) {
           log.error("Failed to update status for applicationId: {}, repository: {}, commitHash: {}, " +
@@ -86,36 +86,45 @@ public class GitHubApiService
     }
   }
 
-  private StatusRequest createStatusRequest(final ApplicationEvaluationEvent event) {
-    StatusRequest statusRequest = new StatusRequest();
-    statusRequest.state = getState(event);
-    statusRequest.context = IQ_POLICY_EVALUATION;
-    statusRequest.description = createStatusMessage(event);
-    statusRequest.targetUrl = getReportUrl(event.ownerId, event.reportId);
-    return statusRequest;
+  private StatusRequest createStatusRequest(final ApplicationEvaluationEvent event,
+                                            final GitApiClient gitApiClient,
+                                            final SourceControlProvider provider)
+  {
+    return gitApiClient.createStatusRequest(
+        getState(event, gitApiClient),
+        IQ_POLICY_EVALUATION,
+        createStatusMessage(event),
+        getReportUrl(event.ownerId, event.reportId, provider));
   }
 
-  private String getReportUrl(final String ownerId, final String scanId) {
+  private String getReportUrl(final String ownerId,
+                              final String scanId,
+                              final SourceControlProvider provider)
+  {
     Application application = applicationDAO.getByIdNotNull(ownerId);
     String reportPath = UserInterfaceLinksResource.getReportUrl(application.getPublicId(), scanId);
-    reportPath = addGitHubSourceQuery(reportPath);
+    reportPath = addSourceQuery(reportPath, provider);
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setReportUrl(reportPath);
     return scanReceipt.resolveReportUrl(baseUrl.get());
   }
 
-  private String addGitHubSourceQuery(final String reportPath) {
-    return UriBuilder.fromPath(reportPath).queryParam("source", "github").toString();
+  private String addSourceQuery(final String reportPath,
+                                final SourceControlProvider provider)
+  {
+    return UriBuilder.fromPath(reportPath).queryParam("source", provider.toString()).toString();
   }
 
-  private static String getState(final ApplicationEvaluationEvent event) {
+  private static String getState(final ApplicationEvaluationEvent event,
+                                 final GitApiClient gitApiClient)
+  {
     switch (event.outcome) {
       case ApplicationEvaluationEvent.ACTION_ID_NONE:
-        return "success";
+        return gitApiClient.getState(StateType.SUCCESS);
       case Action.ID_WARN:
-        return "pending";
+        return gitApiClient.getState(StateType.PENDING);
       default:
-        return "failure";
+        return gitApiClient.getState(StateType.FAILURE);
     }
   }
 

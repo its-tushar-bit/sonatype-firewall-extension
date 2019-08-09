@@ -10,12 +10,12 @@ import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.nexus.github.GitHubApiClient;
-import com.sonatype.nexus.github.JsonUtils;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
+import com.sonatype.nexus.scm.GitApiClientFactory;
+import com.sonatype.nexus.scm.api.common.JsonUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.eclipse.jetty.server.Request;
@@ -26,16 +26,26 @@ import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GitHubApiRule
+public class GitApiRule
     extends ExternalResource
 {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private Server server;
 
+  private SourceControlProvider provider;
+
   private final Map<String, JsonResponseHandler> responseHandlers = new ConcurrentHashMap<>();
 
   private final Map<String, Integer> requests = new ConcurrentHashMap<>();
+
+  GitApiRule(final SourceControlProvider provider) {
+    this.provider = provider;
+  }
+
+  public SourceControlProvider getProvider() {
+    return provider;
+  }
 
   @Override
   protected void before() throws Throwable {
@@ -67,7 +77,7 @@ public class GitHubApiRule
     return server.getURI().toString();
   }
 
-  public void setResponseForUri(String uri, String body, int status) {
+  void setResponseForUri(String uri, String body, int status) {
     if (getJsonResponseHandler(uri) != null) {
       throw new IllegalStateException("Response already configured for uri: " + uri);
     }
@@ -95,7 +105,8 @@ public class GitHubApiRule
 
     void render(HttpServletRequest request, HttpServletResponse response) throws IOException {
       response.setStatus(status);
-      response.setContentType(GitHubApiClient.API_V3_CONTENT_TYPE);
+      response.setContentType(
+          GitApiClientFactory.getGitApiClientUtils(getScmClientProvider(provider)).getApiContentType());
       try (OutputStream os = response.getOutputStream()) {
         os.write(body.getBytes());
       }
@@ -116,7 +127,7 @@ public class GitHubApiRule
     public void handle(
         final String target, final Request baseRequest, final HttpServletRequest request,
         final HttpServletResponse response)
-        throws IOException, ServletException
+        throws IOException
     {
       JsonResponseHandler handler = getJsonResponseHandler(request.getRequestURI());
       if (null == handler) {
@@ -132,5 +143,9 @@ public class GitHubApiRule
       request.setHandled(true);
       IO.copy(request.getInputStream(), IO.getNullStream());
     }
+  }
+
+  private com.sonatype.nexus.scm.SourceControlProvider getScmClientProvider(final SourceControlProvider provider) {
+    return com.sonatype.nexus.scm.SourceControlProvider.fromString(provider.toString());
   }
 }

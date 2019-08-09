@@ -845,8 +845,8 @@
       </dependency>
       <dependency>
         <groupId>com.sonatype.nexus</groupId>
-        <artifactId>nexus-github-wrapper</artifactId>
-        <version>1.0</version>
+        <artifactId>nexus-scm-client</artifactId>
+        <version>1.1-SNAPSHOT</version>
         <exclusions>
           <exclusion>
             <groupId>ch.qos.logback</groupId>
@@ -854,7 +854,7 @@
           </exclusion>
         </exclusions>
       </dependency>
-      
+
       <dependency>
         <groupId>com.github.package-url</groupId>
         <artifactId>packageurl-java</artifactId>

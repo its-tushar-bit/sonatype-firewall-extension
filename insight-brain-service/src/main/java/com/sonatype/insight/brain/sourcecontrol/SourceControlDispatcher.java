@@ -10,7 +10,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
-import com.sonatype.insight.brain.github.GitHubApiService;
+import com.sonatype.insight.brain.git.GitApiService;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 
 import com.google.common.eventbus.Subscribe;
@@ -23,15 +23,15 @@ public class SourceControlDispatcher
 {
   private final AsyncEventBus asyncEventBus;
 
-  private GitHubApiService gitHubApiService;
+  private GitApiService gitApiService;
 
   @Inject
   public SourceControlDispatcher(
       final AsyncEventBus asyncEventBus,
-      final GitHubApiService gitHubApiService)
+      final GitApiService gitApiService)
   {
     this.asyncEventBus = asyncEventBus;
-    this.gitHubApiService = gitHubApiService;
+    this.gitApiService = gitApiService;
   }
 
   @Override
@@ -46,6 +46,6 @@ public class SourceControlDispatcher
 
   @Subscribe
   public void on(ApplicationEvaluationEvent event) throws Exception {
-    gitHubApiService.maybeRespond(event);
+    gitApiService.maybeRespond(event);
   }
 }

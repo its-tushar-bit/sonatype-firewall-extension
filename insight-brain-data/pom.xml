@@ -88,6 +88,10 @@
       <groupId>com.sonatype.clm</groupId>
       <artifactId>com.sonatype.clm.dto.model</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.nexus</groupId>
+      <artifactId>nexus-scm-client</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>
@@ -113,11 +117,6 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math3</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.sonatype.nexus</groupId>
-      <artifactId>nexus-github-wrapper</artifactId>
-    </dependency>
-    
     <dependency>
       <groupId>com.github.package-url</groupId>
       <artifactId>packageurl-java</artifactId>

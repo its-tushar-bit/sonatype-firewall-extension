@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.github;
+package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 import java.util.List;
@@ -18,11 +18,15 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
-import com.sonatype.nexus.github.GitHubApiClient;
-import com.sonatype.nexus.github.model.ProjectUri;
-import com.sonatype.nexus.github.model.Status;
-import com.sonatype.nexus.github.model.StatusRequest;
-import com.sonatype.nexus.github.model.User;
+import com.sonatype.nexus.scm.GitApiClientFactory;
+import com.sonatype.nexus.scm.api.GitApiClient;
+import com.sonatype.nexus.scm.api.model.ProjectUri;
+import com.sonatype.nexus.scm.api.model.Status;
+import com.sonatype.nexus.scm.api.model.StatusRequest;
+import com.sonatype.nexus.scm.api.model.User;
+import com.sonatype.nexus.scm.github.dto.GithubStatus;
+import com.sonatype.nexus.scm.github.dto.GithubStatusRequest;
+import com.sonatype.nexus.scm.github.dto.GithubUser;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -37,17 +41,17 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class GitHubApiServiceTest
+public class GitApiServiceTest
     extends AbstractComponentTest
 {
   private static final String TOKEN = "token";
 
   @Inject
-  private GitHubApiService gitHubApiService;
+  private GitApiService gitApiService;
 
   private ApiSourceControlService mockSourceControlService;
 
-  private GitHubApiClientFactory mockGitHubApiClientFactory;
+  private GitClientFactory mockGitClientFactory;
 
   private BaseUrl mockBaseUrl;
 
@@ -57,7 +61,7 @@ public class GitHubApiServiceTest
 
   private ApplicationEvaluationEvent event;
 
-  private GitHubApiClient mockGitHubApiClient = mock(GitHubApiClient.class);
+  private GitApiClient mockGitApiClient = mock(GitApiClient.class);
 
   private Status status;
   
@@ -65,8 +69,8 @@ public class GitHubApiServiceTest
   public void configure(Binder binder) {
     mockSourceControlService = mock(ApiSourceControlService.class);
     binder.bind(ApiSourceControlService.class).toInstance(mockSourceControlService);
-    mockGitHubApiClientFactory = mock(GitHubApiClientFactory.class);
-    binder.bind(GitHubApiClientFactory.class).toInstance(mockGitHubApiClientFactory);
+    mockGitClientFactory = mock(GitClientFactory.class);
+    binder.bind(GitClientFactory.class).toInstance(mockGitClientFactory);
     mockBaseUrl = mock(BaseUrl.class);
     binder.bind(BaseUrl.class).toInstance(mockBaseUrl);
     super.configure(binder);
@@ -75,11 +79,11 @@ public class GitHubApiServiceTest
   @Before
   public void setup() {
     application = tempEntity.newApplicationWithParent("app", "appId", "orgId");
-    User creator = new User();
-    creator.login = "foo";
-    status = new Status();
-    status.url = "http://example.com";
-    status.creator = creator;
+    User creator = new GithubUser();
+    creator.setUsername("foo");
+    status = new GithubStatus();
+    status.setTargetUrl("http://example.com");
+    status.setUser(creator);
   }
 
   @Test
@@ -108,33 +112,47 @@ public class GitHubApiServiceTest
       throws IOException
   {
     event = getApplicationEvaluationEvent("foo", null, null, 0, 0, 0, 0, null);
-    gitHubApiService.maybeRespond(event);
+    gitApiService.maybeRespond(event);
 
-    verify(mockGitHubApiClient, never()).createStatus(any(), any(), any(), any());
+    verify(mockGitApiClient, never()).createStatus(any(), any());
   }
 
   @Test
   public void testMaybeRespondToApplicationEvaluationEvent_SourceControlRecordNotFound() throws IOException {
     doReturn(null).when(mockSourceControlService).getSourceControlByApplicationIdDecrypted(application.getId());
     event = getApplicationEvaluationEvent(application.getId(), "release", "failure", 1, 1, 0, 0, "commitHash");
-    gitHubApiService.maybeRespond(event);
+    gitApiService.maybeRespond(event);
 
-    verify(mockGitHubApiClient, never()).createStatus(any(), any(), any(), any());
+    verify(mockGitApiClient, never()).createStatus(any(), any());
   }
 
   private void assertApplicationEvaluationOutcome(final String policyEvaluationOutcome, final String gitHubCommitStatus)
       throws IOException
   {
     ProjectUri projectUri = setupPolicyEvaluation(policyEvaluationOutcome);
+    StatusRequest statusRequest = createStatusRequest(gitHubCommitStatus);
     doReturn(sourceControl).when(mockSourceControlService)
         .getSourceControlByApplicationIdDecrypted(application.getId());
-    doReturn(mockGitHubApiClient).when(mockGitHubApiClientFactory).create(sourceControl.getRepositoryUrl(), TOKEN);
+    doReturn(mockGitApiClient).when(mockGitClientFactory).create(sourceControl);
+    doReturn(projectUri).when(mockGitApiClient).getProjectUri();
+    doReturn(statusRequest).when(mockGitApiClient).createStatusRequest(any(), any(), any(), any());
     doReturn("http://localhost:8070/").when(mockBaseUrl).get();
-    when(mockGitHubApiClient.createStatus(any(), any(), any(), any())).thenReturn(status);
+    when(mockGitApiClient.createStatus(any(), any())).thenReturn(status);
     
-    gitHubApiService.maybeRespond(event);
+    gitApiService.maybeRespond(event);
 
-    assertGitHubStatusMessage(projectUri, event, "commitHash", gitHubCommitStatus, mockGitHubApiClient);
+    assertGitHubStatusMessage(event, "commitHash", gitHubCommitStatus, mockGitApiClient);
+  }
+
+  private StatusRequest createStatusRequest(final String gitHubCommitStatus) {
+    StatusRequest statusRequest = new GithubStatusRequest();
+    statusRequest.setState(gitHubCommitStatus);
+    statusRequest.setContext("IQ Policy Evaluation");
+    statusRequest.setDescription(String
+        .format("Components: Critical: %d, Severe: %d, Moderate: %d", event.criticalComponentCount,
+            event.severeComponentCount, event.moderateComponentCount));
+    statusRequest.setTargetUrl("http://localhost:8070/ui/links/application/app/report/scanId?source=github");
+    return statusRequest;
   }
 
   private ProjectUri setupPolicyEvaluation(final String policyEvaluationOutcome) {
@@ -143,7 +161,9 @@ public class GitHubApiServiceTest
     int severeComponentsCount = 6;
     int moderateComponentsCount = 3;
 
-    ProjectUri projectUri = new ProjectUri("https://github.com/owner/repo/");
+    ProjectUri projectUri = GitApiClientFactory
+        .getGitApiClientUtils(com.sonatype.nexus.scm.SourceControlProvider.GITHUB)
+        .createProjectUri("https://github.com/owner/repo/");
     sourceControl = new SourceControl(application.getId(), projectUri.getUrl(), TOKEN, SourceControlProvider.GITHUB);
     event =
         getApplicationEvaluationEvent(application.getId(), "release", policyEvaluationOutcome, affectedComponentsCount,
@@ -152,27 +172,23 @@ public class GitHubApiServiceTest
   }
 
   private void assertGitHubStatusMessage(
-      final ProjectUri projectUri,
       final ApplicationEvaluationEvent event,
-      final String commitHash, final String status, final GitHubApiClient mockGitHubApiClient) throws IOException
+      final String commitHash, final String status, final GitApiClient mockGitApiClient) throws IOException
   {
     ArgumentCaptor<String> stringCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<StatusRequest> statusRequestCaptor = ArgumentCaptor.forClass(StatusRequest.class);
-    verify(mockGitHubApiClient).createStatus(stringCaptor.capture(), stringCaptor.capture(), stringCaptor.capture(),
-        statusRequestCaptor.capture());
+    verify(mockGitApiClient).createStatus(stringCaptor.capture(), statusRequestCaptor.capture());
 
     List<String> stringArguments = stringCaptor.getAllValues();
-    assertThat(stringArguments.get(0)).isEqualTo(projectUri.getOrganization());
-    assertThat(stringArguments.get(1)).isEqualTo(projectUri.getProject());
-    assertThat(stringArguments.get(2)).isEqualTo(commitHash);
+    assertThat(stringArguments.get(0)).isEqualTo(commitHash);
 
     StatusRequest actualStatusRequest = statusRequestCaptor.getValue();
-    assertThat(actualStatusRequest.context).isEqualTo("IQ Policy Evaluation");
-    assertThat(actualStatusRequest.description).isEqualTo(String
+    assertThat(actualStatusRequest.getContext()).isEqualTo("IQ Policy Evaluation");
+    assertThat(actualStatusRequest.getDescription()).isEqualTo(String
         .format("Components: Critical: %d, Severe: %d, Moderate: %d", event.criticalComponentCount,
             event.severeComponentCount, event.moderateComponentCount));
-    assertThat(actualStatusRequest.state).isEqualTo(status);
-    assertThat(actualStatusRequest.targetUrl)
+    assertThat(actualStatusRequest.getState()).isEqualTo(status);
+    assertThat(actualStatusRequest.getTargetUrl())
         .isEqualTo("http://localhost:8070/ui/links/application/app/report/scanId?source=github");
   }
 

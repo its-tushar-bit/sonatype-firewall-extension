@@ -14,7 +14,8 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.nexus.github.GitHubApiClientUtils;
+import com.sonatype.nexus.scm.GitApiClientFactory;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -111,7 +112,9 @@ public class SourceControlDAO
     }
 
     try {
-      GitHubApiClientUtils.createProjectUri(sourceControl.getRepositoryUrl());
+      SourceControlProvider scmProvider = SourceControlProvider.fromString(sourceControl.getProvider().toString());
+      GitApiClientFactory.getGitApiClientUtils(scmProvider)
+          .createProjectUri(sourceControl.getRepositoryUrl());
     }
     catch (IllegalArgumentException e) {
       throw new BadRequestException("SourceControl URL is invalid: " + e.getMessage(), e);

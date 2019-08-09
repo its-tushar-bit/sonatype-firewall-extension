@@ -596,7 +596,7 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.nexus</groupId>
-      <artifactId>nexus-github-wrapper</artifactId>
+      <artifactId>nexus-scm-client</artifactId>
     </dependency>
 
     <dependency>

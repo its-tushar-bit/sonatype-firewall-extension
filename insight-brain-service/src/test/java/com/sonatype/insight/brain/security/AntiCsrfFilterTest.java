@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.junit.Test;
@@ -31,13 +30,14 @@ public class AntiCsrfFilterTest
 
   private boolean anonymousAccessAllowed;
 
-  private final Configurator configurator = new Configurator()
-  {
-    @Override
-    public void configure(InsightConfig config) {
-      config.getReverseProxyAuthentication().setEnabled(true);
-      config.setAnonymousClientAccessAllowed(anonymousAccessAllowed);
-    }
+  private static final Configurator ANON_ALLOWED = config -> {
+    config.getReverseProxyAuthentication().setEnabled(true);
+    config.setAnonymousClientAccessAllowed(true);
+  };
+
+  private static final Configurator ANON_DISALLOWED = config -> {
+    config.getReverseProxyAuthentication().setEnabled(true);
+    config.setAnonymousClientAccessAllowed(false);
   };
 
   public AntiCsrfFilterTest(boolean anonymousAccessAllowed) {
@@ -54,7 +54,7 @@ public class AntiCsrfFilterTest
 
   @Override
   protected void initServer() throws Exception {
-    initServer(configurator);
+    initServer(anonymousAccessAllowed ? ANON_ALLOWED : ANON_DISALLOWED);
   }
 
   @Test
@@ -101,16 +101,26 @@ public class AntiCsrfFilterTest
 
   @Test
   public void testRequestWithRUTWithCsrfCookieAndHeaderAndDisabledCsrfProtection_Allowed() throws Exception {
-    getCLMServer().getConfiguration().getReverseProxyAuthentication().setCsrfProtectionDisabled(true);
-    HttpResponse response = restRequest().header("REMOTE_USER", "admin").csrfToken("nonce", "nonce").put();
-    assertAccessIsAllowed(response);
+    try {
+      getCLMServer().getConfiguration().getReverseProxyAuthentication().setCsrfProtectionDisabled(true);
+      HttpResponse response = restRequest().header("REMOTE_USER", "admin").csrfToken("nonce", "nonce").put();
+      assertAccessIsAllowed(response);
+    }
+    finally {
+      getCLMServer().getConfiguration().getReverseProxyAuthentication().setCsrfProtectionDisabled(false);
+    }
   }
 
   @Test
   public void testRequestWithRUTWithoutCsrfCookieAndHeaderAndDisabledCsrfProtection_Allowed() throws Exception {
-    getCLMServer().getConfiguration().getReverseProxyAuthentication().setCsrfProtectionDisabled(true);
-    HttpResponse response = restRequest().header("REMOTE_USER", "admin").noCsrfToken().put();
-    assertAccessIsAllowed(response);
+    try {
+      getCLMServer().getConfiguration().getReverseProxyAuthentication().setCsrfProtectionDisabled(true);
+      HttpResponse response = restRequest().header("REMOTE_USER", "admin").noCsrfToken().put();
+      assertAccessIsAllowed(response);
+    }
+    finally {
+      getCLMServer().getConfiguration().getReverseProxyAuthentication().setCsrfProtectionDisabled(false);
+    }
   }
 
   @Test

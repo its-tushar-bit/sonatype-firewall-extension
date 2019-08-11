@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.test.LogOutput;
 
 import org.apache.http.HttpStatus;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,8 +74,8 @@ public class ReverseProxyAuthcTest
     });
   }
 
-  @Override
-  public void initTest() throws Exception {
+  @Before
+  public void init() throws Exception {
     if (setupLdap) {
       ldapServer.start();
       if (ldapUser) {
@@ -88,8 +89,6 @@ public class ReverseProxyAuthcTest
       // Be sure to keep the detail in-sync with the ldap defined user details for the testuser
       tempEntity.newUser("testuser", "John", "Doe", "test.user@company.com");
     }
-
-    // defer brain server initialization to actual test method
   }
 
   private String displayName() {

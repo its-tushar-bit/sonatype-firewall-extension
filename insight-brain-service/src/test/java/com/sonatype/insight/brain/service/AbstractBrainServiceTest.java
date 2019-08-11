@@ -124,9 +124,8 @@ public abstract class AbstractBrainServiceTest
     log.info("Before: {}", testName.getMethodName());
     initHds();
     if (!isTestUsingManualServerInit()) {
-      initServer(null);
+      initServer();
     }
-
     setUpTestLicenseThreatGroups();
   }
 
@@ -151,6 +150,10 @@ public abstract class AbstractBrainServiceTest
       testMethod = testMethod.substring(0, paramStart);
     }
     return getClass().getMethod(testMethod).isAnnotationPresent(ManualServerInit.class);
+  }
+
+  protected void initServer() throws Exception {
+    initServer(null);
   }
 
   protected void initServer(Configurator configurator) throws Exception {

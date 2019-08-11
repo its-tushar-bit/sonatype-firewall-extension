@@ -53,7 +53,8 @@ public class NewInstancePopulatorAuditTest
     assertPolicyImportData(auditDTO, null, null, null, null);
   }
 
-  private void initServer() throws Exception {
+  @Override
+  protected void initServer() throws Exception {
     initServer(config -> config.setImportRefrencePoliciesFromHDS(true));
   }
 }

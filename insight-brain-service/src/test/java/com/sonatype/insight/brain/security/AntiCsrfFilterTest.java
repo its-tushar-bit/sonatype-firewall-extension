@@ -53,7 +53,7 @@ public class AntiCsrfFilterTest
   }
 
   @Override
-  public void initTest() throws Exception {
+  protected void initServer() throws Exception {
     initServer(configurator);
   }
 

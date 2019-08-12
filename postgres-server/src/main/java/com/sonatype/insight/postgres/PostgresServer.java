@@ -280,7 +280,7 @@ public class PostgresServer
           log.info(logMessage);
         }
       }
-      catch (Throwable t) {
+      catch (RuntimeException t) {
         log.warn("Failed to read server log", t);
       }
       finally {

@@ -29,7 +29,7 @@ import org.eclipse.jetty.server.Request;
 public class AuthenticationLoggingFilter
     implements Filter
 {
-  public static String URL_PATTERN = "/*";
+  public static final String URL_PATTERN = "/*";
 
   private final CurrentUser currentUser;
 

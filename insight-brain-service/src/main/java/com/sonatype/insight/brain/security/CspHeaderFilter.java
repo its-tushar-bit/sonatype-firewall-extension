@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 public class CspHeaderFilter
     implements Filter
 {
-  public static String URL_PATTERN = "/assets/*";
+  public static final String URL_PATTERN = "/assets/*";
 
   private final boolean cspEnabled;
 

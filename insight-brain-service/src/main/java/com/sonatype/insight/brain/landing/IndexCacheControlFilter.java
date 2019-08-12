@@ -27,7 +27,7 @@ import javax.ws.rs.core.HttpHeaders;
 public class IndexCacheControlFilter
     implements Filter
 {
-  public static String URL_PATTERN = "/assets/index.html";
+  public static final String URL_PATTERN = "/assets/index.html";
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {

@@ -4,7 +4,7 @@
       <h5>Error</h5>
 
       <p>Unfortunately an error occurred while contacting the configured IQ Server, if the problem persists please
-        contact <a href='http://links.sonatype.com/products/clm/support' target='_blank'>Sonatype Support</a>.</p>
+        contact <a href='http://links.sonatype.com/products/clm/support' rel="noreferrer" target='_blank'>Sonatype Support</a>.</p>
 
       <p>{{errorMessage}}</p>
 
@@ -207,7 +207,9 @@
               <tr id='artifactWebsite' ng-if='componentDetails.website'>
                 <td>Website:</td>
                 <td>
-                  <a href='{{componentDetails.website}}' target='{{linkTarget}}'><i class='icon-info-sign'></i></a>
+                  <a href='{{componentDetails.website}}' rel="noreferrer" target='{{linkTarget}}'>
+                    <i class='icon-info-sign'></i>
+                  </a>
                 </td>
               </tr>
               <tr id='artifactInfoClaimComment' ng-if='componentDetails.identificationSourceComment'>

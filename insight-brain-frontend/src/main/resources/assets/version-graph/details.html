@@ -103,7 +103,9 @@
         </span> <span ng-show='isSvGrouped($index)'> </span>
         </td>
         <td class='refCol'>
-          <a ng-if="getSvUrl(issue)" ng-href='{{getSvUrl(issue)}}' target='{{linkTarget}}'>{{getSvName(issue)}}</a>
+          <a ng-if="getSvUrl(issue)" ng-href='{{getSvUrl(issue)}}' rel="noreferrer" target='{{linkTarget}}'>
+            {{getSvName(issue)}}
+          </a>
           <span ng-if="!getSvUrl(issue)">{{getSvName(issue)}}</span>
         </td>
         <td class='refCol'>{{issue.status}}</td>

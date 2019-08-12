@@ -9,6 +9,9 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.jaxrs.error.ErrorResponse;
+
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.subject.Subject;
@@ -38,8 +41,12 @@ class UserFriendlyBasicHttpAuthenticationFilter
     if (response.isCommitted()) {
       return false;
     }
-    // for anonymous requests, send the ordinary auth challenge
-    return super.sendChallenge(request, response);
+    // for anonymous requests, send the auth challenge
+    // NOTE: We specifically avoid super.sendChallenge() as we do not want the WWW-Authenticate header set which would
+    // otherwise trigger browser-native login prompts instead of our own login UI
+    LoginErrorResponseHandler.sendError((HttpServletResponse) response,
+        new ErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
+    return false;
   }
 
   @Override

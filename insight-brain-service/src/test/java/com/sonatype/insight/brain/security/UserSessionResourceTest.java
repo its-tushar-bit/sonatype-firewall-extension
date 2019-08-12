@@ -69,7 +69,7 @@ public class UserSessionResourceTest
     response = login();
     assertResponseStatus(401, response);
     assertThat(response.getHeader("WWW-Authenticate")).isNull();
-    assertThat(response.getBodyText()).isEqualTo(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
+    assertThat(response.getBodyText()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS);
 
     // now run with valid data
     response = login(User.ADMIN_USERNAME, "admin123");

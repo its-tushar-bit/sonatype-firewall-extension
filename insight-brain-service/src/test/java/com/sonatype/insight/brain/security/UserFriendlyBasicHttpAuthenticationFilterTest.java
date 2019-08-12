@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -62,15 +63,15 @@ public class UserFriendlyBasicHttpAuthenticationFilterTest
   }
 
   @Test
-  public void testSendChallenge_WhenResponseIsNotYetCommitted() {
+  public void testSendChallenge_WhenResponseIsNotYetCommitted() throws Exception {
     final HttpServletResponse response = mock(HttpServletResponse.class);
     when(response.isCommitted()).thenReturn(false);
+    when(response.getWriter()).thenReturn(mock(PrintWriter.class));
 
     assertThat(userFriendlyBasicHttpAuthenticationFilter.sendChallenge(null, response)).isFalse();
 
     verify(response).isCommitted();
     verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    verify(response).setHeader(eq("WWW-Authenticate"), anyString());
-    verifyNoMoreInteractions(response);
+    verify(response, never()).setHeader(eq("WWW-Authenticate"), anyString());
   }
 }

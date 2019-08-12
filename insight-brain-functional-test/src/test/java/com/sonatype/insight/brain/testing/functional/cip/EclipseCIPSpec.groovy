@@ -47,7 +47,7 @@ class EclipseCIPSpec
 
     then: 'an error message is shown'
       waitFor { error.displayed }
-      error.text().contains('Error 401')
+      error.text().contains('Missing credentials')
   }
 
   def 'Initially the CIP is not shown'() {

@@ -105,7 +105,7 @@ public class ReverseProxyAuthcTest
     assertThat(reverseProxyAuthcConfig.getUsernameHeader()).isEqualTo("REMOTE_USER");
     HttpResponse response = restRequest().path("rest/anything").header("REMOTE_USER", "testuser").anon().get();
     assertResponseStatus(401, response);
-    assertThat(response.getBodyText()).isEqualTo(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
+    assertThat(response.getBodyText()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS);
   }
 
   @Test

@@ -70,7 +70,7 @@ public class ConfigurationClientTest
     }
     catch (HttpResponseException e) {
       assertThat(e.getStatusCode()).isEqualTo(401);
-      assertThat(e.getMessage()).isEqualTo("Unauthorized");
+      assertThat(e.getMessage()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS);
     }
   }
 

@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
@@ -126,7 +127,7 @@ public class ReportClientTest
       fail("Expected an HttpResponseException for Unauthorized");
     }
     catch (HttpResponseException e) {
-      assertThat(e.getMessage()).isEqualTo("Unauthorized");
+      assertThat(e.getMessage()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS);
     }
   }
 }

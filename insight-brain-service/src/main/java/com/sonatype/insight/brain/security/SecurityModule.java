@@ -24,7 +24,6 @@ import org.apache.shiro.session.SessionListener;
 import org.apache.shiro.session.mgt.SessionManager;
 import org.apache.shiro.session.mgt.eis.MemorySessionDAO;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
-import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
 import org.apache.shiro.web.filter.mgt.DefaultFilterChainManager;
 import org.apache.shiro.web.filter.mgt.FilterChainManager;
 import org.apache.shiro.web.filter.mgt.FilterChainResolver;
@@ -43,8 +42,6 @@ public class SecurityModule
     extends ShiroModule
 {
   public static final String SESSION_COOKIE_NAME = "CLMSESSIONID";
-
-  private static final String AUTHC_SCHEME = "nonBrowserPromptingBasic";
 
   private final boolean anonymousClientAccessAllowed;
 
@@ -93,10 +90,7 @@ public class SecurityModule
     manager.addFilter("antiCsrf", antiCsrfFilter);
     manager.addFilter("reverseProxy", new ReverseProxyAuthenticationFilter(reverseProxyAuthentication));
     manager.addFilter("noSessionReverseProxy", new ReverseProxyAuthenticationFilter(reverseProxyAuthentication, false));
-    manager.addFilter("authcNoChallengeBasic", new NoChallengeBasicHttpAuthenticationFilter());
     manager.addFilter("sessionExpirationCookie", new SessionExpirationCookieFilter());
-    // change the auth type so browsers don't prompt for login details
-    BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic")).setAuthcScheme(AUTHC_SCHEME);
   }
 
   private void configureFilterChains(DefaultFilterChainManager manager) {
@@ -120,7 +114,7 @@ public class SecurityModule
 
     // public REST API
     manager.createChain("/api/**", "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED
-        + "], noSessionReverseProxy, authcNoChallengeBasic");
+        + "], noSessionReverseProxy, authcBasic");
 
     // login, only means to create sessions, also used by integrations for auth validation
     manager.createChain("/rest/user/session", "sessionExpirationCookie, antiCsrf["

@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -80,8 +81,8 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
     else {
       assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
         evaluator.run(params);
-      }).withCauseInstanceOf(HttpResponseException.class)
-          .satisfies(e -> assertThat(e.getCause().getMessage()).isEqualTo("Unauthorized"));
+      }).withCauseInstanceOf(HttpResponseException.class).satisfies(
+          e -> assertThat(e.getCause().getMessage()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
     }
   }
 
@@ -117,8 +118,8 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
     else {
       assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
         evaluator.run(params);
-      }).withCauseInstanceOf(HttpResponseException.class)
-          .satisfies(e -> assertThat(e.getCause().getMessage()).isEqualTo("Unauthorized"));
+      }).withCauseInstanceOf(HttpResponseException.class).satisfies(
+          e -> assertThat(e.getCause().getMessage()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
     }
   }
 

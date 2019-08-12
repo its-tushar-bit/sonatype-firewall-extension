@@ -173,7 +173,7 @@ public class AntiCsrfFilterTest
   }
 
   private void assertLoginFailure(final HttpResponse response) {
-    assertThat(response.getBodyText()).isEqualTo(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
+    assertThat(response.getBodyText()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS);
     assertResponseStatus(401, response);
   }
 }

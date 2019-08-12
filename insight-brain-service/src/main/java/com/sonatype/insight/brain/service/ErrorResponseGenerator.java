@@ -27,6 +27,8 @@ public class ErrorResponseGenerator
 {
   public static final String MSG_LOGIN_FAILURE_DEFAULT = "Invalid credentials. Please try again.";
 
+  public static final String MSG_MISSING_CREDENTIALS = "Missing credentials.";
+
   static final String MSG_LDAP_FAILURE = 
       "Authentication failed due to LDAP error. Please contact your IT administrator.";
 

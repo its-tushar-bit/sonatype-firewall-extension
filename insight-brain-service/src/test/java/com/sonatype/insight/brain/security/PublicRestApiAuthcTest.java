@@ -90,7 +90,7 @@ public class PublicRestApiAuthcTest
 
   @Test
   public void testNoAuthentication() throws Exception {
-    testBadAuthentication(null, null, ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
+    testBadAuthentication(null, null, ErrorResponseGenerator.MSG_MISSING_CREDENTIALS);
   }
 
   @Test

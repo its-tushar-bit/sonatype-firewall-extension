@@ -14,11 +14,11 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
@@ -65,12 +65,12 @@ public class GitApiService
    */
   public void maybeRespond(final ApplicationEvaluationEvent event) {
     if (null != event.commitHash) {
-      SourceControl sourceControl = sourceControlService.getSourceControlByApplicationIdDecrypted(event.ownerId);
+      ApiSourceControlDTO sourceControl = sourceControlService.getSourceControlByApplicationIdDecrypted(event.ownerId);
       if (null != sourceControl) {
         GitApiClient gitApiClient = gitClientFactory.create(sourceControl);
-        StatusRequest statusRequest = createStatusRequest(event, gitApiClient, sourceControl.getProvider());
+        StatusRequest statusRequest = createStatusRequest(event, gitApiClient, sourceControl.provider);
         log.debug("Creating a {} commit status for repository: {}, commit hash: {}, with outcome: {}, state: {}",
-            sourceControl.getProvider(), gitApiClient.getProjectUri().getUrl(),
+            sourceControl.provider, gitApiClient.getProjectUri().getUrl(),
             event.commitHash, event.outcome, statusRequest.getState());
         try {
           Status status = gitApiClient.createStatus(event.commitHash, statusRequest);
@@ -80,7 +80,7 @@ public class GitApiService
         catch (IOException e) {
           log.error("Failed to update status for applicationId: {}, repository: {}, commitHash: {}, " +
                   "triggered by policyEvaluationId: {}",
-              event.ownerId, sourceControl.getRepositoryUrl(), event.commitHash, event.policyEvaluationId, e);
+              event.ownerId, sourceControl.repositoryUrl, event.commitHash, event.policyEvaluationId, e);
         }
       }
     }

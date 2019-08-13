@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
@@ -28,6 +29,8 @@ public class ApiSourceControlServiceAuthzTest
   
   @Inject
   public ApiSourceControlService sourceControlService;
+
+  private ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetAll_Unauthenticated() {
@@ -51,8 +54,9 @@ public class ApiSourceControlServiceAuthzTest
     grantReadPermission(app.getId());
     SourceControl sourceControl =
         tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
-    SourceControl sourceControlByApplicationId = sourceControlService.getSourceControlByApplicationId(app.getId());
-    assertThat(sourceControlByApplicationId.getId()).isEqualTo(sourceControl.getId());
+    ApiSourceControlDTO sourceControlByApplicationId =
+        sourceControlService.getSourceControlByApplicationId(app.getId());
+    assertThat(sourceControlByApplicationId.id).isEqualTo(sourceControl.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -68,41 +72,42 @@ public class ApiSourceControlServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testAddSourceControl_Unauthenticated() {
-    sourceControlService.addSourceControl(app.getId(), new SourceControl());
+    sourceControlService.addSourceControl(app.getId(), new ApiSourceControlDTO());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testAddSourceControl_Unauthorized() {
     login();
-    sourceControlService.addSourceControl(app.getId(), new SourceControl());
+    sourceControlService.addSourceControl(app.getId(), new ApiSourceControlDTO());
   }
 
   @Test
   public void testAddSourceControl_Authorized() {
     grantWritePermission(app.getId());
-    sourceControlService
-        .addSourceControl(app.getId(),
-            new SourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB));
+    sourceControlService.addSourceControl(app.getId(),
+        apiSourceControlAdapter.convertToDTO(new SourceControl(
+            app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB)));
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testUpdateSourceControl_Unauthenticated() {
-    sourceControlService.updateSourceControl(app.getId(), new SourceControl());
+    sourceControlService.updateSourceControl(app.getId(), new ApiSourceControlDTO());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testUpdateSourceControl_Unauthorized() {
     login();
-    sourceControlService.updateSourceControl(app.getId(), new SourceControl());
+    sourceControlService.updateSourceControl(app.getId(), new ApiSourceControlDTO());
   }
 
   @Test
   public void testUpdateSourceControl_Authorized() {
     grantWritePermission(app.getId());
-    SourceControl sourceControl = sourceControlService
-        .addSourceControl(app.getId(),
-            new SourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB));
-    sourceControl.setToken("newToken");
+    ApiSourceControlDTO sourceControl = sourceControlService.addSourceControl(
+        app.getId(), apiSourceControlAdapter.convertToDTO(
+            new SourceControl(app.getId(), VALID_URL, "token",
+                SourceControlProvider.GITHUB)));
+    sourceControl.token = "newToken";
     sourceControlService.updateSourceControl(app.getId(), sourceControl);
   }
 

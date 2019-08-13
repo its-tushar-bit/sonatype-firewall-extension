@@ -19,7 +19,6 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiSourceControlAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -42,23 +41,16 @@ public class ApiSourceControlResource
 
   private final ApiSourceControlService sourceControlService;
 
-  private final ApiSourceControlAdapter apiSourceControlAdapter;
-
   @Inject
-  public ApiSourceControlResource(
-      final ApiSourceControlService apiSourceControlService,
-      final ApiSourceControlAdapter apiSourceControlAdapter)
-  {
+  public ApiSourceControlResource(final ApiSourceControlService apiSourceControlService) {
     this.sourceControlService = apiSourceControlService;
-    this.apiSourceControlAdapter = apiSourceControlAdapter;
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(APPLICATION_ID)
   public ApiSourceControlDTO getSourceControl(@PathParam("applicationId") String applicationId) {
-    return apiSourceControlAdapter.convertToDTO(
-        sourceControlService.getSourceControlByApplicationId(applicationId));
+    return sourceControlService.getSourceControlByApplicationId(applicationId);
   }
 
   @POST
@@ -69,10 +61,7 @@ public class ApiSourceControlResource
   public ApiSourceControlDTO addSourceControl(@PathParam("applicationId") String applicationId,
       ApiSourceControlDTO sourceControl) 
   {
-    return apiSourceControlAdapter.convertToDTO(
-        sourceControlService.addSourceControl(
-            applicationId,
-            apiSourceControlAdapter.convertFromDTO(sourceControl)));
+    return sourceControlService.addSourceControl(applicationId, sourceControl);
   }
 
   @PUT
@@ -80,13 +69,11 @@ public class ApiSourceControlResource
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_SOURCE_CONTROL)
   @Path(APPLICATION_ID)
-  public ApiSourceControlDTO updateSourceControl(@PathParam("applicationId") String applicationId,
-      ApiSourceControlDTO sourceControl) 
+  public ApiSourceControlDTO updateSourceControl(
+      @PathParam("applicationId") String applicationId,
+      ApiSourceControlDTO sourceControl)
   {
-    return apiSourceControlAdapter.convertToDTO(
-        sourceControlService.updateSourceControl(
-            applicationId,
-            apiSourceControlAdapter.convertFromDTO(sourceControl)));
+    return sourceControlService.updateSourceControl(applicationId, sourceControl);
   }
 
   @DELETE

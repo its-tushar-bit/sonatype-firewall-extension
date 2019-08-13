@@ -8,11 +8,13 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
@@ -51,6 +53,8 @@ public class ApiSourceControlService
 
   private final SourceControlDAO sourceControlDAO;
 
+  private final ApiSourceControlAdapter apiSourceControlAdapter;
+
   private final ProductLicense productLicense;
 
   private final TelemetrySender telemetrySender;
@@ -58,25 +62,29 @@ public class ApiSourceControlService
   @Inject
   public ApiSourceControlService(final PlexusCipher plexusCipher,
                                  final SourceControlDAO sourceControlDAO,
+                                 final ApiSourceControlAdapter apiSourceControlAdapter,
                                  final ProductLicense productLicense,
                                  final TelemetrySender telemetrySender)
   {
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
+    this.apiSourceControlAdapter = apiSourceControlAdapter;
     this.productLicense = productLicense;
     this.telemetrySender = telemetrySender;
   }
 
   @Authorize(permission = Permission.READ)
-  public List<SourceControl> getAll() {
+  public List<ApiSourceControlDTO> getAll() {
     checkLicense();
     List<SourceControl> sourceControlDAOAll = sourceControlDAO.getAll();
     sourceControlDAOAll.forEach(this::encryptToken);
-    return sourceControlDAOAll;
+    return sourceControlDAOAll.stream().map(apiSourceControlAdapter::convertToDTO).collect(Collectors.toList());
   }
 
   @Authorize(permission = Permission.READ)
-  public SourceControl getSourceControlByApplicationId(@AuthzContext(Key.APPLICATION_ID) final String applicationId) {
+  public ApiSourceControlDTO getSourceControlByApplicationId(
+      @AuthzContext(Key.APPLICATION_ID) final String applicationId)
+  {
     checkLicense();
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(applicationId);
     if (null == sourceControl) {
@@ -84,14 +92,17 @@ public class ApiSourceControlService
     }
     sourceControl.setToken(FAKE_SECRET_KEY);
     sendSourceControlTelemetryData(METHOD.GET_BY_APP_ID, applicationId);
-    return sourceControl;
+    return apiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
   @Authorize(permission = Permission.WRITE)
-  public SourceControl addSourceControl(@AuthzContext(Key.APPLICATION_ID) final String applicationId,
-      SourceControl sourceControl)
+  public ApiSourceControlDTO addSourceControl(
+      @AuthzContext(Key.APPLICATION_ID) final String applicationId,
+      ApiSourceControlDTO sourceControlDTO)
   {
     checkLicense();
+    SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(
+        sourceControlDTO);
     encryptToken(sourceControl);
     sourceControl.setOwnerId(applicationId);
     addDefaultProviderIfNotSpecified(sourceControl);
@@ -99,14 +110,19 @@ public class ApiSourceControlService
     auditSourceControl(sourceControl);
     sourceControl.setToken(FAKE_SECRET_KEY);
     sendSourceControlTelemetryData(METHOD.ADD, applicationId, sourceControl);
-    return sourceControl;
+    return apiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
   @Authorize(permission = Permission.WRITE)
-  public SourceControl updateSourceControl(@AuthzContext(Key.APPLICATION_ID) final String applicationId,
-      SourceControl sourceControl)
+  public ApiSourceControlDTO updateSourceControl(
+      @AuthzContext(Key.APPLICATION_ID) final String applicationId,
+      ApiSourceControlDTO sourceControlDTO)
   {
     checkLicense();
+
+    SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(
+        sourceControlDTO);
+
     // updates may come with our 'fake' token or simply omit it
     if (isEmpty(sourceControl.getToken()) || FAKE_SECRET_KEY.equalsIgnoreCase(sourceControl.getToken())) {
       SourceControl storedSourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
@@ -121,7 +137,7 @@ public class ApiSourceControlService
     auditSourceControl(sourceControl);
     sourceControl.setToken(FAKE_SECRET_KEY);
     sendSourceControlTelemetryData(METHOD.UPDATE, applicationId, sourceControl);
-    return sourceControl;
+    return apiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -136,25 +152,28 @@ public class ApiSourceControlService
     sendSourceControlTelemetryData(METHOD.DELETE, applicationId, sourceControl);
   }
 
-  public SourceControl getSourceControlByApplicationIdDecrypted(final String applicationId) {
-    SourceControl sourceControl;
+  public ApiSourceControlDTO getSourceControlByApplicationIdDecrypted(
+      final String applicationId)
+  {
     try {
-      sourceControl = getSourceControlByApplicationId(applicationId);
+      ApiSourceControlDTO sourceControl = getSourceControlByApplicationId(
+          applicationId);
+      return getSourceControlDecrypted(sourceControl.ownerId, sourceControl.id);
     }
     catch (NotFoundException e) {
       return null;
     }
-    return getSourceControlDecrypted(sourceControl.getOwnerId(), sourceControl.getId());
   }
 
   @Authorize(permission = Permission.READ)
-  SourceControl getSourceControlDecrypted(@AuthzContext(Key.APPLICATION_ID) final String applicationId,
+  ApiSourceControlDTO getSourceControlDecrypted(
+      @AuthzContext(Key.APPLICATION_ID) final String applicationId,
       String sourceControlId)
   {
     SourceControl sourceControl = sourceControlDAO.getByIdNotNull(sourceControlId);
     validateApplicationId(applicationId, sourceControl);
     decryptToken(sourceControl);
-    return sourceControl;
+    return apiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
   private void validateApplicationId(final String applicationId, final SourceControl sourceControl) {

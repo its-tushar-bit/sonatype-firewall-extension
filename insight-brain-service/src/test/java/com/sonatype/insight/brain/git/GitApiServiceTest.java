@@ -11,6 +11,8 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiSourceControlAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -57,14 +59,16 @@ public class GitApiServiceTest
 
   private Application application;
 
-  private SourceControl sourceControl;
+  private ApiSourceControlDTO sourceControl;
 
   private ApplicationEvaluationEvent event;
 
   private GitApiClient mockGitApiClient = mock(GitApiClient.class);
 
   private Status status;
-  
+
+  private ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
+
   @Override
   public void configure(Binder binder) {
     mockSourceControlService = mock(ApiSourceControlService.class);
@@ -164,10 +168,12 @@ public class GitApiServiceTest
     ProjectUri projectUri = GitApiClientFactory
         .getGitApiClientUtils(com.sonatype.nexus.scm.SourceControlProvider.GITHUB)
         .createProjectUri("https://github.com/owner/repo/");
-    sourceControl = new SourceControl(application.getId(), projectUri.getUrl(), TOKEN, SourceControlProvider.GITHUB);
-    event =
-        getApplicationEvaluationEvent(application.getId(), "release", policyEvaluationOutcome, affectedComponentsCount,
-            criticalComponentsCount, severeComponentsCount, moderateComponentsCount, "commitHash");
+    sourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl(application.getId(), projectUri.getUrl(), TOKEN,
+            SourceControlProvider.GITHUB));
+    event = getApplicationEvaluationEvent(application.getId(), "release",
+        policyEvaluationOutcome, affectedComponentsCount,
+        criticalComponentsCount, severeComponentsCount, moderateComponentsCount, "commitHash");
     return projectUri;
   }
 

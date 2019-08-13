@@ -42,6 +42,7 @@ describe('CIP Policy Waiver tests', function() {
               policyId: "policyId",
               policyName: "name",
               policyThreatLevel: 5,
+              policyViolationId: "pv1",
               actions: [{
                 actionType: '1',
                 actionSummary: 'This is an action'
@@ -83,6 +84,7 @@ describe('CIP Policy Waiver tests', function() {
               policyId: "policyId2",
               policyName: "name2",
               policyThreatLevel: 7,
+              policyViolationId: "pv2",
               actions: [{
                 actionType: '1',
                 actionSummary: 'This is an action'
@@ -120,6 +122,7 @@ describe('CIP Policy Waiver tests', function() {
         expect(_scope.processedPolicyAlerts).toEqual([{
           id: 'policyId2',
           name: 'name2',
+          policyViolationId: 'pv2',
           threatLevel: 7,
           hash: '3102cdd0edd5a05afe00',
           constraints: [{
@@ -144,6 +147,7 @@ describe('CIP Policy Waiver tests', function() {
         },{
           id: 'policyId',
           name: 'name',
+          policyViolationId: 'pv1',
           threatLevel: 5,
           hash: '3102cdd0edd5a05afe00',
           constraints: [{
@@ -197,6 +201,21 @@ describe('CIP Policy Waiver tests', function() {
           keyboard : false
         });
       }));
+
+      it('Open Request Waiver', inject(function (Modal) {
+        var modalSpy = spyOn(Modal, 'open');
+        _scope.requestWaiver(_scope.processedPolicyAlerts[0]);
+
+        expect(modalSpy).toHaveBeenCalledWith({
+          template : jasmine.any(String),
+          controller : 'RequestWaiverController',
+          backdrop : 'static',
+          keyboard : false,
+          resolve : {
+            policy : jasmine.any(Function)
+          }
+        });
+      }));
     });
     
     describe('Legacy JSON data', function(){
@@ -213,6 +232,7 @@ describe('CIP Policy Waiver tests', function() {
               trigger: {
                 policyId: "policyId",
                 policyName: "name",
+                policyViolationId: "pv1",
                 threatLevel: 5,
                 componentFacts: [
                   {
@@ -264,6 +284,7 @@ describe('CIP Policy Waiver tests', function() {
         expect(_scope.processedPolicyAlerts).toEqual([{
           id: 'policyId',
           name: 'name',
+          policyViolationId: 'pv1',
           threatLevel: 5,
           groupId: 'bsh',
           artifactId: 'bsh',
@@ -506,4 +527,54 @@ describe('CIP Policy Waiver tests', function() {
     }));
   });
 
+  describe('RequestWaiverController', function () {
+    beforeEach(inject(function($rootScope, $controller, $httpBackend) {
+      _scope = $rootScope.$new();
+      _scope.$close = angular.noop;
+      _scope.$dismiss = angular.noop;
+
+      $controller('RequestWaiverController', {
+        $scope: _scope,
+        policy : {
+          id: '123',
+          name: 'License-Banned',
+          threatLevel: 10,
+          policyViolationId: 'v1',
+          hash: '4abc6',
+          actions: [],
+          constraints: [
+            {
+              constraintId: 'c1',
+              constraintName: 'License not approved in any situation',
+              constraintOperator: 'OR',
+              conditions: [
+                {
+                  conditionReason: 'Condition Reason #1',
+                  conditionSummary: 'Condition Summary',
+                  conditionTriggerReference: null,
+                  conditionType: 'Condition Type'
+                },
+                {
+                  conditionReason: 'Condition Reason #2',
+                  conditionSummary: 'Condition Summary',
+                  conditionTriggerReference: null,
+                  conditionType: 'Condition Type'
+                }
+              ]
+            }
+          ],
+          constraintFactsJson: 'constraint-facts-json'
+        }
+      });
+    }));
+
+    it('Validates data in scope', inject(function($httpBackend) {
+      expect(_scope.policy.id).toEqual('123');
+      expect(_scope.policy.policyViolationId).toEqual('v1');
+      expect(_scope.policy.name).toEqual('License-Banned');
+      expect(_scope.policy.threatLevel).toEqual(10);
+      expect(_scope.conditionReasons).toEqual(['Condition Reason #1', 'Condition Reason #2']);
+      expect(_scope.getThreatColor(_scope.policy.threatLevel)).toEqual('red');
+    }));
+  });
 });

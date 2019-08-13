@@ -10,6 +10,7 @@ import policyViolationsController from './policy.violations.controller';
 import viewWaiverController from './view.waiver.controller';
 import releaseQuarantineController from './release.quarantine.controller';
 import ciPolicyViolationsService from './ci.policy.violations.service';
+import requestWaiverController from './request.waiver.controller';
 
 export default angular.module('cip.policy.violations',
     ['CommonServices', 'HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap'])
@@ -18,4 +19,5 @@ export default angular.module('cip.policy.violations',
     .controller('PolicyViolationsController', policyViolationsController)
     .controller('ViewWaiverController', viewWaiverController)
     .controller('release.quarantine.controller', releaseQuarantineController)
-    .service('PolicyViolations', ciPolicyViolationsService);
+    .service('PolicyViolations', ciPolicyViolationsService)
+    .controller('RequestWaiverController', requestWaiverController);

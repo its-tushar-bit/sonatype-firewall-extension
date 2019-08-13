@@ -39,7 +39,8 @@ export default function RepositoryPolicyViolations($http, $q, SelectedComponent,
             constraints: activeViolation.constraints,
             actions: actions,
             blocksUnquarantine: activeViolation.blocksUnquarantine,
-            constraintFactsJson: activeViolation.constraintFactsJson
+            constraintFactsJson: activeViolation.constraintFactsJson,
+            isRequestWaiverDisabled: true
           });
         });
         deferred.resolve(processedPolicyAlerts);

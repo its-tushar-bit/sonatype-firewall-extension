@@ -77,7 +77,8 @@ export default function CIPolicyViolations($http, $q, SelectedComponent, CLMLoca
               version: componentFact.version,
               hash: componentFact.hash,
               constraints: processedConstraints,
-              actions: processedActions
+              actions: processedActions,
+              policyViolationId: policyAlert.trigger.policyViolationId
             });
           }
         });
@@ -121,7 +122,8 @@ export default function CIPolicyViolations($http, $q, SelectedComponent, CLMLoca
                   hash: policyThreat.hash,
                   constraints: activeViolation.constraints,
                   constraintFactsJson: activeViolation.constraintFactsJson,
-                  actions: actions
+                  actions: actions,
+                  policyViolationId: activeViolation.policyViolationId
                 });
               });
             }

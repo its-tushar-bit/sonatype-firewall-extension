@@ -4,15 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, CLM */
+import getThreatColor from "./threatColorUtil";
+
 export default function AddWaiverController($http, $scope, OwnerContext, SelectedComponent, messages, policy) {
 
-  $scope.getThreatColor = function (threatLevel) {
-    return threatLevel > 7 ? 'red' :
-        threatLevel > 3 ? 'orange' :
-        threatLevel > 1 ? 'yellow' :
-        threatLevel > 0 ? 'darkblue' :
-        'blue';
-  };
+  $scope.getThreatColor = getThreatColor;
 
   $scope.reset = function() {
     $scope.owner = $scope.waiverTargets[0];

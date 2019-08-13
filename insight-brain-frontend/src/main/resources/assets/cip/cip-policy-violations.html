@@ -195,7 +195,7 @@
           <th class="cip-policy-table-header">Policy/<em>Action</em></th>
           <th class="cip-policy-table-header">Constraint Name</th>
           <th class="cip-policy-table-header">Conditions</th>
-          <th class="cip-policy-table-header">Waivers</th>
+          <th class="cip-policy-table-header waivers-column">Waivers</th>
         </tr>
       </thead>
       <tr class="tm-cip-waiver-row" ng-repeat="policyAlert in processedPolicyAlerts">
@@ -223,7 +223,17 @@
             <div ng-repeat="condition in constraint.conditions" style="color: #555555;">{{condition.conditionReason}}</div>
           </div>
         </td>
-        <td style="vertical-align:middle;">
+        <td class="waivers-column">
+          <button ng-if="!policyAlert.isRequestWaiverDisabled"
+                  ng-click="policyAlert.policyViolationId && requestWaiver(policyAlert)"
+                  ng-class="{'disabled': !policyAlert.policyViolationId}"
+                  class="btn btn-secondary tm-request-waiver-button"
+                  tooltip="{{!policyAlert.policyViolationId ?
+                             'The feature to request a waiver is not available on old reports.
+                              Re-evaluate this report to make it available' : ''}}"
+                  tooltip-append-to-body="true">
+            Request
+          </button>
           <button type="none" class="btn btn-primary tm-waive-button" ng-click="waiveComponent(policyAlert)">
             Waive
           </button>

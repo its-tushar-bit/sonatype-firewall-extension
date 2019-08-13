@@ -1,0 +1,55 @@
+<div class="iq-modal-header">
+  <h2>Request Waiver</h2>
+</div>
+<div class="iq-modal-content">
+  <div id="request-waiver-explanatory-text" class="iq-alert iq-alert--info">
+    <i class="fa size-16px fa-info-circle"></i>To request a waiver, 
+    please share the Policy Violation ID and sample curl command (found below) with the approver. 
+    <a href="https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers#Waivers-RequestingaWaivertobeAdded"
+       target="_blank">
+      Learn about automating waiver requests.
+    </a>
+  </div>
+  <label class="iq-label request-waiver-modal-section">Policy</label>
+  <div id="request-waiver-policy-name"
+       class="cip-policy cip-policy-{{::getThreatColor(policy.threatLevel)}} cip-policy-name">
+    {{policy.name}}
+  </div>
+  <label class="iq-label iq-label--spaced request-waiver-modal-section">Constraint Name</label>
+  <div id="request-waiver-constraint-name">
+    <div ng-repeat="constraint in policy.constraints">{{constraint.constraintName}}</div>
+  </div>
+  <label class="iq-label iq-label--spaced request-waiver-modal-section">Conditions</label>
+  <div id="request-waiver-conditions">
+    <div ng-repeat="conditionReason in conditionReasons track by $index">{{conditionReason}}</div>
+  </div>
+  <label class="iq-label iq-label--spaced request-waiver-modal-section">
+    Policy Violation ID
+    <button id="copy-policy-violation-id"
+            copy-to-clipboard="policy.policyViolationId"
+            class="iq-btn iq-btn--icon-only"
+            tooltip="Copy id to clipboard"
+            copied-tooltip>
+      <i class="fa fa-clipboard fa-fw" title="Copy violation id to clipboard"></i>
+    </button>
+  </label>
+  <div id="request-waiver-policy-violation-id" class="visual-testing-ignore">
+    {{policy.policyViolationId}}
+  </div>
+  <label class="iq-label iq-label--spaced request-waiver-modal-section">
+    CURL Example
+    <button id="copy-curl-example"
+            copy-to-clipboard="curlExample"
+            class="iq-btn iq-btn--icon-only"
+            tooltip="Copy curl to clipboard"
+            copied-tooltip>
+      <i class="fa fa-clipboard fa-fw"></i>
+    </button>
+  </label>
+  <div id="request-waiver-curl-example">
+    <pre><code>{{curlExample}}</code></pre>
+  </div>
+</div>
+<div class="iq-modal-footer">
+  <button id="request-waiver-modal-close-btn" class="iq-btn" ng-click="$dismiss()">Close</button>
+</div>

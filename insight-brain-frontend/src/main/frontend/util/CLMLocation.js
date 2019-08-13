@@ -300,6 +300,10 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
         return baseUrl.get() + '/rest/sidebar';
       },
 
+      getRequestWaiverUrl: function(policyViolationId) {
+        return `${baseUrl.get()}/api/v2/policyWaiver/${encodeURIComponent(policyViolationId)}/application`;
+      },
+
       getDestinationOrganizationsUrl: function(applicationId) {
         return baseUrl.get() + '/rest/move/application/' + applicationId + '/destinations';
       },

@@ -4,12 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
+import requestWaiverTemplate from './cip-request-waiver-modal.html';
+import getThreatColor from "./threatColorUtil";
+
 export default function PolicyViolationsController($http, $scope, $q, Modal, SelectedComponent, OwnerContext,
                                                    PolicyViolations, Messages) {
 
-  $scope.getThreatColor = function (threatLevel) {
-    return threatLevel > 7 ? 'red' : threatLevel > 3 ? 'orange' : threatLevel > 1 ? 'yellow' : threatLevel > 0 ? 'darkblue' : 'blue';
-  };
+  $scope.getThreatColor = getThreatColor;
 
   function sortPolicyAlerts() {
     $scope.processedPolicyAlerts.sort(function(a, b) {
@@ -59,6 +60,20 @@ export default function PolicyViolationsController($http, $scope, $q, Modal, Sel
       keyboard: false,
     }).result.then(function() {
       $scope.quarantined = false;
+    });
+  };
+
+  $scope.requestWaiver = function(policyAlert) {
+    Modal.open({
+      template: requestWaiverTemplate,
+      controller: 'RequestWaiverController',
+      backdrop: 'static',
+      keyboard: false,
+      resolve: {
+        policy: function() {
+          return policyAlert;
+        }
+      }
     });
   };
 

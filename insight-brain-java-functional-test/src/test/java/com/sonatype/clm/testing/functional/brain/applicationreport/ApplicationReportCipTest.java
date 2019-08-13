@@ -37,6 +37,7 @@ import com.sonatype.clm.testing.functional.pages.WaiverCip;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ConfirmRemoveWaiverDialog;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ExistingWaiver;
+import com.sonatype.clm.testing.functional.pages.WaiverCip.RequestWaiverDialog;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
 import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
@@ -293,6 +294,22 @@ public class ApplicationReportCipTest
     WaiverCip.viewWaivers().shouldBe(visible).click();
     ViewWaiversDialog.rows().shouldHaveSize(0);
     ViewWaiversDialog.closeButton().click();
+
+    // Request Waiver
+    WaiverCip.row(1).requestWaiverButton().shouldBe(visible).click();
+    RequestWaiverDialog.explanatoryText().shouldNotBe(empty);
+    RequestWaiverDialog.policyName().shouldHave(exactText(policyName));
+    RequestWaiverDialog.constraintName().shouldHave(exactText(constraintName));
+    RequestWaiverDialog.waiverConditions().shouldHave(exactText(conditions));
+    RequestWaiverDialog.policyViolationId().shouldNotBe(empty);
+    
+    String requestWaiverUrl = Configuration.baseUrl + "api/v2/policyWaiver/" +
+        RequestWaiverDialog.policyViolationId().getText() + "/application";
+    assertThat(RequestWaiverDialog.policyCurlExample().getText()).contains(requestWaiverUrl);
+    
+    eyesWatcher.eyesCheck("Request Waiver");
+    
+    RequestWaiverDialog.closeButton().click();
 
     // Waive violation
     WaiverCip.row(1).waiveButton().shouldBe(visible).click();

@@ -145,3 +145,15 @@
   border-color: #b94a48;
   color: #b94a48;
 }
+
+.request-waiver-modal-section {
+  margin-top: 16px;
+}
+
+.waivers-column {
+  width: 150px;
+}
+
+.table .waivers-column {
+  vertical-align: middle;
+}

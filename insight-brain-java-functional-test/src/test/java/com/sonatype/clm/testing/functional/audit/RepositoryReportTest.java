@@ -502,6 +502,9 @@ public class RepositoryReportTest
     ViewWaiversDialog.rows().shouldHaveSize(0);
     ViewWaiversDialog.closeButton().click();
 
+    // Request waiver button should be hidden
+    WaiverCip.row(0).requestWaiverButton().shouldNotBe(visible);
+
     // Waive first violation
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();
 

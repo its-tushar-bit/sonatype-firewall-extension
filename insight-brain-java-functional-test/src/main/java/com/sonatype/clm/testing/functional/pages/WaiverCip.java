@@ -167,6 +167,10 @@ public class WaiverCip
       return $(createSelector(selector, ".btn-primary"));
     }
 
+    public SelenideElement requestWaiverButton() {
+      return $(createSelector(selector, ".btn-secondary"));
+    }
+
     public void shouldBe(String cssClass,
                          String policyName,
                          String[] expectedConstraints,
@@ -225,5 +229,36 @@ public class WaiverCip
 
   public static SelenideElement unquarantineButton() {
     return $(createSelector(CONTAINER_ID, "a.btn"));
+  }
+
+  public static class RequestWaiverDialog
+  {
+    public static SelenideElement explanatoryText() {
+      return $("#request-waiver-explanatory-text");
+    }
+
+    public static SelenideElement policyName() {
+      return $("#request-waiver-policy-name");
+    }
+
+    public static SelenideElement constraintName() {
+      return $("#request-waiver-constraint-name");
+    }
+
+    public static SelenideElement waiverConditions() {
+      return $("#request-waiver-conditions");
+    }
+
+    public static SelenideElement policyViolationId() {
+      return $("#request-waiver-policy-violation-id");
+    }
+
+    public static SelenideElement policyCurlExample() {
+      return $("#request-waiver-curl-example");
+    }
+
+    public static SelenideElement closeButton() {
+      return $("#request-waiver-modal-close-btn");
+    }
   }
 }

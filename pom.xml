@@ -847,7 +847,7 @@
       <dependency>
         <groupId>com.sonatype.nexus</groupId>
         <artifactId>nexus-scm-client</artifactId>
-        <version>1.1-SNAPSHOT</version>
+        <version>1.1.0</version>
         <exclusions>
           <exclusion>
             <groupId>ch.qos.logback</groupId>

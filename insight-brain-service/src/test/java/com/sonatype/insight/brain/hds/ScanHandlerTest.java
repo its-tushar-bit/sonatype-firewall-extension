@@ -21,6 +21,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.archive.TFileUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -43,6 +44,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ScanHandlerTest
@@ -60,9 +63,13 @@ public class ScanHandlerTest
   @Mock
   private HdsClient hdsClient;
 
+  @Mock
+  private ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessor;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClient);
+    binder.bind(ThirdPartyScanResultsProcessor.class).toInstance(thirdPartyScanResultsProcessor);
     super.configure(binder);
   }
 
@@ -100,6 +107,26 @@ public class ScanHandlerTest
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE);
     assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
+    File scanFile = work.getScanFile(app.getId(), scanId);
+    assertThat(scanFile).isFile().usingCharset(StandardCharsets.UTF_8).hasContent(scanFileContent);
+  }
+
+  @Test
+  public void testHandle_SonatypeThirdPartyScanType() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-app-id");
+    ScanReceipt scanReceipt = new ScanReceipt();
+    String scanId = "test-scan-id";
+    scanReceipt.setScanId(scanId);
+
+    String scanFileContent = "test scan file content";
+    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+    when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class)))
+        .thenReturn(scanReceipt);
+
+    scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY);
+    assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
+    verify(thirdPartyScanResultsProcessor, times(1)).handle(any(File.class));
     File scanFile = work.getScanFile(app.getId(), scanId);
     assertThat(scanFile).isFile().usingCharset(StandardCharsets.UTF_8).hasContent(scanFileContent);
   }

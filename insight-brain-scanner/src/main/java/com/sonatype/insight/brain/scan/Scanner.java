@@ -70,11 +70,14 @@ public class Scanner
   /**
    * Scans the specified target file and returns the resulting scan file, using the given directory as parent.
    */
-  public File scan(File target, String filename, File scanDir, ProprietaryConfig proprietaryConfig) throws IOException {
+  public ScanResult scan(File target, String filename, File scanDir, ProprietaryConfig proprietaryConfig)
+      throws IOException
+  {
     scanDir.mkdirs();
     File scanFile = File.createTempFile("temp-", ".xml.gz", scanDir);
     log.debug("Saving scan of {} to {}", target, scanFile);
-
+    ScanResult scanResult = new ScanResult();
+    scanResult.setScanFile(scanFile);
     try {
       Scan scan = new Scan();
       scan.setConfiguration(new ScanConfiguration(getScanConfigProps(proprietaryConfig)));
@@ -88,6 +91,7 @@ public class Scanner
         scan.getSummary().setEndTime();
         writer.writeSummary(scan.getSummary());
         writer.closeScan();
+        scanResult.setHasThirdPartyScanContent(scan.hasThirdPartyScanContent());
       }
     }
     catch (RuntimeException | IOException e) {
@@ -100,7 +104,7 @@ public class Scanner
       throw e;
     }
 
-    return scanFile;
+    return scanResult;
   }
 
   private Properties getScanConfigProps(ProprietaryConfig proprietaryConfig) throws IOException {

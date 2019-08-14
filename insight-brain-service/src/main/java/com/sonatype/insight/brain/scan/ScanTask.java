@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
@@ -86,6 +87,8 @@ class ScanTask
 
   private final ProprietaryConfigService proprietaryConfigService;
 
+  private final ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessor;
+
   private final String id;
 
   private Application app;
@@ -115,7 +118,8 @@ class ScanTask
                   PolicyAlertNotifier policyAlertNotifier,
                   InsightWork work,
                   FileCleaner fileCleaner,
-                  ProprietaryConfigService proprietaryConfigService)
+                  ProprietaryConfigService proprietaryConfigService,
+                  ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessor)
   {
     this.scanner = scanner;
     this.uploader = uploader;
@@ -125,6 +129,7 @@ class ScanTask
     this.fileCleaner = fileCleaner;
     this.proprietaryConfigService = proprietaryConfigService;
     id = UUID.randomUUID().toString().replace("-", "");
+    this.thirdPartyScanResultsProcessor = thirdPartyScanResultsProcessor;
   }
 
   /**
@@ -192,13 +197,16 @@ class ScanTask
       state = State.SCANNING_COMPONENTS;
       ProprietaryConfig proprietaryConfig = proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION,
           app.getPublicId());
-      File scanFile = scanner.scan(binFile, filename, work.getScanDir(app.getId()), proprietaryConfig);
+      ScanResult scanResult = scanner.scan(binFile, filename, work.getScanDir(app.getId()), proprietaryConfig);
 
+      if (scanResult != null && scanResult.hasThirdPartyScanContent()) {
+        thirdPartyScanResultsProcessor.handle(scanResult.getScanFile());
+      }
       // upload the scan
       state = State.UPLOADING_SCAN;
-      ScanReceipt scanReceipt = uploader.upload(scanFile, app);
+      ScanReceipt scanReceipt = uploader.upload(scanResult.getScanFile(), app);
       if (StringUtils.isNotBlank(scanReceipt.getScanId())) {
-        FileUtils.rename(scanFile, work.getScanFile(app.getId(), scanReceipt.getScanId()));
+        FileUtils.rename(scanResult.getScanFile(), work.getScanFile(app.getId(), scanReceipt.getScanId()));
       }
 
       // wait for the report

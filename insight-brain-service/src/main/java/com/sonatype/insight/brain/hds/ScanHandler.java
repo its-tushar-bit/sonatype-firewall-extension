@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.archive.RegexSelector;
 import com.sonatype.insight.scan.archive.Selector.Selection;
@@ -68,13 +69,16 @@ public class ScanHandler
 
   private final ApplicationDAO appDAO;
 
+  private final ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessor;
+
   @Inject
   public ScanHandler(InsightWork work,
                      ScanUploader scanUploader,
                      ScanReader scanReader,
                      ScanWriterFactory scanWriterFactory,
                      ProprietaryConfigService proprietaryConfigService,
-                     ApplicationDAO appDAO)
+                     ApplicationDAO appDAO,
+                     ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessor)
   {
     this.work = work;
     this.scanUploader = scanUploader;
@@ -82,6 +86,7 @@ public class ScanHandler
     this.scanWriterFactory = scanWriterFactory;
     this.proprietaryConfigService = proprietaryConfigService;
     this.appDAO = appDAO;
+    this.thirdPartyScanResultsProcessor = thirdPartyScanResultsProcessor;
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
@@ -107,6 +112,10 @@ public class ScanHandler
     try {
       if (ClientScanType.TWISTLOCK.equals(clientScanType)) {
         tempScanFile = convertTwistlockScan(tempScanFile, app);
+      }
+
+      if (ClientScanType.SONATYPE_THIRD_PARTY.equals(clientScanType)) {
+        thirdPartyScanResultsProcessor.handle(tempScanFile);
       }
 
       ScanReceipt scanReceipt = scanUploader.upload(tempScanFile, app);

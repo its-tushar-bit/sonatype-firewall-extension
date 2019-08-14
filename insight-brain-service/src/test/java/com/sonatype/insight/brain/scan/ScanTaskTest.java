@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,8 +57,11 @@ public class ScanTaskTest
 
   private ProprietaryConfigService proprietaryConfigService = mock(ProprietaryConfigService.class);
 
+  private ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessor = mock(ThirdPartyScanResultsProcessor.class);
+
   private ScanTask task =
-      new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner, proprietaryConfigService);
+      new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner, proprietaryConfigService,
+          thirdPartyScanResultsProcessor);
 
   private Application app = newApp("public-app-id");
 
@@ -90,7 +94,8 @@ public class ScanTaskTest
     when(work.getScanDir(eq(app.getId()))).thenReturn(scanDir);
     when(work.getScanFile(eq(app.getId()), eq(scanReceipt.getScanId()))).thenReturn(scanFile);
     when(uploader.upload(eq(tmpScanFile), eq(app))).thenReturn(scanReceipt);
-    when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq(null))).thenReturn(tmpScanFile);
+    ScanResult scanResult = new ScanResult(tmpScanFile, false);
+    when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq(null))).thenReturn(scanResult);
   }
 
   private static Stage match(Stage stage) {
@@ -203,6 +208,18 @@ public class ScanTaskTest
     task.run();
 
     verify(notifier).sendNotifications(eq(app), same(results));
+  }
+
+  @Test
+  public void testRun_processThirdPartyScanResults() throws Exception {
+    File scanBinary = new File("any");
+    task.init(app, scanBinary, bundleFilename, stage, false);
+    when(scanner.scan(any(File.class), any(String.class), any(File.class), eq(null)))
+        .thenReturn(new ScanResult(scanBinary, true));
+
+    task.run();
+
+    verify(thirdPartyScanResultsProcessor).handle(scanBinary);
   }
 
   private void assertThatTaskCompletedSuccessfully(ScanTask task) {

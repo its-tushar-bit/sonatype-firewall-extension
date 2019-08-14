@@ -39,11 +39,11 @@ public class ScannerTest extends InjectedTest
     proprietaryConfig.setPackages(Collections.singletonList("com.sonatype"));
 
     File appFile = new File("src/test/resources/ScannerTest/app01.zip");
-    File scanFile = scanner.scan(appFile, "test-app.zip", new File(tempDir.getRoot(), "not-yet-existent"),
+    ScanResult scanResult = scanner.scan(appFile, "test-app.zip", new File(tempDir.getRoot(), "not-yet-existent"),
         proprietaryConfig);
-    assertThat(scanFile).isFile();
+    assertThat(scanResult.getScanFile()).isFile();
 
-    Scan scan = scanReader.read(scanFile);
+    Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getItems()).hasSize(1);
     ScanItem item = scan.getItems().get(0);
@@ -69,11 +69,11 @@ public class ScannerTest extends InjectedTest
     proprietaryConfig.setRegexes(Collections.singletonList(".*prop.*\\.jar"));
 
     File appFile = new File("src/test/resources/ScannerTest/app01.zip");
-    File scanFile = scanner.scan(appFile, "test-app.zip", new File(tempDir.getRoot(), "not-yet-existent"),
+    ScanResult scanResult = scanner.scan(appFile, "test-app.zip", new File(tempDir.getRoot(), "not-yet-existent"),
         proprietaryConfig);
-    assertThat(scanFile).isFile();
+    assertThat(scanResult.getScanFile()).isFile();
 
-    Scan scan = scanReader.read(scanFile);
+    Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getItems()).hasSize(1);
     ScanItem item = scan.getItems().get(0);

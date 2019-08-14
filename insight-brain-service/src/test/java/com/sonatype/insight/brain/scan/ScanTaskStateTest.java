@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -53,15 +54,19 @@ public class ScanTaskStateTest
   FileCleaner fileCleaner = mock(FileCleaner.class);
 
   private ProprietaryConfigService proprietaryConfigService = mock(ProprietaryConfigService.class);
+
+  private ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessor = mock(ThirdPartyScanResultsProcessor.class);
   
   ScanTask task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner,
-      proprietaryConfigService);
+      proprietaryConfigService, thirdPartyScanResultsProcessor);
 
   TaskStateCapturer captureState = new TaskStateCapturer();
 
   @Before
-  public void init() {
-    task.init(new Application("any", "MyApp", null), new File("any"), "any", new Stage(Stage.ID_BUILD), false);
+  public void init() throws Exception {
+    File binFile = new File("any");
+    task.init(new Application("any", "MyApp", null), binFile, "any", new Stage(Stage.ID_BUILD), false);
+    when(scanner.scan(any(), any(), any(), any())).thenReturn(new ScanResult(binFile, false));
   }
 
   @Test

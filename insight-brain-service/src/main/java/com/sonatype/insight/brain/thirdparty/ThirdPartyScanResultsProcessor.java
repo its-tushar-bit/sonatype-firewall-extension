@@ -54,8 +54,7 @@ public class ThirdPartyScanResultsProcessor
   @VisibleForTesting
   List<ThirdPartyScanContent> getThirdPartyScanContents(final File scanFile) {
     List<ThirdPartyScanContent> scanContents = new ArrayList<>();
-    try {
-      GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile));
+    try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile))) {
       XmlPullParser parser = new MXParser();
       parser.setInput(new XmlStreamReader(gis));
 

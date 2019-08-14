@@ -81,7 +81,14 @@
           Change Password
         </a>
       </div>
-      <a id="logout" ng-click="vm.logout()" class="iq-dropdown-menu__link--main-header">Logout</a>
+      <a id="logout"
+         form-mask="vm.logoutMask"
+         mask-attach-to-body
+         mask-message="Logging out..."
+         ng-click="vm.logout()"
+         class="iq-dropdown-menu__link--main-header">
+        Logout
+      </a>
     </div>
   </div>
 </div>

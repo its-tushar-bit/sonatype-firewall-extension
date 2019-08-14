@@ -7,6 +7,7 @@ import { pick } from 'ramda';
 
 function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, Modal, messages, pendoService, actions) {
   var vm = this;
+  vm.logoutMask = undefined;
 
   Object.assign(vm, {
     $onInit() {
@@ -19,18 +20,14 @@ function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, M
     },
 
     logout() {
-      function serverLogout() {
-        // TODO This ought to perform a dirty check before it simply logs the user out
-        // https://issues.sonatype.org/browse/CLM-1251
-        return $http['delete'](CLMLocations.getSessionLogoutUrl());
-      }
+      const serverLogout = () => $http['delete'](CLMLocations.getSessionLogoutUrl());
 
-      pendoService.flush()
+      vm.logoutMask.wrap(pendoService.flush()
           // continue the logout whether the pendo flush succeeds or fails
           .then(serverLogout, serverLogout)
           .then(function(response) {
             $scope.$emit('logout', response.headers('Location'));
-          });
+          }));
     },
 
     changePassword() {

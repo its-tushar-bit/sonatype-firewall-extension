@@ -11,9 +11,13 @@ describe('userMenu', function() {
       $httpBackend,
       $componentController,
       mockPendoService,
-      mockActions;
+      mockActions,
+      mockMaskController;
 
   beforeEach(angular.mock.module(mainHeaderModule.name, function($provide) {
+    mockMaskController = {
+      wrap: jasmine.createSpy()
+    };
     mockActions = jasmine.createSpyObj('userActions', ['loadUser', 'passwordChanged']);
     $provide.value('userActions', mockActions);
     SpecUtil.mockNgRedux($provide);
@@ -54,6 +58,8 @@ describe('userMenu', function() {
       Modal: modal
     });
 
+    vm.logoutMask = mockMaskController;
+
     vm.$onInit();
     expect(vm.loadUser).toHaveBeenCalled();
   }));
@@ -86,20 +92,30 @@ describe('userMenu', function() {
 
   describe('logout()', function () {
     it('provides the ability to log out', function() {
-      var spy = jasmine.createSpy();
-      parentScope.$on('logout', spy);
+      var logoutSpy = jasmine.createSpy();
+      parentScope.$on('logout', logoutSpy);
 
       expect(vm.logout).not.toBeUndefined();
       $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond({});
 
+      expect(mockMaskController.wrap).not.toHaveBeenCalled();
+
       vm.logout();
+      expect(mockMaskController.wrap).toHaveBeenCalled();
+
+      let maskArg = mockMaskController.wrap.calls.mostRecent().args[0];
+      let maskArgResolvedSpy = jasmine.createSpy('promiseSpy');
+      maskArg.then(maskArgResolvedSpy);
 
       pendoFlushDeferred.resolve();
       scope.$digest();
 
+      expect(maskArgResolvedSpy).not.toHaveBeenCalled();
       $httpBackend.flush();
+      expect(maskArgResolvedSpy).toHaveBeenCalled();
 
-      expect(spy).toHaveBeenCalled();
+      expect(logoutSpy).toHaveBeenCalled();
+      expect(mockMaskController.wrap).toHaveBeenCalled();
     });
 
     it('provides the ability to log out for reverse proxy', function() {

@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -34,9 +35,12 @@ import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.ScanSummary;
 import com.sonatype.insight.scan.model.io.ScanWriter;
+import com.sonatype.nexus.git.utils.CommitHashFinderBuilder;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -44,6 +48,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class DefaultPolicyEvaluatorTest
     extends AbstractPolicyEvaluatorTest
 {
+  @Rule
+  public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
   @Test
   public void testRun_ServerDown() throws Exception {
     stopInsightServer();
@@ -508,6 +515,47 @@ public class DefaultPolicyEvaluatorTest
     finally {
       versionService.setVersion(savedServerVersion);
     }
+  }
+
+  @Test
+  public void testRun_ScanWithCommitHashFromEnvironmentVariable() throws Exception {
+    final String commitHash = "COMMIT_HASH_FROM_ENV_VAR";
+    environmentVariables.set("GIT_COMMIT", commitHash);
+
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+    tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.sonatype"), Collections.emptyList());
+
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-m", "src/test/data/metadata.json", "src/test/data/artifact.jar");
+    evaluator.run(params);
+
+    File scanFile = findScanFile(params);
+    Scan scan = scanReader.read(scanFile);
+
+    environmentVariables.clear("GIT_COMMIT");
+    assertThat(scan).isNotNull();
+    assertThat(scan.getMetadata().getCommitHash()).isEqualTo(commitHash);
+  }
+
+  @Test
+  public void testRun_ScanWithCommitHashFromLocalGitRepository() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+    tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.sonatype"), Collections.emptyList());
+
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-m", "src/test/data/metadata.json", "src/test/data/artifact.jar");
+    evaluator.run(params);
+
+    File scanFile = findScanFile(params);
+    Scan scan = scanReader.read(scanFile);
+
+    assertThat(scan).isNotNull();
+    // by default this should always be running in the context of a checked out git repo, so we will manually look
+    // up the commit hash and make sure it matches what is found in the scanner
+    Optional<String> commitHash = new CommitHashFinderBuilder().withGitRepo().build().tryGetCommitHash();
+    assertThat(scan.getMetadata().getCommitHash()).isEqualTo(commitHash.get());
   }
 
   private String decrementVersion(String versionAsString) {

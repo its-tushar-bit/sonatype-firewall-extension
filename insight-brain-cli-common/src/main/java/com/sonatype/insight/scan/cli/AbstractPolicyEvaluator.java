@@ -26,6 +26,8 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
+import com.sonatype.insight.scan.model.ScanMetadata;
+import com.sonatype.nexus.git.utils.CommitHashFinderBuilder;
 
 import org.apache.http.client.HttpResponseException;
 import org.codehaus.plexus.util.StringUtils;
@@ -42,7 +44,9 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   protected final RestClientFactory restClientFactory;
 
-  protected AbstractPolicyEvaluator(Scanner scanner, RestClientFactory restClientFactory) {
+  protected AbstractPolicyEvaluator(Scanner scanner,
+                                    RestClientFactory restClientFactory)
+  {
     this.scanner = scanner;
     this.restClientFactory = restClientFactory;
   }
@@ -117,6 +121,8 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   }
 
   protected ClientScanResult scan(P params, ProprietaryConfig proprietaryConfig) throws ExitException {
+    ScanMetadata scanMetadata = verifyAndPopulateMetadata(params);
+
     try {
       params.getOutputDirectory().mkdirs();
       File scanFile = File.createTempFile("scan-", ".xml.gz", params.getOutputDirectory());
@@ -124,7 +130,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       for (String scanTarget : params.getScanTargets()) {
         files.add(new File(scanTarget));
       }
-      return scanner.scan(scanFile, files, getScanConfiguration(params, proprietaryConfig), params.getScanMetadata());
+      return scanner.scan(scanFile, files, getScanConfiguration(params, proprietaryConfig), scanMetadata);
     }
     catch (IOException e) {
       log.error("The scan could not be performed", e);
@@ -244,5 +250,24 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
           e.getStatusCode());
     }
     return new ExitException(params.isIgnoreSystemErrors(), e);
+  }
+
+  private ScanMetadata verifyAndPopulateMetadata(P params) {
+    ScanMetadata scanMetadata = params.getScanMetadata() == null ? new ScanMetadata() : params.getScanMetadata();
+
+    try {
+      scanMetadata.setCommitHash(new CommitHashFinderBuilder()
+          .withEnvironmentVariableDefault()
+          .withGitRepo()
+          .withFallBack(scanMetadata.getCommitHash())
+          .build()
+          .tryGetCommitHash()
+          .orElse(null));
+    }
+    catch (Exception e) {
+      log.error("Failed to get the commit hash due to:", e);
+    }
+
+    return scanMetadata;
   }
 }

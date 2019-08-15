@@ -46,6 +46,11 @@
     </dependency>
 
     <dependency>
+      <groupId>com.sonatype.nexus</groupId>
+      <artifactId>nexus-git-utils</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-utils</artifactId>
     </dependency>

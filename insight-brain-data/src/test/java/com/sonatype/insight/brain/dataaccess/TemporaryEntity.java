@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
@@ -75,6 +76,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
@@ -238,6 +240,8 @@ public class TemporaryEntity
   
   private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
+  private final SamlConfigurationDAO samlConfigurationDAO = new SamlConfigurationDAO();
+
   private Collection<MigrationTracker> migrationTrackers;
 
   private Collection<Application> apps;
@@ -290,6 +294,8 @@ public class TemporaryEntity
 
   private Collection<SystemConfigurationProperty> systemConfigurationProperties;
 
+  private Collection<SamlConfiguration> samlConfigurations;
+
   @Override
   protected void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -318,6 +324,7 @@ public class TemporaryEntity
     successMetricsReportDatas = new ArrayList<>();
     sourceControls = new ArrayList<>();
     systemConfigurationProperties = new ArrayList<>();
+    samlConfigurations = new ArrayList<>();
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
@@ -362,6 +369,7 @@ public class TemporaryEntity
     delete(successMetricsReports, successMetricsReportDAO);
     delete(sourceControls, sourceControlDAO);
     delete(systemConfigurationProperties, systemConfigurationPropertyDAO);
+    delete(samlConfigurations, entity -> samlConfigurationDAO.getById(entity.getId()), samlConfigurationDAO::delete);
 
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     if (config != null) {
@@ -1765,5 +1773,12 @@ public class TemporaryEntity
     systemConfigurationPropertyDAO.insert(scp);
     systemConfigurationProperties.add(scp);
     return scp;
+  }
+
+  public SamlConfiguration newSamlConfiguration() {
+    SamlConfiguration samlConfiguration = new SamlConfiguration();
+    samlConfigurationDAO.insert(samlConfiguration);
+    samlConfigurations.add(samlConfiguration);
+    return samlConfiguration;
   }
 }

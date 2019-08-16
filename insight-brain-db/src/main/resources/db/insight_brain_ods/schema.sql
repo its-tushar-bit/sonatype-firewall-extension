@@ -594,3 +594,10 @@ CREATE TABLE migration_tracker (
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('root-organization');
 INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-drools-code', 2);
 INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-json', 1);
+
+-- Since 1.72.0
+CREATE TABLE saml_configuration (
+  saml_configuration_id varchar(50) NOT NULL,
+  configuration_json text NOT NULL, -- the SAML configuration stored in json format
+  CONSTRAINT saml_configuration_pk PRIMARY KEY (saml_configuration_id)
+);

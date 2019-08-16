@@ -29,13 +29,17 @@
   }
 
   main-header, application-report-root, application-report-vulnerabilities, ui-view, .iq-body-container,
-  .nx-root-container {
+  .nx-root-container, .nx-tile {
     border: none !important;
     display: block !important;
   }
 
   #main-header-buttons, .iq-tile--back-button, .iq-alert, .nx-back-button {
     display: none !important;
+  }
+
+  .nx-cell--header {
+    border-left-style: none !important;
   }
 
   #application-report-vulnerabilities-table {
@@ -59,7 +63,8 @@
       .nx-cell {
         height: $main-line-height + $link-line-height;
         line-height: $main-line-height;
-        padding: $cell-padding-top 0 $cell-padding-bottom 0;
+        padding-top: $cell-padding-top;
+        padding-bottom: $cell-padding-bottom;
         vertical-align: top;
       }
 
@@ -88,10 +93,13 @@
         // fill entire row height (include cell padding)
         margin-top: -$cell-padding-top;
         margin-bottom: -$cell-padding-bottom;
-        margin-left: 0;
 
         vertical-align: top;
       }
+    }
+
+    .iq-cell--vulnerability-security-code {
+      width: 150px; // due to the generic "sans-serif" font in print view, this needs more room on some systems
     }
   }
 }

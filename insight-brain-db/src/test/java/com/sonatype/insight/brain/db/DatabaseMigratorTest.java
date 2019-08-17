@@ -208,28 +208,33 @@ public class DatabaseMigratorTest
 
   @Test
   public void testMigrate_NewAggregationDatabase_PopulatesVersion() throws Exception {
-    testMigrate_NewDatabase_PopulatesVersion(AggregationDataStoreProvider.ID);
+    testMigrate_NewDatabase_PopulatesVersion(AggregationDataStoreProvider.ID, -1);
   }
 
   @Test
   public void testMigrate_NewDatamartDatabase_PopulatesVersion() throws Exception {
-    testMigrate_NewDatabase_PopulatesVersion(DatamartProvider.ID);
+    testMigrate_NewDatabase_PopulatesVersion(DatamartProvider.ID, -1);
   }
 
   @Test
   public void testMigrate_NewOperationalDataStoreDatabase_PopulatesVersion() throws Exception {
-    testMigrate_NewDatabase_PopulatesVersion(OperationalDataStoreProvider.ID);
+    testMigrate_NewDatabase_PopulatesVersion(OperationalDataStoreProvider.ID, -1);
   }
 
-  private void testMigrate_NewDatabase_PopulatesVersion(String databaseName) throws Exception {
+  @Test
+  public void testMigrate_NewThirdPartyScansDatabase_PopulatesVersion() throws Exception {
+    testMigrate_NewDatabase_PopulatesVersion(ThirdPartyScansProvider.ID, 1);
+  }
+
+  private void testMigrate_NewDatabase_PopulatesVersion(String databaseName, int initialVersion) throws Exception {
     File databaseDir = tempDir.newFolder();
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, databaseName);
     DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, databaseName);
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName)).isEqualTo(-1);
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName)).isEqualTo(initialVersion);
 
     new DatabaseMigrator().migrate(databaseConfig, databaseName, dataSource);
 
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName)).isNotEqualTo(-1);
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName)).isNotEqualTo(initialVersion);
   }
 
   static class PostIncrementalMigratorVersionMinus1

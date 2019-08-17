@@ -12,5 +12,6 @@ public enum DatabaseName
 {
   ods,
   dm,
+  third_party_scans,
   aggregation
 }

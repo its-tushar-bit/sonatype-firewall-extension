@@ -81,6 +81,7 @@ public class DataSourceFactory
       DatamartProvider.clear_ForTestsOnly();
       OperationalDataStoreProvider.clear_ForTestsOnly();
       AggregationDataStoreProvider.clear_ForTestsOnly();
+      ThirdPartyScansProvider.clear_ForTestsOnly();
     }
   }
 

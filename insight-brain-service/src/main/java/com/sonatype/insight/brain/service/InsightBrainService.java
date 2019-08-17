@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.metrics.CustomMetrics;
@@ -362,6 +363,9 @@ public class InsightBrainService
 
     DatabaseConfig dmDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.dm);
     DatamartProvider.init(dmDatabaseConfig);
+
+    DatabaseConfig tpsDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.third_party_scans);
+    ThirdPartyScansProvider.init(tpsDatabaseConfig);
 
     DatabaseConfig aggregationDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.aggregation);
     AggregationDataStoreProvider.init(aggregationDatabaseConfig);

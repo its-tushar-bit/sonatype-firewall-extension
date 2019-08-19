@@ -7,6 +7,7 @@ package com.sonatype.insight.keycloak;
 
 import java.net.ConnectException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,8 @@ import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.readAllBytes;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static javax.ws.rs.client.ClientBuilder.newClient;
@@ -87,6 +90,16 @@ public class KeycloakTestServerTest
 
     keycloak.createClient(clientRepresentation);
     assertThat(keycloak.getClients()).hasSize(6);
+  }
+
+  @Test
+  public void testCreateClientRepresentation() throws Exception {
+    String metadata = new String(readAllBytes(Paths.get("src/test/resources/service_provider_metadata.xml")), UTF_8);
+
+    ClientRepresentation client = keycloak.createClientRepresentation(metadata);
+
+    assertThat(client.getClientId()).isEqualTo("http://localhost:8081/securityRealm/finishLogin");
+    assertThat(client.getProtocol()).isEqualTo("saml");
   }
 
   @Test

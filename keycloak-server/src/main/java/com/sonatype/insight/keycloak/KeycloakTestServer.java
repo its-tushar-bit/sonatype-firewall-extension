@@ -109,6 +109,16 @@ public class KeycloakTestServer
   }
 
   /**
+   * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_convertclientdescription">Convert Client</a>
+   * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_clientrepresentation">Client Representation</a>
+   */
+  public ClientRepresentation createClientRepresentation(String xmlMetadata) {
+    return ClientBuilder.newClient().target(url).path("admin/realms/master/client-description-converter").request()
+            .header("Authorization", "Bearer " + adminBearerToken).buildPost(Entity.xml(xmlMetadata)).invoke()
+            .readEntity(ClientRepresentation.class);
+  }
+
+  /**
    * @return Returns the id assigned to the created user.
    * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_users_resource">Users Resource</a>
    * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_userrepresentation">User Representation</a>

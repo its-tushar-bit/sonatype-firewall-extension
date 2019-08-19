@@ -6,7 +6,7 @@
 package com.sonatype.insight.scan.cli;
 
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.model.Application;
@@ -38,19 +38,13 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
 
   private boolean rutEnabled;
 
-  private boolean anonymousAllowed;
-
-  @Parameterized.Parameters(name = "RUT: {0}, anon: {1}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][]{
-        {false, false},
-        {true, false}
-    });
+  @Parameterized.Parameters(name = "RUT: {0}")
+  public static List<Boolean> data() {
+    return Arrays.asList(false, true);
   }
 
-  public DefaultPolicyEvaluatorReverseProxyAuthTest(boolean rutEnabled, boolean anonymousAllowed) {
+  public DefaultPolicyEvaluatorReverseProxyAuthTest(boolean rutEnabled) {
     this.rutEnabled = rutEnabled;
-    this.anonymousAllowed = anonymousAllowed;
   }
 
   @Override
@@ -74,7 +68,7 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
     Parameters params = new Parameters("--pki-authentication", "-s", reverseProxy.getSslUrl(), "-i",
         "the-app-id", "src/test/data/artifact.jar");
 
-    if (rutEnabled || anonymousAllowed) {
+    if (rutEnabled) {
       evaluator.run(params);
       assertLogSummary(new PolicyEvaluationResult());
     }
@@ -111,16 +105,10 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
     tempEntity.newApplication("yet_another", Organization.ROOT_ORGANIZATION_ID);
     Parameters params = new Parameters("-s", reverseProxy.getSslUrl(), "-i", "yet_another",
         "src/test/data/artifact.jar");
-    if (anonymousAllowed) {
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
       evaluator.run(params);
-      assertThat(logOutput).atInfoLevel().contains("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
-    }
-    else {
-      assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-        evaluator.run(params);
-      }).withCauseInstanceOf(HttpResponseException.class).satisfies(
-          e -> assertThat(e.getCause().getMessage()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
-    }
+    }).withCauseInstanceOf(HttpResponseException.class).satisfies(
+        e -> assertThat(e.getCause().getMessage()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
   }
 
   @Override
@@ -131,7 +119,6 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
       @Override
       public void configure(InsightConfig config) {
         config.getReverseProxyAuthentication().setEnabled(rutEnabled);
-        config.setAnonymousClientAccessAllowed(anonymousAllowed);
         config.setImportRefrencePoliciesFromHDS(false);
       }
     });

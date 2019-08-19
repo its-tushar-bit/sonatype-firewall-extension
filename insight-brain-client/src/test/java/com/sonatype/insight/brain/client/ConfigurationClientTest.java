@@ -25,8 +25,6 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
@@ -58,34 +56,6 @@ public class ConfigurationClientTest
       assertThat(e.getStatusCode()).isEqualTo(404);
       assertThat(e.getMessage()).isEqualTo("Resource not found, please check your request URL.");
     }
-  }
-
-  @Test
-  public void testValidateConfiguration_AnonymousNotAllowed() throws Exception {
-    Configuration config = getCLMServer().getClientConfiguration();
-    config.setServerAuth(null);
-    try {
-      new ConfigurationClient(config).validateConfiguration();
-      fail("Validation should have failed due to anonymous not being allowed");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getStatusCode()).isEqualTo(401);
-      assertThat(e.getMessage()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS);
-    }
-  }
-
-  @Test
-  @ManualServerInit
-  public void testValidateConfiguration_AnonymousAllowed_AnonymousClientAccessAllowed() throws Exception {
-    initServer(new Configurator() {
-      @Override
-      public void configure(final InsightConfig config) {
-        config.setAnonymousClientAccessAllowed(true);
-      }
-    });
-    Configuration config = getCLMServer().getClientConfiguration();
-    config.setServerAuth(null);
-    new ConfigurationClient(config).validateConfiguration();
   }
 
   @Test

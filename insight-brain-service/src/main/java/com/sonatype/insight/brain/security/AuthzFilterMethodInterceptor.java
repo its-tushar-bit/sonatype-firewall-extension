@@ -21,27 +21,21 @@ class AuthzFilterMethodInterceptor
 {
   private final AuthorizationChecker authzChecker;
 
-  private final boolean anonymousClientAccessAllowed;
-
-  public AuthzFilterMethodInterceptor(AnnotationResolver resolver,
-                                      AuthorizationChecker authzChecker,
-                                      boolean anonymousClientAccessAllowed)
-  {
-    this(new AuthzFilterAnnotationHandler(), resolver, authzChecker, anonymousClientAccessAllowed);
+  public AuthzFilterMethodInterceptor(AnnotationResolver resolver, AuthorizationChecker authzChecker) {
+    this(new AuthzFilterAnnotationHandler(), resolver, authzChecker);
   }
 
   AuthzFilterMethodInterceptor(AuthorizationChecker authzChecker) {
-    this(new AuthzFilterAnnotationHandler(), null, authzChecker, true);
+    this(new AuthzFilterAnnotationHandler(), null, authzChecker);
   }
 
-  private AuthzFilterMethodInterceptor(AuthzFilterAnnotationHandler handler,
-                                       AnnotationResolver resolver,
-                                       AuthorizationChecker authzChecker,
-                                       boolean anonymousClientAccessAllowed)
+  private AuthzFilterMethodInterceptor(
+      AuthzFilterAnnotationHandler handler,
+      AnnotationResolver resolver,
+      AuthorizationChecker authzChecker)
   {
     super(handler, resolver);
     this.authzChecker = authzChecker;
-    this.anonymousClientAccessAllowed = anonymousClientAccessAllowed;
   }
 
   @Override
@@ -58,15 +52,9 @@ class AuthzFilterMethodInterceptor
         Iterable<?> entities = (Iterable<?>) result;
         Object principal = getSubject().getPrincipal();
         UserPrincipal user = (UserPrincipal) ((principal != null) ? principal : null);
-        if (!isAnonymous(user, anno)) {
-          result = authzChecker.filterByPermission(user, anno.permission(), entities, anno.context());
-        }
+        result = authzChecker.filterByPermission(user, anno.permission(), entities, anno.context());
       }
     }
     return result;
-  }
-
-  private boolean isAnonymous(UserPrincipal user, AuthzFilter anno) {
-    return user == null && anno.anonymousAllowed() && anonymousClientAccessAllowed;
   }
 }

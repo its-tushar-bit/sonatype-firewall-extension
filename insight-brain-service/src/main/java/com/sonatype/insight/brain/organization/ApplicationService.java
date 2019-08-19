@@ -73,7 +73,7 @@ public class ApplicationService
 
   public String validateApplicationPublicId(final String applicationPublicId) {
     try {
-      if (getApplicationByPublicIdAllowAnonymous(applicationPublicId) == null) {
+      if (getApplicationByPublicIdForWrite(applicationPublicId) == null) {
         return "Invalid application ID " + applicationPublicId + ".";
       }
     }
@@ -88,20 +88,14 @@ public class ApplicationService
 
   /**
    * @since 1.14.0
-   *        Allows anonymous access. Only for use by the clients that evaluate components.
    */
-  @AuthzFilter(permission = Permission.EVALUATE_COMPONENT, context = AuthzFilter.Context.APPLICATION,
-      anonymousAllowed = true)
+  @AuthzFilter(permission = Permission.EVALUATE_COMPONENT, context = AuthzFilter.Context.APPLICATION)
   protected List<Application> getApplicationsForEvaluateComponent() {
     return applicationDAO.getAll();
   }
 
-  /**
-   * @since 1.14.0
-   *        Allows anonymous access. Only for use by the clients.
-   */
-  @Authorize(permission = Permission.WRITE, anonymousAllowed = true)
-  protected Application getApplicationByPublicIdAllowAnonymous(
+  @Authorize(permission = Permission.WRITE)
+  Application getApplicationByPublicIdForWrite(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {
     return applicationDAO.getByPublicId(applicationPublicId);
@@ -127,7 +121,7 @@ public class ApplicationService
   }
 
   @Authorize(permission = Permission.READ)
-  public Application getApplicationByPublicId(
+  Application getApplicationByPublicIdForRead(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {
     return applicationDAO.getByPublicId(applicationPublicId);

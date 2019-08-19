@@ -52,11 +52,4 @@ public @interface AuthzFilter
    * The context for the permission check.
    */
   Context context();
-
-  /**
-   * Flag to grant access to anonymous user to support legacy clients that do not authenticate (CLM 1.13-).
-   *
-   * @since 1.14.0
-   */
-  boolean anonymousAllowed() default false;
 }

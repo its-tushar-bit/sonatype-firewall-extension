@@ -14,9 +14,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
@@ -86,27 +84,6 @@ public class ReportResourceAuthzTest
     HttpRequest request = restRequest().path("embedReport/{path}").parameter(app.getPublicId(), "scanId", "index.html");
     HttpResponse response = request.auth("unknownUser", "unknownPassword").get();
     assertResponseStatus(401, response);
-  }
-
-  @Test
-  public void testEmbedReport_AnonymousNotAllowed() throws Exception {
-    HttpRequest request = restRequest().path("embedReport/{path}").parameter(app.getPublicId(), "scanId", "index.html");
-    HttpResponse response = request.anon().get();
-    assertResponseStatus(401, response);
-  }
-
-  @Test
-  @ManualServerInit
-  public void testEmbedReport_AnonymousAllowed() throws Exception {
-    initServer(new Configurator() {
-      @Override
-      public void configure(final InsightConfig config) {
-        config.setAnonymousClientAccessAllowed(true);
-      }
-    });
-    HttpRequest request = restRequest().path("embedReport/{path}").parameter(app.getPublicId(), "scanId", "index.html");
-    HttpResponse response = request.anon().get();
-    assertResponseStatus(200, response);
   }
 
   private void createReportFile(String appId, String scanId) throws IOException {

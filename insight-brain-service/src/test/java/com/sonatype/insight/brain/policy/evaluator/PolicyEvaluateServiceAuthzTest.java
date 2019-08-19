@@ -45,6 +45,11 @@ public class PolicyEvaluateServiceAuthzTest
     super.configure(binder);
   }
 
+  @Test(expected = UnauthenticatedException.class)
+  public void testEvaluate_Unauthenticated() throws Exception {
+    policyEvaluateService.evaluate(app.getPublicId(), "scanId", new Stage(BuildStageType.ID));
+  }
+
   @Test
   public void testEvaluate_Authorized() throws Exception {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);

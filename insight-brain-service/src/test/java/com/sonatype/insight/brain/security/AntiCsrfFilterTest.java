@@ -6,55 +6,27 @@
 package com.sonatype.insight.brain.security;
 
 import java.net.HttpCookie;
-import java.util.Arrays;
-import java.util.Collection;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(Parameterized.class)
 public class AntiCsrfFilterTest
     extends AbstractBrainServiceTest
 {
-  // a known rest endpoint defined from SecurityModule for AntiCsrfFilter for integrations that also allows anon access
+  // a known rest endpoint defined from SecurityModule for AntiCsrfFilter for integrations
   private static final String REST_PATH = "rest/ci/scan/testApp";
-
-  private boolean anonymousAccessAllowed;
-
-  private static final Configurator ANON_ALLOWED = config -> {
-    config.getReverseProxyAuthentication().setEnabled(true);
-    config.setAnonymousClientAccessAllowed(true);
-  };
-
-  private static final Configurator ANON_DISALLOWED = config -> {
-    config.getReverseProxyAuthentication().setEnabled(true);
-    config.setAnonymousClientAccessAllowed(false);
-  };
-
-  public AntiCsrfFilterTest(boolean anonymousAccessAllowed) {
-    this.anonymousAccessAllowed = anonymousAccessAllowed;
-  }
-
-  @Parameterized.Parameters(name = "anonymousAccessAllowed={0}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][]{
-        {false},
-        {true},
-        });
-  }
 
   @Override
   protected void initServer() throws Exception {
-    initServer(anonymousAccessAllowed ? ANON_ALLOWED : ANON_DISALLOWED);
+    initServer(config -> {
+      config.getReverseProxyAuthentication().setEnabled(true);
+    });
   }
 
   @Test
@@ -126,12 +98,7 @@ public class AntiCsrfFilterTest
   @Test
   public void testRequestWithAnonymousWithCsrfCookieAndHeader() throws Exception {
     HttpResponse response = restRequest().csrfToken("nonce", "nonce").put();
-    if (anonymousAccessAllowed) {
-      assertAccessIsAllowed(response);
-    }
-    else {
-      assertLoginFailure(response);
-    }
+    assertLoginFailure(response);
   }
 
   @Test
@@ -147,12 +114,7 @@ public class AntiCsrfFilterTest
   @Test
   public void testRequestWithAnonymousWithoutCsrfCookieAndHeader() throws Exception {
     HttpResponse response = restRequest().noCsrfToken().put();
-    if (anonymousAccessAllowed) {
-      assertAccessIsAllowed(response);
-    }
-    else {
-      assertLoginFailure(response);
-    }
+    assertLoginFailure(response);
   }
 
   @Override

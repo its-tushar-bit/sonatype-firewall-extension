@@ -163,13 +163,16 @@ public class ReportResource
   }
 
   /**
+   * TODO: Should this method be removed now?
+   * 
    * @deprecated Support legacy CI instances (pre 2.11) and Nexus CLM plugins that persisted a report link obtained from
    *             CLM 1.6-
+   * 
    */
   @Deprecated
   @GET
   @Path("embedReport/{path:.*}")
-  @Authorize(permission = Permission.READ, anonymousAllowed = true)
+  @Authorize(permission = Permission.READ)
   public Response embedReport(
       @PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
       @PathParam("scanId") final String scanId,

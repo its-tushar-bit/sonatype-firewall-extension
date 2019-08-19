@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.google.inject.Binder;
+import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -52,6 +53,13 @@ public class ScanHandlerAuthzTest
   @Test(expected = UnauthorizedException.class)
   public void testHandle_Unauthorized() throws Exception {
     login();
+    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+
+    scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testHandle_Unauthenticated() throws Exception {
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
 
     scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE);

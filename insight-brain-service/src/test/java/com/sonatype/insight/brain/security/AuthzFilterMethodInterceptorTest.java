@@ -47,11 +47,6 @@ public class AuthzFilterMethodInterceptorTest
     return null;
   }
 
-  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION, anonymousAllowed = true)
-  public Collection<Organization> stubOrgsAnonymousAllowed() {
-    return null;
-  }
-
   @Before
   public void init() {
     invoc = mock(MethodInvocation.class);
@@ -101,16 +96,5 @@ public class AuthzFilterMethodInterceptorTest
     when(authzChecker.filterByPermission(isNull(), eq(Permission.READ), eq(entities),
         eq(AuthzFilter.Context.ORGANIZATION))).thenReturn(Collections.EMPTY_LIST);
     assertThat((Collection<?>) interceptor.invoke(invoc)).isEmpty();
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testInvoke_Anonymous() throws Throwable {
-    Collection<Organization> entities = Arrays.asList(tempEntity.newOrganization());
-    when(invoc.getMethod()).thenReturn(getClass().getMethod("stubOrgsAnonymousAllowed"));
-    when(invoc.getArguments()).thenReturn(new Object[0]);
-    when(invoc.proceed()).thenReturn(entities);
-    Collection<Organization> returnedEntities = (Collection<Organization>) interceptor.invoke(invoc);
-    assertThat(returnedEntities).containsExactlyElementsOf(entities);
   }
 }

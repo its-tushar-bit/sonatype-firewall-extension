@@ -106,6 +106,12 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
+  public void testGetApplicationNamesForEvaluateComponent_Unauthenticated() throws Exception {
+    Map<String, String> applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
+    assertThat(applicationNames).isEmpty();
+  }
+
+  @Test
   public void testValidateApplicationPublicId_Authorized() throws Exception {
     grantWritePermission(app.getId());
     String value = applicationService.validateApplicationPublicId(app.getPublicId());
@@ -114,20 +120,20 @@ public class ApplicationServiceAuthzTest
 
   @Test(expected = UnauthorizedException.class)
   public void testValidateApplicationPublicId_Unauthorized() throws Exception {
-    grantReadPermission(app.getId());
+    login();
     applicationService.validateApplicationPublicId(app.getPublicId());
   }
 
   @Test
-  public void testGetApplicationByPublicId_Authorized() throws Exception {
+  public void testGetApplicationByPublicIdForRead_Authorized() throws Exception {
     grantReadPermission(app.getId());
 
-    applicationService.getApplicationByPublicId(app.getPublicId());
+    applicationService.getApplicationByPublicIdForRead(app.getPublicId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetApplicationByPublicId_Unauthenticated() throws Exception {
-    applicationService.getApplicationByPublicId(app.getPublicId());
+  public void testGetApplicationByPublicIdForRead_Unauthenticated() throws Exception {
+    applicationService.getApplicationByPublicIdForRead(app.getPublicId());
   }
 
   @Test

@@ -126,14 +126,14 @@ public class ProprietaryConfigService
     return proprietaryConfig;
   }
 
-  @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   com.sonatype.clm.dto.model.ProprietaryConfig getProprietaryConfigForApplicationEvaluator(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {
     return getProprietaryConfig(OwnerType.APPLICATION, applicationPublicId);
   }
 
-  @Authorize(permission = Permission.EVALUATE_COMPONENT, anonymousAllowed = true)
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
   com.sonatype.clm.dto.model.ProprietaryConfig getProprietaryConfigForComponentEvaluator(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {

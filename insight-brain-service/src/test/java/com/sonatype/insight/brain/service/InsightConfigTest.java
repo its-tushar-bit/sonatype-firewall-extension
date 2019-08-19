@@ -8,14 +8,20 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 import java.util.List;
 
+import com.sonatype.insight.test.LogOutput;
+
 import io.dropwizard.jersey.validation.Validators;
 import io.dropwizard.validation.ConstraintViolations;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class InsightConfigTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(InsightConfig.class);
+
   @Test
   public void testBaseUrl() {
     InsightConfig config = new InsightConfig();
@@ -93,5 +99,20 @@ public class InsightConfigTest
 
     config.getSupportConfig().setReadLimitBytes(-1);
     assertThat(config.getSupportConfig().getReadLimitBytes()).isEqualTo(-1);
+  }
+
+  /**
+   * @deprecated The tested method is deprecated.
+   */
+  @Test
+  @Deprecated
+  public void testSetAnonymousClientAccessAllowed() {
+    InsightConfig config = new InsightConfig();
+
+    config.setAnonymousClientAccessAllowed(true);
+
+    assertThat(logOutput).atWarnLevel()
+        .contains("The support for anonymous client access was removed in Nexus IQ Server 72. "
+            + "The anonymousClientAccessAllowed configuration option should be removed from the config yml file.");
   }
 }

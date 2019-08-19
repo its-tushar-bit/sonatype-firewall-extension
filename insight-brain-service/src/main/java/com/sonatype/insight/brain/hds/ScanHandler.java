@@ -89,7 +89,7 @@ public class ScanHandler
     this.thirdPartyScanResultsProcessor = thirdPartyScanResultsProcessor;
   }
 
-  @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   ScanReceipt handle(HttpServletRequest httpRequest,
                      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
                      ClientScanType clientScanType)

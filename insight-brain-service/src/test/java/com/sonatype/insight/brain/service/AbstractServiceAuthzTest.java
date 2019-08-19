@@ -54,7 +54,7 @@ public class AbstractServiceAuthzTest
       }
     };
     binder.install(shiroModule);
-    binder.install(new SecurityAopModule(true));
+    binder.install(new SecurityAopModule());
   }
 
   @Override

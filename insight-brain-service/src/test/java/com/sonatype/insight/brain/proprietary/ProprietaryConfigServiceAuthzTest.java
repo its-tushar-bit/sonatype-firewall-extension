@@ -97,8 +97,7 @@ public class ProprietaryConfigServiceAuthzTest
     proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
   }
 
-  // Anonymous access is currently allowed
-  @Test
+  @Test(expected = UnauthenticatedException.class)
   public void testGetProprietaryConfig_EvaluateApplication_Unauthenticated() throws Exception {
     proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
   }
@@ -115,8 +114,7 @@ public class ProprietaryConfigServiceAuthzTest
     proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
   }
 
-  // Anonymous access is currently allowed
-  @Test
+  @Test(expected = UnauthenticatedException.class)
   public void testGetProprietaryConfig_EvaluateComponent_Unauthenticated() throws Exception {
     proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
   }

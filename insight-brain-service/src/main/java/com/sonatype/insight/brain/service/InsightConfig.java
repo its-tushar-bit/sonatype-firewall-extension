@@ -117,13 +117,6 @@ public class InsightConfig
   private int policyMonitoringHour = 0;
 
   /**
-   * @since 1.14.0
-   */
-  @NotNull
-  @JsonProperty
-  private boolean anonymousClientAccessAllowed = false;
-
-  /**
    * @since 1.16.0
    */
   @NotNull
@@ -434,16 +427,13 @@ public class InsightConfig
 
   /**
    * @since 1.14.0
+   * 
+   * @deprecated The support for anonymous client access was removed in 1.72.
    */
-  public boolean isAnonymousClientAccessAllowed() {
-    return anonymousClientAccessAllowed;
-  }
-
-  /**
-   * @since 1.14.0
-   */
-  public void setAnonymousClientAccessAllowed(final boolean anonymousClientAccessAllowed) {
-    this.anonymousClientAccessAllowed = anonymousClientAccessAllowed;
+  @Deprecated
+  public void setAnonymousClientAccessAllowed(@SuppressWarnings("unused") final boolean anonymousClientAccessAllowed) {
+    log.warn("The support for anonymous client access was removed in Nexus IQ Server 72. "
+        + "The anonymousClientAccessAllowed configuration option should be removed from the config yml file.");
   }
 
   public boolean isCsrfProtection() {

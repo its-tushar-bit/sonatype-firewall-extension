@@ -16,17 +16,11 @@ import org.apache.shiro.guice.aop.ShiroAopModule;
 public class SecurityAopModule
     extends ShiroAopModule
 {
-  private final boolean anonymousClientAccessAllowed;
-
-  public SecurityAopModule(final boolean anonymousClientAccessAllowed) {
-    this.anonymousClientAccessAllowed = anonymousClientAccessAllowed;
-  }
-
   @Override
   protected void configureInterceptors(AnnotationResolver resolver) {
     AuthorizationChecker authzChecker = new AuthorizationChecker();
     bind(AuthorizationChecker.class).toInstance(authzChecker);
-    bindShiroInterceptor(new AuthorizeMethodInterceptor(resolver, authzChecker, anonymousClientAccessAllowed));
-    bindShiroInterceptor(new AuthzFilterMethodInterceptor(resolver, authzChecker, anonymousClientAccessAllowed));
+    bindShiroInterceptor(new AuthorizeMethodInterceptor(resolver, authzChecker));
+    bindShiroInterceptor(new AuthzFilterMethodInterceptor(resolver, authzChecker));
   }
 }

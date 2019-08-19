@@ -58,9 +58,7 @@ import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -302,69 +300,10 @@ public class ReportResourceTest
   }
 
   @Test
-  public void testEmbedReport_AnonymousNotAllowed() throws Exception {
-    String scanId = "abcdefg12345";
-    String appPublicId = "bom1-12345678";
-
-    HttpResponse response = restRequest(appPublicId, scanId).path("embedReport/index.html").anon().get();
-    assertResponseStatus(401, response);
-  }
-
-  @Test
-  @ManualServerInit
-  public void testEmbedReport_AnonymousAllowed() throws Exception {
-    initServer(new Configurator() {
-      @Override
-      public void configure(final InsightConfig config) {
-        config.setAnonymousClientAccessAllowed(true);
-      }
-    });
-    String scanId = "abcdefg12345";
-    String appPublicId = "bom1-12345678";
-
-    HttpResponse response = restRequest(appPublicId, scanId).path("embedReport/index.html").anon().get();
-    assertResponseStatus(200, response);
-
-    String content = response.getBodyText();
-    assertThat(content)
-        .contains(restRequest().path(UserInterfaceLinksResource.RESOURCE_PATH, UserInterfaceLinksResource.REPORT_PATH)
-            .parameter(appPublicId, scanId).getUrl());
-    assertThat(response.getHeader("Expires")).isEqualTo("Thu, 01 Jan 1970 00:00:00 GMT");
-  }
-
-  @Test
   public void testEmbedReport_Json() throws Exception {
     String scanId = "abcdefg12345";
     HttpResponse response = restRequest(app.getPublicId(), scanId)
         .path("embedReport", ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).get();
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Reports have been moved.  Clear cache and reload.");
-  }
-
-  @Test
-  public void testEmbedReport_Json_AnonymousNotAllowed() throws Exception {
-    String scanId = "abcdefg12345";
-    String appPublicId = "bom1-12345678";
-
-    HttpResponse response = restRequest(appPublicId, scanId)
-        .path("embedReport", ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).anon().get();
-    assertResponseStatus(401, response);
-  }
-
-  @Test
-  @ManualServerInit
-  public void testEmbedReport_Json_AnonymousAllowed() throws Exception {
-    initServer(new Configurator() {
-      @Override
-      public void configure(final InsightConfig config) {
-        config.setAnonymousClientAccessAllowed(true);
-      }
-    });
-    String scanId = "abcdefg12345";
-    String appPublicId = "bom1-12345678";
-
-    HttpResponse response = restRequest(appPublicId, scanId)
-        .path("embedReport", ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).anon().get();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Reports have been moved.  Clear cache and reload.");
   }

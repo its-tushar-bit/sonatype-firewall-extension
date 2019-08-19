@@ -14,7 +14,6 @@ import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
-import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
 
 /**
@@ -47,14 +46,5 @@ class UserFriendlyBasicHttpAuthenticationFilter
     LoginErrorResponseHandler.sendError((HttpServletResponse) response,
         new ErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
     return false;
-  }
-
-  @Override
-  protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
-    // Mix of behaviour from AuthenticatingFilter and AuthenticationFilter
-    // behaviour prior to https://github.com/apache/shiro/commit/dbc0bb12203ddaa080892113a69b0676ffd04872
-    Subject subject = getSubject(request, response);
-    return subject.isAuthenticated()
-        || (!isLoginRequest(request, response) && isPermissive(mappedValue));
   }
 }

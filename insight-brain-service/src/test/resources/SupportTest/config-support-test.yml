@@ -11,11 +11,6 @@ sonatypeWork: ./sonatype-work/clm-server
 # Hour of the day(0-23) to schedule Policy Monitoring execution. The default is midnight.
 #policyMonitoringHour: 0
 
-# If true, allows anonymous policy evaluation from client tooling (e.g. CLI, CI, Maven).
-# If false, forces authentication and disallows anonymous access.
-# Defaults to false for security.
-#anonymousClientAccessAllowed: false
-
 # Enables/disables cross-site request forgery protection. Defaults to true for increased security.
 #csrfProtection: true
 

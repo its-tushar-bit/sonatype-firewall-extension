@@ -383,7 +383,7 @@ public class InsightBrainService
       }
     };
     Module authc = new SecurityModule(config);
-    Module authz = new SecurityAopModule(config.isAnonymousClientAccessAllowed());
+    Module authz = new SecurityAopModule();
 
     return Arrays.asList(bindings, authc, authz);
   }

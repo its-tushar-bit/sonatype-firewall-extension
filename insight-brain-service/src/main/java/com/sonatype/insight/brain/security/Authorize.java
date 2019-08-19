@@ -25,11 +25,4 @@ public @interface Authorize
    * The permission to check for.
    */
   Permission permission();
-
-  /**
-   * Flag to grant access to anonymous user to support legacy clients that do not authenticate (CLM 1.13-).
-   *
-   * @since 1.14.0
-   */
-  boolean anonymousAllowed() default false;
 }

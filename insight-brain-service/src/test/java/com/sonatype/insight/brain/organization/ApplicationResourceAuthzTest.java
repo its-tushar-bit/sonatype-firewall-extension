@@ -69,10 +69,4 @@ public class ApplicationResourceAuthzTest
         .part("hasRobotSource", "false");
     testAuthzPost(request);
   }
-
-  @Test
-  public void testGetApplicationNamesForEvaluateComponent_Anonymous() throws Exception {
-    HttpResponse response = restRequest().path(ApplicationResource.GET_APPLICATION_NAMES).anon().get();
-    assertResponseStatus(401, response);
-  }
 }

@@ -43,14 +43,11 @@ public class SecurityModule
 {
   public static final String SESSION_COOKIE_NAME = "CLMSESSIONID";
 
-  private final boolean anonymousClientAccessAllowed;
-
   private final boolean csrfProtection;
 
   private final ReverseProxyAuthenticationConfig reverseProxyAuthentication;
 
   public SecurityModule(InsightConfig config) {
-    this.anonymousClientAccessAllowed = config.isAnonymousClientAccessAllowed();
     this.csrfProtection = config.isCsrfProtection();
     this.reverseProxyAuthentication = config.getReverseProxyAuthentication();
   }
@@ -152,8 +149,6 @@ public class SecurityModule
     manager.createChain("/rest/quality/evaluations/*/*", filters);
     manager.createChain("/rest/report/*/*/downloadBundle", filters);
 
-    // for backward-compat, these can still support anonymous access
-    filters += anonymousClientAccessAllowed ? "[permissive]" : "";
     manager.createChain("/rest/integration/applications", filters);
     manager.createChain("/rest/report/*/*/embedReport/**", filters);
     manager.createChain("/rest/application/services/names", filters);

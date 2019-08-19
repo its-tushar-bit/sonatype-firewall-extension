@@ -23,8 +23,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.junit.Test;
 
@@ -52,28 +50,6 @@ public class ApplicationResourceTest
 
     application = tempEntity.newApplicationWithParent(applicationPublicId,
         "ApplicationResourceTest-testValidate-AppName", "ApplicationResourceTest-testValidate-OrgName");
-
-    HttpResponse response = restRequest().path(ApplicationResource.VALIDATE_PATH).parameter(applicationPublicId).get();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText()).isEqualTo("OK");
-
-    applicationDAO.delete(application);
-
-    // validate service always returns 200, the actual result is in the response body
-    response = restRequest().path(ApplicationResource.VALIDATE_PATH).parameter(applicationPublicId).get();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText()).isEqualTo("Invalid application ID " + applicationPublicId + ".");
-  }
-
-  @Test
-  public void testValidate_Anonymous() throws Exception {
-    final String applicationPublicId = "ApplicationResourceTest-testValidate-AppId";
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application application = applicationDAO.getByPublicId(applicationPublicId);
-    assertThat(application).isNull();
-
-    application = tempEntity.newApplicationWithParent(applicationPublicId,
-        "ApplicationResourceTest-testValidate-AppName");
 
     HttpResponse response = restRequest().path(ApplicationResource.VALIDATE_PATH).parameter(applicationPublicId).get();
     assertResponseStatus(200, response);
@@ -377,26 +353,6 @@ public class ApplicationResourceTest
     HttpResponse response = restRequest().path(ApplicationResource.GET_APPLICATION_NAMES).get();
     assertResponseStatus(200, response);
 
-    @SuppressWarnings("unchecked")
-    Map<String, String> applicationNames = response.getBody(Map.class);
-    assertThat(applicationNames).hasSize(1).containsEntry(applicationPublicId, applicationName);
-  }
-
-  @Test
-  @ManualServerInit
-  public void testGetApplicationNamesForEvaluateComponent_Anonymous_AnonymousClientAccessAllowed() throws Exception {
-    initServer(new Configurator() {
-      @Override
-      public void configure(final InsightConfig config) {
-        config.setAnonymousClientAccessAllowed(true);
-      }
-    });
-    final String applicationPublicId = "ApplicationResourceTest-getApplicationNamesTest-AppId";
-    final String applicationName = "ApplicationResourceTest-getApplicationNamesTest-Name";
-    tempEntity.newApplicationWithParent(applicationPublicId, applicationName);
-
-    HttpResponse response = restRequest().path(ApplicationResource.GET_APPLICATION_NAMES).anon().get();
-    assertResponseStatus(200, response);
     @SuppressWarnings("unchecked")
     Map<String, String> applicationNames = response.getBody(Map.class);
     assertThat(applicationNames).hasSize(1).containsEntry(applicationPublicId, applicationName);

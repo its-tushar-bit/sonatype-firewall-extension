@@ -133,7 +133,7 @@ public class PolicyEvaluateService
     return policyEvaluationResult;
   }
 
-  @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public PolicyEvaluationResult evaluate(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
       String scanId,

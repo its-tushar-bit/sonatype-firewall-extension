@@ -114,7 +114,7 @@ public class ApplicationSummaryService
     }
   }
 
-  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION, anonymousAllowed = true)
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
   protected List<Application> getApplicationsForRead() {
     return applicationDAO.getAll();
   }
@@ -122,8 +122,7 @@ public class ApplicationSummaryService
   /**
    * @since 1.14.0
    */
-  @AuthzFilter(permission = Permission.EVALUATE_APPLICATION, context = AuthzFilter.Context.APPLICATION, 
-      anonymousAllowed = true)
+  @AuthzFilter(permission = Permission.EVALUATE_APPLICATION, context = AuthzFilter.Context.APPLICATION)
   protected List<Application> getApplicationsForEvaluateApplication() {
     return applicationDAO.getAll();
   }

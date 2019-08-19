@@ -244,4 +244,10 @@ public class KeycloakTestServerTest
     keycloak.logoutUser(id);
     assertThat(keycloak.getSessionsOfUser(id)).isEmpty();
   }
+
+  @Test
+  public void testGetSamlMetadataXml() {
+    String samlMetadata = keycloak.getSamlMetadataXml();
+    assertThat(samlMetadata).startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").contains("IDPSSODescriptor");
+  }
 }

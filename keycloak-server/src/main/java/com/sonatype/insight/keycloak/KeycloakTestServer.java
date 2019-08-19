@@ -197,6 +197,11 @@ public class KeycloakTestServer
         .header("Authorization", "Bearer " + adminBearerToken).buildPost(null).invoke();
   }
 
+  public String getSamlMetadataXml() {
+    return ClientBuilder.newClient().target(url).path("realms/master/protocol/saml/descriptor").request().buildGet()
+        .invoke().readEntity(String.class);
+  }
+
   public String getUrl() {
     return url;
   }

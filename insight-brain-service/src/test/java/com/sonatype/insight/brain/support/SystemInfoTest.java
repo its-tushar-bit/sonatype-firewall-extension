@@ -29,6 +29,7 @@ import java.util.TreeSet;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -465,6 +466,19 @@ public class SystemInfoTest
   public void testGetLdapConfigEmpty() {
     final List<LdapConfig> ldapServers = new ArrayList<>();
     assertThat(systemInfo.getLdapConfig(ldapServers)).isEqualTo("[ ]");
+  }
+
+  @Test
+  public void testGetSamlConfig_NotConfigured() {
+    assertThat(systemInfo.getSamlConfig()).isEqualTo("null");
+  }
+
+  @Test
+  public void testGetSamlConfig_Configured() throws Exception {
+    SamlConfiguration samlConfig = tempEntity.newSamlConfiguration();
+    SamlConfiguration actual = new ObjectMapper().readValue(systemInfo.getSamlConfig(), SamlConfiguration.class);
+    assertThat(actual).isNotNull();
+    assertThat(actual.getId()).isEqualTo(samlConfig.getId());
   }
 
   @Test

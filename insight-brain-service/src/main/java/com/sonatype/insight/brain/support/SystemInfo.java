@@ -37,6 +37,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -379,6 +380,10 @@ class SystemInfo
 
   String getLdapConfig(final List<LdapConfig> ldapServers) {
     return JsonUtils.format(ldapServers);
+  }
+
+  String getSamlConfig() {
+    return JsonUtils.format(new SamlConfigurationDAO().get());
   }
 
   Entry<String, SortedMap<String, Object>> getClientInfo(final String requestUrl) {

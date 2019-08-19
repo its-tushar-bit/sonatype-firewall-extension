@@ -276,6 +276,10 @@ class SupportService
         writeTextToFile(systemInfo.getLdapConfig(ldapServers), new File(workDir, "ldap.json")), "ldap",
         SupportFileType.CONFIG,
         true);
+    addFileIfExists(filesToZip,
+        writeTextToFile(systemInfo.getSamlConfig(), new File(workDir, "saml.json")), "saml",
+        SupportFileType.CONFIG,
+        true);
 
     addFileIfExists(filesToZip,
         writeTextToFile(DbDiagnostics.getDBFileInfo(), new File(workDir, "dbFileInfo.txt")),

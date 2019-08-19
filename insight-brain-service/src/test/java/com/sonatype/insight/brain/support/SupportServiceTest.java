@@ -154,6 +154,8 @@ public class SupportServiceTest
     assertThat(entries.nextElement().getName())
         .isEqualTo(zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/ldap.json");
     assertThat(entries.nextElement().getName())
+        .isEqualTo(zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/saml.json");
+    assertThat(entries.nextElement().getName())
         .isEqualTo(zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/dbFileInfo.txt");
     assertThat(entries.nextElement().getName())
         .isEqualTo(zipFileBasename + "/" + SupportFileType.DB.getDirName() + "/migrationTracker.json");

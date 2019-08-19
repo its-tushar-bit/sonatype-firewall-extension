@@ -96,7 +96,7 @@ public class KeycloakTestServer
   public void createClient(ClientRepresentation client) {
     Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/clients").request()
         .header("Authorization", "Bearer " + adminBearerToken)
-        .buildPost(Entity.entity(client, MediaType.APPLICATION_JSON)).invoke();
+        .post(Entity.entity(client, MediaType.APPLICATION_JSON));
 
     if (response.getStatus() == Status.CREATED.getStatusCode()) {
       createdClientIds.add(
@@ -114,8 +114,8 @@ public class KeycloakTestServer
    */
   public ClientRepresentation createClientRepresentation(String xmlMetadata) {
     return ClientBuilder.newClient().target(url).path("admin/realms/master/client-description-converter").request()
-            .header("Authorization", "Bearer " + adminBearerToken).buildPost(Entity.xml(xmlMetadata)).invoke()
-            .readEntity(ClientRepresentation.class);
+        .header("Authorization", "Bearer " + adminBearerToken)
+        .post(Entity.xml(xmlMetadata), ClientRepresentation.class);
   }
 
   /**
@@ -126,7 +126,7 @@ public class KeycloakTestServer
   public String createUser(UserRepresentation user) {
     Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/users").request()
         .header("Authorization", "Bearer " + adminBearerToken)
-        .buildPost(Entity.entity(user, MediaType.APPLICATION_JSON)).invoke();
+        .post(Entity.entity(user, MediaType.APPLICATION_JSON));
 
     if (response.getStatus() == Status.CREATED.getStatusCode()) {
       String id =
@@ -178,7 +178,7 @@ public class KeycloakTestServer
     Response response =
         ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(user.getId()).request()
             .header("Authorization", "Bearer " + adminBearerToken)
-            .buildPut(Entity.entity(user, MediaType.APPLICATION_JSON)).invoke();
+            .put(Entity.entity(user, MediaType.APPLICATION_JSON));
 
     if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
       throw new RuntimeException("User update failed with status code: " + response.getStatus());
@@ -194,12 +194,12 @@ public class KeycloakTestServer
    */
   public void logoutUser(String userId) {
     ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(userId).path("logout").request()
-        .header("Authorization", "Bearer " + adminBearerToken).buildPost(null).invoke();
+        .header("Authorization", "Bearer " + adminBearerToken).post(null);
   }
 
   public String getSamlMetadataXml() {
-    return ClientBuilder.newClient().target(url).path("realms/master/protocol/saml/descriptor").request().buildGet()
-        .invoke().readEntity(String.class);
+    return ClientBuilder.newClient().target(url).path("realms/master/protocol/saml/descriptor").request()
+        .get(String.class);
   }
 
   public String getUrl() {
@@ -209,30 +209,27 @@ public class KeycloakTestServer
   public void clean() {
     for (String clientId : createdClientIds) {
       ClientBuilder.newClient().target(url).path("admin/realms/master/clients").path(clientId).request()
-          .header("Authorization", "Bearer " + adminBearerToken).buildDelete().invoke();
+          .header("Authorization", "Bearer " + adminBearerToken).delete();
     }
     for (String userId : createdUserIds) {
       ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(userId).request()
-          .header("Authorization", "Bearer " + adminBearerToken).buildDelete().invoke();
+          .header("Authorization", "Bearer " + adminBearerToken).delete();
     }
   }
 
   ClientRepresentation[] getClients() {
     return ClientBuilder.newClient().target(url).path("admin/realms/master/clients").request()
-        .header("Authorization", "Bearer " + adminBearerToken).buildGet().invoke()
-        .readEntity(ClientRepresentation[].class);
+        .header("Authorization", "Bearer " + adminBearerToken).get(ClientRepresentation[].class);
   }
 
   UserRepresentation[] getUsers() {
     return ClientBuilder.newClient().target(url).path("admin/realms/master/users").request()
-        .header("Authorization", "Bearer " + adminBearerToken).buildGet().invoke()
-        .readEntity(UserRepresentation[].class);
+        .header("Authorization", "Bearer " + adminBearerToken).get(UserRepresentation[].class);
   }
 
   UserSessionRepresentation[] getSessionsOfUser(String userId) {
     return ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(userId).path("sessions")
         .request()
-        .header("Authorization", "Bearer " + adminBearerToken).buildGet().invoke()
-        .readEntity(UserSessionRepresentation[].class);
+        .header("Authorization", "Bearer " + adminBearerToken).get(UserSessionRepresentation[].class);
   }
 }

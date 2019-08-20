@@ -16,6 +16,7 @@ import java.util.zip.ZipFile;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.mock.twistlock.TwistlockMockServerRule;
 import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.Scan;
@@ -30,6 +31,7 @@ import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -77,7 +79,9 @@ public class TwistlockPolicyEvaluatorTest
     twistlockMockServer.setResponseForURI(DEFAULT_TWISTLOCK_RESULTS_PATH,
         getClass().getResource("/TwistlockPolicyEvaluatorTest/scan-results.tar.gz"), 200);
 
-    ClientScanResult clientScanResult = evaluator.scan(params, new ProprietaryConfig());
+    RestClient restClient = mock(RestClient.class);
+
+    ClientScanResult clientScanResult = evaluator.scan(params, new ProprietaryConfig(), restClient);
     File scanFile = clientScanResult.getScanFile();
     // scanFileZip.close() closes all InputStreams retrieved from this archive
     try (ZipFile scanFileZip = new ZipFile(scanFile)) {
@@ -127,8 +131,10 @@ public class TwistlockPolicyEvaluatorTest
     twistlockMockServer.setResponseForURI(DEFAULT_TWISTLOCK_RESULTS_PATH,
         getClass().getResource("/TwistlockPolicyEvaluatorTest/scan-results.tar.gz"), 200);
 
-    evaluator.scan(twistlockParameters, new ProprietaryConfig());
-    
+    RestClient restClient = mock(RestClient.class);
+
+    evaluator.scan(twistlockParameters, new ProprietaryConfig(), restClient);
+
     @SuppressWarnings("unchecked")
     ArgumentCaptor<List<String>> argCaptor = ArgumentCaptor.forClass(List.class);
     verify(spyTwistlockScanner).runTwistlockScannerCommand(argCaptor.capture());

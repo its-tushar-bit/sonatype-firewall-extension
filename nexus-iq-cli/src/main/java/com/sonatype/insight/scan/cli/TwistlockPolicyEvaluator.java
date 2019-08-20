@@ -13,7 +13,6 @@ import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
 import java.util.Properties;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -73,7 +72,8 @@ public class TwistlockPolicyEvaluator
 
   @Override
   protected ClientScanResult scan(TwistlockParameters params,
-                                  ProprietaryConfig proprietaryConfig) throws ExitException
+                                  ProprietaryConfig proprietaryConfig,
+                                  RestClient restClient) throws ExitException
   {
     params.getOutputDirectory().mkdirs();
 
@@ -184,8 +184,8 @@ public class TwistlockPolicyEvaluator
   }
 
   @Override
-  protected void validateScanTargets(List<String> scanTargets) throws ExitException {
-    if (scanTargets.isEmpty()) {
+  protected void validateScanTargets(TwistlockParameters params, RestClient restClient) throws ExitException {
+    if (params.getScanTargets().isEmpty()) {
       String message = "The ID of the image to scan was not specified.";
       log.error(message);
       throw new ExitException(1, message);

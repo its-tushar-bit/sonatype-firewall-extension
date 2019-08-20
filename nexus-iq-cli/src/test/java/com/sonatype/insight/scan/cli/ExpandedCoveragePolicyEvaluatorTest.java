@@ -247,7 +247,9 @@ public class ExpandedCoveragePolicyEvaluatorTest
     Parameters params = new Parameters("-o", tmpDir.newFolder().getAbsolutePath(),
         getClass().getResource("/" + getClass().getSimpleName() + "/" + scanTarget).getFile());
 
-    ClientScanResult clientScanResult = evaluator.scan(params, new ProprietaryConfig());
+    RestClient restClient = mock(RestClient.class);
+
+    ClientScanResult clientScanResult = evaluator.scan(params, new ProprietaryConfig(), restClient);
 
     assertThat(logOutput)
         // Assert that the disclaimer banner is logged

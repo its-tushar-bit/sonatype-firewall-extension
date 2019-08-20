@@ -65,4 +65,16 @@ public class ScanClient
     resultData.policyAction = outcome;
     JsonUtils.write(resultFile, resultData);
   }
+
+  /**
+   * Exports error information to the specified output JSON file for use by 3rd-party tools.
+   *
+   * @since 1.72.0
+   */
+  public void saveErrorData(File errorFile, String errorMessage, boolean isSystemError) throws IOException {
+    ErrorData errorData = new ErrorData();
+    errorData.errorMessage = errorMessage;
+    errorData.isSystemError = isSystemError;
+    JsonUtils.write(errorFile, errorData);
+  }
 }

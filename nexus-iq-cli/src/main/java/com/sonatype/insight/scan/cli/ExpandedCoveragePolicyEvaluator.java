@@ -72,7 +72,10 @@ public class ExpandedCoveragePolicyEvaluator
   }
 
   @Override
-  protected ClientScanResult scan(Parameters params, ProprietaryConfig proprietaryConfig) throws ExitException {
+  protected ClientScanResult scan(Parameters params,
+                                  ProprietaryConfig proprietaryConfig,
+                                  RestClient restClient) throws ExitException
+  {
     if (!params.getOutputDirectory().exists() && !params.getOutputDirectory().mkdirs()) {
       throw new RuntimeException("Unable to create output directory " + params.getOutputDirectory());
     }

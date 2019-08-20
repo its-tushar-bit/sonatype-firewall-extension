@@ -58,9 +58,9 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
     validateServerAccess(params, restClient);
 
-    validateScanTargets(params.getScanTargets());
+    validateScanTargets(params, restClient);
 
-    ClientScanResult clientScanResult = scan(params, getProprietaryConfiguration(params, restClient));
+    ClientScanResult clientScanResult = scan(params, getProprietaryConfiguration(params, restClient), restClient);
 
     evaluatePolicy(params, restClient, clientScanResult, getClientScanType());
   }
@@ -83,17 +83,22 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       isApplicationAllowed = restClient.verifyOrCreateApplication(params.getApplicationId());
     }
     catch (HttpResponseException e) {
-      throw handleHttpResponseException(params, e);
+      throw handleHttpResponseException(params, e, restClient);
     }
     catch (Exception e) {
       log.error(e.getMessage(), e);
+      saveErrorData(params, CLIError.forSystemError(e.getMessage()), restClient);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     if (!isApplicationAllowed) {
-      log.error("The application ID {} is invalid.", params.getApplicationId());
-      throw new ExitException(1, String.format("The application ID %s is invalid.", params.getApplicationId()));
+      String message = String.format("The application ID %s is invalid.", params.getApplicationId());
+      log.error(message);
+      saveErrorData(params, CLIError.forConfigurationError(message), restClient);
+      throw new ExitException(1, message);
     }
   }
+
+  protected void saveErrorData(P params, CLIError error, RestClient restClient) throws ExitException { }
 
   protected ProprietaryConfig getProprietaryConfiguration(P params, RestClient restClient) throws ExitException {
     log.debug("Retrieving configuration for proprietary components from the IQ Server...");
@@ -106,23 +111,29 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
   }
 
-  protected void validateScanTargets(List<String> scanTargets) throws ExitException {
-    if (scanTargets.isEmpty()) {
-      log.error("The archives or directories to scan were not specified.");
-      throw new ExitException(1, "The archives or directories to scan were not specified.");
+  protected void validateScanTargets(P params, RestClient restClient) throws ExitException {
+    if (params.getScanTargets().isEmpty()) {
+      String message = "The archives or directories to scan were not specified.";
+      log.error(message);
+      saveErrorData(params, CLIError.forConfigurationError(message), restClient);
+      throw new ExitException(1, message);
     }
-    for (String scanTarget : scanTargets) {
+    for (String scanTarget : params.getScanTargets()) {
       File file = new File(scanTarget);
       if (!file.exists()) {
-        log.error("The input path '{}' does not exist.", file.getAbsolutePath());
-        throw new ExitException(1, String.format("The input path '%s' does not exist.", file.getAbsolutePath()));
+        String message = String.format("The input path '%s' does not exist.", file.getAbsolutePath());
+        log.error(message);
+        saveErrorData(params, CLIError.forConfigurationError(message), restClient);
+        throw new ExitException(1, message);
       }
     }
   }
 
-  protected ClientScanResult scan(P params, ProprietaryConfig proprietaryConfig) throws ExitException {
+  protected ClientScanResult scan(P params,
+                                  ProprietaryConfig proprietaryConfig,
+                                  RestClient restClient) throws ExitException
+  {
     ScanMetadata scanMetadata = verifyAndPopulateMetadata(params);
-
     try {
       params.getOutputDirectory().mkdirs();
       File scanFile = File.createTempFile("scan-", ".xml.gz", params.getOutputDirectory());
@@ -134,6 +145,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
     catch (IOException e) {
       log.error("The scan could not be performed", e);
+      saveErrorData(params, CLIError.forSystemError("The scan could not be performed: " + e.getMessage()), restClient);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
   }
@@ -171,13 +183,17 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
               clientScanType);
     }
     catch (HttpResponseException e) {
-      log.error("The policy evaluation results for app ID {} could not be fetched from the IQ Server: {} ({})",
-          params.getApplicationId(), e.getMessage(), e.getStatusCode());
+      String message = String.format("The policy evaluation results for app ID %s could not " +
+          "be fetched from the IQ Server: %s (%s)", params.getApplicationId(), e.getMessage(), e.getStatusCode());
+      log.error(message);
+      saveErrorData(params, CLIError.forSystemError(message), restClient);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (IOException e) {
-      log.error("The policy evaluation results for application ID {} could not be fetched from the IQ Server",
-          params.getApplicationId(), e);
+      String message = String.format("The policy evaluation results for application ID %s could not " +
+          "be fetched from the IQ Server", params.getApplicationId());
+      log.error(message);
+      saveErrorData(params, CLIError.forSystemError(message), restClient);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
 
@@ -222,32 +238,48 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       restClient.validateServerVersion(MINIMAL_SERVER_VERSION_REQUIRED);
     }
     catch (HttpResponseException e) {
-      throw handleHttpResponseException(params, e);
+      throw handleHttpResponseException(params, e, restClient);
     }
     catch (UnsupportedServerVersionException e) {
       log.error(e.getMessage());
+      saveErrorData(params, CLIError.forSystemError(e.getMessage()), restClient);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (Exception e) {
-      log.error("The IQ Server {} could not be contacted: {}", params.getServerUrl(), e.getMessage());
+      String message = String.format("The IQ Server %s could not be contacted: %s",
+          params.getServerUrl(), e.getMessage());
+      log.error(message);
       log.error("Error details below:", e);
+      saveErrorData(params, CLIError.forSystemError(message), restClient);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
   }
 
-  private ExitException handleHttpResponseException(P params, HttpResponseException e) {
+  private ExitException handleHttpResponseException(P params,
+                                                    HttpResponseException e,
+                                                    RestClient restClient) throws ExitException
+  {
     if (e.getStatusCode() == 503) {
-      log.error("The IQ Server is down for maintenance, please try again later.");
+      String message = "The IQ Server is down for maintenance, please try again later.";
+      log.error(message);
+      saveErrorData(params, CLIError.forSystemError(message), restClient);
     }
     else if (e.getStatusCode() == 407) {
-      log.error("The proxy server {} requires authentication: {}", params.getProxy(), e.getMessage());
+      String message = String.format("The proxy server %s requires authentication: %s",
+          params.getProxy(), e.getMessage());
+      log.error(message);
+      saveErrorData(params, CLIError.forSystemError(message), restClient);
     }
     else if (e.getStatusCode() == 401 || e.getStatusCode() == 403) {
-      log.error("The IQ Server {} rejected the supplied credentials.", params.getServerUrl());
+      String message = String.format("The IQ Server %s rejected the supplied credentials.", params.getServerUrl());
+      log.error(message);
+      saveErrorData(params, CLIError.forConfigurationError(message), restClient);
     }
     else {
-      log.error("The IQ Server {} could not be contacted: {} ({})", params.getServerUrl(), e.getMessage(),
-          e.getStatusCode());
+      String message = String.format("The IQ Server %s could not be contacted: %s (%s)",
+          params.getServerUrl(), e.getMessage(), e.getStatusCode());
+      log.error(message);
+      saveErrorData(params, CLIError.forSystemError(message), restClient);
     }
     return new ExitException(params.isIgnoreSystemErrors(), e);
   }

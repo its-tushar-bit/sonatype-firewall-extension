@@ -81,6 +81,20 @@ abstract class PolicyEvaluator<P extends AbstractCliParameters>
   }
 
   @Override
+  protected void saveErrorData(P params, CLIError error, RestClient restClient) throws ExitException {
+    if (params.getResultFile() != null) {
+      try {
+        restClient.saveErrorData(
+            params.getApplicationId(), params.getResultFile(), error.getErrorMessage(), error.isSystemError());
+      }
+      catch (IOException e) {
+        log.error("The policy evaluation error data could not be exported to {}", params.getResultFile(), e);
+        throw new ExitException(params.isIgnoreSystemErrors(), e);
+      }
+    }
+  }
+
+  @Override
   protected RestClient createClient(Configuration configuration) {
     return restClientFactory.newRestCLIClient(configuration);
   }

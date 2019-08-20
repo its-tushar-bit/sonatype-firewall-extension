@@ -161,6 +161,12 @@ public class RestClientFactory
       new ScanClient(config, appId).saveResultData(resultFile, receipt, eval, outcome);
     }
 
+    public void saveErrorData(String appId, File resultFile, String errorMessage, boolean isSystemError)
+        throws IOException
+    {
+      new ScanClient(config, appId).saveErrorData(resultFile, errorMessage, isSystemError);
+    }
+
     /**
      * @since 1.50
      */

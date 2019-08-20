@@ -25,7 +25,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class ApiSourceControlResourceTest
     extends AbstractResourceTest
 {
-  public static final String VALID_URL = "https://example/com/organization/project";
+  static final String VALID_URL = "https://example.com/organization/project";
 
   private static final ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
   
@@ -87,14 +87,10 @@ public class ApiSourceControlResourceTest
   public void testAddSourceControl_MissingSourceControlProvider() throws Exception {
     SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL, "token", null);
     HttpResponse response = restRequest().path(app.getId()).body(sourceControl).post();
-    assertResponseStatus(200, response);
-    ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
-
-    assertThat(result.id).isNotNull();
-    assertThat(result.applicationId).isEqualTo(app.getId());
-    assertThat(result.repositoryUrl).isEqualTo(sourceControl.getRepositoryUrl());
-    assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
-    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText())
+        .isEqualTo(
+            "SourceControl provider is required when a token is provided");
   }
 
   @Test
@@ -106,11 +102,10 @@ public class ApiSourceControlResourceTest
     sourceControl.setProvider(null);
     HttpResponse response = restRequest().path(app.getId())
         .body(apiSourceControlAdapter.convertToDTO(sourceControl)).put();
-    assertResponseStatus(200, response);
-
-    ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
-    assertThat(result.repositoryUrl).isEqualTo(updatedUrl);
-    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText())
+        .isEqualTo(
+            "SourceControl provider is required when a token is provided");
   }
 
   @Test
@@ -155,5 +150,59 @@ public class ApiSourceControlResourceTest
         tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
     HttpResponse response = restRequest().path(app.getId()).path(sourceControl.getId()).delete();
     assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl() throws Exception {
+    // ensure organization record exists
+    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", SourceControlProvider.GITHUB);
+    HttpResponse response = restRequest()
+        .query("publicId", app.getPublicId())
+        .query("repositoryUrl", VALID_URL)
+        .post();
+    assertResponseStatus(200, response);
+    ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
+
+    assertThat(result.id).isNotNull();
+    assertThat(result.applicationId).isEqualTo(app.getId());
+    assertThat(result.ownerId).isEqualTo(app.getId());
+    assertThat(result.repositoryUrl).isEqualTo(VALID_URL);
+    assertThat(result.token).isNull();
+    assertThat(result.provider).isNull();
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_InvalidPublicId() throws Exception {
+    HttpResponse response = restRequest()
+        .query("publicId", "abc")
+        .query("repositoryUrl", VALID_URL)
+        .post();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo("Could not find an application with public ID abc.");
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_InvalidRepositoryUrl() throws Exception {
+    // ensure organization record exists
+    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", SourceControlProvider.GITHUB);
+    HttpResponse response = restRequest()
+        .query("publicId", app.getPublicId())
+        .query("repositoryUrl", "https://not valid")
+        .post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).startsWith("SourceControl repositoryUrl is invalid:");
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_CannotValidateRepositoryUrl() throws Exception {
+    HttpResponse response = restRequest()
+        .query("publicId", app.getPublicId())
+        .query("repositoryUrl", "https://not valid")
+        .post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).startsWith("Cannot validate SourceControl repositoryUrl");
   }
 }

@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -296,9 +297,9 @@ public class ApiSourceControlServiceTest
   public void testAddSourceControl_NoSourceControlProviderProvided() {
     ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl(app.getId(), VALID_URL, TOKEN, null));
-    ApiSourceControlDTO sourceControl = sourceControlService.addSourceControl(
-        app.getId(), validSourceControl);
-    assertThat(sourceControl.provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.addSourceControl(app.getId(), validSourceControl));
+
   }
 
   @Test
@@ -307,9 +308,43 @@ public class ApiSourceControlServiceTest
         app.getId(), apiSourceControlAdapter.convertToDTO(new SourceControl(
             app.getId(), VALID_URL, TOKEN, SourceControlProvider.GITLAB)));
     validSourceControl.provider = null;
-    ApiSourceControlDTO sourceControl = sourceControlService.updateSourceControl(
-        app.getId(), validSourceControl);
-    assertThat(sourceControl.provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.addSourceControl(app.getId(), validSourceControl));
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_AddNew() {
+    // add org record
+    sourceControlService.addSourceControl(
+        app.getOrganizationId(), apiSourceControlAdapter.convertToDTO(new SourceControl(
+            app.getOrganizationId(), null, TOKEN, SourceControlProvider.GITHUB)));
+    String repoUrl = "https://example.com/org/proj";
+    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), repoUrl);
+    assertThat(sourceControlService.getSourceControlByApplicationId(app.getId()).repositoryUrl)
+        .isEqualTo(repoUrl);
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_Update() {
+    ApiSourceControlDTO sourceControl = sourceControlService.addSourceControl(
+        app.getId(), apiSourceControlAdapter.convertToDTO(new SourceControl(
+            app.getId(), VALID_URL, TOKEN, SourceControlProvider.GITHUB)));
+    String repoUrl = "https://example.com/org/proj";
+    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), repoUrl);
+    assertThat(sourceControlService.getSourceControlDecrypted(app.getId(), sourceControl.id).repositoryUrl)
+        .isEqualTo(repoUrl);
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_InvalidPublicId() {
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> sourceControlService.addOrUpdateSourceControl("abcdefg", "https://e.com/org/proj"));
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_InvalidRepoUrl() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.addOrUpdateSourceControl(app.getPublicId(), "https://not valid"));
   }
 
   private void assertTelemetry(final METHOD method,

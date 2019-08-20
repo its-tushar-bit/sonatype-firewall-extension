@@ -15,6 +15,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -22,8 +23,10 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.codahale.metrics.annotation.Timed;
+import com.google.common.base.Strings;
 
 /**
  * @since 1.66
@@ -58,7 +61,8 @@ public class ApiSourceControlResource
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_SOURCE_CONTROL)
   @Path(APPLICATION_ID)
-  public ApiSourceControlDTO addSourceControl(@PathParam("applicationId") String applicationId,
+  public ApiSourceControlDTO addSourceControl(
+      @PathParam("applicationId") String applicationId,
       ApiSourceControlDTO sourceControl) 
   {
     return sourceControlService.addSourceControl(applicationId, sourceControl);
@@ -79,9 +83,26 @@ public class ApiSourceControlResource
   @DELETE
   @Path(APP_AND_SOURCE_CONTROL_IDS)
   @Audited(AuditEvent.DELETE_SOURCE_CONTROL)
-  public void deleteSourceControl(@PathParam("applicationId") String applicationId,
+  public void deleteSourceControl(
+      @PathParam("applicationId") String applicationId,
       @PathParam("sourceControlId") String sourceControlId) 
   {
     sourceControlService.deleteSourceControl(applicationId, sourceControlId);
+  }
+
+  @POST
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.AUTO_CREATE_SOURCE_CONTROL)
+  public ApiSourceControlDTO addOrUpdateSourceControl(
+      @QueryParam("publicId") final String publicId,
+      @QueryParam("repositoryUrl") final String repositoryUrl)
+  {
+    if (Strings.isNullOrEmpty(publicId)) {
+      throw new BadRequestException("Query parameter 'publicId' is required");
+    }
+    if (Strings.isNullOrEmpty(repositoryUrl)) {
+      throw new BadRequestException("Query parameter 'repositoryUrl' is required");
+    }
+    return sourceControlService.addOrUpdateSourceControl(publicId, repositoryUrl);
   }
 }

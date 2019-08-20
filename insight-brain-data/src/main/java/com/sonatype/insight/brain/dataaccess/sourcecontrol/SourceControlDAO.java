@@ -10,6 +10,7 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -80,49 +81,50 @@ public class SourceControlDAO
       throw new BadRequestException("SourceControl owner id is required");
     }
 
-    if (! foundOwnerId(tx, sourceControl)) {
-      throw new BadRequestException(
-          "SourceControl ownerId '" + sourceControl.getOwnerId() + "' cannot be found");
-    }
-    SourceControl existing = getByOwnerId(tx, sourceControl.getOwnerId());
-    if (existing != null && !existing.getId().equals(sourceControl.getId())) {
-      throw new BadRequestException(
-          "SourceControl already configured for owner with id: '" + sourceControl.getOwnerId() + "'");
-    }
-    if (StringUtils.isBlank(sourceControl.getToken())) {
-      throw new BadRequestException("SourceControl authentication token is required");
-    }
-    if (sourceControl.getProvider() == null) {
-      throw new BadRequestException("SourceControl provider is required");
-    }
-
-    validateRepositoryUrl(tx, sourceControl);
-  }
-
-  private void validateRepositoryUrl(final TransactionContext tx, final SourceControl sourceControl) {
     if (isForOrganization(tx, sourceControl)) {
       if (sourceControl.getRepositoryUrl() != null) {
         throw new BadRequestException("SourceControl repositoryUrl is not allowed for organization");
       }
-      return;
+      if (StringUtils.isBlank(sourceControl.getToken())) {
+        throw new BadRequestException("SourceControl authentication token is required for organization");
+      }
+      if (sourceControl.getProvider() == null) {
+        throw new BadRequestException("SourceControl provider is required for organization");
+      }
     }
-
-    if (sourceControl.getRepositoryUrl() == null) {
-      throw new BadRequestException("SourceControl repositoryUrl is required for application");
+    else if (isForApplication(tx, sourceControl)) {
+      // if the token is provided the provider must be specified as well
+      if (StringUtils.isNotEmpty(sourceControl.getToken()) && sourceControl.getProvider() == null) {
+        throw new BadRequestException("SourceControl provider is required when a token is provided");
+      }
+      validateRepositoryUrl(tx, sourceControl);
     }
-
-    try {
-      SourceControlProvider scmProvider = SourceControlProvider.fromString(sourceControl.getProvider().toString());
-      GitApiClientFactory.getGitApiClientUtils(scmProvider)
-          .createProjectUri(sourceControl.getRepositoryUrl());
-    }
-    catch (IllegalArgumentException e) {
-      throw new BadRequestException("SourceControl URL is invalid: " + e.getMessage(), e);
+    else {
+      throw new BadRequestException(
+          "SourceControl ownerId '" + sourceControl.getOwnerId() + "' cannot be found");
     }
   }
 
-  private boolean foundOwnerId(final TransactionContext tx, final SourceControl sourceControl) {
-    return isForApplication(tx, sourceControl) || isForOrganization(tx, sourceControl);
+  private void validateRepositoryUrl(final TransactionContext tx, final SourceControl sourceControl) {
+    if (StringUtils.isBlank(sourceControl.getRepositoryUrl())) {
+      throw new BadRequestException("SourceControl repositoryUrl is required for application");
+    }
+    try {
+      SourceControlProvider scmProvider;
+      if (sourceControl.getProvider() != null) {
+        scmProvider = SourceControlProvider.fromString(sourceControl.getProvider().toString());
+      }
+      else {
+        scmProvider = getProviderFromOrganization(tx, sourceControl);
+        if (scmProvider == null) {
+          throw new BadRequestException("Cannot validate SourceControl repositoryUrl due to undetermined provider");
+        }
+      }
+      GitApiClientFactory.getGitApiClientUtils(scmProvider).createProjectUri(sourceControl.getRepositoryUrl());
+    }
+    catch (IllegalArgumentException e) {
+      throw new BadRequestException("SourceControl repositoryUrl is invalid: " + e.getMessage(), e);
+    }
   }
 
   private boolean isForOrganization(final TransactionContext tx, final SourceControl sourceControl) {
@@ -131,5 +133,16 @@ public class SourceControlDAO
 
   private boolean isForApplication(final TransactionContext tx, final SourceControl sourceControl) {
     return applicationDAO.getById(tx, sourceControl.getOwnerId()) != null;
+  }
+
+  private SourceControlProvider getProviderFromOrganization(final TransactionContext tx,
+                                                            final SourceControl sourceControl)
+  {
+    Application application = applicationDAO.getById(tx, sourceControl.getOwnerId());
+    SourceControl orgSourceControl  = getByOwnerId(tx, application.getOrganizationId());
+    if (orgSourceControl == null || orgSourceControl.getProvider() == null) {
+      return null;
+    }
+    return SourceControlProvider.fromString(orgSourceControl.getProvider().toString());
   }
 }

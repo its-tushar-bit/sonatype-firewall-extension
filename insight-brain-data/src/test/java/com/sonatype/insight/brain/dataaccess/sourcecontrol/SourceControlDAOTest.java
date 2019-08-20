@@ -55,34 +55,26 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testInsert_MissingToken() {
-    SourceControl sourceControl = new SourceControl();
-    sourceControl.setOwnerId(app.getId());
+  public void testInsert_MissingTokenForOrganization() {
+    SourceControl sourceControl = new SourceControl(org.getId(), null, null, null);
     assertThatThrownBy(() -> {
       sourceControlDAO.insert(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessage("SourceControl authentication token is required");
+    }).isInstanceOf(BadRequestException.class).hasMessage(
+        "SourceControl authentication token is required for organization");
   }
 
   @Test
-  public void testInsert_MissingRepositoryUrlForApplication() {
-    SourceControl sourceControl = new SourceControl();
-    sourceControl.setOwnerId(app.getId());
-    sourceControl.setToken("token");
-    sourceControl.setProvider(SourceControlProvider.GITHUB);
-    sourceControl.setRepositoryUrl(null);
-    assertThatThrownBy(() ->
-        sourceControlDAO.insert(sourceControl)
-    ).isInstanceOf(BadRequestException.class).hasMessage(
-        "SourceControl repositoryUrl is required for application");
+  public void testInsert_MissingSourceControlProviderForOrganization() {
+    SourceControl sourceControl = new SourceControl(org.getId(), null, "token", null);
+    assertThatThrownBy(() -> {
+      sourceControlDAO.insert(sourceControl);
+    }).isInstanceOf(BadRequestException.class).hasMessageContaining(
+        "SourceControl provider is required for organization");
   }
 
   @Test
   public void testInsert_RepositoryUrlForOrganization() {
-    SourceControl sourceControl = new SourceControl();
-    sourceControl.setOwnerId(org.getId());
-    sourceControl.setToken("token");
-    sourceControl.setProvider(SourceControlProvider.GITHUB);
-    sourceControl.setRepositoryUrl(VALID_URL);
+    SourceControl sourceControl = new SourceControl(org.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
     assertThatThrownBy(() ->
         sourceControlDAO.insert(sourceControl)
     ).isInstanceOf(BadRequestException.class).hasMessage(
@@ -90,27 +82,38 @@ public class SourceControlDAOTest
   }
 
   @Test
+  public void testInsert_MissingRepositoryUrlForApplication() {
+    SourceControl sourceControl = new SourceControl(app.getId(), null, "token", SourceControlProvider.GITHUB);
+    assertThatThrownBy(() ->
+        sourceControlDAO.insert(sourceControl)
+    ).isInstanceOf(BadRequestException.class).hasMessage(
+        "SourceControl repositoryUrl is required for application");
+  }
+
+  @Test
   public void testInsert_InvalidUrl() {
+    SourceControl sourceControl = new SourceControl(
+        app.getId(), "https://not valid", "token", SourceControlProvider.GITHUB);
     assertThatThrownBy(() -> {
-      sourceControlDAO.insert(new SourceControl(app.getId(), "https://not valid", "bar", SourceControlProvider.GITHUB));
-    }).isInstanceOf(BadRequestException.class).hasMessageContaining("URL is invalid");
+      sourceControlDAO.insert(sourceControl);
+    }).isInstanceOf(BadRequestException.class).hasMessageContaining("repositoryUrl is invalid");
+  }
+
+  @Test
+  public void testInsert_CannotValidateUrl() {
+    SourceControl sourceControl = new SourceControl(app.getId(), "https://not valid", null, null);
+    assertThatThrownBy(() -> {
+      sourceControlDAO.insert(sourceControl);
+    }).isInstanceOf(BadRequestException.class).hasMessageContaining("Cannot validate SourceControl repositoryUrl");
   }
 
   @Test
   public void testInsert_AppPublicIdDoesNotExist() {
+    SourceControl sourceControl = new SourceControl("baz", VALID_URL, "bar", SourceControlProvider.GITHUB);
     assertThatThrownBy(() -> {
-      sourceControlDAO.insert(new SourceControl("baz", VALID_URL, "bar", SourceControlProvider.GITHUB));
+      sourceControlDAO.insert(sourceControl);
     }).isInstanceOf(BadRequestException.class)
         .hasMessageContaining("SourceControl ownerId 'baz' cannot be found");
-  }
-
-  @Test
-  public void testInsert_DuplicateOwnerId() {
-    tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
-    assertThatThrownBy(() -> {
-      sourceControlDAO.insert(new SourceControl(app.getId(), VALID_URL + ".1", "bar", SourceControlProvider.GITHUB));
-    }).isInstanceOf(BadRequestException.class)
-        .hasMessageContaining("SourceControl already configured for owner with id: '" + app.getId() + "'");
   }
 
   @Test
@@ -118,13 +121,6 @@ public class SourceControlDAOTest
     Application baz = tempEntity.newApplicationWithParent("baz");
     tempEntity.newSourceControl(baz.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
     sourceControlDAO.insert(new SourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB));
-  }
-
-  @Test
-  public void testInsert_MissingSourceControlProvider() {
-    assertThatThrownBy(() -> {
-      sourceControlDAO.insert(new SourceControl(app.getId(), VALID_URL, "bar", null));
-    }).isInstanceOf(BadRequestException.class).hasMessageContaining("SourceControl provider is required");
   }
 
   @Test
@@ -138,13 +134,25 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testUpdate_MissingToken() {
+  public void testUpdate_MissingTokenForOrganization() {
     SourceControl sourceControl =
-        tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
+        tempEntity.newSourceControl(org.getId(), null, "bar", SourceControlProvider.GITHUB);
     sourceControl.setToken(null);
     assertThatThrownBy(() -> {
       sourceControlDAO.update(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessage("SourceControl authentication token is required");
+    }).isInstanceOf(BadRequestException.class).hasMessage(
+        "SourceControl authentication token is required for organization");
+  }
+
+  @Test
+  public void testUpdate_MissingSourceControlProviderForOrganization() {
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(org.getId(), null, "bar", SourceControlProvider.GITHUB);
+    sourceControl.setProvider(null);
+    assertThatThrownBy(() -> {
+      sourceControlDAO.update(sourceControl);
+    }).isInstanceOf(BadRequestException.class).hasMessage(
+        "SourceControl provider is required for organization");
   }
 
   @Test
@@ -174,7 +182,7 @@ public class SourceControlDAOTest
     sourceControl.setRepositoryUrl("https://not valid");
     assertThatThrownBy(() -> {
       sourceControlDAO.update(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessageContaining("URL is invalid");
+    }).isInstanceOf(BadRequestException.class).hasMessageContaining("repositoryUrl is invalid");
   }
 
   @Test

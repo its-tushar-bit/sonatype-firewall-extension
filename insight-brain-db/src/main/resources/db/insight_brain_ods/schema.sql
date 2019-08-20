@@ -573,9 +573,9 @@ INSERT INTO data_retention_policy (data_retention_policy_id, owner_id, context_i
 CREATE TABLE source_control (
   source_control_id varchar(50) NOT NULL,
   owner_id varchar(50) NOT NULL,
-  repository_url varchar(2048) NULL,
-  token varchar(512) NOT NULL,
-  provider varchar(20) NOT NULL,
+  repository_url varchar(2048),
+  token varchar(512),
+  provider varchar(20),
   CONSTRAINT source_control_pk PRIMARY KEY (source_control_id),
   CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id)
 );

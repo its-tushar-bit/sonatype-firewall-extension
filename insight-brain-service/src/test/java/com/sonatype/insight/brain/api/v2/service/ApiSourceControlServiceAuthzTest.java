@@ -129,4 +129,23 @@ public class ApiSourceControlServiceAuthzTest
         tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
     sourceControlService.deleteSourceControl(app.getId(), sourceControl.getId());
   }
+
+  @Test
+  public void testAddOrUpdateSourceControl_Authorized() {
+    // ensure org record exists
+    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", SourceControlProvider.GITHUB);
+    grantWritePermission(app.getId());
+    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddOrUpdateSourceControl_Unauthorized() {
+    login();
+    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddOrUpdateSourceControl_Unauthenticated() {
+    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
+  }
 }

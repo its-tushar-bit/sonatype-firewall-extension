@@ -16,11 +16,12 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
@@ -53,6 +54,8 @@ public class ApiSourceControlService
 
   private final SourceControlDAO sourceControlDAO;
 
+  private final ApplicationDAO applicationDAO;
+
   private final ApiSourceControlAdapter apiSourceControlAdapter;
 
   private final ProductLicense productLicense;
@@ -60,14 +63,17 @@ public class ApiSourceControlService
   private final TelemetrySender telemetrySender;
 
   @Inject
-  public ApiSourceControlService(final PlexusCipher plexusCipher,
-                                 final SourceControlDAO sourceControlDAO,
-                                 final ApiSourceControlAdapter apiSourceControlAdapter,
-                                 final ProductLicense productLicense,
-                                 final TelemetrySender telemetrySender)
+  public ApiSourceControlService(
+      final PlexusCipher plexusCipher,
+      final SourceControlDAO sourceControlDAO,
+      final ApplicationDAO applicationDAO,
+      final ApiSourceControlAdapter apiSourceControlAdapter,
+      final ProductLicense productLicense,
+      final TelemetrySender telemetrySender)
   {
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
+    this.applicationDAO = applicationDAO;
     this.apiSourceControlAdapter = apiSourceControlAdapter;
     this.productLicense = productLicense;
     this.telemetrySender = telemetrySender;
@@ -105,7 +111,6 @@ public class ApiSourceControlService
         sourceControlDTO);
     encryptToken(sourceControl);
     sourceControl.setOwnerId(applicationId);
-    addDefaultProviderIfNotSpecified(sourceControl);
     sourceControlDAO.insert(sourceControl);
     auditSourceControl(sourceControl);
     sourceControl.setToken(FAKE_SECRET_KEY);
@@ -119,9 +124,7 @@ public class ApiSourceControlService
       ApiSourceControlDTO sourceControlDTO)
   {
     checkLicense();
-
-    SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(
-        sourceControlDTO);
+    SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(sourceControlDTO);
 
     // updates may come with our 'fake' token or simply omit it
     if (isEmpty(sourceControl.getToken()) || FAKE_SECRET_KEY.equalsIgnoreCase(sourceControl.getToken())) {
@@ -132,7 +135,6 @@ public class ApiSourceControlService
       encryptToken(sourceControl);
     }
     validateApplicationId(applicationId, sourceControl);
-    addDefaultProviderIfNotSpecified(sourceControl);
     sourceControlDAO.update(sourceControl);
     auditSourceControl(sourceControl);
     sourceControl.setToken(FAKE_SECRET_KEY);
@@ -141,7 +143,8 @@ public class ApiSourceControlService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void deleteSourceControl(@AuthzContext(Key.APPLICATION_ID) final String applicationId,
+  public void deleteSourceControl(
+      @AuthzContext(Key.APPLICATION_ID) final String applicationId,
       String sourceControlId)
   {
     checkLicense();
@@ -150,6 +153,35 @@ public class ApiSourceControlService
     sourceControlDAO.delete(sourceControl);
     auditSourceControl(sourceControl);
     sendSourceControlTelemetryData(METHOD.DELETE, applicationId, sourceControl);
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public ApiSourceControlDTO addOrUpdateSourceControl(
+      @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String publicId,
+      final String repositoryUrl)
+  {
+    checkLicense();
+    Application application = applicationDAO.getByPublicId(publicId);
+    if (application == null) {
+      throw new NotFoundException("Cannot find application with public ID: '" + publicId + "'");
+    }
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(application.getId());
+    if (sourceControl == null) { // create new record
+      sourceControl = new SourceControl();
+      sourceControl.setOwnerId(application.getId());
+      sourceControl.setRepositoryUrl(repositoryUrl);
+      sourceControlDAO.insert(sourceControl);
+    }
+    else { // update existing record
+      sourceControl.setRepositoryUrl(repositoryUrl);
+      sourceControlDAO.update(sourceControl);
+    }
+    if (sourceControl.getToken() != null) {
+      sourceControl.setToken(FAKE_SECRET_KEY);
+    }
+    auditSourceControl(sourceControl);
+    sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE, application.getId());
+    return apiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
   public ApiSourceControlDTO getSourceControlByApplicationIdDecrypted(
@@ -243,18 +275,13 @@ public class ApiSourceControlService
     telemetrySender.send(telemetryData);
   }
 
-  private void addDefaultProviderIfNotSpecified(SourceControl sourceControl) {
-    if (sourceControl.getProvider() == null) {
-      sourceControl.setProvider(SourceControlProvider.GITHUB);
-    }
-  }
-
   enum METHOD
   {
     GET_BY_APP_ID,
     ADD,
     UPDATE,
-    DELETE
+    DELETE,
+    ADD_OR_UPDATE
   }
 }
           

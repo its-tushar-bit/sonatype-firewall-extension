@@ -170,6 +170,7 @@ public class ApiPolicyViolationServiceV2Test
   {
     assertThat(apiPolicyViolationDTO.policyId).isEqualTo(policyViolation.getPolicyId());
     assertThat(apiPolicyViolationDTO.policyName).isEqualTo(policyViolation.getPolicyName());
+    assertThat(apiPolicyViolationDTO.policyViolationId).isEqualTo(policyViolation.getId());
     assertThat(apiPolicyViolationDTO.threatLevel).isEqualTo(policyViolation.getThreatLevel());
     assertThat(apiPolicyViolationDTO.reportUrl)
         .isEqualTo("ui/links/application/" + application.getPublicId() + "/report/" + policyEvaluation.getScanId());

@@ -17,6 +17,8 @@ public class ApiPolicyViolationDTOV2
 
   public String policyName;
 
+  public String policyViolationId;
+
   public int threatLevel;
 
   public List<ApiConstraintViolationDTO> constraintViolations = new ArrayList<>();

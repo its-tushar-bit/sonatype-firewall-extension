@@ -197,6 +197,8 @@ public class ComponentEvaluationV2Helper
     for (ApiPolicyViolationDTOV2 violation : resultComponentDTO.policyData.policyViolations) {
       assertThat(violation.policyId).isEqualTo(policies.get(violation.policyId).getId());
       assertThat(violation.policyName).isEqualTo(policies.get(violation.policyId).getName());
+      // The component eval api does not produce a policy violation record in the database, hence no policyViolationId
+      assertThat(violation.policyViolationId).isNull();
     }
   }
 

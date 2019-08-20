@@ -213,6 +213,7 @@ public class ApiReportDataServiceV2
     dto.policyName = violation.policyName;
     dto.policyThreatCategory = violation.policyThreatCategory;
     dto.policyThreatLevel = violation.policyThreatLevel;
+    dto.policyViolationId = violation.policyViolationId;
     dto.grandfathered = violation.grandfathered;
     dto.waived = violation.waived;
     dto.constraints = getConstraints(violation.constraints);

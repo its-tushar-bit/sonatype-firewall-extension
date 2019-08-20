@@ -25,6 +25,8 @@ public class ApiReportPolicyViolationDTOV2
 
   public int policyThreatLevel;
 
+  public String policyViolationId;
+
   public boolean waived;
 
   public boolean grandfathered;

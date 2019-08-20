@@ -234,6 +234,7 @@ public class ApiReportDataServiceV2Test
     assertThat(violation.policyName).isEqualTo("Security-Medium");
     assertThat(violation.policyThreatCategory).isEqualTo("SECURITY");
     assertThat(violation.policyThreatLevel).isEqualTo(7);
+    assertThat(violation.policyViolationId).isEqualTo("43d46045a21f45c2969460f51102c931");
     assertThat(violation.grandfathered).isTrue();
     assertThat(violation.waived).isTrue();
 

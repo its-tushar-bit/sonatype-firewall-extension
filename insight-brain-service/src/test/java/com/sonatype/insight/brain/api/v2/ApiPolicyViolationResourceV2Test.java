@@ -57,6 +57,7 @@ public class ApiPolicyViolationResourceV2Test
     ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO = apiApplicationViolationDTO.policyViolations.get(0);
     assertThat(apiPolicyViolationDTO.policyId).isEqualTo(pv1App1.getPolicyId());
     assertThat(apiPolicyViolationDTO.policyName).isEqualTo(pv1App1.getPolicyName());
+    assertThat(apiPolicyViolationDTO.policyViolationId).isEqualTo(pv1App1.getId());
     assertThat(apiPolicyViolationDTO.threatLevel).isEqualTo(pv1App1.getThreatLevel());
     assertThat(apiPolicyViolationDTO.reportUrl)
         .isEqualTo("ui/links/application/" + app.getPublicId() + "/report/" + pe1App1.getScanId());

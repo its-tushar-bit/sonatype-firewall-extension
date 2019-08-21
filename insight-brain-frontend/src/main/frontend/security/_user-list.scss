@@ -1,5 +1,7 @@
 // System Preferences - Users page
-.iq-list__item {
+.iq-list__item.accordion-heading {
+  padding: 0;
+
   &:hover {
     .accordion-body dd {
       color: $iq-slate
@@ -7,14 +9,11 @@
   }
 
   &.accordion-heading {
-    padding-top: 0;
-    padding-bottom: 0;
-
     .accordion-toggle {
       @extend .truncate-ellipsis;
       height: 45px;
       line-height: 45px;
-      padding: 0;
+      padding: 0 7px;
     }
 
     .iq-btn-group {
@@ -33,11 +32,14 @@
 
 
 .iq-user-details {
-  padding: 0 15px;
+  padding: 0;
   white-space: normal;
 }
 
 .iq-read-only--user-details {
+  cursor: default;
+  padding: 0 15px;
+
   dt {
     display: inline-block;
     font-size: 14px;

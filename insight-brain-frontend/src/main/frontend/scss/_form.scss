@@ -448,6 +448,7 @@ dropdown-selector {
     @include semi-bold();
 
     color: $iq-off-black;
+    cursor: default;
     display: block;
     font-size: 16px;
     margin-top: 12px;
@@ -459,11 +460,12 @@ dropdown-selector {
   }
 
   .iq-label {
-    cursor: unset;
+    cursor: default;
   }
 }
 
 .iq-read-only-data {
+  cursor: default;
   margin-left: 0;
   padding-left: 12px;
 

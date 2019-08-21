@@ -50,6 +50,7 @@
       <artifactId>api-ldap-model</artifactId>
       <exclusions>
         <exclusion>
+          <!-- unused and avoids CLM-13317 -->
           <groupId>org.apache.mina</groupId>
           <artifactId>mina-core</artifactId>
         </exclusion>

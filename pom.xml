@@ -41,6 +41,7 @@
     <jackson.databind.version>2.9.9.3</jackson.databind.version>
     <openjpa.version>3.1.0</openjpa.version>
     <shiro.version>1.4.0</shiro.version>
+    <keycloak.version>6.0.1</keycloak.version>
     <sisu-inject.version>0.3.3</sisu-inject.version>
     <clm.dto.model.version>1.16.0-01</clm.dto.model.version>
     <jetty.version>9.4.20.v20190813</jetty.version>
@@ -377,6 +378,11 @@
         <groupId>org.apache.shiro</groupId>
         <artifactId>shiro-guice</artifactId>
         <version>${shiro.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.keycloak</groupId>
+        <artifactId>keycloak-saml-servlet-filter-adapter</artifactId>
+        <version>${keycloak.version}</version>
       </dependency>
 
       <dependency>

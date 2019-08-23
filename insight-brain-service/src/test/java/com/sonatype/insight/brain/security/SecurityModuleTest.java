@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.security;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.service.InsightConfig;
-
 import com.google.inject.Binder;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
@@ -25,7 +23,7 @@ public class SecurityModuleTest
 
   @Override
   public void configure(Binder binder) {
-    binder.install(new SecurityModule(new InsightConfig()));
+    binder.install(new SecurityModule());
   }
 
   @Test

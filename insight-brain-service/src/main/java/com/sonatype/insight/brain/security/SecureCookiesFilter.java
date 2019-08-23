@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Collection;
 
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
@@ -18,6 +20,8 @@ import static com.google.common.net.HttpHeaders.SET_COOKIE;
 /**
  * @since 1.16.0
  */
+@Named
+@Singleton
 public class SecureCookiesFilter
     extends AdviceFilter
 {

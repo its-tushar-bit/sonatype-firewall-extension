@@ -7,12 +7,16 @@ package com.sonatype.insight.brain.security;
 
 import java.util.stream.Stream;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 
 import org.apache.shiro.authc.AuthenticationException;
@@ -27,6 +31,8 @@ import org.slf4j.LoggerFactory;
  * authentication and forwards the validated username via a request header. To be used in front of another
  * authentication filter.
  */
+@Named
+@Singleton
 public class ReverseProxyAuthenticationFilter
     extends AuthenticatingFilter
 {
@@ -36,7 +42,12 @@ public class ReverseProxyAuthenticationFilter
 
   private final String usernameHeader;
 
-  public ReverseProxyAuthenticationFilter(ReverseProxyAuthenticationConfig reverseProxyAuthentication) {
+  @Inject
+  public ReverseProxyAuthenticationFilter(InsightConfig config) {
+    this(config.getReverseProxyAuthentication());
+  }
+
+  private ReverseProxyAuthenticationFilter(ReverseProxyAuthenticationConfig reverseProxyAuthentication) {
     setEnabled(reverseProxyAuthentication.isEnabled());
     this.usernameHeader = reverseProxyAuthentication.getUsernameHeader();
   }

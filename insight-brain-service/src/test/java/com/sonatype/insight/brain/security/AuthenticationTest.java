@@ -52,7 +52,7 @@ public class AuthenticationTest
     binder.bind(InsightConfig.class).toInstance(config);
 
     mockRealm = mock(Realm.class);
-    SecurityModule securityModule = new SecurityModule(config)
+    SecurityModule securityModule = new SecurityModule()
     {
       @Override
       protected void configureShiro() {

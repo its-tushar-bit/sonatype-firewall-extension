@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.security;
 import java.util.Arrays;
 import java.util.UUID;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.servlet.Filter;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -19,6 +22,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -32,6 +36,8 @@ import org.slf4j.LoggerFactory;
  * Filter using the "cookie-to-header token" approach to prevent cross-site request forgery. To be used in front of
  * another filter that handles logins.
  */
+@Named
+@Singleton
 public class AntiCsrfFilter
     extends AuthenticationFilter
 {
@@ -64,7 +70,12 @@ public class AntiCsrfFilter
     }
   }
 
-  public AntiCsrfFilter(boolean enabled, ReverseProxyAuthenticationConfig reverseProxyAuthentication) {
+  @Inject
+  public AntiCsrfFilter(InsightConfig config) {
+    this(config.isCsrfProtection(), config.getReverseProxyAuthentication());
+  }
+
+  private AntiCsrfFilter(boolean enabled, ReverseProxyAuthenticationConfig reverseProxyAuthentication) {
     setEnabled(enabled);
     this.reverseProxyAuthenticationConfig = reverseProxyAuthentication;
   }

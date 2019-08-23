@@ -11,8 +11,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapRealm;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 
 import com.google.inject.TypeLiteral;
 import com.google.inject.binder.AnnotatedBindingBuilder;
@@ -43,15 +41,6 @@ public class SecurityModule
 {
   public static final String SESSION_COOKIE_NAME = "CLMSESSIONID";
 
-  private final boolean csrfProtection;
-
-  private final ReverseProxyAuthenticationConfig reverseProxyAuthentication;
-
-  public SecurityModule(InsightConfig config) {
-    this.csrfProtection = config.isCsrfProtection();
-    this.reverseProxyAuthentication = config.getReverseProxyAuthentication();
-  }
-
   @Override
   protected void configureShiro() {
     bind(Managed.class).toInstance(new Destroyer());
@@ -66,30 +55,15 @@ public class SecurityModule
     bind(FilterChainResolver.class).to(PathMatchingFilterChainResolver.class);
     bind(PathMatchingFilterChainResolver.class);
     expose(FilterChainResolver.class);
-    bind(FilterChainManager.class).to(DefaultFilterChainManager.class);
-    DefaultFilterChainManager manager = new DefaultFilterChainManager();
-    configureFilters(manager);
-    configureFilterChains(manager);
-    bind(DefaultFilterChainManager.class).toInstance(manager);
+    bind(FilterChainManager.class).to(DefaultFilterChainManager.class).in(Singleton.class);
     bind(Authenticator.class).to(FirstSuccessfulRealmAuthenticator.class);
     bindRealm().to(InternalRealm.class);
     bindRealm().to(LdapRealm.class);
     bindRealm().to(ReverseProxyRealm.class);
-    binder().requestInjection(new SessionCookieCustomizer());
+    binder().requestInjection(new ComponentConfigurator());
   }
 
-  private void configureFilters(DefaultFilterChainManager manager) {
-    AntiCsrfFilter antiCsrfFilter = new AntiCsrfFilter(csrfProtection, reverseProxyAuthentication);
-    bind(AntiCsrfFilter.class).toInstance(antiCsrfFilter);
-    expose(AntiCsrfFilter.class);
-    manager.addFilter("authcBasic", new UserFriendlyBasicHttpAuthenticationFilter());
-    manager.addFilter("secureCookies", new SecureCookiesFilter());
-    manager.addFilter("antiCsrf", antiCsrfFilter);
-    manager.addFilter("reverseProxy", new ReverseProxyAuthenticationFilter(reverseProxyAuthentication));
-    manager.addFilter("sessionExpirationCookie", new SessionExpirationCookieFilter());
-  }
-
-  private void configureFilterChains(DefaultFilterChainManager manager) {
+  private void configureFilterChains(FilterChainManager manager) {
     configureFilterChainsForIntegrations(manager);
 
     String anonFilters = "anon, sessionExpirationCookie";
@@ -122,7 +96,7 @@ public class SecurityModule
     manager.createChain("/**/*", "noSessionCreation, antiCsrf, reverseProxy, authcBasic, sessionExpirationCookie");
   }
 
-  private void configureFilterChainsForNonAjaxFormSubmissions(DefaultFilterChainManager manager) {
+  private void configureFilterChainsForNonAjaxFormSubmissions(FilterChainManager manager) {
     // old-school (i.e. non-AJAX) form submissions as done by IE9 can't use CSRF header
     String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.FORM_POST_ALLOWED
         + "], reverseProxy, authcBasic, sessionExpirationCookie";
@@ -139,7 +113,7 @@ public class SecurityModule
     manager.createChain("/rest/dashboard/export/applicationRisks", filters);
   }
 
-  private void configureFilterChainsForIntegrations(DefaultFilterChainManager manager) {
+  private void configureFilterChainsForIntegrations(FilterChainManager manager) {
     // client integrations don't have CSRF tokens and need access via explicit auth
     String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED
         + "], reverseProxy, sessionExpirationCookie, authcBasic";
@@ -196,12 +170,29 @@ public class SecurityModule
      */
   }
 
-  private static class SessionCookieCustomizer
+  private class ComponentConfigurator
   {
     @Inject
-    public void customize(DefaultWebSessionManager sessionManager) {
+    public void customizeSessionCookie(DefaultWebSessionManager sessionManager) {
       // customize cookie name to avoid clash with other webapps running on same host+contextRoot
       sessionManager.getSessionIdCookie().setName(SESSION_COOKIE_NAME);
+    }
+
+    @Inject
+    public void configureFilters(
+        FilterChainManager filterChainManager,
+        AntiCsrfFilter antiCsrfFilter,
+        UserFriendlyBasicHttpAuthenticationFilter basicHttpAuthenticationFilter,
+        ReverseProxyAuthenticationFilter reverseProxyAuthenticationFilter,
+        SecureCookiesFilter secureCookiesFilter,
+        SessionExpirationCookieFilter sessionExpirationCookieFilter)
+    {
+      filterChainManager.addFilter("antiCsrf", antiCsrfFilter);
+      filterChainManager.addFilter("authcBasic", basicHttpAuthenticationFilter);
+      filterChainManager.addFilter("reverseProxy", reverseProxyAuthenticationFilter);
+      filterChainManager.addFilter("secureCookies", secureCookiesFilter);
+      filterChainManager.addFilter("sessionExpirationCookie", sessionExpirationCookieFilter);
+      configureFilterChains(filterChainManager);
     }
   }
 

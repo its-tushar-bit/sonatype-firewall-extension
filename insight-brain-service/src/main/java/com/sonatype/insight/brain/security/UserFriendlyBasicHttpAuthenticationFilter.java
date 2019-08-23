@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
@@ -21,6 +23,8 @@ import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
  * 
  * @since 1.20.0
  */
+@Named
+@Singleton
 class UserFriendlyBasicHttpAuthenticationFilter
     extends BasicHttpAuthenticationFilter
 {

@@ -382,7 +382,7 @@ public class InsightBrainService
         bind(CsvMapper.class).toInstance(configureObjectMapper(new CsvMapper()));
       }
     };
-    Module authc = new SecurityModule(config);
+    Module authc = new SecurityModule();
     Module authz = new SecurityAopModule();
 
     return Arrays.asList(bindings, authc, authz);

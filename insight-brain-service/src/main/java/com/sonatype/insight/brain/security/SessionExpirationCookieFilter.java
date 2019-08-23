@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.security;
 
 import java.io.IOException;
 
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -25,6 +27,8 @@ import org.apache.shiro.web.servlet.OncePerRequestFilter;
  *
  * @since 1.27.0
  */
+@Named
+@Singleton
 public class SessionExpirationCookieFilter
     extends OncePerRequestFilter
 {

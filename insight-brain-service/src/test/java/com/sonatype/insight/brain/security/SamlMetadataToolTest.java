@@ -73,6 +73,20 @@ public class SamlMetadataToolTest
   }
 
   @Test
+  public void testParseEntityDescriptor_MultipleIdentityProviderDescriptors() {
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
+      parse("multiple-idp-descriptors.xml");
+    }).withMessage("Invalid SAML identity provider count: 2");
+  }
+
+  @Test
+  public void testParseEntityDescriptor_NoSuitableSingleSignOnBinding() {
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
+      parse("no-suitable-sso-binding.xml");
+    }).withMessageContaining("supports neither POST nor Redirect binding for SSO");
+  }
+
+  @Test
   public void testParseEntityDescriptor_Keycloak() {
     EntityDescriptorType entityDescriptor = parse("identity-provider-keycloak.xml");
     assertThat(entityDescriptor.getEntityID()).isEqualTo("http://localhost:8080/auth/realms/master");

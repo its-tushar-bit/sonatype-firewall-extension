@@ -6,18 +6,30 @@
 package com.sonatype.insight.brain.security;
 
 import java.io.StringReader;
+import java.net.URI;
+import java.util.List;
+import java.util.Objects;
 
 import javax.inject.Named;
 import javax.xml.transform.stream.StreamSource;
 
+import org.keycloak.dom.saml.v2.metadata.EndpointType;
 import org.keycloak.dom.saml.v2.metadata.EntitiesDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
+import org.keycloak.dom.saml.v2.metadata.IDPSSODescriptorType;
+import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType.EDTDescriptorChoiceType;
 import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
 import org.keycloak.saml.processing.core.util.JAXPValidationUtil;
+
+import static java.util.stream.Collectors.toList;
 
 @Named
 public class SamlMetadataTool
 {
+  public static final URI POST_BINDING = URI.create("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST");
+
+  public static final URI REDIRECT_BINDING = URI.create("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect");
+
   public EntityDescriptorType parseEntityDescriptor(String xmlMetadata) {
     Object metadata;
     try {
@@ -27,17 +39,31 @@ public class SamlMetadataTool
     catch (Exception e) {
       throw new IllegalArgumentException("Invalid SAML metadata: " + e.getMessage(), e);
     }
+    EntityDescriptorType entityDescriptor;
     if (metadata instanceof EntityDescriptorType) {
-      return (EntityDescriptorType) metadata;
+      entityDescriptor = (EntityDescriptorType) metadata;
     }
-    if (metadata instanceof EntitiesDescriptorType) {
+    else if (metadata instanceof EntitiesDescriptorType) {
       EntitiesDescriptorType entities = (EntitiesDescriptorType) metadata;
       if (entities.getEntityDescriptor().size() != 1) {
         throw new IllegalArgumentException(
             "Invalid SAML entity descriptor count: " + entities.getEntityDescriptor().size());
       }
-      return (EntityDescriptorType) entities.getEntityDescriptor().get(0);
+      entityDescriptor = (EntityDescriptorType) entities.getEntityDescriptor().get(0);
     }
-    throw new IllegalArgumentException("Invalid SAML metadata type: " + metadata.getClass());
+    else {
+      throw new IllegalArgumentException("Invalid SAML metadata type: " + metadata.getClass());
+    }
+    List<IDPSSODescriptorType> idpDescriptors =
+        entityDescriptor.getChoiceType().stream().flatMap(choiceType -> choiceType.getDescriptors().stream())
+            .map(EDTDescriptorChoiceType::getIdpDescriptor).filter(Objects::nonNull).collect(toList());
+    if (idpDescriptors.size() != 1) {
+      throw new IllegalArgumentException("Invalid SAML identity provider count: " + idpDescriptors.size());
+    }
+    if (idpDescriptors.get(0).getSingleSignOnService().stream().map(EndpointType::getBinding)
+        .noneMatch(binding -> POST_BINDING.equals(binding) || REDIRECT_BINDING.equals(binding))) {
+      throw new IllegalArgumentException("SAML identity provider supports neither POST nor Redirect binding for SSO");
+    }
+    return entityDescriptor;
   }
 }

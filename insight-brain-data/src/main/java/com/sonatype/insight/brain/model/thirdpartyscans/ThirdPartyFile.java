@@ -15,12 +15,12 @@ import javax.persistence.Table;
 import com.sonatype.insight.model.HasStringId;
 
 @Entity
-@Table(name = "scanned_file")
-public class ThirdPartyScannedFile
+@Table(name = "third_party_file")
+public class ThirdPartyFile
     implements HasStringId
 {
   @Id
-  @Column(name = "scanned_file_id")
+  @Column(name = "third_party_file_id")
   private String id;
 
   @Column(name = "hash")

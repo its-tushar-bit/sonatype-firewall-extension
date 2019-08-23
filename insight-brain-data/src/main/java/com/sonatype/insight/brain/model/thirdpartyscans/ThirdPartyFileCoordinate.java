@@ -13,12 +13,12 @@ import javax.persistence.Table;
 import com.sonatype.insight.model.HasStringId;
 
 @Entity
-@Table(name = "coordinate_file")
-public class ThirdPartyCoordinateFile
+@Table(name = "file_coordinate")
+public class ThirdPartyFileCoordinate
     implements HasStringId
 {
   @Id
-  @Column(name = "coordinate_file_id")
+  @Column(name = "file_coordinate_id")
   private String id;
 
   @Column(name = "hash")
@@ -36,8 +36,8 @@ public class ThirdPartyCoordinateFile
   @Column(name = "version")
   private String version;
 
-  @Column(name = "scanned_file_id")
-  private String scannedFileId;
+  @Column(name = "third_party_file_id")
+  private String thirdPartyFileId;
 
   @Override
   public String getId() {
@@ -89,11 +89,11 @@ public class ThirdPartyCoordinateFile
     this.version = version;
   }
 
-  public String getScannedFileId() {
-    return scannedFileId;
+  public String getThirdPartyFileId() {
+    return thirdPartyFileId;
   }
 
-  public void setScannedFileId(String scannedFileId) {
-    this.scannedFileId = scannedFileId;
+  public void setThirdPartyFileId(String thirdPartyFileId) {
+    this.thirdPartyFileId = thirdPartyFileId;
   }
 }

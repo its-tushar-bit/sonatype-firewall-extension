@@ -21,8 +21,8 @@ public class ThirdPartyCoordinateSecurity
   @Column(name = "coordinate_security_id")
   private String id;
 
-  @Column(name = "coordinate_file_id")
-  private String coordinateFileId;
+  @Column(name = "file_coordinate_id")
+  private String fileCoordinateId;
 
   @Column(name = "ref_id")
   private String refId;
@@ -49,12 +49,12 @@ public class ThirdPartyCoordinateSecurity
     this.id = id;
   }
 
-  public String getCoordinateFileId() {
-    return coordinateFileId;
+  public String getFileCoordinateId() {
+    return fileCoordinateId;
   }
 
-  public void setCoordinateFileId(String coordinateFileId) {
-    this.coordinateFileId = coordinateFileId;
+  public void setFileCoordinateId(String fileCoordinateId) {
+    this.fileCoordinateId = fileCoordinateId;
   }
 
   public String getRefId() {

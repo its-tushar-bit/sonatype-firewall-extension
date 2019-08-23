@@ -1,9 +1,10 @@
--- For tests only
-CREATE TABLE test_table (
-  test_table_id varchar(50) NOT NULL,
-  name varchar(50) NOT NULL
-);
+-- drop all tables
+drop table coordinate_security;
+drop table coordinate_file;
+drop table scanned_file_mapping;
+drop table scanned_file;
 
+-- recreate refactored tables
 CREATE TABLE third_party_file (
   third_party_file_id VARCHAR(50) NOT NULL,
   hash VARCHAR(20) NOT NULL,
@@ -50,8 +51,3 @@ CREATE TABLE coordinate_security (
   CONSTRAINT coordinate_security_uk UNIQUE (file_coordinate_id, ref_id),
   CONSTRAINT coordinate_security_fk FOREIGN KEY (file_coordinate_id) REFERENCES file_coordinate(file_coordinate_id)
 );
-
-CREATE TABLE schema_version (
-  schema_version int NOT NULL
-);
-INSERT INTO schema_version (schema_version) VALUES (1);

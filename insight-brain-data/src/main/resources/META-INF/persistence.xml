@@ -138,10 +138,10 @@
   </persistence-unit>
   <persistence-unit name="InsightBrainThirdPartyScans" transaction-type="RESOURCE_LOCAL">
     <provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
-    <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateFile</class>
+    <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate</class>
     <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity</class>
-    <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScannedFile</class>
-    <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScannedFileMapping</class>
+    <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile</class>
+    <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan</class>
     <properties>
       <property name="openjpa.Log" value="DefaultLevel=WARN, Tool=INFO"/>
       <property name="openjpa.jdbc.Schema" value="insight_brain_tps"/>

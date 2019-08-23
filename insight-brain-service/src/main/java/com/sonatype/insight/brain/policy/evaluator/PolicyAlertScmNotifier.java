@@ -75,7 +75,7 @@ public class PolicyAlertScmNotifier
 
       // TODO use this data to construct a PR
 
-      log.debug("Construct an send a PR using (status {}, stage {}, policyNotifications {}, grandfatheredCount {}",
+      log.debug("Construct and send a PR using (status {}, stage {}, policyNotifications {}, grandfatheredCount {}",
           status, stage, grandfatheredPolicyViolationCount);
     }
     catch (IOException e) {

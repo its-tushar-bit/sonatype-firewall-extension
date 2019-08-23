@@ -112,10 +112,11 @@ public class ApplicationReportVulnerabilitiesTest
   @Test
   public void testHeader() {
     String expectedDate = DateTime.now().toString("yyyy-MM-dd");
-    String expectedTitle = "Vulnerabilities for " + app.getName() + " Build Report - " + expectedDate;
+    String expectedTitle = "Vulnerabilities for " + app.getName() + " Build Report";
 
     vulnerabilitiesPage.shouldBe(visible);
     vulnerabilitiesPage.title().shouldHave(text(expectedTitle));
+    vulnerabilitiesPage.subtitle().shouldHave(text(expectedDate));
     NxBackButton backButton = vulnerabilitiesPage.backButton();
     backButton.shouldHave(text("Back to Application Report"));
 

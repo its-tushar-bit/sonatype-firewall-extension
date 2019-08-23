@@ -8,13 +8,15 @@
       <div class="iq-tile iq-tile--fixed-table">
         <div class="iq-tile-header">
           <div class="iq-tile-header__title visual-testing-ignore" id="raw-data-report-title">
-            <h1>
-              Raw Data for {{::vm.metadata.application.name}} {{::vm.metadata.reportTitle}} -
-              <span class="visual-testing-ignore">{{::vm.metadata.reportTime | date: 'yyyy-MM-dd HH:mm:ss UTCZ'}}</span>
+            <h1>Raw Data for {{::vm.metadata.application.name}} {{::vm.metadata.reportTitle}}</h1>
             </h1>
           </div>
-          <div class="iq-tile-header__subtitle">
-            Please note that the data appearing on this page is the raw data and not the result of policy evaluation
+          <div class="iq-tile-header__subtitle visual-testing-ignore">
+            {{::vm.metadata.reportTime | date: 'yyyy-MM-dd HH:mm:ss UTCZ'}}
+          </div>
+          <div class="iq-alert iq-alert--info">
+            <i class="fa fa-info-circle"></i>Please note that the data appearing on this page is the raw data and not
+            the result of policy evaluation
           </div>
         </div>
         <div class="iq-tile-content iq-tile-content--fixed-table" maximize-container-height>

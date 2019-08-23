@@ -85,10 +85,11 @@ public class ApplicationReportRawDataTest
 
     String policyEvaluationTimeStr = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z")
         .print(policyEvaluationTime.getTime());
-    String expectedTitle = "Raw Data for " + app.getName() + " Build Report - " + policyEvaluationTimeStr;
+    String expectedTitle = "Raw Data for " + app.getName() + " Build Report";
 
     rawDataPage.shouldBe(visible);
     rawDataPage.reportTitle().shouldHave(text(expectedTitle));
+    rawDataPage.reportSubtitle().shouldHave(text(policyEvaluationTimeStr));
     IqBackButton backButton = rawDataPage.backButton();
     backButton.shouldHave(text("Back to Application Report"));
 

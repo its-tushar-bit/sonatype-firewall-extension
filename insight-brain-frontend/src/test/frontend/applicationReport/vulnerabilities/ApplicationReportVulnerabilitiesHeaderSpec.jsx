@@ -31,7 +31,8 @@ describe('ApplicationReportVulnerabilitiesHeader', () => {
     expect(getShallowComponent().find('h1')).toIncludeText('Vulnerabilities for foo app foo report');
   });
 
-  it('includes the formatted date in a visual-testing-ignore span within the h1', function() {
-    expect(getShallowComponent().find('h1 .visual-testing-ignore')).toHaveText('2018-11-11 15:13:11 UTC-05:00');
+  it('includes the formatted date in a nx-tile-header__subtitle that has the visual-testing-ignore class', function() {
+    expect(getShallowComponent().find('.nx-tile-header__subtitle.visual-testing-ignore'))
+        .toHaveText('2018-11-11 15:13:11 UTC-05:00');
   });
 });

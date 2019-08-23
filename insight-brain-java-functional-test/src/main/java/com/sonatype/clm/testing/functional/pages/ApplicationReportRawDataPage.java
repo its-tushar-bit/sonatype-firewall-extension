@@ -37,6 +37,10 @@ public class ApplicationReportRawDataPage
     return child("#raw-data-report-title");
   }
 
+  public SelenideElement reportSubtitle() {
+    return child(".iq-tile-header__subtitle");
+  }
+
   public ResultTable resultTable() {
     return new ResultTable();
   }

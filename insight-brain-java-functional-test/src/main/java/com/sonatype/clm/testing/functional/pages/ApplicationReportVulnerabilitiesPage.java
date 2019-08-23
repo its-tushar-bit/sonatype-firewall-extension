@@ -33,6 +33,10 @@ public class ApplicationReportVulnerabilitiesPage
     return child("#application-report-vulnerabilities-title");
   }
 
+  public SelenideElement subtitle() {
+    return child(".nx-tile-header__subtitle");
+  }
+
   public NxBackButton backButton() {
     return new NxBackButton(ROOT);
   }

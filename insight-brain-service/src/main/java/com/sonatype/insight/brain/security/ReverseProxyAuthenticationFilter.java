@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.stream.Stream;
+
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
@@ -30,20 +32,13 @@ public class ReverseProxyAuthenticationFilter
 {
   private static final Logger log = LoggerFactory.getLogger(ReverseProxyAuthenticationFilter.class);
 
-  private final String usernameHeader;
+  public static final String NO_SESSION_CREATION = "noSessionCreation";
 
-  private boolean allowSessionCreation = true;
+  private final String usernameHeader;
 
   public ReverseProxyAuthenticationFilter(ReverseProxyAuthenticationConfig reverseProxyAuthentication) {
     setEnabled(reverseProxyAuthentication.isEnabled());
     this.usernameHeader = reverseProxyAuthentication.getUsernameHeader();
-  }
-
-  public ReverseProxyAuthenticationFilter(ReverseProxyAuthenticationConfig reverseProxyAuthentication,
-                                          boolean allowSessionCreation)
-  {
-    this(reverseProxyAuthentication);
-    this.allowSessionCreation = allowSessionCreation;
   }
 
   private String getUsername(ServletRequest request) {
@@ -87,10 +82,14 @@ public class ReverseProxyAuthenticationFilter
   }
 
   @Override
-  protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
+  protected boolean onAccessDenied(ServletRequest request, ServletResponse response, Object mappedValue)
+      throws Exception
+  {
     // not yet authenticated (e.g. via session) but if the remote-user header is present, time for a login
     if (isLoginRequest(request, response)) {
       // there's no dedicated login prompt/request in case of SSO so allow any request to start the session
+      boolean allowSessionCreation =
+          mappedValue == null || Stream.of((String[]) mappedValue).noneMatch(NO_SESSION_CREATION::equals);
       if (allowSessionCreation) {
         request.removeAttribute(DefaultSubjectContext.SESSION_CREATION_ENABLED);
       }
@@ -105,5 +104,10 @@ public class ReverseProxyAuthenticationFilter
 
     // let the next filter in the chain decide on the request's fate
     return true;
+  }
+
+  @Override
+  protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
+    throw new UnsupportedOperationException();
   }
 }

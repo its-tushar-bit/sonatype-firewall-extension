@@ -86,7 +86,6 @@ public class SecurityModule
     manager.addFilter("secureCookies", new SecureCookiesFilter());
     manager.addFilter("antiCsrf", antiCsrfFilter);
     manager.addFilter("reverseProxy", new ReverseProxyAuthenticationFilter(reverseProxyAuthentication));
-    manager.addFilter("noSessionReverseProxy", new ReverseProxyAuthenticationFilter(reverseProxyAuthentication, false));
     manager.addFilter("sessionExpirationCookie", new SessionExpirationCookieFilter());
   }
 
@@ -111,7 +110,7 @@ public class SecurityModule
 
     // public REST API
     manager.createChain("/api/**", "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED
-        + "], noSessionReverseProxy, authcBasic");
+        + "], reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + "], authcBasic");
 
     // login, only means to create sessions, also used by integrations for auth validation
     manager.createChain("/rest/user/session", "sessionExpirationCookie, antiCsrf["

@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  */
 public class PolicyAlertScmNotifier
 {
-  private static final Logger LOG = LoggerFactory.getLogger(PolicyAlertScmNotifier.class);
+  private static final Logger log = LoggerFactory.getLogger(PolicyAlertScmNotifier.class);
 
   private final InsightWork work;
 
@@ -75,7 +75,7 @@ public class PolicyAlertScmNotifier
 
       // TODO use this data to construct a PR
 
-      LOG.debug("Construct an send a PR using (status {}, stage {}, policyNotifications {}, grandfatheredCount {}",
+      log.debug("Construct an send a PR using (status {}, stage {}, policyNotifications {}, grandfatheredCount {}",
           status, stage, grandfatheredPolicyViolationCount);
     }
     catch (IOException e) {

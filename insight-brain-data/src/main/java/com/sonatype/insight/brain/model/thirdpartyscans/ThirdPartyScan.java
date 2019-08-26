@@ -19,6 +19,15 @@ import com.sonatype.insight.model.HasStringId;
 public class ThirdPartyScan
     implements HasStringId
 {
+  public ThirdPartyScan() {
+  }
+
+  public ThirdPartyScan(String thirdPartyFileId, String scanId, Date createTime) {
+    this.thirdPartyFileId = thirdPartyFileId;
+    this.scanId = scanId;
+    this.createTime = createTime;
+  }
+
   @Id
   @Column(name = "third_party_scan_id")
   private String id;

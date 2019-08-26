@@ -58,6 +58,10 @@ import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReport
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -118,6 +122,10 @@ import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.utils.ThreatLevel;
@@ -242,6 +250,8 @@ public class TemporaryEntity
 
   private final SamlConfigurationDAO samlConfigurationDAO = new SamlConfigurationDAO();
 
+  private final ThirdPartyFileDAO thirdPartyFileDAO = new ThirdPartyFileDAO();
+
   private Collection<MigrationTracker> migrationTrackers;
 
   private Collection<Application> apps;
@@ -296,6 +306,8 @@ public class TemporaryEntity
 
   private Collection<SamlConfiguration> samlConfigurations;
 
+  private Collection<ThirdPartyFile> thirdPartyFileConfigurations;
+
   @Override
   protected void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -325,6 +337,7 @@ public class TemporaryEntity
     sourceControls = new ArrayList<>();
     systemConfigurationProperties = new ArrayList<>();
     samlConfigurations = new ArrayList<>();
+    thirdPartyFileConfigurations = new ArrayList<>();
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
@@ -370,6 +383,7 @@ public class TemporaryEntity
     delete(sourceControls, sourceControlDAO);
     delete(systemConfigurationProperties, systemConfigurationPropertyDAO);
     delete(samlConfigurations, entity -> samlConfigurationDAO.getById(entity.getId()), samlConfigurationDAO::delete);
+    delete(thirdPartyFileConfigurations, thirdPartyFileDAO);
 
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     if (config != null) {
@@ -1780,5 +1794,58 @@ public class TemporaryEntity
     samlConfigurationDAO.insert(samlConfiguration);
     samlConfigurations.add(samlConfiguration);
     return samlConfiguration;
+  }
+
+  public ThirdPartyFile newThirdPartyFile() {
+    ThirdPartyFile thirdPartyFile =
+        new ThirdPartyFile(newRandomHash(), "third-party-file", "image", new Date());
+    thirdPartyFileDAO.insert(thirdPartyFile);
+    thirdPartyFileConfigurations.add(thirdPartyFile);
+    return thirdPartyFile;
+  }
+
+  public ThirdPartyScan newThirdPartyScan(ThirdPartyFile thirdPartyFile) {
+    ThirdPartyScan scan = new ThirdPartyScan(thirdPartyFile.getId(), uuid(), new Date());
+    new ThirdPartyScanDAO().insert(scan);
+    return scan;
+  }
+
+  public ThirdPartyScan newThirdPartyScan() {
+    return newThirdPartyScan(newThirdPartyFile());
+  }
+
+  public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
+      ThirdPartyFile thirdPartyFile,
+      String source,
+      String format,
+      String name,
+      String version)
+  {
+    ThirdPartyFileCoordinate fileCoordinate =
+        new ThirdPartyFileCoordinate(newRandomHash(), source, format, name, version, thirdPartyFile.getId());
+    new ThirdPartyFileCoordinateDAO().insert(fileCoordinate);
+    return fileCoordinate;
+  }
+
+  public ThirdPartyFileCoordinate newThirdPartyFileCoordinate() {
+    return newThirdPartyFileCoordinate(newThirdPartyFile(), "s1", "f1", "n1", "v1");
+  }
+
+  public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity(
+      ThirdPartyFileCoordinate fileCoordinate,
+      String refId,
+      String description,
+      String link,
+      float severity,
+      String fixedBy)
+  {
+    ThirdPartyCoordinateSecurity coordinateSecurity =
+        new ThirdPartyCoordinateSecurity(fileCoordinate.getId(), refId, description, link, severity, fixedBy);
+    new ThirdPartyCoordinateSecurityDAO().insert(coordinateSecurity);
+    return coordinateSecurity;
+  }
+
+  public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity() {
+    return newThirdPartyCoordinateSecurity(newThirdPartyFileCoordinate(), "r1", "d1", "l1", 5.5f, "1.1");
   }
 }

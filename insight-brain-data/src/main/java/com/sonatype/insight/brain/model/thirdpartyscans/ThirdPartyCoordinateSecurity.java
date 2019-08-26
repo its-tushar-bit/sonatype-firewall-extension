@@ -17,6 +17,26 @@ import com.sonatype.insight.model.HasStringId;
 public class ThirdPartyCoordinateSecurity
     implements HasStringId
 {
+  public ThirdPartyCoordinateSecurity() {
+  }
+
+  public ThirdPartyCoordinateSecurity(
+      String fileCoordinateId,
+      String refId,
+      String description,
+      String link,
+      float severity,
+      String fixedBy)
+  {
+
+    this.fileCoordinateId = fileCoordinateId;
+    this.refId = refId;
+    this.description = description;
+    this.link = link;
+    this.severity = severity;
+    this.fixedBy = fixedBy;
+  }
+
   @Id
   @Column(name = "coordinate_security_id")
   private String id;

@@ -144,7 +144,7 @@
     <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan</class>
     <properties>
       <property name="openjpa.Log" value="DefaultLevel=WARN, Tool=INFO"/>
-      <property name="openjpa.jdbc.Schema" value="insight_brain_tps"/>
+      <property name="openjpa.jdbc.Schema" value="insight_brain_third_party_scans"/>
       <!--
       By default, when doing an update using an object that was not retrieved from the database, openjpa will not update fields that are null.
       Setting openjpa.DetachState=all causes openjpa to update all fields, null or not null.

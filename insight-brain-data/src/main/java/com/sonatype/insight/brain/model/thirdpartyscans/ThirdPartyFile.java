@@ -19,6 +19,17 @@ import com.sonatype.insight.model.HasStringId;
 public class ThirdPartyFile
     implements HasStringId
 {
+  public ThirdPartyFile() {
+    //noop
+  }
+
+  public ThirdPartyFile(String hash, String filename, String image, Date created) {
+    this.hash = hash;
+    this.filename = filename;
+    this.image = image;
+    this.created = created;
+  }
+
   @Id
   @Column(name = "third_party_file_id")
   private String id;

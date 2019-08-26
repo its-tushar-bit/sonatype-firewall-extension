@@ -17,6 +17,26 @@ import com.sonatype.insight.model.HasStringId;
 public class ThirdPartyFileCoordinate
     implements HasStringId
 {
+  public ThirdPartyFileCoordinate() {
+    //noop
+  }
+
+  public ThirdPartyFileCoordinate(
+      String hash,
+      String source,
+      String format,
+      String name,
+      String version,
+      String thirdPartyFileId)
+  {
+    this.hash = hash;
+    this.source = source;
+    this.format = format;
+    this.name = name;
+    this.version = version;
+    this.thirdPartyFileId = thirdPartyFileId;
+  }
+
   @Id
   @Column(name = "file_coordinate_id")
   private String id;

@@ -20,7 +20,6 @@ public class ApiSourceControlAdapter
 
     ApiSourceControlDTO apiSourceControlDTO = new ApiSourceControlDTO();
     apiSourceControlDTO.id = sourceControl.getId();
-    apiSourceControlDTO.applicationId = sourceControl.getOwnerId();
     apiSourceControlDTO.ownerId = sourceControl.getOwnerId();
     apiSourceControlDTO.repositoryUrl = sourceControl.getRepositoryUrl();
     apiSourceControlDTO.token = sourceControl.getToken();

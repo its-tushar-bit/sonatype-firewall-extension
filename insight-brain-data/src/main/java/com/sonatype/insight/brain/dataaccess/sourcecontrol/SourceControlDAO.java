@@ -88,8 +88,9 @@ public class SourceControlDAO
       if (StringUtils.isBlank(sourceControl.getToken())) {
         throw new BadRequestException("SourceControl authentication token is required for organization");
       }
-      if (sourceControl.getProvider() == null) {
-        throw new BadRequestException("SourceControl provider is required for organization");
+      // if the token is provided the provider must be specified as well
+      if (StringUtils.isNotEmpty(sourceControl.getToken()) && sourceControl.getProvider() == null) {
+        throw new BadRequestException("SourceControl provider is required when a token is provided");
       }
     }
     else if (isForApplication(tx, sourceControl)) {

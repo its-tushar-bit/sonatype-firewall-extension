@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
@@ -128,6 +129,97 @@ public class ApiSourceControlServiceAuthzTest
     SourceControl sourceControl =
         tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
     sourceControlService.deleteSourceControl(app.getId(), sourceControl.getId());
+  }
+
+  @Test
+  public void testGetSourceControlByOwner_Authorized() {
+    grantReadPermission(app.getId());
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
+    ApiSourceControlDTO sourceControlByApplicationId =
+        sourceControlService.getSourceControlByOwner(
+            OwnerType.APPLICATION, app.getId());
+    assertThat(sourceControlByApplicationId.id).isEqualTo(sourceControl.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetSourceControlByOwner_Unauthenticated() {
+    sourceControlService.getSourceControlByOwner(OwnerType.APPLICATION, app.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetSourceControlByOwner_Unauthorized() {
+    login();
+    sourceControlService.getSourceControlByOwner(OwnerType.APPLICATION, app.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddSourceControlByOwner_Unauthenticated() {
+    sourceControlService.addSourceControlByOwner(
+        OwnerType.APPLICATION, app.getId(), new ApiSourceControlDTO());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddSourceControlByOwner_Unauthorized() {
+    login();
+    sourceControlService.addSourceControlByOwner(
+        OwnerType.APPLICATION, app.getId(), new ApiSourceControlDTO());
+  }
+
+  @Test
+  public void testAddSourceControlByOwner_Authorized() {
+    grantWritePermission(app.getId());
+    sourceControlService.addSourceControlByOwner(
+        OwnerType.APPLICATION, app.getId(),
+        apiSourceControlAdapter.convertToDTO(new SourceControl(
+            app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB)));
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdateSourceControlByOwner_Unauthenticated() {
+    sourceControlService.updateSourceControlByOwner(
+        OwnerType.APPLICATION, app.getId(), new ApiSourceControlDTO());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdateSourceControlByOwner_Unauthorized() {
+    login();
+    sourceControlService.updateSourceControlByOwner(
+        OwnerType.APPLICATION, app.getId(), new ApiSourceControlDTO());
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_Authorized() {
+    grantWritePermission(app.getId());
+    ApiSourceControlDTO sourceControl = sourceControlService.addSourceControl(
+        app.getId(), apiSourceControlAdapter.convertToDTO(
+            new SourceControl(app.getId(), VALID_URL, "token",
+                SourceControlProvider.GITHUB)));
+    sourceControl.token = "newToken";
+    sourceControlService.updateSourceControlByOwner(
+        OwnerType.APPLICATION, app.getId(), sourceControl);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteSourceControlByOwner_Unauthenticated() {
+    sourceControlService.deleteSourceControlByOwner(
+        OwnerType.APPLICATION, app.getId(), "any");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeleteSourceControlByOwner_Unauthorized() {
+    login();
+    sourceControlService.deleteSourceControlByOwner(
+        OwnerType.APPLICATION, app.getId(), "any");
+  }
+
+  @Test
+  public void testDeleteSourceControlByOwner_Authorized() {
+    grantWritePermission(app.getId());
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
+    sourceControlService.deleteSourceControlByOwner(
+        OwnerType.APPLICATION, app.getId(), sourceControl.getId());
   }
 
   @Test

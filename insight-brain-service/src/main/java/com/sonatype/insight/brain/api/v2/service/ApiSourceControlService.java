@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -36,6 +37,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,21 +86,17 @@ public class ApiSourceControlService
     checkLicense();
     List<SourceControl> sourceControlDAOAll = sourceControlDAO.getAll();
     sourceControlDAOAll.forEach(this::encryptToken);
-    return sourceControlDAOAll.stream().map(apiSourceControlAdapter::convertToDTO).collect(Collectors.toList());
+    return sourceControlDAOAll.stream()
+        .map(apiSourceControlAdapter::convertToDTO)
+        .collect(Collectors.toList());
   }
 
   @Authorize(permission = Permission.READ)
   public ApiSourceControlDTO getSourceControlByApplicationId(
       @AuthzContext(Key.APPLICATION_ID) final String applicationId)
   {
-    checkLicense();
-    SourceControl sourceControl = sourceControlDAO.getByOwnerId(applicationId);
-    if (null == sourceControl) {
-      throw new NotFoundException("Cannot find SourceControl for Application with id: " + applicationId);
-    }
-    sourceControl.setToken(FAKE_SECRET_KEY);
-    sendSourceControlTelemetryData(METHOD.GET_BY_APP_ID, applicationId);
-    return apiSourceControlAdapter.convertToDTO(sourceControl);
+    return addApplicationId(getSourceControlByOwner(
+        OwnerType.APPLICATION, applicationId));
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -106,16 +104,8 @@ public class ApiSourceControlService
       @AuthzContext(Key.APPLICATION_ID) final String applicationId,
       ApiSourceControlDTO sourceControlDTO)
   {
-    checkLicense();
-    SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(
-        sourceControlDTO);
-    encryptToken(sourceControl);
-    sourceControl.setOwnerId(applicationId);
-    sourceControlDAO.insert(sourceControl);
-    auditSourceControl(sourceControl);
-    sourceControl.setToken(FAKE_SECRET_KEY);
-    sendSourceControlTelemetryData(METHOD.ADD, applicationId, sourceControl);
-    return apiSourceControlAdapter.convertToDTO(sourceControl);
+    return addApplicationId(addSourceControlByOwner(
+        OwnerType.APPLICATION, applicationId, sourceControlDTO));
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -123,23 +113,8 @@ public class ApiSourceControlService
       @AuthzContext(Key.APPLICATION_ID) final String applicationId,
       ApiSourceControlDTO sourceControlDTO)
   {
-    checkLicense();
-    SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(sourceControlDTO);
-
-    // updates may come with our 'fake' token or simply omit it
-    if (isEmpty(sourceControl.getToken()) || FAKE_SECRET_KEY.equalsIgnoreCase(sourceControl.getToken())) {
-      SourceControl storedSourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
-      sourceControl.setToken(storedSourceControl.getToken());
-    }
-    else {
-      encryptToken(sourceControl);
-    }
-    validateApplicationId(applicationId, sourceControl);
-    sourceControlDAO.update(sourceControl);
-    auditSourceControl(sourceControl);
-    sourceControl.setToken(FAKE_SECRET_KEY);
-    sendSourceControlTelemetryData(METHOD.UPDATE, applicationId, sourceControl);
-    return apiSourceControlAdapter.convertToDTO(sourceControl);
+    return addApplicationId(updateSourceControlByOwner(
+        OwnerType.APPLICATION, applicationId, sourceControlDTO));
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -147,12 +122,8 @@ public class ApiSourceControlService
       @AuthzContext(Key.APPLICATION_ID) final String applicationId,
       String sourceControlId)
   {
-    checkLicense();
-    SourceControl sourceControl = sourceControlDAO.getByIdNotNull(sourceControlId);
-    validateApplicationId(applicationId, sourceControl);
-    sourceControlDAO.delete(sourceControl);
-    auditSourceControl(sourceControl);
-    sendSourceControlTelemetryData(METHOD.DELETE, applicationId, sourceControl);
+    deleteSourceControlByOwner(OwnerType.APPLICATION, applicationId,
+        sourceControlId);
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -181,7 +152,7 @@ public class ApiSourceControlService
     }
     auditSourceControl(sourceControl);
     sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE, application.getId());
-    return apiSourceControlAdapter.convertToDTO(sourceControl);
+    return addApplicationId(apiSourceControlAdapter.convertToDTO(sourceControl));
   }
 
   public ApiSourceControlDTO getSourceControlByApplicationIdDecrypted(
@@ -190,7 +161,7 @@ public class ApiSourceControlService
     try {
       ApiSourceControlDTO sourceControl = getSourceControlByApplicationId(
           applicationId);
-      return getSourceControlDecrypted(sourceControl.ownerId, sourceControl.id);
+      return getSourceControlDecrypted(applicationId, sourceControl.id);
     }
     catch (NotFoundException e) {
       return null;
@@ -203,15 +174,111 @@ public class ApiSourceControlService
       String sourceControlId)
   {
     SourceControl sourceControl = sourceControlDAO.getByIdNotNull(sourceControlId);
-    validateApplicationId(applicationId, sourceControl);
+    validateOwnerId(OwnerType.APPLICATION, applicationId, sourceControl);
+    decryptToken(sourceControl);
+    return addApplicationId(apiSourceControlAdapter.convertToDTO(sourceControl));
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiSourceControlDTO getSourceControlByOwner(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) final String ownerId)
+  {
+    checkLicense();
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(ownerId);
+    if (null == sourceControl) {
+      throw new NotFoundException(String.format(
+          "Cannot find SourceControl for %s with id: %s", ownerType, ownerId));
+    }
+    sourceControl.setToken(FAKE_SECRET_KEY);
+    sendSourceControlTelemetryData(METHOD.GET_BY_OWNER_ID, ownerId);
+
+    return apiSourceControlAdapter.convertToDTO(sourceControl);
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public ApiSourceControlDTO addSourceControlByOwner(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) final String ownerId,
+      ApiSourceControlDTO sourceControlDTO)
+  {
+    checkLicense();
+    SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(
+        sourceControlDTO);
+    encryptToken(sourceControl);
+    sourceControl.setOwnerId(ownerId);
+    sourceControlDAO.insert(sourceControl);
+    auditSourceControl(sourceControl);
+    sourceControl.setToken(FAKE_SECRET_KEY);
+    sendSourceControlTelemetryData(METHOD.ADD, ownerId, sourceControl);
+    return apiSourceControlAdapter.convertToDTO(sourceControl);
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public ApiSourceControlDTO updateSourceControlByOwner(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) final String ownerId,
+      ApiSourceControlDTO sourceControlDTO)
+  {
+    checkLicense();
+
+    SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(
+        sourceControlDTO);
+
+    // updates may come with our 'fake' token or simply omit it
+    if (isEmpty(sourceControl.getToken())
+        || FAKE_SECRET_KEY.equalsIgnoreCase(sourceControl.getToken())) {
+      SourceControl storedSourceControl = sourceControlDAO.getByIdNotNull(
+          sourceControl.getId());
+      sourceControl.setToken(storedSourceControl.getToken());
+    }
+    else {
+      encryptToken(sourceControl);
+    }
+    validateOwnerId(ownerType, ownerId, sourceControl);
+    sourceControlDAO.update(sourceControl);
+    auditSourceControl(sourceControl);
+    sourceControl.setToken(FAKE_SECRET_KEY);
+    sendSourceControlTelemetryData(METHOD.UPDATE, ownerId, sourceControl);
+    return apiSourceControlAdapter.convertToDTO(sourceControl);
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public void deleteSourceControlByOwner(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) final String ownerId,
+      String sourceControlId)
+  {
+    checkLicense();
+    SourceControl sourceControl = sourceControlDAO.getByIdNotNull(sourceControlId);
+    validateOwnerId(ownerType, ownerId, sourceControl);
+    sourceControlDAO.delete(sourceControl);
+    auditSourceControl(sourceControl);
+    sendSourceControlTelemetryData(METHOD.DELETE, ownerId, sourceControl);
+  }
+
+  @VisibleForTesting
+  @Authorize(permission = Permission.READ)
+  ApiSourceControlDTO getSourceControlByOwnerDecrypted(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) final String ownerId,
+      String sourceControlId)
+  {
+    SourceControl sourceControl = sourceControlDAO.getByIdNotNull(sourceControlId);
+    validateOwnerId(ownerType, ownerId, sourceControl);
     decryptToken(sourceControl);
     return apiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
-  private void validateApplicationId(final String applicationId, final SourceControl sourceControl) {
-    if (! sourceControl.getOwnerId().equals(applicationId)) {
-      throw new NotFoundException(
-          "Cannot find SourceControl with id: " + sourceControl.getId() + " for Application with id: " + applicationId);
+  private void validateOwnerId(
+      final OwnerType ownerType,
+      final String ownerId,
+      final SourceControl sourceControl)
+  {
+    if (! sourceControl.getOwnerId().equals(ownerId)) {
+      throw new NotFoundException(String.format(
+          "Cannot find SourceControl with id: %s for %s with id: %s",
+          sourceControl.getId(), ownerType, ownerId));
     }
   }
 
@@ -253,21 +320,22 @@ public class ApiSourceControlService
     }
   }
 
-  private void sendSourceControlTelemetryData(final METHOD method, final String applicationId) {
-    sendSourceControlTelemetryData(method, applicationId, null);
+  private void sendSourceControlTelemetryData(final METHOD method, final String ownerId) {
+    sendSourceControlTelemetryData(method, ownerId, null);
   }
 
   private void sendSourceControlTelemetryData(
       final METHOD method,
-      final String applicationId,
+      final String ownerId,
       final SourceControl sourceControl)
   {
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("method", method);
-    attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
+    attributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
     if (sourceControl != null) {
       attributes.put("repository_url", HdsClientAnalytics.obfuscate(sourceControl.getRepositoryUrl()));
-      attributes.put("provider", sourceControl.getProvider().toString());
+      attributes.put("provider", (sourceControl.getProvider() != null)
+          ? sourceControl.getProvider().toString() : null);
     }
 
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL);
@@ -275,8 +343,14 @@ public class ApiSourceControlService
     telemetrySender.send(telemetryData);
   }
 
+  private static ApiSourceControlDTO addApplicationId(ApiSourceControlDTO dto) {
+    dto.applicationId = dto.ownerId;
+    return dto;
+  }
+
   enum METHOD
   {
+    GET_BY_OWNER_ID,
     GET_BY_APP_ID,
     ADD,
     UPDATE,
@@ -284,4 +358,3 @@ public class ApiSourceControlService
     ADD_OR_UPDATE
   }
 }
-          

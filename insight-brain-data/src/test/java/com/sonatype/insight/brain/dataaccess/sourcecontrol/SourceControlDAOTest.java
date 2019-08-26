@@ -69,7 +69,7 @@ public class SourceControlDAOTest
     assertThatThrownBy(() -> {
       sourceControlDAO.insert(sourceControl);
     }).isInstanceOf(BadRequestException.class).hasMessageContaining(
-        "SourceControl provider is required for organization");
+        "SourceControl provider is required when a token is provided");
   }
 
   @Test
@@ -152,7 +152,7 @@ public class SourceControlDAOTest
     assertThatThrownBy(() -> {
       sourceControlDAO.update(sourceControl);
     }).isInstanceOf(BadRequestException.class).hasMessage(
-        "SourceControl provider is required for organization");
+        "SourceControl provider is required when a token is provided");
   }
 
   @Test

@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.codahale.metrics.annotation.Timed;
@@ -40,7 +41,18 @@ public class ApiSourceControlResource
 
   private static final String APPLICATION_ID = "{applicationId}";
 
-  private static final String APP_AND_SOURCE_CONTROL_IDS = APPLICATION_ID + "/" + SOURCE_CONTROL_ID;
+  private static final String OWNER_TYPE = "{ownerType:application|organization}";
+
+  private static final String OWNER_ID = "{ownerId}";
+
+  /* paths are package private for use in tests */
+  static final String BY_OWNER = OWNER_TYPE + "/" + OWNER_ID;
+
+  static final String BY_OWNER_AND_SOURCE_CONTROL_IDS = BY_OWNER
+      + "/" + SOURCE_CONTROL_ID;
+
+  static final String APP_AND_SOURCE_CONTROL_IDS =
+      APPLICATION_ID + "/" + SOURCE_CONTROL_ID;
 
   private final ApiSourceControlService sourceControlService;
 
@@ -88,6 +100,56 @@ public class ApiSourceControlResource
       @PathParam("sourceControlId") String sourceControlId) 
   {
     sourceControlService.deleteSourceControl(applicationId, sourceControlId);
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(BY_OWNER)
+  public ApiSourceControlDTO getSourceControl(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId)
+  {
+    return sourceControlService.getSourceControlByOwner(ownerType, ownerId);
+  }
+
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_SOURCE_CONTROL)
+  @Path(BY_OWNER)
+  public ApiSourceControlDTO addSourceControl(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      ApiSourceControlDTO sourceControl)
+  {
+    return sourceControlService.addSourceControlByOwner(
+        ownerType, ownerId, sourceControl);
+  }
+
+  @PUT
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_SOURCE_CONTROL)
+  @Path(BY_OWNER)
+  public ApiSourceControlDTO updateSourceControl(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      ApiSourceControlDTO sourceControl)
+  {
+    return sourceControlService.updateSourceControlByOwner(
+        ownerType, ownerId, sourceControl);
+  }
+
+  @DELETE
+  @Path(BY_OWNER_AND_SOURCE_CONTROL_IDS)
+  @Audited(AuditEvent.DELETE_SOURCE_CONTROL)
+  public void deleteSourceControl(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @PathParam("sourceControlId") String sourceControlId)
+  {
+    sourceControlService.deleteSourceControlByOwner(
+        ownerType, ownerId, sourceControlId);
   }
 
   @POST

@@ -7,5 +7,5 @@ package com.sonatype.insight.brain.thirdparty;
 
 public interface ThirdPartyScanResultHandler
 {
-  void handle(ThirdPartyScanContent content);
+  String handleAndFilterContents(ThirdPartyScanContent content);
 }

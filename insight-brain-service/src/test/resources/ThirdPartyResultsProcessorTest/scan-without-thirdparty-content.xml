@@ -1,0 +1,62 @@
+<scan version="2.21">
+<configuration>
+  <properties>
+    <property name="anonymizeArtifactIds" value="false"/>
+    <property name="jreInfo" value="true"/>
+    <property name="maxSymlinkDepth" value="5"/>
+    <property name="dirExcludes" value="**/.*, **/CVS"/>
+    <property name="hashFiles" value="true"/>
+    <property name="anonymizePaths" value="false"/>
+    <property name="procArch" value="true"/>
+    <property name="proprietaryPackages" value=""/>
+    <property name="proprietaryRegexes" value=""/>
+    <property name="fileIncludes" value=""/>
+    <property name="fileSizes" value="false"/>
+    <property name="thirdPartyScanningEnabled" value="true"/>
+    <property name="operatingSystem" value="true"/>
+    <property name="archiveNames" value="true"/>
+    <property name="fileExcludes" value=""/>
+    <property name="maxDepth" value="256"/>
+    <property name="resourceNames" value="true"/>
+    <property name="dirIncludes" value=""/>
+    <property name="pomProperties" value="true"/>
+    <property name="ipAddresses" value="false"/>
+    <property name="nameHashes" value="true"/>
+    <property name="hashJavaTypes" value="true"/>
+  </properties>
+</configuration>
+<item path="clair-scanner-out/clair-scanner-output.json" contentType="CLAIR_SCANNER" lastModified="1565180731371" sha1="30a7c753d9515c185d85"/>
+<summary>
+  <scannerDriver>cli</scannerDriver>
+  <scannerVersion>1.70.0-SNAPSHOT</scannerVersion>
+  <operatingSystem>Mac OS X</operatingSystem>
+  <processorArchitecture>x86_64</processorArchitecture>
+  <startTime>2019-08-07T17:29:54+0000</startTime>
+  <endTime>2019-08-07T17:29:54+0000</endTime>
+  <directories>1</directories>
+  <files>1</files>
+  <clientInfo>
+    <property name="java.specification.version" value="10"/>
+    <property name="java.runtime.version" value="10.0.1+10"/>
+    <property name="java.vm.vendor" value="&quot;Oracle Corporation&quot;"/>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+    <property name="java.vendor.url" value="http://java.oracle.com/"/>
+    <property name="insight.scannerVersion" value="1.70.0-SNAPSHOT"/>
+    <property name="os.name" value="Mac OS X"/>
+    <property name="java.vm.specification.version" value="10"/>
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="18.3"/>
+    <property name="java.vendor.url.bug" value="http://bugreport.java.com/bugreport/"/>
+    <property name="insight.scannerDriver" value="cli"/>
+    <property name="java.version" value="10.0.1"/>
+    <property name="os.arch" value="x86_64"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="java.vm.version" value="10.0.1+10"/>
+  </clientInfo>
+</summary>
+</scan>

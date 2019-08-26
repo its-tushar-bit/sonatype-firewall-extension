@@ -127,8 +127,6 @@ public class ScanHandlerTest
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY);
     assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
     verify(thirdPartyScanResultsProcessor, times(1)).handle(any(File.class));
-    File scanFile = work.getScanFile(app.getId(), scanId);
-    assertThat(scanFile).isFile().usingCharset(StandardCharsets.UTF_8).hasContent(scanFileContent);
   }
 
   @Test

@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
@@ -24,10 +25,10 @@ import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.brain.client.UnsupportedServerVersionException;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
+import com.sonatype.insight.scan.cli.git.GitUtils;
 import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ScanMetadata;
-import com.sonatype.nexus.git.utils.CommitHashFinderBuilder;
 
 import org.apache.http.client.HttpResponseException;
 import org.codehaus.plexus.util.StringUtils;
@@ -59,6 +60,8 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     validateServerAccess(params, restClient);
 
     validateScanTargets(params, restClient);
+
+    addOrUpdateSourceControl(restClient, params);
 
     ClientScanResult clientScanResult = scan(params, getProprietaryConfiguration(params, restClient), restClient);
 
@@ -286,20 +289,23 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   private ScanMetadata verifyAndPopulateMetadata(P params) {
     ScanMetadata scanMetadata = params.getScanMetadata() == null ? new ScanMetadata() : params.getScanMetadata();
+    Optional<String> optional = GitUtils.tryGetCommitHash(scanMetadata.getCommitHash());
+    if (optional.isPresent()) {
+      scanMetadata.setCommitHash(optional.get());
+    }
+    return scanMetadata;
+  }
 
+  private void addOrUpdateSourceControl(final RestClient restClient, final P params) {
     try {
-      scanMetadata.setCommitHash(new CommitHashFinderBuilder()
-          .withEnvironmentVariableDefault()
-          .withGitRepo()
-          .withFallBack(scanMetadata.getCommitHash())
-          .build()
-          .tryGetCommitHash()
-          .orElse(null));
+      Optional<String> optional = GitUtils.tryGetRepositoryUrl(null);
+      if (optional.isPresent()) {
+        String repositoryUrl = optional.get();
+        restClient.addOrUpdateSourceControlRecord(params.getApplicationId(), repositoryUrl);
+      }
     }
     catch (Exception e) {
-      log.error("Failed to get the commit hash due to:", e);
+      log.error("Failed to add or update the source control record due to:", e);
     }
-
-    return scanMetadata;
   }
 }

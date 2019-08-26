@@ -173,5 +173,12 @@ public class RestClientFactory
     public void validateServerVersion(String minimalServerVersionRequiredAsString) throws IOException {
       new ConfigurationClient(config).validateServerVersion(minimalServerVersionRequiredAsString);
     }
+
+    /**
+     * @since 1.72
+     */
+    public void addOrUpdateSourceControlRecord(String publicId, String repositoryUrl) throws IOException {
+      new SourceControlClient(config).addOrUpdateSourceControlRecord(publicId, repositoryUrl);
+    }
   }
 }

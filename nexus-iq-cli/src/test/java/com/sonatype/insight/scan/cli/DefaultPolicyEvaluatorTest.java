@@ -30,12 +30,12 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.scan.cli.git.GitUtils;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.ScanSummary;
 import com.sonatype.insight.scan.model.io.ScanWriter;
-import com.sonatype.nexus.git.utils.CommitHashFinderBuilder;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
@@ -554,7 +554,7 @@ public class DefaultPolicyEvaluatorTest
     assertThat(scan).isNotNull();
     // by default this should always be running in the context of a checked out git repo, so we will manually look
     // up the commit hash and make sure it matches what is found in the scanner
-    Optional<String> commitHash = new CommitHashFinderBuilder().withGitRepo().build().tryGetCommitHash();
+    Optional<String> commitHash = GitUtils.tryGetCommitHash(null);
     assertThat(scan.getMetadata().getCommitHash()).isEqualTo(commitHash.get());
   }
 

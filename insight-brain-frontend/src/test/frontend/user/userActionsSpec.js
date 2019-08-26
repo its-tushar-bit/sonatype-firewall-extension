@@ -250,17 +250,59 @@ describe('userActions', function() {
   });
 
   describe('loadUser', () => {
+    let CLMContextLocations;
+
+    beforeEach(inject(function(_CLMContextLocations_) {
+      CLMContextLocations = _CLMContextLocations_;
+    }));
+
     afterEach(() => {
       $httpBackend.verifyNoOutstandingExpectation();
       $httpBackend.verifyNoOutstandingRequest();
     });
 
-    it('should query the backend for the current user and display flag', () => {
+    it('queries the backend for the current user and sets shouldDisplayWarning to false if they do not have the' +
+        ' CONFIGURE_SYSTEM permission', function() {
       $httpBackend.expectGET(CLMLocations.getSessionUrl()).respond({
         username: 'admin',
         clmUser: true
       });
 
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM']).respond([]);
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      const successSpy = jasmine.createSpy('successSpy');
+      store.dispatch(userActions.loadUser())
+          .then(successSpy);
+
+      $httpBackend.flush();
+
+      expect(successSpy).toHaveBeenCalled();
+      expect(store.getActions().length).toBe(2);
+      expect(store.getActions()[0]).toEqual({
+        type: 'LOAD_USER_REQUESTED'
+      });
+      expect(store.getActions()[1]).toEqual({
+        type: 'LOAD_USER_FULFILLED',
+        payload: {
+          currentUser: {
+            username: 'admin',
+            clmUser: true
+          },
+          shouldDisplayWarning: false
+        }
+      });
+    });
+
+    it('queries shouldDisplayDefaultPasswordWarning if the user has CONFIGURE_SYSTEM and sets shouldDisplayWarning' +
+        'accordingly', function() {
+      $httpBackend.expectGET(CLMLocations.getSessionUrl()).respond({
+        username: 'admin',
+        clmUser: true
+      });
+
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
+          .respond(['CONFIGURE_SYSTEM']);
       $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning())
           .respond('true');
 
@@ -288,9 +330,49 @@ describe('userActions', function() {
       });
     });
 
+    it('sets shouldDisplayWarning to false if the shouldDisplayDefaultPasswordWarning endpoint returns false',
+        function() {
+          $httpBackend.expectGET(CLMLocations.getSessionUrl()).respond({
+            username: 'admin',
+            clmUser: true
+          });
+
+          $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
+              .respond(['CONFIGURE_SYSTEM']);
+          $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning())
+              .respond('false');
+
+          const store = SpecUtil.mockReduxStore(initialState);
+          const successSpy = jasmine.createSpy('successSpy');
+          store.dispatch(userActions.loadUser())
+              .then(successSpy);
+
+          $httpBackend.flush();
+
+          expect(successSpy).toHaveBeenCalled();
+          expect(store.getActions().length).toBe(2);
+          expect(store.getActions()[0]).toEqual({
+            type: 'LOAD_USER_REQUESTED'
+          });
+          expect(store.getActions()[1]).toEqual({
+            type: 'LOAD_USER_FULFILLED',
+            payload: {
+              currentUser: {
+                username: 'admin',
+                clmUser: true
+              },
+              shouldDisplayWarning: false
+            }
+          });
+        }
+    );
+
     it('should dispatch error if the call to get the current user does not resolve', () => {
       $httpBackend.expectGET(CLMLocations.getSessionUrl())
           .respond(500, 'Some server error message');
+
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
+          .respond(['CONFIGURE_SYSTEM']);
 
       $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning())
           .respond('true');
@@ -312,23 +394,22 @@ describe('userActions', function() {
       });
     });
 
-    it('should set the display flag to false if the call to get it does not resolve', () => {
-      $httpBackend.expectGET(CLMLocations.getSessionUrl())
-          .respond({
-            username: 'admin',
-            clmUser: true
-          });
+    it('should set the warning flag to false if the call to get permissions does not resolve', () => {
+      $httpBackend.expectGET(CLMLocations.getSessionUrl()).respond({
+        username: 'admin',
+        clmUser: true
+      });
 
-      $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning())
-          .respond(403, 'forbidden');
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
+          .respond(500, 'Some server error message');
 
       const store = SpecUtil.mockReduxStore(initialState);
-      const successSpy = jasmine.createSpy('successSpy');
+      const errorSpy = jasmine.createSpy('errorSpy');
       store.dispatch(userActions.loadUser())
-          .then(successSpy);
+          .catch(errorSpy);
 
       $httpBackend.flush();
-      expect(successSpy).toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
       expect(store.getActions().length).toBe(2);
       expect(store.getActions()[0]).toEqual({
         type: 'LOAD_USER_REQUESTED'
@@ -345,12 +426,17 @@ describe('userActions', function() {
       });
     });
 
-    it('should submit error when both calls fail', () => {
-      $httpBackend.expectGET(CLMLocations.getSessionUrl())
-          .respond(500, 'Some server error message');
+    it('should set the warning flag to false if the call to get it does not resolve', () => {
+      $httpBackend.expectGET(CLMLocations.getSessionUrl()).respond({
+        username: 'admin',
+        clmUser: true
+      });
+
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
+          .respond(['CONFIGURE_SYSTEM']);
 
       $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning())
-          .respond(403, 'forbidden');
+          .respond(500, 'Some server error message');
 
       const store = SpecUtil.mockReduxStore(initialState);
       const errorSpy = jasmine.createSpy('errorSpy');
@@ -358,14 +444,20 @@ describe('userActions', function() {
           .catch(errorSpy);
 
       $httpBackend.flush();
-      expect(errorSpy).toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
       expect(store.getActions().length).toBe(2);
       expect(store.getActions()[0]).toEqual({
         type: 'LOAD_USER_REQUESTED'
       });
       expect(store.getActions()[1]).toEqual({
-        type: 'LOAD_USER_FAILED',
-        payload: 'Some server error message'
+        type: 'LOAD_USER_FULFILLED',
+        payload: {
+          currentUser: {
+            username: 'admin',
+            clmUser: true
+          },
+          shouldDisplayWarning: false
+        }
       });
     });
 
@@ -374,6 +466,9 @@ describe('userActions', function() {
         username: 'admin',
         clmUser: true
       });
+
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
+          .respond(['CONFIGURE_SYSTEM']);
 
       $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning())
           .respond('true');
@@ -397,6 +492,9 @@ describe('userActions', function() {
         clmUser: true
       });
 
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
+          .respond(['CONFIGURE_SYSTEM']);
+
       $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning())
           .respond(false);
 
@@ -411,14 +509,13 @@ describe('userActions', function() {
       expect(telemetryService.submitData).not.toHaveBeenCalled();
     });
 
-    it('should not submit telemetry data when the display flag call does not resolve', () => {
+    it('should not submit telemetry data when the permissions call fails', () => {
       $httpBackend.expectGET(CLMLocations.getSessionUrl()).respond({
         username: 'admin',
         clmUser: true
       });
 
-      $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning())
-          .respond(403, 'forbidden');
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM']).respond(500);
 
       const store = SpecUtil.mockReduxStore(initialState);
       const successSpy = jasmine.createSpy('successSpy');
@@ -431,20 +528,25 @@ describe('userActions', function() {
       expect(telemetryService.submitData).not.toHaveBeenCalled();
     });
 
-    it('should not submit telemetry data when both calls fail', () => {
-      $httpBackend.expectGET(CLMLocations.getSessionUrl())
-          .respond(500, 'Some server error message');
+    it('should not submit telemetry data when the flag call fails', () => {
+      $httpBackend.expectGET(CLMLocations.getSessionUrl()).respond({
+        username: 'admin',
+        clmUser: true
+      });
 
-      $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning())
-          .respond(403, 'forbidden');
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
+          .respond(['CONFIGURE_SYSTEM']);
+
+      $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond(500);
 
       const store = SpecUtil.mockReduxStore(initialState);
-      const errorSpy = jasmine.createSpy('errorSpy');
+      const successSpy = jasmine.createSpy('successSpy');
       store.dispatch(userActions.loadUser())
-          .catch(errorSpy);
+          .then(successSpy);
 
       $httpBackend.flush();
-      expect(errorSpy).toHaveBeenCalled();
+
+      expect(successSpy).toHaveBeenCalled();
       expect(telemetryService.submitData).not.toHaveBeenCalled();
     });
   });

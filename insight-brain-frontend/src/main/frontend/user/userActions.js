@@ -3,28 +3,34 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { propEq, always } from 'ramda';
+import { always, propEq } from 'ramda';
 
 export const DEFAULT_ADMIN_PASSWORD_CHANGED = 'DEFAULT_ADMIN_PASSWORD_CHANGED';
 export const LOAD_USER_REQUESTED = 'LOAD_USER_REQUESTED';
 export const LOAD_USER_FULFILLED = 'LOAD_USER_FULFILLED';
 export const LOAD_USER_FAILED = 'LOAD_USER_FAILED';
 
-function userActions($rootScope, $q, $http, CurrentUser, CLMLocations, telemetryService) {
+function userActions($rootScope, $q, $http, CurrentUser, CLMLocations, telemetryService, PermissionService) {
 
   function fetchUser() {
-    const warningPromiseUrl = CLMLocations.getShouldDisplayDefaultPasswordWarning();
-    // This request is only allowed for admin-level users
-    // All other users get a 403 forbidden response
-    // In that scenario we return false
-    // Since those users should not get the warning message anyway.
-    const warningPromise = $http.get(warningPromiseUrl)
-        .then(propEq('data', 'true'))
-        .catch(always(false));
+    const warningPromiseUrl = CLMLocations.getShouldDisplayDefaultPasswordWarning(),
+        shouldDisplayWarningPromise = PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true)
+            .then(function(isAdmin) {
+              if (isAdmin) {
+                // user is admin, check if we need to display the password warning
+                return $http.get(warningPromiseUrl).then(propEq('data', 'true'));
+              }
+              else {
+                // user is not admin, don't display the password warning
+                return false;
+              }
+            })
+            // if this call fails, do not fail the overall user lookup
+            .catch(always(false));
 
     return $q.all({
       currentUser: CurrentUser,
-      shouldDisplayWarning: warningPromise
+      shouldDisplayWarning: shouldDisplayWarningPromise
     });
   }
 
@@ -105,5 +111,6 @@ function userActions($rootScope, $q, $http, CurrentUser, CLMLocations, telemetry
     passwordChangedForUser
   };
 }
-userActions.$inject = ['$rootScope', '$q', '$http', 'CurrentUser', 'CLMLocations', 'telemetryService'];
+userActions.$inject = ['$rootScope', '$q', '$http', 'CurrentUser', 'CLMLocations', 'telemetryService',
+  'PermissionService'];
 export default userActions;

@@ -321,6 +321,7 @@ public class InsightBrainService
   @Override
   protected void customize(final InsightConfig config, final Environment env) {
     replaceGenericExceptionMapper(env, config);
+    env.jersey().register(new InsightJacksonMessageBodyProvider(env.getObjectMapper()));
 
     addServletFilter(env, AuditFilter.class, AuditFilter.URL_PATTERNS);
     addServletFilter(env, HttpHeaderValidatorFilter.class, HttpHeaderValidatorFilter.URL_PATTERN);

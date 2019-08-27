@@ -26,8 +26,7 @@ import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 
 @Named
 @Timed
@@ -202,10 +201,7 @@ public class DashboardResource
   @Produces("text/csv")
   @ExceptionMetered(name = "getNewestRisksExportExceptionMeter")
   @Audited(AuditEvent.EXPORT_DASHBOARD_VIOLATION_LIST)
-  public Response getNewestRisksExport(FormDataMultiPart multiPart) throws IOException {
-    String filterJson = multiPart.getField("filter").getValue();
-    ObjectMapper mapper = new ObjectMapper();
-    RisksFilterDTO risksFilterDTO = mapper.readValue(filterJson, RisksFilterDTO.class);
+  public Response getNewestRisksExport(@FormDataParam("filter") RisksFilterDTO risksFilterDTO) throws IOException {
     final List<NewestRiskDTO> results = newestRiskService
         .getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
             risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange,
@@ -227,10 +223,7 @@ public class DashboardResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @ExceptionMetered(name = "getComponentRisksExportExceptionMeter")
   @Audited(AuditEvent.EXPORT_DASHBOARD_COMPONENT_LIST)
-  public Response getComponentRisksExport(FormDataMultiPart multiPart) throws IOException {
-    String filterJson = multiPart.getField("filter").getValue();
-    ObjectMapper mapper = new ObjectMapper();
-    RisksFilterDTO risksFilterDTO = mapper.readValue(filterJson, RisksFilterDTO.class);
+  public Response getComponentRisksExport(@FormDataParam("filter") RisksFilterDTO risksFilterDTO) throws IOException {
     final List<ComponentRiskDTO> results = componentRiskService
         .getComponentRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
             risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange,
@@ -251,10 +244,7 @@ public class DashboardResource
   @Produces("text/csv")
   @ExceptionMetered(name = "getApplicationRisksExportExceptionMeter")
   @Audited(AuditEvent.EXPORT_DASHBOARD_APPLICATION_LIST)
-  public Response getApplicationRisksExport(FormDataMultiPart multiPart) throws IOException {
-    String filterJson = multiPart.getField("filter").getValue();
-    ObjectMapper mapper = new ObjectMapper();
-    RisksFilterDTO risksFilterDTO = mapper.readValue(filterJson, RisksFilterDTO.class);
+  public Response getApplicationRisksExport(@FormDataParam("filter") RisksFilterDTO risksFilterDTO) throws IOException {
     final List<ApplicationRiskScoreDTO> results = applicationRiskService
         .getApplicationRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
             risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,

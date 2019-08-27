@@ -200,7 +200,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.jaxrs</groupId>
       <artifactId>jackson-jaxrs-json-provider</artifactId>
-      <scope>runtime</scope>
     </dependency>
 
     <dependency>

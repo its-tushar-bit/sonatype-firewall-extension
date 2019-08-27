@@ -11,6 +11,19 @@ The on-premises server that customers run to evaluate policy against application
 
 See https://docs.sonatype.com/display/INSIGHT/Insight+Brain for more information.
 
+# Contributing #
+
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v1.4%20adopted-ff69b4.svg)](code-of-conduct.md)
+
+Team Insight is the primary maintainer for this application but welcomes contributions from any and all Sonatypers!
+
+Please read our [contribution rules and guidelines](contributing.md).
+
+This week's rotating reviewers are:
+
+* [@Ross Pokorny](https://github.com/rpokorny)
+* [@(TK) Tim Kemper](https://github.com/tkemperSonatype)
+
 # Building #
 
 Standard Maven build, i.e. `mvn clean install`.
@@ -33,7 +46,6 @@ about timing of (asynchronous) operations. A delay of 500 ms doesn't delay tests
 typically sufficient to trigger errors where tests are badly coded and fail to wait on page changes. PhantomJS is known
 to not support this slow motion mode properly so other browsers should be used.
 
-# Connecting to a different HDS #
+## Connecting to a different HDS #
 
 There is development option to connect to a different HDS.  Use the config `hdsUrl` and point to the desired location.
-

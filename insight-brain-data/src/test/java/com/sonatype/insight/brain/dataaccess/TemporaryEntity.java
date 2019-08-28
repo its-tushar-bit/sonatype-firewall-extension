@@ -1848,4 +1848,29 @@ public class TemporaryEntity
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity() {
     return newThirdPartyCoordinateSecurity(newThirdPartyFileCoordinate(), "r1", "d1", "l1", 5.5f, "1.1");
   }
+
+  public SamlConfiguration newSamlConfiguration(
+      String identityProviderMetadataXml,
+      String entityId,
+      String firstNameAttributeName,
+      String lastNameAttributeName,
+      String emailAttributeName,
+      String usernameAttributeName,
+      String groupsAttributeName)
+  {
+    SamlConfiguration samlConfiguration = new SamlConfiguration();
+
+    samlConfiguration.setIdentityProviderMetadataXml(identityProviderMetadataXml);
+    samlConfiguration.setEntityId(entityId);
+    samlConfiguration.setFirstNameAttributeName(firstNameAttributeName);
+    samlConfiguration.setLastNameAttributeName(lastNameAttributeName);
+    samlConfiguration.setEmailAttributeName(emailAttributeName);
+    samlConfiguration.setUsernameAttributeName(usernameAttributeName);
+    samlConfiguration.setGroupsAttributeName(groupsAttributeName);
+
+    samlConfigurationDAO.insert(samlConfiguration);
+    samlConfigurations.add(samlConfiguration);
+
+    return samlConfiguration;
+  }
 }

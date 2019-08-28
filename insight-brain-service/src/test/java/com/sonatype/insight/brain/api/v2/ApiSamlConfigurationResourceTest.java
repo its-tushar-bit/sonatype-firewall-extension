@@ -1,0 +1,72 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2;
+
+import java.net.URL;
+
+import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationResponseDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiSamlConfigurationServiceTest;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
+import com.sonatype.insight.brain.service.AbstractResourceTest;
+
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class ApiSamlConfigurationResourceTest
+    extends AbstractResourceTest
+{
+  private SamlConfigurationDAO samlConfigurationDAO = new SamlConfigurationDAO();
+
+  @Test
+  public void testGetSamlConfiguration() throws Exception {
+    SamlConfiguration samlConfiguration = tempEntity
+        .newSamlConfiguration("<xml></xml>", "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams");
+
+    HttpResponse response = restRequest().get();
+    assertResponseStatus(200, restRequest().get());
+
+    ApiSamlConfigurationResponseDTO dto = response.getBody(ApiSamlConfigurationResponseDTO.class);
+    assertThat(dto.identityProviderMetadataXml).isEqualTo(samlConfiguration.getIdentityProviderMetadataXml());
+    assertThat(dto.entityId).isEqualTo(samlConfiguration.getEntityId());
+    assertThat(dto.firstNameAttributeName).isEqualTo(samlConfiguration.getFirstNameAttributeName());
+    assertThat(dto.lastNameAttributeName).isEqualTo(samlConfiguration.getLastNameAttributeName());
+    assertThat(dto.emailAttributeName).isEqualTo(samlConfiguration.getEmailAttributeName());
+    assertThat(dto.usernameAttributeName).isEqualTo(samlConfiguration.getUsernameAttributeName());
+    assertThat(dto.groupsAttributeName).isEqualTo(samlConfiguration.getGroupsAttributeName());
+  }
+
+  @Test
+  public void testInsertOrUpdateSamlConfiguration() throws Exception {
+    try {
+      URL resource = getClass()
+          .getResource("/" + ApiSamlConfigurationServiceTest.class.getSimpleName() + "/identity-provider-metadata.xml");
+      ApiSamlConfigurationDTO apiSamlConfigurationDTO = new ApiSamlConfigurationDTO();
+      HttpResponse response =
+          restRequest().part("identityProviderXml", resource).part("samlConfiguration", apiSamlConfigurationDTO).put();
+      assertResponseStatus(204, response);
+    }
+    finally {
+      samlConfigurationDAO.delete(samlConfigurationDAO.get());
+    }
+  }
+
+  @Test
+  public void testDeleteSamlConfiguration() throws Exception {
+    tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams");
+    assertResponseStatus(204, restRequest().delete());
+  }
+
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(PublicApiPaths.SAML_CONFIG_RESOURCE_PATH_V2);
+  }
+}

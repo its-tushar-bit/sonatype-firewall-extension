@@ -479,6 +479,9 @@ public class SystemInfoTest
     SamlConfiguration actual = new ObjectMapper().readValue(systemInfo.getSamlConfig(), SamlConfiguration.class);
     assertThat(actual).isNotNull();
     assertThat(actual.getId()).isEqualTo(samlConfig.getId());
+    assertThat(actual.getCertificate()).isNull();
+    assertThat(actual.getDecryptionKey()).isNull();
+    assertThat(actual.getSigningKeyPair()).isNull();
   }
 
   @Test

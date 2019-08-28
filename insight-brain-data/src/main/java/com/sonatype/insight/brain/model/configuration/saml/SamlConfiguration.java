@@ -16,7 +16,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 public class SamlConfiguration
 {
-  @JsonIgnore
   private String id;
 
   private String identityProviderMetadataXml;

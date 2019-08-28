@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfiguratio
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.security.SamlMetadataTool;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -38,15 +39,19 @@ public class ApiSamlConfigurationService
 
   private final SamlMetadataTool samlMetadataTool;
 
+  private final SamlDeploymentManager samlDeploymentManager;
+
   @Inject
   public ApiSamlConfigurationService(
       SamlConfigurationDAO samlConfigurationDAO,
       BaseUrl baseUrl,
-      SamlMetadataTool samlMetadataTool)
+      SamlMetadataTool samlMetadataTool,
+      SamlDeploymentManager samlDeploymentManager)
   {
     this.samlConfigurationDAO = samlConfigurationDAO;
     this.baseUrl = baseUrl;
     this.samlMetadataTool = samlMetadataTool;
+    this.samlDeploymentManager = samlDeploymentManager;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -71,7 +76,7 @@ public class ApiSamlConfigurationService
     // Updating the existing configurations xml only, meaning keep my configuration
     if (update && apiSamlConfigurationDTO == null) {
       validateAndSetIdentityProviderXml(identityProviderXml, persisted);
-      samlConfigurationDAO.update(persisted);
+      persist(persisted);
       return;
     }
 
@@ -96,11 +101,19 @@ public class ApiSamlConfigurationService
 
     if (update) {
       samlConfiguration.setId(persisted.getId());
+    }
+    persist(samlConfiguration);
+  }
+
+  private void persist(SamlConfiguration samlConfiguration) {
+    if (samlConfiguration.getId() != null) {
       samlConfigurationDAO.update(samlConfiguration);
     }
     else {
       samlConfigurationDAO.insert(samlConfiguration);
     }
+
+    samlDeploymentManager.updateFromConfiguration();
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -112,6 +125,8 @@ public class ApiSamlConfigurationService
     }
 
     samlConfigurationDAO.delete(samlConfiguration);
+
+    samlDeploymentManager.updateFromConfiguration();
   }
 
   private ApiSamlConfigurationResponseDTO convertToResponseDTO(SamlConfiguration samlConfiguration) {

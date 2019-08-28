@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationResponseDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
+import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -34,6 +35,9 @@ public class ApiSamlConfigurationServiceTest
   private ApiSamlConfigurationService apiSamlConfigurationService;
 
   private SamlConfigurationDAO samlConfigurationDAO = new SamlConfigurationDAO();
+
+  @Inject
+  private SamlDeploymentManager samlDeploymentManager;
 
   @Inject
   private InsightConfig config;
@@ -196,15 +200,16 @@ public class ApiSamlConfigurationServiceTest
   }
 
   @Test
-  public void testInsertOrUpdateSamlConfiguration_UpdateWithNullIdentityProviderMetadataXml() {
-    tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "name-first", "name-last", "mail-e", "name-user", "teamz");
+  public void testInsertOrUpdateSamlConfiguration_UpdateWithNullIdentityProviderMetadataXml() throws Exception {
+    String idpXml = validIdentityProviderXml();
+    tempEntity.newSamlConfiguration(idpXml, "ent-id", "name-first", "name-last", "mail-e", "name-user", "teamz");
     ApiSamlConfigurationDTO dto = dtoWithCustomValues();
 
     apiSamlConfigurationService.insertOrUpdateSamlConfiguration(null, dto);
 
     SamlConfiguration persisted = samlConfigurationDAO.get();
-    // xml is neither validated nor changed
-    assertThat(persisted.getIdentityProviderMetadataXml()).isEqualTo("<xml></xml>");
+    // xml is not changed
+    assertThat(persisted.getIdentityProviderMetadataXml()).isEqualTo(idpXml);
     // Entity Id and all other config is updated
     assertThat(persisted.getEntityId()).isEqualTo(dto.entityId);
     assertConfigIdentical(persisted, dto);
@@ -275,6 +280,20 @@ public class ApiSamlConfigurationServiceTest
   }
 
   @Test
+  public void testInsertOrUpdateSamlConfiguration_UpdateSamlDeployment() throws Exception {
+    try {
+      assertThat(samlDeploymentManager.get()).isNull();
+
+      apiSamlConfigurationService.insertOrUpdateSamlConfiguration(validIdentityProviderXml(), null);
+
+      assertThat(samlDeploymentManager.get().getIDP().getEntityID()).isEqualTo("http://localhost");
+    }
+    finally {
+      samlConfigurationDAO.delete(samlConfigurationDAO.get());
+    }
+  }
+
+  @Test
   public void testDeleteSamlConfiguration() {
     tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams");
 
@@ -287,6 +306,17 @@ public class ApiSamlConfigurationServiceTest
   public void testDeleteSamlConfiguration_NotConfigured() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> apiSamlConfigurationService.deleteSamlConfiguration()).withMessage("SAML not configured.");
+  }
+
+  @Test
+  public void testDeleteSamlConfiguration_UpdateSamlDeployment() throws Exception {
+    tempEntity.newSamlConfiguration(validIdentityProviderXml(), "ent-id", "first-name", "last-name", "e-mail",
+        "user-name", "teams");
+    samlDeploymentManager.updateFromConfiguration();
+
+    apiSamlConfigurationService.deleteSamlConfiguration();
+
+    assertThat(samlDeploymentManager.get()).isNull();
   }
 
   private String validIdentityProviderXml() throws Exception {

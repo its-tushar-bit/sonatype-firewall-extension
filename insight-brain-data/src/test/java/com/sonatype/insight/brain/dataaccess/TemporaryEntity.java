@@ -1790,7 +1790,13 @@ public class TemporaryEntity
   }
 
   public SamlConfiguration newSamlConfiguration() {
+    return newSamlConfiguration(null, null);
+  }
+
+  public SamlConfiguration newSamlConfiguration(String identityProviderMetadataXml, String entityId) {
     SamlConfiguration samlConfiguration = new SamlConfiguration();
+    samlConfiguration.setIdentityProviderMetadataXml(identityProviderMetadataXml);
+    samlConfiguration.setEntityId(entityId);
     samlConfigurationDAO.insert(samlConfiguration);
     samlConfigurations.add(samlConfiguration);
     return samlConfiguration;

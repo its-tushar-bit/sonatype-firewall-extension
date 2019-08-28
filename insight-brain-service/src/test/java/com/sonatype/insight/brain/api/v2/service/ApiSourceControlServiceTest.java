@@ -600,7 +600,7 @@ public class ApiSourceControlServiceTest
         sourceControlService.populateProviderAndTokenFromOrganizationIfNeeded(validSourceControl);
 
     assertThat(value.token).isEqualTo(TOKEN);
-    assertThat(value.provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(value.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
   }
 
   @Test
@@ -639,7 +639,7 @@ public class ApiSourceControlServiceTest
         sourceControlService.populateProviderAndTokenFromOrganizationIfNeeded(validSourceControl);
 
     assertThat(value.token).isEqualTo(TOKEN);
-    assertThat(value.provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(value.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
   }
 
   private void assertTelemetry(final METHOD method,

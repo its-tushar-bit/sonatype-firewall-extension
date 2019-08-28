@@ -31,29 +31,17 @@ public class SamlConfigurationDAOTest
     Date before = new Date();
     SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration();
     Date after = new Date();
-    String samlConfigurationId = samlConfiguration.getId();
+    assertSamlConfiguration(samlConfiguration, before, after);
 
     // Read
+    String samlConfigurationId = samlConfiguration.getId();
     samlConfiguration = dao.getById(samlConfigurationId);
-    assertThat(samlConfiguration.getIdentityProviderMetadataXml()).isNull();
-    assertThat(samlConfiguration.getEntityId()).isNull();
-    assertThat(samlConfiguration.getFirstNameAttributeName()).isEqualTo("firstName");
-    assertThat(samlConfiguration.getLastNameAttributeName()).isEqualTo("lastName");
-    assertThat(samlConfiguration.getEmailAttributeName()).isEqualTo("email");
-    assertThat(samlConfiguration.getUsernameAttributeName()).isEqualTo("username");
-    assertThat(samlConfiguration.getGroupsAttributeName()).isEqualTo("groups");
-    X509Certificate certificate = (X509Certificate) samlConfiguration.getCertificate();
-    Date beforeExpiration = new Date(before.getTime() + TEN_YEARS_IN_SECONDS * 1000 - 1000);
-    Date afterExpiration = new Date(after.getTime() + TEN_YEARS_IN_SECONDS * 1000 + 1000);
-    Date certificateExpiration = certificate.getNotAfter();
-    assertThat(certificateExpiration).isBetween(beforeExpiration, afterExpiration);
-    PrivateKey decryptionKey = samlConfiguration.getDecryptionKey();
-    assertThat(decryptionKey).isNotNull();
-    KeyPair signingKeyPair = samlConfiguration.getSigningKeyPair();
-    assertThat(signingKeyPair.getPrivate()).isNotNull();
-    assertThat(signingKeyPair.getPublic()).isNotNull();
+    assertSamlConfiguration(samlConfiguration, before, after);
 
     // Update
+    X509Certificate certificate = (X509Certificate) samlConfiguration.getCertificate();
+    PrivateKey decryptionKey = samlConfiguration.getDecryptionKey();
+    KeyPair signingKeyPair = samlConfiguration.getSigningKeyPair();
     samlConfiguration.setFirstNameAttributeName("updated firstname");
     samlConfiguration.setCertificate(null);
     samlConfiguration.setDecryptionKey(null);
@@ -81,5 +69,25 @@ public class SamlConfigurationDAOTest
     assertThatThrownBy(() -> {
       tempEntity.newSamlConfiguration();
     }).isInstanceOf(BadRequestException.class).hasMessage("A SAML configuration already exists.");
+  }
+
+  private void assertSamlConfiguration(SamlConfiguration samlConfiguration, Date before, Date after) {
+    assertThat(samlConfiguration.getIdentityProviderMetadataXml()).isNull();
+    assertThat(samlConfiguration.getEntityId()).isNull();
+    assertThat(samlConfiguration.getFirstNameAttributeName()).isEqualTo("firstName");
+    assertThat(samlConfiguration.getLastNameAttributeName()).isEqualTo("lastName");
+    assertThat(samlConfiguration.getEmailAttributeName()).isEqualTo("email");
+    assertThat(samlConfiguration.getUsernameAttributeName()).isEqualTo("username");
+    assertThat(samlConfiguration.getGroupsAttributeName()).isEqualTo("groups");
+    X509Certificate certificate = (X509Certificate) samlConfiguration.getCertificate();
+    Date beforeExpiration = new Date(before.getTime() + TEN_YEARS_IN_SECONDS * 1000 - 1000);
+    Date afterExpiration = new Date(after.getTime() + TEN_YEARS_IN_SECONDS * 1000 + 1000);
+    Date certificateExpiration = certificate.getNotAfter();
+    assertThat(certificateExpiration).isBetween(beforeExpiration, afterExpiration);
+    PrivateKey decryptionKey = samlConfiguration.getDecryptionKey();
+    assertThat(decryptionKey).isNotNull();
+    KeyPair signingKeyPair = samlConfiguration.getSigningKeyPair();
+    assertThat(signingKeyPair.getPrivate()).isNotNull();
+    assertThat(signingKeyPair.getPublic()).isNotNull();
   }
 }

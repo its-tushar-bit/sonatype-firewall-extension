@@ -79,6 +79,12 @@ class SamlConfigurationInternal
     }
     samlConfiguration.setId(id);
 
+    loadKeyStoreData(samlConfiguration);
+
+    return samlConfiguration;
+  }
+
+  public void loadKeyStoreData(SamlConfiguration samlConfiguration) {
     try (ByteArrayInputStream keystoreInputStream = new ByteArrayInputStream(keyStoreBytes)) {
       KeyStore keyStore = KeyStore.getInstance("pkcs12");
       char[] keyStorePassword = getKeyStorePassword();
@@ -92,8 +98,6 @@ class SamlConfigurationInternal
     catch (Exception e) {
       throw new IllegalStateException("Could not load SAML keystore.", e);
     }
-
-    return samlConfiguration;
   }
 
   private char[] getKeyStorePassword() {

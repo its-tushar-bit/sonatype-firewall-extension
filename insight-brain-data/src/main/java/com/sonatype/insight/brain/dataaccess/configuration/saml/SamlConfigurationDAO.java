@@ -36,12 +36,15 @@ public class SamlConfigurationDAO
     samlConfigurationInternalDAO.insert(samlConfigurationInternal);
 
     samlConfiguration.setId(samlConfigurationInternal.getId());
+    samlConfigurationInternal.loadKeyStoreData(samlConfiguration);
   }
 
   public void update(SamlConfiguration samlConfiguration) {
     SamlConfigurationInternal samlConfigurationInternal =
         SamlConfigurationInternal.fromSamlConfiguration(samlConfiguration);
     samlConfigurationInternalDAO.update(samlConfigurationInternal);
+
+    samlConfigurationInternal.loadKeyStoreData(samlConfiguration);
   }
 
   public void delete(SamlConfiguration samlConfiguration) {

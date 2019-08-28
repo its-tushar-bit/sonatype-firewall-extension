@@ -16,11 +16,11 @@ import com.sonatype.insight.brain.api.v2.service.ApiSourceControlAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.nexus.scm.GitApiClientFactory;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.ProjectUri;
 import com.sonatype.nexus.scm.api.model.Status;
@@ -169,8 +169,7 @@ public class GitApiServiceTest
         .getGitApiClientUtils(com.sonatype.nexus.scm.SourceControlProvider.GITHUB)
         .createProjectUri("https://github.com/owner/repo/");
     sourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl(application.getId(), projectUri.getUrl(), TOKEN,
-            SourceControlProvider.GITHUB));
+        new SourceControl(application.getId(), projectUri.getUrl(), TOKEN, SourceControlProvider.GITHUB));
     event = getApplicationEvaluationEvent(application.getId(), "release",
         policyEvaluationOutcome, affectedComponentsCount,
         criticalComponentsCount, severeComponentsCount, moderateComponentsCount, "commitHash");

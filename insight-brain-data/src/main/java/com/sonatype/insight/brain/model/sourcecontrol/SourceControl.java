@@ -7,12 +7,11 @@ package com.sonatype.insight.brain.model.sourcecontrol;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 /**
  * @since 1.66
@@ -38,7 +37,6 @@ public class SourceControl
   private String token;
 
   @Column(name = "provider")
-  @Enumerated(EnumType.STRING)
   private SourceControlProvider provider;
 
   public SourceControl() {

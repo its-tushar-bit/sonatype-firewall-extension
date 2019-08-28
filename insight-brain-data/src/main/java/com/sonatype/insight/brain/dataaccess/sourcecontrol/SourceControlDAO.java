@@ -113,7 +113,7 @@ public class SourceControlDAO
     try {
       SourceControlProvider scmProvider;
       if (sourceControl.getProvider() != null) {
-        scmProvider = SourceControlProvider.fromString(sourceControl.getProvider().toString());
+        scmProvider = sourceControl.getProvider();
       }
       else {
         scmProvider = getProviderFromOrganization(tx, sourceControl);
@@ -144,6 +144,6 @@ public class SourceControlDAO
     if (orgSourceControl == null || orgSourceControl.getProvider() == null) {
       return null;
     }
-    return SourceControlProvider.fromString(orgSourceControl.getProvider().toString());
+    return orgSourceControl.getProvider();
   }
 }

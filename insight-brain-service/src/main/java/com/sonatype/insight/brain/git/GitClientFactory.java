@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.nexus.scm.GitApiClientFactory;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
 
@@ -30,17 +30,14 @@ public class GitClientFactory
 
   public GitApiClient create(final ApiSourceControlDTO sourceControl) {
     Configuration configuration = new Configuration();
-    String apiUrl = getClientUtils(sourceControl.provider).getApiUrl(sourceControl.repositoryUrl);
+    SourceControlProvider provider = SourceControlProvider.fromString(sourceControl.provider);
+    String apiUrl = getClientUtils(provider).getApiUrl(sourceControl.repositoryUrl);
     insightProxy.contextualize(configuration, apiUrl);
-    return GitApiClientFactory.getGitApiClient(getScmClientProvider(sourceControl.provider),
-        configuration, sourceControl.repositoryUrl, sourceControl.token);
+    return GitApiClientFactory.getGitApiClient(
+        provider, configuration, sourceControl.repositoryUrl, sourceControl.token);
   }
 
   private GitApiClientUtils getClientUtils(final SourceControlProvider provider) {
-    return GitApiClientFactory.getGitApiClientUtils(getScmClientProvider(provider));
-  }
-
-  private com.sonatype.nexus.scm.SourceControlProvider getScmClientProvider(final SourceControlProvider provider) {
-    return com.sonatype.nexus.scm.SourceControlProvider.fromString(provider.toString());
+    return GitApiClientFactory.getGitApiClientUtils(provider);
   }
 }

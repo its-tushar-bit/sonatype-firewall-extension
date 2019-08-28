@@ -14,8 +14,8 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.After;
 import org.junit.Before;

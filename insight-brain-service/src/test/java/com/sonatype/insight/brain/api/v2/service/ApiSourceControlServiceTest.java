@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -32,6 +31,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
@@ -103,7 +103,7 @@ public class ApiSourceControlServiceTest
     }
     assertThat(decrypted).isEqualTo(TOKEN);
     assertTelemetry(METHOD.ADD, app.getId(), reloaded.getRepositoryUrl(),
-        reloaded.getProvider());
+        reloaded.getProvider().toString());
   }
 
   @Test
@@ -168,12 +168,12 @@ public class ApiSourceControlServiceTest
         app.getId(), validSourceControl);
     assertThat(sourceControlService.getAll()).hasSize(1);
     assertTelemetry(METHOD.ADD, app.getId(), sourceControl.repositoryUrl,
-        sourceControl.provider);
+        sourceControl.provider.toString());
 
     sourceControlService.deleteSourceControl(app.getId(), sourceControl.id);
     assertThat(sourceControlService.getAll().isEmpty()).isTrue();
     assertTelemetry(METHOD.DELETE, app.getId(), sourceControl.repositoryUrl,
-        sourceControl.provider);
+        sourceControl.provider.toString());
   }
 
   @Test
@@ -365,7 +365,7 @@ public class ApiSourceControlServiceTest
     }
     assertThat(decrypted).isEqualTo(TOKEN);
     assertTelemetry(METHOD.ADD, org.getId(), reloaded.getRepositoryUrl(),
-        reloaded.getProvider());
+        reloaded.getProvider().toString());
   }
 
   @Test
@@ -594,7 +594,7 @@ public class ApiSourceControlServiceTest
   private void assertTelemetry(final METHOD method,
                                final String ownerId,
                                final String repositoryUrl,
-                               final SourceControlProvider provider)
+                               final String provider)
   {
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
@@ -603,7 +603,7 @@ public class ApiSourceControlServiceTest
     expectedAttributes.put("method", method);
     expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
     expectedAttributes.put("repository_url", HdsClientAnalytics.obfuscate(repositoryUrl));
-    expectedAttributes.put("provider", provider.toString());
+    expectedAttributes.put("provider", provider);
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL);
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());

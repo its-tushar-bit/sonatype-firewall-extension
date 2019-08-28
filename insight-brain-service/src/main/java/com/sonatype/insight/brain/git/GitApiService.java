@@ -19,9 +19,9 @@ import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient.StateType;
 import com.sonatype.nexus.scm.api.model.Status;
@@ -68,7 +68,8 @@ public class GitApiService
       ApiSourceControlDTO sourceControl = sourceControlService.getSourceControlByApplicationIdDecrypted(event.ownerId);
       if (null != sourceControl) {
         GitApiClient gitApiClient = gitClientFactory.create(sourceControl);
-        StatusRequest statusRequest = createStatusRequest(event, gitApiClient, sourceControl.provider);
+        SourceControlProvider provider = SourceControlProvider.fromString(sourceControl.provider);
+        StatusRequest statusRequest = createStatusRequest(event, gitApiClient, provider);
         log.debug("Creating a {} commit status for repository: {}, commit hash: {}, with outcome: {}, state: {}",
             sourceControl.provider, gitApiClient.getProjectUri().getUrl(),
             event.commitHash, event.outcome, statusRequest.getState());

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.sourcecontrol;
 
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.common.JsonUtils;
 
 import com.google.common.collect.ImmutableMap;

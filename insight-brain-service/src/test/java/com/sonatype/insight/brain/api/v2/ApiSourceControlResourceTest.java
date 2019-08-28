@@ -14,8 +14,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControlProvider;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -71,7 +71,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.ownerId).isEqualTo(app.getId());
     assertThat(result.repositoryUrl).isEqualTo(sourceControl.repositoryUrl);
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
-    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
   }
 
   @Test
@@ -87,7 +87,7 @@ public class ApiSourceControlResourceTest
 
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
     assertThat(result.repositoryUrl).isEqualTo(updatedUrl);
-    assertThat(result.provider).isEqualTo(SourceControlProvider.GITLAB);
+    assertThat(result.provider).isEqualTo(SourceControlProvider.GITLAB.toString());
   }
 
   @Test
@@ -124,9 +124,7 @@ public class ApiSourceControlResourceTest
 
     HttpResponse response = restRequest().path(app.getId()).body(node).post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText())
-        .isEqualTo(
-            "SourceControl provider value 'invalid_scm' is invalid, valid options are: github, gitlab");
+    assertThat(response.getBodyText()).startsWith("SourceControl provider value 'invalid_scm' is invalid");
   }
 
   @Test
@@ -140,9 +138,7 @@ public class ApiSourceControlResourceTest
 
     HttpResponse response = restRequest().path(app.getId()).body(node).put();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText())
-        .isEqualTo(
-            "SourceControl provider value 'invalid_scm' is invalid, valid options are: github, gitlab");
+    assertThat(response.getBodyText()).startsWith("SourceControl provider value 'invalid_scm' is invalid");
   }
 
   @Test
@@ -169,7 +165,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.id).isEqualTo(sourceControl.getId());
     assertThat(result.repositoryUrl).isEqualTo(sourceControl.getRepositoryUrl());
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
-    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
   }
 
   @Test
@@ -185,7 +181,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.id).isEqualTo(sourceControl.getId());
     assertThat(result.repositoryUrl).isEqualTo(sourceControl.getRepositoryUrl());
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
-    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
   }
 
   @Test
@@ -204,7 +200,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.ownerId).isEqualTo(org.getId());
     assertThat(result.repositoryUrl).isEqualTo(sourceControl.repositoryUrl);
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
-    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
   }
 
   @Test
@@ -223,7 +219,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.ownerId).isEqualTo(app.getId());
     assertThat(result.repositoryUrl).isEqualTo(sourceControl.repositoryUrl);
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
-    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
   }
 
   @Test
@@ -242,7 +238,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.id).isEqualTo(sourceControl.getId());
     assertThat(result.repositoryUrl).isEqualTo(sourceControl.getRepositoryUrl());
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
-    assertThat(result.provider).isEqualTo(SourceControlProvider.GITLAB);
+    assertThat(result.provider).isEqualTo(SourceControlProvider.GITLAB.toString());
   }
 
   @Test
@@ -261,7 +257,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.id).isEqualTo(sourceControl.getId());
     assertThat(result.repositoryUrl).isEqualTo(sourceControl.getRepositoryUrl());
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
-    assertThat(result.provider).isEqualTo(SourceControlProvider.GITLAB);
+    assertThat(result.provider).isEqualTo(SourceControlProvider.GITLAB.toString());
   }
 
   @Test

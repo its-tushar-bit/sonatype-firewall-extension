@@ -55,6 +55,7 @@
     <selenium.version>3.8.1</selenium.version>
     <httpcomponents.version>4.5.9</httpcomponents.version>
     <packageurl.version>1.1.0</packageurl.version>
+    <nexus-scm-client.version>1.3.0</nexus-scm-client.version>
   </properties>
 
   <scm>
@@ -858,7 +859,7 @@
       <dependency>
         <groupId>com.sonatype.nexus</groupId>
         <artifactId>nexus-scm-client</artifactId>
-        <version>1.1.0</version>
+        <version>${nexus-scm-client.version}</version>
         <exclusions>
           <exclusion>
             <groupId>ch.qos.logback</groupId>
@@ -874,7 +875,7 @@
       <dependency>
         <groupId>com.sonatype.nexus</groupId>
         <artifactId>nexus-git-utils</artifactId>
-        <version>1.2.0</version>
+        <version>${nexus-scm-client.version}</version>
       </dependency>
       <dependency>
         <groupId>com.github.stefanbirkner</groupId>

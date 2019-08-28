@@ -87,6 +87,7 @@ public class SamlDeploymentManager
 
   public void updateFromConfiguration() {
     samlDeployment = parse(samlConfigurationDAO.get());
+    log.info("SAML integration {}", samlDeployment != null ? "enabled" : "disabled");
   }
 
   private SamlDeployment parse(SamlConfiguration samlConfiguration) {

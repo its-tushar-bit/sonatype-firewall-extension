@@ -5,11 +5,18 @@
  */
 package com.sonatype.insight.brain.model.configuration.saml;
 
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.cert.Certificate;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * @since 1.72
  */
 public class SamlConfiguration
 {
+  @JsonIgnore
   private String id;
 
   private String identityProviderMetadataXml;
@@ -25,6 +32,15 @@ public class SamlConfiguration
   private String usernameAttributeName = "username";
 
   private String groupsAttributeName = "groups";
+
+  @JsonIgnore
+  private Certificate certificate;
+
+  @JsonIgnore
+  private PrivateKey decryptionKey;
+
+  @JsonIgnore
+  private KeyPair signingKeyPair;
 
   public String getId() {
     return id;
@@ -88,5 +104,29 @@ public class SamlConfiguration
 
   public void setEntityId(String entityId) {
     this.entityId = entityId;
+  }
+
+  public Certificate getCertificate() {
+    return certificate;
+  }
+
+  public void setCertificate(Certificate certificate) {
+    this.certificate = certificate;
+  }
+
+  public PrivateKey getDecryptionKey() {
+    return decryptionKey;
+  }
+
+  public void setDecryptionKey(PrivateKey decryptionKey) {
+    this.decryptionKey = decryptionKey;
+  }
+
+  public KeyPair getSigningKeyPair() {
+    return signingKeyPair;
+  }
+
+  public void setSigningKeyPair(KeyPair signingKeyPair) {
+    this.signingKeyPair = signingKeyPair;
   }
 }

@@ -248,6 +248,11 @@
         <artifactId>openjpa</artifactId>
         <version>${openjpa.version}</version>
       </dependency>
+      <dependency>
+        <groupId>de.schlichtherle.truelicense</groupId>
+        <artifactId>truelicense-core</artifactId>
+        <version>1.31-SONATYPE-1.27583e04a24d</version>
+      </dependency>
 
       <dependency>
         <groupId>com.sonatype.clm</groupId>

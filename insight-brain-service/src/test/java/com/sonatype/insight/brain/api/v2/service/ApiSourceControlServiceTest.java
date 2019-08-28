@@ -591,6 +591,57 @@ public class ApiSourceControlServiceTest
             OwnerType.ORGANIZATION, org.getId(), validSourceControl));
   }
 
+  @Test
+  public void testPopulateProviderAndTokenFromOrganizationIfNeeded_ProviderAndTokenAlreadyPopulated() {
+    ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl(app.getId(), VALID_URL, TOKEN, SourceControlProvider.GITHUB));
+
+    ApiSourceControlDTO value =
+        sourceControlService.populateProviderAndTokenFromOrganizationIfNeeded(validSourceControl);
+
+    assertThat(value.token).isEqualTo(TOKEN);
+    assertThat(value.provider).isEqualTo(SourceControlProvider.GITHUB);
+  }
+
+  @Test
+  public void testPopulateProviderAndTokenFromOrganizationIfNeeded_NoProviderAndTokenApplicationNotFound() {
+    ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl("INVALID_ID", VALID_URL, null, null));
+
+    ApiSourceControlDTO value =
+        sourceControlService.populateProviderAndTokenFromOrganizationIfNeeded(validSourceControl);
+
+    assertThat(value.token).isEqualTo(null);
+    assertThat(value.provider).isEqualTo(null);
+  }
+
+  @Test
+  public void testPopulateProviderAndTokenFromOrganizationIfNeeded_NoProviderAndTokenOrgSourceControlNotFound() {
+    ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl(app.getId(), VALID_URL, null, null));
+
+    ApiSourceControlDTO value =
+        sourceControlService.populateProviderAndTokenFromOrganizationIfNeeded(validSourceControl);
+
+    assertThat(value.token).isEqualTo(null);
+    assertThat(value.provider).isEqualTo(null);
+  }
+
+  @Test
+  public void testPopulateProviderAndTokenFromOrganizationIfNeeded_PopulateFromOrgSourceControl() {
+    ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl(app.getId(), VALID_URL, null, null));
+    ApiSourceControlDTO orgSourceControlDto = apiSourceControlAdapter.convertToDTO(
+        new SourceControl(org.getId(), null, TOKEN, SourceControlProvider.GITHUB));
+    sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, app.getOrganizationId(), orgSourceControlDto);
+
+    ApiSourceControlDTO value =
+        sourceControlService.populateProviderAndTokenFromOrganizationIfNeeded(validSourceControl);
+
+    assertThat(value.token).isEqualTo(TOKEN);
+    assertThat(value.provider).isEqualTo(SourceControlProvider.GITHUB);
+  }
+
   private void assertTelemetry(final METHOD method,
                                final String ownerId,
                                final String repositoryUrl,

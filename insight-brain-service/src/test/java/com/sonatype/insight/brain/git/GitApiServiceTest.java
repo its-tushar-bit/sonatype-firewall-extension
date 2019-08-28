@@ -79,7 +79,7 @@ public class GitApiServiceTest
     binder.bind(BaseUrl.class).toInstance(mockBaseUrl);
     super.configure(binder);
   }
-  
+
   @Before
   public void setup() {
     application = tempEntity.newApplicationWithParent("app", "appId", "orgId");
@@ -130,7 +130,36 @@ public class GitApiServiceTest
     verify(mockGitApiClient, never()).createStatus(any(), any());
   }
 
-  private void assertApplicationEvaluationOutcome(final String policyEvaluationOutcome, final String gitHubCommitStatus)
+  @Test
+  public void testMaybeRespondToApplicationEvaluationEvent_NoToken() throws IOException {
+
+    setupApplicationSourceControlWithoutToken();
+    doReturn(sourceControl).when(mockSourceControlService)
+        .getSourceControlByApplicationIdDecrypted(application.getId());
+    doReturn(sourceControl).when(mockSourceControlService)
+        .populateProviderAndTokenFromOrganizationIfNeeded(sourceControl);
+    event = getApplicationEvaluationEvent(application.getId(), "release", "failure", 1, 1, 0, 0, "commitHash");
+    gitApiService.maybeRespond(event);
+
+    verify(mockGitApiClient, never()).createStatus(any(), any());
+  }
+
+  @Test
+  public void testMaybeRespondToApplicationEvaluationEvent_NoProvider() throws IOException {
+
+    setupApplicationSourceControlWithoutProvider();
+    doReturn(sourceControl).when(mockSourceControlService)
+        .getSourceControlByApplicationIdDecrypted(application.getId());
+    doReturn(sourceControl).when(mockSourceControlService)
+        .populateProviderAndTokenFromOrganizationIfNeeded(sourceControl);
+    event = getApplicationEvaluationEvent(application.getId(), "release", "failure", 1, 1, 0, 0, "commitHash");
+    gitApiService.maybeRespond(event);
+
+    verify(mockGitApiClient, never()).createStatus(any(), any());
+  }
+
+  private void assertApplicationEvaluationOutcome(final String policyEvaluationOutcome,
+                                                  final String gitHubCommitStatus)
       throws IOException
   {
     ProjectUri projectUri = setupPolicyEvaluation(policyEvaluationOutcome);
@@ -141,6 +170,8 @@ public class GitApiServiceTest
     doReturn(projectUri).when(mockGitApiClient).getProjectUri();
     doReturn(statusRequest).when(mockGitApiClient).createStatusRequest(any(), any(), any(), any());
     doReturn("http://localhost:8070/").when(mockBaseUrl).get();
+    doReturn(sourceControl).when(mockSourceControlService)
+        .populateProviderAndTokenFromOrganizationIfNeeded(sourceControl);
     when(mockGitApiClient.createStatus(any(), any())).thenReturn(status);
     
     gitApiService.maybeRespond(event);
@@ -195,6 +226,7 @@ public class GitApiServiceTest
     assertThat(actualStatusRequest.getState()).isEqualTo(status);
     assertThat(actualStatusRequest.getTargetUrl())
         .isEqualTo("http://localhost:8070/ui/links/application/app/report/scanId?source=github");
+    verify(mockSourceControlService).populateProviderAndTokenFromOrganizationIfNeeded(sourceControl);
   }
 
   private ApplicationEvaluationEvent getApplicationEvaluationEvent(
@@ -219,5 +251,25 @@ public class GitApiServiceTest
     event.commitHash = commitHash;
     event.reportId = "scanId";
     return event;
+  }
+
+  private void setupApplicationSourceControlWithoutToken() {
+    ProjectUri projectUri = GitApiClientFactory
+        .getGitApiClientUtils(com.sonatype.nexus.scm.SourceControlProvider.GITHUB)
+        .createProjectUri("https://github.com/owner/repo/");
+
+    sourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl(application.getId(), projectUri.getUrl(), null,
+            SourceControlProvider.GITHUB));
+  }
+
+  private void setupApplicationSourceControlWithoutProvider() {
+    ProjectUri projectUri = GitApiClientFactory
+        .getGitApiClientUtils(com.sonatype.nexus.scm.SourceControlProvider.GITHUB)
+        .createProjectUri("https://github.com/owner/repo/");
+
+    sourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl(application.getId(), projectUri.getUrl(), TOKEN,
+            null));
   }
 }

@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -38,6 +38,7 @@ import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -255,6 +256,31 @@ public class ApiSourceControlService
     sourceControlDAO.delete(sourceControl);
     auditSourceControl(sourceControl);
     sendSourceControlTelemetryData(METHOD.DELETE, ownerId, sourceControl);
+  }
+
+  public ApiSourceControlDTO populateProviderAndTokenFromOrganizationIfNeeded(ApiSourceControlDTO sourceControl) {
+    if (sourceControl.provider == null || Strings.isNullOrEmpty(sourceControl.token)) {
+      Application application = applicationDAO.getById(sourceControl.ownerId);
+
+      if (application == null) {
+        return sourceControl;
+      }
+
+      try {
+        ApiSourceControlDTO orgSourceControl =
+            getSourceControlByOwner(OwnerType.ORGANIZATION, application.getOrganizationId());
+        orgSourceControl =
+            getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, application.getOrganizationId(),
+                orgSourceControl.id);
+        sourceControl.token = orgSourceControl.token;
+        sourceControl.provider = orgSourceControl.provider;
+      }
+      catch (NotFoundException e) {
+        log.error(e.getMessage());
+        return sourceControl;
+      }
+    }
+    return sourceControl;
   }
 
   @VisibleForTesting

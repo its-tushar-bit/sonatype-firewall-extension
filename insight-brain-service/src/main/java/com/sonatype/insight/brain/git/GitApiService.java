@@ -27,6 +27,7 @@ import com.sonatype.nexus.scm.api.GitApiClient.StateType;
 import com.sonatype.nexus.scm.api.model.Status;
 import com.sonatype.nexus.scm.api.model.StatusRequest;
 
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +67,24 @@ public class GitApiService
   public void maybeRespond(final ApplicationEvaluationEvent event) {
     if (null != event.commitHash) {
       ApiSourceControlDTO sourceControl = sourceControlService.getSourceControlByApplicationIdDecrypted(event.ownerId);
+
       if (null != sourceControl) {
+        sourceControl = sourceControlService.populateProviderAndTokenFromOrganizationIfNeeded(sourceControl);
+
+        if (sourceControl.provider == null) {
+          log.error(String.format(
+              "The scm provider could not be found for application with id %s, scm status could not be created.",
+              sourceControl.ownerId));
+          return;
+        }
+
+        if (Strings.isNullOrEmpty(sourceControl.token)) {
+          log.error(String.format(
+              "The access token could not be found for application with id %s, scm status could not be created.",
+              sourceControl.ownerId));
+          return;
+        }
+
         GitApiClient gitApiClient = gitClientFactory.create(sourceControl);
         SourceControlProvider provider = SourceControlProvider.fromString(sourceControl.provider);
         StatusRequest statusRequest = createStatusRequest(event, gitApiClient, provider);

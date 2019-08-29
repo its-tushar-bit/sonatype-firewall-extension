@@ -51,11 +51,38 @@ public class ThirdPartyScanResultsProcessorTest
   private static final Gson GSON = new Gson();
 
   @Test
-  public void testhandle_ClairScanner() throws Exception {
+  public void testHandle_ClairScanner() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-data.xml");
     thirdPartyScanResultsProcessorSpy.handle(scanFile);
-    verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(any(ItemContentType.class));
+    verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(any(ItemContentType.class));
     assertFilteredThirdPartyScanContentFile(scanFile);
+  }
+
+  @Test
+  public void testHandle_EmptyItemElement() throws Exception {
+    File scanFile = getScanFile("scan-with-empty-item-data.xml");
+    thirdPartyScanResultsProcessorSpy.handle(scanFile);
+    verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class));
+    assertEmptyItemElement(scanFile);
+  }
+
+  private void assertEmptyItemElement(File scanFile) throws Exception {
+    try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile))) {
+      XmlPullParser parser = new MXParser();
+      parser.setInput(new XmlStreamReader(gis));
+
+      int eventType = parser.getEventType();
+      while (eventType != XmlPullParser.END_DOCUMENT) {
+        if ("item".equals(parser.getName())) {
+          String content = parser.getAttributeValue(null, "contentType");
+          Xpp3Dom itemElement = Xpp3Util.loadElement("item", parser);
+          assertThat(itemElement.getChildren()).isEmpty();
+          assertThat(content).isNull();
+          assertThat(logOutput.getErrorMessages(loggerName)).isNullOrEmpty();
+        }
+        eventType = parser.next();
+      }
+    }
   }
 
   private void assertFilteredThirdPartyScanContentFile(File scanFile) throws Exception {
@@ -69,9 +96,16 @@ public class ThirdPartyScanResultsProcessorTest
           String contentType = parser.getAttributeValue(null, "contentType");
           assertThat(contentType).isNotNull();
           Xpp3Dom itemElement = Xpp3Util.loadElement("item", parser);
-          Xpp3Dom contentElement = itemElement.getChild("content");
-          assertThat(contentElement.getValue()).isNotNull();
-          assertFilteredClairScanContentFile(contentElement.getValue(), contentType);
+          // Item element is empty, so it's skipped
+          if (itemElement.getChildCount() > 0) {
+            Xpp3Dom contentElement = itemElement.getChild("content");
+            assertThat(contentElement.getValue()).isNotNull();
+            assertFilteredClairScanContentFile(contentElement.getValue(), contentType);
+          }
+          else {
+            assertLogOutput(
+                "scan file scan.xml.gz contained a third party scan item CLAIR_SCANNER without any content");
+          }
         }
         eventType = parser.next();
       }
@@ -101,14 +135,14 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   @Test
-  public void testhandle_NoThirdPartyContent() throws Exception {
+  public void testHandle_NoThirdPartyContent() throws Exception {
     File scanFile = getScanFile("scan-without-thirdparty-content.xml");
     thirdPartyScanResultsProcessorSpy.handle(scanFile);
     verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class));
   }
 
   @Test
-  public void testhandle_InvalidFile() throws Exception {
+  public void testHandle_InvalidFile() throws Exception {
     File scanFile = getScanFile("empty-scan.xml");
     thirdPartyScanResultsProcessorSpy.handle(scanFile);
     verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class));

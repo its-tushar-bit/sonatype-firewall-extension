@@ -114,6 +114,9 @@ public class ThirdPartyScanResultsProcessor
             contentType);
       }
     }
+    else {
+      parser.next();
+    }
     writer.add(EVENT_FACTORY.createEndElement(new QName(elementName), null));
   }
 

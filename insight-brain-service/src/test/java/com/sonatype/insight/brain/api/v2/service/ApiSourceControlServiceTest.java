@@ -522,6 +522,24 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
+  public void testAddSourceControlByOwner_Duplicate() {
+    // given an existing source control for an organization
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl(org.getId(), null, TOKEN, SourceControlProvider.GITHUB));
+    sourceControlService.addSourceControlByOwner(
+        OwnerType.ORGANIZATION, org.getId(), sourceControl);
+
+    // expect adding another for the same organization gives error
+    ApiSourceControlDTO sourceControlAgain = apiSourceControlAdapter.convertToDTO(
+        new SourceControl(org.getId(), null, TOKEN, SourceControlProvider.GITHUB));
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.addSourceControlByOwner(
+            OwnerType.ORGANIZATION, org.getId(), sourceControlAgain))
+        .withMessageContaining(
+            "SourceControl already exists for organization with id: " + org.getId());
+  }
+
+  @Test
   public void testDeleteSourceControlByOwner_unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
     assertThatExceptionOfType(InvalidLicenseException.class)

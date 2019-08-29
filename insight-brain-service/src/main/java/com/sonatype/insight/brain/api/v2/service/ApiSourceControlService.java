@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -204,10 +205,18 @@ public class ApiSourceControlService
       ApiSourceControlDTO sourceControlDTO)
   {
     checkLicense();
+
     SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(
         sourceControlDTO);
     encryptToken(sourceControl);
     sourceControl.setOwnerId(ownerId);
+
+    // fail if there's already a sourcecontrol in place for the owner
+    if (null != sourceControlDAO.getByOwnerId(ownerId)) {
+      throw new BadRequestException(String.format(
+          "SourceControl already exists for %s with id: %s", ownerType, ownerId));
+    }
+
     sourceControlDAO.insert(sourceControl);
     auditSourceControl(sourceControl);
     sourceControl.setToken(FAKE_SECRET_KEY);

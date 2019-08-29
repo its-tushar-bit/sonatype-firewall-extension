@@ -23,6 +23,8 @@ public class GitClientFactory
 {
   private final InsightProxy insightProxy;
 
+  private final GitApiClientFactory gitApiClientFactory = new GitApiClientFactory();
+
   @Inject
   public GitClientFactory(final InsightProxy insightProxy) {
     this.insightProxy = insightProxy;
@@ -33,11 +35,11 @@ public class GitClientFactory
     SourceControlProvider provider = SourceControlProvider.fromString(sourceControl.provider);
     String apiUrl = getClientUtils(provider).getApiUrl(sourceControl.repositoryUrl);
     insightProxy.contextualize(configuration, apiUrl);
-    return GitApiClientFactory.getGitApiClient(
+    return gitApiClientFactory.getGitApiClient(
         provider, configuration, sourceControl.repositoryUrl, sourceControl.token);
   }
 
   private GitApiClientUtils getClientUtils(final SourceControlProvider provider) {
-    return GitApiClientFactory.getGitApiClientUtils(provider);
+    return gitApiClientFactory.getGitApiClientUtils(provider);
   }
 }

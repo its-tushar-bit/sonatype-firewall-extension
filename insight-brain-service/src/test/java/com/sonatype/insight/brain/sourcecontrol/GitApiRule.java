@@ -39,6 +39,8 @@ public class GitApiRule
 
   private final Map<String, Integer> requests = new ConcurrentHashMap<>();
 
+  private final GitApiClientFactory gitApiClientFactory = new GitApiClientFactory();
+
   GitApiRule(final SourceControlProvider provider) {
     this.provider = provider;
   }
@@ -106,7 +108,7 @@ public class GitApiRule
     void render(HttpServletRequest request, HttpServletResponse response) throws IOException {
       response.setStatus(status);
       response.setContentType(
-          GitApiClientFactory.getGitApiClientUtils(getScmClientProvider(provider)).getApiContentType());
+          gitApiClientFactory.getGitApiClientUtils(getScmClientProvider(provider)).getApiContentType());
       try (OutputStream os = response.getOutputStream()) {
         os.write(body.getBytes());
       }

@@ -69,6 +69,8 @@ public class GitApiServiceTest
 
   private ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
 
+  private GitApiClientFactory gitApiClientFactory = new GitApiClientFactory();
+
   @Override
   public void configure(Binder binder) {
     mockSourceControlService = mock(ApiSourceControlService.class);
@@ -196,7 +198,7 @@ public class GitApiServiceTest
     int severeComponentsCount = 6;
     int moderateComponentsCount = 3;
 
-    ProjectUri projectUri = GitApiClientFactory
+    ProjectUri projectUri = gitApiClientFactory
         .getGitApiClientUtils(com.sonatype.nexus.scm.SourceControlProvider.GITHUB)
         .createProjectUri("https://github.com/owner/repo/");
     sourceControl = apiSourceControlAdapter.convertToDTO(
@@ -254,7 +256,7 @@ public class GitApiServiceTest
   }
 
   private void setupApplicationSourceControlWithoutToken() {
-    ProjectUri projectUri = GitApiClientFactory
+    ProjectUri projectUri = gitApiClientFactory
         .getGitApiClientUtils(com.sonatype.nexus.scm.SourceControlProvider.GITHUB)
         .createProjectUri("https://github.com/owner/repo/");
 
@@ -264,7 +266,7 @@ public class GitApiServiceTest
   }
 
   private void setupApplicationSourceControlWithoutProvider() {
-    ProjectUri projectUri = GitApiClientFactory
+    ProjectUri projectUri = gitApiClientFactory
         .getGitApiClientUtils(com.sonatype.nexus.scm.SourceControlProvider.GITHUB)
         .createProjectUri("https://github.com/owner/repo/");
 

@@ -27,6 +27,8 @@ public class SourceControlDAO
 
   private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
+  private final GitApiClientFactory gitApiClientFactory = new GitApiClientFactory();
+
   @Override
   public SourceControl getById(final TransactionContext tx, final String id) {
     return get(tx, "SELECT entity FROM SourceControl entity WHERE entity.id=?1", id);
@@ -121,7 +123,7 @@ public class SourceControlDAO
           throw new BadRequestException("Cannot validate SourceControl repositoryUrl due to undetermined provider");
         }
       }
-      GitApiClientFactory.getGitApiClientUtils(scmProvider).createProjectUri(sourceControl.getRepositoryUrl());
+      gitApiClientFactory.getGitApiClientUtils(scmProvider).createProjectUri(sourceControl.getRepositoryUrl());
     }
     catch (IllegalArgumentException e) {
       throw new BadRequestException("SourceControl repositoryUrl is invalid: " + e.getMessage(), e);

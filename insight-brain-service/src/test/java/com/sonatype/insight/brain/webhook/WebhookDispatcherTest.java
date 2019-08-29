@@ -126,6 +126,7 @@ public class WebhookDispatcherTest
     event.severeComponentCount = 5;
     event.moderateComponentCount = 7;
     event.outcome = "outcome";
+    event.reportId = "reportId";
     asyncEventBus.post(event);
 
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
@@ -153,6 +154,7 @@ public class WebhookDispatcherTest
     assertThat(applicationEvaluationDTO.severeComponentCount).isEqualTo(5);
     assertThat(applicationEvaluationDTO.moderateComponentCount).isEqualTo(7);
     assertThat(applicationEvaluationDTO.outcome).isEqualTo("outcome");
+    assertThat(applicationEvaluationDTO.reportId).isEqualTo("reportId");
   }
 
   @Test

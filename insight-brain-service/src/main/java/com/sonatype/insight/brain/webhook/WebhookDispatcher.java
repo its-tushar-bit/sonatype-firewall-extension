@@ -346,6 +346,7 @@ public class WebhookDispatcher
     applicationEvaluationDTO.severeComponentCount = event.severeComponentCount;
     applicationEvaluationDTO.moderateComponentCount = event.moderateComponentCount;
     applicationEvaluationDTO.outcome = event.outcome;
+    applicationEvaluationDTO.reportId = event.reportId;
 
     ApplicationEvaluationPayload payload = new ApplicationEvaluationPayload();
     payload.timestamp = new Date();

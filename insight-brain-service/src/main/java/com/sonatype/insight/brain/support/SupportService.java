@@ -277,7 +277,7 @@ class SupportService
         SupportFileType.CONFIG,
         true);
     addFileIfExists(filesToZip,
-        writeTextToFile(systemInfo.getSamlConfig(), new File(workDir, "saml.json")), "saml",
+        writeTextToFile(systemInfo.getSamlInfo(), new File(workDir, "saml.json")), "saml",
         SupportFileType.CONFIG,
         true);
 

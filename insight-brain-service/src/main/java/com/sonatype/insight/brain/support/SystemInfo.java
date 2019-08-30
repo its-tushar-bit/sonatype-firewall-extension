@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TimeZone;
 import java.util.TreeMap;
@@ -38,9 +39,11 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -48,6 +51,13 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.Feature;
 
 import com.codahale.metrics.jvm.ThreadDump;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
+import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -77,17 +87,21 @@ class SystemInfo
 
   private final CLMLicenseManager clmLicenseManager;
 
+  private final SamlDeploymentManager samlDeploymentManager;
+
   @Inject
   SystemInfo(
       final InsightConfig insightConfig,
       final InsightWork insightWork,
       final ProductLicense productLicense,
-      final CLMLicenseManager clmLicenseManager)
+      final CLMLicenseManager clmLicenseManager,
+      SamlDeploymentManager samlDeploymentManager)
   {
     this.insightConfig = insightConfig;
     this.insightWork = insightWork;
     this.productLicense = productLicense;
     this.clmLicenseManager = clmLicenseManager;
+    this.samlDeploymentManager = samlDeploymentManager;
   }
 
   boolean isSensitiveKey(final String key) {
@@ -382,8 +396,36 @@ class SystemInfo
     return JsonUtils.format(ldapServers);
   }
 
-  String getSamlConfig() {
-    return JsonUtils.format(new SamlConfigurationDAO().get());
+  String getSamlInfo() {
+    SamlInfo samlInfo = new SamlInfo();
+    samlInfo.samlConfiguration = new SamlConfigurationDAO().get();
+    if (samlInfo.samlConfiguration == null) {
+      return "null";
+    }
+    Set<String> excluded = Sets.newHashSet("decryptionKey", "signingKeyPair", "signatureValidationKeyLocator");
+    ExclusionStrategy exclusionStrategy = new ExclusionStrategy()
+    {
+      @Override
+      public boolean shouldSkipField(FieldAttributes fieldAttributes) {
+        return excluded.stream().anyMatch(e -> e.equalsIgnoreCase(fieldAttributes.getName()));
+      }
+
+      @Override
+      public boolean shouldSkipClass(Class<?> aClass) {
+        return false;
+      }
+    };
+    try {
+      String json =
+          new GsonBuilder().setExclusionStrategies(exclusionStrategy).create().toJson(samlDeploymentManager.get());
+      samlInfo.samlDeployment = new ObjectMapper().readValue(json, new TypeReference<HashMap<String, Object>>()
+      {
+      });
+    }
+    catch (Exception e) {
+      log.warn("Failed to serialize samlDeployment.");
+    }
+    return JsonUtils.format(samlInfo);
   }
 
   Entry<String, SortedMap<String, Object>> getClientInfo(final String requestUrl) {
@@ -392,5 +434,14 @@ class SystemInfo
     entries.put("requestUrl", requestUrl);
 
     return wrapEntry("client-info", entries);
+  }
+
+  static class SamlInfo
+  {
+    @JsonProperty
+    SamlConfiguration samlConfiguration;
+
+    @JsonProperty
+    Map<String, Object> samlDeployment;
   }
 }

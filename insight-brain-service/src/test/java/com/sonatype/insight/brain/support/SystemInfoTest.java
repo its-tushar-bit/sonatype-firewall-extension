@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileStore;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,12 +30,15 @@ import java.util.TreeSet;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
+import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.support.SystemInfo.NetworkInterfaceWrapper;
+import com.sonatype.insight.brain.support.SystemInfo.SamlInfo;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import ch.qos.logback.access.spi.IAccessEvent;
@@ -42,6 +46,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.Resources;
 import io.dropwizard.logging.DefaultLoggingFactory;
 import io.dropwizard.logging.FileAppenderFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
@@ -72,6 +77,9 @@ public class SystemInfoTest
 
   @Inject
   private SystemInfo systemInfo;
+
+  @Inject
+  private SamlDeploymentManager samlDeploymentManager;
 
   @Inject
   @Override
@@ -469,19 +477,75 @@ public class SystemInfoTest
   }
 
   @Test
-  public void testGetSamlConfig_NotConfigured() {
-    assertThat(systemInfo.getSamlConfig()).isEqualTo("null");
+  public void testGetSamlInfo_NotConfigured() {
+    assertThat(systemInfo.getSamlInfo()).isEqualTo("null");
   }
 
   @Test
-  public void testGetSamlConfig_Configured() throws Exception {
+  public void testGetSamlInfo_Configured() throws Exception {
     SamlConfiguration samlConfig = tempEntity.newSamlConfiguration();
-    SamlConfiguration actual = new ObjectMapper().readValue(systemInfo.getSamlConfig(), SamlConfiguration.class);
-    assertThat(actual).isNotNull();
-    assertThat(actual.getId()).isEqualTo(samlConfig.getId());
-    assertThat(actual.getCertificate()).isNull();
-    assertThat(actual.getDecryptionKey()).isNull();
-    assertThat(actual.getSigningKeyPair()).isNull();
+    samlConfig.setIdentityProviderMetadataXml(Resources.toString(
+        getClass().getResource("/" + getClass().getSimpleName() + "/saml-identity-provider-metadata.xml"),
+        StandardCharsets.UTF_8));
+    new SamlConfigurationDAO().update(samlConfig);
+    samlDeploymentManager.updateFromConfiguration();
+
+    SamlInfo samlInfo = new ObjectMapper().readValue(systemInfo.getSamlInfo(), SamlInfo.class);
+
+    assertThat(samlInfo).isNotNull();
+
+    assertThat(samlInfo.samlConfiguration.getId()).isEqualTo(samlConfig.getId());
+    assertThat(samlInfo.samlConfiguration.getIdentityProviderMetadataXml())
+        .isEqualTo(samlConfig.getIdentityProviderMetadataXml());
+    assertThat(samlInfo.samlConfiguration.getFirstNameAttributeName())
+        .isEqualTo(samlConfig.getFirstNameAttributeName());
+    assertThat(samlInfo.samlConfiguration.getLastNameAttributeName()).isEqualTo(samlConfig.getLastNameAttributeName());
+    assertThat(samlInfo.samlConfiguration.getEmailAttributeName()).isEqualTo(samlConfig.getEmailAttributeName());
+    assertThat(samlInfo.samlConfiguration.getUsernameAttributeName()).isEqualTo(samlConfig.getUsernameAttributeName());
+    assertThat(samlInfo.samlConfiguration.getGroupsAttributeName()).isEqualTo(samlConfig.getGroupsAttributeName());
+    assertThat(samlInfo.samlConfiguration.getCertificate()).isNull();
+    assertThat(samlInfo.samlConfiguration.getDecryptionKey()).isNull();
+    assertThat(samlInfo.samlConfiguration.getSigningKeyPair()).isNull();
+
+    assertThat(samlInfo.samlDeployment.get("autodetectBearerOnly")).isEqualTo(true);
+    assertThat(samlInfo.samlDeployment.get("configured")).isEqualTo(false);
+    assertThat(samlInfo.samlDeployment.get("forceAuthentication")).isEqualTo(false);
+    assertThat(samlInfo.samlDeployment.get("isPassive")).isEqualTo(false);
+    assertThat(samlInfo.samlDeployment.get("nameIDPolicyFormat"))
+        .isEqualTo("urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified");
+    assertThat(samlInfo.samlDeployment.get("principalNamePolicy")).isEqualTo("FROM_NAME_ID");
+    assertThat(samlInfo.samlDeployment.get("signatureAlgorithm")).isEqualTo("RSA_SHA256");
+    assertThat(samlInfo.samlDeployment.get("signatureCanonicalizationMethod"))
+        .isEqualTo("http://www.w3.org/2001/10/xml-exc-c14n#");
+    assertThat(samlInfo.samlDeployment.get("sslRequired")).isEqualTo("EXTERNAL");
+    assertThat(samlInfo.samlDeployment.get("turnOffChangeSessionIdOnLogin")).isEqualTo(false);
+
+    assertThat(samlInfo.samlDeployment.get("idp")).isNotNull();
+    @SuppressWarnings("unchecked")
+    Map<String, Object> idpProps = (Map<String, Object>) samlInfo.samlDeployment.get("idp");
+    assertThat(idpProps.get("entityID")).isEqualTo("idp-entity-id");
+    assertThat(idpProps.get("minTimeBetweenDescriptorRequests")).isEqualTo(0);
+    assertThat(idpProps.get("singleSignOnService")).isNotNull();
+    assertThat(idpProps.get("singleLogoutService")).isNotNull();
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> singleSignOnServiceProps = (Map<String, Object>) idpProps.get("singleSignOnService");
+    assertThat(singleSignOnServiceProps.get("requestBinding")).isEqualTo("POST");
+    assertThat(singleSignOnServiceProps.get("requestBindingUrl")).isEqualTo("http://localhost:8080/sso");
+    assertThat(singleSignOnServiceProps.get("signRequest")).isEqualTo(true);
+    assertThat(singleSignOnServiceProps.get("validateAssertionSignature")).isEqualTo(true);
+    assertThat(singleSignOnServiceProps.get("validateResponseSignature")).isEqualTo(true);
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> singleLogoutServiceProps = (Map<String, Object>) idpProps.get("singleLogoutService");
+    assertThat(singleLogoutServiceProps.get("requestBinding")).isEqualTo("REDIRECT");
+    assertThat(singleLogoutServiceProps.get("requestBindingUrl")).isEqualTo("http://localhost:8080/slo");
+    assertThat(singleLogoutServiceProps.get("responseBinding")).isEqualTo("REDIRECT");
+    assertThat(singleLogoutServiceProps.get("responseBindingUrl")).isEqualTo("http://localhost:8080/slo");
+    assertThat(singleLogoutServiceProps.get("signRequest")).isEqualTo(true);
+    assertThat(singleLogoutServiceProps.get("signResponse")).isEqualTo(true);
+    assertThat(singleLogoutServiceProps.get("validateRequestSignature")).isEqualTo(true);
+    assertThat(singleLogoutServiceProps.get("validateResponseSignature")).isEqualTo(true);
   }
 
   @Test

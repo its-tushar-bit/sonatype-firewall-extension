@@ -46,7 +46,7 @@ public class ApiSamlConfigurationResource
 
   @PUT
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  public void insertSamlConfiguration(
+  public void insertOrUpdateSamlConfiguration(
       @FormDataParam("identityProviderXml") String identityProviderXml,
       @FormDataParam("samlConfiguration") ApiSamlConfigurationDTO samlConfiguration)
   {

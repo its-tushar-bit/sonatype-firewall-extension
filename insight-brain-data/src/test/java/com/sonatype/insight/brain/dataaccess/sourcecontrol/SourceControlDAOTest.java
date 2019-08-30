@@ -261,4 +261,53 @@ public class SourceControlDAOTest
     Stream<String> appIds = scms.stream().map(SourceControl::getOwnerId);
     assertThat(appIds.collect(Collectors.toList()).containsAll(Arrays.asList(app.getId(), "bar")));
   }
+
+  @Test
+  public void testInsert_ProviderFromOrganization() {
+    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", SourceControlProvider.GITHUB);
+    sourceControlDAO.insert(new SourceControl(app.getId(), VALID_URL, null, null));
+  }
+
+  @Test
+  public void testInsert_ProviderFromRootOrganization() {
+    tempEntity.newSourceControl(org.getParentOrganizationId(), null, "token", SourceControlProvider.GITHUB);
+    sourceControlDAO.insert(new SourceControl(app.getId(), VALID_URL, null, null));
+  }
+
+  @Test
+  public void testInsert_ProviderNotAvailable() {
+    assertThatThrownBy(() -> sourceControlDAO.insert(new SourceControl(app.getId(), VALID_URL, null, null)))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("Cannot validate SourceControl repositoryUrl due to undetermined provider");
+  }
+
+  @Test
+  public void testUpdate_ProviderFromOrganization() {
+    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", SourceControlProvider.GITHUB);
+    SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL, "TOKEN", SourceControlProvider.GITHUB);
+    sourceControlDAO.insert(sourceControl);
+    sourceControl.setProvider(null);
+    sourceControl.setToken(null);
+    sourceControlDAO.update(sourceControl);
+  }
+
+  @Test
+  public void testUpdate_ProviderFromRootOrganization() {
+    tempEntity.newSourceControl(org.getParentOrganizationId(), null, "token", SourceControlProvider.GITHUB);
+    SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL, "TOKEN", SourceControlProvider.GITHUB);
+    sourceControlDAO.insert(sourceControl);
+    sourceControl.setProvider(null);
+    sourceControl.setToken(null);
+    sourceControlDAO.update(sourceControl);
+  }
+
+  @Test
+  public void testUpdate_ProviderNotAvailable() {
+    SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL, "TOKEN", SourceControlProvider.GITHUB);
+    sourceControlDAO.insert(sourceControl);
+    sourceControl.setProvider(null);
+    sourceControl.setToken(null);
+    assertThatThrownBy(() -> sourceControlDAO.update(sourceControl)).isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("Cannot validate SourceControl repositoryUrl due to undetermined provider");
+  }
 }

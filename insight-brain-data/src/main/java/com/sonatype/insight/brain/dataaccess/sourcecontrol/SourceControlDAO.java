@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -118,7 +119,8 @@ public class SourceControlDAO
         scmProvider = sourceControl.getProvider();
       }
       else {
-        scmProvider = getProviderFromOrganization(tx, sourceControl);
+        Application application = applicationDAO.getById(tx, sourceControl.getOwnerId());
+        scmProvider = getProviderFromOrganization(tx, application.getOrganizationId());
         if (scmProvider == null) {
           throw new BadRequestException("Cannot validate SourceControl repositoryUrl due to undetermined provider");
         }
@@ -139,13 +141,18 @@ public class SourceControlDAO
   }
 
   private SourceControlProvider getProviderFromOrganization(final TransactionContext tx,
-                                                            final SourceControl sourceControl)
+                                                            final String organizationId)
   {
-    Application application = applicationDAO.getById(tx, sourceControl.getOwnerId());
-    SourceControl orgSourceControl  = getByOwnerId(tx, application.getOrganizationId());
-    if (orgSourceControl == null || orgSourceControl.getProvider() == null) {
+    SourceControl orgSourceControl = getByOwnerId(tx, organizationId);
+    if (orgSourceControl != null && orgSourceControl.getProvider() != null) {
+      return orgSourceControl.getProvider();
+    }
+
+    Organization organization = organizationDAO.getById(organizationId);
+    if (StringUtils.isEmpty(organization.getParentOrganizationId())) {
       return null;
     }
-    return orgSourceControl.getProvider();
+
+    return getProviderFromOrganization(tx, organization.getParentOrganizationId());
   }
 }

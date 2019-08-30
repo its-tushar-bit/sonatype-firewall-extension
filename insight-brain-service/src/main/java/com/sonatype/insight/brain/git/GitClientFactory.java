@@ -9,7 +9,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.nexus.scm.GitApiClientFactory;
@@ -30,13 +29,12 @@ public class GitClientFactory
     this.insightProxy = insightProxy;
   }
 
-  public GitApiClient create(final ApiSourceControlDTO sourceControl) {
+  public GitApiClient create(GitRepositoryInfo gitRepositoryInfo) {
     Configuration configuration = new Configuration();
-    SourceControlProvider provider = SourceControlProvider.fromString(sourceControl.provider);
-    String apiUrl = getClientUtils(provider).getApiUrl(sourceControl.repositoryUrl);
+    String apiUrl = getClientUtils(gitRepositoryInfo.provider).getApiUrl(gitRepositoryInfo.repositoryUrl);
     insightProxy.contextualize(configuration, apiUrl);
     return gitApiClientFactory.getGitApiClient(
-        provider, configuration, sourceControl.repositoryUrl, sourceControl.token);
+        gitRepositoryInfo.provider, configuration, gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.token);
   }
 
   private GitApiClientUtils getClientUtils(final SourceControlProvider provider) {

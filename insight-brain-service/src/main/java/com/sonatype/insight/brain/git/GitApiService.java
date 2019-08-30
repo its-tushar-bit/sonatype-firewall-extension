@@ -14,11 +14,13 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -47,17 +49,21 @@ public class GitApiService
 
   private final GitClientFactory gitClientFactory;
 
+  private final OrganizationDAO organizationDAO;
+
   @Inject
   public GitApiService(
       final ApiSourceControlService sourceControlService,
       final BaseUrl baseUrl,
       final ApplicationDAO applicationDAO,
-      final GitClientFactory gitClientFactory)
+      final GitClientFactory gitClientFactory,
+      final OrganizationDAO organizationDAO)
   {
     this.sourceControlService = sourceControlService;
     this.baseUrl = baseUrl;
     this.applicationDAO = applicationDAO;
     this.gitClientFactory = gitClientFactory;
+    this.organizationDAO = organizationDAO;
   }
 
   /**
@@ -65,42 +71,76 @@ public class GitApiService
    * the evaluation outcome and component counts if a commit hash was send with the policy evaluation request.
    */
   public void maybeRespond(final ApplicationEvaluationEvent event) {
-    if (null != event.commitHash) {
-      ApiSourceControlDTO sourceControl = sourceControlService.getSourceControlByApplicationIdDecrypted(event.ownerId);
+    if (Strings.isNullOrEmpty(event.commitHash)) {
+      return;
+    }
 
-      if (null != sourceControl) {
-        sourceControl = sourceControlService.populateProviderAndTokenFromOrganizationIfNeeded(sourceControl);
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfoForApplication(event.ownerId);
 
-        if (sourceControl.provider == null) {
-          log.error(String.format(
-              "The scm provider could not be found for application with id %s, scm status could not be created.",
-              sourceControl.ownerId));
-          return;
-        }
+    if (null == gitRepositoryInfo || null == gitRepositoryInfo.provider ||
+        Strings.isNullOrEmpty(gitRepositoryInfo.token)) {
+      log.error("The git repository information could not be found for application with id {}, " +
+          "scm status could not be created.", event.ownerId);
+      return;
+    }
 
-        if (Strings.isNullOrEmpty(sourceControl.token)) {
-          log.error(String.format(
-              "The access token could not be found for application with id %s, scm status could not be created.",
-              sourceControl.ownerId));
-          return;
-        }
+    GitApiClient gitApiClient = gitClientFactory.create(gitRepositoryInfo);
+    StatusRequest statusRequest = createStatusRequest(event, gitApiClient, gitRepositoryInfo.provider);
+    log.debug("Creating a {} commit status for repository: {}, commit hash: {}, with outcome: {}, state: {}",
+        gitRepositoryInfo.provider, gitApiClient.getProjectUri().getUrl(),
+        event.commitHash, event.outcome, statusRequest.getState());
+    try {
+      Status status = gitApiClient.createStatus(event.commitHash, statusRequest);
+      log.debug("Status response from api url: {}, creator: {}",
+          status.getTargetUrl(), status.getUser().getUsername());
+    }
+    catch (IOException e) {
+      log.error("Failed to update status for applicationId: {}, repository: {}, commitHash: {}, " +
+              "triggered by policyEvaluationId: {}",
+          event.ownerId, gitRepositoryInfo.repositoryUrl, event.commitHash, event.policyEvaluationId, e);
+    }
+  }
 
-        GitApiClient gitApiClient = gitClientFactory.create(sourceControl);
-        SourceControlProvider provider = SourceControlProvider.fromString(sourceControl.provider);
-        StatusRequest statusRequest = createStatusRequest(event, gitApiClient, provider);
-        log.debug("Creating a {} commit status for repository: {}, commit hash: {}, with outcome: {}, state: {}",
-            sourceControl.provider, gitApiClient.getProjectUri().getUrl(),
-            event.commitHash, event.outcome, statusRequest.getState());
-        try {
-          Status status = gitApiClient.createStatus(event.commitHash, statusRequest);
-          log.debug("Status response from api url: {}, creator: {}",
-              status.getTargetUrl(), status.getUser().getUsername());
-        }
-        catch (IOException e) {
-          log.error("Failed to update status for applicationId: {}, repository: {}, commitHash: {}, " +
-                  "triggered by policyEvaluationId: {}",
-              event.ownerId, sourceControl.repositoryUrl, event.commitHash, event.policyEvaluationId, e);
-        }
+  /**
+   * Returns a {@link GitRepositoryInfo} object with provider and token sourced from the organization hierarchy
+   * if not available on the application SourceControl record
+   *
+   * @param applicationId The id of the application for which the information needs to be retrieved
+   * @return The git repository information for the given application id
+   */
+  public GitRepositoryInfo getGitRepositoryInfoForApplication(String applicationId) {
+    SourceControl sourceControl = sourceControlService.getSourceControlByOwnerDecrypted(applicationId);
+    if (sourceControl == null) {
+      return null;
+    }
+
+    GitRepositoryInfo gitRepositoryInfo =
+        new GitRepositoryInfo(sourceControl.getRepositoryUrl(), sourceControl.getToken(), sourceControl.getProvider());
+    if (gitRepositoryInfo.provider == null || Strings.isNullOrEmpty(gitRepositoryInfo.token)) {
+      Application application = applicationDAO.getById(sourceControl.getOwnerId());
+      if (application != null) {
+        populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, application.getOrganizationId());
+      }
+    }
+
+    return gitRepositoryInfo;
+  }
+
+  private void populateGitRepositoryInformationFromOrganization(
+      final GitRepositoryInfo gitRepositoryInfo,
+      final String organizationId)
+  {
+    SourceControl orgSourceControl = sourceControlService.getSourceControlByOwnerDecrypted(organizationId);
+
+    if (orgSourceControl != null && orgSourceControl.getProvider() != null &&
+        !Strings.isNullOrEmpty(orgSourceControl.getToken())) {
+      gitRepositoryInfo.token = orgSourceControl.getToken();
+      gitRepositoryInfo.provider = orgSourceControl.getProvider();
+    }
+    else {
+      Organization organization = organizationDAO.getById(organizationId);
+      if (organization != null && !Strings.isNullOrEmpty(organization.getParentOrganizationId())) {
+        populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, organization.getParentOrganizationId());
       }
     }
   }

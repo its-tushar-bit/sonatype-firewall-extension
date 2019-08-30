@@ -39,7 +39,6 @@ import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -267,34 +266,9 @@ public class ApiSourceControlService
     sendSourceControlTelemetryData(METHOD.DELETE, ownerId, sourceControl);
   }
 
-  public ApiSourceControlDTO populateProviderAndTokenFromOrganizationIfNeeded(ApiSourceControlDTO sourceControl) {
-    if (sourceControl.provider == null || Strings.isNullOrEmpty(sourceControl.token)) {
-      Application application = applicationDAO.getById(sourceControl.ownerId);
-
-      if (application == null) {
-        return sourceControl;
-      }
-
-      try {
-        ApiSourceControlDTO orgSourceControl =
-            getSourceControlByOwner(OwnerType.ORGANIZATION, application.getOrganizationId());
-        orgSourceControl =
-            getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, application.getOrganizationId(),
-                orgSourceControl.id);
-        sourceControl.token = orgSourceControl.token;
-        sourceControl.provider = orgSourceControl.provider;
-      }
-      catch (NotFoundException e) {
-        log.error(e.getMessage());
-        return sourceControl;
-      }
-    }
-    return sourceControl;
-  }
-
   @VisibleForTesting
   @Authorize(permission = Permission.READ)
-  ApiSourceControlDTO getSourceControlByOwnerDecrypted(
+  ApiSourceControlDTO getSourceControlByOwnerAndIdDecrypted(
       @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) final String ownerId,
       String sourceControlId)
@@ -303,6 +277,16 @@ public class ApiSourceControlService
     validateOwnerId(ownerType, ownerId, sourceControl);
     decryptToken(sourceControl);
     return apiSourceControlAdapter.convertToDTO(sourceControl);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public SourceControl getSourceControlByOwnerDecrypted(@AuthzContext(Key.INTERNAL_ID) final String ownerId) {
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(ownerId);
+    if (sourceControl == null) {
+      return null;
+    }
+    decryptToken(sourceControl);
+    return sourceControl;
   }
 
   private void validateOwnerId(
@@ -317,7 +301,8 @@ public class ApiSourceControlService
     }
   }
 
-  private void encryptToken(final SourceControl sourceControl) {
+  @VisibleForTesting
+  void encryptToken(final SourceControl sourceControl) {
     synchronized (plexusCipher) {
       try {
         sourceControl.setToken(plexusCipher.encrypt(sourceControl.getToken(), ENC));

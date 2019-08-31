@@ -411,6 +411,13 @@ public class UserServiceTest
   }
 
   @Test
+  public void testAddUser_NullBody() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      userService.addUser((ApiUserDTO) null);
+    }).withMessageContaining("No user details specified");
+  }
+
+  @Test
   public void testUpdateUser() {
     ApiUserDTO inputUserDTO = createUserDTOToUpdate(tempEntity.newUser());
 
@@ -419,6 +426,13 @@ public class UserServiceTest
     assertOnlyPasswordNull(outputUserDTO);
     assertInputNullOrEqualToOutputIgnoringPassword(inputUserDTO, outputUserDTO);
     assertMatchingUser(outputUserDTO);
+  }
+
+  @Test
+  public void testUpdateUser_NullBody() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      userService.updateUser(tempEntity.newUser().getUsername(), null);
+    }).withMessageContaining("No user details specified");
   }
 
   @Test

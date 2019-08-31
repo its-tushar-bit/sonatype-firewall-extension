@@ -132,6 +132,9 @@ public class UserService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   User addUser(User user) {
+    if (user == null) {
+      throw new BadRequestException("No user details specified.");
+    }
     user.setId(null);
     user.setPassword(clmRealm.encryptPassword(user.getPassword()));
     userDAO.insert(user);
@@ -333,6 +336,9 @@ public class UserService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public ApiUserDTO updateUser(String username, ApiUserDTO userDTO) {
+    if (userDTO == null) {
+      throw new BadRequestException("No user details specified.");
+    }
     if (userDTO.username != null && !userDTO.username.equals(username)) {
       throw new BadRequestException("Cannot change username.");
     }
@@ -370,6 +376,9 @@ public class UserService
   }
 
   private User convert(ApiUserDTO userDTO) {
+    if (userDTO == null) {
+      return null;
+    }
     User user = new User();
     // exclude id
     user.setUsername(userDTO.username);

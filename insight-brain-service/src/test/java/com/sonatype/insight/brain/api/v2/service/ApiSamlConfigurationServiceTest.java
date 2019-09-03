@@ -187,6 +187,58 @@ public class ApiSamlConfigurationServiceTest
   }
 
   @Test
+  public void testInsertOrUpdateSamlConfiguration_InsertBadCertificate() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSamlConfigurationService
+        .insertOrUpdateSamlConfiguration(invalidCertificate(), dtoWithCustomValues()))
+        .withMessageContaining("Configuration could not be validated.");
+    assertThat(samlConfigurationDAO.get()).isNull();
+  }
+
+  @Test
+  public void testInsertOrUpdateSamlConfiguration_InsertBadCertificateNullConfiguration() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSamlConfigurationService
+        .insertOrUpdateSamlConfiguration(invalidCertificate(), null))
+        .withMessageContaining("Configuration could not be validated.");
+    assertThat(samlConfigurationDAO.get()).isNull();
+  }
+
+  @Test
+  public void testInsertOrUpdateSamlConfiguration_UpdateBadCertificate() {
+    tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "first-name", "l-name", "e-mail", "user-name", "teams");
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSamlConfigurationService
+        .insertOrUpdateSamlConfiguration(invalidCertificate(), dtoWithCustomValues()))
+        .withMessageContaining("Configuration could not be validated.");
+
+    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    assertThat(samlConfiguration.getIdentityProviderMetadataXml()).isEqualTo("<xml></xml>");
+    assertThat(samlConfiguration.getEntityId()).isEqualTo("ent-id");
+    assertThat(samlConfiguration.getFirstNameAttributeName()).isEqualTo("first-name");
+    assertThat(samlConfiguration.getLastNameAttributeName()).isEqualTo("l-name");
+    assertThat(samlConfiguration.getEmailAttributeName()).isEqualTo("e-mail");
+    assertThat(samlConfiguration.getUsernameAttributeName()).isEqualTo("user-name");
+    assertThat(samlConfiguration.getGroupsAttributeName()).isEqualTo("teams");
+  }
+
+  @Test
+  public void testInsertOrUpdateSamlConfiguration_UpdateBadCertificateNullConfiguration() {
+    tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "first-name", "l-name", "e-mail", "user-name", "teams");
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSamlConfigurationService
+        .insertOrUpdateSamlConfiguration(invalidCertificate(), null))
+        .withMessageContaining("Configuration could not be validated.");
+
+    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    assertThat(samlConfiguration.getIdentityProviderMetadataXml()).isEqualTo("<xml></xml>");
+    assertThat(samlConfiguration.getEntityId()).isEqualTo("ent-id");
+    assertThat(samlConfiguration.getFirstNameAttributeName()).isEqualTo("first-name");
+    assertThat(samlConfiguration.getLastNameAttributeName()).isEqualTo("l-name");
+    assertThat(samlConfiguration.getEmailAttributeName()).isEqualTo("e-mail");
+    assertThat(samlConfiguration.getUsernameAttributeName()).isEqualTo("user-name");
+    assertThat(samlConfiguration.getGroupsAttributeName()).isEqualTo("teams");
+  }
+
+  @Test
   public void testInsertOrUpdateSamlConfiguration_Update() throws Exception {
     tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "name-first", "name-last", "mail-e", "name-user", "teamz");
     ApiSamlConfigurationDTO dto = dtoWithCustomValues();
@@ -327,6 +379,11 @@ public class ApiSamlConfigurationServiceTest
 
   private String invalidIdentityProviderXml() throws Exception {
     URL resource = getClass().getResource("/" + getClass().getSimpleName() + "/missing-entity-descriptor.xml");
+    return FileUtils.readFileToString(new File(resource.getFile()), StandardCharsets.UTF_8);
+  }
+
+  private String invalidCertificate() throws Exception {
+    URL resource = getClass().getResource("/" + getClass().getSimpleName() + "/invalid-certificate.xml");
     return FileUtils.readFileToString(new File(resource.getFile()), StandardCharsets.UTF_8);
   }
 

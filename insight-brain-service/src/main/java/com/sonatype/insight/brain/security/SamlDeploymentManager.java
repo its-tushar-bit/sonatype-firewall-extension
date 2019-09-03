@@ -90,7 +90,7 @@ public class SamlDeploymentManager
     log.info("SAML integration {}", samlDeployment != null ? "enabled" : "disabled");
   }
 
-  private SamlDeployment parse(SamlConfiguration samlConfiguration) {
+  public SamlDeployment parse(SamlConfiguration samlConfiguration) {
     if (samlConfiguration == null) {
       return null;
     }

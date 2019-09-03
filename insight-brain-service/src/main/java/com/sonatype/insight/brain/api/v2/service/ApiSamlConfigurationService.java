@@ -27,6 +27,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.72
@@ -34,6 +36,8 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 public class ApiSamlConfigurationService
 {
+  private static final Logger log = LoggerFactory.getLogger(ApiSamlConfigurationService.class);
+
   private final SamlConfigurationDAO samlConfigurationDAO;
 
   private final BaseUrl baseUrl;
@@ -77,7 +81,7 @@ public class ApiSamlConfigurationService
     // Updating the existing configurations xml only, meaning keep my configuration
     if (update && apiSamlConfigurationDTO == null) {
       validateAndSetIdentityProviderXml(identityProviderXml, persisted);
-      persist(persisted);
+      checkSamlDeploymentAndPersist(persisted);
       return;
     }
 
@@ -103,10 +107,18 @@ public class ApiSamlConfigurationService
     if (update) {
       samlConfiguration.setId(persisted.getId());
     }
-    persist(samlConfiguration);
+    checkSamlDeploymentAndPersist(samlConfiguration);
   }
 
-  private void persist(SamlConfiguration samlConfiguration) {
+  private void checkSamlDeploymentAndPersist(SamlConfiguration samlConfiguration) {
+    try {
+      samlDeploymentManager.parse(samlConfiguration);
+    }
+    catch (Exception e) {
+      log.debug("Configuration could not be validated.", e);
+      throw new BadRequestException("Configuration could not be validated.", e);
+    }
+
     if (samlConfiguration.getId() != null) {
       samlConfigurationDAO.update(samlConfiguration);
     }

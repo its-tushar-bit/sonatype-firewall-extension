@@ -19,6 +19,8 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationResponseDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSamlConfigurationService;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -46,6 +48,7 @@ public class ApiSamlConfigurationResource
 
   @PUT
   @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Audited(AuditEvent.CONFIGURE_SAML)
   public void insertOrUpdateSamlConfiguration(
       @FormDataParam("identityProviderXml") String identityProviderXml,
       @FormDataParam("samlConfiguration") ApiSamlConfigurationDTO samlConfiguration)
@@ -54,6 +57,7 @@ public class ApiSamlConfigurationResource
   }
 
   @DELETE
+  @Audited(AuditEvent.DELETE_SAML)
   public void deleteSamlConfiguration() {
     apiSamlConfigurationService.deleteSamlConfiguration();
   }

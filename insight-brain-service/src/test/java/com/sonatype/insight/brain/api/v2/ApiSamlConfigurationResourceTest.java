@@ -5,18 +5,20 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.io.File;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationResponseDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiSamlConfigurationServiceTest;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,11 +49,10 @@ public class ApiSamlConfigurationResourceTest
   @Test
   public void testInsertOrUpdateSamlConfiguration() throws Exception {
     try {
-      URL resource = getClass()
-          .getResource("/" + ApiSamlConfigurationServiceTest.class.getSimpleName() + "/identity-provider-metadata.xml");
+      String xml = validIdentityProviderXml();
       ApiSamlConfigurationDTO apiSamlConfigurationDTO = new ApiSamlConfigurationDTO();
       HttpResponse response =
-          restRequest().part("identityProviderXml", resource).part("samlConfiguration", apiSamlConfigurationDTO).put();
+          restRequest().part("identityProviderXml", xml).part("samlConfiguration", apiSamlConfigurationDTO).put();
       assertResponseStatus(204, response);
     }
     finally {
@@ -61,8 +62,14 @@ public class ApiSamlConfigurationResourceTest
 
   @Test
   public void testDeleteSamlConfiguration() throws Exception {
-    tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams");
+    String xml = validIdentityProviderXml();
+    tempEntity.newSamlConfiguration(xml, "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams");
     assertResponseStatus(204, restRequest().delete());
+  }
+
+  private String validIdentityProviderXml() throws Exception {
+    URL resource = getClass().getResource("/" + getClass().getSimpleName() + "/identity-provider-metadata.xml");
+    return FileUtils.readFileToString(new File(resource.getFile()), StandardCharsets.UTF_8);
   }
 
   @Override

@@ -294,8 +294,9 @@ public class ApiSamlConfigurationServiceTest
   }
 
   @Test
-  public void testDeleteSamlConfiguration() {
-    tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams");
+  public void testDeleteSamlConfiguration() throws Exception {
+    String idpXml = validIdentityProviderXml();
+    tempEntity.newSamlConfiguration(idpXml, "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams");
 
     apiSamlConfigurationService.deleteSamlConfiguration();
 

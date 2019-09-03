@@ -165,7 +165,9 @@ public enum AuditEvent
   CREATE_SOURCE_CONTROL(Domain.GOVERNANCE_SOURCE_CONTROL, Type.CREATE),
   UPDATE_SOURCE_CONTROL(Domain.GOVERNANCE_SOURCE_CONTROL, Type.UPDATE),
   DELETE_SOURCE_CONTROL(Domain.GOVERNANCE_SOURCE_CONTROL, Type.DELETE),
-  AUTO_CREATE_SOURCE_CONTROL(Domain.GOVERNANCE_SOURCE_CONTROL, Type.AUTO_CREATE);
+  AUTO_CREATE_SOURCE_CONTROL(Domain.GOVERNANCE_SOURCE_CONTROL, Type.AUTO_CREATE),
+  CONFIGURE_SAML(Domain.SECURITY_SAML, Type.CONFIGURE),
+  DELETE_SAML(Domain.SECURITY_SAML, Type.DELETE);
 
   private final String domain;
 
@@ -266,6 +268,8 @@ public enum AuditEvent
 
     String SECURITY_LDAP = join(SECURITY, "ldap");
 
+    String SECURITY_SAML = join(SECURITY, "saml");
+
     String SECURITY_LDAP_SERVER = join(SECURITY_LDAP, "server");
 
     String SECURITY_LDAP_SERVER_CONNECTION = join(SECURITY_LDAP_SERVER, "connection");
@@ -317,7 +321,7 @@ public enum AuditEvent
     String NOTIFICATION_MAIL = join(NOTIFICATION, "mail");
 
     String NOTIFICATION_ISSUE_JIRA = join(NOTIFICATION, join("issue", "jira"));
-    
+
     static String join(String parent, String child) {
       return parent + "." + child;
     }

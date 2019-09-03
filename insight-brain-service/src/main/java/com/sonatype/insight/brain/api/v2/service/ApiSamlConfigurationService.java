@@ -15,6 +15,7 @@ import javax.ws.rs.core.UriBuilder;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationResponseDTO;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -114,6 +115,7 @@ public class ApiSamlConfigurationService
     }
 
     samlDeploymentManager.updateFromConfiguration();
+    audit(samlConfiguration);
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -125,8 +127,8 @@ public class ApiSamlConfigurationService
     }
 
     samlConfigurationDAO.delete(samlConfiguration);
-
     samlDeploymentManager.updateFromConfiguration();
+    audit(samlConfiguration);
   }
 
   private ApiSamlConfigurationResponseDTO convertToResponseDTO(SamlConfiguration samlConfiguration) {
@@ -191,5 +193,18 @@ public class ApiSamlConfigurationService
   private String defaultEntityId() {
     return UriBuilder.fromUri(this.baseUrl.get()).path(PublicApiPaths.SAML_CONFIG_RESOURCE_PATH_V2).path("metadata")
         .build().toString();
+  }
+
+  private void audit(SamlConfiguration samlConfiguration) {
+    String identityProviderMetadataXml = samlConfiguration.getIdentityProviderMetadataXml();
+    String identityProviderEntityId = samlMetadataTool.parseEntityDescriptor(identityProviderMetadataXml).getEntityID();
+    AuditData.get()
+        .setData("entityId", samlConfiguration.getEntityId())
+        .setData("firstNameAttributeName", samlConfiguration.getFirstNameAttributeName())
+        .setData("lastNameAttributeName", samlConfiguration.getLastNameAttributeName())
+        .setData("userNameAttributeName", samlConfiguration.getUsernameAttributeName())
+        .setData("emailAttributeName", samlConfiguration.getEmailAttributeName())
+        .setData("groupsAttributeName", samlConfiguration.getGroupsAttributeName())
+        .setData("identityProviderEntityId", identityProviderEntityId);
   }
 }

@@ -110,7 +110,6 @@ public class ApiSamlConfigurationResourceAuditTest
 
   private void assertAuditData(AuditDTO auditDTO) {
     SamlConfiguration samlConfiguration = new SamlConfigurationDAO().get();
-    samlConfiguration.setEntityId(ENTITY_ID);
 
     assertThat(auditDTO.data)
         .containsEntry("entityId", samlConfiguration.getEntityId())

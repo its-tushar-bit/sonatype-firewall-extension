@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
@@ -109,7 +110,8 @@ public class GitApiService
    * @return The git repository information for the given application id
    */
   public GitRepositoryInfo getGitRepositoryInfoForApplication(String applicationId) {
-    SourceControl sourceControl = sourceControlService.getSourceControlByOwnerDecrypted(applicationId);
+    SourceControl sourceControl =
+        sourceControlService.getSourceControlByOwnerDecrypted(OwnerType.APPLICATION, applicationId);
     if (sourceControl == null) {
       return null;
     }
@@ -130,7 +132,8 @@ public class GitApiService
       final GitRepositoryInfo gitRepositoryInfo,
       final String organizationId)
   {
-    SourceControl orgSourceControl = sourceControlService.getSourceControlByOwnerDecrypted(organizationId);
+    SourceControl orgSourceControl =
+        sourceControlService.getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, organizationId);
 
     if (orgSourceControl != null && orgSourceControl.getProvider() != null &&
         !Strings.isNullOrEmpty(orgSourceControl.getToken())) {

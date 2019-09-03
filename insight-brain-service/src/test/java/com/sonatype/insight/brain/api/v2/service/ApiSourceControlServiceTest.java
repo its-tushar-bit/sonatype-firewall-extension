@@ -616,7 +616,7 @@ public class ApiSourceControlServiceTest
     tempEntity.newSourceControl(sourceControl.getOwnerId(), sourceControl.getRepositoryUrl(), sourceControl.getToken(),
         sourceControl.getProvider());
     SourceControl sourceControlByApplicationId = sourceControlService
-        .getSourceControlByOwnerDecrypted(app.getId());
+        .getSourceControlByOwnerDecrypted(OwnerType.APPLICATION, app.getId());
     assertThat(sourceControlByApplicationId.getOwnerId()).isEqualTo(app.getId());
     assertThat(sourceControlByApplicationId.getRepositoryUrl()).isEqualTo(VALID_URL);
     assertThat(sourceControlByApplicationId.getToken()).isEqualTo(TOKEN);
@@ -626,7 +626,7 @@ public class ApiSourceControlServiceTest
   @Test
   public void testGetSourceControlByOwnerDecrypted_NotFound() {
     SourceControl sourceControlByApplicationId = sourceControlService
-        .getSourceControlByOwnerDecrypted("INVALID_ID");
+        .getSourceControlByOwnerDecrypted(OwnerType.APPLICATION, "INVALID_ID");
     assertThat(sourceControlByApplicationId).isNull();
   }
 

@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -83,6 +84,23 @@ public class ApiSamlConfigurationServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testDeleteSamlConfiguration_Unauthenticated() {
     apiSamlConfigurationService.deleteSamlConfiguration();
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testGetMetadata_Authorized() {
+    grantConfigureSystemPermission();
+    apiSamlConfigurationService.getMetadata();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetMetadata_Unauthorized() {
+    login();
+    apiSamlConfigurationService.getMetadata();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetMetadata_Unauthenticated() {
+    apiSamlConfigurationService.getMetadata();
   }
 
   private String validIdentityProviderXml() throws Exception {

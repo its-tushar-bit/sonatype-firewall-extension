@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Base64;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -27,6 +28,10 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.keycloak.adapters.saml.SamlDeployment;
+import org.keycloak.dom.saml.v2.metadata.KeyTypes;
+import org.keycloak.saml.SPMetadataDescriptor;
+import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,6 +146,32 @@ public class ApiSamlConfigurationService
     samlConfigurationDAO.delete(samlConfiguration);
     samlDeploymentManager.updateFromConfiguration();
     audit(samlConfiguration);
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public String getMetadata() {
+    SamlDeployment samlDeployment = samlDeploymentManager.get();
+    if (samlDeployment == null) {
+      throw new NotFoundException("SAML not configured.");
+    }
+    String samlEndpointUrl = UriBuilder.fromUri(baseUrl.get()).path("saml").build().toString();
+    String certificatePem;
+    try {
+      certificatePem = Base64.getEncoder().encodeToString(samlConfigurationDAO.get().getCertificate().getEncoded());
+    }
+    catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+    String keyIndent = "        ";
+    String signingKeyXml =
+        SPMetadataDescriptor.xmlKeyInfo(keyIndent, null, certificatePem, KeyTypes.SIGNING.value(), true);
+    String encryptionKeyXml =
+        SPMetadataDescriptor.xmlKeyInfo(keyIndent, null, certificatePem, KeyTypes.ENCRYPTION.value(), true);
+    return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + SPMetadataDescriptor
+        .getSPDescriptor(JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get(), samlEndpointUrl, samlEndpointUrl,
+            samlDeployment.getIDP().getSingleSignOnService().signRequest(),
+            samlDeployment.getIDP().getSingleSignOnService().validateAssertionSignature(), true,
+            samlDeployment.getEntityID(), samlDeployment.getNameIDPolicyFormat(), signingKeyXml, encryptionKeyXml);
   }
 
   private ApiSamlConfigurationResponseDTO convertToResponseDTO(SamlConfiguration samlConfiguration) {

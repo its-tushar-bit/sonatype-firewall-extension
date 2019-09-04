@@ -33,6 +33,8 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 @Path(value = PublicApiPaths.SAML_CONFIG_RESOURCE_PATH_V2)
 public class ApiSamlConfigurationResource
 {
+  static final String METADATA = "metadata";
+
   private final ApiSamlConfigurationService apiSamlConfigurationService;
 
   @Inject
@@ -60,5 +62,12 @@ public class ApiSamlConfigurationResource
   @Audited(AuditEvent.DELETE_SAML)
   public void deleteSamlConfiguration() {
     apiSamlConfigurationService.deleteSamlConfiguration();
+  }
+
+  @GET
+  @Path(METADATA)
+  @Produces(MediaType.APPLICATION_XML)
+  public String getMetadata() {
+    return apiSamlConfigurationService.getMetadata();
   }
 }

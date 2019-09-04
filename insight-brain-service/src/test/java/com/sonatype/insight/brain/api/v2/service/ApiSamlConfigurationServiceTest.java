@@ -6,10 +6,13 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
+import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 import javax.inject.Inject;
+import javax.xml.transform.stream.StreamSource;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationResponseDTO;
@@ -24,9 +27,17 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
+import org.keycloak.dom.saml.v2.metadata.IndexedEndpointType;
+import org.keycloak.dom.saml.v2.metadata.KeyDescriptorType;
+import org.keycloak.dom.saml.v2.metadata.KeyTypes;
+import org.keycloak.dom.saml.v2.metadata.SPSSODescriptorType;
+import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
+import org.keycloak.saml.processing.core.util.JAXPValidationUtil;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class ApiSamlConfigurationServiceTest
     extends AbstractComponentTest
@@ -370,6 +381,54 @@ public class ApiSamlConfigurationServiceTest
     apiSamlConfigurationService.deleteSamlConfiguration();
 
     assertThat(samlDeploymentManager.get()).isNull();
+  }
+
+  @Test
+  public void testGetMetadata_NotConfigured() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiSamlConfigurationService.getMetadata())
+        .withMessage("SAML not configured.");
+  }
+
+  @Test
+  public void testGetMetadata() throws Exception {
+    SamlConfiguration samlConfiguration = tempEntity
+        .newSamlConfiguration(validIdentityProviderXml(), "ent-id", "first-name", "last-name", "e-mail", "user-name",
+            "teams");
+    samlDeploymentManager.updateFromConfiguration();
+
+    String xmlMetadata = apiSamlConfigurationService.getMetadata();
+
+    JAXPValidationUtil.validator().validate(new StreamSource(new StringReader(xmlMetadata)));
+    Object parsed = SAMLParser.getInstance().parse(new StreamSource(new StringReader(xmlMetadata)));
+    assertThat(parsed).isInstanceOf(EntityDescriptorType.class);
+    EntityDescriptorType entityDescriptorType = (EntityDescriptorType) parsed;
+    assertThat(entityDescriptorType.getEntityID()).isEqualTo(samlConfiguration.getEntityId());
+    assertThat(entityDescriptorType.getChoiceType()).hasSize(1);
+    assertThat(entityDescriptorType.getChoiceType().get(0).getDescriptors()).hasSize(1);
+    SPSSODescriptorType spssoDescriptorType =
+        entityDescriptorType.getChoiceType().get(0).getDescriptors().get(0).getSpDescriptor();
+    assertThat(spssoDescriptorType).isNotNull();
+    assertThat(spssoDescriptorType.isAuthnRequestsSigned()).isTrue();
+    assertThat(spssoDescriptorType.isWantAssertionsSigned()).isTrue();
+    String expectedCertificatePem =
+        Base64.getEncoder().encodeToString(samlConfigurationDAO.get().getCertificate().getEncoded());
+    assertThat(spssoDescriptorType.getKeyDescriptor()).extracting(KeyDescriptorType::getUse)
+        .containsExactlyInAnyOrder(KeyTypes.SIGNING, KeyTypes.ENCRYPTION);
+    assertThat(spssoDescriptorType.getKeyDescriptor())
+        .extracting(key -> key.getKeyInfo().getElementsByTagNameNS("*", "X509Certificate")).allSatisfy(nodes -> {
+          assertThat(nodes.getLength()).isEqualTo(1);
+          assertThat(nodes.item(0).getTextContent()).isEqualTo(expectedCertificatePem);
+        });
+    String expectedUrl = config.getBaseUrl() + "saml";
+    assertThat(spssoDescriptorType.getSingleLogoutService())
+        .extracting(endpoint -> endpoint.getLocation().toString(), endpoint -> endpoint.getBinding().toString())
+        .containsExactly(tuple(expectedUrl, "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"));
+    assertThat(spssoDescriptorType.getNameIDFormat())
+        .containsExactly("urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified");
+    assertThat(spssoDescriptorType.getAssertionConsumerService())
+        .extracting(endpoint -> endpoint.getLocation().toString(), endpoint -> endpoint.getBinding().toString(),
+            IndexedEndpointType::getIndex, IndexedEndpointType::isIsDefault)
+        .containsExactly(tuple(expectedUrl, "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", 1, true));
   }
 
   private String validIdentityProviderXml() throws Exception {

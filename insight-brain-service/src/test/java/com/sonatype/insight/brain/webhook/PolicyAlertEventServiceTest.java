@@ -87,6 +87,10 @@ public class PolicyAlertEventServiceTest
     assertThat(event.applicationEvaluation.outcome).isEqualTo(Action.ID_FAIL);
     assertThat(event.applicationEvaluation.commitHash).isEqualTo("commitHash");
     assertThat(event.initiator).isEqualTo(USERNAME);
+    assertThat(event.application.id).isEqualTo(policyEvaluation.getApplicationId());
+    assertThat(event.application.publicId).isEqualTo(application.getPublicId());
+    assertThat(event.application.name).isEqualTo(application.getName());
+    assertThat(event.application.organizationId).isEqualTo(application.getOrganizationId());
   }
 
   @Test

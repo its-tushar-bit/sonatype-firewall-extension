@@ -109,6 +109,7 @@ public class PolicyAlertEventService
     final Application application = applicationDAO.getByIdNotNull(policyEvaluation.getApplicationId());
     final ApplicationSummary applicationSummary = new ApplicationSummary();
     applicationSummary.id = policyEvaluation.getApplicationId();
+    applicationSummary.publicId = application.getPublicId();
     applicationSummary.name = application.getName();
     applicationSummary.organizationId = application.getOrganizationId();
 

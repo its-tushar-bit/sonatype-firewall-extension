@@ -43,6 +43,8 @@ public class PolicyAlertEvent
   {
     public String id;
 
+    public String publicId;
+
     public String name;
 
     public String organizationId;
@@ -51,6 +53,7 @@ public class PolicyAlertEvent
     public String toString() {
       return "ApplicationSummary{" +
           "id='" + id + '\'' +
+          ", publicId='" + publicId + '\'' +
           ", name='" + name + '\'' +
           ", organizationId='" + organizationId + '\'' +
           '}';

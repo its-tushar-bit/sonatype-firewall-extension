@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiSourceControlAdapter;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
@@ -24,6 +25,9 @@ public class ApiSourceControlResourceAuditTest
 {
   private Application app;
 
+  private ApiSourceControlAdapter apiSourceControlAdapter =
+      new ApiSourceControlAdapter();
+
   @Before
   public void setup() {
     app = tempEntity.newApplicationWithParent();
@@ -33,7 +37,8 @@ public class ApiSourceControlResourceAuditTest
   public void testAuditForCRUD() throws Exception {
     //CREATE
     String repositoryUrl = ApiSourceControlResourceTest.VALID_URL;
-    SourceControl sourceControl = new SourceControl(app.getId(), repositoryUrl, "token", SourceControlProvider.GITHUB);
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl(app.getId(), repositoryUrl, "token", SourceControlProvider.GITHUB));
     HttpResponse response = restRequest().path(SOURCE_CONTROL_PATH_V2).path(app.getId()).body(sourceControl).post();
     assertResponseStatus(200, response);
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
@@ -45,7 +50,7 @@ public class ApiSourceControlResourceAuditTest
     assertApplicationData(auditDTO, app);
 
     //UPDATE
-    String updatedUrl = sourceControl.getRepositoryUrl() + ".1";
+    String updatedUrl = sourceControl.repositoryUrl + ".1";
     result.repositoryUrl = updatedUrl;
     response = restRequest().path(SOURCE_CONTROL_PATH_V2).path(app.getId()).body(result).put();
     assertResponseStatus(200, response);
@@ -69,7 +74,8 @@ public class ApiSourceControlResourceAuditTest
   public void testAuditForAddOrUpdate() throws Exception {
     //CREATE
     String repositoryUrl = ApiSourceControlResourceTest.VALID_URL;
-    SourceControl sourceControl = new SourceControl(app.getId(), repositoryUrl, "token", SourceControlProvider.GITHUB);
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl(app.getId(), repositoryUrl, "token", SourceControlProvider.GITHUB));
     HttpResponse response = restRequest().path(SOURCE_CONTROL_PATH_V2).path(app.getId()).body(sourceControl).post();
     assertResponseStatus(200, response);
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
@@ -81,7 +87,7 @@ public class ApiSourceControlResourceAuditTest
     assertApplicationData(auditDTO, app);
 
     //UPDATE
-    String updatedUrl = sourceControl.getRepositoryUrl() + ".1";
+    String updatedUrl = sourceControl.repositoryUrl + ".1";
     result.repositoryUrl = updatedUrl;
     response = restRequest().path(SOURCE_CONTROL_PATH_V2).path(app.getId()).body(result).put();
     assertResponseStatus(200, response);

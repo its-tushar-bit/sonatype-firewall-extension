@@ -39,6 +39,15 @@ public class SourceControl
   @Column(name = "provider")
   private SourceControlProvider provider;
 
+  @Column(name = "base_branch")
+  private String baseBranch;
+
+  @Column(name = "enable_pull_requests")
+  private Boolean enablePullRequests;
+
+  @Column(name = "enable_status_checks")
+  private Boolean enableStatusChecks;
+
   public SourceControl() {
   }
 
@@ -93,5 +102,29 @@ public class SourceControl
 
   public void setProvider(final SourceControlProvider provider) {
     this.provider = provider;
+  }
+
+  public String getBaseBranch() {
+    return baseBranch;
+  }
+
+  public void setBaseBranch(final String baseBranch) {
+    this.baseBranch = baseBranch;
+  }
+
+  public Boolean getEnablePullRequests() {
+    return enablePullRequests;
+  }
+
+  public void setEnablePullRequests(final Boolean enablePullRequests) {
+    this.enablePullRequests = enablePullRequests;
+  }
+
+  public Boolean getEnableStatusChecks() {
+    return enableStatusChecks;
+  }
+
+  public void setEnableStatusChecks(final Boolean enableStatusChecks) {
+    this.enableStatusChecks = enableStatusChecks;
   }
 }

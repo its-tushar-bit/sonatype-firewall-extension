@@ -208,7 +208,12 @@ public class SourceControlDAOTest
 
   @Test
   public void testCRUD() {
-    SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
+    SourceControl sourceControl = new SourceControl(
+        app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
+    sourceControl.setBaseBranch("base/branch");
+    sourceControl.setEnablePullRequests(true);
+    sourceControl.setEnableStatusChecks(true);
+
     assertThat(sourceControl.getId()).isNull();
     sourceControlDAO.insert(sourceControl);
     assertThat(sourceControl.getId()).isNotNull();
@@ -217,12 +222,21 @@ public class SourceControlDAOTest
     assertThat(sourceControl.getOwnerId()).isEqualTo(app.getId());
     assertThat(sourceControl.getRepositoryUrl()).isEqualTo(VALID_URL);
     assertThat(sourceControl.getToken()).isEqualTo("bar");
+    assertThat(sourceControl.getBaseBranch()).isEqualTo("base/branch");
+    assertThat(sourceControl.getEnablePullRequests()).isTrue();
+    assertThat(sourceControl.getEnableStatusChecks()).isTrue();
 
     sourceControl.setToken("baz");
+    sourceControl.setBaseBranch("another");
+    sourceControl.setEnablePullRequests(false);
+    sourceControl.setEnableStatusChecks(false);
     sourceControlDAO.update(sourceControl);
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
     assertThat(sourceControl.getToken()).isEqualTo("baz");
+    assertThat(sourceControl.getBaseBranch()).isEqualTo("another");
+    assertThat(sourceControl.getEnablePullRequests()).isFalse();
+    assertThat(sourceControl.getEnableStatusChecks()).isFalse();
 
     sourceControlDAO.delete(sourceControl);
     assertThat(sourceControlDAO.getById(sourceControl.getId())).isNull();
@@ -230,7 +244,12 @@ public class SourceControlDAOTest
 
   @Test
   public void testCRUD_Organization() {
-    SourceControl sourceControl = new SourceControl(org.getId(), null, "bar", SourceControlProvider.GITHUB);
+    SourceControl sourceControl = new SourceControl(
+        org.getId(), null, "bar", SourceControlProvider.GITHUB);
+    sourceControl.setBaseBranch("base/branch");
+    sourceControl.setEnablePullRequests(true);
+    sourceControl.setEnableStatusChecks(true);
+
     assertThat(sourceControl.getId()).isNull();
     sourceControlDAO.insert(sourceControl);
     assertThat(sourceControl.getId()).isNotNull();
@@ -238,15 +257,47 @@ public class SourceControlDAOTest
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
     assertThat(sourceControl.getOwnerId()).isEqualTo(org.getId());
     assertThat(sourceControl.getToken()).isEqualTo("bar");
+    assertThat(sourceControl.getBaseBranch()).isEqualTo("base/branch");
+    assertThat(sourceControl.getEnablePullRequests()).isTrue();
+    assertThat(sourceControl.getEnableStatusChecks()).isTrue();
 
     sourceControl.setToken("baz");
+    sourceControl.setBaseBranch("another");
+    sourceControl.setEnablePullRequests(false);
+    sourceControl.setEnableStatusChecks(false);
     sourceControlDAO.update(sourceControl);
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
     assertThat(sourceControl.getToken()).isEqualTo("baz");
+    assertThat(sourceControl.getBaseBranch()).isEqualTo("another");
+    assertThat(sourceControl.getEnablePullRequests()).isFalse();
+    assertThat(sourceControl.getEnableStatusChecks()).isFalse();
 
     sourceControlDAO.delete(sourceControl);
     assertThat(sourceControlDAO.getById(sourceControl.getId())).isNull();
+  }
+
+  @Test
+  public void testPullRequestConfigsCanBeNull() {
+    SourceControl sourceControl = new SourceControl(
+        app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
+
+    assertThat(sourceControl.getId()).isNull();
+    assertThat(sourceControl.getBaseBranch()).isNull();
+    assertThat(sourceControl.getEnablePullRequests()).isNull();
+    assertThat(sourceControl.getEnableStatusChecks()).isNull();
+
+    sourceControlDAO.insert(sourceControl);
+
+    assertThat(sourceControl.getId()).isNotNull();
+    assertThat(sourceControl.getBaseBranch()).isNull();
+    assertThat(sourceControl.getEnablePullRequests()).isNull();
+    assertThat(sourceControl.getEnableStatusChecks()).isNull();
+
+    sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
+    assertThat(sourceControl.getBaseBranch()).isNull();
+    assertThat(sourceControl.getEnablePullRequests()).isNull();
+    assertThat(sourceControl.getEnableStatusChecks()).isNull();
   }
 
   @Test

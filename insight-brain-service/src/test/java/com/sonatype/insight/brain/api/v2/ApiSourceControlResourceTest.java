@@ -92,7 +92,8 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testAddSourceControl_MissingSourceControlProvider() throws Exception {
-    SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL, "token", null);
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl(app.getId(), VALID_URL, "token", null));
     HttpResponse response = restRequest().path(app.getId()).body(sourceControl).post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
@@ -102,8 +103,8 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testUpdateSourceControl_MissingSourceControlProvider() throws Exception {
-    SourceControl sourceControl =
-        tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITLAB);
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        app.getId(), VALID_URL, "token", SourceControlProvider.GITLAB);
     String updatedUrl = sourceControl.getRepositoryUrl() + ".1";
     sourceControl.setRepositoryUrl(updatedUrl);
     sourceControl.setProvider(null);
@@ -117,7 +118,8 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testAddSourceControl_InvalidSourceControlProvider() throws Exception {
-    SourceControl sourceControl = new SourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB));
 
     ObjectNode node = (ObjectNode) OBJECT_MAPPER.valueToTree(sourceControl);
     node.put("provider", "invalid_scm");
@@ -129,9 +131,10 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testUpdateSourceControl_InvalidSourceControlProvider() throws Exception {
-    SourceControl sourceControl =
-        tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
-    sourceControl.setProvider(null);
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "token",
+            SourceControlProvider.GITHUB));
+    sourceControl.provider = null;
 
     ObjectNode node = (ObjectNode) OBJECT_MAPPER.valueToTree(sourceControl);
     node.put("provider", "invalid_scm");
@@ -264,8 +267,8 @@ public class ApiSourceControlResourceTest
   public void testAddSourceControlByOwner_MissingSourceControlProvider()
       throws Exception
   {
-    SourceControl sourceControl = new SourceControl(
-        org.getId(), null, "token", null);
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl(org.getId(), null, "token", null));
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
@@ -297,8 +300,9 @@ public class ApiSourceControlResourceTest
   public void testAddSourceControlByOwner_InvalidSourceControlProvider()
       throws Exception
   {
-    SourceControl sourceControl = tempEntity.newSourceControl(
-        org.getId(), null, "token", SourceControlProvider.GITHUB);
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+        tempEntity.newSourceControl(org.getId(), null, "token",
+            SourceControlProvider.GITHUB));
 
     ObjectNode node = (ObjectNode) OBJECT_MAPPER.valueToTree(sourceControl);
     node.put("provider", "invalid_scm");
@@ -318,9 +322,9 @@ public class ApiSourceControlResourceTest
   public void testUpdateSourceControlByOwner_InvalidSourceControlProvider()
       throws Exception
   {
-    SourceControl sourceControl = tempEntity.newSourceControl(
-        org.getId(), null, "token", SourceControlProvider.GITHUB);
-    sourceControl.setProvider(null);
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+        tempEntity.newSourceControl(org.getId(), null, "token",
+            SourceControlProvider.GITHUB));
 
     ObjectNode node = (ObjectNode) OBJECT_MAPPER.valueToTree(sourceControl);
     node.put("provider", "invalid_scm");

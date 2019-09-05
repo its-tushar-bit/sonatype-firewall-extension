@@ -576,6 +576,9 @@ CREATE TABLE source_control (
   repository_url varchar(2048),
   token varchar(512),
   provider varchar(20),
+  base_branch varchar(243),
+  enable_pull_requests boolean,
+  enable_status_checks boolean,
   CONSTRAINT source_control_pk PRIMARY KEY (source_control_id),
   CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id)
 );

@@ -101,7 +101,13 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
   }
 
-  protected void saveErrorData(P params, CLIError error, RestClient restClient) throws ExitException { }
+  @SuppressWarnings("unused")
+  protected void saveErrorData(
+      @SuppressWarnings("unused") P params,
+      @SuppressWarnings("unused") CLIError error,
+      @SuppressWarnings("unused") RestClient restClient) throws ExitException
+  {
+  }
 
   protected ProprietaryConfig getProprietaryConfiguration(P params, RestClient restClient) throws ExitException {
     log.debug("Retrieving configuration for proprietary components from the IQ Server...");

@@ -73,6 +73,7 @@ public class DbDataTest
       tempEntity.newSystemConfigurationProperty(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME, "Sensitive. Must be masked.");
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     List<SystemConfigurationProperty> sysConfigs = (List) dbData.getSystemConfiguration().getValue();
     Map<String, String> sysProps =
         sysConfigs.stream().collect(toMap(SystemConfigurationProperty::getName, SystemConfigurationProperty::getValue));

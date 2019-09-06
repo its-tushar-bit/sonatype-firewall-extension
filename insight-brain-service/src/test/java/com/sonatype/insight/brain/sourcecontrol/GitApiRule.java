@@ -105,7 +105,7 @@ public class GitApiRule
       this.status = status;
     }
 
-    void render(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    void render(HttpServletResponse response) throws IOException {
       response.setStatus(status);
       response.setContentType(
           gitApiClientFactory.getGitApiClientUtils(getScmClientProvider(provider)).getApiContentType());
@@ -137,7 +137,7 @@ public class GitApiRule
         log.debug("No handler matching uri {}, returning 404", request.getRequestURI());
       }
       requests.put(request.getRequestURI(), handler.status);
-      handler.render(request, response);
+      handler.render(response);
       consume(baseRequest);
     }
 

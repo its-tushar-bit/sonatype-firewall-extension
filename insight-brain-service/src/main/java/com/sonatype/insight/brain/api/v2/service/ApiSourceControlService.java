@@ -281,7 +281,7 @@ public class ApiSourceControlService
 
   @Authorize(permission = Permission.READ)
   public SourceControl getSourceControlByOwnerDecrypted(
-      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) final String ownerId)
   {
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(ownerId);

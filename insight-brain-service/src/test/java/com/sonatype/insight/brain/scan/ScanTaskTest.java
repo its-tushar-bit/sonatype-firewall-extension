@@ -96,6 +96,7 @@ public class ScanTaskTest
     when(uploader.upload(eq(tmpScanFile), eq(app))).thenReturn(scanReceipt);
     ScanResult scanResult = new ScanResult(tmpScanFile, false);
     when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq(null))).thenReturn(scanResult);
+    when(thirdPartyScanResultsProcessor.handle(any(File.class))).thenReturn("scan-request-id");
   }
 
   private static Stage match(Stage stage) {
@@ -216,10 +217,12 @@ public class ScanTaskTest
     task.init(app, scanBinary, bundleFilename, stage, false);
     when(scanner.scan(any(File.class), any(String.class), any(File.class), eq(null)))
         .thenReturn(new ScanResult(scanBinary, true));
+    when(uploader.upload(any(File.class), eq(app))).thenReturn(scanReceipt);
 
     task.run();
 
     verify(thirdPartyScanResultsProcessor).handle(scanBinary);
+    verify(thirdPartyScanResultsProcessor).postHandle(any(String.class), any(String.class));
   }
 
   private void assertThatTaskCompletedSuccessfully(ScanTask task) {

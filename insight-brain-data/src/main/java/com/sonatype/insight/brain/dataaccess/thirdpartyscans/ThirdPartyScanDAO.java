@@ -37,6 +37,11 @@ public class ThirdPartyScanDAO
     return getList(tx, sQuery, thirdPartyFileId);
   }
 
+  public List<ThirdPartyScan> getByScanRequestId(String scanRequestId) {
+    String sQuery = "SELECT entity FROM ThirdPartyScan entity WHERE entity.scanRequestId=?1";
+    return getList(sQuery, scanRequestId);
+  }
+
   public int deleteByThirdPartyFileId(TransactionContext tx, String thirdPartyFileId) {
     String sQuery = "DELETE from ThirdPartyScan entity WHERE entity.thirdPartyFileId=?1";
     Query<ThirdPartyScan> query = createQuery(sQuery, thirdPartyFileId);

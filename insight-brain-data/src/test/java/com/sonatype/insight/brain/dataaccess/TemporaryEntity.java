@@ -1820,6 +1820,13 @@ public class TemporaryEntity
     return newThirdPartyScan(newThirdPartyFile());
   }
 
+  public ThirdPartyScan newThirdPartyScan(String scanRequestId, String scanId) {
+    ThirdPartyScan scan = new ThirdPartyScan(newThirdPartyFile().getId(), scanRequestId, new Date());
+    scan.setScanId(scanId);
+    new ThirdPartyScanDAO().insert(scan);
+    return scan;
+  }
+
   public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
       ThirdPartyFile thirdPartyFile,
       String source,

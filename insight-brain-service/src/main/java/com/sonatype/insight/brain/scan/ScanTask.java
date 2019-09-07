@@ -199,13 +199,18 @@ class ScanTask
           app.getPublicId());
       ScanResult scanResult = scanner.scan(binFile, filename, work.getScanDir(app.getId()), proprietaryConfig);
 
+      String thirdPartyScanRequestId = null;
       if (scanResult != null && scanResult.hasThirdPartyScanContent()) {
-        thirdPartyScanResultsProcessor.handle(scanResult.getScanFile());
+        thirdPartyScanRequestId = thirdPartyScanResultsProcessor.handle(scanResult.getScanFile());
       }
       // upload the scan
       state = State.UPLOADING_SCAN;
       ScanReceipt scanReceipt = uploader.upload(scanResult.getScanFile(), app);
       if (StringUtils.isNotBlank(scanReceipt.getScanId())) {
+        if (thirdPartyScanRequestId != null) {
+          thirdPartyScanResultsProcessor.postHandle(scanReceipt.getScanId(), thirdPartyScanRequestId);
+        }
+
         FileUtils.rename(scanResult.getScanFile(), work.getScanFile(app.getId(), scanReceipt.getScanId()));
       }
 

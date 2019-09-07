@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+
 public interface ThirdPartyScanResultHandler
 {
-  String handleAndFilterContents(ThirdPartyScanContent content);
+  String handleAndFilterContents(ThirdPartyScanContent content, ThirdPartyFile thirdPartyFile);
 }

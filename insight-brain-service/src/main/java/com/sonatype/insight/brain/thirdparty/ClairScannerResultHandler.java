@@ -5,44 +5,134 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.scan.file.clair.ClairScannerResult;
 import com.sonatype.insight.scan.file.clair.ClairScannerVulnerability;
+import com.sonatype.insight.scan.hash.SHA1;
+import com.sonatype.insight.scan.util.HashUtils;
 
 import com.google.gson.Gson;
+import org.apache.commons.lang3.StringUtils;
 
 public class ClairScannerResultHandler
     implements ThirdPartyScanResultHandler
 {
   private static final Gson GSON = new Gson();
 
+  private final ThirdPartyFileDAO thirdPartyFileDAO = new ThirdPartyFileDAO();
+
+  private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = new ThirdPartyFileCoordinateDAO();
+
+  private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO = new ThirdPartyCoordinateSecurityDAO();
+
   @Override
-  public String handleAndFilterContents(final ThirdPartyScanContent content) {
-    return filterContent(content.getContent());
+  public String handleAndFilterContents(ThirdPartyScanContent content, ThirdPartyFile thirdPartyFile) {
+    ClairScannerResult clairScannerResult = GSON.fromJson(content.getContent(), ClairScannerResult.class);
+
+    if (clairScannerResult != null) {
+      try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
+        tx.begin();
+
+        if (thirdPartyFile != null) {
+          thirdPartyFile.setImage(clairScannerResult.getImage());
+          thirdPartyFileDAO.update(tx, thirdPartyFile);
+        }
+
+        ClairScannerResult filteredClairScannerResult = new ClairScannerResult();
+
+        if (clairScannerResult.getVulnerabilities() != null) {
+          Map<String, String> hashFileCoordinateIdMap = new HashMap<String, String>();
+
+          Set<ClairScannerVulnerability> filteredVulnerabilities = clairScannerResult.getVulnerabilities().stream()
+              .map(vulnerability -> saveVulnerability(vulnerability, thirdPartyFile, hashFileCoordinateIdMap, tx))
+              .map(this::filterIdentities).collect(Collectors.toSet());
+
+          filteredClairScannerResult.setVulnerabilities(filteredVulnerabilities);
+        }
+
+        tx.commit();
+        return GSON.toJson(filteredClairScannerResult);
+      }
+    }
+
+    return content.getContent();
   }
 
-  private String filterContent(String content) {
-    ClairScannerResult clairScannerResult = GSON.fromJson(content, ClairScannerResult.class);
-    Set<ClairScannerVulnerability> filteredVulnerabilities = new HashSet<>();
-    if (clairScannerResult != null && clairScannerResult.getVulnerabilities() != null
-        && !clairScannerResult.getVulnerabilities().isEmpty()) {
+  private ClairScannerVulnerability saveVulnerability(
+      ClairScannerVulnerability vulnerability,
+      ThirdPartyFile thirdPartyFile,
+      Map<String, String> hashFileCoordinateIdMap,
+      TransactionContext tx)
+  {
+    if (thirdPartyFile != null) {
+      String fakeHash = buildHash(vulnerability.getNamespace() + ":" + vulnerability.getFeatureName() + ":"
+          + vulnerability.getFeatureVersion());
 
-      clairScannerResult.getVulnerabilities().stream().map(vulnerability -> {
-        ClairScannerVulnerability filteredVulnerability = new ClairScannerVulnerability();
-        filteredVulnerability.setFeatureName(vulnerability.getFeatureName());
-        filteredVulnerability.setFeatureVersion(vulnerability.getFeatureVersion());
-        filteredVulnerability.setNamespace(vulnerability.getNamespace());
-        return filteredVulnerability;
-      }).forEach(filteredVulnerability -> {
-        filteredVulnerabilities.add(filteredVulnerability);
-      });
+      String fileCoordinateId = hashFileCoordinateIdMap.get(fakeHash);
 
-      ClairScannerResult filteredClairScannerResult = new ClairScannerResult();
-      filteredClairScannerResult.setVulnerabilities(filteredVulnerabilities);
-      return GSON.toJson(filteredClairScannerResult);
+      if (fileCoordinateId == null) {
+        ThirdPartyFileCoordinate fileCoordinate =
+            new ThirdPartyFileCoordinate(fakeHash, IdentificationSource.CLAIR.getId(), vulnerability.getNamespace(),
+                vulnerability.getFeatureName(), vulnerability.getFeatureVersion(), thirdPartyFile.getId());
+        thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
+
+        fileCoordinateId = fileCoordinate.getId();
+        hashFileCoordinateIdMap.put(fakeHash, fileCoordinateId);
+      }
+
+      float severity = getSeverity(vulnerability);
+
+      ThirdPartyCoordinateSecurity coordinateSecurity =
+          new ThirdPartyCoordinateSecurity(fileCoordinateId, vulnerability.getVulnerability(),
+              vulnerability.getDescription(), vulnerability.getLink(), severity, vulnerability.getFixedBy());
+      thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
     }
-    return content;
+
+    return vulnerability;
+  }
+
+  String buildHash(String plainText) {
+    return new SHA1(HashUtils.hash(plainText, HashUtils.SHA1)).toHexString();
+  }
+
+  float getSeverity(final ClairScannerVulnerability vulnerability) {
+    // approximation based on the mapping range made by Clair:
+    // https://github.com/coreos/clair/blob/master/database/severity.go#L31-L69
+    // https://github.com/coreos/clair/blob/master/ext/vulnmdsrc/nvd/nvd.go#L266-L280
+    switch (StringUtils.trimToEmpty(vulnerability.getSeverity())) {
+      case "Negligible":
+        return 0.5f;
+      case "Low":
+        return 3f;
+      case "Medium":
+        return 6f;
+      case "High":
+        return 8f;
+      case "Critical":
+      case "Defcon1":
+        return 10;
+      default:
+        return 0f;
+    }
+  }
+
+  private ClairScannerVulnerability filterIdentities(ClairScannerVulnerability vulnerability) {
+    ClairScannerVulnerability filteredVulnerability = new ClairScannerVulnerability();
+    filteredVulnerability.setFeatureName(vulnerability.getFeatureName());
+    filteredVulnerability.setFeatureVersion(vulnerability.getFeatureVersion());
+    filteredVulnerability.setNamespace(vulnerability.getNamespace());
+    return filteredVulnerability;
   }
 }

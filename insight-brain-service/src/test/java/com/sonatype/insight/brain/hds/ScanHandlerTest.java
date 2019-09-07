@@ -114,6 +114,7 @@ public class ScanHandlerTest
   @Test
   public void testHandle_SonatypeThirdPartyScanType() throws Exception {
     Application app = tempEntity.newApplicationWithParent("test-app-id");
+    String scanRequestId = tempEntity.uuid();
     ScanReceipt scanReceipt = new ScanReceipt();
     String scanId = "test-scan-id";
     scanReceipt.setScanId(scanId);
@@ -121,12 +122,17 @@ public class ScanHandlerTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
+    when(thirdPartyScanResultsProcessor.handle(any(File.class))).thenReturn(scanRequestId);
     when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class)))
         .thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY);
     assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
     verify(thirdPartyScanResultsProcessor, times(1)).handle(any(File.class));
+
+    ArgumentCaptor<String> scanIdCaptor = ArgumentCaptor.forClass(String.class);
+    verify(thirdPartyScanResultsProcessor, times(1)).postHandle(scanIdCaptor.capture(), eq(scanRequestId));
+    assertThat(scanIdCaptor.getValue()).isEqualTo(scanId);
   }
 
   @Test

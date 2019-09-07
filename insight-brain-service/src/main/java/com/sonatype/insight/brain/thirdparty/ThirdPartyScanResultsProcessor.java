@@ -11,10 +11,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventFactory;
@@ -23,6 +26,10 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.utils.Xpp3Util;
 import com.sonatype.insight.scan.model.ItemContentType;
 
@@ -47,8 +54,20 @@ public class ThirdPartyScanResultsProcessor
 
   private static final XMLEventFactory EVENT_FACTORY = XMLEventFactory.newInstance();
 
-  public void handle(final File scanFile) {
-    log.info("Processing third party content");
+  private final ThirdPartyScanDAO thirdPartyScanDAO;
+
+  private final ThirdPartyFileDAO thirdPartyFileDAO;
+
+  @Inject
+  public ThirdPartyScanResultsProcessor(ThirdPartyScanDAO thirdPartyScanDAO, ThirdPartyFileDAO thirdPartyFileDAO) {
+    this.thirdPartyScanDAO = thirdPartyScanDAO;
+    this.thirdPartyFileDAO = thirdPartyFileDAO;
+  }
+
+  public String handle(final File scanFile) {
+    String scanRequestId = UUID.randomUUID().toString().replace("-", "");
+    log.info("Processing third party content with scanRequestId: {}", scanRequestId);
+
     try {
       File filteredFile = File.createTempFile("temp-", ".xml");
       try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile));
@@ -62,7 +81,7 @@ public class ThirdPartyScanResultsProcessor
 
         int eventType = parser.getEventType();
         while (eventType != XmlPullParser.END_DOCUMENT) {
-          processEvent(parser, writer, eventType, scanFile);
+          processEvent(parser, writer, eventType, scanFile, scanRequestId);
           eventType = parser.next();
         }
         writer.flush();
@@ -77,14 +96,29 @@ public class ThirdPartyScanResultsProcessor
     catch (Exception e) {
       log.error("Error reading third party scan content from scan file", e);
     }
+
+    return scanRequestId;
   }
 
-  private void processEvent(XmlPullParser parser, XMLEventWriter writer, int eventType, File scanFile) {
+  public void postHandle(String scanId, String scanRequestId) {
+    thirdPartyScanDAO.getByScanRequestId(scanRequestId).stream().forEach(thirdPartyScan -> {
+      thirdPartyScan.setScanId(scanId);
+      thirdPartyScanDAO.update(thirdPartyScan);
+    });
+  }
+
+  private void processEvent(
+      XmlPullParser parser,
+      XMLEventWriter writer,
+      int eventType,
+      File scanFile,
+      String scanRequestId)
+  {
     try {
       addElement(parser, writer);
       String elementName = parser.getName();
       if ("item".equals(elementName)) {
-        processItemElement(parser, writer, scanFile, elementName);
+        processItemElement(parser, writer, scanFile, elementName, scanRequestId);
       }
       else if (eventType == XmlPullParser.TEXT) {
         writer.add(EVENT_FACTORY.createCharacters(parser.getText()));
@@ -99,14 +133,15 @@ public class ThirdPartyScanResultsProcessor
       XmlPullParser parser,
       XMLEventWriter writer,
       File scanFile,
-      String elementName) throws XmlPullParserException, IOException, XMLStreamException
+      String elementName,
+      String scanRequestId) throws XmlPullParserException, IOException, XMLStreamException
   {
     String contentType = parser.getAttributeValue(null, "contentType");
     if (contentType != null && thirdPartyItemContentTypes.contains(contentType)) {
       Xpp3Dom itemElement = Xpp3Util.loadElement("item", parser);
       Xpp3Dom contentElement = itemElement.getChild("content");
       if (contentElement != null) {
-        String filteredContent = handleContent(itemElement, contentElement.getValue(), contentType);
+        String filteredContent = handleContent(itemElement, contentElement.getValue(), contentType, scanRequestId);
         writeFilteredInformation(writer, filteredContent);
       }
       else {
@@ -120,15 +155,36 @@ public class ThirdPartyScanResultsProcessor
     writer.add(EVENT_FACTORY.createEndElement(new QName(elementName), null));
   }
 
-  private String handleContent(Xpp3Dom itemElement, String contentElement, String contentType) {
+  private String handleContent(Xpp3Dom itemElement, String contentElement, String contentType, String scanRequestId) {
     String path = itemElement.getAttribute("path");
     String lastModified = itemElement.getAttribute("lastModified");
     String sha1 = itemElement.getAttribute("sha1");
 
+    ThirdPartyFile thirdPartyFile = thirdPartyFileDAO.getByHash(sha1);
+    boolean isNewThirdPartyFile = thirdPartyFile == null;
+
+    if (thirdPartyFile == null) {
+      thirdPartyFile = saveFile(sha1, path);
+    }
+
+    saveScan(thirdPartyFile, scanRequestId);
+
     ItemContentType contentItemType = ItemContentType.valueOf(contentType);
     ThirdPartyScanResultHandler handler = createHandler(contentItemType);
     return handler
-        .handleAndFilterContents(new ThirdPartyScanContent(path, contentItemType, lastModified, sha1, contentElement));
+        .handleAndFilterContents(new ThirdPartyScanContent(path, contentItemType, lastModified, sha1, contentElement),
+            isNewThirdPartyFile ? thirdPartyFile : null);
+  }
+
+  private ThirdPartyFile saveFile(String hash, String path) {
+    ThirdPartyFile thirdPartyFile = new ThirdPartyFile(hash, path, null, new Date());
+    thirdPartyFileDAO.insert(thirdPartyFile);
+    return thirdPartyFile;
+  }
+
+  private void saveScan(ThirdPartyFile thirdPartyFile, String scanRequestId) {
+    ThirdPartyScan thirdPartyScan = new ThirdPartyScan(thirdPartyFile.getId(), scanRequestId, new Date());
+    thirdPartyScanDAO.insert(thirdPartyScan);
   }
 
   private void compressScanFile(File filteredFile, File scanFile) throws FileNotFoundException, IOException {

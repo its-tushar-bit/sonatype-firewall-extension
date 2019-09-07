@@ -5,89 +5,191 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-import javax.inject.Inject;
-
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.scan.file.clair.ClairScannerResult;
 import com.sonatype.insight.scan.file.clair.ClairScannerVulnerability;
 
 import com.google.gson.Gson;
 import org.junit.Test;
+import org.mockito.Spy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class ClairScannerResultsHandlerTest
     extends AbstractComponentTest
 {
-  @Inject
-  private ClairScannerResultHandler clairhandler;
+  @Spy
+  private ClairScannerResultHandler clairHandlerSpy;
+
+  @Spy
+  private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
+
+  @Spy
+  private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
   private static final Gson GSON = new Gson();
 
   @Test
-  public void testHandle_filterContent() throws Exception {
+  public void testHandle_filterContent_newThirdPartyFileMultipleEntries() throws Exception {
+    ClairScannerResult clairScannerResult = new ClairScannerResult();
+    clairScannerResult.setImage("imageTest");
+
+    Set<ClairScannerVulnerability> vulnerabilities = new HashSet<>();
+
+    ClairScannerVulnerability vulnerability1 =
+        buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", "High");
+    vulnerabilities.add(vulnerability1);
+
+    // Same component, different vulnerability code
+    ClairScannerVulnerability vulnerability2 =
+        buildVulnerability("fn", "fv", "nm", "test 2", "CSV-test-2", "www.test2.com", "Low");
+    vulnerabilities.add(vulnerability2);
+
+    // Different component, different vulnerability code
+    ClairScannerVulnerability vulnerability3 =
+        buildVulnerability("fn-other", "fv-other", "nm", "test 3", "CSV-test-3", "www.test3.com", "Medium");
+    vulnerabilities.add(vulnerability3);
+
+    clairScannerResult.setVulnerabilities(vulnerabilities);
+
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(clairScannerResult));
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    doReturn("720a96f88eb4faecd141").when(clairHandlerSpy).buildHash(eq("nm:fn:fv"));
+    doReturn("ca9c29ddc0c9c296648e").when(clairHandlerSpy).buildHash(eq("nm:fn-other:fv-other"));
+
+    String filteredContent = clairHandlerSpy.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+
+    ClairScannerResult filteredClairScannerResult = toClairScannerResult(filteredContent);
+    assertClairScannerResult(filteredClairScannerResult);
+
+    assertThat(filteredClairScannerResult.getVulnerabilities()).hasSize(2);
+    filteredClairScannerResult.getVulnerabilities()
+        .forEach(filteredVulnerability -> assertClairScannerVulnerability(filteredVulnerability));
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(2);
+
+    // creates a new mutable list as the one from the DAO is immutable
+    coordinates = new ArrayList<>(coordinates);
+    coordinates.sort(Comparator.comparing(ThirdPartyFileCoordinate::getName));
+
+    try (TransactionContext tx = thirdPartyCoordinateSecurityDAO.createTransactionContext()) {
+      ThirdPartyFileCoordinate coordinate1 = coordinates.get(0);
+      assertThirdPartyFileCoordinate(vulnerability1, thirdPartyFile, coordinate1);
+
+      List<ThirdPartyCoordinateSecurity> coordinatesSecurity =
+          thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, coordinate1.getId());
+      assertThat(coordinatesSecurity).hasSize(2);
+
+      // creates a new mutable list as the one from the DAO is immutable
+      coordinatesSecurity = new ArrayList<>(coordinatesSecurity);
+      coordinatesSecurity.sort(Comparator.comparing(ThirdPartyCoordinateSecurity::getRefId));
+
+      assertThirdPartyCoordinateSecurity(vulnerability1, coordinate1, coordinatesSecurity.get(0), 8f);
+      assertThirdPartyCoordinateSecurity(vulnerability2, coordinate1, coordinatesSecurity.get(1), 3f);
+
+      ThirdPartyFileCoordinate coordinate2 = coordinates.get(1);
+      assertThirdPartyFileCoordinate(vulnerability3, thirdPartyFile, coordinate2);
+
+      coordinatesSecurity = thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, coordinate2.getId());
+      assertThat(coordinatesSecurity).hasSize(1);
+
+      ThirdPartyCoordinateSecurity coordinateSecurity = coordinatesSecurity.get(0);
+      assertThirdPartyCoordinateSecurity(vulnerability3, coordinate2, coordinateSecurity, 6f);
+    }
+  }
+
+  @Test
+  public void testHandle_filterContent_existingThirdPartyFile() throws Exception {
     ClairScannerResult clairScannerResult = new ClairScannerResult();
     clairScannerResult.setImage("imageTest");
     Set<ClairScannerVulnerability> vulnerabilities = new HashSet<>();
-    ClairScannerVulnerability vulnerability = new ClairScannerVulnerability();
-    vulnerability.setFeatureName("fn");
-    vulnerability.setFeatureVersion("fv");
-    vulnerability.setNamespace("nm");
-    vulnerability.setDescription("test");
-    vulnerability.setVulnerability("CSV-test");
-    vulnerability.setLink("www.test.com");
-    vulnerability.setSeverity("High");
+    ClairScannerVulnerability vulnerability =
+        buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", "High");
     vulnerabilities.add(vulnerability);
     clairScannerResult.setVulnerabilities(vulnerabilities);
 
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(clairScannerResult));
 
-    String filteredContent = clairhandler.handleAndFilterContents(content);
+    ThirdPartyFile thirdPartyFile = null;
+
+    String filteredContent = clairHandlerSpy.handleAndFilterContents(content, thirdPartyFile);
     assertThat(filteredContent).isNotNull();
 
     ClairScannerResult filteredClairScannerResult = toClairScannerResult(filteredContent);
+    assertClairScannerResult(filteredClairScannerResult);
 
-    assertThat(filteredClairScannerResult).isNotNull();
-    assertThat(filteredClairScannerResult.getImage()).isNull();
-    assertThat(filteredClairScannerResult.getVulnerabilities()).isNotNull();
     assertThat(filteredClairScannerResult.getVulnerabilities()).hasSize(1);
+    filteredClairScannerResult.getVulnerabilities()
+        .forEach(filteredVulnerability -> assertClairScannerVulnerability(filteredVulnerability));
 
-    for (ClairScannerVulnerability filteredVulnerability : filteredClairScannerResult.getVulnerabilities()) {
-      assertThat(filteredVulnerability).isNotNull();
-      assertThat(filteredVulnerability.getFeatureName()).isNotNull();
-      assertThat(filteredVulnerability.getFeatureVersion()).isNotNull();
-      assertThat(filteredVulnerability.getNamespace()).isNotNull();
-
-      assertThat(filteredVulnerability.getDescription()).isNull();
-      assertThat(filteredVulnerability.getVulnerability()).isNull();
-      assertThat(filteredVulnerability.getLink()).isNull();
-      assertThat(filteredVulnerability.getSeverity()).isNull();
-    }
-
+    verify(thirdPartyCoordinateSecurityDAO, times(0)).insert(any(ThirdPartyCoordinateSecurity.class));
+    verify(thirdPartyFileCoordinateDAO, times(0)).insert(any(ThirdPartyFileCoordinate.class));
   }
 
   @Test
   public void testHandle_nullContent() throws Exception {
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, null);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = clairhandler.handleAndFilterContents(content);
+    String filteredContent = clairHandlerSpy.handleAndFilterContents(content, thirdPartyFile);
     assertThat(filteredContent).isNull();
   }
 
   @Test
   public void testHandle_emptyContent() throws Exception {
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(new ClairScannerResult()));
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = clairhandler.handleAndFilterContents(content);
+    String filteredContent = clairHandlerSpy.handleAndFilterContents(content, thirdPartyFile);
     ClairScannerResult filteredClairScannerResult = toClairScannerResult(filteredContent);
 
     assertThat(filteredClairScannerResult).isNotNull();
     assertThat(filteredClairScannerResult.getImage()).isNull();
     assertThat(filteredClairScannerResult.getVulnerabilities()).isNull();
+  }
 
+  @Test
+  public void testGetSeverity() {
+    ClairScannerVulnerability vulnerability =
+        buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", "High");
+    assertThat(clairHandlerSpy.getSeverity(vulnerability)).isEqualTo(8f);
+
+    vulnerability = buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", "Medium");
+    assertThat(clairHandlerSpy.getSeverity(vulnerability)).isEqualTo(6f);
+
+    vulnerability = buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", "Defcon1");
+    assertThat(clairHandlerSpy.getSeverity(vulnerability)).isEqualTo(10f);
+
+    vulnerability = buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", "Negligible");
+    assertThat(clairHandlerSpy.getSeverity(vulnerability)).isEqualTo(0.5f);
+
+    vulnerability = buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", "");
+    assertThat(clairHandlerSpy.getSeverity(vulnerability)).isEqualTo(0f);
+
+    vulnerability = buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", null);
+    assertThat(clairHandlerSpy.getSeverity(vulnerability)).isEqualTo(0f);
   }
 
   private String toJson(ClairScannerResult clairScannerResult) {
@@ -96,5 +198,70 @@ public class ClairScannerResultsHandlerTest
 
   private ClairScannerResult toClairScannerResult(String content) {
     return GSON.fromJson(content, ClairScannerResult.class);
+  }
+
+  private ClairScannerVulnerability buildVulnerability(
+      String name,
+      String version,
+      String namespace,
+      String description,
+      String vulnerability,
+      String link,
+      String severity)
+  {
+    ClairScannerVulnerability vulnerability3 = new ClairScannerVulnerability();
+    vulnerability3.setFeatureName(name);
+    vulnerability3.setFeatureVersion(version);
+    vulnerability3.setNamespace(namespace);
+    vulnerability3.setDescription(description);
+    vulnerability3.setVulnerability(vulnerability);
+    vulnerability3.setLink(link);
+    vulnerability3.setSeverity(severity);
+    return vulnerability3;
+  }
+
+  private void assertClairScannerResult(ClairScannerResult filteredClairScannerResult) {
+    assertThat(filteredClairScannerResult).isNotNull();
+    assertThat(filteredClairScannerResult.getImage()).isNull();
+    assertThat(filteredClairScannerResult.getVulnerabilities()).isNotNull();
+  }
+
+  private void assertClairScannerVulnerability(ClairScannerVulnerability filteredVulnerability) {
+    assertThat(filteredVulnerability).isNotNull();
+    assertThat(filteredVulnerability.getFeatureName()).isNotNull();
+    assertThat(filteredVulnerability.getFeatureVersion()).isNotNull();
+    assertThat(filteredVulnerability.getNamespace()).isNotNull();
+
+    assertThat(filteredVulnerability.getDescription()).isNull();
+    assertThat(filteredVulnerability.getVulnerability()).isNull();
+    assertThat(filteredVulnerability.getLink()).isNull();
+    assertThat(filteredVulnerability.getSeverity()).isNull();
+  }
+
+  private void assertThirdPartyFileCoordinate(
+      ClairScannerVulnerability vulnerability,
+      ThirdPartyFile thirdPartyFile,
+      ThirdPartyFileCoordinate coordinate)
+  {
+    assertThat(coordinate.getFormat()).isEqualTo(vulnerability.getNamespace());
+    assertThat(coordinate.getHash()).isNotBlank();
+    assertThat(coordinate.getName()).isEqualTo(vulnerability.getFeatureName());
+    assertThat(coordinate.getSource()).isEqualTo(IdentificationSource.CLAIR.getId());
+    assertThat(coordinate.getThirdPartyFileId()).isEqualTo(thirdPartyFile.getId());
+    assertThat(coordinate.getVersion()).isEqualTo(vulnerability.getFeatureVersion());
+  }
+
+  private void assertThirdPartyCoordinateSecurity(
+      ClairScannerVulnerability vulnerability,
+      ThirdPartyFileCoordinate coordinate,
+      ThirdPartyCoordinateSecurity coordinateSecurity,
+      float expectedSeverity)
+  {
+    assertThat(coordinateSecurity.getDescription()).isEqualTo(vulnerability.getDescription());
+    assertThat(coordinateSecurity.getFileCoordinateId()).isEqualTo(coordinate.getId());
+    assertThat(coordinateSecurity.getFixedBy()).isEqualTo(vulnerability.getFixedBy());
+    assertThat(coordinateSecurity.getLink()).isEqualTo(vulnerability.getLink());
+    assertThat(coordinateSecurity.getRefId()).isEqualTo(vulnerability.getVulnerability());
+    assertThat(coordinateSecurity.getSeverity()).isEqualTo(expectedSeverity);
   }
 }

@@ -27,6 +27,8 @@ public class IdentificationSource
 
   public static final IdentificationSource MANUAL = new IdentificationSource("Manual", "Manual");
 
+  public static final IdentificationSource CLAIR = new IdentificationSource("Clair", "Clair");
+
   private final String id;
 
   private final String name;

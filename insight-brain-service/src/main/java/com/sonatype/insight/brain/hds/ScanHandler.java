@@ -114,8 +114,9 @@ public class ScanHandler
         tempScanFile = convertTwistlockScan(tempScanFile, app);
       }
 
+      String thirdPartyScanRequestId = null;
       if (ClientScanType.SONATYPE_THIRD_PARTY.equals(clientScanType)) {
-        thirdPartyScanResultsProcessor.handle(tempScanFile);
+        thirdPartyScanRequestId = thirdPartyScanResultsProcessor.handle(tempScanFile);
       }
 
       ScanReceipt scanReceipt = scanUploader.upload(tempScanFile, app);
@@ -123,6 +124,10 @@ public class ScanHandler
         Files.delete(tempScanFile.toPath());
       }
       else {
+        if (thirdPartyScanRequestId != null) {
+          thirdPartyScanResultsProcessor.postHandle(scanReceipt.getScanId(), thirdPartyScanRequestId);
+        }
+
         File scanFile = work.getScanFile(app.getId(), scanReceipt.getScanId());
         FileUtils.rename(tempScanFile, scanFile);
       }

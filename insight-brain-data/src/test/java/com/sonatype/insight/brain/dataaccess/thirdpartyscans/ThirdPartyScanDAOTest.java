@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -26,15 +27,15 @@ public class ThirdPartyScanDAOTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     // Create
-    String scanId = tempEntity.uuid();
+    String scanRequestId = tempEntity.uuid();
     Date created = new Date();
-    ThirdPartyScan entity = new ThirdPartyScan(thirdPartyFile.getId(), scanId, created);
+    ThirdPartyScan entity = new ThirdPartyScan(thirdPartyFile.getId(), scanRequestId, created);
     dao.insert(entity);
     assertThat(entity.getId()).isNotNull();
 
     // Get
     ThirdPartyScan retrievedScan = dao.getById(entity.getId());
-    assertThirdPartyScan(entity.getId(), thirdPartyFile.getId(), scanId, created, retrievedScan);
+    assertThirdPartyScan(entity.getId(), thirdPartyFile.getId(), scanRequestId, null, created, retrievedScan);
 
     // Update
     String updatedScanId = tempEntity.uuid();
@@ -51,12 +52,14 @@ public class ThirdPartyScanDAOTest
 
   @Test
   public void testGetByScannedFileIdAndScanId() {
-    ThirdPartyScan scan = tempEntity.newThirdPartyScan();
+    String scanId = tempEntity.uuid();
+    ThirdPartyScan scan = tempEntity.newThirdPartyScan(tempEntity.uuid(), scanId);
+
     ThirdPartyScan retrievedMapping =
         dao.getByThirdPartyFileIdAndScanId(scan.getThirdPartyFileId(), scan.getScanId());
 
-    assertThirdPartyScan(scan.getId(), scan.getThirdPartyFileId(), scan.getScanId(), scan.getCreateTime(),
-        retrievedMapping);
+    assertThirdPartyScan(scan.getId(), scan.getThirdPartyFileId(), scan.getScanRequestId(), scanId,
+        scan.getCreateTime(), retrievedMapping);
   }
 
   @Test
@@ -75,14 +78,32 @@ public class ThirdPartyScanDAOTest
     assertThat(dao.getById(scan2.getId())).isNull();
   }
 
+  @Test
+  public void testGetByScanRequestId_MultipleRecords() {
+    ThirdPartyScan expected1 = tempEntity.newThirdPartyScan();
+    ThirdPartyScan expected2 = tempEntity.newThirdPartyScan(expected1.getScanRequestId(), tempEntity.uuid());
+
+    List<ThirdPartyScan> found = dao.getByScanRequestId(expected1.getScanRequestId());
+
+    assertThat(found).hasSize(2);
+
+    assertThirdPartyScan(expected1.getId(), expected1.getThirdPartyFileId(), expected1.getScanRequestId(),
+        expected1.getScanId(), expected1.getCreateTime(), found.get(0));
+
+    assertThirdPartyScan(expected2.getId(), expected2.getThirdPartyFileId(), expected2.getScanRequestId(),
+        expected2.getScanId(), expected2.getCreateTime(), found.get(1));
+  }
+
   private void assertThirdPartyScan(
       final String id,
       final String thirdPartyFileId,
+      final String scanRequestId,
       final String scanId,
       final Date created, final ThirdPartyScan actual)
   {
     assertThat(actual.getId()).isEqualTo(id);
     assertThat(actual.getThirdPartyFileId()).isEqualTo(thirdPartyFileId);
+    assertThat(actual.getScanRequestId()).isEqualTo(scanRequestId);
     assertThat(actual.getScanId()).isEqualTo(scanId);
     assertThat(actual.getCreateTime()).isEqualTo(created);
   }

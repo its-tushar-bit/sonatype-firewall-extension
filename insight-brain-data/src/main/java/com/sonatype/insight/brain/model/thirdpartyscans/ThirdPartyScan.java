@@ -22,9 +22,9 @@ public class ThirdPartyScan
   public ThirdPartyScan() {
   }
 
-  public ThirdPartyScan(String thirdPartyFileId, String scanId, Date createTime) {
+  public ThirdPartyScan(String thirdPartyFileId, String scanRequestId, Date createTime) {
     this.thirdPartyFileId = thirdPartyFileId;
-    this.scanId = scanId;
+    this.scanRequestId = scanRequestId;
     this.createTime = createTime;
   }
 
@@ -34,6 +34,9 @@ public class ThirdPartyScan
 
   @Column(name = "third_party_file_id")
   private String thirdPartyFileId;
+
+  @Column(name = "scan_request_id")
+  private String scanRequestId;
 
   @Column(name = "scan_id")
   private String scanId;
@@ -57,6 +60,14 @@ public class ThirdPartyScan
 
   public void setThirdPartyFileId(String thirdPartyFileId) {
     this.thirdPartyFileId = thirdPartyFileId;
+  }
+
+  public String getScanRequestId() {
+    return scanRequestId;
+  }
+
+  public void setScanRequestId(String scanRequestId) {
+    this.scanRequestId = scanRequestId;
   }
 
   public String getScanId() {

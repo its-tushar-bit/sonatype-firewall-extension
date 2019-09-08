@@ -161,6 +161,8 @@ public class SupportServiceTest
         .isEqualTo(zipFileBasename + "/" + SupportFileType.DB.getDirName() + "/migrationTracker.json");
     assertThat(entries.nextElement().getName())
         .isEqualTo(zipFileBasename + "/" + SupportFileType.DB.getDirName() + "/systemConfiguration.json");
+    assertThat(entries.nextElement().getName())
+        .isEqualTo(zipFileBasename + "/" + SupportFileType.DB.getDirName() + "/dataRetentionPolicy.json");
   }
 
   private static String getZipFileBasename(final File supportZipFile) {

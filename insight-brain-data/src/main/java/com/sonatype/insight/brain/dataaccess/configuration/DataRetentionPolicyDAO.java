@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -25,6 +26,11 @@ public class DataRetentionPolicyDAO
   public DataRetentionPolicy getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM DataRetentionPolicy entity WHERE entity.id = ?1";
     return get(tx, sQuery, id);
+  }
+
+  public List<DataRetentionPolicy> getAll() {
+    String sQuery = "SELECT entity FROM DataRetentionPolicy entity ORDER BY entity.ownerId, entity.contextId";
+    return getList(sQuery);
   }
 
   private void validate(DataRetentionPolicy entity) {

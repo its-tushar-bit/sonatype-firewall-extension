@@ -17,6 +17,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
@@ -107,6 +108,8 @@ class DbData
 
   private final MigrationTrackerDAO migrationTrackerDAO;
 
+  private final DataRetentionPolicyDAO dataRetentionPolicyDAO;
+
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Inject
@@ -133,6 +136,7 @@ class DbData
          final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO,
          final PolicyDAO policyDAO,
          final PolicyMonitoringDAO policyMonitoringDAO,
+         final DataRetentionPolicyDAO dataRetentionPolicyDAO,
          final MigrationTrackerDAO migrationTrackerDAO,
          final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
   {
@@ -160,6 +164,7 @@ class DbData
     this.licenseThreatGroupLicenseDAO = licenseThreatGroupLicenseDAO;
     this.policyDAO = policyDAO;
     this.policyMonitoringDAO = policyMonitoringDAO;
+    this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
@@ -267,6 +272,10 @@ class DbData
 
   Entry<String, Object> getPolicyMonitoring() {
     return wrapEntry("policyMonitoring", policyMonitoringDAO.getAll());
+  }
+
+  Entry<String, Object> getDataRetentionPolicy() {
+    return wrapEntry("dataRetentionPolicy", dataRetentionPolicyDAO.getAll());
   }
 
   Entry<String, Object> getMigrationTracker() {

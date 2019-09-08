@@ -289,6 +289,7 @@ class SupportService
 
     addDbData(filesToZip, workDir, dbData.getMigrationTracker());
     addDbData(filesToZip, workDir, dbData.getSystemConfiguration());
+    addDbData(filesToZip, workDir, dbData.getDataRetentionPolicy());
     if (includeDb) {
       addAllDbData(filesToZip, workDir);
     }

@@ -83,6 +83,11 @@ public class DataRetentionPolicyDAOTest
   }
 
   @Test
+  public void testGetAll() {
+    assertThat(dao.getAll()).hasSize(7);
+  }
+
+  @Test
   public void testInsert_ValidateMaxCount_LowerBound() {
     DataRetentionPolicy policy = new DataRetentionPolicy(organization.getId(), "contextId", true, 0, null);
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {

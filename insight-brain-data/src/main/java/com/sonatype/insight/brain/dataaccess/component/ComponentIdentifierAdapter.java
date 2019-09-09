@@ -8,11 +8,13 @@ package com.sonatype.insight.brain.dataaccess.component;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,6 +53,13 @@ public class ComponentIdentifierAdapter
       return ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version, classifier, extension);
     }
     return null;
+  }
+
+  public static ComponentIdentifier createGenericIdentifier(final ThirdPartyFileCoordinate thirdPartyFileCoordinate) {
+    Map<String, String> coordinates = new HashMap<>();
+    coordinates.put("name", thirdPartyFileCoordinate.getName());
+    coordinates.put(VERSION, thirdPartyFileCoordinate.getVersion());
+    return new ComponentIdentifier(thirdPartyFileCoordinate.getFormat(), coordinates);
   }
 
   /**

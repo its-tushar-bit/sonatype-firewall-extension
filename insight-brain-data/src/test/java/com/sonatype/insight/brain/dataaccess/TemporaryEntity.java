@@ -1131,7 +1131,7 @@ public class TemporaryEntity
         newRandomHash());
   }
 
-  private String newRandomHash() {
+  public String newRandomHash() {
     return uuid().substring(0, 20);
   }
 
@@ -1827,6 +1827,13 @@ public class TemporaryEntity
     return scan;
   }
 
+  public ThirdPartyScan newThirdPartyScan(String scanRequestId, String scanId, ThirdPartyFile thirdPartyFile) {
+    ThirdPartyScan scan = new ThirdPartyScan(thirdPartyFile.getId(), scanRequestId, new Date());
+    scan.setScanId(scanId);
+    new ThirdPartyScanDAO().insert(scan);
+    return scan;
+  }
+
   public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
       ThirdPartyFile thirdPartyFile,
       String source,
@@ -1834,8 +1841,19 @@ public class TemporaryEntity
       String name,
       String version)
   {
+    return newThirdPartyFileCoordinate(thirdPartyFile, source, format, name, version, newRandomHash());
+  }
+
+  public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
+      ThirdPartyFile thirdPartyFile,
+      String source,
+      String format,
+      String name,
+      String version,
+      String hash)
+  {
     ThirdPartyFileCoordinate fileCoordinate =
-        new ThirdPartyFileCoordinate(newRandomHash(), source, format, name, version, thirdPartyFile.getId());
+        new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFile.getId());
     new ThirdPartyFileCoordinateDAO().insert(fileCoordinate);
     return fileCoordinate;
   }

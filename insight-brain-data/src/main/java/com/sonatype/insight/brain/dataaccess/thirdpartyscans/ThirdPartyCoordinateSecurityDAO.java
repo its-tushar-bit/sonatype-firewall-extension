@@ -31,6 +31,12 @@ public class ThirdPartyCoordinateSecurityDAO
     return get(sQuery, coordinateFileId, refId);
   }
 
+  public List<ThirdPartyCoordinateSecurity> getByFileCoordinateIds(List<String> fileCoordinateIdList) {
+    String sQuery = "SELECT entity FROM ThirdPartyCoordinateSecurity entity" + //
+        " WHERE entity.fileCoordinateId IN ?1";
+    return getList(sQuery, fileCoordinateIdList);
+  }
+
   public List<ThirdPartyCoordinateSecurity> getByFileCoordinateId(TransactionContext tx, String coordinateFileId) {
     String sQuery = "SELECT entity FROM ThirdPartyCoordinateSecurity entity" + //
         " WHERE entity.fileCoordinateId=?1";

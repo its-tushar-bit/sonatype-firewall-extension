@@ -1,0 +1,47 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "glibc:2.24-11+deb9u3" ],
+    "pathnames" : [ "dependency:/clair-scanner-output.json/glibc:2.24-11+deb9u3" , "dependency:/other/clair-scanner-output.json/glibc:2.24-11+deb9u3"],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e587ce87ed894c1d5283",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "glibc:2.24-11+deb9u3"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "apt:1.4.8" ],
+    "pathnames" : [ "dependency:/clair-scanner-output.json/apt:1.4.8" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "683620ac905c1d32b58c",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "apt:1.4.8"
+      } ]
+    }
+  } ]
+}

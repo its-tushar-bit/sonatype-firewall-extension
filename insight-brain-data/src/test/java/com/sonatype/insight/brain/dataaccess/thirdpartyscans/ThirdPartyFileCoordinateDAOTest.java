@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -22,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ThirdPartyFileCoordinateDAOTest
     extends AbstractDbDAOTest
 {
-  private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = new ThirdPartyFileCoordinateDAO();
+  private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = new ThirdPartyFileCoordinateDAO();
 
   private ThirdPartyFileCoordinate fileCoordinate;
 
@@ -87,6 +89,23 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  public void testGetByHashAndScanId() {
+    String scanId = tempEntity.uuid();
+    String hash = tempEntity.newRandomHash();
+    List<ThirdPartyFileCoordinate> fileCoordinateList = createThirdPartyScans(scanId, hash);
+    List<ThirdPartyFileCoordinate> results =
+        thirdPartyFileCoordinateDAO.getByHashAndScanId(hash, scanId);
+
+    assertThat(results).hasSize(2);
+
+    Comparator<ThirdPartyFileCoordinate> thirdPartySecurityComparator =
+        Comparator.comparing(ThirdPartyFileCoordinate::getHash);
+
+    assertThat(results).usingElementComparator(thirdPartySecurityComparator)
+        .containsAnyElementsOf(fileCoordinateList);
+  }
+
+  @Test
   public void testDeleteByThirdPartyFileId() {
     final ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     final ThirdPartyFileCoordinate coord1 =
@@ -125,5 +144,33 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(entity.getFormat()).isEqualTo(format);
     assertThat(entity.getVersion()).isEqualTo(version);
     assertThat(entity.getThirdPartyFileId()).isEqualTo(thirdPartyFileId);
+  }
+
+  private List<ThirdPartyFileCoordinate> createThirdPartyScans(String scanId, String hash) {
+    List<ThirdPartyFileCoordinate> fileCoordinateList = new ArrayList<>();
+
+    String scanRequestId = tempEntity.uuid();
+
+    ThirdPartyFileCoordinate fileCoordinate1 = new ThirdPartyFileCoordinate(hash, "s1", "f1", "n1", "v1", null);
+    newThirdPartyScan(scanId, scanRequestId, fileCoordinate1);
+    fileCoordinateList.add(fileCoordinate1);
+
+    ThirdPartyFileCoordinate fileCoordinate2 = new ThirdPartyFileCoordinate(hash, "s2", "f2", "n2", "v2", null);
+    newThirdPartyScan(scanId, scanRequestId, fileCoordinate2);
+    fileCoordinateList.add(fileCoordinate2);
+
+    ThirdPartyFileCoordinate fileCoordinate3 =
+        new ThirdPartyFileCoordinate(tempEntity.newRandomHash(), "s3", "f3", "n3", "v3", null);
+    newThirdPartyScan(scanId, scanRequestId, fileCoordinate3);
+    fileCoordinateList.add(fileCoordinate3);
+
+    return fileCoordinateList;
+  }
+
+  private void newThirdPartyScan(String scanId, String scanRequestId, ThirdPartyFileCoordinate fileCoordinate) {
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, fileCoordinate.getSource(), fileCoordinate.getFormat(),
+        fileCoordinate.getName(), fileCoordinate.getVersion(), fileCoordinate.getHash());
+    tempEntity.newThirdPartyScan(scanRequestId, scanId, thirdPartyFile);
   }
 }

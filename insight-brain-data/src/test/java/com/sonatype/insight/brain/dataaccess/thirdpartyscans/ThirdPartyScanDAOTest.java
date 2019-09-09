@@ -63,6 +63,15 @@ public class ThirdPartyScanDAOTest
   }
 
   @Test
+  public void testGetByScanId() {
+    ThirdPartyScan scan = tempEntity.newThirdPartyScan();
+    List<ThirdPartyScan> scanList = dao.getByScanId(scan.getScanId());
+
+    assertThat(scanList).hasSize(1);
+    assertThirdPartyScan(scan, scanList.get(0));
+  }
+
+  @Test
   public void testDeleteByThirdPartyFileId() {
     final ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     final ThirdPartyScan scan1 = tempEntity.newThirdPartyScan(thirdPartyFile);
@@ -92,6 +101,11 @@ public class ThirdPartyScanDAOTest
 
     assertThirdPartyScan(expected2.getId(), expected2.getThirdPartyFileId(), expected2.getScanRequestId(),
         expected2.getScanId(), expected2.getCreateTime(), found.get(1));
+  }
+
+  private void assertThirdPartyScan(final ThirdPartyScan expected, final ThirdPartyScan actual) {
+    assertThirdPartyScan(expected.getId(), expected.getThirdPartyFileId(), expected.getScanRequestId(),
+        expected.getScanId(), expected.getCreateTime(), actual);
   }
 
   private void assertThirdPartyScan(

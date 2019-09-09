@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
@@ -59,6 +64,22 @@ public class ThirdPartyCoordinateSecurityDAOTest
   }
 
   @Test
+  public void testGetByFileCoordinateIdList() {
+    List<ThirdPartyCoordinateSecurity> coordinateSecurityList = newThirdPartyCoordinateSecurityList();
+    List<String> listId =
+        coordinateSecurityList.stream().map(ThirdPartyCoordinateSecurity::getFileCoordinateId)
+            .collect(Collectors.toList());
+    List<ThirdPartyCoordinateSecurity> results = dao.getByFileCoordinateIds(listId);
+
+    Comparator<ThirdPartyCoordinateSecurity> thirdPartySecurityComparator =
+        Comparator.comparing(ThirdPartyCoordinateSecurity::getRefId)
+            .thenComparing(ThirdPartyCoordinateSecurity::getFileCoordinateId);
+
+    assertThat(results).usingElementComparator(thirdPartySecurityComparator)
+        .containsExactlyInAnyOrderElementsOf(coordinateSecurityList);
+  }
+
+  @Test
   public void testDeleteByFileCoordinateId() {
     ThirdPartyFileCoordinate coord1 =
         tempEntity.newThirdPartyFileCoordinate(tempEntity.newThirdPartyFile(), "s1", "f1", "n1", "v1");
@@ -90,5 +111,24 @@ public class ThirdPartyCoordinateSecurityDAOTest
     assertThat(actual.getSeverity()).isEqualTo(score);
     assertThat(actual.getFixedBy()).isEqualTo(fixedBy);
     assertThat(actual.getFileCoordinateId()).isEqualTo(cooedinateFileId);
+  }
+
+  private List<ThirdPartyCoordinateSecurity> newThirdPartyCoordinateSecurityList() {
+    List<ThirdPartyCoordinateSecurity> list = new ArrayList<>();
+
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
+        tempEntity.newThirdPartyCoordinateSecurity(tempEntity.newThirdPartyFileCoordinate(), "r1", "d1", "l1", 5.5f,
+            "1.1");
+    list.add(thirdPartyCoordinateSecurity1);
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity2 =
+        tempEntity.newThirdPartyCoordinateSecurity(tempEntity.newThirdPartyFileCoordinate(), "r2", "d2", "l2", 1f,
+            "1.2");
+    list.add(thirdPartyCoordinateSecurity2);
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity3 =
+        tempEntity.newThirdPartyCoordinateSecurity(tempEntity.newThirdPartyFileCoordinate(), "r3", "d3", "l3", 10f,
+            "1.3");
+    list.add(thirdPartyCoordinateSecurity3);
+
+    return list;
   }
 }

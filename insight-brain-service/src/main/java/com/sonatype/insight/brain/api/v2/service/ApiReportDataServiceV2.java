@@ -27,8 +27,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportConstraintViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.component.ComponentResolver;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
@@ -68,28 +68,29 @@ public class ApiReportDataServiceV2
 
   private final ApplicationDAO appDAO;
 
-  private final ComponentDAO componentDAO;
-
   private final ReportService reportService;
 
   private final ApiLicenseDataAdapter licenseDataAdapter;
 
   private final ApiSecurityDataAdapter securityDataAdapter;
 
+  private final ComponentResolver componentResolver;
+
   @Inject
-  public ApiReportDataServiceV2(InsightWork work,
-                                ApplicationDAO appDAO,
-                                ComponentDAO componentDAO,
-                                ReportService reportService,
-                                ApiLicenseDataAdapter licenseDataAdapter,
-                                ApiSecurityDataAdapter securityDataAdapter)
+  public ApiReportDataServiceV2(
+      InsightWork work,
+      ApplicationDAO appDAO,
+      ReportService reportService,
+      ApiLicenseDataAdapter licenseDataAdapter,
+      ApiSecurityDataAdapter securityDataAdapter,
+      ComponentResolver componentResolver)
   {
     this.work = work;
     this.appDAO = appDAO;
-    this.componentDAO = componentDAO;
     this.reportService = reportService;
     this.licenseDataAdapter = licenseDataAdapter;
     this.securityDataAdapter = securityDataAdapter;
+    this.componentResolver = componentResolver;
   }
 
   @Authorize(permission = Permission.READ)
@@ -256,7 +257,8 @@ public class ApiReportDataServiceV2
       throw new BadRequestException("The report with ID " + scanId + " contains no component data.");
     }
 
-    List<Component> components = componentDAO.getAll(app, licenseEntry.buf, securityEntry.buf, bomEntry.buf);
+    List<Component> components =
+        componentResolver.getComponents(app, licenseEntry.buf, securityEntry.buf, bomEntry.buf, scanId);
 
     ApiReportRawDataDTOV2 data = new ApiReportRawDataDTOV2();
     for (Component comp : components) {

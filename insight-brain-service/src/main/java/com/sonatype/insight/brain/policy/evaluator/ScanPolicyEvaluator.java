@@ -30,8 +30,8 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
+import com.sonatype.insight.brain.component.ComponentResolver;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -111,18 +111,22 @@ public class ScanPolicyEvaluator
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  private final ComponentResolver componentResolver;
+
   @Inject
-  public ScanPolicyEvaluator(final InsightWork insightWork,
-                             final ReportService reportService,
-                             final PolicyThreatsAdapter policyThreatsAdapter,
-                             final ComponentPolicyEvaluator componentPolicyEvaluator,
-                             final ApplicationEvaluationEventService applicationEvaluationEventService,
-                             final PolicyViolationGrandfatheringService policyViolationGrandfatheringService,
-                             final PolicyAlertEventService policyAlertEventService,
-                             final TelemetrySender telemetrySender,
-                             final PolicyViolationPersistenceLocks policyViolationPersistenceLocks,
-                             final PolicyViolationLoggerFactory policyViolationLoggerFactory,
-                             final ProductLicense productLicense)
+  public ScanPolicyEvaluator(
+      final InsightWork insightWork,
+      final ReportService reportService,
+      final PolicyThreatsAdapter policyThreatsAdapter,
+      final ComponentPolicyEvaluator componentPolicyEvaluator,
+      final ApplicationEvaluationEventService applicationEvaluationEventService,
+      final PolicyViolationGrandfatheringService policyViolationGrandfatheringService,
+      final PolicyAlertEventService policyAlertEventService,
+      final TelemetrySender telemetrySender,
+      final PolicyViolationPersistenceLocks policyViolationPersistenceLocks,
+      final PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      final ProductLicense productLicense,
+      final ComponentResolver componentResolver)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -135,6 +139,7 @@ public class ScanPolicyEvaluator
     this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.productLicense = productLicense;
+    this.componentResolver = componentResolver;
   }
 
   public ScanPolicyEvaluatorResults evaluate(final Application application, final String scanId, final Stage stage)
@@ -172,8 +177,8 @@ public class ScanPolicyEvaluator
     }
 
     // Load data about components
-    final List<Component> components = new ComponentDAO().getAll(application, licenseReportEntry.buf,
-        securityReportEntry.buf, bomReportEntry.buf);
+    final List<Component> components = componentResolver.getComponents(application, licenseReportEntry.buf,
+        securityReportEntry.buf, bomReportEntry.buf, scanId);
 
     sendApplicationStageComponentCounts(application.getId(), stage.getStageTypeId(), components);
 

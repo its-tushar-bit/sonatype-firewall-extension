@@ -1,0 +1,64 @@
+<scan version="2.21">
+<configuration>
+  <properties>
+    <property name="archiveNames" value="true"/>
+    <property name="anonymizeArtifactIds" value="false"/>
+    <property name="fileExcludes" value=""/>
+    <property name="anonymizePaths" value="false"/>
+    <property name="maxDepth" value="256"/>
+    <property name="operatingSystem" value="true"/>
+    <property name="hashFiles" value="true"/>
+    <property name="fileIncludes" value=""/>
+    <property name="procArch" value="true"/>
+    <property name="maxSymlinkDepth" value="5"/>
+    <property name="jreInfo" value="true"/>
+    <property name="proprietaryPackages" value=""/>
+    <property name="pomProperties" value="true"/>
+    <property name="fileSizes" value="false"/>
+    <property name="nameHashes" value="true"/>
+    <property name="dirExcludes" value="**/.*, **/CVS"/>
+    <property name="hashJavaTypes" value="true"/>
+    <property name="ipAddresses" value="false"/>
+    <property name="dirIncludes" value=""/>
+    <property name="proprietaryRegexes" value=""/>
+    <property name="resourceNames" value="true"/>
+    <property name="thirdPartyScanningEnabled" value="true"/>
+  </properties>
+</configuration>
+<item path="clair-scanner-output.json" contentType="CLAIR_SCANNER" lastModified="1563922246000" sha1="a7cea8ebc1ab163d7b1x">
+  <content>{&quot;image&quot;:&quot;test-image-name&quot;,&quot;vulnerabilities&quot;:[{&quot;featurename&quot;:&quot;apt&quot;,&quot;featureversion&quot;:&quot;1.3.8&quot;,&quot;vulnerability&quot;:&quot;CVE-2019-3462&quot;,&quot;namespace&quot;:&quot;debian:9&quot;,&quot;description&quot;:&quot;&quot;,&quot;link&quot;:&quot;https://security-tracker.debian.org/tracker/CVE-2019-3462&quot;,&quot;severity&quot;:&quot;Critical&quot;,&quot;fixedby&quot;:&quot;1.4.9&quot;},{&quot;featurename&quot;:&quot;apt&quot;,&quot;featureversion&quot;:&quot;1.3.9&quot;,&quot;vulnerability&quot;:&quot;CVE-2019-34620&quot;,&quot;namespace&quot;:&quot;debian:9&quot;,&quot;description&quot;:&quot;&quot;,&quot;link&quot;:&quot;https://security-tracker.debian.org/tracker/CVE-2019-34620&quot;,&quot;severity&quot;:&quot;Critical&quot;,&quot;fixedby&quot;:&quot;1.4.9&quot;},{&quot;featurename&quot;:&quot;glibc&quot;,&quot;featureversion&quot;:&quot;2.24-11+deb9u3&quot;,&quot;vulnerability&quot;:&quot;CVE-2017-16997&quot;,&quot;namespace&quot;:&quot;debian:9&quot;,&quot;description&quot;:&quot;&quot;,&quot;link&quot;:&quot;https://security-tracker.debian.org/tracker/CVE-2017-16997&quot;,&quot;severity&quot;:&quot;Critical&quot;,&quot;fixedby&quot;:&quot;2.24-11+deb9u4&quot;}]}</content>
+</item>
+<item path="clair-scanner-output.json" contentType="CLAIR_SCANNER" lastModified="1563922246000" sha1="a7cea8ebc1ab163d7b1x">
+  <content>{&quot;image&quot;:&quot;test-image-name&quot;,&quot;vulnerabilities&quot;:[{&quot;featurename&quot;:&quot;apt&quot;,&quot;featureversion&quot;:&quot;1.3.8&quot;,&quot;vulnerability&quot;:&quot;CVE-2019-3462&quot;,&quot;namespace&quot;:&quot;debian:9&quot;,&quot;description&quot;:&quot;&quot;,&quot;link&quot;:&quot;https://security-tracker.debian.org/tracker/CVE-2019-3462&quot;,&quot;severity&quot;:&quot;Critical&quot;,&quot;fixedby&quot;:&quot;1.4.9&quot;},{&quot;featurename&quot;:&quot;apt&quot;,&quot;featureversion&quot;:&quot;1.3.9&quot;,&quot;vulnerability&quot;:&quot;CVE-2019-34620&quot;,&quot;namespace&quot;:&quot;debian:9&quot;,&quot;description&quot;:&quot;&quot;,&quot;link&quot;:&quot;https://security-tracker.debian.org/tracker/CVE-2019-34620&quot;,&quot;severity&quot;:&quot;Critical&quot;,&quot;fixedby&quot;:&quot;1.4.9&quot;},{&quot;featurename&quot;:&quot;glibc&quot;,&quot;featureversion&quot;:&quot;2.24-11+deb9u3&quot;,&quot;vulnerability&quot;:&quot;CVE-2017-16997&quot;,&quot;namespace&quot;:&quot;debian:9&quot;,&quot;description&quot;:&quot;&quot;,&quot;link&quot;:&quot;https://security-tracker.debian.org/tracker/CVE-2017-16997&quot;,&quot;severity&quot;:&quot;Critical&quot;,&quot;fixedby&quot;:&quot;2.24-11+deb9u4&quot;}]}</content>
+</item>
+<summary>
+  <scannerDriver>cli</scannerDriver>
+  <scannerVersion>1.71.0-SNAPSHOT</scannerVersion>
+  <operatingSystem>Mac OS X</operatingSystem>
+  <processorArchitecture>x86_64</processorArchitecture>
+  <startTime>2019-08-13T20:08:28+0000</startTime>
+  <endTime>2019-08-13T20:08:28+0000</endTime>
+  <files>1</files>
+  <clientInfo>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="java.runtime.version" value="1.8.0_212-b04"/>
+    <property name="java.specification.version" value="1.8"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.vendor.url" value="http://java.oracle.com/"/>
+    <property name="java.vm.version" value="25.212-b04"/>
+    <property name="os.name" value="Mac OS X"/>
+    <property name="os.arch" value="x86_64"/>
+    <property name="java.version" value="1.8.0_212"/>
+    <property name="java.vm.specification.version" value="1.8"/>
+    <property name="java.vendor.url.bug" value="http://bugreport.sun.com/bugreport/"/>
+    <property name="insight.scannerVersion" value="1.71.0-SNAPSHOT"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.vendor" value="AdoptOpenJDK"/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="insight.scannerDriver" value="cli"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+  </clientInfo>
+</summary>
+</scan>

@@ -12,8 +12,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 
@@ -80,8 +82,9 @@ public class ThirdPartyScanResultsProcessor
         XMLEventWriter writer = outputFactory.createXMLEventWriter(out);
 
         int eventType = parser.getEventType();
+        Set<String> processedHashes = new HashSet<>();
         while (eventType != XmlPullParser.END_DOCUMENT) {
-          processEvent(parser, writer, eventType, scanFile, scanRequestId);
+          processEvent(parser, writer, eventType, scanFile, scanRequestId, processedHashes);
           eventType = parser.next();
         }
         writer.flush();
@@ -112,13 +115,14 @@ public class ThirdPartyScanResultsProcessor
       XMLEventWriter writer,
       int eventType,
       File scanFile,
-      String scanRequestId)
+      String scanRequestId,
+      Set<String> processedHashes)
   {
     try {
       addElement(parser, writer);
       String elementName = parser.getName();
       if ("item".equals(elementName)) {
-        processItemElement(parser, writer, scanFile, elementName, scanRequestId);
+        processItemElement(parser, writer, scanFile, elementName, scanRequestId, processedHashes);
       }
       else if (eventType == XmlPullParser.TEXT) {
         writer.add(EVENT_FACTORY.createCharacters(parser.getText()));
@@ -134,14 +138,16 @@ public class ThirdPartyScanResultsProcessor
       XMLEventWriter writer,
       File scanFile,
       String elementName,
-      String scanRequestId) throws XmlPullParserException, IOException, XMLStreamException
+      String scanRequestId,
+      Set<String> processedHashes) throws XmlPullParserException, IOException, XMLStreamException
   {
     String contentType = parser.getAttributeValue(null, "contentType");
     if (contentType != null && thirdPartyItemContentTypes.contains(contentType)) {
       Xpp3Dom itemElement = Xpp3Util.loadElement("item", parser);
       Xpp3Dom contentElement = itemElement.getChild("content");
       if (contentElement != null) {
-        String filteredContent = handleContent(itemElement, contentElement.getValue(), contentType, scanRequestId);
+        String filteredContent =
+            handleContent(itemElement, contentElement.getValue(), contentType, scanRequestId, processedHashes);
         writeFilteredInformation(writer, filteredContent);
       }
       else {
@@ -155,7 +161,13 @@ public class ThirdPartyScanResultsProcessor
     writer.add(EVENT_FACTORY.createEndElement(new QName(elementName), null));
   }
 
-  private String handleContent(Xpp3Dom itemElement, String contentElement, String contentType, String scanRequestId) {
+  private String handleContent(
+      Xpp3Dom itemElement,
+      String contentElement,
+      String contentType,
+      String scanRequestId,
+      Set<String> processedHashes)
+  {
     String path = itemElement.getAttribute("path");
     String lastModified = itemElement.getAttribute("lastModified");
     String sha1 = itemElement.getAttribute("sha1");
@@ -167,13 +179,17 @@ public class ThirdPartyScanResultsProcessor
       thirdPartyFile = saveFile(sha1, path);
     }
 
-    saveScan(thirdPartyFile, scanRequestId);
+    // Avoids duplicated rows when the exact same third-party file is repeated when scanning a folder
+    if (!processedHashes.contains(sha1)) {
+      saveScan(thirdPartyFile, scanRequestId);
+      processedHashes.add(sha1);
+    }
 
     ItemContentType contentItemType = ItemContentType.valueOf(contentType);
     ThirdPartyScanResultHandler handler = createHandler(contentItemType);
-    return handler
-        .handleAndFilterContents(new ThirdPartyScanContent(path, contentItemType, lastModified, sha1, contentElement),
-            isNewThirdPartyFile ? thirdPartyFile : null);
+    return handler.handleAndFilterContents(
+        new ThirdPartyScanContent(path, contentItemType, lastModified, sha1, contentElement),
+        isNewThirdPartyFile ? thirdPartyFile : null);
   }
 
   private ThirdPartyFile saveFile(String hash, String path) {
@@ -214,10 +230,7 @@ public class ThirdPartyScanResultsProcessor
     }
   }
 
-  private void writeFilteredInformation(
-      XMLEventWriter writer,
-      String filteredInformation) throws XMLStreamException
-  {
+  private void writeFilteredInformation(XMLEventWriter writer, String filteredInformation) throws XMLStreamException {
     QName name = new QName("content");
     writer.add(EVENT_FACTORY.createStartElement(name, null, null));
     XMLEvent contentEvent;

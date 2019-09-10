@@ -130,6 +130,26 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   @Test
+  public void testHandle_ClairScannerUsingSameClairFileRepeatedContent() throws Exception {
+    File scanFile = getScanFile("scan-with-clair-scanner-repeated-content.xml");
+
+    doReturn("9510c290c07710d8c69b").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.3.8"));
+    doReturn("08d7a1c700d1633dc309").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.3.9"));
+    doReturn("e587ce87ed894c1d5283").when(clairHandlerSpy).buildHash(eq("debian:9:glibc:2.24-11+deb9u3"));
+
+    String scanRequestId = thirdPartyScanResultsProcessorSpy.handle(scanFile);
+
+    assertThat(scanRequestId).isNotBlank();
+    verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(any(ItemContentType.class));
+    assertFilteredThirdPartyScanContentFile(scanFile);
+
+    try (TransactionContext tx = thirdPartyScanDAO.createTransactionContext()) {
+      ThirdPartyFile thirdPartyFile = thirdPartyFileDAO.getByHash("a7cea8ebc1ab163d7b1x");
+      assertThirdPartyFile(scanRequestId, tx, thirdPartyFile, "clair-scanner-output.json", "test-image-name", 1);
+    }
+  }
+
+  @Test
   public void testHandle_EmptyItemElement() throws Exception {
     File scanFile = getScanFile("scan-with-empty-item-data.xml");
     thirdPartyScanResultsProcessorSpy.handle(scanFile);

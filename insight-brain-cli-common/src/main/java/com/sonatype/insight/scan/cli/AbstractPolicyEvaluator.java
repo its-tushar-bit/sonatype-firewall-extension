@@ -25,10 +25,12 @@ import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.brain.client.UnsupportedServerVersionException;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
-import com.sonatype.insight.scan.cli.git.GitUtils;
 import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ScanMetadata;
+import com.sonatype.nexus.git.utils.Environment.GitLabCI;
+import com.sonatype.nexus.git.utils.commit.CommitHashFinderBuilder;
+import com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderBuilder;
 
 import org.apache.http.client.HttpResponseException;
 import org.codehaus.plexus.util.StringUtils;
@@ -295,7 +297,13 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   private ScanMetadata verifyAndPopulateMetadata(P params) {
     ScanMetadata scanMetadata = params.getScanMetadata() == null ? new ScanMetadata() : params.getScanMetadata();
-    Optional<String> optional = GitUtils.tryGetCommitHash(scanMetadata.getCommitHash());
+    Optional<String> optional = new CommitHashFinderBuilder()
+        .withEnvironmentVariableDefault()
+        .withEnvironmentVariableNamed(GitLabCI.COMMIT_HASH_ENV_VARIABLE)
+        .withGitRepo()
+        .withFallBack(scanMetadata.getCommitHash())
+        .build()
+        .tryGetCommitHash();
     if (optional.isPresent()) {
       scanMetadata.setCommitHash(optional.get());
     }
@@ -304,7 +312,12 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   private void addOrUpdateSourceControl(final RestClient restClient, final P params) {
     try {
-      Optional<String> optional = GitUtils.tryGetRepositoryUrl(null);
+      Optional<String> optional = new RepositoryUrlFinderBuilder()
+          .withEnvironmentVariableDefault()
+          .withEnvironmentVariableNamed(GitLabCI.REPOSITORY_URL_ENV_VARIABLE)
+          .withGitRepo()
+          .build()
+          .tryGetRepositoryUrl();;
       if (optional.isPresent()) {
         String repositoryUrl = optional.get();
         restClient.addOrUpdateSourceControlRecord(params.getApplicationId(), repositoryUrl);

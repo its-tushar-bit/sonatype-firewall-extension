@@ -12,6 +12,10 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -33,6 +37,10 @@ public class ErrorResponseGenerator
       "Authentication failed due to LDAP error. Please contact your IT administrator.";
 
   static final String MSG_LDAP_TIMEOUT = "Authentication failed due to LDAP timeout. Please try again.";
+
+  static final String MSG_JSON_UNPARSABLE = "JSON data could not be parsed.";
+
+  static final String MSG_JSON_UNMAPPABLE = "JSON data does not match expected format.";
 
   @Override
   protected ErrorResponse buildErrorResponse(final Throwable e) {
@@ -57,6 +65,11 @@ public class ErrorResponseGenerator
     }
     else if (e instanceof UnauthenticatedException) {
       return new ErrorResponse(Response.Status.UNAUTHORIZED.getStatusCode(), null);
+    }
+    else if (e instanceof JsonProcessingException
+        && !(e instanceof JsonGenerationException || e instanceof InvalidDefinitionException)) {
+      String msg = e instanceof JsonMappingException ? MSG_JSON_UNMAPPABLE : MSG_JSON_UNPARSABLE;
+      return new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), msg);
     }
     return super.buildErrorResponse(e);
   }

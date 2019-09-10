@@ -13,6 +13,8 @@ import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -93,5 +95,19 @@ public class ErrorResponseGeneratorTest
         .mapExceptionAndLog(new AuthenticationException(new javax.naming.AuthenticationException()));
     assertThat(errorResponse.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
     assertThat(errorResponse.getMessageBody()).isEqualTo(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
+  }
+
+  @Test
+  public void testBuildErrorResponse_JsonUnparsable() {
+    final ErrorResponse errorResponse = generator.buildErrorResponse(new JsonParseException(null, "error"));
+    assertThat(errorResponse.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
+    assertThat(errorResponse.getMessageBody()).isEqualTo(ErrorResponseGenerator.MSG_JSON_UNPARSABLE);
+  }
+
+  @Test
+  public void testBuildErrorResponse_JsonUnmappable() {
+    final ErrorResponse errorResponse = generator.buildErrorResponse(new JsonMappingException(null, "error"));
+    assertThat(errorResponse.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
+    assertThat(errorResponse.getMessageBody()).isEqualTo(ErrorResponseGenerator.MSG_JSON_UNMAPPABLE);
   }
 }

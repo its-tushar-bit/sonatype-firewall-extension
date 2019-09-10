@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -63,7 +64,8 @@ public class PolicyAlertScmNotifier
     try {
       final File reportFile = reportService.fetchReport(work, app, scanId);
       String sha = extractCommitHash(reportFile);
-      ApiSourceControlDTO apiSourceControlDTO = sourceControlService.getSourceControlByApplicationId(app.getId());
+      ApiSourceControlDTO apiSourceControlDTO =
+          sourceControlService.getSourceControlByOwner(OwnerType.APPLICATION, app.getId());
 
       Configuration apiConfiguration = new Configuration();
       apiConfiguration.setServerUrl(app.getId());

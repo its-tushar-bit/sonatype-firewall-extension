@@ -52,11 +52,10 @@ public class ApiSourceControlAdapter
     }
 
     SourceControl sourceControl = new SourceControl(
-        (dto.ownerId != null) ? dto.ownerId : dto.applicationId,
+        dto.ownerId,
         dto.repositoryUrl,
         dto.token,
         getSourceControlProvider(dto.provider));
-    sourceControl.setId(dto.id);
     return sourceControl;
   }
 }

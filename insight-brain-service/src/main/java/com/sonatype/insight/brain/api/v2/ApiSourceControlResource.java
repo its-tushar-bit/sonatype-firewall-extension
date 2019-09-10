@@ -39,20 +39,15 @@ public class ApiSourceControlResource
 {
   private static final String SOURCE_CONTROL_ID = "{sourceControlId}";
 
-  private static final String APPLICATION_ID = "{applicationId}";
-
   private static final String OWNER_TYPE = "{ownerType:application|organization}";
 
-  private static final String OWNER_ID = "{ownerId}";
+  private static final String OWNER_ID = "{internalOwnerId}";
 
   /* paths are package private for use in tests */
   static final String BY_OWNER = OWNER_TYPE + "/" + OWNER_ID;
 
   static final String BY_OWNER_AND_SOURCE_CONTROL_IDS = BY_OWNER
       + "/" + SOURCE_CONTROL_ID;
-
-  static final String APP_AND_SOURCE_CONTROL_IDS =
-      APPLICATION_ID + "/" + SOURCE_CONTROL_ID;
 
   private final ApiSourceControlService sourceControlService;
 
@@ -63,53 +58,12 @@ public class ApiSourceControlResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Path(APPLICATION_ID)
-  public ApiSourceControlDTO getSourceControl(@PathParam("applicationId") String applicationId) {
-    return sourceControlService.getSourceControlByApplicationId(applicationId);
-  }
-
-  @POST
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  @Audited(AuditEvent.CREATE_SOURCE_CONTROL)
-  @Path(APPLICATION_ID)
-  public ApiSourceControlDTO addSourceControl(
-      @PathParam("applicationId") String applicationId,
-      ApiSourceControlDTO sourceControl) 
-  {
-    return sourceControlService.addSourceControl(applicationId, sourceControl);
-  }
-
-  @PUT
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  @Audited(AuditEvent.UPDATE_SOURCE_CONTROL)
-  @Path(APPLICATION_ID)
-  public ApiSourceControlDTO updateSourceControl(
-      @PathParam("applicationId") String applicationId,
-      ApiSourceControlDTO sourceControl)
-  {
-    return sourceControlService.updateSourceControl(applicationId, sourceControl);
-  }
-
-  @DELETE
-  @Path(APP_AND_SOURCE_CONTROL_IDS)
-  @Audited(AuditEvent.DELETE_SOURCE_CONTROL)
-  public void deleteSourceControl(
-      @PathParam("applicationId") String applicationId,
-      @PathParam("sourceControlId") String sourceControlId) 
-  {
-    sourceControlService.deleteSourceControl(applicationId, sourceControlId);
-  }
-
-  @GET
-  @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER)
   public ApiSourceControlDTO getSourceControl(
       @PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerId)
+      @PathParam("internalOwnerId") String internalOwnerId)
   {
-    return sourceControlService.getSourceControlByOwner(ownerType, ownerId);
+    return sourceControlService.getSourceControlByOwner(ownerType, internalOwnerId);
   }
 
   @POST
@@ -119,11 +73,10 @@ public class ApiSourceControlResource
   @Path(BY_OWNER)
   public ApiSourceControlDTO addSourceControl(
       @PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerId,
+      @PathParam("internalOwnerId") String internalOwnerId,
       ApiSourceControlDTO sourceControl)
   {
-    return sourceControlService.addSourceControlByOwner(
-        ownerType, ownerId, sourceControl);
+    return sourceControlService.addSourceControlByOwner(ownerType, internalOwnerId, sourceControl);
   }
 
   @PUT
@@ -133,11 +86,10 @@ public class ApiSourceControlResource
   @Path(BY_OWNER)
   public ApiSourceControlDTO updateSourceControl(
       @PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerId,
+      @PathParam("internalOwnerId") String internalOwnerId,
       ApiSourceControlDTO sourceControl)
   {
-    return sourceControlService.updateSourceControlByOwner(
-        ownerType, ownerId, sourceControl);
+    return sourceControlService.updateSourceControlByOwner(ownerType, internalOwnerId, sourceControl);
   }
 
   @DELETE
@@ -145,11 +97,10 @@ public class ApiSourceControlResource
   @Audited(AuditEvent.DELETE_SOURCE_CONTROL)
   public void deleteSourceControl(
       @PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerId,
+      @PathParam("internalOwnerId") String internalOwnerId,
       @PathParam("sourceControlId") String sourceControlId)
   {
-    sourceControlService.deleteSourceControlByOwner(
-        ownerType, ownerId, sourceControlId);
+    sourceControlService.deleteSourceControlByOwner(ownerType, internalOwnerId, sourceControlId);
   }
 
   @POST

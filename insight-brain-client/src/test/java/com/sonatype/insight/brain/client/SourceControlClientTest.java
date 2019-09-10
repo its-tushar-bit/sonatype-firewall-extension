@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlAdapter;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -57,7 +58,8 @@ public class SourceControlClientTest
     ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl(application.getId(), "https://github.com/org/proj", "token", SourceControlProvider.GITHUB));
-    HttpResponse response = restRequest().path("api", "v2", "sourceControl", application.getId())
+    HttpResponse response =
+        restRequest().path("api", "v2", "sourceControl", OwnerType.APPLICATION.toString(), application.getId())
         .body(sourceControl).post();
     assertResponseStatus(200, response);
   }

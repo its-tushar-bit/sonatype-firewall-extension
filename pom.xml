@@ -314,17 +314,20 @@
         <artifactId>commons-math3</artifactId>
         <version>3.3</version>
       </dependency>
-
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
         <version>42.2.6</version>
       </dependency>
+      <!--H2 1.4.197 cannot open a database created by version 1.3.174 twice in a row
+      https://github.com/gitbucket/gitbucket/issues/2279
+      https://github.com/h2database/h2database/issues/1073
+      https://github.com/h2database/h2database/issues/1247
+      https://github.com/infiniteautomation/ma-core-public/issues/1344-->
       <dependency>
         <groupId>com.h2database</groupId>
         <artifactId>h2</artifactId>
-        <!-- Don't upgrade to 1.3.176 - we tried it and it didn't work. See CLM-3081 for details. -->
-        <version>1.3.174</version>
+        <version>1.4.196</version>
       </dependency>
 
       <dependency>

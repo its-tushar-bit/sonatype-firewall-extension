@@ -62,7 +62,8 @@ public class DiagnosticsCli
     log.info("Total database size: {} bytes", h2.length());
 
     logSchemaVersionFromFile(ods);
-    String dbUrl = "jdbc:h2:" + ods.getPath() + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
+    String dbUrl =
+        "jdbc:h2:" + ods.getPath() + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE";
     logSchemaVersionFromDatabase(dbUrl);
 
     if (params.isRecover()) {
@@ -264,7 +265,7 @@ public class DiagnosticsCli
   private void logDatabaseSettings(Connection connection) {
     try (Statement statement = connection.createStatement()) {
       try (ResultSet result = statement
-          .executeQuery("SELECT name, value FROM INFORMATION_SCHEMA.SETTINGS ORDER BY name")) {
+          .executeQuery("SELECT NAME, VALUE FROM INFORMATION_SCHEMA.SETTINGS ORDER BY NAME")) {
         log.info("Database settings:");
         while (result.next()) {
           String name = result.getString(1);
@@ -282,7 +283,7 @@ public class DiagnosticsCli
     File sqlFile = new File(ods.getParentFile(), ods.getName() + ".h2.sql");
     File recoveredOds = new File(ods.getParentFile(), "recovered-ods");
     File recoveredDb = new File(recoveredOds.getParentFile(), recoveredOds.getName() + ".h2.db");
-    String dbUrl = "jdbc:h2:" + recoveredOds.getAbsolutePath() + ";TRACE_LEVEL_FILE=0";
+    String dbUrl = "jdbc:h2:" + recoveredOds.getAbsolutePath() + ";TRACE_LEVEL_FILE=0;MV_STORE=FALSE";
 
     log.info("Recovering database to {}", sqlFile);
     Recover.execute(ods.getParent(), ods.getName());

@@ -79,8 +79,9 @@ public class AbstractSelectorTest
   }
 
   private DataSource getOdsDataSource(boolean inMemory) throws Exception {
-    String memDb = "jdbc:h2:mem:dbutil;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;";
-    String fileDb = "jdbc:h2:target/xyz/ods:dbutil;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;";
+    String memDb = "jdbc:h2:mem:dbutil;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE";
+    String fileDb =
+        "jdbc:h2:target/xyz/ods:dbutil;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE";
     DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
     odsDatabaseConfig.setDriverClassName("org.h2.Driver");
     odsDatabaseConfig.setUrl(inMemory ? memDb : fileDb);

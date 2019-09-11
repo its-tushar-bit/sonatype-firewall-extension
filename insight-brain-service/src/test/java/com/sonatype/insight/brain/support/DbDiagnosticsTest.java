@@ -42,7 +42,7 @@ public class DbDiagnosticsTest
     final DatabaseConfig databaseConfig = new DatabaseConfig();
     databaseConfig.setDriverClassName("org.h2.Driver");
     databaseConfig.setUrl("jdbc:h2:" + tempDir.getRoot() +
-        "/SupportTest/ods;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
+        "/SupportTest/ods;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE");
     databaseConfig.setUsername("sa");
     databaseConfig.setPassword("");
     OperationalDataStoreProvider.init(databaseConfig, false);

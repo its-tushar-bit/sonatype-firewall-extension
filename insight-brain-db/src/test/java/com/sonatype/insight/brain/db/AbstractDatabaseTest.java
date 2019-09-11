@@ -34,8 +34,8 @@ public abstract class AbstractDatabaseTest
     File databasePath = new File(databaseDir, databaseName);
     DatabaseConfig databaseConfig = new DatabaseConfig();
     databaseConfig.setDriverClassName("org.h2.Driver");
-    databaseConfig.setUrl(
-        "jdbc:h2:" + databasePath.getAbsolutePath() + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
+    databaseConfig.setUrl("jdbc:h2:" + databasePath.getAbsolutePath() +
+        ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE");
     databaseConfig.setUsername("sa");
     databaseConfig.setPassword("");
     databaseConfig.setMaxConnections(50);

@@ -116,7 +116,8 @@ public class PolicyViolationMigratorTest
     File databasePath = new File(tempDir.newFolder(), "test-db");
     BasicDataSource dataSource = new BasicDataSource();
     dataSource.setDriverClassName("org.h2.Driver");
-    dataSource.setUrl("jdbc:h2:" + databasePath.getAbsolutePath() + ";DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=10000");
+    dataSource.setUrl(
+        "jdbc:h2:" + databasePath.getAbsolutePath() + ";DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=10000;MV_STORE=FALSE");
     dataSource.setUsername("sa");
     dataSource.setPassword("");
     dataSource.setMaxTotal(50);

@@ -498,7 +498,7 @@ public class RootOrganizationConfigMigratorTest
       DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
       odsDatabaseConfig.setDriverClassName("org.h2.Driver");
       odsDatabaseConfig.setUrl("jdbc:h2:" + dbDir.getAbsolutePath()
-          + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
+          + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE");
       odsDatabaseConfig.setUsername("sa");
       odsDatabaseConfig.setPassword("");
       odsDatabaseConfig.setMaxConnections(50);

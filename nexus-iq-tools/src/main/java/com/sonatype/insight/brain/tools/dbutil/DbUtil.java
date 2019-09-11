@@ -81,7 +81,7 @@ public class DbUtil
 
   private Connection getConnection() throws Exception {
     String dbUrl = "jdbc:h2:" + parameters.getTargetDatabase().getAbsolutePath()
-        + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;SCHEMA=insight_brain_ods";
+        + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;SCHEMA=insight_brain_ods;MV_STORE=FALSE";
     String dbUsername = "sa";
     String dbPassword = "";
     return DriverManager.getConnection(dbUrl, dbUsername, dbPassword);

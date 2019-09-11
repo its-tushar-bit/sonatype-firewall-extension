@@ -44,7 +44,7 @@ public class DbModifierTest
   private static final LocalDate MAX_DATE_TABLE2 = LocalDate.of(2014, 3, 8);
 
   private static final String TEST_DB_CONNECTION_STRING =
-      "jdbc:h2:mem:test;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
+      "jdbc:h2:mem:test;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE";
 
   private static DbModifier dbModifier;
 

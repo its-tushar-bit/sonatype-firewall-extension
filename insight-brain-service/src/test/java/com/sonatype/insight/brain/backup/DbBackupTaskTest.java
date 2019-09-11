@@ -40,8 +40,8 @@ public class DbBackupTaskTest
     // H2 does not allow backups of in-memory databases, so we need an on-disk database for this test.
     DatabaseConfig databaseConfig = new DatabaseConfig();
     databaseConfig.setDriverClassName("org.h2.Driver");
-    databaseConfig
-        .setUrl("jdbc:h2:target/DbBackupTest/ods;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
+    databaseConfig.setUrl("jdbc:h2:" + new File("target/DbBackupTest").getAbsolutePath() +
+        "/ods;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE");
     databaseConfig.setUsername("sa");
     databaseConfig.setPassword("");
     OperationalDataStoreProvider.init(databaseConfig, false);

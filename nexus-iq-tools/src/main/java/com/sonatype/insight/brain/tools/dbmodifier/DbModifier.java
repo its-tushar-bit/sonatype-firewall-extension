@@ -77,7 +77,8 @@ public class DbModifier
   }
 
   private static String getDbConnectionString(final File file) {
-    return "jdbc:h2:" + file.getAbsolutePath() + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
+    return "jdbc:h2:" + file.getAbsolutePath() +
+        ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE";
   }
 
   public void shiftToDate(final LocalDate maxDate) {

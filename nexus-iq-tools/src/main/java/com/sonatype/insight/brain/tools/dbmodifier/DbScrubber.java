@@ -47,7 +47,8 @@ public class DbScrubber
 
       if (rebuild) {
         String rebuildDb = "./ods_scrubbed_" + timestamp;
-        String rebuildDbUrl = "jdbc:h2:" + rebuildDb + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
+        String rebuildDbUrl =
+            "jdbc:h2:" + rebuildDb + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE";
         String[] rebuildParams = new String[]{"-url", rebuildDbUrl, "-script", scrubbedFile};
         long start = System.currentTimeMillis();
         log.info("Starting rebuild to: " + rebuildDb);

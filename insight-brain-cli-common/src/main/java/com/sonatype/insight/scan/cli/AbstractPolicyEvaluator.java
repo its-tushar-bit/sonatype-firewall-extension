@@ -307,24 +307,33 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     if (optional.isPresent()) {
       scanMetadata.setCommitHash(optional.get());
     }
+    else {
+      log.debug("Commit hash for application with id: {} could not be found.", params.getApplicationId());
+    }
     return scanMetadata;
   }
 
   private void addOrUpdateSourceControl(final RestClient restClient, final P params) {
-    try {
-      Optional<String> optional = new RepositoryUrlFinderBuilder()
-          .withEnvironmentVariableDefault()
-          .withEnvironmentVariableNamed(GitLabCI.REPOSITORY_URL_ENV_VARIABLE)
-          .withGitRepo()
-          .build()
-          .tryGetRepositoryUrl();;
-      if (optional.isPresent()) {
-        String repositoryUrl = optional.get();
+    Optional<String> optional = new RepositoryUrlFinderBuilder()
+        .withEnvironmentVariableDefault()
+        .withEnvironmentVariableNamed(GitLabCI.REPOSITORY_URL_ENV_VARIABLE)
+        .withGitRepo()
+        .build()
+        .tryGetRepositoryUrl();
+    if (optional.isPresent()) {
+      String repositoryUrl = optional.get();
+      log.info(
+          "Amending source control record for application with id: {} with discovered Repository URL: {}",
+          params.getApplicationId(), repositoryUrl);
+      try {
         restClient.addOrUpdateSourceControlRecord(params.getApplicationId(), repositoryUrl);
       }
+      catch (Exception e) {
+        log.error("Failed to add or update the source control record due to:", e);
+      }
     }
-    catch (Exception e) {
-      log.error("Failed to add or update the source control record due to:", e);
+    else {
+      log.debug("Repository URL for application with id: {} could not be found.", params.getApplicationId());
     }
   }
 }

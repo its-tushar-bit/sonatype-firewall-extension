@@ -377,7 +377,10 @@ i.iq-navigation-menu__icon {
     @include bold();
 
     padding-left: 8px;
-    vertical-align: 3px;
     width: auto;
+  }
+
+  .glyphicons-sonatype {
+    font-size: 28px;
   }
 }

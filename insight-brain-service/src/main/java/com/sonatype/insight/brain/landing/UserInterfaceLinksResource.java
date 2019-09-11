@@ -17,7 +17,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.report.ReportResource;
@@ -65,10 +67,16 @@ public class UserInterfaceLinksResource
 
   private final TelemetrySender telemetrySender;
 
+  private final ApplicationDAO applicationDAO;
+
   @Inject
-  public UserInterfaceLinksResource(BaseUrl baseUrl, TelemetrySender telemetrySender) {
+  public UserInterfaceLinksResource(BaseUrl baseUrl,
+                                    TelemetrySender telemetrySender,
+                                    ApplicationDAO applicationDAO)
+  {
     this.baseUrl = baseUrl;
     this.telemetrySender = telemetrySender;
+    this.applicationDAO = applicationDAO;
   }
 
   private Response redirect(UriBuilder uriBuilder, Object... parameters) {
@@ -93,7 +101,8 @@ public class UserInterfaceLinksResource
                                @PathParam("scanId") String scanId,
                                @QueryParam("source") String source)
   {
-    sendSourceTelemetryData(applicationPublicId, scanId, source);
+    Application application = applicationDAO.getByPublicId(applicationPublicId);
+    sendSourceTelemetryData(application != null ? application.getId() : applicationPublicId, scanId, source);
     return linkToReport(applicationPublicId, scanId, false);
   }
 

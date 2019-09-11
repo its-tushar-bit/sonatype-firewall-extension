@@ -16,6 +16,7 @@ import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -105,11 +106,13 @@ public class UserInterfaceLinksResourceTest
     TelemetrySender telemetrySender = mock(TelemetrySender.class);
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     doNothing().when(telemetrySender).send(telemetryDataArgumentCaptor.capture());
-
-    new UserInterfaceLinksResource(mock(BaseUrl.class), telemetrySender)
+    ApplicationDAO applicationDao = mock(ApplicationDAO.class);
+    new UserInterfaceLinksResource(mock(BaseUrl.class), telemetrySender, applicationDao)
         .sendSourceTelemetryData("appId", "scanId", "source");
 
     TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK);
+    assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo(HdsClientAnalytics.obfuscate("appId"));
     assertThat(telemetryData.getAttributes().get("is_logged_in")).isEqualTo(true);
   }
 

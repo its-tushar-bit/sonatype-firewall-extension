@@ -18,6 +18,7 @@ import javax.mail.util.ByteArrayDataSource;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -78,12 +79,15 @@ public class UserInterfaceLinksResourceTest
       }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
     });
 
-    assertThat(UserInterfaceLinksResource.getReportUrl("app id", "scan id"))
-        .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id");
+    Application application = tempEntity.newApplicationWithParent();
+    String appPublicId = application.getPublicId();
+
+    assertThat(UserInterfaceLinksResource.getReportUrl(appPublicId, "scan id"))
+        .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/" + appPublicId + "/report/scan%20id");
     HttpResponse redirect = restRequest()
         .path(UserInterfaceLinksResource.RESOURCE_PATH, UserInterfaceLinksResource.REPORT_PATH)
-        .parameter("app id", "scan id").query("source=Foo").anon().get();
-    assertRedirect(redirect, "assets/index.html?source=Foo#/applicationReport/app%20id/scan%20id/policy");
+        .parameter(appPublicId, "scan id").query("source=Foo").anon().get();
+    assertRedirect(redirect, "assets/index.html?source=Foo#/applicationReport/" + appPublicId + "/scan%20id/policy");
 
     Map<TelemetryPurpose, List<TelemetryItem>> telemetryItemsByPurpose = getTelemetryItemsByPurpose(responses);
 
@@ -92,7 +96,8 @@ public class UserInterfaceLinksResourceTest
     TelemetryData telemetryData = telemetryItems.get(0).getTelemetryData();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK);
     assertThat(telemetryData.getAttributes().get("source")).isEqualTo("Foo".toLowerCase(Locale.ENGLISH));
-    assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo(HdsClientAnalytics.obfuscate("app id"));
+    assertThat(telemetryData.getAttributes().get("application_id"))
+        .isEqualTo(HdsClientAnalytics.obfuscate(application.getId()));
     assertThat(telemetryData.getAttributes().get("scan_id")).isEqualTo(HdsClientAnalytics.obfuscate("scan id"));
     assertThat(telemetryData.getAttributes().get("is_logged_in")).isEqualTo(false);
   }
@@ -106,8 +111,7 @@ public class UserInterfaceLinksResourceTest
     TelemetrySender telemetrySender = mock(TelemetrySender.class);
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     doNothing().when(telemetrySender).send(telemetryDataArgumentCaptor.capture());
-    ApplicationDAO applicationDao = mock(ApplicationDAO.class);
-    new UserInterfaceLinksResource(mock(BaseUrl.class), telemetrySender, applicationDao)
+    new UserInterfaceLinksResource(mock(BaseUrl.class), telemetrySender, new ApplicationDAO())
         .sendSourceTelemetryData("appId", "scanId", "source");
 
     TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();

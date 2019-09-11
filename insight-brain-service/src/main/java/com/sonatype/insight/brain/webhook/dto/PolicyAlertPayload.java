@@ -28,6 +28,8 @@ public class PolicyAlertPayload
   {
     public String id;
 
+    public String publicId;
+
     public String name;
 
     public String organizationId;

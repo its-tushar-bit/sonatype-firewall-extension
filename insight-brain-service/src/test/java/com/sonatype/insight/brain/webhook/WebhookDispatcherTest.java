@@ -457,6 +457,8 @@ public class WebhookDispatcherTest
     event.targetId = target.getId();
     event.application = new ApplicationSummary();
     event.application.id = application.getId();
+    event.application.publicId = application.getPublicId();
+    event.application.name = application.getName();
     event.application.organizationId = organization.getId();
     event.applicationEvaluation = evaluationEvent;
     event.policyFacts.add(new PolicyFact("policyId", "name", 5, "policyViolationId")
@@ -477,6 +479,8 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.initiator).isEqualTo("initiator");
     assertThat(webhookPayload.application.organizationId).isEqualTo(organization.getId());
     assertThat(webhookPayload.application.id).isEqualTo(application.getId());
+    assertThat(webhookPayload.application.publicId).isEqualTo(application.getPublicId());
+    assertThat(webhookPayload.application.name).isEqualTo(application.getName());
 
     assertThat(webhookPayload.policyAlerts).isNotEmpty();
     PolicyAlertDTO policyAlertDTO = webhookPayload.policyAlerts.get(0);

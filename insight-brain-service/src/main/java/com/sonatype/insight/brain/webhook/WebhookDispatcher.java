@@ -297,6 +297,7 @@ public class WebhookDispatcher
 
     payload.application.id = event.application.id;
     payload.application.name = event.application.name;
+    payload.application.publicId = event.application.publicId;
     payload.application.organizationId = event.application.organizationId;
 
     payload.initiator = event.initiator;

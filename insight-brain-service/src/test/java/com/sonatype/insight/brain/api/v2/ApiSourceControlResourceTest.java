@@ -234,22 +234,22 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testDeleteSourceControlByOwner_ByOrganization() throws Exception {
-    SourceControl sourceControl = tempEntity.newSourceControl(
+    tempEntity.newSourceControl(
         org.getId(), null, "token", SourceControlProvider.GITHUB);
     HttpResponse response = restRequest()
-        .path(ApiSourceControlResource.BY_OWNER_AND_SOURCE_CONTROL_IDS)
-        .parameter(OwnerType.ORGANIZATION, org.getId(), sourceControl.getId())
+        .path(ApiSourceControlResource.BY_OWNER)
+        .parameter(OwnerType.ORGANIZATION, org.getId())
         .delete();
     assertResponseStatus(204, response);
   }
 
   @Test
   public void testDeleteSourceControlByOwner_ByApplication() throws Exception {
-    SourceControl sourceControl = tempEntity.newSourceControl(
+    tempEntity.newSourceControl(
         app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
     HttpResponse response = restRequest()
-        .path(ApiSourceControlResource.BY_OWNER_AND_SOURCE_CONTROL_IDS)
-        .parameter(OwnerType.APPLICATION, app.getId(), sourceControl.getId())
+        .path(ApiSourceControlResource.BY_OWNER)
+        .parameter(OwnerType.APPLICATION, app.getId())
         .delete();
     assertResponseStatus(204, response);
   }

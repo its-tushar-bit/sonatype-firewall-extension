@@ -72,7 +72,6 @@ public class ApiSourceControlResourceAuditTest
     //DELETE
     response = restRequest().path(SOURCE_CONTROL_PATH_V2)
         .path(OwnerType.APPLICATION.toString(), app.getId())
-        .path(result.id)
         .delete();
     assertResponseStatus(204, response);
 
@@ -118,7 +117,6 @@ public class ApiSourceControlResourceAuditTest
     //DELETE
     response = restRequest().path(SOURCE_CONTROL_PATH_V2)
         .path(OwnerType.APPLICATION.toString(), app.getId())
-        .path(result.id)
         .delete();
     assertResponseStatus(204, response);
 

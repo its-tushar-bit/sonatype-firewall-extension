@@ -37,17 +37,12 @@ import com.google.common.base.Strings;
 @Path(value = PublicApiPaths.SOURCE_CONTROL_PATH_V2)
 public class ApiSourceControlResource
 {
-  private static final String SOURCE_CONTROL_ID = "{sourceControlId}";
-
   private static final String OWNER_TYPE = "{ownerType:application|organization}";
 
   private static final String OWNER_ID = "{internalOwnerId}";
 
   /* paths are package private for use in tests */
   static final String BY_OWNER = OWNER_TYPE + "/" + OWNER_ID;
-
-  static final String BY_OWNER_AND_SOURCE_CONTROL_IDS = BY_OWNER
-      + "/" + SOURCE_CONTROL_ID;
 
   private final ApiSourceControlService sourceControlService;
 
@@ -93,14 +88,13 @@ public class ApiSourceControlResource
   }
 
   @DELETE
-  @Path(BY_OWNER_AND_SOURCE_CONTROL_IDS)
+  @Path(BY_OWNER)
   @Audited(AuditEvent.DELETE_SOURCE_CONTROL)
   public void deleteSourceControl(
       @PathParam("ownerType") OwnerType ownerType,
-      @PathParam("internalOwnerId") String internalOwnerId,
-      @PathParam("sourceControlId") String sourceControlId)
+      @PathParam("internalOwnerId") String internalOwnerId)
   {
-    sourceControlService.deleteSourceControlByOwner(ownerType, internalOwnerId, sourceControlId);
+    sourceControlService.deleteSourceControlByOwner(ownerType, internalOwnerId);
   }
 
   @POST

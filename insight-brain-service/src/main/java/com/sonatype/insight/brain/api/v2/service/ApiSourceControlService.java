@@ -172,8 +172,11 @@ public class ApiSourceControlService
     sourceControlDTO.ownerId = ownerId;
     checkLicense();
 
-    SourceControl storedSourceControl = sourceControlDAO.getByIdNotNull(sourceControlDTO.id);
-    validateOwnerId(ownerType, ownerId, storedSourceControl);
+    SourceControl storedSourceControl = sourceControlDAO.getByOwnerId(sourceControlDTO.ownerId);
+    if (null == storedSourceControl) {
+      throw new NotFoundException(String.format(
+          "Cannot find SourceControl for %s with id: %s", ownerType, ownerId));
+    }
 
     SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(sourceControlDTO);
     sourceControl.setId(storedSourceControl.getId());
@@ -197,12 +200,14 @@ public class ApiSourceControlService
   @Authorize(permission = Permission.WRITE)
   public void deleteSourceControlByOwner(
       @AuthzContext(Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(Key.INTERNAL_ID) final String ownerId,
-      String sourceControlId)
+      @AuthzContext(Key.INTERNAL_ID) final String ownerId)
   {
     checkLicense();
-    SourceControl sourceControl = sourceControlDAO.getByIdNotNull(sourceControlId);
-    validateOwnerId(ownerType, ownerId, sourceControl);
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(ownerId);
+    if (null == sourceControl) {
+      throw new NotFoundException(String.format(
+          "Cannot find SourceControl for %s with id: %s", ownerType, ownerId));
+    }
     sourceControlDAO.delete(sourceControl);
     auditSourceControl(sourceControl);
     sendSourceControlTelemetryData(METHOD.DELETE, ownerId, sourceControl);
@@ -219,18 +224,6 @@ public class ApiSourceControlService
     }
     decryptToken(sourceControl);
     return sourceControl;
-  }
-
-  private void validateOwnerId(
-      final OwnerType ownerType,
-      final String ownerId,
-      final SourceControl sourceControl)
-  {
-    if (! sourceControl.getOwnerId().equals(ownerId)) {
-      throw new NotFoundException(String.format(
-          "Cannot find SourceControl with id: %s for %s with id: %s",
-          sourceControl.getId(), ownerType, ownerId));
-    }
   }
 
   @VisibleForTesting

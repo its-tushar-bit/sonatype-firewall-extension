@@ -122,23 +122,22 @@ public class ApiSourceControlServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testDeleteSourceControlByOwner_Unauthenticated() {
     sourceControlService.deleteSourceControlByOwner(
-        OwnerType.APPLICATION, app.getId(), "any");
+        OwnerType.APPLICATION, app.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testDeleteSourceControlByOwner_Unauthorized() {
     login();
     sourceControlService.deleteSourceControlByOwner(
-        OwnerType.APPLICATION, app.getId(), "any");
+        OwnerType.APPLICATION, app.getId());
   }
 
   @Test
   public void testDeleteSourceControlByOwner_Authorized() {
     grantWritePermission(app.getId());
-    SourceControl sourceControl =
-        tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
     sourceControlService.deleteSourceControlByOwner(
-        OwnerType.APPLICATION, app.getId(), sourceControl.getId());
+        OwnerType.APPLICATION, app.getId());
   }
 
   @Test

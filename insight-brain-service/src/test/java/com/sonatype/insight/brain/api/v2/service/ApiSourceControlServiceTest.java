@@ -209,7 +209,7 @@ public class ApiSourceControlServiceTest
     assertThat(sourceControlService.getAll()).hasSize(1);
     assertTelemetry(METHOD.ADD, org.getId(), sourceControl.repositoryUrl, sourceControl.provider);
 
-    sourceControlService.deleteSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), sourceControl.id);
+    sourceControlService.deleteSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
     assertThat(sourceControlService.getAll().isEmpty()).isTrue();
     assertTelemetry(METHOD.DELETE, org.getId(), sourceControl.repositoryUrl, sourceControl.provider);
   }
@@ -226,7 +226,7 @@ public class ApiSourceControlServiceTest
     assertTelemetry(METHOD.ADD, app.getId(), sourceControl.repositoryUrl,
         sourceControl.provider);
 
-    sourceControlService.deleteSourceControlByOwner(OwnerType.ORGANIZATION, app.getId(), sourceControl.id);
+    sourceControlService.deleteSourceControlByOwner(OwnerType.ORGANIZATION, app.getId());
     assertThat(sourceControlService.getAll().isEmpty()).isTrue();
     assertTelemetry(METHOD.DELETE, app.getId(), sourceControl.repositoryUrl,
         sourceControl.provider);
@@ -267,7 +267,7 @@ public class ApiSourceControlServiceTest
         sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION,
             "foo", sourceControl)
     ).withMessage(String.format(
-        "Cannot find SourceControl with id: %s for organization with id: %s", sourceControl.id, "foo"));
+        "Cannot find SourceControl for organization with id: foo"));
   }
 
   @Test
@@ -313,7 +313,7 @@ public class ApiSourceControlServiceTest
   public void testDeleteSourceControlByOwner_unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
     assertThatExceptionOfType(InvalidLicenseException.class)
-        .isThrownBy(() -> sourceControlService.deleteSourceControlByOwner(OwnerType.ORGANIZATION, "foo", "bar"));
+        .isThrownBy(() -> sourceControlService.deleteSourceControlByOwner(OwnerType.ORGANIZATION, "foo"));
   }
 
   @Test

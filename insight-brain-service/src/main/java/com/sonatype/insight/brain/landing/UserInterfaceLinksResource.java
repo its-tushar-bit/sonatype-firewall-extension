@@ -70,9 +70,10 @@ public class UserInterfaceLinksResource
   private final ApplicationDAO applicationDAO;
 
   @Inject
-  public UserInterfaceLinksResource(BaseUrl baseUrl,
-                                    TelemetrySender telemetrySender,
-                                    ApplicationDAO applicationDAO)
+  public UserInterfaceLinksResource(
+      BaseUrl baseUrl,
+      TelemetrySender telemetrySender,
+      ApplicationDAO applicationDAO)
   {
     this.baseUrl = baseUrl;
     this.telemetrySender = telemetrySender;

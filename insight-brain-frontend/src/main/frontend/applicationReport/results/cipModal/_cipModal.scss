@@ -115,8 +115,16 @@ cip-audit {
 
     max-height: 292px;
 
-    .iq-table {
+    .iq-table--audit-log {
       margin-top: 0;
+    }
+
+    .iq-cell {
+      line-height: unset;
+
+      &.iq-cell--audit-log {
+        white-space: normal;
+      }
     }
 
   }

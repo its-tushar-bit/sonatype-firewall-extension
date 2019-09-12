@@ -27,6 +27,7 @@ public class SourceControlClient
     Result result = path("api", "v2", "sourceControl")
         .query("publicId", publicId, "repositoryUrl", repositoryUrl)
         .post(null);
+    verifyStatusCode(result);
     return result.status();
   }
 }

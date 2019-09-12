@@ -329,7 +329,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
         restClient.addOrUpdateSourceControlRecord(params.getApplicationId(), repositoryUrl);
       }
       catch (Exception e) {
-        log.error("Failed to add or update the source control record due to:", e);
+        log.warn("Failed to add or update the source control record due to:", e);
       }
     }
     else {

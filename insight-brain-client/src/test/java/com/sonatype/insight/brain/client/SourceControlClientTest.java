@@ -14,9 +14,12 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
 
 public class SourceControlClientTest
@@ -42,16 +45,32 @@ public class SourceControlClientTest
   @Test
   public void testAddOrUpdateSourceControlRecord_InvalidAppId() throws Exception {
     SourceControlClient client = new SourceControlClient(getCLMServer().getClientConfiguration());
-    int status = client.addOrUpdateSourceControlRecord("abc-xyz", "https://github.com/org/proj2");
-    assertEquals(404, status);
+
+    try {
+      client.addOrUpdateSourceControlRecord("abc-xyz", "https://github.com/org/proj2");
+      fail("Call should have failed due to invalid App ID");
+    }
+    catch (HttpResponseException e) {
+      assertThat(e.getStatusCode()).isEqualTo(404);
+      assertThat(e.getMessage()).isEqualTo(
+          "Could not find an application with public ID abc-xyz.");
+    }
   }
 
   @Test
   public void testAddOrUpdateSourceControlRecord_InvalidUrl() throws Exception {
     SourceControlClient client = new SourceControlClient(getCLMServer().getClientConfiguration());
     addOrgSourceControlForTest();
-    int status = client.addOrUpdateSourceControlRecord(APP_ID, "https://not good");
-    assertEquals(400, status);
+
+    try {
+      client.addOrUpdateSourceControlRecord(APP_ID, "https://not good");
+      fail("Call should have failed due to invalid URL");
+    }
+    catch (HttpResponseException e) {
+      assertThat(e.getStatusCode()).isEqualTo(400);
+      assertThat(e.getMessage()).isEqualTo(
+          "SourceControl repositoryUrl is invalid: Illegal character in authority at index 8: https://not good");
+    }
   }
 
   private void addOrgSourceControlForTest() throws Exception {

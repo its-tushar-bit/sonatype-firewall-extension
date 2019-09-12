@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -225,8 +224,7 @@ public class LicenseOverrideServiceAuthzTest
 
   private void testGetAppliedLicenseOverrides_Authorized(final Owner owner, final String ownerId) throws Exception {
     grantReadPermission(owner.getId());
-    licenseOverrideService.getAppliedLicenseOverrides(owner.getType(), ownerId,
-        JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));
+    licenseOverrideService.getAppliedLicenseOverrides(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
   }
 
   @Test
@@ -255,8 +253,7 @@ public class LicenseOverrideServiceAuthzTest
 
   private void testGetAppliedLicenseOverrides_Unauthorized(final Owner owner, final String ownerId) throws Exception {
     login();
-    licenseOverrideService.getAppliedLicenseOverrides(owner.getType(), ownerId,
-        JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));
+    licenseOverrideService.getAppliedLicenseOverrides(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -286,8 +283,7 @@ public class LicenseOverrideServiceAuthzTest
   private void testGetAppliedLicenseOverrides_Unauthenticated(final Owner owner, final String ownerId)
       throws Exception
   {
-    licenseOverrideService.getAppliedLicenseOverrides(owner.getType(), ownerId,
-        JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));
+    licenseOverrideService.getAppliedLicenseOverrides(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
   }
 
   @Test(expected = UnauthenticatedException.class)

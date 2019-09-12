@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.webhook.LicenseOverrideEvent;
 import com.sonatype.insight.brain.webhook.LicenseOverrideEventService;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
-import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
 import org.junit.After;
 import org.junit.Before;
@@ -81,7 +80,7 @@ public class LicenseOverrideServiceTest
 
   private void testGetAppliedLicenseOverrides_hierarchyHideRoot(final Owner owner, final String ownerId) {
     final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), ownerId,
-        JsonEncodedComponentIdentifier.copy(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
 
     assertThat(overrides.licenseOverridesByOwner).extracting(licenseOverrideByOwner -> licenseOverrideByOwner.ownerId)
         .containsExactlyInAnyOrder(ownerId, owner.getParentOwnerId()).doesNotContain(Organization.ROOT_ORGANIZATION_ID);
@@ -114,7 +113,7 @@ public class LicenseOverrideServiceTest
     when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
     Owner owner = RepositoryContainer.SINGLETON;
     final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), owner.getId(),
-        JsonEncodedComponentIdentifier.copy(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     assertThat(overrides.licenseOverridesByOwner).hasSize(1)
         .extracting(licenseOverrideByOwner -> licenseOverrideByOwner.ownerId).containsExactlyInAnyOrder(owner.getId())
         .doesNotContain(Organization.ROOT_ORGANIZATION_ID);
@@ -126,7 +125,7 @@ public class LicenseOverrideServiceTest
 
   private void testGetAppliedLicenseOverrides_hierarchy(final Owner owner, final String ownerId) {
     final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), ownerId,
-        JsonEncodedComponentIdentifier.copy(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
 
     assertThat(overrides.licenseOverridesByOwner).extracting(licenseOverrideByOwner -> licenseOverrideByOwner.ownerId)
         .containsExactlyInAnyOrder(ownerId, owner.getParentOwnerId(), Organization.ROOT_ORGANIZATION_ID);
@@ -152,7 +151,7 @@ public class LicenseOverrideServiceTest
     when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     Owner owner = RepositoryContainer.SINGLETON;
     final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), owner.getId(),
-        JsonEncodedComponentIdentifier.copy(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     assertThat(overrides.licenseOverridesByOwner).extracting(licenseOverrideByOwner -> licenseOverrideByOwner.ownerId)
         .containsExactlyInAnyOrder(owner.getId(), Organization.ROOT_ORGANIZATION_ID);
   }

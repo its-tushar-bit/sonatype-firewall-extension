@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentIdentifierValidator;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -34,7 +35,6 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.webhook.LicenseOverrideEventService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -178,7 +178,7 @@ public class LicenseOverrideService
   public AppliedLicenseOverrides getAppliedLicenseOverrides(
       @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
-      final JsonEncodedComponentIdentifier componentIdentifier)
+      final ComponentIdentifier componentIdentifier)
   {
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");

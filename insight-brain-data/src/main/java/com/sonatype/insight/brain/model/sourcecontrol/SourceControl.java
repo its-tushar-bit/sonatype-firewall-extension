@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.model.sourcecontrol;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -37,6 +39,7 @@ public class SourceControl
   private String token;
 
   @Column(name = "provider")
+  @Enumerated(EnumType.STRING)
   private SourceControlProvider provider;
 
   @Column(name = "base_branch")

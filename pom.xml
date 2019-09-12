@@ -390,6 +390,19 @@
         <artifactId>keycloak-saml-servlet-filter-adapter</artifactId>
         <version>${keycloak.version}</version>
       </dependency>
+      <!--
+      We need to manage org.apache.santuario:xmlsec to avoid CVE-2019-12400
+      (see https://issues.sonatype.org/browse/CLM-13431).
+      org.apache.santuario:xmlsec is introduced as a transitive dependency by keycloak-saml-servlet-filter-adapter,
+      which at version 7.0.0 uses org.apache.santuario:xmlsec:2.1.3 (still vulnerable).
+      This dependency management should be removed when keycloack is upgraded 
+      to a version that uses org.apache.santuario:xmlsec >= 2.1.4.
+      -->
+      <dependency>
+        <groupId>org.apache.santuario</groupId>
+        <artifactId>xmlsec</artifactId>
+        <version>2.1.4</version>
+      </dependency>
 
       <dependency>
         <groupId>com.sonatype.insight.portal</groupId>

@@ -3,7 +3,7 @@
     No changes were found for this component.
   </p>
   <div class="iq-scrollable">
-    <table class="iq-table visual-testing-ignore"
+    <table class="iq-table iq-table--audit-log visual-testing-ignore"
            ng-if="vm.auditRecords.length > 0"
            sort="[vm.sort]"
            on-sort-change="vm.onSortChange(sortFields)">
@@ -28,7 +28,7 @@
           <td class="iq-cell">{{::record.user}}</td>
           <td class="iq-cell">{{::record.action}}</td>
           <td class="iq-cell">{{::record.detail}}</td>
-          <td class="iq-cell">{{::record.comment}}</td>
+          <td class="iq-cell iq-cell--audit-log">{{::record.comment}}</td>
         </tr>
       </tbody>
     </table>

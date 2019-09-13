@@ -57,6 +57,7 @@ public class OwnerTreeViewTest
         .put("Green Squadron", Arrays.asList("Arvel Crynyd", "Jake Farrell"))
         .put("Blue Squadron And Some Other Text To Force Overflow",
             Arrays.asList("Merrick Simms And Some Other Text To Force Overflow"))
+        .put("Orange Squadron", Arrays.asList("PaulQuincyRandolph"))
         .build();
 
     for (Entry<String, List<String>> organizationMeta : organizations.entrySet()) {
@@ -79,7 +80,8 @@ public class OwnerTreeViewTest
     assertOrganizationLoaded(OwnerTreeView.organization(0), "Blue Squadron And Some Other Text To Force Overflow",
         "Merrick Simms And Some Other Text To Force Overflow");
     assertOrganizationLoaded(OwnerTreeView.organization(1), "Green Squadron", "Arvel Crynyd", "Jake Farrell");
-    assertOrganizationLoaded(OwnerTreeView.organization(2), "Silver Squadron", "Biggs Darklighter", "Garven Dreis",
+    assertOrganizationLoaded(OwnerTreeView.organization(2), "Orange Squadron", "PaulQuincyRandolph");
+    assertOrganizationLoaded(OwnerTreeView.organization(3), "Silver Squadron", "Biggs Darklighter", "Garven Dreis",
         "Luke Skywalker");
   }
 
@@ -128,7 +130,7 @@ public class OwnerTreeViewTest
     treeViewElement.click();
     treeViewElement.shouldBe(CLM.SELECTED);
     twisty.shouldBe(CLM.COLLAPSED);
-    
+
     // visual test with applitools - step 2
     eyesWatcher.eyesCheck();
   }
@@ -176,8 +178,8 @@ public class OwnerTreeViewTest
 
   @Test
   public void testApplicationFuzzyFilter() {
-    OwnerTreeView.filter().setValue("Skiwalkr");
-    assertSingleApplicationVisible("Silver Squadron", "Luke Skywalker");
+    OwnerTreeView.filter().setValue("PaulQuincyRandalph");
+    assertSingleApplicationVisible("Orange Squadron", "PaulQuincyRandolph");
     eyesWatcher.eyesCheck();
   }
 

@@ -23,6 +23,13 @@ function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLoc
   vm.goToOrganizationIfNotSynthetic = goToOrganizationIfNotSynthetic;
   vm.handleOrganizationTwistyClick = handleOrganizationTwistyClick;
 
+  const FUSE_CONFIGURATION = {
+    id: 'id',
+    threshold: 0.1,
+    keys: ['name'],
+    tokenize: false
+  };
+
   $scope.$watch('vm.filter.value', filter, function(error) {
     vm.error = error;
   });
@@ -193,12 +200,7 @@ function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLoc
     var filterValue = vm.filter.value;
     var filteredOrganizations = [];
     if (filterValue && filterValue.length >= 3) {
-      var organizationFuse = new Fuse(vm.organizations, {
-        id: 'id',
-        threshold: 0.3,
-        keys: ['name']
-      });
-
+      var organizationFuse = new Fuse(vm.organizations, FUSE_CONFIGURATION);
       filteredOrganizations = organizationFuse.search(filterValue);
     }
 
@@ -213,11 +215,7 @@ function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLoc
       }
 
       if (filterValue && filterValue.length >= 3) {
-        var applicationFuse = new Fuse(organization.applications, {
-          id: 'id',
-          threshold: 0.3,
-          keys: ['name']
-        });
+        var applicationFuse = new Fuse(organization.applications, FUSE_CONFIGURATION);
         filteredApplications = applicationFuse.search(filterValue);
       }
 

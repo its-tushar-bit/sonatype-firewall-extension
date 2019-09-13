@@ -65,7 +65,7 @@ describe('owner.tree-view.directive.spec.js', function() {
         expect(scope.vm.organizations[0].isVisible).toBe(true);
         expect(scope.vm.organizations[0].isExpanded).toBe(false);
         expect(scope.vm.organizations[0].applications).toBeDefined();
-        expect(scope.vm.organizations[0].applications.length).toBe(2);
+        expect(scope.vm.organizations[0].applications.length).toBe(7);
         expect(scope.vm.organizations[0].applications[0].id).toBe(ownerList.organizations[0].applications[0].id);
         expect(scope.vm.organizations[0].applications[0].publicId).toBe(
             ownerList.organizations[0].applications[0].publicId);
@@ -93,6 +93,7 @@ describe('owner.tree-view.directive.spec.js', function() {
         //Mock data returns root organization as the third item
         expect(scope.vm.rootOrganization.id).toBe(ownerList.organizations[2].id);
         expect(scope.vm.rootOrganization.name).toBe(ownerList.organizations[2].name);
+
       });
 
       it('checks if an organization or application is selected', function() {
@@ -115,7 +116,7 @@ describe('owner.tree-view.directive.spec.js', function() {
       });
 
       it('filters organizations', function() {
-        scope.vm.filter.value = 'ONE';
+        scope.vm.filter.value = 'ORGANIZATION ONE';
         scope.$digest();
 
         expect(scope.vm.organizations).toBeDefined();
@@ -126,7 +127,41 @@ describe('owner.tree-view.directive.spec.js', function() {
         expect(scope.vm.organizations[0].isExpanded).toBe(true);
 
         expect(scope.vm.organizations[0].applications).toBeDefined();
-        expect(scope.vm.organizations[0].applications.length).toBe(2);
+        expect(scope.vm.organizations[0].applications.length).toBe(7);
+        expect(scope.vm.organizations[0].applications[0].id).toBe(ownerList.organizations[0].applications[0].id);
+        expect(scope.vm.organizations[0].applications[0].publicId).toBe(
+            ownerList.organizations[0].applications[0].publicId);
+        expect(scope.vm.organizations[0].applications[0].name).toBe(ownerList.organizations[0].applications[0].name);
+        expect(scope.vm.organizations[0].applications[0].isVisible).toBe(true);
+        expect(scope.vm.organizations[0].applications[1].id).toBe(ownerList.organizations[0].applications[1].id);
+        expect(scope.vm.organizations[0].applications[1].publicId).toBe(
+            ownerList.organizations[0].applications[1].publicId);
+        expect(scope.vm.organizations[0].applications[1].name).toBe(ownerList.organizations[0].applications[1].name);
+        expect(scope.vm.organizations[0].applications[1].isVisible).toBe(true);
+
+        expect(scope.vm.organizations[1].id).toBe(ownerList.organizations[1].id);
+        expect(scope.vm.organizations[1].name).toBe(ownerList.organizations[1].name);
+        expect(scope.vm.organizations[1].isVisible).toBe(false);
+        expect(scope.vm.organizations[1].isExpanded).toBe(false);
+        expect(scope.vm.organizations[1].applications.length).toBe(1);
+        expect(scope.vm.organizations[1].applications[0].id).toBe(ownerList.organizations[1].applications[0].id);
+        expect(scope.vm.organizations[1].applications[0].publicId).toBe(
+            ownerList.organizations[1].applications[0].publicId);
+        expect(scope.vm.organizations[1].applications[0].name).toBe(ownerList.organizations[1].applications[0].name);
+        expect(scope.vm.organizations[1].applications[0].isVisible).toBe(false);
+
+        scope.vm.filter.value = 'ORGANIZOTION ONE';
+        scope.$digest();
+
+        expect(scope.vm.organizations).toBeDefined();
+        expect(scope.vm.organizations.length).toBe(2);
+        expect(scope.vm.organizations[0].id).toBe(ownerList.organizations[0].id);
+        expect(scope.vm.organizations[0].name).toBe(ownerList.organizations[0].name);
+        expect(scope.vm.organizations[0].isVisible).toBe(true);
+        expect(scope.vm.organizations[0].isExpanded).toBe(true);
+
+        expect(scope.vm.organizations[0].applications).toBeDefined();
+        expect(scope.vm.organizations[0].applications.length).toBe(7);
         expect(scope.vm.organizations[0].applications[0].id).toBe(ownerList.organizations[0].applications[0].id);
         expect(scope.vm.organizations[0].applications[0].publicId).toBe(
             ownerList.organizations[0].applications[0].publicId);
@@ -151,7 +186,7 @@ describe('owner.tree-view.directive.spec.js', function() {
       });
 
       it('filters applications', function() {
-        scope.vm.filter.value = 'THREE';
+        scope.vm.filter.value = 'APPLICATION THREE';
         scope.$digest();
 
         expect(scope.vm.organizations).toBeDefined();
@@ -162,7 +197,7 @@ describe('owner.tree-view.directive.spec.js', function() {
         expect(scope.vm.organizations[0].isExpanded).toBe(false);
 
         expect(scope.vm.organizations[0].applications).toBeDefined();
-        expect(scope.vm.organizations[0].applications.length).toBe(2);
+        expect(scope.vm.organizations[0].applications.length).toBe(7);
         expect(scope.vm.organizations[0].applications[0].id).toBe(ownerList.organizations[0].applications[0].id);
         expect(scope.vm.organizations[0].applications[0].publicId).toBe(
             ownerList.organizations[0].applications[0].publicId);
@@ -184,6 +219,71 @@ describe('owner.tree-view.directive.spec.js', function() {
             ownerList.organizations[1].applications[0].publicId);
         expect(scope.vm.organizations[1].applications[0].name).toBe(ownerList.organizations[1].applications[0].name);
         expect(scope.vm.organizations[1].applications[0].isVisible).toBe(true);
+
+        scope.vm.filter.value = 'analytics-gateway-2.2.0';
+        scope.$digest();
+
+        expect(scope.vm.organizations).toBeDefined();
+        expect(scope.vm.organizations.length).toBe(2);
+        expect(scope.vm.organizations[0].id).toBe(ownerList.organizations[0].id);
+        expect(scope.vm.organizations[0].name).toBe(ownerList.organizations[0].name);
+        expect(scope.vm.organizations[0].isVisible).toBe(true);
+        expect(scope.vm.organizations[0].isExpanded).toBe(true);
+
+        expect(scope.vm.organizations[0].applications).toBeDefined();
+        expect(scope.vm.organizations[0].applications.length).toBe(7);
+        expect(scope.vm.organizations[0].applications[0].isVisible).toBe(false);
+        expect(scope.vm.organizations[0].applications[1].isVisible).toBe(false);
+        expect(scope.vm.organizations[0].applications[2].isVisible).toBe(false);
+        expect(scope.vm.organizations[0].applications[3].isVisible).toBe(true);
+        expect(scope.vm.organizations[0].applications[4].isVisible).toBe(false);
+        expect(scope.vm.organizations[0].applications[5].isVisible).toBe(true);
+        expect(scope.vm.organizations[0].applications[6].isVisible).toBe(false);
+
+        expect(scope.vm.organizations[1].id).toBe(ownerList.organizations[1].id);
+        expect(scope.vm.organizations[1].name).toBe(ownerList.organizations[1].name);
+        expect(scope.vm.organizations[1].isVisible).toBe(false);
+        expect(scope.vm.organizations[1].isExpanded).toBe(false);
+
+        scope.vm.filter.value = 'zamarchiva';
+        scope.$digest();
+
+        expect(scope.vm.organizations).toBeDefined();
+        expect(scope.vm.organizations.length).toBe(2);
+        expect(scope.vm.organizations[0].id).toBe(ownerList.organizations[0].id);
+        expect(scope.vm.organizations[0].name).toBe(ownerList.organizations[0].name);
+        expect(scope.vm.organizations[0].isVisible).toBe(true);
+        expect(scope.vm.organizations[0].isExpanded).toBe(true);
+
+        expect(scope.vm.organizations[0].applications).toBeDefined();
+        expect(scope.vm.organizations[0].applications.length).toBe(7);
+        expect(scope.vm.organizations[0].applications[0].isVisible).toBe(false);
+        expect(scope.vm.organizations[0].applications[1].isVisible).toBe(false);
+        expect(scope.vm.organizations[0].applications[2].isVisible).toBe(false);
+        expect(scope.vm.organizations[0].applications[3].isVisible).toBe(false);
+        expect(scope.vm.organizations[0].applications[4].isVisible).toBe(false);
+        expect(scope.vm.organizations[0].applications[5].isVisible).toBe(false);
+        expect(scope.vm.organizations[0].applications[6].isVisible).toBe(true);
+
+        expect(scope.vm.organizations[1].id).toBe(ownerList.organizations[1].id);
+        expect(scope.vm.organizations[1].name).toBe(ownerList.organizations[1].name);
+        expect(scope.vm.organizations[1].isVisible).toBe(false);
+        expect(scope.vm.organizations[1].isExpanded).toBe(false);
+
+        scope.vm.filter.value = 'adma';
+        scope.$digest();
+
+        expect(scope.vm.organizations).toBeDefined();
+        expect(scope.vm.organizations.length).toBe(2);
+        expect(scope.vm.organizations[0].id).toBe(ownerList.organizations[0].id);
+        expect(scope.vm.organizations[0].name).toBe(ownerList.organizations[0].name);
+        expect(scope.vm.organizations[0].isVisible).toBe(false);
+        expect(scope.vm.organizations[0].isExpanded).toBe(false);
+
+        expect(scope.vm.organizations[1].id).toBe(ownerList.organizations[1].id);
+        expect(scope.vm.organizations[1].name).toBe(ownerList.organizations[1].name);
+        expect(scope.vm.organizations[1].isVisible).toBe(false);
+        expect(scope.vm.organizations[1].isExpanded).toBe(false);
       });
 
       it('handles new organization', function() {
@@ -255,7 +355,7 @@ describe('owner.tree-view.directive.spec.js', function() {
         expect(scope.vm.organizations.length).toBe(2);
 
         expect(scope.vm.organizations[0].applications).toBeDefined();
-        expect(scope.vm.organizations[0].applications.length).toBe(1);
+        expect(scope.vm.organizations[0].applications.length).toBe(6);
         expect(scope.vm.organizations[0].applications[0].id).toBe(ownerList.organizations[0].applications[0].id);
       });
 

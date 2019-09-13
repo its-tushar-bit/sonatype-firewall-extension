@@ -560,7 +560,7 @@ public class DefaultPolicyEvaluatorTest
         .withEnvironmentVariableNamed(GitLabCI.COMMIT_HASH_ENV_VARIABLE)
         .withGitRepo()
         .build()
-        .tryGetCommitHash();;
+        .tryGetCommitHash();
     assertThat(scan.getMetadata().getCommitHash()).isEqualTo(commitHash.get());
   }
 

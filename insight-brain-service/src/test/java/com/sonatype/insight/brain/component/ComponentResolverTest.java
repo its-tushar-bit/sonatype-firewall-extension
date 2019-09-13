@@ -74,7 +74,7 @@ public class ComponentResolverTest
   }
 
   @Test
-  public void testComponents_thirdPartyScanClair() throws Exception {
+  public void testGetComponents_thirdPartyScanClair() throws Exception {
     Path path = Paths.get(getClass().getResource("/ComponentEvaluatorTest/TestThirdPartyClairBom.json").toURI());
     byte[] bomData = Files.readAllBytes(path);
     Application app1 = tempEntity.newApplicationWithParent("app1");
@@ -86,7 +86,7 @@ public class ComponentResolverTest
   }
 
   @Test
-  public void testComponents_noThirdPartyScanClairData() throws Exception {
+  public void testGetComponents_noThirdPartyScanClairData() throws Exception {
     Path path = Paths.get(getClass().getResource("/ComponentEvaluatorTest/TestThirdPartyClairBom.json").toURI());
     byte[] bomData = Files.readAllBytes(path);
     Application app1 = tempEntity.newApplicationWithParent("app1");

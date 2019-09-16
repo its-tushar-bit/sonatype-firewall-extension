@@ -7,7 +7,7 @@ import template from './owner.tree.view.directive.html';
 
 function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLocations, organizationStore,
                                  applicationStore, OwnerEditor, PermissionService, ownerConstant, EventNameConstant,
-                                 LastSelectedOrganization) {
+                                 LastSelectedOrganization, fuzzyFilter) {
   var vm = this;
 
   vm.filter = {
@@ -22,13 +22,6 @@ function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLoc
   vm.doLoad = doLoad;
   vm.goToOrganizationIfNotSynthetic = goToOrganizationIfNotSynthetic;
   vm.handleOrganizationTwistyClick = handleOrganizationTwistyClick;
-
-  const FUSE_CONFIGURATION = {
-    id: 'id',
-    threshold: 0.1,
-    keys: ['name'],
-    tokenize: false
-  };
 
   $scope.$watch('vm.filter.value', filter, function(error) {
     vm.error = error;
@@ -200,8 +193,7 @@ function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLoc
     var filterValue = vm.filter.value;
     var filteredOrganizations = [];
     if (filterValue && filterValue.length >= 3) {
-      var organizationFuse = new Fuse(vm.organizations, FUSE_CONFIGURATION);
-      filteredOrganizations = organizationFuse.search(filterValue);
+      filteredOrganizations = fuzzyFilter(vm.organizations, filterValue, 'name', 'id');
     }
 
     for (var i = 0; i < vm.organizations.length; i++) {
@@ -215,8 +207,7 @@ function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLoc
       }
 
       if (filterValue && filterValue.length >= 3) {
-        var applicationFuse = new Fuse(organization.applications, FUSE_CONFIGURATION);
-        filteredApplications = applicationFuse.search(filterValue);
+        filteredApplications = fuzzyFilter(organization.applications, filterValue, 'name', 'id');
       }
 
       for (var j = 0; j < organization.applications.length; j++) {
@@ -270,7 +261,8 @@ function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLoc
 
 OwnerTreeViewController.$inject = [
   '$q', '$scope', '$state', '$stateParams', '$http', 'CLMLocations', 'OrganizationStore', 'ApplicationStore',
-  'OwnerEditorService', 'PermissionService', 'owner.constant', 'event.name.constant', 'LastSelectedOrganization'
+  'OwnerEditorService', 'PermissionService', 'owner.constant', 'event.name.constant', 'LastSelectedOrganization',
+  'fuzzyFilter'
 ];
 
 export default function ownerTreeView() {

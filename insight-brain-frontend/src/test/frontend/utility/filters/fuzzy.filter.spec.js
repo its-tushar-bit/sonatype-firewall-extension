@@ -30,4 +30,12 @@ describe('fuzzy.filter.js', function () {
     expect(nameFilter('bingo', ['mongobee'])).toEqual([]);
     expect(nameFilter('adma', ['zamarchive-webapp'])).toEqual([]);
   });
+
+  it('optionally extracts identifier property of results', function() {
+    expect(fuzzyFilter([
+      {id: 'id-1', name: 'name-1'},
+      {id: 'id-2', name: 'name-2'},
+      {id: 'id-3', name: 'other'}
+    ], 'name', 'name', 'id')).toEqual(['id-1', 'id-2']);
+  });
 });

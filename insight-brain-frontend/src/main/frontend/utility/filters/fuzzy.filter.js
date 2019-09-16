@@ -4,11 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global Fuse*/
-function FuseFilter(input, term, field) {
-  if (!input || !angular.isArray(input) || !term || !field) {
+function FuseFilter(input, term, searchField, resultField) {
+  if (!input || !angular.isArray(input) || !term || !searchField) {
     return input;
   }
-  var fuse = new Fuse(input, {keys: [field], threshold: 0.1});
+  var fuse = new Fuse(input, {keys: [searchField], id: resultField, threshold: 0.1});
 
   return fuse.search(term);
 }

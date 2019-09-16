@@ -32,6 +32,10 @@ public class SamlConfiguration
 
   private String groupsAttributeName = "groups";
 
+  private Boolean validateResponseSignature;
+
+  private Boolean validateAssertionSignature;
+
   @JsonIgnore
   private Certificate certificate;
 
@@ -103,6 +107,22 @@ public class SamlConfiguration
 
   public void setEntityId(String entityId) {
     this.entityId = entityId;
+  }
+
+  public Boolean getValidateResponseSignature() {
+    return validateResponseSignature;
+  }
+
+  public void setValidateResponseSignature(Boolean validateResponseSignature) {
+    this.validateResponseSignature = validateResponseSignature;
+  }
+
+  public Boolean getValidateAssertionSignature() {
+    return validateAssertionSignature;
+  }
+
+  public void setValidateAssertionSignature(Boolean validateAssertionSignature) {
+    this.validateAssertionSignature = validateAssertionSignature;
   }
 
   public Certificate getCertificate() {

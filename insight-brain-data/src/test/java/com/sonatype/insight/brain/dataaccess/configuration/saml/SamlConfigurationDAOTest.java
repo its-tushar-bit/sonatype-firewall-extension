@@ -43,12 +43,16 @@ public class SamlConfigurationDAOTest
     PrivateKey decryptionKey = samlConfiguration.getDecryptionKey();
     KeyPair signingKeyPair = samlConfiguration.getSigningKeyPair();
     samlConfiguration.setFirstNameAttributeName("updated firstname");
+    samlConfiguration.setValidateResponseSignature(true);
+    samlConfiguration.setValidateAssertionSignature(false);
     samlConfiguration.setCertificate(null);
     samlConfiguration.setDecryptionKey(null);
     samlConfiguration.setSigningKeyPair(null);
     dao.update(samlConfiguration);
     samlConfiguration = dao.getById(samlConfigurationId);
     assertThat(samlConfiguration.getFirstNameAttributeName()).isEqualTo("updated firstname");
+    assertThat(samlConfiguration.getValidateResponseSignature()).isTrue();
+    assertThat(samlConfiguration.getValidateAssertionSignature()).isFalse();
     assertThat(samlConfiguration.getCertificate().toString()).isEqualTo(certificate.toString());
     assertThat(samlConfiguration.getDecryptionKey().getEncoded()).isEqualTo(decryptionKey.getEncoded());
     assertThat(samlConfiguration.getSigningKeyPair().getPrivate().getEncoded())
@@ -79,6 +83,8 @@ public class SamlConfigurationDAOTest
     assertThat(samlConfiguration.getEmailAttributeName()).isEqualTo("email");
     assertThat(samlConfiguration.getUsernameAttributeName()).isEqualTo("username");
     assertThat(samlConfiguration.getGroupsAttributeName()).isEqualTo("groups");
+    assertThat(samlConfiguration.getValidateResponseSignature()).isNull();
+    assertThat(samlConfiguration.getValidateAssertionSignature()).isNull();
     X509Certificate certificate = (X509Certificate) samlConfiguration.getCertificate();
     Date beforeExpiration = new Date(before.getTime() + TEN_YEARS_IN_SECONDS * 1000 - 1000);
     Date afterExpiration = new Date(after.getTime() + TEN_YEARS_IN_SECONDS * 1000 + 1000);

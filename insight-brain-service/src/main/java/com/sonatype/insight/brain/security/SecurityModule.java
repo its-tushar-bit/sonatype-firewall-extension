@@ -60,6 +60,7 @@ public class SecurityModule
     bindRealm().to(InternalRealm.class);
     bindRealm().to(LdapRealm.class);
     bindRealm().to(ReverseProxyRealm.class);
+    bindRealm().to(SamlRealm.class);
     binder().requestInjection(new ComponentConfigurator());
   }
 
@@ -83,23 +84,27 @@ public class SecurityModule
     manager.createChain("/rest/config/systemNotice/fetch", anonFilters);
 
     // public REST API
-    manager.createChain("/api/**", "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED
-        + "], reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + "], authcBasic");
+    manager.createChain("/api/**", "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], " +
+        "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + "], authcBasic, saml, requireAuth");
 
     // login, only means to create sessions, also used by integrations for auth validation
     manager.createChain("/rest/user/session", "sessionExpirationCookie, antiCsrf["
-        + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], reverseProxy, authcBasic, secureCookies");
+        + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], reverseProxy, authcBasic, saml, requireAuth, secureCookies");
 
     configureFilterChainsForNonAjaxFormSubmissions(manager);
 
+    // SAML callbacks
+    manager.createChain("/saml/**", "saml");
+
     // internal REST API
-    manager.createChain("/**/*", "noSessionCreation, antiCsrf, reverseProxy, authcBasic, sessionExpirationCookie");
+    manager.createChain("/**/*",
+        "noSessionCreation, antiCsrf, reverseProxy, authcBasic, saml, requireAuth, sessionExpirationCookie");
   }
 
   private void configureFilterChainsForNonAjaxFormSubmissions(FilterChainManager manager) {
     // old-school (i.e. non-AJAX) form submissions as done by IE9 can't use CSRF header
     String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.FORM_POST_ALLOWED
-        + "], reverseProxy, authcBasic, sessionExpirationCookie";
+        + "], reverseProxy, authcBasic, saml, requireAuth, sessionExpirationCookie";
     manager.createChain("/rest/application/icon/*", filters);
     manager.createChain("/rest/application/icon/sync", filters);
     manager.createChain("/rest/organization/icon/*", filters);
@@ -116,7 +121,7 @@ public class SecurityModule
   private void configureFilterChainsForIntegrations(FilterChainManager manager) {
     // client integrations don't have CSRF tokens and need access via explicit auth
     String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED
-        + "], reverseProxy, sessionExpirationCookie, authcBasic";
+        + "], reverseProxy, sessionExpirationCookie, authcBasic, requireAuth";
     manager.createChain("/rest/ide/scan/**", filters);
     manager.createChain("/rest/integration/repositories/**", filters);
     manager.createChain("/rest/quality/evaluations/*/*", filters);
@@ -185,10 +190,14 @@ public class SecurityModule
         UserFriendlyBasicHttpAuthenticationFilter basicHttpAuthenticationFilter,
         ReverseProxyAuthenticationFilter reverseProxyAuthenticationFilter,
         SecureCookiesFilter secureCookiesFilter,
-        SessionExpirationCookieFilter sessionExpirationCookieFilter)
+        SessionExpirationCookieFilter sessionExpirationCookieFilter,
+        MissingAuthenticationFilter missingAuthenticationFilter,
+        SamlFilter samlFilter)
     {
       filterChainManager.addFilter("antiCsrf", antiCsrfFilter);
       filterChainManager.addFilter("authcBasic", basicHttpAuthenticationFilter);
+      filterChainManager.addFilter("requireAuth", missingAuthenticationFilter);
+      filterChainManager.addFilter("saml", samlFilter);
       filterChainManager.addFilter("reverseProxy", reverseProxyAuthenticationFilter);
       filterChainManager.addFilter("secureCookies", secureCookiesFilter);
       filterChainManager.addFilter("sessionExpirationCookie", sessionExpirationCookieFilter);

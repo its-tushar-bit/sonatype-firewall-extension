@@ -1,0 +1,233 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.security;
+
+import java.io.PrintWriter;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.jaxrs.error.ErrorResponse;
+
+import org.apache.shiro.subject.support.DefaultSubjectContext;
+import org.junit.Test;
+import org.keycloak.adapters.saml.SamlAuthenticator;
+import org.keycloak.adapters.saml.SamlDeployment;
+import org.keycloak.adapters.saml.SamlSessionStore;
+import org.keycloak.adapters.spi.AuthChallenge;
+import org.keycloak.adapters.spi.AuthOutcome;
+import org.keycloak.adapters.spi.HttpFacade;
+import org.keycloak.adapters.spi.HttpFacade.Request;
+import org.mockito.Mock;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+public class SamlFilterTest
+    extends AbstractComponentTest
+{
+  @Inject
+  public SamlDeploymentManager samlDeploymentManager;
+
+  @Inject
+  public SamlFilter samlFilter;
+
+  @Mock
+  private HttpServletRequest mockHttpServletRequest;
+
+  @Mock
+  private HttpServletResponse mockHttpServletResponse;
+
+  @Mock
+  private SamlSessionStore mockSamlSessionStore;
+
+  @Mock
+  private SamlAuthenticator mockSamlAuthenticator;
+
+  @Mock
+  private AuthChallenge mockAuthChallenge;
+
+  @Test
+  public void testOnPrehandle_NullSamlDeployment_ReturnsTrue() throws Exception {
+    assertThat(samlDeploymentManager.get()).isNull();
+    assertThat(samlFilter.onPreHandle(null, null, null)).isTrue();
+  }
+
+  @Test
+  public void testOnPrehandle_RefererHasOnlyNossoParameter_ReturnsTrue() throws Exception {
+    testOnPrehandle("http://localhost:8070/assets/index.html?nosso", null, null, null, true);
+  }
+
+  @Test
+  public void testOnPrehandle_RefererHasMultipleParametersWithNosso_ReturnsTrue() throws Exception {
+    testOnPrehandle("http://localhost:8070/assets/index.html?name1=val%20one&nosso&name2=val%20two", null, null, null,
+        true);
+  }
+
+  @Test
+  public void testOnPrehandle_NonSamlEndpointAuthenticated_ReturnsTrue() throws Exception {
+    testOnPrehandle("http://localhost:8070/assets/index.html", "/rest/product/features", "", AuthOutcome.AUTHENTICATED,
+        true);
+  }
+
+  @Test
+  public void testOnPrehandle_SamlEndpointAuthenticated_ReturnsFalse() throws Exception {
+    testOnPrehandle("http://localhost:8070/assets/index.html", "/saml", "", AuthOutcome.AUTHENTICATED, false);
+  }
+
+  @Test
+  public void testOnPrehandle_NotAttemptedAndAllowed_ReturnsTrue() throws Exception {
+    when(subject.isAuthenticated()).thenReturn(true);
+
+    testOnPrehandle("http://localhost:8070/assets/index.html", "/saml", "", AuthOutcome.NOT_ATTEMPTED, true);
+  }
+
+  @Test
+  public void testOnPrehandle_LoggedOut_HomePageWithoutForwardSlash_ReturnsFalse() throws Exception {
+    testOnPrehandle("http://localhost:8070/assets/index.html", "/saml", "", AuthOutcome.LOGGED_OUT, false);
+
+    verify(mockSamlSessionStore).logoutAccount();
+    verify(subject).logout();
+    verify(mockHttpServletResponse).sendRedirect("/");
+  }
+
+  @Test
+  public void testOnPrehandle_LoggedOut_HomePageWithForwardSlash_ReturnsFalse() throws Exception {
+    testOnPrehandle("http://localhost:8070/assets/index.html", "/context/saml", "/context/", AuthOutcome.LOGGED_OUT,
+        false);
+
+    verify(mockSamlSessionStore).logoutAccount();
+    verify(subject).logout();
+    verify(mockHttpServletResponse).sendRedirect("/context/");
+  }
+
+  @Test
+  public void testOnPrehandle_Default_ReturnsFalse() throws Exception {
+    mockAuthChallenge = null;
+
+    testOnPrehandle("http://nosso:8070/nosso/nosso.html?name1=val%20one&name2=val%20two", "/saml", "", null, false);
+  }
+
+  @Test
+  public void testOnPrehandle_ChallengeSamlPath_ReturnsFalse() throws Exception {
+    testOnPrehandle("http://localhost:8070/assets/index.html", "/saml", "", null, false);
+
+    verify(mockHttpServletRequest).removeAttribute(DefaultSubjectContext.SESSION_CREATION_ENABLED);
+    verify(mockAuthChallenge).challenge(any(HttpFacade.class));
+  }
+
+  @Test
+  public void testOnPrehandle_ChallengeNonSamlPath_ReturnsFalse() throws Exception {
+    testOnPrehandle("http://localhost:8070/assets/index.html", "/rest/product/features", "", null, false);
+
+    verify(mockHttpServletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    verify(mockHttpServletResponse).setContentType(ErrorResponse.CONTENT_TYPE);
+    verify(mockHttpServletResponse.getWriter()).print(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS);
+    verify(mockHttpServletResponse).setHeader("WWW-Authenticate", "SAML");
+  }
+
+  @Test
+  public void testNewSamlSessionStore_IsSamlSessionStoreForRedirect() {
+    assertThat(samlFilter.newSamlSessionStore(null, null)).isInstanceOf(SamlSessionStoreForRedirect.class);
+  }
+
+  @Test
+  public void testNewSamlAuthenticator_GivenSamlEndpoint_ReturnsSamlAuthenticatorForSamlEndpoint() {
+    HttpFacade mockHttpFacade = mock(HttpFacade.class);
+    when(mockHttpFacade.getRequest()).thenReturn(mock(Request.class));
+
+    assertThat(samlFilter.newSamlAuthenticator(true, mockHttpFacade, samlDeploymentManager.get(), null))
+        .isInstanceOf(SamlAuthenticatorForSamlEndpoint.class);
+  }
+
+  @Test
+  public void testNewSamlAuthenticator_GivenNonSamlEndpoint_ReturnsSamlAuthenticatorForNonSamlEndpoint() {
+    HttpFacade mockHttpFacade = mock(HttpFacade.class);
+    when(mockHttpFacade.getRequest()).thenReturn(mock(Request.class));
+
+    assertThat(samlFilter.newSamlAuthenticator(false, mockHttpFacade, samlDeploymentManager.get(), null))
+        .isInstanceOf(SamlAuthenticatorForNonSamlEndpoint.class);
+  }
+
+  @Test
+  public void testOnAccessDenied_ThrowsIllegalStateException() {
+    assertThatThrownBy(() -> samlFilter.onAccessDenied(null, null)).isInstanceOf(IllegalStateException.class);
+  }
+
+  @Test
+  public void testGetDestinationOrDefault_NoRefererWithoutQuery_ReturnsDefault() {
+    HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
+    when(mockHttpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8070/some/context"));
+    when(mockHttpServletRequest.getRequestURI()).thenReturn("/some/context");
+
+    assertThat(SamlFilter.getDestinationOrDefault(mockHttpServletRequest)).isEqualTo("http://localhost:8070/");
+  }
+
+  @Test
+  public void testGetDestinationOrDefault_NoRefererWithQuery_ReturnsDefault() {
+    HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
+    when(mockHttpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8070/some/context"));
+    when(mockHttpServletRequest.getRequestURI()).thenReturn("/some/context");
+    when(mockHttpServletRequest.getQueryString()).thenReturn("name1=val%20one&nosso&name2=val%20two");
+
+    assertThat(SamlFilter.getDestinationOrDefault(mockHttpServletRequest))
+        .isEqualTo("http://localhost:8070/?name1=val%20one&nosso&name2=val%20two");
+  }
+
+  @Test
+  public void testGetDestinationOrDefault_OnlyReferer_ReturnsReferer() {
+    HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
+    String destination = "http://localhost:8070/assets/index.html";
+    when(mockHttpServletRequest.getHeader("Referer")).thenReturn(destination);
+
+    assertThat(SamlFilter.getDestinationOrDefault(mockHttpServletRequest)).isEqualTo(destination);
+  }
+
+  @Test
+  public void testGetDestinationOrDefault_RefererAndHash_ReturnsRefererAndHash() {
+    HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
+    String destination = "http://localhost:8070/assets/index.html";
+    String hash = "#/labs/successMetrics";
+    when(mockHttpServletRequest.getHeader("Referer")).thenReturn(destination);
+    when(mockHttpServletRequest.getParameter("hash")).thenReturn(hash);
+
+    assertThat(SamlFilter.getDestinationOrDefault(mockHttpServletRequest)).isEqualTo(destination + hash);
+  }
+
+  private void testOnPrehandle(
+      String referer,
+      String requestUri,
+      String contextPath,
+      AuthOutcome authOutcome,
+      boolean expectedResult) throws Exception
+  {
+    tempEntity.newSamlConfiguration();
+    samlDeploymentManager.updateFromConfiguration();
+    lenient().when(mockHttpServletRequest.getHeader("Referer")).thenReturn(referer);
+    lenient().when(mockHttpServletRequest.getRequestURI()).thenReturn(requestUri);
+    lenient().when(mockHttpServletRequest.getContextPath()).thenReturn(contextPath);
+    lenient().when(mockHttpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
+    SamlFilter spySamlFilter = spy(this.samlFilter);
+    lenient().doReturn(mockSamlSessionStore).when(spySamlFilter)
+        .newSamlSessionStore(any(HttpServletRequest.class), any(HttpFacade.class));
+    lenient().when(mockSamlAuthenticator.getChallenge()).thenReturn(mockAuthChallenge);
+    lenient().when(mockSamlAuthenticator.authenticate()).thenReturn(authOutcome);
+    lenient().doReturn(mockSamlAuthenticator).when(spySamlFilter).newSamlAuthenticator(anyBoolean(),
+        any(HttpFacade.class), any(SamlDeployment.class), any(SamlSessionStore.class));
+    assertThat(spySamlFilter.onPreHandle(mockHttpServletRequest, mockHttpServletResponse, null))
+        .isSameAs(expectedResult);
+  }
+}

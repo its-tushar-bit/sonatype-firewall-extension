@@ -29,7 +29,7 @@ public class SamlConfigurationDAOTest
   public void testCRUD() throws Exception {
     // Create
     Date before = new Date();
-    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration();
+    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration(null, null);
     Date after = new Date();
     assertSamlConfiguration(samlConfiguration, before, after);
 

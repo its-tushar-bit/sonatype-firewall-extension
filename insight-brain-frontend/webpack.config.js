@@ -136,7 +136,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
       contentBase: path.join(__dirname, 'target', 'classes'),
       publicPath: '/assets/',
       proxy: [{
-        context: ['/rest', '/api', '/ui', '/policy-assets'],
+        context: ['/rest', '/api', '/ui', '/policy-assets', '/saml'],
         target: 'http://localhost:8072/'
       }]
     }

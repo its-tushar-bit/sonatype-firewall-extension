@@ -1,0 +1,151 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.security;
+
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.jaxrs.error.ErrorResponse;
+
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.shiro.subject.support.DefaultSubjectContext;
+import org.apache.shiro.web.filter.authc.AuthenticationFilter;
+import org.keycloak.adapters.saml.SamlAuthenticator;
+import org.keycloak.adapters.saml.SamlDeployment;
+import org.keycloak.adapters.saml.SamlSessionStore;
+import org.keycloak.adapters.saml.profile.ecp.EcpAuthenticationHandler;
+import org.keycloak.adapters.servlet.ServletHttpFacade;
+import org.keycloak.adapters.spi.AuthChallenge;
+import org.keycloak.adapters.spi.AuthOutcome;
+import org.keycloak.adapters.spi.HttpFacade;
+import org.keycloak.adapters.spi.InMemorySessionIdMapper;
+import org.keycloak.adapters.spi.SessionIdMapper;
+
+/**
+ * Filter that will initiate a SAML-based login if the calling subject has not been authenticated previously via other
+ * means.
+ */
+@Named
+@Singleton
+class SamlFilter
+    extends AuthenticationFilter
+{
+  private final SamlDeploymentManager samlDeploymentManager;
+
+  private final SessionIdMapper idMapper;
+
+  @Inject
+  public SamlFilter(SamlDeploymentManager samlDeploymentManager) {
+    this.samlDeploymentManager = samlDeploymentManager;
+    idMapper = new InMemorySessionIdMapper();
+  }
+
+  @Override
+  public boolean onPreHandle(ServletRequest request, ServletResponse response, Object mappedValue) throws Exception {
+    SamlDeployment samlDeployment = samlDeploymentManager.get();
+
+    if (samlDeployment == null) {
+      return true;
+    }
+
+    HttpServletRequest httpRequest = (HttpServletRequest) request;
+    HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+    String destination = getDestinationOrDefault(httpRequest);
+
+    if (URLEncodedUtils.parse(new URI(destination), StandardCharsets.UTF_8).stream()
+        .anyMatch(queryParam -> queryParam.getName().equals("nosso"))) {
+      return true;
+    }
+
+    String requestPath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
+    boolean samlEndpoint = requestPath.equals("/saml");
+
+    ServletHttpFacade httpFacade = new ServletHttpFacade(httpRequest, httpResponse);
+    SamlSessionStore samlSessionStore = newSamlSessionStore(httpRequest, httpFacade);
+    SamlAuthenticator samlAuthenticator =
+        newSamlAuthenticator(samlEndpoint, httpFacade, samlDeployment, samlSessionStore);
+
+    AuthOutcome outcome = samlAuthenticator.authenticate();
+    if (outcome == AuthOutcome.AUTHENTICATED) {
+      return !samlEndpoint;
+    }
+    if (outcome == AuthOutcome.NOT_ATTEMPTED && isAccessAllowed(request, response, mappedValue)) {
+      return true;
+    }
+    if (outcome == AuthOutcome.LOGGED_OUT) {
+      samlSessionStore.logoutAccount();
+      getSubject(request, response).logout();
+      String homePage = httpRequest.getContextPath();
+      if (!homePage.endsWith("/")) {
+        homePage += "/";
+      }
+      httpResponse.sendRedirect(homePage);
+      return false;
+    }
+
+    AuthChallenge challenge = samlAuthenticator.getChallenge();
+    if (challenge != null) {
+      // there's no point in sending out a SAML challenge to a client which is not prepared for it
+      if (requestPath.startsWith("/saml") || EcpAuthenticationHandler.canHandle(httpFacade)) {
+        request.removeAttribute(DefaultSubjectContext.SESSION_CREATION_ENABLED);
+        challenge.challenge(httpFacade);
+      }
+      else {
+        // let the UI know the SAML web flow should be initiated
+        httpResponse.setHeader("WWW-Authenticate", "SAML");
+        LoginErrorResponseHandler.sendError(httpResponse,
+            new ErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
+      }
+    }
+
+    return false;
+  }
+
+  @VisibleForTesting
+  static String getDestinationOrDefault(HttpServletRequest httpServletRequest) {
+    String referer = httpServletRequest.getHeader("Referer");
+    if (referer == null) {
+      String queryString = httpServletRequest.getQueryString();
+      return httpServletRequest.getRequestURL().substring(0,
+          httpServletRequest.getRequestURL().length() - httpServletRequest.getRequestURI().length()) + "/" +
+          (queryString != null ? "?" + queryString : "");
+    }
+    return referer + Optional.ofNullable(httpServletRequest.getParameter("hash")).orElse("");
+  }
+
+  @VisibleForTesting
+  SamlSessionStore newSamlSessionStore(HttpServletRequest httpRequest, HttpFacade httpFacade) {
+    return new SamlSessionStoreForRedirect(httpRequest, httpFacade, 0, idMapper);
+  }
+
+  @VisibleForTesting
+  SamlAuthenticator newSamlAuthenticator(
+      boolean samlEndpoint,
+      HttpFacade httpFacade,
+      SamlDeployment samlDeployment,
+      SamlSessionStore samlSessionStore)
+  {
+    return samlEndpoint ? new SamlAuthenticatorForSamlEndpoint(httpFacade, samlDeployment, samlSessionStore)
+        : new SamlAuthenticatorForNonSamlEndpoint(httpFacade, samlDeployment, samlSessionStore);
+  }
+
+  @Override
+  protected boolean onAccessDenied(ServletRequest request, ServletResponse response) {
+    throw new IllegalStateException();
+  }
+}

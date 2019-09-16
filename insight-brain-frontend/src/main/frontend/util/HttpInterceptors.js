@@ -23,6 +23,13 @@ httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', ['$window', '
             // the page.
             $window.top.sessionExpired();
           }
+          else if (response.headers('WWW-Authenticate') === 'SAML') {
+            let destination = '../saml/login';
+            if ($window.location.hash) {
+              destination += '?hash=' + encodeURIComponent($window.location.hash);
+            }
+            $window.location.assign(destination);
+          }
           else {
             // new promise for each failure, that will be completed once login suceeds
             var deferred = $q.defer();

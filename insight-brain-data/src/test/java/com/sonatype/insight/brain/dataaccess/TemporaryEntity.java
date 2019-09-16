@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -135,6 +138,7 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Table;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.joda.time.LocalDate;
 import org.junit.rules.ExternalResource;
@@ -1790,7 +1794,18 @@ public class TemporaryEntity
   }
 
   public SamlConfiguration newSamlConfiguration() {
-    return newSamlConfiguration(null, null);
+    return newSamlConfiguration(validIdentityProviderXml(), null);
+  }
+
+  private String validIdentityProviderXml() {
+    try {
+      return IOUtil.toString(
+          getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/identity-provider-metadata.xml"),
+          StandardCharsets.UTF_8.toString());
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   public SamlConfiguration newSamlConfiguration(String identityProviderMetadataXml, String entityId) {

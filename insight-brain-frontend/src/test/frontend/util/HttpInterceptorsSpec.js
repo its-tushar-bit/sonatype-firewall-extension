@@ -1,4 +1,4 @@
-import { unauthenticatedResponseHttpInterceptor } from '../../../main/frontend/util/HttpInterceptors';
+import {unauthenticatedResponseHttpInterceptor} from '../../../main/frontend/util/HttpInterceptors';
 import utilityServicesModule from '../../../main/frontend/utility/services/utility.services.module';
 
 describe('HttpInterceptors.js', function() {
@@ -28,6 +28,16 @@ describe('HttpInterceptors.js', function() {
                 }
               }
             };
+          }
+        });
+        let sessionExpiredSpy = jasmine.createSpy();
+        $provide.value('$window', {
+          sessionExpired: sessionExpiredSpy,
+          top: {
+            sessionExpired: sessionExpiredSpy
+          },
+          location: {
+            assign: jasmine.createSpy()
           }
         });
       }
@@ -62,17 +72,10 @@ describe('HttpInterceptors.js', function() {
   }));
 
   it('Validate that window.sessionExpired is called if a 401 happens when $rootScope.username is already defined',
-      inject(function($rootScope, $http, $httpBackend, UnauthenticatedRequestQueueService) {
+      inject(function($rootScope, $http, $httpBackend, UnauthenticatedRequestQueueService, $window) {
         var rootScopeHasUsername = $rootScope.hasOwnProperty('username'),
-            oldUsername = $rootScope.username,
-            windowHasSessionExpiredFn = window.hasOwnProperty('sessionExpired');
+            oldUsername = $rootScope.username;
 
-        if (!windowHasSessionExpiredFn) {
-          // spyOn only works on functions that are already defined
-          window.sessionExpired = function() {};
-        }
-
-        spyOn(window, 'sessionExpired');
         $rootScope.username = 'testUser';
 
         $httpBackend.expectPOST('test').respond(401);
@@ -82,7 +85,7 @@ describe('HttpInterceptors.js', function() {
         $httpBackend.flush();
         $rootScope.$digest();
 
-        expect(window.sessionExpired).toHaveBeenCalled();
+        expect($window.sessionExpired).toHaveBeenCalled();
         expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(0);
 
         // cleanup
@@ -92,11 +95,37 @@ describe('HttpInterceptors.js', function() {
         else {
           delete $rootScope.username;
         }
-
-        if (!windowHasSessionExpiredFn) {
-          delete window.sessionExpired;
-        }
         // else it is currently a spy wrapped around the original, and jasmine will automatically clean the spy
+      })
+  );
+
+  it('Validate SAML login is called if a 401 happens when the WWW-Authenticate header is set to SAML without a hash',
+      inject(function($rootScope, $http, $httpBackend, $window) {
+        $httpBackend.expectPOST('test').respond(401, undefined, {
+          'WWW-Authenticate': 'SAML'
+        });
+
+        $http.post('test');
+        $httpBackend.flush();
+        $rootScope.$digest();
+
+        expect($window.location.assign).toHaveBeenCalledWith('../saml/login');
+      })
+  );
+
+  it('Validate SAML login is called if a 401 happens when the WWW-Authenticate header is set to SAML with a hash',
+      inject(function($rootScope, $http, $httpBackend, $window) {
+        $window.location.hash = '#/some/example';
+        $httpBackend.expectPOST('test').respond(401, undefined, {
+          'WWW-Authenticate': 'SAML'
+        });
+
+        $http.post('test');
+        $httpBackend.flush();
+        $rootScope.$digest();
+
+        expect($window.location.assign).toHaveBeenCalledWith(
+            '../saml/login?hash=' + encodeURIComponent($window.location.hash));
       })
   );
 

@@ -483,7 +483,7 @@ public class SystemInfoTest
 
   @Test
   public void testGetSamlInfo_Configured() throws Exception {
-    SamlConfiguration samlConfig = tempEntity.newSamlConfiguration();
+    SamlConfiguration samlConfig = tempEntity.newSamlConfiguration(null, null);
     samlConfig.setIdentityProviderMetadataXml(Resources.toString(
         getClass().getResource("/" + getClass().getSimpleName() + "/saml-identity-provider-metadata.xml"),
         StandardCharsets.UTF_8));

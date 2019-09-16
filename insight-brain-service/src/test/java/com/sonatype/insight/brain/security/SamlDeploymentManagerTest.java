@@ -74,7 +74,7 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_InvalidConfiguration() {
-    tempEntity.newSamlConfiguration();
+    tempEntity.newSamlConfiguration(null, null);
     assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
       samlDeploymentManager.updateFromConfiguration();
     }).withMessageContaining("Invalid SAML metadata");
@@ -105,6 +105,7 @@ public class SamlDeploymentManagerTest
         .isEqualTo(samlConfiguration.getSigningKeyPair().getPrivate().getEncoded());
     assertThat(samlDeployment.getSigningKeyPair().getPublic().getEncoded())
         .isEqualTo(samlConfiguration.getSigningKeyPair().getPublic().getEncoded());
+    assertThat(samlDeployment.getRoleAttributeNames()).isEmpty();
 
     IDP idp = samlDeployment.getIDP();
     assertThat(idp.getEntityID()).isEqualTo("idp-entity-id");

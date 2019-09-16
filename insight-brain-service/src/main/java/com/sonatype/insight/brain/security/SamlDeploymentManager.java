@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import java.security.cert.Certificate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -159,6 +160,7 @@ public class SamlDeploymentManager
       singleLogoutService.setResponseBinding(getBinding(singleLogoutEndpoint));
     }
 
+    defaultSamlDeployment.setRoleAttributeNames(Collections.emptySet());
     return defaultSamlDeployment;
   }
 

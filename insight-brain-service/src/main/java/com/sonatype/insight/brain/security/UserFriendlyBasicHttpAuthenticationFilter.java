@@ -20,7 +20,7 @@ import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
 
 /**
  * Specialized BASIC auth filter that better conveys why authentication failed.
- * 
+ *
  * @since 1.20.0
  */
 @Named
@@ -29,10 +29,11 @@ class UserFriendlyBasicHttpAuthenticationFilter
     extends BasicHttpAuthenticationFilter
 {
   @Override
-  protected boolean onLoginFailure(final AuthenticationToken token,
-                                   final AuthenticationException e,
-                                   final ServletRequest request,
-                                   final ServletResponse response)
+  protected boolean onLoginFailure(
+      final AuthenticationToken token,
+      final AuthenticationException e,
+      final ServletRequest request,
+      final ServletResponse response)
   {
     LoginErrorResponseHandler.sendError((HttpServletResponse) response, e);
     return super.onLoginFailure(token, e, request, response);
@@ -50,5 +51,15 @@ class UserFriendlyBasicHttpAuthenticationFilter
     LoginErrorResponseHandler.sendError((HttpServletResponse) response,
         new ErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
     return false;
+  }
+
+  @Override
+  protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
+    if (isLoginAttempt(request, response) && !executeLogin(request, response)) {
+      sendChallenge(request, response);
+      return false;
+    }
+    // if this wasn't a failed login attempt, continue filter chain, allowing other filters to do login
+    return true;
   }
 }

@@ -21,8 +21,8 @@ Please read our [contribution rules and guidelines](contributing.md).
 
 This week's rotating reviewers are:
 
-* [@Andrey Maruskevych](https://github.com/marushkevych)
-* [@Vlad Tatavu](https://github.com/vladt)
+* [@Benjamin Bentmann](https://github.com/bentmann)
+* [@Dennis Warren](https://github.com/DennisWarren)
 
 # Building #
 

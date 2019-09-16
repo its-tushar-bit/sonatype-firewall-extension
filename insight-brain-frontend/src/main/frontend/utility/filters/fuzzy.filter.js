@@ -8,7 +8,7 @@ function FuseFilter(input, term, field) {
   if (!input || !angular.isArray(input) || !term || !field) {
     return input;
   }
-  var fuse = new Fuse(input, {keys: [field]});
+  var fuse = new Fuse(input, {keys: [field], threshold: 0.1});
 
   return fuse.search(term);
 }

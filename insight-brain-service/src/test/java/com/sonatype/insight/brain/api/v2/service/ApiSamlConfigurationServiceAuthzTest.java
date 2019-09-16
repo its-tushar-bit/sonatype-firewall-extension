@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.File;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
@@ -17,7 +13,6 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
@@ -33,7 +28,7 @@ public class ApiSamlConfigurationServiceAuthzTest
 
   @Test
   public void testGetSamlConfiguration_Authorized() {
-    tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams");
+    tempEntity.newSamlConfiguration();
     grantConfigureSystemPermission();
     apiSamlConfigurationService.getSamlConfiguration();
   }
@@ -69,8 +64,7 @@ public class ApiSamlConfigurationServiceAuthzTest
 
   @Test
   public void testDeleteSamlConfiguration_Authorized() throws Exception {
-    tempEntity.newSamlConfiguration(validIdentityProviderXml(),
-        "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams");
+    tempEntity.newSamlConfiguration();
     grantConfigureSystemPermission();
     apiSamlConfigurationService.deleteSamlConfiguration();
   }
@@ -101,10 +95,5 @@ public class ApiSamlConfigurationServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetMetadata_Unauthenticated() {
     apiSamlConfigurationService.getMetadata();
-  }
-
-  private String validIdentityProviderXml() throws Exception {
-    URL resource = getClass().getResource("/" + getClass().getSimpleName() + "/identity-provider-metadata.xml");
-    return FileUtils.readFileToString(new File(resource.getFile()), StandardCharsets.UTF_8);
   }
 }

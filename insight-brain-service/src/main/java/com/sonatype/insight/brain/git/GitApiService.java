@@ -16,7 +16,6 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -50,21 +49,17 @@ public class GitApiService
 
   private final GitClientFactory gitClientFactory;
 
-  private final OrganizationDAO organizationDAO;
-
   @Inject
   public GitApiService(
       final ApiSourceControlService sourceControlService,
       final BaseUrl baseUrl,
       final ApplicationDAO applicationDAO,
-      final GitClientFactory gitClientFactory,
-      final OrganizationDAO organizationDAO)
+      final GitClientFactory gitClientFactory)
   {
     this.sourceControlService = sourceControlService;
     this.baseUrl = baseUrl;
     this.applicationDAO = applicationDAO;
     this.gitClientFactory = gitClientFactory;
-    this.organizationDAO = organizationDAO;
   }
 
   /**
@@ -117,34 +112,59 @@ public class GitApiService
     }
 
     GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo(sourceControl.getRepositoryUrl(), sourceControl.getToken(), sourceControl.getProvider());
-    if (gitRepositoryInfo.provider == null || Strings.isNullOrEmpty(gitRepositoryInfo.token)) {
-      Application application = applicationDAO.getById(sourceControl.getOwnerId());
-      if (application != null) {
-        populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, application.getOrganizationId());
+        new GitRepositoryInfo(sourceControl.getRepositoryUrl(), sourceControl.getToken(), sourceControl.getProvider(),
+            sourceControl.getBaseBranch(), sourceControl.getEnablePullRequests(),
+            sourceControl.getEnableStatusChecks());
+
+    if (!isGitRepoInfoComplete(gitRepositoryInfo)) {
+      // check at sub-organization level for missing fields
+      SourceControl orgSourceControl = sourceControlService
+          .getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, sourceControl.getOwnerId());
+
+      populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, orgSourceControl);
+
+      if (!isGitRepoInfoComplete(gitRepositoryInfo)) {
+        // fields are still missing, check at the root organization level
+        orgSourceControl = sourceControlService
+            .getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+        populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, orgSourceControl);
       }
     }
 
     return gitRepositoryInfo;
   }
 
+  private boolean isGitRepoInfoComplete(final GitRepositoryInfo gitRepositoryInfo) {
+    return gitRepositoryInfo.isDataComplete();
+  }
+
   private void populateGitRepositoryInformationFromOrganization(
       final GitRepositoryInfo gitRepositoryInfo,
-      final String organizationId)
+      final SourceControl orgSourceControl)
   {
-    SourceControl orgSourceControl =
-        sourceControlService.getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, organizationId);
-
-    if (orgSourceControl != null && orgSourceControl.getProvider() != null &&
-        !Strings.isNullOrEmpty(orgSourceControl.getToken())) {
-      gitRepositoryInfo.token = orgSourceControl.getToken();
-      gitRepositoryInfo.provider = orgSourceControl.getProvider();
+    if (orgSourceControl == null) {
+      // not required, so org-level source control may be null
+      return;
     }
-    else {
-      Organization organization = organizationDAO.getById(organizationId);
-      if (organization != null && !Strings.isNullOrEmpty(organization.getParentOrganizationId())) {
-        populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, organization.getParentOrganizationId());
-      }
+
+    if (gitRepositoryInfo.enableStatusChecks == null) {
+      gitRepositoryInfo.enableStatusChecks = orgSourceControl.getEnableStatusChecks();
+    }
+
+    if (gitRepositoryInfo.enablePullRequests == null) {
+      gitRepositoryInfo.enablePullRequests = orgSourceControl.getEnablePullRequests();
+    }
+
+    if (Strings.isNullOrEmpty(gitRepositoryInfo.token)) {
+      gitRepositoryInfo.token = orgSourceControl.getToken();
+    }
+
+    if (Strings.isNullOrEmpty(gitRepositoryInfo.baseBranch)) {
+      gitRepositoryInfo.baseBranch = orgSourceControl.getBaseBranch();
+    }
+
+    if (gitRepositoryInfo.provider == null) {
+      gitRepositoryInfo.provider = orgSourceControl.getProvider();
     }
   }
 

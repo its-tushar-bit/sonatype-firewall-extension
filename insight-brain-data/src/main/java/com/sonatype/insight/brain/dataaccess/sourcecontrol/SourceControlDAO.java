@@ -122,7 +122,9 @@ public class SourceControlDAO
         Application application = applicationDAO.getById(tx, sourceControl.getOwnerId());
         scmProvider = getProviderFromOrganization(tx, application.getOrganizationId());
         if (scmProvider == null) {
-          throw new BadRequestException("Cannot validate SourceControl repositoryUrl due to undetermined provider");
+          throw new BadRequestException("Cannot validate SourceControl repositoryUrl. " +
+              "The root organization source control provider is not set. " +
+              "Please configure the root organization source control provider");
         }
       }
       gitApiClientFactory.getGitApiClientUtils(scmProvider).createProjectUri(sourceControl.getRepositoryUrl());

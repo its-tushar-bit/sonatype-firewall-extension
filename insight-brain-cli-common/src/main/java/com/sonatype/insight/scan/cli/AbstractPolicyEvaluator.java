@@ -322,14 +322,14 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
         .tryGetRepositoryUrl();
     if (optional.isPresent()) {
       String repositoryUrl = optional.get();
-      log.info(
+      log.debug(
           "Amending source control record for application with id: {} with discovered Repository URL: {}",
           params.getApplicationId(), repositoryUrl);
       try {
         restClient.addOrUpdateSourceControlRecord(params.getApplicationId(), repositoryUrl);
       }
       catch (Exception e) {
-        log.warn("Failed to add or update the source control record due to:", e);
+        log.debug("Failed to add or update the source control record due to:", e);
       }
     }
     else {

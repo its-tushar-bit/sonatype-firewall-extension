@@ -329,7 +329,7 @@ public class SourceControlDAOTest
   public void testInsert_ProviderNotAvailable() {
     assertThatThrownBy(() -> sourceControlDAO.insert(new SourceControl(app.getId(), VALID_URL, null, null)))
         .isInstanceOf(BadRequestException.class)
-        .hasMessageContaining("Cannot validate SourceControl repositoryUrl due to undetermined provider");
+        .hasMessageContaining("Cannot validate SourceControl repositoryUrl");
   }
 
   @Test
@@ -359,6 +359,6 @@ public class SourceControlDAOTest
     sourceControl.setProvider(null);
     sourceControl.setToken(null);
     assertThatThrownBy(() -> sourceControlDAO.update(sourceControl)).isInstanceOf(BadRequestException.class)
-        .hasMessageContaining("Cannot validate SourceControl repositoryUrl due to undetermined provider");
+        .hasMessageContaining("Cannot validate SourceControl repositoryUrl");
   }
 }

@@ -124,6 +124,7 @@ cip-audit {
 
       &.iq-cell--audit-log {
         white-space: normal;
+        word-break: break-all;
         word-break: break-word;
       }
     }
@@ -131,19 +132,6 @@ cip-audit {
 
   thead .iq-table-row:first-child {
     border-top-style: none;
-  }
-}
-
-// IE11 Hack for overflow in Audit Log table cell
-@media all and (-ms-high-contrast:none) {
-  cip-audit {
-    .iq-scrollable {
-      .iq-cell {
-        &.iq-cell--audit-log {
-          word-break: break-all;
-        }
-      }
-    }
   }
 }
 

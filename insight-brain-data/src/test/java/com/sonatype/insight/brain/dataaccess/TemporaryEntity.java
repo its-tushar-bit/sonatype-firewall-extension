@@ -1902,7 +1902,9 @@ public class TemporaryEntity
       String lastNameAttributeName,
       String emailAttributeName,
       String usernameAttributeName,
-      String groupsAttributeName)
+      String groupsAttributeName,
+      Boolean validateResponseSignature,
+      Boolean validateAssertionSignature)
   {
     SamlConfiguration samlConfiguration = new SamlConfiguration();
 
@@ -1913,6 +1915,8 @@ public class TemporaryEntity
     samlConfiguration.setEmailAttributeName(emailAttributeName);
     samlConfiguration.setUsernameAttributeName(usernameAttributeName);
     samlConfiguration.setGroupsAttributeName(groupsAttributeName);
+    samlConfiguration.setValidateResponseSignature(validateResponseSignature);
+    samlConfiguration.setValidateAssertionSignature(validateAssertionSignature);
 
     samlConfigurationDAO.insert(samlConfiguration);
     samlConfigurations.add(samlConfiguration);

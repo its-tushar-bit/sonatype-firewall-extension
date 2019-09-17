@@ -42,6 +42,8 @@ public class ApiSamlConfigurationResourceAuditTest
     }
     apiSamlConfigurationDTO = new ApiSamlConfigurationDTO();
     apiSamlConfigurationDTO.entityId = ENTITY_ID;
+    apiSamlConfigurationDTO.validateResponseSignature = true;
+    apiSamlConfigurationDTO.validateAssertionSignature = false;
   }
 
   @Test
@@ -84,14 +86,7 @@ public class ApiSamlConfigurationResourceAuditTest
     restRequest().delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_SAML, null);
-    assertThat(auditDTO.data)
-        .containsEntry("entityId", samlConfiguration.getEntityId())
-        .containsEntry("firstNameAttributeName", samlConfiguration.getFirstNameAttributeName())
-        .containsEntry("lastNameAttributeName", samlConfiguration.getLastNameAttributeName())
-        .containsEntry("userNameAttributeName", samlConfiguration.getUsernameAttributeName())
-        .containsEntry("emailAttributeName", samlConfiguration.getEmailAttributeName())
-        .containsEntry("groupsAttributeName", samlConfiguration.getGroupsAttributeName())
-        .containsEntry("identityProviderEntityId", "http://idp-entity-id");
+    assertAuditData(auditDTO, samlConfiguration);
   }
 
   @Test
@@ -110,7 +105,10 @@ public class ApiSamlConfigurationResourceAuditTest
 
   private void assertAuditData(AuditDTO auditDTO) {
     SamlConfiguration samlConfiguration = new SamlConfigurationDAO().get();
+    assertAuditData(auditDTO, samlConfiguration);
+  }
 
+  private void assertAuditData(AuditDTO auditDTO, SamlConfiguration samlConfiguration) {
     assertThat(auditDTO.data)
         .containsEntry("entityId", samlConfiguration.getEntityId())
         .containsEntry("firstNameAttributeName", samlConfiguration.getFirstNameAttributeName())
@@ -119,5 +117,7 @@ public class ApiSamlConfigurationResourceAuditTest
         .containsEntry("emailAttributeName", samlConfiguration.getEmailAttributeName())
         .containsEntry("groupsAttributeName", samlConfiguration.getGroupsAttributeName())
         .containsEntry("identityProviderEntityId", "http://idp-entity-id");
+    assertCustomData(auditDTO, "validateResponseSignature", samlConfiguration.getValidateResponseSignature());
+    assertCustomData(auditDTO, "validateAssertionSignature", samlConfiguration.getValidateAssertionSignature());
   }
 }

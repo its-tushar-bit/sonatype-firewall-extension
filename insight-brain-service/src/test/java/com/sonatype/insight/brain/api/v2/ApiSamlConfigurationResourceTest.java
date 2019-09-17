@@ -38,8 +38,8 @@ public class ApiSamlConfigurationResourceTest
 
   @Test
   public void testGetSamlConfiguration() throws Exception {
-    SamlConfiguration samlConfiguration = tempEntity
-        .newSamlConfiguration("<xml></xml>", "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams");
+    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "first-name",
+        "last-name", "e-mail", "user-name", "teams", true, null);
 
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, restRequest().get());
@@ -52,6 +52,8 @@ public class ApiSamlConfigurationResourceTest
     assertThat(dto.emailAttributeName).isEqualTo(samlConfiguration.getEmailAttributeName());
     assertThat(dto.usernameAttributeName).isEqualTo(samlConfiguration.getUsernameAttributeName());
     assertThat(dto.groupsAttributeName).isEqualTo(samlConfiguration.getGroupsAttributeName());
+    assertThat(dto.validateResponseSignature).isTrue();
+    assertThat(dto.validateAssertionSignature).isNull();
   }
 
   @Test
@@ -71,7 +73,8 @@ public class ApiSamlConfigurationResourceTest
   @Test
   public void testDeleteSamlConfiguration() throws Exception {
     String xml = validIdentityProviderXml();
-    tempEntity.newSamlConfiguration(xml, "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams");
+    tempEntity.newSamlConfiguration(xml, "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams", null,
+        null);
     assertResponseStatus(204, restRequest().delete());
   }
 
@@ -79,7 +82,7 @@ public class ApiSamlConfigurationResourceTest
   public void testGetMetadata() throws Exception {
     tempEntity
         .newSamlConfiguration(validIdentityProviderXml(), "ent-id", "first-name", "last-name", "e-mail", "user-name",
-            "teams");
+            "teams", null, null);
     SamlDeploymentManager samlDeploymentManager = getCLMServer().getInstance(SamlDeploymentManager.class);
     samlDeploymentManager.updateFromConfiguration();
 

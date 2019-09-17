@@ -135,14 +135,24 @@ public class SamlDeploymentManager
       }
       idp.addSignatureValidationKey(certificate.getPublicKey());
     }
+    boolean hasSigningKey = !keyDescriptorsForSigning.isEmpty();
+    if (!hasSigningKey && (Boolean.TRUE.equals(samlConfiguration.getValidateResponseSignature())
+        || Boolean.TRUE.equals(samlConfiguration.getValidateAssertionSignature()))) {
+      throw new IllegalArgumentException(
+          "SAML metadata for identity provider misses signing key to perform the requested signature validation");
+    }
+    boolean validateResponseSignature =
+        Optional.ofNullable(samlConfiguration.getValidateResponseSignature()).orElse(hasSigningKey);
+    boolean validateAssertionSignature =
+        Optional.ofNullable(samlConfiguration.getValidateAssertionSignature()).orElse(hasSigningKey);
     idp.refreshKeyLocatorConfiguration();
 
     EndpointType singleSignOnEndpoint = getEndpoint(idpDescriptor.getSingleSignOnService());
     DefaultSingleSignOnService singleSignOnService = new DefaultSingleSignOnService();
     idp.setSingleSignOnService(singleSignOnService);
     singleSignOnService.setSignRequest(Optional.ofNullable(idpDescriptor.isWantAuthnRequestsSigned()).orElse(true));
-    singleSignOnService.setValidateResponseSignature(!keyDescriptorsForSigning.isEmpty());
-    singleSignOnService.setValidateAssertionSignature(!keyDescriptorsForSigning.isEmpty());
+    singleSignOnService.setValidateResponseSignature(validateResponseSignature);
+    singleSignOnService.setValidateAssertionSignature(validateAssertionSignature);
     singleSignOnService.setRequestBindingUrl(singleSignOnEndpoint.getLocation().toString());
     singleSignOnService.setRequestBinding(getBinding(singleSignOnEndpoint));
 

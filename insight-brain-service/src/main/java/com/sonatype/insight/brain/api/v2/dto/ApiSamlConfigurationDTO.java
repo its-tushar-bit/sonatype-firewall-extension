@@ -21,4 +21,8 @@ public class ApiSamlConfigurationDTO
   public String usernameAttributeName;
 
   public String groupsAttributeName;
+
+  public Boolean validateResponseSignature;
+
+  public Boolean validateAssertionSignature;
 }

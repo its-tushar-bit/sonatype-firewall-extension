@@ -205,6 +205,52 @@ public class SamlDeploymentManagerTest
   }
 
   @Test
+  public void testUpdateFromConfiguration_NoSigningKeysButResponseSignatureValidationEnabled() {
+    tempEntity.newSamlConfiguration(getSamlMetadata("no-signing-keys.xml"), "sp-entity-id", "firstName", "lastName",
+        "email", "username", "groups", true, null);
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
+      samlDeploymentManager.updateFromConfiguration();
+    }).withMessageContaining("SAML metadata for identity provider misses signing key");
+    assertThat(samlDeploymentManager.get()).isNull();
+  }
+
+  @Test
+  public void testUpdateFromConfiguration_NoSigningKeysButAssertionSignatureValidationEnabled() {
+    tempEntity.newSamlConfiguration(getSamlMetadata("no-signing-keys.xml"), "sp-entity-id", "firstName", "lastName",
+        "email", "username", "groups", null, true);
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
+      samlDeploymentManager.updateFromConfiguration();
+    }).withMessageContaining("SAML metadata for identity provider misses signing key");
+    assertThat(samlDeploymentManager.get()).isNull();
+  }
+
+  @Test
+  public void testUpdateFromConfiguration_NoResponseSignatureValidation() {
+    tempEntity.newSamlConfiguration(getSamlMetadata("valid.xml"), "sp-entity-id", "firstName", "lastName", "email",
+        "username", "groups", false, null);
+    samlDeploymentManager.updateFromConfiguration();
+
+    SamlDeployment samlDeployment = samlDeploymentManager.get();
+
+    SingleSignOnService ssoService = samlDeployment.getIDP().getSingleSignOnService();
+    assertThat(ssoService.validateAssertionSignature()).isTrue();
+    assertThat(ssoService.validateResponseSignature()).isFalse();
+  }
+
+  @Test
+  public void testUpdateFromConfiguration_NoAssertionSignatureValidation() {
+    tempEntity.newSamlConfiguration(getSamlMetadata("valid.xml"), "sp-entity-id", "firstName", "lastName", "email",
+        "username", "groups", null, false);
+    samlDeploymentManager.updateFromConfiguration();
+
+    SamlDeployment samlDeployment = samlDeploymentManager.get();
+
+    SingleSignOnService ssoService = samlDeployment.getIDP().getSingleSignOnService();
+    assertThat(ssoService.validateAssertionSignature()).isFalse();
+    assertThat(ssoService.validateResponseSignature()).isTrue();
+  }
+
+  @Test
   public void testUpdateFromConfiguration_PostVsRedirectSso() {
     tempEntity.newSamlConfiguration(getSamlMetadata("post-vs-redirect-sso.xml"), "sp-entity-id");
     samlDeploymentManager.updateFromConfiguration();

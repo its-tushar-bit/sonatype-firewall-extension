@@ -183,6 +183,8 @@ public class ApiSamlConfigurationService
     responseDTO.emailAttributeName = samlConfiguration.getEmailAttributeName();
     responseDTO.usernameAttributeName = samlConfiguration.getUsernameAttributeName();
     responseDTO.groupsAttributeName = samlConfiguration.getGroupsAttributeName();
+    responseDTO.validateResponseSignature = samlConfiguration.getValidateResponseSignature();
+    responseDTO.validateAssertionSignature = samlConfiguration.getValidateAssertionSignature();
     return responseDTO;
   }
 
@@ -221,6 +223,12 @@ public class ApiSamlConfigurationService
     if (StringUtils.isNotBlank(apiSamlConfigurationDTO.groupsAttributeName)) {
       samlConfiguration.setGroupsAttributeName(apiSamlConfigurationDTO.groupsAttributeName);
     }
+    if (apiSamlConfigurationDTO.validateResponseSignature != null) {
+      samlConfiguration.setValidateResponseSignature(apiSamlConfigurationDTO.validateResponseSignature);
+    }
+    if (apiSamlConfigurationDTO.validateAssertionSignature != null) {
+      samlConfiguration.setValidateAssertionSignature(apiSamlConfigurationDTO.validateAssertionSignature);
+    }
   }
 
   private void validateAndSetEntityId(String entityId, SamlConfiguration samlConfiguration) {
@@ -248,6 +256,8 @@ public class ApiSamlConfigurationService
         .setData("userNameAttributeName", samlConfiguration.getUsernameAttributeName())
         .setData("emailAttributeName", samlConfiguration.getEmailAttributeName())
         .setData("groupsAttributeName", samlConfiguration.getGroupsAttributeName())
+        .setData("validateResponseSignature", samlConfiguration.getValidateResponseSignature())
+        .setData("validateAssertionSignature", samlConfiguration.getValidateAssertionSignature())
         .setData("identityProviderEntityId", identityProviderEntityId);
   }
 }

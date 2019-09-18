@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.component;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,9 @@ import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyHealthCheckReportSecurityRowDTO;
+import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,19 +71,28 @@ public class ComponentResolver
     // Load data about components
     final List<Component> components = componentDAO.getAll(application, licenseData, securityData, bomData);
     identifyThirdPartyComponents(components, scanId);
+    //TODO: result of identifyThirdPartyComponents will be used for persistence in CLM-13441
     return components;
   }
 
-  private void identifyThirdPartyComponents(final List<Component> components, String scanId) {
+  // visible for testing
+  ThirdPartyApplicationReportDTO identifyThirdPartyComponents(final List<Component> components, String scanId) {
     List<ThirdPartyScan> thirdPartyScanList = thirdPartyScanDAO.getByScanId(scanId);
     if (!thirdPartyScanList.isEmpty()) {
+      final ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = new ThirdPartyApplicationReportDTO();
       log.debug("Found {} third party scan data files for scanId {}", thirdPartyScanList.size(), scanId);
       components.stream().filter(component -> component.getMatchState() == MatchState.UNKNOWN)
-          .forEach(component -> matchWithThirdPartyScanMatching(scanId, component));
+          .forEach(component -> matchWithThirdPartyScanMatching(scanId, component, thirdPartyApplicationReportDTO));
+      return thirdPartyApplicationReportDTO;
     }
+    return null;
   }
 
-  private void matchWithThirdPartyScanMatching(String scanId, Component component) {
+  private void matchWithThirdPartyScanMatching(
+      String scanId,
+      Component component,
+      ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO)
+  {
     List<ThirdPartyFileCoordinate> thirdPartyFileCoordinateList =
         thirdPartyFileCoordinateDAO.getByHashAndScanId(component.getHash(), scanId);
 
@@ -88,15 +101,17 @@ public class ComponentResolver
       component.setMatchState(MatchState.EXACT);
       component.setIdentificationSource(IdentificationSource.getById(thirdPartyFileCoordinate.getSource()));
       component.setComponentIdentifier(ComponentIdentifierAdapter.createGenericIdentifier(thirdPartyFileCoordinate));
-      addSecurityVulnerabilities(thirdPartyFileCoordinateList, component);
+      addSecurityVulnerabilities(thirdPartyFileCoordinateList, component, thirdPartyApplicationReportDTO);
       log.debug("Matched third party dependency {}-{} with surrogate hash {}", component.getDisplayName(),
           component.getVersion(), component.getHash());
+      thirdPartyApplicationReportDTO.billOfMaterials.add(toBomRow(component));
     }
   }
 
   private void addSecurityVulnerabilities(
       List<ThirdPartyFileCoordinate> thirdPartyFileCoordinateHashList,
-      Component component)
+      Component component,
+      ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO)
   {
     List<String> listId =
         thirdPartyFileCoordinateHashList.stream().map(ThirdPartyFileCoordinate::getId).collect(Collectors.toList());
@@ -104,21 +119,54 @@ public class ComponentResolver
     List<ThirdPartyCoordinateSecurity> securityList = thirdPartyCoordinateSecurityDAO.getByFileCoordinateIds(listId);
 
     securityList
-        .forEach(thirdPartyCoordinateSecurity -> addSecurityVulnerability(thirdPartyCoordinateSecurity, component));
+        .forEach(thirdPartyCoordinateSecurity -> addSecurityVulnerability(thirdPartyCoordinateSecurity, component,
+            thirdPartyApplicationReportDTO));
   }
 
   private void addSecurityVulnerability(
       ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity,
-      Component component)
+      Component component,
+      ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO)
   {
-    SecurityVulnerability securityVulnerability = new SecurityVulnerability(component.getIdentificationSource().getId(),
-        thirdPartyCoordinateSecurity.getRefId(), thirdPartyCoordinateSecurity.getSeverity());
-    boolean vulnerabilityNotExists =
-        component.getSecurityVulnerabilities().stream().map(SecurityVulnerability::getRefId)
-        .noneMatch(securityVulnerability.getRefId()::equals);
-    if (vulnerabilityNotExists) {
-      securityVulnerability.setUrl(thirdPartyCoordinateSecurity.getLink());
-      component.addSecurityVulnerability(securityVulnerability);
-    }
+    SecurityVulnerability securityVulnerability =
+        new SecurityVulnerability(component.getIdentificationSource().getId(),
+            thirdPartyCoordinateSecurity.getRefId(), thirdPartyCoordinateSecurity.getSeverity());
+    component.getSecurityVulnerabilities().stream()
+        .filter(sv -> sv.getRefId().equals(securityVulnerability.getRefId()))
+        .findFirst()
+        .orElseGet(() -> {
+          securityVulnerability.setUrl(thirdPartyCoordinateSecurity.getLink());
+          component.addSecurityVulnerability(securityVulnerability);
+          thirdPartyApplicationReportDTO.securityRows
+              .add(ComponentResolver.this.toSecurityRow(thirdPartyCoordinateSecurity, component));
+          return null;
+        });
+  }
+
+  private ThirdPartyHealthCheckReportSecurityRowDTO toSecurityRow(
+      final ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity,
+      final Component component)
+  {
+    final ThirdPartyHealthCheckReportSecurityRowDTO dto =
+        new ThirdPartyHealthCheckReportSecurityRowDTO(component.getComponentIdentifier(), component.getHash());
+    dto.matchState = component.getMatchState().getName();
+    dto.reference = thirdPartyCoordinateSecurity.getRefId();
+    dto.summary = thirdPartyCoordinateSecurity.getDescription();
+    dto.score = thirdPartyCoordinateSecurity.getSeverity();
+    dto.source = component.getIdentificationSource().getName();
+    dto.url = thirdPartyCoordinateSecurity.getLink();
+    dto.proprietary = component.isProprietary();
+    dto.fixedVersion = thirdPartyCoordinateSecurity.getFixedBy();
+    return dto;
+  }
+
+  private BillOfMaterialsRowDTO toBomRow(final Component component) {
+    final BillOfMaterialsRowDTO dto =
+        new BillOfMaterialsRowDTO(component.getComponentIdentifier(), component.getHash());
+    dto.createTime = component.getCatalogDate();
+    dto.matchState = component.getMatchState().getName();
+    dto.pathnames = new HashSet<>(component.getPathnames());
+    dto.proprietary = component.isProprietary();
+    return dto;
   }
 }

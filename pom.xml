@@ -462,6 +462,11 @@
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.portal</groupId>
+        <artifactId>insight-scan-report-model</artifactId>
+        <version>2.8.4-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.portal</groupId>
         <artifactId>insight-jaxrs-testing</artifactId>
         <version>${hds.version}</version>
         <scope>test</scope>

@@ -496,6 +496,10 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-scan-report-model</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-reference-policies</artifactId>
       <version>${hds.version}</version>
       <scope>test</scope>

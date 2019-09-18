@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-present Sonatype, Inc. All rights reserved. 
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -32,11 +33,15 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyHealthCheckReportSecurityRowDTO;
+import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 
 import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -99,6 +104,92 @@ public class ComponentResolverTest
     components.forEach(component -> {
       assertUnknownComponent(component);
     });
+  }
+
+  @Test
+  public void testIdentifyThirdPartyComponents_sameVulnerabilityDoesNotRepeat() {
+    final Component component = unknownComponent("hash1");
+    List<Component> components = asList(component);
+    final String scanId = "scan-id";
+    mockThirdPartyScan(scanId);
+    List<ThirdPartyFileCoordinate> fileCoordinates =
+        asList(createThirdPartyFileCoordinate("hash1", "deb", "fcid1", "name1", "f1", "v1"));
+    when(thirdPartyFileCoordinateDAO.getByHashAndScanId("hash1", scanId)).thenReturn(fileCoordinates);
+
+    final ThirdPartyCoordinateSecurity sec1 =
+        createCoordinateSecurity("f1", "fb1", "REF1", 7);
+    final ThirdPartyCoordinateSecurity sec2 =
+        createCoordinateSecurity("f1", "fb2", "FEF2", 10);
+    //edge case for an identical sec vulnerability for the same component, that should not repeat
+    final ThirdPartyCoordinateSecurity sec2identical =
+        createCoordinateSecurity("f1", "fb2", "FEF2", 10);
+    final List<ThirdPartyCoordinateSecurity> securityVulnerabilities =
+        asList(sec1, sec2, sec2identical);
+
+    when(thirdPartyCoordinateSecurityDAO.getByFileCoordinateIds(asList("fcid1"))).thenReturn(securityVulnerabilities);
+
+    final ThirdPartyApplicationReportDTO dto =
+        componentResolver.identifyThirdPartyComponents(components, scanId);
+
+    assertThat(dto.billOfMaterials).hasSize(1);
+    assertThat(dto.securityRows).hasSize(2);
+    assertBomRowsContain(dto.billOfMaterials, component);
+    assertSecurityRowsContain(dto.securityRows, component, sec1);
+    assertSecurityRowsContain(dto.securityRows, component, sec2);
+  }
+
+  @Test
+  public void testIdentifyThirdPartyComponents_MatchedComponentsNoVulnerabilities() {
+    final Component component = unknownComponent("hash1");
+    List<Component> components = asList(component);
+    final String scanId = "scan-id";
+    mockThirdPartyScan(scanId);
+    List<ThirdPartyFileCoordinate> fileCoordinates =
+        asList(createThirdPartyFileCoordinate("hash1", "deb", "fcid1", "name1", "f1", "v1"));
+    when(thirdPartyFileCoordinateDAO.getByHashAndScanId("hash1", scanId)).thenReturn(fileCoordinates);
+    when(thirdPartyCoordinateSecurityDAO.getByFileCoordinateIds(asList("fcid1"))).thenReturn(Collections.emptyList());
+
+    final ThirdPartyApplicationReportDTO dto =
+        componentResolver.identifyThirdPartyComponents(components, scanId);
+
+    assertThat(dto.billOfMaterials).hasSize(1);
+    assertThat(dto.securityRows).hasSize(0);
+  }
+
+  @Test
+  public void testIdentifyThirdPartyComponents_NoMatchingThirdPartyComponentsFound() {
+    final Component component = unknownComponent("hash1");
+    List<Component> components = asList(component);
+    final String scanId = "scan-id";
+    mockThirdPartyScan(scanId);
+    when(thirdPartyFileCoordinateDAO.getByHashAndScanId("hash1", scanId)).thenReturn(Collections.emptyList());
+
+    final ThirdPartyApplicationReportDTO dto =
+        componentResolver.identifyThirdPartyComponents(components, scanId);
+
+    assertThat(dto.billOfMaterials).hasSize(0);
+    assertThat(dto.securityRows).hasSize(0);
+  }
+
+  @Test
+  public void testIdentifyThirdPartyComponents_NoThirdPartyDataForScanId() {
+    final Component component = unknownComponent("hash1");
+    List<Component> components = asList(component);
+    when(thirdPartyScanDAO.getByScanId("scan-id")).thenReturn(Collections.emptyList());
+
+    final ThirdPartyApplicationReportDTO dto =
+        componentResolver.identifyThirdPartyComponents(components, "scan-id");
+
+    assertThat(dto).isNull();
+  }
+
+  private Component unknownComponent(String hash) {
+    final Component component = new Component();
+    component.setHash(hash);
+    component.setMatchState(MatchState.UNKNOWN);
+    component.addPathname("path1");
+    component.addPathname("path2");
+    return component;
   }
 
   private void assertMatchedComponents(List<Component> components) {
@@ -167,49 +258,92 @@ public class ComponentResolverTest
 
     String hash = "e587ce87ed894c1d5283";
     List<ThirdPartyFileCoordinate> list = new ArrayList<>();
-    coordinate1 = new ThirdPartyFileCoordinate();
-    coordinate1.setFormat("deb");
-    coordinate1.setHash(hash);
-    coordinate1.setId("6ecfe1df66fe43eb9d6bddee97be6f8c");
-    coordinate1.setName("gclib");
-    coordinate1.setSource(IdentificationSource.CLAIR.getId());
-    coordinate1.setThirdPartyFileId("f1");
-    coordinate1.setVersion("2.24-11+deb9u3");
+    coordinate1 =
+        createThirdPartyFileCoordinate(hash, "deb", "6ecfe1df66fe43eb9d6bddee97be6f8c", "gclib", "f1",
+            "2.24-11+deb9u3");
+    coordinate2 =
+        createThirdPartyFileCoordinate(hash, "deb", "6ecfe1df66fe43eb9d6bddee97be6f8c", "gclib", "f2",
+            "2.24-11+deb9u3");
     list.add(coordinate1);
-
-    coordinate2 = new ThirdPartyFileCoordinate();
-    coordinate2.setFormat("deb");
-    coordinate2.setHash(hash);
-    coordinate2.setId("6ecfe1df66fe43eb9d6bddee97be6f8c");
-    coordinate2.setName("gclib");
-    coordinate2.setSource(IdentificationSource.CLAIR.getId());
-    coordinate2.setThirdPartyFileId("f2");
-    coordinate2.setVersion("2.24-11+deb9u3");
     list.add(coordinate2);
 
     when(thirdPartyFileCoordinateDAO.getByHashAndScanId(hash, scanId)).thenReturn(list);
   }
 
+  private ThirdPartyFileCoordinate createThirdPartyFileCoordinate(
+      final String hash,
+      final String format,
+      final String id, final String name, final String fileId, final String version)
+  {
+    ThirdPartyFileCoordinate coordinate = new ThirdPartyFileCoordinate();
+    coordinate.setFormat(format);
+    coordinate.setHash(hash);
+    coordinate.setId(id);
+    coordinate.setName(name);
+    coordinate.setSource(IdentificationSource.CLAIR.getId());
+    coordinate.setThirdPartyFileId(fileId);
+    coordinate.setVersion(version);
+    return coordinate;
+  }
+
   private void mockSecurityCoordinate() {
     List<ThirdPartyCoordinateSecurity> securityList = new ArrayList<>();
-    security = new ThirdPartyCoordinateSecurity();
-    security.setRefId("CVE-2017-16997");
-    security.setLink("https://security-tracker.debian.org/tracker/CVE-2017-16997");
-    security.setSeverity(10);
-    security.setFixedBy("2.24-11+deb9u4");
-    security.setFileCoordinateId(coordinate1.getThirdPartyFileId());
+    security = createCoordinateSecurity(coordinate1.getThirdPartyFileId(), "2.24-11+deb9u4", "CVE-2017-16997", 10);
     securityList.add(security);
-
-    ThirdPartyCoordinateSecurity security2 = new ThirdPartyCoordinateSecurity();
-    security2.setRefId("CVE-2017-16997");
-    security2.setLink("https://security-tracker.debian.org/tracker/CVE-2017-16997");
-    security2.setSeverity(10);
-    security2.setFixedBy("2.24-11+deb9u4");
-    security2.setFileCoordinateId(coordinate2.getThirdPartyFileId());
+    ThirdPartyCoordinateSecurity security2 =
+        createCoordinateSecurity(coordinate2.getThirdPartyFileId(), "2.24-11+deb9u4", "CVE-2017-16997", 10);
     securityList.add(security2);
 
     List<String> coordinateIdList =
         Stream.of(coordinate1.getId(), coordinate2.getId()).collect(Collectors.toList());
     when(thirdPartyCoordinateSecurityDAO.getByFileCoordinateIds(coordinateIdList)).thenReturn(securityList);
+  }
+
+  private ThirdPartyCoordinateSecurity createCoordinateSecurity(
+      final String thirdPartyFileId,
+      final String fixedBy, final String refId, final int severity)
+  {
+    security = new ThirdPartyCoordinateSecurity();
+    security.setRefId(refId);
+    security.setLink("https://security-tracker.debian.org/tracker/" + refId);
+    security.setSeverity(severity);
+    security.setFixedBy(fixedBy);
+    security.setFileCoordinateId(thirdPartyFileId);
+    security.setDescription("description");
+    return security;
+  }
+
+  private void assertBomRowsContain(final List<BillOfMaterialsRowDTO> boms, final Component component) {
+    final Optional<BillOfMaterialsRowDTO> bomMaybe =
+        boms.stream().filter(bom -> bom.hash.equals(component.getHash())).findFirst();
+
+    assertThat(bomMaybe.isPresent()).isTrue();
+    final BillOfMaterialsRowDTO bom = bomMaybe.get();
+    assertThat(bom.createTime).isEqualTo(component.getCatalogDate());
+    assertThat(bom.componentIdentifier).isEqualTo(component.getComponentIdentifier());
+    assertThat(bom.matchState).isEqualTo(component.getMatchState().getName());
+    assertThat(bom.pathnames).containsExactlyInAnyOrderElementsOf(component.getPathnames());
+    assertThat(bom.proprietary).isEqualTo(component.isProprietary());
+  }
+
+  private void assertSecurityRowsContain(
+      final List<ThirdPartyHealthCheckReportSecurityRowDTO> dtoList,
+      final Component component,
+      final ThirdPartyCoordinateSecurity thirdPartySecurity)
+  {
+    final Optional<ThirdPartyHealthCheckReportSecurityRowDTO> dtoMaybe =
+        dtoList.stream().filter(d -> d.reference.equals(thirdPartySecurity.getRefId())).findFirst();
+
+    assertThat(dtoMaybe.isPresent()).isTrue();
+    final ThirdPartyHealthCheckReportSecurityRowDTO dto = dtoMaybe.get();
+    assertThat(dto.hash).isEqualTo(component.getHash());
+    assertThat(dto.matchState).isEqualTo(component.getMatchState().getName());
+    assertThat(dto.componentIdentifier).isEqualTo(component.getComponentIdentifier());
+    assertThat(dto.proprietary).isEqualTo(component.isProprietary());
+    assertThat(dto.source).isEqualTo(component.getIdentificationSource().getName());
+    assertThat(dto.summary).isEqualTo(thirdPartySecurity.getDescription());
+    assertThat(dto.url).isEqualTo(thirdPartySecurity.getLink());
+    assertThat(dto.score).isEqualTo(thirdPartySecurity.getSeverity());
+    assertThat(dto.fixedVersion).isEqualTo(thirdPartySecurity.getFixedBy());
   }
 }

@@ -314,26 +314,26 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   }
 
   private void addOrUpdateSourceControl(final RestClient restClient, final P params) {
-    Optional<String> optional = new RepositoryUrlFinderBuilder()
-        .withEnvironmentVariableDefault()
-        .withEnvironmentVariableNamed(GitLabCI.REPOSITORY_URL_ENV_VARIABLE)
-        .withGitRepo()
-        .build()
-        .tryGetRepositoryUrl();
-    if (optional.isPresent()) {
-      String repositoryUrl = optional.get();
-      log.debug(
-          "Amending source control record for application with id: {} with discovered Repository URL: {}",
-          params.getApplicationId(), repositoryUrl);
-      try {
+    try {
+      Optional<String> optional = new RepositoryUrlFinderBuilder()
+          .withEnvironmentVariableDefault()
+          .withEnvironmentVariableNamed(GitLabCI.REPOSITORY_URL_ENV_VARIABLE)
+          .withGitRepo()
+          .build()
+          .tryGetRepositoryUrl();
+      if (optional.isPresent()) {
+        String repositoryUrl = optional.get();
+        log.debug(
+            "Amending source control record for application with id: {} with discovered Repository URL: {}",
+            params.getApplicationId(), repositoryUrl);
         restClient.addOrUpdateSourceControlRecord(params.getApplicationId(), repositoryUrl);
       }
-      catch (Exception e) {
-        log.debug("Failed to add or update the source control record due to:", e);
+      else {
+        log.debug("Repository URL for application with id: {} could not be found.", params.getApplicationId());
       }
     }
-    else {
-      log.debug("Repository URL for application with id: {} could not be found.", params.getApplicationId());
+    catch (Exception e) {
+      log.debug("Failed to add or update the source control record due to:", e);
     }
   }
 }

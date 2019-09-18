@@ -209,7 +209,14 @@ export const InitModule = angular.module('InitModule', [
           $window.location.href = toLocation;
         }
         else {
-          $window.location.assign('../');
+          let destination = '../';
+          if ($window.location.search) {
+            let queryParamNames = $window.location.search.slice(1).split('&').map(kv => kv.split('=')[0]);
+            if (queryParamNames.indexOf('nosso') >= 0) {
+              destination += '?nosso';
+            }
+          }
+          $window.location.assign(destination);
         }
       });
 

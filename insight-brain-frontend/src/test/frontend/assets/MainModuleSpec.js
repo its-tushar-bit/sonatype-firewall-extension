@@ -1,4 +1,4 @@
-import { InitModule } from '../../../main/frontend/MainModule';
+import {InitModule} from '../../../main/frontend/MainModule';
 
 /* global beforeEach, module, jasmine, afterEach, inject, describe, it, expect, SpecUtil */
 window.angularDebug = true;
@@ -47,6 +47,53 @@ describe('mainModuleSpec', function() {
       var sanitized = $$sanitizeUri(uri, true);
       expect(sanitized).toBe(uri);
     }));
+  });
+
+  describe('logout', function() {
+    beforeEach(inject(function($httpBackend, CLMLocations, initService, $window) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(
+          ['dashboard', 'allow-external-hyperlinks']);
+      $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
+      initService.start();
+      $httpBackend.flush();
+      $window.location.assign = jasmine.createSpy();
+    }));
+
+    it('does not include query parameters if they do not exist',
+        inject(function($window) {
+          scope.$emit('logout');
+
+          expect($window.location.assign).toHaveBeenCalledWith('../');
+        }));
+
+    it('preserves the nosso query parameter if it is on its own',
+        inject(function($window) {
+          $window.location.search = '?nosso';
+
+          scope.$emit('logout');
+
+          expect($window.location.assign).toHaveBeenCalledWith('../?nosso');
+        }));
+
+    it('preserves the nosso query parameter if it is surrounded by other parameters',
+        inject(function($window) {
+          $window.location.search = '?param1=something&param2&nosso&param3=something&param4';
+
+          scope.$emit('logout');
+
+          expect($window.location.assign).toHaveBeenCalledWith('../?nosso');
+        }));
+
+    it('preserves the nosso query parameter if it is the last parameter',
+        inject(function($window) {
+          $window.location.search = '?param1=something&param2&param3=something&param4&nosso';
+
+          scope.$emit('logout');
+
+          expect($window.location.assign).toHaveBeenCalledWith('../?nosso');
+        }));
   });
 
   describe('Validate requests made on initService start', function() {

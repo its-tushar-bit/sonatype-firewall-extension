@@ -93,6 +93,20 @@ public class InsightConfigTest
   }
 
   @Test
+  public void testGetSourceControl() {
+    // SourceControlConfig depends on InsightConfig settings its SourceControlConfig#setSonatypeWork(String) method
+    InsightConfig config = new InsightConfig();
+    assertThat(config.getSourceControlConfig()).isNotNull();
+    assertThat(config.getSourceControlConfig().getCloneDirectory())
+        .isEqualTo(new File(config.getSonatypeWork(), SourceControlConfig.DEFAULT_SOURCE_CONTROL_CLONE_DIR));
+
+    String relativePath = "abc";
+    config.setSonatypeWork(relativePath);
+    assertThat(config.getSourceControlConfig().getCloneDirectory())
+        .isEqualTo(new File(relativePath, SourceControlConfig.DEFAULT_SOURCE_CONTROL_CLONE_DIR));
+  }
+
+  @Test
   public void testSupport() {
     InsightConfig config = new InsightConfig();
     assertThat(config.getSupportConfig().getReadLimitBytes()).isEqualTo(SupportConfig.DEFAULT_READ_LIMIT_30MB);

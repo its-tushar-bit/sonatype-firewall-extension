@@ -258,6 +258,12 @@ public class InsightConfig
   @JsonProperty
   private boolean enablePolicyReportPreviousVersionLink = true;
 
+  /**
+   * @since 1.73
+   */
+  @JsonProperty
+  private SourceControlConfig sourceControlConfig = new SourceControlConfig();
+
   @NotNull
   public ProxyConfig getProxyConfig() {
     return proxy;
@@ -700,5 +706,17 @@ public class InsightConfig
 
   public void setConnectTimeoutInSeconds(int connectTimeoutInSeconds) {
     this.connectTimeoutInSeconds = connectTimeoutInSeconds;
+  }
+
+  public SourceControlConfig getSourceControlConfig() {
+    if (sourceControlConfig != null) {
+      sourceControlConfig.setSonatypeWorkDir(getSonatypeWork());
+    }
+
+    return sourceControlConfig;
+  }
+
+  public void setSourceControlConfig(SourceControlConfig sourceControlConfig) {
+    this.sourceControlConfig = sourceControlConfig;
   }
 }

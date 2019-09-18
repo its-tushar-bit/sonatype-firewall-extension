@@ -53,7 +53,7 @@
     <drools.version>7.20.0.Final</drools.version>
     <geb.version>2.3.1</geb.version>
     <selenium.version>3.8.1</selenium.version>
-    <httpcomponents.version>4.5.9</httpcomponents.version>
+    <httpcomponents.version>4.5.10</httpcomponents.version>
     <packageurl.version>1.1.0</packageurl.version>
     <nexus-scm-client.version>1.6.0</nexus-scm-client.version>
   </properties>

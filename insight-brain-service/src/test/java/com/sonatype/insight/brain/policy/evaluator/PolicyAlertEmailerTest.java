@@ -18,6 +18,8 @@ import javax.naming.NamingException;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -29,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingD
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
@@ -44,6 +47,7 @@ import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -117,7 +121,7 @@ public class PolicyAlertEmailerTest
   @Override
   public void configure(Binder binder) {
     lenient().when(mailer.getServer()).thenReturn("localhost:587");
-    lenient().when(mailer.getCdnUrl()).thenReturn("http://localhost");
+    lenient().when(mailer.getCdnUrl()).thenReturn("https://cdn.sonatype.com/");
     binder.bind(InsightMail.class).toInstance(mailer);
     super.configure(binder);
   }
@@ -571,29 +575,37 @@ public class PolicyAlertEmailerTest
 
   @Test
   public void testNotificationEmailBody() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("testapp");
+    Application app = tempEntity.newApplicationWithParent("the-app-public-id");
     String scanId = "some scan id";
-    Stage stage = new Stage(Stage.ID_BUILD);
-    Policy policy = tempEntity.newPolicy(app);
+    Stage stage = new Stage(Stage.ID_STAGE_RELEASE);
+    Policy policy = tempEntity.newPolicy(app.getId(), "Notifying Policy");
 
     List<PolicyFact> policyFacts = new ArrayList<>();
     ComponentIdentifier componentIdentifierMaven = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1",
         "e1");
     String hashMaven = "hashmaven";
     policyFacts.add(newPolicyFact(policy, componentIdentifierMaven, hashMaven));
-    ComponentIdentifier componentIdentifierAname = ComponentIdentifier.createAnameCoordinates("n1", "q1", "v1");
+    ComponentIdentifier componentIdentifierAname = ComponentIdentifier.createAnameCoordinates("n1", "q&1", "v1");
     String hashAname = "hashAname";
     policyFacts.add(newPolicyFact(policy, componentIdentifierAname, hashAname));
-    String hashUnknown = "hashUnknown123";
+    String hashUnknown = "hashUnknown12&3";
     policyFacts.add(newPolicyFact(policy, null, hashUnknown));
 
-    Map<String, Object> model = policyAlertEmailer.createPolicyMailModel(app, scanId, stage, policyFacts, 0);
+    Map<String, Object> model = policyAlertEmailer.createPolicyMailModel(app, scanId, stage, policyFacts, 7);
 
     String emailBody = policyAlertEmailer.createPolicyMailBody(model);
-    assertThat(emailBody).contains(ComponentDisplayNameUtil.fromIdentifier(componentIdentifierMaven).toString())
-        .doesNotContain(hashMaven)
-        .contains(ComponentDisplayNameUtil.fromIdentifier(componentIdentifierAname).toString())
-        .doesNotContain(hashAname).contains(hashUnknown);
+    assertThat(emailBody)
+        .contains(mailer.getCdnUrl(),
+            config.getBaseUrl() + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId))
+        .contains(app.getPublicId()) //
+        .contains(StageTypes.STAGE_RELEASE.getName()) //
+        .contains(ComponentDisplayNameUtil.fromIdentifier(componentIdentifierMaven).toString(),
+            ComponentDisplayNameUtil.fromIdentifier(componentIdentifierAname).toString().replace("&", "&amp;"))
+        .doesNotContain(hashMaven, hashAname).contains(hashUnknown.replace("&", "&amp;")) //
+        .contains(policy.getName()) //
+        .contains("Failed &amp; Constraint Name 1", "Failed Constraint Name 2")
+        .contains("Failed Condition &lt;Reason&gt; 1", "Failed Condition Reason 2") //
+        .contains("7&nbsp;Grandfathered&nbsp;Violations");
   }
 
   @Test
@@ -613,10 +625,20 @@ public class PolicyAlertEmailerTest
   }
 
   private PolicyFact newPolicyFact(Policy policy, ComponentIdentifier componentIdentifier, String hash) {
+    ConditionFact conditionFact1 =
+        new ConditionFact("condition-type-id", 0, "Failed Condition Summary 1", "Failed Condition <Reason> 1");
+    ConditionFact conditionFact2 =
+        new ConditionFact("condition-type-id", 0, "Failed Condition Summary 2", "Failed Condition Reason 2");
+    ConstraintFact constraintFact1 = new ConstraintFact("constraint-id-1", "Failed & Constraint Name 1", "or");
+    constraintFact1.addConditionFact(conditionFact1);
+    constraintFact1.addConditionFact(conditionFact2);
+    ConstraintFact constraintFact2 = new ConstraintFact("constraint-id-2", "Failed Constraint Name 2", "or");
     ComponentFact componentFact = new ComponentFact(componentIdentifier, hash);
     if (componentIdentifier != null) {
       componentFact.setDisplayName(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier));
     }
+    componentFact.addConstraintFact(constraintFact1);
+    componentFact.addConstraintFact(constraintFact2);
     PolicyFact policyFact = new PolicyFact(policy.getId(), policy.getName(), policy.getThreatLevel());
     policyFact.addComponentFact(componentFact);
 

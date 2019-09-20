@@ -262,7 +262,7 @@ public class InsightConfig
    * @since 1.73
    */
   @JsonProperty
-  private SourceControlConfig sourceControlConfig = new SourceControlConfig();
+  private SourceControlConfig sourceControl = new SourceControlConfig();
 
   @NotNull
   public ProxyConfig getProxyConfig() {
@@ -709,14 +709,14 @@ public class InsightConfig
   }
 
   public SourceControlConfig getSourceControlConfig() {
-    if (sourceControlConfig != null) {
-      sourceControlConfig.setSonatypeWorkDir(getSonatypeWork());
+    if (sourceControl != null) {
+      sourceControl.setSonatypeWorkDir(getSonatypeWork());
     }
 
-    return sourceControlConfig;
+    return sourceControl;
   }
 
-  public void setSourceControlConfig(SourceControlConfig sourceControlConfig) {
-    this.sourceControlConfig = sourceControlConfig;
+  public void setSourceControlConfig(SourceControlConfig sourceControl) {
+    this.sourceControl = sourceControl;
   }
 }

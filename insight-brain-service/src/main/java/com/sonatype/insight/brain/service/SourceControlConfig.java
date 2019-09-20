@@ -24,7 +24,7 @@ public class SourceControlConfig
    * Return the {@link #cloneDirectory} as a {@link File}. If not set will default to {@link
    * #DEFAULT_SOURCE_CONTROL_CLONE_DIR}. If {@link #cloneDirectory} is not a fully qualified path then it will be
    * created under the {@link #sonatypeWorkDir} which needs to be set with {@link #setCloneDirectory(String)}. Note that
-   * this will happen automatically when called via {@link InsightConfig#getSourceControl()}.
+   * this will happen automatically when called via {@link InsightConfig#getSourceControlConfig()}.
    */
   public File getCloneDirectory() {
     if (StringUtils.isBlank(cloneDirectory)) {

@@ -31,6 +31,7 @@ import com.sonatype.insight.test.LogOutput;
 
 import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -40,7 +41,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Spy;
+import org.xmlunit.assertj.XmlAssert;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -75,6 +78,9 @@ public class ThirdPartyScanResultsProcessorTest
   private ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessorSpy;
 
   private static final Gson GSON = new Gson();
+
+  @Rule
+  public TemporaryFolder tmpDir = new TemporaryFolder();
 
   @Before
   public void before() {
@@ -155,6 +161,34 @@ public class ThirdPartyScanResultsProcessorTest
     thirdPartyScanResultsProcessorSpy.handle(scanFile);
     verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class));
     assertEmptyItemElement(scanFile);
+  }
+  
+  @Test
+  public void testHandle_ClairWithOtherContent() throws Exception {
+    File scanFile = getScanFile("scan-thirdparty-and-other-content.xml");
+
+    doReturn("9510c290c07710d8c69b").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.4.8"));
+    doReturn("e587ce87ed894c1d5283").when(clairHandlerSpy).buildHash(eq("debian:9:glibc:2.24-11+deb9u3"));
+    doReturn("08d7a1c700d1633dc309").when(clairHandlerSpy).buildHash(eq("debian:9:libxslt:1.1.29-2.1"));
+    thirdPartyScanResultsProcessorSpy.handle(scanFile);
+    verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(any(ItemContentType.class));
+    assertXml(scanFile);
+  }
+
+  private File getScanXMLFile(File scanFile) throws Exception {
+    File output = tmpDir.newFile("scan-test.xml");
+    try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile))) {
+      IOUtils.copy(gis, new FileOutputStream(output));
+    }
+    return output;
+  }
+
+  private void assertXml(File scanFile) throws Exception {
+    URL resource =
+        getClass().getResource("/ThirdPartyResultsProcessorTest/scan-thirdparty-and-other-content-expected.xml");
+    File expectedFile = new File(resource.toURI());
+    File actualFile = getScanXMLFile(scanFile);
+    XmlAssert.assertThat(actualFile).and(expectedFile).areIdentical();
   }
 
   @Test
@@ -272,10 +306,9 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   private File getScanFile(final String fileName) throws Exception {
-    File stagingDir = tempDir.newFolder("staging");
     URL resource = getClass().getResource("/ThirdPartyResultsProcessorTest/" + fileName);
     // Gzip the Third Party scan file
-    File sonatypeScanGzipFile = new File(stagingDir, ScanFileNames.SONATYPE_SCAN_FILENAME);
+    File sonatypeScanGzipFile = tmpDir.newFile(ScanFileNames.SONATYPE_SCAN_FILENAME);
     try (GZIPOutputStream gzipStream = new GZIPOutputStream(new FileOutputStream(sonatypeScanGzipFile))) {
       FileUtils.copyFile(new File(resource.toURI()), gzipStream);
     }

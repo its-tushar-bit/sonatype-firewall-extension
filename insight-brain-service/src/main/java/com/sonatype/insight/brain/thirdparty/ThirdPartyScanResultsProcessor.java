@@ -81,11 +81,10 @@ public class ThirdPartyScanResultsProcessor
         XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
         XMLEventWriter writer = outputFactory.createXMLEventWriter(out);
 
-        int eventType = parser.getEventType();
+        parser.next();
         Set<String> processedHashes = new HashSet<>();
-        while (eventType != XmlPullParser.END_DOCUMENT) {
-          processEvent(parser, writer, eventType, scanFile, scanRequestId, processedHashes);
-          eventType = parser.next();
+        while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
+          processEvent(parser, writer, scanFile, scanRequestId, processedHashes);
         }
         writer.flush();
         writer.close();
@@ -113,19 +112,34 @@ public class ThirdPartyScanResultsProcessor
   private void processEvent(
       XmlPullParser parser,
       XMLEventWriter writer,
-      int eventType,
       File scanFile,
       String scanRequestId,
       Set<String> processedHashes)
   {
     try {
-      addElement(parser, writer);
-      String elementName = parser.getName();
-      if ("item".equals(elementName)) {
-        processItemElement(parser, writer, scanFile, elementName, scanRequestId, processedHashes);
-      }
-      else if (eventType == XmlPullParser.TEXT) {
-        writer.add(EVENT_FACTORY.createCharacters(parser.getText()));
+      int eventType = parser.getEventType();
+      boolean foundEndTag = false;
+      while (!foundEndTag) {
+        String elementName = parser.getName();
+        if (eventType == XmlPullParser.START_TAG) {
+          writer.add(EVENT_FACTORY.createStartElement(new QName(parser.getName()), null, null));
+          addElementAttributes(parser, writer);
+          if ("item".equals(elementName)) {
+            processItemElement(parser, writer, scanFile, scanRequestId, processedHashes);
+          }
+        }
+        else if (eventType == XmlPullParser.END_TAG) {
+          if (!elementName.equals(parser.getName())) {
+            throw new XmlPullParserException(
+                "End tag '" + parser.getName() + "' does not match start tag '" + elementName + "'.");
+          }
+          writer.add(EVENT_FACTORY.createEndElement(new QName(parser.getName()), null));
+          foundEndTag = true;
+        }
+        else if (eventType == XmlPullParser.TEXT) {
+          writer.add(EVENT_FACTORY.createCharacters(parser.getText()));
+        }
+        eventType = parser.next();
       }
     }
     catch (Exception e) {
@@ -137,9 +151,8 @@ public class ThirdPartyScanResultsProcessor
       XmlPullParser parser,
       XMLEventWriter writer,
       File scanFile,
-      String elementName,
       String scanRequestId,
-      Set<String> processedHashes) throws XmlPullParserException, IOException, XMLStreamException
+      Set<String> processedHashes) throws Exception
   {
     String contentType = parser.getAttributeValue(null, "contentType");
     if (contentType != null && thirdPartyItemContentTypes.contains(contentType)) {
@@ -154,11 +167,8 @@ public class ThirdPartyScanResultsProcessor
         log.error("scan file {} contained a third party scan item {} without any content", scanFile.getName(),
             contentType);
       }
+      writer.add(EVENT_FACTORY.createEndElement(new QName(parser.getName()), null));
     }
-    else {
-      parser.next();
-    }
-    writer.add(EVENT_FACTORY.createEndElement(new QName(elementName), null));
   }
 
   private String handleContent(
@@ -209,20 +219,6 @@ public class ThirdPartyScanResultsProcessor
     }
   }
 
-  private void addElement(
-      XmlPullParser parser,
-      XMLEventWriter writer) throws XmlPullParserException, XMLStreamException
-  {
-    int eventType = parser.getEventType();
-    if (eventType == XmlPullParser.START_TAG) {
-      writer.add(EVENT_FACTORY.createStartElement(new QName(parser.getName()), null, null));
-      addElementAttributes(parser, writer);
-    }
-    else if (eventType == XmlPullParser.END_TAG) {
-      writer.add(EVENT_FACTORY.createEndElement(new QName(parser.getName()), null));
-    }
-  }
-
   private void addElementAttributes(XmlPullParser parser, XMLEventWriter writer) throws XMLStreamException {
     Map<String, String> attributes = Xpp3Util.loadAttributes(parser);
     for (Map.Entry<String, String> attribute : attributes.entrySet()) {
@@ -231,12 +227,14 @@ public class ThirdPartyScanResultsProcessor
   }
 
   private void writeFilteredInformation(XMLEventWriter writer, String filteredInformation) throws XMLStreamException {
+    writer.add(EVENT_FACTORY.createCharacters("\n"));
     QName name = new QName("content");
     writer.add(EVENT_FACTORY.createStartElement(name, null, null));
     XMLEvent contentEvent;
     contentEvent = EVENT_FACTORY.createCData(filteredInformation);
     writer.add(contentEvent);
     writer.add(EVENT_FACTORY.createEndElement(name, null));
+    writer.add(EVENT_FACTORY.createCharacters("\n"));
   }
 
   ThirdPartyScanResultHandler createHandler(ItemContentType contentItemType) {

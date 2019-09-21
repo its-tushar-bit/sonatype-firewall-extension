@@ -34,6 +34,7 @@ resource "aws_instance" "perftest" {
 
   ami      = "ami-074e79ff43d863acb"
   key_name = "${aws_key_pair.auth.id}"
+  subnet_id = "${aws_subnet.default.id}"
 
   vpc_security_group_ids = [
     "${aws_security_group.ec2.id}",
@@ -94,9 +95,65 @@ resource "aws_instance" "perftest" {
   }
 }
 
+### Network
+
+resource "aws_vpc" "default" {
+  cidr_block = "10.0.0.0/16"
+  enable_dns_support = true
+  enable_dns_hostnames = true
+
+  tags {
+    Name           = "perf-eng-lifecycle-test"
+    Platform       = "${var.platform}"
+    BuildKey       = "${var.build_key}"
+    sonatype-group = "${var.sonatype_group}"
+    owner          = "${var.owner}"
+    environment    = "${var.environment}"
+    ttl            = "${var.duration}"
+  }
+}
+
+resource "aws_internet_gateway" "default" {
+  vpc_id = "${aws_vpc.default.id}"
+
+  tags {
+    Name           = "perf-eng-lifecycle-test"
+    Platform       = "${var.platform}"
+    BuildKey       = "${var.build_key}"
+    sonatype-group = "${var.sonatype_group}"
+    owner          = "${var.owner}"
+    environment    = "${var.environment}"
+    ttl            = "${var.duration}"
+  }
+}
+
+resource "aws_route" "internet_access" {
+  route_table_id         = "${aws_vpc.default.main_route_table_id}"
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = "${aws_internet_gateway.default.id}"
+
+}
+
+resource "aws_subnet" "default" {
+  vpc_id                  = "${aws_vpc.default.id}"
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+
+  tags {
+    Name           = "perf-eng-lifecycle-test"
+    Platform       = "${var.platform}"
+    BuildKey       = "${var.build_key}"
+    sonatype-group = "${var.sonatype_group}"
+    owner          = "${var.owner}"
+    environment    = "${var.environment}"
+    ttl            = "${var.duration}"
+  }
+}
+
 resource "aws_security_group" "ec2" {
   name        = "iq-perf-ec2-security-group"
   description = "IQ Perf Security Group"
+  vpc_id      = "${aws_vpc.default.id}"
 
   ## externally accessible ports
   # ssh

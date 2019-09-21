@@ -19,7 +19,6 @@
   <properties>
     <test.forkCount>0.5C</test.forkCount>
     <freemarker.version>2.3.19</freemarker.version>
-    <licensing.version>1.4.4</licensing.version>
     <truezipVersion>7.7.10</truezipVersion>
   </properties>
 
@@ -524,19 +523,6 @@
     <dependency>
       <groupId>com.sonatype.licensing</groupId>
       <artifactId>license-bundle</artifactId>
-      <version>${licensing.version}</version>
-      <exclusions>
-        <exclusion>
-          <!-- avoid clash with javax.annotation:javax.annotation-api -->
-          <groupId>javax.annotation</groupId>
-          <artifactId>jsr250-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <!-- using official guice instead -->
-          <groupId>org.sonatype.sisu</groupId>
-          <artifactId>sisu-guice</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.sonatype.aether</groupId>

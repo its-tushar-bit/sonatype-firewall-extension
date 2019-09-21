@@ -63,8 +63,14 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>de.schlichtherle.truelicense</groupId>
-      <artifactId>truelicense-core</artifactId>
+      <groupId>com.sonatype.licensing</groupId>
+      <artifactId>license-bundle</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     
     <dependency>

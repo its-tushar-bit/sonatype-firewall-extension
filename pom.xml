@@ -473,6 +473,24 @@
       </dependency>
 
       <dependency>
+        <groupId>com.sonatype.licensing</groupId>
+        <artifactId>license-bundle</artifactId>
+        <version>1.5.0</version>
+        <exclusions>
+          <exclusion>
+            <!-- avoid clash with javax.annotation:javax.annotation-api -->
+            <groupId>javax.annotation</groupId>
+            <artifactId>jsr250-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <!-- using official guice instead -->
+            <groupId>org.sonatype.sisu</groupId>
+            <artifactId>sisu-guice</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-core</artifactId>
         <version>${jackson.version}</version>

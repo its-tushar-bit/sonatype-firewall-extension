@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
-import de.schlichtherle.util.ObfuscatedString;
+import org.sonatype.licensing.util.LicensingUtil;
 
 /**
  * @since 1.72
@@ -105,7 +105,7 @@ class SamlConfigurationInternal
     // B262BEF4066834E2, 1E31D4FF44C663F0, 2AF7E801C69AC83C
     long[] obfuscated = Stream.of(String.valueOf(keyStorePasswordObfuscated).split(","))
         .mapToLong(s -> Long.parseUnsignedLong(s, 16)).toArray();
-    return new ObfuscatedString(obfuscated).toString().toCharArray();
+    return LicensingUtil.unobfuscate(obfuscated).toCharArray();
   }
 
   void setKeyStorePassword(char[] keyStorePassword) {
@@ -113,7 +113,7 @@ class SamlConfigurationInternal
     // new ObfuscatedString(new long[] {0xB262BEF4066834E2L, 0x1E31D4FF44C663F0L, 0x2AF7E801C69AC83CL}).toString() /* =>
     // "qwedqwdeq" */
     // We only need the long values in between curly braces.
-    String obfuscated = ObfuscatedString.obfuscate(String.valueOf(keyStorePassword));
+    String obfuscated = LicensingUtil.obfuscate(String.valueOf(keyStorePassword));
     keyStorePasswordObfuscated = obfuscated.substring(obfuscated.indexOf('{') + 1, obfuscated.indexOf('}')) //
         .replace("0x", "") //
         .replace("L", "") //

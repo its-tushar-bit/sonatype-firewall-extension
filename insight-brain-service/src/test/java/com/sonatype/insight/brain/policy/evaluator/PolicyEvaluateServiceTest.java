@@ -294,7 +294,7 @@ public class PolicyEvaluateServiceTest
 
     String serverUrl = "http://localhost/";
     lookup(InsightConfig.class).setBaseUrl(serverUrl);
-    Map<String, Object> model = emailer.createPolicyMailModel(app, scanId, stage, policyFacts, 8);
+    Map<String, Object> model = emailer.createPolicyMailModel(app, scanId, StageTypes.BUILD, policyFacts, 8);
     assertThat(model.get("policyFacts")).isEqualTo(policyFacts);
     assertThat(model.get("cdnUrl")).isEqualTo("http://cdn.sonatype.com/");
     assertThat(model.get("detailedReportUrl"))

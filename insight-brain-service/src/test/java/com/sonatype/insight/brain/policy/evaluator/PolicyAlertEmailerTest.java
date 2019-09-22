@@ -134,16 +134,21 @@ public class PolicyAlertEmailerTest
   @Test
   public void testNotificationEmailSubject() throws Exception {
     String ownerName = "ownerName";
-    assertThat(policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(1, 2, 3, 4, 5), ownerName))
-        .isEqualTo("Policy Alert for ownerName: 1 critical violation out of 15");
-    assertThat(policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 2, 3, 4, 5), ownerName))
-        .isEqualTo("Policy Alert for ownerName: 2 severe violations out of 14");
-    assertThat(policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 3, 4, 5), ownerName))
-        .isEqualTo("Policy Alert for ownerName: 3 moderate violations out of 12");
-    assertThat(policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 4, 5), ownerName))
-        .isEqualTo("Policy Alert for ownerName: 9 neutral violations out of 9");
-    assertThat(policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 0, 5), ownerName))
-        .isEqualTo("Policy Alert for ownerName: 5 neutral violations out of 5");
+    assertThat(
+        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(1, 2, 3, 4, 5), ownerName, StageTypes.BUILD))
+            .isEqualTo("Policy Alert for ownerName at stage Build: 1 critical violation out of 15");
+    assertThat(
+        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 2, 3, 4, 5), ownerName, StageTypes.BUILD))
+            .isEqualTo("Policy Alert for ownerName at stage Build: 2 severe violations out of 14");
+    assertThat(
+        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 3, 4, 5), ownerName, StageTypes.BUILD))
+            .isEqualTo("Policy Alert for ownerName at stage Build: 3 moderate violations out of 12");
+    assertThat(
+        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 4, 5), ownerName, StageTypes.BUILD))
+            .isEqualTo("Policy Alert for ownerName at stage Build: 9 neutral violations out of 9");
+    assertThat(
+        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 0, 5), ownerName, StageTypes.RELEASE))
+            .isEqualTo("Policy Alert for ownerName at stage Release: 5 neutral violations out of 5");
   }
 
   @Test
@@ -577,7 +582,6 @@ public class PolicyAlertEmailerTest
   public void testNotificationEmailBody() throws Exception {
     Application app = tempEntity.newApplicationWithParent("the-app-public-id");
     String scanId = "some scan id";
-    Stage stage = new Stage(Stage.ID_STAGE_RELEASE);
     Policy policy = tempEntity.newPolicy(app.getId(), "Notifying Policy");
 
     List<PolicyFact> policyFacts = new ArrayList<>();
@@ -591,7 +595,8 @@ public class PolicyAlertEmailerTest
     String hashUnknown = "hashUnknown12&3";
     policyFacts.add(newPolicyFact(policy, null, hashUnknown));
 
-    Map<String, Object> model = policyAlertEmailer.createPolicyMailModel(app, scanId, stage, policyFacts, 7);
+    Map<String, Object> model =
+        policyAlertEmailer.createPolicyMailModel(app, scanId, StageTypes.STAGE_RELEASE, policyFacts, 7);
 
     String emailBody = policyAlertEmailer.createPolicyMailBody(model);
     assertThat(emailBody)
@@ -620,7 +625,7 @@ public class PolicyAlertEmailerTest
         .add(newPolicyFact(policy, ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), "hash"));
 
     assertThatThrownBy(() -> {
-      policyAlertEmailer.createPolicyMailModel(app, "scanId", new Stage(Stage.ID_BUILD), policyFacts, 0);
+      policyAlertEmailer.createPolicyMailModel(app, "scanId", StageTypes.BUILD, policyFacts, 0);
     }).isInstanceOf(IllegalStateException.class).hasMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 

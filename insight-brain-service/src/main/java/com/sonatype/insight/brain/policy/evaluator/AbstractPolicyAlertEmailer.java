@@ -14,11 +14,10 @@ import java.util.Locale;
 import java.util.Map;
 
 import com.sonatype.clm.dto.model.policy.PolicyFact;
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 
@@ -47,9 +46,13 @@ public abstract class AbstractPolicyAlertEmailer
     return policyAlertEmailResolver.getPolicyFactsByEmailAddress(owner, policyNotifications);
   }
 
-  protected String createPolicyMailSubject(PolicyAlertCounts counts, String ownerName) {
+  protected String createPolicyMailSubject(PolicyAlertCounts counts, String ownerName, StageType stageType) {
     StringBuilder buffer = new StringBuilder(128);
-    buffer.append("Policy Alert for ").append(ownerName).append(": ");
+    buffer.append("Policy Alert for ").append(ownerName);
+    if (stageType != null) {
+      buffer.append(" at stage ").append(stageType.getName());
+    }
+    buffer.append(": ");
     int highest = 0;
     if (counts.getRed() > 0) {
       buffer.append(highest = counts.getRed()).append(" critical");
@@ -85,7 +88,7 @@ public abstract class AbstractPolicyAlertEmailer
 
   protected Map<String, Object> createPolicyMailModel(final String cdnUrl,
                                                       final Owner owner,
-                                                      final Stage stage,
+                                                      final StageType stageType,
                                                       final List<PolicyFact> policyFacts)
   {
     PolicyAlertCounts counts = new PolicyAlertCounts(policyFacts);
@@ -94,7 +97,7 @@ public abstract class AbstractPolicyAlertEmailer
 
     model.put("cdnUrl", cdnUrl);
     model.put("policyFacts", policyFacts);
-    model.put("policyThreatStage", StageTypes.getById(stage.getStageTypeId()).getName());
+    model.put("policyThreatStage", stageType.getName());
     model.put("policyThreatApp", owner.getPublicId());
     model.put("policyThreatTime", new SimpleDateFormat("MMMM dd, yyyy", Locale.ENGLISH).format(new Date()));
     model.put("policyThreatRedCount", counts.getRed());

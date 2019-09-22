@@ -13,13 +13,13 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.PolicyFact;
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.policy.evaluator.AbstractPolicyAlertEmailer;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
@@ -65,7 +65,7 @@ public class RepositoryPolicyAlertEmailer
           PolicyAlertCounts policyAlertCounts = new PolicyAlertCounts(details.getValue());
           AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
           final String mailId = "SONATYPE-IQ-" + repository.getPublicId();
-          final String subject = createPolicyMailSubject(policyAlertCounts, repository.getName());
+          final String subject = createPolicyMailSubject(policyAlertCounts, repository.getName(), null);
           final String body = createPolicyMailBody(createPolicyMailModel(repository, details.getValue()));
           getMail().sendHtml(mailId, details.getKey(), subject, body);
         }
@@ -79,8 +79,7 @@ public class RepositoryPolicyAlertEmailer
   }
 
   protected Map<String, Object> createPolicyMailModel(Repository repository, List<PolicyFact> policyFacts) {
-    Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), repository, new Stage(Stage.ID_PROXY),
-        policyFacts);
+    Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), repository, StageTypes.PROXY, policyFacts);
 
     model.put("detailedReportUrl",
         baseUrl.getConfigured() + UserInterfaceLinksResource.getRepositoryReportUrl(repository.getId()));

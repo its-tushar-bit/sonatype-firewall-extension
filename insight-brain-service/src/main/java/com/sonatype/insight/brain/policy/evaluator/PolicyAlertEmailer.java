@@ -20,7 +20,9 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -98,10 +100,11 @@ public class PolicyAlertEmailer
                   .setData("emailAddress", details.getKey());
               PolicyAlertCounts policyAlertCounts = new PolicyAlertCounts(details.getValue());
               AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
+              StageType stageType = StageTypes.getById(stage.getStageTypeId());
               final String mailId = "SONATYPE-CLM-" + applicationPublicId + '-' + scanId;
-              final String subject = createPolicyMailSubject(policyAlertCounts, app.getName());
+              final String subject = createPolicyMailSubject(policyAlertCounts, app.getName(), stageType);
               final String body = createPolicyMailBody(
-                  createPolicyMailModel(app, scanId, stage, details.getValue(), grandfatheredPolicyViolationCount));
+                  createPolicyMailModel(app, scanId, stageType, details.getValue(), grandfatheredPolicyViolationCount));
               getMail().sendHtml(mailId, details.getKey(), subject, body);
             }
             catch (final Exception e) {
@@ -117,11 +120,11 @@ public class PolicyAlertEmailer
 
   protected Map<String, Object> createPolicyMailModel(Application app,
                                                       String scanId,
-                                                      Stage stage,
+                                                      StageType stageType,
                                                       List<PolicyFact> policyFacts,
                                                       int grandfatheredPolicyViolationCount)
   {
-    Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), app, stage, policyFacts);
+    Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), app, stageType, policyFacts);
     ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
     if (contact != null) {
       model.put("applicationContactEmail", contact.getEmail());

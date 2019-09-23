@@ -96,14 +96,19 @@ public class InsightConfigTest
   public void testGetSourceControl() {
     // SourceControlConfig depends on InsightConfig settings its SourceControlConfig#setSonatypeWork(String) method
     InsightConfig config = new InsightConfig();
-    assertThat(config.getSourceControlConfig()).isNotNull();
-    assertThat(config.getSourceControlConfig().getCloneDirectory())
+    assertThat(config.getSourceControl()).isNotNull();
+    assertThat(config.getSourceControl().getCloneDirectory())
         .isEqualTo(new File(config.getSonatypeWork(), SourceControlConfig.DEFAULT_SOURCE_CONTROL_CLONE_DIR));
 
     String relativePath = "abc";
     config.setSonatypeWork(relativePath);
-    assertThat(config.getSourceControlConfig().getCloneDirectory())
+    assertThat(config.getSourceControl().getCloneDirectory())
         .isEqualTo(new File(relativePath, SourceControlConfig.DEFAULT_SOURCE_CONTROL_CLONE_DIR));
+
+    // INT-1925 - Emulate partial configuration of just 'sourceControl:'
+    config = new InsightConfig();
+    config.setSourceControl(null);
+    assertThat(config.getSourceControl()).isNotNull();
   }
 
   @Test

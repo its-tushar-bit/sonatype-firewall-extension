@@ -708,15 +708,19 @@ public class InsightConfig
     this.connectTimeoutInSeconds = connectTimeoutInSeconds;
   }
 
-  public SourceControlConfig getSourceControlConfig() {
-    if (sourceControl != null) {
-      sourceControl.setSonatypeWorkDir(getSonatypeWork());
-    }
+  public SourceControlConfig getSourceControl() {
+    // Ensure the sonatypeWorkDir is set
+    sourceControl.setSonatypeWorkDir(getSonatypeWork());
 
     return sourceControl;
   }
 
-  public void setSourceControlConfig(SourceControlConfig sourceControl) {
-    this.sourceControl = sourceControl;
+  public void setSourceControl(final SourceControlConfig sourceControl) {
+    if (sourceControl == null) {
+      this.sourceControl = new SourceControlConfig();
+    }
+    else {
+      this.sourceControl = sourceControl;
+    }
   }
 }

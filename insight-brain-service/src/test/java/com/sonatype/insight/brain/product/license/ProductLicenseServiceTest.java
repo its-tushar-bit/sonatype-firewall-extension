@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.product.license;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.file.Files;
-import java.util.Properties;
 import java.util.TreeSet;
 
 import javax.inject.Inject;
@@ -20,8 +19,10 @@ import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
+import com.sonatype.insight.productlicense.ProductLicenseConfig;
 import com.sonatype.insight.productlicense.ProductLicenseSigner;
 
+import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -54,10 +55,12 @@ public class ProductLicenseServiceTest
   }
 
   @Override
-  public void configure(Properties properties) {
-    super.configure(properties);
-    properties.setProperty("licensing.keystore.path", new File(tempDir.getRoot(), "hds.p12").getAbsolutePath());
-    properties.setProperty("licensing.keystore.aliasgroup", "licensing-key-test");
+  public void configure(Binder binder) {
+    ProductLicenseConfig productLicenseConfig = new ProductLicenseConfig();
+    productLicenseConfig.setKeyStorePath(new File(tempDir.getRoot(), "hds.p12").getAbsolutePath());
+    productLicenseConfig.setKeyStoreAliasGroup("licensing-key-test");
+    binder.bind(ProductLicenseConfig.class).toInstance(productLicenseConfig);
+    super.configure(binder);
   }
 
   @Override

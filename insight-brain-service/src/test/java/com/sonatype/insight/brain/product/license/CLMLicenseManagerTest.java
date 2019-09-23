@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Properties;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -33,11 +32,13 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
+import com.sonatype.insight.productlicense.ProductLicenseConfig;
 import com.sonatype.insight.productlicense.ProductLicenseSigner;
 import com.sonatype.insight.test.LogOutput;
 
 import org.sonatype.licensing.LicensingException;
 
+import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -89,10 +90,12 @@ public class CLMLicenseManagerTest
   }
 
   @Override
-  public void configure(Properties properties) {
-    super.configure(properties);
-    properties.setProperty("licensing.keystore.path", new File(tempDir.getRoot(), "hds.p12").getAbsolutePath());
-    properties.setProperty("licensing.keystore.aliasgroup", "licensing-key-test");
+  public void configure(Binder binder) {
+    ProductLicenseConfig productLicenseConfig = new ProductLicenseConfig();
+    productLicenseConfig.setKeyStorePath(new File(tempDir.getRoot(), "hds.p12").getAbsolutePath());
+    productLicenseConfig.setKeyStoreAliasGroup("licensing-key-test");
+    binder.bind(ProductLicenseConfig.class).toInstance(productLicenseConfig);
+    super.configure(binder);
   }
 
   @Override

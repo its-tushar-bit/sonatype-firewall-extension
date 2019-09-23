@@ -21,8 +21,8 @@ Please read our [contribution rules and guidelines](contributing.md).
 
 This week's rotating reviewers are:
 
-* [@Benjamin Bentmann](https://github.com/bentmann)
-* [@Dennis Warren](https://github.com/DennisWarren)
+* [@Ross Pokorny](https://github.com/rpokorny)
+* [@(TK) Tim Kemper](https://github.com/tkemperSonatype)
 
 # Building #
 

@@ -202,9 +202,8 @@ public class GitApiService
   {
     switch (event.outcome) {
       case ApplicationEvaluationEvent.ACTION_ID_NONE:
-        return gitApiClient.getState(StateType.SUCCESS);
       case Action.ID_WARN:
-        return gitApiClient.getState(StateType.PENDING);
+        return gitApiClient.getState(StateType.SUCCESS);
       default:
         return gitApiClient.getState(StateType.FAILURE);
     }

@@ -17,6 +17,7 @@ import systemConfigurationMenu from './systemConfigurationMenu/systemConfigurati
 import mainHeader from './mainHeader';
 import userActions from '../user/userActions';
 import userReducer from '../user/userReducer';
+import userDetailsModal from './userMenu/userDetailsModal';
 
 export default angular.module('mainHeader',
     [
@@ -30,4 +31,5 @@ export default angular.module('mainHeader',
     .component('userMenu', userMenu)
     .component('notificationsMenu', notificationsMenu)
     .component('systemConfigurationMenu', systemConfigurationMenu)
-    .component('mainHeader', mainHeader);
+    .component('mainHeader', mainHeader)
+    .component('userDetailsModal', userDetailsModal);

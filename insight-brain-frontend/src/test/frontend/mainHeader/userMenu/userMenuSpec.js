@@ -249,4 +249,14 @@ describe('userMenu', function() {
       expect(vm.passwordChanged).not.toHaveBeenCalled();
     });
   });
+
+  describe('details', function() {
+    it('opens the current user details modal', function() {
+      modal.open = jasmine.createSpy();
+
+      vm.details();
+
+      expect(modal.open).toHaveBeenCalled();
+    });
+  });
 });

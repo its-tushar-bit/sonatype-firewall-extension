@@ -265,7 +265,9 @@ describe('userActions', function() {
         ' CONFIGURE_SYSTEM permission', function() {
       $httpBackend.expectGET(CLMLocations.getSessionUrl()).respond({
         username: 'admin',
-        clmUser: true
+        displayName: 'Admin BuiltIn',
+        clmUser: true,
+        groups: ['(all-authenticated-users)']
       });
 
       $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM']).respond([]);
@@ -287,7 +289,9 @@ describe('userActions', function() {
         payload: {
           currentUser: {
             username: 'admin',
-            clmUser: true
+            displayName: 'Admin BuiltIn',
+            clmUser: true,
+            groups: ['(all-authenticated-users)']
           },
           shouldDisplayWarning: false
         }

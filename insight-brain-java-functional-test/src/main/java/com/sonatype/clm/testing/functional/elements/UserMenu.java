@@ -30,6 +30,10 @@ public class UserMenu
     return $("#change-password");
   }
 
+  public SelenideElement userDetails() {
+    return $("#user-details");
+  }
+
   public SelenideElement logout() {
     return $("#logout");
   }

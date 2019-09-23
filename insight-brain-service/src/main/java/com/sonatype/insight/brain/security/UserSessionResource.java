@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.DELETE;
@@ -97,6 +99,8 @@ public class UserSessionResource
 
     private boolean isClmUser;
 
+    private Set<String> groups;
+
     /**
      * Status for a user that is not authenticated.
      */
@@ -119,6 +123,7 @@ public class UserSessionResource
           status.setUsername(((UserPrincipal) principal).getUsername());
           status.setDisplayName(((UserPrincipal) principal).getDisplayName());
           status.setClmUser(((UserPrincipal) principal).isClmUser());
+          status.setGroups(((UserPrincipal) principal).getMembership());
         }
         else {
           status.setUsername(subject.getPrincipal().toString());
@@ -158,6 +163,14 @@ public class UserSessionResource
 
     public void setClmUser(boolean isClmUser) {
       this.isClmUser = isClmUser;
+    }
+
+    public Set<String> getGroups() {
+      return groups;
+    }
+
+    public void setGroups(Set<String> groups) {
+      this.groups = groups;
     }
   }
 }

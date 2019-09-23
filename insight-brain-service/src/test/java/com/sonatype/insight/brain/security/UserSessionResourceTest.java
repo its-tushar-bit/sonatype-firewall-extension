@@ -9,6 +9,7 @@ import java.net.HttpCookie;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -111,6 +112,7 @@ public class UserSessionResourceTest
     AuthenticationStatus status = response.getBody(AuthenticationStatus.class);
     assertThat(status.isAuthenticated()).isTrue();
     assertThat(status.getUsername()).isEqualTo(User.ADMIN_USERNAME);
+    assertThat(status.getGroups()).containsExactly(Group.AUTHENTICATED_USERS_GROUP_ID);
 
     response = logout(sessionCookie);
     assertResponseStatus(204, response);

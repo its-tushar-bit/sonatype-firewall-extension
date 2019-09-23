@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { pick } from 'ramda';
+import modalWrapperTemplate from './userDetailsModalWrapper.html';
 
 function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, Modal, messages, pendoService, actions) {
   var vm = this;
@@ -64,6 +65,19 @@ function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, M
             };
           }
         ]
+      });
+    },
+
+    details() {
+      function modalController($scope) {
+        $scope.currentUser = vm.currentUser;
+      }
+
+      modalController.$inject = ['$scope'];
+
+      Modal.open({
+        template: modalWrapperTemplate,
+        controller: modalController
       });
     }
   });

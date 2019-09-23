@@ -1,0 +1,18 @@
+.iq-read-only--user-details-modal {
+  cursor: default;
+  padding: 0;
+  margin: 0;
+
+  dt {
+    display: inline-block;
+    font-size: 14px;
+    width: 20%;
+  }
+
+  .iq-read-only-data {
+    display: inline-block;
+    padding-left: 0;
+    width: 80%;
+    vertical-align: text-top;
+  }
+}

@@ -118,16 +118,18 @@ public class GitApiService
 
     if (!isGitRepoInfoComplete(gitRepositoryInfo)) {
       // check at sub-organization level for missing fields
-      SourceControl orgSourceControl = sourceControlService
-          .getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, sourceControl.getOwnerId());
-
-      populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, orgSourceControl);
+      Application application = applicationDAO.getById(sourceControl.getOwnerId());
+      if (application != null && application.getOrganizationId() != null) {
+        SourceControl orgSourceControl = sourceControlService
+            .getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, application.getOrganizationId());
+        populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, orgSourceControl);
+      }
 
       if (!isGitRepoInfoComplete(gitRepositoryInfo)) {
         // fields are still missing, check at the root organization level
-        orgSourceControl = sourceControlService
+        SourceControl rootOrgSourceControl = sourceControlService
             .getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
-        populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, orgSourceControl);
+        populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, rootOrgSourceControl);
       }
     }
 

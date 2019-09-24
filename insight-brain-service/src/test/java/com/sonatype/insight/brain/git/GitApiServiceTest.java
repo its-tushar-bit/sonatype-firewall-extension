@@ -12,7 +12,6 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -57,8 +56,6 @@ public class GitApiServiceTest
 
   private ApiSourceControlService mockSourceControlService;
 
-  private ApplicationDAO mockApplicationDAO;
-
   private GitClientFactory mockGitClientFactory;
 
   private BaseUrl mockBaseUrl;
@@ -81,8 +78,6 @@ public class GitApiServiceTest
   public void configure(Binder binder) {
     mockSourceControlService = mock(ApiSourceControlService.class);
     binder.bind(ApiSourceControlService.class).toInstance(mockSourceControlService);
-    mockApplicationDAO = mock(ApplicationDAO.class);
-    binder.bind(ApplicationDAO.class).toInstance(mockApplicationDAO);
     mockGitClientFactory = mock(GitClientFactory.class);
     binder.bind(GitClientFactory.class).toInstance(mockGitClientFactory);
     mockBaseUrl = mock(BaseUrl.class);
@@ -146,7 +141,7 @@ public class GitApiServiceTest
     doReturn(sourceControl).when(mockSourceControlService)
         .getSourceControlByOwnerDecrypted(OwnerType.APPLICATION, application.getId());
     doReturn(sourceControl).when(mockSourceControlService)
-        .getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, application.getId());
+        .getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, application.getOrganizationId());
 
     event = getApplicationEvaluationEvent(application.getId(), "release", "failure", 1, 1, 0, 0, "commitHash");
     gitApiService.maybeRespond(event);
@@ -160,7 +155,7 @@ public class GitApiServiceTest
     doReturn(sourceControl).when(mockSourceControlService)
         .getSourceControlByOwnerDecrypted(OwnerType.APPLICATION, application.getId());
     doReturn(sourceControl).when(mockSourceControlService)
-        .getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, application.getId());
+        .getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, application.getOrganizationId());
 
     event = getApplicationEvaluationEvent(application.getId(), "release", "failure", 1, 1, 0, 0, "commitHash");
     gitApiService.maybeRespond(event);
@@ -196,7 +191,6 @@ public class GitApiServiceTest
   public void testGetGitRepositoryInfo_ProviderAndTokenFromOrganization() {
     SourceControl sourceControl =
         new SourceControl(application.getId(), VALID_URL, null, null);
-    sourceControl.setOwnerId(application.getOrganizationId());
     sourceControl.setBaseBranch("base-branch");
     sourceControl.setEnablePullRequests(true);
     sourceControl.setEnableStatusChecks(true);
@@ -225,14 +219,12 @@ public class GitApiServiceTest
   public void testGetGitRepositoryInfo_ProviderAndTokenFromRootOrganization() {
     SourceControl sourceControl =
         new SourceControl(application.getId(), VALID_URL, null, null);
-    sourceControl.setOwnerId(application.getOrganizationId());
     sourceControl.setBaseBranch("base-branch");
     sourceControl.setEnablePullRequests(true);
     sourceControl.setEnableStatusChecks(true);
     when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(OwnerType.APPLICATION), eq(application.getId())))
         .thenReturn(sourceControl);
 
-    // no org source control, only one at the root level
     when(mockSourceControlService
         .getSourceControlByOwnerDecrypted(eq(OwnerType.ORGANIZATION), eq(application.getOrganizationId())))
         .thenReturn(null);
@@ -248,8 +240,6 @@ public class GitApiServiceTest
     assertThat(value.token).isEqualTo(TOKEN);
     assertThat(value.provider).isEqualTo(SourceControlProvider.GITHUB);
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(OwnerType.APPLICATION, application.getId());
-    verify(mockSourceControlService)
-        .getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, application.getOrganizationId());
     verify(mockSourceControlService)
         .getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, org.getParentOrganizationId());
   }
@@ -275,8 +265,6 @@ public class GitApiServiceTest
     doReturn(sourceControl).when(mockSourceControlService)
         .getSourceControlByOwnerDecrypted(OwnerType.APPLICATION, application.getId());
     when(mockGitApiClient.createStatus(any(), any())).thenReturn(status);
-
-    doReturn(application).when(mockApplicationDAO).getByIdNotNull(application.getId());
 
     gitApiService.maybeRespond(event);
 

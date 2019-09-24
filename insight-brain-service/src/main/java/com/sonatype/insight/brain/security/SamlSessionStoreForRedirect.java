@@ -28,4 +28,10 @@ public class SamlSessionStoreForRedirect
   public void saveRequest() {
     request.getSession(true).setAttribute(FilterSessionStore.REDIRECT_URI, SamlFilter.getDestinationOrDefault(request));
   }
+
+  @Override
+  public String getRedirectUri() {
+    String redirectUri = super.getRedirectUri();
+    return redirectUri == null ? redirectUri : redirectUri.replaceAll("/+$", "/");
+  }
 }

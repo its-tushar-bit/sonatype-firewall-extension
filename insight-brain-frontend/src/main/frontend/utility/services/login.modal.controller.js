@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global Base64 */
-export default function LoginModalController($scope, $http, CLMLocations, Messages) {
+export default function LoginModalController($scope, $http, CLMLocations, Messages, $window, showSamlSso) {
   var vm = this;
 
   vm.username = '';
@@ -34,6 +34,16 @@ export default function LoginModalController($scope, $http, CLMLocations, Messag
       vm.error = Messages.getHttpErrorMessage(error);
     });
   };
+
+  vm.initiateSamlSso = function() {
+    $window.location.assign('../saml/login');
+  };
+
+  vm.showSamlSso = showSamlSso;
+
+  vm.isSignInButtonDisabled = function() {
+    return vm.showSamlSso && (!vm.username || !vm.password);
+  };
 }
 
-LoginModalController.$inject = ['$scope', '$http', 'CLMLocations', 'Messages'];
+LoginModalController.$inject = ['$scope', '$http', 'CLMLocations', 'Messages', '$window', 'showSamlSso'];

@@ -67,17 +67,6 @@ public class SamlFilterTest
   }
 
   @Test
-  public void testOnPrehandle_RefererHasOnlyNossoParameter_ReturnsTrue() throws Exception {
-    testOnPrehandle("http://localhost:8070/assets/index.html?nosso", null, null, null, true);
-  }
-
-  @Test
-  public void testOnPrehandle_RefererHasMultipleParametersWithNosso_ReturnsTrue() throws Exception {
-    testOnPrehandle("http://localhost:8070/assets/index.html?name1=val%20one&nosso&name2=val%20two", null, null, null,
-        true);
-  }
-
-  @Test
   public void testOnPrehandle_NonSamlEndpointAuthenticated_ReturnsTrue() throws Exception {
     testOnPrehandle("http://localhost:8070/assets/index.html", "/rest/product/features", "", AuthOutcome.AUTHENTICATED,
         true);
@@ -118,7 +107,7 @@ public class SamlFilterTest
   public void testOnPrehandle_Default_ReturnsFalse() throws Exception {
     mockAuthChallenge = null;
 
-    testOnPrehandle("http://nosso:8070/nosso/nosso.html?name1=val%20one&name2=val%20two", "/saml", "", null, false);
+    testOnPrehandle("http://localhost:8070/some/path/something.html", "/saml", "", null, false);
   }
 
   @Test
@@ -168,7 +157,7 @@ public class SamlFilterTest
   }
 
   @Test
-  public void testGetDestinationOrDefault_NoRefererWithoutQuery_ReturnsDefault() {
+  public void testGetDestinationOrDefault_NoReferer_ReturnsDefault() {
     HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
     when(mockHttpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8070/some/context"));
     when(mockHttpServletRequest.getRequestURI()).thenReturn("/some/context");
@@ -177,34 +166,12 @@ public class SamlFilterTest
   }
 
   @Test
-  public void testGetDestinationOrDefault_NoRefererWithQuery_ReturnsDefault() {
-    HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
-    when(mockHttpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8070/some/context"));
-    when(mockHttpServletRequest.getRequestURI()).thenReturn("/some/context");
-    when(mockHttpServletRequest.getQueryString()).thenReturn("name1=val%20one&nosso&name2=val%20two");
-
-    assertThat(SamlFilter.getDestinationOrDefault(mockHttpServletRequest))
-        .isEqualTo("http://localhost:8070/?name1=val%20one&nosso&name2=val%20two");
-  }
-
-  @Test
-  public void testGetDestinationOrDefault_OnlyReferer_ReturnsReferer() {
+  public void testGetDestinationOrDefault_Referer_ReturnsReferer() {
     HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
     String destination = "http://localhost:8070/assets/index.html";
     when(mockHttpServletRequest.getHeader("Referer")).thenReturn(destination);
 
     assertThat(SamlFilter.getDestinationOrDefault(mockHttpServletRequest)).isEqualTo(destination);
-  }
-
-  @Test
-  public void testGetDestinationOrDefault_RefererAndHash_ReturnsRefererAndHash() {
-    HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
-    String destination = "http://localhost:8070/assets/index.html";
-    String hash = "#/labs/successMetrics";
-    when(mockHttpServletRequest.getHeader("Referer")).thenReturn(destination);
-    when(mockHttpServletRequest.getParameter("hash")).thenReturn(hash);
-
-    assertThat(SamlFilter.getDestinationOrDefault(mockHttpServletRequest)).isEqualTo(destination + hash);
   }
 
   private void testOnPrehandle(

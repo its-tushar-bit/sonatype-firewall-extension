@@ -23,13 +23,6 @@ httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', ['$window', '
             // the page.
             $window.top.sessionExpired();
           }
-          else if (response.headers('WWW-Authenticate') === 'SAML') {
-            let destination = '../saml/login';
-            if ($window.location.hash) {
-              destination += '?hash=' + encodeURIComponent($window.location.hash);
-            }
-            $window.location.assign(destination);
-          }
           else {
             // new promise for each failure, that will be completed once login suceeds
             var deferred = $q.defer();
@@ -81,8 +74,8 @@ export var unauthenticatedResponseHttpInterceptor = angular.module('Unauthentica
   'LoginModalService',
   'UnauthenticatedRequestQueueService',
   function($rootScope, $q, $http, LoginModalService, UnauthenticatedRequestQueueService) {
-    function authenticate() {
-      return LoginModalService.show($rootScope.username);
+    function authenticate(showSamlSso) {
+      return LoginModalService.show(showSamlSso);
     }
 
     $rootScope.$on('userNeedsAuthentication', function(event, response, deferred) {
@@ -104,7 +97,7 @@ export var unauthenticatedResponseHttpInterceptor = angular.module('Unauthentica
         // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
         // the other messages, the data will be added to the queue, but the dialog portion will be ignored
         if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
-          authenticate().then(function() {
+          authenticate(response.headers('WWW-Authenticate') === 'SAML').then(function() {
             // retry failed requests and then clear the queue
             $q.all(UnauthenticatedRequestQueueService.getPromises()).finally(function() {
               UnauthenticatedRequestQueueService.clearRequests();

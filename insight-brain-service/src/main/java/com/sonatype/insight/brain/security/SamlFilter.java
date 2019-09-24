@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -21,7 +17,6 @@ import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.apache.shiro.web.filter.authc.AuthenticationFilter;
 import org.keycloak.adapters.saml.SamlAuthenticator;
@@ -65,13 +60,6 @@ class SamlFilter
     HttpServletRequest httpRequest = (HttpServletRequest) request;
     HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-    String destination = getDestinationOrDefault(httpRequest);
-
-    if (URLEncodedUtils.parse(new URI(destination), StandardCharsets.UTF_8).stream()
-        .anyMatch(queryParam -> queryParam.getName().equals("nosso"))) {
-      return true;
-    }
-
     String requestPath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
     boolean samlEndpoint = requestPath.equals("/saml");
 
@@ -106,7 +94,7 @@ class SamlFilter
         challenge.challenge(httpFacade);
       }
       else {
-        // let the UI know the SAML web flow should be initiated
+        // let the UI know that SAML SSO should be a login option
         httpResponse.setHeader("WWW-Authenticate", "SAML");
         LoginErrorResponseHandler.sendError(httpResponse,
             new ErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
@@ -120,12 +108,11 @@ class SamlFilter
   static String getDestinationOrDefault(HttpServletRequest httpServletRequest) {
     String referer = httpServletRequest.getHeader("Referer");
     if (referer == null) {
-      String queryString = httpServletRequest.getQueryString();
-      return httpServletRequest.getRequestURL().substring(0,
-          httpServletRequest.getRequestURL().length() - httpServletRequest.getRequestURI().length()) + "/" +
-          (queryString != null ? "?" + queryString : "");
+      return httpServletRequest.getRequestURL()
+          .substring(0, httpServletRequest.getRequestURL().length() - httpServletRequest.getRequestURI().length()) +
+          "/";
     }
-    return referer + Optional.ofNullable(httpServletRequest.getParameter("hash")).orElse("");
+    return referer;
   }
 
   @VisibleForTesting

@@ -10,6 +10,10 @@
   </header>
   <div class="iq-modal-content">
     <system-notice></system-notice>
+    <p id="sso-text" ng-if="vm.showSamlSso">
+      Single sign-on via SAML is configured and can be initiated with your identity provider by clicking the Single 
+      Sign-On button.
+    </p>
     <div class="iq-form-row">
       <div class="iq-form-group">
         <label class="iq-label" for="login-username">Username</label>
@@ -39,8 +43,16 @@
     <div id="login-error" ng-if="vm.error" class="iq-alert iq-alert--error">
       <i class="fa fa-warning"></i>{{vm.error}}
     </div>
+    <button id="sso-action"
+            class="iq-btn iq-btn--primary"
+            ng-click="vm.initiateSamlSso()"
+            ng-if="vm.showSamlSso"
+            type="button">
+      Single Sign-On
+    </button>
     <button id="login-action"
             class="btn btn-primary"
+            ng-disabled="vm.isSignInButtonDisabled()"
             type="submit">
       Sign in
     </button>

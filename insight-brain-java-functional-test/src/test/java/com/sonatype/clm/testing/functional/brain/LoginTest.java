@@ -11,11 +11,13 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.insight.brain.security.SamlDeploymentManager;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.hidden;
@@ -28,16 +30,41 @@ public class LoginTest
   private LoginModal loginModal = new LoginModal();
 
   @After
-  public void clearCookies() {
+  public void clearCookiesAndSamlDeployment() {
     Selenide.clearBrowserCookies();
+    testCLMServer.getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
   }
 
   @Test
   public void testInitialLoginFormState() {
     refreshOrOpen(ReportListPage.URL);
     loginModal.shouldBe(visible);
+    loginModal.ssoText().shouldBe(hidden);
     loginModal.username().shouldBe(focused);
+    loginModal.ssoButton().shouldBe(hidden);
     loginModal.loginButton().shouldBe(enabled);
+  }
+
+  @Test
+  public void testInitialLoginFormState_SamlSso() {
+    tempEntity.newSamlConfiguration();
+    testCLMServer.getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
+
+    refreshOrOpen(ReportListPage.URL);
+
+    loginModal.shouldBe(visible);
+    loginModal.ssoText().shouldBe(visible);
+    loginModal.username().shouldBe(focused);
+    loginModal.ssoButton().shouldBe(enabled);
+    loginModal.loginButton().shouldBe(disabled);
+    eyesWatcher.eyesCheck();
+
+    loginModal.username().setValue("u");
+    loginModal.loginButton().shouldBe(disabled);
+    loginModal.password().setValue("p");
+    loginModal.loginButton().shouldBe(enabled);
+    loginModal.username().clear();
+    loginModal.loginButton().shouldBe(disabled);
   }
 
   @Test
@@ -69,7 +96,7 @@ public class LoginTest
     OwnerSummaryPage.summaryTile().shouldBe(visible);
     refreshOrOpen(ReportListPage.URL);
     ReportListPage.listContainer().shouldBe(visible);
-    clearCookies();
+    clearCookiesAndSamlDeployment();
     refreshOrOpen(ReportListPage.URL);
     loginModal.shouldBe(visible);
   }

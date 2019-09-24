@@ -3,7 +3,8 @@ import utilityServicesModule from '../../../main/frontend/utility/services/utili
 
 describe('HttpInterceptors.js', function() {
   var scope,
-      modalSuccess;
+      modalSuccess,
+      modalConfig;
 
   beforeEach(angular.mock.module(unauthenticatedResponseHttpInterceptor.name, utilityServicesModule.name,
       'legacyConfiguration',
@@ -13,12 +14,13 @@ describe('HttpInterceptors.js', function() {
         });
         $provide.value('Modal', {
           open: function(config) {
+            modalConfig = config;
             scope.$close = function() {
             };
             inject(function($controller) {
               $controller(config.controller, {
                 $scope: scope,
-                username: undefined
+                showSamlSso: undefined
               });
             });
             return {
@@ -99,8 +101,9 @@ describe('HttpInterceptors.js', function() {
       })
   );
 
-  it('Validate SAML login is called if a 401 happens when the WWW-Authenticate header is set to SAML without a hash',
-      inject(function($rootScope, $http, $httpBackend, $window) {
+  it('Validate that the login modal is told to show SAML SSO when the WWW-Authenticate header is set to SAML',
+      inject(function($rootScope, $http, $httpBackend) {
+
         $httpBackend.expectPOST('test').respond(401, undefined, {
           'WWW-Authenticate': 'SAML'
         });
@@ -109,23 +112,19 @@ describe('HttpInterceptors.js', function() {
         $httpBackend.flush();
         $rootScope.$digest();
 
-        expect($window.location.assign).toHaveBeenCalledWith('../saml/login');
+        expect(modalConfig.resolve.showSamlSso()).toBe(true);
       })
   );
 
-  it('Validate SAML login is called if a 401 happens when the WWW-Authenticate header is set to SAML with a hash',
-      inject(function($rootScope, $http, $httpBackend, $window) {
-        $window.location.hash = '#/some/example';
-        $httpBackend.expectPOST('test').respond(401, undefined, {
-          'WWW-Authenticate': 'SAML'
-        });
+  it('Validate that the login modal is told to not show SAML SSO without the WWW-Authenticate header',
+      inject(function($rootScope, $http, $httpBackend) {
+        $httpBackend.expectPOST('test').respond(401);
 
         $http.post('test');
         $httpBackend.flush();
         $rootScope.$digest();
 
-        expect($window.location.assign).toHaveBeenCalledWith(
-            '../saml/login?hash=' + encodeURIComponent($window.location.hash));
+        expect(modalConfig.resolve.showSamlSso()).toBe(false);
       })
   );
 

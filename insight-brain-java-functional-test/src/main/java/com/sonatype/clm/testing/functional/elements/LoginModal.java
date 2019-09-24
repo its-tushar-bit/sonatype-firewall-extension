@@ -18,6 +18,10 @@ public class LoginModal
     super("#login-modal");
   }
 
+  public SelenideElement ssoText() {
+    return $("#sso-text");
+  }
+
   public SelenideElement username() {
     return $("#login-username");
   }
@@ -28,6 +32,10 @@ public class LoginModal
 
   public SelenideElement loginButton() {
     return $("#login-action");
+  }
+
+  public SelenideElement ssoButton() {
+    return $("#sso-action");
   }
 
   public SelenideElement systemNotice() {

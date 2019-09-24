@@ -6,9 +6,11 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -33,30 +35,39 @@ public class PolicyAlertSourceCodeOrganizerTest
 
   @Test
   public void testGetNotificationsForScm__basic() {
-
-    PolicyFact policyFact1 = new PolicyFact("policyid-1", "policyname-1", 3);
-    policyFact1.addComponentFact(
+    PolicyFact policyFactMid = new PolicyFact("policyid-1", "Mid", 5);
+    policyFactMid.addComponentFact(
         new ComponentFact(ComponentIdentifier.createNugetCoordinates("Package1", "1.2.3"), randomString()));
-    policyFact1.addComponentFact(
+    policyFactMid.addComponentFact(
         new ComponentFact(ComponentIdentifier.createNugetCoordinates("Package2", "1.3.4"), randomString()));
-    policyFact1.addComponentFact(
+    policyFactMid.addComponentFact(
         new ComponentFact(ComponentIdentifier.createNugetCoordinates("AA-Package", "1.0.1"), randomString()));
 
-    PolicyFact policyFact2 = new PolicyFact("policyid-2", "policyname-2", 3);
-    policyFact2.addComponentFact(
+    PolicyFact policyFactCritical = new PolicyFact("policyid-2", "Critical", 9);
+    policyFactCritical.addComponentFact(
         new ComponentFact(ComponentIdentifier.createNugetCoordinates("Package1-2", "1.2.3"), randomString()));
-    policyFact2.addComponentFact(
+    policyFactCritical.addComponentFact(
         new ComponentFact(ComponentIdentifier.createNugetCoordinates("Package2-2", "1.3.4"), randomString()));
-    policyFact2.addComponentFact(
+    policyFactCritical.addComponentFact(
+        new ComponentFact(ComponentIdentifier.createNugetCoordinates("Package2", "1.3.4"), randomString()));
+    policyFactCritical.addComponentFact(
         new ComponentFact(ComponentIdentifier.createNugetCoordinates("AA-Package-2", "1.0.1"), randomString()));
+
+    // components appear in multiple policies with different threat levels
+    PolicyFact policyFactLow = new PolicyFact("policyid-3", "Low", 1);
+    policyFactLow.addComponentFact(
+        new ComponentFact(ComponentIdentifier.createNugetCoordinates("Package1", "1.2.3"), randomString()));
+    policyFactLow.addComponentFact(
+        new ComponentFact(ComponentIdentifier.createNugetCoordinates("AA-Package", "1.0.1"), randomString()));
 
     Notifications notifications = new Notifications(
         new UserNotification("foo@mail.com", "release")
     );
-    PolicyNotification policyNotification1 = new PolicyNotification(policyFact1, notifications);
-    PolicyNotification policyNotification2 = new PolicyNotification(policyFact2, notifications);
+    PolicyNotification policyNotificationMid = new PolicyNotification(policyFactMid, notifications);
+    PolicyNotification policyNotificationCritical = new PolicyNotification(policyFactCritical, notifications);
+    PolicyNotification policyNotificationLow = new PolicyNotification(policyFactLow, notifications);
     List<PolicyNotification> policyNotifications = Arrays.asList(
-        policyNotification1, policyNotification2
+        policyNotificationMid, policyNotificationCritical, policyNotificationLow
     );
 
     Map<ComponentIdentifier, List<PolicyNotification>> sortedNotifications =
@@ -66,9 +77,38 @@ public class PolicyAlertSourceCodeOrganizerTest
         .containsExactly("AA-Package", "AA-Package-2", "Package1", "Package1-2", "Package2", "Package2-2");
     assertThat(sortedNotifications.keySet()).extracting(componentIdentifier -> componentIdentifier.get("packageId"))
         .isSorted();
+    Comparator<PolicyNotification> notificationComparator =
+        Comparator.comparing(policyNotification -> policyNotification.getPolicyFact().getThreatLevel());
+    for (List<PolicyNotification> resultNotificationList : sortedNotifications.values()) {
+      assertThat(resultNotificationList).isSortedAccordingTo(notificationComparator.reversed());
+    }
 
-    assertThat(sortedNotifications.get(ComponentIdentifier.createNugetCoordinates("AA-Package", "1.0.1")))
-        .containsExactly(policyNotification1);
+    validateComponentsPolicies(sortedNotifications, ComponentIdentifier.createNugetCoordinates("Package1", "1.2.3"),
+        new String[]{"Mid: 5", "Low: 1"});
+    validateComponentsPolicies(sortedNotifications, ComponentIdentifier.createNugetCoordinates("Package2", "1.3.4"),
+        new String[]{"Critical: 9", "Mid: 5"});
+    validateComponentsPolicies(sortedNotifications, ComponentIdentifier.createNugetCoordinates("AA-Package", "1.0.1"),
+        new String[]{"Mid: 5", "Low: 1"});
+    validateComponentsPolicies(sortedNotifications, ComponentIdentifier.createNugetCoordinates("Package1-2", "1.2.3"),
+        new String[]{"Critical: 9"});
+    validateComponentsPolicies(sortedNotifications, ComponentIdentifier.createNugetCoordinates("Package2-2", "1.3.4"),
+        new String[]{"Critical: 9"});
+    validateComponentsPolicies(sortedNotifications, ComponentIdentifier.createNugetCoordinates("AA-Package-2", "1.0.1"),
+        new String[]{"Critical: 9"});
+
+    assertThat(sortedNotifications.get(ComponentIdentifier.createNugetCoordinates("AA-Package-2", "1.0.1")))
+        .containsExactly(policyNotificationCritical);
+  }
+
+  private void validateComponentsPolicies(Map<ComponentIdentifier, List<PolicyNotification>> sortedNotifications,
+                                          ComponentIdentifier componentIdentifier,
+                                          String[] matchedPolicies)
+  {
+    assertThat(sortedNotifications.get(componentIdentifier)
+        .stream().map(policyNotification -> policyNotification.getPolicyFact())
+        .map(policyFact -> String.format("%s: %d", policyFact.getPolicyName(), policyFact.getThreatLevel()))
+        .collect(Collectors.toList()))
+        .containsExactly(matchedPolicies);
   }
 
   private String randomString() {

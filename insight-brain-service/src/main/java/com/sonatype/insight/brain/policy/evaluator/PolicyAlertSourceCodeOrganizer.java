@@ -7,6 +7,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.SortedMap;
@@ -39,9 +40,10 @@ public class PolicyAlertSourceCodeOrganizer
     }
 
     // sort all lists by priority order
+    Comparator<PolicyNotification> notificationComparator =
+        Comparator.comparing(policyNotification -> policyNotification.getPolicyFact().getThreatLevel());
     for (List<PolicyNotification> componentPolicyNotifications : componentMap.values()) {
-      componentPolicyNotifications
-          .sort(Comparator.comparing(policyNotification -> policyNotification.getPolicyFact().getThreatLevel()));
+      Collections.sort(componentPolicyNotifications, notificationComparator.reversed());
     }
 
     return componentMap;

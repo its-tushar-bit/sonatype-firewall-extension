@@ -14,14 +14,28 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class ThirdPartyFileDAO
     extends AbstractThirdPartyScansSqlDAO<ThirdPartyFile>
 {
-  public ThirdPartyFile getByHash(String hash) {
-    String sQuery = "SELECT entity FROM ThirdPartyFile entity" + //
-        " WHERE entity.hash=?1";
-    return get(sQuery, hash);
+  public List<ThirdPartyFile> getByHashAndScanId(String hash, String scanId) {
+    String sQuery = "SELECT TPF FROM ThirdPartyFile TPF," + //
+        " ThirdPartyScan TPS" + //
+        " WHERE TPS.thirdPartyFileId=TPF.id" + //
+        " AND TPF.hash=?1" + //
+        " AND TPS.scanId=?2";
+    return getList(sQuery, hash, scanId);
   }
 
   public List<ThirdPartyFile> getAll() {
     return getList("SELECT entity FROM ThirdPartyFile entity");
+  }
+
+  public List<ThirdPartyFile> getByScanId(String scanId) {
+    String sQuery = "SELECT TPF FROM ThirdPartyFile TPF," + //
+        " ThirdPartyScan TPS" + //
+        " WHERE TPS.thirdPartyFileId=TPF.id AND TPS.scanId=?1";
+    return getList(sQuery, scanId);
+  }
+
+  public void deleteByScanId(String scanId) {
+    getByScanId(scanId).forEach(this::delete);
   }
 
   @Override

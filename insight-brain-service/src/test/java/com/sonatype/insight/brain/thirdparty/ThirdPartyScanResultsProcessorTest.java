@@ -103,11 +103,13 @@ public class ThirdPartyScanResultsProcessorTest
     assertFilteredThirdPartyScanContentFile(scanFile);
 
     try (TransactionContext tx = thirdPartyScanDAO.createTransactionContext()) {
-      ThirdPartyFile thirdPartyFile1 = thirdPartyFileDAO.getByHash("30a7c753d9515c185d85");
+      ThirdPartyFile thirdPartyFile1 =
+          thirdPartyFileDAO.getByHashAndScanId("30a7c753d9515c185d85", getScanId(scanRequestId)).get(0);
       assertThirdPartyFile(scanRequestId, tx, thirdPartyFile1, "clair-scanner-out/clair-scanner-output.json",
           "smart-brain-boost-api-dockerized_postgres", 1);
 
-      ThirdPartyFile thirdPartyFile2 = thirdPartyFileDAO.getByHash("48a7c753d9515c185d75");
+      ThirdPartyFile thirdPartyFile2 =
+          thirdPartyFileDAO.getByHashAndScanId("48a7c753d9515c185d75", getScanId(scanRequestId)).get(0);
       assertThirdPartyFile(scanRequestId, tx, thirdPartyFile2, "clair-scanner-out/other/clair-scanner-output.json",
           "smart-brain-boost-api-dockerized_postgres", 1);
     }
@@ -115,23 +117,30 @@ public class ThirdPartyScanResultsProcessorTest
 
   @Test
   public void testHandle_ClairScannerUsingSameClairFileMultipleTimes() throws Exception {
-    File scanFile = getScanFile("scan-with-clair-scanner-for-multiple-times.xml");
-
     doReturn("9510c290c07710d8c69b").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.3.8"));
     doReturn("08d7a1c700d1633dc309").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.3.9"));
     doReturn("e587ce87ed894c1d5283").when(clairHandlerSpy).buildHash(eq("debian:9:glibc:2.24-11+deb9u3"));
 
-    thirdPartyScanResultsProcessorSpy.handle(scanFile);
-    String scanRequestId = thirdPartyScanResultsProcessorSpy.handle(scanFile);
+    File scanFile1 = getScanFile("scan-with-clair-scanner-for-multiple-times.xml");
 
-    assertThat(scanRequestId).isNotBlank();
+    File scanFile2 = new File(tempDir.newFolder(), scanFile1.getName());
+    FileUtils.copyFile(scanFile1, scanFile2);
+
+    String scanRequestId1 = thirdPartyScanResultsProcessorSpy.handle(scanFile1);
+    String scanRequestId2 = thirdPartyScanResultsProcessorSpy.handle(scanFile2);
+
+    assertThat(scanRequestId1).isNotBlank();
+    assertThat(scanRequestId2).isNotBlank();
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(any(ItemContentType.class));
-    assertFilteredThirdPartyScanContentFile(scanFile);
+    assertFilteredThirdPartyScanContentFile(scanFile2);
 
     try (TransactionContext tx = thirdPartyScanDAO.createTransactionContext()) {
-      ThirdPartyFile thirdPartyFile = thirdPartyFileDAO.getByHash("a7cea8ebc1ab163d7b1a");
-      assertThirdPartyFile(scanRequestId, tx, thirdPartyFile, "clair-scanner-output.json",
-          "smart-brain-boost-api-dockerized_postgres", 2);
+      List<ThirdPartyFile> thirdPartyFiles =
+          thirdPartyFileDAO.getByHashAndScanId("a7cea8ebc1ab163d7b1a", getScanId(scanRequestId1));
+
+      assertThat(thirdPartyFiles).hasSize(2);
+      assertThirdPartyFile(scanRequestId1, tx, thirdPartyFiles.get(0), "clair-scanner-output.json", "image-name", 1);
+      assertThirdPartyFile(scanRequestId2, tx, thirdPartyFiles.get(1), "clair-scanner-output.json", "image-name", 1);
     }
   }
 
@@ -150,7 +159,8 @@ public class ThirdPartyScanResultsProcessorTest
     assertFilteredThirdPartyScanContentFile(scanFile);
 
     try (TransactionContext tx = thirdPartyScanDAO.createTransactionContext()) {
-      ThirdPartyFile thirdPartyFile = thirdPartyFileDAO.getByHash("a7cea8ebc1ab163d7b1x");
+      ThirdPartyFile thirdPartyFile =
+          thirdPartyFileDAO.getByHashAndScanId("a7cea8ebc1ab163d7b1x", getScanId(scanRequestId)).get(0);
       assertThirdPartyFile(scanRequestId, tx, thirdPartyFile, "clair-scanner-output.json", "test-image-name", 1);
     }
   }
@@ -210,7 +220,8 @@ public class ThirdPartyScanResultsProcessorTest
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(any(ItemContentType.class));
 
     try (TransactionContext tx = thirdPartyScanDAO.createTransactionContext()) {
-      ThirdPartyFile thirdPartyFile = thirdPartyFileDAO.getByHash("31a7c753d9515c185d85");
+      ThirdPartyFile thirdPartyFile =
+          thirdPartyFileDAO.getByHashAndScanId("31a7c753d9515c185d85", getScanId(scanRequestId)).get(0);
 
       assertThirdPartyFile(scanRequestId, tx, thirdPartyFile, "clair-scanner-output.json", null, 1);
       assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId())).isEmpty();
@@ -330,6 +341,10 @@ public class ThirdPartyScanResultsProcessorTest
     List<ThirdPartyScan> scans = thirdPartyScanDAO.getByThirdPartyFileId(tx, thirdPartyFileFound.getId());
     assertThat(scans).hasSize(expectedScans);
     assertThat(scans.stream().filter(scan -> scan.getScanRequestId().equals(scanRequestId))).hasSize(1);
+  }
+
+  private String getScanId(String scanRequestId) {
+    return thirdPartyScanDAO.getByScanRequestId(scanRequestId).get(0).getScanId();
   }
 
   @After

@@ -1818,8 +1818,11 @@ public class TemporaryEntity
   }
 
   public ThirdPartyFile newThirdPartyFile() {
-    ThirdPartyFile thirdPartyFile =
-        new ThirdPartyFile(newRandomHash(), "third-party-file", "image", new Date());
+    return newThirdPartyFile(newRandomHash());
+  }
+
+  public ThirdPartyFile newThirdPartyFile(String hash) {
+    ThirdPartyFile thirdPartyFile = new ThirdPartyFile(hash, "third-party-file", "image", new Date());
     thirdPartyFileDAO.insert(thirdPartyFile);
     thirdPartyFileConfigurations.add(thirdPartyFile);
     return thirdPartyFile;

@@ -12,10 +12,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 
@@ -82,9 +80,8 @@ public class ThirdPartyScanResultsProcessor
         XMLEventWriter writer = outputFactory.createXMLEventWriter(out);
 
         parser.next();
-        Set<String> processedHashes = new HashSet<>();
         while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
-          processEvent(parser, writer, scanFile, scanRequestId, processedHashes);
+          processEvent(parser, writer, scanFile, scanRequestId);
         }
         writer.flush();
         writer.close();
@@ -113,8 +110,7 @@ public class ThirdPartyScanResultsProcessor
       XmlPullParser parser,
       XMLEventWriter writer,
       File scanFile,
-      String scanRequestId,
-      Set<String> processedHashes)
+      String scanRequestId)
   {
     try {
       int eventType = parser.getEventType();
@@ -125,7 +121,7 @@ public class ThirdPartyScanResultsProcessor
           writer.add(EVENT_FACTORY.createStartElement(new QName(parser.getName()), null, null));
           addElementAttributes(parser, writer);
           if ("item".equals(elementName)) {
-            processItemElement(parser, writer, scanFile, scanRequestId, processedHashes);
+            processItemElement(parser, writer, scanFile, scanRequestId);
           }
         }
         else if (eventType == XmlPullParser.END_TAG) {
@@ -151,8 +147,7 @@ public class ThirdPartyScanResultsProcessor
       XmlPullParser parser,
       XMLEventWriter writer,
       File scanFile,
-      String scanRequestId,
-      Set<String> processedHashes) throws Exception
+      String scanRequestId) throws Exception
   {
     String contentType = parser.getAttributeValue(null, "contentType");
     if (contentType != null && thirdPartyItemContentTypes.contains(contentType)) {
@@ -160,7 +155,7 @@ public class ThirdPartyScanResultsProcessor
       Xpp3Dom contentElement = itemElement.getChild("content");
       if (contentElement != null) {
         String filteredContent =
-            handleContent(itemElement, contentElement.getValue(), contentType, scanRequestId, processedHashes);
+            handleContent(itemElement, contentElement.getValue(), contentType, scanRequestId);
         writeFilteredInformation(writer, filteredContent);
       }
       else {
@@ -175,31 +170,20 @@ public class ThirdPartyScanResultsProcessor
       Xpp3Dom itemElement,
       String contentElement,
       String contentType,
-      String scanRequestId,
-      Set<String> processedHashes)
+      String scanRequestId)
   {
     String path = itemElement.getAttribute("path");
     String lastModified = itemElement.getAttribute("lastModified");
     String sha1 = itemElement.getAttribute("sha1");
 
-    ThirdPartyFile thirdPartyFile = thirdPartyFileDAO.getByHash(sha1);
-    boolean isNewThirdPartyFile = thirdPartyFile == null;
+    ThirdPartyFile thirdPartyFile = saveFile(sha1, path);
 
-    if (thirdPartyFile == null) {
-      thirdPartyFile = saveFile(sha1, path);
-    }
-
-    // Avoids duplicated rows when the exact same third-party file is repeated when scanning a folder
-    if (!processedHashes.contains(sha1)) {
-      saveScan(thirdPartyFile, scanRequestId);
-      processedHashes.add(sha1);
-    }
+    saveScan(thirdPartyFile, scanRequestId);
 
     ItemContentType contentItemType = ItemContentType.valueOf(contentType);
     ThirdPartyScanResultHandler handler = createHandler(contentItemType);
     return handler.handleAndFilterContents(
-        new ThirdPartyScanContent(path, contentItemType, lastModified, sha1, contentElement),
-        isNewThirdPartyFile ? thirdPartyFile : null);
+        new ThirdPartyScanContent(path, contentItemType, lastModified, sha1, contentElement), thirdPartyFile);
   }
 
   private ThirdPartyFile saveFile(String hash, String path) {

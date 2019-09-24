@@ -10,8 +10,7 @@ CREATE TABLE third_party_file (
   filename VARCHAR(1000) NOT NULL,
   image VARCHAR(1000) NULL,
   create_time TIMESTAMP NOT NULL,
-  CONSTRAINT third_party_file_pk PRIMARY KEY (third_party_file_id),
-  CONSTRAINT third_party_file_uk UNIQUE (hash)
+  CONSTRAINT third_party_file_pk PRIMARY KEY (third_party_file_id)
 );
 
 CREATE TABLE third_party_scan (

@@ -27,11 +27,8 @@ import org.junit.Test;
 import org.mockito.Spy;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 public class ClairScannerResultsHandlerTest
     extends AbstractComponentTest
@@ -118,34 +115,6 @@ public class ClairScannerResultsHandlerTest
       ThirdPartyCoordinateSecurity coordinateSecurity = coordinatesSecurity.get(0);
       assertThirdPartyCoordinateSecurity(vulnerability3, coordinate2, coordinateSecurity, 6f);
     }
-  }
-
-  @Test
-  public void testHandle_filterContent_existingThirdPartyFile() throws Exception {
-    ClairScannerResult clairScannerResult = new ClairScannerResult();
-    clairScannerResult.setImage("imageTest");
-    Set<ClairScannerVulnerability> vulnerabilities = new HashSet<>();
-    ClairScannerVulnerability vulnerability =
-        buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", "High");
-    vulnerabilities.add(vulnerability);
-    clairScannerResult.setVulnerabilities(vulnerabilities);
-
-    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(clairScannerResult));
-
-    ThirdPartyFile thirdPartyFile = null;
-
-    String filteredContent = clairHandlerSpy.handleAndFilterContents(content, thirdPartyFile);
-    assertThat(filteredContent).isNotNull();
-
-    ClairScannerResult filteredClairScannerResult = toClairScannerResult(filteredContent);
-    assertClairScannerResult(filteredClairScannerResult);
-
-    assertThat(filteredClairScannerResult.getVulnerabilities()).hasSize(1);
-    filteredClairScannerResult.getVulnerabilities()
-        .forEach(filteredVulnerability -> assertClairScannerVulnerability(filteredVulnerability));
-
-    verify(thirdPartyCoordinateSecurityDAO, times(0)).insert(any(ThirdPartyCoordinateSecurity.class));
-    verify(thirdPartyFileCoordinateDAO, times(0)).insert(any(ThirdPartyFileCoordinate.class));
   }
 
   @Test

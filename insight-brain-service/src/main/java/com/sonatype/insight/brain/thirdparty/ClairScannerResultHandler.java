@@ -45,10 +45,8 @@ public class ClairScannerResultHandler
       try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
         tx.begin();
 
-        if (thirdPartyFile != null) {
-          thirdPartyFile.setImage(clairScannerResult.getImage());
-          thirdPartyFileDAO.update(tx, thirdPartyFile);
-        }
+        thirdPartyFile.setImage(clairScannerResult.getImage());
+        thirdPartyFileDAO.update(tx, thirdPartyFile);
 
         ClairScannerResult filteredClairScannerResult = new ClairScannerResult();
 
@@ -76,29 +74,27 @@ public class ClairScannerResultHandler
       Map<String, String> hashFileCoordinateIdMap,
       TransactionContext tx)
   {
-    if (thirdPartyFile != null) {
-      String fakeHash = buildHash(vulnerability.getNamespace() + ":" + vulnerability.getFeatureName() + ":"
-          + vulnerability.getFeatureVersion());
+    String fakeHash = buildHash(
+        vulnerability.getNamespace() + ":" + vulnerability.getFeatureName() + ":" + vulnerability.getFeatureVersion());
 
-      String fileCoordinateId = hashFileCoordinateIdMap.get(fakeHash);
+    String fileCoordinateId = hashFileCoordinateIdMap.get(fakeHash);
 
-      if (fileCoordinateId == null) {
-        ThirdPartyFileCoordinate fileCoordinate =
-            new ThirdPartyFileCoordinate(fakeHash, IdentificationSource.CLAIR.getId(), vulnerability.getNamespace(),
-                vulnerability.getFeatureName(), vulnerability.getFeatureVersion(), thirdPartyFile.getId());
-        thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
+    if (fileCoordinateId == null) {
+      ThirdPartyFileCoordinate fileCoordinate =
+          new ThirdPartyFileCoordinate(fakeHash, IdentificationSource.CLAIR.getId(), vulnerability.getNamespace(),
+              vulnerability.getFeatureName(), vulnerability.getFeatureVersion(), thirdPartyFile.getId());
+      thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
 
-        fileCoordinateId = fileCoordinate.getId();
-        hashFileCoordinateIdMap.put(fakeHash, fileCoordinateId);
-      }
-
-      float severity = getSeverity(vulnerability);
-
-      ThirdPartyCoordinateSecurity coordinateSecurity =
-          new ThirdPartyCoordinateSecurity(fileCoordinateId, vulnerability.getVulnerability(),
-              vulnerability.getDescription(), vulnerability.getLink(), severity, vulnerability.getFixedBy());
-      thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
+      fileCoordinateId = fileCoordinate.getId();
+      hashFileCoordinateIdMap.put(fakeHash, fileCoordinateId);
     }
+
+    float severity = getSeverity(vulnerability);
+
+    ThirdPartyCoordinateSecurity coordinateSecurity =
+        new ThirdPartyCoordinateSecurity(fileCoordinateId, vulnerability.getVulnerability(),
+            vulnerability.getDescription(), vulnerability.getLink(), severity, vulnerability.getFixedBy());
+    thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
 
     return vulnerability;
   }

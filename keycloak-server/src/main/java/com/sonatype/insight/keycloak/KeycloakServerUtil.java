@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.keycloak;
 
-import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -23,60 +22,24 @@ import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.idm.UserSessionRepresentation;
-import org.keycloak.testsuite.KeycloakServer;
 
-// Encapsulates a closable KeycloakServer started on a random port
-// and exposes utility methods per https://www.keycloak.org/docs-api/6.0/rest-api/
-// For using in tests, please see KeycloakTestServerTest for reference
-// https://issues.sonatype.org/browse/CLM-13230
-public class KeycloakTestServer
+// Exposes utility methods per https://www.keycloak.org/docs-api/6.0/rest-api/ for a running Keycloak on a given url.
+// For using in tests, please see KeycloakTestUtilTest for reference which is responsible for
+// ignoring tests when -Dkeycloak.optional=true and stopping server / container gracefully
+// Call #clean whenever you need to reset the server to original state.
+public class KeycloakServerUtil
 {
-  private KeycloakServer keycloakServer;
+  private final String url;
 
-  private boolean running = false;
-
-  private String url;
-
-  private String adminBearerToken;
+  private final String adminBearerToken;
 
   private final Set<String> createdClientIds = new HashSet<>();
 
   private final Set<String> createdUserIds = new HashSet<>();
 
-  public void start() {
-    if (running) {
-      return;
-    }
-
-    try {
-      if (keycloakServer == null) {
-        int port;
-        try (ServerSocket serverSocket = new ServerSocket(0)) {
-          port = serverSocket.getLocalPort();
-        }
-        keycloakServer = new KeycloakServer();
-        keycloakServer.getConfig().setPort(port);
-        url = String.format("http://localhost:%d/auth/", port);
-      }
-      keycloakServer.start();
-      adminBearerToken = getToken("admin", "admin");
-    }
-    catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-    catch (Throwable e) {
-      e.printStackTrace();
-      System.exit(1);
-    }
-
-    running = true;
-  }
-
-  public void stop() {
-    if (running) {
-      keycloakServer.stop();
-      running = false;
-    }
+  public KeycloakServerUtil(String url) {
+    this.url = url;
+    adminBearerToken = getToken(KeycloakServer.USERNAME, KeycloakServer.PASSWORD);
   }
 
   /**

@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.keycloak;
 
-import java.net.ConnectException;
-import java.net.URL;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,7 +14,8 @@ import java.util.Map;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.Response;
 
-import org.junit.Rule;
+import org.junit.After;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -32,45 +31,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class KeycloakTestServerTest
+public class KeycloakServerUtilTest
 {
-  @Rule
-  public KeycloakTestServerJunitRule tempKeycloakServer = new KeycloakTestServerJunitRule();
+  @ClassRule
+  public static KeycloakServerRule rule = new KeycloakServerRule();
 
-  private KeycloakTestServer keycloak = KeycloakTestServerJunitRule.getServer();
+  private KeycloakServerUtil keycloak = rule.getServerUtil();
 
-  @Test
-  public void testKeycloakTestServer() {
-    try (Response response = newClient().target(keycloak.getUrl()).request().get()) {
-      assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());
-    }
+  @After
+  public void after() {
+    keycloak.clean();
   }
 
   @Test
-  public void testStopStart() {
-    keycloak.stop();
-    assertThatExceptionOfType(ConnectException.class).isThrownBy(() -> new URL(keycloak.getUrl()).openStream());
-
-    keycloak.start();
-    try (Response response = newClient().target(keycloak.getUrl()).request().get()) {
-      assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());
-    }
-  }
-
-  @Test
-  public void testStart_startRunning() {
-    keycloak.start();
-  }
-
-  @Test
-  public void testStop_stopAlreadyStopped() {
-    keycloak.stop();
-    keycloak.stop();
+  public void testKeycloakServerUtil() {
+    Response response = newClient().target(keycloak.getUrl()).request().get();
+    assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());
+    response.close();
   }
 
   @Test
   public void testGetToken_admin() {
-    assertThat(keycloak.getToken("admin", "admin")).hasSize(950);
+    assertThat(keycloak.getToken(KeycloakServer.USERNAME, KeycloakServer.PASSWORD)).hasSize(950);
   }
 
   @Test
@@ -105,7 +87,8 @@ public class KeycloakTestServerTest
   @Test
   public void testClean() {
     assertThat(keycloak.getClients()).hasSize(5);
-    assertThat(keycloak.getUsers()).extracting(UserRepresentation::getUsername).containsExactly("admin");
+    assertThat(keycloak.getUsers()).extracting(UserRepresentation::getUsername)
+        .containsExactly(KeycloakServer.USERNAME);
 
     ClientRepresentation clientRepresentation = new ClientRepresentation();
     clientRepresentation.setClientId("a-new-client");
@@ -125,7 +108,8 @@ public class KeycloakTestServerTest
     keycloak.clean();
 
     assertThat(keycloak.getClients()).hasSize(5);
-    assertThat(keycloak.getUsers()).extracting(UserRepresentation::getUsername).containsExactly("admin");
+    assertThat(keycloak.getUsers()).extracting(UserRepresentation::getUsername)
+        .containsExactly(KeycloakServer.USERNAME);
   }
 
   @Test

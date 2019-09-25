@@ -119,9 +119,9 @@ public class ApiSamlConfigurationService
     try {
       samlDeploymentManager.parse(samlConfiguration);
     }
-    catch (Exception e) {
+    catch (IllegalArgumentException e) {
       log.debug("Configuration could not be validated.", e);
-      throw new BadRequestException("Configuration could not be validated.", e);
+      throw new BadRequestException("Configuration could not be validated: " + e.getMessage(), e);
     }
 
     if (samlConfiguration.getId() != null) {

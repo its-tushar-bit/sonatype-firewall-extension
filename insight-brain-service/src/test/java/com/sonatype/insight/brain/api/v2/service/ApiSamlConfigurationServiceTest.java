@@ -204,7 +204,7 @@ public class ApiSamlConfigurationServiceTest
   public void testInsertOrUpdateSamlConfiguration_InsertBadCertificate() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSamlConfigurationService
         .insertOrUpdateSamlConfiguration(invalidCertificate(), dtoWithCustomValues()))
-        .withMessageContaining("Configuration could not be validated.");
+        .withMessageContainingAll("Configuration could not be validated", "invalid certificate");
     assertThat(samlConfigurationDAO.get()).isNull();
   }
 
@@ -212,7 +212,7 @@ public class ApiSamlConfigurationServiceTest
   public void testInsertOrUpdateSamlConfiguration_InsertBadCertificateNullConfiguration() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSamlConfigurationService
         .insertOrUpdateSamlConfiguration(invalidCertificate(), null))
-        .withMessageContaining("Configuration could not be validated.");
+        .withMessageContainingAll("Configuration could not be validated", "invalid certificate");
     assertThat(samlConfigurationDAO.get()).isNull();
   }
 
@@ -223,7 +223,7 @@ public class ApiSamlConfigurationServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSamlConfigurationService
         .insertOrUpdateSamlConfiguration(invalidCertificate(), dtoWithCustomValues()))
-        .withMessageContaining("Configuration could not be validated.");
+        .withMessageContainingAll("Configuration could not be validated", "invalid certificate");
 
     SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
     assertThat(samlConfiguration.getIdentityProviderMetadataXml()).isEqualTo("<xml></xml>");
@@ -242,7 +242,7 @@ public class ApiSamlConfigurationServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSamlConfigurationService
         .insertOrUpdateSamlConfiguration(invalidCertificate(), null))
-        .withMessageContaining("Configuration could not be validated.");
+        .withMessageContainingAll("Configuration could not be validated", "invalid certificate");
 
     SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
     assertThat(samlConfiguration.getIdentityProviderMetadataXml()).isEqualTo("<xml></xml>");

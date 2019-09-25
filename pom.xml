@@ -55,7 +55,6 @@
     <selenium.version>3.8.1</selenium.version>
     <httpcomponents.version>4.5.10</httpcomponents.version>
     <nexus-scm-client.version>1.6.0</nexus-scm-client.version>
-    <docker-client.version>8.16.0</docker-client.version>
   </properties>
 
   <scm>
@@ -931,7 +930,7 @@
       <dependency>
         <groupId>com.spotify</groupId>
         <artifactId>docker-client</artifactId>
-        <version>${docker-client.version}</version>
+        <version>8.16.0</version>
         <classifier>shaded</classifier>
         <exclusions>
           <exclusion>

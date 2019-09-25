@@ -76,8 +76,10 @@ describe('evaluate.application.modal.controller.spec.js', function() {
   }));
 
   describe('Bundle submit', function() {
-    var appendSpy;
+    var appendSpy,
+        originalFormData;
     beforeEach(inject(function($window) {
+      originalFormData = $window.FormData;
       $window.FormData = function() {
         this.append = jasmine.createSpy();
         appendSpy = this.append;
@@ -102,6 +104,10 @@ describe('evaluate.application.modal.controller.spec.js', function() {
 
       vm.bundle.file = 'testfile';
       vm.bundle.stage = vm.stages[2];
+    }));
+
+    afterEach(inject(function($window) {
+      $window.FormData = originalFormData;
     }));
 
     function validateInitialState() {

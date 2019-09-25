@@ -232,6 +232,10 @@ locationModule.factory('CLMContextLocations', [
         return `${baseUrl.get()}/api/v2/dataRetentionPolicies/organizations/${encodeURIComponent(orgId)}`;
       },
 
+      getSamlConfigurationUrl: function() {
+        return `${baseUrl.get()}/api/v2/config/saml`;
+      },
+
       isApplication: isApplication,
       isOrganization: isOrganization,
       isRootOrg: isRootOrg,

@@ -31,6 +31,11 @@
         ng-class="{'active': vm.state.includes('ldap')}">
       <a ui-sref="ldap-servers" class="iq-dropdown-menu__link--main-header">LDAP</a>
     </div>
+    <div id="system-configuration-saml"
+         ng-if="vm.permissions.CONFIGURE_SYSTEM"
+         ng-class="{'active': vm.state.includes('saml')}">
+      <a ui-sref="saml" class="iq-dropdown-menu__link--main-header">SAML</a>
+    </div>
     <div id="system-configuration-webhooks"
         ng-if="vm.permissions.CONFIGURE_SYSTEM"
         tooltip="{{vm.isWebhooksSupported ? undefined : 'Webhooks feature is not supported by your license'}}"

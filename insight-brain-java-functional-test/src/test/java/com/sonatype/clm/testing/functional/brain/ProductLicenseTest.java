@@ -7,19 +7,19 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
-import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
 
-import org.junit.BeforeClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.CollectionCondition.texts;
 
 public class ProductLicenseTest
     extends AbstractFunctionalTest
@@ -173,7 +173,7 @@ public class ProductLicenseTest
     eulaModal.shouldBe(visible);
     eulaModal.header().shouldHave(text("End User License Agreement"));
     eulaModal.eula().shouldHave(text("READ THIS AGREEMENT CAREFULLY"));
-    eulaModal.acceptBtn().shouldBe(visible).click();
+    eulaModal.acceptBtn().shouldBe(visible).sendKeys("\n");
 
     FormMask.seeAndWaitForDismissal();
   }

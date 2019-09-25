@@ -358,6 +358,10 @@ dropdown-selector {
   }
 }
 
+.iq-dropdown-selector--long {
+  width: 390px; // matches the --long size of .iq-text-input
+}
+
 .iq-form-select__item {
   @extend .truncate-ellipsis;
 

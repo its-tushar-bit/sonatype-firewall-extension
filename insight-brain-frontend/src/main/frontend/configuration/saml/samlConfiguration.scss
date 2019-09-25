@@ -1,0 +1,17 @@
+#saml-configuration {
+  .tooltip-inner {
+    max-width: 500px;
+  }
+
+  .fa-check-circle {
+    color: $iq-valid-color;
+  }
+}
+
+textarea {
+  &.iq-textarea--saml {
+    box-sizing: border-box;
+    margin-top: 13px;
+    width: 100%;
+  }
+}

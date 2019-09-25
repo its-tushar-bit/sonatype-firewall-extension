@@ -1,10 +1,17 @@
 import utilityModule from '../../../../main/frontend/utility/utility.module';
 
 describe('form.data.http.interceptor.factory.spec.js', function() {
+  let originalFormData;
+
   beforeEach(angular.mock.module(utilityModule.name));
 
   beforeEach(inject(function($window) {
+    originalFormData = $window.FormData;
     $window.FormData = angular.noop;
+  }));
+
+  afterEach(inject(function($window) {
+    $window.FormData = originalFormData;
   }));
 
   it('augments form data http post requests', inject([

@@ -9,11 +9,13 @@ import systemNoticeConfigurationModule from './systemNoticeConfiguration/systemN
 import automaticApplicationsConfigurationModule
   from './automaticApplicationsConfiguration/automaticApplicationsConfigurationModule';
 import ldapModule from './ldap/ldap.module';
+import samlModule from './saml/module';
 import webhookModule from './webhook/webhook.module';
 import ProductLicenseModule from './license/ProductLicenseModule';
 
 export default angular.module('configurationModule',
     [
       gettingStartedModule.name, successMetricsConfigurationModule.name, systemNoticeConfigurationModule.name,
-      automaticApplicationsConfigurationModule.name, ldapModule.name, webhookModule.name, ProductLicenseModule.name
+      automaticApplicationsConfigurationModule.name, ldapModule.name, samlModule.name, webhookModule.name,
+      ProductLicenseModule.name
     ]);

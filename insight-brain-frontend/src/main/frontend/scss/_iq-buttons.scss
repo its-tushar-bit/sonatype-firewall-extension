@@ -29,6 +29,7 @@
   &:hover, &:focus, &:active {
     border-color: $iq-slate;
     color: $iq-off-black;
+    text-decoration: none;
   }
 
   &:active {

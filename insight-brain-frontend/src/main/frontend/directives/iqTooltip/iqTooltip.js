@@ -57,6 +57,9 @@ var iqTooltip = function($timeout, $window) {
 
       $(element).hover(function() {
         // on mouseenter
+        if (scope.enabled === false) {
+          return;
+        }
         if (attrs.tooltipOnlyOnOverflow !== 'true' || elementOverflows()) {
           showTooltipPromise = $timeout(function() {
             $(element).tooltip('show');

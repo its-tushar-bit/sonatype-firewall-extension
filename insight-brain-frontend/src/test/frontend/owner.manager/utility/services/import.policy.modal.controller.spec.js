@@ -37,8 +37,15 @@ describe('import.policy.modal.controller.spec.js', function() {
   }));
 
   describe('Policy Import', function() {
+    let originalFormData;
+
     beforeEach(inject(function($window) {
+      originalFormData = $window.FormData;
       $window.FormData = angular.noop;
+    }));
+
+    afterEach(inject(function($window) {
+      $window.FormData = originalFormData;
     }));
 
     function validateInitialState() {

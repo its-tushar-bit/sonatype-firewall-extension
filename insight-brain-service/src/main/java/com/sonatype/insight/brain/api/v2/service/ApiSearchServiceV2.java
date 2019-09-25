@@ -30,10 +30,10 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;

@@ -36,7 +36,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
-import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.assertj.core.groups.Tuple;
 

@@ -12,8 +12,8 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Test;
 

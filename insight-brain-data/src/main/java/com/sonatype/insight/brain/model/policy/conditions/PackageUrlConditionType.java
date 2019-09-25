@@ -16,9 +16,9 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.PackageUrlValueType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
-import com.sonatype.insight.brain.purl.InvalidPackageURLException;
-import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.purl.InvalidPackageURLException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.github.packageurl.PackageURL;
 import com.github.packageurl.PackageURL.StandardTypes;

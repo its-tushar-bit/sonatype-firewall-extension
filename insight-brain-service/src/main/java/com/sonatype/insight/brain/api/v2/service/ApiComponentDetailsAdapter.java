@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 /**
  * @since 1.13.0

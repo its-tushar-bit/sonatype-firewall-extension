@@ -18,8 +18,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentOrPurlIdentifierDTOV2;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -31,7 +31,7 @@ import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
-import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 /**
  * @since 1.13.0

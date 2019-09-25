@@ -36,8 +36,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Before;
 import org.junit.Test;

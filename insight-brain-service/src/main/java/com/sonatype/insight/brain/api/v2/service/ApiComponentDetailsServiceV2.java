@@ -25,8 +25,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.HashHelper;
-import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

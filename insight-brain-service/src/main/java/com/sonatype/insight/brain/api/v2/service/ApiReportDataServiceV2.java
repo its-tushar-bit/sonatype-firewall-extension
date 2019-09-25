@@ -40,7 +40,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyCondition
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyConstraint;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.purl.PackageUrlIdentifier;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
@@ -49,6 +48,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;

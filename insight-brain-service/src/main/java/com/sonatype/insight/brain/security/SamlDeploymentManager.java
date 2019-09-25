@@ -130,6 +130,10 @@ public class SamlDeploymentManager
         throw new IllegalArgumentException(
             "SAML metadata for identity provider contains invalid certificate: " + e.getMessage(), e);
       }
+      catch (NullPointerException e) {
+        throw new IllegalArgumentException(
+            "SAML metadata for identity provider contains invalid certificate: Missing base64 data", e);
+      }
       if (certificate == null) {
         throw new IllegalArgumentException("SAML metadata for identity provider misses signing certificate");
       }

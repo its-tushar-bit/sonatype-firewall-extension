@@ -82,6 +82,15 @@ public class SamlDeploymentManagerTest
   }
 
   @Test
+  public void testUpdateFromConfiguration_SigningKeyWithoutCertificate() {
+    tempEntity.newSamlConfiguration(getSamlMetadata("no-certificate.xml"), null);
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
+      samlDeploymentManager.updateFromConfiguration();
+    }).withMessageContaining("SAML metadata for identity provider contains invalid certificate");
+    assertThat(samlDeploymentManager.get()).isNull();
+  }
+
+  @Test
   public void testUpdateFromConfiguration_ValidConfiguration() {
     SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration(getSamlMetadata("valid.xml"), "sp-entity-id");
     samlDeploymentManager.updateFromConfiguration();

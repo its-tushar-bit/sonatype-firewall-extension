@@ -104,7 +104,7 @@ public class PullRequestUtilsTest
   }
 
   @Test
-  public void isPullRequestAllowed_GitLabNotYetSupported() throws IOException {
+  public void isPullRequestAllowed_GitLabNotYetSupported() {
     String repoName = String.format(TEST_REPO_URL, "https://NOTgithub.com/");
 
     // TODO replace test when we support GitLab for PRs

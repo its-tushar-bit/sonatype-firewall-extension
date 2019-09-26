@@ -14,10 +14,12 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -34,11 +36,18 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 
+import de.schlichtherle.truezip.file.TFile;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -51,6 +60,9 @@ import static org.mockito.Mockito.when;
 public class ReportServiceTest
     extends AbstractComponentTest
 {
+  @Rule
+  public TemporaryFolder tmpDir = new TemporaryFolder();
+
   @Inject
   private InsightWork insightWork;
 
@@ -64,6 +76,9 @@ public class ReportServiceTest
   @Inject
   private ApplicationAdapter applicationAdapter;
 
+  @Inject
+  private ThirdPartyDataService thirdPartyDataService;
+
   /**
    * To be configured/mocked by each test.
    */
@@ -76,7 +91,7 @@ public class ReportServiceTest
 
   private ReportService createReportService() {
     return new ReportService(insightWork, reportDownloader, new PolicyEvaluationDAO(), insightConfig,
-        new ApplicationDAO(), applicationAdapter);
+        new ApplicationDAO(), applicationAdapter, thirdPartyDataService);
   }
 
   @Test
@@ -278,6 +293,26 @@ public class ReportServiceTest
     finally {
       Pdf.destroy();
     }
+  }
+
+  @Test
+  public void testApplyThirdPartyData() throws Exception {
+    final File reportZip = zipReportDir("/ReportServiceTest/report");
+
+    ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
+    final ComponentIdentifier coord = ComponentIdentifier.createRpmCoordinates("n1", "v1", "a1");
+    dto.billOfMaterials.add(new BillOfMaterialsRowDTO(coord, "hash1"));
+    dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "hash1"));
+
+    createReportService().includeThirdPartyData(reportZip, dto);
+
+    assertThatReportZipContains(reportZip, "thirdparty-bom.json");
+    assertThatReportZipContains(reportZip, "thirdparty-security.json");
+  }
+
+  private void assertThatReportZipContains(File zipFile, final String thirdPartyFile) {
+    assertThat(Stream.of(new TFile(zipFile).listFiles()).anyMatch(f -> f.getName().endsWith(thirdPartyFile)))
+        .isTrue();
   }
 
   private void createReportFile() throws IOException {

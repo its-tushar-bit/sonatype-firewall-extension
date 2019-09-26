@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +24,10 @@ public class ThirdPartyCoordinateSecurityDAOTest
     extends AbstractDbDAOTest
 {
   private final ThirdPartyCoordinateSecurityDAO dao = new ThirdPartyCoordinateSecurityDAO();
+
+  private static final Comparator<ThirdPartyCoordinateSecurity> THIRD_PARTY_COORDINATE_SECURITY_COMPARATOR =
+      Comparator.comparing(ThirdPartyCoordinateSecurity::getRefId)
+          .thenComparing(ThirdPartyCoordinateSecurity::getFileCoordinateId);
 
   @Test
   public void testCRUD() throws Exception {
@@ -71,12 +76,22 @@ public class ThirdPartyCoordinateSecurityDAOTest
             .collect(Collectors.toList());
     List<ThirdPartyCoordinateSecurity> results = dao.getByFileCoordinateIds(listId);
 
-    Comparator<ThirdPartyCoordinateSecurity> thirdPartySecurityComparator =
-        Comparator.comparing(ThirdPartyCoordinateSecurity::getRefId)
-            .thenComparing(ThirdPartyCoordinateSecurity::getFileCoordinateId);
-
-    assertThat(results).usingElementComparator(thirdPartySecurityComparator)
+    assertThat(results).usingElementComparator(THIRD_PARTY_COORDINATE_SECURITY_COMPARATOR)
         .containsExactlyInAnyOrderElementsOf(coordinateSecurityList);
+  }
+
+  @Test
+  public void testGetByFileCoordinateId() {
+    ThirdPartyFileCoordinate coord =
+        tempEntity.newThirdPartyFileCoordinate(tempEntity.newThirdPartyFile(), "s1", "f1", "n1", "v1");
+    ThirdPartyCoordinateSecurity coordSec1 =
+        tempEntity.newThirdPartyCoordinateSecurity(coord, "r1", "d1", "l1", 1.1f, "f1");
+    ThirdPartyCoordinateSecurity coordSec2 =
+        tempEntity.newThirdPartyCoordinateSecurity(coord, "r2", "d1", "l2", 1.1f, "f2");
+
+    final List<ThirdPartyCoordinateSecurity> results = dao.getByFileCoordinateId(coord.getId());
+    assertThat(results).usingElementComparator(THIRD_PARTY_COORDINATE_SECURITY_COMPARATOR)
+        .containsExactlyInAnyOrderElementsOf(Arrays.asList(coordSec1, coordSec2));
   }
 
   @Test

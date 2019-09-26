@@ -48,4 +48,10 @@ public class ThirdPartyCoordinateSecurityDAO
     Query<ThirdPartyCoordinateSecurity> query = createQuery(sQuery, fileCoordinateId);
     return query.executeUpdate(tx);
   }
+
+  public List<ThirdPartyCoordinateSecurity> getByFileCoordinateId(final String fileCoordinateId) {
+    String sQuery = "SELECT entity FROM ThirdPartyCoordinateSecurity entity" + //
+        " WHERE entity.fileCoordinateId=?1";
+    return getList(sQuery, fileCoordinateId);
+  }
 }

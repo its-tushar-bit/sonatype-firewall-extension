@@ -71,7 +71,6 @@ public class ComponentResolver
     // Load data about components
     final List<Component> components = componentDAO.getAll(application, licenseData, securityData, bomData);
     identifyThirdPartyComponents(components, scanId);
-    //TODO: result of identifyThirdPartyComponents will be used for persistence in CLM-13441
     return components;
   }
 
@@ -151,7 +150,7 @@ public class ComponentResolver
         new ThirdPartyHealthCheckReportSecurityRowDTO(component.getComponentIdentifier(), component.getHash());
     dto.matchState = component.getMatchState().getName();
     dto.reference = thirdPartyCoordinateSecurity.getRefId();
-    dto.summary = thirdPartyCoordinateSecurity.getDescription();
+    dto.description = thirdPartyCoordinateSecurity.getDescription();
     dto.score = thirdPartyCoordinateSecurity.getSeverity();
     dto.source = component.getIdentificationSource().getName();
     dto.url = thirdPartyCoordinateSecurity.getLink();

@@ -341,7 +341,7 @@ public class ComponentResolverTest
     assertThat(dto.componentIdentifier).isEqualTo(component.getComponentIdentifier());
     assertThat(dto.proprietary).isEqualTo(component.isProprietary());
     assertThat(dto.source).isEqualTo(component.getIdentificationSource().getName());
-    assertThat(dto.summary).isEqualTo(thirdPartySecurity.getDescription());
+    assertThat(dto.description).isEqualTo(thirdPartySecurity.getDescription());
     assertThat(dto.url).isEqualTo(thirdPartySecurity.getLink());
     assertThat(dto.score).isEqualTo(thirdPartySecurity.getSeverity());
     assertThat(dto.fixedVersion).isEqualTo(thirdPartySecurity.getFixedBy());

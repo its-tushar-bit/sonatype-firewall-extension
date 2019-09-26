@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.report;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ConcurrentMap;
@@ -33,12 +34,16 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.cache.CacheBuilder;
+import de.schlichtherle.truezip.file.TFile;
+import de.schlichtherle.truezip.file.TFileWriter;
 import org.codehaus.plexus.util.FileUtils;
 
 @Named
@@ -59,6 +64,8 @@ public class ReportService
 
   private final ApplicationAdapter applicationAdapter;
 
+  private final ThirdPartyDataService thirdPartyDataService;
+
   @Inject
   public ReportService(
       InsightWork work,
@@ -66,7 +73,8 @@ public class ReportService
       PolicyEvaluationDAO policyEvaluationDAO,
       InsightConfig insightConfig,
       ApplicationDAO applicationDAO,
-      ApplicationAdapter applicationAdapter)
+      ApplicationAdapter applicationAdapter,
+      ThirdPartyDataService thirdPartyDataService)
   {
     this.work = work;
     this.reportDownloader = reportDownloader;
@@ -74,6 +82,7 @@ public class ReportService
     this.insightConfig = insightConfig;
     this.applicationDAO = applicationDAO;
     this.applicationAdapter = applicationAdapter;
+    this.thirdPartyDataService = thirdPartyDataService;
   }
 
   public File fetchReport(final InsightWork work, final Application app, final String scanId)
@@ -90,6 +99,7 @@ public class ReportService
         if (!reportDownloader.downloadReport(scanId, tempFile, reportTimeoutInSeconds, 5)) {
           throw new NotFoundException("Could not download the report for scan ID " + scanId);
         }
+        includeThirdPartyData(tempFile, thirdPartyDataService.getScanData(scanId));
         FileUtils.rename(tempFile, reportFile);
       }
 
@@ -100,6 +110,26 @@ public class ReportService
     finally {
       lock.unlock();
     }
+  }
+
+  //visible for testing
+  void includeThirdPartyData(final File reportFile, final ThirdPartyApplicationReportDTO dto)
+      throws IOException
+  {
+    if (dto != null) {
+      TFile bomFile = new TFile(constructPath(reportFile, ThirdPartyDataService.THIRD_PARTY_BOM_JSON_FILENAME));
+      TFile secFile = new TFile(constructPath(reportFile, ThirdPartyDataService.THIRD_PARTY_SECURITY_JSON_FILENAME));
+
+      try (TFileWriter bomWriter = new TFileWriter(bomFile);
+           TFileWriter secWriter = new TFileWriter(secFile)) {
+        bomWriter.write(new String(JsonUtils.generate(JsonUtils.aaData(dto.billOfMaterials)), StandardCharsets.UTF_8));
+        secWriter.write(new String(JsonUtils.generate(JsonUtils.aaData(dto.securityRows)), StandardCharsets.UTF_8));
+      }
+    }
+  }
+
+  private String constructPath(final File reportFile, final String subPath) {
+    return reportFile.getAbsolutePath() + "/" + subPath;
   }
 
   private static Lock lockFor(final String appId, final String scanId) {

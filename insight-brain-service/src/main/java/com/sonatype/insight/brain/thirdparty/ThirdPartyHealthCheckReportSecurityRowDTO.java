@@ -13,10 +13,17 @@ public class ThirdPartyHealthCheckReportSecurityRowDTO
 {
   public String fixedVersion;
 
+  public String description;
+
   public ThirdPartyHealthCheckReportSecurityRowDTO(
       final ComponentIdentifier componentIdentifier,
       final String hash)
   {
     super(componentIdentifier, hash);
+  }
+
+  //for jackson
+  ThirdPartyHealthCheckReportSecurityRowDTO() {
+    this(null, null);
   }
 }

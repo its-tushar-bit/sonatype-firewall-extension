@@ -80,8 +80,8 @@ public class ThirdPartyFileDAOTest
     String scanId = tempEntity.uuid();
     String hash = tempEntity.newRandomHash();
 
-    ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile(hash);
-    ThirdPartyFile thirdPartyFile2 = tempEntity.newThirdPartyFile(hash);
+    ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile(hash, "f1");
+    ThirdPartyFile thirdPartyFile2 = tempEntity.newThirdPartyFile(hash, "f2");
 
     tempEntity.newThirdPartyScan(scanRequestId, scanId, thirdPartyFile1);
     tempEntity.newThirdPartyScan(scanRequestId, scanId, thirdPartyFile2);
@@ -106,10 +106,10 @@ public class ThirdPartyFileDAOTest
     String scanId = tempEntity.uuid();
     String hash = tempEntity.newRandomHash();
 
-    ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile(hash);
+    ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile(hash,"f1");
     tempEntity.newThirdPartyScan(scanRequestId, scanId, thirdPartyFile1);
 
-    ThirdPartyFile thirdPartyFile2 = tempEntity.newThirdPartyFile(hash);
+    ThirdPartyFile thirdPartyFile2 = tempEntity.newThirdPartyFile(hash, "f2");
     tempEntity.newThirdPartyScan(tempEntity.uuid(), tempEntity.uuid(), thirdPartyFile2);
 
     List<ThirdPartyFile> retrievedThirdPartyFiles = dao.getByHashAndScanId(hash, scanId);

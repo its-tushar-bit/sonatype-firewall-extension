@@ -9,7 +9,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
 
 import javax.inject.Inject;
 
@@ -61,7 +60,7 @@ public class PolicyAlertScmNotifier
 
     // for each component, check to see if remediation options are available
     String ownerId = app.getId();
-    SortedMap<ComponentIdentifier, List<PolicyNotification>> sortedComponentAlerts =
+    Map<ComponentIdentifier, List<PolicyNotification>> sortedComponentAlerts =
         policyAlertSourceCodeOrganizer.getNotificationsForScm(policyNotifications);
     for (Map.Entry<ComponentIdentifier, List<PolicyNotification>> entry : sortedComponentAlerts.entrySet()) {
       List<ApiVersionChangeOptionDTO> remediationOptions = getRemediationList(entry.getKey(), ownerId);

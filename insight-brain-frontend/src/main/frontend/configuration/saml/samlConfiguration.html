@@ -48,7 +48,7 @@
           <label for="saml-identity-provider-metadata-xml-load" class="iq-btn">Load XML File</label>
           <input class="iq-input-file--hidden"
                  type="file"
-                 on-file-change="vm.readIdentityProviderMetadataXml(file)"
+                 on-file-change-saml="vm.readIdentityProviderMetadataXml(file)"
                  id="saml-identity-provider-metadata-xml-load"
                  name="saml-identity-provider-metadata-xml-load"
                  ng-required="false"

@@ -27,14 +27,14 @@ export default angular.module('samlModule', [clmContextLocationModule.name, util
         });
       }
     ])
-    .directive('onFileChange', function() {
+    .directive('onFileChangeSaml', function() {
       return {
         restrict: 'A',
         scope: false,
         link: function(scope, elem, attr) {
           angular.element(elem).bind('change', function() {
             scope.file = elem[0].files[0];
-            scope.$apply(attr.onFileChange);
+            scope.$apply(attr.onFileChangeSaml);
             elem[0].value = '';
           });
         }

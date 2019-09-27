@@ -732,9 +732,11 @@
                   </includes>
                 </filter>
                 <filter>
-                  <!-- Exclude classes vulnerable to CVE-2018-14335.  See CLM-10571 -->
                   <artifact>*:h2</artifact>
                   <excludes>
+                    <!-- using patched version from insight-brain-db instead, cf. CLM-13616 -->
+                    <exclude>org/h2/value/ValueTimestamp.class</exclude>
+                    <!-- Exclude classes vulnerable to CVE-2018-14335.  See CLM-10571 -->
                     <exclude>org/h2/tools/Console*</exclude>
                     <exclude>org/h2/tools/Backup*</exclude>
                   </excludes>

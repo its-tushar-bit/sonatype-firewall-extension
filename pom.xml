@@ -1019,6 +1019,7 @@
               <exclude>**/src/main/frontend/lib/**/*</exclude>
               <exclude>**/src/test/resources/**/*</exclude>
               <exclude>**/node_modules/**</exclude>
+              <exclude>**/org/h2/**</exclude>
             </excludes>
           </configuration>
         </plugin>

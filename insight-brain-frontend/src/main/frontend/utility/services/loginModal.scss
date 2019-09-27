@@ -1,0 +1,18 @@
+#login-modal {
+  .iq-grid-col {
+    margin: 0;
+  }
+
+  .iq-modal-footer, .iq-modal-content {
+    &:not(.error) {
+      .iq-grid-col {
+        border-left-color: $iq-grey-4;
+      }
+    }
+  }
+}
+
+.iq-alert--no-border-or-padding {
+  padding: 0 8px 8px;
+  border: 0;
+}

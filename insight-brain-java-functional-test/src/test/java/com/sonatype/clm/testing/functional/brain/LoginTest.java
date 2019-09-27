@@ -54,8 +54,7 @@ public class LoginTest
 
     loginModal.shouldBe(visible);
     loginModal.ssoText().shouldBe(visible);
-    loginModal.username().shouldBe(focused);
-    loginModal.ssoButton().shouldBe(enabled);
+    loginModal.ssoButton().shouldBe(enabled, focused);
     loginModal.loginButton().shouldBe(disabled);
     eyesWatcher.eyesCheck();
 

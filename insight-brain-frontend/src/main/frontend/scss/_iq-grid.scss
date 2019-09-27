@@ -69,7 +69,7 @@
 }
 
 .iq-grid-col--noborder {
-  border-left-color: $iq-off-white;
+  border-left-color: transparent;
 }
 
 .iq-grid-col {
@@ -125,4 +125,12 @@ h3.iq-grid-header__title {
   border-bottom-width: 1px;
   margin: 0;
   padding-top: 9px;
+}
+
+.iq-modal-footer {
+  &.error {
+    .iq-grid-col {
+      border-left-color: $iq-fail-color;
+    }
+  }
 }

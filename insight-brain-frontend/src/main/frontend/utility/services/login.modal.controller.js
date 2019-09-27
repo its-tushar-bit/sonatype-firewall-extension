@@ -44,6 +44,10 @@ export default function LoginModalController($scope, $http, CLMLocations, Messag
   vm.isSignInButtonDisabled = function() {
     return vm.showSamlSso && (!vm.username || !vm.password);
   };
+
+  vm.isSingleSignOnPreferred = function() {
+    return vm.showSamlSso && !vm.username && !vm.password;
+  };
 }
 
 LoginModalController.$inject = ['$scope', '$http', 'CLMLocations', 'Messages', '$window', 'showSamlSso'];

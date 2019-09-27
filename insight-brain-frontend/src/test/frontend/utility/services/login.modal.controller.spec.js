@@ -70,4 +70,38 @@ describe('login.modal.controller.spec.js', function() {
       expect(vm.isSignInButtonDisabled()).toBe(false);
     });
   });
+
+  describe('isSingleSignOnPreferred', function() {
+    it('returns true if showSamlSso is true and there is an empty username and an empty password', function() {
+      vm.username = '';
+      vm.password = '';
+      vm.showSamlSso = true;
+
+      expect(vm.isSingleSignOnPreferred()).toBe(true);
+    });
+
+    it('returns false if showSamlSso is true and there is a username and an empty password', function() {
+      vm.username = 'u';
+      vm.password = '';
+      vm.showSamlSso = true;
+
+      expect(vm.isSingleSignOnPreferred()).toBe(false);
+    });
+
+    it('returns false if showSamlSso is true and there is an empty username and a password', function() {
+      vm.username = '';
+      vm.password = 'p';
+      vm.showSamlSso = true;
+
+      expect(vm.isSingleSignOnPreferred()).toBe(false);
+    });
+
+    it('returns false if showSamlSso is false and there is an empty username and an empty password', function() {
+      vm.username = '';
+      vm.password = '';
+      vm.showSamlSso = false;
+
+      expect(vm.isSingleSignOnPreferred()).toBe(false);
+    });
+  });
 });

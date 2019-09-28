@@ -20,12 +20,12 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
-import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -55,7 +55,7 @@ public class IDEComponentInfoResource
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public NamedComponentDetails getComponentDetails(
       @PathParam("applicationPublicId") String applicationPublicId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
+      @QueryParam("componentIdentifier") ComponentIdentifier identifier,
       @QueryParam("matchState") String matchState,
       @QueryParam("hash") String hash,
       @QueryParam("proprietary") boolean proprietary) throws IOException
@@ -74,7 +74,7 @@ public class IDEComponentInfoResource
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public ComponentDetailsList getComponentDetailsList(
       @PathParam("applicationPublicId") String applicationPublicId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
+      @QueryParam("componentIdentifier") ComponentIdentifier identifier,
       @QueryParam("matchState") String matchState)
   {
     return componentInfoService.getComponentDetailsList_EvaluateComponentPermission(applicationPublicId, identifier,
@@ -90,7 +90,7 @@ public class IDEComponentInfoResource
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(
       @PathParam("applicationPublicId") String applicationPublicId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
     return componentInfoService.getComponentDetailsForAllVersions_EvaluateComponentPermission(applicationPublicId,
         componentIdentifier);

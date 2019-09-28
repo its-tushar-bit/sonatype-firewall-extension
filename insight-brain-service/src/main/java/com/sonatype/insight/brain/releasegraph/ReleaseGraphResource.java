@@ -17,7 +17,6 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -43,10 +42,9 @@ public class ReleaseGraphResource
                            @QueryParam("groupId") String groupId,
                            @QueryParam("artifactId") String artifactId,
                            @QueryParam("version") String version,
-                           @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier encodedComponentIdentifier)
+                           @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
-    ComponentIdentifier componentIdentifier = getComponentIdentifier(encodedComponentIdentifier, groupId, artifactId,
-        version);
+    componentIdentifier = getComponentIdentifier(componentIdentifier, groupId, artifactId, version);
     return Response
         .ok(releaseGraphService.getImage(applicationPublicId, scanId, componentIdentifier),
             ReleaseGraphService.CONTENT_TYPE).expires(new Date(System.currentTimeMillis() + YEAR)).build();

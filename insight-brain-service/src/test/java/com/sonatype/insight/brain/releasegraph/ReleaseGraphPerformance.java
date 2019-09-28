@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.model.ComponentPopularity;
 import com.sonatype.insight.brain.model.ReportPopularity;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.cache.CacheBuilder;
@@ -262,7 +261,7 @@ public class ReleaseGraphPerformance
         if (ComponentIdentifier.FORMAT_MAVEN.equals(component.getComponentIdentifier().getFormat())) {
           long start = System.currentTimeMillis();
           resource.getImage("ReleaseGraphPerformance_AppId", scanId, null, null, null,
-              JsonEncodedComponentIdentifier.copy(component.getComponentIdentifier()));
+              component.getComponentIdentifier());
           results.put(component, System.currentTimeMillis() - start);
         }
       }

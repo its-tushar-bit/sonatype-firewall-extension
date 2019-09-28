@@ -21,12 +21,12 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.license.LicenseOverrideService.AppliedLicenseOverrides;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
-import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -78,7 +78,7 @@ public class LicenseOverrideResource
   public AppliedLicenseOverrides getAppliedLicenseOverrides(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
     return licenseOverrideService.getAppliedLicenseOverrides(ownerType, ownerId, componentIdentifier);
   }

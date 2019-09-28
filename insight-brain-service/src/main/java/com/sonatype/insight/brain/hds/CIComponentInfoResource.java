@@ -20,13 +20,13 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -61,7 +61,7 @@ public class CIComponentInfoResource
   public NamedComponentDetails getComponentDetails(
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
+      @QueryParam("componentIdentifier") ComponentIdentifier identifier,
       @QueryParam("matchState") String matchState,
       @QueryParam("hash") String hash,
       @QueryParam("proprietary") boolean proprietary) throws IOException
@@ -81,7 +81,7 @@ public class CIComponentInfoResource
   public ComponentDetailsList getComponentDetailsList(
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
+      @QueryParam("componentIdentifier") ComponentIdentifier identifier,
       @QueryParam("matchState") String matchState)
   {
     return componentInfoService.getComponentDetailsList_ReadPermission(ownerType, ownerId, identifier, matchState);
@@ -97,7 +97,7 @@ public class CIComponentInfoResource
   public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
     return componentInfoService.getComponentDetailsForAllVersions_ReadPermission(ownerType, ownerId,
         componentIdentifier);
@@ -110,7 +110,7 @@ public class CIComponentInfoResource
   public ComponentLicenses getLicenses(
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier) throws IOException
   {
     return componentInfoService.getLicenses(ownerType, ownerId, componentIdentifier, httpRequest);
   }
@@ -126,7 +126,7 @@ public class CIComponentInfoResource
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
       @QueryParam("hash") final String hash,
-      @QueryParam("componentIdentifier") final JsonEncodedComponentIdentifier componentIdentifier) throws IOException
+      @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier) throws IOException
   {
     return componentInfoService.getSecurityVulnerabilities(ownerType, ownerId, hash, componentIdentifier, httpRequest);
   }

@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -322,6 +323,7 @@ public class InsightBrainService
   protected void customize(final InsightConfig config, final Environment env) {
     replaceGenericExceptionMapper(env, config);
     env.jersey().register(new InsightJacksonMessageBodyProvider(env.getObjectMapper()));
+    env.jersey().register(new ComponentIdentifierParamConverterProvider(env.getObjectMapper()));
 
     addServletFilter(env, AuditFilter.class, AuditFilter.URL_PATTERNS);
     addServletFilter(env, HttpHeaderValidatorFilter.class, HttpHeaderValidatorFilter.URL_PATTERN);

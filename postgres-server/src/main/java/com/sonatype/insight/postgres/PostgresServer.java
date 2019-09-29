@@ -91,11 +91,11 @@ public class PostgresServer
 
   private static void assumeSupported() {
     if (!isSupported()) {
-      if (Boolean.getBoolean("postgres.optional")) {
+      if (Boolean.getBoolean("docker.optional")) {
         throw new AssumptionViolatedException("Docker unavailable", dockerError.get());
       }
       throw new AssertionError("Docker unavailable, either start docker daemon"
-          + " or set system property postgres.optional=true to skip tests for Postgres", dockerError.get());
+          + " or set system property docker.optional=true to skip docker-based tests", dockerError.get());
     }
   }
 

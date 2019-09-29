@@ -74,11 +74,11 @@ class KeycloakServer
 
   private static void assumeSupported() {
     if (!isSupported()) {
-      if (Boolean.getBoolean("keycloak.optional")) {
+      if (Boolean.getBoolean("docker.optional")) {
         throw new AssumptionViolatedException("Docker unavailable", dockerError.get());
       }
       throw new AssertionError("Docker unavailable, either start docker daemon"
-          + " or set system property keycloak.optional=true to skip tests for Keycloak", dockerError.get());
+          + " or set system property docker.optional=true to skip docker-based tests", dockerError.get());
     }
   }
 

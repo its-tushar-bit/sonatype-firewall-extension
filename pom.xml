@@ -1086,7 +1086,7 @@
           <version>2.22.2</version>
           <configuration>
             <systemPropertyVariables>
-              <postgres.optional>${postgres.optional}</postgres.optional>
+              <docker.optional>${docker.optional}</docker.optional>
             </systemPropertyVariables>
           </configuration>
         </plugin>
@@ -1095,7 +1095,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <configuration>
             <systemPropertyVariables>
-              <postgres.optional>${postgres.optional}</postgres.optional>
+              <docker.optional>${docker.optional}</docker.optional>
             </systemPropertyVariables>
           </configuration>
         </plugin>

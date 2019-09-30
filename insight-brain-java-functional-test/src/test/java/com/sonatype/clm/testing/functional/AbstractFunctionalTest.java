@@ -143,6 +143,7 @@ public abstract class AbstractFunctionalTest
 
       Configuration.baseUrl = resolveBaseUrl(getBaseUrl(contextPath));
       Configuration.reportsFolder = "target/selenide-reports";
+      testCLMServer.getCLMServer().getConfiguration().setBaseUrl(Configuration.baseUrl);
     }
     catch (Throwable e) {
       e.printStackTrace();

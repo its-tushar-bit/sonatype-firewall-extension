@@ -14,7 +14,7 @@ public class KeycloakServerTest
   @Test
   public void testKeycloakServer() {
     try (KeycloakServer keycloakServer = new KeycloakServer()) {
-      assertThat(keycloakServer.getHostname()).isNotNull();
+      assertThat(keycloakServer.getHostname()).isNotNull().isNotEqualToIgnoringCase("localhost");
       assertThat(keycloakServer.getPort()).isNotNull();
     }
   }

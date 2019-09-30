@@ -8,12 +8,15 @@ package com.sonatype.insight.keycloak;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.net.SocketException;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +46,7 @@ class KeycloakServer
 
   private static Optional<Exception> dockerError;
 
-  private final String hostname;
+  private String hostname;
 
   private final int port;
 
@@ -114,24 +117,70 @@ class KeycloakServer
       throw new IllegalStateException("Could not start keycloak server", e);
     }
     awaitServerPort();
+    if ("localhost".equalsIgnoreCase(hostname) || "127.0.0.1".equals(hostname)) {
+      // for the server to be reachable from other containers, it needs to have a non-loopback address
+      hostname = findHostIpAddress();
+    }
     log.info("Started keycloak server {}:{}", hostname, port);
   }
 
   private void awaitServerPort() {
     log.info("Awaiting keycloak server {}:{}", hostname, port);
     for (long start = System.currentTimeMillis(); ; ) {
-      try (InputStream is = new URL(getUrl()).openStream()) {
+      try {
+        testConnection(hostname, port);
         break;
       }
-      catch (SocketException e) {
-        if (System.currentTimeMillis() - start > TimeUnit.SECONDS.toMillis(60)) {
+      catch (IOException e) {
+        if (System.currentTimeMillis() - start > TimeUnit.SECONDS.toMillis(120)) {
           throw new IllegalStateException("Could not connect to keycloak server", e);
         }
         // port not yet ready, keep trying
       }
-      catch (IOException e) {
-        throw new UncheckedIOException(e);
+    }
+  }
+
+  private String findHostIpAddress() {
+    try {
+      for (Enumeration<NetworkInterface> netInterfaces = NetworkInterface.getNetworkInterfaces();
+          netInterfaces.hasMoreElements();) {
+        NetworkInterface netInterface = netInterfaces.nextElement();
+        try {
+          if (netInterface.isUp() && !netInterface.isLoopback()) {
+            for (Enumeration<InetAddress> addresses = netInterface.getInetAddresses(); addresses.hasMoreElements();) {
+              InetAddress address = addresses.nextElement();
+              try {
+                if (!address.isLoopbackAddress()) {
+                  testConnection(address.getHostAddress(), port);
+                  return address.getHostAddress();
+                }
+              }
+              catch (IOException ignored) {
+                // try the next address
+              }
+            }
+          }
+        }
+        catch (IOException ignored) {
+          // try the next interface
+        }
       }
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    throw new IllegalStateException("Could not determine IP address");
+  }
+
+  private static void testConnection(String hostname, int port) throws IOException {
+    HttpURLConnection connection = (HttpURLConnection) new URL("http://" + hostname + ":" + port).openConnection();
+    connection.setConnectTimeout(1000);
+    connection.setReadTimeout(1000);
+    try (InputStream is = connection.getInputStream()) {
+      return;
+    }
+    finally {
+      connection.disconnect();
     }
   }
 

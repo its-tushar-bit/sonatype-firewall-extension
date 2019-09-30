@@ -24,7 +24,7 @@ export default function UserListController($http, clmLocations, UserStore, messa
     if (isAuthorized) {
       $scope.error = null;
 
-      $q.all([UserStore.refresh(), CurrentUser]).then(function(results) {
+      $q.all([UserStore.refresh(), CurrentUser.waitForLogin()]).then(function(results) {
         $scope.context.users = results[0];
         username = results[1].username;
       }, function(error) {

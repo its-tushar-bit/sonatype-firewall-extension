@@ -20,6 +20,7 @@ import dashboardModule from './dashboard/dashboard.module';
 import Report from './report/ReportController';
 import pendoModule from './pendo/module';
 import externalLinkModule from './externalLink/module';
+import utilityServicesModule from './utility/services/utility.services.module';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function() {
@@ -37,19 +38,43 @@ export const InitModule = angular.module('InitModule', [
   'ui.router', 'ui.bootstrap', CLMLocationModule.name, commonServicesModule.name, 'ngAria',
   ReportModule.name, Report.name, mainHeaderModule.name, 'ngRoute', unauthenticatedResponseHttpInterceptor.name,
   'xeditable', productFeaturesModule.name, httpInterceptors.name, IqHttpInterceptorsModule.name, dashboardModule.name,
-  formsModule.name, SessionSecurityModule.name, gettingStartedModule.name, pendoModule.name, externalLinkModule.name
+  formsModule.name, SessionSecurityModule.name, gettingStartedModule.name, pendoModule.name, externalLinkModule.name,
+  utilityServicesModule.name
 ], [
-  '$stateProvider', '$routeProvider', '$urlRouterProvider',
-  function($stateProvider, $routeProvider, $urlRouterProvider) {
-    $stateProvider.state('home', {
-      url: '/',
-      controller: angular.noop
-    });
+  '$stateProvider', '$urlRouterProvider',
+  function($stateProvider, $urlRouterProvider) {
+    $stateProvider
+        .state('root', {
+          url: '^',
+          redirectTo: function(transition) {
+            const injector = transition.injector(),
+                ProductFeatures = injector.get('ProductFeatures'),
+                ProductLicense = injector.get('ProductLicense'),
+                CurrentUser = injector.get('CurrentUser'),
+                $rootScope = injector.get('$rootScope'),
+                $q = injector.get('$q'),
+                Messages = injector.get('Messages');
+
+            return $q.all([ProductFeatures.load(), ProductLicense.load(), CurrentUser.waitForLogin()])
+                .then(function() {
+                  if (ProductFeatures.isDashboardLicensed()) {
+                    return 'dashboard.overview.violations';
+                  }
+                  else {
+                    return 'violations';
+                  }
+                }, function(err) {
+                  $rootScope.error = Messages.getHttpErrorMessage(err);
+                });
+          }
+        })
+        .state('home', {
+          url: '/',
+          redirectTo: 'root'
+        });
 
     var unknownErrorFunction = function($rootScope) {
-      if ($rootScope.initialized) {
-        $rootScope.error = 'Unknown Address';
-      }
+      $rootScope.error = 'Unknown Address';
     };
     unknownErrorFunction.$inject = ['$rootScope'];
 
@@ -67,91 +92,125 @@ export const InitModule = angular.module('InitModule', [
     $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|ftp|file|blob):|data:image\//);
     $compileProvider.debugInfoEnabled(angularDebug);
   }
-]).service('licenseChecker', [
-  '$http', '$q', 'CLMLocations', function($http, $q, CLMLocations) {
-    return {
-      check: function() {
-        var deferred = $q.defer();
-        $http.get(CLMLocations.getValidateLicenseUrl()).then(function(response) {
-          deferred.resolve(response.data);
-        }, function(errorResponse) {
-          deferred.reject(errorResponse.status);
-        });
-        return deferred.promise;
-      }
-    };
-  }
 ]).service('initService', [
-  'licenseChecker', '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser',
-  '$q', '$urlRouter', 'Modal', '$timeout', 'state.history.service', 'SessionSecurityService',
-  'gettingStartedUsageTelemetryService', 'pendoService', 'externalLinkModalService',
-  function(licenseChecker, $rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q,
-           $urlRouter, Modal, $timeout, StateHistoryService, SessionSecurityService,
-           gettingStartedUsageTelemetryService, pendoService, externalLinkModalService) {
+  '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser',
+  '$q', '$http', '$urlRouter', 'Modal', '$timeout', 'state.history.service', 'SessionSecurityService',
+  'gettingStartedUsageTelemetryService', 'pendoService', 'externalLinkModalService', 'LoginModalService',
+  'routeStateUtilService', 'CLMLocations', 'Messages', 'ProductLicense',
+  function($rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q, $http, $urlRouter,
+           Modal, $timeout, StateHistoryService, SessionSecurityService, gettingStartedUsageTelemetryService,
+           pendoService, externalLinkModalService, LoginModalService, routeStateUtilService, CLMLocations, Messages,
+           ProductLicense) {
     var savedState = null,
-        stateChangePrevention = $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
-          //as we init the system, we mix the preventing of $stateChangeStart events and $locationChangeStart events
-          //because of this, the $urlRouter will not be updated with the proper current url if the user changes urls
-          //while we are in a blocked state (need to login), this is something our ITs do a fair amount.  So here we
-          //will force the urlRouter to update to whatever is in the address bar, thus not losing what page we go to
-          //when the user logs in
-          $urlRouter.update(true);
-          event.preventDefault();
-          savedState = {
-            toState: toState,
-            toParams: toParams
-          };
-        }),
-        deregisterUnlicensedStateChangePreventer;
+        cancelPreLoginStateHandler,
+        cancelUnlicensedStateChangeHandler;
 
-    function initSuccess(data) {
-      $rootScope.licensed = true;
-      $rootScope.initialized = true;
-      $rootScope.productEdition = data[0].productEdition;
+    /**
+     * Before login, prevent navigation to pages that require authentication, and trigger the login modal
+     * when access to one is attempted
+     */
+    function preLoginStateHandler(event, state, params) {
+      /*
+       * as we init the system, we mix the preventing of $stateChangeStart events.
+       * Because of this, the $urlRouter will not be updated with the proper current url if the user changes urls
+       * while we are in a blocked state (need to login). This is something our functional tests do.  So here we
+       * will force the urlRouter to update to whatever is in the address bar, thus not losing what page we go to
+       * when the user logs in
+       */
+      $urlRouter.update(true);
+      savedState = { state, params };
+
+      if (routeStateUtilService.stateRequiresAuthentication(state)) {
+        if (!$rootScope.username) {
+          attemptLogin();
+        }
+
+        if (event) {
+          event.preventDefault();
+        }
+      }
+    }
+
+    function setRootError(err) {
+      $rootScope.error = Messages.getHttpErrorMessage(err);
+    }
+
+    /**
+     * @return a promise that resolves if the license is found or not installed, and which is rejected if there
+     * is some other error getting the license information
+     */
+    function checkLicenseInfo() {
+      /**
+       * Before the license is fetched, do not go to any route
+       */
+      function preLicenseFetchStateHandler(event, state, params) {
+        savedStateDuringLicenseFetch = { state, params };
+        event.preventDefault();
+      }
+
+      function registerPreLoginStateHandler() {
+        cancelPreLoginStateHandler = $rootScope.$on('$stateChangeStart', preLoginStateHandler);
+      }
+
+      function onLicenseSuccess({ productEdition }) {
+        $rootScope.licensed = true;
+        $rootScope.productEdition = productEdition;
+
+        // replay state transtion caught while license was loading so that preLoginStateHandler can process it
+        if (savedStateDuringLicenseFetch) {
+          $state.go(savedStateDuringLicenseFetch.state, savedStateDuringLicenseFetch.params);
+        }
+      }
+
+      function unlicensedStateChangeHandler(event, toState) {
+        if (toState.name !== 'productlicense') {
+          event.preventDefault();
+        }
+      }
+
+      function onLicenseFailure(err) {
+        cancelUnlicensedStateChangeHandler =
+          $rootScope.$on('$stateChangeStart', unlicensedStateChangeHandler);
+
+        if (err.status === 402) {
+          $state.go('productlicense');
+        }
+        else {
+          return $q.reject();
+        }
+      }
+
+      let savedStateDuringLicenseFetch = null,
+          cancelPreLicenseFetchStateHandler = $rootScope.$on('$stateChangeStart', preLicenseFetchStateHandler);
+
+      return ProductLicense.load()
+          .finally(cancelPreLicenseFetchStateHandler)
+          .finally(registerPreLoginStateHandler)
+          .then(onLicenseSuccess, onLicenseFailure);
+    }
+
+    function initSuccess() {
       $rootScope.$state = $state;
 
       initExternalLinkClickHandler();
 
-      stateChangePrevention(); // Remove block
+      cancelPreLoginStateHandler(); // Remove block
+
       if (savedState) {
-        $state.transitionTo(savedState.toState, savedState.toParams);
-      }
-      else if (ProductFeatures.isDashboardLicensed()) {
-        $state.go('dashboard.overview.violations');
-      }
-      else {
-        $state.go('violations');
+        $state.go(savedState.state, savedState.params);
       }
 
       SessionSecurityService.init();
     }
 
-    function initFailure(data) {
-      if (data === 402) {
-        // Server is unlicensed, redirect to product licensing page
-        if ($window.location.href.indexOf('/index.html') === -1) {
-          $window.location.replace('index.html#/productlicense');
-        }
-        else {
-          stateChangePrevention(); // Remove existing block
-          deregisterUnlicensedStateChangePreventer = $rootScope.$on('$stateChangeStart', function(event, toState) {
-            if (toState.name !== 'productlicense') {
-              event.preventDefault();
-            }
-          });
-          $rootScope.initialized = true;
-          $state.transitionTo('productlicense');
-        }
-      }
-      else {
-        $rootScope.error = 'Unable to initialize the application';
-      }
+    function initFailure() {
+      $rootScope.error = 'Unable to initialize the application';
     }
 
     $rootScope.$on('licenseInstalled', function() {
       // Stop preventing state changes.  Otherwise, the navigation to the Getting Started page cannot be performed
-      if (deregisterUnlicensedStateChangePreventer) {
-        deregisterUnlicensedStateChangePreventer();
+      if (cancelUnlicensedStateChangeHandler) {
+        cancelUnlicensedStateChangeHandler();
       }
 
       $state.go('gettingStarted');
@@ -165,19 +224,21 @@ export const InitModule = angular.module('InitModule', [
     });
 
     function initExternalLinkClickHandler() {
-      if (!ProductFeatures.isAvailable('allow-external-hyperlinks')) {
-        const externalLinkClickHandler = (e) => {
-          const isExternalLink = (anchor) => anchor.hostname && anchor.hostname !== location.hostname;
-          const anchor = getAnchor(e.target);
-          if (isExternalLink(anchor)) {
-            externalLinkModalService.open(anchor.href);
-            e.stopImmediatePropagation();
-            return false;
-          }
-        };
-        $(document).on('click', 'a', externalLinkClickHandler);
-        $window.externalLinkClickHandler = externalLinkClickHandler;
-      }
+      ProductFeatures.load().then(function() {
+        if (!ProductFeatures.isAvailable('allow-external-hyperlinks')) {
+          const externalLinkClickHandler = (e) => {
+            const isExternalLink = (anchor) => anchor.hostname && anchor.hostname !== location.hostname;
+            const anchor = getAnchor(e.target);
+            if (isExternalLink(anchor)) {
+              externalLinkModalService.open(anchor.href);
+              e.stopImmediatePropagation();
+              return false;
+            }
+          };
+          $(document).on('click', 'a', externalLinkClickHandler);
+          $window.externalLinkClickHandler = externalLinkClickHandler;
+        }
+      }, setRootError);
     }
 
     function getAnchor(target) {
@@ -189,16 +250,20 @@ export const InitModule = angular.module('InitModule', [
       }
     }
 
+    function attemptLogin() {
+      currentUser.fetch();
+    }
+
     function doStart() {
-      currentUser.then(function(authenticationStatus) {
+
+      $q.all([currentUser.waitForLogin(), checkLicenseInfo()]).then(function([authenticationStatus]) {
         $rootScope.username = authenticationStatus.username;
-      }).then(function() {
-        return $q.all([licenseChecker.check(), ProductFeatures.load()]);
-      }).then(function(data) {
-        initSuccess(data);
-      }, function(data) {
-        initFailure(data);
-      });
+        cancelLoginDismissListener();
+
+        // This was already called at the bottom of `doStart`, but call it again here now that the user is
+        // logged in.  It is safe to call multiple times
+        pendoService.start();
+      }).then(initSuccess, initFailure);
 
       //Init the service on app load
       StateHistoryService.register();
@@ -222,12 +287,19 @@ export const InitModule = angular.module('InitModule', [
       $rootScope.$on('$locationChangeStart', clearRootScopeError);
       $rootScope.$on('$stateChangeSuccess', clearRootScopeError);
 
+      // This listener is active until login succeeds. If a page navigation occurs (successfully) before that
+      // time, that means that the page navigated to must be one that allows unauthenticated use, so the login
+      // modal should be closed without completing the login
+      let cancelLoginDismissListener = $rootScope.$on('$stateChangeSuccess', function() {
+        LoginModalService.dismiss('Navigated to a page that does not require authentication');
+      });
+
       $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {
         if (typeof error === 'string') {
           $rootScope.error = error;
         }
         else {
-          $rootScope.error = messages.getHttpErrorMessage(error);
+          setRootError(error);
         }
       });
 
@@ -264,7 +336,7 @@ export const InitModule = angular.module('InitModule', [
         }
       });
 
-      var fn = function() {
+      function unloadListener() {
         if ($state.current.name === GETTING_STARTED_STATE) {
           gettingStartedUsageTelemetryService.submitData(DEPARTED_ACTION, null, true);
         }
@@ -279,26 +351,25 @@ export const InitModule = angular.module('InitModule', [
           return e.defaultPrevented ? e.message ||
               'The page may contain unsaved changes, continuing will discard them.' : undefined;
         }
-      };
+      }
 
       // make sure to cleanup event listeners
       $rootScope.$on('$destroy', function() {
         $rootScope.$broadcast('pageChangeAccepted');
-        $(window).unbind('beforeunload', fn);
+        $(window).unbind('beforeunload', unloadListener);
       });
 
       // this causes the browser to notify the user that the page contains unsaved data
-      $(window).bind('beforeunload', fn);
+      $(window).bind('beforeunload', unloadListener);
 
-      // start pendo
+      // Try to fetch the current user in order to see if we are already logged in, but do not attempt
+      // to initiate a login here (we might be on a page that doesn't require auth)
+      currentUser.fetch(false);
+
       pendoService.start();
     }
 
-    return {
-      start: function() {
-        doStart();
-      }
-    };
+    return { start: doStart };
   }
 ]);
 

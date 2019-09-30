@@ -8,14 +8,17 @@ import {always} from 'ramda';
 
 export default function LoginModalService(Modal) {
   var service = {
-    show: LoginModal
+    show: LoginModal,
+    dismiss
   };
+
+  let modal = null;
 
   /**
    * Present the login modal
    */
   function LoginModal(showSamlSso) {
-    return Modal.open({
+    modal = Modal.open({
       animation: false,
       backdrop: 'static',
       keyboard: false,
@@ -25,7 +28,19 @@ export default function LoginModalService(Modal) {
       resolve: {
         showSamlSso: always(showSamlSso)
       }
-    }).result;
+    });
+
+    return modal.result;
+  }
+
+  /**
+   * Close the login modal without completing the login
+   */
+  function dismiss(reason) {
+    if (modal) {
+      modal.dismiss(reason);
+      modal = null;
+    }
   }
 
   return service;

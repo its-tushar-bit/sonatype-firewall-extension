@@ -77,11 +77,18 @@ public class SecurityModule
     manager.createChain("/rest/report/*/*/brain/**", anonFilters); // only redirects
     manager.createChain("/rest/user/session/logout", anonFilters); // client logout requires no auth
     manager.createChain("/rest/user-telemetry/javascript", anonFilters); // user-telemetry javascript
+    manager.createChain("/rest/user-telemetry/config", anonFilters); // user-telemetry configuration
+    manager.createChain("/rest/user-telemetry/events/**", anonFilters); // user-telemetry events
     manager.createChain("/rest/product/version", anonFilters); // product version info
+    manager.createChain("/rest/product/license/validate", anonFilters); // product license info
     manager.createChain("/rest/version", anonFilters); // product version info
     manager.createChain("/tasks/**", anonFilters); // DW tasks exposed on admin port
     manager.createChain("/ui/links/**", anonFilters); // only redirects
     manager.createChain("/rest/config/systemNotice/fetch", anonFilters);
+    manager.createChain("/api/v2/vulnerabilities/*",
+        anonFilters + ", noSessionCreation, " +
+        "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " +
+        "authcBasic[permissive]");
 
     // public REST API
     manager.createChain("/api/**", "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], " +

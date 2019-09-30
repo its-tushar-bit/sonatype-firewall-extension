@@ -25,6 +25,10 @@ export function getVulnerabilityDetailUrl(source, refId, componentIdentifier, ha
   return url;
 }
 
+export function getVulnerabilityJsonDetailUrl(refId) {
+  return `${getBaseUrl(window.location.href)}/api/v2/vulnerabilities/${encodeURIComponent(refId)}`;
+}
+
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {
@@ -404,7 +408,9 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
         return hash ? `${base}/${encodeURIComponent(hash)}` : base;
       },
 
-      getVulnerabilityDetailUrl
+      getVulnerabilityDetailUrl,
+
+      getVulnerabilityJsonDetailUrl
     };
   }
 ]);

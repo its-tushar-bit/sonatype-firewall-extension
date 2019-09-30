@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, clmServerVersion, clmBuildTimestamp */
-function MainHeaderController($rootScope, $state, $scope, ProductFeatures, PermissionService,
-                              systemConfigurationPropertyService) {
+function MainHeaderController($rootScope, $state, $scope, ProductFeatures, PermissionService, CurrentUser,
+                              systemConfigurationPropertyService, routeStateUtilService) {
   var vm = this;
 
   vm.$state = $state;
@@ -18,6 +18,8 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
   vm.isLoggedIn = isLoggedIn;
   vm.isLicensed = isLicensed;
   vm.isWebhooksSupported = undefined;
+  vm.login = login;
+  vm.shouldShowLoginButton = shouldShowLoginButton;
 
   function getReleaseVersion() {
     const serverVersionWithoutBuildNumber = clmServerVersion.substring(0, clmServerVersion.indexOf('-'));
@@ -42,19 +44,22 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
   function doLoad() {
     const validPermissions = ['CONFIGURE_SYSTEM', 'MANAGE_PROPRIETARY', 'VIEW_ROLES',
       'MANAGE_AUTOMATIC_APPLICATION_CREATION'];
-    PermissionService.getValidPermissions(validPermissions).then(
-        function(data) {
-          angular.forEach(data, function(permission) {
-            vm.permissions[permission] = true;
-          });
-        });
-    systemConfigurationPropertyService.isSuccessMetricsEnabled().then(function(data) {
-      vm.isSuccessMetricsEnabled = data;
-    });
 
-    ProductFeatures.load().then(function() {
-      vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks-for-applications') ||
-          ProductFeatures.isAvailable('webhooks-for-repositories');
+    CurrentUser.waitForLogin().then(function() {
+      PermissionService.getValidPermissions(validPermissions).then(function(data) {
+        angular.forEach(data, function(permission) {
+          vm.permissions[permission] = true;
+        });
+      });
+
+      systemConfigurationPropertyService.isSuccessMetricsEnabled().then(function(data) {
+        vm.isSuccessMetricsEnabled = data;
+      });
+
+      ProductFeatures.load().then(function() {
+        vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks-for-applications') ||
+            ProductFeatures.isAvailable('webhooks-for-repositories');
+      });
     });
   }
 
@@ -69,10 +74,19 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
   function isLicensed() {
     return $rootScope.licensed;
   }
+
+  function login() {
+    CurrentUser.fetch();
+  }
+
+  function shouldShowLoginButton() {
+    return !routeStateUtilService.stateRequiresAuthentication() && !isLoggedIn();
+  }
 }
 
 MainHeaderController.$inject = [
-  '$rootScope', '$state', '$scope', 'ProductFeatures', 'PermissionService', 'systemConfigurationPropertyService'
+  '$rootScope', '$state', '$scope', 'ProductFeatures', 'PermissionService', 'CurrentUser',
+  'systemConfigurationPropertyService', 'routeStateUtilService'
 ];
 
 export default {

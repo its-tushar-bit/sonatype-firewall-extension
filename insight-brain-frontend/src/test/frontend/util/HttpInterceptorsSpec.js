@@ -4,6 +4,7 @@ import utilityServicesModule from '../../../main/frontend/utility/services/utili
 describe('HttpInterceptors.js', function() {
   var scope,
       modalSuccess,
+      modalFailure,
       modalConfig;
 
   beforeEach(angular.mock.module(unauthenticatedResponseHttpInterceptor.name, utilityServicesModule.name,
@@ -25,8 +26,9 @@ describe('HttpInterceptors.js', function() {
             });
             return {
               result: {
-                then: function(success) {
+                then: function(success, failure) {
                   modalSuccess = success;
+                  modalFailure = failure;
                 }
               }
             };
@@ -173,4 +175,42 @@ describe('HttpInterceptors.js', function() {
         expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(0);
         expect(success).toEqual(true);
       }));
+
+  it('does not retry requests that have a waitForLogin property set to false nor add them to the queue',
+      inject(function($q, $http, $httpBackend, UnauthenticatedRequestQueueService) {
+        $httpBackend.expectPOST('test').respond(401);
+
+        const resolvedSpy = jasmine.createSpy(),
+            rejectedSpy = jasmine.createSpy();
+        $http.post('test', {}, { waitForLogin: false }).then(resolvedSpy, rejectedSpy);
+
+        $httpBackend.flush();
+
+        expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(0);
+        expect(rejectedSpy).toHaveBeenCalledWith(jasmine.objectContaining({ status: 401 }));
+        expect(resolvedSpy).not.toHaveBeenCalled();
+      })
+  );
+
+  it('clears the queue of retried requests if authentication is cancelled, and neither resolves nor rejects ' +
+      'the promise', inject(function($q, $http, $httpBackend, UnauthenticatedRequestQueueService) {
+    $httpBackend.expectPOST('test').respond(401);
+
+    const resolvedSpy = jasmine.createSpy(),
+        rejectedSpy = jasmine.createSpy();
+    $http.post('test').then(resolvedSpy, rejectedSpy);
+
+    $httpBackend.flush();
+
+    expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(1);
+
+    $httpBackend.expectPOST('test').respond(200);
+
+    // emulate dismissal of login modal
+    modalFailure();
+
+    expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(0);
+    expect(rejectedSpy).not.toHaveBeenCalled();
+    expect(resolvedSpy).not.toHaveBeenCalled();
+  }));
 });

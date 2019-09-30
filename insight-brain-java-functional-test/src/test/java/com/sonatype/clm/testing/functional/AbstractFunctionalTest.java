@@ -494,4 +494,8 @@ public abstract class AbstractFunctionalTest
     JavascriptExecutor js = (JavascriptExecutor)driver;
     js.executeScript(script);
   }
+
+  protected void uninstallLicense() {
+    testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class).uninstallLicense();
+  }
 }

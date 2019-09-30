@@ -24,7 +24,10 @@ describe('UserModuleSpec.js', function() {
       deferred.resolve({
         username: 'user'
       });
-      return deferred.promise;
+
+      return {
+        waitForLogin: () => deferred.promise
+      };
     }]);
     $provide.value('Modal', {
       open: function(config) {

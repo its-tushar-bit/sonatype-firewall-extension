@@ -34,6 +34,10 @@ public class LoginModal
     return $("#login-action");
   }
 
+  public SelenideElement cancelButton() {
+    return $("#login-cancel");
+  }
+  
   public SelenideElement ssoButton() {
     return $("#sso-action");
   }
@@ -48,5 +52,13 @@ public class LoginModal
 
   public SelenideElement header() {
     return $(".iq-modal-header");
+  }
+
+  public SelenideElement vulnerabilityLookupText() {
+    return $("#login-vulnerability-link");
+  }
+
+  public SelenideElement vulnerabilityLookupLink() {
+    return $("#login-vulnerability-link a");
   }
 }

@@ -5,12 +5,16 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Anonymous access allowed
+ */
 public class UserTelemetryResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
@@ -29,18 +33,26 @@ public class UserTelemetryResourceAuthzTest
 
   @Test
   public void testGetConfig() throws Exception {
-    testAuthcGet(restRequest().path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.CONFIG_PATH));
+    HttpRequest request = restRequest().path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.CONFIG_PATH);
+    HttpResponse response = request.anon().get();
+    assertResponseStatus(200, response);
   }
 
   @Test
   public void testGetProxy() throws Exception {
     hdsRespondWith("").andStatus(204).atUri(PendoService.HDS_TELEMETRY_PATH);
-    testAuthcGet(restRequest().path(UserTelemetryResource.RESOURCE_PATH, "events/"));
+    HttpRequest request = restRequest().path(UserTelemetryResource.RESOURCE_PATH, "events/");
+
+    HttpResponse response = request.anon().get();
+    assertResponseStatus(200, response);
   }
 
   @Test
   public void testPostProxy() throws Exception {
     hdsRespondWith("").andStatus(204).atUri(PendoService.HDS_TELEMETRY_PATH);
-    testAuthcPost(restRequest().path(UserTelemetryResource.RESOURCE_PATH, "events/"));
+    HttpRequest request = restRequest().path(UserTelemetryResource.RESOURCE_PATH, "events/");
+
+    HttpResponse response = request.anon().post();
+    assertResponseStatus(200, response);
   }
 }

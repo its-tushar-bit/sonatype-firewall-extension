@@ -19,10 +19,11 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.hash.Hashing;
 import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
@@ -72,9 +73,11 @@ public class PendoService
       pendoConfig.account.put(ID, telemetryId.getId());
       pendoConfig.account.put(VERSION, versionService.getVersion());
 
-      AuthenticationStatus authenticationStatus = AuthenticationStatus.fromSubject(SecurityUtils.getSubject());
-      pendoConfig.visitor.put(ID,
-          Hashing.sha256().hashUnencodedChars(telemetryId.getId() + authenticationStatus.getUsername()).toString());
+      // add user info only if user is logged in
+      Object principal = SecurityUtils.getSubject().getPrincipal();
+      if (principal != null) {
+        pendoConfig.visitor.put(ID, Hashing.sha256().hashUnencodedChars(telemetryId.getId() + principal).toString());
+      }
     }
 
     return pendoConfig;
@@ -98,6 +101,7 @@ public class PendoService
 
   public static class PendoConfig
   {
+    @JsonInclude(Include.NON_EMPTY)
     public Map<String, String> visitor = new HashMap<>();
 
     public Map<String, Object> account = new HashMap<>();

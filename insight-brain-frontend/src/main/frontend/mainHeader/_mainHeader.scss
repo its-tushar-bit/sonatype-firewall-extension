@@ -23,7 +23,7 @@ $iq-notification-age-width: 43px;
 
 .iq-header__inner {
   background-color: $iq-off-black;
-  min-height: inherit;
+  height: 100%;
   margin: 0 auto;
   width: 100%;
   max-width: $iq-page-width-max;
@@ -139,6 +139,28 @@ i.iq-navigation-menu__icon {
         @include iq-arrow-up();
       }
     }
+  }
+}
+
+.iq-btn--main-header {
+  @include bold;
+  height: 100%;
+  text-align: center;
+
+  &, &:hover, &:active, &:focus {
+    background: none;
+    border: none;
+    color: $main-header-color;
+    outline: none;
+    text-decoration: none;
+  }
+
+  .glyphicons-sonatype {
+    margin-right: 8px;
+  }
+
+  .iq-btn__content--main-header {
+    vertical-align: 3px;
   }
 }
 

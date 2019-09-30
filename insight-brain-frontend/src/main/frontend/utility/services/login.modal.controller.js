@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global Base64 */
-export default function LoginModalController($scope, $http, CLMLocations, Messages, $window, showSamlSso) {
+function LoginModalController($scope, $http, CLMLocations, Messages, routeStateUtilService, $window, showSamlSso) {
   var vm = this;
 
   vm.username = '';
@@ -20,11 +20,17 @@ export default function LoginModalController($scope, $http, CLMLocations, Messag
     vm.error = undefined;
   });
 
+  vm.inAuthRequiredState = function() {
+    return routeStateUtilService.stateRequiresAuthentication();
+  };
+
   vm.signIn = function() {
     vm.error = undefined;
 
     vm.loginMask.wrap($http.post(CLMLocations.getSessionUrl(), {}, {
-      clmLogin: true,
+      // don't let the HttpInterceptor retry a failed request, as it might have failed due to bad credentials which this
+      // modal should handle
+      waitForLogin: false,
       headers: {
         'Authorization': 'Basic ' + Base64.encode(vm.username + ':' + vm.password)
       }
@@ -50,4 +56,8 @@ export default function LoginModalController($scope, $http, CLMLocations, Messag
   };
 }
 
-LoginModalController.$inject = ['$scope', '$http', 'CLMLocations', 'Messages', '$window', 'showSamlSso'];
+LoginModalController.$inject = [
+  '$scope', '$http', 'CLMLocations', 'Messages', 'routeStateUtilService', '$window', 'showSamlSso'
+];
+
+export default LoginModalController;

@@ -79,9 +79,7 @@ export var unauthenticatedResponseHttpInterceptor = angular.module('Unauthentica
     }
 
     $rootScope.$on('userNeedsAuthentication', function(event, response, deferred) {
-      // if user is already processing login, this will be a login failure response so reject and let them try
-      // again
-      if (response.config && response.config.clmLogin) {
+      if (response.config && (response.config.waitForLogin === false)) {
         deferred.reject(response);
       }
       else {
@@ -97,12 +95,17 @@ export var unauthenticatedResponseHttpInterceptor = angular.module('Unauthentica
         // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
         // the other messages, the data will be added to the queue, but the dialog portion will be ignored
         if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
-          authenticate(response.headers('WWW-Authenticate') === 'SAML').then(function() {
-            // retry failed requests and then clear the queue
-            $q.all(UnauthenticatedRequestQueueService.getPromises()).finally(function() {
-              UnauthenticatedRequestQueueService.clearRequests();
-            });
-          });
+          authenticate(response.headers('WWW-Authenticate') === 'SAML').then(
+              function() {
+                // retry failed requests and then clear the queue
+                $q.all(UnauthenticatedRequestQueueService.getPromises()).finally(function() {
+                  UnauthenticatedRequestQueueService.clearRequests();
+                });
+              },
+              function() {
+                // login was cancelled
+                UnauthenticatedRequestQueueService.clearRequests();
+              });
         }
       }
     });

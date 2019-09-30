@@ -54,4 +54,8 @@ public class MainHeader
   public static SelenideElement mainHeaderButtons() {
     return $("#main-header-buttons");
   }
+
+  public static SelenideElement loginButton() {
+    return $("#login-header-btn");
+  }
 }

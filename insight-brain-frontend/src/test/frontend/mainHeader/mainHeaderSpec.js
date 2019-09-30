@@ -7,25 +7,43 @@ describe('mainHeaderSpec', function() {
 
   var $scope,
       $rootScope,
-      $httpBackend,
       mockSystemConfigurationPropertyService,
+      mockCurrentUser,
+      mockPermissionService,
+      mockProductFeatures,
       isSuccessMetricsEnabledDeferred,
+      loginDeferred,
+      productFeaturesDeferred,
       vm,
       clmServerVersion;
 
-  beforeEach(inject(function(_$rootScope_, $q, $componentController, _$httpBackend_, _CLMLocations_) {
+  beforeEach(inject(function(_$rootScope_, $q, $componentController) {
     clmServerVersion = window.clmServerVersion;
     $scope = _$rootScope_.$new();
     $rootScope = _$rootScope_;
-    $httpBackend = _$httpBackend_;
     isSuccessMetricsEnabledDeferred = $q.defer();
+    loginDeferred = $q.defer();
+    productFeaturesDeferred = $q.defer();
     mockSystemConfigurationPropertyService = {
       isSuccessMetricsEnabled: jasmine.createSpy().and.returnValue(isSuccessMetricsEnabledDeferred.promise)
     };
-    $httpBackend.expectGET(_CLMLocations_.getProductFeaturesUrl()).respond(['']);
+
+    mockCurrentUser = {
+      fetch: jasmine.createSpy('fetch'),
+      waitForLogin: jasmine.createSpy('waitForLogin').and.returnValue(loginDeferred.promise)
+    };
+
+    mockPermissionService = { getValidPermissions: jasmine.createSpy().and.returnValue($q.resolve())};
+
+    mockProductFeatures = {
+      load: jasmine.createSpy('load').and.returnValue(productFeaturesDeferred.promise)
+    };
+
     vm = $componentController('mainHeader', {
-      PermissionService: { getValidPermissions: jasmine.createSpy().and.returnValue($q.resolve())},
-      systemConfigurationPropertyService: mockSystemConfigurationPropertyService
+      PermissionService: mockPermissionService,
+      CurrentUser: mockCurrentUser,
+      systemConfigurationPropertyService: mockSystemConfigurationPropertyService,
+      ProductFeatures: mockProductFeatures
     });
   }));
 
@@ -36,24 +54,41 @@ describe('mainHeaderSpec', function() {
 
   it('properly loads on enabled success metrics', function() {
     vm.$onInit();
+    loginDeferred.resolve();
     isSuccessMetricsEnabledDeferred.resolve(true);
-    $httpBackend.flush();
+    $scope.$digest();
 
     expect(vm.isSuccessMetricsEnabled).toBe(true);
   });
 
   it('properly loads on disabled success metrics', function() {
     vm.$onInit();
+    loginDeferred.resolve();
     isSuccessMetricsEnabledDeferred.reject('disabled');
-    $httpBackend.flush();
+    $scope.$digest();
 
     expect(vm.isSuccessMetricsEnabled).toBe(false);
+  });
+
+  it('does not load success metrics, permissions, or features until after login', function() {
+    vm.$onInit();
+
+    isSuccessMetricsEnabledDeferred.reject('disabled');
+    expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).not.toHaveBeenCalled();
+    expect(mockPermissionService.getValidPermissions).not.toHaveBeenCalled();
+    expect(mockProductFeatures.load).not.toHaveBeenCalled();
+
+    loginDeferred.resolve();
+    $scope.$digest();
+
+    expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).toHaveBeenCalled();
+    expect(mockPermissionService.getValidPermissions).toHaveBeenCalled();
+    expect(mockProductFeatures.load).toHaveBeenCalled();
   });
 
   it('resets isSuccessMetricsEnabled on successMetricsConfigurationUpdated event', function() {
     vm.$onInit();
     isSuccessMetricsEnabledDeferred.resolve(false);
-    $httpBackend.flush();
 
     expect(vm.isSuccessMetricsEnabled).toBe(false);
 
@@ -121,6 +156,53 @@ describe('mainHeaderSpec', function() {
     it('Not Licensed', function() {
       vm.$onInit();
       expect(vm.isLicensed()).toBeFalsy();
+    });
+  });
+
+  describe('login', function() {
+    it('calls CurrentUser.fetch', function() {
+      vm.$onInit();
+
+      expect(mockCurrentUser.fetch).not.toHaveBeenCalled();
+
+      vm.login();
+
+      expect(mockCurrentUser.fetch).toHaveBeenCalled();
+    });
+  });
+
+  describe('shouldShowLoginButton', function() {
+    let routeStateUtilService;
+
+    beforeEach(inject(function(_routeStateUtilService_) {
+      routeStateUtilService = _routeStateUtilService_;
+    }));
+
+    it('returns false if the user is logged in already', function() {
+      vm.$onInit();
+      $rootScope.username = 'user';
+      $scope.$digest();
+      spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(true);
+
+      expect(vm.shouldShowLoginButton()).toBe(false);
+
+      // whether auth is required makes no difference
+      routeStateUtilService.stateRequiresAuthentication.and.returnValue(false);
+      expect(vm.shouldShowLoginButton()).toBe(false);
+    });
+
+    it('returns false if the user is not logged in but the current page requires authentication', function() {
+      vm.$onInit();
+      spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(true);
+
+      expect(vm.shouldShowLoginButton()).toBe(false);
+    });
+
+    it('returns true if the user is not logged in and the current page does not require authentication', function() {
+      vm.$onInit();
+      spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(false);
+
+      expect(vm.shouldShowLoginButton()).toBe(true);
     });
   });
 });

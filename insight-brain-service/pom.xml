@@ -129,6 +129,10 @@
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-telemetry-model</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-vulnerability-model</artifactId>
+    </dependency>
     
     <dependency>
       <groupId>org.apache.commons</groupId>

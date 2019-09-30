@@ -131,6 +131,11 @@ $iq-modal-bottom-spacing: 8px;
     display: block;
     margin: 0 0 8px 0;
   }
+
+  #login-vulnerability-link {
+    margin-bottom: 0;
+    font-size: 12px;
+  }
 }
 
 // Duplicates for Bootstrap styles we might want/need to remove someday
@@ -148,6 +153,11 @@ $iq-modal-bottom-spacing: 8px;
 
 .fade.in {
   opacity: 1;
+}
+
+#login-modal .iq-alert {
+  margin-left: 0;
+  margin-right: 0;
 }
 
 /*

@@ -79,5 +79,12 @@
       <notifications-menu></notifications-menu>
       <user-menu></user-menu>
     </div>
+    <button id="login-header-btn"
+            class="iq-btn iq-btn--main-header iq-pull-right"
+            ng-if="vm.shouldShowLoginButton()"
+            ng-click="vm.login()">
+      <i class="glyphicons-sonatype medium user"></i><!--
+   --><span class="iq-btn__content--main-header">Login</span>
+    </button>
   </div>
 </div>

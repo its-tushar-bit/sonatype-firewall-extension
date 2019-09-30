@@ -460,6 +460,11 @@
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.portal</groupId>
+        <artifactId>insight-vulnerability-model</artifactId>
+        <version>${hds.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.portal</groupId>
         <artifactId>insight-test</artifactId>
         <version>${hds.version}</version>
         <scope>test</scope>

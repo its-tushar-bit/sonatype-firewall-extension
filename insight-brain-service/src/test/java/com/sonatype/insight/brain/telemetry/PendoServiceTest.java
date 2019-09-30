@@ -90,6 +90,21 @@ public class PendoServiceTest
   }
 
   @Test
+  public void testGetConfig_unauthenticated() throws Exception {
+    when(subject.getPrincipal()).thenReturn(null);
+
+    CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(false);
+    segmentInfo.segmentAttributes = Collections.singletonMap("foo", "bar");
+    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(segmentInfo);
+
+    PendoConfig config = pendoService.getConfig();
+    assertThat(config.account).containsEntry("id", telemetryId.getId()).containsEntry("foo", "bar")
+        .containsEntry("iq-server-version", versionService.getVersion());
+
+    assertThat(config.visitor).isEmpty();
+  }
+
+  @Test
   public void testGetConfig_error() throws Exception {
     when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH))
         .thenThrow(new NotFoundException("failed"));

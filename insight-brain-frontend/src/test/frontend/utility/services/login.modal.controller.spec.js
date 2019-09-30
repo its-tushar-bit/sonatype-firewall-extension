@@ -15,6 +15,10 @@ describe('login.modal.controller.spec.js', function() {
         assign: jasmine.createSpy()
       }
     });
+
+    $provide.value('routeStateUtilService', {
+      stateRequiresAuthentication: jasmine.createSpy()
+    });
   }));
 
   beforeEach(inject(function($controller, $rootScope) {

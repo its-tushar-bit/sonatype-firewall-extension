@@ -39,6 +39,7 @@ import 'jquery-ui/ui/effect';
 import ClassyBrew from 'classybrew/src/classybrew';
 import Plottable from 'plottable';
 
+import './utility/axiosConfig';
 import './utility/Polyfills';
 import './util/Globals';
 import './ManagementApp';

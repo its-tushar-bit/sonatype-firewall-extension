@@ -66,8 +66,21 @@
                 ng-disabled="vm.isSignInButtonDisabled()"
                 type="submit">
           Sign in
-        </button>
+        </button><!--
+      --><button ng-if="!vm.inAuthRequiredState()"
+                 id="login-cancel"
+                 class="iq-btn"
+                 type="button"
+                 ng-click="$dismiss()">
+            Cancel
+          </button>
       </div>
+    </div>
+    <div class="iq-grid-row">
+      <p ng-if="licensed && vm.inAuthRequiredState()" id="login-vulnerability-link">
+        You can now look up a vulnerability without logging in. To explore more visit:
+        <a ui-sref="vulnerabilitySearch">Vulnerability Lookup</a>.
+      </p>
     </div>
   </footer>
 </form>

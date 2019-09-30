@@ -29,7 +29,7 @@ function userActions($rootScope, $q, $http, CurrentUser, CLMLocations, telemetry
             .catch(always(false));
 
     return $q.all({
-      currentUser: CurrentUser,
+      currentUser: CurrentUser.waitForLogin(),
       shouldDisplayWarning: shouldDisplayWarningPromise
     });
   }

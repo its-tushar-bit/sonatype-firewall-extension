@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { contains, split } from 'ramda';
+
 /* global window, angular */
 import commonServicesModule from '../util/CommonServices';
 import CLMLocationModule from '../util/CLMLocation';
@@ -15,16 +17,19 @@ export default locationModule;
 locationModule.factory('CLMContextLocations', [
   'ApplicationId', 'OrganizationId', '$state', 'BaseUrl', '$window', 'CLMLocations',
   function(appId, orgId, $state, baseUrl, $window, CLMLocations) {
+    // checks to see if the dot-delimited state name includes the specified part
+    const includesNamePart = (part, str) => contains(part, split('.', str));
+
     function isApplication() {
-      return $state.current.name.indexOf('application') !== -1;
+      return includesNamePart('application', $state.current.name);
     }
 
     function isOrganization() {
-      return $state.current.name.indexOf('organization') !== -1;
+      return includesNamePart('organization', $state.current.name);
     }
 
     function isRepositories() {
-      return $state.current.name.indexOf('repositories') !== -1;
+      return includesNamePart('repositories', $state.current.name);
     }
 
     function isRootOrg() {

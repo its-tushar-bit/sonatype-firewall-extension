@@ -14,12 +14,15 @@ export default function pendoService($http, $q, $window, $document, CLMLocations
     z=e.getElementsByTagName(n)[0];z.parentNode.insertBefore(y,z);})($window, $document[0], 'script', 'pendo');
   /* eslint-enable */
 
+  /**
+   * Fetch the user-telemetry configuration and start pendo. It is safe to call this multiple times, for instance
+   * to re-initialize pendo after the user logs in
+   */
   function start() {
     $http.get(CLMLocations.getUserTelemetryConfig()).then(function(response) {
       const configuration = {
         contentHost: CLMLocations.getUserTelemetryProxy(),
         dataHost: CLMLocations.getUserTelemetryProxy(),
-        disablePersistence: true,
         excludeAllText: true,
         excludeTitle: true,
         guides: {

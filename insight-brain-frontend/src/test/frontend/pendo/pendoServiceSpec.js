@@ -48,7 +48,6 @@ describe('pendoService', function() {
     expect($window.pendo.initialize).toHaveBeenCalledWith({
       account: {},
       visitors: {},
-      disablePersistence: true,
       excludeAllText: true,
       excludeTitle: true,
       guides: {

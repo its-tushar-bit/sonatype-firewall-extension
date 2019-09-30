@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
@@ -17,8 +18,8 @@ import com.sonatype.insight.brain.product.license.ProductLicenseService;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.hidden;
@@ -28,15 +29,16 @@ import static com.codeborne.selenide.Condition.visible;
 public class MainHeaderTest
     extends AbstractFunctionalTest
 {
-  @BeforeClass
-  public static void beforeClass() {
+  @Before
+  public void before() {
     refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
   }
 
-  @Before
-  public void before() {
-    refreshOrOpen(ReportListPage.URL);
+  @After
+  public void after() {
+    // logout if not already logged out
+    hardreset();
   }
 
   @Test
@@ -112,5 +114,24 @@ public class MainHeaderTest
   public void testNavigation_ToVulnerabilityDetails() {
     MainHeader.vulnerabilityDetailsNavigationButton().click();
     waitUntilUrl(VulnerabilitySearchPage.url());
+  }
+
+  @Test
+  public void testLoginButton() {
+    LoginModal loginModal = new LoginModal();
+    logout();
+
+    MainHeader.loginButton().shouldNotBe(visible);
+    loginModal.vulnerabilityLookupLink().click();
+
+    MainHeader.loginButton().shouldBe(visible).click();
+    loginModal.shouldBe(visible);
+    MainHeader.loginButton().shouldBe(visible);
+
+    loginAsAdmin();
+    MainHeader.loginButton().shouldNotBe(visible);
+
+    logout();
+    MainHeader.loginButton().shouldNotBe(visible);
   }
 }

@@ -126,23 +126,23 @@ public abstract class AbstractFunctionalTest
     jiraService = Mockito.mock(JiraService.class);
     initMocks();
 
-    String contextPath = System.getProperty("iq.contextPath", "/iq-test");
-    testCLMServer = new TestCLMServer(false /* isProxyRequiredToReachHds */, getBrainModules(), new Configurator()
-    {
-      @Override
-      public void configure(InsightConfig config) {
-        config.setBaseUrl(getBaseUrl(contextPath));
-        ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
-      }
-    });
-    reverseProxyServer = new ReverseProxyServer(testCLMServer.getCLMServer().getPort());
-
     try {
-      testCLMServer.start();
-      reverseProxyServer.start();
-
+      String contextPath = System.getProperty("iq.contextPath", "/iq-test");
       Configuration.baseUrl = resolveBaseUrl(getBaseUrl(contextPath));
       Configuration.reportsFolder = "target/selenide-reports";
+
+      testCLMServer = new TestCLMServer(false /* isProxyRequiredToReachHds */, getBrainModules(), new Configurator()
+      {
+        @Override
+        public void configure(InsightConfig config) {
+          config.setBaseUrl(Configuration.baseUrl);
+          ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
+        }
+      });
+      reverseProxyServer = new ReverseProxyServer(testCLMServer.getCLMServer().getPort());
+
+      testCLMServer.start();
+      reverseProxyServer.start();
     }
     catch (Throwable e) {
       e.printStackTrace();

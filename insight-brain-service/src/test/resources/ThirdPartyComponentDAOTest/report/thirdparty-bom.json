@@ -1,0 +1,69 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "debian:9",
+      "coordinates" : {
+        "name" : "glibc",
+        "version" : "2.24-11+deb9u3"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ ],
+    "pathnames" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e587ce87ed894c1d5283",
+    "relativePopularity" : null,
+    "createTime" : 1378066960000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "debian:9",
+      "coordinates" : {
+        "name" : "apt",
+        "version" : "1.4.8"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ ],
+    "pathnames" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "683620ac905c1d32b58c",
+    "relativePopularity" : null,
+    "createTime" : 1378066960000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "debian:9",
+      "coordinates" : {
+        "name" : "python3.5",
+        "version" : "3.5.3-1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ ],
+    "pathnames" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a19ddea0123f1d8150b2",
+    "relativePopularity" : null,
+    "createTime" : 1378066960000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null
+  } ]
+}

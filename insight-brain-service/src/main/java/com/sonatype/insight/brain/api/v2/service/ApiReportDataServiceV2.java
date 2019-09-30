@@ -258,7 +258,7 @@ public class ApiReportDataServiceV2
     }
 
     List<Component> components =
-        componentResolver.getComponents(app, licenseEntry.buf, securityEntry.buf, bomEntry.buf, scanId);
+        componentResolver.getComponents(app, licenseEntry.buf, securityEntry.buf, bomEntry.buf, reportFile);
 
     ApiReportRawDataDTOV2 data = new ApiReportRawDataDTOV2();
     for (Component comp : components) {

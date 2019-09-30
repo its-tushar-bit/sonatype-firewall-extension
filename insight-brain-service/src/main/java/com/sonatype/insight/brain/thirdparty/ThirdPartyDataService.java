@@ -7,10 +7,9 @@ package com.sonatype.insight.brain.thirdparty;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -26,7 +25,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
-import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,10 +32,6 @@ import org.slf4j.LoggerFactory;
 @Named
 public class ThirdPartyDataService
 {
-  public static final String THIRD_PARTY_BOM_JSON_FILENAME = "thirdparty-bom.json";
-
-  public static final String THIRD_PARTY_SECURITY_JSON_FILENAME = "thirdparty-security.json";
-
   private static final Logger log = LoggerFactory.getLogger(ThirdPartyDataService.class);
 
   private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
@@ -74,19 +68,16 @@ public class ThirdPartyDataService
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = new ThirdPartyApplicationReportDTO();
 
     List<ThirdPartyFile> scanFiles = thirdPartyFileDAO.getByScanId(scanId);
-    Map<String, Set<String>> coordPaths = new HashMap<>(); //collect paths (if identical coordinates found)
     Map<String, ThirdPartyFileCoordinate> coordinates = new HashMap<>(); //filters out any identical components
     for (ThirdPartyFile scanFile : scanFiles) {
-      thirdPartyFileCoordinateDAO.getByThirdPartyFileId(scanFile.getId())
-          .forEach(coord -> {
-            coordinates.put(coord.getHash(), coord);
-            coordPaths.computeIfAbsent(coord.getHash(), k -> new HashSet<>()).add(scanFile.getFilename());
-          });
+      coordinates.putAll(
+          thirdPartyFileCoordinateDAO.getByThirdPartyFileId(scanFile.getId()).stream()
+              .collect(Collectors.toMap(ThirdPartyFileCoordinate::getHash, coord -> coord)));
     }
 
     for (ThirdPartyFileCoordinate coord : coordinates.values()) {
       final ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.createGenericIdentifier(coord);
-      thirdPartyApplicationReportDTO.billOfMaterials.add(toBomRow(coord, componentIdentifier, coordPaths, scanTime));
+      thirdPartyApplicationReportDTO.billOfMaterials.add(toBomRow(coord, componentIdentifier, scanTime));
       populateSecurityVulnerabilities(coord, componentIdentifier, thirdPartyApplicationReportDTO);
     }
 
@@ -113,26 +104,25 @@ public class ThirdPartyDataService
   {
     final ThirdPartyHealthCheckReportSecurityRowDTO dto =
         new ThirdPartyHealthCheckReportSecurityRowDTO(componentIdentifier, coordinate.getHash());
-    dto.matchState = MatchState.EXACT.getName();
+    dto.matchState = MatchState.EXACT.toString();
     dto.reference = coordinateSecurity.getRefId();
     dto.description = coordinateSecurity.getDescription();
     dto.score = coordinateSecurity.getSeverity();
-    dto.source = coordinate.getSource();
     dto.url = coordinateSecurity.getLink();
     dto.fixedVersion = coordinateSecurity.getFixedBy();
     return dto;
   }
 
-  private BillOfMaterialsRowDTO toBomRow(
+  private ThirdPartyBillOfMaterialsRowDTO toBomRow(
       final ThirdPartyFileCoordinate coordinate,
-      ComponentIdentifier componentIdentifier,
-      final Map<String, Set<String>> coordPaths, final Date scanTime)
+      final ComponentIdentifier componentIdentifier,
+      final Date scanTime)
   {
-    final BillOfMaterialsRowDTO dto =
-        new BillOfMaterialsRowDTO(componentIdentifier, coordinate.getHash());
+    final ThirdPartyBillOfMaterialsRowDTO dto =
+        new ThirdPartyBillOfMaterialsRowDTO(componentIdentifier, coordinate.getHash());
     dto.createTime = scanTime.getTime();
-    dto.matchState = MatchState.EXACT.getName();
-    dto.pathnames = coordPaths.get(coordinate.getHash());
+    dto.matchState = MatchState.EXACT.toString();
+    dto.identificationSource = coordinate.getSource();
     return dto;
   }
 }

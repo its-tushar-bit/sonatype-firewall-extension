@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
@@ -19,7 +18,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 
 import org.junit.Test;
 
@@ -120,10 +118,9 @@ public class ThirdPartyDataServiceTest
       assertThat(found.stream().filter(sec -> sec.reference.equals(expectedSecRow.getRefId())).findFirst())
           .hasValueSatisfying(securityRow -> {
             assertThat(securityRow.componentIdentifier).isEqualTo(componentIdentifierOf(coordinate));
-            assertThat(securityRow.matchState).isEqualTo(MatchState.EXACT.getName());
+            assertThat(securityRow.matchState).isEqualTo(MatchState.EXACT.toString());
             assertThat(securityRow.description).isEqualTo(expectedSecRow.getDescription());
             assertThat(securityRow.score).isEqualTo(expectedSecRow.getSeverity());
-            assertThat(securityRow.source).isEqualTo(coordinate.getSource());
             assertThat(securityRow.url).isEqualTo(expectedSecRow.getLink());
             assertThat(securityRow.fixedVersion).isEqualTo(expectedSecRow.getFixedBy());
           });
@@ -131,7 +128,7 @@ public class ThirdPartyDataServiceTest
   }
 
   private void assertBomContains(
-      final List<BillOfMaterialsRowDTO> bom,
+      final List<ThirdPartyBillOfMaterialsRowDTO> bom,
       final ThirdPartyFileCoordinate coordinate,
       final ThirdPartyFile... files)
   {
@@ -140,9 +137,8 @@ public class ThirdPartyDataServiceTest
         .hasValueSatisfying(bomRow -> {
           assertThat(bomRow.componentIdentifier).isEqualTo(componentIdentifierOf(coordinate));
           assertThat(bomRow.createTime).isCloseTo(files[0].getCreated().getTime(), withinPercentage(0.001));
-          assertThat(bomRow.pathnames)
-              .isEqualTo(Stream.of(files).map(ThirdPartyFile::getFilename).collect(Collectors.toSet()));
-          assertThat(bomRow.matchState).isEqualTo(MatchState.EXACT.getName());
+          assertThat(bomRow.matchState).isEqualTo(MatchState.EXACT.toString());
+          assertThat(bomRow.identificationSource).isEqualTo(coordinate.getSource());
         });
   }
 

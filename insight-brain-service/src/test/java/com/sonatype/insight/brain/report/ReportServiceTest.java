@@ -37,10 +37,10 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyBillOfMaterialsRowDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 
 import de.schlichtherle.truezip.file.TFile;
 import org.apache.commons.io.FileUtils;
@@ -301,7 +301,7 @@ public class ReportServiceTest
 
     ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
     final ComponentIdentifier coord = ComponentIdentifier.createRpmCoordinates("n1", "v1", "a1");
-    dto.billOfMaterials.add(new BillOfMaterialsRowDTO(coord, "hash1"));
+    dto.billOfMaterials.add(new ThirdPartyBillOfMaterialsRowDTO(coord, "hash1"));
     dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "hash1"));
 
     createReportService().includeThirdPartyData(reportZip, dto);

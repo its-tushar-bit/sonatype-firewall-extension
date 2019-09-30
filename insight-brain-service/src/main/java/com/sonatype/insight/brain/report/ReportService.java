@@ -46,6 +46,9 @@ import de.schlichtherle.truezip.file.TFile;
 import de.schlichtherle.truezip.file.TFileWriter;
 import org.codehaus.plexus.util.FileUtils;
 
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME;
+
 @Named
 public class ReportService
 {
@@ -117,8 +120,8 @@ public class ReportService
       throws IOException
   {
     if (dto != null) {
-      TFile bomFile = new TFile(constructPath(reportFile, ThirdPartyDataService.THIRD_PARTY_BOM_JSON_FILENAME));
-      TFile secFile = new TFile(constructPath(reportFile, ThirdPartyDataService.THIRD_PARTY_SECURITY_JSON_FILENAME));
+      TFile bomFile = new TFile(constructPath(reportFile, THIRD_PARTY_BOM_JSON_FILENAME));
+      TFile secFile = new TFile(constructPath(reportFile, THIRD_PARTY_SECURITY_JSON_FILENAME));
 
       try (TFileWriter bomWriter = new TFileWriter(bomFile);
            TFileWriter secWriter = new TFileWriter(secFile)) {

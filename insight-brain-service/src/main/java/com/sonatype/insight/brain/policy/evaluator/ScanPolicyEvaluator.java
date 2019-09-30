@@ -178,7 +178,7 @@ public class ScanPolicyEvaluator
 
     // Load data about components
     final List<Component> components = componentResolver.getComponents(application, licenseReportEntry.buf,
-        securityReportEntry.buf, bomReportEntry.buf, scanId);
+        securityReportEntry.buf, bomReportEntry.buf, reportFile);
 
     sendApplicationStageComponentCounts(application.getId(), stage.getStageTypeId(), components);
 

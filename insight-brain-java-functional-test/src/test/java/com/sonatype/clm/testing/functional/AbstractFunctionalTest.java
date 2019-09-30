@@ -128,8 +128,6 @@ public abstract class AbstractFunctionalTest
 
     try {
       String contextPath = System.getProperty("iq.contextPath", "/iq-test");
-      Configuration.baseUrl = resolveBaseUrl(getBaseUrl(contextPath));
-      Configuration.reportsFolder = "target/selenide-reports";
 
       testCLMServer = new TestCLMServer(false /* isProxyRequiredToReachHds */, getBrainModules(), new Configurator()
       {
@@ -140,6 +138,9 @@ public abstract class AbstractFunctionalTest
         }
       });
       reverseProxyServer = new ReverseProxyServer(testCLMServer.getCLMServer().getPort());
+
+      Configuration.baseUrl = resolveBaseUrl(getBaseUrl(contextPath));
+      Configuration.reportsFolder = "target/selenide-reports";
 
       testCLMServer.start();
       reverseProxyServer.start();

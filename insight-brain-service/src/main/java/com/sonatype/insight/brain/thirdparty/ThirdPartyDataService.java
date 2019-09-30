@@ -64,6 +64,10 @@ public class ThirdPartyDataService
     return null;
   }
 
+  public void deleteByScanId(String scanId) {
+    thirdPartyFileDAO.deleteByScanId(scanId);
+  }
+
   private ThirdPartyApplicationReportDTO loadThirdPartyDataForScan(String scanId, final Date scanTime) {
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = new ThirdPartyApplicationReportDTO();
 

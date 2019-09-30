@@ -105,6 +105,17 @@ public class ThirdPartyDataServiceTest
     assertThat(scanData.securityRows).hasSize(0);
   }
 
+  @Test
+  public void testDeleteByScanId() {
+    String scanId = tempEntity.uuid();
+
+    ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(tempEntity.uuid(), scanId, thirdPartyFile1);
+
+    handler.deleteByScanId(scanId);
+    assertThat(handler.getScanData(scanId)).isNull();
+  }
+
   private void assertSecurityRowsForComponent(
       final List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows,
       final ThirdPartyFileCoordinate coordinate,

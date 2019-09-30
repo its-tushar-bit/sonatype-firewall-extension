@@ -102,7 +102,7 @@ public class ReportService
         if (!reportDownloader.downloadReport(scanId, tempFile, reportTimeoutInSeconds, 5)) {
           throw new NotFoundException("Could not download the report for scan ID " + scanId);
         }
-        includeThirdPartyData(tempFile, thirdPartyDataService.getScanData(scanId));
+        processThirdPartyData(scanId, tempFile);
         FileUtils.rename(tempFile, reportFile);
       }
 
@@ -145,6 +145,14 @@ public class ReportService
       }
     }
     return lock;
+  }
+
+  private void processThirdPartyData(final String scanId, final File tempFile) throws IOException {
+    ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = thirdPartyDataService.getScanData(scanId);
+    if (thirdPartyApplicationReportDTO != null) {
+      includeThirdPartyData(tempFile, thirdPartyApplicationReportDTO);
+      thirdPartyDataService.deleteByScanId(scanId);
+    }
   }
 
   public File getReport(final InsightWork work, final String appId, final String scanId) {

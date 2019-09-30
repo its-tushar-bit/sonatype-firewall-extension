@@ -54,6 +54,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -79,6 +81,9 @@ public class ReportServiceTest
   @Inject
   private ThirdPartyDataService thirdPartyDataService;
 
+  // No default constructor, can't use @Spy
+  private ThirdPartyDataService thirdPartyDataServiceSpy;
+
   /**
    * To be configured/mocked by each test.
    */
@@ -86,12 +91,13 @@ public class ReportServiceTest
 
   @Before
   public void before() throws Exception {
+    thirdPartyDataServiceSpy = spy(thirdPartyDataService);
     app = tempEntity.newApplicationWithParent();
   }
 
   private ReportService createReportService() {
     return new ReportService(insightWork, reportDownloader, new PolicyEvaluationDAO(), insightConfig,
-        new ApplicationDAO(), applicationAdapter, thirdPartyDataService);
+        new ApplicationDAO(), applicationAdapter, thirdPartyDataServiceSpy);
   }
 
   @Test
@@ -103,6 +109,7 @@ public class ReportServiceTest
     assertThat(report).isNotNull();
     assertThat(report).isFile();
     assertThat(report.getName()).isEqualTo("report.zip");
+    verify(thirdPartyDataServiceSpy, never()).deleteByScanId(eq(scanId));
   }
 
   @Test
@@ -112,11 +119,14 @@ public class ReportServiceTest
     reportDownloader = mockReportDownloader.getMock();
 
     ReportService reportService = createReportService();
+    when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(new ThirdPartyApplicationReportDTO());
+
     File report = reportService.fetchReport(insightWork, app, scanId);
     assertThat(report).isNotNull();
     assertThat(report).isFile();
     assertThat(report.getName()).isEqualTo("report.zip");
     verify(reportDownloader).downloadReport(eq(scanId), any(File.class), eq(2100), eq(5));
+    verify(thirdPartyDataServiceSpy).deleteByScanId(eq(scanId));
   }
 
   @Test

@@ -21,8 +21,8 @@ Please read our [contribution rules and guidelines](contributing.md).
 
 This week's rotating reviewers are:
 
-* [@Ross Pokorny](https://github.com/rpokorny)
-* [@(TK) Tim Kemper](https://github.com/tkemperSonatype)
+* [@Kasun Ranawaka](https://github.com/kakumara)
+* [@Brandon Murray](https://github.com/bmurmistro)
 
 # Building #
 

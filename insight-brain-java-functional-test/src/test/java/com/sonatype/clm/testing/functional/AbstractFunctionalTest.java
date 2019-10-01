@@ -131,7 +131,7 @@ public abstract class AbstractFunctionalTest
     {
       @Override
       public void configure(InsightConfig config) {
-        config.setBaseUrl(getBaseUrl(contextPath));
+        config.setBaseUrl(Configuration.baseUrl);
         ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
       }
     });

@@ -74,8 +74,8 @@ export var unauthenticatedResponseHttpInterceptor = angular.module('Unauthentica
   'LoginModalService',
   'UnauthenticatedRequestQueueService',
   function($rootScope, $q, $http, LoginModalService, UnauthenticatedRequestQueueService) {
-    function authenticate(showSamlSso) {
-      return LoginModalService.show(showSamlSso);
+    function authenticate(showSamlSso, identityProviderName) {
+      return LoginModalService.show(showSamlSso, identityProviderName);
     }
 
     $rootScope.$on('userNeedsAuthentication', function(event, response, deferred) {
@@ -95,7 +95,7 @@ export var unauthenticatedResponseHttpInterceptor = angular.module('Unauthentica
         // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
         // the other messages, the data will be added to the queue, but the dialog portion will be ignored
         if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
-          authenticate(response.headers('WWW-Authenticate') === 'SAML').then(
+          authenticate(response.headers('WWW-Authenticate') === 'SAML', response.headers('X-SAML-IdP')).then(
               function() {
                 // retry failed requests and then clear the queue
                 $q.all(UnauthenticatedRequestQueueService.getPromises()).finally(function() {

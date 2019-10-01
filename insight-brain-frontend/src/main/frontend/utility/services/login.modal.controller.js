@@ -3,14 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 /* global Base64 */
-function LoginModalController($scope, $http, CLMLocations, Messages, routeStateUtilService, $window, showSamlSso) {
+function LoginModalController($scope, $http, CLMLocations, Messages, routeStateUtilService, $window, showSamlSso,
+                              identityProviderName) {
   var vm = this;
 
   vm.username = '';
   vm.password = '';
   vm.error = undefined;
   vm.loginMask = undefined;
+  vm.showSamlSso = showSamlSso;
+  vm.identityProviderName = identityProviderName ? identityProviderName : 'identity provider';
 
   $scope.$watchGroup([function() {
     return vm.username;
@@ -57,7 +61,8 @@ function LoginModalController($scope, $http, CLMLocations, Messages, routeStateU
 }
 
 LoginModalController.$inject = [
-  '$scope', '$http', 'CLMLocations', 'Messages', 'routeStateUtilService', '$window', 'showSamlSso'
+  '$scope', '$http', 'CLMLocations', 'Messages', 'routeStateUtilService', '$window', 'showSamlSso',
+  'identityProviderName'
 ];
 
 export default LoginModalController;

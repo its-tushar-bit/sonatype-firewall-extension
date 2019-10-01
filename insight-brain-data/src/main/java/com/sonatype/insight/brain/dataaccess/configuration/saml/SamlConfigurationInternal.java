@@ -19,6 +19,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
@@ -131,6 +132,12 @@ class SamlConfigurationInternal
   public static SamlConfigurationInternal fromSamlConfiguration(SamlConfiguration samlConfiguration) {
     if (samlConfiguration == null) {
       return null;
+    }
+    if (samlConfiguration.getIdentityProviderName().length() >
+        SamlConfiguration.IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH) {
+      throw new InvalidNameException(
+          "Identity provider name must be " + SamlConfiguration.IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH +
+              " characters or less.");
     }
 
     SamlConfigurationInternal result = new SamlConfigurationInternal();

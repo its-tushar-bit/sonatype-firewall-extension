@@ -11,10 +11,13 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.disabled;
@@ -29,10 +32,15 @@ public class LoginTest
 {
   private LoginModal loginModal = new LoginModal();
 
+  @Before
   @After
-  public void clearCookiesAndSamlDeployment() {
-    Selenide.clearBrowserCookies();
+  public void clearSamlDeployment() {
     testCLMServer.getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
+  }
+
+  @After
+  public void clearCookies() {
+    Selenide.clearBrowserCookies();
   }
 
   @Test
@@ -47,13 +55,15 @@ public class LoginTest
 
   @Test
   public void testInitialLoginFormState_SamlSso() {
-    tempEntity.newSamlConfiguration();
+    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration();
+    samlConfiguration.setIdentityProviderName("My Awesome IdP");
+    new SamlConfigurationDAO().update(samlConfiguration);
     testCLMServer.getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
 
     refreshOrOpen(ReportListPage.URL);
 
     loginModal.shouldBe(visible);
-    loginModal.ssoText().shouldBe(visible);
+    loginModal.ssoText().shouldBe(visible).shouldHave(text(samlConfiguration.getIdentityProviderName()));
     loginModal.ssoButton().shouldBe(enabled, focused);
     loginModal.loginButton().shouldBe(disabled);
     eyesWatcher.eyesCheck();
@@ -95,7 +105,7 @@ public class LoginTest
     OwnerSummaryPage.summaryTile().shouldBe(visible);
     refreshOrOpen(ReportListPage.URL);
     ReportListPage.listContainer().shouldBe(visible);
-    clearCookiesAndSamlDeployment();
+    clearCookies();
     refreshOrOpen(ReportListPage.URL);
     loginModal.shouldBe(visible);
   }

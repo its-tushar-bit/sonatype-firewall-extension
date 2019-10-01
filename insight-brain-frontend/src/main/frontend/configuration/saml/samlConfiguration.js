@@ -18,6 +18,7 @@ export default {
 function SamlConfigurationController($scope, BaseUrl, $http, CLMContextLocations, Messages, Dialog, $window) {
   const vm = this;
   const defaultSaml = {
+    identityProviderName: 'identity provider',
     identityProviderMetadataXml: undefined,
     entityId: BaseUrl.get() + '/api/v2/config/saml/metadata',
     usernameAttributeName: 'username',

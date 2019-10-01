@@ -176,6 +176,7 @@ public class ApiSamlConfigurationService
 
   private ApiSamlConfigurationResponseDTO convertToResponseDTO(SamlConfiguration samlConfiguration) {
     ApiSamlConfigurationResponseDTO responseDTO = new ApiSamlConfigurationResponseDTO();
+    responseDTO.identityProviderName = samlConfiguration.getIdentityProviderName();
     responseDTO.identityProviderMetadataXml = samlConfiguration.getIdentityProviderMetadataXml();
     responseDTO.entityId = samlConfiguration.getEntityId();
     responseDTO.firstNameAttributeName = samlConfiguration.getFirstNameAttributeName();
@@ -205,6 +206,9 @@ public class ApiSamlConfigurationService
       ApiSamlConfigurationDTO apiSamlConfigurationDTO,
       SamlConfiguration samlConfiguration)
   {
+    if (StringUtils.isNotBlank(apiSamlConfigurationDTO.identityProviderName)) {
+      samlConfiguration.setIdentityProviderName(apiSamlConfigurationDTO.identityProviderName);
+    }
     if (StringUtils.isNotBlank(apiSamlConfigurationDTO.entityId)) {
       validateAndSetEntityId(apiSamlConfigurationDTO.entityId, samlConfiguration);
     }
@@ -250,6 +254,7 @@ public class ApiSamlConfigurationService
     String identityProviderMetadataXml = samlConfiguration.getIdentityProviderMetadataXml();
     String identityProviderEntityId = samlMetadataTool.parseEntityDescriptor(identityProviderMetadataXml).getEntityID();
     AuditData.get()
+        .setData("identityProviderName", samlConfiguration.getIdentityProviderName())
         .setData("entityId", samlConfiguration.getEntityId())
         .setData("firstNameAttributeName", samlConfiguration.getFirstNameAttributeName())
         .setData("lastNameAttributeName", samlConfiguration.getLastNameAttributeName())

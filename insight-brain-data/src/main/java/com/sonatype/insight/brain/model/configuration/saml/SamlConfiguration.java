@@ -16,7 +16,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 public class SamlConfiguration
 {
+  public static final int IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH = 200;
+
   private String id;
+
+  private String identityProviderName = "identity provider";
 
   private String identityProviderMetadataXml;
 
@@ -51,6 +55,14 @@ public class SamlConfiguration
 
   public void setId(String id) {
     this.id = id;
+  }
+
+  public String getIdentityProviderName() {
+    return identityProviderName;
+  }
+
+  public void setIdentityProviderName(String identityProviderName) {
+    this.identityProviderName = identityProviderName;
   }
 
   public String getFirstNameAttributeName() {

@@ -215,8 +215,8 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_NoSigningKeysButResponseSignatureValidationEnabled() {
-    tempEntity.newSamlConfiguration(getSamlMetadata("no-signing-keys.xml"), "sp-entity-id", "firstName", "lastName",
-        "email", "username", "groups", true, null);
+    tempEntity.newSamlConfiguration("My Awesome IdP", getSamlMetadata("no-signing-keys.xml"), "sp-entity-id",
+        "firstName", "lastName", "email", "username", "groups", true, null);
     assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
       samlDeploymentManager.updateFromConfiguration();
     }).withMessageContaining("SAML metadata for identity provider misses signing key");
@@ -225,8 +225,8 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_NoSigningKeysButAssertionSignatureValidationEnabled() {
-    tempEntity.newSamlConfiguration(getSamlMetadata("no-signing-keys.xml"), "sp-entity-id", "firstName", "lastName",
-        "email", "username", "groups", null, true);
+    tempEntity.newSamlConfiguration("My Awesome IdP", getSamlMetadata("no-signing-keys.xml"), "sp-entity-id",
+        "firstName", "lastName", "email", "username", "groups", null, true);
     assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
       samlDeploymentManager.updateFromConfiguration();
     }).withMessageContaining("SAML metadata for identity provider misses signing key");
@@ -235,8 +235,8 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_NoResponseSignatureValidation() {
-    tempEntity.newSamlConfiguration(getSamlMetadata("valid.xml"), "sp-entity-id", "firstName", "lastName", "email",
-        "username", "groups", false, null);
+    tempEntity.newSamlConfiguration("My Awesome IdP", getSamlMetadata("valid.xml"), "sp-entity-id", "firstName",
+        "lastName", "email", "username", "groups", false, null);
     samlDeploymentManager.updateFromConfiguration();
 
     SamlDeployment samlDeployment = samlDeploymentManager.get();
@@ -248,8 +248,8 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_NoAssertionSignatureValidation() {
-    tempEntity.newSamlConfiguration(getSamlMetadata("valid.xml"), "sp-entity-id", "firstName", "lastName", "email",
-        "username", "groups", null, false);
+    tempEntity.newSamlConfiguration("My Awesome IdP", getSamlMetadata("valid.xml"), "sp-entity-id", "firstName",
+        "lastName", "email", "username", "groups", null, false);
     samlDeploymentManager.updateFromConfiguration();
 
     SamlDeployment samlDeployment = samlDeploymentManager.get();

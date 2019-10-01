@@ -21,7 +21,8 @@ describe('HttpInterceptors.js', function() {
             inject(function($controller) {
               $controller(config.controller, {
                 $scope: scope,
-                showSamlSso: undefined
+                showSamlSso: undefined,
+                identityProviderName: undefined
               });
             });
             return {
@@ -127,6 +128,21 @@ describe('HttpInterceptors.js', function() {
         $rootScope.$digest();
 
         expect(modalConfig.resolve.showSamlSso()).toBe(false);
+      })
+  );
+
+  it('Validate that the login modal is told the identity provider name when the X-SAML-IdP is set to it',
+      inject(function($rootScope, $http, $httpBackend) {
+
+        $httpBackend.expectPOST('test').respond(401, undefined, {
+          'X-SAML-IdP': 'My Awesome IdP'
+        });
+
+        $http.post('test');
+        $httpBackend.flush();
+        $rootScope.$digest();
+
+        expect(modalConfig.resolve.identityProviderName()).toBe('My Awesome IdP');
       })
   );
 

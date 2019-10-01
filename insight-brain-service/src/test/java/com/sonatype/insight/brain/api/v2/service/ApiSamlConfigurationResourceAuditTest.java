@@ -110,6 +110,7 @@ public class ApiSamlConfigurationResourceAuditTest
 
   private void assertAuditData(AuditDTO auditDTO, SamlConfiguration samlConfiguration) {
     assertThat(auditDTO.data)
+        .containsEntry("identityProviderName", samlConfiguration.getIdentityProviderName())
         .containsEntry("entityId", samlConfiguration.getEntityId())
         .containsEntry("firstNameAttributeName", samlConfiguration.getFirstNameAttributeName())
         .containsEntry("lastNameAttributeName", samlConfiguration.getLastNameAttributeName())

@@ -126,6 +126,7 @@ public class SamlFilterTest
     verify(mockHttpServletResponse).setContentType(ErrorResponse.CONTENT_TYPE);
     verify(mockHttpServletResponse.getWriter()).print(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS);
     verify(mockHttpServletResponse).setHeader("WWW-Authenticate", "SAML");
+    verify(mockHttpServletResponse).setHeader("X-SAML-IdP", "identity provider");
   }
 
   @Test

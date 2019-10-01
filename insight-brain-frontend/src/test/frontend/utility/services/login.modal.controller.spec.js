@@ -7,7 +7,8 @@ import utilityServicesModule from '../../../../main/frontend/utility/services/ut
 
 describe('login.modal.controller.spec.js', function() {
   var vm,
-      scope;
+      scope,
+      $controller;
 
   beforeEach(angular.mock.module(utilityServicesModule.name, function($provide) {
     $provide.value('$window', {
@@ -21,12 +22,13 @@ describe('login.modal.controller.spec.js', function() {
     });
   }));
 
-  beforeEach(inject(function($controller, $rootScope) {
+  beforeEach(inject(function(_$controller_, $rootScope) {
     scope = $rootScope.$new();
-
+    $controller = _$controller_;
     vm = $controller('login.modal.controller', {
       $scope: scope,
-      showSamlSso: 'some boolean value'
+      showSamlSso: 'some boolean value',
+      identityProviderName: 'My Awesome IdP'
     });
   }));
 
@@ -39,8 +41,24 @@ describe('login.modal.controller.spec.js', function() {
   });
 
   describe('showSamlSso', function() {
-    it('showSamlSso is set', function() {
+    it('is set', function() {
       expect(vm.showSamlSso).toBe('some boolean value');
+    });
+  });
+
+  describe('identityProviderName', function() {
+    it('is set', function() {
+      expect(vm.identityProviderName).toBe('My Awesome IdP');
+    });
+
+    it('is set to a default value if there is no given value', function() {
+      vm = $controller('login.modal.controller', {
+        $scope: scope,
+        showSamlSso: 'some boolean value',
+        identityProviderName: undefined
+      });
+
+      expect(vm.identityProviderName).toBe('identity provider');
     });
   });
 

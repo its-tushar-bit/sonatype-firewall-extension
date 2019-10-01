@@ -43,6 +43,19 @@
             ng-submit="vm.save()"
             form-mask="vm.samlConfigurationMask"
             mask-attach-to-body>
+        <div id="saml-identity-provider-name-control-group" class="iq-form-group">
+          <label class="iq-label" for="saml-identity-provider-name">Identity Provider Name - Displayed at Login</label>
+          <input clm-input
+                 iq-tooltip
+                 tooltip-text="{{vm.defaultsToTooltipText(vm.defaultSaml.identityProviderName)}}"
+                 ng-blur="vm.resetToDefaultValueIfEmpty('identityProviderName')"
+                 class="iq-text-input iq-text-input--long"
+                 name="saml-identity-provider-name"
+                 id="saml-identity-provider-name"
+                 ng-model="vm.saml.identityProviderName"
+                 ng-maxlength="200"
+                 type="text">
+        </div>
         <div id="saml-identity-provider-metadata-xml-control-group" class="iq-form-group">
           <label class="iq-label" for="saml-identity-provider-metadata-xml">Identity Provider Metadata XML</label>
           <label for="saml-identity-provider-metadata-xml-load" class="iq-btn">Load XML File</label>

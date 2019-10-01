@@ -17,7 +17,7 @@ export default function LoginModalService(Modal) {
   /**
    * Present the login modal
    */
-  function LoginModal(showSamlSso) {
+  function LoginModal(showSamlSso, identityProviderName) {
     modal = Modal.open({
       animation: false,
       backdrop: 'static',
@@ -26,7 +26,8 @@ export default function LoginModalService(Modal) {
       template,
       windowClass: 'loginPanel iq-modal',
       resolve: {
-        showSamlSso: always(showSamlSso)
+        showSamlSso: always(showSamlSso),
+        identityProviderName: always(identityProviderName)
       }
     });
 

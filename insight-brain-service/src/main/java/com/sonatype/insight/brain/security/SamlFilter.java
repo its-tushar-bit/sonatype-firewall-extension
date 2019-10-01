@@ -13,6 +13,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
@@ -96,6 +98,10 @@ class SamlFilter
       else {
         // let the UI know that SAML SSO should be a login option
         httpResponse.setHeader("WWW-Authenticate", "SAML");
+        SamlConfiguration samlConfiguration = new SamlConfigurationDAO().get();
+        if (samlConfiguration != null) {
+          httpResponse.setHeader("X-SAML-IdP", samlConfiguration.getIdentityProviderName());
+        }
         LoginErrorResponseHandler.sendError(httpResponse,
             new ErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
       }

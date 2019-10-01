@@ -11,6 +11,7 @@ describe('samlConfiguration', function() {
       vm;
 
   const defaultSaml = {
+    identityProviderName: 'identity provider',
     identityProviderMetadataXml: undefined,
     entityId: 'http://localhost/api/v2/config/saml/metadata',
     usernameAttributeName: 'username',
@@ -23,6 +24,7 @@ describe('samlConfiguration', function() {
   };
 
   const saml1 = {
+    identityProviderName: 'idp1',
     identityProviderMetadataXml: '<xml>1</xml>',
     entityId: 'entityId1',
     usernameAttributeName: 'username1',
@@ -35,6 +37,7 @@ describe('samlConfiguration', function() {
   };
 
   const saml2 = {
+    identityProviderName: 'idp2',
     identityProviderMetadataXml: '<xml>2</xml>',
     entityId: 'entityId2',
     usernameAttributeName: 'username2',
@@ -151,6 +154,14 @@ describe('samlConfiguration', function() {
       $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
+    });
+
+    it('returns true if the identityProviderName is changed', function() {
+      expect(vm.isChanged()).toBe(false);
+
+      vm.saml.identityProviderName = vm.saml.identityProviderName + '2';
+
+      expect(vm.isChanged()).toBe(true);
     });
 
     it('returns true if the identityProviderMetadataXml is changed', function() {

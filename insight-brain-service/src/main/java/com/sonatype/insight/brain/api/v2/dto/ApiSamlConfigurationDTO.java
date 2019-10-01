@@ -10,6 +10,8 @@ package com.sonatype.insight.brain.api.v2.dto;
  */
 public class ApiSamlConfigurationDTO
 {
+  public String identityProviderName;
+
   public String entityId;
 
   public String firstNameAttributeName;

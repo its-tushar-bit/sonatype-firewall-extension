@@ -60,8 +60,8 @@ public class ApiSamlConfigurationServiceTest
 
   @Test
   public void testGetSamlConfiguration() {
-    SamlConfiguration existing = tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "first-name", "last-name",
-        "e-mail", "user-name", "teams", true, false);
+    SamlConfiguration existing = tempEntity.newSamlConfiguration("My Awesome IdP", "<xml></xml>", "ent-id",
+        "first-name", "last-name", "e-mail", "user-name", "teams", true, false);
 
     ApiSamlConfigurationResponseDTO response = apiSamlConfigurationService.getSamlConfiguration();
 
@@ -165,6 +165,7 @@ public class ApiSamlConfigurationServiceTest
       assertThat(persisted.getFirstNameAttributeName()).isEqualTo(dto.firstNameAttributeName);
       assertThat(persisted.getValidateAssertionSignature()).isFalse();
       // Rest should have the defaults
+      assertThat(persisted.getIdentityProviderName()).isEqualTo(defaultProperties.getIdentityProviderName());
       assertThat(persisted.getLastNameAttributeName()).isEqualTo(defaultProperties.getLastNameAttributeName());
       assertThat(persisted.getEmailAttributeName()).isEqualTo(defaultProperties.getEmailAttributeName());
       assertThat(persisted.getUsernameAttributeName()).isEqualTo(defaultProperties.getUsernameAttributeName());
@@ -218,8 +219,8 @@ public class ApiSamlConfigurationServiceTest
 
   @Test
   public void testInsertOrUpdateSamlConfiguration_UpdateBadCertificate() {
-    tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "first-name", "l-name", "e-mail", "user-name", "teams",
-        null, null);
+    tempEntity.newSamlConfiguration("My Awesome IdP", "<xml></xml>", "ent-id", "first-name", "l-name", "e-mail",
+        "user-name", "teams", null, null);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSamlConfigurationService
         .insertOrUpdateSamlConfiguration(invalidCertificate(), dtoWithCustomValues()))
@@ -237,8 +238,8 @@ public class ApiSamlConfigurationServiceTest
 
   @Test
   public void testInsertOrUpdateSamlConfiguration_UpdateBadCertificateNullConfiguration() {
-    tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "first-name", "l-name", "e-mail", "user-name", "teams",
-        null, null);
+    tempEntity.newSamlConfiguration("My Awesome IdP", "<xml></xml>", "ent-id", "first-name", "l-name", "e-mail",
+        "user-name", "teams", null, null);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSamlConfigurationService
         .insertOrUpdateSamlConfiguration(invalidCertificate(), null))
@@ -256,8 +257,8 @@ public class ApiSamlConfigurationServiceTest
 
   @Test
   public void testInsertOrUpdateSamlConfiguration_Update() throws Exception {
-    tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "name-first", "name-last", "mail-e", "name-user", "teamz",
-        null, null);
+    tempEntity.newSamlConfiguration("My Awesome IdP", "<xml></xml>", "ent-id", "name-first", "name-last", "mail-e",
+        "name-user", "teamz", null, null);
     ApiSamlConfigurationDTO dto = dtoWithCustomValues();
 
     apiSamlConfigurationService.insertOrUpdateSamlConfiguration(validIdentityProviderXml(), dto);
@@ -271,8 +272,8 @@ public class ApiSamlConfigurationServiceTest
   @Test
   public void testInsertOrUpdateSamlConfiguration_UpdateWithNullIdentityProviderMetadataXml() throws Exception {
     String idpXml = validIdentityProviderXml();
-    tempEntity.newSamlConfiguration(idpXml, "ent-id", "name-first", "name-last", "mail-e", "name-user", "teamz", null,
-        null);
+    tempEntity.newSamlConfiguration("My Awesome IdP", idpXml, "ent-id", "name-first", "name-last", "mail-e",
+        "name-user", "teamz", null, null);
     ApiSamlConfigurationDTO dto = dtoWithCustomValues();
 
     apiSamlConfigurationService.insertOrUpdateSamlConfiguration(null, dto);
@@ -287,8 +288,8 @@ public class ApiSamlConfigurationServiceTest
 
   @Test
   public void testInsertOrUpdateSamlConfiguration_UpdateWithNullConfiguration() throws Exception {
-    SamlConfiguration existing = tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "name-first", "name-last",
-        "mail-e", "name-user", "teamz", null, null);
+    SamlConfiguration existing = tempEntity.newSamlConfiguration("My Awesome IdP", "<xml></xml>", "ent-id",
+        "name-first", "name-last", "mail-e", "name-user", "teamz", null, null);
 
     apiSamlConfigurationService.insertOrUpdateSamlConfiguration(validIdentityProviderXml(), null);
 
@@ -300,8 +301,8 @@ public class ApiSamlConfigurationServiceTest
 
   @Test
   public void testInsertOrUpdateSamlConfiguration_UpdateWithEmptyConfiguration() throws Exception {
-    tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "name-first", "name-last", "mail-e", "name-user", "teamz",
-        null, null);
+    tempEntity.newSamlConfiguration("My Awesome IdP", "<xml></xml>", "ent-id", "name-first", "name-last", "mail-e",
+        "name-user", "teamz", null, null);
     ApiSamlConfigurationDTO emptyDto = new ApiSamlConfigurationDTO();
 
     apiSamlConfigurationService.insertOrUpdateSamlConfiguration(validIdentityProviderXml(), emptyDto);
@@ -316,8 +317,8 @@ public class ApiSamlConfigurationServiceTest
 
   @Test
   public void testInsertOrUpdateSamlConfiguration_UpdateXmlAndEntityId() throws Exception {
-    tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "name-first", "name-last", "mail-e", "name-user", "teamz",
-        null, null);
+    tempEntity.newSamlConfiguration("My Awesome IdP", "<xml></xml>", "ent-id", "name-first", "name-last", "mail-e",
+        "name-user", "teamz", null, null);
     ApiSamlConfigurationDTO dto = new ApiSamlConfigurationDTO();
     dto.entityId = "http://custom-entity-id";
 
@@ -333,8 +334,8 @@ public class ApiSamlConfigurationServiceTest
 
   @Test
   public void testInsertOrUpdateSamlConfiguration_UpdateWithInvalidIdentityProviderXml() {
-    tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "name-first", "name-last", "mail-e", "name-user", "teamz",
-        null, null);
+    tempEntity.newSamlConfiguration("My Awesome IdP", "<xml></xml>", "ent-id", "name-first", "name-last", "mail-e",
+        "name-user", "teamz", null, null);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> apiSamlConfigurationService.insertOrUpdateSamlConfiguration(invalidIdentityProviderXml(), null))
@@ -343,8 +344,8 @@ public class ApiSamlConfigurationServiceTest
 
   @Test
   public void testInsertOrUpdateSamlConfiguration_UpdateWithInvalidEntityId() {
-    tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "name-first", "name-last", "mail-e", "name-user", "teamz",
-        null, null);
+    tempEntity.newSamlConfiguration("My Awesome IdP", "<xml></xml>", "ent-id", "name-first", "name-last", "mail-e",
+        "name-user", "teamz", null, null);
     ApiSamlConfigurationDTO dto = dtoWithCustomValues();
     dto.entityId = "Bad Entity Id";
 
@@ -370,8 +371,8 @@ public class ApiSamlConfigurationServiceTest
   @Test
   public void testDeleteSamlConfiguration() throws Exception {
     String idpXml = validIdentityProviderXml();
-    tempEntity.newSamlConfiguration(idpXml, "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams", null,
-        null);
+    tempEntity.newSamlConfiguration("My Awesome IdP", idpXml, "ent-id", "first-name", "last-name", "e-mail",
+        "user-name", "teams", null, null);
 
     apiSamlConfigurationService.deleteSamlConfiguration();
 
@@ -386,8 +387,8 @@ public class ApiSamlConfigurationServiceTest
 
   @Test
   public void testDeleteSamlConfiguration_UpdateSamlDeployment() throws Exception {
-    tempEntity.newSamlConfiguration(validIdentityProviderXml(), "ent-id", "first-name", "last-name", "e-mail",
-        "user-name", "teams", null, null);
+    tempEntity.newSamlConfiguration("My Awesome IdP", validIdentityProviderXml(), "ent-id", "first-name", "last-name",
+        "e-mail", "user-name", "teams", null, null);
     samlDeploymentManager.updateFromConfiguration();
 
     apiSamlConfigurationService.deleteSamlConfiguration();
@@ -403,9 +404,8 @@ public class ApiSamlConfigurationServiceTest
 
   @Test
   public void testGetMetadata() throws Exception {
-    SamlConfiguration samlConfiguration = tempEntity
-        .newSamlConfiguration(validIdentityProviderXml(), "ent-id", "first-name", "last-name", "e-mail", "user-name",
-            "teams", null, null);
+    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration("My Awesome IdP", validIdentityProviderXml(),
+        "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams", null, null);
     samlDeploymentManager.updateFromConfiguration();
 
     String xmlMetadata = apiSamlConfigurationService.getMetadata();
@@ -460,6 +460,7 @@ public class ApiSamlConfigurationServiceTest
 
   private ApiSamlConfigurationDTO dtoWithCustomValues() {
     ApiSamlConfigurationDTO dto = new ApiSamlConfigurationDTO();
+    dto.identityProviderName = "My Awesome IdP";
     dto.entityId = "http://my-host:9090/config/saml/";
     dto.firstNameAttributeName = "first-name";
     dto.lastNameAttributeName = "last-name";
@@ -472,6 +473,7 @@ public class ApiSamlConfigurationServiceTest
   }
 
   private void assertConfigIdentical(SamlConfiguration actual, ApiSamlConfigurationDTO expected) {
+    assertThat(actual.getIdentityProviderName()).isEqualTo(expected.identityProviderName);
     assertThat(actual.getFirstNameAttributeName()).isEqualTo(expected.firstNameAttributeName);
     assertThat(actual.getLastNameAttributeName()).isEqualTo(expected.lastNameAttributeName);
     assertThat(actual.getEmailAttributeName()).isEqualTo(expected.emailAttributeName);
@@ -482,6 +484,7 @@ public class ApiSamlConfigurationServiceTest
   }
 
   private void assertConfigIdentical(SamlConfiguration actual, SamlConfiguration expected) {
+    assertThat(actual.getIdentityProviderName()).isEqualTo(expected.getIdentityProviderName());
     assertThat(actual.getFirstNameAttributeName()).isEqualTo(expected.getFirstNameAttributeName());
     assertThat(actual.getLastNameAttributeName()).isEqualTo(expected.getLastNameAttributeName());
     assertThat(actual.getEmailAttributeName()).isEqualTo(expected.getEmailAttributeName());

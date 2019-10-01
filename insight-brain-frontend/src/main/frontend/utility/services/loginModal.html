@@ -12,8 +12,7 @@
     <system-notice></system-notice>
     <div ng-class="{'iq-form-row': !vm.showSamlSso, 'iq-grid-row': vm.showSamlSso}">
       <p id="sso-text" class="iq-grid-col iq-grid-col--33" ng-if="vm.showSamlSso">
-        Single sign-on via SAML is configured and can be initiated with your identity provider by clicking the Single
-        Sign-On button.
+        Single sign-on via {{vm.identityProviderName}} by clicking the Single Sign-On button.
       </p>
       <div class="iq-grid-col">
         <div class="iq-form-group">

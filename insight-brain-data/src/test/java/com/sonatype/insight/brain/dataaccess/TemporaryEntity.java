@@ -1900,6 +1900,7 @@ public class TemporaryEntity
   }
 
   public SamlConfiguration newSamlConfiguration(
+      String identityProviderName,
       String identityProviderMetadataXml,
       String entityId,
       String firstNameAttributeName,
@@ -1912,6 +1913,7 @@ public class TemporaryEntity
   {
     SamlConfiguration samlConfiguration = new SamlConfiguration();
 
+    samlConfiguration.setIdentityProviderName(identityProviderName);
     samlConfiguration.setIdentityProviderMetadataXml(identityProviderMetadataXml);
     samlConfiguration.setEntityId(entityId);
     samlConfiguration.setFirstNameAttributeName(firstNameAttributeName);

@@ -11,13 +11,16 @@ import java.security.cert.X509Certificate;
 import java.util.Date;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternalDAO.TEN_YEARS_IN_SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class SamlConfigurationDAOTest
@@ -42,6 +45,8 @@ public class SamlConfigurationDAOTest
     X509Certificate certificate = (X509Certificate) samlConfiguration.getCertificate();
     PrivateKey decryptionKey = samlConfiguration.getDecryptionKey();
     KeyPair signingKeyPair = samlConfiguration.getSigningKeyPair();
+    String identityProviderName = "My Awesome IdP";
+    samlConfiguration.setIdentityProviderName(identityProviderName);
     samlConfiguration.setFirstNameAttributeName("updated firstname");
     samlConfiguration.setValidateResponseSignature(true);
     samlConfiguration.setValidateAssertionSignature(false);
@@ -50,6 +55,7 @@ public class SamlConfigurationDAOTest
     samlConfiguration.setSigningKeyPair(null);
     dao.update(samlConfiguration);
     samlConfiguration = dao.getById(samlConfigurationId);
+    assertThat(samlConfiguration.getIdentityProviderName()).isEqualTo(identityProviderName);
     assertThat(samlConfiguration.getFirstNameAttributeName()).isEqualTo("updated firstname");
     assertThat(samlConfiguration.getValidateResponseSignature()).isTrue();
     assertThat(samlConfiguration.getValidateAssertionSignature()).isFalse();
@@ -75,7 +81,28 @@ public class SamlConfigurationDAOTest
     }).isInstanceOf(BadRequestException.class).hasMessage("A SAML configuration already exists.");
   }
 
+  @Test
+  public void testInsert_IdentityProviderNameTooLong() {
+    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> tempEntity
+        .newSamlConfiguration(StringUtils.repeat("a", SamlConfiguration.IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH + 1),
+            "<xml></xml>", "ent-id", "name-first", "name-last", "mail-e", "name-user", "teamz", null, null))
+        .withMessageContaining("Identity provider name").withMessageContaining("characters or less");
+  }
+
+  @Test
+  public void testUpdate_IdentityProviderNameTooLong() {
+    SamlConfiguration samlConfiguration = tempEntity
+        .newSamlConfiguration("My Awesome IdP", "<xml></xml>", "ent-id", "name-first", "name-last", "mail-e",
+            "name-user", "teamz", null, null);
+    samlConfiguration
+        .setIdentityProviderName(StringUtils.repeat("a", SamlConfiguration.IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH + 1));
+
+    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.update(samlConfiguration))
+        .withMessageContaining("Identity provider name").withMessageContaining("characters or less");
+  }
+
   private void assertSamlConfiguration(SamlConfiguration samlConfiguration, Date before, Date after) {
+    assertThat(samlConfiguration.getIdentityProviderName()).isEqualTo("identity provider");
     assertThat(samlConfiguration.getIdentityProviderMetadataXml()).isNull();
     assertThat(samlConfiguration.getEntityId()).isNull();
     assertThat(samlConfiguration.getFirstNameAttributeName()).isEqualTo("firstName");

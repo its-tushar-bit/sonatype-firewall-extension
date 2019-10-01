@@ -27,6 +27,10 @@ public class SamlConfigurationPage
     return $("#saml-iq-server-metadata");
   }
 
+  public static SelenideElement identityProviderName() {
+    return $("#saml-identity-provider-name");
+  }
+
   public static SelenideElement identityProviderMetadataXmlTextArea() {
     return $("#saml-identity-provider-metadata-xml");
   }

@@ -38,13 +38,14 @@ public class ApiSamlConfigurationResourceTest
 
   @Test
   public void testGetSamlConfiguration() throws Exception {
-    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration("<xml></xml>", "ent-id", "first-name",
-        "last-name", "e-mail", "user-name", "teams", true, null);
+    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration("My Awesome IdP", "<xml></xml>", "ent-id",
+        "first-name", "last-name", "e-mail", "user-name", "teams", true, null);
 
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, restRequest().get());
 
     ApiSamlConfigurationResponseDTO dto = response.getBody(ApiSamlConfigurationResponseDTO.class);
+    assertThat(dto.identityProviderName).isEqualTo(samlConfiguration.getIdentityProviderName());
     assertThat(dto.identityProviderMetadataXml).isEqualTo(samlConfiguration.getIdentityProviderMetadataXml());
     assertThat(dto.entityId).isEqualTo(samlConfiguration.getEntityId());
     assertThat(dto.firstNameAttributeName).isEqualTo(samlConfiguration.getFirstNameAttributeName());
@@ -73,16 +74,15 @@ public class ApiSamlConfigurationResourceTest
   @Test
   public void testDeleteSamlConfiguration() throws Exception {
     String xml = validIdentityProviderXml();
-    tempEntity.newSamlConfiguration(xml, "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams", null,
-        null);
+    tempEntity.newSamlConfiguration("My Awesome IdP", xml, "ent-id", "first-name", "last-name", "e-mail", "user-name",
+        "teams", null, null);
     assertResponseStatus(204, restRequest().delete());
   }
 
   @Test
   public void testGetMetadata() throws Exception {
-    tempEntity
-        .newSamlConfiguration(validIdentityProviderXml(), "ent-id", "first-name", "last-name", "e-mail", "user-name",
-            "teams", null, null);
+    tempEntity.newSamlConfiguration("My Awesome IdP", validIdentityProviderXml(), "ent-id", "first-name", "last-name",
+        "e-mail", "user-name", "teams", null, null);
     SamlDeploymentManager samlDeploymentManager = getCLMServer().getInstance(SamlDeploymentManager.class);
     samlDeploymentManager.updateFromConfiguration();
 

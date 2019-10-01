@@ -462,6 +462,13 @@
         <groupId>com.sonatype.insight.portal</groupId>
         <artifactId>insight-vulnerability-model</artifactId>
         <version>${hds.version}</version>
+        <exclusions>
+          <exclusion>
+            <!-- using log4j-over-slf4j instead -->
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.portal</groupId>

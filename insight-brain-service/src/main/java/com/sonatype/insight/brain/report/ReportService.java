@@ -7,9 +7,19 @@ package com.sonatype.insight.brain.report;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -42,8 +52,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.cache.CacheBuilder;
-import de.schlichtherle.truezip.file.TFile;
-import de.schlichtherle.truezip.file.TFileWriter;
 import org.codehaus.plexus.util.FileUtils;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME;
@@ -120,19 +128,25 @@ public class ReportService
       throws IOException
   {
     if (dto != null) {
-      TFile bomFile = new TFile(constructPath(reportFile, THIRD_PARTY_BOM_JSON_FILENAME));
-      TFile secFile = new TFile(constructPath(reportFile, THIRD_PARTY_SECURITY_JSON_FILENAME));
-
-      try (TFileWriter bomWriter = new TFileWriter(bomFile);
-           TFileWriter secWriter = new TFileWriter(secFile)) {
-        bomWriter.write(new String(JsonUtils.generate(JsonUtils.aaData(dto.billOfMaterials)), StandardCharsets.UTF_8));
-        secWriter.write(new String(JsonUtils.generate(JsonUtils.aaData(dto.securityRows)), StandardCharsets.UTF_8));
+      Map<String, Object> env = new HashMap<>();
+      env.put("create", "false");
+      env.put("useTempFile", Boolean.TRUE); //to avoid large byte streams created in memory
+      Path archivePath = reportFile.toPath();
+      URI archiveUri = URI.create("jar:" + archivePath.toUri());
+      try (FileSystem fs = FileSystems.newFileSystem(archiveUri, env)) {
+        appendFileToReportZip(fs, THIRD_PARTY_BOM_JSON_FILENAME, dto.billOfMaterials);
+        appendFileToReportZip(fs, THIRD_PARTY_SECURITY_JSON_FILENAME, dto.securityRows);
       }
     }
   }
 
-  private String constructPath(final File reportFile, final String subPath) {
-    return reportFile.getAbsolutePath() + "/" + subPath;
+  private void appendFileToReportZip(final FileSystem fs, final String filename, final List<?> data)
+      throws IOException
+  {
+    Path newFile = fs.getPath(filename);
+    try (Writer writer = Files.newBufferedWriter(newFile, StandardCharsets.UTF_8, StandardOpenOption.CREATE)) {
+      writer.write(new String(JsonUtils.generate(JsonUtils.aaData(data)), StandardCharsets.UTF_8));
+    }
   }
 
   private static Lock lockFor(final String appId, final String scanId) {

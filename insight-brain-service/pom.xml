@@ -636,6 +636,10 @@
       <artifactId>xmlunit-assertj</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.nexus</groupId>
+      <artifactId>nexus-git-utils</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

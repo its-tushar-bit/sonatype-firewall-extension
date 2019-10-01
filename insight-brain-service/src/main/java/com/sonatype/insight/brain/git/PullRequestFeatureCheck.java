@@ -30,38 +30,42 @@ public class PullRequestFeatureCheck
 
   private final ProductLicense productLicense;
 
-  private final GitApiService gitApiService;
-
   private final PullRequestUtils pullRequestUtils;
 
   @Inject
   public PullRequestFeatureCheck(
       final ProductLicense productLicense,
-      final GitApiService gitApiService,
       final PullRequestUtils pullRequestUtils)
   {
     this.productLicense = productLicense;
-    this.gitApiService = gitApiService;
     this.pullRequestUtils = pullRequestUtils;
   }
 
-  public boolean isPullRequestFeatureSupported(final Application app) throws IOException {
+  /**
+   * determine if the pull request feature is supported for this application
+   * and repository.
+   *
+   * @param app         Application
+   * @param gitRepoInfo GitRepositoryRepo from configurations
+   * @return true/false if supported
+   */
+  public boolean isPullRequestFeatureSupported(
+      final Application app, final GitRepositoryInfo gitRepoInfo)
+      throws IOException
+  {
     if (!isLicenseValid()) {
       log.debug("Pull request feature is not supported for this license");
       return false;
     }
 
-    String applicationId = app.getPublicId();
-    GitRepositoryInfo gitRepoInfo = gitApiService.getGitRepositoryInfoForApplication(applicationId);
-
     if (!isApplicationConfiguredForPR(gitRepoInfo)) {
-      log.debug("Pull requests have not been configured for application '{}'", applicationId);
+      log.debug("Pull requests have not been configured for application '{}'", app.getId());
       return false;
     }
 
     if (!pullRequestUtils.isPullRequestAllowed(gitRepoInfo)) {
       log.debug("Pull requests are not supported for application '{}' and repository '{}'",
-          applicationId, gitRepoInfo.repositoryUrl);
+          app.getId(), gitRepoInfo.repositoryUrl);
       return false;
     }
 
@@ -75,6 +79,6 @@ public class PullRequestFeatureCheck
 
   private boolean isApplicationConfiguredForPR(final GitRepositoryInfo gitRepositoryInfo) {
     // Check that we have all the necessary fields
-    return gitRepositoryInfo.isDataComplete();
+    return gitRepositoryInfo != null && gitRepositoryInfo.isDataComplete();
   }
 }

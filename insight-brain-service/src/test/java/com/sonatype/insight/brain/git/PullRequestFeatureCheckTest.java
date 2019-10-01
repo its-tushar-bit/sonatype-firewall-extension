@@ -11,30 +11,26 @@ import java.io.IOException;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PullRequestFeatureCheckTest
 {
   private static final String PUBLIC_ID = "abc123";
+
+  private static final String APP_ID = "app-id";
 
   private static final String NAME = "reponame";
 
@@ -50,50 +46,33 @@ public class PullRequestFeatureCheckTest
 
   private static final String REPO_URL = "repo-url";
 
-  private ListAppender<ILoggingEvent> listAppender;
-
   private PullRequestFeatureCheck pullRequestFeatureCheck;
 
   @Mock
   private ProductLicense productLicense;
 
   @Mock
-  private GitApiService gitApiService;
-
-  @Mock
   private PullRequestUtils pullRequestUtils;
+
+  @Rule
+  public LogOutput logOutput = new LogOutput(PullRequestFeatureCheck.class);
 
   @Before
   public void setup() {
     pullRequestFeatureCheck =
-        new PullRequestFeatureCheck(productLicense, gitApiService, pullRequestUtils);
-
-    Logger log = (Logger) LoggerFactory.getLogger(PullRequestFeatureCheck.class);
-    listAppender = new ListAppender<>();
-    listAppender.start();
-    log.addAppender(listAppender);
-  }
-
-  @After
-  public void cleanup() {
-    Logger log = (Logger) LoggerFactory.getLogger(PullRequestFeatureCheck.class);
-    log.detachAppender(listAppender);
+        new PullRequestFeatureCheck(productLicense, pullRequestUtils);
   }
 
   @Test
   public void testLicenseInvalid() throws IOException {
     when(productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)).thenReturn(false);
 
-    boolean result =
-        pullRequestFeatureCheck.isPullRequestFeatureSupported(new Application(PUBLIC_ID, NAME, ORGANIZATION_ID));
+    boolean result = pullRequestFeatureCheck.isPullRequestFeatureSupported(
+        new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), newGitRepositoryInfo());
 
     assertThat(result).isFalse();
-    assertThat(listAppender.list.size()).isEqualTo(1);
-    assertThat(listAppender.list.get(0).getLevel()).isEqualTo(Level.DEBUG);
-    assertThat(listAppender.list.get(0).getMessage())
-        .isEqualTo("Pull request feature is not supported for this license");
-
-    verifyZeroInteractions(gitApiService);
+    assertThat(logOutput).atDebugLevel().contains(
+        "Pull request feature is not supported for this license");
   }
 
   @Test
@@ -115,21 +94,23 @@ public class PullRequestFeatureCheckTest
     gitRepositoryInfo.enablePullRequests = true;
     gitRepositoryInfo.provider = null;
     ensureAppNotConfigured(gitRepositoryInfo);
+
+    ensureAppNotConfigured(null);
   }
 
-  private void ensureAppNotConfigured(GitRepositoryInfo gitRepositoryInfo) throws IOException {
+  private void ensureAppNotConfigured(final GitRepositoryInfo gitRepositoryInfo)
+      throws IOException
+  {
     when(productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)).thenReturn(true);
-    when(gitApiService.getGitRepositoryInfoForApplication(eq(PUBLIC_ID))).thenReturn(gitRepositoryInfo);
-    listAppender.list.clear();
 
-    boolean result =
-        pullRequestFeatureCheck.isPullRequestFeatureSupported(new Application(PUBLIC_ID, NAME, ORGANIZATION_ID));
+    Application app = new Application(PUBLIC_ID, NAME, ORGANIZATION_ID);
+    boolean result = pullRequestFeatureCheck.isPullRequestFeatureSupported(
+        app, gitRepositoryInfo);
 
     assertThat(result).isFalse();
-    assertThat(listAppender.list.size()).isEqualTo(1);
-    assertThat(listAppender.list.get(0).getLevel()).isEqualTo(Level.DEBUG);
-    assertThat(listAppender.list.get(0).getFormattedMessage())
-        .isEqualTo(String.format("Pull requests have not been configured for application '%s'", PUBLIC_ID));
+    assertThat(logOutput).atDebugLevel().contains(String.format(
+        "Pull requests have not been configured for application '%s'",
+        app.getId()));
   }
 
   @Test
@@ -137,17 +118,19 @@ public class PullRequestFeatureCheckTest
     GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo();
 
     when(productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)).thenReturn(true);
-    when(gitApiService.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
     when(pullRequestUtils.isPullRequestAllowed(eq(gitRepositoryInfo))).thenReturn(false);
 
+    final Application app = new Application(PUBLIC_ID, NAME, ORGANIZATION_ID);
+    app.setId(APP_ID);
+
     boolean result =
-        pullRequestFeatureCheck.isPullRequestFeatureSupported(new Application(PUBLIC_ID, NAME, ORGANIZATION_ID));
+        pullRequestFeatureCheck.isPullRequestFeatureSupported(
+            app, gitRepositoryInfo);
 
     assertThat(result).isFalse();
-    assertThat(listAppender.list.size()).isEqualTo(1);
-    assertThat(listAppender.list.get(0).getLevel()).isEqualTo(Level.DEBUG);
-    assertThat(listAppender.list.get(0).getMessage())
-        .isEqualTo("Pull requests are not supported for application '{}' and repository '{}'");
+    assertThat(logOutput).atDebugLevel().contains(String.format(
+        "Pull requests are not supported for application '%s' and repository '%s'",
+        APP_ID, REPO_URL));
   }
 
   @Test
@@ -155,20 +138,17 @@ public class PullRequestFeatureCheckTest
     GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo();
 
     when(productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)).thenReturn(true);
-    when(gitApiService.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
     when(pullRequestUtils.isPullRequestAllowed(eq(gitRepositoryInfo))).thenReturn(true);
 
-    boolean result =
-        pullRequestFeatureCheck.isPullRequestFeatureSupported(new Application(PUBLIC_ID, NAME, ORGANIZATION_ID));
+    boolean result = pullRequestFeatureCheck.isPullRequestFeatureSupported(
+        new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), gitRepositoryInfo);
 
     assertThat(result).isTrue();
-    assertThat(listAppender.list.size()).isEqualTo(0);
+    assertThat(logOutput).atAnyLevel().isEmpty();
   }
 
   private GitRepositoryInfo newGitRepositoryInfo() {
-    GitRepositoryInfo sourceControlDTO =
-        new GitRepositoryInfo(REPO_URL, TOKEN, SourceControlProvider.GITHUB, BASE_BRANCH, DEFAULT_ENABLE_PR,
-            DEFAULT_ENABLE_STATUS_CHECKS);
-    return sourceControlDTO;
+    return new GitRepositoryInfo(REPO_URL, TOKEN, SourceControlProvider.GITHUB,
+        BASE_BRANCH, DEFAULT_ENABLE_PR, DEFAULT_ENABLE_STATUS_CHECKS);
   }
 }

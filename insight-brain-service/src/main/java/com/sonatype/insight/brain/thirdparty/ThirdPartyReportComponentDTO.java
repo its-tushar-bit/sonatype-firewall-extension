@@ -11,7 +11,7 @@ import java.util.List;
 import com.sonatype.insight.scan.RowWithComponentIdentifierDTO;
 
 /**
- * @since 1.74
+ * @since 1.75
  */
 public class ThirdPartyReportComponentDTO
     extends RowWithComponentIdentifierDTO

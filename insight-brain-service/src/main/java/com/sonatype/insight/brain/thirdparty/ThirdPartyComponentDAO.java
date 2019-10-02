@@ -14,18 +14,22 @@ import java.util.stream.Collectors;
 
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.json.store.UncheckedIOException;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @since 1.74
+ * @since 1.75
  */
 @Named
 public class ThirdPartyComponentDAO
@@ -68,6 +72,33 @@ public class ThirdPartyComponentDAO
     return reportData;
   }
 
+  public void applyThirdPartyComponentSummary(
+      final List<Component> thirdPartyIdentifiedComponents,
+      final File reportFile)
+  {
+    try {
+      if (!thirdPartyIdentifiedComponents.isEmpty()) {
+        updateCounts(reportFile, thirdPartyIdentifiedComponents.size(), "summary.json");
+        updateCounts(reportFile, thirdPartyIdentifiedComponents.size(), "data.json");
+      }
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  private void updateCounts(final File reportFile, final int thirdPartyComponentCount, final String filename)
+      throws IOException
+  {
+    final ObjectNode summary = loadJson(Report.getEntry(reportFile, filename).buf);
+    long knownArtifactCount = summary.path("knownArtifactCount").asLong(0);
+    long exactlyMatchedComponentCount = summary.path("exactlyMatchedComponentCount").asLong(0);
+
+    summary.put("knownArtifactCount", knownArtifactCount + thirdPartyComponentCount);
+    summary.put("exactlyMatchedComponentCount", exactlyMatchedComponentCount + thirdPartyComponentCount);
+    Report.putEntry(reportFile, filename, JsonUtils.generate(summary));
+  }
+
   private void prepareComponentData(
       final List<ThirdPartyBillOfMaterialsRowDTO> bomRows,
       final List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows,
@@ -93,7 +124,7 @@ public class ThirdPartyComponentDAO
     return null;
   }
 
-  private static JsonNode loadJson(final byte[] data) {
+  private <T extends ContainerNode<?>> T loadJson(final byte[] data) {
     if (data == null) {
       return null;
     }

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.component;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -63,12 +64,15 @@ public class ComponentResolver
   {
     final Map<String, ThirdPartyReportComponentDTO> data = thirdPartyComponentDAO.getData(reportFile);
     if (data != null && !data.isEmpty()) {
+      List<Component> thirdPartyIdentifiedComponents = new ArrayList<>();
       components.stream().filter(c -> MatchState.UNKNOWN.equals(c.getMatchState())).forEach(unknownComponent -> {
         final ThirdPartyReportComponentDTO thirdPartyDTO = data.get(unknownComponent.getHash());
         if (thirdPartyDTO != null) {
           populateThirdPartyData(unknownComponent, thirdPartyDTO);
+          thirdPartyIdentifiedComponents.add(unknownComponent);
         }
       });
+      thirdPartyComponentDAO.applyThirdPartyComponentSummary(thirdPartyIdentifiedComponents, reportFile);
     }
   }
 

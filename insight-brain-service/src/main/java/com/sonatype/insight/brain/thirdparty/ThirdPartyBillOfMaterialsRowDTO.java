@@ -9,7 +9,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 
 /**
- * @since 1.74
+ * @since 1.75
  */
 public class ThirdPartyBillOfMaterialsRowDTO
     extends BillOfMaterialsRowDTO

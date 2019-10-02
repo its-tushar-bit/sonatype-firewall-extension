@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -59,6 +60,9 @@ import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME;
+
 public final class Report
 {
   private static final Logger log = LoggerFactory.getLogger(Report.class);
@@ -66,6 +70,9 @@ public final class Report
   public static final String DATA_JSON_FILENAME = "data.json";
 
   public static final String CACHE_DIRECTORY_NAME = "report.cache";
+
+  public static final List<String> THIRD_PARTY_CACHED_FILES =
+      Arrays.asList(THIRD_PARTY_BOM_JSON_FILENAME, THIRD_PARTY_SECURITY_JSON_FILENAME);
 
   private static enum ReportType
   {
@@ -154,6 +161,7 @@ public final class Report
     embedApplicationPublicId(application, reportFile);
 
     applyComponentRelatedChanges(application, reportFile);
+    cacheThirdPartyData(reportFile);
 
     // these data items have already had changes applied as part of applyComponentRelatedChanges above
     final ContainerNode<?> security = JsonUtils.parse(getEntry(reportFile, "security.json").buf);
@@ -237,6 +245,20 @@ public final class Report
     saveReportEntry(reportFile, DATA_JSON_FILENAME, data);
 
     log.debug("Applied changes to report in {} ms", System.currentTimeMillis() - start);
+  }
+
+  private static void cacheThirdPartyData(final File reportFile) {
+    THIRD_PARTY_CACHED_FILES.forEach(filename -> {
+      try {
+        final ReportEntry entry = getEntry(reportFile, filename);
+        if (entry != null) {
+          cache(getCacheFile(reportFile, filename), entry.buf);
+        }
+      }
+      catch (IOException e) {
+        log.error("Error reading third party data from report file: {}", reportFile.getAbsolutePath(), e);
+      }
+    });
   }
 
   private static void deletePdfReport(File reportFile) {

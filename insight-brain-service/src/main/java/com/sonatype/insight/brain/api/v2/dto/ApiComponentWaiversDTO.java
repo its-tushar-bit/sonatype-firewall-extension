@@ -8,6 +8,6 @@ package com.sonatype.insight.brain.api.v2.dto;
 /**
  * @since 1.75
  */
-public class ApiComponentWaiversDto
+public class ApiComponentWaiversDTO
 {
 }

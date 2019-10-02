@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentWaiversDto;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentWaiversDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 
 /**
@@ -23,7 +23,7 @@ public class ApiComponentsWithWaiversReportingService
     this.policyViolationLoader = policyViolationLoader;
   }
 
-  public ApiComponentWaiversDto getComponentsWithWaivers() {
+  public ApiComponentWaiversDTO getComponentsWithWaivers() {
     return null;
   }
 }

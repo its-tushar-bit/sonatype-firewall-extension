@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.security.Provider;
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -47,6 +49,7 @@ import io.dropwizard.logging.SyslogAppenderFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
 import io.dropwizard.server.AbstractServerFactory;
 import io.dropwizard.server.DefaultServerFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -274,5 +277,28 @@ public class InsightBrainServiceTest
     };
     assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> initServer(configurator));
     initServer(null);
+  }
+
+  @Test
+  public void testEnsureBouncyCastleProviderIsLowestPreference_BouncyCastleProviderDoesNotExist() {
+    Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
+
+    InsightBrainService.ensureBouncyCastleProviderIsLowestPreference();
+
+    assertThat(Security.getProvider(BouncyCastleProvider.PROVIDER_NAME)).isNotNull();
+    Provider[] providers = Security.getProviders();
+    assertThat(providers[providers.length - 1].getName()).isEqualTo(BouncyCastleProvider.PROVIDER_NAME);
+  }
+
+  @Test
+  public void testEnsureBouncyCastleProviderIsLowestPreference_BouncyCastleProviderIsNotLowestPreference() {
+    Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
+    Security.insertProviderAt(new BouncyCastleProvider(), 1);
+
+    InsightBrainService.ensureBouncyCastleProviderIsLowestPreference();
+
+    assertThat(Security.getProvider(BouncyCastleProvider.PROVIDER_NAME)).isNotNull();
+    Provider[] providers = Security.getProviders();
+    assertThat(providers[providers.length - 1].getName()).isEqualTo(BouncyCastleProvider.PROVIDER_NAME);
   }
 }

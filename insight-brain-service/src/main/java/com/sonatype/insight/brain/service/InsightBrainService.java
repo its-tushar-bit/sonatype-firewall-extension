@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.security.Security;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -66,6 +67,7 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.util.JarLocation;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.shiro.guice.web.GuiceShiroFilter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +82,7 @@ public class InsightBrainService
   static {
     // INSIGHT-4557
     System.setProperty("java.awt.headless", "true");
+    ensureBouncyCastleProviderIsLowestPreference();
   }
 
   public static final String BRAIN_ASSET_PATH = "/assets/";
@@ -171,6 +174,19 @@ public class InsightBrainService
     new ConfigurationChecker().check(arguments, bootstrap);
     final Cli cli = new Cli(new JarLocation(this.getClass()), bootstrap, System.out, System.err);
     cli.run(arguments);
+  }
+
+  @VisibleForTesting
+  static void ensureBouncyCastleProviderIsLowestPreference() {
+    // Adding BouncyCastleProvider here via Security.addProvider(...) ensures it gets the lowest preference position.
+    // This prevents org.keycloak.saml.processing.core.util.ProvidersUtil.ensure() from adding it at a higher preference
+    // position, which can cause CLM-13629 due to the IQ Server uber JAR invalidating BouncyCastleProvider by excluding 
+    // its signatures
+
+    // First remove it in case it is already added
+    Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
+    // Second add it at the lowest preference position
+    Security.addProvider(new BouncyCastleProvider());
   }
 
   public static File getConfigFile() {

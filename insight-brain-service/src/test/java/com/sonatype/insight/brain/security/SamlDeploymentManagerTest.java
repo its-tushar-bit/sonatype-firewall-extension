@@ -145,6 +145,8 @@ public class SamlDeploymentManagerTest
     assertThat(sloService.getRequestBindingUrl()).isEqualTo("http://localhost:8080/slo");
     assertThat(sloService.getResponseBinding()).isEqualTo(Binding.REDIRECT);
     assertThat(sloService.getResponseBindingUrl()).isEqualTo("http://localhost:8080/slo");
+
+    assertThat(idp.getAllowedClockSkew()).isEqualTo(SamlDeploymentManager.ALLOWED_CLOCK_SKEW_MILLISECONDS);
   }
 
   @Test

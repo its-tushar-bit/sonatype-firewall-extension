@@ -51,6 +51,13 @@ public class SamlDeploymentManager
 {
   private static final Logger log = LoggerFactory.getLogger(SamlDeploymentManager.class);
 
+  // A SAML assertion may have a "Conditions" element that may contain "NotBefore" and "NotOnOrAfter" attributes.
+  // These attributes restrict when the assertion is considered valid. It is possible that the Identity Provider's clock
+  // may be slightly out of sync with ours, which can result in us receiving an assertion that is immediately invalid.
+  // For example, if their clock is 1 second ahead of ours, we may receive the assertion before its "NotBefore" 
+  // attribute allows. The allowed clock skew accounts for this possible divergence.
+  static final int ALLOWED_CLOCK_SKEW_MILLISECONDS = 1000;
+
   private final SamlMetadataTool samlMetadataTool;
 
   private final SamlConfigurationDAO samlConfigurationDAO;
@@ -154,6 +161,7 @@ public class SamlDeploymentManager
     EndpointType singleSignOnEndpoint = getEndpoint(idpDescriptor.getSingleSignOnService());
     DefaultSingleSignOnService singleSignOnService = new DefaultSingleSignOnService();
     idp.setSingleSignOnService(singleSignOnService);
+    idp.setAllowedClockSkew(ALLOWED_CLOCK_SKEW_MILLISECONDS);
     singleSignOnService.setSignRequest(Optional.ofNullable(idpDescriptor.isWantAuthnRequestsSigned()).orElse(true));
     singleSignOnService.setValidateResponseSignature(validateResponseSignature);
     singleSignOnService.setValidateAssertionSignature(validateAssertionSignature);

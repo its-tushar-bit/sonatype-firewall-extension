@@ -132,6 +132,13 @@
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-vulnerability-model</artifactId>
+      <exclusions>
+        <exclusion>
+          <!-- cruft which among others clashes with the batik libs needed for BIRT -->
+          <groupId>com.sonatype.data.commons</groupId>
+          <artifactId>vulnerability-renderer</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     
     <dependency>

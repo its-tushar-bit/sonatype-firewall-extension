@@ -131,7 +131,7 @@ public class SamlFilterTest
 
   @Test
   public void testNewSamlSessionStore_IsSamlSessionStoreForRedirect() {
-    assertThat(samlFilter.newSamlSessionStore(null, null)).isInstanceOf(SamlSessionStoreForRedirect.class);
+    assertThat(samlFilter.newSamlSessionStore(null, null, null)).isInstanceOf(SamlSessionStoreForRedirect.class);
   }
 
   @Test
@@ -190,7 +190,7 @@ public class SamlFilterTest
     lenient().when(mockHttpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
     SamlFilter spySamlFilter = spy(this.samlFilter);
     lenient().doReturn(mockSamlSessionStore).when(spySamlFilter)
-        .newSamlSessionStore(any(HttpServletRequest.class), any(HttpFacade.class));
+        .newSamlSessionStore(any(HttpServletRequest.class), any(HttpFacade.class), any(SamlDeployment.class));
     lenient().when(mockSamlAuthenticator.getChallenge()).thenReturn(mockAuthChallenge);
     lenient().when(mockSamlAuthenticator.authenticate()).thenReturn(authOutcome);
     lenient().doReturn(mockSamlAuthenticator).when(spySamlFilter).newSamlAuthenticator(anyBoolean(),

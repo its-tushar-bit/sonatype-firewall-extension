@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.keycloak.adapters.saml.SamlDeployment;
 import org.keycloak.adapters.saml.servlet.FilterSamlSessionStore;
 import org.keycloak.adapters.servlet.FilterSessionStore;
 import org.keycloak.adapters.spi.HttpFacade;
@@ -19,9 +20,10 @@ public class SamlSessionStoreForRedirect
       HttpServletRequest request,
       HttpFacade facade,
       int maxBuffer,
-      SessionIdMapper idMapper)
+      SessionIdMapper idMapper,
+      SamlDeployment samlDeployment)
   {
-    super(request, facade, maxBuffer, idMapper);
+    super(request, facade, maxBuffer, idMapper, samlDeployment);
   }
 
   @Override

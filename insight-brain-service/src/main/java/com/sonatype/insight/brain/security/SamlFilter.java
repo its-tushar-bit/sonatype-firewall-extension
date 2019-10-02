@@ -66,7 +66,7 @@ class SamlFilter
     boolean samlEndpoint = requestPath.equals("/saml");
 
     ServletHttpFacade httpFacade = new ServletHttpFacade(httpRequest, httpResponse);
-    SamlSessionStore samlSessionStore = newSamlSessionStore(httpRequest, httpFacade);
+    SamlSessionStore samlSessionStore = newSamlSessionStore(httpRequest, httpFacade, samlDeployment);
     SamlAuthenticator samlAuthenticator =
         newSamlAuthenticator(samlEndpoint, httpFacade, samlDeployment, samlSessionStore);
 
@@ -122,8 +122,12 @@ class SamlFilter
   }
 
   @VisibleForTesting
-  SamlSessionStore newSamlSessionStore(HttpServletRequest httpRequest, HttpFacade httpFacade) {
-    return new SamlSessionStoreForRedirect(httpRequest, httpFacade, 0, idMapper);
+  SamlSessionStore newSamlSessionStore(
+      HttpServletRequest httpRequest,
+      HttpFacade httpFacade,
+      SamlDeployment samlDeployment)
+  {
+    return new SamlSessionStoreForRedirect(httpRequest, httpFacade, 0, idMapper, samlDeployment);
   }
 
   @VisibleForTesting

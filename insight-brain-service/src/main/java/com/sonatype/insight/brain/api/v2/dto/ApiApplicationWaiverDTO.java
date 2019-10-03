@@ -15,5 +15,5 @@ public class ApiApplicationWaiverDTO
 {
   public ApiApplicationBaseDTO application;
 
-  public List<ApiComponentPolicyViolationDTO> componentPolicyViolations = new ArrayList<>();
+  public List<ApiPolicyViolationStageDTO> stages = new ArrayList<>();
 }

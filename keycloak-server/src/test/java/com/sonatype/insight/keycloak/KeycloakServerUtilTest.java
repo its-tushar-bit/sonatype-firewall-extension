@@ -47,6 +47,8 @@ public class KeycloakServerUtilTest
   public void testKeycloakServerUtil() {
     Response response = newClient().target(keycloak.getUrl()).request().get();
     assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());
+    assertThat(keycloak.getMasterRealm().getAccessTokenLifespan())
+        .isEqualTo(KeycloakServerUtil.ADMIN_TOKEN_LIFESPAN_IN_SECONDS);
     response.close();
   }
 

@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
  */
 public class ApiComponentsWithWaiversReportingService
 {
-@SuppressWarnings("PMD")
+  @SuppressWarnings("PMD")
   private final PolicyViolationLoader policyViolationLoader;
 
   @Inject

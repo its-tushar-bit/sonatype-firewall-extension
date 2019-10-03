@@ -5,15 +5,16 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Date;
 
 /**
  * @since 1.75
  */
-public class ApiComponentWaiversDTO
+public class ApiPolicyWaiverDTO
 {
-  public List<ApiApplicationWaiverDTO> applicationWaivers = new ArrayList<>();
+  public String policyWaiverId;
 
-  public List<ApiRepositoryWaiverDTO> repositoryWaivers = new ArrayList<>();
+  public String comment;
+
+  public Date createTime;
 }

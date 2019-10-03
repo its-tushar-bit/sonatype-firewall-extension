@@ -11,9 +11,9 @@ import java.util.List;
 /**
  * @since 1.75
  */
-public class ApiComponentWaiversDTO
+public class ApiComponentPolicyViolationDTO
 {
-  public List<ApiApplicationWaiverDTO> applicationWaivers = new ArrayList<>();
+  public ApiComponentDTOV2 component;
 
-  public List<ApiRepositoryWaiverDTO> repositoryWaivers = new ArrayList<>();
+  public List<ApiWaivedPolicyViolationDTO> waivedPolicyViolations = new ArrayList<>();
 }

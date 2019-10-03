@@ -78,8 +78,8 @@ public class ThirdPartyComponentDAO
   {
     try {
       if (!thirdPartyIdentifiedComponents.isEmpty()) {
-        updateCounts(reportFile, thirdPartyIdentifiedComponents.size(), "summary.json");
-        updateCounts(reportFile, thirdPartyIdentifiedComponents.size(), "data.json");
+        updateSummaryCounts(reportFile, thirdPartyIdentifiedComponents.size());
+        updateDataCounts(reportFile, thirdPartyIdentifiedComponents.size());
       }
     }
     catch (IOException e) {
@@ -87,9 +87,21 @@ public class ThirdPartyComponentDAO
     }
   }
 
-  private void updateCounts(final File reportFile, final int thirdPartyComponentCount, final String filename)
+  private void updateSummaryCounts(final File reportFile, final int thirdPartyComponentCount)
       throws IOException
   {
+    String filename = "summary.json";
+    final ObjectNode summary = loadJson(Report.getEntry(reportFile, filename).buf);
+    long knownArtifactCount = summary.path("knownArtifactCount").asLong(0);
+
+    summary.put("knownArtifactCount", knownArtifactCount + thirdPartyComponentCount);
+    Report.putEntry(reportFile, filename, JsonUtils.generate(summary));
+  }
+
+  private void updateDataCounts(final File reportFile, final int thirdPartyComponentCount)
+      throws IOException
+  {
+    String filename = "data.json";
     final ObjectNode summary = loadJson(Report.getEntry(reportFile, filename).buf);
     long knownArtifactCount = summary.path("knownArtifactCount").asLong(0);
     long exactlyMatchedComponentCount = summary.path("exactlyMatchedComponentCount").asLong(0);

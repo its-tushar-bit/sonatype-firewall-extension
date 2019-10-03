@@ -106,8 +106,8 @@ public class ThirdPartyComponentDAOTest
 
     dao.applyThirdPartyComponentSummary(componentList, reportZip);
 
-    assertCountsUpdated(reportZip, "summary.json", 3);
-    assertCountsUpdated(reportZip, "data.json", 3);
+    assertSummaryCountsUpdated(reportZip, 3);
+    assertDataCountsUpdated(reportZip, 3);
   }
 
   @Test
@@ -117,8 +117,8 @@ public class ThirdPartyComponentDAOTest
 
     dao.applyThirdPartyComponentSummary(componentList, reportZip);
 
-    assertCountsUpdated(reportZip, "summary.json", 0);
-    assertCountsUpdated(reportZip, "data.json", 0);
+    assertSummaryCountsUpdated(reportZip, 0);
+    assertDataCountsUpdated(reportZip, 0);
   }
 
   private ComponentIdentifier componentIdentifierFrom(final String format, final String name, final String version) {
@@ -141,10 +141,16 @@ public class ThirdPartyComponentDAOTest
     }
   }
 
-  private void assertCountsUpdated(final File reportZip, final String filename, final int expected) throws IOException {
-    final ReportEntry entry = Report.getEntry(reportZip, filename);
+  private void assertDataCountsUpdated(final File reportZip, final int expected) throws IOException {
+    final ReportEntry entry = Report.getEntry(reportZip, "data.json");
     JsonNode jsonNode = JsonUtils.parse(entry.buf);
     assertThat(jsonNode.path("exactlyMatchedComponentCount").asInt()).isEqualTo(expected);
+    assertThat(jsonNode.path("knownArtifactCount").asInt()).isEqualTo(expected);
+  }
+
+  private void assertSummaryCountsUpdated(final File reportZip, final int expected) throws IOException {
+    final ReportEntry entry = Report.getEntry(reportZip, "summary.json");
+    JsonNode jsonNode = JsonUtils.parse(entry.buf);
     assertThat(jsonNode.path("knownArtifactCount").asInt()).isEqualTo(expected);
   }
 }

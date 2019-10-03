@@ -40,15 +40,6 @@
     </div>
   </div>
   <footer class="iq-modal-footer" ng-class="{error: vm.error}">
-    <div class="iq-grid-row" ng-if="vm.error">
-      <div class="iq-grid-col iq-grid-col--33" ng-if="vm.showSamlSso">
-      </div>
-      <div class="iq-grid-col">
-        <div id="login-error" class="iq-alert iq-alert--error iq-alert--no-border-or-padding">
-          <i class="fa fa-warning"></i>{{vm.error}}
-        </div>
-      </div>
-    </div>
     <div class="iq-grid-row">
       <div class="iq-grid-col iq-grid-col--33" ng-if="vm.showSamlSso">
         <button id="sso-action"
@@ -60,6 +51,9 @@
         </button>
       </div>
       <div class="iq-grid-col">
+        <div id="login-error" class="iq-alert iq-alert--error" ng-if="vm.error">
+          <i class="fa fa-warning"></i>{{vm.error}}
+        </div>
         <button id="login-action"
                 class="iq-btn iq-btn--primary"
                 ng-disabled="vm.isSignInButtonDisabled()"

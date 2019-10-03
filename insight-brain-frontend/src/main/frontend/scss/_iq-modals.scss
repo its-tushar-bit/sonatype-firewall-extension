@@ -53,6 +53,12 @@ $iq-modal-bottom-spacing: 8px;
   }
 }
 
+.iq-modal-content, .iq-modal-footer {
+  .iq-grid-col {
+    border-left-color: $iq-grey-4;
+  }
+}
+
 .iq-modal-content {
   padding: 20px 12px 18px 12px;
 
@@ -106,6 +112,10 @@ $iq-modal-bottom-spacing: 8px;
     > .iq-alert--error {
       border: none;
       padding-top: 0;
+    }
+
+    .iq-grid-col {
+      border-left-color: $iq-fail-color;
     }
   }
 

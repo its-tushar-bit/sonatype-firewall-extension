@@ -126,11 +126,3 @@ h3.iq-grid-header__title {
   margin: 0;
   padding-top: 9px;
 }
-
-.iq-modal-footer {
-  &.error {
-    .iq-grid-col {
-      border-left-color: $iq-fail-color;
-    }
-  }
-}

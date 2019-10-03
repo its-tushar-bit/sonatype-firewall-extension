@@ -3,16 +3,14 @@
     margin: 0;
   }
 
-  .iq-modal-footer, .iq-modal-content {
-    &:not(.error) {
-      .iq-grid-col {
-        border-left-color: $iq-grey-4;
-      }
+  .iq-modal-footer {
+    .iq-grid-col {
+      align-self: flex-end;
     }
   }
 }
 
-.iq-alert--no-border-or-padding {
+#login-error {
   padding: 0 8px 8px;
   border: 0;
 }

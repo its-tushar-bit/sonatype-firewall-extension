@@ -16,6 +16,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentWaiversDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentsWithWaiversReportingService;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -41,6 +43,7 @@ public class ApiComponentsWithWaiversReportingResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_COMPONENTS_WITH_WAIVERS)
   public ApiComponentWaiversDTO getComponentsWithWaivers() {
     return componentsWithWaiversReportingService.getComponentsWithWaivers();
   }

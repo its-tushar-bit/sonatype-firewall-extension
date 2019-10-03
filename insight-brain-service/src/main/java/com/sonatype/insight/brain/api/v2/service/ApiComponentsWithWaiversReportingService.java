@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentWaiversDTO;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 
 /**
@@ -24,6 +25,15 @@ public class ApiComponentsWithWaiversReportingService
   }
 
   public ApiComponentWaiversDTO getComponentsWithWaivers() {
+    long numOfAppComponents = 0L;
+    long numOfRepoComponents = 0L;
+    addAuditValues(numOfAppComponents, numOfRepoComponents);
+
     return null;
+  }
+
+  private void addAuditValues(long numOfAppComponents, long numOfRepoComponents) {
+    AuditData.get().setData("numberOfApplicationComponents", numOfAppComponents);
+    AuditData.get().setData("numberOfRepositoryComponents", numOfRepoComponents);
   }
 }

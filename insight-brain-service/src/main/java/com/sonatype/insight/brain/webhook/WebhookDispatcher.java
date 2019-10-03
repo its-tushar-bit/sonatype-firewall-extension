@@ -287,6 +287,8 @@ public class WebhookDispatcher
 
     final PolicyAlertPayload payload = new PolicyAlertPayload();
     payload.applicationEvaluation.policyEvaluationId = event.applicationEvaluation.policyEvaluationId;
+    payload.applicationEvaluation.stage = event.applicationEvaluation.stageTypeId;
+    payload.applicationEvaluation.ownerId = event.applicationEvaluation.ownerId;
     payload.applicationEvaluation.evaluationDate = event.applicationEvaluation.evaluationDate;
     payload.applicationEvaluation.affectedComponentCount = event.applicationEvaluation.affectedComponentCount;
     payload.applicationEvaluation.criticalComponentCount = event.applicationEvaluation.criticalComponentCount;

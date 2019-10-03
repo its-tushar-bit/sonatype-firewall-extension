@@ -490,6 +490,8 @@ public class WebhookDispatcherTest
     assertThat(policyAlertDTO.policyViolationId).isEqualTo("policyViolationId");
     assertThat(policyAlertDTO.componentFacts).isNotEmpty();
     assertThat(webhookPayload.applicationEvaluation.reportId).isEqualTo("reportId");
+    assertThat(webhookPayload.applicationEvaluation.stage).isEqualTo("stage");
+    assertThat(webhookPayload.applicationEvaluation.ownerId).isEqualTo("ownerId");
     ApiComponentIdentifierDTOV2 componentIdentifier = policyAlertDTO.componentFacts.get(0).componentIdentifier;
     assertThat(componentIdentifier.getFormat()).isEqualTo("maven");
     assertThat(componentIdentifier.getCoordinates()).containsExactly(entry("artifactId", "artifact"),

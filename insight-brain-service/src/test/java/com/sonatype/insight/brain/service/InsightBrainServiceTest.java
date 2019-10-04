@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.telemetry.DatabaseTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.HierarchyMetricsTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.PolicyStatusOverrideTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.PropertiesTelemetryCollector;
+import com.sonatype.insight.brain.telemetry.RealmTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -107,7 +108,7 @@ public class InsightBrainServiceTest
         responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
       }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
     });
-    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(4));
+    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(5));
     Date expectedMaxCreateTime = new Date();
 
     VersionService versionService = getCLMServer().getInstance(VersionService.class);
@@ -164,6 +165,10 @@ public class InsightBrainServiceTest
             assertThat(telemetryDataReceived.getAttributes())
                 .containsEntry(PropertiesTelemetryCollector.REPORT_TIMEOUT_SECONDS, 2100);
             break;
+          case REALM:
+            assertThat(telemetryDataReceived.getAttributes())
+                .containsEntry(RealmTelemetryCollector.SAML_CONFIGURED, "false");
+            break;
           default:
             fail("Unexpected telemetry purpose: " + telemetryPurpose);
             break;
@@ -172,7 +177,8 @@ public class InsightBrainServiceTest
     }
 
     assertThat(telemetryPurposes).containsExactlyInAnyOrder(TelemetryPurpose.HIERARCHY_METRICS,
-        TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE, TelemetryPurpose.CONFIGURATION_PROPERTIES);
+        TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE, TelemetryPurpose.CONFIGURATION_PROPERTIES,
+        TelemetryPurpose.REALM);
   }
 
   @Test

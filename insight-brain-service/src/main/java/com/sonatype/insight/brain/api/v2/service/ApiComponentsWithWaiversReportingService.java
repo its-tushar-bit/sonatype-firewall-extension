@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentWaiversDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
+import com.sonatype.insight.brain.telemetry.ReportsTelemetry;
 
 /**
  * @since 1.75
@@ -19,14 +20,21 @@ public class ApiComponentsWithWaiversReportingService
   @SuppressWarnings("PMD")
   private final PolicyViolationLoader policyViolationLoader;
 
+  private final ReportsTelemetry reportsTelemetry;
+
   @Inject
-  public ApiComponentsWithWaiversReportingService(PolicyViolationLoader policyViolationLoader) {
+  public ApiComponentsWithWaiversReportingService(PolicyViolationLoader policyViolationLoader,
+                                                  ReportsTelemetry reportsTelemetry)
+  {
     this.policyViolationLoader = policyViolationLoader;
+    this.reportsTelemetry = reportsTelemetry;
   }
 
   public ApiComponentWaiversDTO getComponentsWithWaivers() {
     long numOfAppComponents = 0L;
     long numOfRepoComponents = 0L;
+
+    reportsTelemetry.sendComponentWithWaiversTelemetry();
     addAuditValues(numOfAppComponents, numOfRepoComponents);
 
     return null;

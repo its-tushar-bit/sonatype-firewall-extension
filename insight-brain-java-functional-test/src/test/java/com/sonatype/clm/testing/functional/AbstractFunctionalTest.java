@@ -296,6 +296,7 @@ public abstract class AbstractFunctionalTest
     UserMenu userMenu = MainHeader.userMenu();
     userMenu.dropdownToggle().shouldBe(visible).click();
     userMenu.logout().should(appear).click();
+    userMenu.shouldNotBe(visible);
   }
 
   /**

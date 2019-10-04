@@ -71,6 +71,19 @@ public class PullRequestRemediationDetailsTest extends AbstractComponentTest
     criticalPolicy.getPolicyFact().addComponentFact(criticalFact);
     policyNotifications.add(criticalPolicy);
 
+    PolicyNotification highPolicy = new PolicyNotification(
+        new PolicyFact("high-id", "Security-High", 9),
+        new Notifications(new UserNotification("tester@foo.com")));
+    ComponentFact highFact = new ComponentFact(componentIdentifier, "dummy-high-hash");
+    ConstraintFact highConstraintFact = new ConstraintFact("constraint-id", "High risk CVSS score", "OR");
+    highConstraintFact.addConditionFact(new ConditionFact("SecurityVulnerabilitySeverity", 0,
+        "Security Vulnerability Severity >= 7",
+        "Found security vulnerability SONATYPE-2017-0312 with severity 8.5.",
+        new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "SONATYPE-2017-0312")));
+    highFact.addConstraintFact(highConstraintFact);
+    highPolicy.getPolicyFact().addComponentFact(highFact);
+    policyNotifications.add(highPolicy);
+
     PolicyNotification mediumPolicy = new PolicyNotification(
         new PolicyFact("medium-id", "Security-Medium", 7),
         new Notifications(new UserNotification("tester@foo.com")));

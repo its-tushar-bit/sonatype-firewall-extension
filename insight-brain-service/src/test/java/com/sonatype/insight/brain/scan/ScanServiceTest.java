@@ -56,7 +56,7 @@ public class ScanServiceTest
   private Application app;
 
   private InputStream getBundle(String name) {
-    return getClass().getResourceAsStream("/ScannerServiceTest/" + name);
+    return getClass().getResourceAsStream("/ScanServiceTest/" + name);
   }
 
   @Override
@@ -78,7 +78,7 @@ public class ScanServiceTest
           @Override
           public Boolean answer(InvocationOnMock invocation) throws Throwable {
             File reportFile = (File) invocation.getArguments()[1];
-            FileUtils.copyURLToFile(getClass().getResource("/ScannerServiceTest/report.zip"), reportFile);
+            FileUtils.copyURLToFile(getClass().getResource("/ScanServiceTest/report.zip"), reportFile);
             return true;
           }
         });

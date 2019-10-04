@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.scan;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import javax.inject.Inject;
@@ -27,8 +28,8 @@ public class ScanServiceAuthzTest
   @Inject
   private ScanService scanService;
 
-  private InputStream getBundle(String name) {
-    return getClass().getResourceAsStream("/ScanServiceAuthzTest/" + name);
+  private InputStream getBundle() {
+    return new ByteArrayInputStream(new byte[0]);
   }
 
   @Override
@@ -40,19 +41,19 @@ public class ScanServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testScanBinary_Anon() throws Exception {
-    scanService.scanBinary(app.getPublicId(), getBundle("app01.zip"), "app.zip", new Stage(Stage.ID_BUILD), false);
+    scanService.scanBinary(app.getPublicId(), getBundle(), "app.zip", new Stage(Stage.ID_BUILD), false);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testScanBinary_Unauthorized() throws Exception {
     login();
-    scanService.scanBinary(app.getPublicId(), getBundle("app01.zip"), "app.zip", new Stage(Stage.ID_BUILD), false);
+    scanService.scanBinary(app.getPublicId(), getBundle(), "app.zip", new Stage(Stage.ID_BUILD), false);
   }
 
   @Test
   public void testScanBinary_Authorized() throws Exception {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-    scanService.scanBinary(app.getPublicId(), getBundle("app01.zip"), "app.zip", new Stage(Stage.ID_BUILD), false);
+    scanService.scanBinary(app.getPublicId(), getBundle(), "app.zip", new Stage(Stage.ID_BUILD), false);
   }
 
   @Test(expected = UnauthenticatedException.class)

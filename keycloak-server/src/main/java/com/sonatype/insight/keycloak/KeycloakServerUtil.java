@@ -20,6 +20,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.idm.UserSessionRepresentation;
@@ -39,6 +40,8 @@ public class KeycloakServerUtil
   private final Set<String> createdClientIds = new HashSet<>();
 
   private final Set<String> createdUserIds = new HashSet<>();
+
+  private final Set<String> createdGroupIds = new HashSet<>();
 
   public KeycloakServerUtil(String url) {
     this.url = url;
@@ -141,6 +144,39 @@ public class KeycloakServerUtil
     return createUser(user);
   }
 
+  public String createGroup(String groupName) {
+    GroupRepresentation groupRepresentation = new GroupRepresentation();
+    groupRepresentation.setName(groupName);
+    groupRepresentation.setPath(groupName);
+
+    Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/groups").request()
+        .header("Authorization", "Bearer " + adminToken)
+        .post(Entity.entity(groupRepresentation, MediaType.APPLICATION_JSON));
+
+    if (response.getStatus() == Status.CREATED.getStatusCode()) {
+      String id = Arrays.stream(getGroups()).filter(g -> g.getName().equals(groupName)).findAny().get().getId();
+      createdGroupIds.add(id);
+      return id;
+    }
+    else {
+      throw new RuntimeException("Group creation failed.");
+    }
+  }
+
+  public void assignUserToGroup(String userId, String groupId) {
+    Response response =
+        ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(userId).path("groups")
+            .path(groupId).request()
+            .header("Authorization", "Bearer " + adminToken)
+            // Keycloak API for assigning users to groups is exposed for PUT but does not care about body
+            // Jersey does not like null in PUT hence we are sending some empty json here
+            .put(Entity.json("{}"));
+
+    if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
+      throw new RuntimeException("User could not be assigned to group: " + response.getStatus());
+    }
+  }
+
   /**
    * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_users_resource">Users Resource</a>
    * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_userrepresentation">User Representation</a>
@@ -197,6 +233,16 @@ public class KeycloakServerUtil
       }
     }
     createdUserIds.clear();
+
+    for (String groupId : createdGroupIds) {
+      Response response =
+          ClientBuilder.newClient().target(url).path("admin/realms/master/groups").path(groupId).request()
+              .header("Authorization", "Bearer " + adminToken).delete();
+      if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
+        throw new IllegalStateException("Group clean failed with Status Code: " + response.getStatus());
+      }
+    }
+    createdGroupIds.clear();
   }
 
   ClientRepresentation[] getClients() {
@@ -207,6 +253,11 @@ public class KeycloakServerUtil
   UserRepresentation[] getUsers() {
     return ClientBuilder.newClient().target(url).path("admin/realms/master/users").request()
         .header("Authorization", "Bearer " + adminToken).get(UserRepresentation[].class);
+  }
+
+  GroupRepresentation[] getGroups() {
+    return ClientBuilder.newClient().target(url).path("admin/realms/master/groups").request()
+        .header("Authorization", "Bearer " + adminToken).get(GroupRepresentation[].class);
   }
 
   UserSessionRepresentation[] getSessionsOfUser(String userId) {

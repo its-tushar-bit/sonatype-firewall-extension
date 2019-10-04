@@ -108,6 +108,12 @@
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>keycloak-server</artifactId>
+        <version>1.75.0-SNAPSHOT</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-client</artifactId>
         <version>1.75.0-SNAPSHOT</version>
       </dependency>

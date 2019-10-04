@@ -9,7 +9,7 @@ make(
     useEventSpy: false,
     javaVersion: 'Java 8',
     mavenVersion: 'Maven 3.2.x',
-    mavenOptions: '-pl nexus-iq-server,nexus-iq-cli,nexus-iq-integrator-scanner -am -D skipTests' +
+    mavenOptions: '-pl keycloak-server,nexus-iq-server,nexus-iq-cli,nexus-iq-integrator-scanner -am -D skipTests' +
         ' -D skip-functional-test',
     downstreamJobName: 'extra-tests',
     artifactsForDownstream: '.zion/repository/com/sonatype/insight/brain/**',

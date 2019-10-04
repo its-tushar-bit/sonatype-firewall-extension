@@ -103,9 +103,11 @@ public class KeycloakServerUtilTest
 
     keycloak.createClient(clientRepresentation);
     keycloak.createUser(userRepresentation);
+    keycloak.createGroup("a-group");
 
     assertThat(keycloak.getClients()).hasSize(6);
     assertThat(keycloak.getUsers()).hasSize(2);
+    assertThat(keycloak.getGroups()).hasSize(1);
 
     keycloak.clean();
 
@@ -235,5 +237,26 @@ public class KeycloakServerUtilTest
   public void testGetSamlMetadataXml() {
     String samlMetadata = keycloak.getSamlMetadataXml();
     assertThat(samlMetadata).startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").contains("IDPSSODescriptor");
+  }
+
+  @Test
+  public void testCreateGroups() {
+    assertThat(keycloak.getGroups()).hasSize(0);
+    keycloak.createGroup("a-new-group");
+    assertThat(keycloak.getGroups()).hasSize(1);
+  }
+
+  @Test
+  public void testAssignUserToGroup() {
+    UserRepresentation userRepresentation = new UserRepresentation();
+    userRepresentation.setUsername("john.doe");
+    userRepresentation.setEmail("example@example.com");
+    userRepresentation.setEnabled(true);
+
+    keycloak.assignUserToGroup(keycloak.createUser(userRepresentation), keycloak.createGroup("a-new-group"));
+
+    // Keycloak does not have a proper API for fetching users of a group or groups of a user.
+    // This test only verifies no exceptions are thrown when keycloak.assignUserToGroup(user, group) is called.
+    // The group assignment is implicitly tested in SamlTest where we check from IQ Server user is assigned.
   }
 }

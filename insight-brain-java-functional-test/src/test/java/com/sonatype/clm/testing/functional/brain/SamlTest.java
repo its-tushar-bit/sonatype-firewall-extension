@@ -1,0 +1,279 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.functional.brain;
+
+import java.util.Arrays;
+import java.util.List;
+
+import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.LoginModal;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.UserDetailsModal;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.IndexPage;
+import com.sonatype.clm.testing.functional.pages.KeycloakLoginPage;
+import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.api.v2.service.ApiSamlConfigurationService;
+import com.sonatype.insight.brain.model.security.Group;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.keycloak.KeycloakServerRule;
+import com.sonatype.insight.keycloak.KeycloakServerUtil;
+
+import com.codeborne.selenide.Selenide;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.keycloak.representations.idm.ClientRepresentation;
+import org.keycloak.representations.idm.ProtocolMapperRepresentation;
+
+import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
+
+public class SamlTest
+    extends AbstractFunctionalTest
+{
+  @ClassRule
+  public static KeycloakServerRule keycloakServerRule = new KeycloakServerRule();
+
+  private final KeycloakServerUtil keycloak = keycloakServerRule.getServerUtil();
+
+  private final ApiSamlConfigurationService apiSamlConfigurationService =
+      testCLMServer.getCLMServer().getInstance(ApiSamlConfigurationService.class);
+
+  @BeforeClass
+  public static void beforeClass() {
+    // Load the keycloak spa in browser once
+    Selenide.open(keycloakServerRule.getServerUtil().getUrl() + "admin/");
+    Selenide.Wait().until(webDriver -> webDriver.getCurrentUrl().contains("redirect_uri"));
+  }
+
+  @Before
+  public void before() {
+    hardreset();
+  }
+
+  @After
+  public void after() {
+    keycloak.clean();
+    try {
+      apiSamlConfigurationService.deleteSamlConfiguration();
+    }
+    catch (NotFoundException ignored) {
+      // fine
+    }
+  }
+
+  @Test
+  public void testAnonymousAccess() {
+    // SAML Configuration
+    apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
+    String metadata = apiSamlConfigurationService.getMetadata();
+    ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
+    clientRepresentation.setProtocolMappers(protocolMappers());
+    keycloak.createClient(clientRepresentation);
+
+    LoginModal loginModal = new LoginModal();
+    VulnerabilitySearchPage vulnPage = new VulnerabilitySearchPage();
+
+    // VulnerabilitySearchPage access before login
+    refreshOrOpen(BaseUrl.resolvePageUrl(""));
+    loginModal.vulnerabilityLookupLink().shouldBe(visible).click();
+    waitUntilUrl(VulnerabilitySearchPage.url());
+    loginModal.shouldNotBe(visible);
+    vulnPage.shouldBe(visible);
+
+    MainHeader.loginButton().shouldBe(visible).click();
+    loginModal.ssoButton().shouldBe(visible);
+
+    String username = "koraytugay";
+    String password = "my-password";
+    String userId = keycloak.createUser("Koray", "Tugay", username, "koray@tugay.biz", password, null);
+    loginModal.ssoButton().click();
+    KeycloakLoginPage.login(username, password);
+
+    // VulnerabilitySearchPage after login
+    refreshOrOpen(VulnerabilitySearchPage.url());
+    vulnPage.shouldBe(visible);
+
+    keycloak.logoutUser(userId);
+    logout();
+
+    // VulnerabilitySearchPage after logout
+    refreshOrOpen(BaseUrl.resolvePageUrl(""));
+    loginModal.vulnerabilityLookupText().shouldBe(visible);
+    loginModal.vulnerabilityLookupLink().shouldBe(visible).click();
+    waitUntilUrl(VulnerabilitySearchPage.url());
+    loginModal.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testLoginLogout() {
+    // Upload Identity Provider metadata to IQ Server
+    apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
+
+    // Register IQ in Keycloak
+    String metadata = apiSamlConfigurationService.getMetadata();
+    ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
+    clientRepresentation.setProtocolMappers(protocolMappers());
+    keycloak.createClient(clientRepresentation);
+
+    // Create a group and a user
+    String groupId = keycloak.createGroup("group-developers");
+    String username = "john.doe";
+    String password = "password";
+    String userId = keycloak.createUser("John", "Doe", username, "john@doe.com", password, null);
+    keycloak.assignUserToGroup(userId, groupId);
+
+    // SAML Successful login
+    refreshOrOpen(IndexPage.url());
+    LoginModal loginModal = new LoginModal();
+    loginModal.loginButton().shouldBe(visible);
+    loginModal.ssoButton().shouldBe(visible).click();
+    KeycloakLoginPage.login(username, password);
+
+    // Validations upon successful login
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    MainHeader.userMenu().userName().shouldBe(visible).shouldHave(text("John Doe"));
+
+    MainHeader.userMenu().dropdownToggle().click();
+    MainHeader.userMenu().userDetails().click();
+
+    UserDetailsModal modal = new UserDetailsModal();
+    modal.should(appear);
+    modal.username().shouldBe(text("john.doe"));
+    modal.displayName().shouldBe(text("John Doe"));
+    modal.groups().shouldBe(text(Group.AUTHENTICATED_USERS_GROUP_ID + ", group-developers"));
+    modal.closeButton().click();
+
+    // Successful logout
+    keycloak.logoutUser(userId);
+    logout();
+    loginModal.loginButton().shouldBe(visible);
+    loginModal.ssoButton().shouldBe(visible);
+
+    // Unsuccessful login due to wrong password
+    loginModal.ssoButton().click();
+    KeycloakLoginPage.login(username, "wrong-password");
+    refreshOrOpen(IndexPage.url());
+    loginModal.loginButton().shouldBe(visible);
+    loginModal.ssoButton().shouldBe(visible);
+  }
+
+  @Test
+  public void testIntegrationWithMinimalConfig() {
+    // Upload Identity Provider metadata to IQ Server
+    apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
+
+    // Register IQ in Keycloak
+    String metadata = apiSamlConfigurationService.getMetadata();
+    ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
+    keycloak.createClient(clientRepresentation);
+
+    // Create a user
+    String username = "johanne.doanne";
+    String password = "her-secret";
+    keycloak.createUser("Johanne", "Doanne", username, "johnanne@doanne.com", password, null);
+
+    // SAML Successful login
+    refreshOrOpen(IndexPage.url());
+    LoginModal loginModal = new LoginModal();
+    loginModal.loginButton().shouldBe(visible);
+    loginModal.ssoButton().shouldBe(visible).click();
+
+    KeycloakLoginPage.login(username, password);
+
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    MainHeader.userMenu().userName().shouldBe(visible).shouldHave(text("johanne.doanne"));
+
+    MainHeader.userMenu().dropdownToggle().click();
+    MainHeader.userMenu().userDetails().click();
+
+    UserDetailsModal modal = new UserDetailsModal();
+    modal.should(appear);
+    modal.username().shouldBe(text("johanne.doanne"));
+    modal.displayName().shouldBe(text("johanne.doanne"));
+    modal.groups().shouldBe(text(Group.AUTHENTICATED_USERS_GROUP_ID));
+    modal.closeButton().click();
+  }
+
+  @Test
+  public void testDeleteSamlConfigurationLoggedInUsersActiveAndCanLogout() {
+    // Upload Identity Provider metadata to IQ Server
+    apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
+
+    // Register IQ in Keycloak
+    String metadata = apiSamlConfigurationService.getMetadata();
+    ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
+    clientRepresentation.setProtocolMappers(protocolMappers());
+    keycloak.createClient(clientRepresentation);
+
+    String username = "william.gibson";
+    String password = "will-password";
+    keycloak.createUser("William", "Gibson", username, "william@gibson.com", password, null);
+
+    // William logs in
+    refreshOrOpen(IndexPage.url());
+    LoginModal loginModal = new LoginModal();
+    loginModal.ssoButton().click();
+
+    KeycloakLoginPage.login(username, password);
+    DashboardPage.dashboardContainer().shouldBe(visible);
+
+    // Admin decides to delete SAML Configuration from IQ Server while William Gibson has a session
+    apiSamlConfigurationService.deleteSamlConfiguration();
+
+    // William should still be able to navigate around
+    refreshOrOpen(IndexPage.url());
+    DashboardPage.dashboardContainer().shouldBe(visible);
+
+    // William should be able to logout
+    logout();
+    loginModal.loginButton().shouldBe(visible);
+    loginModal.ssoButton().shouldNotBe(visible);
+  }
+
+  /**
+   * Maps SAML attribute firstName to users first name.
+   * Maps SAML attribute lastName to users last name.
+   * Maps SAML attribute groups to users groups.
+   *
+   * @return All the mappings created in a list.
+   */
+  private List<ProtocolMapperRepresentation> protocolMappers() {
+    ProtocolMapperRepresentation firstNameMapping = new ProtocolMapperRepresentation();
+    firstNameMapping.setName("firstName");
+    firstNameMapping.setProtocol("saml");
+    firstNameMapping.setProtocolMapper("saml-user-property-mapper");
+    firstNameMapping.getConfig().put("attribute.nameformat", "Basic");
+    firstNameMapping.getConfig().put("user.attribute", "firstName");
+    firstNameMapping.getConfig().put("friendly.name", "firstName");
+    firstNameMapping.getConfig().put("attribute.name", "firstName");
+
+    ProtocolMapperRepresentation lastNameMapping = new ProtocolMapperRepresentation();
+    lastNameMapping.setName("lastName");
+    lastNameMapping.setProtocol("saml");
+    lastNameMapping.setProtocolMapper("saml-user-property-mapper");
+    lastNameMapping.getConfig().put("attribute.nameformat", "Basic");
+    lastNameMapping.getConfig().put("user.attribute", "lastName");
+    lastNameMapping.getConfig().put("friendly.name", "lastName");
+    lastNameMapping.getConfig().put("attribute.name", "lastName");
+
+    ProtocolMapperRepresentation groupsMapping = new ProtocolMapperRepresentation();
+    groupsMapping.setName("groups");
+    groupsMapping.setProtocol("saml");
+    groupsMapping.setProtocolMapper("saml-group-membership-mapper");
+    groupsMapping.getConfig().put("attribute.nameformat", "Basic");
+    groupsMapping.getConfig().put("name", "Group List");
+    groupsMapping.getConfig().put("friendly.name", "Groups");
+    groupsMapping.getConfig().put("attribute.name", "groups");
+
+    return Arrays.asList(firstNameMapping, lastNameMapping, groupsMapping);
+  }
+}

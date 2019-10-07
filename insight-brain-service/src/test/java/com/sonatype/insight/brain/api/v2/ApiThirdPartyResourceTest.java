@@ -40,7 +40,7 @@ public class ApiThirdPartyResourceTest
   @Test
   public void testEvaluateComponents_disabledThirdPartyScan() throws Exception {
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiThirdPartyResource.EVALUATE_COMPONENTS_SBOM)
+        .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
         .parameter(app.getId(), "clair").query("stageId", "build").body("<bom/>", MediaType.APPLICATION_XML).post();
     assertResponseStatus(501, response);
   }
@@ -49,7 +49,7 @@ public class ApiThirdPartyResourceTest
   public void testEvaluateComponents_enabledThirdPartyScan() throws Exception {
     initServer(config -> config.setThirdPartyEvaluationApiEnabled(true));
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiThirdPartyResource.EVALUATE_COMPONENTS_SBOM)
+        .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
         .parameter(app.getId(), "clair").query("stageId", "build").body("<bom/>", MediaType.APPLICATION_XML).post();
     assertResponseStatus(200, response);
 
@@ -65,7 +65,7 @@ public class ApiThirdPartyResourceTest
   public void testEvaluateComponents_nullSbom() throws Exception {
     initServer(config -> config.setThirdPartyEvaluationApiEnabled(true));
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiThirdPartyResource.EVALUATE_COMPONENTS_SBOM)
+        .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
         .parameter(app.getId(), "clair").query("stageId", "build").body(null).post();
     assertResponseStatus(400, response);
   }

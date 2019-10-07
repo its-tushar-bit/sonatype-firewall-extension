@@ -25,17 +25,17 @@ import com.sonatype.insight.brain.security.AuthzContext;
 public class ApiThirdPartyEvaluationService
 {
   @Authorize(permission = Permission.READ)
-  public ApiComponentEvaluationTicketDTOV2 evaluateComponents(
+  public ApiComponentEvaluationTicketDTOV2 scanComponents(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
       final String source,
       final String stageId,
       final String sbom)
   {
-    ApiComponentEvaluationTicketDTOV2 evaluationTicketDTO = createEvaluationTicket(applicationId);
+    ApiComponentEvaluationTicketDTOV2 evaluationTicketDTO = createScanTicket(applicationId);
     return evaluationTicketDTO;
   }
 
-  private ApiComponentEvaluationTicketDTOV2 createEvaluationTicket(final String applicationId) {
+  private ApiComponentEvaluationTicketDTOV2 createScanTicket(final String applicationId) {
     ApiComponentEvaluationTicketDTOV2 evaluationTicketDTO = new ApiComponentEvaluationTicketDTOV2();
     evaluationTicketDTO.resultId = UUID.randomUUID().toString().replace("-", "");
     evaluationTicketDTO.submittedDate = new Date();

@@ -33,10 +33,10 @@ import org.hibernate.validator.constraints.NotEmpty;
  */
 @Named
 @Timed
-@Path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2)
+@Path(PublicApiPaths.THIRD_PARTY_SCAN_PATH)
 public class ApiThirdPartyResource
 {
-  public static final String EVALUATE_COMPONENTS_SBOM = "{applicationId}/sbom/{source}";
+  public static final String SCAN_COMPONENTS = "{applicationId}/sources/{source}";
 
   private final ApiThirdPartyEvaluationService thirdPartyEvaluationService;
 
@@ -51,12 +51,12 @@ public class ApiThirdPartyResource
     this.config = config;
   }
 
-  @Path(EVALUATE_COMPONENTS_SBOM)
+  @Path(SCAN_COMPONENTS)
   @POST
   @Consumes(MediaType.APPLICATION_XML)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_THIRD_PARTY)
-  public Response evaluateComponents(
+  public Response scanComponents(
       @PathParam("applicationId") final String applicationId,
       @PathParam("source") final String source,
       @DefaultValue("build") @QueryParam("stageId") final String stageId,
@@ -64,7 +64,7 @@ public class ApiThirdPartyResource
   {
     if (config.isThirdPartyEvaluationApiEnabled()) {
       ApiComponentEvaluationTicketDTOV2 ticket =
-          thirdPartyEvaluationService.evaluateComponents(applicationId, source, stageId, sbom);
+          thirdPartyEvaluationService.scanComponents(applicationId, source, stageId, sbom);
       return Response.status(Response.Status.OK).entity(ticket).build();
     }
     else {

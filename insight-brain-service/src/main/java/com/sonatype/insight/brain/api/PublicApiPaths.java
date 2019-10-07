@@ -36,6 +36,8 @@ public class PublicApiPaths
 
   public static final String APPLICATION_EVALUATION_PATH_V2 = API_VERSION_PATH_V2 + "evaluation/applications";
 
+  public static final String THIRD_PARTY_SCAN_PATH = API_VERSION_PATH_V2 + "scan/applications";
+
   public static final String PROMOTE_SCAN_STATUS_PATH_V2 =
       APPLICATION_EVALUATION_PATH_V2 + "/{applicationId}/status/{statusId}";
 

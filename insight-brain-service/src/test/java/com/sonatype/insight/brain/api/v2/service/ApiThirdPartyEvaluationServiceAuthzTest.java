@@ -22,17 +22,17 @@ public class ApiThirdPartyEvaluationServiceAuthzTest
   @Test
   public void testEvaluateComponents_Authorized() {
     grantReadPermission(app.getId());
-    apiThirdPartyEvaluationService.evaluateComponents(app.getId(), "clair", "Build", "");
+    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "Build", "");
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testEvaluateComponents_Unauthenticated() {
-    apiThirdPartyEvaluationService.evaluateComponents(app.getId(), "clair", "Build", "");
+    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "Build", "");
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testEvaluateComponents_UnauthorizedButAuthenticated() {
     login();
-    apiThirdPartyEvaluationService.evaluateComponents(app.getId(), "clair", "Build", "");
+    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "Build", "");
   }
 }

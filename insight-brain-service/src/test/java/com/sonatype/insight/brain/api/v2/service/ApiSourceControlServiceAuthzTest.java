@@ -90,8 +90,9 @@ public class ApiSourceControlServiceAuthzTest
     grantWritePermission(app.getId());
     sourceControlService.addSourceControlByOwner(
         OwnerType.APPLICATION, app.getId(),
-        apiSourceControlAdapter.convertToDTO(new SourceControl(
-            app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB)));
+        apiSourceControlAdapter.convertToDTO(
+            new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")
+                .setProvider(SourceControlProvider.GITHUB).build()));
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -112,8 +113,8 @@ public class ApiSourceControlServiceAuthzTest
     grantWritePermission(app.getId());
     ApiSourceControlDTO sourceControl = sourceControlService.addSourceControlByOwner(OwnerType.APPLICATION,
         app.getId(), apiSourceControlAdapter.convertToDTO(
-            new SourceControl(app.getId(), VALID_URL, "token",
-                SourceControlProvider.GITHUB)));
+            new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")
+                .setProvider(SourceControlProvider.GITHUB).build()));
     sourceControl.token = "newToken";
     sourceControlService.updateSourceControlByOwner(
         OwnerType.APPLICATION, app.getId(), sourceControl);

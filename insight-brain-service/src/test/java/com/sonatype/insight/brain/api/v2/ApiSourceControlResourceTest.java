@@ -83,7 +83,8 @@ public class ApiSourceControlResourceTest
   @Test
   public void testAddSourceControlByOwner_ByOrganization() throws Exception {
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl(org.getId(), null, "token", SourceControlProvider.GITHUB));
+        new SourceControl.Builder().setOwnerId(org.getId()).setToken("token")
+            .setProvider(SourceControlProvider.GITHUB).build());
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
@@ -102,8 +103,8 @@ public class ApiSourceControlResourceTest
   @Test
   public void testAddSourceControlByOwner_ByApplication() throws Exception {
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl(app.getId(), VALID_URL, "token",
-            SourceControlProvider.GITHUB));
+        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")
+            .setProvider(SourceControlProvider.GITHUB).build());
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
@@ -161,7 +162,7 @@ public class ApiSourceControlResourceTest
       throws Exception
   {
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl(org.getId(), null, "token", null));
+        new SourceControl.Builder().setOwnerId(org.getId()).setToken("token").build());
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())

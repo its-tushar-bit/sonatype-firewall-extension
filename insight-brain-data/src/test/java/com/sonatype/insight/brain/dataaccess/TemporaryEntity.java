@@ -1780,7 +1780,21 @@ public class TemporaryEntity
                                         String token,
                                         SourceControlProvider provider)
   {
-    SourceControl sourceControl = new SourceControl(applicationId, repositoryUrl, token, provider);
+    return newSourceControl(applicationId, repositoryUrl, token, provider, null, null, null);
+  }
+
+  public SourceControl newSourceControl(String applicationId,
+                                        String repositoryUrl,
+                                        String token,
+                                        SourceControlProvider provider,
+                                        Boolean enablePullRequests,
+                                        Boolean enableStatusChecks,
+                                        String baseBranch)
+  {
+    SourceControl sourceControl =
+        new SourceControl.Builder().setOwnerId(applicationId).setRepositoryUrl(repositoryUrl).setToken(token)
+            .setProvider(provider).setEnablePullRequests(enablePullRequests).setEnableStatusChecks(enableStatusChecks)
+            .setBaseBranch(baseBranch).build();
     sourceControlDAO.insert(sourceControl);
     sourceControls.add(sourceControl);
     return sourceControl;

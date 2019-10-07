@@ -16,4 +16,10 @@ public class ApiSourceControlDTO
   public String token;
 
   public String provider;
+
+  public String baseBranch;
+
+  public Boolean enablePullRequests;
+
+  public Boolean enableStatusChecks;
 }

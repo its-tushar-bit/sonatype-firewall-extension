@@ -104,9 +104,8 @@ public class ApiSourceControlService
     }
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(application.getId());
     if (sourceControl == null) { // create new record
-      sourceControl = new SourceControl();
-      sourceControl.setOwnerId(application.getId());
-      sourceControl.setRepositoryUrl(repositoryUrl);
+      sourceControl =
+          new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl(repositoryUrl).build();
       sourceControlDAO.insert(sourceControl);
     }
     else { // update existing record
@@ -281,6 +280,9 @@ public class ApiSourceControlService
       attributes.put("repository_url", HdsClientAnalytics.obfuscate(sourceControl.getRepositoryUrl()));
       attributes.put("provider", (sourceControl.getProvider() != null)
           ? sourceControl.getProvider().toString() : null);
+      attributes.put("enable_pull_requests", sourceControl.getEnablePullRequests());
+      attributes.put("enable_status_checks", sourceControl.getEnableStatusChecks());
+      attributes.put("base_branch", sourceControl.getBaseBranch());
     }
 
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL);

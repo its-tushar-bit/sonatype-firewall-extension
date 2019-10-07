@@ -76,7 +76,8 @@ public class SourceControlClientTest
   private void addOrgSourceControlForTest() throws Exception {
     ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl(application.getId(), "https://github.com/org/proj", "token", SourceControlProvider.GITHUB));
+        new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl("https://github.com/org/proj")
+            .setToken("token").setProvider(SourceControlProvider.GITHUB).build());
     HttpResponse response =
         restRequest().path("api", "v2", "sourceControl", OwnerType.APPLICATION.toString(), application.getId())
         .body(sourceControl).post();

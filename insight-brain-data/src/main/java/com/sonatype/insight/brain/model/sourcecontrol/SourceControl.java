@@ -57,12 +57,18 @@ public class SourceControl
   public SourceControl(final String ownerId,
                        final String repositoryUrl,
                        final String token,
-                       final SourceControlProvider provider)
+                       final SourceControlProvider provider,
+                       final Boolean enablePullRequests,
+                       final Boolean enableStatusChecks,
+                       final String baseBranch)
   {
     this.ownerId = ownerId;
     this.repositoryUrl = repositoryUrl;
     this.token = token;
     this.provider = provider;
+    this.enablePullRequests = enablePullRequests;
+    this.enableStatusChecks = enableStatusChecks;
+    this.baseBranch = baseBranch;
   }
 
   @Override
@@ -129,5 +135,62 @@ public class SourceControl
 
   public void setEnableStatusChecks(final Boolean enableStatusChecks) {
     this.enableStatusChecks = enableStatusChecks;
+  }
+
+  public static class Builder
+  {
+    private String ownerId;
+
+    private String repositoryUrl;
+
+    private String token;
+
+    private SourceControlProvider provider;
+
+    private Boolean enablePullRequests;
+
+    private Boolean enableStatusChecks;
+
+    private String baseBranch;
+
+    public Builder setOwnerId(final String ownerId) {
+      this.ownerId = ownerId;
+      return this;
+    }
+
+    public Builder setRepositoryUrl(final String repositoryUrl) {
+      this.repositoryUrl = repositoryUrl;
+      return this;
+    }
+
+    public Builder setToken(final String token) {
+      this.token = token;
+      return this;
+    }
+
+    public Builder setProvider(final SourceControlProvider provider) {
+      this.provider = provider;
+      return this;
+    }
+
+    public Builder setEnablePullRequests(final Boolean enablePullRequests) {
+      this.enablePullRequests = enablePullRequests;
+      return this;
+    }
+
+    public Builder setEnableStatusChecks(final Boolean enableStatusChecks) {
+      this.enableStatusChecks = enableStatusChecks;
+      return this;
+    }
+
+    public Builder setBaseBranch(final String baseBranch) {
+      this.baseBranch = baseBranch;
+      return this;
+    }
+
+    public SourceControl build() {
+      return new SourceControl(ownerId, repositoryUrl, token, provider, enablePullRequests, enableStatusChecks,
+          baseBranch);
+    }
   }
 }

@@ -39,7 +39,8 @@ public class ApiSourceControlResourceAuditTest
     //CREATE
     String repositoryUrl = ApiSourceControlResourceTest.VALID_URL;
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl(app.getId(), repositoryUrl, "token", SourceControlProvider.GITHUB));
+        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(repositoryUrl).setToken("token")
+            .setProvider(SourceControlProvider.GITHUB).build());
     HttpResponse response =
         restRequest().path(SOURCE_CONTROL_PATH_V2)
             .path(OwnerType.APPLICATION.toString(), app.getId())
@@ -85,7 +86,8 @@ public class ApiSourceControlResourceAuditTest
     //CREATE
     String repositoryUrl = ApiSourceControlResourceTest.VALID_URL;
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl(app.getId(), repositoryUrl, "token", SourceControlProvider.GITHUB));
+        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(repositoryUrl).setToken("token")
+            .setProvider(SourceControlProvider.GITHUB).build());
     HttpResponse response = restRequest().path(SOURCE_CONTROL_PATH_V2)
         .path(OwnerType.APPLICATION.toString(), app.getId())
         .body(sourceControl)

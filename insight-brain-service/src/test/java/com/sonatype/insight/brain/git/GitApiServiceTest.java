@@ -166,7 +166,8 @@ public class GitApiServiceTest
   @Test
   public void testGetGitRepositoryInfo_ProviderAndTokenFromApplication() {
     SourceControl sourceControl =
-        new SourceControl(application.getParentOwnerId(), VALID_URL, TOKEN, SourceControlProvider.GITHUB);
+        new SourceControl.Builder().setOwnerId(application.getParentOwnerId()).setRepositoryUrl(VALID_URL)
+            .setToken(TOKEN).setProvider(SourceControlProvider.GITHUB).build();
     sourceControl.setBaseBranch("base-branch");
     sourceControl.setEnablePullRequests(true);
     sourceControl.setEnableStatusChecks(true);
@@ -190,15 +191,15 @@ public class GitApiServiceTest
   @Test
   public void testGetGitRepositoryInfo_ProviderAndTokenFromOrganization() {
     SourceControl sourceControl =
-        new SourceControl(application.getId(), VALID_URL, null, null);
-    sourceControl.setBaseBranch("base-branch");
-    sourceControl.setEnablePullRequests(true);
-    sourceControl.setEnableStatusChecks(true);
+        new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl(VALID_URL)
+            .setEnablePullRequests(true).setEnableStatusChecks(true).setBaseBranch("base-branch")
+            .build();
     when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(OwnerType.APPLICATION), eq(application.getId())))
         .thenReturn(sourceControl);
 
     SourceControl orgSourceControl =
-        new SourceControl(org.getId(), null, TOKEN, SourceControlProvider.GITHUB);
+        new SourceControl.Builder().setOwnerId(org.getId()).setRepositoryUrl(null).setToken(TOKEN)
+            .setProvider(SourceControlProvider.GITHUB).build();
     when(mockSourceControlService
         .getSourceControlByOwnerDecrypted(eq(OwnerType.ORGANIZATION), eq(application.getOrganizationId())))
         .thenReturn(orgSourceControl);
@@ -218,10 +219,9 @@ public class GitApiServiceTest
   @Test
   public void testGetGitRepositoryInfo_ProviderAndTokenFromRootOrganization() {
     SourceControl sourceControl =
-        new SourceControl(application.getId(), VALID_URL, null, null);
-    sourceControl.setBaseBranch("base-branch");
-    sourceControl.setEnablePullRequests(true);
-    sourceControl.setEnableStatusChecks(true);
+        new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl(VALID_URL).setToken(null)
+            .setProvider(null).setEnablePullRequests(true).setEnableStatusChecks(true).setBaseBranch("base-branch")
+            .build();
     when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(OwnerType.APPLICATION), eq(application.getId())))
         .thenReturn(sourceControl);
 
@@ -230,7 +230,8 @@ public class GitApiServiceTest
         .thenReturn(null);
 
     SourceControl rootOrgSourceControl =
-        new SourceControl(org.getParentOrganizationId(), null, TOKEN, SourceControlProvider.GITHUB);
+        new SourceControl.Builder().setOwnerId(org.getParentOrganizationId()).setToken(TOKEN)
+            .setProvider(SourceControlProvider.GITHUB).build();
     when(mockSourceControlService
         .getSourceControlByOwnerDecrypted(eq(OwnerType.ORGANIZATION), eq(Organization.ROOT_ORGANIZATION_ID)))
         .thenReturn(rootOrgSourceControl);
@@ -291,7 +292,10 @@ public class GitApiServiceTest
     ProjectUri projectUri = gitApiClientFactory
         .getGitApiClientUtils(com.sonatype.nexus.scm.SourceControlProvider.GITHUB)
         .createProjectUri("https://github.com/owner/repo/");
-    sourceControl = new SourceControl(application.getId(), projectUri.getUrl(), TOKEN, SourceControlProvider.GITHUB);
+    sourceControl =
+        new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl(projectUri.getUrl())
+            .setToken(TOKEN)
+            .setProvider(SourceControlProvider.GITHUB).build();
     sourceControl.setEnableStatusChecks(true);
     sourceControl.setEnablePullRequests(true);
     sourceControl.setBaseBranch("base-branch");
@@ -353,7 +357,9 @@ public class GitApiServiceTest
         .getGitApiClientUtils(com.sonatype.nexus.scm.SourceControlProvider.GITHUB)
         .createProjectUri("https://github.com/owner/repo/");
 
-    sourceControl = new SourceControl(application.getId(), projectUri.getUrl(), null, SourceControlProvider.GITHUB);
+    sourceControl =
+        new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl(projectUri.getUrl()).setToken(null)
+            .setProvider(SourceControlProvider.GITHUB).build();
   }
 
   private void setupApplicationSourceControlWithoutProvider() {
@@ -361,6 +367,8 @@ public class GitApiServiceTest
         .getGitApiClientUtils(com.sonatype.nexus.scm.SourceControlProvider.GITHUB)
         .createProjectUri("https://github.com/owner/repo/");
 
-    sourceControl = new SourceControl(application.getId(), projectUri.getUrl(), TOKEN, null);
+    sourceControl =
+        new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl(projectUri.getUrl())
+            .setToken(TOKEN).build();
   }
 }

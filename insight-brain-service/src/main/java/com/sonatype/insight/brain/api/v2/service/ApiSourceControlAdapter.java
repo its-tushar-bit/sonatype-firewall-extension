@@ -51,11 +51,10 @@ public class ApiSourceControlAdapter
       return null;
     }
 
-    SourceControl sourceControl = new SourceControl(
-        dto.ownerId,
-        dto.repositoryUrl,
-        dto.token,
-        getSourceControlProvider(dto.provider));
+    SourceControl sourceControl =
+        new SourceControl.Builder().setOwnerId(dto.ownerId).setRepositoryUrl(dto.repositoryUrl).setToken(dto.token)
+            .setProvider(getSourceControlProvider(dto.provider)).setEnablePullRequests(dto.enablePullRequests)
+            .setEnableStatusChecks(dto.enableStatusChecks).setBaseBranch(dto.baseBranch).build();
     return sourceControl;
   }
 }

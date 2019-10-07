@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyBillOfMaterialsRowDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyReportComponentDTO;
@@ -64,15 +65,15 @@ public class ComponentResolver
   {
     final Map<String, ThirdPartyReportComponentDTO> data = thirdPartyComponentDAO.getData(reportFile);
     if (data != null && !data.isEmpty()) {
-      List<Component> thirdPartyIdentifiedComponents = new ArrayList<>();
+      List<ThirdPartyBillOfMaterialsRowDTO> thirdPartyIdentifiedComponents = new ArrayList<>();
       components.stream().filter(c -> MatchState.UNKNOWN.equals(c.getMatchState())).forEach(unknownComponent -> {
         final ThirdPartyReportComponentDTO thirdPartyDTO = data.get(unknownComponent.getHash());
         if (thirdPartyDTO != null) {
           populateThirdPartyData(unknownComponent, thirdPartyDTO);
-          thirdPartyIdentifiedComponents.add(unknownComponent);
+          thirdPartyIdentifiedComponents.add(thirdPartyDTO.bomRow);
         }
       });
-      thirdPartyComponentDAO.applyThirdPartyComponentSummary(thirdPartyIdentifiedComponents, reportFile);
+      thirdPartyComponentDAO.applyIdentifiedComponentUpdates(thirdPartyIdentifiedComponents, reportFile);
     }
   }
 

@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -23,7 +23,6 @@ import com.sonatype.insight.json.store.UncheckedIOException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
@@ -73,13 +72,12 @@ public class ThirdPartyComponentDAO
     return reportData;
   }
 
-  public void applyIdentifiedComponentUpdates(
-      final List<ThirdPartyBillOfMaterialsRowDTO> thirdPartyIdentifiedComponents,
+  public void applyThirdPartyComponentSummary(
+      final List<Component> thirdPartyIdentifiedComponents,
       final File reportFile)
   {
     try {
       if (!thirdPartyIdentifiedComponents.isEmpty()) {
-        updateBom(thirdPartyIdentifiedComponents, reportFile);
         updateSummaryCounts(reportFile, thirdPartyIdentifiedComponents.size());
         updateDataCounts(reportFile, thirdPartyIdentifiedComponents.size());
       }
@@ -111,35 +109,6 @@ public class ThirdPartyComponentDAO
     summary.put("knownArtifactCount", knownArtifactCount + thirdPartyComponentCount);
     summary.put("exactlyMatchedComponentCount", exactlyMatchedComponentCount + thirdPartyComponentCount);
     Report.putEntry(reportFile, filename, JsonUtils.generate(summary));
-  }
-
-  private void updateBom(
-      final List<ThirdPartyBillOfMaterialsRowDTO> thirdPartyIdentifiedComponents,
-      final File reportFile) throws IOException
-  {
-    final ContainerNode<?> bom = JsonUtils.parse(Report.getEntry(reportFile, "bom.json").buf);
-    final ArrayNode bomArray = (ArrayNode) bom.get("aaData");
-    final ArrayNode thirdPartyBomArray = MAPPER.valueToTree(thirdPartyIdentifiedComponents);
-
-    for (JsonNode tpNode : thirdPartyBomArray) {
-      for (int i = 0; i < bomArray.size(); i++) {
-        final JsonNode bomNode = bomArray.get(i);
-        if (tpNode.path("hash").asText().equals(bomNode.path("hash").asText())) {
-          mergeNodes(bomNode, tpNode);
-          bomArray.set(i, tpNode);
-          break;
-        }
-      }
-    }
-
-    Report.putEntry(reportFile, "bom.json", JsonUtils.generate(JsonUtils.aaData(bomArray)));
-  }
-
-  private void mergeNodes(final JsonNode bomNode, final JsonNode tpNode) {
-    final ObjectNode tpObjectNode = (ObjectNode) tpNode;
-    tpObjectNode.replace("filenames", bomNode.get("filenames"));
-    tpObjectNode.replace("pathnames", bomNode.get("pathnames"));
-    ComponentDisplayNameUtil.injectDisplayName(tpObjectNode);
   }
 
   private void prepareComponentData(

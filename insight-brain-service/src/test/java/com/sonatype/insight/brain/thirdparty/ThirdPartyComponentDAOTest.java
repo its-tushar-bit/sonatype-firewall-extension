@@ -14,12 +14,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
-import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -28,14 +25,11 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.LogOutput;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromJsonNode;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ThirdPartyComponentDAOTest
@@ -48,32 +42,37 @@ public class ThirdPartyComponentDAOTest
 
   private ThirdPartyComponentDAO dao = new ThirdPartyComponentDAO();
 
-  private final String hashGlibc = "e587ce87ed894c1d5283";
+  private final ComponentIdentifier glibcIdentifier = componentIdentifierFrom("debian:9", "glibc", "2.24-11+deb9u3");
 
-  private final String hashApt = "683620ac905c1d32b58c";
+  private final ComponentIdentifier aptIdentifier = componentIdentifierFrom("debian:9", "apt", "1.4.8");
 
-  private final Map<String, ComponentIdentifier> testData = ImmutableMap.of(
-      hashGlibc, componentIdentifierFrom("debian:9", "glibc", "2.24-11+deb9u3"),
-      hashApt, componentIdentifierFrom("debian:9", "apt", "1.4.8"));
+  private final ComponentIdentifier pythonIdentifier = componentIdentifierFrom("debian:9", "python3.5", "3.5.3-1");
 
   @Test
   public void testGetData() {
+    final String hashGlibc = "e587ce87ed894c1d5283";
+    final String hashApt = "683620ac905c1d32b58c";
+    final String hashPython = "a19ddea0123f1d8150b2";
+
     final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
     final Map<String, ThirdPartyReportComponentDTO> data = dao.getData(reportZip);
 
-    assertThat(data).hasSize(2);
-    assertThat(data.keySet()).containsExactlyInAnyOrderElementsOf(testData.keySet());
-    assertThat(data.get(hashGlibc).componentIdentifier).isEqualTo(testData.get(hashGlibc));
-    assertThat(data.get(hashApt).componentIdentifier).isEqualTo(testData.get(hashApt));
+    assertThat(data).hasSize(3);
+    assertThat(data.keySet()).containsExactlyInAnyOrder(hashGlibc, hashApt, hashPython);
+    assertThat(data.get(hashGlibc).componentIdentifier).isEqualTo(glibcIdentifier);
+    assertThat(data.get(hashApt).componentIdentifier).isEqualTo(aptIdentifier);
+    assertThat(data.get(hashPython).componentIdentifier).isEqualTo(pythonIdentifier);
 
     assertThat(data.get(hashGlibc).bomRow.matchState).isEqualTo(MatchState.EXACT.toString());
 
     assertThat(data.get(hashGlibc).securityRows).hasSize(2);
     assertThat(data.get(hashApt).securityRows).hasSize(1);
+    assertThat(data.get(hashPython).securityRows).hasSize(1);
 
     assertThat(data.get(hashGlibc).securityRows.stream().map(s -> s.reference))
         .containsExactlyInAnyOrder("CVE-2017-16997", "CVE-2018-1000001");
     assertThat(data.get(hashApt).securityRows.stream().map(s -> s.reference)).containsOnly("CVE-2019-3462");
+    assertThat(data.get(hashPython).securityRows.stream().map(s -> s.reference)).containsOnly("CVE-2019-5010");
 
     ThirdPartyHealthCheckReportSecurityRowDTO aptSecurityRow = data.get(hashApt).securityRows.get(0);
     assertThat(aptSecurityRow.source).isEqualTo("Clair");
@@ -102,67 +101,24 @@ public class ThirdPartyComponentDAOTest
   @Test
   public void testApplyThirdPartyComponentSummary() throws Exception {
     final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
-    List<ThirdPartyBillOfMaterialsRowDTO> componentList = Lists
-        .newArrayList(newThirdPartyBom(hashGlibc, testData.get(hashGlibc)),
-            newThirdPartyBom(hashApt, testData.get(hashApt)));
+    List<Component> componentList = Lists
+        .newArrayList(new Component(glibcIdentifier), new Component(aptIdentifier), new Component(pythonIdentifier));
 
-    dao.applyIdentifiedComponentUpdates(componentList, reportZip);
+    dao.applyThirdPartyComponentSummary(componentList, reportZip);
 
     assertSummaryCountsUpdated(reportZip, 3);
     assertDataCountsUpdated(reportZip, 3);
-    assertUpdatedBom(reportZip);
-  }
-
-  private void assertUpdatedBom(final File reportZip) throws IOException {
-    final ReportEntry bomEntry = Report.getEntry(reportZip, "bom.json");
-    assertThat(bomEntry).isNotNull();
-
-    JsonNode jsonNode = JsonUtils.parse(bomEntry.buf);
-    final JsonNode aaDataNode = jsonNode.path("aaData");
-    for (JsonNode node : aaDataNode) {
-      Stream.of(hashGlibc, hashApt).forEach(hash -> {
-        if (hash.equals(node.path("hash").asText())) {
-          final String displayName = pathNameFromDisplayName(hash);
-          final List<String> pathNames = getArrayValues(node, "pathnames");
-          final List<String> fileNames = getArrayValues(node, "filenames");
-          final String displayNameWithoutSpaces = displayName.replaceAll("\\s", "");
-          assertThat(pathNames).containsExactly("dependency:/clair-scanner-output.json/" + displayNameWithoutSpaces);
-          assertThat(fileNames).containsExactly(displayNameWithoutSpaces);
-          assertThat(nodeDisplayName(node)).isEqualTo(displayName);
-        }
-      });
-    }
-  }
-
-  private String nodeDisplayName(final JsonNode node) {
-    return fromJsonNode((ObjectNode) node).toString();
-  }
-
-  private List<String> getArrayValues(final JsonNode node, final String fieldName) {
-    return StreamSupport.stream(node.get(fieldName).spliterator(), false).map(JsonNode::textValue)
-        .collect(Collectors.toList());
-  }
-
-  private String pathNameFromDisplayName(final String hash) {
-    return ComponentDisplayNameUtil.fromIdentifier(testData.get(hash)).toString();
-  }
-
-  private ThirdPartyBillOfMaterialsRowDTO newThirdPartyBom(
-      final String hash,
-      final ComponentIdentifier componentIdentifier)
-  {
-    return new ThirdPartyBillOfMaterialsRowDTO(componentIdentifier, hash);
   }
 
   @Test
   public void testApplyThirdPartyComponentSummary_NoUpdateForEmptyList() throws Exception {
     final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
-    List<ThirdPartyBillOfMaterialsRowDTO> componentList = new ArrayList<>();
+    List<Component> componentList = new ArrayList<>();
 
-    dao.applyIdentifiedComponentUpdates(componentList, reportZip);
+    dao.applyThirdPartyComponentSummary(componentList, reportZip);
 
-    assertSummaryCountsUpdated(reportZip, 1); // non-third party component only
-    assertDataCountsUpdated(reportZip, 1);
+    assertSummaryCountsUpdated(reportZip, 0);
+    assertDataCountsUpdated(reportZip, 0);
   }
 
   private ComponentIdentifier componentIdentifierFrom(final String format, final String name, final String version) {

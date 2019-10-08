@@ -6,6 +6,10 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 
@@ -47,10 +51,15 @@ public class ApiThirdPartyResourceTest
 
   @Test
   public void testEvaluateComponents_enabledThirdPartyScan() throws Exception {
+    byte[] bytes =
+        Files.readAllBytes(Paths.get(getClass().getResource("/ApiThirdPartyResourceTest/valid_sbom.xml").toURI()));
+    String sbom = new String(bytes, StandardCharsets.UTF_8);
+
     initServer(config -> config.setThirdPartyEvaluationApiEnabled(true));
     HttpResponse response = restRequest()
         .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
-        .parameter(app.getId(), "clair").query("stageId", "build").body("<bom/>", MediaType.APPLICATION_XML).post();
+        .parameter(app.getId(), "clair").query("stageId", "build").body(sbom, MediaType.APPLICATION_XML).post();
+
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationTicketDTOV2 evaluationResult = response.getBody(ApiComponentEvaluationTicketDTOV2.class);
@@ -68,5 +77,23 @@ public class ApiThirdPartyResourceTest
         .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
         .parameter(app.getId(), "clair").query("stageId", "build").body(null).post();
     assertResponseStatus(400, response);
+  }
+
+  @Test
+  public void testEvaluateComponents_invalidSbom() throws Exception {
+    byte[] bytes =
+        Files.readAllBytes(Paths.get(getClass().getResource("/ApiThirdPartyResourceTest/invalid_sbom.xml").toURI()));
+    String sbom = new String(bytes, StandardCharsets.UTF_8);
+
+    initServer(config -> config.setThirdPartyEvaluationApiEnabled(true));
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
+        .parameter(app.getId(), "clair").query("stageId", "build").body(sbom, MediaType.APPLICATION_XML).post();
+    assertResponseStatus(400, response);
+
+    List<String> errors = response.getBodyList();
+    assertThat(errors).containsExactlyInAnyOrder(
+        "cvc-complex-type.4: Attribute 'ref' must appear on element 'v:vulnerability'.",
+        "cvc-complex-type.4: Attribute 'name' must appear on element 'v:source'.");
   }
 }

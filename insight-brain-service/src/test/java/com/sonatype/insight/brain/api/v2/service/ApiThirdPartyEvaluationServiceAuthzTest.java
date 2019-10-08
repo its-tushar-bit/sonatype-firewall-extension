@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -20,9 +24,13 @@ public class ApiThirdPartyEvaluationServiceAuthzTest
   private ApiThirdPartyEvaluationService apiThirdPartyEvaluationService;
 
   @Test
-  public void testEvaluateComponents_Authorized() {
+  public void testEvaluateComponents_Authorized() throws Exception {
+    byte[] bytes = Files.readAllBytes(
+        Paths.get(getClass().getResource("/ApiThirdPartyEvaluationServiceAuthzTest/valid_sbom.xml").toURI()));
+    String sbom = new String(bytes, StandardCharsets.UTF_8);
+
     grantReadPermission(app.getId());
-    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "Build", "");
+    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "Build", sbom);
   }
 
   @Test(expected = UnauthenticatedException.class)

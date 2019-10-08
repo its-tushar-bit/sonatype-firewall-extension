@@ -15,7 +15,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -47,6 +47,8 @@ public class ApiThirdPartyResourceTest
         .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
         .parameter(app.getId(), "clair").query("stageId", "build").body("<bom/>", MediaType.APPLICATION_XML).post();
     assertResponseStatus(501, response);
+
+    assertThat(response.getBodyText()).isEmpty();
   }
 
   @Test
@@ -59,15 +61,12 @@ public class ApiThirdPartyResourceTest
     HttpResponse response = restRequest()
         .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
         .parameter(app.getId(), "clair").query("stageId", "build").body(sbom, MediaType.APPLICATION_XML).post();
+    assertResponseStatus(202, response);
 
-    assertResponseStatus(200, response);
-
-    ApiComponentEvaluationTicketDTOV2 evaluationResult = response.getBody(ApiComponentEvaluationTicketDTOV2.class);
+    ApiThirdPartyScanTicketDTO evaluationResult = response.getBody(ApiThirdPartyScanTicketDTO.class);
     assertThat(evaluationResult).isNotNull();
-    assertThat(evaluationResult.applicationId.equals(app.getId()));
-    assertThat(evaluationResult.resultId).isNotNull();
-    assertThat(evaluationResult.resultsUrl).isNotNull();
-    assertThat(new URI(evaluationResult.resultsUrl)).hasNoParameters();
+    assertThat(evaluationResult.statusUrl).isNotNull();
+    assertThat(new URI(evaluationResult.statusUrl)).isNotNull();
   }
 
   @Test

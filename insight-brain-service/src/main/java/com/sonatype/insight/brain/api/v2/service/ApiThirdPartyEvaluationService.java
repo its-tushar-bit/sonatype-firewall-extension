@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -20,7 +19,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.cyclonedx.CycloneDxSchemaValidator;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
@@ -44,7 +43,7 @@ public class ApiThirdPartyEvaluationService
   }
 
   @Authorize(permission = Permission.READ)
-  public ApiComponentEvaluationTicketDTOV2 scanComponents(
+  public ApiThirdPartyScanTicketDTO scanComponents(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
       final String source,
       final String stageId,
@@ -52,7 +51,9 @@ public class ApiThirdPartyEvaluationService
   {
     validateRequest(sbom);
     
-    ApiComponentEvaluationTicketDTOV2 evaluationTicketDTO = createScanTicket(applicationId);
+    // This will be replace with the real status Id, after the scan.xml is created and sent
+    String scanRequestId = UUID.randomUUID().toString().replace("-", "");
+    ApiThirdPartyScanTicketDTO evaluationTicketDTO = createScanTicket(applicationId, scanRequestId);
     return evaluationTicketDTO;
   }
 
@@ -69,15 +70,10 @@ public class ApiThirdPartyEvaluationService
           Response.status(Status.BAD_REQUEST).entity(new GenericEntity<List<String>>(errorMessages) {}).build());
     }
   }
-  
-  private ApiComponentEvaluationTicketDTOV2 createScanTicket(final String applicationId) {
-    ApiComponentEvaluationTicketDTOV2 evaluationTicketDTO = new ApiComponentEvaluationTicketDTOV2();
-    evaluationTicketDTO.resultId = UUID.randomUUID().toString().replace("-", "");
-    evaluationTicketDTO.submittedDate = new Date();
-    evaluationTicketDTO.applicationId = applicationId;
-    evaluationTicketDTO.resultsUrl = PublicApiPaths.APPLICATION_EVALUATION_PATH_V2 + "/" + applicationId + "/results/"
-        + evaluationTicketDTO.resultId;
 
-    return evaluationTicketDTO;
+  private ApiThirdPartyScanTicketDTO createScanTicket(final String applicationId, final String scanRequestId) {
+    ApiThirdPartyScanTicketDTO scanTicketDTO = new ApiThirdPartyScanTicketDTO();
+    scanTicketDTO.statusUrl = PublicApiPaths.THIRD_PARTY_SCAN_PATH + "/" + applicationId + "/status/" + scanRequestId;
+    return scanTicketDTO;
   }
 }

@@ -19,7 +19,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiThirdPartyEvaluationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -63,12 +63,12 @@ public class ApiThirdPartyResource
       @NotNull @NotEmpty String sbom)
   {
     if (config.isThirdPartyEvaluationApiEnabled()) {
-      ApiComponentEvaluationTicketDTOV2 ticket =
+      ApiThirdPartyScanTicketDTO ticket =
           thirdPartyEvaluationService.scanComponents(applicationId, source, stageId, sbom);
-      return Response.status(Response.Status.OK).entity(ticket).build();
+      return Response.status(Response.Status.ACCEPTED).entity(ticket).build();
     }
     else {
-      return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+      return Response.status(Response.Status.NOT_IMPLEMENTED).entity("").build();
     }
   }
 }

@@ -30,15 +30,14 @@ public class CycloneDxSchemaValidatorTest
   @Test
   public void testValidate_validSbom() throws Exception {
     List<SAXParseException> errors = validator.validate(readSbom("/CycloneDxSchemaValidatorTest/valid_sbom.xml"));
-    assertThat(errors.isEmpty());
+    assertThat(errors).isEmpty();
   }
 
   @Test
   public void testValidate_invalidSbom() throws Exception {
     List<SAXParseException> errors = validator.validate(readSbom("/CycloneDxSchemaValidatorTest/invalid_sbom.xml"));
-    assertThat(errors).isNotEmpty();
-    assertErrorMessages(errors, "cvc-complex-type.4: Attribute 'ref' must appear on element 'v:vulnerability'.",
-        "cvc-complex-type.4: Attribute 'name' must appear on element 'v:source'.");
+    assertErrorMessages(errors, "cvc-complex-type.4:.*'name'.*'v:source'.*",
+        "cvc-complex-type.4:.*'ref'.*'v:vulnerability'.*");
   }
 
   @Test
@@ -59,8 +58,7 @@ public class CycloneDxSchemaValidatorTest
   public void testValidate_withInvalidVulnerability() throws Exception {
     List<SAXParseException> errors =
         validator.validate(readSbom("/CycloneDxSchemaValidatorTest/invalid_vulnerability.xml"));
-    assertThat(errors).isNotEmpty();
-    assertErrorMessages(errors, "cvc-complex-type.4: Attribute 'ref' must appear on element 'v:vulnerability'.");
+    assertErrorMessages(errors, "cvc-complex-type.4:.*'ref'.*'v:vulnerability'.*");
   }
 
   @Test
@@ -68,8 +66,7 @@ public class CycloneDxSchemaValidatorTest
     assertThatThrownBy(
         () -> validator.validate(readSbom("/CycloneDxSchemaValidatorTest/xml_referencing_external_dtd.xml")))
         .isInstanceOf(RuntimeException.class)
-        .hasMessageContaining("SAXParseException")
-        .hasMessageContaining("access is not allowed due to restriction set by the accessExternalDTD property");
+        .hasMessageContainingAll("SAXParseException", "accessExternalDTD");
   }
 
   private String readSbom(final String path) throws Exception {
@@ -77,10 +74,16 @@ public class CycloneDxSchemaValidatorTest
     return new String(bytes, StandardCharsets.UTF_8);
   }
 
-  private void assertErrorMessages(final List<SAXParseException> exceptions, final String... expectedErrorMessages) {
+  private void assertErrorMessages(
+      final List<SAXParseException> exceptions,
+      final String... expectedErrorMessagePatterns)
+  {
     final List<String> actualErrorMessages =
-        exceptions.stream().map(SAXParseException::getMessage).collect(Collectors.toList());
+        exceptions.stream().map(SAXParseException::getMessage).sorted().collect(Collectors.toList());
 
-    assertThat(actualErrorMessages).containsExactlyInAnyOrder(expectedErrorMessages);
+    assertThat(actualErrorMessages).hasSize(expectedErrorMessagePatterns.length);
+    for (int i = 0; i < expectedErrorMessagePatterns.length; i++) {
+      assertThat(actualErrorMessages.get(i)).matches(expectedErrorMessagePatterns[i]);
+    }
   }
 }

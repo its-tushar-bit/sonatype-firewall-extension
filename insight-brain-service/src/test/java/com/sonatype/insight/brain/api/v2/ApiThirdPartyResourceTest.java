@@ -91,8 +91,9 @@ public class ApiThirdPartyResourceTest
     assertResponseStatus(400, response);
 
     List<String> errors = response.getBodyList();
-    assertThat(errors).containsExactlyInAnyOrder(
-        "cvc-complex-type.4: Attribute 'ref' must appear on element 'v:vulnerability'.",
-        "cvc-complex-type.4: Attribute 'name' must appear on element 'v:source'.");
+    errors.sort(null);
+    assertThat(errors).hasSize(2);
+    assertThat(errors.get(0)).matches("cvc-complex-type.4:.*'name'.*'v:source'.*");
+    assertThat(errors.get(1)).matches("cvc-complex-type.4:.*'ref'.*'v:vulnerability'.*");
   }
 }

@@ -12,10 +12,13 @@ import java.nio.file.Paths;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiThirdPartyEvaluationServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -42,5 +45,24 @@ public class ApiThirdPartyEvaluationServiceAuthzTest
   public void testEvaluateComponents_UnauthorizedButAuthenticated() {
     login();
     apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "Build", "");
+  }
+  
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetScanStatus_Unauthenticated() {
+    apiThirdPartyEvaluationService.getScanStatus(app.getId(), "scanRequestId");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetScanStatus_Unauthorized() {
+    login();
+    apiThirdPartyEvaluationService.getScanStatus(app.getId(), "scanRequestId");
+  }
+
+  @Test
+  public void testGetScanStatus_Authorized() {
+    grantEvaluateApplicationPermission(app.getId());
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      apiThirdPartyEvaluationService.getScanStatus(app.getId(), "scanRequestId");
+    }).withMessage("Report with status id %s for application with id %s was not found.", "scanRequestId", app.getId());
   }
 }

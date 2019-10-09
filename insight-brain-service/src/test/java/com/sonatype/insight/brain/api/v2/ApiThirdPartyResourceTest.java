@@ -52,9 +52,7 @@ public class ApiThirdPartyResourceTest
 
   @Test
   public void testEvaluateComponents_enabledThirdPartyScan() throws Exception {
-    byte[] bytes =
-        Files.readAllBytes(Paths.get(getClass().getResource("/ApiThirdPartyResourceTest/valid_sbom.xml").toURI()));
-    String sbom = new String(bytes, StandardCharsets.UTF_8);
+    String sbom = getSbomFile("/ApiThirdPartyResourceTest/valid_sbom.xml");
 
     initServer(config -> config.setThirdPartyEvaluationApiEnabled(true));
     HttpResponse response = restRequest()
@@ -79,9 +77,7 @@ public class ApiThirdPartyResourceTest
 
   @Test
   public void testEvaluateComponents_invalidSbom() throws Exception {
-    byte[] bytes =
-        Files.readAllBytes(Paths.get(getClass().getResource("/ApiThirdPartyResourceTest/invalid_sbom.xml").toURI()));
-    String sbom = new String(bytes, StandardCharsets.UTF_8);
+    String sbom = getSbomFile("/ApiThirdPartyResourceTest/invalid_sbom.xml");
 
     initServer(config -> config.setThirdPartyEvaluationApiEnabled(true));
     HttpResponse response = restRequest()
@@ -91,5 +87,29 @@ public class ApiThirdPartyResourceTest
 
     String error = response.getBodyText();
     assertThat(error).matches("cvc-complex-type.4:.*'name'.*'v:source'.*");
+  }
+
+  @Test
+  public void testGetScanStatus() throws Exception {
+    String sbom = getSbomFile("/ApiThirdPartyResourceTest/valid_sbom.xml");
+    initServer(config -> config.setThirdPartyEvaluationApiEnabled(true));
+    HttpResponse response =
+        restRequest().path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
+            .parameter(app.getId(), "clair").query("stageId", "build").body(sbom, MediaType.APPLICATION_XML).post();
+    assertResponseStatus(202, response);
+
+    ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
+    assertThat(apiThirdPartyScanTicketDTO).isNotNull();
+    assertThat(apiThirdPartyScanTicketDTO.statusUrl).isNotNull();
+
+    response = restRequest().path(apiThirdPartyScanTicketDTO.statusUrl).get();
+
+    assertResponseStatus(404, response);
+  }
+
+  private String getSbomFile(String path) throws Exception {
+    byte[] bytes =
+        Files.readAllBytes(Paths.get(getClass().getResource(path).toURI()));
+    return new String(bytes, StandardCharsets.UTF_8);
   }
 }

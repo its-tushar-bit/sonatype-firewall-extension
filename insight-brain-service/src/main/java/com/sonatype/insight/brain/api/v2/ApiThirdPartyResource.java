@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -19,6 +20,7 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiThirdPartyEvaluationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -35,6 +37,8 @@ import com.codahale.metrics.annotation.Timed;
 public class ApiThirdPartyResource
 {
   public static final String SCAN_COMPONENTS = "{applicationId}/sources/{source}";
+
+  public static final String SCAN_STATUS = "{applicationId}/status/{scanRequestId}";
 
   private final ApiThirdPartyEvaluationService thirdPartyEvaluationService;
 
@@ -68,5 +72,15 @@ public class ApiThirdPartyResource
     else {
       return Response.status(Response.Status.NOT_IMPLEMENTED).entity("").build();
     }
+  }
+
+  @GET
+  @Path(SCAN_STATUS)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiThirdPartyScanResultDTO getScanStatus(
+      @PathParam("applicationId") String applicationId,
+      @PathParam("scanRequestId") String scanRequestId)
+  {
+    return thirdPartyEvaluationService.getScanStatus(applicationId, scanRequestId);
   }
 }

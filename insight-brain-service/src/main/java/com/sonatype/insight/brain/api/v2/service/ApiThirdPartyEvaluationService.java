@@ -13,11 +13,13 @@ import javax.inject.Singleton;
 import javax.ws.rs.BadRequestException;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.cyclonedx.CycloneDxSchemaValidator;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang.StringUtils;
 import org.xml.sax.SAXException;
@@ -68,5 +70,15 @@ public class ApiThirdPartyEvaluationService
     ApiThirdPartyScanTicketDTO scanTicketDTO = new ApiThirdPartyScanTicketDTO();
     scanTicketDTO.statusUrl = PublicApiPaths.THIRD_PARTY_SCAN_PATH + "/" + applicationId + "/status/" + scanRequestId;
     return scanTicketDTO;
+  }
+
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  public ApiThirdPartyScanResultDTO getScanStatus(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
+      String scanRequestId)
+  {
+    // TODO: It'll return 404 until is implemented
+    throw new NotFoundException(String.format("Report with status id %s for application with id %s was not found.",
+        scanRequestId, applicationId));
   }
 }

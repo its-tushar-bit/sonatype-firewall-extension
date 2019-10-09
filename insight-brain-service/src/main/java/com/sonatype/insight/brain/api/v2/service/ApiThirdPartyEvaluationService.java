@@ -5,18 +5,12 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.GenericEntity;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
@@ -26,7 +20,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 
 import org.apache.commons.lang.StringUtils;
-import org.xml.sax.SAXParseException;
+import org.xml.sax.SAXException;
 
 /**
  * @since 1.75
@@ -62,12 +56,11 @@ public class ApiThirdPartyEvaluationService
       throw new BadRequestException("sbom is null or empty");
     }
 
-    List<SAXParseException> validationErrors = schemaValidator.validate(sbom);
-    if (!validationErrors.isEmpty()) {
-      List<String> errorMessages =
-          validationErrors.stream().map(SAXParseException::getMessage).collect(Collectors.toList());
-      throw new WebApplicationException(
-          Response.status(Status.BAD_REQUEST).entity(new GenericEntity<List<String>>(errorMessages) {}).build());
+    try {
+      schemaValidator.validate(sbom);
+    }
+    catch (SAXException ex) {
+      throw new BadRequestException(ex.getMessage());
     }
   }
 

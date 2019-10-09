@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.POST;
@@ -26,7 +25,6 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.service.InsightConfig;
 
 import com.codahale.metrics.annotation.Timed;
-import org.hibernate.validator.constraints.NotEmpty;
 
 /**
  * @since 1.75
@@ -60,7 +58,7 @@ public class ApiThirdPartyResource
       @PathParam("applicationId") final String applicationId,
       @PathParam("source") final String source,
       @DefaultValue("build") @QueryParam("stageId") final String stageId,
-      @NotNull @NotEmpty String sbom)
+      String sbom)
   {
     if (config.isThirdPartyEvaluationApiEnabled()) {
       ApiThirdPartyScanTicketDTO ticket =

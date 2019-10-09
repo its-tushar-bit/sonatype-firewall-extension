@@ -8,14 +8,12 @@ package com.sonatype.insight.brain.cyclonedx;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class CycloneDxSchemaValidatorTest
@@ -29,61 +27,53 @@ public class CycloneDxSchemaValidatorTest
 
   @Test
   public void testValidate_validSbom() throws Exception {
-    List<SAXParseException> errors = validator.validate(readSbom("/CycloneDxSchemaValidatorTest/valid_sbom.xml"));
-    assertThat(errors).isEmpty();
+    validator.validate(readSbom("/CycloneDxSchemaValidatorTest/valid_sbom.xml"));
   }
 
   @Test
-  public void testValidate_invalidSbom() throws Exception {
-    List<SAXParseException> errors = validator.validate(readSbom("/CycloneDxSchemaValidatorTest/invalid_sbom.xml"));
-    assertErrorMessages(errors, "cvc-complex-type.4:.*'name'.*'v:source'.*",
-        "cvc-complex-type.4:.*'ref'.*'v:vulnerability'.*");
+  public void testValidate_invalidSbom()  {
+    assertThatThrownBy(
+        () -> validator.validate(readSbom("/CycloneDxSchemaValidatorTest/invalid_sbom.xml")))
+        .isInstanceOf(SAXParseException.class)
+        .hasMessageMatching("cvc-complex-type.4:.*'ref'.*'v:vulnerability'.*");
   }
 
   @Test
   public void testValidate_withValidVulnerabilityComponentNode() throws Exception {
-    List<SAXParseException> errors =
-        validator.validate(readSbom("/CycloneDxSchemaValidatorTest/valid_vulnerability_component_node.xml"));
-    assertThat(errors).isEmpty();
+    validator.validate(readSbom("/CycloneDxSchemaValidatorTest/valid_vulnerability_component_node.xml"));
   }
 
   @Test
   public void testValidate_withValidVulnerabilityBomNode() throws Exception {
-    List<SAXParseException> errors =
-        validator.validate(readSbom("/CycloneDxSchemaValidatorTest/valid_vulnerability_bom_node.xml"));
-    assertThat(errors).isEmpty();
+    validator.validate(readSbom("/CycloneDxSchemaValidatorTest/valid_vulnerability_bom_node.xml"));
   }
 
   @Test
-  public void testValidate_withInvalidVulnerability() throws Exception {
-    List<SAXParseException> errors =
-        validator.validate(readSbom("/CycloneDxSchemaValidatorTest/invalid_vulnerability.xml"));
-    assertErrorMessages(errors, "cvc-complex-type.4:.*'ref'.*'v:vulnerability'.*");
+  public void testValidate_withInvalidVulnerability() {
+    assertThatThrownBy(
+        () -> validator.validate(readSbom("/CycloneDxSchemaValidatorTest/invalid_vulnerability.xml")))
+        .isInstanceOf(SAXParseException.class)
+        .hasMessageMatching("cvc-complex-type.4:.*'ref'.*'v:vulnerability'.*");
   }
 
   @Test
   public void testValidate_shouldNotAllowXmlReferencingExternalDTD() {
     assertThatThrownBy(
         () -> validator.validate(readSbom("/CycloneDxSchemaValidatorTest/xml_referencing_external_dtd.xml")))
-        .isInstanceOf(RuntimeException.class)
-        .hasMessageContainingAll("SAXParseException", "accessExternalDTD");
+        .isInstanceOf(SAXException.class)
+        .hasMessageContaining("accessExternalDTD");
+  }
+
+  @Test
+  public void testValidate_malformedXmlMissingClosingTag() {
+    assertThatThrownBy(
+        () -> validator.validate(readSbom("/CycloneDxSchemaValidatorTest/malformed_xml.xml")))
+        .isInstanceOf(SAXException.class)
+        .hasMessageContainingAll("specifications", ">", "/>");
   }
 
   private String readSbom(final String path) throws Exception {
     byte[] bytes = Files.readAllBytes(Paths.get(getClass().getResource(path).toURI()));
     return new String(bytes, StandardCharsets.UTF_8);
-  }
-
-  private void assertErrorMessages(
-      final List<SAXParseException> exceptions,
-      final String... expectedErrorMessagePatterns)
-  {
-    final List<String> actualErrorMessages =
-        exceptions.stream().map(SAXParseException::getMessage).sorted().collect(Collectors.toList());
-
-    assertThat(actualErrorMessages).hasSize(expectedErrorMessagePatterns.length);
-    for (int i = 0; i < expectedErrorMessagePatterns.length; i++) {
-      assertThat(actualErrorMessages.get(i)).matches(expectedErrorMessagePatterns[i]);
-    }
   }
 }

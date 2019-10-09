@@ -9,7 +9,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 
@@ -90,10 +89,7 @@ public class ApiThirdPartyResourceTest
         .parameter(app.getId(), "clair").query("stageId", "build").body(sbom, MediaType.APPLICATION_XML).post();
     assertResponseStatus(400, response);
 
-    List<String> errors = response.getBodyList();
-    errors.sort(null);
-    assertThat(errors).hasSize(2);
-    assertThat(errors.get(0)).matches("cvc-complex-type.4:.*'name'.*'v:source'.*");
-    assertThat(errors.get(1)).matches("cvc-complex-type.4:.*'ref'.*'v:vulnerability'.*");
+    String error = response.getBodyText();
+    assertThat(error).matches("cvc-complex-type.4:.*'name'.*'v:source'.*");
   }
 }

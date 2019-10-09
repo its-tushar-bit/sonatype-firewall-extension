@@ -33,12 +33,15 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsTestUtils.FakeDateRule;
+import com.sonatype.insight.brain.telemetry.ReportsTelemetry;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.google.inject.Binder;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.discovered;
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.fixed;
@@ -47,6 +50,7 @@ import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolati
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.waived;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.verify;
 
 public class ApiMetricsReportingServiceV2Test
     extends AbstractComponentTest
@@ -56,6 +60,15 @@ public class ApiMetricsReportingServiceV2Test
 
   @Rule
   public FakeDateRule fakeDateRule = new FakeDateRule();
+
+  @Mock
+  private ReportsTelemetry reportsTelemetryMock;
+
+  @Override
+  public void configure(final Binder binder) {
+    super.configure(binder);
+    binder.bind(ReportsTelemetry.class).toInstance(reportsTelemetryMock);
+  }
 
   @Test
   public void testGetMetrics_NullQuery() {
@@ -327,6 +340,14 @@ public class ApiMetricsReportingServiceV2Test
         );
 
     assertDTO(actualDTO, expectedDTO);
+  }
+
+  @Test
+  public void testGetMetrics_SendTelemetry() {
+    ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2017-10", null,
+        Collections.emptySet(), Collections.emptySet());
+    service.getMetrics(queryDTO);
+    verify(reportsTelemetryMock).sendMetricsTelemetry();
   }
 
   @Test
@@ -618,6 +639,14 @@ public class ApiMetricsReportingServiceV2Test
     }
   }
 
+  @Test
+  public void testGetFlattenedMetrics_SendTelemetry() {
+    ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2017-W48", null,
+        Collections.emptySet(), Collections.emptySet());
+    service.getFlattenedMetrics(queryDTO);
+    verify(reportsTelemetryMock).sendMetricsTelemetry();
+  }
+
   private void createOtherOrgWithViolations() {
     Application application = tempEntity.newApplicationWithParent();
     DateTime now = new DateTime();
@@ -635,10 +664,11 @@ public class ApiMetricsReportingServiceV2Test
     new PolicyViolationDAO().update(violation);
   }
 
-  private void assertMonthlyData(List<ApiMetricsReportingDTOV2> results,
-                                 Organization organization,
-                                 Integer numTimePeriods,
-                                 Set<String> applicationIds)
+  private void assertMonthlyData(
+      List<ApiMetricsReportingDTOV2> results,
+      Organization organization,
+      Integer numTimePeriods,
+      Set<String> applicationIds)
   {
     if (numTimePeriods == null) {
       numTimePeriods = 3;
@@ -805,10 +835,11 @@ public class ApiMetricsReportingServiceV2Test
     assertDTOs(results, expected, applicationIds);
   }
 
-  private void assertFlattenedMonthlyData(List<ApiMetricsReportingFlattenedDTOV2> results,
-                                          Organization organization,
-                                          Integer numTimePeriods,
-                                          Set<String> applicationIds)
+  private void assertFlattenedMonthlyData(
+      List<ApiMetricsReportingFlattenedDTOV2> results,
+      Organization organization,
+      Integer numTimePeriods,
+      Set<String> applicationIds)
   {
     if (numTimePeriods == null) {
       numTimePeriods = 3;
@@ -877,8 +908,8 @@ public class ApiMetricsReportingServiceV2Test
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
             0, 3, 0, 2  // open other
-          )
-      ).subList(0, numTimePeriods);
+        )
+    ).subList(0, numTimePeriods);
 
     List<ApiMetricsReportingFlattenedDTOV2> app2Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
@@ -1153,10 +1184,11 @@ public class ApiMetricsReportingServiceV2Test
     assertFlattenedDTOGroups(flattenedDTOsByApplicationId, expectedDTOsByApplicationId);
   }
 
-  private void assertWeeklyData(List<ApiMetricsReportingDTOV2> results,
-                                Organization organization,
-                                Integer numTimePeriods,
-                                Set<String> applicationIds)
+  private void assertWeeklyData(
+      List<ApiMetricsReportingDTOV2> results,
+      Organization organization,
+      Integer numTimePeriods,
+      Set<String> applicationIds)
   {
     if (numTimePeriods == null) {
       numTimePeriods = 3;
@@ -1323,10 +1355,11 @@ public class ApiMetricsReportingServiceV2Test
     assertDTOs(results, expected, applicationIds);
   }
 
-  private void assertFlattenedWeeklyData(List<ApiMetricsReportingFlattenedDTOV2> results,
-                                         Organization organization,
-                                         Integer numTimePeriods,
-                                         Set<String> applicationIds)
+  private void assertFlattenedWeeklyData(
+      List<ApiMetricsReportingFlattenedDTOV2> results,
+      Organization organization,
+      Integer numTimePeriods,
+      Set<String> applicationIds)
   {
     if (numTimePeriods == null) {
       numTimePeriods = 3;
@@ -1395,8 +1428,8 @@ public class ApiMetricsReportingServiceV2Test
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
             0, 3, 0, 2  // open other
-          )
-      ).subList(0, numTimePeriods);
+        )
+    ).subList(0, numTimePeriods);
 
     List<ApiMetricsReportingFlattenedDTOV2> app2Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
@@ -1688,8 +1721,9 @@ public class ApiMetricsReportingServiceV2Test
     }
   }
 
-  private void assertAggregation(ApiMetricsReportingAggregationDTOV2 actual,
-                                 ApiMetricsReportingAggregationDTOV2 expected)
+  private void assertAggregation(
+      ApiMetricsReportingAggregationDTOV2 actual,
+      ApiMetricsReportingAggregationDTOV2 expected)
   {
     assertThat(actual.timePeriodStart).isEqualTo(expected.timePeriodStart);
     assertThat(actual.mttrLowThreat).isEqualTo(expected.mttrLowThreat);
@@ -1703,8 +1737,9 @@ public class ApiMetricsReportingServiceV2Test
     assertThat(actual.openCountsAtTimePeriodEnd).isEqualTo(expected.openCountsAtTimePeriodEnd);
   }
 
-  private void assertFlattenedDTO(ApiMetricsReportingFlattenedDTOV2 actual,
-                                  ApiMetricsReportingFlattenedDTOV2 expected)
+  private void assertFlattenedDTO(
+      ApiMetricsReportingFlattenedDTOV2 actual,
+      ApiMetricsReportingFlattenedDTOV2 expected)
   {
     assertThat(actual.applicationId).isEqualTo(expected.applicationId);
     assertThat(actual.applicationPublicId).isEqualTo(expected.applicationPublicId);
@@ -1791,9 +1826,9 @@ public class ApiMetricsReportingServiceV2Test
   }
 
   /**
-   * The flattened DTO list is supposed to be grouped by application id though not necessarily sorted by application
-   * id. This method ensures that that is true and separates the groups by application, returning the separated
-   * lists in a map indexed by application id
+   * The flattened DTO list is supposed to be grouped by application id though not necessarily sorted by application id.
+   * This method ensures that that is true and separates the groups by application, returning the separated lists in a
+   * map indexed by application id
    */
   private Map<String, List<ApiMetricsReportingFlattenedDTOV2>> getFlattenedDTOGroups(
       List<ApiMetricsReportingFlattenedDTOV2> dtos)
@@ -1851,9 +1886,10 @@ public class ApiMetricsReportingServiceV2Test
     return expectedDTOsByApplicationId;
   }
 
-  private void assertDTOs(List<ApiMetricsReportingDTOV2> actual,
-                          List<ApiMetricsReportingDTOV2> expected,
-                          Set<String> applicationIds)
+  private void assertDTOs(
+      List<ApiMetricsReportingDTOV2> actual,
+      List<ApiMetricsReportingDTOV2> expected,
+      Set<String> applicationIds)
   {
     if (applicationIds != null) {
       expected = expected.stream().filter(dto -> applicationIds.contains(dto.applicationId))
@@ -1872,8 +1908,9 @@ public class ApiMetricsReportingServiceV2Test
     }
   }
 
-  private void assertFlattenedDTOGroups(Map<String, List<ApiMetricsReportingFlattenedDTOV2>> actual,
-                                        Map<String, List<ApiMetricsReportingFlattenedDTOV2>> expected)
+  private void assertFlattenedDTOGroups(
+      Map<String, List<ApiMetricsReportingFlattenedDTOV2>> actual,
+      Map<String, List<ApiMetricsReportingFlattenedDTOV2>> expected)
   {
     assertThat(actual).hasSameSizeAs(expected);
     for (Map.Entry<String, List<ApiMetricsReportingFlattenedDTOV2>> entry : expected.entrySet()) {

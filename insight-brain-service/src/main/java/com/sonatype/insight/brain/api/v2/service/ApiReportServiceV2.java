@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.telemetry.ReportsTelemetry;
 
 public class ApiReportServiceV2
 {
@@ -32,14 +33,19 @@ public class ApiReportServiceV2
 
   private final ApplicationDAO applicationDAO;
 
+  private final ReportsTelemetry reportsTelemetry;
+
   @Inject
-  public ApiReportServiceV2(PolicyEvaluationDAO policyEvaluationDAO,
-                            ApiApplicationService applicationService,
-                            ApplicationDAO applicationDAO)
+  public ApiReportServiceV2(
+      PolicyEvaluationDAO policyEvaluationDAO,
+      ApiApplicationService applicationService,
+      ApplicationDAO applicationDAO,
+      ReportsTelemetry reportsTelemetry)
   {
     this.applicationDAO = applicationDAO;
     this.applicationService = applicationService;
     this.policyEvaluationDAO = policyEvaluationDAO;
+    this.reportsTelemetry = reportsTelemetry;
   }
 
   @Authorize(permission = Permission.READ)
@@ -50,6 +56,9 @@ public class ApiReportServiceV2
 
     List<ApiApplicationReportDTOV2> reports = new LinkedList<>();
     addReports(reports, application);
+
+    reportsTelemetry.sendSingleApplicationTelemetry();
+
     return reports;
   }
 
@@ -59,6 +68,8 @@ public class ApiReportServiceV2
     for (Application application : applicationService.getApplications(Collections.emptySet())) {
       addReports(reports, application);
     }
+
+    reportsTelemetry.sendAllApplicationsTelemetry();
 
     return reports;
   }

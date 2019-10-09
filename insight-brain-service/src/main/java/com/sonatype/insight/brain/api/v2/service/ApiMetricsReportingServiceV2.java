@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregatio
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.successmetrics.PolicyViolationAggregationService;
+import com.sonatype.insight.brain.telemetry.ReportsTelemetry;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.joda.time.DateTime;
@@ -70,14 +71,19 @@ public class ApiMetricsReportingServiceV2
 
   private final PolicyViolationAggregationService policyViolationAggregationService;
 
+  private final ReportsTelemetry reportsTelemetry;
+
   @Inject
-  public ApiMetricsReportingServiceV2(ApplicationService applicationService,
-                                      PolicyViolationAggregationService policyViolationAggregationService)
+  public ApiMetricsReportingServiceV2(
+      ApplicationService applicationService,
+      PolicyViolationAggregationService policyViolationAggregationService,
+      ReportsTelemetry reportsTelemetry)
   {
     policyViolationAggregationDAO = new PolicyViolationAggregationDAO();
     organizationDAO = new OrganizationDAO();
     this.applicationService = applicationService;
     this.policyViolationAggregationService = policyViolationAggregationService;
+    this.reportsTelemetry = reportsTelemetry;
   }
 
   public List<ApiMetricsReportingDTOV2> getMetrics(ApiMetricsReportingQueryDTOV2 queryDTO) {
@@ -114,13 +120,16 @@ public class ApiMetricsReportingServiceV2
         policyViolationAggregationDAO.getByApplicationIdsAndTimePeriodBounds(applicationIds, timePeriod,
             firstTimePeriod.toDate(), endDate.map(LocalDate::toDate).orElse(null));
 
+    reportsTelemetry.sendMetricsTelemetry();
+
     return makeDTOs(aggregations, applicationsById);
   }
 
-  private void auditExportMetricsReport(final ApiMetricsReportingQueryDTOV2 queryDTO,
-                                        final Map<String, Application> applicationsById,
-                                        final LocalDate startDate,
-                                        final Optional<LocalDate> endDate)
+  private void auditExportMetricsReport(
+      final ApiMetricsReportingQueryDTOV2 queryDTO,
+      final Map<String, Application> applicationsById,
+      final LocalDate startDate,
+      final Optional<LocalDate> endDate)
   {
     AuditData.get()
         .setData("beginDate", startDate.toString())
@@ -164,14 +173,16 @@ public class ApiMetricsReportingServiceV2
   }
 
   /**
-   * Gather up the PolicyViolationAggregations into ApiMetricsReportingDTOV2s. Each DTO represents one application,
-   * with one or more aggregations.
-   * @param aggregations The aggregations to convert into DTOs
-   * @param applicationsById map of applications indexed by their id. Since the calling method has already fetched
-   * them all, this prevents this method from having to re-fetch them one at a time
+   * Gather up the PolicyViolationAggregations into ApiMetricsReportingDTOV2s. Each DTO represents one application, with
+   * one or more aggregations.
+   *
+   * @param aggregations     The aggregations to convert into DTOs
+   * @param applicationsById map of applications indexed by their id. Since the calling method has already fetched them
+   *                         all, this prevents this method from having to re-fetch them one at a time
    */
-  private List<ApiMetricsReportingDTOV2> makeDTOs(List<PolicyViolationAggregation> aggregations,
-                                                  Map<String, Application> applicationsById)
+  private List<ApiMetricsReportingDTOV2> makeDTOs(
+      List<PolicyViolationAggregation> aggregations,
+      Map<String, Application> applicationsById)
   {
     Map<String, List<PolicyViolationAggregation>> aggregationsByApplicationId = aggregations.stream()
         .collect(Collectors.groupingBy(PolicyViolationAggregation::getApplicationId));
@@ -213,90 +224,90 @@ public class ApiMetricsReportingServiceV2
   private Stream<ApiMetricsReportingFlattenedDTOV2> flattenDTO(ApiMetricsReportingDTOV2 inputDTO) {
     return inputDTO.aggregations.stream().map(aggregationDTO ->
         new ApiMetricsReportingFlattenedDTOV2( //
-          inputDTO.applicationId, //
-          inputDTO.applicationPublicId, //
-          inputDTO.applicationName, //
-          inputDTO.organizationId, //
-          inputDTO.organizationName, //
-          aggregationDTO.timePeriodStart, //
-          aggregationDTO.mttrLowThreat, //
-          aggregationDTO.mttrModerateThreat, //
-          aggregationDTO.mttrSevereThreat, //
-          aggregationDTO.mttrCriticalThreat, //
-          aggregationDTO.evaluationCount, //
+            inputDTO.applicationId, //
+            inputDTO.applicationPublicId, //
+            inputDTO.applicationName, //
+            inputDTO.organizationId, //
+            inputDTO.organizationName, //
+            aggregationDTO.timePeriodStart, //
+            aggregationDTO.mttrLowThreat, //
+            aggregationDTO.mttrModerateThreat, //
+            aggregationDTO.mttrSevereThreat, //
+            aggregationDTO.mttrCriticalThreat, //
+            aggregationDTO.evaluationCount, //
 
-          aggregationDTO.discoveredCounts.get(SECURITY).get(LOW), //
-          aggregationDTO.discoveredCounts.get(SECURITY).get(MODERATE), //
-          aggregationDTO.discoveredCounts.get(SECURITY).get(SEVERE), //
-          aggregationDTO.discoveredCounts.get(SECURITY).get(CRITICAL), //
-          aggregationDTO.discoveredCounts.get(LICENSE).get(LOW), //
-          aggregationDTO.discoveredCounts.get(LICENSE).get(MODERATE), //
-          aggregationDTO.discoveredCounts.get(LICENSE).get(SEVERE), //
-          aggregationDTO.discoveredCounts.get(LICENSE).get(CRITICAL), //
-          aggregationDTO.discoveredCounts.get(QUALITY).get(LOW), //
-          aggregationDTO.discoveredCounts.get(QUALITY).get(MODERATE), //
-          aggregationDTO.discoveredCounts.get(QUALITY).get(SEVERE), //
-          aggregationDTO.discoveredCounts.get(QUALITY).get(CRITICAL), //
-          aggregationDTO.discoveredCounts.get(OTHER).get(LOW), //
-          aggregationDTO.discoveredCounts.get(OTHER).get(MODERATE), //
-          aggregationDTO.discoveredCounts.get(OTHER).get(SEVERE), //
-          aggregationDTO.discoveredCounts.get(OTHER).get(CRITICAL), //
+            aggregationDTO.discoveredCounts.get(SECURITY).get(LOW), //
+            aggregationDTO.discoveredCounts.get(SECURITY).get(MODERATE), //
+            aggregationDTO.discoveredCounts.get(SECURITY).get(SEVERE), //
+            aggregationDTO.discoveredCounts.get(SECURITY).get(CRITICAL), //
+            aggregationDTO.discoveredCounts.get(LICENSE).get(LOW), //
+            aggregationDTO.discoveredCounts.get(LICENSE).get(MODERATE), //
+            aggregationDTO.discoveredCounts.get(LICENSE).get(SEVERE), //
+            aggregationDTO.discoveredCounts.get(LICENSE).get(CRITICAL), //
+            aggregationDTO.discoveredCounts.get(QUALITY).get(LOW), //
+            aggregationDTO.discoveredCounts.get(QUALITY).get(MODERATE), //
+            aggregationDTO.discoveredCounts.get(QUALITY).get(SEVERE), //
+            aggregationDTO.discoveredCounts.get(QUALITY).get(CRITICAL), //
+            aggregationDTO.discoveredCounts.get(OTHER).get(LOW), //
+            aggregationDTO.discoveredCounts.get(OTHER).get(MODERATE), //
+            aggregationDTO.discoveredCounts.get(OTHER).get(SEVERE), //
+            aggregationDTO.discoveredCounts.get(OTHER).get(CRITICAL), //
 
-          aggregationDTO.fixedCounts.get(SECURITY).get(LOW), //
-          aggregationDTO.fixedCounts.get(SECURITY).get(MODERATE), //
-          aggregationDTO.fixedCounts.get(SECURITY).get(SEVERE), //
-          aggregationDTO.fixedCounts.get(SECURITY).get(CRITICAL), //
-          aggregationDTO.fixedCounts.get(LICENSE).get(LOW), //
-          aggregationDTO.fixedCounts.get(LICENSE).get(MODERATE), //
-          aggregationDTO.fixedCounts.get(LICENSE).get(SEVERE), //
-          aggregationDTO.fixedCounts.get(LICENSE).get(CRITICAL), //
-          aggregationDTO.fixedCounts.get(QUALITY).get(LOW), //
-          aggregationDTO.fixedCounts.get(QUALITY).get(MODERATE), //
-          aggregationDTO.fixedCounts.get(QUALITY).get(SEVERE), //
-          aggregationDTO.fixedCounts.get(QUALITY).get(CRITICAL), //
-          aggregationDTO.fixedCounts.get(OTHER).get(LOW), //
-          aggregationDTO.fixedCounts.get(OTHER).get(MODERATE), //
-          aggregationDTO.fixedCounts.get(OTHER).get(SEVERE), //
-          aggregationDTO.fixedCounts.get(OTHER).get(CRITICAL), //
+            aggregationDTO.fixedCounts.get(SECURITY).get(LOW), //
+            aggregationDTO.fixedCounts.get(SECURITY).get(MODERATE), //
+            aggregationDTO.fixedCounts.get(SECURITY).get(SEVERE), //
+            aggregationDTO.fixedCounts.get(SECURITY).get(CRITICAL), //
+            aggregationDTO.fixedCounts.get(LICENSE).get(LOW), //
+            aggregationDTO.fixedCounts.get(LICENSE).get(MODERATE), //
+            aggregationDTO.fixedCounts.get(LICENSE).get(SEVERE), //
+            aggregationDTO.fixedCounts.get(LICENSE).get(CRITICAL), //
+            aggregationDTO.fixedCounts.get(QUALITY).get(LOW), //
+            aggregationDTO.fixedCounts.get(QUALITY).get(MODERATE), //
+            aggregationDTO.fixedCounts.get(QUALITY).get(SEVERE), //
+            aggregationDTO.fixedCounts.get(QUALITY).get(CRITICAL), //
+            aggregationDTO.fixedCounts.get(OTHER).get(LOW), //
+            aggregationDTO.fixedCounts.get(OTHER).get(MODERATE), //
+            aggregationDTO.fixedCounts.get(OTHER).get(SEVERE), //
+            aggregationDTO.fixedCounts.get(OTHER).get(CRITICAL), //
 
-          aggregationDTO.waivedCounts.get(SECURITY).get(LOW), //
-          aggregationDTO.waivedCounts.get(SECURITY).get(MODERATE), //
-          aggregationDTO.waivedCounts.get(SECURITY).get(SEVERE), //
-          aggregationDTO.waivedCounts.get(SECURITY).get(CRITICAL), //
-          aggregationDTO.waivedCounts.get(LICENSE).get(LOW), //
-          aggregationDTO.waivedCounts.get(LICENSE).get(MODERATE), //
-          aggregationDTO.waivedCounts.get(LICENSE).get(SEVERE), //
-          aggregationDTO.waivedCounts.get(LICENSE).get(CRITICAL), //
-          aggregationDTO.waivedCounts.get(QUALITY).get(LOW), //
-          aggregationDTO.waivedCounts.get(QUALITY).get(MODERATE), //
-          aggregationDTO.waivedCounts.get(QUALITY).get(SEVERE), //
-          aggregationDTO.waivedCounts.get(QUALITY).get(CRITICAL), //
-          aggregationDTO.waivedCounts.get(OTHER).get(LOW), //
-          aggregationDTO.waivedCounts.get(OTHER).get(MODERATE), //
-          aggregationDTO.waivedCounts.get(OTHER).get(SEVERE), //
-          aggregationDTO.waivedCounts.get(OTHER).get(CRITICAL), //
+            aggregationDTO.waivedCounts.get(SECURITY).get(LOW), //
+            aggregationDTO.waivedCounts.get(SECURITY).get(MODERATE), //
+            aggregationDTO.waivedCounts.get(SECURITY).get(SEVERE), //
+            aggregationDTO.waivedCounts.get(SECURITY).get(CRITICAL), //
+            aggregationDTO.waivedCounts.get(LICENSE).get(LOW), //
+            aggregationDTO.waivedCounts.get(LICENSE).get(MODERATE), //
+            aggregationDTO.waivedCounts.get(LICENSE).get(SEVERE), //
+            aggregationDTO.waivedCounts.get(LICENSE).get(CRITICAL), //
+            aggregationDTO.waivedCounts.get(QUALITY).get(LOW), //
+            aggregationDTO.waivedCounts.get(QUALITY).get(MODERATE), //
+            aggregationDTO.waivedCounts.get(QUALITY).get(SEVERE), //
+            aggregationDTO.waivedCounts.get(QUALITY).get(CRITICAL), //
+            aggregationDTO.waivedCounts.get(OTHER).get(LOW), //
+            aggregationDTO.waivedCounts.get(OTHER).get(MODERATE), //
+            aggregationDTO.waivedCounts.get(OTHER).get(SEVERE), //
+            aggregationDTO.waivedCounts.get(OTHER).get(CRITICAL), //
 
-          aggregationDTO.openCountsAtTimePeriodEnd.get(SECURITY).get(LOW), //
-          aggregationDTO.openCountsAtTimePeriodEnd.get(SECURITY).get(MODERATE), //
-          aggregationDTO.openCountsAtTimePeriodEnd.get(SECURITY).get(SEVERE), //
-          aggregationDTO.openCountsAtTimePeriodEnd.get(SECURITY).get(CRITICAL), //
-          aggregationDTO.openCountsAtTimePeriodEnd.get(LICENSE).get(LOW), //
-          aggregationDTO.openCountsAtTimePeriodEnd.get(LICENSE).get(MODERATE), //
-          aggregationDTO.openCountsAtTimePeriodEnd.get(LICENSE).get(SEVERE), //
-          aggregationDTO.openCountsAtTimePeriodEnd.get(LICENSE).get(CRITICAL), //
-          aggregationDTO.openCountsAtTimePeriodEnd.get(QUALITY).get(LOW), //
-          aggregationDTO.openCountsAtTimePeriodEnd.get(QUALITY).get(MODERATE), //
-          aggregationDTO.openCountsAtTimePeriodEnd.get(QUALITY).get(SEVERE), //
-          aggregationDTO.openCountsAtTimePeriodEnd.get(QUALITY).get(CRITICAL), //
-          aggregationDTO.openCountsAtTimePeriodEnd.get(OTHER).get(LOW), //
-          aggregationDTO.openCountsAtTimePeriodEnd.get(OTHER).get(MODERATE), //
-          aggregationDTO.openCountsAtTimePeriodEnd.get(OTHER).get(SEVERE), //
-          aggregationDTO.openCountsAtTimePeriodEnd.get(OTHER).get(CRITICAL)));
+            aggregationDTO.openCountsAtTimePeriodEnd.get(SECURITY).get(LOW), //
+            aggregationDTO.openCountsAtTimePeriodEnd.get(SECURITY).get(MODERATE), //
+            aggregationDTO.openCountsAtTimePeriodEnd.get(SECURITY).get(SEVERE), //
+            aggregationDTO.openCountsAtTimePeriodEnd.get(SECURITY).get(CRITICAL), //
+            aggregationDTO.openCountsAtTimePeriodEnd.get(LICENSE).get(LOW), //
+            aggregationDTO.openCountsAtTimePeriodEnd.get(LICENSE).get(MODERATE), //
+            aggregationDTO.openCountsAtTimePeriodEnd.get(LICENSE).get(SEVERE), //
+            aggregationDTO.openCountsAtTimePeriodEnd.get(LICENSE).get(CRITICAL), //
+            aggregationDTO.openCountsAtTimePeriodEnd.get(QUALITY).get(LOW), //
+            aggregationDTO.openCountsAtTimePeriodEnd.get(QUALITY).get(MODERATE), //
+            aggregationDTO.openCountsAtTimePeriodEnd.get(QUALITY).get(SEVERE), //
+            aggregationDTO.openCountsAtTimePeriodEnd.get(QUALITY).get(CRITICAL), //
+            aggregationDTO.openCountsAtTimePeriodEnd.get(OTHER).get(LOW), //
+            aggregationDTO.openCountsAtTimePeriodEnd.get(OTHER).get(MODERATE), //
+            aggregationDTO.openCountsAtTimePeriodEnd.get(OTHER).get(SEVERE), //
+            aggregationDTO.openCountsAtTimePeriodEnd.get(OTHER).get(CRITICAL)));
   }
 
   /**
-   * A small wrapper class around a joda DateTimeFormatter that performs parsing and does error handling. Used
-   * via its subclasses WeekParser and MonthParser
+   * A small wrapper class around a joda DateTimeFormatter that performs parsing and does error handling. Used via its
+   * subclasses WeekParser and MonthParser
    */
   private abstract static class DateParser
   {

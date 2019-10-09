@@ -17,12 +17,16 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.telemetry.ReportsTelemetry;
 
+import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.verify;
 
 public class ApiReportServiceV2Test
     extends AbstractServiceAuthzTest
@@ -30,9 +34,18 @@ public class ApiReportServiceV2Test
   @Inject
   private ApiReportServiceV2 apiReportServiceV2;
 
+  @Mock
+  private ReportsTelemetry reportsTelemetryMock;
+
   private Application appOne;
 
   private Application appThree;
+
+  @Override
+  public void configure(final Binder binder) {
+    super.configure(binder);
+    binder.bind(ReportsTelemetry.class).toInstance(reportsTelemetryMock);
+  }
 
   @Before
   public void setup() {
@@ -63,6 +76,12 @@ public class ApiReportServiceV2Test
   }
 
   @Test
+  public void testAll_SendTelemetry() {
+    apiReportServiceV2.getAll();
+    verify(reportsTelemetryMock).sendAllApplicationsTelemetry();
+  }
+
+  @Test
   public void testSpecific() {
     List<ApiApplicationReportDTOV2> reports = apiReportServiceV2.getByApplicationId(appOne.getId());
 
@@ -72,10 +91,17 @@ public class ApiReportServiceV2Test
     assertContainsReport(appOne, StageTypes.RELEASE, "one-release", reports);
   }
 
-  private void assertContainsReport(Application app,
-                                    StageType expectedStage,
-                                    String expectedScanId,
-                                    List<ApiApplicationReportDTOV2> actual)
+  @Test
+  public void testSpecific_SendTelemetry() {
+    apiReportServiceV2.getByApplicationId(appOne.getId());
+    verify(reportsTelemetryMock).sendSingleApplicationTelemetry();
+  }
+
+  private void assertContainsReport(
+      Application app,
+      StageType expectedStage,
+      String expectedScanId,
+      List<ApiApplicationReportDTOV2> actual)
   {
     String expectedStageId = expectedStage.getId();
     for (ApiApplicationReportDTOV2 report : actual) {

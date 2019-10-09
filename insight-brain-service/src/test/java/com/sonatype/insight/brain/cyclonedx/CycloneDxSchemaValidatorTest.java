@@ -69,7 +69,7 @@ public class CycloneDxSchemaValidatorTest
     assertThatThrownBy(
         () -> validator.validate(readSbom("/CycloneDxSchemaValidatorTest/malformed_xml.xml")))
         .isInstanceOf(SAXException.class)
-        .hasMessageContainingAll("specifications", ">", "/>");
+        .hasMessageContainingAll("component", ">", "/>");
   }
 
   private String readSbom(final String path) throws Exception {

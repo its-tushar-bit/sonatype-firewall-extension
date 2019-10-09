@@ -30,7 +30,7 @@ import com.codahale.metrics.annotation.Timed;
 @Consumes(MediaType.APPLICATION_JSON)
 public class ApiComponentsWithWaiversReportingResource
 {
-  public static final String PATH = "/componentsWithWaivers";
+  public static final String PATH = "/components/waivers";
 
   private final ApiComponentsWithWaiversReportingService componentsWithWaiversReportingService;
 

@@ -73,8 +73,7 @@ public class PullRequestFeatureCheck
   }
 
   private boolean isLicenseValid() {
-    // TODO(INT-2096): the exact feature required for Git Notifications are still TBD
-    return productLicense.hasFeature(LicensedFeature.NOTIFICATIONS);
+    return productLicense.hasFeature(LicensedFeature.AUTOMATION);
   }
 
   private boolean isApplicationConfiguredForPR(final GitRepositoryInfo gitRepositoryInfo) {

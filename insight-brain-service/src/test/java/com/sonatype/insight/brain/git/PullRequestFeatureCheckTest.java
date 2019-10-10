@@ -65,7 +65,7 @@ public class PullRequestFeatureCheckTest
 
   @Test
   public void testLicenseInvalid() throws IOException {
-    when(productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)).thenReturn(false);
+    when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(false);
 
     boolean result = pullRequestFeatureCheck.isPullRequestFeatureSupported(
         new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), newGitRepositoryInfo());
@@ -101,7 +101,7 @@ public class PullRequestFeatureCheckTest
   private void ensureAppNotConfigured(final GitRepositoryInfo gitRepositoryInfo)
       throws IOException
   {
-    when(productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)).thenReturn(true);
+    when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
 
     Application app = new Application(PUBLIC_ID, NAME, ORGANIZATION_ID);
     boolean result = pullRequestFeatureCheck.isPullRequestFeatureSupported(
@@ -117,7 +117,7 @@ public class PullRequestFeatureCheckTest
   public void testIsPullRequestAllowed() throws IOException {
     GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo();
 
-    when(productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)).thenReturn(true);
+    when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
     when(pullRequestUtils.isPullRequestAllowed(eq(gitRepositoryInfo))).thenReturn(false);
 
     final Application app = new Application(PUBLIC_ID, NAME, ORGANIZATION_ID);
@@ -137,7 +137,7 @@ public class PullRequestFeatureCheckTest
   public void testHappyPath() throws IOException {
     GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo();
 
-    when(productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)).thenReturn(true);
+    when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
     when(pullRequestUtils.isPullRequestAllowed(eq(gitRepositoryInfo))).thenReturn(true);
 
     boolean result = pullRequestFeatureCheck.isPullRequestFeatureSupported(

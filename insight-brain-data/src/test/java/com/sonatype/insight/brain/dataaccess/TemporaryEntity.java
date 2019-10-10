@@ -54,6 +54,7 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
@@ -116,6 +117,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
@@ -256,6 +258,8 @@ public class TemporaryEntity
 
   private final ThirdPartyFileDAO thirdPartyFileDAO = new ThirdPartyFileDAO();
 
+  private final UserTokenDAO userTokenDAO = new UserTokenDAO();
+
   private Collection<MigrationTracker> migrationTrackers;
 
   private Collection<Application> apps;
@@ -312,6 +316,8 @@ public class TemporaryEntity
 
   private Collection<ThirdPartyFile> thirdPartyFileConfigurations;
 
+  private Collection<UserToken> userTokens;
+
   @Override
   protected void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -342,6 +348,7 @@ public class TemporaryEntity
     systemConfigurationProperties = new ArrayList<>();
     samlConfigurations = new ArrayList<>();
     thirdPartyFileConfigurations = new ArrayList<>();
+    userTokens = new ArrayList<>();
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
@@ -395,6 +402,8 @@ public class TemporaryEntity
     }
     migrationTrackerDAO.getAll().forEach(migrationTrackerDAO::delete);
     migrationTrackers.forEach(migrationTrackerDAO::insert);
+
+    delete(userTokens, userToken -> userTokenDAO.getByUsername(userToken.getUsername()), userTokenDAO::delete);
   }
 
   private <T extends HasStringId> void delete(Collection<T> entities, AbstractDAO<T> dao) {
@@ -1942,5 +1951,15 @@ public class TemporaryEntity
     samlConfigurations.add(samlConfiguration);
 
     return samlConfiguration;
+  }
+
+  public UserToken newUserToken(String username) {
+    UserToken userToken = new UserToken();
+    userToken.setUsername(username);
+    userToken.setUserCode(username + "-code");
+    userToken.setPassCode("a-pass-code");
+    userTokenDAO.insert(userToken);
+    userTokens.add(userToken);
+    return userToken;
   }
 }

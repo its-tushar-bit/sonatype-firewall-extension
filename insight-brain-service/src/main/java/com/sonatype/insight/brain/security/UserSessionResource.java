@@ -97,7 +97,7 @@ public class UserSessionResource
 
     private boolean isAuthenticated;
 
-    private boolean isClmUser;
+    private boolean isInternalUser;
 
     private Set<String> groups;
 
@@ -122,7 +122,7 @@ public class UserSessionResource
         if (principal instanceof UserPrincipal) {
           status.setUsername(((UserPrincipal) principal).getUsername());
           status.setDisplayName(((UserPrincipal) principal).getDisplayName());
-          status.setClmUser(((UserPrincipal) principal).isClmUser());
+          status.setInternalUser(((UserPrincipal) principal).isInternalUser());
           status.setGroups(((UserPrincipal) principal).getMembership());
         }
         else {
@@ -157,12 +157,12 @@ public class UserSessionResource
       this.isAuthenticated = isAuthenticated;
     }
 
-    public boolean isClmUser() {
-      return isClmUser;
+    public boolean isInternalUser() {
+      return isInternalUser;
     }
 
-    public void setClmUser(boolean isClmUser) {
-      this.isClmUser = isClmUser;
+    public void setInternalUser(boolean isInternalUser) {
+      this.isInternalUser = isInternalUser;
     }
 
     public Set<String> getGroups() {

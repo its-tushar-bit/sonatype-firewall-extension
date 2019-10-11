@@ -14,18 +14,18 @@ public class UserPrincipal
 
   private final String displayName;
 
-  private final boolean clmUser;
+  private final boolean isInternalUser;
 
   private final Set<String> membership;
 
-  public UserPrincipal(String username, String displayName, boolean clmUser) {
-    this(username, displayName, clmUser, null);
+  public UserPrincipal(String username, String displayName, boolean isInternalUser) {
+    this(username, displayName, isInternalUser, null);
   }
 
-  public UserPrincipal(String username, String displayName, boolean clmUser, Set<String> membership) {
+  public UserPrincipal(String username, String displayName, boolean isInternalUser, Set<String> membership) {
     this.username = username;
     this.displayName = displayName;
-    this.clmUser = clmUser;
+    this.isInternalUser = isInternalUser;
     this.membership = new LinkedHashSet<>();
     if (membership != null) {
       this.membership.addAll(membership);
@@ -41,8 +41,8 @@ public class UserPrincipal
     return this.displayName;
   }
 
-  public boolean isClmUser() {
-    return this.clmUser;
+  public boolean isInternalUser() {
+    return isInternalUser;
   }
 
   public Set<String> getMembership() {
@@ -61,7 +61,7 @@ public class UserPrincipal
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + (clmUser ? 1231 : 1237);
+    result = prime * result + (isInternalUser ? 1231 : 1237);
     result = prime * result + ((username == null) ? 0 : username.hashCode());
     result = prime * result + ((displayName == null) ? 0 : displayName.hashCode());
     return result;
@@ -82,7 +82,7 @@ public class UserPrincipal
       return false;
     }
     UserPrincipal other = (UserPrincipal) obj;
-    if (clmUser != other.clmUser) {
+    if (isInternalUser != other.isInternalUser) {
       return false;
     }
     if (username == null) {

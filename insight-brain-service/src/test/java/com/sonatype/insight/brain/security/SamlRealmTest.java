@@ -248,7 +248,7 @@ public class SamlRealmTest
     Object primaryPrincipal = simpleAuthenticationInfo.getPrincipals().getPrimaryPrincipal();
     assertThat(primaryPrincipal).isInstanceOf(UserPrincipal.class);
     UserPrincipal userPrincipal = (UserPrincipal) primaryPrincipal;
-    assertThat(userPrincipal.isClmUser()).isFalse();
+    assertThat(userPrincipal.isInternalUser()).isFalse();
     return userPrincipal;
   }
 }

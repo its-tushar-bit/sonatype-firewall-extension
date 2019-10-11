@@ -30,7 +30,7 @@ function loadCurrentUser({ currentUser, shouldDisplayWarning }, state) {
   return {
     ...state,
     currentUser,
-    canChangePassword: currentUser && currentUser.clmUser,
+    canChangePassword: currentUser && currentUser.internalUser,
     isDefaultUser: currentUser && currentUser.username === 'admin',
     shouldDisplayNotice: shouldDisplayWarning
   };

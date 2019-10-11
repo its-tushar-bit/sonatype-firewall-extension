@@ -287,7 +287,7 @@ describe('userActions', function() {
 
       expect(successSpy).not.toHaveBeenCalled();
 
-      loginDeferred.resolve({ username: 'admin', clmUser: true });
+      loginDeferred.resolve({ username: 'admin', internalUser: true });
       $rootScope.$digest();
 
       expect(successSpy).toHaveBeenCalled();
@@ -300,7 +300,7 @@ describe('userActions', function() {
         payload: {
           currentUser: {
             username: 'admin',
-            clmUser: true
+            internalUser: true
           },
           shouldDisplayWarning: false
         }
@@ -323,7 +323,7 @@ describe('userActions', function() {
 
       expect(successSpy).not.toHaveBeenCalled();
 
-      loginDeferred.resolve({ username: 'admin', clmUser: true });
+      loginDeferred.resolve({ username: 'admin', internalUser: true });
       $rootScope.$digest();
 
       expect(successSpy).toHaveBeenCalled();
@@ -336,7 +336,7 @@ describe('userActions', function() {
         payload: {
           currentUser: {
             username: 'admin',
-            clmUser: true
+            internalUser: true
           },
           shouldDisplayWarning: true
         }
@@ -359,7 +359,7 @@ describe('userActions', function() {
 
           expect(successSpy).not.toHaveBeenCalled();
 
-          loginDeferred.resolve({ username: 'admin', clmUser: true });
+          loginDeferred.resolve({ username: 'admin', internalUser: true });
           $rootScope.$digest();
 
           expect(successSpy).toHaveBeenCalled();
@@ -372,7 +372,7 @@ describe('userActions', function() {
             payload: {
               currentUser: {
                 username: 'admin',
-                clmUser: true
+                internalUser: true
               },
               shouldDisplayWarning: false
             }
@@ -409,7 +409,7 @@ describe('userActions', function() {
     });
 
     it('should set the warning flag to false if the call to get permissions does not resolve', () => {
-      loginDeferred.resolve({ username: 'admin', clmUser: true });
+      loginDeferred.resolve({ username: 'admin', internalUser: true });
       $rootScope.$digest();
 
       $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
@@ -431,7 +431,7 @@ describe('userActions', function() {
         payload: {
           currentUser: {
             username: 'admin',
-            clmUser: true
+            internalUser: true
           },
           shouldDisplayWarning: false
         }
@@ -439,7 +439,7 @@ describe('userActions', function() {
     });
 
     it('should set the warning flag to false if the call to get it does not resolve', () => {
-      loginDeferred.resolve({ username: 'admin', clmUser: true });
+      loginDeferred.resolve({ username: 'admin', internalUser: true });
       $rootScope.$digest();
 
       $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
@@ -464,7 +464,7 @@ describe('userActions', function() {
         payload: {
           currentUser: {
             username: 'admin',
-            clmUser: true
+            internalUser: true
           },
           shouldDisplayWarning: false
         }
@@ -487,7 +487,7 @@ describe('userActions', function() {
 
       expect(telemetryService.submitData).not.toHaveBeenCalled();
 
-      loginDeferred.resolve({ username: 'admin', clmUser: true });
+      loginDeferred.resolve({ username: 'admin', internalUser: true });
       $rootScope.$digest();
 
       expect(successSpy).toHaveBeenCalled();
@@ -509,7 +509,7 @@ describe('userActions', function() {
           .then(successSpy);
 
       $httpBackend.flush();
-      loginDeferred.resolve({ username: 'admin', clmUser: true });
+      loginDeferred.resolve({ username: 'admin', internalUser: true });
       $rootScope.$digest();
 
       expect(successSpy).toHaveBeenCalled();
@@ -526,7 +526,7 @@ describe('userActions', function() {
           .then(successSpy);
 
       $httpBackend.flush();
-      loginDeferred.resolve({ username: 'admin', clmUser: true });
+      loginDeferred.resolve({ username: 'admin', internalUser: true });
       $rootScope.$digest();
 
       expect(successSpy).toHaveBeenCalled();
@@ -534,7 +534,7 @@ describe('userActions', function() {
     });
 
     it('should not submit telemetry data when the flag call fails', () => {
-      loginDeferred.resolve({ username: 'admin', clmUser: true });
+      loginDeferred.resolve({ username: 'admin', internalUser: true });
       $rootScope.$digest();
 
       $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])

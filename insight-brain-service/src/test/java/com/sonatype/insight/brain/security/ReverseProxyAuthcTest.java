@@ -119,7 +119,7 @@ public class ReverseProxyAuthcTest
     assertThat(response.getSessionCookie()).isNotNull();
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
     assertThat(authStatus.isAuthenticated()).isTrue();
-    assertThat(authStatus.isClmUser()).isEqualTo(localUser);
+    assertThat(authStatus.isInternalUser()).isEqualTo(localUser);
     assertThat(authStatus.getDisplayName()).isEqualTo(displayName());
 
     response = request.subpath(PublicApiPaths.ORG_RESOURCE_PATH).get();
@@ -147,7 +147,7 @@ public class ReverseProxyAuthcTest
     assertThat(sessionCookie).isNotNull();
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
     assertThat(authStatus.isAuthenticated()).isTrue();
-    assertThat(authStatus.isClmUser()).isEqualTo(localUser);
+    assertThat(authStatus.isInternalUser()).isEqualTo(localUser);
     assertThat(authStatus.getDisplayName()).isEqualTo(displayName());
 
     response = request.subpath(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).cookie(sessionCookie)
@@ -175,7 +175,7 @@ public class ReverseProxyAuthcTest
     assertThat(sessionCookie).isNotNull();
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
     assertThat(authStatus.isAuthenticated()).isTrue();
-    assertThat(authStatus.isClmUser()).isEqualTo(localUser);
+    assertThat(authStatus.isInternalUser()).isEqualTo(localUser);
     assertThat(authStatus.getDisplayName()).isEqualTo(displayName());
 
     response = request.subpath(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).cookie(sessionCookie)
@@ -202,7 +202,7 @@ public class ReverseProxyAuthcTest
     assertThat(response.getSessionCookie()).isNotNull();
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
     assertThat(authStatus.isAuthenticated()).isTrue();
-    assertThat(authStatus.isClmUser()).isEqualTo(localUser);
+    assertThat(authStatus.isInternalUser()).isEqualTo(localUser);
     assertThat(authStatus.getDisplayName()).isEqualTo(displayName());
   }
 

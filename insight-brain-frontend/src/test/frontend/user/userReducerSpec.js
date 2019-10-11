@@ -66,7 +66,7 @@ describe('userReducer', function() {
     it('should set currentUser', () => {
       const user = {
         username: 'admin',
-        clmUser: true
+        internalUser: true
       };
       const state = Object.freeze({
         currentUser: null,
@@ -131,9 +131,9 @@ describe('userReducer', function() {
       expect(newState.other).toBe(state.other);
     });
 
-    it('should set canChangePassword true for clmUsers', () => {
+    it('should set canChangePassword true for internal users', () => {
       const user = {
-        clmUser: true
+        internalUser: true
       };
       const state = Object.freeze({
         canChangePassword: false,
@@ -149,13 +149,13 @@ describe('userReducer', function() {
       };
       const newState = reduce(state, action);
       expect(newState.canChangePassword).toBe(true);
-      expect(newState.currentUser.clmUser).toBe(user.clmUser);
+      expect(newState.currentUser.internalUser).toBe(user.internalUser);
       expect(newState.other).toBe(state.other);
     });
 
-    it('should set canChangePassword false for non-clmUsers', () => {
+    it('should set canChangePassword false for non-internal users', () => {
       const user = {
-        clmUser: false
+        internalUser: false
       };
       const state = Object.freeze({
         canChangePassword: true,
@@ -171,7 +171,7 @@ describe('userReducer', function() {
       };
       const newState = reduce(state, action);
       expect(newState.canChangePassword).toBe(false);
-      expect(newState.currentUser.clmUser).toBe(user.clmUser);
+      expect(newState.currentUser.internalUser).toBe(user.internalUser);
       expect(newState.other).toBe(state.other);
     });
 

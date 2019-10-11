@@ -29,6 +29,9 @@ public class ApiSourceControlAdapter
     apiSourceControlDTO.repositoryUrl = sourceControl.getRepositoryUrl();
     apiSourceControlDTO.token = sourceControl.getToken();
     apiSourceControlDTO.provider = sourceControl.getProvider() == null ? null : sourceControl.getProvider().toString();
+    apiSourceControlDTO.baseBranch = sourceControl.getBaseBranch();
+    apiSourceControlDTO.enablePullRequests = sourceControl.getEnablePullRequests();
+    apiSourceControlDTO.enableStatusChecks = sourceControl.getEnableStatusChecks();
     return apiSourceControlDTO;
   }
 

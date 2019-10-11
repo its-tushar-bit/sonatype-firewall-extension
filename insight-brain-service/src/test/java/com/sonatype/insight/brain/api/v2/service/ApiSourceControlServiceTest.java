@@ -393,6 +393,48 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
+  public void testAddSourceControlByOwner_PRTelemetry() throws Exception {
+    Boolean[] booleanOptions = new Boolean[]{true, false, null};
+    String[] branchOptions = new String[]{"branchA", "", null};
+
+    for (Boolean enablePullRequest : booleanOptions) {
+      for (Boolean enableStatusChecks : booleanOptions) {
+        for (String baseBranch : branchOptions) {
+          ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
+              new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
+                  .setProvider(SourceControlProvider.GITHUB)
+                  .setEnableStatusChecks(enableStatusChecks)
+                  .setEnablePullRequests(enablePullRequest)
+                  .setBaseBranch(baseBranch)
+                  .build());
+          Organization tmpOrg = tempEntity.newOrganization();
+
+          ApiSourceControlDTO sourceControl = sourceControlService.addSourceControlByOwner(
+              OwnerType.ORGANIZATION, tmpOrg.getId(), validSourceControl);
+
+          SourceControl reloaded = sourceControlDAO.getByIdNotNull(sourceControl.id);
+
+          Map<String, Object> expectedAttributes = new HashMap<>();
+          expectedAttributes.put("method", METHOD.ADD);
+          expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(tmpOrg.getId()));
+          expectedAttributes.put("repository_url", HdsClientAnalytics.obfuscate(reloaded.getRepositoryUrl()));
+          expectedAttributes.put("provider", SourceControlProvider.GITHUB.toString());
+          expectedAttributes.put("enable_pull_requests", enablePullRequest);
+          expectedAttributes.put("enable_status_checks", enableStatusChecks);
+          expectedAttributes.put("base_branch", baseBranch);
+
+          ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+          verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
+          TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+          assertThat(telemetryData).isNotNull();
+          assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
+          reset(telemetrySenderMock);
+        }
+      }
+    }
+  }
+
+  @Test
   public void testGetSourceControlByOwnerDecrypted() {
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")

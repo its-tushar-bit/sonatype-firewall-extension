@@ -34,12 +34,16 @@ public class PolicyAlertNotifier
 
   private final JiraPolicyAlertNotifier jiraPolicyAlertNotifier;
 
+  private final PolicyAlertScmNotifier policyAlertScmNotifier;
+
   @Inject
   public PolicyAlertNotifier(final PolicyAlertEmailer policyAlertEmailer,
-                             final JiraPolicyAlertNotifier jiraPolicyAlertNotifier)
+                             final JiraPolicyAlertNotifier jiraPolicyAlertNotifier,
+                             final PolicyAlertScmNotifier policyAlertScmNotifier)
   {
     this.policyAlertEmailer = policyAlertEmailer;
     this.jiraPolicyAlertNotifier = jiraPolicyAlertNotifier;
+    this.policyAlertScmNotifier = policyAlertScmNotifier;
   }
 
   /**
@@ -83,6 +87,13 @@ public class PolicyAlertNotifier
       }
       catch (Exception e) {
         log.error("JIRA notification failed", e);
+      }
+
+      try {
+        policyAlertScmNotifier.sendNotifications(app, policyNotifications);
+      }
+      catch (Exception e) {
+        log.error("Source Control notification failed", e);
       }
     }
     else {

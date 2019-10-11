@@ -41,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class PolicyAlertScmNotifierTest
@@ -84,6 +85,22 @@ public class PolicyAlertScmNotifierTest
         gitApiService);
     application = new Application(PUBLIC_ID, NAME, ORGANIZATION_ID);
     application.setId("app-id");
+
+    // TODO remove when SCM notifier is enabled
+    System.setProperty("enableScmNotification", "true");
+  }
+
+  // TODO remove when SCM notifier is enabled
+  @Test
+  public void test_featureIsDisabledByProperties() throws Exception {
+    // given property flag is not present
+    System.clearProperty("enableScmNotification");
+
+    // when we send notifications
+    scmNotifier.sendNotifications(application, buildPolicyNotifications());
+
+    // then no interactions
+    verifyZeroInteractions(gitApiService, pullRequestFeatureCheck);
   }
 
   @Test

@@ -93,6 +93,11 @@ public class PolicyAlertScmNotifier
       final List<PolicyNotification> policyNotifications)
       throws IOException
   {
+    // TODO remove this check for system property feature flag
+    if (System.getProperty("enableScmNotification") == null) {
+      return;
+    }
+
     final GitRepositoryInfo gitRepositoryInfo =
         gitApiService.getGitRepositoryInfoForApplication(app.getId());
 

@@ -5,12 +5,14 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.jira.JiraPolicyAlertNotifier;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -28,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -43,9 +46,17 @@ public class PolicyAlertNotifierTest
   @Mock
   private PolicyAlertEmailer policyAlertEmailer;
 
+  @Mock
+  private JiraPolicyAlertNotifier jiraPolicyAlertNotifier;
+
+  @Mock
+  private PolicyAlertScmNotifier policyAlertScmNotifier;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(PolicyAlertEmailer.class).toInstance(policyAlertEmailer);
+    binder.bind(JiraPolicyAlertNotifier.class).toInstance(jiraPolicyAlertNotifier);
+    binder.bind(PolicyAlertScmNotifier.class).toInstance(policyAlertScmNotifier);
     super.configure(binder);
   }
 
@@ -65,7 +76,7 @@ public class PolicyAlertNotifierTest
   }
 
   @Test
-  public void test_Notification_Email() {
+  public void test_Notification_SuccessfulAllNotifiers() throws IOException {
     Application app = tempEntity.newApplicationWithParent("test");
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-id");
     PolicyViolation violation = newPolicyViolationWantingAlerts(app, eval);
@@ -75,8 +86,54 @@ public class PolicyAlertNotifierTest
     results.notifiableViolations = Arrays.asList(violation);
     results.allViolations = Arrays.asList(violation, grandfatheredViolation);
 
+    // when we send a notification
     notifier.sendNotifications(app, results);
+
+    // then see the notifications go to email
     verify(policyAlertEmailer, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList(), eq(1));
+
+    // and see the notifications go to jira
+    verify(jiraPolicyAlertNotifier, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
+
+    // and see the notifications go to source control
+    verify(policyAlertScmNotifier, times(1)).sendNotifications(eq(app), anyList());
+  }
+
+  @Test
+  public void test_Notification_ExceptionsFromNotifiers() throws IOException {
+    Application app = tempEntity.newApplicationWithParent("test");
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-id");
+    PolicyViolation violation = newPolicyViolationWantingAlerts(app, eval);
+    PolicyViolation grandfatheredViolation = tempEntity.newGrandfatheredPolicyViolation(eval, tempEntity.newPolicy());
+    ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
+    results.evaluation = eval;
+    results.notifiableViolations = Arrays.asList(violation);
+    results.allViolations = Arrays.asList(violation, grandfatheredViolation);
+
+    // given each notifier throws an exception
+    doThrow(new RuntimeException("oh no in email!")).when(policyAlertEmailer)
+        .sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList(), eq(1));
+    doThrow(new RuntimeException("oh no in jira!")).when(jiraPolicyAlertNotifier)
+        .sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
+    doThrow(new RuntimeException("oh no in scm!")).when(policyAlertScmNotifier)
+        .sendNotifications(eq(app), anyList());
+
+    // when we send a notification
+    notifier.sendNotifications(app, results);
+
+    // then see the notifications go to email
+    verify(policyAlertEmailer, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList(), eq(1));
+
+    // and see the notifications still go to jira
+    verify(jiraPolicyAlertNotifier, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
+
+    // and see the notifications still go to source control
+    verify(policyAlertScmNotifier, times(1)).sendNotifications(eq(app), anyList());
+
+    // and we see the exceptions logged
+    assertThat(logOutput).atErrorLevel().contains("Email notification failed");
+    assertThat(logOutput).atErrorLevel().contains("JIRA notification failed");
+    assertThat(logOutput).atErrorLevel().contains("Source Control notification failed");
   }
 
   private PolicyViolation newPolicyViolationWantingAlerts(final Application app, final PolicyEvaluation eval) {

@@ -21,9 +21,10 @@ Please read our [contribution rules and guidelines](contributing.md).
 
 This week's rotating reviewers are:
 
+<!-- rotating-reviewers-begin -->
 * [@Kasun Ranawaka](https://github.com/kakumara)
 * [@Brandon Murray](https://github.com/bmurmistro)
-
+<!-- rotating-reviewers-end -->
 # Building #
 
 Standard Maven build, i.e. `mvn clean install`.

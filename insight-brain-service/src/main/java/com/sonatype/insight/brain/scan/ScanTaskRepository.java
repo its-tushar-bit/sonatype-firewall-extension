@@ -56,10 +56,6 @@ public class ScanTaskRepository
     executor.allowCoreThreadTimeOut(true);
   }
 
-  int getUnfinishedTaskCount() {
-    return executor.getActiveCount() + executor.getQueue().size();
-  }
-
   /**
    * Creates a new scan task and schedules it for execution.
    */

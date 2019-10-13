@@ -44,9 +44,6 @@ public class ScanServiceTest
   @Inject
   private ScanService scanService;
 
-  @Inject
-  private ScanTaskRepository scanTaskRepository;
-
   @Mock
   private ScanUploader scanUploader;
 
@@ -54,6 +51,8 @@ public class ScanServiceTest
   private ReportDownloader reportDownloader;
 
   private Application app;
+
+  private ScanTicket scanTicket;
 
   private InputStream getBundle(String name) {
     return getClass().getResourceAsStream("/ScanServiceTest/" + name);
@@ -87,19 +86,18 @@ public class ScanServiceTest
   @After
   public void exit() {
     // wait for any submitted scan to finish processing or its activity can affect following tests
-    for (long start = System.currentTimeMillis();
-        System.currentTimeMillis() - start < 60 * 1000 && scanTaskRepository.getUnfinishedTaskCount() > 0;) {
+    while (scanTicket != null && scanTicket.currentStep < scanTicket.totalSteps) {
       Thread.yield();
+      scanTicket = scanService.getTicket(scanTicket.applicationPublicId, scanTicket.ticketId);
     }
   }
 
   @Test
   public void testScanBinary() throws Exception {
     InputStream appBundle = getBundle("app01.zip");
-    ScanTicket ticket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD),
-        false);
-    assertThat(ticket).isNotNull();
-    assertThat(ticket.ticketId).isNotNull();
+    scanTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false);
+    assertThat(scanTicket).isNotNull();
+    assertThat(scanTicket.ticketId).isNotNull();
   }
 
   @Test
@@ -112,11 +110,10 @@ public class ScanServiceTest
   @Test
   public void testGetTicket() throws IOException {
     InputStream appBundle = getBundle("app01.zip");
-    ScanTicket originalTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(
-        Stage.ID_BUILD), false);
+    scanTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false);
 
-    ScanTicket statusTicket = scanService.getTicket(app.getPublicId(), originalTicket.ticketId);
-    assertThat(statusTicket.ticketId).isEqualTo(originalTicket.ticketId);
+    ScanTicket statusTicket = scanService.getTicket(app.getPublicId(), scanTicket.ticketId);
+    assertThat(statusTicket.ticketId).isEqualTo(scanTicket.ticketId);
   }
 
   /**

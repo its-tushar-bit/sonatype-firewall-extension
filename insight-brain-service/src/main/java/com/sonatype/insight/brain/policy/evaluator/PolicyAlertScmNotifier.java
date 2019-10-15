@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.nexus.git.utils.VersionRemediationTitleGenerator;
 
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,8 @@ public class PolicyAlertScmNotifier
   private static final String VERSION_KEY = "version";
 
   private static final String BRANCH_PREFIX = "";
+
+  private static final List<String> SUPPORTED_FORMATS = ImmutableList.of(ComponentIdentifier.FORMAT_MAVEN);
 
   private final PullRequestFeatureCheck pullRequestFeatureCheck;
 
@@ -106,21 +109,22 @@ public class PolicyAlertScmNotifier
       return;
     }
 
-    // for each component, check to see if remediation options are available
+    // aggregate by component and loop each one
     Map<ComponentIdentifier, List<PolicyNotification>> sortedComponentAlerts =
         policyAlertSourceCodeOrganizer.getNotificationsForScm(policyNotifications);
     for (Map.Entry<ComponentIdentifier, List<PolicyNotification>> entry : sortedComponentAlerts.entrySet()) {
-      final List<ApiVersionChangeOptionDTO> remediationOptions = getRemediationList(
-          entry.getKey(), app.getId());
+      if (!isFormatSupported(entry.getKey())) {
+        log.debug("Format '{}' is not supported for automatic remediation", entry.getKey());
+        continue;
+      }
 
+      final List<ApiVersionChangeOptionDTO> remediationOptions = getRemediationList(entry.getKey(), app.getId());
       if (remediationOptions.isEmpty()) {
         log.debug("No remediation options found for component [{}]", entry.getKey());
         continue;
       }
 
-      final String branchName = getBranchName(entry.getKey(),
-          getNextVersion(remediationOptions));
-
+      final String branchName = getBranchName(entry.getKey(), getNextVersion(remediationOptions));
       if (isBranchOnServer(gitRepositoryInfo, branchName)) {
         log.debug("Branch already exists for remediation [{}]", branchName);
         continue;
@@ -150,6 +154,10 @@ public class PolicyAlertScmNotifier
   private String getNextVersion(final List<ApiVersionChangeOptionDTO> remediationOptions) {
     return remediationOptions.get(0).getData()
         .getComponent().componentIdentifier.getCoordinates().get(VERSION_KEY);
+  }
+
+  private boolean isFormatSupported(final ComponentIdentifier componentIdentifier) {
+    return SUPPORTED_FORMATS.contains(componentIdentifier.getFormat());
   }
 
   private List<ApiVersionChangeOptionDTO> getRemediationList(

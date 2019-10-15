@@ -121,6 +121,28 @@ public class PolicyAlertScmNotifierTest
   }
 
   @Test
+  public void test_formatNotSupported() throws Exception {
+    // given we have repository info for an application
+    when(gitApiService.getGitRepositoryInfoForApplication(application.getId())).thenReturn(gitRepositoryInfo);
+
+    // and feature is enabled
+    when(pullRequestFeatureCheck.isPullRequestFeatureSupported(application, gitRepositoryInfo)).thenReturn(true);
+
+    // but the format is not supported
+
+    // when we send policy notifications
+    scmNotifier.sendNotifications(application,
+        buildPolicyNotifications(ComponentIdentifier.createNugetCoordinates("foo", "1.2.3")));
+
+    // then we see a message logged that the format is not supported
+    assertThat(logOutput).atDebugLevel().contains(
+        "Format 'nuget: {packageId=foo, version=1.2.3}' is not supported for automatic remediation");
+
+    // and PR engine didn't run
+    assertThat(logOutput).atDebugLevel().doesNotContain("Invoke PR engine to construct a PR");
+  }
+
+  @Test
   public void test_noRemediationOptions() throws Exception {
     // given we have repository info for an application
     when(gitApiService.getGitRepositoryInfoForApplication(application.getId()))
@@ -141,7 +163,7 @@ public class PolicyAlertScmNotifierTest
 
     // then we see a message logged that there are no remediations
     assertThat(logOutput).atDebugLevel().contains(
-        "No remediation options found for component [nuget: {packageId=Package1, version=1.2.3}]");
+        "No remediation options found for component [maven: {artifactId=Package1, groupId=groupid, version=1.2.3}]");
 
     // and PR engine didn't run
     assertThat(logOutput).atDebugLevel().doesNotContain(
@@ -166,14 +188,14 @@ public class PolicyAlertScmNotifierTest
 
     // and the branch already exists on the server
     when(gitClientFactory.create(gitRepositoryInfo)).thenReturn(gitApiClient);
-    when(gitApiClient.isBranchOnServer("Package1/1.2.3-to-2.0.1")).thenReturn(true);
+    when(gitApiClient.isBranchOnServer("groupid/Package1/1.2.3-to-2.0.1")).thenReturn(true);
 
     // when we send notifications to our scm notifier
     scmNotifier.sendNotifications(application, buildPolicyNotifications());
 
     // then we see a log that the branch already exists
     assertThat(logOutput).atDebugLevel().contains(
-        "Branch already exists for remediation [Package1/1.2.3-to-2.0.1]");
+        "Branch already exists for remediation [groupid/Package1/1.2.3-to-2.0.1]");
 
     // and PR engine didn't run
     assertThat(logOutput).atAnyLevel().doesNotContain("Invoke PR engine");
@@ -197,14 +219,14 @@ public class PolicyAlertScmNotifierTest
 
     // and the branch doesn't already exist on the server
     when(gitClientFactory.create(gitRepositoryInfo)).thenReturn(gitApiClient);
-    when(gitApiClient.isBranchOnServer("Package1/1.2.3-to-2.0.1")).thenReturn(false);
+    when(gitApiClient.isBranchOnServer("groupid/Package1/1.2.3-to-2.0.1")).thenReturn(false);
 
     // when we send policy notifications
     scmNotifier.sendNotifications(application, buildPolicyNotifications());
 
     // then we see the PR engine run for the component
     assertThat(logOutput).atDebugLevel().contains(
-        "Invoke PR engine to construct a PR for [nuget: {packageId=Package1, version=1.2.3}]");
+        "Invoke PR engine to construct a PR for [maven: {artifactId=Package1, groupId=groupid, version=1.2.3}]");
   }
 
   private ApiComponentRemediationDTO buildRemediationDTOWithSuggestion() {
@@ -216,16 +238,19 @@ public class PolicyAlertScmNotifierTest
     versionChangeOptionDTO.setData(changeActionDTO);
     // upgrade version
     componentDTOV2.componentIdentifier = ApiComponentIdentifierDTOV2
-        .fromComponentIdentifier(ComponentIdentifier.createNugetCoordinates("Package1", "2.0.1"));
+        .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("groupid", "Package1", "2.0.1"));
     ApiComponentRemediationDTO remediationDTO = new ApiComponentRemediationDTO();
     remediationDTO.remediation.versionChanges = Arrays.asList(versionChangeOptionDTO);
     return remediationDTO;
   }
 
   private List<PolicyNotification> buildPolicyNotifications() {
+    return buildPolicyNotifications(ComponentIdentifier.createMavenCoordinates("groupid", "Package1", "1.2.3"));
+  }
+
+  private List<PolicyNotification> buildPolicyNotifications(final ComponentIdentifier componentIdentifier) {
     PolicyFact policyFact1 = new PolicyFact("policyid-1", "policyname-1", 3);
-    policyFact1.addComponentFact(
-        new ComponentFact(ComponentIdentifier.createNugetCoordinates("Package1", "1.2.3"), randomString()));
+    policyFact1.addComponentFact(new ComponentFact(componentIdentifier, randomString()));
 
     Notifications notifications = new Notifications(
         new UserNotification("foo@mail.com", "release")

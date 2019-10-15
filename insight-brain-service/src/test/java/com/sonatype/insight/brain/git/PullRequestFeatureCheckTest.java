@@ -98,6 +98,19 @@ public class PullRequestFeatureCheckTest
     ensureAppNotConfigured(null);
   }
 
+  @Test
+  public void testProviderNotSupported() throws IOException {
+    when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
+
+    GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo();
+    gitRepositoryInfo.provider = SourceControlProvider.GITLAB;
+    boolean result = pullRequestFeatureCheck
+        .isPullRequestFeatureSupported(new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), gitRepositoryInfo);
+
+    assertThat(result).isFalse();
+    assertThat(logOutput).atDebugLevel().contains("Source provider 'gitlab' is not supported");
+  }
+
   private void ensureAppNotConfigured(final GitRepositoryInfo gitRepositoryInfo)
       throws IOException
   {

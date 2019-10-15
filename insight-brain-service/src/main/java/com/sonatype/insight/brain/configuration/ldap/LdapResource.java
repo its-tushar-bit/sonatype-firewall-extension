@@ -39,6 +39,8 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.codahale.metrics.annotation.Timed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.7
@@ -48,6 +50,8 @@ import com.codahale.metrics.annotation.Timed;
 @Path(LdapResource.RESOURCE_PATH)
 public class LdapResource
 {
+  private static final Logger log = LoggerFactory.getLogger(LdapResource.class);
+
   public static final String RESOURCE_PATH = "rest/config/ldap";
 
   public static final String CONNECTION_PATH = "{ldapServerId}/connection";
@@ -260,6 +264,9 @@ public class LdapResource
       return LdapConnectionStatus.SUCCESS;
     }
     catch (NamingException e) {
+      // Log the exception at debug level for customer and Sonatype support investigations
+      // (see https://issues.sonatype.org/browse/CLM-13799)
+      log.debug(e.getMessage(), e);
       return new LdapConnectionStatus(Status.FAILURE, e.toString());
     }
   }

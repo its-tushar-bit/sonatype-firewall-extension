@@ -272,7 +272,7 @@ public class PolicyEvaluateService
         PolicyEvaluationResult policyEvaluationResult = doPolicyEvaluation(applicationPublicId, scanId, stage);
 
         log.debug(
-            "Evaluating policy for app public id {}, scan id {}, stageTypeId {} in {} ms." +
+            "Evaluated policy for app public id {}, scan id {}, stageTypeId {} in {} ms." +
                 " The status ID of the operation is {}.",
             applicationPublicId, scanId, stage.getStageTypeId(), System.currentTimeMillis() - start, statusId);
 

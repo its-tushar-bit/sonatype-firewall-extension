@@ -90,7 +90,7 @@ public class PolicyAlertNotifier
       }
 
       try {
-        policyAlertScmNotifier.sendNotifications(app, policyNotifications);
+        policyAlertScmNotifier.sendNotifications(app, scanId, stage, policyNotifications);
       }
       catch (Exception e) {
         log.error("Source Control notification failed", e);

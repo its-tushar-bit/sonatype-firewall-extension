@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
@@ -27,7 +28,6 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
@@ -107,13 +107,10 @@ public class PullRequestRemediationDetailsTest extends AbstractComponentTest
         .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("org.jooq", "jooq", "3.11.3"));
     ApiComponentRemediationDTO remediationDTO = new ApiComponentRemediationDTO();
     remediationDTO.remediation.versionChanges = Arrays.asList(versionChangeOptionDTO);
-
-    PolicyEvaluation policyEvaluation = new PolicyEvaluation();
-    policyEvaluation.setScanId(scanId);
-    policyEvaluation.setStageTypeId("Build");
-
-    PullRequestRemediationDetails details = new PullRequestRemediationDetails(componentIdentifier,
-        policyNotifications, versionChangeOptionDTO, app, policyEvaluation, lookup(BaseUrl.class));
+    
+    PullRequestRemediationDetails details =
+        new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "pullRequest", policyNotifications, app,
+            scanId, new Stage(Stage.ID_BUILD), lookup(BaseUrl.class));
 
     assertThat(details.getTitle()).isEqualTo("Bump org.jooq:jooq:3.11.2 to 3.11.3");
 

@@ -140,6 +140,10 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.nexus.iq</groupId>
+      <artifactId>nexus-dependency-management</artifactId>
+    </dependency>
     
     <dependency>
       <groupId>org.apache.commons</groupId>

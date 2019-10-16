@@ -19,12 +19,11 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
-import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.utils.TemplateUtils;
@@ -47,13 +46,21 @@ public class PullRequestRemediationDetails
 
   private static final Pattern CVE_REGEX_PATTERN = Pattern.compile("((CVE|SONATYPE)-\\d+-\\d+)");
 
+  private static final OrganizationDAO organizationDAO = new OrganizationDAO();
+  
+  private static Template policyThreatsTemplate;
+
+  private final Application app;
+
+  private final String pullRequestBranchName;
+
   private String title;
 
   private String contents;
-
-  private OrganizationDAO organizationDAO;
-
-  private static Template policyThreatsTemplate;
+  
+  private ComponentIdentifier toBeRemediated;
+  
+  private String remediatedVersion;
 
   static {
     String templateName = "pullrequest-threats.ftl";
@@ -65,23 +72,25 @@ public class PullRequestRemediationDetails
     }
   }
 
-  public PullRequestRemediationDetails(final ComponentIdentifier componentIdentifier,
+  public PullRequestRemediationDetails(final ComponentIdentifier toBeRemediated,
+                                       final String remediatedVersion,
+                                       final String pullRequestBranchName,
                                        final List<PolicyNotification> notifications,
-                                       final ApiVersionChangeOptionDTO versionChangeOptionDTO,
                                        final Application app,
-                                       final PolicyEvaluation policyEvaluation,
+                                       final String scanId,
+                                       final Stage stage,
                                        final BaseUrl baseUrl) throws IOException
   {
     if (policyThreatsTemplate == null) {
       throw new IOException("Unable to construct PullRequestRemediationDetails: no template available");
     }
 
-    this.organizationDAO = new OrganizationDAO();
-
-    this.title = constructTitle(componentIdentifier, versionChangeOptionDTO);
-
-    this.contents =
-        constructContents(componentIdentifier, versionChangeOptionDTO, notifications, app, policyEvaluation, baseUrl);
+    this.toBeRemediated = toBeRemediated;
+    this.remediatedVersion = remediatedVersion;
+    this.pullRequestBranchName = pullRequestBranchName;
+    this.title = constructTitle();
+    this.app = app;
+    this.contents = constructContents(toBeRemediated, notifications, app, scanId, stage, baseUrl);
   }
 
   public String getTitle() {
@@ -95,18 +104,26 @@ public class PullRequestRemediationDetails
     return contents;
   }
 
-  private String constructTitle(ComponentIdentifier componentIdentifier,
-                                ApiVersionChangeOptionDTO versionChangeOptionDTO)
-  {
-    String identifierString = constructIdentifierString(componentIdentifier);
-
-    String targetVersion = getTargetVersion(versionChangeOptionDTO);
-
-    return MessageFormat.format("Bump {0} to {1}", identifierString, targetVersion);
+  public ComponentIdentifier getToBeRemediated() {
+    return toBeRemediated;
   }
 
-  private String getTargetVersion(final ApiVersionChangeOptionDTO versionChangeOptionDTO) {
-    return versionChangeOptionDTO.getData().getComponent().componentIdentifier.getCoordinates().get(VERSION);
+  public String getRemediatedVersion() {
+    return remediatedVersion;
+  }
+  
+  public String getPullRequestBranchName() {
+    return pullRequestBranchName;
+  }
+
+  public Application getApp() {
+    return app;
+  }
+
+  private String constructTitle() {
+    String identifierString = constructIdentifierString(toBeRemediated);
+
+    return MessageFormat.format("Bump {0} to {1}", identifierString, remediatedVersion);
   }
 
   private String constructIdentifierString(final ComponentIdentifier componentIdentifier) {
@@ -114,12 +131,13 @@ public class PullRequestRemediationDetails
     return ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString().replaceAll("\\s+", "");
   }
 
-  private String constructContents(ComponentIdentifier componentIdentifier,
-                                   ApiVersionChangeOptionDTO versionChangeOptionDTO,
-                                   List<PolicyNotification> notifications,
-                                   Application app,
-                                   PolicyEvaluation policyEvaluation,
-                                   BaseUrl baseUrl) throws IOException
+  private String constructContents(
+      final ComponentIdentifier componentIdentifier,
+      final List<PolicyNotification> notifications,
+      final Application app,
+      final String scanId,
+      final Stage stage, 
+      final BaseUrl baseUrl) throws IOException
   {
     List<Map<String, Object>> threatList = notifications.stream()
         .map(policyNotification -> {
@@ -135,16 +153,16 @@ public class PullRequestRemediationDetails
     Map<String, Object> model = ImmutableMap.<String, Object>builder()
         .put("initialSearchUrl", constructMavenSearchUrl(componentIdentifier.getCoordinates()))
         .put("initialCoordinates", constructIdentifierString(componentIdentifier))
-        .put("targetVersion", getTargetVersion(versionChangeOptionDTO))
-        .put("targetSearchUrl", constructMavenSearchUrl(
-            versionChangeOptionDTO.getData().getComponent().componentIdentifier.getCoordinates()))
+        .put("targetVersion", remediatedVersion)
+        .put("targetSearchUrl",
+            constructMavenSearchUrl(componentIdentifier.createAlternativeVersion(remediatedVersion).getCoordinates()))
         .put("applicationName", app.getName())
         .put("organizationName", getOrganizationName(app))
         .put("threatList", threatList)
-        .put("scanId", policyEvaluation.getScanId())
-        .put("stage", policyEvaluation.getStageTypeId())
+        .put("scanId", scanId)
+        .put("stage", stage.getStageTypeId())
         .put("detailedReportUrl", baseUrl.getConfigured() +
-            UserInterfaceLinksResource.getReportUrl(app.getPublicId(), policyEvaluation.getScanId()))
+            UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId))
         .put("baseIqUrl", baseUrl.getConfigured())
         .build();
 

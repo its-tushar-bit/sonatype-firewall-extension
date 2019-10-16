@@ -8,10 +8,15 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import javax.inject.Provider;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
@@ -23,24 +28,31 @@ import com.sonatype.insight.brain.git.GitApiService;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.GitRepositoryInfo;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
+import com.sonatype.insight.brain.git.PullRequestTask;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.api.GitApiClient;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
@@ -50,8 +62,6 @@ public class PolicyAlertScmNotifierTest
   private static final String PUBLIC_ID = "abc123";
 
   private static final String NAME = "reponame";
-
-  private static final String ORGANIZATION_ID = "sonatype";
 
   @Mock
   private PullRequestFeatureCheck pullRequestFeatureCheck;
@@ -70,6 +80,15 @@ public class PolicyAlertScmNotifierTest
 
   @Mock
   private GitApiClient gitApiClient;
+  
+  @Mock
+  private BaseUrl baseUrl;
+  
+  @Mock
+  Provider<PullRequestTask> provider;
+  
+  @Mock
+  PullRequestTask pullRequestTask;
 
   private PolicyAlertScmNotifier scmNotifier;
 
@@ -82,9 +101,9 @@ public class PolicyAlertScmNotifierTest
   public void setup() throws Exception {
     scmNotifier = new PolicyAlertScmNotifier(pullRequestFeatureCheck,
         remediationService, new PolicyAlertSourceCodeOrganizer(), gitClientFactory,
-        gitApiService);
-    application = new Application(PUBLIC_ID, NAME, ORGANIZATION_ID);
-    application.setId("app-id");
+        gitApiService, baseUrl, provider);
+    Organization organization = tempEntity.newOrganization();
+    application = tempEntity.newApplication(NAME, PUBLIC_ID, organization.getId());
 
     // TODO remove when SCM notifier is enabled
     System.setProperty("enableScmNotification", "true");
@@ -97,12 +116,12 @@ public class PolicyAlertScmNotifierTest
     System.clearProperty("enableScmNotification");
 
     // when we send notifications
-    scmNotifier.sendNotifications(application, buildPolicyNotifications());
+    scmNotifier.sendNotifications(application, "scanId", new Stage(Stage.ID_BUILD), buildPolicyNotifications());
 
     // then no interactions
     verifyZeroInteractions(gitApiService, pullRequestFeatureCheck);
   }
-
+  
   @Test
   public void test_featureIsDisabled() throws Exception {
     // given we have repository info for an application
@@ -114,7 +133,7 @@ public class PolicyAlertScmNotifierTest
         application, gitRepositoryInfo)).thenReturn(false);
 
     // when we send notifications
-    scmNotifier.sendNotifications(application, buildPolicyNotifications());
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
 
     // then we see no calls to the PR engine
     assertThat(logOutput).atAnyLevel().doesNotContain("Invoke PR engine to construct a PR");
@@ -131,7 +150,7 @@ public class PolicyAlertScmNotifierTest
     // but the format is not supported
 
     // when we send policy notifications
-    scmNotifier.sendNotifications(application,
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"),
         buildPolicyNotifications(ComponentIdentifier.createNugetCoordinates("foo", "1.2.3")));
 
     // then we see a message logged that the format is not supported
@@ -159,7 +178,7 @@ public class PolicyAlertScmNotifierTest
         eq(application.getId()), isNull())).thenReturn(emptyRemediationDTO);
 
     // when we send policy notifications
-    scmNotifier.sendNotifications(application, buildPolicyNotifications());
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
 
     // then we see a message logged that there are no remediations
     assertThat(logOutput).atDebugLevel().contains(
@@ -191,7 +210,7 @@ public class PolicyAlertScmNotifierTest
     when(gitApiClient.isBranchOnServer("groupid/Package1/1.2.3-to-2.0.1")).thenReturn(true);
 
     // when we send notifications to our scm notifier
-    scmNotifier.sendNotifications(application, buildPolicyNotifications());
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
 
     // then we see a log that the branch already exists
     assertThat(logOutput).atDebugLevel().contains(
@@ -221,12 +240,33 @@ public class PolicyAlertScmNotifierTest
     when(gitClientFactory.create(gitRepositoryInfo)).thenReturn(gitApiClient);
     when(gitApiClient.isBranchOnServer("groupid/Package1/1.2.3-to-2.0.1")).thenReturn(false);
 
+    String branchName = "groupid/Package1/1.2.3-to-2.0.1";
+    when(gitApiClient.isBranchOnServer(branchName)).thenReturn(false);
+    when(baseUrl.getConfigured()).thenReturn("foo");
+    when(provider.get()).thenReturn(pullRequestTask);
+    CountDownLatch finished = new CountDownLatch(1);
+    doAnswer(invocation -> {
+      finished.countDown();
+      return null;
+    }).when(pullRequestTask).run();
+    
     // when we send policy notifications
-    scmNotifier.sendNotifications(application, buildPolicyNotifications());
-
+    scmNotifier.sendNotifications(application,"scanId", new Stage("build"),  buildPolicyNotifications());
+    
     // then we see the PR engine run for the component
-    assertThat(logOutput).atDebugLevel().contains(
-        "Invoke PR engine to construct a PR for [maven: {artifactId=Package1, groupId=groupid, version=1.2.3}]");
+    assertThat(logOutput).atInfoLevel().contains("Executing pull request task for [maven: {artifactId=Package1," +
+        " groupId=groupid, version=1.2.3}] on application with id [" + application.getId() + "]");
+
+    ArgumentCaptor<PullRequestRemediationDetails> captor =
+        ArgumentCaptor.forClass(PullRequestRemediationDetails.class);
+    verify(pullRequestTask).init(captor.capture());
+    await().atMost(1, TimeUnit.SECONDS).until( () -> finished.getCount() == 0);
+    verify(pullRequestTask).run();
+    assertThat(captor.getValue().getToBeRemediated())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("groupid", "Package1", "1.2.3"));
+    assertThat(captor.getValue().getRemediatedVersion()).isEqualTo("2.0.1");
+    assertThat(captor.getValue().getPullRequestBranchName()).isEqualTo(branchName);
+    assertThat(captor.getValue().getApp()).isEqualTo(application);
   }
 
   private ApiComponentRemediationDTO buildRemediationDTOWithSuggestion() {

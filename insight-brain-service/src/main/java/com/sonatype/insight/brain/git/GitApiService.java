@@ -23,6 +23,8 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
+import com.sonatype.nexus.git.utils.api.GitApi;
+import com.sonatype.nexus.git.utils.api.JGitApi;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient.StateType;
@@ -134,6 +136,20 @@ public class GitApiService
     }
 
     return gitRepositoryInfo;
+  }
+
+  public GitApi createGitApi(final GitRepositoryInfo gitInfo) {
+    return new JGitApi(dotGitIt(gitInfo), gitInfo.token);
+  }
+
+  /**
+   * optionally add a '.git' suffix to the url if it is not already present
+   */
+  private String dotGitIt(final GitRepositoryInfo gitInfo) {
+    if (gitInfo.repositoryUrl.endsWith(".git")) {
+      return gitInfo.repositoryUrl;
+    }
+    return gitInfo.repositoryUrl + ".git";
   }
 
   private boolean isGitRepoInfoComplete(final GitRepositoryInfo gitRepositoryInfo) {

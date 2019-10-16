@@ -96,7 +96,7 @@ public class PolicyAlertNotifierTest
     verify(jiraPolicyAlertNotifier, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
 
     // and see the notifications go to source control
-    verify(policyAlertScmNotifier, times(1)).sendNotifications(eq(app), anyList());
+    verify(policyAlertScmNotifier, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
   }
 
   @Test
@@ -116,7 +116,7 @@ public class PolicyAlertNotifierTest
     doThrow(new RuntimeException("oh no in jira!")).when(jiraPolicyAlertNotifier)
         .sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
     doThrow(new RuntimeException("oh no in scm!")).when(policyAlertScmNotifier)
-        .sendNotifications(eq(app), anyList());
+      .sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
 
     // when we send a notification
     notifier.sendNotifications(app, results);
@@ -128,7 +128,7 @@ public class PolicyAlertNotifierTest
     verify(jiraPolicyAlertNotifier, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
 
     // and see the notifications still go to source control
-    verify(policyAlertScmNotifier, times(1)).sendNotifications(eq(app), anyList());
+    verify(policyAlertScmNotifier, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
 
     // and we see the exceptions logged
     assertThat(logOutput).atErrorLevel().contains("Email notification failed");

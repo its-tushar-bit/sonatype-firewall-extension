@@ -941,6 +941,11 @@
         <version>${nexus-scm-client.version}</version>
       </dependency>
       <dependency>
+        <groupId>com.sonatype.nexus.iq</groupId>
+        <artifactId>nexus-dependency-management</artifactId>
+        <version>1.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
         <groupId>com.github.stefanbirkner</groupId>
         <artifactId>system-rules</artifactId>
         <version>1.19.0</version>

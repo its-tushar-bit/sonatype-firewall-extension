@@ -409,6 +409,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.POLICY_GRANDFATHERING);
       features.add(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
+      features.add(LicensedFeature.AUTOMATION);
       stageTypes.add(StageTypes.RELEASE);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
@@ -424,6 +425,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.IDE_INTEGRATION);
       features.add(LicensedFeature.CI_INTEGRATION);
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
+      features.add(LicensedFeature.AUTOMATION);
       stageTypes.addAll(StageTypes.getAll());
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_NEXUS)) {

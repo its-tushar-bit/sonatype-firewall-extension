@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -222,7 +221,7 @@ public class PolicyEvaluateService
    * @since 1.69
    */
   class EvaluationTask
-      implements Callable<PolicyEvaluationPollingResult>
+      implements Runnable
   {
     private final String applicationPublicId;
 
@@ -248,7 +247,7 @@ public class PolicyEvaluateService
     }
 
     @Override
-    public PolicyEvaluationPollingResult call() {
+    public void run() {
       String scanId = null;
       PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
       policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.PENDING);
@@ -295,7 +294,6 @@ public class PolicyEvaluateService
             .setException(new RuntimeException(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody(), e));
       }
       policyEvaluationPollingResults.put(policyEvaluationKey, policyEvaluationPollingResult);
-      return policyEvaluationPollingResult;
     }
 
     private PolicyEvaluationPollingResult makeCopy(PolicyEvaluationPollingResult from) {

@@ -266,7 +266,7 @@ public class LdapResource
     catch (NamingException e) {
       // Log the exception at debug level for customer and Sonatype support investigations
       // (see https://issues.sonatype.org/browse/CLM-13799)
-      log.debug(e.getMessage(), e);
+      log.debug("LDAP connection test failed", e);
       return new LdapConnectionStatus(Status.FAILURE, e.toString());
     }
   }
@@ -317,6 +317,9 @@ public class LdapResource
       return new LdapConnectionStatus(Status.FAILURE, e.toString());
     }
     catch (NamingException e) {
+      // Log the exception at debug level for customer and Sonatype support investigations
+      // (see https://issues.sonatype.org/browse/CLM-13799)
+      log.debug("LDAP login test failed", e);
       return new LdapConnectionStatus(Status.FAILURE, e.toString());
     }
   }

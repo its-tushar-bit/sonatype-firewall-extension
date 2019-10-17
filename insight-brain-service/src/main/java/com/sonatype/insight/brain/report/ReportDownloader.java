@@ -18,6 +18,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.codehaus.plexus.util.IOUtil;
@@ -31,6 +32,8 @@ public class ReportDownloader
   private static final Logger log = LoggerFactory.getLogger(ReportDownloader.class);
 
   static final String HDS_PATH = "rest/application/analysis/{scanId}";
+
+  static final int BAD_GATEWAY_RETRY_LIMIT = 5;
 
   private final HdsClient client;
 
@@ -56,6 +59,7 @@ public class ReportDownloader
   {
     log.debug("Downloading report for scan {} with timeout {} s", scanId, reportTimeoutInSeconds);
     final long endTime = System.currentTimeMillis() + reportTimeoutInSeconds * 1000;
+    int badGatewayRetryCount = 0;
     try {
       do {
         InputStream is = null;
@@ -76,6 +80,12 @@ public class ReportDownloader
             throw e;
           }
           Thread.sleep(Math.min(retryIntervalInSeconds * 1000, endTime - currentTime));
+        }
+        catch (BadGatewayException e) {
+          if (++badGatewayRetryCount >= BAD_GATEWAY_RETRY_LIMIT) {
+            throw e;
+          }
+          Thread.sleep(retryIntervalInSeconds * 1000);
         }
         finally {
           IOUtil.close(is);

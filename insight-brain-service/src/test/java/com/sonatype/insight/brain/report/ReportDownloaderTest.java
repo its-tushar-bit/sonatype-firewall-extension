@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.report;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 
@@ -14,6 +15,7 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.test.LogOutput;
 
@@ -96,5 +98,39 @@ public class ReportDownloaderTest
     // since we 'sleep' 1 time at 2000ms and another time at 1000ms = total sleep of 3000ms,
     // the test should not run quicker than 3000ms, but allow a variance in execution on the max
     assertThat(totalTime).isBetween(3000L, 3200L);
+  }
+
+  @Test
+  public void testDownloadReport_RetryOnBadGatewayException() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("dummyApp");
+    String scanId = "scanId";
+
+    BadGatewayException expectedException = new BadGatewayException("test");
+    when(mockHdsClient.get(InputStream.class, ReportDownloader.HDS_PATH, null, scanId)).thenThrow(expectedException);
+
+    File reportFile = work.getReportFile(app.getId(), scanId);
+    boolean rc = reportDownloader.downloadReport(scanId, reportFile, 1, 0);
+    assertThat(rc).isFalse();
+
+    verify(mockHdsClient, times(ReportDownloader.BAD_GATEWAY_RETRY_LIMIT))
+        .get(InputStream.class, ReportDownloader.HDS_PATH, null, scanId);
+  }
+
+  @Test
+  public void testDownloadReport_CanDownloadAfterABadGatewayRetry() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("dummyApp");
+    String scanId = "scanId";
+
+    BadGatewayException initialException = new BadGatewayException("test");
+    InputStream finalReport = new ByteArrayInputStream("report".getBytes());
+    when(mockHdsClient.get(InputStream.class, ReportDownloader.HDS_PATH, null, scanId))
+        .thenThrow(initialException)
+        .thenReturn(finalReport);
+
+    File reportFile = work.getReportFile(app.getId(), scanId);
+    boolean rc = reportDownloader.downloadReport(scanId, reportFile, 1, 0);
+    assertThat(rc).isTrue();
+
+    verify(mockHdsClient, times(2)).get(InputStream.class, ReportDownloader.HDS_PATH, null, scanId);
   }
 }

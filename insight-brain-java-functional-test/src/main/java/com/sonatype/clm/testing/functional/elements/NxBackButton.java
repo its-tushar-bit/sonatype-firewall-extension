@@ -15,6 +15,6 @@ public class NxBackButton
    * @param context the context selector, within which the back-button is located
    */
   public NxBackButton(String context) {
-    super(context, ".nx-back-button");
+    super(context, ".nx-back-button a");
   }
 }

@@ -18,6 +18,12 @@ public class UserTokenDAO
     extends AbstractOperationalSqlDAO<UserToken>
 {
   @Override
+  protected UserToken getById(TransactionContext tx, String id) {
+    String sQuery = "SELECT entity FROM UserToken entity WHERE entity.id=?1";
+    return get(tx, sQuery, id);
+  }
+
+  @Override
   public void insert(TransactionContext tx, UserToken userToken) {
     if (userToken.getCreateTime() == null) {
       userToken.setCreateTime(new Date());
@@ -26,9 +32,15 @@ public class UserTokenDAO
   }
 
   public UserToken getByUsername(String username) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByUsername(tx, username);
+    }
+  }
+
+  public UserToken getByUsername(TransactionContext tx, String username) {
     String sQuery = "SELECT userToken FROM UserToken userToken" + //
-        " WHERE userToken.username=?1";
-    return get(sQuery, username);
+        " WHERE userToken.usernameLowercase=?1";
+    return get(tx, sQuery, UserToken.normalizeUsername(username));
   }
 
   @Override

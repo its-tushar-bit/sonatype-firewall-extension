@@ -403,7 +403,7 @@ public class TemporaryEntity
     migrationTrackerDAO.getAll().forEach(migrationTrackerDAO::delete);
     migrationTrackers.forEach(migrationTrackerDAO::insert);
 
-    delete(userTokens, userToken -> userTokenDAO.getByUsername(userToken.getUsername()), userTokenDAO::delete);
+    delete(userTokens, userTokenDAO);
   }
 
   private <T extends HasStringId> void delete(Collection<T> entities, AbstractDAO<T> dao) {
@@ -1953,9 +1953,10 @@ public class TemporaryEntity
     return samlConfiguration;
   }
 
-  public UserToken newUserToken(String username) {
+  public UserToken newUserToken(String username, boolean isInternalUser) {
     UserToken userToken = new UserToken();
     userToken.setUsername(username);
+    userToken.setInternalUser(isInternalUser);
     userToken.setUserCode(username + "-code");
     userToken.setPassCode("a-pass-code");
     userTokenDAO.insert(userToken);

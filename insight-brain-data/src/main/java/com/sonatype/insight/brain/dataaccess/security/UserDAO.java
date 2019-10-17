@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -167,6 +168,13 @@ public class UserDAO
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
     for (MembershipMapping membershipMapping : membershipMappingDAO.getByUser(tx, entity.getUsername())) {
       membershipMappingDAO.delete(tx, membershipMapping);
+    }
+
+    // Cascade to user token
+    UserTokenDAO userTokenDAO = new UserTokenDAO();
+    UserToken userToken = userTokenDAO.getByUsername(tx, entity.getUsername());
+    if (userToken != null && userToken.isInternalUser()) {
+      userTokenDAO.delete(tx, userToken);
     }
 
     // Cascade to dashboard filters

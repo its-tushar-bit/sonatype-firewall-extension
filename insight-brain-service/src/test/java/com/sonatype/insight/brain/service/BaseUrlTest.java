@@ -19,7 +19,7 @@ import static com.google.common.net.HttpHeaders.X_FORWARDED_PROTO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class BaseUrlTest
@@ -119,7 +119,7 @@ public class BaseUrlTest
 
     UriInfo uriInfo = mock(UriInfo.class);
     testGet_ForceInsightConfigBaseUrl(uriInfo);
-    verifyZeroInteractions(uriInfo);
+    verifyNoInteractions(uriInfo);
   }
 
   private void testGet_ForceInsightConfigBaseUrl(UriInfo uriInfo) {

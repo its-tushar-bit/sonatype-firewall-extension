@@ -26,7 +26,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class PolicyMonitorSchedulerTest
@@ -57,7 +57,7 @@ public class PolicyMonitorSchedulerTest
   public void testStartServer_PolicyMonitoringUnlicensed() {
     when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(false);
     scheduler.start();
-    verifyZeroInteractions(executor);
+    verifyNoInteractions(executor);
   }
 
   @Test
@@ -101,7 +101,7 @@ public class PolicyMonitorSchedulerTest
     scheduler.start();
     reset(executor);
     scheduler.productLicenseChanged();
-    verifyZeroInteractions(executor);
+    verifyNoInteractions(executor);
   }
 
   @Test
@@ -110,6 +110,6 @@ public class PolicyMonitorSchedulerTest
     scheduler.start();
     reset(executor);
     scheduler.productLicenseChanged();
-    verifyZeroInteractions(executor);
+    verifyNoInteractions(executor);
   }
 }

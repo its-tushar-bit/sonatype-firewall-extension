@@ -51,8 +51,8 @@ import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementType;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload.SecurityVulnerabilityOverrideDTO;
-import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.inject.Binder;
 import org.junit.After;
@@ -74,8 +74,8 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class WebhookDispatcherTest
     extends AbstractComponentTest
@@ -199,7 +199,7 @@ public class WebhookDispatcherTest
     testEventTypesWithOwner(application);
     testEventTypesWithOwner(repository);
 
-    verifyZeroInteractions(webhookClientUtil);
+    verifyNoInteractions(webhookClientUtil);
   }
 
   @Test

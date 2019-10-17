@@ -53,7 +53,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class PolicyAlertScmNotifierTest
@@ -119,7 +119,7 @@ public class PolicyAlertScmNotifierTest
     scmNotifier.sendNotifications(application, "scanId", new Stage(Stage.ID_BUILD), buildPolicyNotifications());
 
     // then no interactions
-    verifyZeroInteractions(gitApiService, pullRequestFeatureCheck);
+    verifyNoInteractions(gitApiService, pullRequestFeatureCheck);
   }
   
   @Test

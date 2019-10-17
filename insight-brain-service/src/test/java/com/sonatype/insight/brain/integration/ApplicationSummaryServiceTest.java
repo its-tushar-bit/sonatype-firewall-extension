@@ -45,7 +45,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class ApplicationSummaryServiceTest
     extends AbstractComponentTest
@@ -145,11 +145,11 @@ public class ApplicationSummaryServiceTest
     String appPublicId = "NoSuchAppPublicID";
 
     service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
-    verifyZeroInteractions(mockHdsClient);
+    verifyNoInteractions(mockHdsClient);
 
     Application app = tempEntity.newApplicationWithParent();
     service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "test_client_user_agent");
-    verifyZeroInteractions(mockHdsClient);
+    verifyNoInteractions(mockHdsClient);
   }
 
   @Test
@@ -186,7 +186,7 @@ public class ApplicationSummaryServiceTest
     Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");
     service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "test_client_user_agent");
-    verifyZeroInteractions(mockHdsClient);
+    verifyNoInteractions(mockHdsClient);
   }
 
   @Test

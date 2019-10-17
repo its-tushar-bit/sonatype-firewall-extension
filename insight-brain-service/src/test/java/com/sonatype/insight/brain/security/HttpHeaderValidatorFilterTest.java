@@ -23,7 +23,7 @@ import org.mockito.stubbing.Answer;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -206,11 +206,11 @@ public class HttpHeaderValidatorFilterTest
     filter.doFilter(request, response, chain);
     if (invalidHeaderName == null) {
       verify(chain).doFilter(request, response);
-      verifyZeroInteractions(response);
-      verifyZeroInteractions(writer);
+      verifyNoInteractions(response);
+      verifyNoInteractions(writer);
     }
     else {
-      verifyZeroInteractions(chain);
+      verifyNoInteractions(chain);
       verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
       verify(response).setContentType(HttpHeaderValidatorFilter.CONTENT_TYPE);
       verify(response).getWriter();

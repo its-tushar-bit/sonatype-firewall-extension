@@ -73,6 +73,7 @@ function CipModalController($ngRedux, $scope, applicationReportActions, Selected
     Properties.setFilename(selectedComponent.matchState === 'unknown' ? selectedComponent.coordinates : null);
     Properties.setProprietary(selectedComponent.proprietary || false);
     Properties.setMatchState(selectedComponent.matchState);
+    Properties.setIdentificationSource(selectedComponent.identificationSource);
 
     if (selectedComponent.componentIdentifier) {
       const {coordinates, format} = selectedComponent.componentIdentifier;

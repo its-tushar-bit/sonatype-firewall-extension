@@ -36,10 +36,12 @@ describe('cipModal', function() {
         spyOn(Properties, 'setFilename');
         spyOn(Properties, 'setProprietary');
         spyOn(Properties, 'setMatchState');
+        spyOn(Properties, 'setIdentificationSource');
 
         component = {
           hash: '1249e25aebb15358bedd',
           matchState: 'test-match-state',
+          identificationSource: 'test-identification-source',
           componentIdentifier: {
             coordinates: 'coordinates',
             format: 'format'
@@ -97,6 +99,12 @@ describe('cipModal', function() {
         vm.selectedComponent = component;
         scope.$digest();
         expect(Properties.setMatchState).toHaveBeenCalledWith('test-match-state');
+      });
+
+      it('calls Properties.setIdentificationSource', function() {
+        vm.selectedComponent = component;
+        scope.$digest();
+        expect(Properties.setIdentificationSource).toHaveBeenCalledWith('test-identification-source');
       });
 
       it('enhances legacy report data with component identifier', function() {

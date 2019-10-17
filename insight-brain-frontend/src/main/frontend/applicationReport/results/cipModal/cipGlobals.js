@@ -25,10 +25,12 @@ window.clmEndpoint = {
 window.Brain = {
   // used by Component Info tab
   ci: {
-    getComponentListUrl(ownerType, ownerId, componentType, hash, matchState, proprietary, coordinates, pathname) {
+    getComponentListUrl(ownerType, ownerId, componentType, hash, matchState, proprietary, coordinates, pathname,
+                        identificationSource, scanId) {
       const url = window.CLM.path + 'rest/ci/componentDetails/' + ownerType + '/' + encodeURIComponent(ownerId) +
           '/allVersions';
-      return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates, pathname);
+      return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates, pathname,
+          identificationSource, scanId);
     },
     getComponentUrl(ownerType, ownerId, componentType, hash, matchState, proprietary, coordinates, pathname) {
       const url = window.CLM.path + 'rest/ci/componentDetails/' + ownerType + '/' + encodeURIComponent(ownerId);
@@ -71,13 +73,15 @@ window.Brain = {
   }
 };
 
-function toParams(componentType, hash, matchState, proprietary, coordinates, pathname) {
+function toParams(componentType, hash, matchState, proprietary, coordinates, pathname, identificationSource, scanId) {
   const componentIdentifier = coordinates && JSON.stringify({ format: componentType, coordinates });
   return toURIParams({
     componentIdentifier,
     hash,
     matchState,
     proprietary,
-    pathname
+    pathname,
+    identificationSource,
+    scanId
   });
 }

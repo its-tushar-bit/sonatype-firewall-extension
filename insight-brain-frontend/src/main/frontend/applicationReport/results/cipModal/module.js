@@ -60,8 +60,12 @@ function OwnerContext() {
   return {
     ownerType: 'application',
     ownerId: null,
+    scanId: null,
     setOwnerId(id) {
       this.ownerId = id;
+    },
+    setScanId(scanId) {
+      this.scanId = scanId;
     }
   };
 }

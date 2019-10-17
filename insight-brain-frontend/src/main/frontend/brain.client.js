@@ -9,7 +9,7 @@ var clmBuildTimestamp = '<%= config.buildTimestamp %>';
 (function() {
   'use strict';
 
-  function toParams(componentType, hash, matchState, proprietary, coordinates, pathname) {
+  function toParams(componentType, hash, matchState, proprietary, coordinates, pathname, identificationSource, scanId) {
     var params = {};
 
     if (coordinates) {
@@ -31,6 +31,12 @@ var clmBuildTimestamp = '<%= config.buildTimestamp %>';
     if (window.reportId) {
       params.reportId = window.reportId;
     }
+    if(identificationSource) {
+      params.identificationSource = identificationSource;
+    }
+    if (scanId) {
+      params.scanId = scanId;
+    }
     return param(params);
   }
 
@@ -43,11 +49,13 @@ var clmBuildTimestamp = '<%= config.buildTimestamp %>';
   }
 
   function createComponentListUrl(clientType) {
-    return function (ownerType, ownerId, componentType, hash, matchState, proprietary, coordinates, pathname) {
+    return function (ownerType, ownerId, componentType, hash, matchState, proprietary, coordinates, pathname,
+                     identificationSource, scanId) {
       var url = basePath + 'rest/' + clientType + '/componentDetails/' + ownerType + '/' + encodeURIComponent(ownerId) +
           '/allVersions';
 
-      return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates, pathname);
+      return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates, pathname,
+          identificationSource, scanId);
     };
   }
 

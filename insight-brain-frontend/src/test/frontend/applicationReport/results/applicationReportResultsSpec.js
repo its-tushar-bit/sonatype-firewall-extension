@@ -34,22 +34,25 @@ describe('applicationReportResults', function() {
       expect(vm.unsubscribe).toBeDefined();
     });
 
-    it('watches vm.metadata and sets OwnerId in OwnerContext', function() {
+    it('watches vm.reportParameters and sets OwnerId and ScanId in OwnerContext', function() {
       spyOn(OwnerContext, 'setOwnerId');
-      vm.metadata = {
-        application: {
-          publicId: 'test-application-23424iufg'
-        }
+      spyOn(OwnerContext, 'setScanId');
+      vm.reportParameters = {
+        appId: 'test-application-23424iufg',
+        scanId: 'test-scan-23424iufg'
       };
       scope.$digest();
       expect(OwnerContext.setOwnerId).toHaveBeenCalledWith('test-application-23424iufg');
+      expect(OwnerContext.setScanId).toHaveBeenCalledWith('test-scan-23424iufg');
     });
 
-    it('watches vm.metadata and handles null value', function() {
+    it('watches vm.reportParameters and handles null value', function() {
       spyOn(OwnerContext, 'setOwnerId');
-      vm.metadata = null;
+      spyOn(OwnerContext, 'setScanId');
+      vm.reportParameters = null;
       scope.$digest();
       expect(OwnerContext.setOwnerId).not.toHaveBeenCalled();
+      expect(OwnerContext.setScanId).not.toHaveBeenCalled();
     });
 
   });

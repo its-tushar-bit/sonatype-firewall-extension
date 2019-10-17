@@ -23,15 +23,16 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
       if (coordinates && coordinates.appId && !Properties.isUnknown()) {
         $http.get(Brain[clmEndpoint.type].getComponentListUrl(OwnerContext.ownerType, OwnerContext.ownerId,
             Coordinates.getFormat(), Properties.getHash(), Properties.getMatchState(), Properties.getProprietary(),
-            Coordinates.get(), Properties.getPathname())).then(function(response) {
-          $scope.componentDetailsList = response.data.list || response.data;
-          for (var i = 0; i < $scope.componentDetailsList.length; i++) {
-            $scope.componentDetailsList[i].proprietary = Coordinates.get().proprietary;
-          }
-          $scope.loaded = true;
-        }, function(error) {
-          $scope.setError(error);
-        });
+            Coordinates.get(), Properties.getPathname(), Properties.getIdentificationSource(), OwnerContext.scanId))
+            .then(function(response) {
+              $scope.componentDetailsList = response.data.list || response.data;
+              for (var i = 0; i < $scope.componentDetailsList.length; i++) {
+                $scope.componentDetailsList[i].proprietary = Coordinates.get().proprietary;
+              }
+              $scope.loaded = true;
+            }, function(error) {
+              $scope.setError(error);
+            });
         populateSuggestedRemediationVersions();
       }
     }

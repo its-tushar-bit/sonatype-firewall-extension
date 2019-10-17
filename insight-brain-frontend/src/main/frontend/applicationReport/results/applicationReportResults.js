@@ -25,9 +25,10 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, $timeout, 
 
     $onInit() {
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, applicationReportActions)(vm);
-      $scope.$watch('vm.metadata', function(metadata) {
-        if (metadata) {
-          OwnerContext.setOwnerId(metadata.application.publicId);
+      $scope.$watch('vm.reportParameters', function(reportParameters) {
+        if (reportParameters) {
+          OwnerContext.setOwnerId(reportParameters.appId);
+          OwnerContext.setScanId(reportParameters.scanId);
         }
       });
 

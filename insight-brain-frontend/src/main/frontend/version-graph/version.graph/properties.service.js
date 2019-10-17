@@ -21,6 +21,9 @@ export default function PropertiesService(Coordinates) {
     getProprietary: function () {
       return properties.proprietary;
     },
+    getIdentificationSource: function () {
+      return properties.identificationSource;
+    },
     reset: function () {
       properties = {};
     },
@@ -38,6 +41,9 @@ export default function PropertiesService(Coordinates) {
     },
     setProprietary: function (proprietary) {
       properties.proprietary = proprietary;
+    },
+    setIdentificationSource: function (identificationSource) {
+      properties.identificationSource = identificationSource;
     },
     isUnknown: function () {
       return (properties.matchState || '').toLowerCase() === 'unknown';

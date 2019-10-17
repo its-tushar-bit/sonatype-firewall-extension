@@ -17,6 +17,10 @@ public class RepositoryReportContainerPage
     return BaseUrl.resolvePageUrl("/repository/{repositoryId}/result", repositoryId);
   }
 
+  public static SelenideElement title() {
+    return $("#report-title-left");
+  }
+
   public static SelenideElement refreshButton() {
     return $("#report-title-right button");
   }

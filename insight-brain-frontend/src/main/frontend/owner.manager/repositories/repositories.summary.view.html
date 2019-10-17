@@ -59,7 +59,11 @@
           </thead>
           <tbody>
             <tr class="iq-table-row" ng-repeat="repository in vm.repositories | orderBy:vm.sortFields">
-              <td class="iq-cell">{{repository.repository.publicId}}</td>
+              <td class="iq-cell">
+                <a target="_blank" ui-sref="repository-report({ repositoryId: repository.repository.id })">
+                  <i class="fa fa-external-link fa-fw"></i>{{repository.repository.publicId}}
+                </a>
+              </td>
               <td class="iq-cell repository-configuration-list__manager-id">{{repository.managerInstanceId}}</td>
               <td class="iq-cell repository-configuration-list__enabled">
                 <i class="fa" ng-class="repository.repository.enabled ? 'fa-check-circle' : 'fa-times-circle'"></i><!--

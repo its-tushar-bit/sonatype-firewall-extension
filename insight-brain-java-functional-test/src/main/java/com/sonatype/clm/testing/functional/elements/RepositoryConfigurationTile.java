@@ -59,7 +59,7 @@ public class RepositoryConfigurationTile
       }
 
       public SelenideElement publicId() {
-        return child("td", nthChild(1));
+        return child("td a", nthChild(1));
       }
 
       public SelenideElement managerId() {

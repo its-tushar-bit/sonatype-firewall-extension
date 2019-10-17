@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
+import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -31,6 +32,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
+import com.codeborne.selenide.Selenide;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -74,6 +76,8 @@ public class RepositoriesSummaryViewTest
     summaryTile.configButton().shouldBe(visible);
     summaryTile.accessButton().shouldBe(visible);
 
+    eyesWatcher.eyesCheck();
+
     repositorySummaryViewTest_configurationTile();
   }
 
@@ -105,6 +109,18 @@ public class RepositoriesSummaryViewTest
       configurationRow.status().shouldHave(text(repository.isEnabled() ? "Enabled" : "Disabled"));
       configurationRow.statusIcon().shouldHave(repository.isEnabled() ? ENABLED_ICON : DISABLED_ICON);
 
+    }
+
+    Repository firstRepo = repositories.get(0);
+    configurationTable.row(1).publicId().click();
+
+    try {
+      Selenide.switchTo().window(1);
+      waitUntilUrl(RepositoryReportContainerPage.url(firstRepo.getId()));
+      RepositoryReportContainerPage.title().shouldHave(text("Repository results for " + firstRepo.getName()));
+    }
+    finally {
+      Selenide.switchTo().window(0);
     }
 
     repositorySummaryViewTest_configurationTile_deleteRepository(configurationTable.row(2), repositories.get(1));

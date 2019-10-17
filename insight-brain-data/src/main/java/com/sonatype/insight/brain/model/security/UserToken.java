@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.security;
 
 import java.util.Date;
+import java.util.Locale;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -28,6 +29,12 @@ public class UserToken
 
   @Column(name = "username")
   private String username;
+
+  @Column(name = "username_lowercase")
+  private String usernameLowercase;
+
+  @Column(name = "internal_user")
+  private boolean isInternalUser;
 
   @Column(name = "user_code")
   private String userCode;
@@ -54,6 +61,19 @@ public class UserToken
 
   public void setUsername(String username) {
     this.username = username;
+    usernameLowercase = UserToken.normalizeUsername(username);
+  }
+
+  public String getUsernameLowercase() {
+    return usernameLowercase;
+  }
+
+  public boolean isInternalUser() {
+    return isInternalUser;
+  }
+
+  public void setInternalUser(boolean isInternalUser) {
+    this.isInternalUser = isInternalUser;
   }
 
   public String getUserCode() {
@@ -78,5 +98,12 @@ public class UserToken
 
   public void setCreateTime(Date createTime) {
     this.createTime = createTime;
+  }
+
+  public static String normalizeUsername(String username) {
+    if (username == null) {
+      return null;
+    }
+    return username.toLowerCase(Locale.ENGLISH);
   }
 }

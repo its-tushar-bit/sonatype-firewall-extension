@@ -25,13 +25,15 @@ public class UserTokenDAOTest
   public void testCrud() {
     // Create
     Date start = new Date();
-    UserToken userToken = tempEntity.newUserToken("john.doe");
+    UserToken userToken = tempEntity.newUserToken("John.Doe", false /* isInternalUser */);
     Date end = new Date();
-    assertThat(userTokenDAO.getByUsername("john.doe")).isNotNull();
+    assertThat(userToken.getId()).isNotNull();
 
     // Read
-    UserToken byUsername = userTokenDAO.getByUsername(userToken.getUsername());
-    assertThat(byUsername.getUsername()).isEqualTo(userToken.getUsername());
+    UserToken byUsername = userTokenDAO.getByUsername("jOhn.dOe");
+    assertThat(byUsername.getUsername()).isEqualTo("John.Doe");
+    assertThat(byUsername.getUsernameLowercase()).isEqualTo("john.doe");
+    assertThat(byUsername.isInternalUser()).isFalse();
     assertThat(byUsername.getUserCode()).isEqualTo(userToken.getUserCode());
     assertThat(byUsername.getPassCode()).isEqualTo(userToken.getPassCode());
     assertThat(byUsername.getCreateTime()).isBetween(start, end, true, true);
@@ -42,17 +44,24 @@ public class UserTokenDAOTest
 
     // Delete
     userTokenDAO.delete(userToken);
-    assertThat(userTokenDAO.getByUsername("john.doe")).isNull();
+    assertThat(userTokenDAO.getById(userToken.getId())).isNull();
   }
 
   @Test
   public void testInsertUserToken_Duplicate() {
-    tempEntity.newUserToken("john.doe");
-    assertThatThrownBy(() -> tempEntity.newUserToken("john.doe"));
+    tempEntity.newUserToken("John.Doe", false /* isInternalUser */);
+    assertThatThrownBy(() -> tempEntity.newUserToken("jOhn.doe", false /* isInternalUser */));
+    assertThatThrownBy(() -> tempEntity.newUserToken("jOhn.doe", true /* isInternalUser */));
   }
 
   @Test
   public void testGetByUsername_DoesNotExist() {
     assertThat(userTokenDAO.getByUsername("no_such_user")).isNull();
+  }
+
+  @Test
+  public void testGetByUsername_CaseInsensitive() {
+    UserToken userToken = tempEntity.newUserToken("John.Doe", false /* isInternalUser */);
+    assertThat(userTokenDAO.getByUsername("jOhn.dOe").getId()).isEqualTo(userToken.getId());
   }
 }

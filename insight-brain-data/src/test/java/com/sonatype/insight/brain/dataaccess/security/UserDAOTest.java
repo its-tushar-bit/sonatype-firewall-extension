@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.notification.UserViewedProductNotificati
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.UserToken;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
@@ -594,6 +595,26 @@ public class UserDAOTest
     new UserDAO().delete(user);
 
     assertThat(membershipMappingDAO.getByUser(user.getUsername())).isEmpty();
+  }
+
+  @Test
+  public void testDeleteCascadesToUserToken_InternalUser() {
+    User user = createUser("testDeleteCascadesToUserToken");
+    UserToken userToken = tempEntity.newUserToken(user.getUsername(), true /* isInternalUser */);
+
+    new UserDAO().delete(user);
+
+    assertThat(new UserTokenDAO().getById(userToken.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteCascadesToUserToken_ExternalUser() {
+    User user = createUser("testDeleteCascadesToUserToken");
+    UserToken userToken = tempEntity.newUserToken(user.getUsername(), false /* isInternalUser */);
+
+    new UserDAO().delete(user);
+
+    assertThat(new UserTokenDAO().getById(userToken.getId())).isNotNull();
   }
 
   @Test

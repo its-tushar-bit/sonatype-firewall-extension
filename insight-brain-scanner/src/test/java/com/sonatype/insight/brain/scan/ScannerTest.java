@@ -90,7 +90,8 @@ public class ScannerTest extends InjectedTest
   @Test
   public void testScan_sbomFile() throws Exception {
     String sbom =
-        FileUtils.readFileToString(new File("src/test/resources/ScannerTest/iq-scan-sbom.xml"), StandardCharsets.UTF_8);
+        FileUtils.readFileToString(new File("src/test/resources/ScannerTest/iq-scan-sbom.xml"), StandardCharsets.UTF_8)
+            .replace("\r\n", "\n");
 
     ScanResult scanResult =
         scanner.scanContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, null);

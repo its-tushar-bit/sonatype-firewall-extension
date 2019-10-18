@@ -6,6 +6,9 @@
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -19,6 +22,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 
 public class SourceControlDAO
@@ -41,6 +45,65 @@ public class SourceControlDAO
       throw new NotFoundException("Could not find a SourceControl with ID " + id + ".");
     }
     return sourceControl;
+  }
+
+  public List<SourceControl> getByApplication() {
+    String query = "SELECT entity FROM SourceControl entity WHERE entity.repositoryUrl IS NOT NULL";
+
+    return getList(query);
+  }
+
+  private List<SourceControl> getByOrganization() {
+    String query = "SELECT entity FROM SourceControl entity WHERE entity.repositoryUrl IS NULL";
+
+    return getList(query);
+  }
+
+  public List<SourceControl> getApplicationsWithPullReqsEnabled() {
+    // an application is enabled if it has a valid repository_url and enable_pull_requests is set at the
+    // application, parent organization, or root organization level
+
+    SourceControl scRootOrg = getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+
+    Map<String, Application> applicationsById = applicationDAO.getAll()
+        .stream()
+        .collect(Collectors.toMap(Application::getId, Function.identity()));
+
+    Map<String, SourceControl> orgSourceControlsByOrgId = getByOrganization()
+        .stream()
+        .collect(Collectors.toMap(SourceControl::getOwnerId, Function.identity()));
+
+    return getByApplication()
+        .stream()
+        .filter(application -> isPrEnabled(application, applicationsById, orgSourceControlsByOrgId, scRootOrg))
+        .collect(ImmutableList.toImmutableList());
+  }
+
+  private boolean isPrEnabled(final SourceControl application,
+                              final Map<String, Application> applicationsById,
+                              final Map<String, SourceControl> orgSourceControlsByOrgId,
+                              final SourceControl scRootOrg)
+  {
+    if (application.getEnablePullRequests() != null) {
+      return application.getEnablePullRequests();
+    }
+
+    // application did not define a value, so check organization
+    String orgId = applicationsById.get(application.getOwnerId()).getOrganizationId();
+    if (orgSourceControlsByOrgId.containsKey(orgId)) {
+      SourceControl orgSourcControl = orgSourceControlsByOrgId.get(orgId);
+      if (orgSourcControl.getEnablePullRequests() != null) {
+        return orgSourcControl.getEnablePullRequests();
+      }
+    }
+
+    // organization did not define a value, check root org
+    if (scRootOrg != null && scRootOrg.getEnablePullRequests() != null) {
+      return scRootOrg.getEnablePullRequests();
+    }
+
+    // could not find a defined value
+    return false;
   }
 
   public List<SourceControl> getAll() {

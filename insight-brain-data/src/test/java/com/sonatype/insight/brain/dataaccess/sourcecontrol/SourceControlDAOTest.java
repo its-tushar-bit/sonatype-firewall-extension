@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -17,6 +18,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -381,5 +383,126 @@ public class SourceControlDAOTest
     sourceControl.setToken(null);
     assertThatThrownBy(() -> sourceControlDAO.update(sourceControl)).isInstanceOf(BadRequestException.class)
         .hasMessageContaining("Cannot validate SourceControl repositoryUrl");
+  }
+
+  @Test
+  public void test_getAllForApplications() {
+    // create a few sample entries
+    SourceControl scApp1 = buildAppSourceControl(app.getId(), 1, null);
+    sourceControlDAO.insert(scApp1);
+
+    SourceControl scApp2 = buildAppSourceControlAndApp(org, 2, null);
+    sourceControlDAO.insert(scApp2);
+
+    SourceControl scApp3 = buildAppSourceControlAndApp(org, 3, null);
+    sourceControlDAO.insert(scApp3);
+
+    // create source control entries for organizations which will not have repository URLs set
+    sourceControlDAO.insert(buildOrgSourceControl(org.getId(), null));
+
+    Assertions.assertThat(sourceControlDAO.getByApplication())
+        .hasSize(3)
+        .containsExactlyInAnyOrder(scApp1, scApp2, scApp3);
+  }
+
+  @Test
+  public void test_getCountOfApplicationsWithPREnabled_enabledAtRoot() {
+    // create SCM entry at root, with PR enabled flag set
+    sourceControlDAO.insert(buildOrgSourceControl(Organization.ROOT_ORGANIZATION_ID, true));
+
+    // create a few child orgs of root
+    Organization orgNullPrs = tempEntity.newOrganization();
+    Organization orgNoPrs = tempEntity.newOrganization();
+
+    sourceControlDAO.insert(buildOrgSourceControl(orgNullPrs.getId(), null));
+
+    sourceControlDAO.insert(buildOrgSourceControl(orgNoPrs.getId(), false));
+
+    // enabled at app level, disabled at org level => enabled
+    SourceControl scEnabledAtAppDisabledAtOrg = buildAppSourceControlAndApp(orgNoPrs, 2, true);
+    sourceControlDAO.insert(scEnabledAtAppDisabledAtOrg);
+
+    // default at app level, default org level, enabled root => enabled
+    SourceControl scDefaultAppDefaultOrg = buildAppSourceControlAndApp(orgNullPrs, 3, null);
+    sourceControlDAO.insert(scDefaultAppDefaultOrg);
+
+    // default at app level, disabled org level => not enabled
+    SourceControl scDefaultAppDisabledOrg = buildAppSourceControlAndApp(orgNoPrs, 4, false);
+    sourceControlDAO.insert(scDefaultAppDisabledOrg);
+
+    // create entries at the application level without the enable PR flag set. Use null & explicitly enable
+    SourceControl scDefault = buildAppSourceControl(app.getId(), 1, null);
+    sourceControlDAO.insert(scDefault);
+    SourceControl scExplicitlyEnabled = buildAppSourceControlAndApp(org, 2, true);
+    sourceControlDAO.insert(scExplicitlyEnabled);
+
+    // create application entries that are explicitly disabled
+    sourceControlDAO.insert(buildAppSourceControlAndApp(org, 3, false));
+    sourceControlDAO.insert(buildAppSourceControlAndApp(org, 4, false));
+
+    Collection<SourceControl> enabledApplications = sourceControlDAO.getApplicationsWithPullReqsEnabled();
+    Assertions.assertThat(enabledApplications)
+        .containsExactlyInAnyOrder(scExplicitlyEnabled, scDefault, scEnabledAtAppDisabledAtOrg, scDefaultAppDefaultOrg);
+  }
+
+  @Test
+  public void test_getCountOfApplicationsWithPREnabled_enabledAtOrgAndApp() {
+    // create SCM entries for organizations, with PR enabled flag set
+    Organization orgNullPrs = tempEntity.newOrganization();
+    Organization orgNoPrs = tempEntity.newOrganization();
+    Organization orgEnabledPrs = tempEntity.newOrganization();
+
+    sourceControlDAO.insert(buildOrgSourceControl(orgEnabledPrs.getId(), true));
+
+    sourceControlDAO.insert(buildOrgSourceControl(orgNullPrs.getId(), null));
+
+    sourceControlDAO.insert(buildOrgSourceControl(orgNoPrs.getId(), false));
+
+    // null at app level, enabled at org level => enabled
+    SourceControl scEnabledAtOrg = buildAppSourceControlAndApp(orgEnabledPrs, 1, null);
+    sourceControlDAO.insert(scEnabledAtOrg);
+
+    // enabled at app level, disabled at org level => enabled
+    SourceControl scEnabledAtAppDisabledAtOrg = buildAppSourceControlAndApp(orgNoPrs, 2, true);
+    sourceControlDAO.insert(scEnabledAtAppDisabledAtOrg);
+
+    // default at app level, default org level => not enabled
+    SourceControl scDefaultAppDefaultOrg = buildAppSourceControlAndApp(orgNullPrs, 3, null);
+    sourceControlDAO.insert(scDefaultAppDefaultOrg);
+
+    // default at app level, disabled org level => not enabled
+    SourceControl scDefaultAppDisabledOrg = buildAppSourceControlAndApp(orgNoPrs, 4, false);
+    sourceControlDAO.insert(scDefaultAppDisabledOrg);
+
+    Collection<SourceControl> enabledApplications = sourceControlDAO.getApplicationsWithPullReqsEnabled();
+    Assertions.assertThat(enabledApplications)
+        .hasSize(2)
+        .containsExactlyInAnyOrder(scEnabledAtAppDisabledAtOrg, scEnabledAtOrg);
+  }
+
+  private SourceControl buildAppSourceControlAndApp(Organization organization,
+                                                    int appNumber,
+                                                    Boolean enablePullRequests)
+  {
+    return buildAppSourceControl(tempEntity.newApplication(organization.getId()).getId(), appNumber,
+        enablePullRequests);
+  }
+
+  private SourceControl buildAppSourceControl(String ownerId, int appNumber, Boolean enablePullRequests) {
+    return new SourceControl.Builder()
+        .setOwnerId(ownerId)
+        .setRepositoryUrl("http://localhost/owner/app"  + appNumber)
+        .setEnablePullRequests(enablePullRequests)
+        .setProvider(SourceControlProvider.GITHUB)
+        .build();
+  }
+
+  private SourceControl buildOrgSourceControl(String ownerId, Boolean enablePullRequests) {
+    return new SourceControl.Builder()
+        .setOwnerId(ownerId)
+        .setToken("token")
+        .setEnablePullRequests(enablePullRequests)
+        .setProvider(SourceControlProvider.GITHUB)
+        .build();
   }
 }

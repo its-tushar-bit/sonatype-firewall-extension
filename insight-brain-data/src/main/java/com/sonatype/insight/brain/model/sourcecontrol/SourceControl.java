@@ -15,6 +15,8 @@ import javax.persistence.Table;
 import com.sonatype.insight.model.HasStringId;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.google.common.base.Objects;
+
 /**
  * @since 1.66
  */
@@ -135,6 +137,23 @@ public class SourceControl
 
   public void setEnableStatusChecks(final Boolean enableStatusChecks) {
     this.enableStatusChecks = enableStatusChecks;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    SourceControl that = (SourceControl) o;
+    return Objects.equal(id, that.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(id);
   }
 
   public static class Builder

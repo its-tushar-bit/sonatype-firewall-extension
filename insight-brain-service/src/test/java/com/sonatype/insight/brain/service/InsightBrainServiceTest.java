@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.telemetry.HierarchyMetricsTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.PolicyStatusOverrideTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.PropertiesTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.RealmTelemetryCollector;
+import com.sonatype.insight.brain.telemetry.SourceControlMetricsTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -108,7 +109,7 @@ public class InsightBrainServiceTest
         responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
       }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
     });
-    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(5));
+    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(6));
     Date expectedMaxCreateTime = new Date();
 
     VersionService versionService = getCLMServer().getInstance(VersionService.class);
@@ -151,6 +152,12 @@ public class InsightBrainServiceTest
                 .containsEntry(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG, "0")
                 .containsEntry(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG, "0");
             break;
+          case SOURCE_CONTROL_METRICS:
+            assertThat(telemetryDataReceived.getAttributes())
+                .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_SC_WITH_PR_ENABLED, "0")
+                .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_APPLICATION_SC_ENTRIES, "0")
+                .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_APPLICATIONS, "0");
+            break;
           case POLICY_STATUS_OVERRIDE:
             assertThat(telemetryDataReceived.getAttributes())
                 .containsEntry(PolicyStatusOverrideTelemetryCollector.SECURITY_VULNERABILITY_OVERRIDE_COUNT, "0")
@@ -178,7 +185,7 @@ public class InsightBrainServiceTest
 
     assertThat(telemetryPurposes).containsExactlyInAnyOrder(TelemetryPurpose.HIERARCHY_METRICS,
         TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE, TelemetryPurpose.CONFIGURATION_PROPERTIES,
-        TelemetryPurpose.REALM);
+        TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS);
   }
 
   @Test

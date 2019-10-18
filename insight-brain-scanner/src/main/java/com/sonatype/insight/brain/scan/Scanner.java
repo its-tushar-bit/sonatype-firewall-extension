@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.scan;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Properties;
 
 import javax.inject.Inject;
@@ -21,10 +22,13 @@ import com.sonatype.insight.scan.config.ScanPropertiesLoader;
 import com.sonatype.insight.scan.file.FileScanRequest;
 import com.sonatype.insight.scan.file.FileScanner;
 import com.sonatype.insight.scan.file.ScanSession;
+import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
+import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.io.ScanWriter;
 import com.sonatype.insight.scan.model.io.ScanWriterFactory;
+import com.sonatype.insight.scan.util.HashUtils;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
@@ -105,6 +109,57 @@ public class Scanner
     }
 
     return scanResult;
+  }
+
+  public ScanResult scanContent(
+      String content,
+      File scanDir,
+      ItemContentType contentType,
+      ProprietaryConfig proprietaryConfig) throws IOException
+  {
+    scanDir.mkdirs();
+    File scanFile = File.createTempFile("temp-", ".xml.gz", scanDir);
+    log.debug("Adding Sbom file to {}", scanFile);
+    ScanResult scanResult = new ScanResult();
+    scanResult.setScanFile(scanFile);
+    try {
+      Scan scan = new Scan();
+      scan.setHasThirdPartyScanContent(true);
+      scan.setConfiguration(new ScanConfiguration(getScanConfigProps(proprietaryConfig)));
+      try (ScanWriter writer = writerFactory.newWriter(scanFile)) {
+        writer.openScan(scan);
+        writer.writeConfiguration(scan.getConfiguration());
+        scan.getSummary().setStartTime();
+
+        ScanItem scanItem = new ScanItem();
+        scanItem.setContentType(contentType);
+        scanItem.setContent(content);
+        scanItem.setLastModified(new Date().getTime());
+        scanItem.setSha1(getHashForContent(content));
+
+        writer.writeScanItem(scanItem);
+
+        scan.getSummary().setEndTime();
+        writer.writeSummary(scan.getSummary());
+        writer.closeScan();
+        scanResult.setHasThirdPartyScanContent(true);
+      }
+    }
+    catch (RuntimeException | IOException e) {
+      try {
+        fileCleaner.delete(scanFile);
+      }
+      catch (FileDeletionException fde) {
+        log.error("Could not delete scan file: {}", scanFile, fde);
+      }
+      throw e;
+    }
+    return scanResult;
+  }
+
+  private String getHashForContent(String content) {
+    String sha1 = HashUtils.hash(content, "SHA-1");
+    return sha1.substring(0, Math.min(sha1.length(), 20));
   }
 
   private Properties getScanConfigProps(ProprietaryConfig proprietaryConfig) throws IOException {

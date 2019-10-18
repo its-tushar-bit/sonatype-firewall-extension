@@ -20,11 +20,11 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class ApiThirdPartyEvaluationServiceAuthzTest
+public class ApiThirdPartyScanServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
-  private ApiThirdPartyEvaluationService apiThirdPartyEvaluationService;
+  private ApiThirdPartyScanService apiThirdPartyEvaluationService;
 
   @Test
   public void testEvaluateComponents_Authorized() throws Exception {

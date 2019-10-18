@@ -6,15 +6,18 @@
 package com.sonatype.insight.brain.scan;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.io.ScanReader;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Rule;
 import org.junit.Test;
@@ -82,5 +85,25 @@ public class ScannerTest extends InjectedTest
     item = item.getItems().get(0);
     assertThat(item.getPath()).isEqualTo("proprietary.jar");
     assertThat(item.isProprietary()).isTrue();
+  }
+
+  @Test
+  public void testScan_sbomFile() throws Exception {
+    String sbom =
+        FileUtils.readFileToString(new File("src/test/resources/ScannerTest/iq-scan-sbom.xml"), StandardCharsets.UTF_8);
+
+    ScanResult scanResult =
+        scanner.scanContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, null);
+    assertThat(scanResult.getScanFile()).isFile();
+    assertThat(scanResult.hasThirdPartyScanContent()).isTrue();
+    Scan scan = scanReader.read(scanResult.getScanFile());
+    assertThat(scan).isNotNull();
+    assertThat(scan.getItems()).hasSize(1);
+    ScanItem item = scan.getItems().get(0);
+    assertThat(item.getPath()).isNull();
+    assertThat(item.getItems()).hasSize(0);
+    assertThat(item.getContentType()).isEqualTo(ItemContentType.SBOM);
+
+    assertThat(item.getSha1()).isEqualTo("395849f1c53dac640ca8");
   }
 }

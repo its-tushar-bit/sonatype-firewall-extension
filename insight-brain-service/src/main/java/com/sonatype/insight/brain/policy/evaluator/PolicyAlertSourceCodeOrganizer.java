@@ -42,6 +42,9 @@ public class PolicyAlertSourceCodeOrganizer
     for (PolicyNotification policyNotification : policyNotifications) {
       for (ComponentFact componentFact : policyNotification.getPolicyFact().getComponentFacts()) {
         ComponentIdentifier componentIdentifier = componentFact.getComponentIdentifier();
+        if (componentIdentifier == null) {
+          continue;
+        }
         componentMap.computeIfAbsent(componentIdentifier, k -> new ArrayList<>());
         componentMap.get(componentIdentifier).add(policyNotification);
       }

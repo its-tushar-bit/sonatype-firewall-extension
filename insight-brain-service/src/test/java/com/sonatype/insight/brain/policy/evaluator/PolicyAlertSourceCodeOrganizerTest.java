@@ -112,6 +112,16 @@ public class PolicyAlertSourceCodeOrganizerTest
     validateComponentsPolicies(results, PANCAKES, new String[]{MEDIUM});
   }
 
+  @Test
+  public void testGetNotificationsForScm__singleUnknownComponent_singleViolation() {
+    // 'component unknown' violation is a null ComponentIdentifier
+    critical1.addComponentFact(new ComponentFact(null, UUID.randomUUID().toString()));
+
+    Map<ComponentIdentifier, List<PolicyNotification>> results = runTest();
+
+    assertThat(results).isEmpty();
+  }
+
   private static ComponentFact createMavenComponentFact(final String name, final String version) {
     return new ComponentFact(createMavenCoordinates("groupid", name, version), UUID.randomUUID().toString());
   }

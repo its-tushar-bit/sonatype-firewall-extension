@@ -497,6 +497,10 @@ CREATE TABLE repository_policy_violation (
   action_type_id varchar(20),
   waived bool DEFAULT false NOT NULL,
   active bool DEFAULT true NOT NULL, -- Whether this violation is still active. If false, then the component was removed from the repository or a more recent evaluation was performed for this component.
+  policy_waiver_id varchar(50) NULL,        -- no foreign key constraint to policy_waiver, waivers can be deleted at any time
+  policy_waiver_comment varchar(1000) NULL,
+  waive_time timestamp NULL,                -- when the violation was waived
+
   CONSTRAINT repository_policy_violation_pk PRIMARY KEY (repository_policy_violation_id),
   CONSTRAINT repository_policy_violation_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id)
 );

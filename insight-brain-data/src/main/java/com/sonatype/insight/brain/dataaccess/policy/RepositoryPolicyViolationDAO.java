@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -78,6 +80,29 @@ public class RepositoryPolicyViolationDAO
         " AND entity.active=true" + //
         " AND entity.isWaived=false";
     return getList(sQuery, repositoryId);
+  }
+
+  public List<RepositoryPolicyViolation> getActiveWaivedRepositoryPolicyViolations(
+      final Collection<String> repositoryIds)
+  {
+    String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
+        " WHERE entity.repositoryId=?1" + //
+        " AND entity.active=true" + //
+        " AND entity.isWaived=true";
+    return getRepositoryPolicyViolations(sQuery, repositoryIds);
+  }
+
+  private List<RepositoryPolicyViolation> getRepositoryPolicyViolations(
+      String sQuery,
+      Collection<String> repositoryIds)
+  {
+    List<RepositoryPolicyViolation> repositoryPolicyViolations = new ArrayList<>();
+    for (String repositoryId : repositoryIds) {
+      Object[] parameters = {repositoryId};
+      repositoryPolicyViolations.addAll(getList(sQuery, parameters));
+    }
+
+    return repositoryPolicyViolations;
   }
 
   public List<RepositoryPolicyViolation> getActiveByRepositoryId(String repositoryId) {

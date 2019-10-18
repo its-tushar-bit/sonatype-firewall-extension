@@ -255,16 +255,25 @@ public class RepositoryPolicyEvaluatorTest
     List<RepositoryPolicyViolation> waivedViolations = activeViolations.stream()
         .filter(violation -> violation.isWaived()).collect(toList());
     assertThat(waivedViolations).hasSize(1);
+    assertViolationWaiverDetails(waivedViolations.get(0), policyWaiver);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, repository, before1, after1, waivedViolations);
 
     policyViolationLoggerOutput.clear();
 
     // remove the original waiver, add a waiver for the other policy and re-evaluate
     new PolicyWaiverDAO().delete(policyWaiver);
-    tempEntity.newWaiver(policy1.getId(), repository.getId());
+    // The waived violation should still have waiver details even though the waiver has been deleted
+    activeViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+    waivedViolations = activeViolations.stream()
+        .filter(violation -> violation.isWaived()).collect(toList());
+    assertThat(waivedViolations).hasSize(1);
+    assertViolationWaiverDetails(waivedViolations.get(0), policyWaiver);
+
+    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(policy1.getId(), repository.getId());
     Date before2 = new Date();
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
     final Date after2 = new Date();
+
     // ... yielding again two violations, none of which logged as new
     activeViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
@@ -273,11 +282,25 @@ public class RepositoryPolicyEvaluatorTest
     List<RepositoryPolicyViolation> unwaivedViolations = activeViolations.stream()
         .filter(violation -> policy2.getId().equals(violation.getPolicyId())).collect(toList());
     assertThat(unwaivedViolations).hasSize(1);
+    assertThat(unwaivedViolations.get(0).getPolicyWaiverId()).isNull();
+    assertThat(unwaivedViolations.get(0).getPolicyWaiverComment()).isNull();
+    assertThat(unwaivedViolations.get(0).getWaiveTime()).isNull();
     assertPolicyViolationsLogged(PolicyViolationLogEvent.UNWAIVE, repository, before2, after2, unwaivedViolations);
+
     // ... and one logged as freshly waived
     waivedViolations = activeViolations.stream()
         .filter(violation -> policy1.getId().equals(violation.getPolicyId())).collect(toList());
     assertThat(waivedViolations).hasSize(1);
+    assertViolationWaiverDetails(waivedViolations.get(0), policyWaiver2);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, repository, before2, after2, waivedViolations);
+  }
+
+  private void assertViolationWaiverDetails(
+      RepositoryPolicyViolation repositoryPolicyViolation,
+      PolicyWaiver policyWaiver)
+  {
+    assertThat(repositoryPolicyViolation.getPolicyWaiverId()).isEqualTo(policyWaiver.getId());
+    assertThat(repositoryPolicyViolation.getPolicyWaiverComment()).isEqualTo(policyWaiver.getComment());
+    assertThat(repositoryPolicyViolation.getWaiveTime()).isEqualTo(repositoryPolicyViolation.getWaiveTime());
   }
 }

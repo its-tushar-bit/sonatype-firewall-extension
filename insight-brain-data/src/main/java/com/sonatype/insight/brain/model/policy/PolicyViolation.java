@@ -41,20 +41,11 @@ public class PolicyViolation
   @Column(name = "open_time")
   private Date openTime;
 
-  @Column(name = "waive_time")
-  private Date waiveTime;
-
   @Column(name = "grandfather_time")
   private Date grandfatherTime;
 
   @Column(name = "fix_time")
   private Date fixTime;
-
-  @Column(name = "policy_waiver_id")
-  private String policyWaiverId;
-
-  @Column(name = "policy_waiver_comment")
-  private String policyWaiverComment;
 
   @Column(name = "seen_by_primary_evaluation")
   private boolean seenByPrimaryEvaluation;
@@ -156,17 +147,6 @@ public class PolicyViolation
     return getWaiveTime() != null;
   }
 
-  public Date getWaiveTime() {
-    return waiveTime;
-  }
-
-  public void setWaiveTime(Date waiveTime) {
-    if (this.waiveTime != null && waiveTime == null) {
-      throw new IllegalStateException("Cannot un-waive a policy violation.");
-    }
-    this.waiveTime = waiveTime;
-  }
-
   public boolean isGrandfathered() {
     return grandfatherTime != null;
   }
@@ -192,22 +172,6 @@ public class PolicyViolation
       throw new IllegalStateException("Cannot un-fix a policy violation.");
     }
     this.fixTime = fixTime;
-  }
-
-  public String getPolicyWaiverId() {
-    return policyWaiverId;
-  }
-
-  public void setPolicyWaiverId(String policyWaiverId) {
-    this.policyWaiverId = policyWaiverId;
-  }
-
-  public String getPolicyWaiverComment() {
-    return policyWaiverComment;
-  }
-
-  public void setPolicyWaiverComment(String policyWaiverComment) {
-    this.policyWaiverComment = policyWaiverComment;
   }
 
   public boolean isSeenByPrimaryEvaluation() {

@@ -131,8 +131,16 @@ public class RepositoryPolicyViolation
 
   public void setWaived(boolean isWaived) {
     if (this.isWaived && !isWaived) {
-      throw new IllegalStateException("Cannot un-waive a policy violation.");
+      throw new IllegalStateException("Cannot un-waive a repository policy violation.");
     }
     this.isWaived = isWaived;
+  }
+
+  @Override
+  public void setWaiveTime(Date waiveTime) {
+    if (getWaiveTime() != null && waiveTime == null) {
+      throw new IllegalStateException("Cannot un-waive a repository policy violation.");
+    }
+    super.setWaiveTime(waiveTime);
   }
 }

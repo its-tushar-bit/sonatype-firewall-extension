@@ -14,7 +14,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 
 /**
  * @since 1.13.0
@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 @Named
 public class PolicyViolationAdapter
 {
-  public List<ApiConstraintViolationDTO> convert(final PolicyViolation policyViolation) {
+  public List<ApiConstraintViolationDTO> convert(final AbstractPolicyViolation policyViolation) {
     List<ApiConstraintViolationDTO> apiConstraintViolationsDTO = new ArrayList<>();
     for (ConstraintFact constraintFact : policyViolation.getConstraintFacts()) {
       ApiConstraintViolationDTO apiConstraintViolationDTO = new ApiConstraintViolationDTO();

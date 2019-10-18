@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
@@ -264,7 +265,7 @@ public class RepositoryPolicyEvaluator
         continue;
       }
       RepositoryPolicyViolation policyViolation = createRepositoryPolicyViolation(policyAlert, componentFact, pathname,
-          repository, evaluationTime, policyResults.getPolicyWaiver(componentFact) != null);
+          repository, evaluationTime, policyResults.getPolicyWaiver(componentFact));
       repositoryPolicyViolationDAO.insert(tx, policyViolation);
       newPolicyViolations.add(policyViolation);
     }
@@ -306,7 +307,7 @@ public class RepositoryPolicyEvaluator
                                                                     String pathname,
                                                                     Repository repository,
                                                                     Date evaluationTime,
-                                                                    boolean waived)
+                                                                    PolicyWaiver policyWaiver)
   {
     PolicyFact policyFact = policyAlert.getTrigger();
     Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
@@ -322,7 +323,14 @@ public class RepositoryPolicyEvaluator
         break;
       }
     }
-    policyViolation.setWaived(waived);
+
+    if (policyWaiver != null) {
+      policyViolation.setWaived(true);
+      policyViolation.setPolicyWaiverId(policyWaiver.getId());
+      policyViolation.setPolicyWaiverComment(policyWaiver.getComment());
+      policyViolation.setWaiveTime(evaluationTime);
+    }
+
     return policyViolation;
   }
 

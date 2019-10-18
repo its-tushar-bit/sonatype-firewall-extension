@@ -1454,6 +1454,35 @@ public class TemporaryEntity
     return policyViolation;
   }
 
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+      String repositoryId,
+      int threatLevel,
+      String pathname,
+      String hash,
+      List<ConstraintFact> constraintFacts,
+      boolean isWaived,
+      boolean isActive,
+      String actionId,
+      String policyId,
+      String policyName,
+      ComponentIdentifier componentIdentifier,
+      Date time,
+      String policyWaiverId,
+      String policyWaiverComment,
+      Date waiveTime)
+  {
+    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, time, policyId,
+        policyName, threatLevel, PolicyThreatCategory.LICENSE, hash, componentIdentifier, constraintFacts);
+    policyViolation.setWaived(isWaived);
+    policyViolation.setActive(isActive);
+    policyViolation.setActionTypeId(actionId);
+    policyViolation.setPolicyWaiverId(policyWaiverId);
+    policyViolation.setPolicyWaiverComment(policyWaiverComment);
+    policyViolation.setWaiveTime(waiveTime);
+    repositoryPolicyViolationDAO.insert(policyViolation);
+    return policyViolation;
+  }
+
   public RepositoryPolicyViolation newRepositoryPolicyViolation(RepositoryComponent component,
                                                                 int threatLevel,
                                                                 boolean isWaived,

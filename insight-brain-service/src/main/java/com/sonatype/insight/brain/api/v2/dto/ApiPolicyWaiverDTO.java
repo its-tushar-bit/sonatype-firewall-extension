@@ -7,14 +7,23 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * @since 1.75
  */
 public class ApiPolicyWaiverDTO
 {
+  @JsonInclude(Include.NON_EMPTY)
   public String policyWaiverId;
 
   public String comment;
 
+  @JsonInclude(Include.NON_EMPTY)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
   public Date createTime;
+
+  public boolean isObsolete;
 }

@@ -19,6 +19,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class RepositoryPolicyViolationTest
@@ -162,8 +163,44 @@ public class RepositoryPolicyViolationTest
     policyViolation.setWaived(true);
     assertThat(policyViolation.isWaived()).isTrue();
 
-    assertThatThrownBy(() -> {
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       policyViolation.setWaived(false);
-    }).isInstanceOf(IllegalStateException.class).hasMessage("Cannot un-waive a policy violation.");
+    }).withMessage("Cannot un-waive a repository policy violation.");
+  }
+
+  @Test
+  public void testSetPolicyWaiverDetails() {
+    Date waiveTime = new Date();
+    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
+    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation("repositoryId", "path", new Date(),
+        "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
+        constraintFacts);
+    assertThat(policyViolation.isWaived()).isFalse();
+
+    policyViolation.setWaived(true);
+    assertThat(policyViolation.isWaived()).isTrue();
+
+    policyViolation.setPolicyWaiverId("policyWaiverId");
+    assertThat(policyViolation.getPolicyWaiverId()).isEqualTo("policyWaiverId");
+
+    policyViolation.setPolicyWaiverComment("waive comment");
+    assertThat(policyViolation.getPolicyWaiverComment()).isEqualTo("waive comment");
+
+    policyViolation.setWaiveTime(waiveTime);
+    assertThat(policyViolation.getWaiveTime()).isEqualTo(waiveTime);
+  }
+
+  @Test
+  public void testSetWaiveTime_IllegalStateException() {
+    Date waiveTime = new Date();
+    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
+    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation("repositoryId", "path", new Date(),
+        "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
+        constraintFacts);
+    policyViolation.setWaiveTime(waiveTime);
+
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
+      policyViolation.setWaiveTime(null);
+    }).withMessage("Cannot un-waive a repository policy violation.");
   }
 }

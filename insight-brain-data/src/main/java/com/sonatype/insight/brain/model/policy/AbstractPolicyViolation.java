@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.model.policy;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -53,6 +54,19 @@ public abstract class AbstractPolicyViolation
 
   @Column(name = "action_type_id")
   private String actionTypeId;
+
+  /**
+   * New for repo policy violations
+   * @since 1.76
+   */
+  @Column(name = "policy_waiver_id")
+  private String policyWaiverId;
+
+  @Column(name = "policy_waiver_comment")
+  private String policyWaiverComment;
+
+  @Column(name = "waive_time")
+  private Date waiveTime;
 
   @Transient
   private List<ConstraintFact> constraintFacts;
@@ -178,5 +192,32 @@ public abstract class AbstractPolicyViolation
 
   public void setActionTypeId(String actionTypeId) {
     this.actionTypeId = actionTypeId;
+  }
+
+  public String getPolicyWaiverId() {
+    return policyWaiverId;
+  }
+
+  public void setPolicyWaiverId(String policyWaiverId) {
+    this.policyWaiverId = policyWaiverId;
+  }
+
+  public String getPolicyWaiverComment() {
+    return policyWaiverComment;
+  }
+
+  public void setPolicyWaiverComment(String policyWaiverComment) {
+    this.policyWaiverComment = policyWaiverComment;
+  }
+
+  public Date getWaiveTime() {
+    return waiveTime;
+  }
+
+  public void setWaiveTime(Date waiveTime) {
+    if (this.waiveTime != null && waiveTime == null) {
+      throw new IllegalStateException("Cannot un-waive a policy violation.");
+    }
+    this.waiveTime = waiveTime;
   }
 }

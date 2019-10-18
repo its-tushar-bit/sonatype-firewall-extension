@@ -43,7 +43,7 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerability
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.security.PasswordService;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -70,7 +70,7 @@ class DbData
 
   private final UserDAO userDAO;
 
-  private final InternalRealm clmRealm;
+  private final PasswordService passwordService;
 
   private final RoleDAO roleDAO;
 
@@ -118,7 +118,8 @@ class DbData
          final OrganizationDAO organizationDAO,
          final ApplicationDAO applicationDAO,
          final ProprietaryConfigDAO proprietaryConfigDAO,
-         final UserDAO userDAO, final InternalRealm clmRealm,
+         final UserDAO userDAO, 
+         final PasswordService passwordService,
          final RoleDAO roleDAO,
          final RolePermissionDAO rolePermissionDAO,
          final MembershipMappingDAO membershipMappingDAO,
@@ -146,7 +147,7 @@ class DbData
     this.applicationDAO = applicationDAO;
     this.proprietaryConfigDAO = proprietaryConfigDAO;
     this.userDAO = userDAO;
-    this.clmRealm = clmRealm;
+    this.passwordService = passwordService;
     this.roleDAO = roleDAO;
     this.rolePermissionDAO = rolePermissionDAO;
     this.membershipMappingDAO = membershipMappingDAO;
@@ -191,10 +192,10 @@ class DbData
 
   Entry<String, Object> getUser() {
     final List<User> users = userDAO.getAll();
-    final String encryptedAdminPwd = clmRealm.encryptPassword("admin123");
+    final String hashedAdminPwd = passwordService.hashPassword("admin123");
     for (final User user : users) {
       // reset all passwords
-      user.setPassword(encryptedAdminPwd);
+      user.setPassword(hashedAdminPwd);
     }
     return wrapEntry("user", users);
   }

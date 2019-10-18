@@ -154,18 +154,4 @@ public class InternalRealmTest
       realm.getAuthenticationInfo(usernamePasswordToken);
     });
   }
-
-  @Test
-  public void testEncryptPassword() {
-    String password = "admin123";
-    String encrypted = realm.encryptPassword(password);
-    assertThat(encrypted).startsWith("$shiro1$");
-    assertThat(encrypted.length()).isGreaterThan(8);
-  }
-
-  @Test
-  public void testEncryptPassword_Null() {
-    String encrypted = realm.encryptPassword(null);
-    assertThat(encrypted).isNull();
-  }
 }

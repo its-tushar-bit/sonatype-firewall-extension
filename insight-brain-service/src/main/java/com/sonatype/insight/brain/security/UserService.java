@@ -51,6 +51,8 @@ public class UserService
 
   private final InternalRealm clmRealm;
 
+  private final PasswordService passwordService;
+
   private final SessionDAO sessionDAO;
 
   private final UserDirectory userDirectory;
@@ -60,12 +62,15 @@ public class UserService
   private final UserDAO userDAO = new UserDAO();
 
   @Inject
-  public UserService(InternalRealm clmRealm,
-                     SessionDAO sessionDAO,
-                     UserDirectory userDirectory,
-                     InsightConfig insightConfig)
+  public UserService(
+      InternalRealm clmRealm,
+      PasswordService passwordService,
+      SessionDAO sessionDAO,
+      UserDirectory userDirectory,
+      InsightConfig insightConfig)
   {
     this.clmRealm = clmRealm;
+    this.passwordService = passwordService;
     this.sessionDAO = sessionDAO;
     this.userDirectory = userDirectory;
     this.insightConfig = insightConfig;
@@ -136,7 +141,7 @@ public class UserService
       throw new BadRequestException("No user details specified.");
     }
     user.setId(null);
-    user.setPassword(clmRealm.encryptPassword(user.getPassword()));
+    user.setPassword(passwordService.hashPassword(user.getPassword()));
     userDAO.insert(user);
     auditUser(user);
 
@@ -229,7 +234,7 @@ public class UserService
       throw new BadRequestException("Current password is wrong.");
     }
 
-    user.setPassword(clmRealm.encryptPassword(password.newPassword));
+    user.setPassword(passwordService.hashPassword(password.newPassword));
 
     userDAO.update(user);
   }
@@ -241,7 +246,7 @@ public class UserService
 
     String password = RandomStringUtils.randomAlphanumeric(12);
 
-    user.setPassword(clmRealm.encryptPassword(password));
+    user.setPassword(passwordService.hashPassword(password));
 
     userDAO.update(user);
 

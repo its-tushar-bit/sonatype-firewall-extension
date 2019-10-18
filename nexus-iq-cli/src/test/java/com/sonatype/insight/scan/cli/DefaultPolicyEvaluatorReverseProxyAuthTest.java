@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
-import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.security.PasswordService;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
@@ -130,7 +130,7 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
   }
 
   private void createAppAndAuthorizedUser(String appId, String username, String password) {
-    tempEntity.newUser(username, new InternalRealm().encryptPassword(password), "a", "b", "a@b");
+    tempEntity.newUser(username, new PasswordService().hashPassword(password), "a", "b", "a@b");
     Application anotherApp = tempEntity.newApplication(appId, Organization.ROOT_ORGANIZATION_ID);
     Role role = tempEntity.newRole(false /* global */, Permission.EVALUATE_APPLICATION);
     tempEntity.newMembershipMapping(anotherApp.getId(), role.getId(), username);

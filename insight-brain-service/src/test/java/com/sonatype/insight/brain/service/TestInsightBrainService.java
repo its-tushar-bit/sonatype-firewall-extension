@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
-import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.security.PasswordService;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -172,7 +172,7 @@ public class TestInsightBrainService
     savedLicenseDataUpdater = LicenseDataUpdater.getUpdater();
 
     // This reduces the test execution time for this module by ~30%.
-    InternalRealm.useWeakHashIterationForTestsOnly();
+    PasswordService.useWeakHashIterationForTestsOnly();
 
     String[] args;
     File dropWizardConfigFile = new File(

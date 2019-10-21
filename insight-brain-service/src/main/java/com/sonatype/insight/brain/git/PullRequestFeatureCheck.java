@@ -70,6 +70,7 @@ public class PullRequestFeatureCheck
 
     if (!isProviderSupported(gitRepoInfo)) {
       log.debug("Source provider '{}' is not supported", gitRepoInfo.provider);
+      return false;
     }
 
     if (!pullRequestUtils.isPullRequestAllowed(gitRepoInfo)) {

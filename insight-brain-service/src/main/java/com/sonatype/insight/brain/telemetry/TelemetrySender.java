@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -69,7 +71,18 @@ public class TelemetrySender
     send(telemetryData, null /* clientUserAgent */);
   }
 
+  public void send(List<TelemetryData> telemetryData) {
+    send(telemetryData, null /* clientUserAgent */);
+  }
+
   public void send(TelemetryData telemetryData, String clientUserAgent) {
+    send(Collections.singletonList(telemetryData), clientUserAgent);
+  }
+
+  public void send(List<TelemetryData> telemetryData, String clientUserAgent) {
+    if (telemetryData.isEmpty()) {
+      return;
+    }
     try {
       TelemetryHeader telemetryHeader = createHeader();
       byte[] zipData = createZip(telemetryHeader, telemetryData);
@@ -88,7 +101,7 @@ public class TelemetrySender
     return new TelemetryHeader(FILE_FORMAT, product, createTime, telemetryId.getId());
   }
 
-  private byte[] createZip(TelemetryHeader telemetryHeader, TelemetryData telemetryData) throws IOException {
+  private byte[] createZip(TelemetryHeader telemetryHeader, List<TelemetryData> telemetryData) throws IOException {
     try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ZipOutputStream zipOutput = new ZipOutputStream(
         bos)) {
       ZipEntry zipEntryHeader = new ZipEntry(HEADER_ENTRY_NAME);

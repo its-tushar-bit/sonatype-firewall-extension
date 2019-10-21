@@ -56,11 +56,11 @@ public class TelemetryScheduler
   }
 
   @VisibleForTesting
-  Runnable getTelemetryRunnable() {
+  public Runnable getTelemetryRunnable() {
     return new SystemRunnable(() -> {
       for (TelemetryCollector telemetryCollector : telemetryCollectors) {
         try {
-          telemetrySender.send(telemetryCollector.collectData());
+          telemetrySender.send(telemetryCollector.collectAllData());
         }
         catch (Exception e) {
           log.debug("Unable to send telemetry for collector {}", telemetryCollector, e);

@@ -8,11 +8,13 @@ package com.sonatype.insight.brain.service;
 import java.security.Provider;
 import java.security.Security;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -22,6 +24,9 @@ import javax.mail.util.ByteArrayDataSource;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.ApiRoleMembershipResource;
+import com.sonatype.insight.brain.api.v2.ApiUserResource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.hds.TelemetryId;
@@ -34,7 +39,10 @@ import com.sonatype.insight.brain.telemetry.HierarchyMetricsTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.PolicyStatusOverrideTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.PropertiesTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.RealmTelemetryCollector;
+import com.sonatype.insight.brain.telemetry.RestEndpointTelemetry;
 import com.sonatype.insight.brain.telemetry.SourceControlMetricsTelemetryCollector;
+import com.sonatype.insight.brain.telemetry.TelemetryContainerRequestFilter;
+import com.sonatype.insight.brain.telemetry.TelemetryScheduler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -44,6 +52,8 @@ import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.logging.AppenderFactory;
 import io.dropwizard.logging.ConsoleAppenderFactory;
 import io.dropwizard.logging.FileAppenderFactory;
@@ -111,10 +121,63 @@ public class InsightBrainServiceTest
     });
     await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(6));
     Date expectedMaxCreateTime = new Date();
+    Collection<TelemetryData> allTelemetryData =
+        assertTelemetry(responses, expectedMinCreateTime, expectedMaxCreateTime);
+    List<TelemetryPurpose> telemetryPurposes = new ArrayList<>();
+    for (TelemetryData telemetryDataReceived : allTelemetryData) {
+      TelemetryPurpose telemetryPurpose = telemetryDataReceived.getPurpose();
+      telemetryPurposes.add(telemetryPurpose);
+      switch (telemetryPurpose) {
+        case HIERARCHY_METRICS:
+          assertThat(telemetryDataReceived.getAttributes())
+              .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS, "0")
+              .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS, "0")
+              .containsEntry(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG, "0")
+              .containsEntry(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG, "0")
+              .containsEntry(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG, "0");
+          break;
+        case SOURCE_CONTROL_METRICS:
+          assertThat(telemetryDataReceived.getAttributes())
+              .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_SC_WITH_PR_ENABLED, "0")
+              .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_APPLICATION_SC_ENTRIES, "0")
+              .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_APPLICATIONS, "0");
+          break;
+        case POLICY_STATUS_OVERRIDE:
+          assertThat(telemetryDataReceived.getAttributes())
+              .containsEntry(PolicyStatusOverrideTelemetryCollector.SECURITY_VULNERABILITY_OVERRIDE_COUNT, "0")
+              .containsEntry(PolicyStatusOverrideTelemetryCollector.POLICY_WAIVER_COUNT, "0");
+          break;
+        case DATABASE:
+          // The database is in memory, so the reported size is null.
+          assertThat(telemetryDataReceived.getAttributes()).containsEntry(DatabaseTelemetryCollector.ODS_SIZE_BYTES,
+              null);
+          break;
+        case CONFIGURATION_PROPERTIES:
+          assertThat(telemetryDataReceived.getAttributes())
+              .containsEntry(PropertiesTelemetryCollector.REPORT_TIMEOUT_SECONDS, 2100);
+          break;
+        case REALM:
+          assertThat(telemetryDataReceived.getAttributes())
+              .containsEntry(RealmTelemetryCollector.SAML_CONFIGURED, "false");
+          break;
+        default:
+          fail("Unexpected telemetry purpose: " + telemetryPurpose);
+          break;
+      }
+    }
+    assertThat(telemetryPurposes).containsExactlyInAnyOrder(TelemetryPurpose.HIERARCHY_METRICS,
+        TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE, TelemetryPurpose.CONFIGURATION_PROPERTIES,
+        TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS);
+  }
 
+  private Collection<TelemetryData> assertTelemetry(
+      Map<ByteArrayDataSource, Integer> responses,
+      Date expectedMinCreateTime,
+      Date expectedMaxCreateTime) throws Exception
+  {
+    Collection<TelemetryData> allTelemetryData = new ArrayList<>();
     VersionService versionService = getCLMServer().getInstance(VersionService.class);
     TelemetryId telemetryId = getCLMServer().getInstance(TelemetryId.class);
-    List<TelemetryPurpose> telemetryPurposes = new ArrayList<>();
     for (Map.Entry<ByteArrayDataSource, Integer> response : responses.entrySet()) {
       Integer status = response.getValue();
       MimeMultipart multipart = new MimeMultipart(response.getKey());
@@ -139,53 +202,12 @@ public class InsightBrainServiceTest
         ZipEntry zipEntryData = zipInputStream.getNextEntry();
         assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);
         zipInputStream.read(buffer);
-        TelemetryData telemetryDataReceived = JsonUtils.parse(buffer, TelemetryData.class);
-        TelemetryPurpose telemetryPurpose = telemetryDataReceived.getPurpose();
-
-        telemetryPurposes.add(telemetryPurpose);
-        switch (telemetryPurpose) {
-          case HIERARCHY_METRICS:
-            assertThat(telemetryDataReceived.getAttributes())
-                .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS, "0")
-                .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS, "0")
-                .containsEntry(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG, "0")
-                .containsEntry(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG, "0")
-                .containsEntry(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG, "0");
-            break;
-          case SOURCE_CONTROL_METRICS:
-            assertThat(telemetryDataReceived.getAttributes())
-                .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_SC_WITH_PR_ENABLED, "0")
-                .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_APPLICATION_SC_ENTRIES, "0")
-                .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_APPLICATIONS, "0");
-            break;
-          case POLICY_STATUS_OVERRIDE:
-            assertThat(telemetryDataReceived.getAttributes())
-                .containsEntry(PolicyStatusOverrideTelemetryCollector.SECURITY_VULNERABILITY_OVERRIDE_COUNT, "0")
-                .containsEntry(PolicyStatusOverrideTelemetryCollector.POLICY_WAIVER_COUNT, "0");
-            break;
-          case DATABASE:
-            // The database is in memory, so the reported size is null.
-            assertThat(telemetryDataReceived.getAttributes()).containsEntry(DatabaseTelemetryCollector.ODS_SIZE_BYTES,
-                null);
-            break;
-          case CONFIGURATION_PROPERTIES:
-            assertThat(telemetryDataReceived.getAttributes())
-                .containsEntry(PropertiesTelemetryCollector.REPORT_TIMEOUT_SECONDS, 2100);
-            break;
-          case REALM:
-            assertThat(telemetryDataReceived.getAttributes())
-                .containsEntry(RealmTelemetryCollector.SAML_CONFIGURED, "false");
-            break;
-          default:
-            fail("Unexpected telemetry purpose: " + telemetryPurpose);
-            break;
-        }
+        List<TelemetryData> telemetryDataReceived =
+            new ObjectMapper().readValue(buffer, new TypeReference<List<TelemetryData>>() { });
+        allTelemetryData.addAll(telemetryDataReceived);
       }
     }
-
-    assertThat(telemetryPurposes).containsExactlyInAnyOrder(TelemetryPurpose.HIERARCHY_METRICS,
-        TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE, TelemetryPurpose.CONFIGURATION_PROPERTIES,
-        TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS);
+    return allTelemetryData;
   }
 
   @Test
@@ -201,6 +223,46 @@ public class InsightBrainServiceTest
     await().atMost(5, SECONDS).until(() -> responses[0] != null);
     HttpResponse response = adminRequest().path("/healthcheck").get();
     assertResponseStatus(200, response);
+  }
+
+  @Test
+  @ManualServerInit
+  public void testRestEndpointTelemetry() throws Exception {
+    Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
+    Date expectedMinCreateTime = new Date();
+    initServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
+      responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
+    }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
+
+    assertResponseStatus(404, restRequest().path(PublicApiPaths.USER_RESOURCE_PATH_V2, ApiUserResource.USERNAME_PATH)
+        .parameter("sensitiveUsername").get());
+    assertResponseStatus(404, restRequest().path(PublicApiPaths.USER_RESOURCE_PATH_V2, ApiUserResource.USERNAME_PATH)
+        .parameter("otherUsername").get());
+    assertResponseStatus(404, restRequest()
+        .path(PublicApiPaths.ROLE_MEMBERSHIP_PATH_V2, ApiRoleMembershipResource.APPLICATION_OR_ORGANIZATION)
+        .parameter("organization", "orgId", "roleId", "user", "sensitiveUsername")
+        .put());
+
+    TelemetryScheduler telemetryScheduler = getCLMServer().getInstance(TelemetryScheduler.class);
+    responses.clear();
+    telemetryScheduler.getTelemetryRunnable().run();
+    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(7));
+    Date expectedMaxCreateTime = new Date();
+    Collection<TelemetryData> allTelemetryData =
+        assertTelemetry(responses, expectedMinCreateTime, expectedMaxCreateTime);
+    Collection<TelemetryData> restEndpointUsageTelemetryData =
+        allTelemetryData.stream().filter(t -> t.getPurpose().equals(TelemetryPurpose.REST_ENDPOINT_USAGE))
+            .collect(Collectors.toList());
+    RestEndpointTelemetry[] expected = new RestEndpointTelemetry[]{
+        new RestEndpointTelemetry("GET", "/api/v2/users/{username}", 2),
+        new RestEndpointTelemetry("PUT",
+            "/api/v2/roleMemberships/{ownerType}/{internalOwnerId}/role/{roleId}/{memberType}/{memberName}", 1)
+    };
+    assertThat(restEndpointUsageTelemetryData)
+        .extracting(t -> JsonUtils
+            .asPojo(JsonUtils.asTree(t.getAttributes().get(TelemetryContainerRequestFilter.REST_ENDPOINT_TELEMETRY)),
+                RestEndpointTelemetry.class))
+        .usingFieldByFieldElementComparator().containsExactlyInAnyOrder(expected);
   }
 
   @Test
@@ -237,7 +299,7 @@ public class InsightBrainServiceTest
     });
     InsightConfig insightConfig = getCLMServer().getConfiguration();
 
-    LogbackAccessRequestLogFactory logbackAccessRequestLogFactory = (LogbackAccessRequestLogFactory) 
+    LogbackAccessRequestLogFactory logbackAccessRequestLogFactory = (LogbackAccessRequestLogFactory)
         ((AbstractServerFactory) insightConfig.getServerFactory()).getRequestLogFactory();
     List<? extends AppenderFactory<?>> accessAppenders = logbackAccessRequestLogFactory.getAppenders();
     assertThat(((ConsoleAppenderFactory<?>) accessAppenders.get(0)).getLogFormat())

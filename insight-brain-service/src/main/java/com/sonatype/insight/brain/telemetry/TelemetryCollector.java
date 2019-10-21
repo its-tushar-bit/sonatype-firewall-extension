@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 /**
@@ -15,5 +18,19 @@ public interface TelemetryCollector
   /**
    * Returns the {@code TelemetryData} to send for this particular collector.
    */
-  TelemetryData collectData();
+  default TelemetryData collectData() {
+    return null;
+  }
+
+  /**
+   * Returns all of the {@code TelemetryData} to send for this particular collector.
+   */
+  default List<TelemetryData> collectAllData() {
+    List<TelemetryData> allTelemetryData = new ArrayList<>();
+    TelemetryData telemetryData = collectData();
+    if (telemetryData != null) {
+      allTelemetryData.add(telemetryData);
+    }
+    return allTelemetryData;
+  }
 }

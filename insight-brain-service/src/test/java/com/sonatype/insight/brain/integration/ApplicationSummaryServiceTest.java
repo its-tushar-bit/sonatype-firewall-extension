@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.integration;
 
 import java.util.Date;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -33,6 +34,8 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Binder;
 import org.apache.http.HttpEntity;
 import org.junit.Test;
@@ -238,7 +241,9 @@ public class ApplicationSummaryServiceTest
       ZipEntry zipEntryData = zipInputStream.getNextEntry();
       assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);
       zipInputStream.read(buffer);
-      TelemetryData telemetryData = JsonUtils.parse(buffer, TelemetryData.class);
+      List<TelemetryData> telemetryDataReceived =
+          new ObjectMapper().readValue(buffer, new TypeReference<List<TelemetryData>>() { });
+      TelemetryData telemetryData = telemetryDataReceived.get(0);
       assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION);
       assertThat(telemetryData.getAttributes()).hasSize(1)
           .containsEntry(ApplicationSummaryService.APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR, String.valueOf(expected));

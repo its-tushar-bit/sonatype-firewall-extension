@@ -22,6 +22,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -59,6 +60,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
@@ -427,7 +429,7 @@ public abstract class AbstractBrainServiceTest
 
     private TelemetryHeader telemetryHeaderReceived;
 
-    private TelemetryData telemetryDataReceived;
+    private List<TelemetryData> telemetryDataReceived;
 
     public TelemetryItem(final ZipInputStream zipInputStream) {
       this.zipInputStream = zipInputStream;
@@ -437,12 +439,12 @@ public abstract class AbstractBrainServiceTest
       return telemetryHeaderReceived;
     }
 
-    public TelemetryData getTelemetryData() {
+    public List<TelemetryData> getTelemetryData() {
       return telemetryDataReceived;
     }
 
-    public TelemetryPurpose getTelemetryPurpose() {
-      return telemetryDataReceived.getPurpose();
+    public List<TelemetryPurpose> getTelemetryPurposes() {
+      return telemetryDataReceived.stream().map(TelemetryData::getPurpose).collect(Collectors.toList());
     }
 
     public TelemetryItem invoke() throws IOException {
@@ -456,7 +458,7 @@ public abstract class AbstractBrainServiceTest
       ZipEntry zipEntryData = zipInputStream.getNextEntry();
       assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);
       zipInputStream.read(buffer);
-      telemetryDataReceived = JsonUtils.parse(buffer, TelemetryData.class);
+      telemetryDataReceived = new ObjectMapper().readValue(buffer, new TypeReference<List<TelemetryData>>() { });
       return this;
     }
   }

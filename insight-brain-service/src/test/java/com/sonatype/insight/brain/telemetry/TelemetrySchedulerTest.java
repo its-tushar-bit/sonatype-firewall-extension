@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -17,6 +18,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -28,10 +30,10 @@ import static org.mockito.Mockito.when;
 public class TelemetrySchedulerTest
     extends AbstractComponentTest
 {
-  @Mock
+  @Spy
   private TelemetryCollector telemetryCollector1;
 
-  @Mock
+  @Spy
   private TelemetryCollector telemetryCollector2;
 
   @Mock
@@ -79,10 +81,10 @@ public class TelemetrySchedulerTest
 
     telemetryScheduler.getTelemetryRunnable().run();
 
-    verify(telemetryCollector1).collectData();
-    verify(telemetryCollector2).collectData();
-    verify(telemetrySender).send(telemetryData1);
-    verify(telemetrySender).send(telemetryData2);
+    verify(telemetryCollector1).collectAllData();
+    verify(telemetryCollector2).collectAllData();
+    verify(telemetrySender).send(Collections.singletonList(telemetryData1));
+    verify(telemetrySender).send(Collections.singletonList(telemetryData2));
   }
 
   @Test
@@ -94,9 +96,9 @@ public class TelemetrySchedulerTest
 
     telemetryScheduler.getTelemetryRunnable().run();
 
-    verify(telemetryCollector1).collectData();
-    verify(telemetryCollector2).collectData();
-    verify(telemetrySender).send(telemetryData2);
+    verify(telemetryCollector1).collectAllData();
+    verify(telemetryCollector2).collectAllData();
+    verify(telemetrySender).send(Collections.singletonList(telemetryData2));
   }
 
   @Test

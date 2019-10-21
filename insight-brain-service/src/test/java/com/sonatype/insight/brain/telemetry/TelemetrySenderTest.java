@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -24,6 +26,8 @@ import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Binder;
 import org.apache.http.HttpEntity;
 import org.junit.Rule;
@@ -64,6 +68,17 @@ public class TelemetrySenderTest
   }
 
   @Test
+  public void testSend_Empty() {
+    final InvocationOnMock[] invocation = new InvocationOnMock[1];
+    doAnswer(x -> invocation[0] = x).when(mockHdsClient)
+        .post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
+
+    telemetrySender.send(Collections.emptyList());
+
+    assertThat(invocation[0]).isNull();
+  }
+
+  @Test
   public void testSend() throws Exception {
     final InvocationOnMock[] invocation = new InvocationOnMock[1];
 
@@ -101,14 +116,17 @@ public class TelemetrySenderTest
       ZipEntry zipEntryData = zipInputStream.getNextEntry();
       assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);
       zipInputStream.read(buffer);
-      TelemetryData telemetryDataReceived = JsonUtils.parse(buffer, TelemetryData.class);
-      assertThat(telemetryDataReceived.getAttributes())
+      List<TelemetryData> telemetryDataReceived =
+          new ObjectMapper().readValue(buffer, new TypeReference<List<TelemetryData>>() { });
+      assertThat(telemetryDataReceived).hasSize(1);
+      TelemetryData telemetryData = telemetryDataReceived.get(0);
+      assertThat(telemetryData.getAttributes())
           .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS, "0")
           .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS, "0")
           .containsEntry(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG, "0")
           .containsEntry(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG, "0")
           .containsEntry(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG, "0");
-      assertThat(telemetryDataReceived.getTimestamp()).isEqualTo(telemetryDataSend.getTimestamp());
+      assertThat(telemetryData.getTimestamp()).isEqualTo(telemetryDataSend.getTimestamp());
     }
   }
 

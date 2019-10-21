@@ -33,7 +33,7 @@ import com.codahale.metrics.annotation.Timed;
 @Path(value = PublicApiPaths.USER_RESOURCE_PATH_V2)
 public class ApiUserResource
 {
-  static final String USERNAME_PATH = "{username}";
+  public static final String USERNAME_PATH = "{username}";
 
   private final UserService userService;
 

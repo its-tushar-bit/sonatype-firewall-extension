@@ -35,7 +35,7 @@ public class ApiRoleMembershipResource
 {
   private MembershipMappingService membershipMappingService;
 
-  static final String APPLICATION_OR_ORGANIZATION =
+  public static final String APPLICATION_OR_ORGANIZATION =
       "{ownerType: application|organization}/{internalOwnerId}/role/{roleId}/{memberType: user|group}/{memberName}";
 
   static final String GLOBAL_OR_REPOSITORY_CONTAINER =

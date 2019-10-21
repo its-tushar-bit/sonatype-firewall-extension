@@ -93,7 +93,7 @@ public class UserInterfaceLinksResourceTest
 
     List<TelemetryItem> telemetryItems = telemetryItemsByPurpose.get(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK);
     assertThat(telemetryItems.size()).isEqualTo(1);
-    TelemetryData telemetryData = telemetryItems.get(0).getTelemetryData();
+    TelemetryData telemetryData = telemetryItems.get(0).getTelemetryData().get(0);
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK);
     assertThat(telemetryData.getAttributes().get("source")).isEqualTo("Foo".toLowerCase(Locale.ENGLISH));
     assertThat(telemetryData.getAttributes().get("application_id"))
@@ -167,6 +167,7 @@ public class UserInterfaceLinksResourceTest
       final Map<ByteArrayDataSource, Integer> responses)
       throws MessagingException, IOException
   {
-    return getTelemetryItems(responses).stream().collect(groupingBy(TelemetryItem::getTelemetryPurpose));
+    return getTelemetryItems(responses).stream()
+        .collect(groupingBy(telemetryItem -> telemetryItem.getTelemetryPurposes().get(0)));
   }
 }

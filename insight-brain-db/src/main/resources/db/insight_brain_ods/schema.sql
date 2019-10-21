@@ -617,5 +617,6 @@ CREATE TABLE user_token (
   pass_code varchar(128) NOT NULL,
   create_time timestamp NOT NULL,
   CONSTRAINT user_token_pk PRIMARY KEY (user_token_id),
-  CONSTRAINT user_token_uk UNIQUE (username_lowercase)
+  CONSTRAINT user_token_uk UNIQUE (username_lowercase),
+  CONSTRAINT user_token_user_code_uk UNIQUE (user_code)
 );

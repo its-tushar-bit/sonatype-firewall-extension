@@ -43,6 +43,12 @@ public class UserTokenDAO
     return get(tx, sQuery, UserToken.normalizeUsername(username));
   }
 
+  public UserToken getByUserCode(String userCode) {
+    String sQuery = "SELECT userToken FROM UserToken userToken" + //
+        " WHERE userToken.userCode=?1";
+    return get(sQuery, userCode);
+  }
+
   @Override
   public void update(TransactionContext tx, UserToken userToken) {
     throw new UnsupportedOperationException("The UserToken table does not support update operations.");

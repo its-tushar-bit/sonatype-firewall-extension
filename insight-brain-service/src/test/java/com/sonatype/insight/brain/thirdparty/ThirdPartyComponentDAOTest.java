@@ -13,16 +13,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.LogOutput;
@@ -31,12 +35,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
 
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromJsonNode;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ThirdPartyComponentDAOTest
 {
@@ -46,7 +58,13 @@ public class ThirdPartyComponentDAOTest
   @Rule
   public LogOutput logOutput = new LogOutput(ThirdPartyComponentDAO.class);
 
-  private ThirdPartyComponentDAO dao = new ThirdPartyComponentDAO();
+  @Rule
+  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
+
+  @Mock
+  private InsightWork insightWork;
+
+  private ThirdPartyComponentDAO dao;
 
   private final String hashGlibc = "e587ce87ed894c1d5283";
 
@@ -55,6 +73,11 @@ public class ThirdPartyComponentDAOTest
   private final Map<String, ComponentIdentifier> testData = ImmutableMap.of(
       hashGlibc, componentIdentifierFrom("debian:9", "glibc", "2.24-11+deb9u3"),
       hashApt, componentIdentifierFrom("debian:9", "apt", "1.4.8"));
+
+  @Before
+  public void before() {
+    dao = new ThirdPartyComponentDAO(insightWork);
+  }
 
   @Test
   public void testGetData() {
@@ -76,11 +99,11 @@ public class ThirdPartyComponentDAOTest
     assertThat(data.get(hashApt).securityRows.stream().map(s -> s.reference)).containsOnly("CVE-2019-3462");
 
     ThirdPartyHealthCheckReportSecurityRowDTO aptSecurityRow = data.get(hashApt).securityRows.get(0);
-    assertThat(aptSecurityRow.source).isEqualTo("Clair");
+    assertThat(aptSecurityRow.source).isNull();
     assertThat(aptSecurityRow.score).isEqualTo(10.0f);
     assertThat(aptSecurityRow.url).isEqualTo("https://security-tracker.debian.org/tracker/CVE-2019-3462");
     assertThat(aptSecurityRow.matchState).isEqualTo(MatchState.EXACT.toString());
-    assertThat(aptSecurityRow.description).isEqualTo("vulnerability description");
+    assertThat(aptSecurityRow.description).isEqualTo("description CVE-2019-3462");
   }
 
   @Test
@@ -111,6 +134,75 @@ public class ThirdPartyComponentDAOTest
     assertSummaryCountsUpdated(reportZip, 3);
     assertDataCountsUpdated(reportZip, 3);
     assertUpdatedBom(reportZip);
+  }
+
+  @Test
+  public void testGetAllVersions() {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
+    String scanId = "scanId";
+    String appId = "appId";
+    when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
+
+    final List<ComponentDetails> allVersions = dao.getAllVersions(appId, testData.get(hashGlibc), scanId).getList();
+    assertThat(allVersions).hasSize(1);
+    final ComponentDetails component = allVersions.get(0);
+    assertThat(component).satisfies(componentDetails -> {
+      assertThat(componentDetails.getComponentIdentifier()).isEqualTo(testData.get(hashGlibc));
+      assertThat(componentDetails.getHash()).isEqualTo(hashGlibc);
+      assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
+      assertThat(componentDetails.getIdentificationSource()).isEqualTo("Clair");
+    });
+
+    final List<SecurityVulnerability> secResults = component.getSecurityVulnerabilities();
+    assertThat(secResults).hasSize(2);
+    final Optional<SecurityVulnerability> cve1 = getSecurityVulnerability(secResults, "CVE-2018-1000001");
+    assertThat(cve1).hasValueSatisfying(sv -> {
+      assertThat(sv.getSeverity()).isEqualTo(8.0f);
+      assertThat(sv.getSummary()).isEqualTo("description CVE-2018-1000001");
+      assertThat(sv.getUrl()).isEqualTo("https://security-tracker.debian.org/tracker/CVE-2018-1000001");
+      assertThat(sv.getSource()).isNull();
+    });
+
+    final Optional<SecurityVulnerability> cve2 = getSecurityVulnerability(secResults, "CVE-2017-16997");
+    assertThat(cve2).hasValueSatisfying(sv -> {
+      assertThat(sv.getSeverity()).isEqualTo(10.0f);
+      assertThat(sv.getSummary()).isEqualTo("description CVE-2017-16997");
+      assertThat(sv.getUrl()).isEqualTo("https://security-tracker.debian.org/tracker/CVE-2017-16997");
+      assertThat(sv.getSource()).isNull();
+    });
+  }
+
+  @Test
+  public void testGetAllVersions_UsesCache_OnSubsequentQueries() {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
+    String scanId = "scanId";
+    String appId = "appId";
+    when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
+
+    List<ComponentDetails> result = dao.getAllVersions(appId, testData.get(hashApt), scanId).getList();
+    assertThat(result).hasSize(1);
+    result = dao.getAllVersions(appId, testData.get(hashApt), scanId).getList(); // uses cache
+    assertThat(result).hasSize(1);
+
+    verify(insightWork, times(1)).getReportFile(appId, scanId);
+  }
+
+  @Test
+  public void testGetAllVersions_ReturnsNothing_ForNonExistingComponents() {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
+    String scanId = "scanId";
+    String appId = "appId";
+    when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
+
+    List<ComponentDetails> result =
+        dao.getAllVersions(appId, componentIdentifierFrom("unknown", "unknown", "0.0"), scanId).getList();
+    assertThat(result).isEmpty();
+  }
+
+  private Optional<SecurityVulnerability> getSecurityVulnerability(
+      final List<SecurityVulnerability> secResults, final String cve)
+  {
+    return secResults.stream().filter(sv -> sv.getRefId().equals(cve)).findFirst();
   }
 
   private void assertUpdatedBom(final File reportZip) throws IOException {

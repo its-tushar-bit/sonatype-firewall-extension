@@ -172,7 +172,7 @@ public class ComponentDetailsLoader
         issue.setStatus(SecurityVulnerabilityOverrideStatus.OPEN.getName());
         for (com.sonatype.insight.brain.model.component.SecurityVulnerability sv : component
             .getSecurityVulnerabilities()) {
-          if (issue.getRefId().equals(sv.getRefId()) && issue.getSource().equals(sv.getSource())) {
+          if (issue.getRefId().equals(sv.getRefId()) && isSameSource(issue.getSource(), sv.getSource())) {
             issue.setStatus(sv.getStatus().getName());
             break;
           }
@@ -180,6 +180,14 @@ public class ComponentDetailsLoader
       }
     }
     return component;
+  }
+
+  private boolean isSameSource(final String issueSource, final String svSource) {
+    //for third party components the source may not exist
+    if (issueSource == null) {
+      return svSource == null;
+    }
+    return issueSource.equals(svSource);
   }
 
   /**

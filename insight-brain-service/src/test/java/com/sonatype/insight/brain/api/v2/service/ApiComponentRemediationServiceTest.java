@@ -198,7 +198,7 @@ public class ApiComponentRemediationServiceTest
   public void testGetSuggestedRemediationForComponent_BadOwnerId() throws Exception {
     doCallRealMethod().when(componentInfoServiceMock)
         .getComponentDetailsForAllVersionsNoAuth(any(OwnerType.class), any(String.class),
-            any(ComponentIdentifier.class), any(String.class));
+            any(ComponentIdentifier.class), any(String.class), any(), any());
     testGetSuggestedRemediationForComponent_BadOwnerId(OwnerType.APPLICATION, "Could not find an application with ID ");
     testGetSuggestedRemediationForComponent_BadOwnerId(OwnerType.ORGANIZATION, "Cannot find organization with ID ");
   }
@@ -520,7 +520,7 @@ public class ApiComponentRemediationServiceTest
   private void mockHdsGetComponentDetailsList(List<ComponentDetailsDTO> list, ComponentIdentifier componentIdentifier) {
     doReturn(list).when(componentInfoServiceMock)
         .getComponentDetailsForAllVersionsNoAuth(eq(OwnerType.APPLICATION), eq(app.getPublicId()),
-            eq(componentIdentifier), any());
+            eq(componentIdentifier), any(), any(), any());
   }
 
   private void assertRemediationZeroCounts(ApiComponentRemediationValueDTO apiComponentRemediationValueDTO) {

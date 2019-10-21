@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.hds;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -22,7 +25,9 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.service.InsightWork;
 
+import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -67,6 +72,27 @@ public class CIComponentInfoResourceTest
   @Test
   public void testGetComponentDetailsList() throws Exception {
     testGetComponentDetailsList_ReadPermission();
+  }
+
+  @Test
+  public void testGetComponentDetailsForAllVersions_ThirdParty() throws Exception {
+    final String scanId = "ScanId";
+    createReportFile(getOwner().getId(), scanId, "/CIComponentInfoResourceTest/report");
+    final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian:9", "glibc", "2.24-11+deb9u3");
+
+    HttpRequest request = allVersionsRequest(getOwnerId(), tpComponentIdentifier).query("identificationSource", "Clair")
+        .query("scanId", scanId);
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+
+    ComponentDetailsDTO[] tpAllVersions = response.getBody(ComponentDetailsDTO[].class);
+    assertThat(tpAllVersions).hasSize(1);
+    ComponentDetailsDTO componentDetailsDTO = tpAllVersions[0];
+    assertThat(componentDetailsDTO.identificationSource).isEqualTo("Clair");
+    assertThat(componentDetailsDTO.matchState).isEqualTo("exact");
+    assertThat(componentDetailsDTO.componentIdentifier).isEqualTo(tpComponentIdentifier);
+    assertThat(componentDetailsDTO.highestSecurityVulnerabilitySeverity).isEqualTo(10.0f);
+    assertThat(componentDetailsDTO.securityVulnerabilityCount).isEqualTo(2);
   }
 
   @Test
@@ -132,5 +158,18 @@ public class CIComponentInfoResourceTest
         MAVEN_COORDINATES).get();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Cannot find a repository with ID repositoryDoesNotExist.");
+  }
+
+  private File createReportFile(String appId, String scanId, String sourceReportDir) throws IOException {
+    File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId);
+    FileUtils.copyFile(zipResourceDir(sourceReportDir), reportFile);
+    return reportFile;
+  }
+
+  private ComponentIdentifier componentIdentifierFrom(final String format, final String name, final String version) {
+    final HashMap<String, String> coords = new HashMap<>();
+    coords.put("name", name);
+    coords.put(ComponentIdentifier.VERSION, version);
+    return new ComponentIdentifier(format, coords);
   }
 }

@@ -110,7 +110,7 @@ public class ApiComponentRemediationService
     }
 
     List<ComponentDetailsDTO> dtos = componentInfoService
-        .getComponentDetailsForAllVersionsNoAuth(ownerType, publicOwnerId, componentIdentifier, stageId);
+        .getComponentDetailsForAllVersionsNoAuth(ownerType, publicOwnerId, componentIdentifier, stageId, null, null);
     ApiComponentRemediationDTO componentRemediationDto = new ApiComponentRemediationDTO();
 
     int currentIndex =

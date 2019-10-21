@@ -57,6 +57,7 @@ import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.utils.LicenseUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -65,6 +66,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.model.component.IdentificationSource.isThirdPartyIdentificationSource;
 
 @Named
 public class ComponentInfoService
@@ -81,16 +84,21 @@ public class ComponentInfoService
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
+  private final ThirdPartyComponentDAO thirdPartyComponentDAO;
+
   private String toolName;
 
   @Inject
-  public ComponentInfoService(HdsClient hdsClient,
-                              ComponentDetailsLoader componentDetailsLoader,
-                              ComponentPolicyEvaluator componentPolicyEvaluator)
+  public ComponentInfoService(
+      HdsClient hdsClient,
+      ComponentDetailsLoader componentDetailsLoader,
+      ComponentPolicyEvaluator componentPolicyEvaluator,
+      ThirdPartyComponentDAO thirdPartyComponentDAO)
   {
     this.hdsClient = hdsClient;
     this.componentDetailsLoader = componentDetailsLoader;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
+    this.thirdPartyComponentDAO = thirdPartyComponentDAO;
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -215,7 +223,7 @@ public class ComponentInfoService
   {
     auditComponentAccess(identifier, null);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier);
+    ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, null, null, null);
     augmentComponentDetails(componentDetailsList.getList(), matchState, app);
     return componentDetailsList;
   }
@@ -232,7 +240,8 @@ public class ComponentInfoService
       ComponentIdentifier componentIdentifier)
   {
     auditComponentAccess(componentIdentifier, null);
-    return getComponentDetailsForAllVersionsNoAuth(OwnerType.APPLICATION, applicationPublicId, componentIdentifier);
+    return getComponentDetailsForAllVersionsNoAuth(OwnerType.APPLICATION, applicationPublicId, componentIdentifier,
+        null, null);
   }
 
   /**
@@ -251,7 +260,7 @@ public class ComponentInfoService
   {
     auditComponentAccess(componentIdentifier, null);
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
-    ComponentDetailsList componentDetailsList = getComponentDetailsList(componentIdentifier);
+    ComponentDetailsList componentDetailsList = getComponentDetailsList(componentIdentifier, owner, null, null);
     augmentComponentDetails(componentDetailsList.getList(), matchState, owner);
     return componentDetailsList;
   }
@@ -266,26 +275,35 @@ public class ComponentInfoService
   public List<ComponentDetailsDTO> getComponentDetailsForAllVersions_ReadPermission(
       @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.ID) final String ownerId,
-      ComponentIdentifier componentIdentifier)
+      ComponentIdentifier componentIdentifier,
+      String identificationSource,
+      String scanId)
   {
     auditComponentAccess(componentIdentifier, null);
-    return getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId, componentIdentifier);
-  }
-
-  public List<ComponentDetailsDTO> getComponentDetailsForAllVersionsNoAuth(OwnerType ownerType,
-                                                                           String ownerId,
-                                                                           ComponentIdentifier componentIdentifier)
-  {
-    return getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId, componentIdentifier, null);
+    return getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId, componentIdentifier, identificationSource,
+        scanId);
   }
 
   public List<ComponentDetailsDTO> getComponentDetailsForAllVersionsNoAuth(OwnerType ownerType,
                                                                            String ownerId,
                                                                            ComponentIdentifier componentIdentifier,
-                                                                           String stageId)
+                                                                           String identificationSource,
+                                                                           String scanId)
+  {
+    return getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId, componentIdentifier, null, identificationSource,
+        scanId);
+  }
+
+  public List<ComponentDetailsDTO> getComponentDetailsForAllVersionsNoAuth(OwnerType ownerType,
+                                                                           String ownerId,
+                                                                           ComponentIdentifier componentIdentifier,
+                                                                           String stageId,
+                                                                           String identificationSource,
+                                                                           String scanId)
   {
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
-    List<ComponentDetails> componentDetailsList = getComponentDetailsList(componentIdentifier).getList();
+    List<ComponentDetails> componentDetailsList =
+        getComponentDetailsList(componentIdentifier, owner, identificationSource, scanId).getList();
     // Fix match state to exact as there's no point propagating it to other versions.
     List<Component> components = augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(), owner);
 
@@ -349,16 +367,28 @@ public class ComponentInfoService
     return componentDetailsDTOs;
   }
 
-  ComponentDetailsList getComponentDetailsList(ComponentIdentifier identifier) {
+  ComponentDetailsList getComponentDetailsList(
+      ComponentIdentifier identifier,
+      Owner owner,
+      String identificationSource,
+      String scanId)
+  {
     long start = System.currentTimeMillis();
 
     if (identifier == null) {
       throw new BadRequestException("componentIdentifier is required");
     }
 
-    String url = "rest/" + toolName + "/componentDetails/list";
-    ComponentDetailsList componentDetailsList = hdsClient.get(ComponentDetailsList.class, url,
-        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier)));
+    ComponentDetailsList componentDetailsList;
+
+    if (isThirdPartyIdentificationSource(identificationSource)) {
+      componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
+    }
+    else {
+      String url = "rest/" + toolName + "/componentDetails/list";
+      componentDetailsList = hdsClient.get(ComponentDetailsList.class, url,
+          Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier)));
+    }
 
     log.debug("Loaded component details list for {} versions of component identifier {} in {} ms.",
         componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);
@@ -373,7 +403,9 @@ public class ComponentInfoService
     List<Component> components = new ArrayList<>(componentDetailsList.size());
     for (ComponentDetails componentDetails : componentDetailsList) {
       componentDetails.setMatchState(StringUtils.isEmpty(matchState) ? MatchState.EXACT.getId() : matchState);
-      componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
+      if (!isThirdPartyIdentificationSource(componentDetails.getIdentificationSource())) {
+        componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
+      }
       components.add(componentDetailsLoader.augmentComponentDetails(owner, componentDetails));
     }
     return components;

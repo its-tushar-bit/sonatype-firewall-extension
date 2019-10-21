@@ -59,6 +59,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -104,9 +105,13 @@ public class ComponentInfoServiceTest
   @Mock
   private HttpServletRequest httpRequestMock;
 
+  @Mock
+  private ThirdPartyComponentDAO thirdPartyComponentDAO;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClientMock);
+    binder.bind(ThirdPartyComponentDAO.class).toInstance(thirdPartyComponentDAO);
     super.configure(binder);
   }
 
@@ -451,7 +456,8 @@ public class ComponentInfoServiceTest
     hdsComponentDetailsList.setList(asList(hdsComponentDetails1, hdsComponentDetails2, hdsComponentDetails3));
     mockHdsGetComponentDetailsList(hdsComponentDetailsList, componentIdentifier1);
 
-    ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList(componentIdentifier1);
+    ComponentDetailsList componentDetailsList =
+        componentInfoService.getComponentDetailsList(componentIdentifier1, null, null, null);
     componentInfoService.augmentComponentDetails(componentDetailsList.getList(), MatchState.EXACT.getId(), application);
 
     assertThat(componentDetailsList).isNotNull();
@@ -859,7 +865,7 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_COORDINATES);
 
     List<ComponentDetailsDTO> componentDetailsList = componentInfoService
-        .getComponentDetailsForAllVersions_ReadPermission(owner.getType(), ownerId, MAVEN_COORDINATES);
+        .getComponentDetailsForAllVersions_ReadPermission(owner.getType(), ownerId, MAVEN_COORDINATES, null, null);
 
     assertThat(componentDetailsList).hasSize(2);
 
@@ -918,6 +924,49 @@ public class ComponentInfoServiceTest
   @Test
   public void testGetComponentDetailsForAllVersions_ReadPermission_Repository() throws Exception {
     testGetComponentDetailsForAllVersions_ReadPermission(repository, repository.getId());
+  }
+
+  @Test
+  public void testGetComponentDetailsForAllVersions_ReadPermission_ThirdParty() throws Exception {
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "8"));
+    Policy policy1 = new Policy("security-high", "Security-High");
+    policy1.setThreatLevel(8);
+    policy1.addConstraint(constraint1);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, policy1);
+
+    final String identificationSource = "Clair";
+    final String scanId = "scanId";
+
+    ComponentDetails tpComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
+    tpComponentDetails.setIdentificationSource(identificationSource);
+    tpComponentDetails.setSecurityVulnerabilities(asList(
+        new SecurityVulnerability("cve-8", "cve", 8.1f),
+        new SecurityVulnerability("cve-4", "cve", 4f)));
+    ComponentDetailsList thirdPartyComponentDetailsList = new ComponentDetailsList();
+    thirdPartyComponentDetailsList.setList(Collections.singletonList(tpComponentDetails));
+
+    when(thirdPartyComponentDAO.getAllVersions(application.getId(), MAVEN_COORDINATES, scanId))
+        .thenReturn(thirdPartyComponentDetailsList);
+
+    List<ComponentDetailsDTO> componentDetailsList = componentInfoService
+        .getComponentDetailsForAllVersions_ReadPermission(application.getType(), application.getPublicId(),
+            MAVEN_COORDINATES, identificationSource, scanId);
+
+    assertThat(componentDetailsList).hasSize(1);
+
+    ComponentDetailsDTO componentDetails = componentDetailsList.get(0);
+    assertThat(componentDetails.displayName)
+        .hasToString(ComponentDisplayNameUtil.fromIdentifier(MAVEN_COORDINATES).toString());
+    assertThat(componentDetails.matchState).isEqualTo(MatchState.EXACT.getId());
+    assertThat(componentDetails.componentIdentifier).isEqualTo(tpComponentDetails.getComponentIdentifier());
+    assertThat(componentDetails.highestSecurityVulnerabilitySeverity).isEqualTo(8.1f);
+    assertThat(componentDetails.identificationSource).isEqualTo(identificationSource);
+
+    assertThat(componentDetails.policyMaxThreatLevelsByCategory)
+        .isEqualTo(ImmutableMap.of(PolicyThreatCategory.SECURITY, 8));
+    assertThat(componentDetails.violatedPolicyCount).isEqualTo(1);
   }
 
   @Test

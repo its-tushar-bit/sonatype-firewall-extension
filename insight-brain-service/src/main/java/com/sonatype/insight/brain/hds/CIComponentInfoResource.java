@@ -97,10 +97,12 @@ public class CIComponentInfoResource
   public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
-      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @QueryParam("identificationSource") String identificationSource,
+      @QueryParam("scanId") String scanId)
   {
     return componentInfoService.getComponentDetailsForAllVersions_ReadPermission(ownerType, ownerId,
-        componentIdentifier);
+        componentIdentifier, identificationSource, scanId);
   }
 
   @GET

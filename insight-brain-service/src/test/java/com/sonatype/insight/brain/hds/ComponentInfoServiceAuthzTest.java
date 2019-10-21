@@ -311,7 +311,7 @@ public class ComponentInfoServiceAuthzTest
     configureHdsClientMock();
     grantReadPermission(owner.getId());
     componentInfoService
-        .getComponentDetailsForAllVersions_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
+        .getComponentDetailsForAllVersions_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER, null, null);
   }
 
   @Test
@@ -329,7 +329,7 @@ public class ComponentInfoServiceAuthzTest
   {
     login();
     componentInfoService.getComponentDetailsForAllVersions_ReadPermission(owner.getType(), ownerId,
-        COMPONENT_IDENTIFIER);
+        COMPONENT_IDENTIFIER, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -346,7 +346,7 @@ public class ComponentInfoServiceAuthzTest
                                                                                     final String ownerId)
   {
     componentInfoService.getComponentDetailsForAllVersions_ReadPermission(owner.getType(), ownerId,
-        COMPONENT_IDENTIFIER);
+        COMPONENT_IDENTIFIER, null, null);
   }
 
   @Test(expected = UnauthenticatedException.class)

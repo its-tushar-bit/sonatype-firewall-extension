@@ -119,6 +119,8 @@ def copyDbLocal(dbPath, dataset, workingDir):
             continue
 
         for file in files:
+            if not file.endswith('zip'):
+                continue
             if not target:
                 target = os.path.join(root, file)
             else:

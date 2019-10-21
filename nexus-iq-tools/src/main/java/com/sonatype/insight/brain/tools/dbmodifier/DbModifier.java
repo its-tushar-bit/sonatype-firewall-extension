@@ -238,7 +238,7 @@ public class DbModifier
   }
 
   public void scrub(boolean rebuild, boolean keepFiles) {
-    DbScrubber.scrubDb(dbConnectionString, rebuild, keepFiles);
+    DbScrubber.scrubDb(dbConnectionString, rebuild, keepFiles, username, password);
   }
 
   // visible for testing

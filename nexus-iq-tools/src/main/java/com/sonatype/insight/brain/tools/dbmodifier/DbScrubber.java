@@ -32,14 +32,14 @@ public class DbScrubber
 {
   private static final Logger log = LoggerFactory.getLogger(DbScrubber.class);
 
-  static void scrubDb(String dbConnectionString, boolean rebuild, boolean keepFiles) {
+  static void scrubDb(String dbConnectionString, boolean rebuild, boolean keepFiles, String username, String password) {
     List<String> workingFiles = new ArrayList<>();
     try {
       log.info("Start: db scrub");
       String timestamp = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.ENGLISH).format(new Date());
       String outFile = "dbmod_tmp-scrub-backup." + timestamp + ".sql";
       workingFiles.add(outFile);
-      dumpDbToSql(outFile, dbConnectionString);
+      dumpDbToSql(outFile, dbConnectionString, username, password);
 
       String scrubbedFile = makeScrubFileName(outFile);
       workingFiles.add(scrubbedFile);
@@ -49,7 +49,8 @@ public class DbScrubber
         String rebuildDb = "./ods_scrubbed_" + timestamp;
         String rebuildDbUrl =
             "jdbc:h2:" + rebuildDb + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE";
-        String[] rebuildParams = new String[]{"-url", rebuildDbUrl, "-script", scrubbedFile};
+        String[] rebuildParams =
+            new String[]{"-url", rebuildDbUrl, "-user", username, "-password", password, "-script", scrubbedFile};
         long start = System.currentTimeMillis();
         log.info("Starting rebuild to: " + rebuildDb);
         RunScript.main(rebuildParams);
@@ -79,8 +80,12 @@ public class DbScrubber
     });
   }
 
-  private static void dumpDbToSql(String outFile, String dbConnectionString) throws SQLException {
-    String[] params = new String[]{"-url", dbConnectionString, "-script", outFile, "-options", "SIMPLE"};
+  private static void dumpDbToSql(String outFile, String dbConnectionString, String username, String password)
+      throws SQLException
+  {
+    String[] params = new String[]{
+        "-url", dbConnectionString, "-user", username, "-password", password, "-script", outFile, "-options", "SIMPLE"
+    };
     Script.main(params);
     log.info("Exported to: " + outFile);
   }

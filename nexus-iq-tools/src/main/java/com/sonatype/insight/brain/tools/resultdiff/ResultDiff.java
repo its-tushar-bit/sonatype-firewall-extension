@@ -145,7 +145,13 @@ public class ResultDiff
       List<String> current = new ArrayList<>();
       try (BufferedReader br = new BufferedReader(new FileReader(resultFile))) {
         List<String> allLines = br.lines().collect(Collectors.toList());
-        for (String line : allLines) {
+
+        Integer skipTo = allLines.stream()
+            .filter(line -> line.startsWith("---------------"))
+            .findFirst().map(line -> allLines.indexOf(line))
+            .orElseGet(() -> 0);
+
+        for (String line : allLines.subList(skipTo, allLines.size())) {
           if (line.startsWith("-----")) {
             if (!current.isEmpty()) {
               results.add(makeResult(current, source));

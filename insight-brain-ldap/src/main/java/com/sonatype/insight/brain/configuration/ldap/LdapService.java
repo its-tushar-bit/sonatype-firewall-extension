@@ -244,7 +244,7 @@ public class LdapService
    * Loads the user along with its group memberships, thereby verifying its general existence, to support integration
    * with 3rd-party SSO frontends that handle authentication and then forward the validated username (and only that).
    */
-  public LdapUser authenticateUserForReverseProxy(String username) throws NamingException {
+  public LdapUser getUserByName(String username) throws NamingException {
     final List<LdapServer> servers = serverDao.getAll();
     final List<LdapServerExceptionWrapper> ldapServerExceptionWrappers = new ArrayList<>();
 

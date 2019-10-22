@@ -326,7 +326,7 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testAuthenticateUserForReverseProxy_RetryDelay() throws Exception {
+  public void testGetUserByName_RetryDelay() throws Exception {
     try (ServerSocket socket = new ServerSocket(0)) {
       LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
 
@@ -339,11 +339,11 @@ public class LdapServiceTest
 
       createUserMapping(ldapServer);
 
-      // force three failures by attempting auth against the dangling socket
+      // force three failures by attempting the operation against the dangling socket
 
       for (int failures = 0; failures < 3; failures++) {
         assertThatThrownBy(() -> {
-          ldapService.authenticateUserForReverseProxy("user");
+          ldapService.getUserByName("user");
         }).isInstanceOf(NamingException.class).hasMessageContaining("read timed out");
       }
 
@@ -353,7 +353,7 @@ public class LdapServiceTest
 
       for (int failures = 0; failures < 3; failures++) {
         assertThatThrownBy(() -> {
-          ldapService.authenticateUserForReverseProxy("user");
+          ldapService.getUserByName("user");
         }).isInstanceOf(NamingException.class).hasMessageContaining("Delaying retry");
       }
 
@@ -364,28 +364,28 @@ public class LdapServiceTest
       // the next request should NOT be ignored because the delay has expired
 
       assertThatThrownBy(() -> {
-        ldapService.authenticateUserForReverseProxy("user");
+        ldapService.getUserByName("user");
       }).isInstanceOf(NamingException.class).hasMessageContaining("read timed out");
     }
   }
 
   @Test
-  public void testAuthenticateUserForReverseProxy_SingleExceptionThrownAsIs() throws Exception {
+  public void testGetUserByName_SingleExceptionThrownAsIs() throws Exception {
     loadLdapServer(testLdapServer1, "Test Server1");
 
     assertThatThrownBy(() -> {
-      ldapService.authenticateUserForReverseProxy("test_user2_2");
+      ldapService.getUserByName("test_user2_2");
     }).isInstanceOf(NameNotFoundException.class).hasMessage("LDAP user with username 'test_user2_2' does not exist");
   }
 
   @Test
-  public void testAuthenticateUserForReverseProxy_MultiServer_Timeout_Single() throws Exception {
+  public void testGetUserByName_MultiServer_Timeout_Single() throws Exception {
     final LdapConnection ldapConnection1 = createShortTimeoutLdapConnectionWithoutEmbeddedServer("Test Server1");
     loadLdapServer(testLdapServer2, "Test Server2");
 
     try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
       assertThatThrownBy(() -> {
-        ldapService.authenticateUserForReverseProxy("any-user");
+        ldapService.getUserByName("any-user");
       }).isInstanceOf(NamingException.class)
           .hasMessage("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n")
           .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage).containsExactly(
@@ -395,7 +395,7 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testAuthenticateUserForReverseProxy_MultiServer_Timeout_MultipleAggregated() throws Exception {
+  public void testGetUserByName_MultiServer_Timeout_MultipleAggregated() throws Exception {
     final LdapConnection ldapConnection1 = createShortTimeoutLdapConnectionWithoutEmbeddedServer("Test Server1");
     final LdapConnection ldapConnection2 = createShortTimeoutLdapConnectionWithoutEmbeddedServer("Test Server2");
 
@@ -403,7 +403,7 @@ public class LdapServiceTest
     try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
       try (final ServerSocket ignored2 = new ServerSocket(ldapConnection2.getPort())) {
         assertThatThrownBy(() -> {
-          ldapService.authenticateUserForReverseProxy("any-user");
+          ldapService.getUserByName("any-user");
         }).isInstanceOf(NamingException.class)
             .hasMessage("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n"
                 + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:1000ms.;\n")
@@ -416,14 +416,14 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testAuthenticateUserForReverseProxy_MultiServer_UnknownUser() throws Exception {
+  public void testGetUserByName_MultiServer_UnknownUser() throws Exception {
     loadLdapServer(testLdapServer1, "Test Server1");
     loadLdapServer(testLdapServer2, "Test Server2");
 
     final int ldapServer1Port = testLdapServer1.getPort();
     testLdapServer1.stop();
     assertThatThrownBy(() -> {
-      ldapService.authenticateUserForReverseProxy("test_user4");
+      ldapService.getUserByName("test_user4");
     }).isInstanceOf(NamingException.class).hasMessage("LDAP Server: Test Server1 -> localhost:" + ldapServer1Port
         + ";\n" + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n")
         .satisfies(e -> {
@@ -435,12 +435,12 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testAuthenticateUserForReverseProxy_MultiServer_UnexpectedError() throws Exception {
+  public void testGetUserByName_MultiServer_UnexpectedError() throws Exception {
     loadLdapServer(testLdapServer1, "Test Server1");
     loadLdapServer(testLdapServer2, "Test Server2");
 
     assertThatThrownBy(() -> {
-      ldapService.authenticateUserForReverseProxy("test_user4");
+      ldapService.getUserByName("test_user4");
     }).isInstanceOf(NameNotFoundException.class)
         .hasMessage("LDAP Server: Test Server1 -> LDAP user with username 'test_user4' does not exist;\n"
             + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n")
@@ -450,20 +450,20 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testAuthenticateUserForReverseProxy_MultiServer_ValidLoginFirstServer() throws Exception {
+  public void testGetUserByName_MultiServer_ValidLoginFirstServer() throws Exception {
     loadLdapServer(testLdapServer1, "Test Server1");
     loadLdapServer(testLdapServer2, "Test Server2");
 
-    final LdapUser ldapUser = ldapService.authenticateUserForReverseProxy("test_user2_1");
+    final LdapUser ldapUser = ldapService.getUserByName("test_user2_1");
     assertThat(ldapUser.getRealName()).isEqualTo("Test User 2 1");
   }
 
   @Test
-  public void testAuthenticateUserForReverseProxy_MultiServer_ValidLoginSecondServer() throws Exception {
+  public void testGetUserByName_MultiServer_ValidLoginSecondServer() throws Exception {
     loadLdapServer(testLdapServer1, "Test Server1");
     loadLdapServer(testLdapServer2, "Test Server2");
 
-    final LdapUser ldapUser = ldapService.authenticateUserForReverseProxy("test_user2_2");
+    final LdapUser ldapUser = ldapService.getUserByName("test_user2_2");
     assertThat(ldapUser.getRealName()).isEqualTo("Test User 2 2");
   }
 
@@ -710,7 +710,7 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testAuthenticateUserForReverseProxy_usernameLeakViaInjection() throws Exception {
+  public void testGetUserByName_usernameLeakViaInjection() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
@@ -719,30 +719,30 @@ public class LdapServiceTest
     assertThatThrownBy(() -> {
       // prior to the sanitization of query parameters, an AuthenticationException
       // would've been thrown here, and it leaked the first user name in the system
-      ldapService.authenticateUserForReverseProxy("*)(uid=*))(|(uid=*");
+      ldapService.getUserByName("*)(uid=*))(|(uid=*");
     }).isInstanceOf(NameNotFoundException.class).satisfies(e -> assertThat(e.getMessage()).doesNotContain("test_user"));
   }
 
   @Test(expected = NameNotFoundException.class)
-  public void testAuthenticateUserForReverseProxy_wildcardMatchingNotExpected() throws Exception {
+  public void testGetUserByName_wildcardMatchingNotExpected() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
     createUserMapping(ldapServer);
 
-    // previous to escaping characters in the ldap query, this auth check would have succeeded
+    // previous to escaping characters in the ldap query, this would have succeeded
     // matching against the first test user in the system
-    ldapService.authenticateUserForReverseProxy("test*");
+    ldapService.getUserByName("test*");
   }
 
   @Test
-  public void testAuthenticateUserForReverseProxy_wildcardMatchingEscapedValue() throws Exception {
+  public void testGetUserByName_wildcardMatchingEscapedValue() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
     createUserMapping(ldapServer);
 
-    ldapService.authenticateUserForReverseProxy("test*user1_1");
+    ldapService.getUserByName("test*user1_1");
   }
 
   @Test

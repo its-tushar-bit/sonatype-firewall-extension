@@ -79,7 +79,7 @@ public class ReverseProxyRealm
 
   private AuthenticationInfo doGetLdapRealmAuthenticationInfo(String username) {
     try {
-      LdapUser ldapUser = ldapService.authenticateUserForReverseProxy(username);
+      LdapUser ldapUser = ldapService.getUserByName(username);
       if (ldapUser != null) {
         return new SimpleAuthenticationInfo(new UserPrincipal(username, ldapUser.getRealName(), false,
             ldapUser.getMembership()), null, getName());

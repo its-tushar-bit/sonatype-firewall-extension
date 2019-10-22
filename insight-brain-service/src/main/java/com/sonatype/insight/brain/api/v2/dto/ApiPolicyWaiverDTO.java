@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
- * @since 1.75
+ * @since 1.76
  */
 public class ApiPolicyWaiverDTO
 {

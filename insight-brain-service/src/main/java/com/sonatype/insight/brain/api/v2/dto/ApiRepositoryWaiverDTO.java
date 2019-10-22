@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @since 1.75
+ * @since 1.76
  */
 public class ApiRepositoryWaiverDTO
 {

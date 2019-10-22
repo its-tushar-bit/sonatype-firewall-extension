@@ -60,7 +60,7 @@ import static com.sonatype.insight.brain.utils.ExecutorThreadPools.getThreadPool
 import static java.util.stream.Collectors.toList;
 
 /**
- * @since 1.75
+ * @since 1.76
  */
 public class ApiComponentsWithWaiversReportingService
 {

@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.api.v2.dto;
 
 /**
- * @since 1.75
+ * @since 1.76
  */
 public class ApiWaivedPolicyViolationDTO extends ApiPolicyViolationDTOV2
 {

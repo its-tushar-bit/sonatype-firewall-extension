@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.codahale.metrics.annotation.Timed;
 
 /**
- * @since 1.75
+ * @since 1.76
  */
 @Named
 @Timed

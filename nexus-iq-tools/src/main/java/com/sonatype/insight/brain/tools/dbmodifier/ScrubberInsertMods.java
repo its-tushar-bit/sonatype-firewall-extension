@@ -160,7 +160,12 @@ class ScrubberInsertMods
   }
 
   private static String stripStringDecode(String src) {
-    return javaDecode(src.substring(13, src.length() - 1));
+    if (src.startsWith("STRINGDECODE(") && src.endsWith(")")) {
+      return javaDecode(src.substring(13, src.length() - 1));
+    }
+    else {
+      return src;
+    }
   }
 
   private static String wrapStringDecode(String src) {

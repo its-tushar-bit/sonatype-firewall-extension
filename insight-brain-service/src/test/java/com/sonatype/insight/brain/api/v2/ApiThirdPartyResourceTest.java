@@ -74,6 +74,15 @@ public class ApiThirdPartyResourceTest
         .parameter(app.getId(), "clair").query("stageId", "build").body(null).post();
     assertResponseStatus(400, response);
   }
+  
+  @Test
+  public void testEvaluateComponents_invalidStage() throws Exception {
+    initServer(config -> config.setThirdPartyEvaluationApiEnabled(true));
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
+        .parameter(app.getId(), "clair").query("stageId", "invalidStage").body(null).post();
+    assertResponseStatus(400, response);
+  }
 
   @Test
   public void testEvaluateComponents_invalidSbom() throws Exception {

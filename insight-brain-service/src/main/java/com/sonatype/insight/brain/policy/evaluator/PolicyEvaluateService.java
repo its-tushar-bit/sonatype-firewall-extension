@@ -181,6 +181,21 @@ public class PolicyEvaluateService
 
     File tempScanFile = scanHandler.createTempScanFile(req, applicationPublicId, clientScanType);
 
+    doEvaluationWithPolling(statusId, applicationPublicId, clientScanType, stage, tempScanFile);
+
+    PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
+    policyEvaluationReceipt.setStatusId(statusId);
+
+    return policyEvaluationReceipt;
+  }
+
+  public void doEvaluationWithPolling(
+      String statusId,
+      String applicationPublicId,
+      ClientScanType clientScanType,
+      Stage stage,
+      File tempScanFile)
+  {
     String policyEvaluationKey = getPolicyEvaluationKey(applicationPublicId, statusId);
 
     // to avoid any race condition when the following task attempts to update
@@ -192,11 +207,6 @@ public class PolicyEvaluateService
     AuditData.get()
         .continueAsync(new EvaluationTask(applicationPublicId, clientScanType, statusId, stage, tempScanFile),
             executor::submit);
-
-    PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
-    policyEvaluationReceipt.setStatusId(statusId);
-
-    return policyEvaluationReceipt;
   }
 
   /**

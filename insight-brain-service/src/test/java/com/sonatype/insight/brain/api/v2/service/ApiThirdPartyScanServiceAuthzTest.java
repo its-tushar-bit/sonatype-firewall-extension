@@ -33,18 +33,18 @@ public class ApiThirdPartyScanServiceAuthzTest
     String sbom = new String(bytes, StandardCharsets.UTF_8);
 
     grantReadPermission(app.getId());
-    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "Build", sbom);
+    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", sbom);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testEvaluateComponents_Unauthenticated() {
-    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "Build", "");
+    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", "");
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testEvaluateComponents_UnauthorizedButAuthenticated() {
     login();
-    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "Build", "");
+    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", "");
   }
   
   @Test(expected = UnauthenticatedException.class)

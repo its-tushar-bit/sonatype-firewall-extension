@@ -324,7 +324,7 @@ public class ApiComponentsWithWaiversReportingService
       policyWaiverDTO.isObsolete = false;
       policyWaiverDTO.policyWaiverId = policyWaiver.getId();
       policyWaiverDTO.comment = policyWaiver.getComment();
-      policyWaiverDTO.createTime = policyViolation.getWaiveTime();
+      policyWaiverDTO.createTime = policyWaiver.getCreateTime();
     }
 
     waivedPolicyViolationDTO.policyWaiver = policyWaiverDTO;

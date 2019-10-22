@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -43,7 +42,6 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.organization.ApplicationService;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
@@ -212,7 +210,6 @@ public class ApiComponentsWithWaiversReportingService
 
       List<RepositoryPolicyViolation> repositoryPolicyViolations =
           repositoryPolicyViolationDao.getActiveWaivedRepositoryPolicyViolations(idToRepositoryMap.keySet());
-      repositoryPolicyViolations.sort(PolicyViolationComparator.COMPARATOR);
 
       getGroupedRepositoryPolicyViolations(repositoryPolicyViolations)
           .forEach((repositoryId, groupedPolicyViolationsByComponent) -> {
@@ -237,9 +234,6 @@ public class ApiComponentsWithWaiversReportingService
                   componentPolicyViolationDTOs.add(componentPolicyViolationDTO);
                 });
 
-            // Sort components by packageUrl
-            componentPolicyViolationDTOs.sort(Comparator.comparing(c -> c.component.packageUrl));
-
             ApiPolicyViolationStageDTO policyViolationStageDTO =
                 buildPolicyViolationStageDTO(componentPolicyViolationDTOs);
 
@@ -248,9 +242,6 @@ public class ApiComponentsWithWaiversReportingService
             repositoryWaiverDTO.stages = Arrays.asList(policyViolationStageDTO);
             repositoryWaiverDTOs.add(repositoryWaiverDTO);
           });
-
-      // Sort repos by publicId
-      repositoryWaiverDTOs.sort(Comparator.comparing(r -> r.repository.publicId));
     }
 
     AuditData.get().setData(REPOSITORY_COMPONENTS_AUDIT_KEY, repositoryComponentsWithWaiversCount.intValue());

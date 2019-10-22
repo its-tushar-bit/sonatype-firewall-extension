@@ -163,26 +163,26 @@ public class ApiComponentsWithWaiversReportingServiceTest
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
 
     ConstraintFact constraintFact1 =
-        new ConstraintFact("constraintFact1", "aa c","OR");
+        new ConstraintFact("constraintFact1", "aa c", "OR");
     constraintFact1.addConditionFact(new ConditionFact("MatchState", 0,
         "Match State is exact", "Match State was exact"));
-    List<ConstraintFact> constraintFacts1  = Arrays.asList(constraintFact1);
+    List<ConstraintFact> constraintFacts1 = Arrays.asList(constraintFact1);
 
     ConstraintFact constraintFact2 =
-        new ConstraintFact("constraintFact2", "aa c","OR");
+        new ConstraintFact("constraintFact2", "aa c", "OR");
     constraintFact2.addConditionFact(new ConditionFact("MatchState", 0,
         "Match State is exact", "Match State was exact"));
-    List<ConstraintFact> constraintFacts2  = Arrays.asList(constraintFact2);
+    List<ConstraintFact> constraintFacts2 = Arrays.asList(constraintFact2);
 
     // Waived active policy violations and their corresponding waivers
     PolicyWaiver policyWaiver1 = tempEntity.newWaiver("hash1", policy1.getId(), repo1.getId(),
-        constraintFacts1,"Some comments here");
+        constraintFacts1, "Some comments here");
     PolicyWaiver policyWaiver2 = tempEntity.newWaiver("hash1", policy1.getId(), repo1.getId(),
-        constraintFacts2,"Some comments here2");
+        constraintFacts2, "Some comments here2");
     PolicyWaiver policyWaiver3 = tempEntity.newWaiver("hash3", policy2.getId(), repo2.getId(),
-        constraintFacts1,"Some comments here3");
+        constraintFacts1, "Some comments here3");
     PolicyWaiver policyWaiver4 = tempEntity.newWaiver("hash4", policy1.getId(), repo1.getId(),
-        constraintFacts1,"Some comments here4");
+        constraintFacts1, "Some comments here4");
 
     RepositoryPolicyViolation waivedViolation1 = tempEntity.newRepositoryPolicyViolation(
         repo1.getId(), 6, "pathName1", "hash1", constraintFacts1, true, true,
@@ -213,7 +213,8 @@ public class ApiComponentsWithWaiversReportingServiceTest
     assertThat(result.repositoryWaivers).hasSize(2);
 
     // Validate Repo1 Component Waivers
-    ApiRepositoryWaiverDTO apiRepositoryWaiverDTO = result.repositoryWaivers.get(0);
+    ApiRepositoryWaiverDTO apiRepositoryWaiverDTO =
+        result.repositoryWaivers.stream().filter(x -> x.repository.repositoryId == repo1.getId()).findFirst().get();
     assertApiRepositoryWaiverDTO(apiRepositoryWaiverDTO, repo1);
     assertThat(apiRepositoryWaiverDTO.stages).hasSize(1);
 
@@ -246,7 +247,8 @@ public class ApiComponentsWithWaiversReportingServiceTest
     assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(0).policyWaiver, policyWaiver4);
 
     // Validate Repo2 Component Waivers
-    apiRepositoryWaiverDTO = result.repositoryWaivers.get(1);
+    apiRepositoryWaiverDTO =
+        result.repositoryWaivers.stream().filter(x -> x.repository.repositoryId == repo2.getId()).findFirst().get();
     assertApiRepositoryWaiverDTO(apiRepositoryWaiverDTO, repo2);
     assertThat(apiRepositoryWaiverDTO.stages).hasSize(1);
 
@@ -271,15 +273,15 @@ public class ApiComponentsWithWaiversReportingServiceTest
     Date date = new Date();
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ConstraintFact constraintFact1 =
-        new ConstraintFact("constraintFact1", "aa c","OR");
+        new ConstraintFact("constraintFact1", "aa c", "OR");
     constraintFact1.addConditionFact(new ConditionFact("MatchState", 0,
         "Match State is exact", "Match State was exact"));
-    List<ConstraintFact> constraintFacts1  = Arrays.asList(constraintFact1);
+    List<ConstraintFact> constraintFacts1 = Arrays.asList(constraintFact1);
 
     // Waived active policy violations and their corresponding waivers
     RepositoryPolicyViolation waivedViolation1 =
         tempEntity.newRepositoryPolicyViolation(repo1.getId(), 6, "pathName1", "hash1", constraintFacts1,
-        true, true, "actionId1", policy1.getId(), policy1.getName(), componentIdentifier1, date,
+            true, true, "actionId1", policy1.getId(), policy1.getName(), componentIdentifier1, date,
             "deletedPolicyWaiverId", "test waive", date);
 
     ApiComponentWaiversDTO result = service.getComponentsWithWaivers();

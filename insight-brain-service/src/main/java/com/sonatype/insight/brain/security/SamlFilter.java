@@ -31,6 +31,8 @@ import org.keycloak.adapters.spi.AuthOutcome;
 import org.keycloak.adapters.spi.HttpFacade;
 import org.keycloak.adapters.spi.InMemorySessionIdMapper;
 import org.keycloak.adapters.spi.SessionIdMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Filter that will initiate a SAML-based login if the calling subject has not been authenticated previously via other
@@ -41,6 +43,11 @@ import org.keycloak.adapters.spi.SessionIdMapper;
 class SamlFilter
     extends AuthenticationFilter
 {
+  private static final Logger log = LoggerFactory.getLogger(SamlFilter.class);
+
+  static final String MSG_SAML_FAILURE =
+      "Authentication failed due to SAML error. Please contact your IT administrator.";
+
   private final SamlDeploymentManager samlDeploymentManager;
 
   private final SessionIdMapper idMapper;
@@ -70,7 +77,14 @@ class SamlFilter
     SamlAuthenticator samlAuthenticator =
         newSamlAuthenticator(samlEndpoint, httpFacade, samlDeployment, samlSessionStore);
 
-    AuthOutcome outcome = samlAuthenticator.authenticate();
+    AuthOutcome outcome;
+    try {
+      outcome = samlAuthenticator.authenticate();
+    }
+    catch (Exception e) {
+      log.error("SAML authentication failed: {}", e.getMessage(), e);
+      outcome = AuthOutcome.FAILED;
+    }
     if (outcome == AuthOutcome.AUTHENTICATED) {
       return !samlEndpoint;
     }
@@ -85,6 +99,11 @@ class SamlFilter
         homePage += "/";
       }
       httpResponse.sendRedirect(homePage);
+      return false;
+    }
+    if (outcome == AuthOutcome.FAILED) {
+      LoginErrorResponseHandler.sendError(httpResponse,
+          new ErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, MSG_SAML_FAILURE));
       return false;
     }
 

@@ -27,9 +27,11 @@ import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.test.LogOutput;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.keycloak.saml.BaseSAML2BindingBuilder;
 import org.keycloak.saml.common.constants.JBossSAMLConstants;
@@ -52,6 +54,9 @@ public class SamlAuthcTest
   private KeyPair idpSigningKeyPair;
 
   private String idpMetadata;
+
+  @Rule
+  public LogOutput logOutput = new LogOutput(SamlFilter.class);
 
   @After
   public void exit() throws Exception {
@@ -141,7 +146,11 @@ public class SamlAuthcTest
     }
   }
 
-  protected Consumer<HttpRequest> samlResponse(Document document) throws Exception {
+  private HttpRequest samlRequest() {
+    return restRequest().path("saml");
+  }
+
+  private Consumer<HttpRequest> samlResponse(Document document) throws Exception {
     String xml = DocumentUtil.getDocumentAsString(document);
     String value = URLEncoder.encode(Base64.getEncoder().encodeToString(xml.getBytes(StandardCharsets.UTF_8)), "UTF-8");
     return httpRequest -> httpRequest.body("SAMLResponse=" + value, "application/x-www-form-urlencoded");
@@ -159,7 +168,7 @@ public class SamlAuthcTest
     Document doc = loadMessage("login-response.xml");
     finishIdpMessage(doc, SIGN_DOCUMENT, SIGN_ASSERTION, ENCRYPT_ASSERTION);
 
-    HttpResponse response = restRequest().path("saml").with(samlResponse(doc)).post();
+    HttpResponse response = samlRequest().with(samlResponse(doc)).post();
 
     assertResponseStatus(302, response);
     assertThat(response.getHeader("Location")).isEqualTo(getRestBaseUrl());
@@ -171,5 +180,21 @@ public class SamlAuthcTest
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
     assertThat(authStatus.getUsername()).isEqualTo("username-attribute");
     assertThat(authStatus.getGroups()).containsExactlyInAnyOrder(Group.AUTHENTICATED_USERS_GROUP_ID, "group-attribute");
+  }
+
+  @Test
+  public void testLoginResponse_InvalidAudienceUri() throws Exception {
+    configureSaml();
+
+    Document doc = loadMessage("login-response.xml");
+    Element audience = DocumentUtil.getElement(doc, JBossSAMLConstants.AUDIENCE.getAsQName());
+    audience.setTextContent("\"invalid-audience-uri");
+    finishIdpMessage(doc, SIGN_DOCUMENT, SIGN_ASSERTION);
+
+    HttpResponse response = samlRequest().with(samlResponse(doc)).post();
+
+    assertResponseStatus(500, response);
+    assertThat(response.getBodyText()).isEqualTo(SamlFilter.MSG_SAML_FAILURE);
+    assertThat(logOutput).atErrorLevel().containsPattern("Invalid SAML message.*invalid-audience-uri");
   }
 }

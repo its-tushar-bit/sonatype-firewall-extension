@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -59,6 +60,8 @@ public class UserTokenService
     userToken.setUserCode(userCode);
     userToken.setPassCode(hashed);
     userToken.setInternalUser(user.isInternalUser());
+
+    audit(userToken);
     userTokenDAO.insert(userToken);
 
     ApiUserTokenDTO apiUserTokenDTO = new ApiUserTokenDTO();
@@ -82,6 +85,13 @@ public class UserTokenService
     if (userToken == null) {
       throw new NotFoundException("No user token found for user: " + username);
     }
+    audit(userToken);
     userTokenDAO.delete(userToken);
+  }
+
+  private void audit(UserToken userToken) {
+    AuditData.get()
+        .setData("username", userToken.getUsername())
+        .setData("userCode", userToken.getUserCode());
   }
 }

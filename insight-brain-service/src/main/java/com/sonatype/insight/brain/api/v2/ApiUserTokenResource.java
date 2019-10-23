@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.api.v2;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
@@ -28,8 +30,12 @@ public class ApiUserTokenResource
 {
   private final UserTokenService userTokenService;
 
-  public static final String CURRENT_USER = "currentUser";
+  static final String CURRENT_USER = "currentUser";
 
+  private static final String USERS = "users";
+
+  static final String DELETE_BY_USERNAME = USERS + "/{username}";
+  
   @Inject
   public ApiUserTokenResource(UserTokenService userTokenService) {
     this.userTokenService = userTokenService;
@@ -40,5 +46,17 @@ public class ApiUserTokenResource
   @Path(CURRENT_USER)
   public ApiUserTokenDTO createUserToken() {
     return userTokenService.createUserToken();
+  }
+
+  @DELETE
+  @Path(DELETE_BY_USERNAME)
+  public void deleteUserToken(@PathParam("username") String username) {
+    userTokenService.deleteUserToken(username);
+  }
+
+  @DELETE
+  @Path(CURRENT_USER)
+  public void deleteCurrentUserToken() {
+    userTokenService.deleteCurrentUserToken();
   }
 }

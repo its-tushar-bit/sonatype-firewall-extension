@@ -10,9 +10,11 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.shiro.SecurityUtils;
@@ -64,5 +66,22 @@ public class UserTokenService
     apiUserTokenDTO.passCode = passCode;
 
     return apiUserTokenDTO;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void deleteUserToken(String username) {
+    deleteUserTokenByUsername(username);
+  }
+
+  public void deleteCurrentUserToken() {
+    deleteUserTokenByUsername(((UserPrincipal) SecurityUtils.getSubject().getPrincipal()).getUsername());
+  }
+
+  private void deleteUserTokenByUsername(String username) {
+    UserToken userToken = userTokenDAO.getByUsername(username);
+    if (userToken == null) {
+      throw new NotFoundException("No user token found for user: " + username);
+    }
+    userTokenDAO.delete(userToken);
   }
 }

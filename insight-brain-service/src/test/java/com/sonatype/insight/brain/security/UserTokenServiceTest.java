@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
 
@@ -93,5 +94,41 @@ public class UserTokenServiceTest
     when(subject.getPrincipal()).thenReturn(new UserPrincipal("JohnDoe", "John Doe", true));
     assertThatThrownBy(() -> userTokenService.createUserToken())
         .isInstanceOf(BadRequestException.class).hasMessage("UserToken already exists for user: JohnDoe");
+  }
+
+  @Test
+  public void testDeleteUserToken() {
+    String username = "user-a";
+    tempEntity.newUser(username);
+    UserToken userToken = tempEntity.newUserToken(username, true);
+    userTokenService.deleteUserToken(username);
+
+    assertThat(userTokenDAO.getById(userToken.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteUserToken_NonExistentUserToken() {
+    String username = "user-a";
+    assertThatThrownBy(() -> userTokenService.deleteUserToken(username)).isInstanceOf(NotFoundException.class)
+        .hasMessage("No user token found for user: " + username);
+  }
+
+  @Test
+  public void testDeleteCurrentUserToken() {
+    String username = "user-a";
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "Administrator", true));
+    UserToken userToken = tempEntity.newUserToken(username, true);
+    userTokenService.deleteCurrentUserToken();
+
+    assertThat(userTokenDAO.getById(userToken.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteCurrentUserToken_NonExistentUserToken() {
+    String username = "user-a";
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "Administrator", true));
+
+    assertThatThrownBy(() -> userTokenService.deleteCurrentUserToken()).isInstanceOf(NotFoundException.class)
+        .hasMessage("No user token found for user: " + username);
   }
 }

@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -127,7 +128,7 @@ public class ThirdPartyComponentDAO
       final ComponentIdentifier identifier,
       final String scanId)
   {
-    final ComponentDetails component = findComponent(appId, identifier, scanId);
+    final ComponentDetails component = resolveComponentDetails(findComponent(appId, identifier, scanId));
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     if (component != null) {
       componentDetailsList.setList(Collections.singletonList(component));
@@ -138,7 +139,15 @@ public class ThirdPartyComponentDAO
     return componentDetailsList;
   }
 
-  private ComponentDetails findComponent(
+  public NamedComponentDetails getComponentDetailsByIdentifier(
+      final ComponentIdentifier identifier,
+      final String appId,
+      final String scanId)
+  {
+    return resolveComponentDetails(findComponent(appId, identifier, scanId));
+  }
+
+  private ThirdPartyReportComponentDTO findComponent(
       final String appId,
       final ComponentIdentifier identifier,
       final String scanId)
@@ -162,13 +171,17 @@ public class ThirdPartyComponentDAO
 
     final Map<String, ThirdPartyReportComponentDTO> detailsByIdentifier = scannedComponents.column(identifier);
     if (!detailsByIdentifier.isEmpty()) {
-      return componentDetailsFrom(detailsByIdentifier.values().iterator().next());
+      return detailsByIdentifier.values().iterator().next();
     }
     return null;
   }
 
-  private ComponentDetails componentDetailsFrom(final ThirdPartyReportComponentDTO componentDTO) {
-    final ComponentDetails componentDetails = new ComponentDetails();
+  private NamedComponentDetails resolveComponentDetails(final ThirdPartyReportComponentDTO componentDTO) {
+    if (componentDTO == null) {
+      return null;
+    }
+
+    final NamedComponentDetails componentDetails = new NamedComponentDetails();
     componentDetails.setComponentIdentifier(componentDTO.componentIdentifier);
     componentDetails.setHash(componentDTO.bomRow.hash);
     componentDetails.setMatchState(componentDTO.bomRow.matchState);

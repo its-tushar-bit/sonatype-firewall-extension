@@ -803,7 +803,7 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentDetails componentDetails = componentInfoService
         .getComponentDetails_ReadPermission(owner.getType(), ownerId, MAVEN_COORDINATES, MatchState.EXACT.getId(),
-            null /* hash */, false /* proprietary */, httpRequestMock);
+            null /* hash */, false /* proprietary */, httpRequestMock, null, null);
     assertThat(componentDetails).isNotNull();
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
     assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
@@ -818,6 +818,27 @@ public class ComponentInfoServiceTest
   @Test
   public void testGetComponentDetails_ReadPermission_Repository() throws Exception {
     testGetComponentDetails_ReadPermission(repository, repository.getId());
+  }
+
+  @Test
+  public void testGetComponentDetails_ReadPermission_ThirdParty() throws Exception {
+    String scanId = "scanId";
+    final String identificationSource = IdentificationSource.CLAIR.getId();
+    NamedComponentDetails tpsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
+    tpsComponentDetails.setMatchState(MatchState.EXACT.getId());
+    tpsComponentDetails.setIdentificationSource(identificationSource);
+
+    when(thirdPartyComponentDAO.getComponentDetailsByIdentifier( MAVEN_COORDINATES, application.getId(), scanId))
+        .thenReturn(tpsComponentDetails);
+
+    ComponentDetails componentDetails = componentInfoService
+        .getComponentDetails_ReadPermission(application.getType(), applicationPublicId, MAVEN_COORDINATES,
+            MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock, identificationSource,
+            scanId);
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
+    assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo(identificationSource);
   }
 
   @Deprecated

@@ -57,9 +57,21 @@ public abstract class AbstractComponentInfoResourceTest
                                        MatchState matchState,
                                        Boolean proprietary)
   {
+    return detailsRequest(ownerId, componentIdentifier, hash, matchState, proprietary, null, null);
+  }
+
+  protected HttpRequest detailsRequest(String ownerId,
+                                       ComponentIdentifier componentIdentifier,
+                                       String hash,
+                                       MatchState matchState,
+                                       Boolean proprietary,
+                                       String identificationSource,
+                                       String scanId)
+  {
     return restRequest().path(getOwner().getType().toString(), ownerId)
         .query("componentIdentifier", componentIdentifier).query("hash", hash)
-        .query("matchState", matchState != null ? matchState.getId() : null).query("proprietary", proprietary);
+        .query("matchState", matchState != null ? matchState.getId() : null).query("proprietary", proprietary)
+        .query("identificationSource", identificationSource).query("scanId", scanId);
   }
 
   protected HttpRequest listRequest(String ownerId, ComponentIdentifier componentIdentifier) {

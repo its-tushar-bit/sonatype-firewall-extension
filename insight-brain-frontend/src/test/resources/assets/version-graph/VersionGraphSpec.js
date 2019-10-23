@@ -933,7 +933,7 @@ var clmEndpointTemplate = {
         scope.$destroy();
       });
 
-      it('Http Requests', inject(function($httpBackend, Coordinates, Properties) {
+      it('Http Requests', inject(function($httpBackend, OwnerContext, Coordinates, Properties) {
         var gav = {
           groupId: 'foo',
           artifactId: 'bar',
@@ -962,7 +962,7 @@ var clmEndpointTemplate = {
               groupId: 'foo',
               artifactId: 'bar',
               version: '1'
-            }, undefined);
+            }, undefined, undefined, undefined);
 
         // Another version selected
         $httpBackend.expectGET('foo').respond({
@@ -972,6 +972,8 @@ var clmEndpointTemplate = {
         scope.$apply(function() {
           Coordinates.setSelected({groupId: 'foo', artifactId: 'bar', version: '2'});
           Properties.setHash('abcd');
+          Properties.setIdentificationSource('Sonatype');
+          OwnerContext.scanId = 'scanId';
         });
         $httpBackend.flush();
         expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('application', 'myFirstApp', 'maven',
@@ -979,7 +981,7 @@ var clmEndpointTemplate = {
               groupId: 'foo',
               artifactId: 'bar',
               version: '2'
-            }, undefined);
+            }, undefined, 'Sonatype', 'scanId');
 
         // Unknown GAV
         scope.$apply(function() {

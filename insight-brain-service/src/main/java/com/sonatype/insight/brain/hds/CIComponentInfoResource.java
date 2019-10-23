@@ -64,10 +64,12 @@ public class CIComponentInfoResource
       @QueryParam("componentIdentifier") ComponentIdentifier identifier,
       @QueryParam("matchState") String matchState,
       @QueryParam("hash") String hash,
-      @QueryParam("proprietary") boolean proprietary) throws IOException
+      @QueryParam("proprietary") boolean proprietary,
+      @QueryParam("identificationSource") String identificationSource,
+      @QueryParam("scanId") String scanId) throws IOException
   {
     return componentInfoService.getComponentDetails_ReadPermission(ownerType, ownerId, identifier, matchState, hash,
-        proprietary, httpRequest);
+        proprietary, httpRequest, identificationSource, scanId);
   }
 
   /**

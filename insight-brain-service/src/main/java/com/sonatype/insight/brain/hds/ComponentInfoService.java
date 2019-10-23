@@ -125,11 +125,14 @@ public class ComponentInfoService
       String matchState,
       String hash,
       boolean proprietary,
-      HttpServletRequest httpRequest) throws IOException
+      HttpServletRequest httpRequest,
+      String identificationSource,
+      String scanId) throws IOException
   {
     auditComponentAccess(componentIdentifier, hash);
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
-    return getComponentDetails(owner, componentIdentifier, matchState, hash, proprietary, httpRequest);
+    return getComponentDetails(owner, componentIdentifier, matchState, hash, proprietary, httpRequest,
+        identificationSource, scanId);
   }
 
   NamedComponentDetails getComponentDetails(Owner owner,
@@ -139,6 +142,18 @@ public class ComponentInfoService
                                             boolean proprietary,
                                             HttpServletRequest httpRequest) throws IOException
   {
+    return getComponentDetails(owner, identifier, matchState, hash, proprietary, httpRequest, null, null);
+  }
+
+  NamedComponentDetails getComponentDetails(Owner owner,
+                                            final ComponentIdentifier identifier,
+                                            String matchState,
+                                            String hash,
+                                            boolean proprietary,
+                                            HttpServletRequest httpRequest,
+                                            String identificationSource,
+                                            String scanId) throws IOException
+  {
     long start = System.currentTimeMillis();
 
     // clients like Nexus provide full SHA1 values
@@ -147,7 +162,12 @@ public class ComponentInfoService
     NamedComponentDetails componentDetails;
 
     if (identifier != null) {
-      componentDetails = getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest);
+      if (isThirdPartyIdentificationSource(identificationSource)) {
+        componentDetails = thirdPartyComponentDAO.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
+      }
+      else {
+        componentDetails = getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest);
+      }
     }
     else {
       // See CLM-4195

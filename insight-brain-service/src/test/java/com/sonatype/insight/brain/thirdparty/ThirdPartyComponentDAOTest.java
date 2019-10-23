@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -144,32 +145,10 @@ public class ThirdPartyComponentDAOTest
     when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
 
     final List<ComponentDetails> allVersions = dao.getAllVersions(appId, testData.get(hashGlibc), scanId).getList();
+
     assertThat(allVersions).hasSize(1);
     final ComponentDetails component = allVersions.get(0);
-    assertThat(component).satisfies(componentDetails -> {
-      assertThat(componentDetails.getComponentIdentifier()).isEqualTo(testData.get(hashGlibc));
-      assertThat(componentDetails.getHash()).isEqualTo(hashGlibc);
-      assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
-      assertThat(componentDetails.getIdentificationSource()).isEqualTo("Clair");
-    });
-
-    final List<SecurityVulnerability> secResults = component.getSecurityVulnerabilities();
-    assertThat(secResults).hasSize(2);
-    final Optional<SecurityVulnerability> cve1 = getSecurityVulnerability(secResults, "CVE-2018-1000001");
-    assertThat(cve1).hasValueSatisfying(sv -> {
-      assertThat(sv.getSeverity()).isEqualTo(8.0f);
-      assertThat(sv.getSummary()).isEqualTo("description CVE-2018-1000001");
-      assertThat(sv.getUrl()).isEqualTo("https://security-tracker.debian.org/tracker/CVE-2018-1000001");
-      assertThat(sv.getSource()).isNull();
-    });
-
-    final Optional<SecurityVulnerability> cve2 = getSecurityVulnerability(secResults, "CVE-2017-16997");
-    assertThat(cve2).hasValueSatisfying(sv -> {
-      assertThat(sv.getSeverity()).isEqualTo(10.0f);
-      assertThat(sv.getSummary()).isEqualTo("description CVE-2017-16997");
-      assertThat(sv.getUrl()).isEqualTo("https://security-tracker.debian.org/tracker/CVE-2017-16997");
-      assertThat(sv.getSource()).isNull();
-    });
+    assertThirdPartyComponentResult(component);
   }
 
   @Test
@@ -197,6 +176,19 @@ public class ThirdPartyComponentDAOTest
     List<ComponentDetails> result =
         dao.getAllVersions(appId, componentIdentifierFrom("unknown", "unknown", "0.0"), scanId).getList();
     assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetComponentDetailsByIdentifier() {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
+    String scanId = "scanId";
+    String appId = "appId";
+    when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
+
+    final NamedComponentDetails componentDetails =
+        dao.getComponentDetailsByIdentifier(testData.get(hashGlibc), appId, scanId);
+
+    assertThirdPartyComponentResult(componentDetails);
   }
 
   private Optional<SecurityVulnerability> getSecurityVulnerability(
@@ -255,6 +247,33 @@ public class ThirdPartyComponentDAOTest
 
     assertSummaryCountsUpdated(reportZip, 1); // non-third party component only
     assertDataCountsUpdated(reportZip, 1);
+  }
+
+  private void assertThirdPartyComponentResult(final ComponentDetails component) {
+    assertThat(component).satisfies(componentDetails -> {
+      assertThat(componentDetails.getComponentIdentifier()).isEqualTo(testData.get(hashGlibc));
+      assertThat(componentDetails.getHash()).isEqualTo(hashGlibc);
+      assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
+      assertThat(componentDetails.getIdentificationSource()).isEqualTo("Clair");
+    });
+
+    final List<SecurityVulnerability> secResults = component.getSecurityVulnerabilities();
+    assertThat(secResults).hasSize(2);
+    final Optional<SecurityVulnerability> cve1 = getSecurityVulnerability(secResults, "CVE-2018-1000001");
+    assertThat(cve1).hasValueSatisfying(sv -> {
+      assertThat(sv.getSeverity()).isEqualTo(8.0f);
+      assertThat(sv.getSummary()).isEqualTo("description CVE-2018-1000001");
+      assertThat(sv.getUrl()).isEqualTo("https://security-tracker.debian.org/tracker/CVE-2018-1000001");
+      assertThat(sv.getSource()).isNull();
+    });
+
+    final Optional<SecurityVulnerability> cve2 = getSecurityVulnerability(secResults, "CVE-2017-16997");
+    assertThat(cve2).hasValueSatisfying(sv -> {
+      assertThat(sv.getSeverity()).isEqualTo(10.0f);
+      assertThat(sv.getSummary()).isEqualTo("description CVE-2017-16997");
+      assertThat(sv.getUrl()).isEqualTo("https://security-tracker.debian.org/tracker/CVE-2017-16997");
+      assertThat(sv.getSource()).isNull();
+    });
   }
 
   private ComponentIdentifier componentIdentifierFrom(final String format, final String name, final String version) {

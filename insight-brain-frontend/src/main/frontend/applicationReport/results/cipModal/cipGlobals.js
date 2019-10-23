@@ -32,9 +32,11 @@ window.Brain = {
       return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates, pathname,
           identificationSource, scanId);
     },
-    getComponentUrl(ownerType, ownerId, componentType, hash, matchState, proprietary, coordinates, pathname) {
+    getComponentUrl(ownerType, ownerId, componentType, hash, matchState, proprietary, coordinates, pathname,
+                    identificationSource, scanId) {
       const url = window.CLM.path + 'rest/ci/componentDetails/' + ownerType + '/' + encodeURIComponent(ownerId);
-      return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates, pathname);
+      return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates, pathname,
+          identificationSource, scanId);
     }
   },
 

@@ -22,6 +22,8 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
@@ -72,6 +74,24 @@ public class CIComponentInfoResourceTest
   @Test
   public void testGetComponentDetailsList() throws Exception {
     testGetComponentDetailsList_ReadPermission();
+  }
+
+  @Test
+  public void testGetComponentDetails_ThirdParty() throws Exception {
+    final String scanId = "ScanId";
+    createReportFile(getOwner().getId(), scanId, "/CIComponentInfoResourceTest/report");
+    final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian:9", "glibc", "2.24-11+deb9u3");
+
+    HttpRequest request = detailsRequest(getOwnerId(), tpComponentIdentifier, null, MatchState.EXACT, false,
+        IdentificationSource.CLAIR.getId(), scanId);
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+
+    ComponentDetails componentDetails = response.getBody(TestNamedComponentDetails.class);
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(tpComponentIdentifier);
+    assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo(IdentificationSource.CLAIR.getId());
   }
 
   @Test

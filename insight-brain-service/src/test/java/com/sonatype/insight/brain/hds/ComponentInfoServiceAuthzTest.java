@@ -173,7 +173,8 @@ public class ComponentInfoServiceAuthzTest
     configureHdsClientMock();
     grantReadPermission(owner.getId());
     componentInfoService.getComponentDetails_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER,
-        MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
+        MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */,
+        null /* identificationSource */, null /* scanId */);
   }
 
   @Test
@@ -191,7 +192,8 @@ public class ComponentInfoServiceAuthzTest
   {
     login();
     componentInfoService.getComponentDetails_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER,
-        MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
+        MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */,
+        null /* identificationSource */, null /* scanId */);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -208,7 +210,8 @@ public class ComponentInfoServiceAuthzTest
       throws Exception
   {
     componentInfoService.getComponentDetails_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER,
-        MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
+        MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */,
+        null /* identificationSource */, null /* scanId */);
   }
 
   @Test(expected = UnauthenticatedException.class)

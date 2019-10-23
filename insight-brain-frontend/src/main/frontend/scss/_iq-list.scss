@@ -165,6 +165,14 @@
       }
     }
 
+    &.iq-list__item--disabled {
+      color: $iq-grey-4;
+
+      .fa-chevron-right {
+        color: $iq-grey-4;
+      }
+    }
+
     .iq-list__subtext {
       pointer-events: none; // Fix for IE11 :active state display
     }

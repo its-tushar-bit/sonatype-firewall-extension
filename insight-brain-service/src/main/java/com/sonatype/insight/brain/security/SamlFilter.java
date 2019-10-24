@@ -112,6 +112,7 @@ class SamlFilter
       // there's no point in sending out a SAML challenge to a client which is not prepared for it
       if (requestPath.startsWith("/saml") || EcpAuthenticationHandler.canHandle(httpFacade)) {
         request.removeAttribute(DefaultSubjectContext.SESSION_CREATION_ENABLED);
+        log.debug("Initiating SAML authentication via identity provider");
         challenge.challenge(httpFacade);
       }
       else {

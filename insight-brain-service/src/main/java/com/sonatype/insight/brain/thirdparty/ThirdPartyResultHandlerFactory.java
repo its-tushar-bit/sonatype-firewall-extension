@@ -13,6 +13,9 @@ public class ThirdPartyResultHandlerFactory
     if (ItemContentType.CLAIR_SCANNER.equals(itemContentType)) {
       return new ClairScannerResultHandler();
     }
+    else if (ItemContentType.SBOM.equals(itemContentType)) {
+      return new SbomResultHandler();
+    }
     throw new IllegalArgumentException("unsupported third party content type " + itemContentType);
   }
 }

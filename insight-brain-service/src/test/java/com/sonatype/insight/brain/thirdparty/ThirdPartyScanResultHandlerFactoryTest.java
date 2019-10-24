@@ -21,6 +21,12 @@ public class ThirdPartyScanResultHandlerFactoryTest
   }
 
   @Test
+  public void testGetHandler_Sbom() {
+    ThirdPartyScanResultHandler handler = ThirdPartyResultHandlerFactory.newHandler(ItemContentType.SBOM);
+    assertThat(handler).isInstanceOf(SbomResultHandler.class);
+  }
+
+  @Test
   public void testGetHandler_UnsupportedType() {
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> ThirdPartyResultHandlerFactory.newHandler(ItemContentType.GO_MODULE))

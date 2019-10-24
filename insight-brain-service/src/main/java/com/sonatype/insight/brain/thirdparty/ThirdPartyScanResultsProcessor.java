@@ -50,7 +50,8 @@ public class ThirdPartyScanResultsProcessor
 {
   private static final Logger log = LoggerFactory.getLogger(ThirdPartyScanResultsProcessor.class);
 
-  private static final List<String> thirdPartyItemContentTypes = asList(ItemContentType.CLAIR_SCANNER.name());
+  private static final List<String> thirdPartyItemContentTypes =
+      asList(ItemContentType.CLAIR_SCANNER.name(), ItemContentType.SBOM.name());
 
   private static final XMLEventFactory EVENT_FACTORY = XMLEventFactory.newInstance();
 
@@ -170,15 +171,17 @@ public class ThirdPartyScanResultsProcessor
       Xpp3Dom itemElement,
       String contentElement,
       String contentType,
-      String scanRequestId)
+      String scanRequestId) throws Exception
   {
     String path = itemElement.getAttribute("path");
     String lastModified = itemElement.getAttribute("lastModified");
     String sha1 = itemElement.getAttribute("sha1");
 
-    ThirdPartyFile thirdPartyFile = saveFile(sha1, path);
-
-    saveScan(thirdPartyFile, scanRequestId);
+    ThirdPartyFile thirdPartyFile = null;
+    if (ItemContentType.CLAIR_SCANNER.name().equals(contentType)) {
+      thirdPartyFile = saveFile(sha1, path);
+      saveScan(thirdPartyFile, scanRequestId);
+    }
 
     ItemContentType contentItemType = ItemContentType.valueOf(contentType);
     ThirdPartyScanResultHandler handler = createHandler(contentItemType);

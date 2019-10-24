@@ -56,7 +56,7 @@ public class SamlAuthcTest
   private String idpMetadata;
 
   @Rule
-  public LogOutput logOutput = new LogOutput(SamlFilter.class);
+  public LogOutput logOutput = new LogOutput("org.keycloak", SamlFilter.class.getName());
 
   @After
   public void exit() throws Exception {
@@ -147,7 +147,7 @@ public class SamlAuthcTest
   }
 
   private HttpRequest samlRequest() {
-    return restRequest().path("saml");
+    return restRequest().path("saml").anon();
   }
 
   private Consumer<HttpRequest> samlResponse(Document document) throws Exception {
@@ -183,6 +183,36 @@ public class SamlAuthcTest
   }
 
   @Test
+  public void testLoginResponse_InvalidDestinationUri() throws Exception {
+    configureSaml();
+
+    Document doc = loadMessage("login-response.xml");
+    doc.getDocumentElement().setAttribute("Destination", "\"invalid-destination-uri");
+    finishIdpMessage(doc, SIGN_DOCUMENT, SIGN_ASSERTION);
+
+    HttpResponse response = samlRequest().with(samlResponse(doc)).post();
+
+    assertResponseStatus(500, response);
+    assertThat(response.getBodyText()).isEqualTo(SamlFilter.MSG_SAML_FAILURE);
+    assertThat(logOutput).atErrorLevel().containsPattern("Request URI .* does not match SAML request destination");
+  }
+
+  @Test
+  public void testLoginResponse_MismatchingDestination() throws Exception {
+    configureSaml();
+
+    Document doc = loadMessage("login-response.xml");
+    doc.getDocumentElement().setAttribute("Destination", "mismatching-destination");
+    finishIdpMessage(doc, SIGN_DOCUMENT, SIGN_ASSERTION);
+
+    HttpResponse response = samlRequest().with(samlResponse(doc)).post();
+
+    assertResponseStatus(500, response);
+    assertThat(response.getBodyText()).isEqualTo(SamlFilter.MSG_SAML_FAILURE);
+    assertThat(logOutput).atErrorLevel().containsPattern("Request URI .* does not match SAML request destination");
+  }
+
+  @Test
   public void testLoginResponse_InvalidAudienceUri() throws Exception {
     configureSaml();
 
@@ -196,5 +226,67 @@ public class SamlAuthcTest
     assertResponseStatus(500, response);
     assertThat(response.getBodyText()).isEqualTo(SamlFilter.MSG_SAML_FAILURE);
     assertThat(logOutput).atErrorLevel().containsPattern("Invalid SAML message.*invalid-audience-uri");
+  }
+
+  @Test
+  public void testLoginResponse_MismatchingAudience() throws Exception {
+    configureSaml();
+
+    Document doc = loadMessage("login-response.xml");
+    Element audience = DocumentUtil.getElement(doc, JBossSAMLConstants.AUDIENCE.getAsQName());
+    audience.setTextContent("mismatching-audience");
+    finishIdpMessage(doc, SIGN_DOCUMENT, SIGN_ASSERTION);
+
+    HttpResponse response = samlRequest().with(samlResponse(doc)).post();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).contains("<INPUT TYPE=\"HIDDEN\" NAME=\"SAMLRequest\"");
+    assertThat(logOutput).atInfoLevel().containsPattern("Assertion .* is not addressed to this SP");
+  }
+
+  @Test
+  public void testLoginResponse_MissingResponseSignature() throws Exception {
+    configureSaml();
+
+    Document doc = loadMessage("login-response.xml");
+    finishIdpMessage(doc);
+
+    HttpResponse response = samlRequest().with(samlResponse(doc)).post();
+
+    assertResponseStatus(500, response);
+    assertThat(response.getBodyText()).isEqualTo(SamlFilter.MSG_SAML_FAILURE);
+    assertThat(logOutput).atErrorLevel().contains("Failed to verify saml response signature");
+  }
+
+  @Test
+  public void testLoginResponse_MissingAssertionSignature() throws Exception {
+    configureSaml();
+
+    Document doc = loadMessage("login-response.xml");
+    finishIdpMessage(doc, SIGN_DOCUMENT);
+
+    HttpResponse response = samlRequest().with(samlResponse(doc)).post();
+
+    assertResponseStatus(500, response);
+    assertThat(response.getBodyText()).isEqualTo(SamlFilter.MSG_SAML_FAILURE);
+    assertThat(logOutput).atErrorLevel().contains("Failed to verify saml assertion signature");
+  }
+
+  @Test
+  public void testLoginResponse_AssertionOutOfTimeBounds() throws Exception {
+    configureSaml();
+
+    Document doc = loadMessage("login-response.xml");
+    Element conditions = DocumentUtil.getElement(doc, JBossSAMLConstants.CONDITIONS.getAsQName());
+    conditions.setAttribute("NotOnOrAfter", "2019-10-18T14:18:08.123Z");
+    finishIdpMessage(doc, SIGN_DOCUMENT, SIGN_ASSERTION);
+
+    HttpResponse response = samlRequest().with(samlResponse(doc)).post();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).contains("<INPUT TYPE=\"HIDDEN\" NAME=\"SAMLRequest\"");
+    assertThat(logOutput).atInfoLevel().containsPattern("Assertion .* expired");
+    assertThat(logOutput).atDebugLevel().containsPattern(
+        "Conditions of Assertion .* notBefore=2019-10-17T14:17:08\\.098Z.*notOnOrAfter=2019-10-18T14:18:08\\.123Z");
   }
 }

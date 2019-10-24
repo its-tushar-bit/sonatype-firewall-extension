@@ -47,7 +47,13 @@ public class PullRequestRemediationDetails
   private static final Pattern CVE_REGEX_PATTERN = Pattern.compile("((CVE|SONATYPE)-\\d+-\\d+)");
 
   private static final OrganizationDAO organizationDAO = new OrganizationDAO();
-  
+
+  private static final String DELIMITER = "<br>";
+
+  private static final String PREFIX = "<p>";
+
+  private static final String SUFFIX = "</p>";
+
   private static Template policyThreatsTemplate;
 
   private final Application app;
@@ -180,6 +186,7 @@ public class PullRequestRemediationDetails
       return "";
     }
     return policyFact.getComponentFacts().stream()
+        .filter(fact -> fact.getComponentIdentifier().equals(toBeRemediated))
         .map(ComponentFact::getConstraintFacts)
         .filter(list -> list != null && !list.isEmpty())
         .flatMap(list -> list.stream())
@@ -187,8 +194,9 @@ public class PullRequestRemediationDetails
         .filter(facts -> facts != null && !facts.isEmpty())
         .flatMap(facts -> facts.stream())
         .map(ConditionFact::getReason)
+        .distinct()
         .map(reason -> addCveLinks(reason, baseUrl))
-        .collect(Collectors.joining(", "));
+        .collect(Collectors.joining(DELIMITER, PREFIX, SUFFIX));
   }
 
   private String getConstraintName(final PolicyNotification policyNotification) {
@@ -197,11 +205,13 @@ public class PullRequestRemediationDetails
       return "";
     }
     return policyFact.getComponentFacts().stream()
-      .map(ComponentFact::getConstraintFacts)
-      .filter(list -> list != null && !list.isEmpty())
-      .flatMap(list -> list.stream())
-      .map(ConstraintFact::getConstraintName)
-      .collect(Collectors.joining(", "));
+        .filter(fact -> fact.getComponentIdentifier().equals(toBeRemediated))
+        .map(ComponentFact::getConstraintFacts)
+        .filter(list -> list != null && !list.isEmpty())
+        .flatMap(list -> list.stream())
+        .map(ConstraintFact::getConstraintName)
+        .distinct()
+        .collect(Collectors.joining(DELIMITER, PREFIX, SUFFIX));
   }
 
   private boolean hasComponentFacts(final PolicyFact policyFact) {

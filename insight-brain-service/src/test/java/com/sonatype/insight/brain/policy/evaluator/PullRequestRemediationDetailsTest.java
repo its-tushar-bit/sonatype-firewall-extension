@@ -55,6 +55,7 @@ public class PullRequestRemediationDetailsTest extends AbstractComponentTest
     Application app = tempEntity.newApplicationWithParent("my-public-app-id", "MyTestApp", "Integrations");
     String scanId = "5ea5363997ee2ba0c8730a5f785ae2c6";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("org.jooq", "jooq", "3.11.2");
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("foo", "bar", "baz");
 
     List<PolicyNotification> policyNotifications = new ArrayList<>();
 
@@ -69,6 +70,25 @@ public class PullRequestRemediationDetailsTest extends AbstractComponentTest
         new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "CVE-2016-1000031")));
     criticalFact.addConstraintFact(criticalConstraintFact);
     criticalPolicy.getPolicyFact().addComponentFact(criticalFact);
+
+    //introduce a second fact for the same component, with differing CVE
+    criticalPolicy.getPolicyFact().addComponentFact(
+        criticalFact.with(criticalConstraintFact.with(new ConditionFact("SecurityVulnerabilitySeverity", 0,
+            "Security Vulnerability Severity >= 9",
+            "Found security vulnerability CVE-2016-1000032 with severity 9.8.",
+            new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "CVE-2016-1000032")))));
+
+    //introduce a different Component violating the same policy, should be omitted from output
+    ComponentFact criticatFact2 = new ComponentFact(componentIdentifier2, "dummy-hash");
+    ConstraintFact criticalConstraintFact2 =
+        new ConstraintFact("constraint-id", "Another Critical risk CVSS score", "OR");
+    criticatFact2.addConstraintFact(criticalConstraintFact2);
+    criticalConstraintFact2.addConditionFact(new ConditionFact("SecurityVulnerabilitySeverity", 0,
+        "Security Vulnerability Severity >= 9",
+        "Found security vulnerability SONATYPE-2019-01 with severity 9.8.",
+        new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "SONATYPE-2019-01")));
+    criticalPolicy.getPolicyFact().addComponentFact(criticatFact2);
+    
     policyNotifications.add(criticalPolicy);
 
     PolicyNotification highPolicy = new PolicyNotification(

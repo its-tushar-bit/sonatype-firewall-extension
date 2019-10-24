@@ -175,12 +175,13 @@ public class RepositoryPolicyEvaluator
     try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
       tx.begin();
 
-      repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
-          canBeQuarantined, policyResults);
-
       RepositoryPolicyViolationLogger policyViolationLogger =
           policyViolationLoggerFactory.newLogger(evaluationTime, repository);
+
+      // The order of the following calls are important and must not be changed. See: CLM-13853
       persistPolicyViolations(tx, repository, evaluationTime, component, policyResults, policyViolationLogger);
+      repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
+          canBeQuarantined, policyResults);
 
       tx.commit();
       AuditData.get().commitSubEvents();

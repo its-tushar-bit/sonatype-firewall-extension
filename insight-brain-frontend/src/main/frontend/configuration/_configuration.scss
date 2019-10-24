@@ -5,3 +5,7 @@
  */
 @import "license/license";
 @import "gettingStarted/gettingStarted";
+
+.iq-system-config-explanation {
+  max-width: $iq-paragraph-width-maximum;
+}

@@ -79,7 +79,7 @@ services.filter('ago', function() {
  */
 var timeAbbreviations = {
   year: 'y',
-  month: 'm',
+  month: 'mo',
   day: 'd',
   hour: 'h',
   minute: 'min',

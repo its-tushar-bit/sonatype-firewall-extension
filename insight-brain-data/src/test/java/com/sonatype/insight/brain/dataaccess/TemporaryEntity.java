@@ -1551,15 +1551,28 @@ public class TemporaryEntity
     return newRepositoryComponent(repositoryId, matchState, uuid(), identifier, quarantined);
   }
 
-  public RepositoryComponent newRepositoryComponent(String repositoryId,
-                                                    MatchState matchState,
-                                                    String pathname,
-                                                    ComponentIdentifier identifier,
-                                                    boolean quarantined)
+  public RepositoryComponent newRepositoryComponent(
+      String repositoryId,
+      MatchState matchState,
+      String pathname,
+      ComponentIdentifier identifier,
+      boolean quarantined)
   {
-    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, new Date(),
-        pathname.substring(0, Math.min(pathname.length(), 20)), identifier, matchState.getId(),
-        IdentificationSource.SONATYPE.getId(), new Date());
+    return newRepositoryComponent(repositoryId, matchState, pathname,
+        pathname.substring(0, Math.min(pathname.length(), 20)), identifier, quarantined);
+  }
+
+  public RepositoryComponent newRepositoryComponent(
+      String repositoryId,
+      MatchState matchState,
+      String pathname,
+      String hash,
+      ComponentIdentifier identifier,
+      boolean quarantined)
+  {
+    RepositoryComponent repositoryComponent =
+        new RepositoryComponent(repositoryId, pathname, new Date(), hash, identifier, matchState.getId(),
+            IdentificationSource.SONATYPE.getId(), new Date());
 
     if (quarantined) {
       repositoryComponent.setQuarantineTime(new Date());

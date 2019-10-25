@@ -21,17 +21,28 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.Componen
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
@@ -60,6 +71,9 @@ public class RepositoryPolicyEvaluatorTest
 
   @Inject
   private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  @Inject
+  private RepositoryComponentDAO repositoryComponentDAO;
 
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
@@ -255,25 +269,16 @@ public class RepositoryPolicyEvaluatorTest
     List<RepositoryPolicyViolation> waivedViolations = activeViolations.stream()
         .filter(violation -> violation.isWaived()).collect(toList());
     assertThat(waivedViolations).hasSize(1);
-    assertViolationWaiverDetails(waivedViolations.get(0), policyWaiver);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, repository, before1, after1, waivedViolations);
 
     policyViolationLoggerOutput.clear();
 
     // remove the original waiver, add a waiver for the other policy and re-evaluate
     new PolicyWaiverDAO().delete(policyWaiver);
-    // The waived violation should still have waiver details even though the waiver has been deleted
-    activeViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
-    waivedViolations = activeViolations.stream()
-        .filter(violation -> violation.isWaived()).collect(toList());
-    assertThat(waivedViolations).hasSize(1);
-    assertViolationWaiverDetails(waivedViolations.get(0), policyWaiver);
-
-    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(policy1.getId(), repository.getId());
+    tempEntity.newWaiver(policy1.getId(), repository.getId());
     Date before2 = new Date();
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
     final Date after2 = new Date();
-
     // ... yielding again two violations, none of which logged as new
     activeViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
@@ -282,25 +287,186 @@ public class RepositoryPolicyEvaluatorTest
     List<RepositoryPolicyViolation> unwaivedViolations = activeViolations.stream()
         .filter(violation -> policy2.getId().equals(violation.getPolicyId())).collect(toList());
     assertThat(unwaivedViolations).hasSize(1);
-    assertThat(unwaivedViolations.get(0).getPolicyWaiverId()).isNull();
-    assertThat(unwaivedViolations.get(0).getPolicyWaiverComment()).isNull();
-    assertThat(unwaivedViolations.get(0).getWaiveTime()).isNull();
     assertPolicyViolationsLogged(PolicyViolationLogEvent.UNWAIVE, repository, before2, after2, unwaivedViolations);
-
     // ... and one logged as freshly waived
     waivedViolations = activeViolations.stream()
         .filter(violation -> policy1.getId().equals(violation.getPolicyId())).collect(toList());
     assertThat(waivedViolations).hasSize(1);
-    assertViolationWaiverDetails(waivedViolations.get(0), policyWaiver2);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, repository, before2, after2, waivedViolations);
+  }
+
+  @Test
+  public void testEvaluate_WaiverDetails() {
+    Repository repository = tempEntity.newRepository();
+
+    Policy policy1 = tempEntity.newPolicy(repository.getParentOwnerId());
+    Policy policy2 = tempEntity.newPolicy(repository.getParentOwnerId());
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", "path", "h"));
+    hdsResult.components.add(
+        createComponentEvaluationData(ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), "h",
+            MatchState.EXACT, 0 /* index */, null /* declaredLicenseSet */, null /* observedLicenseSet */,
+            createSecurityVulnerabilities(), 0 /* popularity */));
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    // waive the first policy
+    PolicyWaiver policyWaiver1 = tempEntity.newWaiver(policy1.getId(), repository.getId());
+
+    // perform initial evaluation
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+
+    // ... yielding two active violations
+    List<RepositoryPolicyViolation> activeViolations =
+        repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+    assertThat(activeViolations).hasSize(2);
+
+    // ... and one as waived
+    List<RepositoryPolicyViolation> waivedViolations =
+        activeViolations.stream().filter(violation -> violation.isWaived()).collect(toList());
+    assertThat(waivedViolations).hasSize(1);
+    RepositoryComponent repositoryComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), waivedViolations.get(0).getPathname());
+    Date policy1ViolationWaiveTime = repositoryComponent.getTime();
+    assertViolationWaiverDetails(waivedViolations.get(0), policyWaiver1, policy1ViolationWaiveTime);
+
+    // waive the second policy
+    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(policy2.getId(), repository.getId());
+
+    // re-evaluate
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+
+    // ... yielding again two violations
+    activeViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+    assertThat(activeViolations).hasSize(2);
+
+    // ... and two ARE waived
+    waivedViolations = activeViolations.stream().filter(violation -> policy1.getId().equals(violation.getPolicyId()))
+        .collect(toList());
+    assertThat(waivedViolations).hasSize(1);
+
+    // first waived violation should still use the original evaluation time
+    assertViolationWaiverDetails(waivedViolations.get(0), policyWaiver1, policy1ViolationWaiveTime);
+
+    waivedViolations = activeViolations.stream()
+        .filter(violation -> policy2.getId().equals(violation.getPolicyId())).collect(toList());
+    assertThat(waivedViolations).hasSize(1);
+
+    // second waived violation should use the most recent evaluation time
+    repositoryComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), waivedViolations.get(0).getPathname());
+    Date policy2ViolationWaiveTime = repositoryComponent.getLastEvaluationTime();
+    assertViolationWaiverDetails(waivedViolations.get(0), policyWaiver2, policy2ViolationWaiveTime);
+
+    // remove the original waiver re-evaluate
+    new PolicyWaiverDAO().delete(policyWaiver1);
+
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+
+    activeViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+    assertThat(activeViolations).hasSize(2);
+
+    // first violation is no longer waived
+    List<RepositoryPolicyViolation> unwaivedViolations =
+        activeViolations.stream().filter(violation -> policy1.getId().equals(violation.getPolicyId()))
+            .collect(toList());
+    assertThat(unwaivedViolations).hasSize(1);
+    assertThat(unwaivedViolations.get(0).getPolicyWaiverId()).isNull();
+    assertThat(unwaivedViolations.get(0).getPolicyWaiverComment()).isNull();
+    assertThat(unwaivedViolations.get(0).getWaiveTime()).isNull();
+
+    // ... second violation is still waived... waive time should be preserved
+    waivedViolations = activeViolations.stream().filter(violation -> policy2.getId().equals(violation.getPolicyId()))
+        .collect(toList());
+    assertThat(waivedViolations).hasSize(1);
+    assertViolationWaiverDetails(waivedViolations.get(0), policyWaiver2, policy2ViolationWaiveTime);
+  }
+
+  @Test
+  public void testEvaluate_WaiverDetails_MigrateExistingRecordMissingWaiveTime() {
+    Repository repository = tempEntity.newRepository();
+
+    Policy policy = new Policy(null, "test");
+    policy.setOwnerId(repository.getParentOwnerId());
+    Constraint constraint = new Constraint(null, "constraint", LogicalOperator.AND);
+    com.sonatype.insight.brain.model.policy.Condition condition =
+        new com.sonatype.insight.brain.model.policy.Condition(MatchStateConditionType.ID, "is",
+            MatchState.EXACT.toString());
+    constraint.setConditions(Collections.singletonList(condition));
+    policy.setConstraints(Collections.singletonList(constraint));
+    tempEntity.newPolicy(policy);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+
+    // simulate an older record that does not have the policy waiver details, specifically no waive time
+    RepositoryComponent repositoryComponent = tempEntity
+        .newRepositoryComponent(repository.getId(), MatchState.EXACT, "path", "hash", componentIdentifier, false);
+    ConstraintFact constraintFact =
+        new ConstraintFact(constraint.getId(), constraint.getName(), constraint.getOperator().name());
+
+    Component c = new Component(repositoryComponent.getComponentIdentifier());
+    constraintFact.addConditionFact(ComponentPolicyEvaluator
+        .createConditionFact(condition, new MatchFact(c,
+            policy.getId(), constraint.getId(), Collections.emptyList() /* conditionTriggers */)));
+
+    RepositoryPolicyViolation existingPolicyViolation = tempEntity
+        .newRepositoryPolicyViolation(repositoryComponent.getRepositoryId(), policy.getThreatLevel(),
+            repositoryComponent.getPathname(), "hash", Collections.singletonList(constraintFact), true, true, null,
+            policy.getId(), policy.getName(), repositoryComponent.getComponentIdentifier(), new Date(), null, null,
+            null);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", "path", "hash"));
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "hash", MatchState.EXACT, 0 /* index */,
+        null /* declaredLicenseSet */, null /* observedLicenseSet */, createSecurityVulnerabilities(),
+        0 /* popularity */));
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    // waive the policy
+    PolicyWaiver policyWaiver1 = tempEntity.newWaiver(policy.getId(), repository.getId());
+
+    // perform the evaluation
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+
+    // ... yielding one active/waived violation
+    List<RepositoryPolicyViolation> policyViolations =
+        repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+
+    assertThat(policyViolations).hasSize(1);
+
+    RepositoryPolicyViolation policyViolation = policyViolations.get(0);
+    assertThat(policyViolation.isWaived()).isTrue();
+
+    // sanity check to ensure we are dealing with the same violation
+    PolicyViolationDiff<RepositoryPolicyViolation> policyViolationDiff = PolicyViolationDigester
+        .digestPolicyViolations(Collections.singletonList(existingPolicyViolation), policyViolations);
+    assertThat(policyViolationDiff.getSame()).hasSize(1);
+
+    repositoryComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), policyViolation.getPathname());
+
+    // Another sanity check ensuring the original evaluation time is different than the last evaluation time
+    assertThat(repositoryComponent.getTime()).isNotEqualTo(repositoryComponent.getLastEvaluationTime());
+
+    // For older violations (violations that existed before adding waive time) we are ok to use the last evaluation time
+    assertViolationWaiverDetails(policyViolation, policyWaiver1, repositoryComponent.getLastEvaluationTime());
   }
 
   private void assertViolationWaiverDetails(
       RepositoryPolicyViolation repositoryPolicyViolation,
-      PolicyWaiver policyWaiver)
+      PolicyWaiver policyWaiver,
+      Date waiveTime)
   {
     assertThat(repositoryPolicyViolation.getPolicyWaiverId()).isEqualTo(policyWaiver.getId());
     assertThat(repositoryPolicyViolation.getPolicyWaiverComment()).isEqualTo(policyWaiver.getComment());
-    assertThat(repositoryPolicyViolation.getWaiveTime()).isEqualTo(repositoryPolicyViolation.getWaiveTime());
+    assertThat(repositoryPolicyViolation.getWaiveTime()).isEqualTo(waiveTime);
   }
 }

@@ -270,10 +270,28 @@ public class RepositoryPolicyEvaluator
       newPolicyViolations.add(policyViolation);
     }
 
+    PolicyViolationDiff<RepositoryPolicyViolation> policyViolationDiff =
+        PolicyViolationDigester.digestPolicyViolations(oldPolicyViolations, newPolicyViolations);
+
+    /**
+     * Since we create new records for repository policy violations even though the policy violation previously
+     * existed, we need to preserve the waive time from the existing record. Note, that for older installs that did
+     * not have the waive time previously set, we are ok simply using the new record's waive time and preserving that
+     * moving forward.
+     */
+    for (Map.Entry<RepositoryPolicyViolation, RepositoryPolicyViolation> entry : policyViolationDiff.getSame()
+        .entrySet()) {
+      RepositoryPolicyViolation oldPolicyViolation = entry.getKey();
+      RepositoryPolicyViolation newPolicyViolation = entry.getValue();
+      if (newPolicyViolation.isWaived() && oldPolicyViolation.isWaived() && oldPolicyViolation.getWaiveTime() != null) {
+        // Preserve the original waive time
+        newPolicyViolation.setWaiveTime(oldPolicyViolation.getWaiveTime());
+        repositoryPolicyViolationDAO.update(tx, newPolicyViolation);
+      }
+    }
+
     // Log policy violations
     if (policyViolationLogger.isEnabled()) {
-      PolicyViolationDiff<RepositoryPolicyViolation> policyViolationDiff =
-          PolicyViolationDigester.digestPolicyViolations(oldPolicyViolations, newPolicyViolations);
       // New policy violations.
       for (RepositoryPolicyViolation newPolicyViolation : policyViolationDiff.getAppeared()) {
         policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);

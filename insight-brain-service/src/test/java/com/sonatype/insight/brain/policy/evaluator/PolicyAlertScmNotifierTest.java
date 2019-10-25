@@ -154,8 +154,10 @@ public class PolicyAlertScmNotifierTest
         buildPolicyNotifications(ComponentIdentifier.createNugetCoordinates("foo", "1.2.3")));
 
     // then we see a message logged that the format is not supported
-    assertThat(logOutput).atDebugLevel().contains(
-        "Format 'nuget: {packageId=foo, version=1.2.3}' is not supported for automatic remediation");
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+      assertThat(logOutput).atDebugLevel().contains(
+          "Format 'nuget: {packageId=foo, version=1.2.3}' is not supported for automatic remediation");
+    });
 
     // and PR engine didn't run
     assertThat(logOutput).atDebugLevel().doesNotContain("Invoke PR engine to construct a PR");
@@ -181,8 +183,10 @@ public class PolicyAlertScmNotifierTest
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
 
     // then we see a message logged that there are no remediations
-    assertThat(logOutput).atDebugLevel().contains(
-        "No remediation options found for component [maven: {artifactId=Package1, groupId=groupid, version=1.2.3}]");
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+      assertThat(logOutput).atDebugLevel().contains(
+          "No remediation options found for component [maven: {artifactId=Package1, groupId=groupid, version=1.2.3}]");
+    });
 
     // and PR engine didn't run
     assertThat(logOutput).atDebugLevel().doesNotContain(
@@ -213,8 +217,10 @@ public class PolicyAlertScmNotifierTest
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
 
     // then we see a log that the branch already exists
-    assertThat(logOutput).atDebugLevel().contains(
-        "Branch already exists for remediation [groupid/Package1/1.2.3-to-2.0.1]");
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+      assertThat(logOutput).atDebugLevel().contains(
+          "Branch already exists for remediation [groupid/Package1/1.2.3-to-2.0.1]");
+    });
 
     // and PR engine didn't run
     assertThat(logOutput).atAnyLevel().doesNotContain("Invoke PR engine");
@@ -252,10 +258,12 @@ public class PolicyAlertScmNotifierTest
     
     // when we send policy notifications
     scmNotifier.sendNotifications(application,"scanId", new Stage("build"),  buildPolicyNotifications());
-    
+
     // then we see the PR engine run for the component
-    assertThat(logOutput).atInfoLevel().contains("Executing pull request task for [maven: {artifactId=Package1," +
-        " groupId=groupid, version=1.2.3}] on application with id [" + application.getId() + "]");
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+      assertThat(logOutput).atInfoLevel().contains("Executing pull request task for [maven: {artifactId=Package1," +
+          " groupId=groupid, version=1.2.3}] on application with id [" + application.getId() + "]");
+    });
 
     ArgumentCaptor<PullRequestRemediationDetails> captor =
         ArgumentCaptor.forClass(PullRequestRemediationDetails.class);

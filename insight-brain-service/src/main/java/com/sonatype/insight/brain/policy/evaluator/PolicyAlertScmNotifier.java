@@ -36,8 +36,8 @@ import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.nexus.git.utils.VersionRemediationTitleGenerator;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,6 +136,27 @@ public class PolicyAlertScmNotifier
       return;
     }
 
+    new Thread("PolicyAlertScmNotifierForScan-" + scanId)
+    {
+      @Override
+      public void run() {
+        try {
+          internalSendNotification(app, scanId, stage, policyNotifications, gitRepositoryInfo);
+        }
+        catch (final Exception e) {
+          log.error("Unable to send PullRequest notification for application {} and scan {} in stage {}",
+              app.getPublicId(), scanId, stage, e);
+        }
+      }
+    }.start();
+  }
+
+  private void internalSendNotification(final Application app,
+                                        final String scanId,
+                                        final Stage stage,
+                                        final List<PolicyNotification> policyNotifications,
+                                        final GitRepositoryInfo gitRepositoryInfo) throws IOException
+  {
     // aggregate by component and loop each one
     Map<ComponentIdentifier, List<PolicyNotification>> sortedComponentAlerts =
         policyAlertSourceCodeOrganizer.getNotificationsForScm(policyNotifications);
@@ -158,7 +179,7 @@ public class PolicyAlertScmNotifier
         log.debug("Branch already exists for remediation [{}]", branchName);
         continue;
       }
-      
+
       PullRequestRemediationDetails pullRequestRemediationDetails =
           new PullRequestRemediationDetails(entry.getKey(), nextVersion, branchName, entry.getValue(), app, scanId,
               stage, baseUrl);

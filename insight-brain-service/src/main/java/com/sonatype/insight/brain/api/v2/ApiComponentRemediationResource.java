@@ -45,8 +45,11 @@ public class ApiComponentRemediationResource
       ApiComponentDTOV2 component,
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
-      @QueryParam("stageId") String stageId)
+      @QueryParam("stageId") String stageId,
+      @QueryParam("identificationSource") String identificationSource,
+      @QueryParam("scanId") String scanId)
   {
-    return remediationService.getSuggestedRemediationForComponent(component, ownerType, ownerId, stageId);
+    return remediationService
+        .getSuggestedRemediationForComponent(component, ownerType, ownerId, stageId, identificationSource, scanId);
   }
 }

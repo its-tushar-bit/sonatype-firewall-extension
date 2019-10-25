@@ -61,8 +61,10 @@ window.Brain = {
    *
    * @since 1.66.0
    */
-  getSuggestedRemediationUrlForApplication: function (internalApplicationId) {
-    return window.CLM.path + 'api/v2/components/remediation/application/' + encodeURIComponent(internalApplicationId);
+  getSuggestedRemediationUrlForApplication: function (internalApplicationId, identificationSource, scanId) {
+    let url = window.CLM.path + 'api/v2/components/remediation/application/' +
+        encodeURIComponent(internalApplicationId);
+    return url + '?' + toURIParams({identificationSource: identificationSource, scanId: scanId});
   },
 
   /**

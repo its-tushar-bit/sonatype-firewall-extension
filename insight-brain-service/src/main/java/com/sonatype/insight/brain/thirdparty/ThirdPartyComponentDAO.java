@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
@@ -145,6 +146,17 @@ public class ThirdPartyComponentDAO
       final String scanId)
   {
     return resolveComponentDetails(findComponent(appId, identifier, scanId));
+  }
+
+  public ComponentSummary getComponentSummary(
+      final ComponentIdentifier identifier,
+      final String appId,
+      final String scanId)
+  {
+    if (findComponent(appId, identifier, scanId) != null) {
+      return ComponentSummary.create(true);
+    }
+    return ComponentSummary.create(false);
   }
 
   private ThirdPartyReportComponentDTO findComponent(

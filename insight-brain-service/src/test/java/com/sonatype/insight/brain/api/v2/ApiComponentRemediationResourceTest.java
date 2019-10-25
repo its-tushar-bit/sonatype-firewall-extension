@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -25,14 +28,18 @@ import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import org.codehaus.plexus.util.FileUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,12 +58,59 @@ public class ApiComponentRemediationResourceTest
 
   private ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
 
+  private Application app;
+
+  private Organization org;
+
+  @Before
+  public void before() {
+    org = tempEntity.newOrganization("Org");
+    app = tempEntity.newApplication(org.getId());
+  }
+
   @Test
   public void testSuggestedRemediation_Application() throws Exception {
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1,null);
     assertRemediationApplication(component);
   }
-  
+
+  @Test
+  public void testSuggestedRemediation_Application_ThirdParty_NoViolations() throws Exception {
+    testSuggestedRemediation_Application_ThirdParty(1);
+  }
+
+  @Test
+  public void testSuggestedRemediation_Application_ThirdParty_WithViolation() throws Exception {
+    createPolicyWithSecurityVulnerabilityConstraint(org.getId());
+    // for third party data we have no way of knowing the any remediation versions, so this will return 0 elements
+    testSuggestedRemediation_Application_ThirdParty(0);
+  }
+
+  private void testSuggestedRemediation_Application_ThirdParty(final int expectedRemediationVersionsCount)
+      throws Exception
+  {
+    final String scanId = "ScanId";
+    createReportFile(app.getId(), scanId, "/ApiComponentRemediationResourceTest/report");
+    final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian", "glibc", "2.24-11+deb9u3");
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(tpComponentIdentifier, null);
+
+    String identificationSource = IdentificationSource.CLAIR.getId();
+
+    HttpResponse response =
+        restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.APPLICATION, app.getId())
+            .query("identificationSource", identificationSource).query("scanId", scanId)
+            .body(component).post();
+
+    assertResponseStatus(200, response);
+    String responseText = response.getBodyText();
+    assertThat(responseText).doesNotContain("proprietary");
+
+    ApiComponentRemediationDTO result = response.getBody(ApiComponentRemediationDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.remediation.versionChanges)
+        .hasSize(expectedRemediationVersionsCount);
+  }
+
   @Test
   public void testSuggestedRemediation_Application_Purl() throws Exception {
     String purl = "pkg:maven/g1/a1@v1?type=jar";
@@ -66,7 +120,6 @@ public class ApiComponentRemediationResourceTest
   
   private void assertRemediationApplication(ApiComponentDTOV2 component) throws Exception {
     mockComponentSummary(MAVEN_COORDINATES_V1, ComponentSummary.create(true));
-    Application app = tempEntity.newApplicationWithParent("testApp");
     createPolicyWithSecurityVulnerabilityConstraint(app.getId());
 
     ComponentDetails details1 = createComponentDetailsForSecurityViolation(MAVEN_COORDINATES_V1);
@@ -171,5 +224,18 @@ public class ApiComponentRemediationResourceTest
     assertThat(versionChangeOption.getData().getComponent().componentIdentifier)
         .isEqualToComparingFieldByField(expectedComponent.componentIdentifier);
     assertThat(versionChangeOption.getData().getComponent().packageUrl).isEqualTo(expectedPackageUrl);
+  }
+
+  private ComponentIdentifier componentIdentifierFrom(final String format, final String name, final String version) {
+    final HashMap<String, String> coords = new HashMap<>();
+    coords.put("name", name);
+    coords.put(ComponentIdentifier.VERSION, version);
+    return new ComponentIdentifier(format, coords);
+  }
+
+  private File createReportFile(String appId, String scanId, String sourceReportDir) throws IOException {
+    File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId);
+    FileUtils.copyFile(zipResourceDir(sourceReportDir), reportFile);
+    return reportFile;
   }
 }

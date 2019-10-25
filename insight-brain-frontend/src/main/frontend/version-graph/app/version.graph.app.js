@@ -207,6 +207,7 @@ import exceptionHandler from './exception.handler.factory';
             Properties.setProprietary(properties.proprietary);
             Properties.setFilename(properties.filename);
             Properties.setHash(properties.hash);
+            Properties.setIdentificationSource(properties.identificationSource);
 
             if (properties.appId) {
               OwnerContext.setApplicationId(properties.appId);

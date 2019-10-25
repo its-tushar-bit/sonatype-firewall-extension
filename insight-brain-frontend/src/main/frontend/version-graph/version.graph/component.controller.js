@@ -68,7 +68,9 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
         }
       };
 
-      let path = Brain.getSuggestedRemediationUrlForApplication(applicationId);
+      let path = Brain.getSuggestedRemediationUrlForApplication(applicationId, Properties.getIdentificationSource(),
+          OwnerContext.scanId);
+
       let request = {
         method: 'post',
         url: path,

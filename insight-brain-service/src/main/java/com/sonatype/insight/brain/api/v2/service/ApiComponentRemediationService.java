@@ -35,12 +35,14 @@ import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -71,15 +73,20 @@ public class ApiComponentRemediationService
 
   private final HdsClient hdsClient;
 
+  private final ThirdPartyComponentDAO thirdPartyComponentDAO;
+
   @Inject
-  public ApiComponentRemediationService(ComponentInfoService componentInfoService,
-                                        HdsClient hdsClient,
-                                        TelemetrySender telemetrySender)
+  public ApiComponentRemediationService(
+      ComponentInfoService componentInfoService,
+      HdsClient hdsClient,
+      TelemetrySender telemetrySender,
+      ThirdPartyComponentDAO thirdPartyComponentDAO)
   {
     this.componentInfoService = componentInfoService;
     componentInfoService.setToolName("ci");
     this.hdsClient = hdsClient;
     this.telemetrySender = telemetrySender;
+    this.thirdPartyComponentDAO = thirdPartyComponentDAO;
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -88,6 +95,18 @@ public class ApiComponentRemediationService
       @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) final String ownerId,
       final String stageId)
+  {
+    return getSuggestedRemediationForComponent(componentDTO, ownerType, ownerId, stageId, null, null);
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  public ApiComponentRemediationDTO getSuggestedRemediationForComponent(
+      ApiComponentDTOV2 componentDTO,
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) final String ownerId,
+      final String stageId,
+      final String identificationSource,
+      final String scanId)
   {
 
     if (stageId != null && StageTypes.getById(stageId) == null) {
@@ -98,7 +117,14 @@ public class ApiComponentRemediationService
 
     ComponentIdentifier componentIdentifier = validateRequest(componentDTO);
 
-    ComponentSummary componentSummary = getComponentSummary(componentIdentifier);
+    ComponentSummary componentSummary;
+
+    if (scanId != null && IdentificationSource.isThirdPartyIdentificationSource(identificationSource)) {
+      componentSummary = thirdPartyComponentDAO.getComponentSummary(componentIdentifier, ownerId, scanId);
+    }
+    else {
+      componentSummary = getComponentSummary(componentIdentifier);
+    }
 
     // Do not allow an empty or invalid version at this time
     if (!componentSummary.isKnown()) {
@@ -110,7 +136,8 @@ public class ApiComponentRemediationService
     }
 
     List<ComponentDetailsDTO> dtos = componentInfoService
-        .getComponentDetailsForAllVersionsNoAuth(ownerType, publicOwnerId, componentIdentifier, stageId, null, null);
+        .getComponentDetailsForAllVersionsNoAuth(ownerType, publicOwnerId, componentIdentifier, stageId,
+            identificationSource, scanId);
     ApiComponentRemediationDTO componentRemediationDto = new ApiComponentRemediationDTO();
 
     int currentIndex =

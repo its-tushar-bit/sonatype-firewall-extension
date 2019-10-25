@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -189,6 +190,28 @@ public class ThirdPartyComponentDAOTest
         dao.getComponentDetailsByIdentifier(testData.get(hashGlibc), appId, scanId);
 
     assertThirdPartyComponentResult(componentDetails);
+  }
+
+  @Test
+  public void testGetComponentSummary_Known() {
+    testGetComponentSummary(testData.get(hashGlibc), true);
+  }
+
+  @Test
+  public void testGetComponentSummary_Unknown() {
+    testGetComponentSummary(ComponentIdentifier.createGolangCoordinates("n","v"), false);
+  }
+
+  private  void testGetComponentSummary(ComponentIdentifier identifier, boolean expected) {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
+    String scanId = "scanId";
+    String appId = "appId";
+    when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
+
+    final ComponentSummary componentSummary =
+        dao.getComponentSummary(identifier, appId, scanId);
+
+    assertThat(componentSummary.isKnown()).isEqualTo(expected);
   }
 
   private Optional<SecurityVulnerability> getSecurityVulnerability(

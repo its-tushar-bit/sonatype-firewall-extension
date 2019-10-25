@@ -629,9 +629,14 @@ var clmEndpointTemplate = {
       describe('When coordinates changed', function (){
         var scope = null;
 
-        beforeEach(inject(function($controller, $rootScope) {
+        beforeEach(inject(function($controller, $rootScope, OwnerContext) {
           clmEndpoint.selectApplication = true;
           scope = $rootScope.$new();
+
+          scope.$apply(function() {
+            OwnerContext.scanId = 'scanId';
+          });
+
           $controller('ComponentController', {
             $scope: scope,
             SelectedComponent: {}
@@ -651,7 +656,8 @@ var clmEndpointTemplate = {
           proprietary: 'false',
           filename: 'filename',
           hash: 'hash',
-          appId: 'myFirstApp'
+          appId: 'myFirstApp',
+          identificationSource: 'Sonatype'
         };
 
         it('retrieves the application internal ID and suggested remediations',
@@ -690,7 +696,8 @@ var clmEndpointTemplate = {
           Insight.setCoordinates('maven', coords, properties);
           $httpBackend.flush();
           expect(Brain.getInternalApplicationIdUrlForApplicationId).toHaveBeenCalledWith('myFirstApp');
-          expect(Brain.getSuggestedRemediationUrlForApplication).toHaveBeenCalledWith('InternalAppId');
+          expect(Brain.getSuggestedRemediationUrlForApplication).toHaveBeenCalledWith('InternalAppId', 'Sonatype',
+              'scanId');
           expect(scope.applicationInternalIds).not.toBeNull();
           expect(scope.applicationInternalIds.size).toEqual(1);
           expect(scope.applicationInternalIds.get('myFirstApp')).toEqual('InternalAppId');
@@ -714,7 +721,8 @@ var clmEndpointTemplate = {
           Insight.setCoordinates('maven', coords, properties);
           $httpBackend.flush();
           expect(Brain.getInternalApplicationIdUrlForApplicationId).not.toHaveBeenCalled();
-          expect(Brain.getSuggestedRemediationUrlForApplication).toHaveBeenCalledWith('InternalAppId');
+          expect(Brain.getSuggestedRemediationUrlForApplication).toHaveBeenCalledWith('InternalAppId', 'Sonatype',
+              'scanId');
           expect(scope.applicationInternalIds).not.toBeNull();
           expect(scope.applicationInternalIds.size).toEqual(1);
           expect(scope.applicationInternalIds.get('myFirstApp')).toEqual('InternalAppId');

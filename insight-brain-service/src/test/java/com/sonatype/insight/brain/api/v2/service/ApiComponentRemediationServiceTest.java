@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -48,6 +49,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -76,10 +78,10 @@ public class ApiComponentRemediationServiceTest
   private static final ComponentIdentifier MAVEN_COORDINATES_V3 = ComponentIdentifier.createMavenCoordinates("g1", "a1",
       "v3", "", "jar");
 
-  PolicyAlert failAlert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10), Arrays.asList(new Action(
+  PolicyAlert failAlert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10), asList(new Action(
       Action.ID_FAIL)));
 
-  PolicyAlert warnAlert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10), Arrays.asList(new Action(
+  PolicyAlert warnAlert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10), asList(new Action(
       Action.ID_WARN)));
 
   private Application app;
@@ -94,6 +96,9 @@ public class ApiComponentRemediationServiceTest
   private TelemetrySender telemetrySenderMock;
 
   @Mock
+  private ThirdPartyComponentDAO thirdPartyComponentDAO;
+
+  @Mock
   HdsClient hdsClientMock;
 
   @Override
@@ -101,6 +106,7 @@ public class ApiComponentRemediationServiceTest
     binder.bind(ComponentInfoService.class).toInstance(componentInfoServiceMock);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     binder.bind(HdsClient.class).toInstance(hdsClientMock);
+    binder.bind(ThirdPartyComponentDAO.class).toInstance(thirdPartyComponentDAO);
     lenient().doReturn(ComponentSummary.create(true)).when(hdsClientMock).get(eq(ComponentSummary.class),
         eq("rest/component/summary"), anyMap());
     super.configure(binder);
@@ -263,19 +269,44 @@ public class ApiComponentRemediationServiceTest
     assertAllVersionsWithViolations(dto);
   }
 
+  @Test
+  public void testGetSuggestedRemediationForComponent_ThirdParty() {
+    ApiComponentDTOV2 dto = new ApiComponentDTOV2();
+    dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_V1);
+    ComponentDetailsDTO componentDetailsDTO = new ComponentDetailsDTO();
+    componentDetailsDTO.componentIdentifier = MAVEN_COORDINATES_V1;
+    componentDetailsDTO.violatedPolicyCount = 1;
+    componentDetailsDTO.policyAlerts = asList(failAlert);
+
+    final String identificationSource = "Clair";
+    final String scanId = "scanId";
+    doReturn(ComponentSummary.create(true)).when(thirdPartyComponentDAO)
+        .getComponentSummary(MAVEN_COORDINATES_V1, app.getId(), scanId);
+    doReturn(Collections.singletonList(componentDetailsDTO)).when(componentInfoServiceMock)
+        .getComponentDetailsForAllVersionsNoAuth(OwnerType.APPLICATION, app.getPublicId(), MAVEN_COORDINATES_V1,
+            DevelopStageType.ID, identificationSource, scanId);
+
+    ApiComponentRemediationDTO retVal = service
+        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID,
+            identificationSource, scanId);
+
+    assertRemediationZeroCounts(retVal.remediation);
+    assertTelemetry("application", app.getId(), componentDetailsDTO.componentIdentifier);
+  }
+
   private void assertAllVersionsWithViolations(final ApiComponentDTOV2 dto) {
     ComponentDetailsDTO dto1 = new ComponentDetailsDTO();
     dto1.componentIdentifier = MAVEN_COORDINATES_V1;
     dto1.violatedPolicyCount = 1;
-    dto1.policyAlerts = Arrays.asList(failAlert);
+    dto1.policyAlerts = asList(failAlert);
     ComponentDetailsDTO dto2 = new ComponentDetailsDTO();
     dto2.componentIdentifier = MAVEN_COORDINATES_V2;
     dto2.violatedPolicyCount = 1;
-    dto2.policyAlerts = Arrays.asList(failAlert);
+    dto2.policyAlerts = asList(failAlert);
     ComponentDetailsDTO dto3 = new ComponentDetailsDTO();
     dto3.componentIdentifier = MAVEN_COORDINATES_V3;
     dto3.violatedPolicyCount = 1;
-    dto3.policyAlerts = Arrays.asList(failAlert);
+    dto3.policyAlerts = asList(failAlert);
 
     List<ComponentDetailsDTO> list = Stream.of(dto1, dto2, dto3).collect(Collectors.toList());
     mockHdsGetComponentDetailsList(list, dto1.componentIdentifier);
@@ -309,11 +340,11 @@ public class ApiComponentRemediationServiceTest
     ComponentDetailsDTO v2 = new ComponentDetailsDTO();
     v2.componentIdentifier = MAVEN_COORDINATES_V2;
     v2.violatedPolicyCount = 1;
-    v2.policyAlerts = Arrays.asList(failAlert);
+    v2.policyAlerts = asList(failAlert);
     ComponentDetailsDTO v3 = new ComponentDetailsDTO();
     v3.componentIdentifier = MAVEN_COORDINATES_V3;
     v3.violatedPolicyCount = 1;
-    v3.policyAlerts = Arrays.asList(failAlert);
+    v3.policyAlerts = asList(failAlert);
 
     List<ComponentDetailsDTO> list = Stream.of(v1, v2, v3).collect(Collectors.toList());
     mockHdsGetComponentDetailsList(list, v2.componentIdentifier);
@@ -329,15 +360,15 @@ public class ApiComponentRemediationServiceTest
     ComponentDetailsDTO v1 = new ComponentDetailsDTO();
     v1.componentIdentifier = MAVEN_COORDINATES_V1;
     v1.violatedPolicyCount = 1;
-    v1.policyAlerts = Arrays.asList(failAlert);
+    v1.policyAlerts = asList(failAlert);
     ComponentDetailsDTO v2 = new ComponentDetailsDTO();
     v2.componentIdentifier = MAVEN_COORDINATES_V2;
     v2.violatedPolicyCount = 1;
-    v2.policyAlerts = Arrays.asList(failAlert);
+    v2.policyAlerts = asList(failAlert);
     ComponentDetailsDTO v3 = new ComponentDetailsDTO();
     v3.componentIdentifier = MAVEN_COORDINATES_V3;
     v3.violatedPolicyCount = 1;
-    v3.policyAlerts = Arrays.asList(failAlert);
+    v3.policyAlerts = asList(failAlert);
 
     List<ComponentDetailsDTO> list = Stream.of(v1, v2, v3).collect(Collectors.toList());
     mockHdsGetComponentDetailsList(list, v3.componentIdentifier);
@@ -355,7 +386,7 @@ public class ApiComponentRemediationServiceTest
     ComponentDetailsDTO v1 = new ComponentDetailsDTO();
     v1.componentIdentifier = MAVEN_COORDINATES_V1;
     v1.violatedPolicyCount = 1;
-    v1.policyAlerts = Arrays.asList(failAlert);
+    v1.policyAlerts = asList(failAlert);
     ComponentDetailsDTO v2 = new ComponentDetailsDTO();
     v2.componentIdentifier = MAVEN_COORDINATES_V2;
     v2.violatedPolicyCount = 0;
@@ -410,15 +441,15 @@ public class ApiComponentRemediationServiceTest
     ComponentDetailsDTO v1 = new ComponentDetailsDTO();
     v1.componentIdentifier = MAVEN_COORDINATES_V1;
     v1.violatedPolicyCount = 1;
-    v1.policyAlerts = Arrays.asList(warnAlert, failAlert);
+    v1.policyAlerts = asList(warnAlert, failAlert);
     ComponentDetailsDTO v2 = new ComponentDetailsDTO();
     v2.componentIdentifier = MAVEN_COORDINATES_V2;
     v2.violatedPolicyCount = 1;
-    v2.policyAlerts = Arrays.asList(warnAlert);
+    v2.policyAlerts = asList(warnAlert);
     ComponentDetailsDTO v3 = new ComponentDetailsDTO();
     v3.componentIdentifier = MAVEN_COORDINATES_V3;
     v3.violatedPolicyCount = 1;
-    v3.policyAlerts = Arrays.asList(warnAlert);
+    v3.policyAlerts = asList(warnAlert);
 
     List<ComponentDetailsDTO> list = Stream.of(v1, v2, v3).collect(Collectors.toList());
     mockHdsGetComponentDetailsList(list, v1.componentIdentifier);
@@ -439,11 +470,11 @@ public class ApiComponentRemediationServiceTest
     ComponentDetailsDTO v1 = new ComponentDetailsDTO();
     v1.componentIdentifier = MAVEN_COORDINATES_V1;
     v1.violatedPolicyCount = 1;
-    v1.policyAlerts = Arrays.asList(failAlert);
+    v1.policyAlerts = asList(failAlert);
     ComponentDetailsDTO v2 = new ComponentDetailsDTO();
     v2.componentIdentifier = MAVEN_COORDINATES_V2;
     v2.violatedPolicyCount = 1;
-    v2.policyAlerts = Arrays.asList(failAlert);
+    v2.policyAlerts = asList(failAlert);
     ComponentDetailsDTO v3 = new ComponentDetailsDTO();
     v3.componentIdentifier = MAVEN_COORDINATES_V3;
     v3.violatedPolicyCount = 0;

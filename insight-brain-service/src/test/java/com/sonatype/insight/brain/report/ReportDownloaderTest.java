@@ -62,7 +62,7 @@ public class ReportDownloaderTest
     boolean rc = reportDownloader.downloadReport(scanId, reportFile, 0, 0);
     assertThat(rc).isFalse();
     assertThat(reportFile.getParentFile()).doesNotExist();
-    assertThat(logOutput).atErrorLevel().contains("test", expectedException);
+    assertThat(logOutput).atErrorLevel().contains(ReportDownloader.timeoutExceptionMessage(scanId));
   }
 
   @Test

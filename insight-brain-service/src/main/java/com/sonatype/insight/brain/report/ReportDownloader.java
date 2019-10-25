@@ -77,7 +77,7 @@ public class ReportDownloader
         catch (NotFoundException e) {
           long currentTime = System.currentTimeMillis();
           if (currentTime >= endTime) {
-            throw e;
+            throw new NotFoundException(timeoutExceptionMessage(scanId));
           }
           Thread.sleep(Math.min(retryIntervalInSeconds * 1000, endTime - currentTime));
         }
@@ -106,5 +106,12 @@ public class ReportDownloader
     }
 
     return false;
+  }
+
+  static String timeoutExceptionMessage(String scanId) {
+    return "Report timeout exceeded for scan id: " + scanId + System.lineSeparator() +
+        "Consider one of the following:" + System.lineSeparator() +
+        "- Reduce the size of the scan." + System.lineSeparator() +
+        "- If you have proprietary JARs, make sure to configure them properly via Proprietary Component Configuration.";
   }
 }

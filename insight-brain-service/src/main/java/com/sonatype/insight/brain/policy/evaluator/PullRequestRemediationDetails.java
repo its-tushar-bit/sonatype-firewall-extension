@@ -44,7 +44,7 @@ public class PullRequestRemediationDetails
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestRemediationDetails.class);
 
-  private static final Pattern CVE_REGEX_PATTERN = Pattern.compile("((CVE|SONATYPE)-\\d+-\\d+)");
+  private static final Pattern CVE_REGEX_PATTERN = Pattern.compile("((CVE|SONATYPE|sonatype)-\\d+-\\d+)");
 
   private static final OrganizationDAO organizationDAO = new OrganizationDAO();
 

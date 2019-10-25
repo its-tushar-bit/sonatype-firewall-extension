@@ -117,6 +117,19 @@ public class PullRequestRemediationDetailsTest extends AbstractComponentTest
     mediumPolicy.getPolicyFact().addComponentFact(mediumFact);
     policyNotifications.add(mediumPolicy);
 
+    PolicyNotification lowPolicy = new PolicyNotification(
+        new PolicyFact("low-id", "Security-Low", 4),
+        new Notifications(new UserNotification("tester@foo.com")));
+    ComponentFact lowFact = new ComponentFact(componentIdentifier, "dummy-low-hash");
+    ConstraintFact lowConstraintFact = new ConstraintFact("constraint-id", "Low risk CVSS score", "OR");
+    lowConstraintFact.addConditionFact(new ConditionFact("SecurityVulnerabilitySeverity", 0,
+        "Security Vulnerability Severity <= 4",
+        "Found security vulnerability sonatype-2017-1234 with severity 3.9.",
+        new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "sonatype-2017-1234")));
+    lowFact.addConstraintFact(lowConstraintFact);
+    lowPolicy.getPolicyFact().addComponentFact(lowFact);
+    policyNotifications.add(lowPolicy);
+
     ApiVersionChangeOptionDTO versionChangeOptionDTO = new ApiVersionChangeOptionDTO();
     ApiComponentChangeActionDTO changeActionDTO = new ApiComponentChangeActionDTO();
     versionChangeOptionDTO.setData(changeActionDTO);

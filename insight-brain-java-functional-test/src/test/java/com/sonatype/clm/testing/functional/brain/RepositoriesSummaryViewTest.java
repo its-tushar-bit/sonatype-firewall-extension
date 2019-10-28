@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -76,8 +77,6 @@ public class RepositoriesSummaryViewTest
     summaryTile.configButton().shouldBe(visible);
     summaryTile.accessButton().shouldBe(visible);
 
-    eyesWatcher.eyesCheck();
-
     repositorySummaryViewTest_configurationTile();
   }
 
@@ -88,11 +87,17 @@ public class RepositoriesSummaryViewTest
     configurationTile.emptyDescriptor().shouldBe(visible).shouldHave(EMPTY_LIST_TEXT);
     configurationTable.rows().shouldHaveSize(0);
 
+    eyesWatcher.eyesCheck("Empty state (no repositories added)");
+
     List<Repository> repositories = new ArrayList<>();
-    repositories.add(tempEntity.newRepository(tempEntity.newRepositoryManager(), "a123", false));
-    repositories.add(tempEntity.newRepository(tempEntity.newRepositoryManager(), "b123", true));
+    RepositoryManager repositoryA = tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
+    repositories.add(tempEntity.newRepository(repositoryA, "a123", false));
+    RepositoryManager repositoryB = tempEntity.newRepositoryManager("P39Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6Y");
+    repositories.add(tempEntity.newRepository(repositoryB, "b123", true));
 
     refresh();
+
+    eyesWatcher.eyesCheck("Repositories visible");
 
     configurationTile = RepositoriesSummaryPage.configTile();
     configurationTable = configurationTile.configurationTable();

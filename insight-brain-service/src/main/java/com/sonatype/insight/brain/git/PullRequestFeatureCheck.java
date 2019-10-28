@@ -22,6 +22,9 @@ import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 /**
  * Logic for if the automated pull request feature should run
  */
@@ -91,7 +94,10 @@ public class PullRequestFeatureCheck
   }
 
   private boolean isApplicationConfiguredForPR(final GitRepositoryInfo gitRepositoryInfo) {
-    // Check that we have all the necessary fields
-    return gitRepositoryInfo != null && gitRepositoryInfo.isDataComplete();
+    return gitRepositoryInfo != null &&
+        !isBlank(gitRepositoryInfo.token) &&
+        !isBlank(gitRepositoryInfo.repositoryUrl) &&
+        gitRepositoryInfo.provider != null &&
+        isTrue(gitRepositoryInfo.enablePullRequests);
   }
 }

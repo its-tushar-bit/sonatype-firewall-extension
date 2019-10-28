@@ -90,6 +90,10 @@ public class PullRequestFeatureCheckTest
     ensureAppNotConfigured(gitRepositoryInfo);
 
     gitRepositoryInfo.repositoryUrl = REPO_URL;
+    gitRepositoryInfo.enableStatusChecks = false;
+    gitRepositoryInfo.enablePullRequests = null;
+    ensureAppNotConfigured(gitRepositoryInfo);
+
     gitRepositoryInfo.enableStatusChecks = true;
     gitRepositoryInfo.enablePullRequests = null;
     ensureAppNotConfigured(gitRepositoryInfo);

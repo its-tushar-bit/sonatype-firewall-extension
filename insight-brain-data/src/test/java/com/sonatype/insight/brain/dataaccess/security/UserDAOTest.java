@@ -600,7 +600,7 @@ public class UserDAOTest
   @Test
   public void testDeleteCascadesToUserToken_InternalUser() {
     User user = createUser("testDeleteCascadesToUserToken");
-    UserToken userToken = tempEntity.newUserToken(user.getUsername(), true /* isInternalUser */);
+    UserToken userToken = tempEntity.newUserToken(user.getUsername(), User.INTERNAL_REALM_ID);
 
     new UserDAO().delete(user);
 
@@ -610,7 +610,7 @@ public class UserDAOTest
   @Test
   public void testDeleteCascadesToUserToken_ExternalUser() {
     User user = createUser("testDeleteCascadesToUserToken");
-    UserToken userToken = tempEntity.newUserToken(user.getUsername(), false /* isInternalUser */);
+    UserToken userToken = tempEntity.newUserToken(user.getUsername(), "External");
 
     new UserDAO().delete(user);
 

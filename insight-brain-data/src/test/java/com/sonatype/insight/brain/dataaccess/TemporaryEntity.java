@@ -164,7 +164,7 @@ public class TemporaryEntity
 {
   public static final String USER_PASSWORD_CLEAR = "secret";
 
-  private static final String USER_PASSWORD_HASH =
+  public static final String USER_PASSWORD_HASH =
       "$shiro1$SHA-256$10$Gsv3gW95oRKzzxp37k/wJA==$T2VDhMzPuXN7VTobkLUcwDsxxJJXj5pInbW7YUn8muY=";
 
   public static final String WEBHOOK_SECRET_KEY_CLEAR = "secret_key";
@@ -1953,12 +1953,21 @@ public class TemporaryEntity
     return samlConfiguration;
   }
 
-  public UserToken newUserToken(String username, boolean isInternalUser) {
+  public UserToken newUserToken(String username, String realmId) {
+    return newUserToken(username, username + "-code", "a-pass-code", realmId);
+  }
+
+  public UserToken newUserToken(
+      String username,
+      String userCode,
+      String passCode,
+      String realmId)
+  {
     UserToken userToken = new UserToken();
     userToken.setUsername(username);
-    userToken.setInternalUser(isInternalUser);
-    userToken.setUserCode(username + "-code");
-    userToken.setPassCode("a-pass-code");
+    userToken.setUserCode(userCode);
+    userToken.setPassCode(passCode);
+    userToken.setRealmId(realmId);
     userTokenDAO.insert(userToken);
     userTokens.add(userToken);
     return userToken;

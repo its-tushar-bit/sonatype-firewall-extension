@@ -20,23 +20,19 @@ public class UserTokenServiceAuthzTest
   private UserTokenService userTokenService;
 
   @Test
-  public void testDeleteUserToken_Authorized() {
-    String username = "user-a";
-    tempEntity.newUserToken(username, true);
+  public void testPurgeUserTokens_Authorized() throws Exception {
     grantConfigureSystemPermission();
-    userTokenService.deleteUserToken(username);
+    userTokenService.purgeUserTokens();
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testDeleteUserToken_Unauthorized() {
-    String username = "user-a";
+  public void testPurgeUserTokens_Unauthorized() throws Exception {
     login();
-    userTokenService.deleteUserToken(username);
+    userTokenService.purgeUserTokens();
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testDeleteUserToken_Unauthenticated() {
-    String username = "user-a";
-    userTokenService.deleteUserToken(username);
+  public void testPurgeUserTokens_Unauthenticated() throws Exception {
+    userTokenService.purgeUserTokens();
   }
 }

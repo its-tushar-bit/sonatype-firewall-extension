@@ -23,19 +23,22 @@ public class UserTokenDAOTest
 
   @Test
   public void testCrud() {
+    String username = "John.Doe";
+    String realmId = "testRealmId";
+
     // Create
     Date start = new Date();
-    UserToken userToken = tempEntity.newUserToken("John.Doe", false /* isInternalUser */);
+    UserToken userToken = tempEntity.newUserToken(username, realmId);
     Date end = new Date();
     assertThat(userToken.getId()).isNotNull();
 
     // Read
-    UserToken byUsername = userTokenDAO.getByUsername("jOhn.dOe");
-    assertThat(byUsername.getUsername()).isEqualTo("John.Doe");
-    assertThat(byUsername.getUsernameLowercase()).isEqualTo("john.doe");
+    UserToken byUsername = userTokenDAO.getById(userToken.getId());
+    assertThat(byUsername.getUsername()).isEqualTo(username);
     assertThat(byUsername.isInternalUser()).isFalse();
     assertThat(byUsername.getUserCode()).isEqualTo(userToken.getUserCode());
     assertThat(byUsername.getPassCode()).isEqualTo(userToken.getPassCode());
+    assertThat(byUsername.getRealmId()).isEqualTo(realmId);
     assertThat(byUsername.getCreateTime()).isBetween(start, end, true, true);
 
     // Update is not allowed.
@@ -48,20 +51,17 @@ public class UserTokenDAOTest
   }
 
   @Test
-  public void testInsertUserToken_Duplicate() {
-    tempEntity.newUserToken("John.Doe", false /* isInternalUser */);
-    assertThatThrownBy(() -> tempEntity.newUserToken("jOhn.doe", false /* isInternalUser */));
-    assertThatThrownBy(() -> tempEntity.newUserToken("jOhn.doe", true /* isInternalUser */));
+  public void testInsertUserToken_DuplicateUserCode() {
+    String userCode = "testUserCode";
+    tempEntity.newUserToken("testUsername", userCode, "testPassCode", "testRealmId");
+    assertThatThrownBy(() -> tempEntity.newUserToken("testUsername1", userCode, "testPassCode1", "testRealmId1"));
   }
 
   @Test
-  public void testGetByUsername_DoesNotExist() {
-    assertThat(userTokenDAO.getByUsername("no_such_user")).isNull();
-  }
-
-  @Test
-  public void testGetByUsername_CaseInsensitive() {
-    UserToken userToken = tempEntity.newUserToken("John.Doe", false /* isInternalUser */);
-    assertThat(userTokenDAO.getByUsername("jOhn.dOe").getId()).isEqualTo(userToken.getId());
+  public void testInsertUserToken_DuplicateUsernameAndRealmId() {
+    String username = "testUsername";
+    String realmId = "testRealmId";
+    tempEntity.newUserToken(username, "testUserCode", "testPassCode", realmId);
+    assertThatThrownBy(() -> tempEntity.newUserToken(username, "testUserCode1", "testPassCode1", realmId));
   }
 }

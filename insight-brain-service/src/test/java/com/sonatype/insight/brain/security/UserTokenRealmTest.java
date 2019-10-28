@@ -9,102 +9,76 @@ import java.util.Iterator;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.model.security.UserToken;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.IncorrectCredentialsException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.eclipse.sisu.launch.InjectedTest;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-/**
- * @since 1.7
- */
-public class InternalRealmTest
-    extends InjectedTest
+public class UserTokenRealmTest
+    extends AbstractComponentTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
+  @Inject
+  private UserTokenRealm realm;
 
   @Inject
-  private InternalRealm realm;
+  private PasswordService passwordService;
 
-  /**
-   * testing internals; that we've implemented the abstract doGetAuthenticationInfo correctly
-   * auth info indicates account found
-   * auth info comprised of:
-   * - 1 principal
-   * - principal is from the clm realm
-   * - principal value is the username
-   * - credentials in expected string format
-   */
   @Test
-  public void testDoGetAuthenticationInfo_ValidUser() {
-    User user = tempEntity.newUser("JohnDoe", "John", "Doe", "john.doe@example.com");
+  public void testDoGetAuthenticationInfo() {
+    String username = "JohnDoe";
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    User user = tempEntity.newUser(username);
+    UserToken userToken = tempEntity.newUserToken(username, "TestUserCode", hashedUserTokenPassword, InternalRealm.ID);
 
-    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("jOhndoE", user.getPassword());
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
     AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
-    assertThat(principalCollection).isNotEmpty();
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
-    assertThat(principal)
-        .isEqualTo(new UserPrincipal(user.getUsername(), user.calculateDisplayName(), InternalRealm.ID));
+    assertThat(principal).isEqualTo(new UserPrincipal(username, user.calculateDisplayName(), UserTokenRealm.ID));
     assertThat(principalIterator.hasNext()).isFalse();
     assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
-    assertThat(authenticationInfo.getCredentials()).isEqualTo(TemporaryEntity.USER_PASSWORD_HASH);
+    assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
   }
 
-  /**
-   * testing internals
-   * auth info indicates no account found; null value
-   */
   @Test
-  public void testDoGetAuthenticationInfo_UnknownUser() {
-    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("Yeti", "admin123".toCharArray());
+  public void testDoGetAuthenticationInfo_NoUserToken() {
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("Yeti", "TestPassword");
     AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(usernamePasswordToken);
     assertThat(authenticationInfo).isNull();
   }
 
-  /**
-   * testing internals
-   * auth info indicates account found
-   * call to auth does not compare the credentials, that's left to Shiro and the public method
-   * auth info comprised of:
-   * - 1 principal
-   * - principal is from the clm realm
-   * - principal value is the username
-   * - credentials in expected string format
-   */
   @Test
   public void testDoGetAuthenticationInfo_WrongPassword() {
-    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(User.ADMIN_USERNAME,
-        "Oops! Wrong password!".toCharArray());
+    String username = "JohnDoe";
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    User user = tempEntity.newUser(username);
+    UserToken userToken = tempEntity.newUserToken(username, "TestUserCode", hashedUserTokenPassword, InternalRealm.ID);
+
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), "WrongPassword");
     AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
-    assertThat(principalCollection).isNotEmpty();
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
-    assertThat(principal).isEqualTo(new UserPrincipal(User.ADMIN_USERNAME, "Admin BuiltIn", InternalRealm.ID));
+    assertThat(principal).isEqualTo(new UserPrincipal(username, user.calculateDisplayName(), UserTokenRealm.ID));
     assertThat(principalIterator.hasNext()).isFalse();
     assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
     // The credentials must be the hashed password from the db, not the (wrong) password or its hash passed in as param.
-    assertThat(authenticationInfo.getCredentials())
-        .isEqualTo("$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM=");
+    assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
   }
 
-  /**
-   * testing internals
-   * null user name input is not tolerated
-   */
   @Test
   public void testDoGetAuthenticationInfo_NullUserName() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(null /* username */, (char[]) null);
@@ -113,10 +87,6 @@ public class InternalRealmTest
     }).withMessage("The username is required");
   }
 
-  /**
-   * testing internals
-   * empty user name input is not tolerated
-   */
   @Test
   public void testDoGetAuthenticationInfo_EmptyUserName() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(" " /* username */, (char[]) null);
@@ -132,20 +102,22 @@ public class InternalRealmTest
    * care since we don't use the extra info
    */
   @Test
-  public void testGetAuthenticationInfo_ValidUser() {
-    User user = tempEntity.newUser("JohnDoe", "John", "Doe", "john.doe@example.com");
+  public void testGetAuthenticationInfo() {
+    String username = "JohnDoe";
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    User user = tempEntity.newUser(username);
+    UserToken userToken = tempEntity.newUserToken(username, "TestUserCode", hashedUserTokenPassword, InternalRealm.ID);
 
-    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("jOhndoE", user.getPassword());
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
     AuthenticationInfo authenticationInfo = realm.getAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
-    assertThat(principalCollection).isNotEmpty();
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
-    assertThat(principal)
-        .isEqualTo(new UserPrincipal(user.getUsername(), user.calculateDisplayName(), InternalRealm.ID));
+    assertThat(principal).isEqualTo(new UserPrincipal(username, user.calculateDisplayName(), UserTokenRealm.ID));
     assertThat(principalIterator.hasNext()).isFalse();
     assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
-    assertThat(authenticationInfo.getCredentials()).isEqualTo(TemporaryEntity.USER_PASSWORD_HASH);
+    assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
   }
 
   /**
@@ -155,8 +127,13 @@ public class InternalRealmTest
    */
   @Test
   public void testGetAuthenticationInfo_WrongPassword() {
-    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(User.ADMIN_USERNAME,
-        "Oops! Wrong password!".toCharArray());
+    String username = "JohnDoe";
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    tempEntity.newUser(username);
+    UserToken userToken = tempEntity.newUserToken(username, "TestUserCode", hashedUserTokenPassword, InternalRealm.ID);
+
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), "WrongPassword");
     assertThatExceptionOfType(IncorrectCredentialsException.class).isThrownBy(() -> {
       realm.getAuthenticationInfo(usernamePasswordToken);
     });

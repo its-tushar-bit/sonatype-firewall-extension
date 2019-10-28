@@ -38,6 +38,8 @@ public class SamlRealm
 {
   private static final Logger log = LoggerFactory.getLogger(SamlRealm.class);
 
+  public static final String ID = "SAML";
+
   public SamlRealm() {
     super(new AllowAllCredentialsMatcher());
     setName("SAML");
@@ -74,7 +76,7 @@ public class SamlRealm
         new LinkedHashSet<>(getAllAttributes(samlPrincipal, samlConfiguration.getGroupsAttributeName()));
     groups.removeIf(StringUtils::isBlank);
 
-    return new SimpleAuthenticationInfo(new UserPrincipal(username, displayName, false, groups), null, getName());
+    return new SimpleAuthenticationInfo(new UserPrincipal(username, displayName, ID, groups), null, getName());
   }
 
   private String getFirstAttribute(SamlPrincipal samlPrincipal, String attributeName) {

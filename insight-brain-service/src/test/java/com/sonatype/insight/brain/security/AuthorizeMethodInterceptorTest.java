@@ -115,6 +115,6 @@ public class AuthorizeMethodInterceptorTest
   }
 
   private UserPrincipal adminPrincipal() {
-    return new UserPrincipal("admin", "Admin BuiltIn", true);
+    return new UserPrincipal("admin", "Admin BuiltIn", InternalRealm.ID);
   }
 }

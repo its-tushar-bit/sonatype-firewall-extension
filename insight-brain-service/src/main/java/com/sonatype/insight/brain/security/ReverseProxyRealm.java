@@ -39,6 +39,8 @@ public class ReverseProxyRealm
 {
   private static final Logger log = LoggerFactory.getLogger(ReverseProxyRealm.class);
 
+  public static final String ID = "ReverseProxy";
+
   private final LdapService ldapService;
 
   @Inject
@@ -55,7 +57,7 @@ public class ReverseProxyRealm
     if (info == null) {
       info = doGetLdapRealmAuthenticationInfo(username);
       if (info == null) {
-        info = new SimpleAuthenticationInfo(new UserPrincipal(username, username, false), null, getName());
+        info = new SimpleAuthenticationInfo(new UserPrincipal(username, username, ID), null, getName());
         log.debug("Found no user information for '{}'", username);
       }
       else {
@@ -71,7 +73,7 @@ public class ReverseProxyRealm
   private AuthenticationInfo doGetInternalRealmAuthenticationInfo(String username) {
     User user = new UserDAO().getByUsername(username);
     if (user != null) {
-      return new SimpleAuthenticationInfo(new UserPrincipal(username, user.calculateDisplayName(), true),
+      return new SimpleAuthenticationInfo(new UserPrincipal(user.getUsername(), user.calculateDisplayName(), ID),
           null, getName());
     }
     return null;
@@ -81,8 +83,9 @@ public class ReverseProxyRealm
     try {
       LdapUser ldapUser = ldapService.getUserByName(username);
       if (ldapUser != null) {
-        return new SimpleAuthenticationInfo(new UserPrincipal(username, ldapUser.getRealName(), false,
-            ldapUser.getMembership()), null, getName());
+        return new SimpleAuthenticationInfo(
+            new UserPrincipal(ldapUser.getUsername(), ldapUser.getRealName(), ID, ldapUser.getMembership()), null,
+            getName());
       }
       return null;
     }

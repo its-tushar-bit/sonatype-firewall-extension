@@ -179,6 +179,7 @@ public class SamlAuthcTest
     assertResponseStatus(200, response);
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
     assertThat(authStatus.getUsername()).isEqualTo("username-attribute");
+    assertThat(authStatus.isInternalUser()).isFalse();
     assertThat(authStatus.getGroups()).containsExactlyInAnyOrder(Group.AUTHENTICATED_USERS_GROUP_ID, "group-attribute");
   }
 

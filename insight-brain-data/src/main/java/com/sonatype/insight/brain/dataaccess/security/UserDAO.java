@@ -172,8 +172,8 @@ public class UserDAO
 
     // Cascade to user token
     UserTokenDAO userTokenDAO = new UserTokenDAO();
-    UserToken userToken = userTokenDAO.getByUsername(tx, entity.getUsername());
-    if (userToken != null && userToken.isInternalUser()) {
+    UserToken userToken = userTokenDAO.getInternalByUsername(tx, entity.getUsername());
+    if (userToken != null) {
       userTokenDAO.delete(tx, userToken);
     }
 

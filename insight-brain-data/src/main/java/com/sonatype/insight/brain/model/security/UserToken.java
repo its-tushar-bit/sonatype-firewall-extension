@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.model.security;
 
 import java.util.Date;
-import java.util.Locale;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -30,17 +29,19 @@ public class UserToken
   @Column(name = "username")
   private String username;
 
-  @Column(name = "username_lowercase")
-  private String usernameLowercase;
-
-  @Column(name = "internal_user")
-  private boolean isInternalUser;
-
   @Column(name = "user_code")
   private String userCode;
 
   @Column(name = "pass_code")
   private String passCode;
+
+  /**
+   * The id of the realm that authenticated the user that created this user token.
+   * 
+   * @see UserPrincipal#realmId
+   */
+  @Column(name = "realm_id")
+  private String realmId;
 
   @Column(name = "create_time")
   private Date createTime;
@@ -61,19 +62,10 @@ public class UserToken
 
   public void setUsername(String username) {
     this.username = username;
-    usernameLowercase = UserToken.normalizeUsername(username);
-  }
-
-  public String getUsernameLowercase() {
-    return usernameLowercase;
   }
 
   public boolean isInternalUser() {
-    return isInternalUser;
-  }
-
-  public void setInternalUser(boolean isInternalUser) {
-    this.isInternalUser = isInternalUser;
+    return User.INTERNAL_REALM_ID.equals(realmId);
   }
 
   public String getUserCode() {
@@ -100,10 +92,11 @@ public class UserToken
     this.createTime = createTime;
   }
 
-  public static String normalizeUsername(String username) {
-    if (username == null) {
-      return null;
-    }
-    return username.toLowerCase(Locale.ENGLISH);
+  public String getRealmId() {
+    return realmId;
+  }
+
+  public void setRealmId(String realmId) {
+    this.realmId = realmId;
   }
 }

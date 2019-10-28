@@ -23,6 +23,8 @@ public class User
 {
   public static final String ADMIN_USERNAME = "admin";
 
+  public static final String INTERNAL_REALM_ID = "Internal";
+
   @Id
   @Column(name = "user_id")
   private String id;

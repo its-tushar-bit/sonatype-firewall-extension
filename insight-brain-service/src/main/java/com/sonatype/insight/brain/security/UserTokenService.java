@@ -5,12 +5,23 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.naming.NameNotFoundException;
+import javax.naming.NamingException;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.configuration.ldap.LdapService;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
@@ -19,6 +30,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.shiro.SecurityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.76
@@ -26,22 +39,38 @@ import org.apache.shiro.SecurityUtils;
 @Named
 public class UserTokenService
 {
+  private static final Logger log = LoggerFactory.getLogger(UserTokenService.class);
+
   private final UserTokenDAO userTokenDAO;
 
   private final PasswordService passwordService;
 
+  private final LdapService ldapService;
+
   @Inject
-  public UserTokenService(UserTokenDAO userTokenDAO, PasswordService passwordService) {
+  public UserTokenService(UserTokenDAO userTokenDAO, PasswordService passwordService, LdapService ldapService) {
     this.userTokenDAO = userTokenDAO;
     this.passwordService = passwordService;
+    this.ldapService = ldapService;
   }
 
   public ApiUserTokenDTO createUserToken() {
-    UserPrincipal user = (UserPrincipal) SecurityUtils.getSubject().getPrincipal();
-    String username = user.getUsername();
+    UserPrincipal userPrincipal = (UserPrincipal) SecurityUtils.getSubject().getPrincipal();
+    String username = userPrincipal.getUsername();
 
-    if (userTokenDAO.getByUsername(username) != null) {
+    if (UserTokenRealm.ID.equals(userPrincipal.getRealmId())) {
+      // The user authenticated using a user token... so the user token already exists for this user.
       throw new BadRequestException("UserToken already exists for user: " + username);
+    }
+
+    String realmId = userPrincipal.getRealmId();
+    if (userTokenDAO.getByUsernameAndRealmId(username, realmId) != null) {
+      throw new BadRequestException("UserToken already exists for user: " + username);
+    }
+
+    if (!isRealmAllowed(realmId)) {
+      throw new BadRequestException(
+          "The login method that has been utilized for authentication does not support the creation of user tokens");
     }
 
     String userCode;
@@ -59,7 +88,7 @@ public class UserTokenService
     userToken.setUsername(username);
     userToken.setUserCode(userCode);
     userToken.setPassCode(hashed);
-    userToken.setInternalUser(user.isInternalUser());
+    userToken.setRealmId(realmId);
 
     audit(userToken);
     userTokenDAO.insert(userToken);
@@ -71,20 +100,46 @@ public class UserTokenService
     return apiUserTokenDTO;
   }
 
+  private boolean isRealmAllowed(String realmId) {
+    if (InternalRealm.ID.equals(realmId)) {
+      return true;
+    }
+
+    return new LdapServerDAO().getById(realmId) != null;
+  }
+
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public void deleteUserToken(String username) {
-    deleteUserTokenByUsername(username);
+  public void purgeUserTokens() throws NamingException {
+    Map<String, LdapServer> ldapServersById =
+        new LdapServerDAO().getAll().stream().collect(Collectors.toMap(LdapServer::getId, Function.identity()));
+
+    for (UserToken userToken : userTokenDAO.getAllNotInternal()) {
+      String username = userToken.getUsername();
+      try {
+        ldapService.getUserByName(ldapServersById.get(userToken.getRealmId()), username);
+      }
+      catch (NameNotFoundException e) {
+        try (AuditSession auditSession =
+            AuditData.get().recordSubEvent(AuditEvent.DELETE_USER_TOKEN, true /* independent */)) {
+          deleteAndAuditUserToken(userToken);
+        }
+        log.info("The '{}' user token was created for the '{}' LDAP user, which doesn't exist anymore."
+            + " The user token was deleted.", userToken.getUserCode(), username);
+      }
+    }
   }
 
   public void deleteCurrentUserToken() {
-    deleteUserTokenByUsername(((UserPrincipal) SecurityUtils.getSubject().getPrincipal()).getUsername());
-  }
-
-  private void deleteUserTokenByUsername(String username) {
-    UserToken userToken = userTokenDAO.getByUsername(username);
+    UserPrincipal userPrincipal = (UserPrincipal) SecurityUtils.getSubject().getPrincipal();
+    String username = userPrincipal.getUsername();
+    UserToken userToken = userTokenDAO.getByUsernameAndRealmId(username, userPrincipal.getRealmId());
     if (userToken == null) {
       throw new NotFoundException("No user token found for user: " + username);
     }
+    deleteAndAuditUserToken(userToken);
+  }
+
+  public void deleteAndAuditUserToken(UserToken userToken) {
     audit(userToken);
     userTokenDAO.delete(userToken);
   }

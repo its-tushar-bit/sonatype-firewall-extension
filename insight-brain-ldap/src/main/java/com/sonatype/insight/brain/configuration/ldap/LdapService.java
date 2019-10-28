@@ -249,25 +249,39 @@ public class LdapService
     final List<LdapServerExceptionWrapper> ldapServerExceptionWrappers = new ArrayList<>();
 
     for (final LdapServer server : servers) {
-      if (isLdapEnabled(server)) {
-        final LdapConnection conn = getDecryptedConnection(server);
-        checkValidConnection(conn);
-        try {
-          LdapUser user = newLdapQuery(conn).getUser(username, true);
-          resetConnectionFailures(conn);
-          return user;
+      try {
+        LdapUser ldapUser = getUserByName(server, username);
+        if (ldapUser != null) {
+          return ldapUser;
         }
-        catch (NameNotFoundException e) {
-          ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(server, e));
-        }
-        catch (NamingException e) {
-          recordConnectionFailure(conn);
-          ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(server, e));
-        }
+      }
+      catch (NamingException e) {
+        ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(server, e));
       }
     }
 
     throw LdapServerExceptionWrapper.getSomethingToThrow(ldapServerExceptionWrappers);
+  }
+
+  public LdapUser getUserByName(LdapServer ldapServer, String username) throws NamingException {
+    if (!isLdapEnabled(ldapServer)) {
+      return null;
+    }
+
+    final LdapConnection conn = getDecryptedConnection(ldapServer);
+    checkValidConnection(conn);
+    try {
+      LdapUser user = newLdapQuery(conn).getUser(username, true);
+      resetConnectionFailures(conn);
+      return user;
+    }
+    catch (NameNotFoundException e) {
+      throw e;
+    }
+    catch (NamingException e) {
+      recordConnectionFailure(conn);
+      throw e;
+    }
   }
 
   private LdapQuery newLdapQuery(LdapServer server) {

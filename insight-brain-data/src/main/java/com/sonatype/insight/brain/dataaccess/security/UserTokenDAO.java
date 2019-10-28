@@ -6,8 +6,10 @@
 package com.sonatype.insight.brain.dataaccess.security;
 
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -31,16 +33,22 @@ public class UserTokenDAO
     super.insert(tx, userToken);
   }
 
-  public UserToken getByUsername(String username) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByUsername(tx, username);
-    }
+  public List<UserToken> getAllNotInternal() {
+    String sQuery = "SELECT userToken FROM UserToken userToken" + //
+        " WHERE userToken.realmId<>?1";
+    return getList(sQuery, User.INTERNAL_REALM_ID);
   }
 
-  public UserToken getByUsername(TransactionContext tx, String username) {
+  public UserToken getInternalByUsername(TransactionContext tx, String username) {
     String sQuery = "SELECT userToken FROM UserToken userToken" + //
-        " WHERE userToken.usernameLowercase=?1";
-    return get(tx, sQuery, UserToken.normalizeUsername(username));
+        " WHERE userToken.username=?1 AND userToken.realmId=?2";
+    return get(tx, sQuery, username, User.INTERNAL_REALM_ID);
+  }
+
+  public UserToken getByUsernameAndRealmId(String username, String realmId) {
+    String sQuery = "SELECT userToken FROM UserToken userToken" + //
+        " WHERE userToken.username=?1 AND userToken.realmId=?2";
+    return get(sQuery, username, realmId);
   }
 
   public UserToken getByUserCode(String userCode) {
@@ -49,8 +57,18 @@ public class UserTokenDAO
     return get(sQuery, userCode);
   }
 
+  private List<UserToken> getByRealmId(TransactionContext tx, String realmId) {
+    String sQuery = "SELECT userToken FROM UserToken userToken" + //
+        " WHERE userToken.realmId=?1";
+    return getList(tx, sQuery, realmId);
+  }
+
   @Override
   public void update(TransactionContext tx, UserToken userToken) {
     throw new UnsupportedOperationException("The UserToken table does not support update operations.");
+  }
+
+  public void deleteByRealmId(TransactionContext tx, String realmId) {
+    getByRealmId(tx, realmId).forEach(userToken -> delete(tx, userToken));
   }
 }

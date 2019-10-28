@@ -455,6 +455,7 @@ public class UserDirectoryTest
         anyLong());
     // Third LDAP server returns a user
     LdapUser ldapUser = new LdapUser();
+    ldapUser.setServerId(ldapServer3.getId());
     ldapUser.setUsername("testldapuser");
     doReturn(Collections.singletonList(ldapUser)).when(mockLdapService)
         .findUsersByName(argThat(new SameId(ldapServer3)), any(String.class), anyLong());

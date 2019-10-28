@@ -15,11 +15,11 @@ public class UserPrincipalTest
 {
   @Test
   public void testEveryoneIsAMemberInAuthenticatedUsersGroup() {
-    UserPrincipal userPrincipal = new UserPrincipal("username", "displayName", true /* isInternaluser */);
+    UserPrincipal userPrincipal = new UserPrincipal("username", "displayName", User.INTERNAL_REALM_ID);
     assertThat(userPrincipal.getMembership()).containsExactly(Group.AUTHENTICATED_USERS_GROUP_ID);
 
     userPrincipal =
-        new UserPrincipal("username", "displayName", true /* isInternaluser */, Collections.singleton("SomeGroup"));
+        new UserPrincipal("username", "displayName", User.INTERNAL_REALM_ID, Collections.singleton("SomeGroup"));
     assertThat(userPrincipal.getMembership()).containsExactly("SomeGroup", Group.AUTHENTICATED_USERS_GROUP_ID);
   }
 }

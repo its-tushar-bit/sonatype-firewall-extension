@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
+import com.sonatype.insight.brain.security.InternalRealm;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
@@ -100,7 +101,7 @@ public class AbstractComponentTest
   }
 
   protected void setUpSecurity() {
-    lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal(USERNAME, "Test User", true));
+    lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal(USERNAME, "Test User", InternalRealm.ID));
     lenient().when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
     ThreadContext.bind(securityManager);
     ThreadContext.bind(subject);

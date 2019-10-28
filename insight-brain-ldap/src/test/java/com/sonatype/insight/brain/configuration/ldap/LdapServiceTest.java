@@ -219,12 +219,13 @@ public class LdapServiceTest
                 + "ERR_229 Cannot authenticate user uid=test_user2_2,ou=users,dc=company,dc=com]"));
   }
 
-  private void loadLdapServer(final TestLdapServer testLdapServer, final String serverName) throws Exception {
+  private LdapServer loadLdapServer(final TestLdapServer testLdapServer, final String serverName) throws Exception {
     final LdapServer ldapServer = tempEntity.newLdapServer(serverName);
     final LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer, ldapConnection);
 
     createUserMapping(ldapServer);
+    return ldapServer;
   }
 
   @Test
@@ -309,20 +310,22 @@ public class LdapServiceTest
 
   @Test
   public void testAuthenticateUser_MultiServer_ValidLoginFirstServer() throws Exception {
-    loadLdapServer(testLdapServer1, "Test Server1");
+    LdapServer ldapServer1 = loadLdapServer(testLdapServer1, "Test Server1");
     loadLdapServer(testLdapServer2, "Test Server2");
 
     final LdapUser ldapUser = ldapService.authenticateUser("test_user2_1", "test".toCharArray());
     assertThat(ldapUser.getRealName()).isEqualTo("Test User 2 1");
+    assertThat(ldapUser.getServerId()).isEqualTo(ldapServer1.getId());
   }
 
   @Test
   public void testAuthenticateUser_MultiServer_ValidLoginSecondServer() throws Exception {
     loadLdapServer(testLdapServer1, "Test Server1");
-    loadLdapServer(testLdapServer2, "Test Server2");
+    LdapServer ldapServer2 = loadLdapServer(testLdapServer2, "Test Server2");
 
     final LdapUser ldapUser = ldapService.authenticateUser("test_user2_2", "test".toCharArray());
     assertThat(ldapUser.getRealName()).isEqualTo("Test User 2 2");
+    assertThat(ldapUser.getServerId()).isEqualTo(ldapServer2.getId());
   }
 
   @Test
@@ -451,20 +454,30 @@ public class LdapServiceTest
 
   @Test
   public void testGetUserByName_MultiServer_ValidLoginFirstServer() throws Exception {
-    loadLdapServer(testLdapServer1, "Test Server1");
+    LdapServer ldapServer1 = loadLdapServer(testLdapServer1, "Test Server1");
     loadLdapServer(testLdapServer2, "Test Server2");
 
     final LdapUser ldapUser = ldapService.getUserByName("test_user2_1");
     assertThat(ldapUser.getRealName()).isEqualTo("Test User 2 1");
+    assertThat(ldapUser.getServerId()).isEqualTo(ldapServer1.getId());
   }
 
   @Test
   public void testGetUserByName_MultiServer_ValidLoginSecondServer() throws Exception {
     loadLdapServer(testLdapServer1, "Test Server1");
-    loadLdapServer(testLdapServer2, "Test Server2");
+    LdapServer ldapServer2 = loadLdapServer(testLdapServer2, "Test Server2");
 
     final LdapUser ldapUser = ldapService.getUserByName("test_user2_2");
     assertThat(ldapUser.getRealName()).isEqualTo("Test User 2 2");
+    assertThat(ldapUser.getServerId()).isEqualTo(ldapServer2.getId());
+  }
+
+  @Test
+  public void testGetUserByName_FirstServerDisabled() throws Exception {
+    tempEntity.newLdapServer("Test Server1");
+    loadLdapServer(testLdapServer2, "Test Server2");
+
+    assertThat(ldapService.getUserByName("test_user1_2")).isNotNull();
   }
 
   @Test
@@ -761,6 +774,8 @@ public class LdapServiceTest
     List<LdapUser> users1 = ldapService.getUsersByName(ldapServer1,
         new String[] { "test_user1_1", "test_user2_1", "test_user1_2" });
     assertThat(users1).extracting(LdapUser::getUsername).containsExactlyInAnyOrder("test_user1_1", "test_user2_1");
+    assertThat(users1).extracting(LdapUser::getServerId).containsExactlyInAnyOrder(ldapServer1.getId(),
+        ldapServer1.getId());
 
     users1 = ldapService.getUsersByName(ldapServer1, new String[] { "foo" });
     assertThat(users1).isEmpty();
@@ -768,6 +783,7 @@ public class LdapServiceTest
     List<LdapUser> users2 = ldapService.getUsersByName(ldapServer2,
         new String[] { "test_user1_1", "test_user2_1", "test_user1_2" });
     assertThat(users2).extracting(LdapUser::getUsername).containsExactly("test_user1_2");
+    assertThat(users2).extracting(LdapUser::getServerId).containsExactly(ldapServer2.getId());
   }
 
   @Test
@@ -919,10 +935,14 @@ public class LdapServiceTest
     List<LdapUser> users1 = ldapService.findUsersByName(ldapServer1, "test*" /* name */, 100);
     assertThat(users1).extracting(LdapUser::getUsername).containsExactlyInAnyOrder("test_user1_1", "test_user2_1",
         "test*user1_1");
+    assertThat(users1).extracting(LdapUser::getServerId).containsExactlyInAnyOrder(ldapServer1.getId(),
+        ldapServer1.getId(), ldapServer1.getId());
 
     List<LdapUser> users2 = ldapService.findUsersByName(ldapServer2, "test*" /* name */, 100);
     assertThat(users2).extracting(LdapUser::getUsername).containsExactlyInAnyOrder("test_user1_2", "test_user2_2",
         "test*user1_2");
+    assertThat(users2).extracting(LdapUser::getServerId).containsExactlyInAnyOrder(ldapServer2.getId(),
+        ldapServer2.getId(), ldapServer2.getId());
   }
 
   @Test

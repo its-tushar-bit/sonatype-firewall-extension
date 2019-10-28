@@ -122,7 +122,7 @@ public class UserSessionResource
         if (principal instanceof UserPrincipal) {
           status.setUsername(((UserPrincipal) principal).getUsername());
           status.setDisplayName(((UserPrincipal) principal).getDisplayName());
-          status.setInternalUser(((UserPrincipal) principal).isInternalUser());
+          status.setInternalUser(InternalRealm.ID.equals(((UserPrincipal) principal).getRealmId()));
           status.setGroups(((UserPrincipal) principal).getMembership());
         }
         else {

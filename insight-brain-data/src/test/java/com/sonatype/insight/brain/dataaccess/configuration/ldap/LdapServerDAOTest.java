@@ -11,10 +11,12 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
+import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -281,5 +283,17 @@ public class LdapServerDAOTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       dao.updatePriority(serverPriorityList);
     }).withMessageContaining("Cannot find LdapServer with ID incorrectServerId");
+  }
+
+  @Test
+  public void testDeleteCascadesToUserToken() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    UserToken userToken1 = tempEntity.newUserToken("JohnDoe", ldapServer.getId());
+    UserToken userToken2 = tempEntity.newUserToken("JaneDoe", "OtherRealmId");
+
+    dao.delete(ldapServer);
+
+    assertThat(new UserTokenDAO().getById(userToken1.getId())).isNull();
+    assertThat(new UserTokenDAO().getById(userToken2.getId())).isNotNull();
   }
 }

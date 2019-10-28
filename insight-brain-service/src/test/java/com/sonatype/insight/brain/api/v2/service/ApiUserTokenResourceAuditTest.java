@@ -12,11 +12,15 @@ import com.sonatype.insight.brain.api.v2.ApiUserTokenResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
+import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,6 +28,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiUserTokenResourceAuditTest
     extends AbstractAuditTest
 {
+  @Rule
+  public TestLdapServer embeddedTestLdapServer = new TestLdapServer();
+
   @Test
   public void testCreateUserToken() throws Exception {
     String username = "FearlessTuring";
@@ -45,7 +52,7 @@ public class ApiUserTokenResourceAuditTest
     String username = "FearlessTuring";
 
     tempEntity.newUser(username);
-    tempEntity.newUserToken(username, true);
+    tempEntity.newUserToken(username, InternalRealm.ID);
 
     restRequest()
         .path(ApiUserTokenResource.CURRENT_USER)
@@ -60,7 +67,7 @@ public class ApiUserTokenResourceAuditTest
     String username = "FearlessTuring";
 
     tempEntity.newUser(username);
-    UserToken userToken = tempEntity.newUserToken(username, true);
+    UserToken userToken = tempEntity.newUserToken(username, InternalRealm.ID);
 
     restRequest()
         .path(ApiUserTokenResource.CURRENT_USER)
@@ -87,30 +94,34 @@ public class ApiUserTokenResourceAuditTest
   }
 
   @Test
-  public void testDeleteUserToken() throws Exception {
-    String username = "FearlessTuring";
+  public void testPurgeUserTokens() throws Exception {
+    embeddedTestLdapServer.start();
+    embeddedTestLdapServer.loadData("/" + getClass().getSimpleName() + "/ldap_users.ldif");
 
-    tempEntity.newUser(username);
-    UserToken userToken = tempEntity.newUserToken(username, true);
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    tempEntity.newLdapConnection(ldapServer.getId(), embeddedTestLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
 
-    restRequest()
-        .path(ApiUserTokenResource.DELETE_BY_USERNAME).parameter(username)
+    // Token for non-existing LDAP user, should be purged.
+    UserToken userTokenLdapUseInvalid = tempEntity.newUserToken("no-such-user", ldapServer.getId());
+
+    restRequest() //
+        .path(ApiUserTokenResource.PURGE) //
         .delete();
 
+    assertAuditLog(AuditEvent.PURGE_USER_TOKENS, null, User.ADMIN_USERNAME);
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_USER_TOKEN, null, User.ADMIN_USERNAME);
-    assertThat(auditDTO.data).containsEntry("username", username);
-    assertThat(auditDTO.data).containsEntry("userCode", userToken.getUserCode());
+    assertThat(auditDTO.data).containsEntry("username", userTokenLdapUseInvalid.getUsername());
+    assertThat(auditDTO.data).containsEntry("userCode", userTokenLdapUseInvalid.getUserCode());
   }
 
   @Test
-  public void testDeleteUserToken_Unauthorized() throws Exception {
-    restRequest()
-        .path(ApiUserTokenResource.DELETE_BY_USERNAME)
-        .parameter("john.doe")
-        .with(unauthorizedUser())
-        .delete();
+  public void testPurgeUserTokens_Unauthorized() throws Exception {
+    restRequest() //
+        .path(ApiUserTokenResource.PURGE) //
+        .with(unauthorizedUser()).delete();
 
-    assertAuditLog(AuditEvent.DELETE_USER_TOKEN, "unauthorized");
+    assertAuditLog(AuditEvent.PURGE_USER_TOKENS, "unauthorized");
   }
 
   @Override

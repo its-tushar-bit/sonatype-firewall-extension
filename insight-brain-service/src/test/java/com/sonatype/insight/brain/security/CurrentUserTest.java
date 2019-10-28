@@ -79,7 +79,7 @@ public class CurrentUserTest
   public void testGetUsername() {
     when(subject.getPrincipal()).thenReturn(null);
     assertThat(currentUser.getUsername()).isEqualTo("anonymous");
-    when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Administrator", true));
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Administrator", InternalRealm.ID));
     assertThat(currentUser.getUsername()).isEqualTo("admin");
   }
 
@@ -91,7 +91,7 @@ public class CurrentUserTest
 
   @Test
   public void testGetUsernameOrSystem_Username() {
-    when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Administrator", true));
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Administrator", InternalRealm.ID));
     assertThat(currentUser.getUsernameOrSystem()).isEqualTo("admin");
   }
 

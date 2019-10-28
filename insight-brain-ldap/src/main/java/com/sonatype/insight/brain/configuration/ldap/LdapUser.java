@@ -19,6 +19,8 @@ public class LdapUser
 
   private String password;
 
+  private String serverId;
+
   private String dn;
 
   private String realName;
@@ -75,6 +77,14 @@ public class LdapUser
     this.membership = membership;
   }
 
+  public String getServerId() {
+    return serverId;
+  }
+
+  public void setServerId(String serverId) {
+    this.serverId = serverId;
+  }
+
   @Override
   public String toString() {
     StringBuilder buf = new StringBuilder();
@@ -84,6 +94,7 @@ public class LdapUser
     buf.append("\n\tDN: ").append(dn);
     buf.append("\n\tReal Name: ").append(realName);
     buf.append("\n\tEmail: ").append(email);
+    buf.append("\n\tServer ID: ").append(serverId);
 
     if (getMembership() != null && !getMembership().isEmpty()) {
       buf.append("\n\tMembership: ").append(getMembership());
@@ -94,6 +105,15 @@ public class LdapUser
 
   @Override
   public int compareTo(LdapUser lhs) {
-    return lhs != null ? getUsername().compareTo(lhs.getUsername()) : 1;
+    if (lhs == null) {
+      return 1;
+    }
+
+    int compared = getUsername().compareTo(lhs.getUsername());
+    if (compared != 0) {
+      return compared;
+    }
+
+    return serverId.compareTo(lhs.serverId);
   }
 }

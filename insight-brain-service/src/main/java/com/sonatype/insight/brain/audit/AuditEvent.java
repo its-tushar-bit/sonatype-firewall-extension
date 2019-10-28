@@ -171,8 +171,9 @@ public enum AuditEvent
   DELETE_SAML(Domain.SECURITY_SAML, Type.DELETE),
 
   CREATE_USER_TOKEN(Domain.SECURITY_USER_TOKEN, Type.CREATE),
-  DELETE_USER_TOKEN(Domain.SECURITY_USER_TOKEN, Type.DELETE);
-
+  DELETE_USER_TOKEN(Domain.SECURITY_USER_TOKEN, Type.DELETE),
+  PURGE_USER_TOKENS(Domain.SECURITY_USER_TOKEN, Type.PURGE);
+  
   private final String domain;
 
   private final String type;
@@ -366,6 +367,8 @@ public enum AuditEvent
     String UPDATE = "update";
 
     String DELETE = "delete";
+
+    String PURGE = "purge";
 
     String IMPORT = "import";
 

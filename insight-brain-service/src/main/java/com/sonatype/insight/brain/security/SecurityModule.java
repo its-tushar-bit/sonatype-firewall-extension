@@ -59,6 +59,7 @@ public class SecurityModule
     bind(Authenticator.class).to(FirstSuccessfulRealmAuthenticator.class);
     bindRealm().to(InternalRealm.class);
     bindRealm().to(LdapRealm.class);
+    bindRealm().to(UserTokenRealm.class);
     bindRealm().to(ReverseProxyRealm.class);
     bindRealm().to(SamlRealm.class);
     binder().requestInjection(new ComponentConfigurator());

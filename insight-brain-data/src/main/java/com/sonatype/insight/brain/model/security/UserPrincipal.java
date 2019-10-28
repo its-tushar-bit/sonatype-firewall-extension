@@ -14,23 +14,27 @@ public class UserPrincipal
 
   private final String displayName;
 
-  private final boolean isInternalUser;
-
   private final Set<String> membership;
 
-  public UserPrincipal(String username, String displayName, boolean isInternalUser) {
-    this(username, displayName, isInternalUser, null);
+  /**
+   * The id of the realm that authenticated the user.
+   * If the user was authenticated by an LDAP server, then this is the id of that LDAP server.
+   */
+  private final String realmId;
+
+  public UserPrincipal(String username, String displayName, String realmId) {
+    this(username, displayName, realmId, null);
   }
 
-  public UserPrincipal(String username, String displayName, boolean isInternalUser, Set<String> membership) {
+  public UserPrincipal(String username, String displayName, String realmId, Set<String> membership) {
     this.username = username;
     this.displayName = displayName;
-    this.isInternalUser = isInternalUser;
     this.membership = new LinkedHashSet<>();
     if (membership != null) {
       this.membership.addAll(membership);
     }
     this.membership.add(Group.AUTHENTICATED_USERS_GROUP_ID);
+    this.realmId = realmId;
   }
 
   public String getUsername() {
@@ -39,10 +43,6 @@ public class UserPrincipal
 
   public String getDisplayName() {
     return this.displayName;
-  }
-
-  public boolean isInternalUser() {
-    return isInternalUser;
   }
 
   public Set<String> getMembership() {
@@ -61,9 +61,9 @@ public class UserPrincipal
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + (isInternalUser ? 1231 : 1237);
     result = prime * result + ((username == null) ? 0 : username.hashCode());
     result = prime * result + ((displayName == null) ? 0 : displayName.hashCode());
+    result = prime * result + realmId.hashCode();
     return result;
   }
 
@@ -82,9 +82,6 @@ public class UserPrincipal
       return false;
     }
     UserPrincipal other = (UserPrincipal) obj;
-    if (isInternalUser != other.isInternalUser) {
-      return false;
-    }
     if (username == null) {
       if (other.username != null) {
         return false;
@@ -101,6 +98,10 @@ public class UserPrincipal
     else if (!displayName.equals(other.displayName)) {
       return false;
     }
-    return true;
+    return realmId.equals(other.realmId);
+  }
+
+  public String getRealmId() {
+    return realmId;
   }
 }

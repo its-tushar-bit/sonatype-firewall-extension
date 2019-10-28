@@ -310,6 +310,7 @@ class LdapQuery
     LdapUser user = new LdapUser();
 
     user.setDn(dn);
+    user.setServerId(umap.getServerId());
     user.setUsername(getAttributeValue(attributes, umap.getUserIDAttribute()));
     user.setPassword(getAttributeValue(attributes, umap.getUserPasswordAttribute()));
     user.setRealName(getAttributeValue(attributes, umap.getUserRealNameAttribute()));

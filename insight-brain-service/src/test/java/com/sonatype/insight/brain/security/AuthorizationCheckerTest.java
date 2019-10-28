@@ -54,7 +54,8 @@ public class AuthorizationCheckerTest
   }
 
   private UserPrincipal newPrincipal(User user, String... groups) {
-    return new UserPrincipal(user.getUsername(), user.calculateDisplayName(), true, Sets.newHashSet(groups));
+    return new UserPrincipal(user.getUsername(), user.calculateDisplayName(), InternalRealm.ID,
+        Sets.newHashSet(groups));
   }
 
   @Test

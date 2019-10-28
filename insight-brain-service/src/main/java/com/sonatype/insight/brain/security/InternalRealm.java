@@ -35,6 +35,8 @@ public class InternalRealm
 {
   public static final String DISPLAY_NAME = "IQ Server";
 
+  public static final String ID = User.INTERNAL_REALM_ID;
+
   @Inject
   public InternalRealm(PasswordService passwordService) {
     setName("CLMRealm");
@@ -56,8 +58,13 @@ public class InternalRealm
 
     User user = new UserDAO().getByUsername(username);
     if (user != null) {
-      // Shiro will verify the password
-      return new SimpleAuthenticationInfo(new UserPrincipal(username, user.calculateDisplayName(), true),
+      // Shiro will verify the password.
+      // For internal users, the passsed in username is case insensitive,
+      // so it doesn't have to match exactly what is stored in the db.
+      // We use the value stored in the db to create the UserPrincipal in order to get consistent values.
+      // This is also important for the creation of user tokens, where the user token's username must match exactly the
+      // user's username stored in the db.
+      return new SimpleAuthenticationInfo(new UserPrincipal(user.getUsername(), user.calculateDisplayName(), ID),
           user.getPassword(), getName());
     }
 

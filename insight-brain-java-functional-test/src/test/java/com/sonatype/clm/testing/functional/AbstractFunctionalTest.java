@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -184,7 +185,7 @@ public abstract class AbstractFunctionalTest
     setupWebDriver();
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(staticTempEntity);
     Subject subject = mock(Subject.class);
-    lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Admin", true));
+    lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Admin", InternalRealm.ID));
     SecurityManager securityManager = mock(SecurityManager.class);
     lenient().when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
     ThreadContext.bind(securityManager);

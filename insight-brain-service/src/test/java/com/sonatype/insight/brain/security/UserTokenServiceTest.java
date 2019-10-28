@@ -10,13 +10,16 @@ import java.util.Date;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
+import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,6 +29,9 @@ import static org.mockito.Mockito.when;
 public class UserTokenServiceTest
     extends AbstractComponentTest
 {
+  @Rule
+  public TestLdapServer embeddedTestLdapServer = new TestLdapServer();
+
   @Inject
   private UserTokenService userTokenService;
 
@@ -36,8 +42,7 @@ public class UserTokenServiceTest
   public void testCreateUserToken_InternalUser() {
     String username = "JohnDoe";
     tempEntity.newUser(username);
-    assertThat(userTokenDAO.getByUsername(username)).isNull();
-    when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "John Doe", true));
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "John Doe", InternalRealm.ID));
 
     Date start = new Date();
     ApiUserTokenDTO apiUserTokenDTO = userTokenService.createUserToken();
@@ -46,12 +51,12 @@ public class UserTokenServiceTest
     assertThat(apiUserTokenDTO.userCode).hasSize(8);
     assertThat(apiUserTokenDTO.passCode).hasSize(44);
 
-    UserToken persistedToken = userTokenDAO.getByUsername(username);
+    UserToken persistedToken = userTokenDAO.getByUsernameAndRealmId(username, InternalRealm.ID);
     assertThat(persistedToken).isNotNull();
     assertThat(persistedToken.getUsername()).isEqualTo(username);
-    assertThat(persistedToken.getUsernameLowercase()).isEqualTo("johndoe");
     assertThat(persistedToken.getUserCode()).isEqualTo(apiUserTokenDTO.userCode);
     assertThat(persistedToken.getPassCode()).isNotNull();
+    assertThat(persistedToken.getRealmId()).isEqualTo(InternalRealm.ID);
     assertThat(persistedToken.getCreateTime()).isBetween(start, end, true, true);
     assertThat(persistedToken.isInternalUser()).isTrue();
 
@@ -59,11 +64,12 @@ public class UserTokenServiceTest
   }
 
   @Test
-  public void testCreateUserToken_ExternalUser() {
+  public void testCreateUserToken_LDAPUser() {
     String username = "JohnDoe";
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    String realmId = ldapServer.getId();
     try {
-      assertThat(userTokenDAO.getByUsername(username)).isNull();
-      when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "John Doe", false));
+      when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "John Doe", realmId));
 
       Date start = new Date();
       ApiUserTokenDTO apiUserTokenDTO = userTokenService.createUserToken();
@@ -72,52 +78,94 @@ public class UserTokenServiceTest
       assertThat(apiUserTokenDTO.userCode).hasSize(8);
       assertThat(apiUserTokenDTO.passCode).hasSize(44);
 
-      UserToken persistedToken = userTokenDAO.getByUsername(username);
+      UserToken persistedToken = userTokenDAO.getByUsernameAndRealmId(username, realmId);
       assertThat(persistedToken).isNotNull();
       assertThat(persistedToken.getUsername()).isEqualTo(username);
-      assertThat(persistedToken.getUsernameLowercase()).isEqualTo("johndoe");
       assertThat(persistedToken.getUserCode()).isEqualTo(apiUserTokenDTO.userCode);
       assertThat(persistedToken.getPassCode()).isNotNull();
+      assertThat(persistedToken.getRealmId()).isEqualTo(realmId);
       assertThat(persistedToken.getCreateTime()).isBetween(start, end, true, true);
       assertThat(persistedToken.isInternalUser()).isFalse();
 
       assertThat(persistedToken.getPassCode()).isNotEqualTo(apiUserTokenDTO.passCode);
     }
     finally {
-      userTokenDAO.delete(userTokenDAO.getByUsername(username));
+      userTokenDAO.delete(userTokenDAO.getByUsernameAndRealmId(username, realmId));
     }
   }
 
   @Test
-  public void testCreateUserToken_TokenExistsCaseInsensitive() {
-    tempEntity.newUserToken("johndoe", true);
-    when(subject.getPrincipal()).thenReturn(new UserPrincipal("JohnDoe", "John Doe", true));
+  public void testCreateUserToken_ReverseProxyUser() {
+    testCreateUserToken_NotAllowedRealm(ReverseProxyRealm.ID);
+  }
+
+  @Test
+  public void testCreateUserToken_SAMLUser() {
+    testCreateUserToken_NotAllowedRealm(SamlRealm.ID);
+  }
+
+  private void testCreateUserToken_NotAllowedRealm(String realmId) {
+    String username = "JohnDoe";
+    try {
+      when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "John Doe", realmId));
+
+      assertThatThrownBy(() -> userTokenService.createUserToken()) //
+          .isInstanceOf(BadRequestException.class) //
+          .hasMessage("The login method that has been utilized for authentication"
+              + " does not support the creation of user tokens");
+    }
+    finally {
+      userTokenDAO.delete(userTokenDAO.getByUsernameAndRealmId(username, realmId));
+    }
+  }
+
+  @Test
+  public void testCreateUserToken_UserTokenAlreadyExists() {
+    String username = "JohnDoe";
+    tempEntity.newUser(username);
+    tempEntity.newUserToken(username, InternalRealm.ID);
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal("JohnDoe", "John Doe", InternalRealm.ID));
     assertThatThrownBy(() -> userTokenService.createUserToken())
         .isInstanceOf(BadRequestException.class).hasMessage("UserToken already exists for user: JohnDoe");
   }
 
   @Test
-  public void testDeleteUserToken() {
-    String username = "user-a";
+  public void testCreateUserToken_UserAuthenticatedWithUserToken() {
+    String username = "JohnDoe";
     tempEntity.newUser(username);
-    UserToken userToken = tempEntity.newUserToken(username, true);
-    userTokenService.deleteUserToken(username);
-
-    assertThat(userTokenDAO.getById(userToken.getId())).isNull();
+    tempEntity.newUserToken(username, InternalRealm.ID);
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal("JohnDoe", "John Doe", UserTokenRealm.ID));
+    assertThatThrownBy(() -> userTokenService.createUserToken()).isInstanceOf(BadRequestException.class)
+        .hasMessage("UserToken already exists for user: JohnDoe");
   }
 
   @Test
-  public void testDeleteUserToken_NonExistentUserToken() {
-    String username = "user-a";
-    assertThatThrownBy(() -> userTokenService.deleteUserToken(username)).isInstanceOf(NotFoundException.class)
-        .hasMessage("No user token found for user: " + username);
+  public void testPurgeUserTokens() throws Exception {
+    embeddedTestLdapServer.start();
+    embeddedTestLdapServer.loadData("/" + getClass().getSimpleName() + "/ldap_users.ldif");
+
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    tempEntity.newLdapConnection(ldapServer.getId(), embeddedTestLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    // Token for internal user, should not be purged.
+    UserToken userTokenInternalUser = tempEntity.newUserToken("JohnDoe", InternalRealm.ID);
+    // Token for existing LDAP user, should not be purged.
+    UserToken userTokenLdapUserValid = tempEntity.newUserToken("testuser", ldapServer.getId());
+    // Token for non-existing LDAP user, should be purged.
+    UserToken userTokenLdapUseInvalid = tempEntity.newUserToken("no-such-user", ldapServer.getId());
+    userTokenService.purgeUserTokens();
+
+    assertThat(userTokenDAO.getById(userTokenInternalUser.getId())).isNotNull();
+    assertThat(userTokenDAO.getById(userTokenLdapUserValid.getId())).isNotNull();
+    assertThat(userTokenDAO.getById(userTokenLdapUseInvalid.getId())).isNull();
   }
 
   @Test
   public void testDeleteCurrentUserToken() {
     String username = "user-a";
-    when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "Administrator", true));
-    UserToken userToken = tempEntity.newUserToken(username, true);
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "Administrator", InternalRealm.ID));
+    UserToken userToken = tempEntity.newUserToken(username, InternalRealm.ID);
     userTokenService.deleteCurrentUserToken();
 
     assertThat(userTokenDAO.getById(userToken.getId())).isNull();
@@ -126,7 +174,7 @@ public class UserTokenServiceTest
   @Test
   public void testDeleteCurrentUserToken_NonExistentUserToken() {
     String username = "user-a";
-    when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "Administrator", true));
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "Administrator", InternalRealm.ID));
 
     assertThatThrownBy(() -> userTokenService.deleteCurrentUserToken()).isInstanceOf(NotFoundException.class)
         .hasMessage("No user token found for user: " + username);

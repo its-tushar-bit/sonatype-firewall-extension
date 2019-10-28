@@ -46,11 +46,7 @@ public class ApiApplicationAdapter
     }
 
     final ApiApplicationDTO applicationDTO = new ApiApplicationDTO();
-    applicationDTO.id = application.getId();
-    applicationDTO.publicId = application.getPublicId();
-    applicationDTO.name = application.getName();
-    applicationDTO.organizationId = application.getOrganizationId();
-    applicationDTO.contactUserName = application.getContactInternalName();
+    populateDTO(applicationDTO, application);
 
     List<ApplicationTag> tags = applicationTagDAO.getByApplicationId(application.getId());
     applicationDTO.applicationTags = apiApplicationTagAdapter.convertToDTO(tags);
@@ -88,11 +84,15 @@ public class ApiApplicationAdapter
     }
 
     final ApiApplicationBaseDTO applicationDTO = new ApiApplicationBaseDTO();
+    populateDTO(applicationDTO, application);
+    return applicationDTO;
+  }
+
+  private void populateDTO(ApiApplicationBaseDTO applicationDTO, Application application) {
     applicationDTO.id = application.getId();
     applicationDTO.publicId = application.getPublicId();
     applicationDTO.name = application.getName();
     applicationDTO.organizationId = application.getOrganizationId();
     applicationDTO.contactUserName = application.getContactInternalName();
-    return applicationDTO;
   }
 }

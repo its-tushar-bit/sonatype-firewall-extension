@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.thirdparty;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.List;
@@ -426,7 +425,7 @@ public class ThirdPartyScanResultsProcessorTest
     }
   }
 
-  private Bom getBom(String content) throws ParseException, IOException {
+  private Bom getBom(String content) throws ParseException {
     BomParser parser = new BomParser();
     return parser.parse(new StringReader(content));
   }

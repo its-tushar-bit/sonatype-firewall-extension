@@ -5,25 +5,30 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.test.InjectedTest;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiApplicationAdapterTest
+    extends InjectedTest
 {
-  private ApiApplicationAdapter apiApplicationAdapter = new ApiApplicationAdapter();
+  @Inject
+  private ApiApplicationAdapter apiApplicationAdapter;
 
   @Test
-  public void testConvertToApplicationDTO_nullValue() {
+  public void testConvertToDTO_nullValue() {
     final ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(null);
     assertThat(apiApplicationDTO).isNull();
   }
 
   @Test
-  public void testConvertToApplicationDTO() {
+  public void testConvertToDTO() {
     final Application application = new Application();
     application.setId("appId");
     application.setPublicId("publicId");

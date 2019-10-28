@@ -5,11 +5,17 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.List;
+
+import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationBaseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiApplicationTagAdapter;
+import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.tag.ApplicationTag;
 
 /**
  * @since 1.11.0
@@ -17,6 +23,16 @@ import com.sonatype.insight.brain.model.Application;
 @Named
 public class ApiApplicationAdapter
 {
+  private final ApplicationTagDAO applicationTagDAO;
+
+  private final ApiApplicationTagAdapter apiApplicationTagAdapter;
+
+  @Inject
+  public ApiApplicationAdapter(ApplicationTagDAO applicationTagDAO, ApiApplicationTagAdapter apiApplicationTagAdapter) {
+    this.applicationTagDAO = applicationTagDAO;
+    this.apiApplicationTagAdapter = apiApplicationTagAdapter;
+  }
+
   /**
    * Converts an {@link Application} entity to an {@link ApiApplicationDTO} object, will return null if null is passed
    * in.
@@ -35,6 +51,10 @@ public class ApiApplicationAdapter
     applicationDTO.name = application.getName();
     applicationDTO.organizationId = application.getOrganizationId();
     applicationDTO.contactUserName = application.getContactInternalName();
+
+    List<ApplicationTag> tags = applicationTagDAO.getByApplicationId(application.getId());
+    applicationDTO.applicationTags = apiApplicationTagAdapter.convertToDTO(tags);
+
     return applicationDTO;
   }
 

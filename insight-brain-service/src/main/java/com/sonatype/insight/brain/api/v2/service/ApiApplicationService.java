@@ -89,7 +89,7 @@ public class ApiApplicationService
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId)
   {
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
-    return convertApplicationToDTO(application);
+    return apiApplicationAdapter.convertToDTO(application);
   }
 
   /**
@@ -103,7 +103,7 @@ public class ApiApplicationService
     List<Application> applications = getApplications(publicIds);
     List<ApiApplicationDTO> applicationDTOs = new ArrayList<>(applications.size());
     for (Application application : applications) {
-      ApiApplicationDTO apiApplicationDTO = convertApplicationToDTO(application);
+      ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
       applicationDTOs.add(apiApplicationDTO);
     }
     ApiApplicationListDTO applicationListDTO = new ApiApplicationListDTO();
@@ -128,11 +128,7 @@ public class ApiApplicationService
       AuditData.get().setApplicationWithDetails(application);
     }
 
-    ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
-    List<ApplicationTag> tags = applicationTagDAO.getByApplicationId(application.getId());
-    apiApplicationDTO.applicationTags = apiApplicationTagAdapter.convertToDTO(tags);
-
-    return apiApplicationDTO;
+    return apiApplicationAdapter.convertToDTO(application);
   }
 
   public ApiApplicationDTO updateApplication(final ApiApplicationDTO applicationDTO) {
@@ -151,11 +147,7 @@ public class ApiApplicationService
       AuditData.get().setApplicationWithDetails(application);
     }
 
-    ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
-    List<ApplicationTag> tags = applicationTagDAO.getByApplicationId(application.getId());
-    apiApplicationDTO.applicationTags = apiApplicationTagAdapter.convertToDTO(tags);
-
-    return apiApplicationDTO;
+    return apiApplicationAdapter.convertToDTO(application);
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -251,13 +243,5 @@ public class ApiApplicationService
       tags.add(tagDAO.getByIdNotNull(applicationTag.getTagId()));
     }
     auditConfigureApplicationCategory(tags, application, true);
-  }
-
-  private ApiApplicationDTO convertApplicationToDTO(final Application application) {
-    ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
-    List<ApplicationTag> tags = applicationTagDAO.getByApplicationId(application.getId());
-    apiApplicationDTO.applicationTags = apiApplicationTagAdapter.convertToDTO(tags);
-
-    return apiApplicationDTO;
   }
 }

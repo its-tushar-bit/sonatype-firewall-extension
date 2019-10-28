@@ -48,7 +48,7 @@ public class ApiApplicationResourceV2Test
 {
   private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
-  private final ApiApplicationAdapter apiApplicationAdapter = new ApiApplicationAdapter();
+  private ApiApplicationAdapter apiApplicationAdapter;
 
   private final ApiApplicationTagAdapter apiApplicationTagAdapter = new ApiApplicationTagAdapter();
 
@@ -75,6 +75,8 @@ public class ApiApplicationResourceV2Test
 
   @Before
   public void setUp() throws Exception {
+    apiApplicationAdapter = getCLMServer().getInstance(ApiApplicationAdapter.class);
+
     organization = tempEntity.newOrganization("test-org");
     app = tempEntity.newApplication("test-app", "test-app", organization.getId());
     userA = tempEntity.newUser("user-a", "John", "Doe", "void@void.com");
@@ -501,8 +503,8 @@ public class ApiApplicationResourceV2Test
     assertThat(returnedDTO.organizationId).isEqualTo(sendDTO.organizationId);
     assertThat(returnedDTO.contactUserName).isEqualTo(sendDTO.contactUserName);
 
-    if (returnedDTO.applicationTags == null) {
-      assertThat(sendDTO.applicationTags).isNull();
+    if (sendDTO.applicationTags == null) {
+      assertThat(returnedDTO.applicationTags).isNull();
     }
     else {
       assertThat(returnedDTO.applicationTags).hasSameSizeAs(sendDTO.applicationTags);

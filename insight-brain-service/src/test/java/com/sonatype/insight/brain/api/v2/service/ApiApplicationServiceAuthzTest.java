@@ -27,7 +27,8 @@ public class ApiApplicationServiceAuthzTest
   @Inject
   private ApiApplicationService apiApplicationService;
 
-  private ApiApplicationAdapter apiApplicationAdapter = new ApiApplicationAdapter();
+  @Inject
+  private ApiApplicationAdapter apiApplicationAdapter;
 
   @Test
   public void testGetApplication_Authorized() {

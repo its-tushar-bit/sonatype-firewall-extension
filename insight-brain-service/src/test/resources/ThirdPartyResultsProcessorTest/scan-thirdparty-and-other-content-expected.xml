@@ -26,7 +26,7 @@
   </properties>
 </configuration>
 <item path="clair-scanner-out/other/clair-scanner-output.json" contentType="CLAIR_SCANNER" lastModified="1565180731371" sha1="48a7c753d9515c185d76">
-<content><![CDATA[{"vulnerabilities":[{"featurename":"glibc","featureversion":"2.24-11+deb9u3","namespace":"debian:9"},{"featurename":"libxslt","featureversion":"1.1.29-2.1","namespace":"debian:9"},{"featurename":"apt","featureversion":"1.4.8","namespace":"debian:9"}]}]]></content>
+<content><![CDATA[{"vulnerabilities":[{"featurename":"glibc","featureversion":"2.24-11+deb9u3","namespace":"debian-9"},{"featurename":"libxslt","featureversion":"1.1.29-2.1","namespace":"debian-9"},{"featurename":"apt","featureversion":"1.4.8","namespace":"debian-9"}]}]]></content>
 </item>
 <item path="path2/requirements.txt" contentType="PYTHON_REQUIREMENTS" lastModified="1568660577000" sha1="1ea26e4eab703b6bd734">
   <content>aiohttp==3.5.4

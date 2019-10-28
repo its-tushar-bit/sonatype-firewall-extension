@@ -54,6 +54,7 @@ public class ClairScannerResultHandler
           Map<String, String> hashFileCoordinateIdMap = new HashMap<>();
 
           Set<ClairScannerVulnerability> filteredVulnerabilities = clairScannerResult.getVulnerabilities().stream()
+              .map(this::processNamespace)
               .map(vulnerability -> saveVulnerability(vulnerability, thirdPartyFile, hashFileCoordinateIdMap, tx))
               .map(this::filterIdentities).collect(Collectors.toSet());
 
@@ -122,6 +123,11 @@ public class ClairScannerResultHandler
       default:
         return 0f;
     }
+  }
+
+  private ClairScannerVulnerability processNamespace(ClairScannerVulnerability vulnerability) {
+    vulnerability.setNamespace(vulnerability.getNamespace().replace(':', '-'));
+    return vulnerability;
   }
 
   private ClairScannerVulnerability filterIdentities(ClairScannerVulnerability vulnerability) {

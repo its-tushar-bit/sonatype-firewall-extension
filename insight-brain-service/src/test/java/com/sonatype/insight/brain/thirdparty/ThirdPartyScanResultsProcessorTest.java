@@ -102,9 +102,9 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_ClairScanner() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-data.xml");
 
-    doReturn("683620ac905c1d32b58c").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.4.8"));
-    doReturn("e587ce87ed894c1d5283").when(clairHandlerSpy).buildHash(eq("debian:9:glibc:2.24-11+deb9u3"));
-    doReturn("aff6a96471f042e1d975").when(clairHandlerSpy).buildHash(eq("debian:9:libxslt:1.1.29-2.1"));
+    doReturn("683620ac905c1d32b58c").when(clairHandlerSpy).buildHash(eq("debian-9:apt:1.4.8"));
+    doReturn("e587ce87ed894c1d5283").when(clairHandlerSpy).buildHash(eq("debian-9:glibc:2.24-11+deb9u3"));
+    doReturn("aff6a96471f042e1d975").when(clairHandlerSpy).buildHash(eq("debian-9:libxslt:1.1.29-2.1"));
 
     String scanRequestId = thirdPartyScanResultsProcessorSpy.handle(scanFile);
     assertThat(scanRequestId).isNotBlank();
@@ -156,9 +156,9 @@ public class ThirdPartyScanResultsProcessorTest
 
   @Test
   public void testHandle_ClairScannerUsingSameClairFileMultipleTimes() throws Exception {
-    doReturn("9510c290c07710d8c69b").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.3.8"));
-    doReturn("08d7a1c700d1633dc309").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.3.9"));
-    doReturn("e587ce87ed894c1d5283").when(clairHandlerSpy).buildHash(eq("debian:9:glibc:2.24-11+deb9u3"));
+    doReturn("9510c290c07710d8c69b").when(clairHandlerSpy).buildHash(eq("debian-9:apt:1.3.8"));
+    doReturn("08d7a1c700d1633dc309").when(clairHandlerSpy).buildHash(eq("debian-9:apt:1.3.9"));
+    doReturn("e587ce87ed894c1d5283").when(clairHandlerSpy).buildHash(eq("debian-9:glibc:2.24-11+deb9u3"));
 
     File scanFile1 = getScanFile("scan-with-clair-scanner-for-multiple-times.xml");
 
@@ -187,9 +187,9 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_ClairScannerUsingSameClairFileRepeatedContent() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-repeated-content.xml");
 
-    doReturn("9510c290c07710d8c69b").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.3.8"));
-    doReturn("08d7a1c700d1633dc309").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.3.9"));
-    doReturn("e587ce87ed894c1d5283").when(clairHandlerSpy).buildHash(eq("debian:9:glibc:2.24-11+deb9u3"));
+    doReturn("9510c290c07710d8c69b").when(clairHandlerSpy).buildHash(eq("debian-9:apt:1.3.8"));
+    doReturn("08d7a1c700d1633dc309").when(clairHandlerSpy).buildHash(eq("debian-9:apt:1.3.9"));
+    doReturn("e587ce87ed894c1d5283").when(clairHandlerSpy).buildHash(eq("debian-9:glibc:2.24-11+deb9u3"));
 
     String scanRequestId = thirdPartyScanResultsProcessorSpy.handle(scanFile);
 
@@ -226,9 +226,9 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_thirdPartyWithOtherContent() throws Exception {
     File scanFile = getScanFile("scan-thirdparty-and-other-content.xml");
 
-    doReturn("9510c290c07710d8c69b").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.4.8"));
-    doReturn("e587ce87ed894c1d5283").when(clairHandlerSpy).buildHash(eq("debian:9:glibc:2.24-11+deb9u3"));
-    doReturn("08d7a1c700d1633dc309").when(clairHandlerSpy).buildHash(eq("debian:9:libxslt:1.1.29-2.1"));
+    doReturn("9510c290c07710d8c69b").when(clairHandlerSpy).buildHash(eq("debian-9:apt:1.4.8"));
+    doReturn("e587ce87ed894c1d5283").when(clairHandlerSpy).buildHash(eq("debian-9:glibc:2.24-11+deb9u3"));
+    doReturn("08d7a1c700d1633dc309").when(clairHandlerSpy).buildHash(eq("debian-9:libxslt:1.1.29-2.1"));
     thirdPartyScanResultsProcessorSpy.handle(scanFile);
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(any(ItemContentType.class));
     assertXml(scanFile, "scan-thirdparty-and-other-content-expected.xml");

@@ -490,4 +490,15 @@ public class PolicyResourceTest
         .isEqualTo("The file you selected failed to upload correctly, the policy file needs to have at least one "
             + "policy defined.");
   }
+
+  @Test
+  public void testImportPolicies_AppImportNoPolicies() throws Exception {
+    PolicyExportResult emptyPolicyExport = new PolicyExportResult();
+
+    HttpResponse response = restRequest(OwnerType.APPLICATION, tempEntity.newApplicationWithParent().getId())
+        .path("import").part("file", "file", emptyPolicyExport).post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Importing policies into an application is no longer supported.");
+  }
 }

@@ -258,9 +258,8 @@ public class PolicyResource
   }
 
   private PolicyImportResult importPolicies(OwnerType ownerType, String ownerId, InputStream in) throws IOException {
-    PolicyExportResult exportDTO = readPolicyExportResult(in);
-
     if (OwnerType.ORGANIZATION.equals(ownerType)) {
+      PolicyExportResult exportDTO = readPolicyExportResult(in);
       return policyImportExport.importOrganization(new OrganizationDAO().getByIdNotNull(ownerId), exportDTO);
     }
     else {

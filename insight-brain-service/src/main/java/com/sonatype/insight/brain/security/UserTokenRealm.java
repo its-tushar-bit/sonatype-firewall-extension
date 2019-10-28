@@ -111,7 +111,6 @@ public class UserTokenRealm
     }
     catch (NameNotFoundException e) {
       // The LDAP user was deleted.
-      new UserTokenDAO().delete(userToken);
       try (AuditSession auditSession =
           AuditData.get().recordSystemEvent(AuditEvent.DELETE_USER_TOKEN, true /* independent */)) {
         userTokenService.deleteAndAuditUserToken(userToken);

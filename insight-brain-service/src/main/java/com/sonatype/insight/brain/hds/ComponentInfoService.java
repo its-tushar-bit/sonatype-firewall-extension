@@ -387,6 +387,21 @@ public class ComponentInfoService
     return componentDetailsDTOs;
   }
 
+  private NamedComponentDetails getComponentDetails(
+      String matchState,
+      final String hash,
+      final ComponentIdentifier identifier,
+      final HttpServletRequest httpRequest,
+      final Owner owner,
+      final String identificationSource,
+      final String scanId) throws IOException
+  {
+    if (IdentificationSource.isThirdPartyIdentificationSource(identificationSource)) {
+      return thirdPartyComponentDAO.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
+    }
+    return getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest);
+  }
+
   ComponentDetailsList getComponentDetailsList(
       ComponentIdentifier identifier,
       Owner owner,
@@ -472,7 +487,9 @@ public class ComponentInfoService
       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
       final String hash,
       final ComponentIdentifier componentIdentifier,
-      final HttpServletRequest httpRequest) throws IOException
+      final HttpServletRequest httpRequest,
+      final String identificationSource,
+      final String scanId) throws IOException
   {
     auditComponentAccess(componentIdentifier, hash);
     if (componentIdentifier == null) {
@@ -481,7 +498,8 @@ public class ComponentInfoService
     String internalId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     Owner owner = new OwnerDAO().getById(internalId);
 
-    ComponentDetails componentDetails = getComponentDetailsFromHDS(null, hash, componentIdentifier, httpRequest);
+    ComponentDetails componentDetails =
+        getComponentDetails(null, hash, componentIdentifier, httpRequest, owner, identificationSource, scanId);
     componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
     return new ComponentSecurityVulnerabilities(componentDetails.getSecurityVulnerabilities());
   }

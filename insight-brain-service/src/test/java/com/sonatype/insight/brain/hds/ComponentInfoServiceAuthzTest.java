@@ -271,20 +271,20 @@ public class ComponentInfoServiceAuthzTest
     configureHdsClientMock();
     grantReadPermission(repository.getId());
     componentInfoService.getSecurityVulnerabilities(OwnerType.REPOSITORY, repository.getId(), "hash",
-        COMPONENT_IDENTIFIER, null);
+        COMPONENT_IDENTIFIER, null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetSecurityVulnerabilities_Unauthorized() throws Exception {
     login();
     componentInfoService.getSecurityVulnerabilities(OwnerType.REPOSITORY, repository.getId(), "hash",
-        COMPONENT_IDENTIFIER, null);
+        COMPONENT_IDENTIFIER, null, null, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetSecurityVulnerabilities_Unauthenticated() throws Exception {
     componentInfoService.getSecurityVulnerabilities(OwnerType.REPOSITORY, repository.getId(), "hash",
-        COMPONENT_IDENTIFIER, null);
+        COMPONENT_IDENTIFIER, null, null, null);
   }
 
   @Test

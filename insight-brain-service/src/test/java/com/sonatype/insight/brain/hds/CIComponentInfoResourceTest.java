@@ -45,10 +45,21 @@ public class CIComponentInfoResourceTest
   protected HttpRequest vulnerabilitiesRequest(final OwnerType ownerType,
                                                final String ownerId,
                                                final String hash,
-                                               final ComponentIdentifier componentIdentifier)
+                                               final ComponentIdentifier componentIdentifier,
+                                               final String identificationSource,
+                                               final String scanId)
   {
     return restRequest().path(CIComponentInfoResource.VULNERABILITIES_PATH).parameter(ownerType, ownerId)
-        .query("hash", hash).query("componentIdentifier", componentIdentifier);
+        .query("hash", hash).query("componentIdentifier", componentIdentifier)
+        .query("identificationSource", identificationSource).query("scanId", scanId);
+  }
+
+  protected HttpRequest vulnerabilitiesRequest(final OwnerType ownerType,
+                                               final String ownerId,
+                                               final String hash,
+                                               final ComponentIdentifier componentIdentifier)
+  {
+    return vulnerabilitiesRequest(ownerType, ownerId, hash, componentIdentifier, null, null);
   }
 
   protected HttpRequest licensesRequest(ComponentIdentifier componentIdentifier) {
@@ -80,7 +91,7 @@ public class CIComponentInfoResourceTest
   public void testGetComponentDetails_ThirdParty() throws Exception {
     final String scanId = "ScanId";
     createReportFile(getOwner().getId(), scanId, "/CIComponentInfoResourceTest/report");
-    final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian:9", "glibc", "2.24-11+deb9u3");
+    final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian", "glibc", "2.24-11+deb9u3");
 
     HttpRequest request = detailsRequest(getOwnerId(), tpComponentIdentifier, null, MatchState.EXACT, false,
         IdentificationSource.CLAIR.getId(), scanId);
@@ -98,7 +109,7 @@ public class CIComponentInfoResourceTest
   public void testGetComponentDetailsForAllVersions_ThirdParty() throws Exception {
     final String scanId = "ScanId";
     createReportFile(getOwner().getId(), scanId, "/CIComponentInfoResourceTest/report");
-    final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian:9", "glibc", "2.24-11+deb9u3");
+    final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian", "glibc", "2.24-11+deb9u3");
 
     HttpRequest request = allVersionsRequest(getOwnerId(), tpComponentIdentifier).query("identificationSource", "Clair")
         .query("scanId", scanId);
@@ -169,6 +180,28 @@ public class CIComponentInfoResourceTest
     assertThat(retrievedVulnerability.getSource()).isEqualTo(vulnerability.getSource());
     assertThat(retrievedVulnerability.getSeverity()).isEqualTo(vulnerability.getSeverity());
     assertThat(retrievedVulnerability.getSummary()).isEqualTo(vulnerability.getSummary());
+    assertThat(retrievedVulnerability.getStatus()).isEqualTo(SecurityVulnerabilityOverrideStatus.OPEN.getName());
+  }
+
+  @Test
+  public void testGetSecurityVulnerabilities_ThirdParty() throws Exception {
+    final String scanId = "ScanId";
+    String hash = "hash";
+    createReportFile(getOwner().getId(), scanId, "/CIComponentInfoResourceTest/report");
+    final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian", "apt", "1.4.8");
+
+    HttpResponse response =
+        vulnerabilitiesRequest(getOwner().getType(), getOwnerId(), hash, tpComponentIdentifier,
+            IdentificationSource.CLAIR.getId(), scanId).get();
+    assertResponseStatus(200, response);
+    ComponentSecurityVulnerabilities retrievedVulnerabilities = response
+        .getBody(ComponentSecurityVulnerabilities.class);
+    assertThat(retrievedVulnerabilities.securityVulnerabilities).hasSize(1);
+    SecurityVulnerability retrievedVulnerability = retrievedVulnerabilities.securityVulnerabilities.get(0);
+    assertThat(retrievedVulnerability.getRefId()).isEqualTo("CVE-2019-3462");
+    assertThat(retrievedVulnerability.getSource()).isNull();
+    assertThat(retrievedVulnerability.getSeverity()).isEqualTo(10.0f);
+    assertThat(retrievedVulnerability.getSummary()).isEqualTo("description CVE-2019-3462");
     assertThat(retrievedVulnerability.getStatus()).isEqualTo(SecurityVulnerabilityOverrideStatus.OPEN.getName());
   }
 

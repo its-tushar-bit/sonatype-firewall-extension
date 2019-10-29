@@ -1046,15 +1046,8 @@ public class ComponentInfoServiceTest
         SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED, "abcd");
 
     ComponentSecurityVulnerabilities retrievedVulnerabilities = componentInfoService.getSecurityVulnerabilities(
-        OwnerType.REPOSITORY, repository.getId(), hash, MAVEN_COORDINATES, httpRequestMock);
-    assertThat(retrievedVulnerabilities.securityVulnerabilities).hasSize(1);
-    SecurityVulnerability retrievedVulnerability = retrievedVulnerabilities.securityVulnerabilities.get(0);
-    assertThat(retrievedVulnerability.getRefId()).isEqualTo(vulnerability.getRefId());
-    assertThat(retrievedVulnerability.getSource()).isEqualTo(vulnerability.getSource());
-    assertThat(retrievedVulnerability.getSeverity()).isEqualTo(vulnerability.getSeverity());
-    assertThat(retrievedVulnerability.getSummary()).isEqualTo(vulnerability.getSummary());
-    assertThat(retrievedVulnerability.getStatus())
-        .isEqualTo(SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED.getName());
+        OwnerType.REPOSITORY, repository.getId(), hash, MAVEN_COORDINATES, httpRequestMock, null, null);
+    assertGetSecurityVulnerabilityResults(vulnerability, retrievedVulnerabilities);
   }
 
   @Test
@@ -1070,7 +1063,40 @@ public class ComponentInfoServiceTest
         SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED, "abcd");
 
     ComponentSecurityVulnerabilities retrievedVulnerabilities = componentInfoService.getSecurityVulnerabilities(
-        OwnerType.APPLICATION, application.getPublicId(), hash, MAVEN_COORDINATES, httpRequestMock);
+        OwnerType.APPLICATION, application.getPublicId(), hash, MAVEN_COORDINATES, httpRequestMock, null, null);
+
+    assertGetSecurityVulnerabilityResults(vulnerability, retrievedVulnerabilities);
+  }
+
+  @Test
+  public void testGetSecurityVulnerabilities_Application_ThirdParty() throws Exception {
+    String scanId = "scanId";
+    String hash = "01234567890123456789";
+    final String identificationSource = IdentificationSource.CLAIR.getId();
+    NamedComponentDetails tpsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
+    tpsComponentDetails.setMatchState(MatchState.EXACT.getId());
+    tpsComponentDetails.setIdentificationSource(identificationSource);
+    SecurityVulnerability vulnerability = new SecurityVulnerability("refId", "source", 5.0f, "summary");
+    tpsComponentDetails.setHash(hash);
+    tpsComponentDetails.setSecurityVulnerabilities(Collections.singletonList(vulnerability));
+
+    when(thirdPartyComponentDAO.getComponentDetailsByIdentifier( MAVEN_COORDINATES, application.getId(), scanId))
+        .thenReturn(tpsComponentDetails);
+
+    tempEntity.newSecurityVulnerabilityOverride(application.getId(), hash, "source", "refId",
+        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED, "abcd");
+
+    ComponentSecurityVulnerabilities retrievedVulnerabilities = componentInfoService.getSecurityVulnerabilities(
+        OwnerType.APPLICATION, application.getPublicId(), hash, MAVEN_COORDINATES, httpRequestMock,
+        IdentificationSource.CLAIR.getId(), scanId);
+
+    assertGetSecurityVulnerabilityResults(vulnerability, retrievedVulnerabilities);
+  }
+
+  private void assertGetSecurityVulnerabilityResults(
+      final SecurityVulnerability vulnerability,
+      final ComponentSecurityVulnerabilities retrievedVulnerabilities)
+  {
     assertThat(retrievedVulnerabilities.securityVulnerabilities).hasSize(1);
     SecurityVulnerability retrievedVulnerability = retrievedVulnerabilities.securityVulnerabilities.get(0);
     assertThat(retrievedVulnerability.getRefId()).isEqualTo(vulnerability.getRefId());

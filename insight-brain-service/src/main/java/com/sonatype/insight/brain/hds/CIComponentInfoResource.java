@@ -130,8 +130,12 @@ public class CIComponentInfoResource
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
       @QueryParam("hash") final String hash,
-      @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier) throws IOException
+      @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier,
+      @QueryParam("identificationSource") final String identificationSource,
+      @QueryParam("scanId") final String scanId) throws IOException
   {
-    return componentInfoService.getSecurityVulnerabilities(ownerType, ownerId, hash, componentIdentifier, httpRequest);
+    return componentInfoService
+        .getSecurityVulnerabilities(ownerType, ownerId, hash, componentIdentifier, httpRequest, identificationSource,
+            scanId);
   }
 }

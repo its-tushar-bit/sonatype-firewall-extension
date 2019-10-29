@@ -12,7 +12,9 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -34,6 +36,8 @@ public class ApplicationCloneService
 {
   private static final Logger log = LoggerFactory.getLogger(ApplicationCloneService.class);
 
+  private final OrganizationDAO orgDAO;
+
   private final ApplicationDAO appDAO;
 
   private final LabelDAO labelDAO;
@@ -44,11 +48,13 @@ public class ApplicationCloneService
 
   @Inject
   public ApplicationCloneService(
+      OrganizationDAO orgDAO,
       ApplicationDAO appDAO,
       LabelDAO labelDAO,
       ComponentLabelDAO componentLabelDAO,
       ApiApplicationAdapter apiAppAdapter)
   {
+    this.orgDAO = orgDAO;
     this.appDAO = appDAO;
     this.labelDAO = labelDAO;
     this.componentLabelDAO = componentLabelDAO;
@@ -58,11 +64,18 @@ public class ApplicationCloneService
   public ApiApplicationDTO cloneApplication(String sourceAppId, String clonedAppName, String clonedAppPublicId) {
     long start = System.currentTimeMillis();
 
+    AuditData.get().setData("sourceApplicationId", sourceAppId);
+
     try (TransactionContext tx = appDAO.createTransactionContext()) {
       tx.begin();
 
       Application sourceApp = appDAO.getByIdNotNull(tx, sourceAppId);
       log.info("Cloning application {} ({})...", sourceApp.getId(), sourceApp.getName());
+
+      AuditData.get() //
+          .setData("sourceApplicationPublicId", sourceApp.getPublicId()) //
+          .setData("sourceApplicationName", sourceApp.getName()) //
+          .setParentOrganization(orgDAO.getById(sourceApp.getOrganizationId()));
 
       checkAddApplicationPermission(sourceApp.getOrganizationId());
 
@@ -116,6 +129,8 @@ public class ApplicationCloneService
     // happens.
     clonedApp.setPolicyViolationGrandfatheringEnabled(false);
     appDAO.insert(tx, clonedApp);
+
+    AuditData.get().setApplicationWithDetails(clonedApp);
 
     return clonedApp;
   }

@@ -59,7 +59,8 @@ public class ApiApplicationResourceV2
 
   public static final String ROLE_MEMBERS_PATH = APPLICATION_ID + "/roleMembers";
 
-  public static final String CLONE_PATH = APPLICATION_ID + "/clone";
+  // NOTE: more specific path param name than applicationId to avoid default handling by AuditContainerRequestFilter
+  public static final String CLONE_PATH = "{sourceApplicationId}/clone";
 
   private final ApiApplicationService apiApplicationService;
 
@@ -183,8 +184,9 @@ public class ApiApplicationResourceV2
   @POST
   @Path(CLONE_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_APPLICATION)
   public ApiApplicationDTO cloneApplication(
-      @PathParam("applicationId") String sourceApplicationId,
+      @PathParam("sourceApplicationId") String sourceApplicationId,
       @QueryParam("clonedApplicationName") String clonedApplicationName,
       @QueryParam("clonedApplicationPublicId") String clonedApplicationPublicId)
   {

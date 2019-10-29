@@ -219,4 +219,32 @@ public class ApiApplicationResourceV2AuditTest
     return applicationRequest().path(ApiApplicationResourceV2.ROLE_MEMBERS_PATH)
         .parameter(applicationId).body(apiRoleMemberMappingListDTO);
   }
+
+  @Test
+  public void testCloneApplication() throws Exception {
+    ApiApplicationDTO applicationDTO = applicationRequest().path(ApiApplicationResourceV2.CLONE_PATH)
+        .parameter(application.getId()).query("clonedApplicationName", "newAppName")
+        .query("clonedApplicationPublicId", "newAppId").post().getBody(ApiApplicationDTO.class);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, null);
+    assertDetailedApplicationData(auditDTO, applicationDTO);
+    assertSourceApplicationData(auditDTO, application);
+  }
+
+  @Test
+  public void testCloneApplication_Unauthorized() throws Exception {
+    applicationRequest().path(ApiApplicationResourceV2.CLONE_PATH).parameter(application.getId())
+        .with(unauthorizedUser()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, "unauthorized");
+    assertParentOrganizationData(auditDTO, organization);
+    assertSourceApplicationData(auditDTO, application);
+    assertCustomData(auditDTO, "applicationId", null);
+  }
+
+  private void assertSourceApplicationData(AuditDTO auditDTO, Application application) {
+    assertCustomData(auditDTO, "sourceApplicationId", application.getId());
+    assertCustomData(auditDTO, "sourceApplicationPublicId", application.getPublicId());
+    assertCustomData(auditDTO, "sourceApplicationName", application.getName());
+  }
 }

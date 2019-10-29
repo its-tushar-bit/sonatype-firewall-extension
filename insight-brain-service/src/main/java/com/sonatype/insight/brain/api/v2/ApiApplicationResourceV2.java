@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.organization.ApplicationCloneService;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembershipMappingService;
@@ -58,20 +59,26 @@ public class ApiApplicationResourceV2
 
   public static final String ROLE_MEMBERS_PATH = APPLICATION_ID + "/roleMembers";
 
+  public static final String CLONE_PATH = APPLICATION_ID + "/clone";
+
   private final ApiApplicationService apiApplicationService;
 
   private final MembershipMappingService membershipMappingService;
 
   private final ApiMemberMappingAdapter apiMemberMappingAdapter;
 
+  private final ApplicationCloneService applicationCloneService;
+
   @Inject
   public ApiApplicationResourceV2(final ApiApplicationService apiApplicationService,
                                 final MembershipMappingService membershipMappingService,
-                                final ApiMemberMappingAdapter apiMemberMappingAdapter)
+      final ApiMemberMappingAdapter apiMemberMappingAdapter,
+      final ApplicationCloneService applicationCloneService)
   {
     this.apiApplicationService = apiApplicationService;
     this.membershipMappingService = membershipMappingService;
     this.apiMemberMappingAdapter = apiMemberMappingAdapter;
+    this.applicationCloneService = applicationCloneService;
   }
 
   @GET
@@ -171,5 +178,17 @@ public class ApiApplicationResourceV2
   @Audited(AuditEvent.DELETE_APPLICATION)
   public void deleteApplication(@PathParam("applicationId") final String applicationId) throws IOException {
     apiApplicationService.deleteApplication(applicationId);
+  }
+
+  @POST
+  @Path(CLONE_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiApplicationDTO cloneApplication(
+      @PathParam("applicationId") String sourceApplicationId,
+      @QueryParam("clonedApplicationName") String clonedApplicationName,
+      @QueryParam("clonedApplicationPublicId") String clonedApplicationPublicId)
+  {
+    return applicationCloneService.cloneApplication(sourceApplicationId, clonedApplicationName,
+        clonedApplicationPublicId);
   }
 }

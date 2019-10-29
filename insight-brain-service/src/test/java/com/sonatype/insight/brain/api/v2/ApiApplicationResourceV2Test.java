@@ -478,6 +478,26 @@ public class ApiApplicationResourceV2Test
         "Application Evaluator", "Component Evaluator");
   }
 
+  @Test
+  public void testCloneApplication() throws Exception {
+    String clonedAppName = "Cloned App Name";
+    String clonedAppPublicId = "ClonedAppPublicId";
+
+    HttpResponse response = restRequest().path(ApiApplicationResourceV2.CLONE_PATH).parameter(app.getId())
+        .query("clonedApplicationName", clonedAppName).query("clonedApplicationPublicId", clonedAppPublicId).post();
+
+    assertResponseStatus(200, response);
+    ApiApplicationDTO returnedDTO = response.getBody(ApiApplicationDTO.class);
+
+    Application clonedApp = applicationDAO.getByPublicId(clonedAppPublicId);
+    assertThat(returnedDTO.id).isEqualTo(clonedApp.getId());
+    assertThat(returnedDTO.name).isEqualTo(clonedAppName);
+    assertThat(returnedDTO.publicId).isEqualTo(clonedAppPublicId);
+    assertThat(returnedDTO.organizationId).isEqualTo(app.getOrganizationId());
+    assertThat(returnedDTO.contactUserName).isEqualTo(app.getContactInternalName());
+    assertThat(returnedDTO.applicationTags).isEmpty();
+  }
+
   private ApiRoleMemberMappingListDTO newMemberMapping(final List<ApiMemberDTO> memberList, final String roleId) {
     final ApiRoleMemberMappingDTO memberMappingDTO = new ApiRoleMemberMappingDTO();
     memberMappingDTO.members = memberList;

@@ -5,11 +5,17 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -84,5 +90,35 @@ public class ApplicationCloneServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", clonedAppPublicId);
     }).withMessage("An application with public ID '" + clonedAppPublicId + "' already exists.");
+  }
+
+  @Test
+  public void testCloneApplication_Labels() {
+    Application sourceApp = tempEntity.newApplicationWithParent();
+    Label sourceLabel = tempEntity.newLabel(sourceApp.getId());
+    ComponentLabel sourceComponentLabel =
+        tempEntity.newComponentLabel(sourceApp.getId(), sourceLabel.getId(), "testhash");
+
+    ApiApplicationDTO clonedAppDTO =
+        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
+
+    List<Label> clonedLabels = new LabelDAO().getByOwnerId(clonedAppDTO.id);
+    assertThat(clonedLabels).hasSize(1);
+    Label clonedLabel = clonedLabels.get(0);
+    assertThat(clonedLabel.getId()).isNotEqualTo(sourceLabel.getId());
+    assertThat(clonedLabel.getLabel()).isEqualTo(sourceLabel.getLabel());
+    assertThat(clonedLabel.getDescription()).isEqualTo(sourceLabel.getDescription());
+    assertThat(clonedLabel.getColor()).isEqualTo(sourceLabel.getColor());
+
+    List<ComponentLabel> clonedComponentLabels = new ComponentLabelDAO().getByOwnerId(clonedAppDTO.id);
+    assertThat(clonedComponentLabels).hasSize(1);
+    ComponentLabel clonedComponentLabel = clonedComponentLabels.get(0);
+    assertThat(clonedComponentLabel.getId()).isNotEqualTo(sourceComponentLabel.getId());
+    assertThat(clonedComponentLabel.getLabelId()).isEqualTo(clonedLabel.getId());
+    assertThat(clonedComponentLabel.getHash()).isEqualTo(sourceComponentLabel.getHash());
+
+    // Assert the source objects were cloned, not moved.
+    assertThat(new LabelDAO().getById(sourceLabel.getId())).isNotNull();
+    assertThat(new ComponentLabelDAO().getById(sourceComponentLabel.getId())).isNotNull();
   }
 }

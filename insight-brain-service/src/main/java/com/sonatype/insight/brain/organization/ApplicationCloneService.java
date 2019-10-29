@@ -5,19 +5,27 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.model.HasStringId;
 
+import org.apache.openjpa.enhance.PersistenceCapable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,11 +36,22 @@ public class ApplicationCloneService
 
   private final ApplicationDAO appDAO;
 
+  private final LabelDAO labelDAO;
+
+  private final ComponentLabelDAO componentLabelDAO;
+
   private final ApiApplicationAdapter apiAppAdapter;
 
   @Inject
-  public ApplicationCloneService(ApplicationDAO appDAO, ApiApplicationAdapter apiAppAdapter) {
+  public ApplicationCloneService(
+      ApplicationDAO appDAO,
+      LabelDAO labelDAO,
+      ComponentLabelDAO componentLabelDAO,
+      ApiApplicationAdapter apiAppAdapter)
+  {
     this.appDAO = appDAO;
+    this.labelDAO = labelDAO;
+    this.componentLabelDAO = componentLabelDAO;
     this.apiAppAdapter = apiAppAdapter;
   }
 
@@ -79,6 +98,7 @@ public class ApplicationCloneService
     }
 
     Application clonedApp = createClonedApplication(tx, sourceApp, clonedAppName, clonedAppPublicId);
+    cloneLabels(tx, sourceApp, clonedApp);
 
     return apiAppAdapter.convertToDTO(clonedApp);
   }
@@ -98,5 +118,35 @@ public class ApplicationCloneService
     appDAO.insert(tx, clonedApp);
 
     return clonedApp;
+  }
+
+  private void cloneLabels(TransactionContext tx, Application sourceApp, Application clonedApp) {
+    List<Label> labels = labelDAO.getByOwnerId(tx, sourceApp.getId());
+    for (Label label : labels) {
+      String sourceLabelId = label.getId();
+      
+      detachEntity(label);
+      label.setOwnerId(clonedApp.getId());
+      labelDAO.insert(tx, label);
+      
+      List<ComponentLabel> componentLabels = componentLabelDAO.getByLabelId(tx, sourceLabelId);
+      for (ComponentLabel componentLabel : componentLabels) {
+        detachEntity(componentLabel);
+        componentLabel.setLabelId(label.getId());
+        componentLabel.setOwnerId(clonedApp.getId());
+        componentLabelDAO.insert(tx, componentLabel);
+      }
+
+      log.info("Cloned label {} ({}) to label {} ({}).", //
+          sourceLabelId, label.getLabel(), //
+          label.getId(), label.getLabel());
+    }
+  }
+
+  private <E extends HasStringId> void detachEntity(E entity) {
+    PersistenceCapable pc = (PersistenceCapable) entity;
+    pc.pcSetDetachedState(null);
+    pc.pcReplaceStateManager(null);
+    entity.setId(null);
   }
 }

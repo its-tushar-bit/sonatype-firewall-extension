@@ -457,6 +457,21 @@ public class ComponentInfoService
                                        ComponentIdentifier componentIdentifier,
                                        HttpServletRequest httpRequest) throws IOException
   {
+    return getLicenses(ownerType, ownerId, componentIdentifier, httpRequest, null, null);
+  }
+
+  /**
+   *
+   * @since 1.76
+   */
+  @Authorize(permission = Permission.READ)
+  public ComponentLicenses getLicenses(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+                                       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+                                       ComponentIdentifier componentIdentifier,
+                                       HttpServletRequest httpRequest,
+                                       String identificationSource,
+                                       String scanId) throws IOException
+  {
     auditComponentAccess(componentIdentifier, null);
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");
@@ -466,7 +481,14 @@ public class ComponentInfoService
 
     ComponentLicenses result = new ComponentLicenses();
 
-    ComponentDetails componentDetails = getComponentDetailsFromHDS(null, null, componentIdentifier, httpRequest);
+    ComponentDetails componentDetails;
+    if (IdentificationSource.isThirdPartyIdentificationSource(identificationSource)) {
+      componentDetails =
+          thirdPartyComponentDAO.getComponentDetailsByIdentifier(componentIdentifier, owner.getId(), scanId);
+    }
+    else {
+      componentDetails = getComponentDetailsFromHDS(null, null, componentIdentifier, httpRequest);
+    }
 
     componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
     result.declaredlicenses = getLicensesWithThreatLevels(owner, componentDetails.getDeclaredLicenses());

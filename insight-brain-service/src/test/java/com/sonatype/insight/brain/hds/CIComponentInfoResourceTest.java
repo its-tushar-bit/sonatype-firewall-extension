@@ -62,9 +62,18 @@ public class CIComponentInfoResourceTest
     return vulnerabilitiesRequest(ownerType, ownerId, hash, componentIdentifier, null, null);
   }
 
-  protected HttpRequest licensesRequest(ComponentIdentifier componentIdentifier) {
+  protected HttpRequest licensesRequest(
+      ComponentIdentifier componentIdentifier,
+      String identificationSource,
+      String scanId)
+  {
     return restRequest().path(CIComponentInfoResource.LICENSES_PATH).parameter(getOwner().getType(), getOwnerId())
-        .query("componentIdentifier", componentIdentifier);
+        .query("componentIdentifier", componentIdentifier).query("identificationSource", identificationSource)
+        .query("scanId", scanId);
+  }
+
+  protected HttpRequest licensesRequest(ComponentIdentifier componentIdentifier) {
+    return licensesRequest(componentIdentifier, null, null);
   }
 
   @Before
@@ -124,6 +133,19 @@ public class CIComponentInfoResourceTest
     assertThat(componentDetailsDTO.componentIdentifier).isEqualTo(tpComponentIdentifier);
     assertThat(componentDetailsDTO.highestSecurityVulnerabilitySeverity).isEqualTo(10.0f);
     assertThat(componentDetailsDTO.securityVulnerabilityCount).isEqualTo(2);
+  }
+
+  @Test
+  public void testGetLicenses_ThirdParty() throws Exception {
+    final String scanId = "ScanId";
+    createReportFile(getOwner().getId(), scanId, "/CIComponentInfoResourceTest/report");
+    final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian", "glibc", "2.24-11+deb9u3");
+
+    HttpResponse response = licensesRequest(tpComponentIdentifier, "Clair", scanId).get();
+    assertResponseStatus(200, response);
+    ComponentLicenses licenses = response.getBody(ComponentLicenses.class);
+    assertThat(licenses.declaredlicenses).isEmpty();
+    assertThat(licenses.observedlicenses).isEmpty();
   }
 
   @Test

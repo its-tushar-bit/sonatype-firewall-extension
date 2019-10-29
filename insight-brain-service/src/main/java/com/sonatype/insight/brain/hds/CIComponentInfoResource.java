@@ -114,9 +114,12 @@ public class CIComponentInfoResource
   public ComponentLicenses getLicenses(
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
-      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier) throws IOException
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @QueryParam("identificationSource") String identificationSource,
+      @QueryParam("scanId") String scanId) throws IOException
   {
-    return componentInfoService.getLicenses(ownerType, ownerId, componentIdentifier, httpRequest);
+    return componentInfoService
+        .getLicenses(ownerType, ownerId, componentIdentifier, httpRequest, identificationSource, scanId);
   }
 
   /**

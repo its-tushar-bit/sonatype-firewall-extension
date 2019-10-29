@@ -214,6 +214,27 @@ public class ComponentInfoServiceTest
     testGetLicenses(OwnerType.REPOSITORY, repository.getId());
   }
 
+  @Test
+  public void testGetLicenses_ThirdParty() throws Exception {
+    String scanId = "scanId";
+    final String identificationSource = IdentificationSource.CLAIR.getId();
+    NamedComponentDetails tpsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
+    tpsComponentDetails.setMatchState(MatchState.EXACT.getId());
+    tpsComponentDetails.setIdentificationSource(identificationSource);
+
+    when(thirdPartyComponentDAO.getComponentDetailsByIdentifier(MAVEN_COORDINATES, application.getId(), scanId))
+        .thenReturn(tpsComponentDetails);
+
+    ComponentLicenses licenses =
+        componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId, MAVEN_COORDINATES,
+            httpRequestMock, identificationSource, scanId);
+
+    assertThat(licenses.declaredlicenses).isEmpty();
+    assertThat(licenses.observedlicenses).isEmpty();
+    assertThat(licenses.effectiveLicenses).isEmpty();
+    assertThat(licenses.selectableLicenses).isEmpty();
+  }
+
   private void testGetLicenses(final OwnerType ownerType, final String ownerId) throws Exception {
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
 

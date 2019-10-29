@@ -109,9 +109,16 @@ export default function LicenseEditorController($scope, $q, $http, Messages, Sel
   }
 
   function createComponentRequest() {
-    return $http.get(CLM.path + 'rest/' + clmEndpoint.type + '/componentDetails/' +
+    let licensesUrl = CLM.path + 'rest/' + clmEndpoint.type + '/componentDetails/' +
         OwnerContext.ownerType + '/' + OwnerContext.ownerId + '/licenses?componentIdentifier=' +
-        encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier)));
+        encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier));
+
+    if(SelectedComponent.get().identificationSource) {
+      licensesUrl = licensesUrl + '&identificationSource=' +
+          encodeURIComponent(SelectedComponent.get().identificationSource) + '&scanId=' +
+          encodeURIComponent(OwnerContext.scanId);
+    }
+    return $http.get(licensesUrl);
   }
 
   $scope.canInherit = function() {

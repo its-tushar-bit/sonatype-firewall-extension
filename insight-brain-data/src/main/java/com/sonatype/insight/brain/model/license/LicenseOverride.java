@@ -10,6 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.model.HasStringId;
 
 /**
  * The license of a component (identified by GAV) can be overridden at application or organization (i.e. owner) level.
@@ -18,6 +19,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
  * @since 1.6
  */
 public class LicenseOverride
+    implements HasStringId
 {
   private String id;
 
@@ -63,10 +65,12 @@ public class LicenseOverride
     setLicenseIds(licenseIds);
   }
 
+  @Override
   public void setId(String id) {
     this.id = id;
   }
 
+  @Override
   public String getId() {
     return id;
   }

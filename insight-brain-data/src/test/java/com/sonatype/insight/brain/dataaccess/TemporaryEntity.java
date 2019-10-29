@@ -1570,13 +1570,23 @@ public class TemporaryEntity
       ComponentIdentifier identifier,
       boolean quarantined)
   {
-    RepositoryComponent repositoryComponent =
-        new RepositoryComponent(repositoryId, pathname, new Date(), hash, identifier, matchState.getId(),
-            IdentificationSource.SONATYPE.getId(), new Date());
+    Date now = new Date();
+    return newRepositoryComponent(repositoryId, matchState, pathname, hash, identifier, now, quarantined ? now : null);
+  }
 
-    if (quarantined) {
-      repositoryComponent.setQuarantineTime(new Date());
-    }
+  public RepositoryComponent newRepositoryComponent(
+      String repositoryId,
+      MatchState matchState,
+      String pathname,
+      String hash,
+      ComponentIdentifier identifier,
+      Date time,
+      Date quarantineTime)
+  {
+    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, time, hash, identifier,
+        matchState.getId(), IdentificationSource.SONATYPE.getId(), time);
+
+    repositoryComponent.setQuarantineTime(quarantineTime);
 
     repositoryComponentDAO.insert(repositoryComponent);
     return repositoryComponent;

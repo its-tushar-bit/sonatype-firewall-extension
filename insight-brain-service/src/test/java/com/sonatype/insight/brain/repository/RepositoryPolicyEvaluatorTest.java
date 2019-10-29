@@ -403,8 +403,8 @@ public class RepositoryPolicyEvaluatorTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
 
     // simulate an older record that does not have the policy waiver details, specifically no waive time
-    RepositoryComponent repositoryComponent = tempEntity
-        .newRepositoryComponent(repository.getId(), MatchState.EXACT, "path", "hash", componentIdentifier, false);
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path", "hash", componentIdentifier, new Date(System.currentTimeMillis() - 1000), null);
     ConstraintFact constraintFact =
         new ConstraintFact(constraint.getId(), constraint.getName(), constraint.getOperator().name());
 
@@ -416,8 +416,8 @@ public class RepositoryPolicyEvaluatorTest
     RepositoryPolicyViolation existingPolicyViolation = tempEntity
         .newRepositoryPolicyViolation(repositoryComponent.getRepositoryId(), policy.getThreatLevel(),
             repositoryComponent.getPathname(), "hash", Collections.singletonList(constraintFact), true, true, null,
-            policy.getId(), policy.getName(), repositoryComponent.getComponentIdentifier(), new Date(), null, null,
-            null);
+            policy.getId(), policy.getName(), repositoryComponent.getComponentIdentifier(), 
+            repositoryComponent.getTime(), null, null, null);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();

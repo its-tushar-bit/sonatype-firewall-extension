@@ -13,9 +13,11 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.SourceControlConfig;
+import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
+import com.sonatype.nexus.iq.manager.PullRequestResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.PullRequestResponse;
@@ -34,6 +36,8 @@ import static com.sonatype.insight.brain.git.PullRequestTask.DEFAULT_COMMITTER_E
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -86,6 +90,9 @@ public class PullRequestTaskTest
   @Mock
   private PullRequestResponse pullRequestResponse;
   
+  @Mock
+  private SourceControlPullRequestMetrics metrics;
+  
   //Subject
   private PullRequestTask pullRequestTask;
 
@@ -94,14 +101,14 @@ public class PullRequestTaskTest
 
   @Before
   public void setup() {
-    pullRequestTask = new PullRequestTask(gitApiService, gitClientFactory, insightConfig, fileCleaner);
+    pullRequestTask = new PullRequestTask(gitApiService, gitClientFactory, insightConfig, fileCleaner, metrics);
   }
   
   @Test
   public void test_run_notInited() {
     pullRequestTask.run();
     assertThat(logOutput).atErrorLevel().contains("Missing required PullRequestRemediationDetails");
-    verifyNoInteractions(gitApiService, gitClientFactory, insightConfig, fileCleaner, app);
+    verifyNoInteractions(gitApiService, gitClientFactory, insightConfig, fileCleaner, app, metrics);
   }
   
   @Test
@@ -119,6 +126,7 @@ public class PullRequestTaskTest
     verify(gitApi).cloneOrPullRepository(targetDirectory, INFO.baseBranch);
     verify(gitApi).branch(targetDirectory, BRANCH, true);
     verifyNoMoreInteractions(gitApi);
+    verify(metrics).addResult(anyString(), any(PullRequestResult.class));
     verifyNoInteractions(fileCleaner, gitClient);
   }
 
@@ -137,6 +145,7 @@ public class PullRequestTaskTest
     assertThat(targetDirectory.exists(), is(true));
     assertThat(targetDirectory.getParentFile().getName(), is(APP_ID));
     verify(gitApi).cloneOrPullRepository(targetDirectory, INFO.baseBranch);
+    verify(metrics).addResult(anyString(), any(PullRequestResult.class));
     verifyNoInteractions(fileCleaner, gitClient);
   }
 
@@ -161,6 +170,7 @@ public class PullRequestTaskTest
     verify(gitApi).branch(targetDirectory, BRANCH, true);
     verify(gitApi).commit(targetDirectory, DEFAULT_COMMITTER, DEFAULT_COMMITTER_EMAIL, TITLE);
     verify(gitApi).push(targetDirectory);
+    verify(metrics).addResult(anyString(), any(PullRequestResult.class));
 
     assertThat(logOutput).atDebugLevel().contains("Using existing directory for pull request");
     assertThat(logOutput).atInfoLevel().contains("Pull request complete");

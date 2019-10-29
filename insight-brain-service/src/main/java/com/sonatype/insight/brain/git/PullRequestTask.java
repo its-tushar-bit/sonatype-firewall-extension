@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.nexus.iq.manager.PullRequestCommand;
 import com.sonatype.nexus.iq.manager.PullRequestCommandBuilder;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
@@ -40,6 +41,8 @@ public class PullRequestTask
   private final FileCleaner fileCleaner;
 
   private final InsightConfig insightConfig;
+  
+  private final SourceControlPullRequestMetrics metrics;
 
   private PullRequestRemediationDetails pullRequestRemediationDetails;
 
@@ -48,12 +51,14 @@ public class PullRequestTask
       final GitApiService gitApiService,
       final GitClientFactory gitClientFactory,
       final InsightConfig insightConfig,
-      final FileCleaner fileCleaner)
+      final FileCleaner fileCleaner, 
+      final SourceControlPullRequestMetrics metrics)
   {
     this.gitApiService = gitApiService;
     this.gitClientFactory = gitClientFactory;
     this.insightConfig = insightConfig;
     this.fileCleaner = fileCleaner;
+    this.metrics = metrics;
   }
   
   public void init(PullRequestRemediationDetails pullRequestRemediationDetails) {
@@ -68,12 +73,10 @@ public class PullRequestTask
     }
     File checkoutDir = null;
     try {
-      GitRepositoryInfo gitInfo =
-          gitApiService.getGitRepositoryInfoForApplication(pullRequestRemediationDetails.getApp().getId());
+      String applicationId = pullRequestRemediationDetails.getApp().getId();
+      GitRepositoryInfo gitInfo = gitApiService.getGitRepositoryInfoForApplication(applicationId);
 
-      checkoutDir =
-          new File(insightConfig.getSourceControl().getCloneDirectory(),
-              pullRequestRemediationDetails.getApp().getId());
+      checkoutDir = new File(insightConfig.getSourceControl().getCloneDirectory(), applicationId);
       if (checkoutDir.exists()) {
         log.debug("Using existing directory for pull request: {}", checkoutDir.getAbsolutePath());
       }
@@ -98,6 +101,7 @@ public class PullRequestTask
           .build();
 
       PullRequestResult result = new PullRequestExecutor().execute(command);
+      metrics.addResult(applicationId, result);
       log.info("Pull request complete: {}", result);
     }
     catch (Exception e) {

@@ -65,6 +65,7 @@ public class ApiSearchResourceV2Test
   {
     assertThat(result.applicationId).isEqualTo(appId);
     assertThat(result.applicationName).isEqualTo(appName);
+    assertThat(result.reportHtmlUrl).matches("ui/links/application/.+/report/[^\\s]+");
     assertThat(result.reportUrl).isNotNull();
     assertResponseStatus(200, HttpRequest.to(result.reportUrl).followRedirects().get());
     assertThat(result.hash).isEqualTo(hash);

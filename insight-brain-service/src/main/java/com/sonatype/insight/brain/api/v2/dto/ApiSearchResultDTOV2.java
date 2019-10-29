@@ -16,6 +16,17 @@ public class ApiSearchResultDTOV2
 
   public String applicationName;
 
+  /**
+   * Relative path of the report.
+   * @since 1.76
+   */
+  public String reportHtmlUrl;
+
+  /**
+   * Absolute path of the report.
+   * @deprecated Will be removed in next API version in favor of returning relative URL only.
+   */
+  @Deprecated  // CLM-9330
   public String reportUrl;
 
   public String hash;

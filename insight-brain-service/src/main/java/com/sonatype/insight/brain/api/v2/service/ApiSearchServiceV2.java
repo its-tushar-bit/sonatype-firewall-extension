@@ -143,10 +143,13 @@ public class ApiSearchServiceV2
           continue;
         }
 
+        String reportHtmlUrl = UserInterfaceLinksResource.getReportUrl(app.getPublicId(), eval.getScanId());
+
         ApiSearchResultDTOV2 result = new ApiSearchResultDTOV2();
         result.applicationId = app.getPublicId();
         result.applicationName = app.getName();
-        result.reportUrl = baseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), eval.getScanId());
+        result.reportHtmlUrl = reportHtmlUrl;
+        result.reportUrl = baseUrl + reportHtmlUrl;
         result.hash = candidateHash;
         result.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(candidateComponentIdentifier);
         result.packageUrl = PackageUrlIdentifier.toPackageUrl(candidateComponentIdentifier);

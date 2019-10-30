@@ -9,13 +9,30 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -120,5 +137,127 @@ public class ApplicationCloneServiceTest
     // Assert the source objects were cloned, not moved.
     assertThat(new LabelDAO().getById(sourceLabel.getId())).isNotNull();
     assertThat(new ComponentLabelDAO().getById(sourceComponentLabel.getId())).isNotNull();
+  }
+
+  @Test
+  public void testCloneApplication_LicenseThreatGroups() {
+    Application sourceApp = tempEntity.newApplicationWithParent();
+    LicenseThreatGroup sourceLicenseThreatGroup = tempEntity.newLicenseThreatGroup(sourceApp.getId());
+    LicenseThreatGroupLicense sourceLicenseThreatGroupLicense =
+        tempEntity.newLicenseThreatGroupLicense(sourceApp.getId(), sourceLicenseThreatGroup.getId());
+
+    ApiApplicationDTO clonedAppDTO =
+        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
+
+    List<LicenseThreatGroup> clonedLicenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(clonedAppDTO.id);
+    assertThat(clonedLicenseThreatGroups).hasSize(1);
+    LicenseThreatGroup clonedLicenseThreatGroup = clonedLicenseThreatGroups.get(0);
+    assertThat(clonedLicenseThreatGroup.getId()).isNotEqualTo(sourceLicenseThreatGroup.getId());
+    assertThat(clonedLicenseThreatGroup.getName()).isEqualTo(sourceLicenseThreatGroup.getName());
+    assertThat(clonedLicenseThreatGroup.getThreatLevel()).isEqualTo(sourceLicenseThreatGroup.getThreatLevel());
+
+    List<LicenseThreatGroupLicense> clonedLicenseThreatGroupLicenses =
+        new LicenseThreatGroupLicenseDAO().getByOwnerId(clonedAppDTO.id);
+    assertThat(clonedLicenseThreatGroupLicenses).hasSize(1);
+    LicenseThreatGroupLicense clonedLicenseThreatGroupLicense = clonedLicenseThreatGroupLicenses.get(0);
+    assertThat(clonedLicenseThreatGroupLicense.getId()).isNotEqualTo(sourceLicenseThreatGroupLicense.getId());
+    assertThat(clonedLicenseThreatGroupLicense.getLicenseThreatGroupId()).isEqualTo(clonedLicenseThreatGroup.getId());
+    assertThat(clonedLicenseThreatGroupLicense.getLicenseId())
+        .isEqualTo(sourceLicenseThreatGroupLicense.getLicenseId());
+
+    // Assert the source objects were cloned, not moved.
+    assertThat(new LicenseThreatGroupDAO().getById(sourceLicenseThreatGroup.getId())).isNotNull();
+    assertThat(new LicenseThreatGroupLicenseDAO().getById(sourceLicenseThreatGroupLicense.getId())).isNotNull();
+  }
+
+  @Test
+  public void testCloneApplication_LicenseOverrides() {
+    Application sourceApp = tempEntity.newApplicationWithParent();
+    LicenseOverride sourceLicenseOverride = tempEntity.newLicenseOverride(sourceApp.getId(),
+        ComponentIdentifier.createNpmCoordinates("packageId", "version"), LicenseOverrideStatus.OVERRIDDEN,
+        "Apache-2.0");
+
+    ApiApplicationDTO clonedAppDTO =
+        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
+
+    List<LicenseOverride> clonedLicenseOverrides = new LicenseOverrideDAO().getByOwnerId(clonedAppDTO.id);
+    assertThat(clonedLicenseOverrides).hasSize(1);
+    LicenseOverride clonedLicenseOverride = clonedLicenseOverrides.get(0);
+    assertThat(clonedLicenseOverride.getId()).isNotEqualTo(sourceLicenseOverride.getId());
+    assertThat(clonedLicenseOverride.getStatus()).isEqualTo(sourceLicenseOverride.getStatus());
+    assertThat(clonedLicenseOverride.getComponentIdentifier())
+        .isEqualTo(sourceLicenseOverride.getComponentIdentifier());
+    assertThat(clonedLicenseOverride.getLicenseIds()).isEqualTo(sourceLicenseOverride.getLicenseIds());
+    assertThat(clonedLicenseOverride.getComment()).isEqualTo(sourceLicenseOverride.getComment());
+
+    // Assert the source objects were cloned, not moved.
+    assertThat(new LicenseOverrideDAO().getById(sourceLicenseOverride.getId())).isNotNull();
+  }
+
+  @Test
+  public void testCloneApplication_SecurityVulnerabilityOverrides() {
+    Application sourceApp = tempEntity.newApplicationWithParent();
+    SecurityVulnerabilityOverride sourceSecurityVulnerabilityOverride =
+        tempEntity.newSecurityVulnerabilityOverride(sourceApp.getId(), "hash", "source", "refrenceId",
+            SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE, "comment");
+
+    ApiApplicationDTO clonedAppDTO =
+        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
+
+    List<SecurityVulnerabilityOverride> clonedSecurityVulnerabilityOverrides =
+        new SecurityVulnerabilityOverrideDAO().getByOwnerId(clonedAppDTO.id);
+    assertThat(clonedSecurityVulnerabilityOverrides).hasSize(1);
+    SecurityVulnerabilityOverride clonedSecurityVulnerabilityOverride = clonedSecurityVulnerabilityOverrides.get(0);
+    assertThat(clonedSecurityVulnerabilityOverride.getId()).isNotEqualTo(sourceSecurityVulnerabilityOverride.getId());
+    assertThat(clonedSecurityVulnerabilityOverride.getStatus())
+        .isEqualTo(sourceSecurityVulnerabilityOverride.getStatus());
+    assertThat(clonedSecurityVulnerabilityOverride.getHash()).isEqualTo(sourceSecurityVulnerabilityOverride.getHash());
+    assertThat(clonedSecurityVulnerabilityOverride.getSource())
+        .isEqualTo(sourceSecurityVulnerabilityOverride.getSource());
+    assertThat(clonedSecurityVulnerabilityOverride.getReferenceId())
+        .isEqualTo(sourceSecurityVulnerabilityOverride.getReferenceId());
+    assertThat(clonedSecurityVulnerabilityOverride.getComment())
+        .isEqualTo(sourceSecurityVulnerabilityOverride.getComment());
+
+    // Assert the source objects were cloned, not moved.
+    assertThat(new SecurityVulnerabilityOverrideDAO().getById(sourceSecurityVulnerabilityOverride.getId())).isNotNull();
+  }
+
+  @Test
+  public void testCloneApplication_MembershipMappings() {
+    Application sourceApp = tempEntity.newApplicationWithParent();
+    MembershipMapping sourceMembershipMapping =
+        tempEntity.newMembershipMapping(sourceApp.getId(), Role.DEVELOPER_ROLE_ID, "username");
+
+    ApiApplicationDTO clonedAppDTO =
+        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
+
+    List<MembershipMapping> clonedMembershipMappings = new MembershipMappingDAO().getByContextId(clonedAppDTO.id);
+    assertThat(clonedMembershipMappings).hasSize(1);
+    MembershipMapping clonedMembershipMapping = clonedMembershipMappings.get(0);
+    assertThat(clonedMembershipMapping.getId()).isNotEqualTo(sourceMembershipMapping.getId());
+    assertThat(clonedMembershipMapping.getRoleId()).isEqualTo(sourceMembershipMapping.getRoleId());
+    assertThat(clonedMembershipMapping.getMemberName()).isEqualTo(sourceMembershipMapping.getMemberName());
+    assertThat(clonedMembershipMapping.getMemberType()).isEqualTo(sourceMembershipMapping.getMemberType());
+
+    // Assert the source objects were cloned, not moved.
+    assertThat(new MembershipMappingDAO().getById(sourceMembershipMapping.getId())).isNotNull();
+  }
+
+  @Test
+  public void testCloneApplication_PolicyMonitoring() {
+    Application sourceApp = tempEntity.newApplicationWithParent();
+    PolicyMonitoring sourcePolicyMonitoring =
+        tempEntity.newPolicyMonitoring(sourceApp.getId(), StageTypes.BUILD.getId());
+
+    ApiApplicationDTO clonedAppDTO =
+        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
+
+    PolicyMonitoring clonedPolicyMonitoring = new PolicyMonitoringDAO().getByOwnerId(clonedAppDTO.id);
+    assertThat(clonedPolicyMonitoring.getId()).isNotEqualTo(sourcePolicyMonitoring.getId());
+    assertThat(clonedPolicyMonitoring.getStageTypeId()).isEqualTo(sourcePolicyMonitoring.getStageTypeId());
+
+    // Assert the source objects were cloned, not moved.
+    assertThat(new PolicyMonitoringDAO().getById(sourcePolicyMonitoring.getId())).isNotNull();
   }
 }

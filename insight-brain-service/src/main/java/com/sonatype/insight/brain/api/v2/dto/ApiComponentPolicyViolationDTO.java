@@ -27,4 +27,7 @@ public class ApiComponentPolicyViolationDTO
 
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
   public Date quarantineTime;
+
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
+  public Date quarantineReleaseTime;
 }

@@ -52,6 +52,7 @@
     <selenium.version>3.8.1</selenium.version>
     <httpcomponents.version>4.5.10</httpcomponents.version>
     <nexus-scm-client.version>1.8.0</nexus-scm-client.version>
+    <nexus-dependency-management.version>1.0.0</nexus-dependency-management.version>
   </properties>
 
   <scm>
@@ -943,7 +944,7 @@
       <dependency>
         <groupId>com.sonatype.nexus.iq</groupId>
         <artifactId>nexus-dependency-management</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>${nexus-dependency-management.version}</version>
       </dependency>
       <dependency>
         <groupId>com.github.stefanbirkner</groupId>

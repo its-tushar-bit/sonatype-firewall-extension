@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -56,6 +57,9 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,6 +90,10 @@ public class RepositoryPolicyEvaluator
   private final ComponentDetailsLoader componentDetailsLoader;
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
+
+  // CLM-13933
+  private static final LoadingCache<String, Object> componentLock = CacheBuilder.newBuilder()
+      .expireAfterAccess(10, TimeUnit.MINUTES).build(CacheLoader.from(Object::new));
 
   @Inject
   public RepositoryPolicyEvaluator(ComponentPolicyEvaluator componentPolicyEvaluator,
@@ -172,23 +180,25 @@ public class RepositoryPolicyEvaluator
                                                        PolicyResults policyResults,
                                                        boolean canBeQuarantined)
   {
-    RepositoryComponent repositoryComponent;
-    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
-      tx.begin();
+    synchronized (componentLock.getUnchecked(repository.getId().concat(component.getPathnames().get(0)))) {
+      RepositoryComponent repositoryComponent;
+      try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+        tx.begin();
 
-      RepositoryPolicyViolationLogger policyViolationLogger =
-          policyViolationLoggerFactory.newLogger(evaluationTime, repository);
+        RepositoryPolicyViolationLogger policyViolationLogger =
+            policyViolationLoggerFactory.newLogger(evaluationTime, repository);
 
-      // The order of the following calls are important and must not be changed. See: CLM-13853
-      persistPolicyViolations(tx, repository, evaluationTime, component, policyResults, policyViolationLogger);
-      repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
-          canBeQuarantined, policyResults);
+        // The order of the following calls are important and must not be changed. See: CLM-13853
+        persistPolicyViolations(tx, repository, evaluationTime, component, policyResults, policyViolationLogger);
+        repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
+            canBeQuarantined, policyResults);
 
-      tx.commit();
-      AuditData.get().commitSubEvents();
-      policyViolationLogger.log();
+        tx.commit();
+        AuditData.get().commitSubEvents();
+        policyViolationLogger.log();
+      }
+      return repositoryComponent;
     }
-    return repositoryComponent;
   }
 
   private RepositoryComponent persistRepositoryComponent(TransactionContext tx,

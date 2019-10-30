@@ -40,7 +40,7 @@ public class TelemetryContainerRequestFilter
   private static final Pattern URL_PATTERN = Pattern.compile("^" + PublicApiPaths.BASE_PATH + "/.*$");
 
   @VisibleForTesting
-  static final Map<String, LongAdder> REST_ENDPOINT_INVOCATIONS = new ConcurrentHashMap<>();
+  public static final Map<String, LongAdder> REST_ENDPOINT_INVOCATIONS = new ConcurrentHashMap<>();
 
   public static final String REST_ENDPOINT_TELEMETRY = "rest_endpoint_telemetry";
 

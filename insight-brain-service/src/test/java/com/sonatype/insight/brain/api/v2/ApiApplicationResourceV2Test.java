@@ -36,6 +36,9 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.telemetry.RestEndpointTelemetry;
+import com.sonatype.insight.brain.telemetry.TelemetryContainerRequestFilter;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -480,6 +483,8 @@ public class ApiApplicationResourceV2Test
 
   @Test
   public void testCloneApplication() throws Exception {
+    TelemetryContainerRequestFilter.REST_ENDPOINT_INVOCATIONS.clear();
+
     String clonedAppName = "Cloned App Name";
     String clonedAppPublicId = "ClonedAppPublicId";
 
@@ -496,6 +501,19 @@ public class ApiApplicationResourceV2Test
     assertThat(returnedDTO.organizationId).isEqualTo(app.getOrganizationId());
     assertThat(returnedDTO.contactUserName).isEqualTo(app.getContactInternalName());
     assertThat(returnedDTO.applicationTags).isEmpty();
+
+    String expectedTelemetryPath = "/" + PublicApiPaths.APP_RESOURCE_PATH + "/" + ApiApplicationResourceV2.CLONE_PATH;
+    TelemetryContainerRequestFilter telemetryContainerRequestFilter =
+        getCLMServer().getInstance(TelemetryContainerRequestFilter.class);
+    List<TelemetryData> telemetryData = telemetryContainerRequestFilter.collectAllData();
+    assertThat(telemetryData).hasSize(1);
+    Map<String, Object> telemetryAttributes = telemetryData.get(0).getAttributes();
+    assertThat(telemetryAttributes).hasSize(1);
+    RestEndpointTelemetry restEndpointTelemetry =
+        (RestEndpointTelemetry) telemetryAttributes.get(TelemetryContainerRequestFilter.REST_ENDPOINT_TELEMETRY);
+    assertThat(restEndpointTelemetry.method).isEqualTo("POST");
+    assertThat(restEndpointTelemetry.path).isEqualTo(expectedTelemetryPath);
+    assertThat(restEndpointTelemetry.invocations).isEqualTo(1);
   }
 
   private ApiRoleMemberMappingListDTO newMemberMapping(final List<ApiMemberDTO> memberList, final String roleId) {

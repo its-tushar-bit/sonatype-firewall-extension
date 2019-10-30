@@ -43,6 +43,8 @@ public class GitApiService
 
   private static final String IQ_POLICY_EVALUATION = "IQ Policy Evaluation";
 
+  public static final String DEFAULT_BASE_BRANCH = "master";
+
   private final ApiSourceControlService sourceControlService;
 
   private final BaseUrl baseUrl;
@@ -133,6 +135,11 @@ public class GitApiService
             .getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
         populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, rootOrgSourceControl);
       }
+    }
+
+    // TODO remove this check when Aquila has enforced a default branch at the root org level
+    if (Strings.isNullOrEmpty(gitRepositoryInfo.baseBranch)) {
+      gitRepositoryInfo.baseBranch = DEFAULT_BASE_BRANCH;
     }
 
     return gitRepositoryInfo;

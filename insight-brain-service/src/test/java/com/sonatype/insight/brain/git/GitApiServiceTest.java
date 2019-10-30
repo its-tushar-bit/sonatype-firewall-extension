@@ -246,6 +246,35 @@ public class GitApiServiceTest
   }
 
   @Test
+  public void testGetGitRepositoryInfo_defaultBranch() {
+    // set base branch to null at all levels
+    SourceControl sourceControl =
+        new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl(VALID_URL).setBaseBranch(null)
+            .setEnablePullRequests(true).setEnableStatusChecks(true)
+            .build();
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(OwnerType.APPLICATION), eq(application.getId())))
+        .thenReturn(sourceControl);
+
+    when(mockSourceControlService
+        .getSourceControlByOwnerDecrypted(eq(OwnerType.ORGANIZATION), eq(application.getOrganizationId())))
+        .thenReturn(null);
+
+    SourceControl rootOrgSourceControl =
+        new SourceControl.Builder().setOwnerId(org.getParentOrganizationId()).setToken(TOKEN).setBaseBranch(null)
+            .setProvider(SourceControlProvider.GITHUB).build();
+    when(mockSourceControlService
+        .getSourceControlByOwnerDecrypted(eq(OwnerType.ORGANIZATION), eq(Organization.ROOT_ORGANIZATION_ID)))
+        .thenReturn(rootOrgSourceControl);
+
+    GitRepositoryInfo value = gitApiService.getGitRepositoryInfoForApplication(application.getId());
+
+    assertThat(value.baseBranch).isEqualTo(GitApiService.DEFAULT_BASE_BRANCH);
+    verify(mockSourceControlService).getSourceControlByOwnerDecrypted(OwnerType.APPLICATION, application.getId());
+    verify(mockSourceControlService)
+        .getSourceControlByOwnerDecrypted(eq(OwnerType.ORGANIZATION), eq(application.getOrganizationId()));
+  }
+
+  @Test
   public void testGetGitRepositoryInfo_NoApplicationSourceControl() {
     GitRepositoryInfo value = gitApiService.getGitRepositoryInfoForApplication("INVALID");
     assertThat(value).isNull();

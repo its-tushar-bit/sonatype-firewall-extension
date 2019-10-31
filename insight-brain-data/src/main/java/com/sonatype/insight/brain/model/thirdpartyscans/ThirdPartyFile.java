@@ -23,10 +23,8 @@ public class ThirdPartyFile
     //noop
   }
 
-  public ThirdPartyFile(String hash, String filename, String image, Date created) {
-    this.hash = hash;
+  public ThirdPartyFile(String filename, Date created) {
     this.filename = filename;
-    this.image = image;
     this.created = created;
   }
 
@@ -34,14 +32,8 @@ public class ThirdPartyFile
   @Column(name = "third_party_file_id")
   private String id;
 
-  @Column(name = "hash")
-  private String hash;
-
   @Column(name = "filename")
   private String filename;
-
-  @Column(name = "image")
-  private String image;
 
   @Column(name = "create_time")
   private Date created;
@@ -56,28 +48,12 @@ public class ThirdPartyFile
     this.id = id;
   }
 
-  public String getHash() {
-    return hash;
-  }
-
-  public void setHash(String hash) {
-    this.hash = hash;
-  }
-
   public String getFilename() {
     return filename;
   }
 
   public void setFilename(String filename) {
     this.filename = filename;
-  }
-
-  public String getImage() {
-    return image;
-  }
-
-  public void setImage(String image) {
-    this.image = image;
   }
 
   public Date getCreated() {

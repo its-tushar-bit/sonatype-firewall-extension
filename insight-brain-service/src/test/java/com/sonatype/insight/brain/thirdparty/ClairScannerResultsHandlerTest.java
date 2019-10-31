@@ -11,9 +11,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
-import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
@@ -36,7 +37,7 @@ public class ClairScannerResultsHandlerTest
   @Spy
   private ClairScannerResultHandler clairHandlerSpy;
 
-  @Spy
+  @Inject
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
   @Spy
@@ -45,7 +46,7 @@ public class ClairScannerResultsHandlerTest
   private static final Gson GSON = new Gson();
 
   @Test
-  public void testHandle_filterContent_newThirdPartyFileMultipleEntries() throws Exception {
+  public void testHandleAndFilterContents_filterContent_newThirdPartyFileMultipleEntries() throws Exception {
     ClairScannerResult clairScannerResult = new ClairScannerResult();
     clairScannerResult.setImage("imageTest");
 
@@ -118,7 +119,7 @@ public class ClairScannerResultsHandlerTest
   }
 
   @Test
-  public void testHandle_nullContent() throws Exception {
+  public void testHandleAndFilterContents_nullContent() throws Exception {
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, null);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -127,7 +128,7 @@ public class ClairScannerResultsHandlerTest
   }
 
   @Test
-  public void testHandle_emptyContent() throws Exception {
+  public void testHandleAndFilterContents_emptyContent() throws Exception {
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(new ClairScannerResult()));
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -215,7 +216,6 @@ public class ClairScannerResultsHandlerTest
     assertThat(coordinate.getFormat()).isEqualTo(vulnerability.getNamespace());
     assertThat(coordinate.getHash()).isNotBlank();
     assertThat(coordinate.getName()).isEqualTo(vulnerability.getFeatureName());
-    assertThat(coordinate.getSource()).isEqualTo(IdentificationSource.CLAIR.getId());
     assertThat(coordinate.getThirdPartyFileId()).isEqualTo(thirdPartyFile.getId());
     assertThat(coordinate.getVersion()).isEqualTo(vulnerability.getFeatureVersion());
   }

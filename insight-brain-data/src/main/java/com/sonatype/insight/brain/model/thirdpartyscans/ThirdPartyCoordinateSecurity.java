@@ -59,6 +59,27 @@ public class ThirdPartyCoordinateSecurity
   @Column(name = "fixed_by")
   private String fixedBy;
 
+  @Column(name = "vulnerability_source")
+  private String vulnerabilitySource;
+
+  @Column(name = "severity_description")
+  private String severityDescription;
+
+  @Column(name = "attack_vector")
+  private String attackVector;
+
+  @Column(name = "rating_method")
+  private String ratingMethod;
+
+  @Column(name = "cwes")
+  private String cwes;
+
+  @Column(name = "recommendations")
+  private String recommendations;
+
+  @Column(name = "advisories")
+  private String advisories;
+
   @Override
   public String getId() {
     return id;
@@ -115,5 +136,61 @@ public class ThirdPartyCoordinateSecurity
 
   public void setFixedBy(String fixedBy) {
     this.fixedBy = fixedBy;
+  }
+
+  public String getVulnerabilitySource() {
+    return vulnerabilitySource;
+  }
+
+  public void setVulnerabilitySource(String vulnerabilitySource) {
+    this.vulnerabilitySource = vulnerabilitySource;
+  }
+
+  public String getSeverityDescription() {
+    return severityDescription;
+  }
+
+  public void setSeverityDescription(String severityDescription) {
+    this.severityDescription = severityDescription;
+  }
+
+  public String getAttackVector() {
+    return attackVector;
+  }
+
+  public void setAttackVector(String attackVector) {
+    this.attackVector = attackVector;
+  }
+
+  public String getRatingMethod() {
+    return ratingMethod;
+  }
+
+  public void setRatingMethod(String ratingMethod) {
+    this.ratingMethod = ratingMethod;
+  }
+
+  public String getCwes() {
+    return cwes;
+  }
+
+  public void setCwes(String cwes) {
+    this.cwes = cwes;
+  }
+
+  public String getRecommendations() {
+    return recommendations;
+  }
+
+  public void setRecommendations(String recommendations) {
+    this.recommendations = recommendations;
+  }
+
+  public String getAdvisories() {
+    return advisories;
+  }
+
+  public void setAdvisories(String advisories) {
+    this.advisories = advisories;
   }
 }

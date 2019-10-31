@@ -1892,16 +1892,15 @@ public class TemporaryEntity
     return samlConfiguration;
   }
 
-  public ThirdPartyFile newThirdPartyFile(String hash, String filename) {
-    ThirdPartyFile thirdPartyFile =
-        new ThirdPartyFile(hash, filename, "image", new Date());
+  public ThirdPartyFile newThirdPartyFile(String filename) {
+    ThirdPartyFile thirdPartyFile = new ThirdPartyFile(filename, new Date());
     thirdPartyFileDAO.insert(thirdPartyFile);
     thirdPartyFileConfigurations.add(thirdPartyFile);
     return thirdPartyFile;
   }
 
   public ThirdPartyFile newThirdPartyFile() {
-    return newThirdPartyFile(newRandomHash(), "third-party-file");
+    return newThirdPartyFile("third-party-file");
   }
 
   public ThirdPartyScan newThirdPartyScan(ThirdPartyFile thirdPartyFile) {

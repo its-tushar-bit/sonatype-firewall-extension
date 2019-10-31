@@ -47,6 +47,9 @@ public class ThirdPartyFileCoordinate
   @Column(name = "source")
   private String source;
 
+  @Column(name = "package_url")
+  private String packageUrl;
+
   @Column(name = "format")
   private String format;
 
@@ -83,6 +86,14 @@ public class ThirdPartyFileCoordinate
 
   public void setSource(String source) {
     this.source = source;
+  }
+
+  public String getPackageUrl() {
+    return packageUrl;
+  }
+
+  public void setPackageUrl(String packageUrl) {
+    this.packageUrl = packageUrl;
   }
 
   public String getFormat() {

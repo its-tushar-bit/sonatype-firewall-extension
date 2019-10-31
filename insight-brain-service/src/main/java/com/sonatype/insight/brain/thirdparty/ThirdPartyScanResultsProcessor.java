@@ -179,7 +179,7 @@ public class ThirdPartyScanResultsProcessor
 
     ThirdPartyFile thirdPartyFile = null;
     if (ItemContentType.CLAIR_SCANNER.name().equals(contentType)) {
-      thirdPartyFile = saveFile(sha1, path);
+      thirdPartyFile = saveFile(path);
       saveScan(thirdPartyFile, scanRequestId);
     }
 
@@ -189,8 +189,8 @@ public class ThirdPartyScanResultsProcessor
         new ThirdPartyScanContent(path, contentItemType, lastModified, sha1, contentElement), thirdPartyFile);
   }
 
-  private ThirdPartyFile saveFile(String hash, String path) {
-    ThirdPartyFile thirdPartyFile = new ThirdPartyFile(hash, path, null, new Date());
+  private ThirdPartyFile saveFile(String path) {
+    ThirdPartyFile thirdPartyFile = new ThirdPartyFile(path, new Date());
     thirdPartyFileDAO.insert(thirdPartyFile);
     return thirdPartyFile;
   }

@@ -43,10 +43,6 @@ public class ClairScannerResultHandler
     if (clairScannerResult != null) {
       try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
         tx.begin();
-
-        thirdPartyFile.setImage(clairScannerResult.getImage());
-        thirdPartyFileDAO.update(tx, thirdPartyFile);
-
         ClairScannerResult filteredClairScannerResult = new ClairScannerResult();
 
         if (clairScannerResult.getVulnerabilities() != null) {

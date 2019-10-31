@@ -69,13 +69,13 @@ public class ThirdPartyFileCoordinateDAOTest
 
   @Test
   public void testGetBySourceFormatNameVersionAndScannedFileId() {
-    ThirdPartyFileCoordinate retrievedCoordinateFile = thirdPartyFileCoordinateDAO
+    List<ThirdPartyFileCoordinate> retrievedCoordinateFile = thirdPartyFileCoordinateDAO
         .getBySourceFormatNameVersionAndThirdPartyFileId(fileCoordinate.getSource(), fileCoordinate.getFormat(),
             fileCoordinate.getName(), fileCoordinate.getVersion(), fileCoordinate.getThirdPartyFileId());
 
     assertThirdPartyCoordinateFile(fileCoordinate.getHash(), fileCoordinate.getSource(), fileCoordinate.getFormat(),
         fileCoordinate.getName(), fileCoordinate.getVersion(), fileCoordinate.getThirdPartyFileId(),
-        retrievedCoordinateFile);
+        retrievedCoordinateFile.get(0));
   }
 
   @Test

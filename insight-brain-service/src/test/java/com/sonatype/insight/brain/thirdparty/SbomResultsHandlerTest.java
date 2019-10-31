@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.mockito.Spy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class SbomResultsHandlerTest
     extends AbstractComponentTest
@@ -29,7 +30,7 @@ public class SbomResultsHandlerTest
   private SbomResultHandler sbomResultHandlerSpy;
 
   @Test
-  public void testHandle_filterContent_newThirdPartyFileMultipleEntries() throws Exception {
+  public void testHandleAndFilterContents_filterContent_newThirdPartyFileMultipleEntries() throws Exception {
     String sbomContent = getSbomFile("sbom-multiple-components.xml");
     ThirdPartyScanContent content =
         new ThirdPartyScanContent(null, null, null, null, sbomContent);
@@ -41,7 +42,7 @@ public class SbomResultsHandlerTest
   }
 
   @Test
-  public void testHandle_nullContent() throws Exception {
+  public void testHandleAndFilterContents_nullContent() throws Exception {
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, null);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -50,7 +51,7 @@ public class SbomResultsHandlerTest
   }
 
   @Test
-  public void testHandle_emptyContent() throws Exception {
+  public void testHandleAndFilterContents_emptyContent() throws Exception {
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, "");
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -58,8 +59,38 @@ public class SbomResultsHandlerTest
     assertThat(filteredContent).isBlank();
   }
 
+  public void testHandleAndFilterContents_invalidSbom() throws Exception {
+    String sbomContent = getSbomFile("scan-with-invalid-sbom-data-cli.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> sbomResultHandlerSpy.handleAndFilterContents(content, thirdPartyFile))
+        .withMessage("Error filtering sbom file");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_sbomNestedComponents() throws Exception {
+    String sbomContent = getSbomFile("scan-with-sbom-nested-component.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandlerSpy.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+    assertFilteredSbomFile(filteredContent, 1);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_sbom_no_purl() throws Exception {
+    String sbomContent = getSbomFile("scan-with-sbom-no-purl.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandlerSpy.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+    assertFilteredSbomFile(filteredContent, 0);
+  }
+
   private String getSbomFile(final String fileName) throws Exception {
-    URL resource = getClass().getResource("/ThirdPartyResultsProcessorTest/sbom/" + fileName);
+    URL resource = getClass().getResource("/SbomResultsHandlerTest/" + fileName);
     return new String(Files.readAllBytes(Paths.get(resource.toURI())));
   }
 

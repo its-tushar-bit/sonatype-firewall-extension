@@ -21,7 +21,7 @@ public class ThirdPartyFileCoordinateDAO
     return get(sQuery, id);
   }
 
-  public ThirdPartyFileCoordinate getBySourceFormatNameVersionAndThirdPartyFileId(
+  public List<ThirdPartyFileCoordinate> getBySourceFormatNameVersionAndThirdPartyFileId(
       String source,
       String format,
       String name,
@@ -31,7 +31,7 @@ public class ThirdPartyFileCoordinateDAO
     String sQuery = "SELECT entity FROM ThirdPartyFileCoordinate entity" + //
         " WHERE entity.source=?1 AND entity.format=?2 AND entity.name=?3" + //
         " AND entity.version=?4 AND entity.thirdPartyFileId=?5";
-    return get(sQuery, source, format, name, version, thirdPartyFileId);
+    return getList(sQuery, source, format, name, version, thirdPartyFileId);
   }
 
   public List<ThirdPartyFileCoordinate> getAll() {

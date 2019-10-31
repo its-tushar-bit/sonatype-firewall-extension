@@ -30,13 +30,13 @@ public class ThirdPartyFileDAOTest
   public void testCRUD() throws Exception {
     // Create
     Date created = new Date();
-    ThirdPartyFile entity = new ThirdPartyFile("hash", "filename", "image", created);
+    ThirdPartyFile entity = new ThirdPartyFile("filename", created);
     dao.insert(entity);
     assertThat(entity.getId()).isNotNull();
 
     // Get
     final ThirdPartyFile retrievedThirdPartyFile = dao.getById(entity.getId());
-    assertThirdPartyScannedFile(entity.getId(), "hash", "filename", "image", created, retrievedThirdPartyFile);
+    assertThirdPartyScannedFile(entity.getId(), "filename", created, retrievedThirdPartyFile);
 
     // Update
     retrievedThirdPartyFile.setFilename("updated filename");
@@ -75,48 +75,46 @@ public class ThirdPartyFileDAOTest
   }
 
   @Test
-  public void testGetByHashAndScanId_RepeatedFileInSameScan() {
+  public void testGetByScanId_RepeatedFileInSameScan() {
     String scanRequestId = tempEntity.uuid();
     String scanId = tempEntity.uuid();
-    String hash = tempEntity.newRandomHash();
 
-    ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile(hash, "f1");
-    ThirdPartyFile thirdPartyFile2 = tempEntity.newThirdPartyFile(hash, "f2");
+    ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile("f1");
+    ThirdPartyFile thirdPartyFile2 = tempEntity.newThirdPartyFile("f2");
 
     tempEntity.newThirdPartyScan(scanRequestId, scanId, thirdPartyFile1);
     tempEntity.newThirdPartyScan(scanRequestId, scanId, thirdPartyFile2);
 
-    List<ThirdPartyFile> retrievedThirdPartyFiles = dao.getByHashAndScanId(hash, scanId);
+    List<ThirdPartyFile> retrievedThirdPartyFiles = dao.getByScanId(scanId);
     assertThat(retrievedThirdPartyFiles).hasSize(2);
 
     // Sorts the list to have a deterministic order when comparing and doing the asserts
     retrievedThirdPartyFiles = new ArrayList<>(retrievedThirdPartyFiles);
     Collections.sort(retrievedThirdPartyFiles, Comparator.comparing(ThirdPartyFile::getCreated));
 
-    assertThirdPartyScannedFile(thirdPartyFile1.getId(), thirdPartyFile1.getHash(), thirdPartyFile1.getFilename(),
-        thirdPartyFile1.getImage(), thirdPartyFile1.getCreated(), retrievedThirdPartyFiles.get(0));
+    assertThirdPartyScannedFile(thirdPartyFile1.getId(), thirdPartyFile1.getFilename(), thirdPartyFile1.getCreated(),
+        retrievedThirdPartyFiles.get(0));
 
-    assertThirdPartyScannedFile(thirdPartyFile2.getId(), thirdPartyFile2.getHash(), thirdPartyFile2.getFilename(),
-        thirdPartyFile2.getImage(), thirdPartyFile2.getCreated(), retrievedThirdPartyFiles.get(1));
+    assertThirdPartyScannedFile(thirdPartyFile2.getId(), thirdPartyFile2.getFilename(), thirdPartyFile2.getCreated(),
+        retrievedThirdPartyFiles.get(1));
   }
 
   @Test
   public void testGetByHashAndScanId_RepeatedFileInDifferentScans() {
     String scanRequestId = tempEntity.uuid();
     String scanId = tempEntity.uuid();
-    String hash = tempEntity.newRandomHash();
 
-    ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile(hash,"f1");
+    ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile("f1");
     tempEntity.newThirdPartyScan(scanRequestId, scanId, thirdPartyFile1);
 
-    ThirdPartyFile thirdPartyFile2 = tempEntity.newThirdPartyFile(hash, "f2");
+    ThirdPartyFile thirdPartyFile2 = tempEntity.newThirdPartyFile("f2");
     tempEntity.newThirdPartyScan(tempEntity.uuid(), tempEntity.uuid(), thirdPartyFile2);
 
-    List<ThirdPartyFile> retrievedThirdPartyFiles = dao.getByHashAndScanId(hash, scanId);
+    List<ThirdPartyFile> retrievedThirdPartyFiles = dao.getByScanId(scanId);
     assertThat(retrievedThirdPartyFiles).hasSize(1);
 
-    assertThirdPartyScannedFile(thirdPartyFile1.getId(), thirdPartyFile1.getHash(), thirdPartyFile1.getFilename(),
-        thirdPartyFile1.getImage(), thirdPartyFile1.getCreated(), retrievedThirdPartyFiles.get(0));
+    assertThirdPartyScannedFile(thirdPartyFile1.getId(), thirdPartyFile1.getFilename(), thirdPartyFile1.getCreated(),
+        retrievedThirdPartyFiles.get(0));
   }
 
   @Test
@@ -135,12 +133,12 @@ public class ThirdPartyFileDAOTest
     assertThat(thirdPartyFiles).hasSize(2);
 
     ThirdPartyFile found = findByThirdPartyFileIdInList(thirdPartyFiles, thirdPartyFile1.getId());
-    assertThirdPartyScannedFile(thirdPartyFile1.getId(), thirdPartyFile1.getHash(), thirdPartyFile1.getFilename(),
-        thirdPartyFile1.getImage(), thirdPartyFile1.getCreated(), found);
+    assertThirdPartyScannedFile(thirdPartyFile1.getId(), thirdPartyFile1.getFilename(), thirdPartyFile1.getCreated(),
+        found);
 
     found = findByThirdPartyFileIdInList(thirdPartyFiles, thirdPartyFile2.getId());
-    assertThirdPartyScannedFile(thirdPartyFile2.getId(), thirdPartyFile2.getHash(), thirdPartyFile2.getFilename(),
-        thirdPartyFile2.getImage(), thirdPartyFile2.getCreated(), found);
+    assertThirdPartyScannedFile(thirdPartyFile2.getId(), thirdPartyFile2.getFilename(),
+        thirdPartyFile2.getCreated(), found);
   }
 
   @Test
@@ -157,16 +155,12 @@ public class ThirdPartyFileDAOTest
 
   private void assertThirdPartyScannedFile(
       final String id,
-      final String hash,
       final String filename,
-      final String image,
       final Date created,
       final ThirdPartyFile actual)
   {
     assertThat(actual.getId()).isEqualTo(id);
-    assertThat(actual.getHash()).isEqualTo(hash);
     assertThat(actual.getFilename()).isEqualTo(filename);
-    assertThat(actual.getImage()).isEqualTo(image);
     assertThat(actual.getCreated()).isEqualTo(created);
   }
 

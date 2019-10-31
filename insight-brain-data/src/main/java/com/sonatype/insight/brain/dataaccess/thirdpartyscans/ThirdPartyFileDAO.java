@@ -14,15 +14,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class ThirdPartyFileDAO
     extends AbstractThirdPartyScansSqlDAO<ThirdPartyFile>
 {
-  public List<ThirdPartyFile> getByHashAndScanId(String hash, String scanId) {
-    String sQuery = "SELECT TPF FROM ThirdPartyFile TPF," + //
-        " ThirdPartyScan TPS" + //
-        " WHERE TPS.thirdPartyFileId=TPF.id" + //
-        " AND TPF.hash=?1" + //
-        " AND TPS.scanId=?2";
-    return getList(sQuery, hash, scanId);
-  }
-
   public List<ThirdPartyFile> getAll() {
     return getList("SELECT entity FROM ThirdPartyFile entity");
   }

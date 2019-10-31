@@ -137,6 +137,7 @@ public class PolicyAlertSourceCodeOrganizerTest
     // Hashbrowns - low
 
     critical1.addComponentFact(BACON);
+    critical1.addComponentFact(BACON); //model second CVE for same component and same policy
     critical1.addComponentFact(TOAST);
     critical1.addComponentFact(SAUSAGE);
 

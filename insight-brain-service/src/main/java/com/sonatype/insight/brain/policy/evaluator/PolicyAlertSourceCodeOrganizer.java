@@ -13,6 +13,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -24,7 +26,9 @@ public class PolicyAlertSourceCodeOrganizer
   private static final int INITIAL_DEPTH = 0;
 
   private final Comparator<PolicyNotification> threatLevelComparator =
-      Comparator.comparing(policyNotification -> policyNotification.getPolicyFact().getThreatLevel());
+      Comparator
+          .comparing((PolicyNotification policyNotification) -> policyNotification.getPolicyFact().getThreatLevel())
+          .thenComparing(policyNotification -> policyNotification.getPolicyFact().getPolicyId());
 
   /**
    * Returns a map of all policy notifications, aggregated by component and sorted by policy threats.
@@ -38,25 +42,23 @@ public class PolicyAlertSourceCodeOrganizer
     }
 
     // Aggregate components
-    Map<ComponentIdentifier, List<PolicyNotification>> componentMap = new HashMap<>();
+    Map<ComponentIdentifier, Set<PolicyNotification>> componentMap = new HashMap<>();
     for (PolicyNotification policyNotification : policyNotifications) {
       for (ComponentFact componentFact : policyNotification.getPolicyFact().getComponentFacts()) {
         ComponentIdentifier componentIdentifier = componentFact.getComponentIdentifier();
         if (componentIdentifier == null) {
           continue;
         }
-        componentMap.computeIfAbsent(componentIdentifier, k -> new ArrayList<>());
+        componentMap.computeIfAbsent(componentIdentifier, k -> new TreeSet<>(threatLevelComparator.reversed()));
         componentMap.get(componentIdentifier).add(policyNotification);
       }
     }
 
-    // Within each component, sort all policy notifications by threat level
-    for (List<PolicyNotification> componentPolicyNotifications : componentMap.values()) {
-      componentPolicyNotifications.sort(threatLevelComparator.reversed());
-    }
-
     // Finally, re-sort the components by highest threats within the policies, and then the component name
     return componentMap.entrySet()
+        .stream()
+        .collect(Collectors.toMap(Entry::getKey, entry -> (List<PolicyNotification>)new ArrayList<>(entry.getValue())))
+        .entrySet()
         .stream()
         .sorted(this::compareEntries)
         .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (e1, e2) -> e2, LinkedHashMap::new));

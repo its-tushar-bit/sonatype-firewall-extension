@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -189,10 +190,10 @@ public class PullRequestRemediationDetails
         .filter(fact -> fact.getComponentIdentifier().equals(toBeRemediated))
         .map(ComponentFact::getConstraintFacts)
         .filter(list -> list != null && !list.isEmpty())
-        .flatMap(list -> list.stream())
+        .flatMap(Collection::stream)
         .map(ConstraintFact::getConditionFacts)
         .filter(facts -> facts != null && !facts.isEmpty())
-        .flatMap(facts -> facts.stream())
+        .flatMap(Collection::stream)
         .map(ConditionFact::getReason)
         .distinct()
         .map(reason -> addCveLinks(reason, baseUrl))
@@ -208,7 +209,7 @@ public class PullRequestRemediationDetails
         .filter(fact -> fact.getComponentIdentifier().equals(toBeRemediated))
         .map(ComponentFact::getConstraintFacts)
         .filter(list -> list != null && !list.isEmpty())
-        .flatMap(list -> list.stream())
+        .flatMap(Collection::stream)
         .map(ConstraintFact::getConstraintName)
         .distinct()
         .collect(Collectors.joining(DELIMITER, PREFIX, SUFFIX));

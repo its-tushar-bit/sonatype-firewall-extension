@@ -46,10 +46,12 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testUpdatePolicyDoesNotExist() throws Exception {
+  public void testUpdate_PolicyDoesNotExist() throws Exception {
     // Create a policy, but don't insert it
-    String policyName = "PolicyDAOTest new policy";
-    Policy policy = newPolicy(applicationId, policyName);
+    Policy policy = new Policy();
+    policy.setName("test policy");
+    policy.setOwnerId(applicationId);
+    policy.addConstraint(newConstraint(null, "Constraint"));
     policy.setId("yeti");
 
     // Update the policy
@@ -59,44 +61,29 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testInsertNameNotUnique() throws Exception {
+  public void testInsert_NameNotUnique() throws Exception {
     // Add a policy
-    String policyName = "PolicyDAOTest new policy";
-    {
-      Policy policy = new Policy();
-      policy.setName(policyName);
-      policy.setOwnerId(applicationId);
-      Constraint constraint = new Constraint(null, "PolicyDAOTest new constraint", LogicalOperator.AND);
-      constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
-      policy.addConstraint(constraint);
-      policyDAO.insert(policy);
-    }
+    String policyName = "Test Policy";
+    tempEntity.newPolicy(applicationId, policyName);
 
     // Add another policy with the same name
-    Policy policy = new Policy();
-    policy.setName(policyName);
-    policy.setOwnerId(applicationId);
-    Constraint constraint = new Constraint(null, "PolicyDAOTest new constraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
-    policy.addConstraint(constraint);
     assertThatThrownBy(() -> {
-      policyDAO.insert(policy);
+      tempEntity.newPolicy(applicationId, policyName);
     }
     ).isInstanceOf(InvalidPolicyException.class)
-        .hasMessage("A policy with name 'PolicyDAOTest new policy' already exists");
+        .hasMessage("A policy with name '" + policyName + "' already exists");
 
     // Add another policy with a case-/whitespace-equivalent name
-    policy.setName(policyName.replace("\\s", "").toLowerCase(Locale.ENGLISH));
     assertThatThrownBy(() -> {
-      policyDAO.insert(policy);
+      tempEntity.newPolicy(applicationId, "testpolicy");
     }).isInstanceOf(InvalidPolicyException.class)
-        .hasMessage("A policy with name 'PolicyDAOTest new policy' already exists");
+        .hasMessage("A policy with name '" + policyName + "' already exists");
   }
 
   @Test
-  public void testInsertNameClashWithChildOwnerPolicy() throws Exception {
+  public void testInsert_NameClashWithChildOwnerPolicy() throws Exception {
     // Add a policy at app level
-    String policyName = "PolicyDAOTest new policy app";
+    String policyName = "Test Policy App";
     tempEntity.newPolicy(application.getId(), policyName);
 
     Owner parentOwner = new OwnerDAO().getParentOwner(organization);
@@ -105,7 +92,7 @@ public class PolicyDAOTest
     assertInsertPolicyWithDuplicateName(parentOwner.getId(), policyName, application);
 
     // Add a policy at org level
-    policyName = "PolicyDAOTest new policy org";
+    policyName = "Test Policy Org";
     tempEntity.newPolicy(organization.getId(), policyName);
 
     // Add another policy with a case-/whitespace-equivalent name at parent owner level
@@ -113,11 +100,10 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testInsertNameClashWithParentOrgPolicy() throws Exception {
+  public void testInsert_NameClashWithParentOrgPolicy() throws Exception {
     // Add a policy at parent org level
-    String policyName = "PolicyDAOTest new policy";
-    Policy policy = newPolicy(organization.getParentOrganizationId(), policyName);
-    tempEntity.newPolicy(policy);
+    String policyName = "Test Policy";
+    tempEntity.newPolicy(organization.getParentOrganizationId(), policyName);
 
     Owner expectedOwner = new OwnerDAO().getParentOwner(organization);
 
@@ -130,9 +116,8 @@ public class PolicyDAOTest
 
   private void assertInsertPolicyWithDuplicateName(String ownerId, String policyName, Owner expectedOwner) {
     // Add a policy with a case-/whitespace-equivalent name
-    Policy policy = newPolicy(ownerId, policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
     assertThatThrownBy(() -> {
-      policyDAO.insert(policy);
+      tempEntity.newPolicy(ownerId, policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
     }).isInstanceOf(InvalidPolicyException.class).hasMessage("A policy with the same name already exists for "
         + expectedOwner.getType() + " '" + expectedOwner.getName() + "'");
   }
@@ -148,14 +133,12 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testUpdateNameNotUnique() throws Exception {
+  public void testUpdate_NameNotUnique() throws Exception {
     // Add two policies
-    String policyName1 = "PolicyDAOTest new policy 1";
-    Policy policy1 = newPolicy(applicationId, policyName1);
-    policyDAO.insert(policy1);
-    String policyName2 = "PolicyDAOTest new policy 2";
-    Policy policy2 = newPolicy(applicationId, policyName2);
-    policyDAO.insert(policy2);
+    String policyName1 = "Test Policy 1";
+    Policy policy1 = tempEntity.newPolicy(applicationId, policyName1);
+    String policyName2 = "Test Policy 2";
+    tempEntity.newPolicy(applicationId, policyName2);
 
     // Update a policy with the same name
     policyDAO.update(policy1);
@@ -165,22 +148,21 @@ public class PolicyDAOTest
     assertThatThrownBy(() -> {
       policyDAO.update(policy1);
     }).isInstanceOf(InvalidPolicyException.class)
-        .hasMessage("A policy with name 'PolicyDAOTest new policy 2' already exists");
+        .hasMessage("A policy with name '" + policyName2 + "' already exists");
 
     // Update a policy with a case-/whitespace-equivalent name
     policy1.setName(policyName2.replace("\\s", "").toLowerCase(Locale.ENGLISH));
     assertThatThrownBy(() -> {
       policyDAO.update(policy1);
     }).isInstanceOf(InvalidPolicyException.class)
-        .hasMessage("A policy with name 'PolicyDAOTest new policy 2' already exists");
+        .hasMessage("A policy with name '" + policyName2 + "' already exists");
   }
 
   @Test
-  public void testUpdateNameClashWithParentOrgPolicy() throws Exception {
+  public void testUpdate_NameClashWithParentOrgPolicy() throws Exception {
     // Add a policy at parent org level
-    String policyName = "PolicyDAOTest new policy";
-    Policy policy = newPolicy(organization.getParentOrganizationId(), policyName);
-    tempEntity.newPolicy(policy);
+    String policyName = "Test Policy";
+    tempEntity.newPolicy(organization.getParentOrganizationId(), policyName);
 
     Owner expectedOwner = new OwnerDAO().getParentOwner(organization);
 
@@ -192,9 +174,9 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testUpdateNameClashWithChildOwnerPolicy() throws Exception {
+  public void testUpdate_NameClashWithChildOwnerPolicy() throws Exception {
     // Add a policy at app level
-    String policyName = "PolicyDAOTest new policy app";
+    String policyName = "Test Policy App";
     tempEntity.newPolicy(application.getId(), policyName);
 
     Owner parentOwner = new OwnerDAO().getParentOwner(organization);
@@ -203,7 +185,7 @@ public class PolicyDAOTest
     assertUpdatePolicyWithDuplicateName(parentOwner, policyName, application);
 
     // Add a policy at org level
-    policyName = "PolicyDAOTest new policy org";
+    policyName = "Test Policy Org";
     tempEntity.newPolicy(organization.getId(), policyName);
 
     // Add another policy with a case-/whitespace-equivalent name at parent owner level
@@ -211,100 +193,67 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testAllocateIdsOnInsertAndUpdate() throws Exception {
-    // Add a policy
+  public void testInsert_GeneratesConstraintIds() throws Exception {
     Policy policy = new Policy();
-    policy.setName("PolicyDAOTest new policy");
+    policy.setName("Test Policy");
     policy.setOwnerId(applicationId);
-    final Constraint constraint1 = new Constraint(null, "PolicyDAOTest new constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+
+    Constraint constraint1 = newConstraint(null, "Constraint without ID");
     policy.addConstraint(constraint1);
-    assertThat(policy.getId()).isNull();
     assertThat(constraint1.getId()).isNull();
 
+    String constraintId = "foo id";
+    Constraint constraint2 = newConstraint(constraintId, "Constraint with ID");
+    policy.addConstraint(constraint2);
+    assertThat(constraint2.getId()).isEqualTo(constraintId);
+
     policyDAO.insert(policy);
-    assertThat(policy.getId()).isNotNull();
     assertThat(constraint1.getId()).isNotNull();
-    String constraintId1 = constraint1.getId();
+    assertThat(constraint2.getId()).isNotNull();
+    assertThat(constraint2.getId()).isNotEqualTo(constraintId);
 
     List<Policy> policies = policyDAO.getByOwnerId(applicationId);
     assertThat(policies).hasSize(1);
     assertPolicy(policy, policies.get(0));
-    policy = policies.get(0);
-    assertThat(policy.getId()).isNotNull();
-    assertThat(constraint1.getId()).isNotNull();
+  }
 
-    // Update the policy - new constraint without id
-    policy.setName("PolicyDAOTest updated policy");
-    Constraint constraint2 = new Constraint(null, "PolicyDAOTest new constraint 2", LogicalOperator.AND);
-    constraint2.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+  @Test
+  public void testUpdate_GeneratesConstraintIds() throws Exception {
+    // Add a policy
+    Policy policy = tempEntity.newPolicy(application);
+
+    // Update the policy
+    Constraint constraint1 = newConstraint(null, "Constraint without ID");
+    policy.addConstraint(constraint1);
+    assertThat(constraint1.getId()).isNull();
+
+    String constraintId = "foo id";
+    Constraint constraint2 = newConstraint(constraintId, "Constraint with ID");
     policy.addConstraint(constraint2);
-    assertThat(policy.getId()).isNotNull();
-    assertThat(constraint1.getId()).isNotNull();
-    assertThat(constraint2.getId()).isNull();
+    assertThat(constraint2.getId()).isEqualTo(constraintId);
 
     policyDAO.update(policy);
-    assertThat(policy.getId()).isNotNull();
-    assertThat(constraint1.getId()).isEqualTo(constraintId1);
-    assertThat(constraint2.getId()).isNotNull();
-    String constraintId2 = constraint2.getId();
-
-    policies = policyDAO.getByOwnerId(applicationId);
-    assertThat(policies).hasSize(1);
-    assertPolicy(policy, policies.get(0));
-    policy = policies.get(0);
-    assertThat(policy.getId()).isNotNull();
-    assertThat(constraint1.getId()).isEqualTo(constraintId1);
-    assertThat(constraint2.getId()).isEqualTo(constraintId2);
-
-    // Update the policy - new constraint with id - the id should be reallocated during the update
-    policy.setName("PolicyDAOTest updated again policy");
-    String constraintId3 = "Constraint Id 3";
-    Constraint constraint3 = new Constraint(constraintId3, "PolicyDAOTest new constraint 3", LogicalOperator.AND);
-    constraint3.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
-    policy.addConstraint(constraint3);
-    assertThat(policy.getId()).isNotNull();
     assertThat(constraint1.getId()).isNotNull();
     assertThat(constraint2.getId()).isNotNull();
-    assertThat(constraint3.getId()).isNotNull();
+    assertThat(constraint2.getId()).isNotEqualTo(constraintId);
 
-    policyDAO.update(policy);
-    assertThat(policy.getId()).isNotNull();
-    assertThat(constraint1.getId()).isEqualTo(constraintId1);
-    assertThat(constraint2.getId()).isEqualTo(constraintId2);
-    assertThat(constraint3.getId()).isNotNull();
-    assertThat(constraint3.getId()).isNotEqualTo(constraintId3);
-    constraintId3 = constraint3.getId();
-
-    policies = policyDAO.getByOwnerId(applicationId);
+    List<Policy> policies = policyDAO.getByOwnerId(applicationId);
     assertThat(policies).hasSize(1);
     assertPolicy(policy, policies.get(0));
-    policy = policies.get(0);
-    assertThat(policy.getId()).isNotNull();
-    assertThat(constraint1.getId()).isEqualTo(constraintId1);
-    assertThat(constraint2.getId()).isEqualTo(constraintId2);
-    assertThat(constraint3.getId()).isEqualTo(constraintId3);
   }
 
   @Test
   public void testCRUD() throws Exception {
     // Add
-    final Policy policy = new Policy();
-    policy.setName("PolicyDAOTest new policy");
-    policy.setOwnerId(applicationId);
-    final Constraint constraint = new Constraint(null, "PolicyDAOTest new constraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
-    policy.addConstraint(constraint);
-    policyDAO.insert(policy);
+    Policy policy = tempEntity.newPolicy(applicationId);
 
     // Get
     List<Policy> policies = policyDAO.getByOwnerId(applicationId);
     assertThat(policies).hasSize(1);
-    policy.setOwnerId(applicationId);
     assertPolicy(policy, policies.get(0));
 
     // Update
-    policy.setName("PolicyDAOTest updated policy");
+    policy.setName("Test Policy updated");
     policyDAO.update(policy);
 
     policies = policyDAO.getByOwnerId(applicationId);
@@ -325,23 +274,17 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testValidateOnInsert() throws Exception {
-    // Policy without name
-    Policy policy = newPolicy(applicationId, null /* name */);
-    policy.setOwnerId(applicationId);
-    Constraint constraint1 = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
-    policy.addConstraint(constraint1);
+  public void testInsert_NullName() throws Exception {
+    String name = null;
     assertThatThrownBy(() -> {
-      policyDAO.insert(policy);
+      tempEntity.newPolicy(applicationId, name);
     }).isInstanceOf(InvalidPolicyException.class).hasMessage("The policy name is required.");
   }
 
   @Test
-  public void testValidateOnUpdate() throws Exception {
+  public void testUpdate_NullName() throws Exception {
     // Add a policy
-    Policy policy = newPolicy(applicationId, "PolicyDAOTest Policy Name");
-    policyDAO.insert(policy);
+    Policy policy = tempEntity.newPolicy(applicationId);
 
     // Update the policy
     policy.setName(null);
@@ -352,13 +295,7 @@ public class PolicyDAOTest
 
   @Test
   public void testDeleteByOwnerId() throws Exception {
-    final Policy policy1 = new Policy();
-    policy1.setName("PolicyDAOTest new policy 1");
-    policy1.setOwnerId(applicationId);
-    final Constraint constraint1 = new Constraint(null, "PolicyDAOTest new constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
-    policy1.addConstraint(constraint1);
-    policyDAO.insert(policy1);
+    tempEntity.newPolicy(applicationId);
     assertThat(policyDAO.getByOwnerId(applicationId)).hasSize(1);
 
     try (TransactionContext tx = new PolicyInternalDAO().createTransactionContext()) {
@@ -405,23 +342,19 @@ public class PolicyDAOTest
     assertThat(actual.getValue()).isEqualTo(expected.getValue());
   }
 
-  private Policy newPolicy(String ownerId, String name) {
-    Policy policy = new Policy();
-    policy.setName(name);
-    policy.setOwnerId(ownerId);
-    Constraint constraint = new Constraint(null, "Contraint", LogicalOperator.AND);
+  private Constraint newConstraint(String constraintId, String constraintName) {
+    Constraint constraint = new Constraint(constraintId, constraintName, LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
-    policy.addConstraint(constraint);
-    return policy;
+    return constraint;
   }
 
   @Test
-  public void testGetApplicable() {
-    String policyNameRootOrg = "testGetApplicableRootOrganization";
+  public void testGetApplicableByOwnerId() {
+    String policyNameRootOrg = "RootOrganizationPolicy";
     tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, policyNameRootOrg);
-    String policyNameOrg = "testGetApplicableOrganization";
+    String policyNameOrg = "OrganizationPolicy";
     tempEntity.newPolicy(organization.getId(), policyNameOrg);
-    String policyNameApp = "testGetApplicableApplication";
+    String policyNameApp = "ApplicationPolicy";
     tempEntity.newPolicy(application.getId(), policyNameApp);
 
     // Check app level
@@ -442,7 +375,7 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testGetApplicable_WithTags() {
+  public void testGetApplicableByOwnerId_WithTags() {
     Policy policyOrg1 = tempEntity.newPolicy(organization.getId(), "policyOrg1");
     Policy policyOrg2 = tempEntity.newPolicy(organization.getId(), "policyOrg2");
     Policy policyRootOrg1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policyRootOrg1");
@@ -471,23 +404,16 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testGetApplicable_UnknownOwnerId() {
+  public void testGetApplicableByOwnerId_UnknownOwnerId() {
     assertThat(policyDAO.getApplicableByOwnerId("unknown-owner-id")).isEmpty();
   }
 
   @Test
-  public void testCascadeDeleteToPolicyWaivers() throws Exception {
-    Policy policy = new Policy();
-    policy.setName("PolicyDAOTest new policy 1");
-    policy.setOwnerId(applicationId);
-    final Constraint constraint1 = new Constraint(null, "PolicyDAOTest new constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
-    policy.addConstraint(constraint1);
-    policyDAO.insert(policy);
+  public void testDelete_CascadesToPolicyWaivers() throws Exception {
+    Policy policy = tempEntity.newPolicy(applicationId);
 
-    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policy.getId(), "MyOwnerId", "My comment");
+    tempEntity.newWaiver(policy.getId(), "ownerId");
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    policyWaiverDAO.insert(policyWaiver);
     List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByPolicyId(policy.getId());
     assertThat(policyWaivers).hasSize(1);
 
@@ -497,15 +423,12 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToPolicyTags() throws Exception {
-    Policy policy = newPolicy(applicationId, "PolicyDAOTest new policy");
-    policyDAO.insert(policy);
+  public void testDelete_CascadesToPolicyTags() throws Exception {
+    Policy policy = tempEntity.newPolicy(applicationId);
 
     Tag tag = tempEntity.newTag(organization.getId());
-
-    PolicyTag policyTag = new PolicyTag(policy.getId(), tag.getId());
+    tempEntity.newPolicyTag(policy.getId(), tag.getId());
     PolicyTagDAO policyTagDAO = new PolicyTagDAO();
-    policyTagDAO.insert(policyTag);
     List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(policy.getId());
     assertThat(policyTags).hasSize(1);
 
@@ -515,10 +438,9 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testCascadeDoesNotDeletePolicyViolations() {
+  public void testDelete_DoesNotCascadeToPolicyViolations() {
     Policy policy = tempEntity.newPolicy(application);
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
-        "PolicyEvaluationDAOTest");
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scanid");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     assertThat(policyViolationDAO.getByApplicationId(policyEvaluation.getApplicationId())).hasSize(1);
@@ -544,7 +466,7 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testUpdateMovePolicyUpInHierarchy() throws Exception {
+  public void testUpdate_MovePolicyUpInHierarchy() throws Exception {
     Policy policy = tempEntity.newPolicy(application);
 
     // Should not complain about name clashes
@@ -556,7 +478,7 @@ public class PolicyDAOTest
   public void testGetByOwnerIdAndName() throws Exception {
     Policy policy1 = tempEntity.newPolicy(application.getId(), "Policy 1");
     Policy policy2 = tempEntity.newPolicy(organization.getId(), "Policy 2");
-    tempEntity.newPolicy(organization.getId(), "Policy 3");
+    tempEntity.newPolicy(organization.getId());
 
     try (TransactionContext tx = new PolicyInternalDAO().createTransactionContext()) {
       Policy policy = policyDAO.getByOwnerIdAndName(tx, application.getId(), "policy1");

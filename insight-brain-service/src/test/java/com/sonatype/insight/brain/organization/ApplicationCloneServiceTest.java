@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -12,30 +13,44 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
+import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Test;
 
@@ -259,5 +274,137 @@ public class ApplicationCloneServiceTest
 
     // Assert the source objects were cloned, not moved.
     assertThat(new PolicyMonitoringDAO().getById(sourcePolicyMonitoring.getId())).isNotNull();
+  }
+
+  @Test
+  public void testCloneApplication_ApplicationTags() {
+    Application sourceApp = tempEntity.newApplicationWithParent();
+    Tag tag = tempEntity.newTag(sourceApp.getOrganizationId());
+    ApplicationTag sourceAppTag = tempEntity.newApplicationTag(sourceApp.getId(), tag.getId());
+
+    ApiApplicationDTO clonedAppDTO =
+        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
+
+    List<ApplicationTag> clonedAppTags = new ApplicationTagDAO().getByApplicationId(clonedAppDTO.id);
+    assertThat(clonedAppTags).hasSize(1);
+    ApplicationTag clonedAppTag = clonedAppTags.get(0);
+    assertThat(clonedAppTag.getId()).isNotEqualTo(sourceAppTag.getId());
+    assertThat(clonedAppTag.getTagId()).isEqualTo(sourceAppTag.getTagId());
+
+    // Assert the source objects were cloned, not moved.
+    assertThat(new ApplicationTagDAO().getById(sourceAppTag.getId())).isNotNull();
+  }
+
+  @Test
+  public void testCloneApplication_ProprietaryConfig() {
+    Application sourceApp = tempEntity.newApplicationWithParent();
+    ProprietaryConfig sourceProprietaryConfig = tempEntity.newProprietaryConfig(sourceApp.getId(),
+        Collections.singletonList("proprietarypackage"), Collections.singletonList("proprietaryregex"));
+
+    ApiApplicationDTO clonedAppDTO =
+        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
+
+    ProprietaryConfig clonedProprietaryConfig = new ProprietaryConfigDAO().getByOwnerId(clonedAppDTO.id);
+    assertThat(clonedProprietaryConfig.getId()).isNotEqualTo(sourceProprietaryConfig.getId());
+    assertThat(clonedProprietaryConfig.getPackages()).isEqualTo(sourceProprietaryConfig.getPackages());
+    assertThat(clonedProprietaryConfig.getRegexes()).isEqualTo(sourceProprietaryConfig.getRegexes());
+
+    // Assert the source objects were cloned, not moved.
+    assertThat(new ProprietaryConfigDAO().getById(sourceProprietaryConfig.getId())).isNotNull();
+  }
+
+  @Test
+  public void testCloneApplication_SourceControl() {
+    Application sourceApp = tempEntity.newApplicationWithParent();
+    // The application cloning is supposed to disable pull requests for the cloned app.
+    // So we set it to true in the source application in order to verify
+    // that is not copied to the cloned application.
+    SourceControl sourceSourceControl =
+        tempEntity.newSourceControl(sourceApp.getId(), "https://example.com/organization/project", "token",
+            SourceControlProvider.GITHUB, true /* enablePullRequests */, true /* enableStatusChecks */, "baseBranch");
+
+    ApiApplicationDTO clonedAppDTO =
+        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
+
+    SourceControl clonedSourceControl = new SourceControlDAO().getByOwnerId(clonedAppDTO.id);
+    assertThat(clonedSourceControl.getId()).isNotEqualTo(sourceSourceControl.getId());
+    assertThat(clonedSourceControl.getRepositoryUrl()).isEqualTo(sourceSourceControl.getRepositoryUrl());
+    assertThat(clonedSourceControl.getToken()).isEqualTo(sourceSourceControl.getToken());
+    assertThat(clonedSourceControl.getProvider()).isEqualTo(sourceSourceControl.getProvider());
+    assertThat(clonedSourceControl.getBaseBranch()).isEqualTo(sourceSourceControl.getBaseBranch());
+    assertThat(clonedSourceControl.getEnablePullRequests()).isFalse();
+    assertThat(clonedSourceControl.getEnableStatusChecks()).isEqualTo(sourceSourceControl.getEnableStatusChecks());
+
+    // Assert the source objects were cloned, not moved.
+    assertThat(new SourceControlDAO().getById(sourceSourceControl.getId())).isNotNull();
+  }
+
+  @Test
+  public void testCloneApplication_Policies() {
+    Application sourceApp = tempEntity.newApplicationWithParent();
+    Policy sourcePolicy = tempEntity.newPolicy(sourceApp.getId());
+
+    ApiApplicationDTO clonedAppDTO =
+        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
+
+    List<Policy> clonedPolicies = new PolicyDAO().getByOwnerId(clonedAppDTO.id);
+    assertThat(clonedPolicies).hasSize(1);
+    Policy clonedPolicy = clonedPolicies.get(0);
+    // TODO: Assert the policy constraints
+    assertThat(clonedPolicy.getId()).isNotEqualTo(sourcePolicy.getId());
+    assertThat(clonedPolicy.getName()).isEqualTo(sourcePolicy.getName());
+    assertThat(clonedPolicy.getThreatLevel()).isEqualTo(sourcePolicy.getThreatLevel());
+    assertThat(clonedPolicy.isPolicyViolationGrandfatheringAllowed())
+        .isEqualTo(sourcePolicy.isPolicyViolationGrandfatheringAllowed());
+    assertThat(clonedPolicy.getActions()).isEqualTo(sourcePolicy.getActions());
+    assertThat(clonedPolicy.getNotifications()).isEqualTo(sourcePolicy.getNotifications());
+
+    // Assert the source objects were cloned, not moved.
+    assertThat(new PolicyDAO().getById(sourcePolicy.getId())).isNotNull();
+  }
+
+  @Test
+  public void testCloneApplication_PolicyTags() {
+    Application sourceApp = tempEntity.newApplicationWithParent();
+    Tag tag = tempEntity.newTag(sourceApp.getOrganizationId());
+    Policy sourcePolicy = tempEntity.newPolicy(sourceApp.getId());
+    PolicyTag sourcePolicyTag = tempEntity.newPolicyTag(sourcePolicy.getId(), tag.getId());
+
+    ApiApplicationDTO clonedAppDTO =
+        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
+
+    Policy clonedPolicy = new PolicyDAO().getByOwnerIdAndName(clonedAppDTO.id, sourcePolicy.getName());
+    List<PolicyTag> clonedPolicyTags = new PolicyTagDAO().getByPolicyId(clonedPolicy.getId());
+    assertThat(clonedPolicyTags).hasSize(1);
+    PolicyTag clonedPolicyTag = clonedPolicyTags.get(0);
+    assertThat(clonedPolicyTag.getId()).isNotEqualTo(sourcePolicyTag.getId());
+    assertThat(clonedPolicyTag.getTagId()).isEqualTo(sourcePolicyTag.getTagId());
+
+    // Assert the source objects were cloned, not moved.
+    assertThat(new PolicyTagDAO().getById(sourcePolicyTag.getId())).isNotNull();
+  }
+
+  @Test
+  public void testCloneApplication_PolicyWaivers() {
+    Application sourceApp = tempEntity.newApplicationWithParent();
+    Policy sourcePolicy = tempEntity.newPolicy(sourceApp.getId());
+    PolicyWaiver sourcePolicyWaiver = tempEntity.newWaiver("hash", sourcePolicy.getId(), sourceApp.getId(), "comment");
+
+    ApiApplicationDTO clonedAppDTO =
+        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
+
+    Policy clonedPolicy = new PolicyDAO().getByOwnerIdAndName(clonedAppDTO.id, sourcePolicy.getName());
+    List<PolicyWaiver> clonedPolicyWaivers = new PolicyWaiverDAO().getByOwnerId(clonedAppDTO.id);
+    assertThat(clonedPolicyWaivers).hasSize(1);
+    PolicyWaiver clonedPolicyWaiver = clonedPolicyWaivers.get(0);
+    // TODO: Assert the policy constraint facts
+    assertThat(clonedPolicyWaiver.getId()).isNotEqualTo(sourcePolicyWaiver.getId());
+    assertThat(clonedPolicyWaiver.getPolicyId()).isEqualTo(clonedPolicy.getId());
+    assertThat(clonedPolicyWaiver.getHash()).isEqualTo(sourcePolicyWaiver.getHash());
+    assertThat(clonedPolicyWaiver.getComment()).isEqualTo(sourcePolicyWaiver.getComment());
+    assertThat(clonedPolicyWaiver.getCreateTime()).isEqualTo(sourcePolicyWaiver.getCreateTime());
+
+    // Assert the source objects were cloned, not moved.
+    assertThat(new PolicyWaiverDAO().getById(sourcePolicyWaiver.getId())).isNotNull();
   }
 }

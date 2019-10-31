@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.policy.notifications;
 
+import java.util.Objects;
+
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
@@ -56,5 +58,25 @@ public class WebhookNotification
   @Override
   public String toString() {
     return "WebhookNotification [webhookId=" + webhookId + ", getStageIds()=" + getStageIds() + "]";
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(webhookId);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    WebhookNotification other = (WebhookNotification) obj;
+    return Objects.equals(webhookId, other.webhookId);
   }
 }

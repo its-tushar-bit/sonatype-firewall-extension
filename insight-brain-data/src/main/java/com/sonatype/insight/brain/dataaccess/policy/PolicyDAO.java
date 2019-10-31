@@ -61,6 +61,12 @@ public class PolicyDAO
     return PolicyInternal.toPolicies(policyInternalDAO.getByOwnerId(tx, ownerId));
   }
 
+  public Policy getByOwnerIdAndName(String ownerId, String policyName) {
+    try (TransactionContext tx = policyInternalDAO.createTransactionContext()) {
+      return getByOwnerIdAndName(tx, ownerId, policyName);
+    }
+  }
+
   public Policy getByOwnerIdAndName(TransactionContext tx, String ownerId, String policyName) {
     return PolicyInternal.toPolicy(policyInternalDAO.getByOwnerIdAndName(tx, ownerId, policyName));
   }

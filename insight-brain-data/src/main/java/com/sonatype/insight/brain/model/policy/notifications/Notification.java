@@ -57,4 +57,10 @@ public abstract class Notification
   public abstract Action toAction();
 
   protected abstract void addToNotifications(Notifications notifications);
+
+  @Override
+  public abstract int hashCode();
+
+  @Override
+  public abstract boolean equals(Object obj);
 }

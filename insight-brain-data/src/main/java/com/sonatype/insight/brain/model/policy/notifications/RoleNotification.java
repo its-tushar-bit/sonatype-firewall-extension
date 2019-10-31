@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.policy.notifications;
 
+import java.util.Objects;
+
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.ValidationResult;
@@ -64,5 +66,25 @@ public class RoleNotification
   @Override
   public String toString() {
     return "RoleNotification [roleId=" + roleId + ", getStageIds()=" + getStageIds() + "]";
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(roleId);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    RoleNotification other = (RoleNotification) obj;
+    return Objects.equals(roleId, other.roleId);
   }
 }

@@ -138,7 +138,7 @@ public class SourceControlDAO
     }
   }
 
-  private SourceControl getByOwnerId(final TransactionContext tx, final String ownerId) {
+  public SourceControl getByOwnerId(final TransactionContext tx, final String ownerId) {
     return get(tx, "SELECT entity FROM SourceControl entity WHERE entity.ownerId=?1", ownerId);
   }
 

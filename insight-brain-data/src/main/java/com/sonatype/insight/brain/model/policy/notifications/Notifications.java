@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.model.policy.notifications;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.ValidationResult;
@@ -122,5 +123,28 @@ public class Notifications
       actions.add(notification.toAction());
     }
     return actions;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(jiraNotifications, roleNotifications, userNotifications, webhookNotifications);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    Notifications other = (Notifications) obj;
+    return Objects.equals(jiraNotifications, other.jiraNotifications)
+        && Objects.equals(roleNotifications, other.roleNotifications)
+        && Objects.equals(userNotifications, other.userNotifications)
+        && Objects.equals(webhookNotifications, other.webhookNotifications);
   }
 }

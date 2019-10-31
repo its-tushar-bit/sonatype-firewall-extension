@@ -55,6 +55,10 @@ public class ApplicationTag
     return applicationId;
   }
 
+  public void setApplicationId(String applicationId) {
+    this.applicationId = applicationId;
+  }
+
   public String getTagId() {
     return tagId;
   }

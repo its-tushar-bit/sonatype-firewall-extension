@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.policy.notifications;
 
+import java.util.Objects;
+
 import javax.mail.internet.InternetAddress;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -66,5 +68,25 @@ public class UserNotification
   @Override
   public String toString() {
     return "UserNotification [emailAddress=" + emailAddress + ", getStageIds()=" + getStageIds() + "]";
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(emailAddress);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    UserNotification other = (UserNotification) obj;
+    return Objects.equals(emailAddress, other.emailAddress);
   }
 }

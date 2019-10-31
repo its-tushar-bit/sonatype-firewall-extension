@@ -33,15 +33,12 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsTestUtils.FakeDateRule;
-import com.sonatype.insight.brain.telemetry.ReportsTelemetry;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import com.google.inject.Binder;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.discovered;
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.fixed;
@@ -50,7 +47,6 @@ import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolati
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.waived;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.verify;
 
 public class ApiMetricsReportingServiceV2Test
     extends AbstractComponentTest
@@ -60,15 +56,6 @@ public class ApiMetricsReportingServiceV2Test
 
   @Rule
   public FakeDateRule fakeDateRule = new FakeDateRule();
-
-  @Mock
-  private ReportsTelemetry reportsTelemetryMock;
-
-  @Override
-  public void configure(final Binder binder) {
-    super.configure(binder);
-    binder.bind(ReportsTelemetry.class).toInstance(reportsTelemetryMock);
-  }
 
   @Test
   public void testGetMetrics_NullQuery() {
@@ -340,14 +327,6 @@ public class ApiMetricsReportingServiceV2Test
         );
 
     assertDTO(actualDTO, expectedDTO);
-  }
-
-  @Test
-  public void testGetMetrics_SendTelemetry() {
-    ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2017-10", null,
-        Collections.emptySet(), Collections.emptySet());
-    service.getMetrics(queryDTO);
-    verify(reportsTelemetryMock).sendMetricsTelemetry();
   }
 
   @Test
@@ -637,14 +616,6 @@ public class ApiMetricsReportingServiceV2Test
     for (int i = 0; i < results.size(); i++) {
       assertFlattenedDTO(results.get(i), expectedDTOs.get(i));
     }
-  }
-
-  @Test
-  public void testGetFlattenedMetrics_SendTelemetry() {
-    ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2017-W48", null,
-        Collections.emptySet(), Collections.emptySet());
-    service.getFlattenedMetrics(queryDTO);
-    verify(reportsTelemetryMock).sendMetricsTelemetry();
   }
 
   private void createOtherOrgWithViolations() {

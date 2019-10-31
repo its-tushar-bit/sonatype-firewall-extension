@@ -46,7 +46,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
 import com.sonatype.insight.brain.repository.RepositoryService;
-import com.sonatype.insight.brain.telemetry.ReportsTelemetry;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -82,14 +81,11 @@ public class ApiComponentsWithWaiversReportingService
 
   private final PolicyViolationAdapter policyViolationAdapter;
 
-  private final ReportsTelemetry reportsTelemetry;
-
   @Inject
   public ApiComponentsWithWaiversReportingService(
       ApplicationService applicationService,
       PolicyViolationAdapter policyViolationAdapter,
       PolicyViolationLoader policyViolationLoader,
-      ReportsTelemetry reportsTelemetry,
       RepositoryService repositoryService,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDao,
       PolicyWaiverDAO policyWaiverDao)
@@ -97,7 +93,6 @@ public class ApiComponentsWithWaiversReportingService
     this.applicationService = applicationService;
     this.policyViolationAdapter = policyViolationAdapter;
     this.policyViolationLoader = policyViolationLoader;
-    this.reportsTelemetry = reportsTelemetry;
     this.repositoryService = repositoryService;
     this.repositoryPolicyViolationDao = repositoryPolicyViolationDao;
     this.policyWaiverDao = policyWaiverDao;
@@ -105,8 +100,6 @@ public class ApiComponentsWithWaiversReportingService
 
   public ApiComponentWaiversDTO getComponentsWithWaivers() {
     final AtomicInteger componentsWithWaiversCount = new AtomicInteger(0);
-
-    reportsTelemetry.sendComponentWithWaiversTelemetry();
 
     List<Application> applications = applicationService.getApplications();
     Collection<ApplicationView> appViews =

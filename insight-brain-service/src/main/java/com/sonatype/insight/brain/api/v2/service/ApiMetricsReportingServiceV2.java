@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregatio
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.successmetrics.PolicyViolationAggregationService;
-import com.sonatype.insight.brain.telemetry.ReportsTelemetry;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.joda.time.DateTime;
@@ -71,19 +70,15 @@ public class ApiMetricsReportingServiceV2
 
   private final PolicyViolationAggregationService policyViolationAggregationService;
 
-  private final ReportsTelemetry reportsTelemetry;
-
   @Inject
   public ApiMetricsReportingServiceV2(
       ApplicationService applicationService,
-      PolicyViolationAggregationService policyViolationAggregationService,
-      ReportsTelemetry reportsTelemetry)
+      PolicyViolationAggregationService policyViolationAggregationService)
   {
     policyViolationAggregationDAO = new PolicyViolationAggregationDAO();
     organizationDAO = new OrganizationDAO();
     this.applicationService = applicationService;
     this.policyViolationAggregationService = policyViolationAggregationService;
-    this.reportsTelemetry = reportsTelemetry;
   }
 
   public List<ApiMetricsReportingDTOV2> getMetrics(ApiMetricsReportingQueryDTOV2 queryDTO) {
@@ -119,8 +114,6 @@ public class ApiMetricsReportingServiceV2
     List<PolicyViolationAggregation> aggregations =
         policyViolationAggregationDAO.getByApplicationIdsAndTimePeriodBounds(applicationIds, timePeriod,
             firstTimePeriod.toDate(), endDate.map(LocalDate::toDate).orElse(null));
-
-    reportsTelemetry.sendMetricsTelemetry();
 
     return makeDTOs(aggregations, applicationsById);
   }

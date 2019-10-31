@@ -2,7 +2,7 @@
      class="iq-tile iq-tile--form-tile"
      load-wrapper="vm.loadError"
      loading="!vm.availableRoles"
-     reload="vm.retry()"
+     reload="vm.doLoad()"
      ng-if="!vm.availableRoles || vm.availableRoles.length > 0 || !vm.isNew">
   <header class="iq-tile-header">
     <div class="iq-tile-header__title">
@@ -35,7 +35,7 @@
                    group-search-enabled="vm.groupSearchEnabled"
                    is-dirty="vm.isMembershipDirty">
       <!-- Role Membership form submission buttons get transcluded in -->
-      <div class="iq-tile-footer" submit-wrapper="vm.submitError">
+      <div class="iq-tile-footer" submit-wrapper="vm.submitError" retry="vm.save()">
         <button type="submit"
                 id="save-access-role-button"
                 class="iq-btn iq-btn--primary"

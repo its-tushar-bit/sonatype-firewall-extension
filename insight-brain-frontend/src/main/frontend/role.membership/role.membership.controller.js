@@ -92,7 +92,9 @@ export default function RoleMembershipController($scope, $http, CLMContextLocati
     delete vm.searchError;
     vm.accessEditor.$setPristine();
     vm.accessEditorSearch.$setPristine();
-    vm.accessEditorAddGroup.$setPristine();
+    if (vm.accessEditorAddGroup) {
+      vm.accessEditorAddGroup.$setPristine();
+    }
   }
 
   function search() {

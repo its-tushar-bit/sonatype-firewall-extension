@@ -8,6 +8,7 @@ function AccessEditorController($rootScope, $scope, $stateParams, Messages, Loca
                                 SameOwnerStateNavigationService, DeleteModalService, RoleMappingService) {
   var ownerType,
       isNavigatingAfterRemove,
+      isNavigatingAfterSave,
       vm = this;
 
   vm.accessEditorMask = undefined;
@@ -24,7 +25,7 @@ function AccessEditorController($rootScope, $scope, $stateParams, Messages, Loca
   vm.doLoad();
 
   $scope.$on('pageChangeStarted', function(event) {
-    if (!isNavigatingAfterRemove && isDirty()) {
+    if (!isNavigatingAfterRemove && !isNavigatingAfterSave && isDirty()) {
       event.preventDefault();
     }
   });
@@ -122,6 +123,7 @@ function AccessEditorController($rootScope, $scope, $stateParams, Messages, Loca
             if (vm.availableRoles.length === 0) {
               vm.isNew = false;
               makeEditorPristine();
+              isNavigatingAfterSave = true;
               SameOwnerStateNavigationService.goEdit('edit-access', {roleId: vm.role.roleId});
             }
             else {

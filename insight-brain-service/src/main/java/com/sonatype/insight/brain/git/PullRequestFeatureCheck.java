@@ -7,6 +7,7 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -94,10 +95,31 @@ public class PullRequestFeatureCheck
   }
 
   private boolean isApplicationConfiguredForPR(final GitRepositoryInfo gitRepositoryInfo) {
-    return gitRepositoryInfo != null &&
-        !isBlank(gitRepositoryInfo.token) &&
-        !isBlank(gitRepositoryInfo.repositoryUrl) &&
-        gitRepositoryInfo.provider != null &&
-        isTrue(gitRepositoryInfo.enablePullRequests);
+    if (gitRepositoryInfo == null) {
+      return false;
+    }
+    if (!isTrue(gitRepositoryInfo.enablePullRequests)) {
+      log.debug("Pull Requests have been explicitly disabled");
+      return false;
+    }
+
+    // check for missing fields
+    List<String> missingFields = new ArrayList<>();
+    if (isBlank(gitRepositoryInfo.token)) {
+      missingFields.add("Token");
+    }
+    if (isBlank(gitRepositoryInfo.repositoryUrl)) {
+      missingFields.add("Repository URL");
+    }
+    if (gitRepositoryInfo.provider == null) {
+      missingFields.add("Provider");
+    }
+    if (!missingFields.isEmpty()) {
+      log.debug("Application has not been fully configured for pull requests. Missing: [{}]",
+          String.join(", ", missingFields));
+      return false;
+    }
+
+    return true;
   }
 }

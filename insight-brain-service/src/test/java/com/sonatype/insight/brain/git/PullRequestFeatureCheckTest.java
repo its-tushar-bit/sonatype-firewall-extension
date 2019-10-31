@@ -83,26 +83,39 @@ public class PullRequestFeatureCheckTest
     GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo();
 
     gitRepositoryInfo.token = null;
-    ensureAppNotConfigured(gitRepositoryInfo);
+    ensureAppNotConfigured(gitRepositoryInfo, "Token");
 
     gitRepositoryInfo.token = TOKEN;
     gitRepositoryInfo.repositoryUrl = "  ";
-    ensureAppNotConfigured(gitRepositoryInfo);
+    ensureAppNotConfigured(gitRepositoryInfo, "Repository URL");
+    logOutput.clear();
 
     gitRepositoryInfo.repositoryUrl = REPO_URL;
     gitRepositoryInfo.enableStatusChecks = false;
     gitRepositoryInfo.enablePullRequests = null;
-    ensureAppNotConfigured(gitRepositoryInfo);
+    ensureAppNotConfigured(gitRepositoryInfo, null);
+    assertThat(logOutput).atDebugLevel().contains("Pull Requests have been explicitly disabled");
+    logOutput.clear();
 
     gitRepositoryInfo.enableStatusChecks = true;
     gitRepositoryInfo.enablePullRequests = null;
-    ensureAppNotConfigured(gitRepositoryInfo);
+    ensureAppNotConfigured(gitRepositoryInfo, null);
+    assertThat(logOutput).atDebugLevel().contains("Pull Requests have been explicitly disabled");
+    logOutput.clear();
 
     gitRepositoryInfo.enablePullRequests = true;
     gitRepositoryInfo.provider = null;
-    ensureAppNotConfigured(gitRepositoryInfo);
+    ensureAppNotConfigured(gitRepositoryInfo, "Provider");
+    logOutput.clear();
 
-    ensureAppNotConfigured(null);
+    // test multiples
+    gitRepositoryInfo.token = null;
+    gitRepositoryInfo.provider = null;
+    gitRepositoryInfo.repositoryUrl = null;;
+    ensureAppNotConfigured(gitRepositoryInfo, "Token, Repository URL, Provider");
+    logOutput.clear();
+
+    ensureAppNotConfigured(null, null);
   }
 
   @Test
@@ -118,7 +131,7 @@ public class PullRequestFeatureCheckTest
     assertThat(logOutput).atDebugLevel().contains("Source provider 'gitlab' is not supported");
   }
 
-  private void ensureAppNotConfigured(final GitRepositoryInfo gitRepositoryInfo)
+  private void ensureAppNotConfigured(final GitRepositoryInfo gitRepositoryInfo, String missingFields)
       throws IOException
   {
     when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
@@ -128,9 +141,15 @@ public class PullRequestFeatureCheckTest
         app, gitRepositoryInfo);
 
     assertThat(result).isFalse();
-    assertThat(logOutput).atDebugLevel().contains(String.format(
-        "Pull requests have not been configured for application '%s'",
-        app.getId()));
+    assertThat(logOutput)
+        .atDebugLevel()
+          .contains(String.format("Pull requests have not been configured for application '%s'", app.getId()));
+    if (missingFields != null) {
+      assertThat(logOutput)
+          .atDebugLevel()
+          .contains(String
+              .format("Application has not been fully configured for pull requests. Missing: [%s]", missingFields));
+    }
     verify(pullRequestUtils, never()).isPullRequestAllowed(Mockito.any(GitRepositoryInfo.class));
   }
 

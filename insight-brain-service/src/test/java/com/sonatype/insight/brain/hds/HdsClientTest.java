@@ -388,7 +388,7 @@ public class HdsClientTest
 
     assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
       client.get(String.class, "/any", null);
-    }).withMessageContaining("Sonatype Support");
+    }).withMessageContaining("Sonatype Data Services");
   }
 
   @Test

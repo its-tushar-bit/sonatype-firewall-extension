@@ -247,12 +247,16 @@ public class HdsClient
           throw new NotFoundException(getErrorMessage(response));
         case 409:
           throw new ConflictException(getErrorMessage(response));
-        case 502:
-          // coming from Apache when webapp is down
-        case 503:
+        case 502:  // Bad Gateway
+        case 504:  // Gateway Timeout
           throw new BadGatewayException(
-              "The Sonatype Data Services are currently out of service, please retry in a bit. If the outage" + 
-                  " persists, please contact Sonatype Support.");
+              "Could not contact Sonatype Data Services, please verify the network configuration of your Nexus IQ " +
+                  "Server. Sonatype Data Services error " + status + ": " + getErrorMessage(response));
+        case 503:  // Service Unavailable
+          throw new BadGatewayException(
+              "The Sonatype Data Services are currently out of service, please retry in a bit. If the outage " +
+                  "persists, please verify the network configuration of your Nexus IQ Server " +
+                  "and contact Sonatype Support.");
         default:
           // Since this is for any other errors, the error message may contain anything, so log it, but don't send it
           // back to the client.

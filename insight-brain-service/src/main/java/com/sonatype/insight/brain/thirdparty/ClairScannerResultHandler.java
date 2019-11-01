@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.scan.file.clair.ClairScannerResult;
 import com.sonatype.insight.scan.file.clair.ClairScannerVulnerability;
-import com.sonatype.insight.scan.hash.SHA1;
 import com.sonatype.insight.scan.util.HashUtils;
 
 import com.google.gson.Gson;
@@ -101,7 +100,8 @@ public class ClairScannerResultHandler
   }
 
   String buildHash(String plainText) {
-    return new SHA1(HashUtils.hash(plainText, HashUtils.SHA1)).toHexString();
+    final String sha1 = HashUtils.hash(plainText, HashUtils.SHA1);
+    return sha1.substring(0, Math.min(sha1.length(), 20));
   }
 
   float getSeverity(final ClairScannerVulnerability vulnerability) {

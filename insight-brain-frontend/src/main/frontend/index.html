@@ -34,7 +34,7 @@
     <div ui-view>
       <div id="login-body-container" class="iq-body-container iq-body-container--single-pane" maximize-container-height>
         <!--
-          This element just makes an empty single-pane page behind the login modal. It gets deleted by 
+          This element just makes an empty single-pane page behind the login modal. It gets deleted by
           angular-ui-router after login completes
         -->
       </div>
@@ -45,19 +45,5 @@
     <p>An unrecoverable error has occurred while loading the page.</p>
     <p>Please try to reload the page, if the problem persists contact your server administrator. ({{error}})</p>
   </div>
-  <script type="text/ng-template" id="unsaved-modal">
-    <div class="iq-modal unsaved-modal">
-      <div class="iq-modal-header"><h2>Unsaved Changes</h2></div>
-      <div class="iq-modal-content">
-        <div class="iq-alert">
-          <i class="fa fa-warning"></i>The page may contain unsaved changes, continuing will discard them.
-        </div>
-      </div>
-      <div class='iq-modal-footer'>
-        <button class='btn btn-primary' ng-click="$close()">Continue</button>
-        <button class='btn btn-dismiss' ng-click="$dismiss()">Cancel</button>
-      </div>
-    </div>
-  </script>
 </body>
 </html>

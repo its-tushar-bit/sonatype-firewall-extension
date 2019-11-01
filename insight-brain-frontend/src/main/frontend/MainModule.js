@@ -21,6 +21,7 @@ import Report from './report/ReportController';
 import pendoModule from './pendo/module';
 import externalLinkModule from './externalLink/module';
 import utilityServicesModule from './utility/services/utility.services.module';
+import unsavedChangesModalModule from './unsavedChangesModal/module';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function() {
@@ -39,7 +40,7 @@ export const InitModule = angular.module('InitModule', [
   ReportModule.name, Report.name, mainHeaderModule.name, 'ngRoute', unauthenticatedResponseHttpInterceptor.name,
   'xeditable', productFeaturesModule.name, httpInterceptors.name, IqHttpInterceptorsModule.name, dashboardModule.name,
   formsModule.name, SessionSecurityModule.name, gettingStartedModule.name, pendoModule.name, externalLinkModule.name,
-  utilityServicesModule.name
+  utilityServicesModule.name, unsavedChangesModalModule.name
 ], [
   '$stateProvider', '$urlRouterProvider',
   function($stateProvider, $urlRouterProvider) {
@@ -94,13 +95,13 @@ export const InitModule = angular.module('InitModule', [
   }
 ]).service('initService', [
   '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser',
-  '$q', '$http', '$urlRouter', 'Modal', '$timeout', 'state.history.service', 'SessionSecurityService',
+  '$q', '$http', '$urlRouter', '$timeout', 'state.history.service', 'SessionSecurityService',
   'gettingStartedUsageTelemetryService', 'pendoService', 'externalLinkModalService', 'LoginModalService',
-  'routeStateUtilService', 'CLMLocations', 'Messages', 'ProductLicense',
+  'routeStateUtilService', 'CLMLocations', 'Messages', 'ProductLicense', 'unsavedChangesModalService',
   function($rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q, $http, $urlRouter,
-           Modal, $timeout, StateHistoryService, SessionSecurityService, gettingStartedUsageTelemetryService,
+           $timeout, StateHistoryService, SessionSecurityService, gettingStartedUsageTelemetryService,
            pendoService, externalLinkModalService, LoginModalService, routeStateUtilService, CLMLocations, Messages,
-           ProductLicense) {
+           ProductLicense, unsavedChangesModalService) {
     var savedState = null,
         cancelPreLoginStateHandler,
         cancelUnlicensedStateChangeHandler;
@@ -303,31 +304,21 @@ export const InitModule = angular.module('InitModule', [
         }
       });
 
-      var isShowingModal = false;
-      function resetIsShowing() {
-        // Allow $stateChangeStart to process before resetting modal
-        $timeout(function() {
-          isShowingModal = false;
-        });
-      }
+      let isProcessingStateChange = false;
 
       $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
-        if (!isShowingModal) {
+        if (!isProcessingStateChange) {
           var e = $rootScope.$broadcast('pageChangeStarted');
           if (e.defaultPrevented) {
+            isProcessingStateChange = true;
             event.preventDefault();
-            isShowingModal = true;
-            Modal.open({
-              backdrop: 'static',
-              keyboard: false,
-              templateUrl: 'unsaved-modal'
-            }).result.then(function() {
-              resetIsShowing();
+            unsavedChangesModalService.open().then(function() {
               $state.go(toState, toParams);
               $rootScope.$broadcast('pageChangeAccepted');
             }, function() {
-              resetIsShowing();
               $rootScope.$broadcast('pageChangeCanceled');
+            }).finally(() => {
+              isProcessingStateChange = false;
             });
           }
           else {
@@ -341,7 +332,7 @@ export const InitModule = angular.module('InitModule', [
           gettingStartedUsageTelemetryService.submitData(DEPARTED_ACTION, null, true);
         }
 
-        if (!isShowingModal) {
+        if (!isProcessingStateChange) {
           var e = $rootScope.$broadcast('pageChangeStarted');
 
           $timeout(function() {

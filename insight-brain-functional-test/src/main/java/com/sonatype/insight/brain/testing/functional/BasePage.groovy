@@ -26,6 +26,6 @@ abstract class BasePage
     helpLinks { module HelpModule }
     systemConfig(required: false) { module SystemConfigModule }
     functionalTestingSupport { $('#functionalTestingSupport') }
-    unsavedModal { $('.iq-modal-header', text: "Unsaved Changes") }
+    unsavedModal { $('#unsaved-modal') }
   }
 }

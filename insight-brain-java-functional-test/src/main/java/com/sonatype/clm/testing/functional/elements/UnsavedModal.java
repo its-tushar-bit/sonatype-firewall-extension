@@ -9,21 +9,18 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Selenide.$;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
-
 public class UnsavedModal
     extends BasicElement<UnsavedModal>
 {
   public UnsavedModal() {
-    super(".unsaved-modal");
+    super("#unsaved-modal");
   }
-  
+
   public SelenideElement continueButton() {
-    return $(createSelector(selector, ".btn-primary"));
+    return child("#unsaved-changes-modal-continue-button");
   }
 
   public SelenideElement cancelButton() {
-    return $(createSelector(selector, ".btn:not(.btn-primary)"));
+    return child("#unsaved-changes-modal-cancel-button");
   }
 }

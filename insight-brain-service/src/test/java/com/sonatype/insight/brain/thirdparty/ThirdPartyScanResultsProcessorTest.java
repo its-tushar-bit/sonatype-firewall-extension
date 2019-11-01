@@ -98,9 +98,6 @@ public class ThirdPartyScanResultsProcessorTest
     File scanFile = getScanFile("scan-thirdparty-and-other-content.xml");
 
     doReturn(clairHandlerSpy).when(thirdPartyScanResultsProcessorSpy).createHandler(eq(ItemContentType.CLAIR_SCANNER));
-    doReturn("9510c290c07710d8c69b").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.4.8"));
-    doReturn("e587ce87ed894c1d5283").when(clairHandlerSpy).buildHash(eq("debian:9:glibc:2.24-11+deb9u3"));
-    doReturn("08d7a1c700d1633dc309").when(clairHandlerSpy).buildHash(eq("debian:9:libxslt:1.1.29-2.1"));
 
     thirdPartyScanResultsProcessorSpy.handle(scanFile);
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(any(ItemContentType.class));
@@ -159,10 +156,6 @@ public class ThirdPartyScanResultsProcessorTest
 
     String scanId = tempEntity.uuid();
 
-    doReturn("683620ac905c1d32b58c").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.4.8"));
-    doReturn("e587ce87ed894c1d5283").when(clairHandlerSpy).buildHash(eq("debian:9:glibc:2.24-11+deb9u3"));
-    doReturn("aff6a96471f042e1d975").when(clairHandlerSpy).buildHash(eq("debian:9:libxslt:1.1.29-2.1"));
-
     doReturn(clairHandlerSpy).when(thirdPartyScanResultsProcessorSpy).createHandler(eq(ItemContentType.CLAIR_SCANNER));
 
     String scanRequestId = thirdPartyScanResultsProcessorSpy.handle(scanFile);
@@ -182,10 +175,6 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_ClairScannerUsingSameClairFileRepeatedContent() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-repeated-content.xml");
     String scanId = tempEntity.uuid();
-
-    doReturn("9510c290c07710d8c69b").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.3.8"));
-    doReturn("08d7a1c700d1633dc309").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.3.9"));
-    doReturn("e587ce87ed894c1d5283").when(clairHandlerSpy).buildHash(eq("debian:9:glibc:2.24-11+deb9u3"));
 
     doReturn(clairHandlerSpy).when(thirdPartyScanResultsProcessorSpy).createHandler(eq(ItemContentType.CLAIR_SCANNER));
 
@@ -208,9 +197,6 @@ public class ThirdPartyScanResultsProcessorTest
 
     String scandId1 = tempEntity.uuid();
 
-    doReturn("9510c290c07710d8c69b").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.3.8"));
-    doReturn("08d7a1c700d1633dc309").when(clairHandlerSpy).buildHash(eq("debian:9:apt:1.3.9"));
-    doReturn("e587ce87ed894c1d5283").when(clairHandlerSpy).buildHash(eq("debian:9:glibc:2.24-11+deb9u3"));
     when(thirdPartyScanResultsProcessorSpy.createHandler(ItemContentType.CLAIR_SCANNER)).thenReturn(clairHandlerSpy);
 
     File scanFile2 = new File(tempDir.newFolder(), scanFile1.getName());

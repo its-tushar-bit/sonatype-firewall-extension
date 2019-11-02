@@ -46,6 +46,10 @@ public class InsightMailer
 
   @Inject
   public InsightMailer(EMailer mailer, MailConfig mailConfig) {
+    if (System.getProperty("mail.host", "").isEmpty()) {
+      // avoid DNS delays/issues in javax.mail.internet.InternetAddress.getLocalAddress()
+      System.setProperty("mail.host", "localhost");
+    }
     this.mailer = mailer;
     this.hostname = mailConfig.getHostname();
     this.port = mailConfig.getPort();

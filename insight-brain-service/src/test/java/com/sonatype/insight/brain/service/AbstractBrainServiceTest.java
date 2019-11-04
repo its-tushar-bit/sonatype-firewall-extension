@@ -50,7 +50,6 @@ import com.sonatype.insight.brain.product.notifications.HdsProductNotificationSe
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.client.utils.Authentication;
-import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.mock.hds.HdsMockResponse;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -60,6 +59,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
@@ -448,17 +448,15 @@ public abstract class AbstractBrainServiceTest
     }
 
     public TelemetryItem invoke() throws IOException {
-      byte[] buffer = new byte[1024];
+      ObjectMapper objectMapper = new ObjectMapper().disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
 
       ZipEntry zipEntryHeader = zipInputStream.getNextEntry();
       assertThat(zipEntryHeader.getName()).isEqualTo(TelemetrySender.HEADER_ENTRY_NAME);
-      zipInputStream.read(buffer);
-      telemetryHeaderReceived = JsonUtils.parse(buffer, TelemetryHeader.class);
+      telemetryHeaderReceived = objectMapper.readValue(zipInputStream, TelemetryHeader.class);
 
       ZipEntry zipEntryData = zipInputStream.getNextEntry();
       assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);
-      zipInputStream.read(buffer);
-      telemetryDataReceived = new ObjectMapper().readValue(buffer, new TypeReference<List<TelemetryData>>() { });
+      telemetryDataReceived = objectMapper.readValue(zipInputStream, new TypeReference<List<TelemetryData>>() { });
       return this;
     }
   }

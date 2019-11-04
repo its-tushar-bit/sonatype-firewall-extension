@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
@@ -78,7 +79,7 @@ public class ApplicationDAO
       throw new DataAccessException("The application public ID cannot be null or empty.");
     }
 
-    publicId = publicId.trim().toLowerCase(Locale.ENGLISH);
+    publicId = normalizePublicId(publicId);
     String sQuery = "SELECT entity FROM Application entity" + //
         " WHERE entity.publicIdLowercase=?1";
     return get(tx, sQuery, publicId);
@@ -199,8 +200,9 @@ public class ApplicationDAO
   }
 
   public List<Application> getByPublicIds(Set<String> applicationPublicIds) {
+    applicationPublicIds = applicationPublicIds.stream().map(this::normalizePublicId).collect(Collectors.toSet());
     String sQuery = "SELECT entity FROM Application entity" + //
-        " WHERE entity.publicId IN (?1)";
+        " WHERE entity.publicIdLowercase IN (?1)";
     return getList(sQuery, applicationPublicIds);
   }
 
@@ -402,5 +404,9 @@ public class ApplicationDAO
         " WHERE label.ownerId=app.id AND app.organizationId=?1" + //
         "    AND label.labelLowercase=?2";
     return getList(tx, oQuery, organizationId, labelLowercase);
+  }
+
+  private String normalizePublicId(String publicId) {
+    return publicId.trim().toLowerCase(Locale.ENGLISH);
   }
 }

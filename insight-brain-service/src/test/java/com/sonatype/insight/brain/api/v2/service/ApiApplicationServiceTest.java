@@ -25,6 +25,8 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.test.LogOutput;
 
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -80,5 +82,25 @@ public class ApiApplicationServiceTest
     PolicyViolationLogDTOAssert
         .assertApplicationPolicyViolationData(policyViolationLogDTOs.get(0), PolicyViolationLogEvent.CLEAR, org, app,
             before, after);
+  }
+
+  @Test
+  public void testGetApplications() {
+    Organization org = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplication(org.getId());
+    Application app2 = tempEntity.newApplication(org.getId());
+    tempEntity.newApplication(org.getId());
+    Application app4 = tempEntity.newApplicationWithParent();
+    Application app5 = tempEntity.newApplicationWithParent();
+    tempEntity.newApplicationWithParent();
+
+    List<Application> applications = applicationService.getApplications(Sets.newHashSet(
+        StringUtils.swapCase(app1.getPublicId()),
+        app2.getPublicId(),
+        StringUtils.swapCase(app4.getPublicId()),
+        app5.getPublicId()));
+
+    assertThat(applications).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(app1, app2, app4, app5);
   }
 }

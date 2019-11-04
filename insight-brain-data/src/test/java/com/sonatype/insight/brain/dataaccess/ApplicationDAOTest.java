@@ -147,6 +147,18 @@ public class ApplicationDAOTest
   }
 
   @Test
+  public void testGetApplicationsByPublicIds_CaseInsensitive() {
+    Application app = tempEntity.newApplicationWithParent();
+
+    // Note: applicationDAO.getByPublicIds returns an unmodifiable list, since we try to sort the list we create one
+    List<Application> retrievedApplications =
+        new ArrayList<>(applicationDAO.getByPublicIds(Collections.singleton(StringUtils.swapCase(app.getPublicId()))));
+
+    assertThat(retrievedApplications).hasSize(1);
+    assertApplications(retrievedApplications, Collections.singletonList(app));
+  }
+
+  @Test
   public void testGetApplicationsByPublicIds_EmptySet() throws Exception {
     // Create a few applications
     tempEntity.newApplications(organization.getId(), 3);

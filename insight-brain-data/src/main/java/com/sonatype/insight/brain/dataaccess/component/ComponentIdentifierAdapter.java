@@ -14,6 +14,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -21,6 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.GENERIC_NAME;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_CLASSIFIER;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_EXTENSION;
@@ -56,10 +58,16 @@ public class ComponentIdentifierAdapter
   }
 
   public static ComponentIdentifier createGenericIdentifier(final ThirdPartyFileCoordinate thirdPartyFileCoordinate) {
+    String format = thirdPartyFileCoordinate.getFormat();
     Map<String, String> coordinates = new HashMap<>();
-    coordinates.put("name", thirdPartyFileCoordinate.getName());
-    coordinates.put(VERSION, thirdPartyFileCoordinate.getVersion());
-    return new ComponentIdentifier(thirdPartyFileCoordinate.getFormat(), coordinates);
+    try {
+      coordinates.put(GENERIC_NAME, thirdPartyFileCoordinate.getName());
+      coordinates.put(VERSION, thirdPartyFileCoordinate.getVersion());
+      return new ComponentIdentifier(format, coordinates);
+    }
+    catch (InvalidComponentIdentifierException e) {
+      return ComponentIdentifier.createGenericCoordinates(format, coordinates);
+    }
   }
 
   /**

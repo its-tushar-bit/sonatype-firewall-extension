@@ -5,14 +5,13 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -21,7 +20,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
 
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.withinPercentage;
 
@@ -62,6 +60,26 @@ public class ThirdPartyDataServiceTest
     assertBomContains(scanData.billOfMaterials, coord2, file);
     assertSecurityRowsForComponent(scanData.securityRows, coord1, sec1coord1, sec2coord1);
     assertSecurityRowsForComponent(scanData.securityRows, coord2, sec1coord2);
+  }
+
+  @Test
+  public void testGetScanData_mavenCoordinate() {
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+    ThirdPartyFileCoordinate coord1 =
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", ComponentIdentifier.FORMAT_MAVEN, "n1", "v1", "hash1");
+
+    final ThirdPartyCoordinateSecurity sec1coord1 =
+        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, null);
+
+    final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
+
+    assertThat(scanData.billOfMaterials).hasSize(1);
+    assertThat(scanData.securityRows).hasSize(1);
+
+    assertBomContains(scanData.billOfMaterials, coord1, file);
+    assertSecurityRowsForComponent(scanData.securityRows, coord1, sec1coord1);
   }
 
   @Test
@@ -128,7 +146,8 @@ public class ThirdPartyDataServiceTest
     for (ThirdPartyCoordinateSecurity expectedSecRow : expectedSecRows) {
       assertThat(found.stream().filter(sec -> sec.reference.equals(expectedSecRow.getRefId())).findFirst())
           .hasValueSatisfying(securityRow -> {
-            assertThat(securityRow.componentIdentifier).isEqualTo(componentIdentifierOf(coordinate));
+            assertThat(securityRow.componentIdentifier)
+                .isEqualTo(ComponentIdentifierAdapter.createGenericIdentifier(coordinate));
             assertThat(securityRow.matchState).isEqualTo(MatchState.EXACT.toString());
             assertThat(securityRow.description).isEqualTo(expectedSecRow.getDescription());
             assertThat(securityRow.score).isEqualTo(expectedSecRow.getSeverity());
@@ -144,19 +163,12 @@ public class ThirdPartyDataServiceTest
       final ThirdPartyFileCoordinate coordinate,
       final ThirdPartyFile... files)
   {
-    assertThat(
-        bom.stream().filter(component -> component.hash.equals(coordinate.getHash())).findFirst())
+    assertThat(bom.stream().filter(component -> component.hash.equals(coordinate.getHash())).findFirst())
         .hasValueSatisfying(bomRow -> {
-          assertThat(bomRow.componentIdentifier).isEqualTo(componentIdentifierOf(coordinate));
+          assertThat(bomRow.componentIdentifier)
+              .isEqualTo(ComponentIdentifierAdapter.createGenericIdentifier(coordinate));
           assertThat(bomRow.createTime).isCloseTo(files[0].getCreated().getTime(), withinPercentage(0.001));
           assertThat(bomRow.matchState).isEqualTo(MatchState.EXACT.toString());
         });
-  }
-
-  private ComponentIdentifier componentIdentifierOf(final ThirdPartyFileCoordinate coordinate) {
-    Map<String, String> coordinates = new HashMap<>();
-    coordinates.put("name", coordinate.getName());
-    coordinates.put(VERSION, coordinate.getVersion());
-    return new ComponentIdentifier(coordinate.getFormat(), coordinates);
   }
 }

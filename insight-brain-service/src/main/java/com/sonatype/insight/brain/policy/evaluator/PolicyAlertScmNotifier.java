@@ -51,9 +51,9 @@ public class PolicyAlertScmNotifier
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyAlertScmNotifier.class);
 
-  private static final String VERSION_KEY = "version";
+  public static final int APP_ID_BRANCH_TRUNCATE_INDEX = 6;
 
-  private static final String BRANCH_PREFIX = "";
+  private static final String VERSION_KEY = "version";
 
   private static final List<String> SUPPORTED_FORMATS = ImmutableList.of(ComponentIdentifier.FORMAT_MAVEN);
 
@@ -173,7 +173,7 @@ public class PolicyAlertScmNotifier
       }
 
       String nextVersion = getNextVersion(remediationOptions);
-      final String branchName = getBranchName(entry.getKey(), nextVersion);
+      final String branchName = getBranchName(app, entry.getKey(), nextVersion);
 
       if (isBranchOnServer(gitRepositoryInfo, branchName)) {
         log.debug("Branch already exists for remediation [{}]", branchName);
@@ -203,11 +203,13 @@ public class PolicyAlertScmNotifier
   }
 
   private String getBranchName(
+      final Application application,
       final ComponentIdentifier componentIdentifier,
       final String nextVersion)
   {
+    String branchPrefix = application.getId().substring(0, APP_ID_BRANCH_TRUNCATE_INDEX);
     return versionRemediationTitleGenerator.generateBranchNameForVersionRemediation(
-        BRANCH_PREFIX, componentIdentifier, nextVersion);
+        branchPrefix, componentIdentifier, nextVersion);
   }
 
   private String getNextVersion(final List<ApiVersionChangeOptionDTO> remediationOptions) {

@@ -46,6 +46,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.policy.evaluator.PolicyAlertScmNotifier.APP_ID_BRANCH_TRUNCATE_INDEX;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
@@ -211,7 +212,8 @@ public class PolicyAlertScmNotifierTest
 
     // and the branch already exists on the server
     when(gitClientFactory.create(gitRepositoryInfo)).thenReturn(gitApiClient);
-    when(gitApiClient.isBranchOnServer("groupid/Package1/1.2.3-to-2.0.1")).thenReturn(true);
+    String truncatedAppId = application.getId().substring(0, APP_ID_BRANCH_TRUNCATE_INDEX);
+    when(gitApiClient.isBranchOnServer(truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1")).thenReturn(true);
 
     // when we send notifications to our scm notifier
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
@@ -219,7 +221,7 @@ public class PolicyAlertScmNotifierTest
     // then we see a log that the branch already exists
     await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
       assertThat(logOutput).atDebugLevel().contains(
-          "Branch already exists for remediation [groupid/Package1/1.2.3-to-2.0.1]");
+          "Branch already exists for remediation [" + truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1]");
     });
 
     // and PR engine didn't run
@@ -244,9 +246,10 @@ public class PolicyAlertScmNotifierTest
 
     // and the branch doesn't already exist on the server
     when(gitClientFactory.create(gitRepositoryInfo)).thenReturn(gitApiClient);
-    when(gitApiClient.isBranchOnServer("groupid/Package1/1.2.3-to-2.0.1")).thenReturn(false);
+    String truncatedAppId = application.getId().substring(0, APP_ID_BRANCH_TRUNCATE_INDEX);
+    when(gitApiClient.isBranchOnServer(truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1")).thenReturn(false);
 
-    String branchName = "groupid/Package1/1.2.3-to-2.0.1";
+    String branchName = truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1";
     when(gitApiClient.isBranchOnServer(branchName)).thenReturn(false);
     when(baseUrl.getConfigured()).thenReturn("foo");
     when(provider.get()).thenReturn(pullRequestTask);

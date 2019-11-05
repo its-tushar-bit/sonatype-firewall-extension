@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +14,8 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -38,9 +42,17 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
+import com.sonatype.insight.brain.model.policy.facts.TriggerLabel;
+import com.sonatype.insight.brain.model.policy.facts.TriggerLicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.facts.TriggerLicenseThreatGroupWithThreatLevel;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -51,6 +63,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
 import org.apache.openjpa.enhance.PersistenceCapable;
@@ -185,8 +198,8 @@ public class ApplicationCloneService
     }
 
     Application clonedApp = createClonedApplication(tx, sourceApp, clonedAppName, clonedAppPublicId);
-    cloneLabels(tx, sourceApp, clonedApp);
-    cloneLicenseThreatGroups(tx, sourceApp, clonedApp);
+    Map<String, String> mappedLabelIds = cloneLabels(tx, sourceApp, clonedApp);
+    Map<String, String> mappedLicenseThreatGroupIds = cloneLicenseThreatGroups(tx, sourceApp, clonedApp);
     cloneLicenseOverrides(tx, sourceApp, clonedApp);
     cloneSecurityVulnerabilityOverrides(tx, sourceApp, clonedApp);
     cloneMembershipMappings(tx, sourceApp, clonedApp);
@@ -194,9 +207,10 @@ public class ApplicationCloneService
     cloneApplicationTags(tx, sourceApp, clonedApp);
     cloneProprietaryConfig(tx, sourceApp, clonedApp);
     cloneSourceControl(tx, sourceApp, clonedApp);
-    Map<String, String> mappedPolicyIds = clonePolicies(tx, sourceApp, clonedApp);
+    Map<String, String> mappedPolicyIds =
+        clonePolicies(tx, sourceApp, clonedApp, mappedLabelIds, mappedLicenseThreatGroupIds);
     clonePolicyTags(tx, mappedPolicyIds);
-    clonePolicyWaivers(tx, sourceApp, clonedApp, mappedPolicyIds);
+    clonePolicyWaivers(tx, sourceApp, clonedApp, mappedPolicyIds, mappedLabelIds, mappedLicenseThreatGroupIds);
 
     return apiAppAdapter.convertToDTO(clonedApp);
   }
@@ -220,7 +234,9 @@ public class ApplicationCloneService
     return clonedApp;
   }
 
-  private void cloneLabels(TransactionContext tx, Application sourceApp, Application clonedApp) {
+  private Map<String, String> cloneLabels(TransactionContext tx, Application sourceApp, Application clonedApp) {
+    Map<String, String> mappedLabelIds = new HashMap<>();
+
     List<Label> labels = labelDAO.getByOwnerId(tx, sourceApp.getId());
     for (Label label : labels) {
       String sourceLabelId = label.getId();
@@ -229,6 +245,8 @@ public class ApplicationCloneService
       label.setOwnerId(clonedApp.getId());
       labelDAO.insert(tx, label);
       
+      mappedLabelIds.put(sourceLabelId, label.getId());
+
       List<ComponentLabel> componentLabels = componentLabelDAO.getByLabelId(tx, sourceLabelId);
       for (ComponentLabel componentLabel : componentLabels) {
         detachEntity(componentLabel);
@@ -241,9 +259,17 @@ public class ApplicationCloneService
           sourceLabelId, label.getLabel(), //
           label.getId());
     }
+
+    return mappedLabelIds;
   }
 
-  private void cloneLicenseThreatGroups(TransactionContext tx, Application sourceApp, Application clonedApp) {
+  private Map<String, String> cloneLicenseThreatGroups(
+      TransactionContext tx,
+      Application sourceApp,
+      Application clonedApp)
+  {
+    Map<String, String> mappedLicenseThreatGroupIds = new HashMap<>();
+
     List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(tx, sourceApp.getId());
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
       String sourceLicenseThreatGroupId = licenseThreatGroup.getId();
@@ -251,6 +277,8 @@ public class ApplicationCloneService
       detachEntity(licenseThreatGroup);
       licenseThreatGroup.setOwnerId(clonedApp.getId());
       licenseThreatGroupDAO.insert(tx, licenseThreatGroup);
+
+      mappedLicenseThreatGroupIds.put(sourceLicenseThreatGroupId, licenseThreatGroup.getId());
 
       List<LicenseThreatGroupLicense> licenseThreatGroupLicenses =
           licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId(tx, sourceLicenseThreatGroupId);
@@ -265,6 +293,8 @@ public class ApplicationCloneService
           sourceLicenseThreatGroupId, licenseThreatGroup.getName(), //
           licenseThreatGroup.getId());
     }
+
+    return mappedLicenseThreatGroupIds;
   }
 
   private void cloneLicenseOverrides(TransactionContext tx, Application sourceApp, Application clonedApp) {
@@ -380,7 +410,13 @@ public class ApplicationCloneService
     log.info("Cloned source control {} to source control {}.", sourceSourceControlId, sourceControl.getId());
   }
 
-  private Map<String, String> clonePolicies(TransactionContext tx, Application sourceApp, Application clonedApp) {
+  private Map<String, String> clonePolicies(
+      TransactionContext tx,
+      Application sourceApp,
+      Application clonedApp,
+      Map<String, String> mappedLabelIds,
+      Map<String, String> mappedLicenseThreatGroupIds)
+  {
     Map<String, String> mappedPolicyIds = new HashMap<>();
 
     List<Policy> policies = policyDAO.getByOwnerId(tx, sourceApp.getId());
@@ -389,7 +425,26 @@ public class ApplicationCloneService
 
       policy.setId(null);
       policy.setOwnerId(clonedApp.getId());
-      // TODO: Replace all related IDs in the policy constraints
+      for (Constraint constraint : policy.getConstraints()) {
+        for (Condition condition : constraint.getConditions()) {
+          switch (condition.getConditionTypeId()) {
+            case LabelConditionType.ID:
+              String mappedLabelId = mappedLabelIds.get(condition.getValue());
+              if (mappedLabelId != null) {
+                condition.setValue(mappedLabelId);
+              }
+              break;
+            case LicenseThreatGroupConditionType.ID:
+              String mappedLicenseThreatGroupId = mappedLicenseThreatGroupIds.get(condition.getValue());
+              if (mappedLicenseThreatGroupId != null) {
+                condition.setValue(mappedLicenseThreatGroupId);
+              }
+              break;
+            default:
+              // Checkstyle requires default for all switches
+          }
+        }
+      }
       policyDAO.insert(tx, policy);
 
       mappedPolicyIds.put(sourcePolicyId, policy.getId());
@@ -423,19 +478,130 @@ public class ApplicationCloneService
       TransactionContext tx,
       Application sourceApp,
       Application clonedApp,
-      Map<String, String> mappedPolicyIds)
+      Map<String, String> mappedPolicyIds,
+      Map<String, String> mappedLabelIds,
+      Map<String, String> mappedLicenseThreatGroupIds)
   {
     List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(tx, sourceApp.getId());
     for (PolicyWaiver policyWaiver : policyWaivers) {
       String sourcePolicyWaiverId = policyWaiver.getId();
+      Policy sourcePolicy = policyDAO.getById(tx, policyWaiver.getPolicyId());
+      Policy clonedPolicy = policyDAO.getById(tx, mappedPolicyIds.get(sourcePolicy.getId()));
 
       detachEntity(policyWaiver);
       policyWaiver.setOwnerId(clonedApp.getId());
-      policyWaiver.setPolicyId(mappedPolicyIds.get(policyWaiver.getPolicyId()));
-      // TODO: Replace all related IDs in the policy constraint facts
+      // clonedPolicy is null if sourcePolicy belongs to a parent organization.
+      if (clonedPolicy != null) {
+        policyWaiver.setPolicyId(clonedPolicy.getId());
+      }
+      List<ConstraintFact> constraintFacts = policyWaiver.getConstraintFacts();
+      if (constraintFacts != null) {
+        try {
+          updateConstraintFacts(constraintFacts, sourcePolicy, clonedPolicy, mappedLabelIds,
+              mappedLicenseThreatGroupIds);
+        }
+        catch (InvalidConstraintException e) {
+          log.warn("Found invalid policy waiver {}. It will not be cloned. Cause: {}", sourcePolicyWaiverId,
+              e.getMessage());
+          continue;
+        }
+      }
+
+      policyWaiver.setConstraintFacts(constraintFacts);
       policyWaiverDAO.insert(tx, policyWaiver);
 
       log.info("Cloned policy waiver {} to policy waiver {}.", sourcePolicyWaiverId, policyWaiver.getId());
+    }
+  }
+
+  private void updateConstraintFacts(
+      List<ConstraintFact> constraintFacts,
+      Policy sourcePolicy,
+      Policy clonedPolicy,
+      Map<String, String> mappedLabelIds,
+      Map<String, String> mappedLicenseThreatGroupIds) throws InvalidConstraintException
+  {
+    for (ConstraintFact constraintFact : constraintFacts) {
+      boolean foundConstraint = false;
+      for (int i = 0; i < sourcePolicy.getConstraints().size(); i++) {
+        Constraint sourceConstraint = sourcePolicy.getConstraints().get(i);
+        if (sourceConstraint.getId().equals(constraintFact.getConstraintId())) {
+          foundConstraint = true;
+
+          // clonedPolicy is null if sourcePolicy belongs to a parent organization.
+          if (clonedPolicy != null) {
+            Constraint clonedConstraint = clonedPolicy.getConstraints().get(i);
+            constraintFact.setConstraintId(clonedConstraint.getId());
+          }
+
+          updateConditionFacts(constraintFact.getConditionFacts(), mappedLabelIds, mappedLicenseThreatGroupIds);
+
+          break;
+        }
+      }
+      if (!foundConstraint) {
+        throw new InvalidConstraintException("Cannot find a constraint with ID " + constraintFact.getConstraintId()
+            + " in policy " + sourcePolicy.getId() + " (" + sourcePolicy.getName() + ").");
+      }
+    }
+  }
+
+  private void updateConditionFacts(
+      List<ConditionFact> conditionFacts,
+      Map<String, String> mappedLabelIds,
+      Map<String, String> mappedLicenseThreatGroupIds)
+  {
+    for (ConditionFact conditionFact : conditionFacts) {
+      if (conditionFact.getTriggerJson() == null) {
+        continue;
+      }
+
+      switch (conditionFact.getConditionTypeId()) {
+        case LabelConditionType.ID: {
+          TriggerLabel triggerLabel = deserializeConditionTrigger(conditionFact.getTriggerJson(), TriggerLabel.class);
+          String mappedLabelId = mappedLabelIds.get(triggerLabel.id);
+          // The mapped label id is null if the source label is inherited from a parent org.
+          if (mappedLabelId != null) {
+            conditionFact.setTriggerJson(conditionFact.getTriggerJson().replace(triggerLabel.id, mappedLabelId));
+          }
+          break;
+        }
+        case LicenseThreatGroupConditionType.ID: {
+          TriggerLicenseThreatGroup triggerLicenseThreatGroup =
+              deserializeConditionTrigger(conditionFact.getTriggerJson(), TriggerLicenseThreatGroup.class);
+          String mappedLicenseThreatGroupId = mappedLicenseThreatGroupIds.get(triggerLicenseThreatGroup.id);
+          // The mapped LTG id is null if the source LTG is inherited from a parent org.
+          if (mappedLicenseThreatGroupId != null) {
+            conditionFact.setTriggerJson(conditionFact.getTriggerJson() //
+                .replace(triggerLicenseThreatGroup.id, mappedLicenseThreatGroupId));
+          }
+          break;
+        }
+        case LicenseThreatGroupLevelConditionType.ID: {
+          TriggerLicenseThreatGroupWithThreatLevel triggerLicenseThreatGroupWithThreatLevel =
+              deserializeConditionTrigger(conditionFact.getTriggerJson(),
+                  TriggerLicenseThreatGroupWithThreatLevel.class);
+          String mappedLicenseThreatGroupId =
+              mappedLicenseThreatGroupIds.get(triggerLicenseThreatGroupWithThreatLevel.id);
+          // The mapped LTG id is null if the source LTG is inherited from a parent org.
+          if (mappedLicenseThreatGroupId != null) {
+            conditionFact.setTriggerJson(conditionFact.getTriggerJson() //
+                .replace(triggerLicenseThreatGroupWithThreatLevel.id, mappedLicenseThreatGroupId));
+          }
+          break;
+        }
+        default:
+          // Checkstyle requires default for all switches
+      }
+    }
+  }
+
+  private static <T> T deserializeConditionTrigger(String triggerJson, Class<T> triggerClass) {
+    try {
+      return JsonUtils.parse(triggerJson, triggerClass);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException("Invalid trigger json: " + triggerJson, e);
     }
   }
 
@@ -444,5 +610,14 @@ public class ApplicationCloneService
     pc.pcSetDetachedState(null);
     pc.pcReplaceStateManager(null);
     entity.setId(null);
+  }
+
+  @SuppressWarnings("serial")
+  private static class InvalidConstraintException
+      extends Exception
+  {
+    InvalidConstraintException(String message) {
+      super(message);
+    }
   }
 }

@@ -68,8 +68,11 @@ public class PullRequestTaskTest
   
   @Mock
   private GitClientFactory gitClientFactory;
-  
-  @Mock 
+
+  @Mock
+  private GitApiFactory gitApiFactory;
+
+  @Mock
   private InsightConfig insightConfig;
   
   @Mock 
@@ -101,7 +104,8 @@ public class PullRequestTaskTest
 
   @Before
   public void setup() {
-    pullRequestTask = new PullRequestTask(gitApiService, gitClientFactory, insightConfig, fileCleaner, metrics);
+    pullRequestTask = new PullRequestTask(gitApiService, gitClientFactory, insightConfig, fileCleaner, metrics,
+        gitApiFactory);
   }
   
   @Test
@@ -204,7 +208,7 @@ public class PullRequestTaskTest
     when(pullRequestRemediationDetails.getToBeRemediated()).thenReturn(MAVEN_COORDINATES);
     when(pullRequestRemediationDetails.getTitle()).thenReturn(TITLE);
     when(gitApiService.getGitRepositoryInfoForApplication(APP_ID)).thenReturn(INFO);
-    when(gitApiService.createGitApi(INFO)).thenReturn(gitApi);
+    when(gitApiFactory.createGitApi(INFO)).thenReturn(gitApi);
     when(gitClientFactory.create(INFO)).thenReturn(gitClient);
     when(app.getId()).thenReturn(APP_ID);
   }

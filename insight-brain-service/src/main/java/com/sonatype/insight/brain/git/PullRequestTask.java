@@ -38,6 +38,8 @@ public class PullRequestTask
 
   private final GitApiService gitApiService;
 
+  private final GitApiFactory gitApiFactory;
+
   private final FileCleaner fileCleaner;
 
   private final InsightConfig insightConfig;
@@ -51,14 +53,16 @@ public class PullRequestTask
       final GitApiService gitApiService,
       final GitClientFactory gitClientFactory,
       final InsightConfig insightConfig,
-      final FileCleaner fileCleaner, 
-      final SourceControlPullRequestMetrics metrics)
+      final FileCleaner fileCleaner,
+      final SourceControlPullRequestMetrics metrics,
+      final GitApiFactory gitApiFactory)
   {
     this.gitApiService = gitApiService;
     this.gitClientFactory = gitClientFactory;
     this.insightConfig = insightConfig;
     this.fileCleaner = fileCleaner;
     this.metrics = metrics;
+    this.gitApiFactory = gitApiFactory;
   }
   
   public void init(PullRequestRemediationDetails pullRequestRemediationDetails) {
@@ -97,7 +101,7 @@ public class PullRequestTask
           .withRemediationTarget(pullRequestRemediationDetails.getToBeRemediated())
           .withRemediationVersion(pullRequestRemediationDetails.getRemediatedVersion())
           .withGitApiClient(gitClientFactory.create(gitInfo))
-          .withGitApi(gitApiService.createGitApi(gitInfo))
+          .withGitApi(gitApiFactory.createGitApi(gitInfo))
           .build();
 
       PullRequestResult result = new PullRequestExecutor().execute(command);

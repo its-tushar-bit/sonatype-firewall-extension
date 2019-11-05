@@ -111,7 +111,7 @@ public class PullRequestFeatureCheckTest
     // test multiples
     gitRepositoryInfo.token = null;
     gitRepositoryInfo.provider = null;
-    gitRepositoryInfo.repositoryUrl = null;;
+    gitRepositoryInfo.repositoryUrl = null;
     ensureAppNotConfigured(gitRepositoryInfo, "Token, Repository URL, Provider");
     logOutput.clear();
 

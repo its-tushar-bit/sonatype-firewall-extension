@@ -127,6 +127,16 @@ describe('CLMLocation.js', function() {
 
       expect(actualUrl).toEqual(expectedUrl);
     });
+
+    it('returns URL to get the vulnerability details with the supplied params for third party scans', function() {
+      const expectedUrl = 'http://localhost/rest/vulnerability/details/sonatype/refId'
+          + '?hash=hash&componentIdentifier=%7B%22coordinates%22%3A%22a-coordinate%22%7D&identificationSource=CLAIR'
+          + '&scanId=scanId&ownerType=APPLICATION&ownerId=appId';
+      const actualUrl = CLMLocation.getVulnerabilityDetailUrl(mockSource, mockRefId, mockComponentIdentifier, mockHash,
+          'CLAIR', 'scanId', 'APPLICATION', 'appId');
+
+      expect(actualUrl).toEqual(expectedUrl);
+    });
   });
 
   describe('getClaimComponentUrl', function() {

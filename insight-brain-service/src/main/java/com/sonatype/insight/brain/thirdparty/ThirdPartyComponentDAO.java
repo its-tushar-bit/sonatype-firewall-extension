@@ -20,6 +20,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.SecurityVulnerabilityDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.json.store.UncheckedIOException;
 
@@ -157,6 +159,26 @@ public class ThirdPartyComponentDAO
       return ComponentSummary.create(true);
     }
     return ComponentSummary.create(false);
+  }
+
+  public SecurityVulnerabilityDetails getSecurityVulnerabilityDetailsByIdentifier(
+      final ComponentIdentifier identifier,
+      final String appId,
+      final String scanId,
+      final String refId)
+  {
+    ThirdPartyReportComponentDTO dto = findComponent(appId, identifier, scanId);
+
+    if (dto != null) {
+      return dto.securityRows.stream()
+        .filter(row -> row.reference.equals(refId))
+        .map(row -> new SecurityVulnerabilityDetails(
+            row.source, refId, ThirdPartySecurityVulnerabilityRenderer.renderHtml(row)))
+        .findFirst()
+        .orElseThrow(() -> new NotFoundException("Vulnerability with refid: " + refId + " not found."));
+    }
+
+    throw new NotFoundException("Vulnerability with refid: " + refId + " not found.");
   }
 
   private ThirdPartyReportComponentDTO findComponent(

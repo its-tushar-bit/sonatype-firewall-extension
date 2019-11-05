@@ -21,6 +21,7 @@ import java.util.stream.StreamSupport;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.SecurityVulnerabilityDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -30,6 +31,7 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.LogOutput;
 
@@ -48,6 +50,7 @@ import org.mockito.quality.Strictness;
 
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromJsonNode;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -200,6 +203,36 @@ public class ThirdPartyComponentDAOTest
   @Test
   public void testGetComponentSummary_Unknown() {
     testGetComponentSummary(ComponentIdentifier.createGolangCoordinates("n","v"), false);
+  }
+
+  @Test
+  public void testGetSecurityVulnerabilityDetailsByIdentifier() {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
+    String referenceId = "CVE-2018-1000001";
+    String scanId = "scanId";
+    String appId = "appId";
+    when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
+
+    SecurityVulnerabilityDetails securityDetails =
+        dao.getSecurityVulnerabilityDetailsByIdentifier(testData.get(hashGlibc), appId, scanId, referenceId);
+
+    assertThat(securityDetails).isNotNull();
+    assertThat(securityDetails.getSource()).isNull();
+    assertThat(securityDetails.getRefId()).isEqualTo(referenceId);
+    assertThat(securityDetails.getHtmlDetails()).isNotEmpty();
+  }
+
+  @Test
+  public void testGetSecurityVulnerabilityDetailsByIdentifier_inexistingReferenceId() {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
+    String referenceId = "CVE-2018-fake-non-existing";
+    String scanId = "scanId";
+    String appId = "appId";
+    when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      dao.getSecurityVulnerabilityDetailsByIdentifier(testData.get(hashGlibc), appId, scanId, referenceId);
+    }).withMessageContaining("Vulnerability with refid: " + referenceId + " not found.");
   }
 
   private  void testGetComponentSummary(ComponentIdentifier identifier, boolean expected) {

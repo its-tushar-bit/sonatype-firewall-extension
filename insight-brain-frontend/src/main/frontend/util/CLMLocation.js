@@ -9,13 +9,25 @@ import { pick } from 'ramda';
 import commonServicesModule from '../util/CommonServices';
 import {getBaseUrl, toURIParams} from './urlUtil';
 
-export function getVulnerabilityDetailUrl(source, refId, componentIdentifier, hash) {
+export function getVulnerabilityDetailUrl(
+  source,
+  refId,
+  componentIdentifier,
+  hash,
+  identificationSource,
+  scanId,
+  ownerType,
+  ownerId) {
   const url = getBaseUrl(window.location.href) + '/rest/vulnerability/details/' +
       encodeURIComponent(source) + '/' + encodeURIComponent(refId);
 
   const params = toURIParams({
     hash,
-    componentIdentifier: componentIdentifier && JSON.stringify(componentIdentifier)
+    componentIdentifier: componentIdentifier && JSON.stringify(componentIdentifier),
+    identificationSource,
+    scanId,
+    ownerType,
+    ownerId
   });
 
   if (params.length > 0) {

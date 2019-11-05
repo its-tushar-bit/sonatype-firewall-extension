@@ -114,6 +114,7 @@ public class ThirdPartyDataService
     dto.score = coordinateSecurity.getSeverity();
     dto.url = coordinateSecurity.getLink();
     dto.fixedVersion = coordinateSecurity.getFixedBy();
+    dto.source = coordinateSecurity.getVulnerabilitySource();
     return dto;
   }
 

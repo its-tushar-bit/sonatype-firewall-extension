@@ -1965,6 +1965,7 @@ public class TemporaryEntity
   {
     ThirdPartyCoordinateSecurity coordinateSecurity =
         new ThirdPartyCoordinateSecurity(fileCoordinate.getId(), refId, description, link, severity, fixedBy);
+    coordinateSecurity.setVulnerabilitySource("some source");
     new ThirdPartyCoordinateSecurityDAO().insert(coordinateSecurity);
     return coordinateSecurity;
   }

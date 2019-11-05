@@ -90,6 +90,8 @@ public class ClairScannerResultHandler
     ThirdPartyCoordinateSecurity coordinateSecurity =
         new ThirdPartyCoordinateSecurity(fileCoordinateId, vulnerability.getVulnerability(),
             vulnerability.getDescription(), vulnerability.getLink(), severity, vulnerability.getFixedBy());
+    coordinateSecurity.setVulnerabilitySource(
+        ThirdPartyScanResultUtils.getVulnerabilitySourceFromReference(vulnerability.getVulnerability()));
     thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
 
     return vulnerability;

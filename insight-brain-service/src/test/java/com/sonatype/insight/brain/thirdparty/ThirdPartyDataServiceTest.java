@@ -134,6 +134,7 @@ public class ThirdPartyDataServiceTest
             assertThat(securityRow.score).isEqualTo(expectedSecRow.getSeverity());
             assertThat(securityRow.url).isEqualTo(expectedSecRow.getLink());
             assertThat(securityRow.fixedVersion).isEqualTo(expectedSecRow.getFixedBy());
+            assertThat(securityRow.source).isEqualTo("some source");
           });
     }
   }

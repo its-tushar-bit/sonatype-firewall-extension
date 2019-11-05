@@ -232,5 +232,6 @@ public class ClairScannerResultsHandlerTest
     assertThat(coordinateSecurity.getLink()).isEqualTo(vulnerability.getLink());
     assertThat(coordinateSecurity.getRefId()).isEqualTo(vulnerability.getVulnerability());
     assertThat(coordinateSecurity.getSeverity()).isEqualTo(expectedSeverity);
+    assertThat(coordinateSecurity.getVulnerabilitySource()).isEqualTo("CSV");
   }
 }

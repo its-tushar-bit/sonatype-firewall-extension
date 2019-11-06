@@ -16,4 +16,4 @@ ${threat.policy} | ${threat.threat} | ${threat.constraint} | ${threat.conditions
 **Scan**: ${scanId} [view detailed report](${detailedReportUrl})
 **Stage**: ${stage}
 
-_This PR was automatically created by your friendly neighbourhood [IQ server](${baseIqUrl})_
+_This PR was automatically created by your friendly neighbourhood [IQ Server](${baseIqUrl})_

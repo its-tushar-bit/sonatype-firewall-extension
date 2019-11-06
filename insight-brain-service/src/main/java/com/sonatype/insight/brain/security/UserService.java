@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -61,19 +60,23 @@ public class UserService
 
   private final UserDAO userDAO = new UserDAO();
 
+  private final CurrentUser currentUser;
+
   @Inject
   public UserService(
       InternalRealm clmRealm,
       PasswordService passwordService,
       SessionDAO sessionDAO,
       UserDirectory userDirectory,
-      InsightConfig insightConfig)
+      InsightConfig insightConfig,
+      CurrentUser currentUser)
   {
     this.clmRealm = clmRealm;
     this.passwordService = passwordService;
     this.sessionDAO = sessionDAO;
     this.userDirectory = userDirectory;
     this.insightConfig = insightConfig;
+    this.currentUser = currentUser;
   }
 
   // Authorization is checked in findMembersForNonGlobalRoles and findMembersForGlobalRoles
@@ -183,7 +186,7 @@ public class UserService
   }
 
   private void deleteUser(User user) {
-    String username = SecurityUtils.getSubject().getPrincipal().toString();
+    String username = currentUser.getUsername();
     if (user.getUsername().equalsIgnoreCase(username)) {
       throw new BadRequestException("Cannot delete the currently logged in user.");
     }
@@ -218,11 +221,11 @@ public class UserService
   }
 
   void changeMyPassword(ChangePasswordDTO password) {
-    UserPrincipal principal = (UserPrincipal) SecurityUtils.getSubject().getPrincipal();
+    String username = currentUser.getUsername();
 
-    User user = userDAO.getByUsername(principal.getUsername().trim());
+    User user = userDAO.getByUsername(username.trim());
     if (user == null) {
-      throw new NotFoundException("Could not find user with username " + principal.getUsername());
+      throw new NotFoundException("Could not find user with username " + username);
     }
 
     // validate the old password first

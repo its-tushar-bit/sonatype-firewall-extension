@@ -19,11 +19,11 @@ import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import org.apache.shiro.SecurityUtils;
 
 /**
  * @since 1.47
@@ -41,13 +41,21 @@ public class TelemetryService
 
   private final MembershipMappingDAO membershipMappingDAO;
 
+  private final CurrentUser currentUser;
+
   private final HashFunction obfuscationFunction = Hashing.sha256();
 
   @Inject
-  public TelemetryService(TelemetrySender telemetrySender, MembershipMappingDAO membershipMappingDAO, RoleDAO roleDAO) {
+  public TelemetryService(
+      TelemetrySender telemetrySender,
+      MembershipMappingDAO membershipMappingDAO,
+      RoleDAO roleDAO,
+      CurrentUser currentUser)
+  {
     this.telemetrySender = telemetrySender;
     this.membershipMappingDAO = membershipMappingDAO;
     this.roleDAO = roleDAO;
+    this.currentUser = currentUser;
   }
 
   void forwardFrontendTelemetryToHds(TelemetryData data, String sessionId) {
@@ -60,7 +68,7 @@ public class TelemetryService
   }
 
   private Set<String> getObfuscatedUserRoles() {
-    UserPrincipal userPrincipal = (UserPrincipal) SecurityUtils.getSubject().getPrincipal();
+    UserPrincipal userPrincipal = currentUser.getUserPrincipal();
 
     Collection<MembershipMapping> memberships = membershipMappingDAO.getByUserAndGroups(userPrincipal.getUsername(),
         userPrincipal.getMembership());

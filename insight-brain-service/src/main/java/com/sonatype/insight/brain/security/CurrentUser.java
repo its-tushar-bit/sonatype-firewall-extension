@@ -30,11 +30,18 @@ public class CurrentUser
    * Gets the internal name for the user associated with the calling thread.
    */
   public String getUsername() {
-    Object principal = SecurityUtils.getSubject().getPrincipal();
+    UserPrincipal principal = getUserPrincipal();
     if (principal == null) {
       return "anonymous";
     }
-    return ((UserPrincipal) principal).getUsername();
+    return principal.getUsername();
+  }
+
+  /**
+   * Gets the UserPrincipal for the user associated with the calling thread.
+   */
+  public UserPrincipal getUserPrincipal() {
+    return (UserPrincipal) SecurityUtils.getSubject().getPrincipal();
   }
 
   /**
@@ -50,7 +57,7 @@ public class CurrentUser
   }
 
   public boolean isAnonymous() {
-    return SecurityUtils.getSubject().getPrincipal() == null;
+    return getUserPrincipal() == null;
   }
 
   /**

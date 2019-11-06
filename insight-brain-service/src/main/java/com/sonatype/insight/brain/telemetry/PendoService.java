@@ -17,15 +17,16 @@ import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.TelemetryId;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.hash.Hashing;
-import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,16 +53,21 @@ public class PendoService
 
   private final VersionService versionService;
 
+  private final CurrentUser currentUser;
+
   @Inject
-  public PendoService(HdsClient hdsClient,
-                      PendoCache pendoCache,
-                      TelemetryId telemetryId,
-                      VersionService versionService)
+  public PendoService(
+      HdsClient hdsClient,
+      PendoCache pendoCache,
+      TelemetryId telemetryId,
+      VersionService versionService,
+      CurrentUser currentUser)
   {
     this.hdsClient = hdsClient;
     this.pendoCache = pendoCache;
     this.telemetryId = telemetryId;
     this.versionService = versionService;
+    this.currentUser = currentUser;
   }
 
   public PendoConfig getConfig() {
@@ -74,9 +80,10 @@ public class PendoService
       pendoConfig.account.put(VERSION, versionService.getVersion());
 
       // add user info only if user is logged in
-      Object principal = SecurityUtils.getSubject().getPrincipal();
-      if (principal != null) {
-        pendoConfig.visitor.put(ID, Hashing.sha256().hashUnencodedChars(telemetryId.getId() + principal).toString());
+      UserPrincipal userPrincipal = currentUser.getUserPrincipal();
+      if (userPrincipal != null) {
+        pendoConfig.visitor.put(ID,
+            Hashing.sha256().hashUnencodedChars(telemetryId.getId() + userPrincipal.getUsername()).toString());
       }
     }
 

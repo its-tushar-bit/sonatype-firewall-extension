@@ -29,7 +29,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,15 +46,23 @@ public class UserTokenService
 
   private final LdapService ldapService;
 
+  private final CurrentUser currentUser;
+
   @Inject
-  public UserTokenService(UserTokenDAO userTokenDAO, PasswordService passwordService, LdapService ldapService) {
+  public UserTokenService(
+      UserTokenDAO userTokenDAO,
+      PasswordService passwordService,
+      LdapService ldapService,
+      CurrentUser currentUser)
+  {
     this.userTokenDAO = userTokenDAO;
     this.passwordService = passwordService;
     this.ldapService = ldapService;
+    this.currentUser = currentUser;
   }
 
   public ApiUserTokenDTO createUserToken() {
-    UserPrincipal userPrincipal = (UserPrincipal) SecurityUtils.getSubject().getPrincipal();
+    UserPrincipal userPrincipal = currentUser.getUserPrincipal();
     String username = userPrincipal.getUsername();
 
     if (UserTokenRealm.ID.equals(userPrincipal.getRealmId())) {
@@ -130,7 +137,7 @@ public class UserTokenService
   }
 
   public void deleteCurrentUserToken() {
-    UserPrincipal userPrincipal = (UserPrincipal) SecurityUtils.getSubject().getPrincipal();
+    UserPrincipal userPrincipal = currentUser.getUserPrincipal();
     String username = userPrincipal.getUsername();
     UserToken userToken = userTokenDAO.getByUsernameAndRealmId(username, userPrincipal.getRealmId());
     if (userToken == null) {

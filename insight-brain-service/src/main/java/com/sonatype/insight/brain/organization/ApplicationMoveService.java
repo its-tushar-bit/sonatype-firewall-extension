@@ -61,10 +61,10 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,6 +136,8 @@ public class ApplicationMoveService
 
   private final MembershipMappingDAO membershipMappingDAO;
 
+  private final CurrentUser currentUser;
+
   @Inject
   public ApplicationMoveService(ApplicationDAO applicationDAO,
                                 OrganizationDAO organizationDAO,
@@ -151,7 +153,8 @@ public class ApplicationMoveService
                                 ComponentLabelDAO componentLabelDAO,
                                 LicenseThreatGroupDAO ltgDAO,
                                 LicenseOverrideDAO licenseOverrideDAO,
-                                MembershipMappingDAO membershipMappingDAO)
+      MembershipMappingDAO membershipMappingDAO,
+      CurrentUser currentUser)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
@@ -168,6 +171,7 @@ public class ApplicationMoveService
     this.ltgDAO = ltgDAO;
     this.licenseOverrideDAO = licenseOverrideDAO;
     this.membershipMappingDAO = membershipMappingDAO;
+    this.currentUser = currentUser;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -723,21 +727,21 @@ public class ApplicationMoveService
     }
 
     private void grantOwnerRoleIfNeeded() {
-      UserPrincipal user = (UserPrincipal) SecurityUtils.getSubject().getPrincipal();
+      UserPrincipal userPrincipal = currentUser.getUserPrincipal();
       Set<String> newOwnerIds = new HashSet<>();
       newOwnerIds.add(application.getId());
       newOwnerIds.addAll(newAncestorIds);
       for (String ownerId : newOwnerIds) {
         for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextIdAndRoleId(tx, ownerId,
             Role.OWNER_ROLE_ID)) {
-          if (membershipMapping.includes(user)) {
+          if (membershipMapping.includes(userPrincipal)) {
             return;
           }
         }
       }
       log.debug("Assigning current user to 'Owner' role for moved application");
       membershipMappingDAO.insert(tx, new MembershipMapping(application.getId(), Role.OWNER_ROLE_ID,
-          user.getUsername(), MemberType.USER));
+          userPrincipal.getUsername(), MemberType.USER));
     }
   }
 }

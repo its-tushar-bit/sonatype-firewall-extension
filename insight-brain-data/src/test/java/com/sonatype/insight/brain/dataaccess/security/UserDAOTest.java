@@ -650,7 +650,7 @@ public class UserDAOTest
   }
 
   @Test
-  public void testFindUser_CaseInsensitive() {
+  public void testFindUsersByName_CaseInsensitive() {
     createUser("FOO", "aaa", "xxx", "xxx", "xxx@xxx.xxx");
     User user0 = createUser("xxx0", "aaa", "FOO", "xxx", "xxx@xxx.xxx");
     User user1 = createUser("xxx1", "aaa", "xxx", "FOO", "xxx@xxx.xxx");
@@ -664,7 +664,7 @@ public class UserDAOTest
   }
 
   @Test
-  public void testFindUser_notByPassword() {
+  public void testFindUsersByName_notByPassword() {
     createUser("xxx", "foo" /* password */, "xxx", "xxx", "xxx@xxx.xxx");
 
     UserDAO dao = new UserDAO();
@@ -673,7 +673,7 @@ public class UserDAOTest
   }
 
   @Test
-  public void testFindUser_MatchesAgainstFullName() {
+  public void testFindUsersByName_MatchesAgainstFullName() {
     createUser("user1", "secret", "John", "Doe", "xxx@xxx.xxx");
     User user2 = createUser("user2", "secret", "Jane", "Doe", "xxx@xxx.xxx");
 

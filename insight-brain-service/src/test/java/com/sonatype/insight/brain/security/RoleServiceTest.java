@@ -61,7 +61,7 @@ public class RoleServiceTest
     assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
     assertListedPermissions(category, Permission.MANAGE_PROPRIETARY, Permission.CLAIM_COMPONENT, Permission.WRITE,
         Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION,
-        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
+        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
   }
 
   @Test
@@ -84,7 +84,7 @@ public class RoleServiceTest
     assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
     assertListedPermissions(category, Permission.MANAGE_PROPRIETARY, Permission.CLAIM_COMPONENT, Permission.WRITE,
         Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION,
-        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
+        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
   }
 
   @Test
@@ -105,7 +105,7 @@ public class RoleServiceTest
     assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
     assertListedPermissions(category, Permission.MANAGE_PROPRIETARY, Permission.CLAIM_COMPONENT, Permission.WRITE,
         Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION,
-        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
+        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
   }
 
   @Test

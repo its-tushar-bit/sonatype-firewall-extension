@@ -27,6 +27,9 @@ public class SystemConfigurationProperty
 
   public static final String PROXY_EXCLUDE_HOSTS = "PROXY_EXCLUDE_HOSTS";
 
+  public static final String AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED =
+      "AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

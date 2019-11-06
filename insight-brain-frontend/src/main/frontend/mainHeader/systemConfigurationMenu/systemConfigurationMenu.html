@@ -61,5 +61,12 @@
         Automatic Applications
       </a>
     </div>
+    <div id="system-configuration-automatic-source-control"
+         ng-if="vm.permissions.MANAGE_AUTOMATIC_SCM_CONFIGURATION"
+         ng-class="{'active': vm.state.includes('automaticSourceControlConfiguration')}">
+      <a ui-sref="automaticSourceControlConfiguration" class="iq-dropdown-menu__link--main-header">
+        Automatic SCM Configuration
+      </a>
+    </div>
   </div>
 </div>

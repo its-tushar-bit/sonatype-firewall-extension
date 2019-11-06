@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.client;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlAdapter;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -52,8 +53,7 @@ public class SourceControlClientTest
     }
     catch (HttpResponseException e) {
       assertThat(e.getStatusCode()).isEqualTo(404);
-      assertThat(e.getMessage()).isEqualTo(
-          "Could not find an application with public ID abc-xyz.");
+      assertThat(e.getMessage()).startsWith("Could not find an application with public ID");
     }
   }
 
@@ -74,6 +74,11 @@ public class SourceControlClientTest
   }
 
   private void addOrgSourceControlForTest() throws Exception {
+    // make sure automatic scm is on
+    AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO =
+        new AutomaticSourceControlConfigurationDAO();
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+
     ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl("https://github.com/org/proj")

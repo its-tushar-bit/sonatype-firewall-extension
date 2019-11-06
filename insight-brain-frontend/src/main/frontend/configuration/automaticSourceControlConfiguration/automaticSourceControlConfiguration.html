@@ -1,0 +1,48 @@
+<div class="iq-body-container iq-body-container--single-pane"
+     authorization-wrapper="vm.isAuthorized"
+     maximize-container-height>
+  <div id="automatic-source-control-configuration" class="iq-tile iq-tile--sys-prefs">
+    <div class="iq-tile-header iq-tile-header--hrule">
+      <div class="iq-tile-header__title">
+        <h2>Automatic Source Control Configuration</h2>
+      </div>
+    </div>
+    <div class="iq-tile-content"
+         load-wrapper="vm.error"
+         loading="!vm.loaded"
+         reload="vm.load()">
+      <p id="automatic-source-control-explanation" class="iq-system-config-explanation">
+        Here you can enable or disable Automatic Source Control Configuration.
+      </p>
+      <form name="vm.automaticSourceControlConfigurationForm"
+            class="iq-form iq-form--no-border iq-form--no-padding"
+            form-mask="vm.automaticSourceControlConfigurationFormMask"
+            mask-attach-to-body
+            ng-submit="vm.save()">
+        <div id="automatic-source-control-toggle-checkbox" class="toggle-checkbox">
+          <input id="automatic-source-control-toggle"
+                 type="checkbox"
+                 toggle-checkbox
+                 data-on="Enabled"
+                 data-off="Disabled"
+                 ng-model="vm.automaticSourceControlEnabled">
+        </div>
+        <div class="iq-tile-footer">
+          <button id="automatic-source-control-update"
+                  class="iq-btn iq-btn--primary"
+                  submit-validation
+                  submit-dirty="vm.isChanged()"
+                  submit-type="'update'">
+            Update
+          </button>
+          <button id="automatic-source-control-cancel"
+                  class="iq-btn"
+                  ng-disabled="!vm.isChanged()"
+                  ng-click="vm.cancel()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -39,6 +39,9 @@ public enum Permission
   ADD_APPLICATION("Add", PermissionCategory.IQ, "Applications", false /* global */, true /* allowedInCustomRoles */),
   
   MANAGE_AUTOMATIC_APPLICATION_CREATION("Manage", PermissionCategory.IQ, "Automatic Application Creation",
+      true /* global */, true /* allowedInCustomRoles */),
+
+  MANAGE_AUTOMATIC_SCM_CONFIGURATION("Manage", PermissionCategory.IQ, "Automatic Source Control Configuration",
       true /* global */, true /* allowedInCustomRoles */);
 
   private final String displayName;

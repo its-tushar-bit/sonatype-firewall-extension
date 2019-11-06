@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -30,6 +31,9 @@ public class ApiSourceControlServiceAuthzTest
   
   @Inject
   public ApiSourceControlService sourceControlService;
+
+  @Inject
+  private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
 
   private ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
 
@@ -142,21 +146,46 @@ public class ApiSourceControlServiceAuthzTest
   }
 
   @Test
-  public void testAddOrUpdateSourceControl_Authorized() {
+  public void testAddOrUpdateSourceControl_AutomaticScmEnabled_Authorized() {
     // ensure org record exists
     tempEntity.newSourceControl(app.getOrganizationId(), null, "token", SourceControlProvider.GITHUB);
-    grantWritePermission(app.getId());
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+    grantEvaluateApplicationPermission(org.getId());
+    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_AutomaticScmDisabled_Authorized() {
+    // ensure org record exists
+    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", SourceControlProvider.GITHUB);
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
+    grantEvaluateApplicationPermission(org.getId());
     sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testAddOrUpdateSourceControl_Unauthorized() {
+  public void testAddOrUpdateSourceControl_AutomaticScmEnabled_Unauthorized() {
     login();
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddOrUpdateSourceControl_AutomaticScmDisabled_Unauthorized() {
+    login();
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
     sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testAddOrUpdateSourceControl_Unauthenticated() {
+  public void testAddOrUpdateSourceControl_AutomaticScmEnabled_Unauthenticated() {
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddOrUpdateSourceControl_AutomaticScmDisabled_Unauthenticated() {
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
     sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
   }
 }

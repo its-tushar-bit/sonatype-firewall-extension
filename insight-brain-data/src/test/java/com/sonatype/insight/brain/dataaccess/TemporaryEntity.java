@@ -27,6 +27,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
@@ -252,6 +253,9 @@ public class TemporaryEntity
   private final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
       new AutomaticApplicationsConfigurationDAO();
   
+  private final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO =
+      new AutomaticSourceControlConfigurationDAO();
+
   private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
   private final SamlConfigurationDAO samlConfigurationDAO = new SamlConfigurationDAO();
@@ -404,6 +408,7 @@ public class TemporaryEntity
     migrationTrackers.forEach(migrationTrackerDAO::insert);
 
     delete(userTokens, userTokenDAO);
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
   }
 
   private <T extends HasStringId> void delete(Collection<T> entities, AbstractDAO<T> dao) {

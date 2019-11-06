@@ -12,10 +12,12 @@ import ldapModule from './ldap/ldap.module';
 import samlModule from './saml/module';
 import webhookModule from './webhook/webhook.module';
 import ProductLicenseModule from './license/ProductLicenseModule';
+import automaticSourceControlConfigurationModule
+  from './automaticSourceControlConfiguration/automaticSourceControlConfigurationModule';
 
 export default angular.module('configurationModule',
     [
       gettingStartedModule.name, successMetricsConfigurationModule.name, systemNoticeConfigurationModule.name,
       automaticApplicationsConfigurationModule.name, ldapModule.name, samlModule.name, webhookModule.name,
-      ProductLicenseModule.name
+      ProductLicenseModule.name, automaticSourceControlConfigurationModule.name
     ]);

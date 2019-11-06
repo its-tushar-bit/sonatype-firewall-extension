@@ -15,6 +15,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.METHOD;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
@@ -82,8 +83,8 @@ public class ApiSourceControlServiceTest
 
   @Before
   public void setup() {
-    app = tempEntity.newApplicationWithParent();
     org = tempEntity.newOrganization();
+    app = tempEntity.newApplication(org.getId());
   }
 
   @Test
@@ -124,7 +125,64 @@ public class ApiSourceControlServiceTest
   @Test
   public void testAddOrUpdateSourceControl_InvalidRepoUrl() {
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> sourceControlService.addOrUpdateSourceControl(app.getPublicId(), "https://not valid"));
+        .isThrownBy(
+            () -> testAddOrUpdateSourceControl_AutomaticSourceControl(true, "https://github.com/org/a",
+                "https://not valid", null));
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_AutomaticSourceControlDisabled_Create() {
+    testAddOrUpdateSourceControl_AutomaticSourceControl(false, null,
+        "https://github.com/org/b", "https://github.com/org/a");
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_AutomaticSourceControlDisabled_Update() {
+    testAddOrUpdateSourceControl_AutomaticSourceControl(false, "https://github.com/org/a",
+        "https://github.com/org/b", "https://github.com/org/a");
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_AutomaticSourceControlEnabled_Create() {
+    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
+        "https://github.com/org/b", "https://github.com/org/b");
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_AutomaticSourceControlEnabled_Update() {
+    testAddOrUpdateSourceControl_AutomaticSourceControl(true, "https://github.com/org/a",
+        "https://github.com/org/b", "https://github.com/org/b");
+  }
+
+  private void testAddOrUpdateSourceControl_AutomaticSourceControl(
+      boolean enabled,
+      String initialUrl,
+      String collectedUrl,
+      String expectedUrl)
+  {
+    // add ROOT ORGANIZATION record
+    tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, TOKEN,
+        SourceControlProvider.GITHUB);
+
+    // add application record, if needed
+    if (initialUrl != null) {
+      tempEntity.newSourceControl(app.getId(), initialUrl, null, null);
+    }
+
+    // try automatic scm
+    AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO =
+        new AutomaticSourceControlConfigurationDAO();
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(enabled);
+
+    ApiSourceControlDTO result =
+        sourceControlService.addOrUpdateSourceControl(app.getPublicId(), collectedUrl);
+    if (!enabled && initialUrl == null) {
+      assertThat(result).isNull();
+    }
+    else {
+      assertThat(result.ownerId).isEqualTo(app.getId());
+      assertThat(result.repositoryUrl).isEqualTo(expectedUrl);
+    }
   }
 
   @Test

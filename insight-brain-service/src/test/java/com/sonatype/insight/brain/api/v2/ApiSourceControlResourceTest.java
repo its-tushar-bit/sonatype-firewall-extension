@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlAdapter;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -256,9 +257,13 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
-  public void testAddOrUpdateSourceControl() throws Exception {
+  public void testAddOrUpdateSourceControl_AutomaticScmEnabled() throws Exception {
     // ensure organization record exists
     tempEntity.newSourceControl(app.getOrganizationId(), null, "token", SourceControlProvider.GITHUB);
+
+    AutomaticSourceControlConfigurationDAO sourceControlConfigurationDAO = new AutomaticSourceControlConfigurationDAO();
+    sourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+
     HttpResponse response = restRequest()
         .query("publicId", app.getPublicId())
         .query("repositoryUrl", VALID_URL)
@@ -274,6 +279,21 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
+  public void testAddOrUpdateSourceControl_AutomaticScmDisabled() throws Exception {
+    // ensure organization record exists
+    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", SourceControlProvider.GITHUB);
+
+    AutomaticSourceControlConfigurationDAO sourceControlConfigurationDAO = new AutomaticSourceControlConfigurationDAO();
+    sourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
+
+    HttpResponse response = restRequest()
+        .query("publicId", app.getPublicId())
+        .query("repositoryUrl", VALID_URL)
+        .post();
+    assertResponseStatus(204, response);
+  }
+
+  @Test
   public void testAddOrUpdateSourceControl_InvalidPublicId() throws Exception {
     HttpResponse response = restRequest()
         .query("publicId", "abc")
@@ -281,13 +301,17 @@ public class ApiSourceControlResourceTest
         .post();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Could not find an application with public ID abc.");
+    assertThat(response.getBodyText()).startsWith("Could not find an application with public ID");
   }
 
   @Test
   public void testAddOrUpdateSourceControl_InvalidRepositoryUrl() throws Exception {
     // ensure organization record exists
     tempEntity.newSourceControl(app.getOrganizationId(), null, "token", SourceControlProvider.GITHUB);
+
+    AutomaticSourceControlConfigurationDAO sourceControlConfigurationDAO = new AutomaticSourceControlConfigurationDAO();
+    sourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+
     HttpResponse response = restRequest()
         .query("publicId", app.getPublicId())
         .query("repositoryUrl", "https://not valid")
@@ -299,6 +323,9 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testAddOrUpdateSourceControl_CannotValidateRepositoryUrl() throws Exception {
+    AutomaticSourceControlConfigurationDAO sourceControlConfigurationDAO = new AutomaticSourceControlConfigurationDAO();
+    sourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+
     HttpResponse response = restRequest()
         .query("publicId", app.getPublicId())
         .query("repositoryUrl", "https://not valid")

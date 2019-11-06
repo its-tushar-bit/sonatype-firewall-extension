@@ -43,7 +43,7 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
 
   function doLoad() {
     const validPermissions = ['CONFIGURE_SYSTEM', 'MANAGE_PROPRIETARY', 'VIEW_ROLES',
-      'MANAGE_AUTOMATIC_APPLICATION_CREATION'];
+      'MANAGE_AUTOMATIC_APPLICATION_CREATION', 'MANAGE_AUTOMATIC_SCM_CONFIGURATION'];
 
     CurrentUser.waitForLogin().then(function() {
       PermissionService.getValidPermissions(validPermissions).then(function(data) {

@@ -42,7 +42,7 @@ public class RolePermissionDAOTest
     assertThat(perms).containsExactlyInAnyOrder(Permission.EDIT_ROLES, Permission.VIEW_ROLES,
         Permission.MANAGE_PROPRIETARY, Permission.WRITE, Permission.READ, Permission.EVALUATE_APPLICATION,
         Permission.EVALUATE_COMPONENT, Permission.CLAIM_COMPONENT, Permission.ADD_APPLICATION,
-        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
+        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
   }
 
   @Test

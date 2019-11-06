@@ -58,7 +58,7 @@ extends BaseSpec {
 
     roleEditorPage.pageTitle.text() == 'Developer'
 
-    policyCategory.permissions.size() == 8
+    policyCategory.permissions.size() == 9
     assertPermission(policyCategory.permission(0), !ON, !ENABLED, Permission.MANAGE_PROPRIETARY)
     assertPermission(policyCategory.permission(1), !ON, !ENABLED, Permission.CLAIM_COMPONENT)
     assertPermission(policyCategory.permission(2), !ON, !ENABLED, Permission.WRITE)

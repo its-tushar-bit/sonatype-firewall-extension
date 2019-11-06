@@ -114,7 +114,7 @@ environments {
   ci {
     // increase default timeout to account for slower CI server
     waiting {
-      timeout = 15
+      timeout = 20
     }
   }
 }

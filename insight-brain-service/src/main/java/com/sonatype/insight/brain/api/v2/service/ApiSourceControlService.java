@@ -17,6 +17,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
@@ -59,6 +60,8 @@ public class ApiSourceControlService
 
   private final ApplicationDAO applicationDAO;
 
+  private final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
+
   private final ApiSourceControlAdapter apiSourceControlAdapter;
 
   private final ProductLicense productLicense;
@@ -70,6 +73,7 @@ public class ApiSourceControlService
       final PlexusCipher plexusCipher,
       final SourceControlDAO sourceControlDAO,
       final ApplicationDAO applicationDAO,
+      final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO,
       final ApiSourceControlAdapter apiSourceControlAdapter,
       final ProductLicense productLicense,
       final TelemetrySender telemetrySender)
@@ -77,6 +81,7 @@ public class ApiSourceControlService
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
     this.applicationDAO = applicationDAO;
+    this.automaticSourceControlConfigurationDAO = automaticSourceControlConfigurationDAO;
     this.apiSourceControlAdapter = apiSourceControlAdapter;
     this.productLicense = productLicense;
     this.telemetrySender = telemetrySender;
@@ -92,31 +97,36 @@ public class ApiSourceControlService
         .collect(Collectors.toList());
   }
 
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public ApiSourceControlDTO addOrUpdateSourceControl(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String publicId,
       final String repositoryUrl)
   {
     checkLicense();
+
     Application application = applicationDAO.getByPublicId(publicId);
     if (application == null) {
       throw new NotFoundException("Cannot find application with public ID: '" + publicId + "'");
     }
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(application.getId());
-    if (sourceControl == null) { // create new record
-      sourceControl =
-          new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl(repositoryUrl).build();
-      sourceControlDAO.insert(sourceControl);
+
+    // check if automatic source control is enabled
+    if (automaticSourceControlConfigurationDAO.isSourceControlConfigurationEnabled()) {
+      if (sourceControl == null) { // create new record
+        sourceControl =
+            new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl(repositoryUrl).build();
+        sourceControlDAO.insert(sourceControl);
+      }
+      else { // update existing record
+        sourceControl.setRepositoryUrl(repositoryUrl);
+        sourceControlDAO.update(sourceControl);
+      }
+      if (sourceControl.getToken() != null) {
+        sourceControl.setToken(FAKE_SECRET_KEY);
+      }
+      auditSourceControl(sourceControl);
+      sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE, application.getId());
     }
-    else { // update existing record
-      sourceControl.setRepositoryUrl(repositoryUrl);
-      sourceControlDAO.update(sourceControl);
-    }
-    if (sourceControl.getToken() != null) {
-      sourceControl.setToken(FAKE_SECRET_KEY);
-    }
-    auditSourceControl(sourceControl);
-    sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE, application.getId());
     return apiSourceControlAdapter.convertToDTO(sourceControl);
   }
 

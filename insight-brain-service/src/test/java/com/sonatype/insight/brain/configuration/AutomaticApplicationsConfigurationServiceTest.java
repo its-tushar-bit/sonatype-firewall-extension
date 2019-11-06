@@ -85,7 +85,9 @@ public class AutomaticApplicationsConfigurationServiceTest
     Date before = new Date();
     service.update(new AutomaticApplicationsConfiguration(true, org1.getId()));
     Date after = new Date();
-    assertTelemetryEvent(invocation[0], before, after, true);
+    assertTelemetryEvent(invocation[0], TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION,
+        AutomaticApplicationsConfigurationService.AUTO_APP_CREATION_ENABLED_TELEMETRY_ATTR,
+        before, after, true);
     clearInvocations(mockHdsClient);
 
     // No changes to Auto App Creation enablement - a telemetry event should NOT be sent
@@ -96,7 +98,9 @@ public class AutomaticApplicationsConfigurationServiceTest
     before = new Date();
     service.update(new AutomaticApplicationsConfiguration(false, org2.getId()));
     after = new Date();
-    assertTelemetryEvent(invocation[0], before, after, false);
+    assertTelemetryEvent(invocation[0], TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION,
+        AutomaticApplicationsConfigurationService.AUTO_APP_CREATION_ENABLED_TELEMETRY_ATTR,
+        before, after, false);
     clearInvocations(mockHdsClient);
 
     // No changes to Auto App Creation enablement - a telemetry event should NOT be sent
@@ -104,7 +108,10 @@ public class AutomaticApplicationsConfigurationServiceTest
     verifyNoMoreInteractions(mockHdsClient);
   }
 
-  private void assertTelemetryEvent(InvocationOnMock invocation, Date before, Date after, boolean expected)
+  public static void assertTelemetryEvent(
+      InvocationOnMock invocation,
+      TelemetryPurpose telemetryPurpose, String telemetryAttr,
+      Date before, Date after, boolean expected)
       throws Exception
   {
     assertThat(TelemetrySender.RESOURCE_PATH).isEqualTo(invocation.getArguments()[0]);
@@ -130,9 +137,8 @@ public class AutomaticApplicationsConfigurationServiceTest
       List<TelemetryData> telemetryDataReceived =
           new ObjectMapper().readValue(buffer, new TypeReference<List<TelemetryData>>() { });
       TelemetryData telemetryData = telemetryDataReceived.get(0);
-      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION);
-      assertThat(telemetryData.getAttributes()).hasSize(1).containsEntry(
-          AutomaticApplicationsConfigurationService.AUTO_APP_CREATION_ENABLED_TELEMETRY_ATTR, String.valueOf(expected));
+      assertThat(telemetryData.getPurpose()).isEqualTo(telemetryPurpose);
+      assertThat(telemetryData.getAttributes()).hasSize(1).containsEntry(telemetryAttr, String.valueOf(expected));
       assertThat(telemetryData.getTimestamp()).isGreaterThanOrEqualTo(before.getTime())
           .isLessThanOrEqualTo(after.getTime());
     }

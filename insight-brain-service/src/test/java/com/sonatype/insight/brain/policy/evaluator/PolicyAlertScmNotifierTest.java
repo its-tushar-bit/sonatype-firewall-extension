@@ -81,13 +81,13 @@ public class PolicyAlertScmNotifierTest
 
   @Mock
   private GitApiClient gitApiClient;
-  
+
   @Mock
   private BaseUrl baseUrl;
-  
+
   @Mock
   Provider<PullRequestTask> provider;
-  
+
   @Mock
   PullRequestTask pullRequestTask;
 
@@ -122,7 +122,7 @@ public class PolicyAlertScmNotifierTest
     // then no interactions
     verifyNoInteractions(gitApiService, pullRequestFeatureCheck);
   }
-  
+
   @Test
   public void test_featureIsDisabled() throws Exception {
     // given we have repository info for an application
@@ -258,7 +258,7 @@ public class PolicyAlertScmNotifierTest
       finished.countDown();
       return null;
     }).when(pullRequestTask).run();
-    
+
     // when we send policy notifications
     scmNotifier.sendNotifications(application,"scanId", new Stage("build"),  buildPolicyNotifications());
 

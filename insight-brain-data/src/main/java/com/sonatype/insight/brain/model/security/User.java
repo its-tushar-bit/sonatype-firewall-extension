@@ -5,12 +5,13 @@
  */
 package com.sonatype.insight.brain.model.security;
 
+import java.util.Locale;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -73,7 +74,7 @@ public class User
   }
 
   public void setUsername(String username) {
-    usernameLowercase = NameHelper.normalize(username);
+    usernameLowercase = normalizeUsername(username);
     this.username = username;
   }
 
@@ -127,5 +128,12 @@ public class User
 
   public String calculateDisplayName() {
     return firstName + " " + lastName;
+  }
+
+  public static String normalizeUsername(String username) {
+    if (username == null) {
+      return null;
+    }
+    return username.toLowerCase(Locale.ENGLISH);
   }
 }

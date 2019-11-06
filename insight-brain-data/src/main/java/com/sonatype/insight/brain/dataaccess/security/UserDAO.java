@@ -37,7 +37,7 @@ public class UserDAO
   public User getByUsername(TransactionContext tx, String username) {
     String sQuery = "SELECT entity FROM User entity" + //
         " WHERE entity.usernameLowercase=?1";
-    return get(tx, sQuery, username.toLowerCase(Locale.ENGLISH));
+    return get(tx, sQuery, User.normalizeUsername(username));
   }
 
   /**
@@ -49,7 +49,7 @@ public class UserDAO
   public List<User> getByUsernames(Set<String> usernames) {
     List<String> lowerCaseUsernames = new ArrayList<>();
     for (String username : usernames) {
-      lowerCaseUsernames.add(username.toLowerCase(Locale.ENGLISH));
+      lowerCaseUsernames.add(User.normalizeUsername(username));
     }
 
     String sQuery = "SELECT entity from User entity" + //

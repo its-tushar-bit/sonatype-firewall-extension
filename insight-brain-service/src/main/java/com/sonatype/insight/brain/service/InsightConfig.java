@@ -264,12 +264,6 @@ public class InsightConfig
   @JsonProperty
   private SourceControlConfig sourceControl = new SourceControlConfig();
 
-  /**
-   * @since 1.75
-   */
-  @JsonProperty
-  private boolean thirdPartyEvaluationApiEnabled = false;
-
   @NotNull
   public ProxyConfig getProxyConfig() {
     return proxy;
@@ -728,13 +722,5 @@ public class InsightConfig
     else {
       this.sourceControl = sourceControl;
     }
-  }
-
-  public boolean isThirdPartyEvaluationApiEnabled() {
-    return thirdPartyEvaluationApiEnabled;
-  }
-
-  public void setThirdPartyEvaluationApiEnabled(boolean thirdPartyEvaluationApiEnabled) {
-    this.thirdPartyEvaluationApiEnabled = thirdPartyEvaluationApiEnabled;
   }
 }

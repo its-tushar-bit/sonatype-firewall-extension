@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiThirdPartyScanService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.service.InsightConfig;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -42,15 +41,9 @@ public class ApiThirdPartyResource
 
   private final ApiThirdPartyScanService thirdPartyScanService;
 
-  private final InsightConfig config;
-
   @Inject
-  public ApiThirdPartyResource(
-      final ApiThirdPartyScanService thirdPartyScanService,
-      final InsightConfig config)
-  {
+  public ApiThirdPartyResource(final ApiThirdPartyScanService thirdPartyScanService) {
     this.thirdPartyScanService = thirdPartyScanService;
-    this.config = config;
   }
 
   @Path(SCAN_COMPONENTS)
@@ -64,14 +57,8 @@ public class ApiThirdPartyResource
       @DefaultValue("build") @QueryParam("stageId") final String stageId,
       String sbom)
   {
-    if (config.isThirdPartyEvaluationApiEnabled()) {
-      ApiThirdPartyScanTicketDTO ticket =
-          thirdPartyScanService.scanComponents(applicationId, source, stageId, sbom);
-      return Response.status(Response.Status.ACCEPTED).entity(ticket).build();
-    }
-    else {
-      return Response.status(Response.Status.NOT_IMPLEMENTED).entity("").build();
-    }
+    ApiThirdPartyScanTicketDTO ticket = thirdPartyScanService.scanComponents(applicationId, source, stageId, sbom);
+    return Response.status(Response.Status.ACCEPTED).entity(ticket).build();
   }
 
   @GET

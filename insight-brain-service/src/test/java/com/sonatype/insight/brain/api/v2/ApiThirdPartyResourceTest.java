@@ -41,20 +41,9 @@ public class ApiThirdPartyResourceTest
   }
 
   @Test
-  public void testEvaluateComponents_disabledThirdPartyScan() throws Exception {
-    HttpResponse response = restRequest()
-        .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
-        .parameter(app.getId(), "clair").query("stageId", "build").body("<bom/>", MediaType.APPLICATION_XML).post();
-    assertResponseStatus(501, response);
-
-    assertThat(response.getBodyText()).isEmpty();
-  }
-
-  @Test
-  public void testEvaluateComponents_enabledThirdPartyScan() throws Exception {
+  public void testEvaluateComponents_thirdPartyScan() throws Exception {
     String sbom = getSbomFile("/ApiThirdPartyResourceTest/valid_sbom.xml");
 
-    initServer(config -> config.setThirdPartyEvaluationApiEnabled(true));
     HttpResponse response = restRequest()
         .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
         .parameter(app.getId(), "clair").query("stageId", "build").body(sbom, MediaType.APPLICATION_XML).post();
@@ -68,7 +57,6 @@ public class ApiThirdPartyResourceTest
 
   @Test
   public void testEvaluateComponents_nullSbom() throws Exception {
-    initServer(config -> config.setThirdPartyEvaluationApiEnabled(true));
     HttpResponse response = restRequest()
         .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
         .parameter(app.getId(), "clair").query("stageId", "build").body(null).post();
@@ -77,7 +65,6 @@ public class ApiThirdPartyResourceTest
   
   @Test
   public void testEvaluateComponents_invalidStage() throws Exception {
-    initServer(config -> config.setThirdPartyEvaluationApiEnabled(true));
     HttpResponse response = restRequest()
         .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
         .parameter(app.getId(), "clair").query("stageId", "invalidStage").body(null).post();
@@ -88,7 +75,6 @@ public class ApiThirdPartyResourceTest
   public void testEvaluateComponents_invalidSbom() throws Exception {
     String sbom = getSbomFile("/ApiThirdPartyResourceTest/invalid_sbom.xml");
 
-    initServer(config -> config.setThirdPartyEvaluationApiEnabled(true));
     HttpResponse response = restRequest()
         .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
         .parameter(app.getId(), "clair").query("stageId", "build").body(sbom, MediaType.APPLICATION_XML).post();
@@ -101,7 +87,6 @@ public class ApiThirdPartyResourceTest
   @Test
   public void testGetScanStatus() throws Exception {
     String sbom = getSbomFile("/ApiThirdPartyResourceTest/valid_sbom.xml");
-    initServer(config -> config.setThirdPartyEvaluationApiEnabled(true));
     HttpResponse response =
         restRequest().path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
             .parameter(app.getId(), "clair").query("stageId", "build").body(sbom, MediaType.APPLICATION_XML).post();

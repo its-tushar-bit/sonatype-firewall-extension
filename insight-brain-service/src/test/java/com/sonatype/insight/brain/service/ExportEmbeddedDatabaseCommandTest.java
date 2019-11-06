@@ -13,8 +13,13 @@ import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
@@ -79,28 +84,62 @@ public class ExportEmbeddedDatabaseCommandTest
 
       postgres.loadSqlDump(dumpFile.toPath());
 
-      Map<String, Map<String, Integer>> expectedTablesBySchema = new HashMap<>();
+      Map<String, Map<String, List<TableRow>>> expectedTablesBySchema = new HashMap<>();
       try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection()) {
-        countTableRows(expectedTablesBySchema, connection);
+        loadTableRows(expectedTablesBySchema, connection);
       }
       try (Connection connection = AggregationDataStoreProvider.getDataSource().getConnection()) {
-        countTableRows(expectedTablesBySchema, connection);
+        loadTableRows(expectedTablesBySchema, connection);
       }
 
-      Map<String, Map<String, Integer>> actualTablesBySchema = new HashMap<>();
+      Map<String, Map<String, List<TableRow>>> actualTablesBySchema = new HashMap<>();
       try (Connection connection =
           DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())) {
-        countTableRows(actualTablesBySchema, connection);
+        loadTableRows(actualTablesBySchema, connection);
       }
 
-      assertThat(actualTablesBySchema).isEqualTo(expectedTablesBySchema);
+      assertThat(actualTablesBySchema.keySet()).isEqualTo(expectedTablesBySchema.keySet());
+      for (String schemaName : actualTablesBySchema.keySet()) {
+        Map<String, List<TableRow>> actualRowsByTable = actualTablesBySchema.get(schemaName);
+        Map<String, List<TableRow>> expectedRowsByTable = expectedTablesBySchema.get(schemaName);
+        assertThat(actualRowsByTable.keySet()).isEqualTo(actualRowsByTable.keySet());
+        for (String tableName : actualRowsByTable.keySet()) {
+          List<TableRow> actualRows = actualRowsByTable.get(tableName);
+          List<TableRow> expectedRows = expectedRowsByTable.get(tableName);
+          assertThat(actualRows).as(schemaName + "." + tableName).hasSameSizeAs(expectedRows);
+          actualRows.sort(null);
+          expectedRows.sort(null);
+          for (int i = 0; i < actualRows.size(); i++) {
+            assertThat(actualRows.get(i)).as(schemaName + "." + tableName + "." + i).usingRecursiveComparison()
+                .isEqualTo(expectedRows.get(i));
+          }
+        }
+      }
     }
     finally {
       DataSourceFactory.clear_ForTestsOnly();
     }
   }
 
-  private void countTableRows(Map<String, Map<String, Integer>> tablesBySchema, Connection connection)
+  private static class TableRow
+      implements Comparable<TableRow>
+  {
+    String primaryKey = "";
+
+    List<Object> otherColumns = new ArrayList<>();
+
+    @Override
+    public int compareTo(TableRow that) {
+      return primaryKey.compareTo(that.primaryKey);
+    }
+
+    @Override
+    public String toString() {
+      return primaryKey + " > " + otherColumns;
+    }
+  }
+
+  private void loadTableRows(Map<String, Map<String, List<TableRow>>> tablesBySchema, Connection connection)
       throws Exception
   {
     DatabaseMetaData metadata = connection.getMetaData();
@@ -111,15 +150,50 @@ public class ExportEmbeddedDatabaseCommandTest
         try (ResultSet tables = metadata.getTables(null, schemaName, null, new String[]{"TABLE"})) {
           while (tables.next()) {
             String tableName = tables.getString(3);
+            List<TableRow> tableRows = new ArrayList<>();
+            tablesBySchema.get(schemaName).put(tableName, tableRows);
+            Set<String> primaryKeys = getPrimaryKeys(metadata, schemaName, tableName);
             try (Statement query = connection.createStatement();
-                ResultSet count = query.executeQuery("SELECT COUNT(*) FROM " + schemaName + "." + tableName)) {
-              count.next();
-              tablesBySchema.get(schemaName).put(tableName, count.getInt(1));
+                ResultSet rows = query.executeQuery("SELECT * FROM " + schemaName + "." + tableName)) {
+              int columnCount = rows.getMetaData().getColumnCount();
+              while (rows.next()) {
+                TableRow tableRow = new TableRow();
+                tableRows.add(tableRow);
+                for (int i = 1; i <= columnCount; i++) {
+                  Object columnValue;
+                  switch (rows.getMetaData().getColumnType(i)) {
+                    case Types.CLOB:
+                      columnValue = rows.getString(i);
+                      break;
+                    default:
+                      columnValue = rows.getObject(i);
+                      if (columnValue instanceof Number) {
+                        columnValue = ((Number) columnValue).doubleValue();
+                      }
+                  }
+                  if (primaryKeys.contains(rows.getMetaData().getColumnName(i))) {
+                    tableRow.primaryKey += columnValue + "\t";
+                  }
+                  else {
+                    tableRow.otherColumns.add(columnValue);
+                  }
+                }
+              }
             }
           }
         }
       }
     }
+  }
+
+  private Set<String> getPrimaryKeys(DatabaseMetaData metadata, String schemaName, String tableName) throws Exception {
+    Set<String> columnNames = new HashSet<>();
+    try (ResultSet primaryKeys = metadata.getPrimaryKeys(null, schemaName, tableName)) {
+      while (primaryKeys.next()) {
+        columnNames.add(primaryKeys.getString("COLUMN_NAME"));
+      }
+    }
+    return columnNames;
   }
 
   @Test

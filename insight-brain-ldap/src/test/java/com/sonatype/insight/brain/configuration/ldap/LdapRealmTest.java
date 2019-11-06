@@ -159,7 +159,11 @@ public class LdapRealmTest
       assertEmptyPassword("test_sasl_user1_1", null);
       assertEmptyPassword("test_sasl_user1_1", "");
       assertBadCredentials("test_sasl_user1_1", "guest");
-      assertGoodCredentials("test_sasl_user1_1", "Test", "s3cr3t", Group.AUTHENTICATED_USERS_GROUP_ID);
+      assertGoodCredentials("test_sasl_user1_1", "test_sasl_user1_1", "Test", "s3cr3t",
+          Group.AUTHENTICATED_USERS_GROUP_ID);
+      // Verify that the input username is case-insensitive.
+      assertGoodCredentials("tesT_sasl_User1_1", "test_sasl_user1_1", "Test", "s3cr3t",
+          Group.AUTHENTICATED_USERS_GROUP_ID);
     }
     else {
       assertEmptyPassword("anonymous", null);
@@ -170,18 +174,27 @@ public class LdapRealmTest
       assertEmptyPassword("test_user1_1", null);
       assertEmptyPassword("test_user1_1", "");
       assertBadCredentials("test_user1_1", "guest");
-      assertGoodCredentials("test_user1_1", "Test", "far2simple", "Gamma", "Theta", "Omega",
+      assertGoodCredentials("test_user1_1", "test_user1_1", "Test", "far2simple", "Gamma", "Theta", "Omega",
+          Group.AUTHENTICATED_USERS_GROUP_ID);
+      // Verify that the input username is case-insensitive.
+      assertGoodCredentials("tesT_User1_1", "test_user1_1", "Test", "far2simple", "Gamma", "Theta", "Omega",
           Group.AUTHENTICATED_USERS_GROUP_ID);
     }
   }
 
-  private void assertGoodCredentials(String username, String displayName, String password, String... groups) {
-    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(username, password);
+  private void assertGoodCredentials(
+      String inputUsername,
+      String expectedUsername,
+      String displayName,
+      String password,
+      String... groups)
+  {
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(inputUsername, password);
     AuthenticationInfo authenticationInfo = realm.getAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
     assertThat((Iterable<?>) principalCollection).hasSize(1);
     Object principal = principalCollection.iterator().next();
-    assertThat(principal).isEqualTo(new UserPrincipal(username, displayName, ldapServer.getId()));
+    assertThat(principal).isEqualTo(new UserPrincipal(expectedUsername, displayName, ldapServer.getId()));
     assertThat(((UserPrincipal) principal).getMembership()).containsExactlyInAnyOrder(groups);
     assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
   }

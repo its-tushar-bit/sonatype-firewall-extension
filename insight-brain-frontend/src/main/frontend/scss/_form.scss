@@ -194,10 +194,6 @@ textarea {
       border-color: $iq-grey-3;
     }
 
-    &:disabled {
-      @include iq-disabled();
-    }
-
     &.ng-dirty {
       @include iq-dirty();
     }
@@ -219,6 +215,12 @@ textarea {
       border-color: $iq-grey-4;
       border-left-color: $iq-valid-color;
       box-shadow: initial;
+    }
+
+    &:disabled {
+      &, &.ng-valid.ng-dirty {
+        @include iq-disabled();
+      }
     }
 
     &.iq-text-input--read-only {

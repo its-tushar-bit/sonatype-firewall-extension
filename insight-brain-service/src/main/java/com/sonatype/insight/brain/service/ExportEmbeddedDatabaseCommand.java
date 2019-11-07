@@ -21,6 +21,7 @@ import javax.sql.DataSource;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import io.dropwizard.cli.ConfiguredCommand;
@@ -67,6 +68,8 @@ public class ExportEmbeddedDatabaseCommand
     OperationalDataStoreProvider.initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
     AggregationDataStoreProvider
         .initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.aggregation));
+    ThirdPartyScansProvider
+        .initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.third_party_scans));
 
     String path = namespace.getString("dump_file");
     File dumpFile = path != null ? new File(path) : new File(config.getSonatypeWork(), "data/db-dump.sql.gz");
@@ -77,6 +80,7 @@ public class ExportEmbeddedDatabaseCommand
         new BufferedWriter(new OutputStreamWriter(newOutputStream(dumpFile), StandardCharsets.UTF_8))) {
       export(writer, OperationalDataStoreProvider.getDataSource());
       export(writer, AggregationDataStoreProvider.getDataSource());
+      export(writer, ThirdPartyScansProvider.getDataSource());
     }
     log.info("Completed export to {}", dumpFile);
   }

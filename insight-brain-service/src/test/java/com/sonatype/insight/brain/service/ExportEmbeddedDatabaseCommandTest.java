@@ -25,6 +25,7 @@ import java.util.zip.GZIPInputStream;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.postgres.PostgresServer;
 
@@ -89,6 +90,9 @@ public class ExportEmbeddedDatabaseCommandTest
         loadTableRows(expectedTablesBySchema, connection);
       }
       try (Connection connection = AggregationDataStoreProvider.getDataSource().getConnection()) {
+        loadTableRows(expectedTablesBySchema, connection);
+      }
+      try (Connection connection = ThirdPartyScansProvider.getDataSource().getConnection()) {
         loadTableRows(expectedTablesBySchema, connection);
       }
 

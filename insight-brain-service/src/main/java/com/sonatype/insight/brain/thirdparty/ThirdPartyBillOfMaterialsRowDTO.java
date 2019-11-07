@@ -16,6 +16,8 @@ public class ThirdPartyBillOfMaterialsRowDTO
 {
   public String identificationSource;
 
+  public String packageUrl;
+
   public ThirdPartyBillOfMaterialsRowDTO(
       final ComponentIdentifier componentIdentifier,
       final String hash)

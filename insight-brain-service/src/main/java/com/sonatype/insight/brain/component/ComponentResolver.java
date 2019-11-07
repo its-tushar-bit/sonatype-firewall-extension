@@ -82,7 +82,7 @@ public class ComponentResolver
         component.getHash());
     component.setComponentIdentifier(thirdPartyDTO.componentIdentifier);
     component.setMatchState(MatchState.EXACT);
-    component.setIdentificationSource(IdentificationSource.getById(thirdPartyDTO.bomRow.identificationSource));
+    component.setIdentificationSource(IdentificationSource.getOrMake(thirdPartyDTO.bomRow.identificationSource));
     component.setSecurityVulnerabilities(
         thirdPartyDTO.securityRows.stream().map(this::toSecurityVulnerability).collect(Collectors.toList()));
   }

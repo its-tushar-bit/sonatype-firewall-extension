@@ -15,6 +15,14 @@ public class ThirdPartyHealthCheckReportSecurityRowDTO
 
   public String description;
 
+  public String severity;
+
+  public String ratingMethod;
+
+  public String recommendations;
+
+  public String advisories;
+
   public ThirdPartyHealthCheckReportSecurityRowDTO(
       final ComponentIdentifier componentIdentifier,
       final String hash)

@@ -113,9 +113,12 @@ public class ThirdPartyFileCoordinateDAOTest
     final ThirdPartyFileCoordinate coord2 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n2", "v2");
     final ThirdPartyCoordinateSecurity sec1 =
-        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "d1", "l1", 1.1f, "2.1");
-    final ThirdPartyCoordinateSecurity sec2 =
-        tempEntity.newThirdPartyCoordinateSecurity(coord2, "r2", "d1", "l1", 1.2f, "2.2");
+        tempEntity
+            .newThirdPartyCoordinateSecurity(coord1, "r1", "d1", "l1", 1.1f, "2.1", "CVE", "v:1", "Low", "<dd>c1</>",
+                "CVSSv3", "<dd>r1</dd>", "<dd>a1</dd>");
+    final ThirdPartyCoordinateSecurity sec2 = tempEntity
+        .newThirdPartyCoordinateSecurity(coord1, "r2", "d2", "l2", 1.2f, "2.2", "CVE", "v:2", "Low", "<dd>c2</>",
+            "CVSSv2", "<dd>r2</dd>", "<dd>a2</dd>");
 
     try (TransactionContext tx = thirdPartyFileCoordinateDAO.createTransactionContext()) {
       tx.begin();
@@ -170,7 +173,8 @@ public class ThirdPartyFileCoordinateDAOTest
   private void newThirdPartyScan(String scanId, String scanRequestId, ThirdPartyFileCoordinate fileCoordinate) {
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, fileCoordinate.getSource(), fileCoordinate.getFormat(),
-        fileCoordinate.getName(), fileCoordinate.getVersion(), fileCoordinate.getHash());
+        fileCoordinate.getName(), fileCoordinate.getVersion(), fileCoordinate.getHash(),
+        fileCoordinate.getPackageUrl());
     tempEntity.newThirdPartyScan(scanRequestId, scanId, thirdPartyFile);
   }
 }

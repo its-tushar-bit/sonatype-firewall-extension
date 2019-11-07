@@ -85,9 +85,9 @@ public class ThirdPartyCoordinateSecurityDAOTest
     ThirdPartyFileCoordinate coord =
         tempEntity.newThirdPartyFileCoordinate(tempEntity.newThirdPartyFile(), "s1", "f1", "n1", "v1");
     ThirdPartyCoordinateSecurity coordSec1 =
-        tempEntity.newThirdPartyCoordinateSecurity(coord, "r1", "d1", "l1", 1.1f, "f1");
+        tempEntity.newThirdPartyCoordinateSecurity(coord, "r1", "d1", "l1", 1.1f);
     ThirdPartyCoordinateSecurity coordSec2 =
-        tempEntity.newThirdPartyCoordinateSecurity(coord, "r2", "d1", "l2", 1.1f, "f2");
+        tempEntity.newThirdPartyCoordinateSecurity(coord, "r2", "d1", "l2", 1.1f);
 
     final List<ThirdPartyCoordinateSecurity> results = dao.getByFileCoordinateId(coord.getId());
     assertThat(results).usingElementComparator(THIRD_PARTY_COORDINATE_SECURITY_COMPARATOR)
@@ -99,9 +99,9 @@ public class ThirdPartyCoordinateSecurityDAOTest
     ThirdPartyFileCoordinate coord1 =
         tempEntity.newThirdPartyFileCoordinate(tempEntity.newThirdPartyFile(), "s1", "f1", "n1", "v1");
     ThirdPartyCoordinateSecurity coordSec1 =
-        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "d1", "l1", 1.1f, "f1");
+        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "d1", "l1", 1.1f);
     ThirdPartyCoordinateSecurity coordSec2 =
-        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r2", "d1", "l2", 1.1f, "f2");
+        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r2", "d1", "l2", 1.1f);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
@@ -132,16 +132,13 @@ public class ThirdPartyCoordinateSecurityDAOTest
     List<ThirdPartyCoordinateSecurity> list = new ArrayList<>();
 
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
-        tempEntity.newThirdPartyCoordinateSecurity(tempEntity.newThirdPartyFileCoordinate(), "r1", "d1", "l1", 5.5f,
-            "1.1");
+        tempEntity.newThirdPartyCoordinateSecurity(tempEntity.newThirdPartyFileCoordinate(), "r1", "d1", "l1", 5.5f);
     list.add(thirdPartyCoordinateSecurity1);
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity2 =
-        tempEntity.newThirdPartyCoordinateSecurity(tempEntity.newThirdPartyFileCoordinate(), "r2", "d2", "l2", 1f,
-            "1.2");
+        tempEntity.newThirdPartyCoordinateSecurity(tempEntity.newThirdPartyFileCoordinate(), "r2", "d2", "l2", 1f);
     list.add(thirdPartyCoordinateSecurity2);
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity3 =
-        tempEntity.newThirdPartyCoordinateSecurity(tempEntity.newThirdPartyFileCoordinate(), "r3", "d3", "l3", 10f,
-            "1.3");
+        tempEntity.newThirdPartyCoordinateSecurity(tempEntity.newThirdPartyFileCoordinate(), "r3", "d3", "l3", 10f);
     list.add(thirdPartyCoordinateSecurity3);
 
     return list;

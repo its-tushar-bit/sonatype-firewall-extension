@@ -39,17 +39,23 @@ public class ThirdPartyDataServiceTest
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     ThirdPartyFileCoordinate coord1 =
-        tempEntity.newThirdPartyFileCoordinate(file, "f1","CLAIR", "n1", "v1", "hash1");
+        tempEntity.newThirdPartyFileCoordinate(file, "f1", "CLAIR", "n1", "v1", "hash1", "purl1");
     ThirdPartyFileCoordinate coord2 =
-        tempEntity.newThirdPartyFileCoordinate(file, "f1","CLAIR", "n2", "v2", "hash2");
+        tempEntity.newThirdPartyFileCoordinate(file, "f1", "CLAIR", "n2", "v2", "hash2", "purl2");
 
     final ThirdPartyCoordinateSecurity sec1coord1 =
-        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, null);
+        tempEntity
+            .newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, null, "s1", "v:1", "sd1", "<dd>123</dd>",
+                "m1", "<dd>r1</dd>", "<dd>a1</dd>");
     final ThirdPartyCoordinateSecurity sec2coord1 =
-        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r2", "desc2", "l2", 1f, null);
+        tempEntity
+            .newThirdPartyCoordinateSecurity(coord1, "r2", "desc2", "l2", 1f, null, "s2", "v:2", "sd2", "<dd>444</dd>",
+                "m2", "<dd>r2</dd>", "<dd>a2</dd>");
 
     final ThirdPartyCoordinateSecurity sec1coord2 =
-        tempEntity.newThirdPartyCoordinateSecurity(coord2, "r3", "desc3", "l3", 3f, null);
+        tempEntity
+            .newThirdPartyCoordinateSecurity(coord2, "r3", "desc3", "l3", 3f, null, "s3", "v:3", "sd3", "<dd>333</dd>",
+                "m3", "<dd>r3</dd>", "<dd>a3</dd>");
 
     final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
 
@@ -68,10 +74,11 @@ public class ThirdPartyDataServiceTest
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     ThirdPartyFileCoordinate coord1 =
-        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", ComponentIdentifier.FORMAT_MAVEN, "n1", "v1", "hash1");
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", ComponentIdentifier.FORMAT_MAVEN, "n1", "v1", "hash1",
+            "pkg:maven/n1@v1");
 
     final ThirdPartyCoordinateSecurity sec1coord1 =
-        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, null);
+        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f);
 
     final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
 
@@ -89,13 +96,13 @@ public class ThirdPartyDataServiceTest
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file1);
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file2);
     ThirdPartyFileCoordinate coord1 =
-        tempEntity.newThirdPartyFileCoordinate(file1, "f1","CLAIR", "n1", "v1", "hash1");
+        tempEntity.newThirdPartyFileCoordinate(file1, "f1", "CLAIR", "n1", "v1", "hash1", "purl1");
     ThirdPartyFileCoordinate coord2 =
-        tempEntity.newThirdPartyFileCoordinate(file2, "f1","CLAIR", "n1", "v1", "hash1");
+        tempEntity.newThirdPartyFileCoordinate(file2, "f1", "CLAIR", "n1", "v1", "hash1", "purl1");
 
     final ThirdPartyCoordinateSecurity sec1coord1 =
-        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, null);
-    tempEntity.newThirdPartyCoordinateSecurity(coord2, "r1", "desc1", "l1", 5f, null);
+        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f);
+    tempEntity.newThirdPartyCoordinateSecurity(coord2, "r1", "desc1", "l1", 5f);
 
     final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
 
@@ -153,7 +160,12 @@ public class ThirdPartyDataServiceTest
             assertThat(securityRow.score).isEqualTo(expectedSecRow.getSeverity());
             assertThat(securityRow.url).isEqualTo(expectedSecRow.getLink());
             assertThat(securityRow.fixedVersion).isEqualTo(expectedSecRow.getFixedBy());
-            assertThat(securityRow.source).isEqualTo("some source");
+            assertThat(securityRow.source).isEqualTo(expectedSecRow.getVulnerabilitySource());
+            assertThat(securityRow.severity).isEqualTo(expectedSecRow.getSeverityDescription());
+            assertThat(securityRow.cvssVectorString).isEqualTo(expectedSecRow.getAttackVector());
+            assertThat(securityRow.ratingMethod).isEqualTo(expectedSecRow.getRatingMethod());
+            assertThat(securityRow.recommendations).isEqualTo(expectedSecRow.getRecommendations());
+            assertThat(securityRow.advisories).isEqualTo(expectedSecRow.getAdvisories());
           });
     }
   }
@@ -169,6 +181,7 @@ public class ThirdPartyDataServiceTest
               .isEqualTo(ComponentIdentifierAdapter.createGenericIdentifier(coordinate));
           assertThat(bomRow.createTime).isCloseTo(files[0].getCreated().getTime(), withinPercentage(0.001));
           assertThat(bomRow.matchState).isEqualTo(MatchState.EXACT.toString());
+          assertThat(bomRow.packageUrl).isEqualTo(coordinate.getPackageUrl());
         });
   }
 }

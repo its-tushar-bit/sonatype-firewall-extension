@@ -115,6 +115,12 @@ public class ThirdPartyDataService
     dto.url = coordinateSecurity.getLink();
     dto.fixedVersion = coordinateSecurity.getFixedBy();
     dto.source = coordinateSecurity.getVulnerabilitySource();
+    dto.cwe = coordinateSecurity.getCwes();
+    dto.cvssVectorString = coordinateSecurity.getAttackVector();
+    dto.severity = coordinateSecurity.getSeverityDescription();
+    dto.ratingMethod = coordinateSecurity.getRatingMethod();
+    dto.recommendations = coordinateSecurity.getRecommendations();
+    dto.advisories = coordinateSecurity.getAdvisories();
     return dto;
   }
 
@@ -128,6 +134,7 @@ public class ThirdPartyDataService
     dto.createTime = scanTime.getTime();
     dto.matchState = MatchState.EXACT.toString();
     dto.identificationSource = coordinate.getSource();
+    dto.packageUrl = coordinate.getPackageUrl();
     return dto;
   }
 }

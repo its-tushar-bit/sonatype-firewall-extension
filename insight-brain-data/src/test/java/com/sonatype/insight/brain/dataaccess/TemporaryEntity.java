@@ -1939,7 +1939,7 @@ public class TemporaryEntity
       String name,
       String version)
   {
-    return newThirdPartyFileCoordinate(thirdPartyFile, source, format, name, version, newRandomHash());
+    return newThirdPartyFileCoordinate(thirdPartyFile, source, format, name, version, newRandomHash(), null);
   }
 
   public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
@@ -1948,10 +1948,12 @@ public class TemporaryEntity
       String format,
       String name,
       String version,
-      String hash)
+      String hash,
+      String packageUrl)
   {
     ThirdPartyFileCoordinate fileCoordinate =
         new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFile.getId());
+    fileCoordinate.setPackageUrl(packageUrl);
     new ThirdPartyFileCoordinateDAO().insert(fileCoordinate);
     return fileCoordinate;
   }
@@ -1965,18 +1967,43 @@ public class TemporaryEntity
       String refId,
       String description,
       String link,
+      float severity)
+  {
+    return newThirdPartyCoordinateSecurity(fileCoordinate, refId, description, link, severity, "1.1", "some source",
+        "v:1", "Medium", "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>");
+  }
+
+  public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity(
+      ThirdPartyFileCoordinate fileCoordinate,
+      String refId,
+      String description,
+      String link,
       float severity,
-      String fixedBy)
+      String fixedBy,
+      String vulnerabilitySource,
+      String cvssVectorString,
+      String severityDescription,
+      String cwes,
+      String ratingMethod,
+      String recommendations,
+      String advisories)
   {
     ThirdPartyCoordinateSecurity coordinateSecurity =
         new ThirdPartyCoordinateSecurity(fileCoordinate.getId(), refId, description, link, severity, fixedBy);
-    coordinateSecurity.setVulnerabilitySource("some source");
+    coordinateSecurity.setVulnerabilitySource(vulnerabilitySource);
+    coordinateSecurity.setAttackVector(cvssVectorString);
+    coordinateSecurity.setSeverityDescription(severityDescription);
+    coordinateSecurity.setCwes(cwes);
+    coordinateSecurity.setRatingMethod(ratingMethod);
+    coordinateSecurity.setRecommendations(recommendations);
+    coordinateSecurity.setAdvisories(advisories);
     new ThirdPartyCoordinateSecurityDAO().insert(coordinateSecurity);
     return coordinateSecurity;
   }
 
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity() {
-    return newThirdPartyCoordinateSecurity(newThirdPartyFileCoordinate(), "r1", "d1", "l1", 5.5f, "1.1");
+    return newThirdPartyCoordinateSecurity(newThirdPartyFileCoordinate(), "r1", "d1", "l1", 5.5f, "1.1", "some source",
+        "v:1", "Medium", "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>");
   }
 
   public SamlConfiguration newSamlConfiguration(

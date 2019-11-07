@@ -78,6 +78,21 @@ public class ComponentResolverTest
   }
 
   @Test
+  public void testGetComponents_MatchedThirdPartyDataForRandomSource() {
+    when(componentDAO.getAll(app, null, null, null))
+        .thenReturn(asList(newUnknownComponent("hash1")));
+
+    Map<String, ThirdPartyReportComponentDTO> reportDto = new HashMap<>();
+    reportDto.put("hash1", thirdPartyDTOWithIdentification("hash1", "identification-source-1", "ref1", "ref2"));
+    when(thirdPartyComponentDAO.getData(reportFile)).thenReturn(reportDto);
+
+    List<Component> components =
+        componentResolver.getComponents(app, null, null, null, reportFile);
+
+    assertMatchedComponents(components, reportDto);
+  }
+
+  @Test
   public void testGetComponents_DoNotOverrideKnownComponents() {
     final Component knownComponent = newKnownComponent("known");
     when(componentDAO.getAll(app, null, null, null))
@@ -164,16 +179,24 @@ public class ComponentResolverTest
     });
   }
 
-  private ThirdPartyReportComponentDTO thirdPartyDTO(final String hash, String... refs) {
+  private ThirdPartyReportComponentDTO thirdPartyDTOWithIdentification(
+      final String hash,
+      String identificationSource,
+      String... refs)
+  {
     ThirdPartyBillOfMaterialsRowDTO bomRow =
         new ThirdPartyBillOfMaterialsRowDTO(ComponentIdentifier.createNpmCoordinates("id1", "v1"), hash);
-    bomRow.identificationSource = IdentificationSource.CLAIR.getName();
+    bomRow.identificationSource = identificationSource;
     final ThirdPartyReportComponentDTO dto = new ThirdPartyReportComponentDTO(bomRow);
     for (String ref : refs) {
       ThirdPartyHealthCheckReportSecurityRowDTO secDto = newSecurityRowDTO(hash, bomRow.componentIdentifier, ref);
       dto.securityRows.add(secDto);
     }
     return dto;
+  }
+
+  private ThirdPartyReportComponentDTO thirdPartyDTO(final String hash, String... refs) {
+    return thirdPartyDTOWithIdentification(hash, IdentificationSource.CLAIR.getId(), refs);
   }
 
   private ThirdPartyHealthCheckReportSecurityRowDTO newSecurityRowDTO(

@@ -50,6 +50,14 @@ public class IdentificationSource
     return byId.get(id);
   }
 
+  /**
+   * Returns an identification source if the id is existing/known or else will create a new one for the provided id
+   */
+  public static IdentificationSource getOrMake(String id) {
+    final IdentificationSource resolved = getById(id);
+    return resolved != null ? resolved : new IdentificationSource(id, id);
+  }
+
   public static List<IdentificationSource> getAll() {
     return Collections.unmodifiableList(all);
   }

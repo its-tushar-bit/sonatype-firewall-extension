@@ -153,29 +153,23 @@ public class ApplicationCloneService
 
     AuditData.get().setData("sourceApplicationId", sourceAppId);
 
-    try (TransactionContext tx = appDAO.createTransactionContext()) {
-      tx.begin();
+    Application sourceApp = appDAO.getByIdNotNull(sourceAppId);
+    log.info("Cloning application {} (name: {})...", sourceApp.getId(), sourceApp.getName());
 
-      Application sourceApp = appDAO.getByIdNotNull(tx, sourceAppId);
-      log.info("Cloning application {} (name: {})...", sourceApp.getId(), sourceApp.getName());
+    AuditData.get() //
+        .setData("sourceApplicationPublicId", sourceApp.getPublicId()) //
+        .setData("sourceApplicationName", sourceApp.getName()) //
+        .setParentOrganization(orgDAO.getById(sourceApp.getOrganizationId()));
 
-      AuditData.get() //
-          .setData("sourceApplicationPublicId", sourceApp.getPublicId()) //
-          .setData("sourceApplicationName", sourceApp.getName()) //
-          .setParentOrganization(orgDAO.getById(sourceApp.getOrganizationId()));
+    checkAddApplicationPermission(sourceApp.getOrganizationId());
 
-      checkAddApplicationPermission(sourceApp.getOrganizationId());
+    ApiApplicationDTO clonedApp = cloneApplication(sourceApp, clonedAppName, clonedAppPublicId);
 
-      ApiApplicationDTO clonedApp = cloneApplication(tx, sourceApp, clonedAppName, clonedAppPublicId);
-
-      tx.commit();
-
-      log.info("Cloned application {} (name: {}) to application {} (name: {}) in {} ms.", //
-          sourceApp.getId(), sourceApp.getName(), //
-          clonedApp.id, clonedApp.name, //
-          System.currentTimeMillis() - start);
-      return clonedApp;
-    }
+    log.info("Cloned application {} (name: {}) to application {} (name: {}) in {} ms.", //
+        sourceApp.getId(), sourceApp.getName(), //
+        clonedApp.id, clonedApp.name, //
+        System.currentTimeMillis() - start);
+    return clonedApp;
   }
 
   @Authorize(permission = Permission.ADD_APPLICATION)
@@ -185,34 +179,39 @@ public class ApplicationCloneService
   }
 
   private ApiApplicationDTO cloneApplication(
-      TransactionContext tx,
       Application sourceApp,
       String clonedAppName,
       String clonedAppPublicId)
   {
-    if (appDAO.getByName(tx, clonedAppName) != null) {
+    if (appDAO.getByName(clonedAppName) != null) {
       throw new BadRequestException("An application with name '" + clonedAppName + "' already exists.");
     }
-    if (appDAO.getByPublicId(tx, clonedAppPublicId) != null) {
+    if (appDAO.getByPublicId(clonedAppPublicId) != null) {
       throw new BadRequestException("An application with public ID '" + clonedAppPublicId + "' already exists.");
     }
 
-    Application clonedApp = createClonedApplication(tx, sourceApp, clonedAppName, clonedAppPublicId);
-    Map<String, String> mappedLabelIds = cloneLabels(tx, sourceApp, clonedApp);
-    Map<String, String> mappedLicenseThreatGroupIds = cloneLicenseThreatGroups(tx, sourceApp, clonedApp);
-    cloneLicenseOverrides(tx, sourceApp, clonedApp);
-    cloneSecurityVulnerabilityOverrides(tx, sourceApp, clonedApp);
-    cloneMembershipMappings(tx, sourceApp, clonedApp);
-    clonePolicyMonitoring(tx, sourceApp, clonedApp);
-    cloneApplicationTags(tx, sourceApp, clonedApp);
-    cloneProprietaryConfig(tx, sourceApp, clonedApp);
-    cloneSourceControl(tx, sourceApp, clonedApp);
-    Map<String, String> mappedPolicyIds =
-        clonePolicies(tx, sourceApp, clonedApp, mappedLabelIds, mappedLicenseThreatGroupIds);
-    clonePolicyTags(tx, mappedPolicyIds);
-    clonePolicyWaivers(tx, sourceApp, clonedApp, mappedPolicyIds, mappedLabelIds, mappedLicenseThreatGroupIds);
+    try (TransactionContext tx = appDAO.createTransactionContext()) {
+      tx.begin();
 
-    return apiAppAdapter.convertToDTO(clonedApp);
+      Application clonedApp = createClonedApplication(tx, sourceApp, clonedAppName, clonedAppPublicId);
+      Map<String, String> mappedLabelIds = cloneLabels(tx, sourceApp, clonedApp);
+      Map<String, String> mappedLicenseThreatGroupIds = cloneLicenseThreatGroups(tx, sourceApp, clonedApp);
+      cloneLicenseOverrides(tx, sourceApp, clonedApp);
+      cloneSecurityVulnerabilityOverrides(tx, sourceApp, clonedApp);
+      cloneMembershipMappings(tx, sourceApp, clonedApp);
+      clonePolicyMonitoring(tx, sourceApp, clonedApp);
+      cloneApplicationTags(tx, sourceApp, clonedApp);
+      cloneProprietaryConfig(tx, sourceApp, clonedApp);
+      cloneSourceControl(tx, sourceApp, clonedApp);
+      Map<String, String> mappedPolicyIds =
+          clonePolicies(tx, sourceApp, clonedApp, mappedLabelIds, mappedLicenseThreatGroupIds);
+      clonePolicyTags(tx, mappedPolicyIds);
+      clonePolicyWaivers(tx, sourceApp, clonedApp, mappedPolicyIds, mappedLabelIds, mappedLicenseThreatGroupIds);
+
+      tx.commit();
+
+      return apiAppAdapter.convertToDTO(clonedApp);
+    }
   }
 
   private Application createClonedApplication(

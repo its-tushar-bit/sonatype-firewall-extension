@@ -101,6 +101,19 @@ public class SamlConfigurationDAOTest
         .withMessageContaining("Identity provider name").withMessageContaining("characters or less");
   }
 
+  @Test
+  public void testForceDelete() {
+    tempEntity.newSamlConfiguration();
+    dao.forceDelete();
+    assertThat(dao.get()).isNull();
+  }
+
+  @Test
+  public void testForceDelete_Null() {
+    assertThat(dao.get()).isNull();
+    dao.forceDelete();
+  }
+
   private void assertSamlConfiguration(SamlConfiguration samlConfiguration, Date before, Date after) {
     assertThat(samlConfiguration.getIdentityProviderName()).isEqualTo("identity provider");
     assertThat(samlConfiguration.getIdentityProviderMetadataXml()).isNull();

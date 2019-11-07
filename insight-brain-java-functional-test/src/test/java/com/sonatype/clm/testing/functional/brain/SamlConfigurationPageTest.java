@@ -7,12 +7,15 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.Statement;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.SamlConfigurationPage;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 
 import org.apache.commons.io.FileUtils;
@@ -46,15 +49,12 @@ public class SamlConfigurationPageTest
   @After
   public void after() {
     logout();
-    SamlConfiguration samlConfiguration = new SamlConfigurationDAO().get();
-    if (samlConfiguration != null) {
-      new SamlConfigurationDAO().delete(samlConfiguration);
-    }
+    new SamlConfigurationDAO().forceDelete();
   }
 
   @Test
   public void testDefaultState() {
-    eyesWatcher.eyesCheck();
+    eyesWatcher.eyesCheck("saml configuration editor top");
     SamlConfigurationPage.identityProviderName().shouldBe(value("identity provider"));
     SamlConfigurationPage.identityProviderMetadataXmlTextArea().shouldBe(text(""));
 
@@ -66,6 +66,7 @@ public class SamlConfigurationPageTest
     SamlConfigurationPage.usernameAttribute().shouldBe(value("username"));
     SamlConfigurationPage.firstNameAttribute().shouldBe(value("firstName"));
     SamlConfigurationPage.scrollToBottom();
+    eyesWatcher.eyesCheck("saml configuration editor bottom");
     SamlConfigurationPage.lastNameAttribute().shouldBe(value("lastName"));
     SamlConfigurationPage.emailAttribute().shouldBe(value("email"));
     SamlConfigurationPage.groupsAttribute().shouldBe(value("groups"));
@@ -301,5 +302,19 @@ public class SamlConfigurationPageTest
         .shouldHave(text("Maximum length"));
     SamlConfigurationPage.scrollToBottom();
     SamlConfigurationPage.saveButton().shouldHave(DISABLED);
+  }
+
+  @Test
+  public void testLoadError_ForceDelete() throws Exception {
+    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+         Statement statement = connection.createStatement()) {
+      statement.execute("INSERT INTO insight_brain_ods.saml_configuration " +
+          "VALUES ('474878d8bfe44d2086ca8387e340692f', '{}', '', '');");
+    }
+    refreshOrOpen(SamlConfigurationPage.samlConfigurationUrl());
+    SamlConfigurationPage.deleteButton().shouldBe(visible, enabled).click();
+    SamlConfigurationPage.deleteButtonModal().click();
+    SamlConfigurationPage.scrollToBottom();
+    SamlConfigurationPage.saveButton().shouldHave(text("Save"));
   }
 }

@@ -52,4 +52,12 @@ public class SamlConfigurationDAO
         SamlConfigurationInternal.fromSamlConfiguration(samlConfiguration);
     samlConfigurationInternalDAO.delete(samlConfigurationInternal);
   }
+
+  // May be needed if the SAML configuration is corrupt see CLM-14027
+  public void forceDelete() {
+    SamlConfigurationInternal samlConfigurationInternal = samlConfigurationInternalDAO.get();
+    if (samlConfigurationInternal != null) {
+      samlConfigurationInternalDAO.delete(samlConfigurationInternal);
+    }
+  }
 }

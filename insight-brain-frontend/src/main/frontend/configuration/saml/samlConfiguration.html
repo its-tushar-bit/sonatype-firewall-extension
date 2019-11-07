@@ -1,7 +1,10 @@
 <div class="iq-body-container iq-body-container--single-pane"
      authorization-wrapper="vm.isAuthorized"
      maximize-container-height>
-  <div id="saml-configuration" class="iq-tile iq-tile--sys-prefs">
+  <div id="saml-configuration"
+       class="iq-tile iq-tile--sys-prefs"
+       form-mask="vm.samlConfigurationMask"
+       mask-attach-to-body>
     <div class="iq-tile-header iq-tile-header--hrule">
       <div class="iq-tile__actions">
         <a id="saml-iq-server-metadata"
@@ -40,11 +43,7 @@
           Feedback is welcome.
         </a>
       </p>
-      <form name="saml-configurator"
-            class="iq-form iq-form--no-padding iq-form--no-border"
-            ng-submit="vm.save()"
-            form-mask="vm.samlConfigurationMask"
-            mask-attach-to-body>
+      <form name="saml-configurator" class="iq-form iq-form--no-padding iq-form--no-border" ng-submit="vm.save()">
         <div id="saml-identity-provider-name-control-group" class="iq-form-group">
           <label class="iq-label" for="saml-identity-provider-name">Identity Provider Name - Displayed at Login</label>
           <input clm-input
@@ -200,6 +199,12 @@
           </button>
         </div>
       </form>
+    </div>
+    <div class="iq-tile-footer" ng-if="vm.loadError">
+      <!-- Should never be present with the other delete button and so can have the same id -->
+      <button id="saml-delete" type="button" class="iq-btn" ng-click="vm.delete()">
+        <i class="fa fa-trash"></i>Delete Configuration
+      </button>
     </div>
   </div>
 </div>

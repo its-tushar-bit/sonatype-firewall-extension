@@ -382,6 +382,7 @@ describe('samlConfiguration', function() {
 
       expect(Dialog.open).toHaveBeenCalled();
       $httpBackend.expectDELETE(CLMContextLocations.getSamlConfigurationUrl()).respond(404, 'not found');
+      expect(vm.samlConfigurationMask.wrap).not.toHaveBeenCalled();
 
       Dialog.open.calls.mostRecent().args[0].buttons[0].click();
 

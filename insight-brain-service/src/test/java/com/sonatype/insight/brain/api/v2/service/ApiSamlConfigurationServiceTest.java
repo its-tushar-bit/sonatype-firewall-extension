@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.Base64;
 
 import javax.inject.Inject;
@@ -17,15 +19,18 @@ import javax.xml.transform.stream.StreamSource;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationResponseDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.test.LogOutput;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.IndexedEndpointType;
@@ -37,6 +42,7 @@ import org.keycloak.saml.processing.core.util.JAXPValidationUtil;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 public class ApiSamlConfigurationServiceTest
@@ -57,6 +63,9 @@ public class ApiSamlConfigurationServiceTest
   public void setBaseUrl() {
     config.setBaseUrl("http://iq-server:8070/");
   }
+
+  @Rule
+  public LogOutput logOutput = new LogOutput(ApiSamlConfigurationService.class);
 
   @Test
   public void testGetSamlConfiguration() {
@@ -441,6 +450,20 @@ public class ApiSamlConfigurationServiceTest
         .extracting(endpoint -> endpoint.getLocation().toString(), endpoint -> endpoint.getBinding().toString(),
             IndexedEndpointType::getIndex, IndexedEndpointType::isIsDefault)
         .containsExactly(tuple(expectedUrl, "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", 1, true));
+  }
+
+  @Test
+  public void testForceDelete_InvalidConfiguration() throws Exception {
+    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+         Statement statement = connection.createStatement()) {
+      statement.execute("INSERT INTO insight_brain_ods.saml_configuration " +
+          "VALUES ('474878d8bfe44d2086ca8387e340692f', '{}', '', '');");
+    }
+    assertThatThrownBy(() -> samlConfigurationDAO.get()).hasMessage("Could not load SAML keystore.");
+    apiSamlConfigurationService.deleteSamlConfiguration();
+    assertThat(samlConfigurationDAO.get()).isNull();
+    assertThat(samlDeploymentManager.get()).isNull();
+    assertThat(logOutput).atErrorLevel().contains("Forcing delete of SAML configuration.");
   }
 
   private String validIdentityProviderXml() throws Exception {

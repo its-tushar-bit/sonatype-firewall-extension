@@ -137,7 +137,16 @@ public class ApiSamlConfigurationService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteSamlConfiguration() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration;
+    try {
+      samlConfiguration = samlConfigurationDAO.get();
+    }
+    catch (Exception e) {
+      log.error("Forcing delete of SAML configuration.", e);
+      samlConfigurationDAO.forceDelete();
+      samlDeploymentManager.updateFromConfiguration();
+      return;
+    }
 
     if (samlConfiguration == null) {
       throw new NotFoundException("SAML not configured.");

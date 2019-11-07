@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.landing;
 
 import java.io.IOException;
+import java.net.HttpCookie;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,27 +16,21 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
 
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.security.UserSessionResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.mock.hds.HttpResponseProcessor;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.ThreadContext;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 
 import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 
 public class UserInterfaceLinksResourceTest
     extends AbstractResourceTest
@@ -71,7 +66,17 @@ public class UserInterfaceLinksResourceTest
 
   @Test
   @ManualServerInit
-  public void testLinkToReport_WithSourceQuery() throws Exception {
+  public void testLinkToReport_WithSourceQuery_Anonymous() throws Exception {
+    testLinkToReport_WithSourceQuery(true /* anonymous */);
+  }
+
+  @Test
+  @ManualServerInit
+  public void testLinkToReport_WithSourceQuery_UserIsLoggedIn() throws Exception {
+    testLinkToReport_WithSourceQuery(false /* anonymous */);
+  }
+
+  private void testLinkToReport_WithSourceQuery(boolean anonymous) throws Exception {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
     initServer(config -> {
       getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
@@ -84,9 +89,21 @@ public class UserInterfaceLinksResourceTest
 
     assertThat(UserInterfaceLinksResource.getReportUrl(appPublicId, "scan id"))
         .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/" + appPublicId + "/report/scan%20id");
-    HttpResponse redirect = restRequest()
+    HttpRequest request = restRequest()
         .path(UserInterfaceLinksResource.RESOURCE_PATH, UserInterfaceLinksResource.REPORT_PATH)
-        .parameter(appPublicId, "scan id").query("source=Foo").anon().get();
+        .parameter(appPublicId, "scan id").query("source=Foo");
+    
+    if (anonymous) {
+      request.anon();
+    }
+    else {
+      // Create an HTTP session and use it on the test request (to have a user logged in when UserInterfaceLinksResource
+      // is called).
+      HttpCookie sessionCookie = restRequest().path(UserSessionResource.RESOURCE_PATH).post().getSessionCookie();
+      request.cookie(sessionCookie);
+    }
+    
+    HttpResponse redirect = request.get();
     assertRedirect(redirect, "assets/index.html?source=Foo#/applicationReport/" + appPublicId + "/scan%20id/policy");
 
     Map<TelemetryPurpose, List<TelemetryItem>> telemetryItemsByPurpose = getTelemetryItemsByPurpose(responses);
@@ -99,25 +116,7 @@ public class UserInterfaceLinksResourceTest
     assertThat(telemetryData.getAttributes().get("application_id"))
         .isEqualTo(HdsClientAnalytics.obfuscate(application.getId()));
     assertThat(telemetryData.getAttributes().get("scan_id")).isEqualTo(HdsClientAnalytics.obfuscate("scan id"));
-    assertThat(telemetryData.getAttributes().get("is_logged_in")).isEqualTo(false);
-  }
-
-  @Test
-  public void testSendSourceTelemetryData_WhenUserIsLoggedIn() {
-    Subject subject = mock(Subject.class);
-    doReturn("principal").when(subject).getPrincipal();
-    ThreadContext.bind(subject);
-
-    TelemetrySender telemetrySender = mock(TelemetrySender.class);
-    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    doNothing().when(telemetrySender).send(telemetryDataArgumentCaptor.capture());
-    new UserInterfaceLinksResource(mock(BaseUrl.class), telemetrySender, new ApplicationDAO())
-        .sendSourceTelemetryData("appId", "scanId", "source");
-
-    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
-    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK);
-    assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo(HdsClientAnalytics.obfuscate("appId"));
-    assertThat(telemetryData.getAttributes().get("is_logged_in")).isEqualTo(true);
+    assertThat(telemetryData.getAttributes().get("is_logged_in")).isEqualTo(!anonymous);
   }
 
   @Test

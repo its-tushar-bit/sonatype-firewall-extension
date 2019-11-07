@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.report.ReportResource;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -30,9 +31,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.codahale.metrics.annotation.Timed;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import org.apache.shiro.SecurityUtils;
 
 /**
  * Provides URLs to parts of the UI for usage by enforcement points that wish to link to the CLM server's web interface.
@@ -67,16 +66,20 @@ public class UserInterfaceLinksResource
 
   private final TelemetrySender telemetrySender;
 
+  private final CurrentUser currentUser;
+
   private final ApplicationDAO applicationDAO;
 
   @Inject
   public UserInterfaceLinksResource(
       BaseUrl baseUrl,
       TelemetrySender telemetrySender,
+      CurrentUser currentUser,
       ApplicationDAO applicationDAO)
   {
     this.baseUrl = baseUrl;
     this.telemetrySender = telemetrySender;
+    this.currentUser = currentUser;
     this.applicationDAO = applicationDAO;
   }
 
@@ -156,8 +159,7 @@ public class UserInterfaceLinksResource
     return redirect(uriBuilder, vulnerabilityId);
   }
 
-  @VisibleForTesting
-  void sendSourceTelemetryData(final String applicationId, final String scanId, final String source) {
+  private void sendSourceTelemetryData(final String applicationId, final String scanId, final String source) {
     if (source == null) {
       return;
     }
@@ -167,7 +169,7 @@ public class UserInterfaceLinksResource
         .of("source", source.toLowerCase(Locale.ENGLISH),
             "application_id", HdsClientAnalytics.obfuscate(applicationId),
             "scan_id", HdsClientAnalytics.obfuscate(scanId),
-            "is_logged_in", SecurityUtils.getSubject().getPrincipal() != null));
+            "is_logged_in", !currentUser.isAnonymous()));
     telemetrySender.send(telemetryData);
   }
 

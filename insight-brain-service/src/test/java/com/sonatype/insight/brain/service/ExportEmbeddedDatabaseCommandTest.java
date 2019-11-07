@@ -86,7 +86,8 @@ public class ExportEmbeddedDatabaseCommandTest
       service.setConfigurator(config -> {
         DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
         OperationalDataStoreProvider.initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
-        new SamlConfigurationDAO().insert(new SamlConfiguration());
+        // for unclear reasons, this entity can affect other tests using an in-memory database
+        // new SamlConfigurationDAO().insert(new SamlConfiguration());
       });
 
       service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());

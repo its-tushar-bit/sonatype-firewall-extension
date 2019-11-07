@@ -22,10 +22,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
+import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.postgres.PostgresServer;
 
@@ -50,7 +53,7 @@ public class ExportEmbeddedDatabaseCommandTest
     }).withMessageContaining("can only be used when no external database is specified");
   }
 
-  private InsightBrainService newService() {
+  private TestInsightBrainService newService() {
     return new TestInsightBrainService().setWorkDir(tempDir.getRoot());
   }
 
@@ -79,7 +82,14 @@ public class ExportEmbeddedDatabaseCommandTest
     try (PostgresServer postgres = new PostgresServer()) {
       File dumpFile = new File(tempDir.getRoot(), "dump.sql");
 
-      newService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
+      TestInsightBrainService service = newService();
+      service.setConfigurator(config -> {
+        DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
+        OperationalDataStoreProvider.initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
+        new SamlConfigurationDAO().insert(new SamlConfiguration());
+      });
+
+      service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
 
       assertThat(dumpFile).isFile();
 
@@ -239,6 +249,11 @@ public class ExportEmbeddedDatabaseCommandTest
   public void testTransformInsertValues_String_Encoded() {
     assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("STRINGDECODE('abc \'\' \\n\\t\\\\ \\u20AC')"))
         .isEqualTo("abc \' \\n\\t\\\\ \u20AC");
+  }
+
+  @Test
+  public void testTransformInsertValues_Binary() {
+    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("X'0010abCDeF'")).isEqualTo("\\\\x0010abCDeF");
   }
 
   @Test

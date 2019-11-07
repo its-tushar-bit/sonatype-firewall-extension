@@ -209,6 +209,10 @@ public class ExportEmbeddedDatabaseCommand
         }
         i++;
       }
+      else if (c == 'X' && i + 1 < length && values.charAt(i + 1) == '\'') {
+        builder.append("\\\\x");
+        i++;
+      }
       else {
         builder.append(c);
         i++;

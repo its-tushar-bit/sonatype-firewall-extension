@@ -152,7 +152,7 @@ public class ApplicationCloneServiceTest
   }
 
   @Test
-  public void testCloneApplication_Label() {
+  public void testCloneApplication_Label_AppLabel() {
     Label sourceLabel = tempEntity.newLabel(sourceApp.getId());
     ComponentLabel sourceComponentLabel =
         tempEntity.newComponentLabel(sourceApp.getId(), sourceLabel.getId(), "testhash");
@@ -177,6 +177,30 @@ public class ApplicationCloneServiceTest
 
     // Assert the source objects were cloned, not moved.
     assertThat(new LabelDAO().getById(sourceLabel.getId())).isNotNull();
+    assertThat(new ComponentLabelDAO().getById(sourceComponentLabel.getId())).isNotNull();
+  }
+
+  @Test
+  public void testCloneApplication_Label_OrgLabel() {
+    Label label = tempEntity.newLabel(sourceApp.getOrganizationId());
+    ComponentLabel sourceComponentLabel =
+        tempEntity.newComponentLabel(sourceApp.getId(), label.getId(), "testhash");
+
+    ApiApplicationDTO clonedAppDTO =
+        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
+
+    List<Label> clonedLabels = new LabelDAO().getByOwnerId(clonedAppDTO.id);
+    assertThat(clonedLabels).isEmpty();
+
+    List<ComponentLabel> clonedComponentLabels = new ComponentLabelDAO().getByOwnerId(clonedAppDTO.id);
+    assertThat(clonedComponentLabels).hasSize(1);
+    ComponentLabel clonedComponentLabel = clonedComponentLabels.get(0);
+    assertThat(clonedComponentLabel.getId()).isNotEqualTo(sourceComponentLabel.getId());
+    assertThat(clonedComponentLabel.getLabelId()).isEqualTo(label.getId());
+    assertThat(clonedComponentLabel.getHash()).isEqualTo(sourceComponentLabel.getHash());
+
+    // Assert the source objects were cloned, not moved.
+    assertThat(new LabelDAO().getById(label.getId())).isNotNull();
     assertThat(new ComponentLabelDAO().getById(sourceComponentLabel.getId())).isNotNull();
   }
 

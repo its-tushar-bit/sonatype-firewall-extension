@@ -195,6 +195,7 @@ public class ApplicationCloneService
 
       Application clonedApp = createClonedApplication(tx, sourceApp, clonedAppName, clonedAppPublicId);
       Map<String, String> mappedLabelIds = cloneLabels(tx, sourceApp, clonedApp);
+      cloneComponentLabels(tx, sourceApp, clonedApp, mappedLabelIds);
       Map<String, String> mappedLicenseThreatGroupIds = cloneLicenseThreatGroups(tx, sourceApp, clonedApp);
       cloneLicenseOverrides(tx, sourceApp, clonedApp);
       cloneSecurityVulnerabilityOverrides(tx, sourceApp, clonedApp);
@@ -246,20 +247,31 @@ public class ApplicationCloneService
       
       mappedLabelIds.put(sourceLabelId, label.getId());
 
-      List<ComponentLabel> componentLabels = componentLabelDAO.getByLabelId(tx, sourceLabelId);
-      for (ComponentLabel componentLabel : componentLabels) {
-        detachEntity(componentLabel);
-        componentLabel.setLabelId(label.getId());
-        componentLabel.setOwnerId(clonedApp.getId());
-        componentLabelDAO.insert(tx, componentLabel);
-      }
-
       log.info("Cloned label {} (label: {}) to label {}.", //
           sourceLabelId, label.getLabel(), //
           label.getId());
     }
 
     return mappedLabelIds;
+  }
+
+  private void cloneComponentLabels(
+      TransactionContext tx,
+      Application sourceApp,
+      Application clonedApp,
+      Map<String, String> mappedLabelIds)
+  {
+    List<ComponentLabel> componentLabels = componentLabelDAO.getByOwnerId(tx, sourceApp.getId());
+    for (ComponentLabel componentLabel : componentLabels) {
+      detachEntity(componentLabel);
+      String clonedLabelId = mappedLabelIds.get(componentLabel.getLabelId());
+      // The mapped label id is null if the label is inherited from a parent org.
+      if (clonedLabelId != null) {
+        componentLabel.setLabelId(clonedLabelId);
+      }
+      componentLabel.setOwnerId(clonedApp.getId());
+      componentLabelDAO.insert(tx, componentLabel);
+    }
   }
 
   private Map<String, String> cloneLicenseThreatGroups(
@@ -429,12 +441,14 @@ public class ApplicationCloneService
           switch (condition.getConditionTypeId()) {
             case LabelConditionType.ID:
               String mappedLabelId = mappedLabelIds.get(condition.getValue());
+              // The mapped label id is null if the label is inherited from a parent org.
               if (mappedLabelId != null) {
                 condition.setValue(mappedLabelId);
               }
               break;
             case LicenseThreatGroupConditionType.ID:
               String mappedLicenseThreatGroupId = mappedLicenseThreatGroupIds.get(condition.getValue());
+              // The mapped license threat group id is null if the license threat group is inherited from a parent org.
               if (mappedLicenseThreatGroupId != null) {
                 condition.setValue(mappedLicenseThreatGroupId);
               }

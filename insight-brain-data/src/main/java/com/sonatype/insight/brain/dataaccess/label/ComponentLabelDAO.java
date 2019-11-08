@@ -52,9 +52,15 @@ public class ComponentLabelDAO
   }
 
   public List<ComponentLabel> getByOwnerId(String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerId(tx, ownerId);
+    }
+  }
+
+  public List<ComponentLabel> getByOwnerId(TransactionContext tx, String ownerId) {
     final String sQuery = "SELECT label FROM ComponentLabel label" + //
         " WHERE label.ownerId=?1";
-    return getList(sQuery, ownerId);
+    return getList(tx, sQuery, ownerId);
   }
 
   private List<ComponentLabel> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {

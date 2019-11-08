@@ -177,7 +177,8 @@ public class PullRequestTaskTest
     verify(metrics).addResult(anyString(), any(PullRequestResult.class));
 
     assertThat(logOutput).atDebugLevel().contains("Using existing directory for pull request");
-    assertThat(logOutput).atInfoLevel().contains("Pull request complete");
+    assertThat(logOutput).atInfoLevel().contains("Pull request task initiated for application");
+    assertThat(logOutput).atInfoLevel().contains("Pull request task completed for application");
     assertThat(logOutput).atInfoLevel().contains("successful=true");
   }
   

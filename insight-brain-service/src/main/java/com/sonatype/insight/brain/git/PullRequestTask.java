@@ -78,6 +78,7 @@ public class PullRequestTask
     File checkoutDir = null;
     try {
       String applicationId = pullRequestRemediationDetails.getApp().getId();
+      log.info("Pull request task initiated for application '{}'", applicationId);
       GitRepositoryInfo gitInfo = gitApiService.getGitRepositoryInfoForApplication(applicationId);
 
       checkoutDir = new File(insightConfig.getSourceControl().getCloneDirectory(), applicationId);
@@ -106,7 +107,7 @@ public class PullRequestTask
 
       PullRequestResult result = new PullRequestExecutor().execute(command);
       metrics.addResult(applicationId, result);
-      log.info("Pull request complete: {}", result);
+      log.info("Pull request task completed for application '{}': {}", applicationId, result);
     }
     catch (Exception e) {
       log.error("Failed to execute pull request, cleaning pull request directory", e);

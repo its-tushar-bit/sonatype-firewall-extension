@@ -89,19 +89,13 @@ public class ApiSourceControlResourceAuditTest
   public void testAuditForAddOrUpdate() throws Exception {
     String repositoryUrl = ApiSourceControlResourceTest.VALID_URL;
 
-    // make sur automatic source control is on
+    // make sure automatic source control is on
     AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO =
         new AutomaticSourceControlConfigurationDAO();
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
     // create root org source control record
-    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(Organization.ROOT_ORGANIZATION_ID).setToken("token")
-            .setProvider(SourceControlProvider.GITHUB).build());
-    restRequest().path(SOURCE_CONTROL_PATH_V2)
-        .path(OwnerType.ORGANIZATION.toString(), Organization.ROOT_ORGANIZATION_ID)
-        .body(sourceControl)
-        .post();
+    tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, "token", SourceControlProvider.GITHUB);
 
     //CREATE
     HttpResponse response = restRequest().path(SOURCE_CONTROL_PATH_V2)

@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.thirdparty;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.sonatype.insight.scan.util.HashUtils;
+
 import org.apache.commons.lang.StringUtils;
 
 public class ThirdPartyScanResultUtils
@@ -34,5 +36,10 @@ public class ThirdPartyScanResultUtils
     }
 
     return null;
+  }
+
+  public static String hash(String plainText) {
+    final String sha1 = HashUtils.hash(plainText, HashUtils.SHA1);
+    return sha1.substring(0, Math.min(sha1.length(), 20));
   }
 }

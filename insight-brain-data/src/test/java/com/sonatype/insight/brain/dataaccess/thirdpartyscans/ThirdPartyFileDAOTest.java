@@ -56,9 +56,12 @@ public class ThirdPartyFileDAOTest
     ThirdPartyScan scan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartyFileCoordinate coord1 = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1","f1","n1","v1");
     ThirdPartyFileCoordinate coord2 = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1","f1","n2","v2");
-    ThirdPartyCoordinateSecurity tpcs11 = tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "d1","l1",5.5f);
-    ThirdPartyCoordinateSecurity tpcs12 = tempEntity.newThirdPartyCoordinateSecurity(coord1, "r2", "d2","l2",1.5f);
-    ThirdPartyCoordinateSecurity tpcs21 = tempEntity.newThirdPartyCoordinateSecurity(coord2, "r1", "d1","l1",5.5f);
+    ThirdPartyCoordinateSecurity tpcs11 =
+        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "d1", "l1", 5.5f, "Medium", "f1");
+    ThirdPartyCoordinateSecurity tpcs12 =
+        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r2", "d2", "l2", 1.5f, "Low", null);
+    ThirdPartyCoordinateSecurity tpcs21 =
+        tempEntity.newThirdPartyCoordinateSecurity(coord2, "r1", "d1", "l1", 5.5f, "Medium", "f1");
 
     dao.delete(thirdPartyFile);
 

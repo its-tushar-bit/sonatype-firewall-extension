@@ -28,14 +28,12 @@ import org.junit.Test;
 import org.mockito.Spy;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 
 public class ClairScannerResultsHandlerTest
     extends AbstractComponentTest
 {
   @Spy
-  private ClairScannerResultHandler clairHandlerSpy;
+  private ClairScannerResultHandler clairHandler;
 
   @Inject
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
@@ -71,10 +69,7 @@ public class ClairScannerResultsHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(clairScannerResult));
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    doReturn("720a96f88eb4faecd141").when(clairHandlerSpy).buildHash(eq("nm:fn:fv"));
-    doReturn("ca9c29ddc0c9c296648e").when(clairHandlerSpy).buildHash(eq("nm:fn-other:fv-other"));
-
-    String filteredContent = clairHandlerSpy.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile);
     assertThat(filteredContent).isNotNull();
 
     ClairScannerResult filteredClairScannerResult = toClairScannerResult(filteredContent);
@@ -123,7 +118,7 @@ public class ClairScannerResultsHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, null);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = clairHandlerSpy.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile);
     assertThat(filteredContent).isNull();
   }
 
@@ -132,7 +127,7 @@ public class ClairScannerResultsHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(new ClairScannerResult()));
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = clairHandlerSpy.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile);
     ClairScannerResult filteredClairScannerResult = toClairScannerResult(filteredContent);
 
     assertThat(filteredClairScannerResult).isNotNull();
@@ -144,22 +139,22 @@ public class ClairScannerResultsHandlerTest
   public void testGetSeverity() {
     ClairScannerVulnerability vulnerability =
         buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", "High");
-    assertThat(clairHandlerSpy.getSeverity(vulnerability)).isEqualTo(8f);
+    assertThat(clairHandler.getSeverity(vulnerability.getSeverity())).isEqualTo(8f);
 
     vulnerability = buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", "Medium");
-    assertThat(clairHandlerSpy.getSeverity(vulnerability)).isEqualTo(6f);
+    assertThat(clairHandler.getSeverity(vulnerability.getSeverity())).isEqualTo(6f);
 
     vulnerability = buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", "Defcon1");
-    assertThat(clairHandlerSpy.getSeverity(vulnerability)).isEqualTo(10f);
+    assertThat(clairHandler.getSeverity(vulnerability.getSeverity())).isEqualTo(10f);
 
     vulnerability = buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", "Negligible");
-    assertThat(clairHandlerSpy.getSeverity(vulnerability)).isEqualTo(0.5f);
+    assertThat(clairHandler.getSeverity(vulnerability.getSeverity())).isEqualTo(0.5f);
 
     vulnerability = buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", "");
-    assertThat(clairHandlerSpy.getSeverity(vulnerability)).isEqualTo(0f);
+    assertThat(clairHandler.getSeverity(vulnerability.getSeverity())).isEqualTo(0f);
 
     vulnerability = buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", null);
-    assertThat(clairHandlerSpy.getSeverity(vulnerability)).isEqualTo(0f);
+    assertThat(clairHandler.getSeverity(vulnerability.getSeverity())).isEqualTo(0f);
   }
 
   private String toJson(ClairScannerResult clairScannerResult) {
@@ -233,5 +228,6 @@ public class ClairScannerResultsHandlerTest
     assertThat(coordinateSecurity.getRefId()).isEqualTo(vulnerability.getVulnerability());
     assertThat(coordinateSecurity.getSeverity()).isEqualTo(expectedSeverity);
     assertThat(coordinateSecurity.getVulnerabilitySource()).isEqualTo("CSV");
+    assertThat(coordinateSecurity.getSeverityDescription()).isEqualTo(vulnerability.getSeverity());
   }
 }

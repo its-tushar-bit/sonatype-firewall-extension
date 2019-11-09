@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.scan.file.clair.ClairScannerResult;
 import com.sonatype.insight.scan.file.clair.ClairScannerVulnerability;
-import com.sonatype.insight.scan.util.HashUtils;
 
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
@@ -70,7 +69,7 @@ public class ClairScannerResultHandler
       Map<String, String> hashFileCoordinateIdMap,
       TransactionContext tx)
   {
-    String fakeHash = buildHash(
+    String fakeHash = ThirdPartyScanResultUtils.hash(
         vulnerability.getNamespace() + ":" + vulnerability.getFeatureName() + ":" + vulnerability.getFeatureVersion());
 
     String fileCoordinateId = hashFileCoordinateIdMap.get(fakeHash);
@@ -85,28 +84,24 @@ public class ClairScannerResultHandler
       hashFileCoordinateIdMap.put(fakeHash, fileCoordinateId);
     }
 
-    float severity = getSeverity(vulnerability);
+    float severity = getSeverity(vulnerability.getSeverity());
 
     ThirdPartyCoordinateSecurity coordinateSecurity =
         new ThirdPartyCoordinateSecurity(fileCoordinateId, vulnerability.getVulnerability(),
             vulnerability.getDescription(), vulnerability.getLink(), severity, vulnerability.getFixedBy());
     coordinateSecurity.setVulnerabilitySource(
         ThirdPartyScanResultUtils.getVulnerabilitySourceFromReference(vulnerability.getVulnerability()));
+    coordinateSecurity.setSeverityDescription(vulnerability.getSeverity());
     thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
 
     return vulnerability;
   }
 
-  String buildHash(String plainText) {
-    final String sha1 = HashUtils.hash(plainText, HashUtils.SHA1);
-    return sha1.substring(0, Math.min(sha1.length(), 20));
-  }
-
-  float getSeverity(final ClairScannerVulnerability vulnerability) {
+  float getSeverity(final String severity) {
     // approximation based on the mapping range made by Clair:
     // https://github.com/coreos/clair/blob/master/database/severity.go#L31-L69
     // https://github.com/coreos/clair/blob/master/ext/vulnmdsrc/nvd/nvd.go#L266-L280
-    switch (StringUtils.trimToEmpty(vulnerability.getSeverity())) {
+    switch (StringUtils.trimToEmpty(severity)) {
       case "Negligible":
         return 0.5f;
       case "Low":

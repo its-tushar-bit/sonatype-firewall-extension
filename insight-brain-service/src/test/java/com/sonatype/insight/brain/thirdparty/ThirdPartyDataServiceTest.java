@@ -78,7 +78,7 @@ public class ThirdPartyDataServiceTest
             "pkg:maven/n1@v1");
 
     final ThirdPartyCoordinateSecurity sec1coord1 =
-        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f);
+        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, "Medium", null);
 
     final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
 
@@ -101,8 +101,8 @@ public class ThirdPartyDataServiceTest
         tempEntity.newThirdPartyFileCoordinate(file2, "f1", "CLAIR", "n1", "v1", "hash1", "purl1");
 
     final ThirdPartyCoordinateSecurity sec1coord1 =
-        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f);
-    tempEntity.newThirdPartyCoordinateSecurity(coord2, "r1", "desc1", "l1", 5f);
+        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, "Medium", null);
+    tempEntity.newThirdPartyCoordinateSecurity(coord2, "r1", "desc1", "l1", 5f, "Medium", null);
 
     final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
 

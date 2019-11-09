@@ -1967,10 +1967,12 @@ public class TemporaryEntity
       String refId,
       String description,
       String link,
-      float severity)
+      float severity,
+      String severityDescription,
+      String fixedBy)
   {
-    return newThirdPartyCoordinateSecurity(fileCoordinate, refId, description, link, severity, "1.1", "some source",
-        "v:1", "Medium", "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>");
+    return newThirdPartyCoordinateSecurity(fileCoordinate, refId, description, link, severity, fixedBy, "some source",
+        "v:1", severityDescription, "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>");
   }
 
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity(

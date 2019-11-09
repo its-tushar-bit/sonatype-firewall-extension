@@ -177,11 +177,8 @@ public class ThirdPartyScanResultsProcessor
     String lastModified = itemElement.getAttribute("lastModified");
     String sha1 = itemElement.getAttribute("sha1");
 
-    ThirdPartyFile thirdPartyFile = null;
-    if (ItemContentType.CLAIR_SCANNER.name().equals(contentType)) {
-      thirdPartyFile = saveFile(path);
-      saveScan(thirdPartyFile, scanRequestId);
-    }
+    ThirdPartyFile thirdPartyFile = saveFile(path);
+    saveScan(thirdPartyFile, scanRequestId);
 
     ItemContentType contentItemType = ItemContentType.valueOf(contentType);
     ThirdPartyScanResultHandler handler = createHandler(contentItemType);

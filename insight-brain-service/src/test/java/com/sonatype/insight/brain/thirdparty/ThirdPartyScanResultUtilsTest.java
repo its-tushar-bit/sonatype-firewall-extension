@@ -22,4 +22,10 @@ public class ThirdPartyScanResultUtilsTest
     assertThat(ThirdPartyScanResultUtils.getVulnerabilitySourceFromReference("")).isNull();
     assertThat(ThirdPartyScanResultUtils.getVulnerabilitySourceFromReference(null)).isNull();
   }
+
+  @Test
+  public void testHash() {
+    assertThat(ThirdPartyScanResultUtils.hash("pypi:django:1.11.1")).isEqualTo("41d44bac96b8c0e4f78c");
+    assertThat(ThirdPartyScanResultUtils.hash(null)).isEqualTo("da39a3ee5e6b4b0d3255");
+  }
 }

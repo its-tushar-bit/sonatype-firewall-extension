@@ -44,17 +44,14 @@ import org.cyclonedx.model.Component;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Spy;
 import org.xmlunit.assertj.XmlAssert;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class ThirdPartyScanResultsProcessorTest
     extends AbstractComponentTest
@@ -75,9 +72,6 @@ public class ThirdPartyScanResultsProcessorTest
 
   private ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessorSpy;
 
-  @Spy
-  private ClairScannerResultHandler clairHandlerSpy;
-
   private static final Gson GSON = new Gson();
 
   @Before
@@ -96,8 +90,6 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_thirdPartyWithOtherContent() throws Exception {
     File scanFile = getScanFile("scan-thirdparty-and-other-content.xml");
-
-    doReturn(clairHandlerSpy).when(thirdPartyScanResultsProcessorSpy).createHandler(eq(ItemContentType.CLAIR_SCANNER));
 
     thirdPartyScanResultsProcessorSpy.handle(scanFile);
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(any(ItemContentType.class));
@@ -156,8 +148,6 @@ public class ThirdPartyScanResultsProcessorTest
 
     String scanId = tempEntity.uuid();
 
-    doReturn(clairHandlerSpy).when(thirdPartyScanResultsProcessorSpy).createHandler(eq(ItemContentType.CLAIR_SCANNER));
-
     String scanRequestId = thirdPartyScanResultsProcessorSpy.handle(scanFile);
     assertThat(scanRequestId).isNotNull();
     thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
@@ -175,8 +165,6 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_ClairScannerUsingSameClairFileRepeatedContent() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-repeated-content.xml");
     String scanId = tempEntity.uuid();
-
-    doReturn(clairHandlerSpy).when(thirdPartyScanResultsProcessorSpy).createHandler(eq(ItemContentType.CLAIR_SCANNER));
 
     String scanRequestId = thirdPartyScanResultsProcessorSpy.handle(scanFile);
     assertThat(scanRequestId).isNotNull();
@@ -196,8 +184,6 @@ public class ThirdPartyScanResultsProcessorTest
     File scanFile1 = getScanFile("scan-with-clair-scanner-for-multiple-times.xml");
 
     String scandId1 = tempEntity.uuid();
-
-    when(thirdPartyScanResultsProcessorSpy.createHandler(ItemContentType.CLAIR_SCANNER)).thenReturn(clairHandlerSpy);
 
     File scanFile2 = new File(tempDir.newFolder(), scanFile1.getName());
     FileUtils.copyFile(scanFile1, scanFile2);

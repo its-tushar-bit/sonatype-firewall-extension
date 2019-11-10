@@ -55,13 +55,40 @@ public class ExportEmbeddedDatabaseCommandTest
     return new TestInsightBrainService().setWorkDir(tempDir.getRoot());
   }
 
+  private void initData(InsightConfig config) {
+    DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
+    OperationalDataStoreProvider.init(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods), true);
+  }
+
+  @Test
+  public void testRun_UninitializedDatabase() throws Exception {
+    DataSourceFactory.clear_ForTestsOnly();
+    try {
+      File dumpFile = new File(tempDir.getRoot(), "dump.sql");
+
+      assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
+        newService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
+            dumpFile.getPath());
+      }).withMessageMatching(".* The database from .* is empty.*");
+      assertThat(dumpFile).doesNotExist();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
   @Test
   public void testRun_GzippedDump() throws Exception {
     DataSourceFactory.clear_ForTestsOnly();
     try {
       File dumpFile = new File(tempDir.getRoot(), "dump.sql.gz");
 
-      newService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
+      TestInsightBrainService service = newService();
+      service.setConfigurator(config -> {
+        initData(config);
+      });
+
+      service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
 
       assertThat(dumpFile).isFile();
 
@@ -82,10 +109,7 @@ public class ExportEmbeddedDatabaseCommandTest
 
       TestInsightBrainService service = newService();
       service.setConfigurator(config -> {
-        DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
-        OperationalDataStoreProvider.initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
-        // for unclear reasons, this entity can affect other tests using an in-memory database
-        // new SamlConfigurationDAO().insert(new SamlConfiguration());
+        initData(config);
       });
 
       service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());

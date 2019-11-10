@@ -20,10 +20,12 @@ import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import io.dropwizard.cli.Cli;
 import io.dropwizard.cli.ConfiguredCommand;
 import io.dropwizard.setup.Bootstrap;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -56,6 +58,12 @@ public class ExportEmbeddedDatabaseCommand
   }
 
   @Override
+  public void onError(Cli cli, Namespace namespace, Throwable t) {
+    // throw up to let our main() method do the desired error logging/handling
+    throw new IllegalStateException("Error trying to export database: " + t.getMessage(), t);
+  }
+
+  @Override
   protected void run(final Bootstrap<InsightConfig> bootstrap, final Namespace namespace, final InsightConfig config)
       throws Exception
   {
@@ -66,6 +74,16 @@ public class ExportEmbeddedDatabaseCommand
 
     DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
     OperationalDataStoreProvider.initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
+    if (!DatabaseUtil.schemaVersionTableExists(OperationalDataStoreProvider.getDataSource(),
+        OperationalDataStoreProvider.ID)) {
+      throw new BadRequestException("The server needs to have been started normally once before"
+          + " in order to complete the required upgrade steps.");
+    }
+    if (DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(),
+        OperationalDataStoreProvider.ID) <= 0) {
+      throw new BadRequestException("The database from the work directory " + config.getSonatypeWork().getAbsolutePath()
+          + " is empty. Please verify you specified the correct config.yml file.");
+    }
     AggregationDataStoreProvider
         .initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.aggregation));
     ThirdPartyScansProvider

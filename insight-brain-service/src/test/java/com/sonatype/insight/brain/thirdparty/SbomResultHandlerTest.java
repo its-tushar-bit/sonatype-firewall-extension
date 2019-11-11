@@ -42,7 +42,7 @@ import org.mockito.Spy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class SbomResultsHandlerTest
+public class SbomResultHandlerTest
     extends AbstractComponentTest
 {
   @Spy

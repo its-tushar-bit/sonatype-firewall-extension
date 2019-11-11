@@ -22,6 +22,7 @@ import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ART
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 public class ComponentIdentifierAdapterTest
 {
@@ -88,6 +89,20 @@ public class ComponentIdentifierAdapterTest
   @Test
   public void testToComponentIdentifierNull() throws Exception {
     assertThat(ComponentIdentifierAdapter.toComponentIdentifier(null)).isNull();
+  }
+
+  @Test
+  public void testToComponentIdentifier_GenericIdentifier() throws Exception {
+    JsonNode jsonNode = mapper.readTree(
+        "{\"componentIdentifier\": {\"format\": \"maven\", \"coordinates\":{\"namespace\":\"g\",\"name\":\"a\", " +
+            "\"version\":\"v\"}}}");
+    final ComponentIdentifier result =
+        ComponentIdentifierAdapter.toComponentIdentifier(jsonNode.get(ComponentIdentifierAdapter.COMPONENT_IDENTIFIER));
+
+    assertThat(result).isNotNull();
+    assertThat(result.getFormat()).isEqualTo("maven");
+    assertThat(result.getCoordinates())
+        .containsOnly(entry("namespace", "g"), entry("name", "a"), entry("version", "v"));
   }
 
   @Test

@@ -77,14 +77,18 @@ public class ComponentIdentifierAdapter
     if (componentIdentifierNode == null) {
       return null;
     }
-    ComponentIdentifier componentIdentifier;
+    ComponentIdentifier componentIdentifier = null;
     try {
       componentIdentifier = JsonUtils.asPojo(componentIdentifierNode, ComponentIdentifier.class);
+      componentIdentifier.validate();
     }
     catch (IOException e) {
       throw new UncheckedIOException("Error deserializing ComponentIdentifier", e);
     }
-    componentIdentifier.validate();
+    catch (InvalidComponentIdentifierException e) {
+      componentIdentifier = ComponentIdentifier
+          .createGenericCoordinates(componentIdentifier.getFormat(), componentIdentifier.getCoordinates());
+    }
     return componentIdentifier;
   }
 

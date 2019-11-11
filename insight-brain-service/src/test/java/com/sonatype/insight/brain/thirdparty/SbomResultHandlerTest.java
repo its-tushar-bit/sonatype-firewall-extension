@@ -299,6 +299,7 @@ public class SbomResultHandlerTest
     assertThat(coordinates).hasSize(0);
   }
 
+  @Test
   public void testHandleAndFilterContents_unknownFormatPurl() throws Exception {
     String sbomContent = getSbomFile("sbom-unknow-format-purl.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);

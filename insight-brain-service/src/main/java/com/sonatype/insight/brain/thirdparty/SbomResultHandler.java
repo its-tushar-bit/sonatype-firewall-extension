@@ -117,7 +117,7 @@ public class SbomResultHandler
       String thirdPartyFileId,
       Bom sbom,
       Map<String, String> hashFileCoordinateIdMap,
-      TransactionContext tx) throws XmlPullParserException, IOException
+      TransactionContext tx)
   {
     try {
       Xpp3Dom component = Xpp3Util.loadElement("component", parser);

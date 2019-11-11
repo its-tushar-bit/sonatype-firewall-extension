@@ -143,7 +143,7 @@ public class ApiSamlConfigurationService
     }
     catch (Exception e) {
       log.error("Forcing delete of SAML configuration.", e);
-      samlConfigurationDAO.forceDelete();
+      samlConfigurationDAO.delete();
       samlDeploymentManager.updateFromConfiguration();
       return;
     }
@@ -152,7 +152,7 @@ public class ApiSamlConfigurationService
       throw new NotFoundException("SAML not configured.");
     }
 
-    samlConfigurationDAO.delete(samlConfiguration);
+    samlConfigurationDAO.delete();
     samlDeploymentManager.updateFromConfiguration();
     audit(samlConfiguration);
   }

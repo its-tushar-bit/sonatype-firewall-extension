@@ -67,7 +67,7 @@ public class ApiSamlConfigurationResourceTest
       assertResponseStatus(204, response);
     }
     finally {
-      samlConfigurationDAO.delete(samlConfigurationDAO.get());
+      samlConfigurationDAO.delete();
     }
   }
 

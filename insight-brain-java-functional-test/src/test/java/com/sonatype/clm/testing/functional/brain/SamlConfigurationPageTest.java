@@ -49,7 +49,7 @@ public class SamlConfigurationPageTest
   @After
   public void after() {
     logout();
-    new SamlConfigurationDAO().forceDelete();
+    new SamlConfigurationDAO().delete();
   }
 
   @Test
@@ -305,7 +305,7 @@ public class SamlConfigurationPageTest
   }
 
   @Test
-  public void testLoadError_ForceDelete() throws Exception {
+  public void testLoadError_Delete() throws Exception {
     try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
          Statement statement = connection.createStatement()) {
       statement.execute("INSERT INTO insight_brain_ods.saml_configuration " +

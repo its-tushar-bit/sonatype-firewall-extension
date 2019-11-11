@@ -67,7 +67,7 @@ public class SamlConfigurationDAOTest
         .isEqualTo(signingKeyPair.getPublic().getEncoded());
 
     // Delete
-    dao.delete(samlConfiguration);
+    dao.delete();
     samlConfiguration = dao.getById(samlConfigurationId);
     assertThat(samlConfiguration).isNull();
   }
@@ -102,16 +102,9 @@ public class SamlConfigurationDAOTest
   }
 
   @Test
-  public void testForceDelete() {
-    tempEntity.newSamlConfiguration();
-    dao.forceDelete();
+  public void testDelete_Null() {
     assertThat(dao.get()).isNull();
-  }
-
-  @Test
-  public void testForceDelete_Null() {
-    assertThat(dao.get()).isNull();
-    dao.forceDelete();
+    dao.delete();
   }
 
   private void assertSamlConfiguration(SamlConfiguration samlConfiguration, Date before, Date after) {

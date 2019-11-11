@@ -55,7 +55,7 @@ public class ApiSamlConfigurationResourceAuditTest
       assertAuditData(auditDTO);
     }
     finally {
-      new SamlConfigurationDAO().delete(new SamlConfigurationDAO().get());
+      new SamlConfigurationDAO().delete();
     }
   }
 

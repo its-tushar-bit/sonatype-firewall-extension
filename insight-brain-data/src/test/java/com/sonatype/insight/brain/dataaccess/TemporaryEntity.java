@@ -397,7 +397,8 @@ public class TemporaryEntity
     delete(successMetricsReports, successMetricsReportDAO);
     delete(sourceControls, sourceControlDAO);
     delete(systemConfigurationProperties, systemConfigurationPropertyDAO);
-    delete(samlConfigurations, entity -> samlConfigurationDAO.getById(entity.getId()), samlConfigurationDAO::delete);
+    delete(samlConfigurations, entity -> samlConfigurationDAO.getById(entity.getId()),
+        samlConfiguration -> samlConfigurationDAO.delete());
     delete(thirdPartyFileConfigurations, thirdPartyFileDAO);
 
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);

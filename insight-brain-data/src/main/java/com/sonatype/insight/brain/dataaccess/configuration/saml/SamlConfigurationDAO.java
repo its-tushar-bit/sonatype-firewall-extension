@@ -47,14 +47,8 @@ public class SamlConfigurationDAO
     samlConfigurationInternal.loadKeyStoreData(samlConfiguration);
   }
 
-  public void delete(SamlConfiguration samlConfiguration) {
-    SamlConfigurationInternal samlConfigurationInternal =
-        SamlConfigurationInternal.fromSamlConfiguration(samlConfiguration);
-    samlConfigurationInternalDAO.delete(samlConfigurationInternal);
-  }
-
-  // May be needed if the SAML configuration is corrupt see CLM-14027
-  public void forceDelete() {
+  // A parameterless delete method may be needed if the SAML configuration is corrupt see CLM-14027
+  public void delete() {
     SamlConfigurationInternal samlConfigurationInternal = samlConfigurationInternalDAO.get();
     if (samlConfigurationInternal != null) {
       samlConfigurationInternalDAO.delete(samlConfigurationInternal);

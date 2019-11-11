@@ -98,7 +98,7 @@ public class ApiSamlConfigurationServiceTest
       assertConfigIdentical(persisted, dto);
     }
     finally {
-      samlConfigurationDAO.delete(samlConfigurationDAO.get());
+      samlConfigurationDAO.delete();
     }
   }
 
@@ -116,7 +116,7 @@ public class ApiSamlConfigurationServiceTest
       assertConfigIdentical(persisted, dto);
     }
     finally {
-      samlConfigurationDAO.delete(samlConfigurationDAO.get());
+      samlConfigurationDAO.delete();
     }
   }
 
@@ -134,7 +134,7 @@ public class ApiSamlConfigurationServiceTest
       assertConfigIdentical(persisted, new SamlConfiguration());
     }
     finally {
-      samlConfigurationDAO.delete(samlConfigurationDAO.get());
+      samlConfigurationDAO.delete();
     }
   }
 
@@ -152,7 +152,7 @@ public class ApiSamlConfigurationServiceTest
       assertConfigIdentical(persisted, new SamlConfiguration());
     }
     finally {
-      samlConfigurationDAO.delete(samlConfigurationDAO.get());
+      samlConfigurationDAO.delete();
     }
   }
 
@@ -182,7 +182,7 @@ public class ApiSamlConfigurationServiceTest
       assertThat(persisted.getValidateResponseSignature()).isNull();
     }
     finally {
-      samlConfigurationDAO.delete(samlConfigurationDAO.get());
+      samlConfigurationDAO.delete();
     }
   }
 
@@ -373,7 +373,7 @@ public class ApiSamlConfigurationServiceTest
       assertThat(samlDeploymentManager.get().getIDP().getEntityID()).isEqualTo("http://localhost");
     }
     finally {
-      samlConfigurationDAO.delete(samlConfigurationDAO.get());
+      samlConfigurationDAO.delete();
     }
   }
 
@@ -453,7 +453,7 @@ public class ApiSamlConfigurationServiceTest
   }
 
   @Test
-  public void testForceDelete_InvalidConfiguration() throws Exception {
+  public void testDelete_InvalidConfiguration() throws Exception {
     try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
          Statement statement = connection.createStatement()) {
       statement.execute("INSERT INTO insight_brain_ods.saml_configuration " +

@@ -68,7 +68,7 @@ public class SamlAuthcTest
     SamlConfigurationDAO samlConfigDAO = new SamlConfigurationDAO();
     SamlConfiguration samlConfig = new SamlConfiguration();
     samlConfigDAO.insert(samlConfig);
-    samlConfigDAO.delete(samlConfig);
+    samlConfigDAO.delete();
     idpSigningKeyPair = samlConfig.getSigningKeyPair();
     idpMetadata = newIdpMetadata(samlConfig.getCertificate());
   }

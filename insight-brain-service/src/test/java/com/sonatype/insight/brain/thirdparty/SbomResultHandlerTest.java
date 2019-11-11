@@ -238,6 +238,7 @@ public class SbomResultHandlerTest
     assertThat(coordinates).hasSize(0);
   }
 
+  @Test
   public void testHandleAndFilterContents_invalidSbom() throws Exception {
     String sbomContent = getSbomFile("scan-with-invalid-sbom-data-cli.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);

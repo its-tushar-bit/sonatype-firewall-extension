@@ -8,12 +8,18 @@ package com.sonatype.insight.brain.api.v2.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * @since 1.76
  */
-public class ApiComponentPolicyViolationDTO
+@JsonInclude(Include.NON_EMPTY)
+public class ApiRepositoryComponentPolicyViolationDTO
 {
-  public ApiComponentDTOV2 component;
+  public ApiRepositoryComponentDTO component;
 
   public List<ApiWaivedPolicyViolationDTO> waivedPolicyViolations = new ArrayList<>();
+
+  public List<ApiPolicyViolationDTOV2> policyViolations = new ArrayList<>();
 }

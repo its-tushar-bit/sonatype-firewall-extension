@@ -11,7 +11,9 @@ import java.util.List;
 /**
  * @since 1.77
  */
-public class ApiComponentsInQuarantineDTO
+public class ApiRepositoryComponentsInQuarantineDTO
 {
-  public List<ApiRepositoryComponentsInQuarantineDTO> componentsInQuarantine = new ArrayList<>();
+  public ApiRepositoryDTO repository;
+
+  public List<ApiRepositoryComponentPolicyViolationDTO> components = new ArrayList<>();
 }

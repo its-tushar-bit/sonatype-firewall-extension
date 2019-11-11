@@ -1499,6 +1499,11 @@ public class TemporaryEntity
         true, actionId, uuid(), policyName, component.getComponentIdentifier());
   }
 
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(RepositoryPolicyViolation repositoryPolicyViolation) {
+    repositoryPolicyViolationDAO.insert(repositoryPolicyViolation);
+    return repositoryPolicyViolation;
+  }
+
   public RepositoryComponent newRepositoryComponent(String repositoryId) {
     return newRepositoryComponent(repositoryId, "path");
   }
@@ -1594,6 +1599,11 @@ public class TemporaryEntity
 
     repositoryComponent.setQuarantineTime(quarantineTime);
 
+    repositoryComponentDAO.insert(repositoryComponent);
+    return repositoryComponent;
+  }
+
+  public RepositoryComponent newRepositoryComponent(RepositoryComponent repositoryComponent) {
     repositoryComponentDAO.insert(repositoryComponent);
     return repositoryComponent;
   }

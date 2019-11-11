@@ -87,6 +87,12 @@ public class RepositoryComponentDAO
     return getList(tx, sQuery, repositoryId);
   }
 
+  public List<RepositoryComponent> getQuarantinedByRepositoryId(String repositoryId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getQuarantinedByRepositoryId(tx, repositoryId);
+    }
+  }
+
   public Date getOldestComponentEvaluationTimeByRepositoryId(String repositoryId) {
     String sQuery = "SELECT MIN(entity.lastEvaluationTime) FROM RepositoryComponent entity" + //
         " WHERE entity.repositoryId=?1";

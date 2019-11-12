@@ -128,7 +128,7 @@ public class PullRequestTaskTest
     File targetDirectory = new File(config.getCloneDirectory(), APP_ID);
     assertThat(targetDirectory.exists(), is(true));
     verify(gitApi).cloneOrPullRepository(targetDirectory, INFO.baseBranch);
-    verify(gitApi).branch(targetDirectory, BRANCH, true);
+    verify(gitApi).branch(targetDirectory, BRANCH);
     verifyNoMoreInteractions(gitApi);
     verify(metrics).addResult(anyString(), any(PullRequestResult.class));
     verifyNoInteractions(fileCleaner, gitClient);
@@ -171,7 +171,7 @@ public class PullRequestTaskTest
     pullRequestTask.run();
     
     verify(gitApi).cloneOrPullRepository(targetDirectory, INFO.baseBranch);
-    verify(gitApi).branch(targetDirectory, BRANCH, true);
+    verify(gitApi).branch(targetDirectory, BRANCH);
     verify(gitApi).commit(targetDirectory, DEFAULT_COMMITTER, DEFAULT_COMMITTER_EMAIL, TITLE);
     verify(gitApi).push(targetDirectory);
     verify(metrics).addResult(anyString(), any(PullRequestResult.class));

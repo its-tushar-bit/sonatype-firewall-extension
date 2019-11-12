@@ -13,8 +13,7 @@
    -->{{vm.optionNameParam ? item[vm.optionNameParam] : item}}<!--
  --></li>
   </ul>
-  <span class="iq-alert"
-        ng-if="vm.options.length === 0 && vm.noOptionsString"><!--
+  <span ng-if="vm.options.length === 0 && vm.noOptionsString"><!--
  --><i class="fa fa-warning"></i>{{vm.noOptionsString}}<!--
 --></span>
   <span class="iq-form-select__item disabled none-selected" ng-if="!vm.options"><!--

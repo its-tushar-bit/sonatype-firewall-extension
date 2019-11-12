@@ -306,6 +306,10 @@ dropdown-selector {
     color: $iq-fail-color;
     padding: 1px 1px 1px 4px;
     text-align: center;
+
+    .fa {
+      margin-right: 8px;
+    }
   }
 
   &.disabled {

@@ -72,8 +72,7 @@ describe('dropdown.selector.directive.spec.js', function() {
       scope.options = [];
       scope.$digest();
       expect(element.attr('class').split(' ')).toContain('no-options');
-      expect(element.find('span.iq-alert').length).toBe(1);
-      expect(element.find('span.iq-alert').text()).toEqual('No Berries Available');
+      expect(element.text().trim()).toEqual('No Berries Available');
     });
 
     it('Directive does not add no-options class when options are undefined', function() {

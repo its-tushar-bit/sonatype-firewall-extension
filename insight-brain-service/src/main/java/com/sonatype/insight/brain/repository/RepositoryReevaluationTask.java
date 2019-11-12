@@ -81,7 +81,7 @@ public class RepositoryReevaluationTask
     catch (Exception e) {
       AuditData.get().setException(e);
       reevaluations.remove(repository.getId());
-      log.error("An error occured while re-evaluating repository {}:{} ({})", repository.getRepositoryManagerId(),
+      log.error("An error occurred while re-evaluating repository {}:{} ({})", repository.getRepositoryManagerId(),
           repository.getPublicId(), repository.getId(), e);
     }
   }
@@ -122,7 +122,7 @@ public class RepositoryReevaluationTask
       }
       catch (Exception e) {
         AuditData.get().setException(e);
-        log.error("An error occured while re-evaluating repository {}:{} ({})", repository.getRepositoryManagerId(),
+        log.error("An error occurred while re-evaluating repository {}:{} ({})", repository.getRepositoryManagerId(),
             repository.getPublicId(), repository.getId(), e);
       }
       finally {

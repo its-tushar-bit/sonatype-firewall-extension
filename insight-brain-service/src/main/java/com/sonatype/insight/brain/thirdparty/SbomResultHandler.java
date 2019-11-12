@@ -29,6 +29,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.pull.MXParser;
@@ -86,6 +87,7 @@ public class SbomResultHandler
     parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
     parser.setInput(new StringReader(content.getContent()));
 
+    String identificationSource = determineIdentificationSource(content.getPath());
     try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
       tx.begin();
       int eventType = parser.getEventType();
@@ -93,7 +95,7 @@ public class SbomResultHandler
         if (eventType == XmlPullParser.START_TAG) {
           String elementName = parser.getName();
           if ("component".equals(elementName)) {
-            processComponent(parser, thirdPartyFile.getId(), sbom, hashFileCoordinateIdMap, tx);
+            processComponent(parser, thirdPartyFile.getId(), sbom, hashFileCoordinateIdMap, identificationSource, tx);
           }
           else {
             elementNameStack.push(elementName);
@@ -112,18 +114,33 @@ public class SbomResultHandler
     }
   }
 
+  //visible for testing
+  String determineIdentificationSource(final String contentPath) {
+    String fileName = StringUtils.contains(contentPath, "/") ?
+        StringUtils.substringAfterLast(contentPath, "/") : contentPath;
+    String identificationSource = RegExUtils.removePattern(fileName, "-(?i)bom.xml(?i)$");
+    if (StringUtils.isBlank(identificationSource) || StringUtils.endsWithIgnoreCase(identificationSource, "bom.xml")) {
+      return "Third-Party";
+    }
+    else {
+      return identificationSource;
+    }
+  }
+
   private void processComponent(
       XmlPullParser parser,
       String thirdPartyFileId,
       Bom sbom,
       Map<String, String> hashFileCoordinateIdMap,
-      TransactionContext tx)
+      String identificationSource,
+      TransactionContext tx) throws XmlPullParserException, IOException
   {
     try {
       Xpp3Dom component = Xpp3Util.loadElement("component", parser);
       Xpp3Dom packageUrl = component.getChild("purl");
       if (packageUrl != null && !StringUtils.isBlank(packageUrl.getValue())) {
-        processPurlComponent(component, packageUrl, thirdPartyFileId, sbom, hashFileCoordinateIdMap, tx);
+        processPurlComponent(component, packageUrl, thirdPartyFileId, sbom, hashFileCoordinateIdMap,
+            identificationSource, tx);
       }
     }
     catch (InvalidPackageURLException e) {
@@ -140,6 +157,7 @@ public class SbomResultHandler
       String thirdPartyFileId,
       Bom sbom,
       Map<String, String> hashFileCoordinateIdMap,
+      String identificationSource,
       TransactionContext tx)
   {
     PackageUrlIdentifier packageUrlIdentifier = new PackageUrlIdentifier(packageUrl.getValue());
@@ -153,7 +171,7 @@ public class SbomResultHandler
       sbomComponent.setPurl(packageUrl.getValue());
       sbomComponent.setName(component.getChild("name").getValue());
       String fileCoordinateId = saveComponent(thirdPartyFileId, hashFileCoordinateIdMap, componentIdentifier,
-          packageUrlIdentifier, packageUrl.getValue(), tx);
+          packageUrlIdentifier, packageUrl.getValue(), identificationSource, tx);
       saveVulnerabilities(component.getChild("vulnerabilities"), fileCoordinateId, tx);
       sbom.addComponent(sbomComponent);
     }
@@ -168,13 +186,14 @@ public class SbomResultHandler
       ComponentIdentifier componentIdentifier,
       PackageUrlIdentifier packageUrlIdentifier,
       String purl,
+      String identificationSource,
       TransactionContext tx)
   {
     String fakeHash =
         ThirdPartyScanResultUtils.hash(componentIdentifier.getFormat() + ":"
             + StringUtils.join(componentIdentifier.getCoordinates().values(), ":"));
     if (!hashFileCoordinateIdMap.containsKey(fakeHash)) {
-      ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(fakeHash, "Third-Party",
+      ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(fakeHash, identificationSource,
           componentIdentifier.getFormat(), packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion(),
           thirdPartyFileId);
       fileCoordinate.setPackageUrl(purl);

@@ -63,7 +63,7 @@ public class SbomResultHandlerTest
   public void testHandleAndFilterContents_filterContent_newThirdPartyFileMultipleEntries() throws Exception {
     String sbomContent = getSbomFile("sbom-multiple-components.xml");
     ThirdPartyScanContent content =
-        new ThirdPartyScanContent(null, null, null, null, sbomContent);
+        new ThirdPartyScanContent("clair-bom.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
@@ -73,6 +73,9 @@ public class SbomResultHandlerTest
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).hasSize(2);
+    assertThat(coordinates).allSatisfy(coord -> {
+      assertThat(coord.getSource()).isEqualTo("clair");
+    });
   }
 
   @Test
@@ -311,6 +314,22 @@ public class SbomResultHandlerTest
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).hasSize(1);
+  }
+
+  @Test
+  public void testDetermineIdentificationSource() {
+    assertThat(sbomResultHandler.determineIdentificationSource("abcd-bom.xml")).isEqualTo("abcd");
+    assertThat(sbomResultHandler.determineIdentificationSource("ABCD123-BOM.XmL")).isEqualTo("ABCD123");
+    assertThat(sbomResultHandler.determineIdentificationSource("sub/dir/abcd-bom.xml")).isEqualTo("abcd");
+
+    assertThat(sbomResultHandler.determineIdentificationSource("ABCD-SBOM.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineIdentificationSource("abcdbom.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineIdentificationSource("bom.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineIdentificationSource("BOM.XML")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineIdentificationSource("-bom.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineIdentificationSource("sub/dir/bom.xml")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineIdentificationSource("")).isEqualTo("Third-Party");
+    assertThat(sbomResultHandler.determineIdentificationSource(null)).isEqualTo("Third-Party");
   }
 
   private String getSbomFile(final String fileName) throws Exception {

@@ -63,7 +63,7 @@ public class RepositoryPolicyViolationDAO
   }
 
   /**
-   * @since 1.77
+   * @since 1.78
    */
   public List<RepositoryPolicyViolation> getByRepositoryIdAndPathnameAndActionAndNotWaived(
       String repositoryId,

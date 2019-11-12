@@ -43,6 +43,9 @@ public class PublicApiPaths
 
   public static final String COMPONENT_DETAILS_PATH_V2 = API_VERSION_PATH_V2 + "components/details";
 
+  public static final String COMPONENT_QUARANTINE_RELEASE_PATH_V2 =
+      API_VERSION_PATH_V2 + "components/{packageUrl}/quarantine/release/{repositoryId}";
+
   public static final String COMPONENT_VERSIONS_PATH_V2 = API_VERSION_PATH_V2 + "components/versions";
 
   public static final String APP_COMPONENT_LABELS_PATH_V2 = API_VERSION_PATH_V2

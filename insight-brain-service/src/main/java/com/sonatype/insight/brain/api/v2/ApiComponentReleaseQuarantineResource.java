@@ -1,0 +1,47 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentReleasedFromQuarantineDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiComponentReleaseQuarantineService;
+
+import com.codahale.metrics.annotation.Timed;
+
+/**
+ * @since 1.78
+ */
+@Named
+@Timed
+@Path(PublicApiPaths.COMPONENT_QUARANTINE_RELEASE_PATH_V2)
+public class ApiComponentReleaseQuarantineResource
+{
+  private final ApiComponentReleaseQuarantineService componentReleaseQuarantineServiceV2;
+
+  @Inject
+  public ApiComponentReleaseQuarantineResource(
+      final ApiComponentReleaseQuarantineService componentReleaseQuarantineServiceV2)
+  {
+    this.componentReleaseQuarantineServiceV2 = componentReleaseQuarantineServiceV2;
+  }
+
+  @POST
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiComponentReleasedFromQuarantineDTO releaseQuarantineWithoutReEval(
+      @PathParam("repositoryId") final String repositoryId,
+      @PathParam("packageUrl") final String packageUrl)
+  {
+    return componentReleaseQuarantineServiceV2.releaseQuarantineWithoutReEval(repositoryId, packageUrl);
+  }
+}

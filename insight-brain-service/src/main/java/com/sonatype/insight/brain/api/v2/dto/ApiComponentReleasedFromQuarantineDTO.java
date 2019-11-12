@@ -10,5 +10,5 @@ package com.sonatype.insight.brain.api.v2.dto;
  */
 public class ApiComponentReleasedFromQuarantineDTO
 {
-  ApiComponentPolicyViolationDTO componentReleasedFromQuarantine;
+  public ApiRepositoryComponentPolicyViolationDTO componentReleasedFromQuarantine;
 }

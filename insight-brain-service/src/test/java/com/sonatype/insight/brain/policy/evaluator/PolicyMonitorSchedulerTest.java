@@ -33,83 +33,83 @@ public class PolicyMonitorSchedulerTest
     extends AbstractComponentTest
 {
   @Inject
-  private PolicyMonitorScheduler scheduler;
+  private PolicyMonitorScheduler schedulerSpy;
 
   @Mock
-  private ScheduledExecutorService executor;
+  private ScheduledExecutorService executorMock;
 
   @Mock
-  private ProductLicense productLicense;
+  private ProductLicense productLicenseMock;
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(ProductLicense.class).toInstance(productLicense);
+    binder.bind(ProductLicense.class).toInstance(productLicenseMock);
     super.configure(binder);
   }
 
   @Before
   public void init() {
-    scheduler = spy(scheduler);
-    lenient().doReturn(executor).when(scheduler).newExecutor();
+    schedulerSpy = spy(schedulerSpy);
+    lenient().doReturn(executorMock).when(schedulerSpy).newExecutor();
   }
 
   @Test
   public void testStartServer_PolicyMonitoringUnlicensed() {
-    when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(false);
-    scheduler.start();
-    verifyNoInteractions(executor);
+    when(productLicenseMock.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(false);
+    schedulerSpy.start();
+    verifyNoInteractions(executorMock);
   }
 
   @Test
   public void testStartServer_PolicyMonitoringLicensed() {
-    when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(true);
-    scheduler.start();
-    verify(executor).scheduleAtFixedRate(any(Runnable.class), anyLong(), eq(TimeUnit.DAYS.toMillis(1)),
+    when(productLicenseMock.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(true);
+    schedulerSpy.start();
+    verify(executorMock).scheduleAtFixedRate(any(Runnable.class), anyLong(), eq(TimeUnit.DAYS.toMillis(1)),
         eq(TimeUnit.MILLISECONDS));
   }
 
   @Test
   public void testStopServer() {
-    when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(true);
-    scheduler.start();
-    scheduler.stop();
-    verify(executor).shutdown();
+    when(productLicenseMock.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(true);
+    schedulerSpy.start();
+    schedulerSpy.stop();
+    verify(executorMock).shutdown();
   }
 
   @Test
   public void testProductLicenseChanged_MonitoringWasAdded() {
-    when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(false);
-    scheduler.start();
-    when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(true);
-    scheduler.productLicenseChanged();
-    verify(executor).scheduleAtFixedRate(any(Runnable.class), anyLong(), eq(TimeUnit.DAYS.toMillis(1)),
+    when(productLicenseMock.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(false);
+    schedulerSpy.start();
+    when(productLicenseMock.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(true);
+    schedulerSpy.productLicenseChanged();
+    verify(executorMock).scheduleAtFixedRate(any(Runnable.class), anyLong(), eq(TimeUnit.DAYS.toMillis(1)),
         eq(TimeUnit.MILLISECONDS));
   }
 
   @Test
   public void testProductLicenseChanged_MonitoringWasRemoved() {
-    when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(true);
-    scheduler.start();
-    when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(false);
-    scheduler.productLicenseChanged();
-    verify(executor).shutdown();
+    when(productLicenseMock.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(true);
+    schedulerSpy.start();
+    when(productLicenseMock.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(false);
+    schedulerSpy.productLicenseChanged();
+    verify(executorMock).shutdown();
   }
 
   @Test
   public void testProductLicenseChanged_MonitoringStillAvailable() {
-    when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(true);
-    scheduler.start();
-    reset(executor);
-    scheduler.productLicenseChanged();
-    verifyNoInteractions(executor);
+    when(productLicenseMock.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(true);
+    schedulerSpy.start();
+    reset(executorMock);
+    schedulerSpy.productLicenseChanged();
+    verifyNoInteractions(executorMock);
   }
 
   @Test
   public void testProductLicenseChanged_MonitoringStillUnavailable() {
-    when(productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(false);
-    scheduler.start();
-    reset(executor);
-    scheduler.productLicenseChanged();
-    verifyNoInteractions(executor);
+    when(productLicenseMock.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(false);
+    schedulerSpy.start();
+    reset(executorMock);
+    schedulerSpy.productLicenseChanged();
+    verifyNoInteractions(executorMock);
   }
 }

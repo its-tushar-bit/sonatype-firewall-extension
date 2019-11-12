@@ -30,8 +30,6 @@ public class GitApiFactory
 
   public static final String JGIT = "java";
 
-  private static final boolean NATIVE_GIT_ENABLED_BY_DEFAULT = false;
-
   private static final Logger log = LoggerFactory.getLogger(GitApiFactory.class);
 
   private final SourceControlConfig sourceControlConfig;
@@ -61,13 +59,9 @@ public class GitApiFactory
       }
     }
 
-    // TODO remove guard once Native Git support has been tested more thoroughly
-    if (NATIVE_GIT_ENABLED_BY_DEFAULT) {
-      return isNativeGitAvailable() ?
-          new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token) :
-          new JGitApi(gitInfo.repositoryUrl, gitInfo.token);
-    }
-    return new JGitApi(gitInfo.repositoryUrl, gitInfo.token);
+    return isNativeGitAvailable() ?
+        new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token) :
+        new JGitApi(gitInfo.repositoryUrl, gitInfo.token);
   }
 
   @VisibleForTesting

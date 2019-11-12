@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -37,11 +38,13 @@ public class ApiComponentReleaseQuarantineResource
   }
 
   @POST
+  @Consumes(MediaType.TEXT_PLAIN)
   @Produces(MediaType.APPLICATION_JSON)
   public ApiComponentReleasedFromQuarantineDTO releaseQuarantineWithoutReEval(
       @PathParam("repositoryId") final String repositoryId,
-      @PathParam("packageUrl") final String packageUrl)
+      @PathParam("packageUrl") final String packageUrl,
+      final String comment)
   {
-    return componentReleaseQuarantineServiceV2.releaseQuarantineWithoutReEval(repositoryId, packageUrl);
+    return componentReleaseQuarantineServiceV2.releaseQuarantineWithoutReEval(repositoryId, packageUrl, comment);
   }
 }

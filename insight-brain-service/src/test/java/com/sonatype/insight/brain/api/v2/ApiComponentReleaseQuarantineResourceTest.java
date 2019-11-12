@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.Date;
 
+import javax.ws.rs.core.MediaType;
+
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentReleasedFromQuarantineDTO;
@@ -39,7 +41,8 @@ public class ApiComponentReleaseQuarantineResourceTest
         packageURLIdentifier.ensureCompleteIdentifier(), quarantineTime, quarantineTime);
 
     HttpResponse response = restRequest().path(PublicApiPaths.COMPONENT_QUARANTINE_RELEASE_PATH_V2)
-        .parameter(packageURLIdentifier.getPackageUrl(), repository.getId()).post();
+        .parameter(packageURLIdentifier.getPackageUrl(), repository.getId())
+        .body("waiver comment", MediaType.TEXT_PLAIN).post();
     assertResponseStatus(200, response);
 
     ApiComponentReleasedFromQuarantineDTO result = response.getBody(ApiComponentReleasedFromQuarantineDTO.class);

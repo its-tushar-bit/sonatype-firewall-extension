@@ -42,6 +42,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,8 +83,13 @@ public class ApiComponentReleaseQuarantineService
   @Authorize(permission = Permission.WRITE)
   public ApiComponentReleasedFromQuarantineDTO releaseQuarantineWithoutReEval(
       @AuthzContext(Key.REPOSITORY_ID) final String repositoryId,
-      final String packageUrl)
+      final String packageUrl,
+      final String comment)
   {
+    if (StringUtils.isEmpty(comment)) {
+      throw new BadRequestException("Comment has not been specified.");
+    }
+
     ApiComponentReleasedFromQuarantineDTO componentReleasedFromQuarantineDTO =
         new ApiComponentReleasedFromQuarantineDTO();
 
@@ -105,7 +111,7 @@ public class ApiComponentReleaseQuarantineService
       RepositoryPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, repository);
 
       for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
-        policyWaivers.add(waiveRepositoryViolation(tx, repositoryPolicyViolation, now));
+        policyWaivers.add(waiveRepositoryViolation(tx, repositoryPolicyViolation, now, comment));
         policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, repositoryPolicyViolation);
       }
 
@@ -127,12 +133,12 @@ public class ApiComponentReleaseQuarantineService
   private PolicyWaiver waiveRepositoryViolation(
       TransactionContext tx,
       RepositoryPolicyViolation repositoryPolicyViolation,
-      Date now)
+      Date now,
+      String comment)
   {
     PolicyWaiver policyWaiver =
         new PolicyWaiver(repositoryPolicyViolation.getHash(), repositoryPolicyViolation.getPolicyId(),
-            repositoryPolicyViolation.getRepositoryId(),
-            "Waiver automatically added by Component Release from Quarantine API.");
+            repositoryPolicyViolation.getRepositoryId(), comment);
     policyWaiver.setCreateTime(now);
     policyWaiver.setConstraintFactsJson(repositoryPolicyViolation.getConstraintFactsJson());
 

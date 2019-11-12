@@ -35,14 +35,14 @@ public class ApiComponentReleaseQuarantineServiceAuthzTest
         new PackageUrlIdentifier(packageUrl).ensureCompleteIdentifier(), true);
 
     grantWritePermission(repository.getId());
-    apiComponentReleaseQuarantineService.releaseQuarantineWithoutReEval(repository.getId(), packageUrl);
+    apiComponentReleaseQuarantineService.releaseQuarantineWithoutReEval(repository.getId(), packageUrl, "comment");
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testReleaseQuarantineWithoutReEval_Unauthenticated() {
     Repository repository = createRepository();
 
-    apiComponentReleaseQuarantineService.releaseQuarantineWithoutReEval(repository.getId(), "packageUrl");
+    apiComponentReleaseQuarantineService.releaseQuarantineWithoutReEval(repository.getId(), "packageUrl", "comment");
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -50,7 +50,7 @@ public class ApiComponentReleaseQuarantineServiceAuthzTest
     Repository repository = createRepository();
 
     login();
-    apiComponentReleaseQuarantineService.releaseQuarantineWithoutReEval(repository.getId(), "packageUrl");
+    apiComponentReleaseQuarantineService.releaseQuarantineWithoutReEval(repository.getId(), "packageUrl", "comment");
   }
 
   private Repository createRepository() {

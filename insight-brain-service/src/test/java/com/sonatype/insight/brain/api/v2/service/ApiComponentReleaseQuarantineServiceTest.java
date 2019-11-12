@@ -72,7 +72,7 @@ public class ApiComponentReleaseQuarantineServiceTest
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.releaseQuarantineWithoutReEval(repository.getId(), packageURLIdentifier.getPackageUrl());
+      service.releaseQuarantineWithoutReEval(repository.getId(), packageURLIdentifier.getPackageUrl(), "comment");
     }).withMessage(
         "Cannot find a component with packageUrl " + packageURLIdentifier.getPackageUrl() + " in repository with ID " +
             repository.getId() + ".");
@@ -96,7 +96,7 @@ public class ApiComponentReleaseQuarantineServiceTest
 
     Date before = new Date();
     ApiComponentReleasedFromQuarantineDTO result =
-        service.releaseQuarantineWithoutReEval(repository.getId(), packageURLIdentifier.getPackageUrl());
+        service.releaseQuarantineWithoutReEval(repository.getId(), packageURLIdentifier.getPackageUrl(), "comment");
     Date after = new Date();
 
     ApiRepositoryComponentPolicyViolationDTO repositoryComponentPolicyViolationDTO =
@@ -104,8 +104,7 @@ public class ApiComponentReleaseQuarantineServiceTest
 
     repositoryPolicyViolation = repositoryPolicyViolationDAO.getById(repositoryPolicyViolation.getId());
     PolicyWaiver policyWaiver = policyWaiverDAO.getByIdNotNull(repositoryPolicyViolation.getPolicyWaiverId());
-    assertThat(policyWaiver.getComment())
-        .isEqualTo("Waiver automatically added by Component Release from Quarantine API.");
+    assertThat(policyWaiver.getComment()).isEqualTo("comment");
     assertThat(policyWaiver.getCreateTime()).isAfter(quarantineTime);
 
     assertThat(repositoryComponentPolicyViolationDTO).isNotNull();
@@ -125,6 +124,24 @@ public class ApiComponentReleaseQuarantineServiceTest
   }
 
   @Test
+  public void testReleaseQuarantineWithoutReEval_NullComment() {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
+    
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      service.releaseQuarantineWithoutReEval(repository.getId(), packageURLIdentifier.getPackageUrl(), null);
+    }).withMessage("Comment has not been specified.");
+  }
+
+  @Test
+  public void testReleaseQuarantineWithoutReEval_EmptyComment() {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      service.releaseQuarantineWithoutReEval(repository.getId(), packageURLIdentifier.getPackageUrl(), "");
+    }).withMessage("Comment has not been specified.");
+  }
+
+  @Test
   public void testReleaseQuarantineWithoutReEval_WasNotQuarantined() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
 
@@ -132,7 +149,7 @@ public class ApiComponentReleaseQuarantineServiceTest
         packageURLIdentifier.ensureCompleteIdentifier(), false);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.releaseQuarantineWithoutReEval(repository.getId(), packageURLIdentifier.getPackageUrl());
+      service.releaseQuarantineWithoutReEval(repository.getId(), packageURLIdentifier.getPackageUrl(), "comment");
     }).withMessage(
         "Component with packageUrl " + packageURLIdentifier.getPackageUrl() + " in repository " + repository.getId() +
             " is not quarantined.");
@@ -158,7 +175,7 @@ public class ApiComponentReleaseQuarantineServiceTest
 
     Date before = new Date();
     ApiComponentReleasedFromQuarantineDTO result =
-        service.releaseQuarantineWithoutReEval(repository.getId(), packageURLIdentifier.getPackageUrl());
+        service.releaseQuarantineWithoutReEval(repository.getId(), packageURLIdentifier.getPackageUrl(), "comment");
     Date after = new Date();
 
     repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
@@ -181,7 +198,7 @@ public class ApiComponentReleaseQuarantineServiceTest
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.releaseQuarantineWithoutReEval(repository.getId(), packageURLIdentifier.getPackageUrl());
+      service.releaseQuarantineWithoutReEval(repository.getId(), packageURLIdentifier.getPackageUrl(), "comment");
     }).withMessage(
         "Cannot find a component with packageUrl " + packageURLIdentifier.getPackageUrl() + " in repository with ID " +
             repository.getId() + ".");
@@ -197,7 +214,7 @@ public class ApiComponentReleaseQuarantineServiceTest
         quarantineTime);
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.releaseQuarantineWithoutReEval(repository.getId(), packageURLIdentifier.getPackageUrl());
+      service.releaseQuarantineWithoutReEval(repository.getId(), packageURLIdentifier.getPackageUrl(), "comment");
     }).withMessage(
         "Cannot find a component with packageUrl " + packageURLIdentifier.getPackageUrl() + " in repository with ID " +
             repository.getId() + ".");

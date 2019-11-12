@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 public class SbomResultHandler
     implements ThirdPartyScanResultHandler
 {
-  private static final Logger LOG = LoggerFactory.getLogger(SbomResultHandler.class);
+  private static final Logger log = LoggerFactory.getLogger(SbomResultHandler.class);
 
   private final ThirdPartyFileDAO thirdPartyFileDAO = new ThirdPartyFileDAO();
 
@@ -59,7 +59,7 @@ public class SbomResultHandler
     try {
       if (!StringUtils.isBlank(content.getContent())) {
         Bom sbom = new Bom();
-        LOG.info("Processing SBOM content");
+        log.info("Processing SBOM content");
         processSbom(content, sbom, thirdPartyFile);
 
         if (sbom.getComponents() != null && sbom.getComponents().isEmpty()) {
@@ -144,10 +144,10 @@ public class SbomResultHandler
       }
     }
     catch (InvalidPackageURLException e) {
-      LOG.error("Error processing SBOM component, invalid purl", e);
+      log.error("Error processing SBOM component, invalid purl", e);
     }
     catch (Exception e) {
-      LOG.error("Error processing SBOM component", e);
+      log.error("Error processing SBOM component", e);
     }
   }
 
@@ -176,7 +176,7 @@ public class SbomResultHandler
       sbom.addComponent(sbomComponent);
     }
     else {
-      LOG.error("PackageUrl is not valid {}", packageUrl.getValue());
+      log.error("PackageUrl is not valid {}", packageUrl.getValue());
     }
   }
 
@@ -211,7 +211,7 @@ public class SbomResultHandler
       return packageUrlIdentifier.toComponentIdentifier();
     }
     catch (InvalidComponentIdentifierException e) {
-      LOG.debug("Fallback to identification using generic component identifier");
+      log.debug("Fallback to identification using generic component identifier");
       return packageUrlIdentifier.toGenericComponentIdentifier();
     }
   }

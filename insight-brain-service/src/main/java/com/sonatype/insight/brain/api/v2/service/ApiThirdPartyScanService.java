@@ -57,7 +57,7 @@ public class ApiThirdPartyScanService
 
   private final PolicyEvaluateService policyEvaluateService;
 
-  private static final Logger LOG = LoggerFactory.getLogger(ApiThirdPartyScanService.class);
+  private static final Logger log = LoggerFactory.getLogger(ApiThirdPartyScanService.class);
 
   @Inject
   public ApiThirdPartyScanService(
@@ -87,7 +87,7 @@ public class ApiThirdPartyScanService
     String scanRequestId = UUID.randomUUID().toString().replace("-", "");
     ApiThirdPartyScanTicketDTO scanTicketDTO = createScanTicket(applicationId, scanRequestId);
 
-    LOG.debug("Received request to scan SBOM for app id {}, source {}, stageTypeId {}. "
+    log.debug("Received request to scan SBOM for app id {}, source {}, stageTypeId {}. "
         + "The status ID of the operation is {}.", applicationId, source, stage.getStageTypeId(), scanRequestId);
     Application app = new ApplicationDAO().getById(applicationId);
     ScanResult scanResult = createScanFile(sbom, app);
@@ -123,7 +123,7 @@ public class ApiThirdPartyScanService
       return scanner.scanContent(sbom, work.getScanDir(app.getId()), ItemContentType.SBOM, proprietaryConfig);
     }
     catch (IOException ex) {
-      LOG.error("Error processing sbom content", ex);
+      log.error("Error processing sbom content", ex);
       throw new UncheckedIOException(ex.getMessage(), ex);
     }
   }

@@ -42,8 +42,8 @@ import org.slf4j.LoggerFactory;
  * customer or customer installation.
  * This means we cannot log the ID (or any parts of the ID) anywhere.
  * 
- * Note: I chose 5 as length for the two parts of the ID because it gives a collision risk of 1 in 1,099,511,627,776,
- * which is well below what we need. Most probably even 3 would be enough, but I wanted to be on the safe side.
+ * Note: I chose 5 as length for the two parts of the ID because it gives a collision risk of 1 in 1,048,576,
+ * which is well below what we need.
  */
 public class TelemetryId
 {

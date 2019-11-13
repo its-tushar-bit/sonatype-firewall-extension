@@ -77,7 +77,7 @@ public class AdministratorsPage
         }
 
         public SelenideElement groupSearchWarning() {
-          return child("#disabled-group-search-warning");
+          return child(".test-group-search-warning");
         }
 
         public SelenideElement cancelButton() {
@@ -85,7 +85,7 @@ public class AdministratorsPage
         }
 
         public SelenideElement queryInput() {
-          return child("#access-user-search-input");
+          return child(".test-search-input");
         }
 
         public void search() {
@@ -106,7 +106,7 @@ public class AdministratorsPage
         }
 
         public SelenideElement searchButton() {
-          return child("#user-search-button");
+          return child(".test-search-button");
         }
 
         public ElementsCollection members() {

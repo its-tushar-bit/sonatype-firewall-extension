@@ -70,23 +70,23 @@ public class AccessEditorPage
   }
 
   public static SelenideElement addGroupBox() {
-    return $("#access-add-group-input");
+    return $(".test-add-group-input");
   }
 
   public static SelenideElement addGroupButton() {
-    return $("#add-group-button");
+    return $(".test-add-group-button");
   }
 
   public static SelenideElement searchBox() {
-    return $("#access-user-search-input");
+    return $(".test-search-input");
   }
 
   public static SelenideElement searchButton() {
-    return $("#user-search-button");
+    return $(".test-search-button");
   }
-  
+
   public static SelenideElement disabledGroupSearchWarning() {
-    return $("#disabled-group-search-warning");
+    return $(".test-group-search-warning");
   }
 
   public static Condition confirmRemovalThroughUpdateText(String roleName, OwnerType ownerType) {

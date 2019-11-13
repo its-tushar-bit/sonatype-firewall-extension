@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentPolicyViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaivedPolicyViolationDTO;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -122,6 +123,8 @@ public class ApiComponentReleaseQuarantineService
           "repository policy violations.", packageUrl, repositoryPolicyViolations.size());
       tx.commit();
       policyViolationLogger.log();
+      AuditData.get().setData("componentPathname", repositoryComponent.getPathname());
+      AuditData.get().setComponentHash(repositoryComponent.getHash());
 
       componentReleasedFromQuarantineDTO.componentReleasedFromQuarantine =
           buildRepositoryComponentPolicyViolationDTO(repositoryComponent, repositoryPolicyViolations, policyWaivers);

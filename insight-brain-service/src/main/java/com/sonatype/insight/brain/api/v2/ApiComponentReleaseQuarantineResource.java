@@ -17,6 +17,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentReleasedFromQuarantineDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentReleaseQuarantineService;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -40,6 +42,7 @@ public class ApiComponentReleaseQuarantineResource
   @POST
   @Consumes(MediaType.TEXT_PLAIN)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.RELEASE_QUARANTINE)
   public ApiComponentReleasedFromQuarantineDTO releaseQuarantineWithoutReEval(
       @PathParam("repositoryId") final String repositoryId,
       @PathParam("packageUrl") final String packageUrl,

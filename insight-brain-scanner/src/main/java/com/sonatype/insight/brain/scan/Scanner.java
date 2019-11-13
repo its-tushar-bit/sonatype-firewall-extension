@@ -115,6 +115,7 @@ public class Scanner
       String content,
       File scanDir,
       ItemContentType contentType,
+      String source,
       ProprietaryConfig proprietaryConfig) throws IOException
   {
     scanDir.mkdirs();
@@ -133,6 +134,7 @@ public class Scanner
 
         ScanItem scanItem = new ScanItem();
         scanItem.setContentType(contentType);
+        scanItem.setPath(String.format("%s-bom.xml", source));
         scanItem.setContent(content);
         scanItem.setLastModified(new Date().getTime());
         scanItem.setSha1(getHashForContent(content));

@@ -104,7 +104,7 @@ public class ApiThirdPartyScanService
     log.debug("Received request to scan SBOM for app id {}, source {}, stageTypeId {}. "
         + "The status ID of the operation is {}.", applicationId, source, stage.getStageTypeId(), scanRequestId);
     Application app = new ApplicationDAO().getById(applicationId);
-    ScanResult scanResult = createScanFile(sbom, app);
+    ScanResult scanResult = createScanFile(app, sbom, source);
 
     policyEvaluateService.doEvaluationWithPolling(scanRequestId, app.getPublicId(),
         ClientScanType.SONATYPE_THIRD_PARTY, stage,
@@ -130,11 +130,11 @@ public class ApiThirdPartyScanService
     }
   }
 
-  private ScanResult createScanFile(final String sbom, final Application app) {
+  private ScanResult createScanFile(final Application app, final String sbom, final String source) {
     try {
       ProprietaryConfig proprietaryConfig =
           proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION, app.getPublicId());
-      return scanner.scanContent(sbom, work.getScanDir(app.getId()), ItemContentType.SBOM, proprietaryConfig);
+      return scanner.scanContent(sbom, work.getScanDir(app.getId()), ItemContentType.SBOM, source, proprietaryConfig);
     }
     catch (IOException ex) {
       log.error("Error processing sbom content", ex);

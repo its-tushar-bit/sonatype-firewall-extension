@@ -94,14 +94,14 @@ public class ScannerTest extends InjectedTest
             .replace("\r\n", "\n");
 
     ScanResult scanResult =
-        scanner.scanContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, null);
+        scanner.scanContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, "ABCD", null);
     assertThat(scanResult.getScanFile()).isFile();
     assertThat(scanResult.hasThirdPartyScanContent()).isTrue();
     Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getItems()).hasSize(1);
     ScanItem item = scan.getItems().get(0);
-    assertThat(item.getPath()).isNull();
+    assertThat(item.getPath()).isEqualTo("ABCD-bom.xml");
     assertThat(item.getItems()).hasSize(0);
     assertThat(item.getContentType()).isEqualTo(ItemContentType.SBOM);
 

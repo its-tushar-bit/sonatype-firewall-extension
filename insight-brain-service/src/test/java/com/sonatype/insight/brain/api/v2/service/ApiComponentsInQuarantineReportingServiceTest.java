@@ -315,6 +315,7 @@ public class ApiComponentsInQuarantineReportingServiceTest
     assertThat(repositoryComponentDTO.componentIdentifier.getCoordinates())
         .isEqualTo(componentIdentifier.getCoordinates());
 
+    assertThat(repositoryComponentDTO.quarantineId).isEqualTo(componentForAssertions.getComponent().getId());
     assertThat(repositoryComponentDTO.quarantineTime).isNotNull();
     assertThat(repositoryComponentDTO.quarantineReleaseTime).isNull();
 

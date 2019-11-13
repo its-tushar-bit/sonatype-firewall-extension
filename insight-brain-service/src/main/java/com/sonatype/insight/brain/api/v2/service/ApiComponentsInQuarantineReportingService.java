@@ -132,6 +132,7 @@ public class ApiComponentsInQuarantineReportingService
     repositoryComponentDTO.hash = repositoryComponent.getHash();
     repositoryComponentDTO.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(
         repositoryComponent.getComponentIdentifier());
+    repositoryComponentDTO.quarantineId = repositoryComponent.getId();
     repositoryComponentDTO.quarantineTime = repositoryComponent.getQuarantineTime();
     repositoryComponentDTO.quarantineReleaseTime = repositoryComponent.getUnquarantineTime();
     return repositoryComponentDTO;

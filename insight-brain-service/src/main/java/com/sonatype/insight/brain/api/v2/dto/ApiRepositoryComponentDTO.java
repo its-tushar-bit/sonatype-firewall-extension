@@ -19,6 +19,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 public class ApiRepositoryComponentDTO
     extends ApiComponentDTOV2
 {
+  @JsonInclude(Include.NON_EMPTY)
+  public String quarantineId;
+
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
   public Date quarantineTime;
 

@@ -14,5 +14,25 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public class ApiThirdPartyScanResultDTO
 {
-  public String reportUrl;
+  public String policyAction;
+
+  public String reportHtmlUrl;
+
+  public boolean isError;
+
+  public String errorMessage;
+
+  public ApiThirdPartyScanResultDTO() {
+    // noop
+  }
+
+  public ApiThirdPartyScanResultDTO(String policyAction, String reportHtmlUrl) {
+    this.policyAction = policyAction;
+    this.reportHtmlUrl = reportHtmlUrl;
+  }
+
+  public ApiThirdPartyScanResultDTO(String errorMessage) {
+    this.isError = true;
+    this.errorMessage = errorMessage;
+  }
 }

@@ -28,12 +28,10 @@ public class ApiThirdPartyScanServiceAuthzTest
 
   @Test
   public void testEvaluateComponents_Authorized() throws Exception {
-    byte[] bytes = Files.readAllBytes(
-        Paths.get(getClass().getResource("/ApiThirdPartyEvaluationServiceAuthzTest/valid_sbom.xml").toURI()));
-    String sbom = new String(bytes, StandardCharsets.UTF_8);
+    String bom = getBomFile("/ApiThirdPartyEvaluationServiceAuthzTest/valid_sbom.xml");
 
     grantReadPermission(app.getId());
-    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", sbom);
+    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", bom);
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -61,8 +59,14 @@ public class ApiThirdPartyScanServiceAuthzTest
   @Test
   public void testGetScanStatus_Authorized() {
     grantEvaluateApplicationPermission(app.getId());
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      apiThirdPartyEvaluationService.getScanStatus(app.getId(), "scanRequestId");
-    }).withMessage("Report with status id %s for application with id %s was not found.", "scanRequestId", app.getId());
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiThirdPartyEvaluationService.getScanStatus(app.getId(), "scanRequestId"))
+        .withMessage("Policy evaluation status with id %s for public application id %s was not found.",
+            "scanRequestId", app.getPublicId());
+  }
+
+  private String getBomFile(String path) throws Exception {
+    byte[] bytes = Files.readAllBytes(Paths.get(getClass().getResource(path).toURI()));
+    return new String(bytes, StandardCharsets.UTF_8);
   }
 }

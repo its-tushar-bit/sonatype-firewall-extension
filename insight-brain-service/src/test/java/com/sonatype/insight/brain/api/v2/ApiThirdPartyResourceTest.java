@@ -12,8 +12,12 @@ import java.nio.file.Paths;
 
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -34,6 +38,14 @@ public class ApiThirdPartyResourceTest
 
   private Application app;
 
+  private HttpRequest scanBomRequest(String applicationId, String source, String stageId, String bom) {
+    return restRequest()
+        .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
+        .parameter(applicationId, source)
+        .query("stageId", stageId)
+        .body(bom, MediaType.APPLICATION_XML);
+  }
+
   @Before
   public void setupApplication() {
     org = tempEntity.newOrganization();
@@ -42,66 +54,78 @@ public class ApiThirdPartyResourceTest
 
   @Test
   public void testEvaluateComponents_thirdPartyScan() throws Exception {
-    String sbom = getSbomFile("/ApiThirdPartyResourceTest/valid_sbom.xml");
+    String bom = getBomFile("/ApiThirdPartyResourceTest/valid_bom.xml");
 
-    HttpResponse response = restRequest()
-        .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
-        .parameter(app.getId(), "clair").query("stageId", "build").body(sbom, MediaType.APPLICATION_XML).post();
+    HttpResponse response = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD, bom).post();
     assertResponseStatus(202, response);
 
-    ApiThirdPartyScanTicketDTO evaluationResult = response.getBody(ApiThirdPartyScanTicketDTO.class);
-    assertThat(evaluationResult).isNotNull();
-    assertThat(evaluationResult.statusUrl).isNotNull();
-    assertThat(new URI(evaluationResult.statusUrl)).isNotNull();
+    ApiThirdPartyScanTicketDTO ticketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
+    assertThat(ticketDTO).isNotNull();
+    assertThat(ticketDTO.statusUrl).isNotNull();
+    assertThat(new URI(ticketDTO.statusUrl)).isNotNull();
   }
 
   @Test
-  public void testEvaluateComponents_nullSbom() throws Exception {
-    HttpResponse response = restRequest()
-        .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
-        .parameter(app.getId(), "clair").query("stageId", "build").body(null).post();
+  public void testEvaluateComponents_nullBom() throws Exception {
+    HttpResponse response = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD, null).post();
     assertResponseStatus(400, response);
   }
   
   @Test
   public void testEvaluateComponents_invalidStage() throws Exception {
-    HttpResponse response = restRequest()
-        .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
-        .parameter(app.getId(), "clair").query("stageId", "invalidStage").body(null).post();
+    HttpResponse response = scanBomRequest(app.getId(), "clair", "invalidStage", null).post();
     assertResponseStatus(400, response);
   }
 
   @Test
-  public void testEvaluateComponents_invalidSbom() throws Exception {
-    String sbom = getSbomFile("/ApiThirdPartyResourceTest/invalid_sbom.xml");
+  public void testEvaluateComponents_invalidBom() throws Exception {
+    String bom = getBomFile("/ApiThirdPartyResourceTest/invalid_bom.xml");
 
-    HttpResponse response = restRequest()
-        .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
-        .parameter(app.getId(), "clair").query("stageId", "build").body(sbom, MediaType.APPLICATION_XML).post();
-    assertResponseStatus(400, response);
-
+    HttpResponse response = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD, bom).post();
     String error = response.getBodyText();
     assertThat(error).matches("cvc-complex-type.4:.*'name'.*'v:source'.*");
   }
 
   @Test
-  public void testGetScanStatus() throws Exception {
-    String sbom = getSbomFile("/ApiThirdPartyResourceTest/valid_sbom.xml");
-    HttpResponse response =
-        restRequest().path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
-            .parameter(app.getId(), "clair").query("stageId", "build").body(sbom, MediaType.APPLICATION_XML).post();
+  public void testGetScanStatus_Completed() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    // Simulate that the report is available
+    String scanId = mockReport("/ApiThirdPartyResourceTest/report.zip");
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+    mockScanReceipt(scanReceipt);
+
+    String bom = getBomFile("/ApiThirdPartyResourceTest/valid_bom.xml");
+    HttpResponse response = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD, bom).post();
     assertResponseStatus(202, response);
 
-    ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
-    assertThat(apiThirdPartyScanTicketDTO).isNotNull();
-    assertThat(apiThirdPartyScanTicketDTO.statusUrl).isNotNull();
+    ApiThirdPartyScanTicketDTO ticketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
+    assertThat(ticketDTO).isNotNull();
+    assertThat(ticketDTO.statusUrl).isNotNull();
+    assertThat(new URI(ticketDTO.statusUrl)).isNotNull();
 
-    response = restRequest().path(apiThirdPartyScanTicketDTO.statusUrl).get();
-
-    assertResponseStatus(404, response);
+    ApiThirdPartyScanResultDTO resultDTO = getApiThirdPartyTicketResultDTO(ticketDTO.statusUrl);
+    assertThat(resultDTO.reportHtmlUrl).contains("/ui/links/application/" + app.getPublicId() + "/report/" + scanId);
+    assertThat(resultDTO.policyAction).isEqualTo("None");
+    assertThat(resultDTO.isError).isFalse();
+    assertThat(resultDTO.errorMessage).isNull();
   }
 
-  private String getSbomFile(String path) throws Exception {
+  private ApiThirdPartyScanResultDTO getApiThirdPartyTicketResultDTO(String statusUrl) throws Exception {
+    long endTime = System.currentTimeMillis() + 10000;
+    while (System.currentTimeMillis() < endTime) {
+      HttpResponse response = restRequest().path(statusUrl).get();
+      if (response.getStatusCode() == 200) {
+        return response.getBody(ApiThirdPartyScanResultDTO.class);
+      }
+      Thread.sleep(500);
+    }
+    throw new RuntimeException(
+        "Retrieving scan status did not complete within the expected 10 seconds to get the scan result");
+  }
+
+  private String getBomFile(String path) throws Exception {
     byte[] bytes =
         Files.readAllBytes(Paths.get(getClass().getResource(path).toURI()));
     return new String(bytes, StandardCharsets.UTF_8);

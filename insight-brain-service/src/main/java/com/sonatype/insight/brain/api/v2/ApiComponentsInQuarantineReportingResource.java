@@ -15,6 +15,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentsInQuarantineDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentsInQuarantineReportingService;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -37,6 +39,7 @@ public class ApiComponentsInQuarantineReportingResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_QUARANTINED_COMPONENTS)
   public ApiComponentsInQuarantineDTO getComponentsInQuarantine() {
     return service.getComponentsInQuarantine();
   }

@@ -25,12 +25,15 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.brain.audit.AuditData;
 
 /**
  * @since 1.77
  */
 public class ApiComponentsInQuarantineReportingService
 {
+  private static final String QUARANTINED_COMPONENTS_AUDIT_KEY = "numberOfQuarantinedComponents";
+
   private final RepositoryService repositoryService;
 
   private final RepositoryComponentDAO repositoryComponentDAO;
@@ -56,6 +59,7 @@ public class ApiComponentsInQuarantineReportingService
     List<RepositoryDTO> repositoryDTOs = repositoryService.getRepositories().repositories;
 
     if (repositoryDTOs == null) {
+      AuditData.get().setData(QUARANTINED_COMPONENTS_AUDIT_KEY, 0);
       return new ApiComponentsInQuarantineDTO();
     }
 
@@ -63,6 +67,7 @@ public class ApiComponentsInQuarantineReportingService
   }
 
   private ApiComponentsInQuarantineDTO buildApiComponentsInQuarantineDTO(List<RepositoryDTO> repositoryDTOs) {
+    long numOfQuarantinedComponents = 0L;
     ApiComponentsInQuarantineDTO componentsInQuarantineDTO = new ApiComponentsInQuarantineDTO();
 
     for (RepositoryDTO repositoryDTO : repositoryDTOs) {
@@ -78,11 +83,13 @@ public class ApiComponentsInQuarantineReportingService
           repositoryComponentPolicyViolationDTOs);
 
       if (!repositoryComponentPolicyViolationDTOs.isEmpty()) {
+        numOfQuarantinedComponents += repositoryComponentPolicyViolationDTOs.size();
         repositoryComponentsInQuarantineDTO.components = repositoryComponentPolicyViolationDTOs;
         componentsInQuarantineDTO.componentsInQuarantine.add(repositoryComponentsInQuarantineDTO);
       }
     }
 
+    AuditData.get().setData(QUARANTINED_COMPONENTS_AUDIT_KEY, numOfQuarantinedComponents);
     return componentsInQuarantineDTO;
   }
 

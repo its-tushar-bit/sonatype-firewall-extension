@@ -276,6 +276,20 @@ public class ApiSourceControlResourceTest
     assertThat(result.repositoryUrl).isEqualTo(VALID_URL);
     assertThat(result.token).isNull();
     assertThat(result.provider).isNull();
+
+    // now try to update with a different repo URL value
+    response = restRequest()
+        .query("publicId", app.getPublicId())
+        .query("repositoryUrl", "https://example.com/organization/project2")
+        .post();
+    assertResponseStatus(200, response);
+    result = response.getBody(ApiSourceControlDTO.class);
+
+    assertThat(result.id).isNotNull();
+    assertThat(result.ownerId).isEqualTo(app.getId());
+    assertThat(result.repositoryUrl).isEqualTo(VALID_URL); // should not change
+    assertThat(result.token).isNull();
+    assertThat(result.provider).isNull();
   }
 
   @Test

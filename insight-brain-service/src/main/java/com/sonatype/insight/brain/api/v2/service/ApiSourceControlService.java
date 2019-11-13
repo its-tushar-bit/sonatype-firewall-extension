@@ -44,6 +44,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
+import static org.apache.commons.lang.StringUtils.equalsIgnoreCase;
+import static org.apache.commons.lang.StringUtils.trim;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @Named
@@ -113,21 +116,25 @@ public class ApiSourceControlService
     // check if automatic source control is enabled
     if (automaticSourceControlConfigurationDAO.isSourceControlConfigurationEnabled()) {
       if (sourceControl == null) { // create new record
-        sourceControl =
-            new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl(repositoryUrl).build();
+        sourceControl = new SourceControl.Builder()
+            .setOwnerId(application.getId())
+            .setRepositoryUrl(repositoryUrl)
+            .build();
         sourceControlDAO.insert(sourceControl);
+        auditAndSendTelemetry(sourceControl, application.getId());
       }
-      else { // update existing record
+      else if (shouldUpdateSourceControlRepositoryUrl(sourceControl.getRepositoryUrl(), repositoryUrl)) {
         sourceControl.setRepositoryUrl(repositoryUrl);
         sourceControlDAO.update(sourceControl);
+        auditAndSendTelemetry(sourceControl, application.getId());
       }
-      if (sourceControl.getToken() != null) {
-        sourceControl.setToken(FAKE_SECRET_KEY);
+      else {
+        log.debug("Skipping update of source control repository URL from {} to {}",
+            sourceControl.getRepositoryUrl(), repositoryUrl);
       }
-      auditSourceControl(sourceControl);
-      sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE, application.getId());
     }
-    return apiSourceControlAdapter.convertToDTO(sourceControl);
+
+    return apiSourceControlAdapter.convertToDTO(hideToken(sourceControl));
   }
 
   @Authorize(permission = Permission.READ)
@@ -298,6 +305,22 @@ public class ApiSourceControlService
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL);
     telemetryData.setAttributes(attributes);
     telemetrySender.send(telemetryData);
+  }
+
+  private void auditAndSendTelemetry(SourceControl sourceControl, String appId) {
+    auditSourceControl(hideToken(sourceControl));
+    sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE, appId);
+  }
+
+  private SourceControl hideToken(SourceControl sourceControl) {
+    if (null != sourceControl && sourceControl.getToken() != null) {
+      sourceControl.setToken(FAKE_SECRET_KEY);
+    }
+    return sourceControl;
+  }
+
+  private boolean shouldUpdateSourceControlRepositoryUrl(String currentValue, String newValue) {
+    return !equalsIgnoreCase(trim(currentValue), trim(newValue)) && isBlank(currentValue);
   }
 
   enum METHOD

@@ -118,9 +118,9 @@ public class ApiSourceControlResourceAuditTest
         .post();
     assertResponseStatus(200, response);
 
-    List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.AUTO_CREATE_SOURCE_CONTROL, 2, null);
-    auditDTO = auditDTOs.get(1);
-    assertCustomData(auditDTO, "repositoryUrl", updatedUrl);
-    assertCustomData(auditDTO, "sourceControlId", result.id);
+    // cannot change the repo url if one is already set, so no new audit entry should be produced
+    List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.AUTO_CREATE_SOURCE_CONTROL, 1, null);
+    auditDTO = auditDTOs.get(0);
+    assertCustomData(auditDTO, "repositoryUrl", repositoryUrl);
   }
 }

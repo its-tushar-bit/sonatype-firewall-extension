@@ -126,7 +126,7 @@ public class ApiSourceControlServiceTest
   public void testAddOrUpdateSourceControl_InvalidRepoUrl() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
-            () -> testAddOrUpdateSourceControl_AutomaticSourceControl(true, "https://github.com/org/a",
+            () -> testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
                 "https://not valid", null));
   }
 
@@ -151,7 +151,7 @@ public class ApiSourceControlServiceTest
   @Test
   public void testAddOrUpdateSourceControl_AutomaticSourceControlEnabled_Update() {
     testAddOrUpdateSourceControl_AutomaticSourceControl(true, "https://github.com/org/a",
-        "https://github.com/org/b", "https://github.com/org/b");
+        "https://github.com/org/b", "https://github.com/org/a");
   }
 
   private void testAddOrUpdateSourceControl_AutomaticSourceControl(

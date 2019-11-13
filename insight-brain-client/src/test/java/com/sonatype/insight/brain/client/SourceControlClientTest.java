@@ -19,6 +19,7 @@ import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
@@ -58,12 +59,14 @@ public class SourceControlClientTest
   }
 
   @Test
-  public void testAddOrUpdateSourceControlRecord_InvalidUrl() throws Exception {
-    SourceControlClient client = new SourceControlClient(getCLMServer().getClientConfiguration());
-    addOrgSourceControlForTest();
+  public void testAddOrUpdateSourceControlRecord_AddWithInvalidUrl() throws Exception {
+    turnOnAutomaticSourceControl();
+    createRootOrgSourceControlForTest();
+    Application newApp = tempEntity.newApplicationWithParent("testAddOrUpdateSourceControlRecord_AddWithInvalidUrl");
 
+    SourceControlClient client = new SourceControlClient(getCLMServer().getClientConfiguration());
     try {
-      client.addOrUpdateSourceControlRecord(APP_ID, "https://not good");
+      client.addOrUpdateSourceControlRecord(newApp.getPublicId(), "https://not good");
       fail("Call should have failed due to invalid URL");
     }
     catch (HttpResponseException e) {
@@ -73,11 +76,23 @@ public class SourceControlClientTest
     }
   }
 
-  private void addOrgSourceControlForTest() throws Exception {
-    // make sure automatic scm is on
+  @Test
+  public void testAddOrUpdateSourceControlRecord_UpdateWithInvalidUrl() throws Exception {
+    SourceControlClient client = new SourceControlClient(getCLMServer().getClientConfiguration());
+    addOrgSourceControlForTest();
+
+    // expect : update will be ignored since repo URL is already set
+    client.addOrUpdateSourceControlRecord(APP_ID, "https://not good");
+  }
+
+  private void turnOnAutomaticSourceControl() {
     AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO =
         new AutomaticSourceControlConfigurationDAO();
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+  }
+
+  private void addOrgSourceControlForTest() throws Exception {
+    turnOnAutomaticSourceControl();
 
     ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
@@ -85,7 +100,22 @@ public class SourceControlClientTest
             .setToken("token").setProvider(SourceControlProvider.GITHUB).build());
     HttpResponse response =
         restRequest().path("api", "v2", "sourceControl", OwnerType.APPLICATION.toString(), application.getId())
-        .body(sourceControl).post();
+            .body(sourceControl).post();
+    assertResponseStatus(200, response);
+  }
+
+  private void createRootOrgSourceControlForTest() throws Exception {
+    ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl.Builder()
+            .setOwnerId(ROOT_ORGANIZATION_ID)
+            .setToken("token")
+            .setProvider(SourceControlProvider.GITLAB)
+            .build());
+    HttpResponse response = restRequest()
+        .path("api", "v2", "sourceControl", OwnerType.ORGANIZATION.toString(), ROOT_ORGANIZATION_ID)
+        .body(sourceControl)
+        .post();
     assertResponseStatus(200, response);
   }
 }

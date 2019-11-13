@@ -23,6 +23,7 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.PullRequestResponse;
 
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -125,13 +126,49 @@ public class PullRequestTaskTest
     pullRequestTask.init(pullRequestRemediationDetails);
     pullRequestTask.run();
 
-    File targetDirectory = new File(config.getCloneDirectory(), APP_ID);
+    File targetDirectory = new File(config.getCloneDirectory(), APP_ID + "-" + INFO.baseBranch);
     assertThat(targetDirectory.exists(), is(true));
     verify(gitApi).cloneOrPullRepository(targetDirectory, INFO.baseBranch);
     verify(gitApi).branch(targetDirectory, BRANCH);
     verifyNoMoreInteractions(gitApi);
     verify(metrics).addResult(anyString(), any(PullRequestResult.class));
     verifyNoInteractions(fileCleaner, gitClient);
+  }
+
+  @Test
+  public void test_strips_special_characters_from_branch() throws Exception {
+    SourceControlConfig config = new SourceControlConfig();
+    File sonatypeWorkDir = temporaryFolder.newFolder();
+    config.setSonatypeWorkDir(sonatypeWorkDir);
+    configureExpectations(config, new GitRepositoryInfo("localhost", "token", SourceControlProvider.GITHUB, "d\\e/v_",
+        true, true));
+
+    pullRequestTask.init(pullRequestRemediationDetails);
+    pullRequestTask.run();
+
+    // then directory is created without special characters
+    File targetDirectory = new File(config.getCloneDirectory(), APP_ID + "-dev");
+    assertThat(targetDirectory.exists(), is(true));
+    // and git branch name is not modified
+    verify(gitApi).cloneOrPullRepository(targetDirectory, "d\\e/v_");
+  }
+
+  @Test
+  public void test_truncates_long_branch_names() throws Exception {
+    SourceControlConfig config = new SourceControlConfig();
+    File sonatypeWorkDir = temporaryFolder.newFolder();
+    config.setSonatypeWorkDir(sonatypeWorkDir);
+    configureExpectations(config, new GitRepositoryInfo("localhost", "token", SourceControlProvider.GITHUB,
+        StringUtils.repeat("long", 21) + "branchname", true, true));
+
+    pullRequestTask.init(pullRequestRemediationDetails);
+    pullRequestTask.run();
+
+    // then directory is created with truncated name and hash appended
+    File targetDirectory = new File(config.getCloneDirectory(), APP_ID + "-longlonglonglonglon-fzmrwe");
+    assertThat(targetDirectory.exists(), is(true));
+    // and git branch name is not modified
+    verify(gitApi).cloneOrPullRepository(targetDirectory, StringUtils.repeat("long", 21) + "branchname");
   }
 
   @Test
@@ -145,7 +182,7 @@ public class PullRequestTaskTest
     pullRequestTask.init(pullRequestRemediationDetails);
     pullRequestTask.run();
 
-    File targetDirectory = new File(config.getCloneDirectory(), APP_ID);
+    File targetDirectory = new File(config.getCloneDirectory(), APP_ID + "-" + INFO.baseBranch);
     assertThat(targetDirectory.exists(), is(true));
     assertThat(targetDirectory.getParentFile().getName(), is(APP_ID));
     verify(gitApi).cloneOrPullRepository(targetDirectory, INFO.baseBranch);
@@ -158,7 +195,7 @@ public class PullRequestTaskTest
     SourceControlConfig config = new SourceControlConfig();
     File sonatypeWorkDir = temporaryFolder.newFolder();
     config.setSonatypeWorkDir(sonatypeWorkDir);
-    File targetDirectory = new File(config.getCloneDirectory(), APP_ID);
+    File targetDirectory = new File(config.getCloneDirectory(), APP_ID + "-" + INFO.baseBranch);
     targetDirectory.mkdirs();
     File pomFile = new File(targetDirectory, "pom.xml");
     FileUtils.copyURLToFile(getClass().getResource("/PullRequestTaskTest/test-pom.xml"), pomFile);
@@ -189,7 +226,7 @@ public class PullRequestTaskTest
     config.setSonatypeWorkDir(sonatypeWorkDir);
 
     configureExpectations(config);
-    File targetDirectory = new File(config.getCloneDirectory(), APP_ID);
+    File targetDirectory = new File(config.getCloneDirectory(), APP_ID + "-" + INFO.baseBranch);
     when(gitApi.cloneOrPullRepository(targetDirectory, INFO.baseBranch))
         .thenThrow(new GitException("Something bad happened"));
 
@@ -201,6 +238,10 @@ public class PullRequestTaskTest
   }
 
   private void configureExpectations(final SourceControlConfig config) {
+    configureExpectations(config, INFO);
+  }
+
+  private void configureExpectations(final SourceControlConfig config, final GitRepositoryInfo info) {
     when(insightConfig.getSourceControl()).thenReturn(config);
     when(pullRequestRemediationDetails.getApp()).thenReturn(app);
     when(pullRequestRemediationDetails.getPullRequestBranchName()).thenReturn(BRANCH);
@@ -208,9 +249,9 @@ public class PullRequestTaskTest
     when(pullRequestRemediationDetails.getRemediatedVersion()).thenReturn("1.0.1");
     when(pullRequestRemediationDetails.getToBeRemediated()).thenReturn(MAVEN_COORDINATES);
     when(pullRequestRemediationDetails.getTitle()).thenReturn(TITLE);
-    when(gitApiService.getGitRepositoryInfoForApplication(APP_ID)).thenReturn(INFO);
-    when(gitApiFactory.createGitApi(INFO)).thenReturn(gitApi);
-    when(gitClientFactory.create(INFO)).thenReturn(gitClient);
+    when(gitApiService.getGitRepositoryInfoForApplication(APP_ID)).thenReturn(info);
+    when(gitApiFactory.createGitApi(info)).thenReturn(gitApi);
+    when(gitClientFactory.create(info)).thenReturn(gitClient);
     when(app.getId()).thenReturn(APP_ID);
   }
 }

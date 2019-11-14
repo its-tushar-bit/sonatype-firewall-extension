@@ -8,21 +8,22 @@ package com.sonatype.insight.brain.dataaccess.component;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.packageurl.MalformedPackageURLException;
+import com.github.packageurl.PackageURL;
+import com.github.packageurl.PackageURLBuilder;
 import com.google.common.base.Strings;
 
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.GENERIC_NAME;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_CLASSIFIER;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_EXTENSION;
@@ -57,19 +58,6 @@ public class ComponentIdentifierAdapter
     return null;
   }
 
-  public static ComponentIdentifier createGenericIdentifier(final ThirdPartyFileCoordinate thirdPartyFileCoordinate) {
-    String format = thirdPartyFileCoordinate.getFormat();
-    Map<String, String> coordinates = new HashMap<>();
-    try {
-      coordinates.put(GENERIC_NAME, thirdPartyFileCoordinate.getName());
-      coordinates.put(VERSION, thirdPartyFileCoordinate.getVersion());
-      return new ComponentIdentifier(format, coordinates);
-    }
-    catch (InvalidComponentIdentifierException e) {
-      return ComponentIdentifier.createGenericCoordinates(format, coordinates);
-    }
-  }
-
   /**
    * Convert JSON representation of ComponentIdentifier to the concrete class.
    */
@@ -77,18 +65,14 @@ public class ComponentIdentifierAdapter
     if (componentIdentifierNode == null) {
       return null;
     }
-    ComponentIdentifier componentIdentifier = null;
+    ComponentIdentifier componentIdentifier;
     try {
       componentIdentifier = JsonUtils.asPojo(componentIdentifierNode, ComponentIdentifier.class);
-      componentIdentifier.validate();
     }
     catch (IOException e) {
       throw new UncheckedIOException("Error deserializing ComponentIdentifier", e);
     }
-    catch (InvalidComponentIdentifierException e) {
-      componentIdentifier = ComponentIdentifier
-          .createGenericCoordinates(componentIdentifier.getFormat(), componentIdentifier.getCoordinates());
-    }
+    componentIdentifier.validate();
     return componentIdentifier;
   }
 
@@ -141,5 +125,25 @@ public class ComponentIdentifierAdapter
     gavCoordinates.put(MAVEN_ARTIFACT_ID, coordinates.get(MAVEN_ARTIFACT_ID));
     gavCoordinates.put(VERSION, coordinates.get(VERSION));
     return gavCoordinates;
+  }
+
+  public static ComponentIdentifier toComponentIdentifier(final String packageUrl) {
+    PackageUrlIdentifier packageUrlIdentifier = new PackageUrlIdentifier(packageUrl);
+    return packageUrlIdentifier.toComponentIdentifier();
+  }
+
+  public static ComponentIdentifier toComponentIdentifier(
+      final String format,
+      final String name,
+      final String version)
+  {
+    try {
+      final PackageURL packageURL = PackageURLBuilder.aPackageURL()
+          .withType(format).withName(name).withVersion(version).build();
+      return toComponentIdentifier(packageURL.canonicalize());
+    }
+    catch (MalformedPackageURLException e) {
+      throw new InvalidComponentIdentifierException("Error transforming to component identifier: " + e.getMessage());
+    }
   }
 }

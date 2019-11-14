@@ -39,9 +39,21 @@ public class ThirdPartyDataServiceTest
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     ThirdPartyFileCoordinate coord1 =
-        tempEntity.newThirdPartyFileCoordinate(file, "f1", "CLAIR", "n1", "v1", "hash1", "purl1");
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "f1", "n1", "v1", "hash1", "pkg:f1/n1@v1");
     ThirdPartyFileCoordinate coord2 =
-        tempEntity.newThirdPartyFileCoordinate(file, "f1", "CLAIR", "n2", "v2", "hash2", "purl2");
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "f1", "n2", "v2", "hash2", null);
+    ThirdPartyFileCoordinate coord3 =
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "maven", "a", "v2", "hash3", "pkg:maven/a@v2");
+    ThirdPartyFileCoordinate coord4 =
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "nuget", "p", "v2", "hash4", "pkg:nuget/p@v2");
+    ThirdPartyFileCoordinate coord5 =
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "npm", "p", "v2", "hash5", "pkg:npm/p@v2");
+    ThirdPartyFileCoordinate coord6 =
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "pypi", "n2", "v2", "hash6", "pkg:pypi/n2@v2");
+    ThirdPartyFileCoordinate coord7 =
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "golang", "n2", "v2", "hash7", "pkg:golang/n2@v2");
+    ThirdPartyFileCoordinate coord8 =
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "rpm", "n2", "v2", "hash8", null);
 
     final ThirdPartyCoordinateSecurity sec1coord1 =
         tempEntity
@@ -59,11 +71,17 @@ public class ThirdPartyDataServiceTest
 
     final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
 
-    assertThat(scanData.billOfMaterials).hasSize(2);
+    assertThat(scanData.billOfMaterials).hasSize(8);
     assertThat(scanData.securityRows).hasSize(3);
 
     assertBomContains(scanData.billOfMaterials, coord1, file);
     assertBomContains(scanData.billOfMaterials, coord2, file);
+    assertBomContains(scanData.billOfMaterials, coord3, file);
+    assertBomContains(scanData.billOfMaterials, coord4, file);
+    assertBomContains(scanData.billOfMaterials, coord5, file);
+    assertBomContains(scanData.billOfMaterials, coord6, file);
+    assertBomContains(scanData.billOfMaterials, coord7, file);
+    assertBomContains(scanData.billOfMaterials, coord8, file);
     assertSecurityRowsForComponent(scanData.securityRows, coord1, sec1coord1, sec2coord1);
     assertSecurityRowsForComponent(scanData.securityRows, coord2, sec1coord2);
   }
@@ -96,9 +114,9 @@ public class ThirdPartyDataServiceTest
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file1);
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file2);
     ThirdPartyFileCoordinate coord1 =
-        tempEntity.newThirdPartyFileCoordinate(file1, "f1", "CLAIR", "n1", "v1", "hash1", "purl1");
+        tempEntity.newThirdPartyFileCoordinate(file1, "f1", "CLAIR", "n1", "v1", "hash1", "pkg:CLAIR/n1@v1");
     ThirdPartyFileCoordinate coord2 =
-        tempEntity.newThirdPartyFileCoordinate(file2, "f1", "CLAIR", "n1", "v1", "hash1", "purl1");
+        tempEntity.newThirdPartyFileCoordinate(file2, "f1", "CLAIR", "n1", "v1", "hash1", "pkg:CLAIR/n1@v1");
 
     final ThirdPartyCoordinateSecurity sec1coord1 =
         tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, "Medium", null);
@@ -153,8 +171,8 @@ public class ThirdPartyDataServiceTest
     for (ThirdPartyCoordinateSecurity expectedSecRow : expectedSecRows) {
       assertThat(found.stream().filter(sec -> sec.reference.equals(expectedSecRow.getRefId())).findFirst())
           .hasValueSatisfying(securityRow -> {
-            assertThat(securityRow.componentIdentifier)
-                .isEqualTo(ComponentIdentifierAdapter.createGenericIdentifier(coordinate));
+            assertThat(securityRow.componentIdentifier).isEqualTo(ComponentIdentifierAdapter
+                .toComponentIdentifier(coordinate.getFormat(), coordinate.getName(), coordinate.getVersion()));
             assertThat(securityRow.matchState).isEqualTo(MatchState.EXACT.toString());
             assertThat(securityRow.description).isEqualTo(expectedSecRow.getDescription());
             assertThat(securityRow.score).isEqualTo(expectedSecRow.getSeverity());
@@ -177,8 +195,8 @@ public class ThirdPartyDataServiceTest
   {
     assertThat(bom.stream().filter(component -> component.hash.equals(coordinate.getHash())).findFirst())
         .hasValueSatisfying(bomRow -> {
-          assertThat(bomRow.componentIdentifier)
-              .isEqualTo(ComponentIdentifierAdapter.createGenericIdentifier(coordinate));
+          assertThat(bomRow.componentIdentifier).isEqualTo(ComponentIdentifierAdapter
+              .toComponentIdentifier(coordinate.getFormat(), coordinate.getName(), coordinate.getVersion()));
           assertThat(bomRow.createTime).isCloseTo(files[0].getCreated().getTime(), withinPercentage(0.001));
           assertThat(bomRow.matchState).isEqualTo(MatchState.EXACT.toString());
           assertThat(bomRow.packageUrl).isEqualTo(coordinate.getPackageUrl());

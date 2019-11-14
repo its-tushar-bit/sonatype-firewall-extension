@@ -16,13 +16,16 @@ import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_CLASSIFIER;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_EXTENSION;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.NUGET_PACKAGE_ID;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
 
 public class ComponentIdentifierAdapterTest
 {
@@ -88,21 +91,7 @@ public class ComponentIdentifierAdapterTest
 
   @Test
   public void testToComponentIdentifierNull() throws Exception {
-    assertThat(ComponentIdentifierAdapter.toComponentIdentifier(null)).isNull();
-  }
-
-  @Test
-  public void testToComponentIdentifier_GenericIdentifier() throws Exception {
-    JsonNode jsonNode = mapper.readTree(
-        "{\"componentIdentifier\": {\"format\": \"maven\", \"coordinates\":{\"namespace\":\"g\",\"name\":\"a\", " +
-            "\"version\":\"v\"}}}");
-    final ComponentIdentifier result =
-        ComponentIdentifierAdapter.toComponentIdentifier(jsonNode.get(ComponentIdentifierAdapter.COMPONENT_IDENTIFIER));
-
-    assertThat(result).isNotNull();
-    assertThat(result.getFormat()).isEqualTo("maven");
-    assertThat(result.getCoordinates())
-        .containsOnly(entry("namespace", "g"), entry("name", "a"), entry("version", "v"));
+    assertThat(ComponentIdentifierAdapter.toComponentIdentifier((JsonNode) null)).isNull();
   }
 
   @Test
@@ -172,5 +161,36 @@ public class ComponentIdentifierAdapterTest
     // generated from H2 as in schema_incremental_0060.sql
     String h2ConcatenatedValue = "{\"groupId\":\"tomcat\uF8FF\",\"artifactId\":\"tomcat-util\",\"version\":\"5.5.23\"}";
     assertThat(ComponentIdentifierAdapter.toJson(coordinates)).isEqualTo(h2ConcatenatedValue);
+  }
+
+  @Test
+  public void testToComponentIdentifier_Purl() {
+    final ComponentIdentifier identifier =
+        ComponentIdentifierAdapter.toComponentIdentifier("pkg:maven/group/artifact@1.0?classifier=c1&type=jar");
+
+    assertThat(identifier.getFormat()).isEqualTo("maven");
+    assertThat(identifier.getCoordinates()).hasSize(5).containsExactlyInAnyOrderEntriesOf(ImmutableMap
+        .of(MAVEN_GROUP_ID, "group", MAVEN_ARTIFACT_ID, "artifact", VERSION, "1.0", MAVEN_CLASSIFIER, "c1",
+            MAVEN_EXTENSION, "jar"));
+  }
+
+  @Test
+  public void testToComponentIdentifier_FromFormatNameAndVersion() {
+    final ComponentIdentifier identifier =
+        ComponentIdentifierAdapter.toComponentIdentifier("nuget", "package","2.0");
+
+    assertThat(identifier.getFormat()).isEqualTo("nuget");
+    assertThat(identifier.getCoordinates()).hasSize(2)
+        .containsExactlyInAnyOrderEntriesOf(ImmutableMap.of(NUGET_PACKAGE_ID, "package", VERSION, "2.0"));
+  }
+
+  @Test
+  public void testToComponentIdentifier_FromFormatNameAndVersion_UnknownFormat() {
+    final ComponentIdentifier identifier =
+        ComponentIdentifierAdapter.toComponentIdentifier("deb-9", "glibc","f6536+45");
+
+    assertThat(identifier.getFormat()).isEqualTo("deb-9");
+    assertThat(identifier.getCoordinates()).hasSize(2)
+        .containsExactlyInAnyOrderEntriesOf(ImmutableMap.of("name", "glibc", VERSION, "f6536+45"));
   }
 }

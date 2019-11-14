@@ -14,7 +14,6 @@ import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -39,25 +38,14 @@ public abstract class HasComponentId
     }
     if (componentIdentifier == null) {
       try {
-        resolveComponentIdentifier();
+        componentIdentifier = new ComponentIdentifier(componentIdFormat, JsonUtils.parse(componentIdCoordinatesJson,
+            Map.class));
       }
       catch (IOException e) {
         throw new UncheckedIOException(e);
       }
     }
     return componentIdentifier;
-  }
-
-  private void resolveComponentIdentifier() throws IOException {
-    Map<String, String> coordinates = JsonUtils.parse(componentIdCoordinatesJson, Map.class);
-    try {
-      componentIdentifier = new ComponentIdentifier(componentIdFormat, coordinates);
-    }
-    catch (InvalidComponentIdentifierException e) {
-      //Attempt to resolve this as a generic identifier.
-      //This is needed to support third-party component identifiers with minimum required coordinates
-      componentIdentifier = ComponentIdentifier.createGenericCoordinates(componentIdFormat, coordinates);
-    }
   }
 
   public void setComponentIdentifier(ComponentIdentifier componentIdentifier) {

@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.model;
 
-import java.util.HashMap;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.license.LicenseOverrideInternal;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -33,19 +31,6 @@ public class HasComponentIdTest
     hasComponentId.setComponentIdentifier(ComponentIdentifier.createNugetCoordinates("a", "v"));
     assertThat(hasComponentId.getComponentIdCoordinatesJson()).isEqualTo("{\"packageId\":\"a\",\"version\":\"v\"}");
     assertThat(hasComponentId.getComponentIdFormat()).isEqualTo(ComponentIdentifier.FORMAT_NUGET);
-  }
-
-  @Test
-  public void testJsonFormattingForGenericIdentifiers() {
-    HasComponentId hasComponentId = new LicenseOverrideInternal();
-    final HashMap<String, String> coords = new HashMap<>();
-    coords.put("name", "n");
-    coords.put("version", "v");
-    final ComponentIdentifier identifier = ComponentIdentifier.createGenericCoordinates("maven", coords);
-    hasComponentId.setComponentIdentifier(identifier);
-    assertThat(hasComponentId.getComponentIdCoordinatesJson()).isEqualTo("{\"name\":\"n\",\"version\":\"v\"}");
-    assertThat(hasComponentId.getComponentIdFormat()).isEqualTo(ComponentIdentifier.FORMAT_MAVEN);
-    assertThat(hasComponentId.getComponentIdentifier()).isEqualTo(identifier);
   }
 
   @Test

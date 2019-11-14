@@ -120,7 +120,8 @@ public class ApiComponentRemediationService
     ComponentSummary componentSummary;
 
     if (scanId != null && IdentificationSource.isThirdPartyIdentificationSource(identificationSource)) {
-      componentSummary = thirdPartyComponentDAO.getComponentSummary(componentIdentifier, ownerId, scanId);
+      componentSummary = thirdPartyComponentDAO
+          .getComponentSummary(requestedComponentIdentifier(componentDTO.componentIdentifier), ownerId, scanId);
     }
     else {
       componentSummary = getComponentSummary(componentIdentifier);
@@ -165,6 +166,10 @@ public class ApiComponentRemediationService
 
     sendTelemetry(ownerType, ownerId, componentIdentifier, telemetryAttributes);
     return componentRemediationDto;
+  }
+
+  private ComponentIdentifier requestedComponentIdentifier(final ApiComponentIdentifierDTOV2 identifierDTOV2) {
+    return new ComponentIdentifier(identifierDTOV2.getFormat(), identifierDTOV2.getCoordinates());
   }
 
   private Optional<ApiVersionChangeOptionDTO> findNoViolations(int startingIndex,

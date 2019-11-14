@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -25,7 +26,9 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.purl.InvalidPackageURLException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,9 +83,14 @@ public class ThirdPartyDataService
     }
 
     for (ThirdPartyFileCoordinate coord : coordinates.values()) {
-      final ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.createGenericIdentifier(coord);
-      thirdPartyApplicationReportDTO.billOfMaterials.add(toBomRow(coord, componentIdentifier, scanTime));
-      populateSecurityVulnerabilities(coord, componentIdentifier, thirdPartyApplicationReportDTO);
+      try {
+        ComponentIdentifier componentIdentifier = getComponentIdentifier(coord);
+        thirdPartyApplicationReportDTO.billOfMaterials.add(toBomRow(coord, componentIdentifier, scanTime));
+        populateSecurityVulnerabilities(coord, componentIdentifier, thirdPartyApplicationReportDTO);
+      }
+      catch (InvalidComponentIdentifierException | InvalidPackageURLException e) {
+        log.error("Error creating component identifier from third-party data component", e);
+      }
     }
 
     log.debug("Found {} third party components and {} vulnerabilities for scanId {}",
@@ -90,6 +98,18 @@ public class ThirdPartyDataService
         thirdPartyApplicationReportDTO.securityRows.size(),
         scanId);
     return thirdPartyApplicationReportDTO;
+  }
+
+  private ComponentIdentifier getComponentIdentifier(final ThirdPartyFileCoordinate coord) {
+    ComponentIdentifier componentIdentifier = null;
+    if (StringUtils.isNotBlank(coord.getPackageUrl())) {
+      componentIdentifier = ComponentIdentifierAdapter.toComponentIdentifier(coord.getPackageUrl());
+    }
+    else {
+      componentIdentifier =
+          ComponentIdentifierAdapter.toComponentIdentifier(coord.getFormat(), coord.getName(), coord.getVersion());
+    }
+    return componentIdentifier;
   }
 
   private void populateSecurityVulnerabilities(

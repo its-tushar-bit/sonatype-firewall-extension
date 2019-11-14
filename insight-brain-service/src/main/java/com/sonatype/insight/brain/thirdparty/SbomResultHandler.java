@@ -143,7 +143,7 @@ public class SbomResultHandler
             identificationSource, tx);
       }
     }
-    catch (InvalidPackageURLException e) {
+    catch (InvalidPackageURLException | InvalidComponentIdentifierException e) {
       log.error("Error processing SBOM component, invalid purl", e);
     }
     catch (Exception e) {
@@ -163,7 +163,7 @@ public class SbomResultHandler
     PackageUrlIdentifier packageUrlIdentifier = new PackageUrlIdentifier(packageUrl.getValue());
 
     if (StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion())) {
-      ComponentIdentifier componentIdentifier = getComponentIdentifier(packageUrlIdentifier);
+      ComponentIdentifier componentIdentifier = packageUrlIdentifier.toComponentIdentifier();
       Component sbomComponent = new Component();
       sbomComponent.setType(Component.Type.valueOf(component.getAttribute("type").toUpperCase()));
       sbomComponent.setName(packageUrlIdentifier.getName());
@@ -202,18 +202,6 @@ public class SbomResultHandler
       return fileCoordinate.getId();
     }
     return hashFileCoordinateIdMap.get(fakeHash);
-  }
-
-  private ComponentIdentifier getComponentIdentifier(
-      PackageUrlIdentifier packageUrlIdentifier) throws InvalidPackageURLException
-  {
-    try {
-      return packageUrlIdentifier.toComponentIdentifier();
-    }
-    catch (InvalidComponentIdentifierException e) {
-      log.debug("Fallback to identification using generic component identifier");
-      return packageUrlIdentifier.toGenericComponentIdentifier();
-    }
   }
 
   private void saveVulnerabilities(Xpp3Dom vulnerabilities, String fileCoordinateId, TransactionContext tx) {

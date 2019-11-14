@@ -761,7 +761,7 @@ public class ScanPolicyEvaluator
 
   private void logPolicyViolations(List<PolicyViolation> policyViolations, String policyProperty) {
     if (policyViolations.isEmpty()) {
-      log.debug("No " + policyProperty + " policies violated.");
+      log.debug("No {} policies violated.", policyProperty);
     }
     else {
       Map<String, Long> policyViolationCount = policyViolations.stream()
@@ -770,7 +770,7 @@ public class ScanPolicyEvaluator
           .map(s -> s + "(" + policyViolationCount.get(s).toString() + ")").collect(Collectors.joining(", "));
       // 6 new policies violated: My-First-Policy(4), My-Second-Policy(2).
       // 6 previously seen policies violated: My-First-Policy(4), My-Second-Policy(2).
-      log.debug("{} " + policyProperty + " policies violated: {}.", policyViolations.size(), stringified);
+      log.debug("{} {} policies violated: {}.", policyViolations.size(), policyProperty, stringified);
     }
   }
 }

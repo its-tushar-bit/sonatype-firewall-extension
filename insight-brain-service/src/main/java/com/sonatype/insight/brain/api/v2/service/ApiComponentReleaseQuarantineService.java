@@ -81,10 +81,26 @@ public class ApiComponentReleaseQuarantineService
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }
 
+  public ApiComponentReleasedFromQuarantineDTO releaseQuarantineWithoutReEval(
+      final String quarantineId,
+      final String comment)
+  {
+
+    RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(quarantineId);
+
+    if (repositoryComponent == null) {
+      throw new NotFoundException("Cannot find a component with quarantineId " + quarantineId + ".");
+    }
+    AuditData.get().setData("repositoryId", repositoryComponent.getRepositoryId());
+    AuditData.get().setRepository(repositoryDAO.getById(repositoryComponent.getRepositoryId()));
+
+    return releaseQuarantineWithoutReEval(repositoryComponent.getRepositoryId(), quarantineId, comment);
+  }
+
   @Authorize(permission = Permission.WRITE)
   public ApiComponentReleasedFromQuarantineDTO releaseQuarantineWithoutReEval(
       @AuthzContext(Key.REPOSITORY_ID) final String repositoryId,
-      final String packageUrl,
+      final String quarantineId,
       final String comment)
   {
     if (StringUtils.isEmpty(comment)) {
@@ -101,11 +117,16 @@ public class ApiComponentReleaseQuarantineService
 
       Date now = new Date();
 
-      RepositoryComponent repositoryComponent = getAndValidateRepositoryComponent(tx, repositoryId, packageUrl);
+      RepositoryComponent repositoryComponent = getRepositoryComponentByIdNotNull(tx, quarantineId);
+
+      if (!repositoryComponent.isQuarantined()) {
+        throw new BadRequestException(
+            "Component with quarantineId " + quarantineId + " is not quarantined.");
+      }
 
       List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
-          .getByRepositoryIdAndPathnameAndActionAndNotWaived(repositoryId, repositoryComponent.getPathname(),
-              Action.ID_FAIL);
+          .getByRepositoryIdAndPathnameAndActionAndNotWaived(repositoryComponent.getRepositoryId(),
+              repositoryComponent.getPathname(), Action.ID_FAIL);
 
       List<PolicyWaiver> policyWaivers = new ArrayList<>();
 
@@ -119,12 +140,14 @@ public class ApiComponentReleaseQuarantineService
       repositoryComponent.setUnquarantineTime(now);
       repositoryComponentDAO.update(tx, repositoryComponent);
 
-      log.debug("releaseQuarantineWithoutReEval: Released component with packageUrl {} from quarantine and waived {} " +
-          "repository policy violations.", packageUrl, repositoryPolicyViolations.size());
+      log.debug(
+          "releaseQuarantineWithoutReEval: Released component with quarantineId {} from quarantine and waived {} " +
+              "repository policy violations.", quarantineId, repositoryPolicyViolations.size());
       tx.commit();
       policyViolationLogger.log();
       AuditData.get().setData("componentPathname", repositoryComponent.getPathname());
       AuditData.get().setComponentHash(repositoryComponent.getHash());
+      AuditData.get().setRepository(repository);
 
       componentReleasedFromQuarantineDTO.componentReleasedFromQuarantine =
           buildRepositoryComponentPolicyViolationDTO(repositoryComponent, repositoryPolicyViolations, policyWaivers);
@@ -209,22 +232,14 @@ public class ApiComponentReleaseQuarantineService
     return waivedPolicyViolationDTO;
   }
 
-  private RepositoryComponent getAndValidateRepositoryComponent(
+  private RepositoryComponent getRepositoryComponentByIdNotNull(
       TransactionContext tx,
-      String repositoryId,
-      String packageUrl)
+      String quarantineId)
   {
-    ComponentIdentifier purlComponentIdentifier = new PackageUrlIdentifier(packageUrl).ensureCompleteIdentifier();
+    RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(tx, quarantineId);
 
-    List<RepositoryComponent> repositoryComponentList = repositoryComponentDAO.getByRepositoryId(tx, repositoryId);
-    RepositoryComponent repositoryComponent = repositoryComponentList.stream()
-        .filter(component -> purlComponentIdentifier.equals(component.getComponentIdentifier())).findFirst()
-        .orElseThrow(() -> new NotFoundException(
-            "Cannot find a component with packageUrl " + packageUrl + " in repository with ID " + repositoryId + "."));
-
-    if (!repositoryComponent.isQuarantined()) {
-      throw new BadRequestException(
-          "Component with packageUrl " + packageUrl + " in repository " + repositoryId + " is not quarantined.");
+    if (repositoryComponent == null) {
+      throw new NotFoundException("Cannot find a component with quarantineId " + quarantineId + ".");
     }
     return repositoryComponent;
   }

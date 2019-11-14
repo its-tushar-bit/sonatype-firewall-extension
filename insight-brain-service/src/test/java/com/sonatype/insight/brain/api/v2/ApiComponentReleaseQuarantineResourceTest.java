@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentReleasedFromQuarantineD
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentPolicyViolationDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -37,11 +38,12 @@ public class ApiComponentReleaseQuarantineResourceTest
 
     Date quarantineTime = new Date(System.currentTimeMillis() - 1000);
 
-    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname", "hash",
-        packageURLIdentifier.ensureCompleteIdentifier(), quarantineTime, quarantineTime);
+    RepositoryComponent repositoryComponent = tempEntity
+        .newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname", "hash",
+            packageURLIdentifier.ensureCompleteIdentifier(), quarantineTime, quarantineTime);
 
     HttpResponse response = restRequest().path(PublicApiPaths.COMPONENT_QUARANTINE_RELEASE_PATH_V2)
-        .parameter(packageURLIdentifier.getPackageUrl(), repository.getId())
+        .parameter(repositoryComponent.getId())
         .body("waiver comment", MediaType.TEXT_PLAIN).post();
     assertResponseStatus(200, response);
 
@@ -55,16 +57,5 @@ public class ApiComponentReleaseQuarantineResourceTest
     assertThat(repositoryComponentPolicyViolationDTO.component.quarantineReleaseTime).isAfter(quarantineTime);
     assertThat(repositoryComponentPolicyViolationDTO.waivedPolicyViolations).isEmpty();
     assertThat(repositoryComponentPolicyViolationDTO.policyViolations).isEmpty();
-  }
-
-  @Test
-  public void testReleaseQuarantineWithoutReEval_RepositoryNotFound() throws Exception {
-    PackageUrlIdentifier packageURLIdentifier = new PackageUrlIdentifier("pkg:maven/g1/a1@v1?type=e1");
-
-    HttpResponse response = restRequest().path(PublicApiPaths.COMPONENT_QUARANTINE_RELEASE_PATH_V2)
-        .parameter(packageURLIdentifier.getPackageUrl(), "unknown").post();
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText())
-        .isEqualTo("Cannot find a repository with ID unknown.");
   }
 }

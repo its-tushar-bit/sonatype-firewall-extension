@@ -44,10 +44,9 @@ public class ApiComponentReleaseQuarantineResource
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.RELEASE_QUARANTINE)
   public ApiComponentReleasedFromQuarantineDTO releaseQuarantineWithoutReEval(
-      @PathParam("repositoryId") final String repositoryId,
-      @PathParam("packageUrl") final String packageUrl,
+      @PathParam("quarantineId") final String quarantineId,
       final String comment)
   {
-    return componentReleaseQuarantineServiceV2.releaseQuarantineWithoutReEval(repositoryId, packageUrl, comment);
+    return componentReleaseQuarantineServiceV2.releaseQuarantineWithoutReEval(quarantineId, comment);
   }
 }

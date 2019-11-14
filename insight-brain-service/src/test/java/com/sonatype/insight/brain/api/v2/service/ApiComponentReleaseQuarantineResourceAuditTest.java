@@ -39,31 +39,34 @@ public class ApiComponentReleaseQuarantineResourceAuditTest
         .newRepositoryComponent(repository.getId(), MatchState.EXACT, PATHNAME, COMPONENT_HASH,
             PACKAGE_URL_IDENTIFIER.ensureCompleteIdentifier(), quarantineTime, quarantineTime);
 
-    releaseQuarantineRequest(PACKAGE_URL_IDENTIFIER.getPackageUrl(), repository.getId()).post();
+    releaseQuarantineRequest(repositoryComponent.getId()).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.RELEASE_QUARANTINE, null);
     assertRepositoryData(auditDTO, repository);
-    assertUnquarantineData(auditDTO, repositoryComponent.getHash(), repositoryComponent.getPathname());
+    assertUnquarantineData(auditDTO, repositoryComponent);
   }
 
   @Test
   public void testReleaseQuarantineWithoutReEval_Unauthorized() throws Exception {
+    Date quarantineTime = new Date();
     Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent = tempEntity
+        .newRepositoryComponent(repository.getId(), MatchState.EXACT, PATHNAME, COMPONENT_HASH,
+            PACKAGE_URL_IDENTIFIER.ensureCompleteIdentifier(), quarantineTime, quarantineTime);
 
-    releaseQuarantineRequest(PACKAGE_URL_IDENTIFIER.getPackageUrl(), repository.getId()).with(unauthorizedUser())
-        .post();
+    releaseQuarantineRequest(repositoryComponent.getId()).with(unauthorizedUser()).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.RELEASE_QUARANTINE, "unauthorized");
     assertRepositoryData(auditDTO, repository);
   }
 
-  private HttpRequest releaseQuarantineRequest(String packageUrl, String repositoryId) {
+  private HttpRequest releaseQuarantineRequest(String quarantineId) {
     return restRequest().path(PublicApiPaths.COMPONENT_QUARANTINE_RELEASE_PATH_V2)
-        .parameter(packageUrl, repositoryId).body("waiver comment", MediaType.TEXT_PLAIN);
+        .parameter(quarantineId).body("waiver comment", MediaType.TEXT_PLAIN);
   }
 
-  private void assertUnquarantineData(AuditDTO auditDTO, String componentHash, String componentPathname) {
-    assertCustomData(auditDTO, "componentHash", componentHash);
-    assertCustomData(auditDTO, "componentPathname", componentPathname);
+  private void assertUnquarantineData(AuditDTO auditDTO, RepositoryComponent repositoryComponent) {
+    assertCustomData(auditDTO, "componentHash", repositoryComponent.getHash());
+    assertCustomData(auditDTO, "componentPathname", repositoryComponent.getPathname());
   }
 }

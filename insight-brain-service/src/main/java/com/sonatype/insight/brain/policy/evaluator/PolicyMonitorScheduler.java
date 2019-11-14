@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -22,7 +24,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.dropwizard.lifecycle.Managed;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +47,9 @@ public class PolicyMonitorScheduler
 
   private ScheduledExecutorService executor;
 
+  // Visible for tests
+  SystemRunnable policyMonitoringRunnable;
+
   public boolean disableForTesting;
 
   @Inject
@@ -59,19 +63,43 @@ public class PolicyMonitorScheduler
     if (executor != null || disableForTesting) {
       return;
     }
-    DateTime dateTime = determineNextExecutionTime();
     executor = newExecutor();
-    executor.scheduleAtFixedRate(new SystemRunnable(new Runnable()
+    policyMonitoringRunnable = newPolicyMonitoringRunnable();
+
+    schedule();
+  }
+
+  private SystemRunnable newPolicyMonitoringRunnable() {
+    return new SystemRunnable(new Runnable()
     {
       @Override
       public void run() {
-        policyMonitor.run();
-        if (productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)) {
-          log.info("Next Policy Monitor execution scheduled for {}", determineNextExecutionTime());
+        try {
+          policyMonitor.run();
         }
+        catch (Exception e) {
+          log.error("Policy monitoring error: {}", e.getMessage(), e);
+        }
+        catch (Throwable t) {
+          // Try to log to stderr before trying the standard logging because the standard logging may not be operational
+          // at this point.
+          t.printStackTrace();
+          log.error(t.getMessage(), t);
+          System.exit(1);
+        }
+
+        // Re-schedule the policy monitoring
+        schedule();
       }
-    }), dateTime.getMillis() - System.currentTimeMillis(), TimeUnit.DAYS.toMillis(1), TimeUnit.MILLISECONDS);
-    log.info("First Policy Monitor execution scheduled for {}", dateTime);
+    });
+  }
+
+  private void schedule() {
+    ZonedDateTime nextExecutionTime = determineNextExecutionTime(ZonedDateTime.now());
+    executor.schedule(policyMonitoringRunnable, Duration.between(ZonedDateTime.now(), nextExecutionTime).toMillis(),
+        TimeUnit.MILLISECONDS);
+
+    log.info("Next Policy Monitor execution scheduled for {}", nextExecutionTime);
   }
 
   ScheduledExecutorService newExecutor() {
@@ -80,15 +108,19 @@ public class PolicyMonitorScheduler
     return new ScheduledThreadPoolExecutor(1, threadFactory);
   }
 
-  private DateTime determineNextExecutionTime() {
+  // Visible for tests
+  ZonedDateTime determineNextExecutionTime(ZonedDateTime currentTime) {
     int policyMonitoringHour = config.getPolicyMonitoringHour();
-    DateTime dateTime = new DateTime().withHourOfDay(policyMonitoringHour).withMinuteOfHour(0).withSecondOfMinute(0)
-        .withMillisOfSecond(0);
-    // set for tomorrow if this time has already passed today
-    if (dateTime.isBeforeNow()) {
-      dateTime = dateTime.plusDays(1);
+    ZonedDateTime nextExecutionTime =
+        currentTime.withHour(policyMonitoringHour).withMinute(0).withSecond(0).withNano(0);
+    // set for tomorrow if this time has already passed
+    if (!nextExecutionTime.isAfter(currentTime)) {
+      nextExecutionTime = nextExecutionTime.plusDays(1);
+      // Adding a day when the daylight savings time changes may result in a datetime that
+      // has a different hour, so we need to change it to the configured policyMonitoringHour.
+      nextExecutionTime = nextExecutionTime.withHour(policyMonitoringHour);
     }
-    return dateTime;
+    return nextExecutionTime;
   }
 
   private synchronized void stopMonitoring() {

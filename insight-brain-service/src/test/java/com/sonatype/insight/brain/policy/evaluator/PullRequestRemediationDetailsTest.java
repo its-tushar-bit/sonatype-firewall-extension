@@ -59,76 +59,76 @@ public class PullRequestRemediationDetailsTest extends AbstractComponentTest
 
     List<PolicyNotification> policyNotifications = new ArrayList<>();
 
-    PolicyNotification criticalPolicy = new PolicyNotification(
+    PolicyNotification criticalPolicyNotification = new PolicyNotification(
         new PolicyFact("critical-id", "Security-Critical", 10),
         new Notifications(new UserNotification("tester@foo.com")));
-    ComponentFact criticalFact = new ComponentFact(componentIdentifier, "dummy-hash");
+    ComponentFact criticalComponentFact = new ComponentFact(componentIdentifier, "dummy-hash");
     ConstraintFact criticalConstraintFact = new ConstraintFact("constraint-id", "Critical risk CVSS score", "OR");
     criticalConstraintFact.addConditionFact(new ConditionFact("SecurityVulnerabilitySeverity", 0,
         "Security Vulnerability Severity >= 9",
         "Found security vulnerability CVE-2016-1000031 with severity 9.8.",
         new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "CVE-2016-1000031")));
-    criticalFact.addConstraintFact(criticalConstraintFact);
-    criticalPolicy.getPolicyFact().addComponentFact(criticalFact);
+    criticalComponentFact.addConstraintFact(criticalConstraintFact);
+    criticalPolicyNotification.getPolicyFact().addComponentFact(criticalComponentFact);
 
     //introduce a second fact for the same component, with differing CVE
-    criticalPolicy.getPolicyFact().addComponentFact(
-        criticalFact.with(criticalConstraintFact.with(new ConditionFact("SecurityVulnerabilitySeverity", 0,
+    criticalPolicyNotification.getPolicyFact().addComponentFact(
+        criticalComponentFact.with(criticalConstraintFact.with(new ConditionFact("SecurityVulnerabilitySeverity", 0,
             "Security Vulnerability Severity >= 9",
             "Found security vulnerability CVE-2016-1000032 with severity 9.8.",
             new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "CVE-2016-1000032")))));
 
     //introduce a different Component violating the same policy, should be omitted from output
-    ComponentFact criticatFact2 = new ComponentFact(componentIdentifier2, "dummy-hash");
+    ComponentFact criticatComponentFact2 = new ComponentFact(componentIdentifier2, "dummy-hash");
     ConstraintFact criticalConstraintFact2 =
         new ConstraintFact("constraint-id", "Another Critical risk CVSS score", "OR");
-    criticatFact2.addConstraintFact(criticalConstraintFact2);
+    criticatComponentFact2.addConstraintFact(criticalConstraintFact2);
     criticalConstraintFact2.addConditionFact(new ConditionFact("SecurityVulnerabilitySeverity", 0,
         "Security Vulnerability Severity >= 9",
         "Found security vulnerability SONATYPE-2019-01 with severity 9.8.",
         new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "SONATYPE-2019-01")));
-    criticalPolicy.getPolicyFact().addComponentFact(criticatFact2);
+    criticalPolicyNotification.getPolicyFact().addComponentFact(criticatComponentFact2);
     
-    policyNotifications.add(criticalPolicy);
+    policyNotifications.add(criticalPolicyNotification);
 
-    PolicyNotification highPolicy = new PolicyNotification(
+    PolicyNotification highPolicyNotification = new PolicyNotification(
         new PolicyFact("high-id", "Security-High", 9),
         new Notifications(new UserNotification("tester@foo.com")));
-    ComponentFact highFact = new ComponentFact(componentIdentifier, "dummy-high-hash");
+    ComponentFact highComponentFact = new ComponentFact(componentIdentifier, "dummy-high-hash");
     ConstraintFact highConstraintFact = new ConstraintFact("constraint-id", "High risk CVSS score", "OR");
     highConstraintFact.addConditionFact(new ConditionFact("SecurityVulnerabilitySeverity", 0,
         "Security Vulnerability Severity >= 7",
         "Found security vulnerability SONATYPE-2017-0312 with severity 8.5.",
         new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "SONATYPE-2017-0312")));
-    highFact.addConstraintFact(highConstraintFact);
-    highPolicy.getPolicyFact().addComponentFact(highFact);
-    policyNotifications.add(highPolicy);
+    highComponentFact.addConstraintFact(highConstraintFact);
+    highPolicyNotification.getPolicyFact().addComponentFact(highComponentFact);
+    policyNotifications.add(highPolicyNotification);
 
-    PolicyNotification mediumPolicy = new PolicyNotification(
+    PolicyNotification mediumPolicyNotification = new PolicyNotification(
         new PolicyFact("medium-id", "Security-Medium", 7),
         new Notifications(new UserNotification("tester@foo.com")));
-    ComponentFact mediumFact = new ComponentFact(componentIdentifier, "dummy-hash");
+    ComponentFact mediumComponentFact = new ComponentFact(componentIdentifier, "dummy-hash");
     ConstraintFact mediumConstraintFact = new ConstraintFact("med-constraint-id", "Medium risk CVSS score", "OR");
     mediumConstraintFact.addConditionFact(new ConditionFact("SecurityVulnerabilityMedium", 0,
         "Security Vulnerability Severity < 9",
         "Found security vulnerability CVE-2018-10237 with severity 5.9.",
         new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "CVE-2018-10237")));
-    mediumFact.addConstraintFact(mediumConstraintFact);
-    mediumPolicy.getPolicyFact().addComponentFact(mediumFact);
-    policyNotifications.add(mediumPolicy);
+    mediumComponentFact.addConstraintFact(mediumConstraintFact);
+    mediumPolicyNotification.getPolicyFact().addComponentFact(mediumComponentFact);
+    policyNotifications.add(mediumPolicyNotification);
 
-    PolicyNotification lowPolicy = new PolicyNotification(
+    PolicyNotification lowPolicyNotification = new PolicyNotification(
         new PolicyFact("low-id", "Security-Low", 4),
         new Notifications(new UserNotification("tester@foo.com")));
-    ComponentFact lowFact = new ComponentFact(componentIdentifier, "dummy-low-hash");
+    ComponentFact lowComponentFact = new ComponentFact(componentIdentifier, "dummy-low-hash");
     ConstraintFact lowConstraintFact = new ConstraintFact("constraint-id", "Low risk CVSS score", "OR");
     lowConstraintFact.addConditionFact(new ConditionFact("SecurityVulnerabilitySeverity", 0,
         "Security Vulnerability Severity <= 4",
         "Found security vulnerability sonatype-2017-1234 with severity 3.9.",
         new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "sonatype-2017-1234")));
-    lowFact.addConstraintFact(lowConstraintFact);
-    lowPolicy.getPolicyFact().addComponentFact(lowFact);
-    policyNotifications.add(lowPolicy);
+    lowComponentFact.addConstraintFact(lowConstraintFact);
+    lowPolicyNotification.getPolicyFact().addComponentFact(lowComponentFact);
+    policyNotifications.add(lowPolicyNotification);
 
     ApiVersionChangeOptionDTO versionChangeOptionDTO = new ApiVersionChangeOptionDTO();
     ApiComponentChangeActionDTO changeActionDTO = new ApiComponentChangeActionDTO();

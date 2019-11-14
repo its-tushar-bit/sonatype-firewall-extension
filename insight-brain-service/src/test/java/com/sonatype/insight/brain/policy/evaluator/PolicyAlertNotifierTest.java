@@ -72,7 +72,8 @@ public class PolicyAlertNotifierTest
     notifier.sendNotifications(app, results);
     assertThat(logOutput).atDebugLevel()
         .contains("Not sending notifications for application " + app.getPublicId() + " and scan " + eval.getScanId()
-            + " in stage " + eval.getStageTypeId() + ", no new policy violations since last evaluation");
+            + " in stage " + eval.getStageTypeId() + ", no new policy violations for policies " +
+            "configured to send notifications since last evaluation.");
   }
 
   @Test

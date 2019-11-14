@@ -168,7 +168,9 @@ public class PolicyAlertEmailerTest
     await().atMost(NOTIFICATION_WAIT_TIMEOUT, TimeUnit.MILLISECONDS).untilAsserted(() -> {
       assertThat(logOutput).atDebugLevel().contains(
           "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
-              + " in stage " + eval.getStageTypeId() + ", no recipients configured for any violated policy");
+              + " in stage " + eval.getStageTypeId()
+              + ". There are either no recipients configured, or no new policy violations "
+              + "for policies configured to send notifications");
     });
   }
 
@@ -516,7 +518,9 @@ public class PolicyAlertEmailerTest
     await().atMost(NOTIFICATION_WAIT_TIMEOUT, TimeUnit.MILLISECONDS).untilAsserted(() -> {
       assertThat(logOutput).atDebugLevel().contains(
           "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
-              + " in stage " + eval.getStageTypeId() + ", no recipients configured for any violated policy");
+              + " in stage " + eval.getStageTypeId()
+              + ". There are either no recipients configured, or no new policy violations "
+              + "for policies configured to send notifications");
     });
   }
 

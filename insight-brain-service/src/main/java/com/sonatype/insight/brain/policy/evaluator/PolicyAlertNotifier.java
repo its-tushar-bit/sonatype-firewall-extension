@@ -97,9 +97,9 @@ public class PolicyAlertNotifier
       }
     }
     else {
-      log.debug("Not sending notifications for application {} and scan {} in stage {}"
-          + ", no new policy violations since last evaluation", app.getPublicId(), results.evaluation.getScanId(),
-          results.evaluation.getStageTypeId());
+      log.debug("Not sending notifications for application {} and scan {} in stage {}, " +
+              "no new policy violations for policies configured to send notifications since last evaluation.",
+          app.getPublicId(), results.evaluation.getScanId(), results.evaluation.getStageTypeId());
     }
   }
 

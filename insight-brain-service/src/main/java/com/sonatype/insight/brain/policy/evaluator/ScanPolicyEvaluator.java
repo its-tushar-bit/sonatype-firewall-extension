@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -351,7 +352,9 @@ public class ScanPolicyEvaluator
               .digestPolicyViolations(oldPolicyViolations, results.allViolations);
 
           // New policy violations.
-          for (PolicyViolation newPolicyViolation : policyViolationDiff.getAppeared()) {
+          List<PolicyViolation> newPolicyViolations = policyViolationDiff.getAppeared();
+          logPolicyViolations(newPolicyViolations, "new");
+          for (PolicyViolation newPolicyViolation : newPolicyViolations) {
             if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
               results.notifiableViolations.add(newPolicyViolation);
             }
@@ -372,8 +375,10 @@ public class ScanPolicyEvaluator
             policyViolationLogger.add(PolicyViolationLogEvent.FIX, oldPolicyViolation);
           }
           // Existing policy violations.
+          List<PolicyViolation> existing = new ArrayList<>();
           for (Map.Entry<PolicyViolation, PolicyViolation> entry : policyViolationDiff.getSame().entrySet()) {
             PolicyViolation oldPolicyViolation = entry.getKey();
+            existing.add(oldPolicyViolation);
             PolicyViolation newPolicyViolation = entry.getValue();
             if (!newPolicyViolation.isWaived() && oldPolicyViolation.isWaived()) {
               // The policy violation was un-waived.
@@ -410,7 +415,7 @@ public class ScanPolicyEvaluator
               results.allViolations.add(oldPolicyViolation);
             }
           }
-
+          logPolicyViolations(existing, "previously seen");
           persistApplicationComponents(tx, appId, stage, policyEvaluation.getTime(), components);
         }
 
@@ -752,5 +757,20 @@ public class ScanPolicyEvaluator
       return null;
     }
     return JsonUtils.parse(dataReportEntry.buf).path("commitHash").asText(null);
+  }
+
+  private void logPolicyViolations(List<PolicyViolation> policyViolations, String policyProperty) {
+    if (policyViolations.isEmpty()) {
+      log.debug("No " + policyProperty + " policies violated.");
+    }
+    else {
+      Map<String, Long> policyViolationCount = policyViolations.stream()
+          .collect(Collectors.groupingBy(AbstractPolicyViolation::getPolicyName, Collectors.counting()));
+      String stringified = policyViolationCount.keySet().stream().sorted()
+          .map(s -> s + "(" + policyViolationCount.get(s).toString() + ")").collect(Collectors.joining(", "));
+      // 6 new policies violated: My-First-Policy(4), My-Second-Policy(2).
+      // 6 previously seen policies violated: My-First-Policy(4), My-Second-Policy(2).
+      log.debug("{} " + policyProperty + " policies violated: {}.", policyViolations.size(), stringified);
+    }
   }
 }

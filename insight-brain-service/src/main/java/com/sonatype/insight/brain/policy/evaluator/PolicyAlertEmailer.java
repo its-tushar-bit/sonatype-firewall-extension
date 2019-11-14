@@ -88,8 +88,9 @@ public class PolicyAlertEmailer
             policyNotifications);
 
         if (policyFactsByEmailAddress.isEmpty()) {
-          log.debug("Not sending notification emails for application {} and scan {} in stage {}"
-              + ", no recipients configured for any violated policy", applicationPublicId, scanId, stage);
+          log.debug("Not sending notification emails for application {} and scan {} in stage {}."
+              + " There are either no recipients configured, or no new policy violations"
+              + " for policies configured to send notifications.", applicationPublicId, scanId, stage);
         }
         for (final Entry<String, List<PolicyFact>> details : policyFactsByEmailAddress.entrySet()) {
           try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.SEND_MAIL)) {

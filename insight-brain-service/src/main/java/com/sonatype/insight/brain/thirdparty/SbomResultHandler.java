@@ -236,13 +236,13 @@ public class SbomResultHandler
     ThirdPartyCoordinateSecurity coordinateSecurity = new ThirdPartyCoordinateSecurity();
     coordinateSecurity.setFileCoordinateId(fileCoordinateId);
     Xpp3Dom cwes = vulnerability.getChild("cwes");
-    coordinateSecurity.setCwes(getHtmlList(cwes));
+    coordinateSecurity.setCwes(getList(cwes));
 
     Xpp3Dom recommendations = vulnerability.getChild("recommendations");
-    coordinateSecurity.setRecommendations(getHtmlList(recommendations));
+    coordinateSecurity.setRecommendations(getList(recommendations));
 
     Xpp3Dom advisories = vulnerability.getChild("advisories");
-    coordinateSecurity.setAdvisories(getHtmlList(advisories));
+    coordinateSecurity.setAdvisories(getList(advisories));
 
     Xpp3Dom ratingsElements = vulnerability.getChild("ratings");
     if (ratingsElements != null) {
@@ -281,15 +281,13 @@ public class SbomResultHandler
     return null;
   }
 
-  private String getHtmlList(Xpp3Dom element) {
+  private String getList(Xpp3Dom element) {
     if (element != null) {
-      StringBuilder htmlList = new StringBuilder();
+      StringBuilder list = new StringBuilder();
       for (Xpp3Dom child : element.getChildren()) {
-        htmlList.append("<dd>");
-        htmlList.append(child.getValue());
-        htmlList.append("</dd>/n");
+        list.append(child.getValue()).append(ThirdPartySecurityVulnerabilityRenderer.LIST_SEPARATOR);
       }
-      return htmlList.toString();
+      return list.toString();
     }
     return null;
   }

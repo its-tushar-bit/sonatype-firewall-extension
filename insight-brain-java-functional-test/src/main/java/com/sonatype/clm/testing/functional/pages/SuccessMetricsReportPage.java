@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.exist;
@@ -59,6 +60,10 @@ public class SuccessMetricsReportPage
     MttrTile.chart().should(exist);
     ApplicationCountsTile.activeApplicationsCount().should(exist);
     ComponentCountsTile.averages().should(exist);
+
+    // attempt to stabilize the applitools tests for this page by giving it a chance to adjust chart sizes after the
+    // scrollbar appears (something that seems to happen asynchronously)
+    Selenide.sleep(500);
 
     return this;
   }

@@ -12,8 +12,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.file.Files;
@@ -21,7 +19,6 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -49,6 +46,7 @@ import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.client.utils.Authentication;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.mock.hds.HdsMockResponse;
@@ -264,36 +262,8 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void mockReport(String scanId, String resourceName) {
-    URL resourceUrl;
-    if (!resourceName.endsWith(".zip")) {
-      File reportZipFile = zipResourceDir(resourceName);
-      try {
-        resourceUrl = reportZipFile.toURI().toURL();
-      }
-      catch (MalformedURLException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    else {
-      resourceUrl = getClass().getResource(resourceName);
-    }
+    URL resourceUrl = ReportHelper.zipReport(resourceName, tempDir);
     hdsRespondWith(resourceUrl).atUri("rest/application/analysis/" + scanId);
-  }
-
-  protected File zipResourceDir(String resourceName) {
-    try {
-      URL resourceUrl = getClass().getResource(resourceName);
-      File resourceDir = new File(resourceUrl.toURI());
-      if (!resourceDir.isDirectory()) {
-        throw new RuntimeException("'" + resourceDir.getAbsolutePath() + "' is not a directory.");
-      }
-      File reportZipFile = new File(tempDir.getRoot(), getClass().getSimpleName() + "-" + UUID.randomUUID() + ".zip");
-      Zipper.zip(resourceDir, reportZipFile);
-      return reportZipFile;
-    }
-    catch (IOException | URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   protected void mockComponentSummary(ComponentIdentifier componentIdentifier, ComponentSummary componentSummary)
@@ -408,7 +378,7 @@ public abstract class AbstractBrainServiceTest
 
   protected File createReportFile(String applicationId, String scanId, String sourceReportDir) throws IOException {
     File reportFile = getCLMServer().getInstance(InsightWork.class).getReportFile(applicationId, scanId);
-    FileUtils.copyFile(zipResourceDir(sourceReportDir), reportFile);
+    FileUtils.copyURLToFile(ReportHelper.zipReport(sourceReportDir, tempDir), reportFile);
     return reportFile;
   }
 

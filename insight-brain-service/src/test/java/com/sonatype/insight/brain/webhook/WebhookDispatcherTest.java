@@ -461,8 +461,10 @@ public class WebhookDispatcherTest
     event.application.name = application.getName();
     event.application.organizationId = organization.getId();
     event.applicationEvaluation = evaluationEvent;
-    event.policyFacts.add(new PolicyFact("policyId", "name", 5, "policyViolationId")
-        .with(new ComponentFact(createMavenCoordinates("com.group", "artifact", "1.0", "test", "jar"), "123")));
+    PolicyFact policyFact = new PolicyFact("policyId", "name", 5, "policyViolationId");
+    policyFact.addComponentFact(
+        new ComponentFact(createMavenCoordinates("com.group", "artifact", "1.0", "test", "jar"), "123"));
+    event.policyFacts.add(policyFact);
     asyncEventBus.post(event);
 
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);

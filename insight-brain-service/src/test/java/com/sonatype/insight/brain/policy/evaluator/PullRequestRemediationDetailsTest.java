@@ -72,21 +72,24 @@ public class PullRequestRemediationDetailsTest extends AbstractComponentTest
     criticalPolicyNotification.getPolicyFact().addComponentFact(criticalComponentFact);
 
     //introduce a second fact for the same component, with differing CVE
-    criticalPolicyNotification.getPolicyFact().addComponentFact(
-        criticalComponentFact.with(criticalConstraintFact.with(new ConditionFact("SecurityVulnerabilitySeverity", 0,
-            "Security Vulnerability Severity >= 9",
+    ComponentFact criticalComponentFact1 =
+        new ComponentFact(criticalComponentFact.getComponentIdentifier(), criticalComponentFact.getHash());
+    criticalComponentFact1.addConstraintFact(new ConstraintFact(criticalConstraintFact.getConstraintId(),
+        criticalConstraintFact.getConstraintName(), criticalConstraintFact.getOperatorName(),
+        new ConditionFact("SecurityVulnerabilitySeverity", 0, "Security Vulnerability Severity >= 9",
             "Found security vulnerability CVE-2016-1000032 with severity 9.8.",
-            new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "CVE-2016-1000032")))));
+            new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "CVE-2016-1000032"))));
+    criticalPolicyNotification.getPolicyFact().addComponentFact(criticalComponentFact1);
 
     //introduce a different Component violating the same policy, should be omitted from output
     ComponentFact criticatComponentFact2 = new ComponentFact(componentIdentifier2, "dummy-hash");
     ConstraintFact criticalConstraintFact2 =
         new ConstraintFact("constraint-id", "Another Critical risk CVSS score", "OR");
-    criticatComponentFact2.addConstraintFact(criticalConstraintFact2);
     criticalConstraintFact2.addConditionFact(new ConditionFact("SecurityVulnerabilitySeverity", 0,
         "Security Vulnerability Severity >= 9",
         "Found security vulnerability SONATYPE-2019-01 with severity 9.8.",
         new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "SONATYPE-2019-01")));
+    criticatComponentFact2.addConstraintFact(criticalConstraintFact2);
     criticalPolicyNotification.getPolicyFact().addComponentFact(criticatComponentFact2);
     
     policyNotifications.add(criticalPolicyNotification);

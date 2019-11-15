@@ -46,6 +46,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
@@ -549,7 +550,10 @@ public class ReportResource
       for (ComponentFact fact : appAlert.getTrigger().getComponentFacts()) {
         if (hash.equals(fact.getHash())) {
           if (componentAlert == null) {
-            componentAlert = appAlert.with(appAlert.getTrigger().with(new ArrayList<ComponentFact>()));
+            PolicyFact appAlertTrigger = appAlert.getTrigger();
+            componentAlert =
+                new PolicyAlert(new PolicyFact(appAlertTrigger.getPolicyId(), appAlertTrigger.getPolicyName(),
+                    appAlertTrigger.getThreatLevel(), appAlertTrigger.getPolicyViolationId()), null);
             componentAlerts.add(componentAlert);
           }
           componentAlert.getTrigger().addComponentFact(fact);

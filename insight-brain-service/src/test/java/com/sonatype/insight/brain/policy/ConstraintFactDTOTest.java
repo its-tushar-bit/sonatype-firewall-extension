@@ -32,7 +32,7 @@ public class ConstraintFactDTOTest
   }
 
   private ConstraintFact constraintFact(String constraintName, ConditionFact... conditionFacts) {
-    return new ConstraintFact("constraintId", constraintName, "operatorName").with(conditionFacts);
+    return new ConstraintFact("constraintId", constraintName, "operatorName", conditionFacts);
   }
 
   private ConditionFact conditionFact(String summary, String reason) {

@@ -23,6 +23,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentPolicyViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaivedPolicyViolationDTO;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -32,6 +35,7 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.ConstraintFactDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
@@ -133,8 +137,12 @@ public class ApiComponentReleaseQuarantineService
       RepositoryPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, repository);
 
       for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
-        policyWaivers.add(waiveRepositoryViolation(tx, repositoryPolicyViolation, now, comment));
+        PolicyWaiver policyWaiver = waiveRepositoryViolation(tx, repositoryPolicyViolation, now, comment);
+        policyWaivers.add(policyWaiver);
         policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, repositoryPolicyViolation);
+        try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, false)) {
+          auditPolicyWaiver(policyWaiver);
+        }
       }
 
       repositoryComponent.setUnquarantineTime(now);
@@ -242,5 +250,16 @@ public class ApiComponentReleaseQuarantineService
       throw new NotFoundException("Cannot find a component with quarantineId " + quarantineId + ".");
     }
     return repositoryComponent;
+  }
+
+  private void auditPolicyWaiver(PolicyWaiver policyWaiver) {
+    AuditData.get().setData("policyWaiverId", policyWaiver.getId())
+        .setPolicy(new PolicyDAO().getByIdNotNull(policyWaiver.getPolicyId()))
+        .setComment(policyWaiver.getComment())
+        .setComponentHash(policyWaiver.getHash());
+    if (policyWaiver.getConstraintFacts() != null) {
+      AuditData.get().setData("policyConstraints",
+          policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
+    }
   }
 }

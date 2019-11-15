@@ -35,7 +35,7 @@ public class ReportClientTest
 
   private static final String scanId = "ReportResourceClient_ScanId";
 
-  private static final String reportFileName = "report.zip";
+  private static final String reportFileName = "/" + ReportClientTest.class.getSimpleName() + "/report.zip";
 
   @Test
   public void testScanIdNull() {
@@ -98,7 +98,7 @@ public class ReportClientTest
   public void testPrepareExpandedCoverageReport() throws Exception {
     Application app = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    mockReport(scanId, "report-expanded-coverage");
+    mockReport(scanId, "/" + ReportClientTest.class.getSimpleName() + "/report-expanded-coverage");
 
     File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(app.getId(), scanId);
     assertThat(reportFile).doesNotExist();

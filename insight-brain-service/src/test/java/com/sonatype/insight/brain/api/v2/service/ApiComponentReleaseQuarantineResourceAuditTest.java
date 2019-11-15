@@ -77,8 +77,8 @@ public class ApiComponentReleaseQuarantineResourceAuditTest
     PolicyWaiver policyWaiver2 = getSavedPolicyWaiver(repositoryPolicyViolation2.getId());
 
     List<AuditDTO> waiverAuditDTOs = assertAuditLogs(AuditEvent.CREATE_WAIVER, 2, null);
-    assertPolicyWaiverData(waiverAuditDTOs.get(0), policy1, policyWaiver1);
-    assertPolicyWaiverData(waiverAuditDTOs.get(1), policy2, policyWaiver2);
+    assertPolicyWaiverData(waiverAuditDTOs.get(0), policy1, policyWaiver1, repository);
+    assertPolicyWaiverData(waiverAuditDTOs.get(1), policy2, policyWaiver2, repository);
   }
 
   private PolicyWaiver getSavedPolicyWaiver(String repositoryPolicyViolationId) {
@@ -142,7 +142,14 @@ public class ApiComponentReleaseQuarantineResourceAuditTest
     assertCustomData(auditDTO, "componentPathname", repositoryComponent.getPathname());
   }
 
-  private void assertPolicyWaiverData(AuditDTO auditDTO, Policy policy, PolicyWaiver policyWaiver) {
+  private void assertPolicyWaiverData(
+      AuditDTO auditDTO,
+      Policy policy,
+      PolicyWaiver policyWaiver,
+      Repository repository)
+  {
+    assertCustomData(auditDTO, "repositoryId", repository.getId());
+    assertCustomData(auditDTO, "repositoryPublicId", repository.getPublicId());
     assertCustomData(auditDTO, "policyId", policy.getId());
     assertCustomData(auditDTO, "policyName", policy.getName());
     assertCustomData(auditDTO, "policyWaiverId", policyWaiver.getId());

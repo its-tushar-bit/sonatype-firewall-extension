@@ -137,7 +137,7 @@ public class ApiComponentReleaseQuarantineService
       RepositoryPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, repository);
 
       for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
-        policyWaivers.add(waiveRepositoryViolation(tx, repositoryPolicyViolation, now, comment));
+        policyWaivers.add(waiveRepositoryViolation(tx, repositoryPolicyViolation, now, comment, repository));
         policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, repositoryPolicyViolation);
       }
 
@@ -163,7 +163,7 @@ public class ApiComponentReleaseQuarantineService
       TransactionContext tx,
       RepositoryPolicyViolation repositoryPolicyViolation,
       Date now,
-      String comment)
+      String comment, Repository repository)
   {
     PolicyWaiver policyWaiver =
         new PolicyWaiver(repositoryPolicyViolation.getHash(), repositoryPolicyViolation.getPolicyId(),
@@ -174,7 +174,7 @@ public class ApiComponentReleaseQuarantineService
     new PolicyWaiverDAO().insert(tx, policyWaiver);
 
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, false)) {
-      auditPolicyWaiver(policyWaiver);
+      auditPolicyWaiver(policyWaiver, repository);
     }
 
     repositoryPolicyViolation.setWaived(true);
@@ -251,8 +251,10 @@ public class ApiComponentReleaseQuarantineService
     return repositoryComponent;
   }
 
-  private void auditPolicyWaiver(PolicyWaiver policyWaiver) {
-    AuditData.get().setData("policyWaiverId", policyWaiver.getId())
+  private void auditPolicyWaiver(PolicyWaiver policyWaiver, Repository repository) {
+    AuditData.get().setData("repositoryId", repository.getId())
+        .setData("repositoryPublicId", repository.getPublicId())
+        .setData("policyWaiverId", policyWaiver.getId())
         .setPolicy(new PolicyDAO().getByIdNotNull(policyWaiver.getPolicyId()))
         .setComment(policyWaiver.getComment())
         .setComponentHash(policyWaiver.getHash());

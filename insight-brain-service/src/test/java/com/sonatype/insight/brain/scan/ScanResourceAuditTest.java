@@ -21,7 +21,7 @@ public class ScanResourceAuditTest
 {
   private Application app;
 
-  private static final String RESOURCE_PATH = "/AbstractAuditTest/report.zip";
+  private static final String RESOURCE_PATH = "/AbstractAuditTest/report";
 
   @Before
   public void before() {

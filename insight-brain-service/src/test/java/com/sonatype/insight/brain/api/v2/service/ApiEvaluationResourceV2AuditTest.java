@@ -151,7 +151,7 @@ public class ApiEvaluationResourceV2AuditTest
       createScanFile(app.getId(), SCAN_ID);
     }
     if (createReport) {
-      mockReport(RestHandler.SCAN_ID, "/AbstractAuditTest/report.zip");
+      mockReport(RestHandler.SCAN_ID, "/AbstractAuditTest/report");
     }
     return restRequest().with(user)
         .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)

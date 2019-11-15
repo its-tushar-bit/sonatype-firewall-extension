@@ -44,7 +44,7 @@ public class ReportResourceAuditTest
 
   @Test
   public void testReevaluatePolicy() throws Exception {
-    mockReport(SCAN_ID, "/AbstractAuditTest/report.zip");
+    mockReport(SCAN_ID, "/AbstractAuditTest/report");
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 

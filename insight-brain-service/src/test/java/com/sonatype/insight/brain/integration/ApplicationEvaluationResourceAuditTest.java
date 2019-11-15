@@ -31,7 +31,7 @@ public class ApplicationEvaluationResourceAuditTest
 
   @Test
   public void testEvaluate() throws Exception {
-    String scanId = mockReport("/AbstractAuditTest/report.zip");
+    String scanId = mockReport("/AbstractAuditTest/report");
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId(scanId);
     mockScanReceipt(receipt);

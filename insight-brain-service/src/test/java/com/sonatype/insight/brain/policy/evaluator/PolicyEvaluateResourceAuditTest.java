@@ -31,14 +31,14 @@ public class PolicyEvaluateResourceAuditTest
 
   @Test
   public void testEvaluate() throws Exception {
-    String scanId = mockReport("/AbstractAuditTest/report.zip");
+    String scanId = mockReport("/AbstractAuditTest/report");
     assertResponseStatus(200, evaluate(null, app.getPublicId(), scanId, Stage.ID_BUILD));
     assertEvaluationAuditLog(null, app.getId(), app.getPublicId(), app.getName(), Stage.ID_BUILD, scanId, false);
   }
 
   @Test
   public void testEvaluate_Reevaluation() throws Exception {
-    String scanId = mockReport("/AbstractAuditTest/report.zip");
+    String scanId = mockReport("/AbstractAuditTest/report");
     assertResponseStatus(200, evaluate(null, app.getPublicId(), scanId, Stage.ID_BUILD));
     assertResponseStatus(200, evaluate(null, app.getPublicId(), scanId, Stage.ID_BUILD));
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 2).get(1), null, app.getId(),

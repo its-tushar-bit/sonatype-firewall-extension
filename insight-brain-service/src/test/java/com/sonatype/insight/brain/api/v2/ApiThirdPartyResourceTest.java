@@ -91,12 +91,12 @@ public class ApiThirdPartyResourceTest
     Application app = tempEntity.newApplicationWithParent();
 
     // Simulate that the report is available
-    String scanId = mockReport("/ApiThirdPartyResourceTest/report.zip");
+    String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
     mockScanReceipt(scanReceipt);
 
-    String bom = getBomFile("/ApiThirdPartyResourceTest/valid_bom.xml");
+    String bom = getBomFile("/" + getClass().getSimpleName() + "/valid_bom.xml");
     HttpResponse response = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD, bom).post();
     assertResponseStatus(202, response);
 

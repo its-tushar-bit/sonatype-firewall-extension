@@ -17,7 +17,6 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportVulnerabilitie
 import com.sonatype.clm.testing.functional.pages.ApplicationReportVulnerabilitiesPage.VulnerabilityRow;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportVulnerabilitiesPage.VulnerabilityTable;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
-import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -29,6 +28,7 @@ import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.Configuration;

@@ -12,9 +12,9 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ExpandedCoverageReportPage;
-import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 
 import com.codeborne.selenide.Selenide;
 import org.apache.commons.io.FileUtils;

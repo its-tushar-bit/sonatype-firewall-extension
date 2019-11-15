@@ -822,6 +822,7 @@
                 <include>**/TemporaryEntity*</include>
                 <include>**/HttpRequest*</include>
                 <include>**/HttpResponse*</include>
+                <include>**/ReportHelper*</include>
                 <include>**/Zipper*</include>
               </includes>
             </configuration>

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.io.File;
 import java.io.IOException;
 
 import com.sonatype.insight.brain.HttpResponse;
@@ -15,9 +14,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightWork;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,8 +87,7 @@ public class ApiReportDataResourceV2Test
 
   private void createReport(String appPublicId, String scanId, String resource) throws IOException {
     Application app = tempEntity.newApplicationWithParent(appPublicId);
-    File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(app.getId(), scanId);
-    FileUtils.copyFile(zipResourceDir("/ApiReportDataResourceV2Test/" + resource), reportFile);
+    createReportFile(app.getId(), scanId, "/ApiReportDataResourceV2Test/" + resource);
     tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId);
   }
 }

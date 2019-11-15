@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -35,10 +33,8 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -231,11 +227,5 @@ public class ApiComponentRemediationResourceTest
     coords.put("name", name);
     coords.put(ComponentIdentifier.VERSION, version);
     return new ComponentIdentifier(format, coords);
-  }
-
-  private File createReportFile(String appId, String scanId, String sourceReportDir) throws IOException {
-    File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId);
-    FileUtils.copyFile(zipResourceDir(sourceReportDir), reportFile);
-    return reportFile;
   }
 }

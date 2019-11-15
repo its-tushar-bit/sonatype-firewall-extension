@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -27,9 +25,7 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
-import com.sonatype.insight.brain.service.InsightWork;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -233,12 +229,6 @@ public class CIComponentInfoResourceTest
         MAVEN_COORDINATES).get();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Cannot find a repository with ID repositoryDoesNotExist.");
-  }
-
-  private File createReportFile(String appId, String scanId, String sourceReportDir) throws IOException {
-    File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId);
-    FileUtils.copyFile(zipResourceDir(sourceReportDir), reportFile);
-    return reportFile;
   }
 
   private ComponentIdentifier componentIdentifierFrom(final String format, final String name, final String version) {

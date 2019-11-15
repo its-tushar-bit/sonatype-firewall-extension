@@ -64,6 +64,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
+import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -403,6 +404,12 @@ public abstract class AbstractBrainServiceTest
     catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  protected File createReportFile(String applicationId, String scanId, String sourceReportDir) throws IOException {
+    File reportFile = getCLMServer().getInstance(InsightWork.class).getReportFile(applicationId, scanId);
+    FileUtils.copyFile(zipResourceDir(sourceReportDir), reportFile);
+    return reportFile;
   }
 
   protected List<TelemetryItem> getTelemetryItems(final Map<ByteArrayDataSource, Integer> responses)

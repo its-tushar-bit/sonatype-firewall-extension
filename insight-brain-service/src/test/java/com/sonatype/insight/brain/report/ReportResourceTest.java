@@ -918,10 +918,4 @@ public class ReportResourceTest
     FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/sample-report.zip"), reportFile);
     return reportFile;
   }
-
-  private File createReportFile(String appId, String scanId, String sourceReportDir) throws IOException {
-    File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId);
-    FileUtils.copyFile(zipResourceDir(sourceReportDir), reportFile);
-    return reportFile;
-  }
 }

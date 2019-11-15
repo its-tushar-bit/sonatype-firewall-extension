@@ -148,8 +148,7 @@ public class ApiComponentReleaseQuarantineResourceAuditTest
       PolicyWaiver policyWaiver,
       Repository repository)
   {
-    assertCustomData(auditDTO, "repositoryId", repository.getId());
-    assertCustomData(auditDTO, "repositoryPublicId", repository.getPublicId());
+    assertRepositoryData(auditDTO, repository);
     assertCustomData(auditDTO, "policyId", policy.getId());
     assertCustomData(auditDTO, "policyName", policy.getName());
     assertCustomData(auditDTO, "policyWaiverId", policyWaiver.getId());

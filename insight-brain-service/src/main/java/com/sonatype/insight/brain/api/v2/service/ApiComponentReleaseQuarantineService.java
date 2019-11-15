@@ -252,8 +252,7 @@ public class ApiComponentReleaseQuarantineService
   }
 
   private void auditPolicyWaiver(PolicyWaiver policyWaiver, Repository repository) {
-    AuditData.get().setData("repositoryId", repository.getId())
-        .setData("repositoryPublicId", repository.getPublicId())
+    AuditData.get().setRepository(repository)
         .setData("policyWaiverId", policyWaiver.getId())
         .setPolicy(new PolicyDAO().getByIdNotNull(policyWaiver.getPolicyId()))
         .setComment(policyWaiver.getComment())

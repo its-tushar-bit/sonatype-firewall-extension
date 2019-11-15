@@ -137,12 +137,8 @@ public class ApiComponentReleaseQuarantineService
       RepositoryPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, repository);
 
       for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
-        PolicyWaiver policyWaiver = waiveRepositoryViolation(tx, repositoryPolicyViolation, now, comment);
-        policyWaivers.add(policyWaiver);
+        policyWaivers.add(waiveRepositoryViolation(tx, repositoryPolicyViolation, now, comment));
         policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, repositoryPolicyViolation);
-        try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, false)) {
-          auditPolicyWaiver(policyWaiver);
-        }
       }
 
       repositoryComponent.setUnquarantineTime(now);
@@ -155,7 +151,6 @@ public class ApiComponentReleaseQuarantineService
       policyViolationLogger.log();
       AuditData.get().setData("componentPathname", repositoryComponent.getPathname());
       AuditData.get().setComponentHash(repositoryComponent.getHash());
-      AuditData.get().setRepository(repository);
 
       componentReleasedFromQuarantineDTO.componentReleasedFromQuarantine =
           buildRepositoryComponentPolicyViolationDTO(repositoryComponent, repositoryPolicyViolations, policyWaivers);
@@ -177,6 +172,10 @@ public class ApiComponentReleaseQuarantineService
     policyWaiver.setConstraintFactsJson(repositoryPolicyViolation.getConstraintFactsJson());
 
     new PolicyWaiverDAO().insert(tx, policyWaiver);
+
+    try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, false)) {
+      auditPolicyWaiver(policyWaiver);
+    }
 
     repositoryPolicyViolation.setWaived(true);
     repositoryPolicyViolation.setPolicyWaiverId(policyWaiver.getId());

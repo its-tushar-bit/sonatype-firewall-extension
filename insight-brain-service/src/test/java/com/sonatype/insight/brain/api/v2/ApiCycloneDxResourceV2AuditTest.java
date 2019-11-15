@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.io.File;
 import java.io.IOException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -15,9 +14,7 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
-import com.sonatype.insight.brain.service.InsightWork;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 
 public class ApiCycloneDxResourceV2AuditTest
@@ -29,8 +26,7 @@ public class ApiCycloneDxResourceV2AuditTest
   }
 
   private void createReportFile(String appId, String scanId) throws IOException {
-    File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId);
-    FileUtils.copyURLToFile(getClass().getResource("/ApiCycloneDxResourceV2AuditTest/report.zip"), reportFile);
+    createReportFile(appId, scanId, "/" + getClass().getSimpleName() + "/report");
   }
 
   @Test

@@ -32,20 +32,19 @@ public class HdsPingService
    * Perform a GET request of the HDS ping endpoint.
    */
   public PingResponseDTO pingHds() {
-    boolean alive = false;
-    String errorMessage = null;
+    PingResponseDTO response =  new PingResponseDTO();
 
     try {
       pingHdsClient.get(String.class, "ping");
 
-      alive = true;
+      response.alive = true;
     }
     catch (Exception e) {
-      String incidentId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-      errorMessage = e.getMessage() + " (ID " + incidentId + ").";
-      log.error("{} (ID {})", e.getMessage(), incidentId, e);
+      response.incidentId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+      response.errorMessage = e.getMessage();
+      log.error("{} (ID {})", e.getMessage(), response.incidentId, e);
     }
 
-    return new PingResponseDTO(errorMessage, alive);
+    return response;
   }
 }

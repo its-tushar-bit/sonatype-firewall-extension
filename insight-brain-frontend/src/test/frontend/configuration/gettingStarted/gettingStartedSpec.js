@@ -72,6 +72,7 @@ describe('gettingStarted component', function() {
       expect(vm.validPermissions).toEqual(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']);
       expect(vm.shouldDisplayHdsUnreachable).toBe(false);
       expect(vm.hdsUnreachableErrorMessage).toBeUndefined();
+      expect(vm.hdsUnreachableIncidentId).toBeUndefined();
       expect(vm.license).toBe('license value');
     });
 
@@ -81,7 +82,9 @@ describe('gettingStarted component', function() {
 
       var permissionsDeferred = $q.defer();
       permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
-      $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond({ alive: false, errorMessage: 'foo' });
+      $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond({
+        alive: false, errorMessage: 'foo', incidentId: 'bar'
+      });
 
       vm.$onInit();
 
@@ -92,6 +95,7 @@ describe('gettingStarted component', function() {
       expect(vm.validPermissions).toEqual(['ADD_APPLICATION']);
       expect(vm.shouldDisplayHdsUnreachable).toBe(true);
       expect(vm.hdsUnreachableErrorMessage).toEqual('foo');
+      expect(vm.hdsUnreachableIncidentId).toEqual('bar');
       expect(vm.license).toBeUndefined();
     });
 

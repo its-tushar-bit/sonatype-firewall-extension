@@ -23,7 +23,11 @@
       <div class="iq-tile-content">
         {{vm.hdsUnreachableErrorMessage}}
       </div>
-      <div class="iq-tile-content">Search server logs for the above ID for error details.</div>
+      <div class="iq-tile-content">
+        Search server logs for the ID
+        <span class="visual-testing-ignore">{{vm.hdsUnreachableIncidentId}}</span>
+        for error details.
+      </div>
       <div class="iq-tile-content">Review the
         <getting-started-doc-link href="http://links.sonatype.com/products/nxiq/doc/requirements"
                                   link-text="documentation"></getting-started-doc-link>

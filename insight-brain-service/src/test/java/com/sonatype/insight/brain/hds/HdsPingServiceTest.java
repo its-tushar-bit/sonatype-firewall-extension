@@ -40,6 +40,7 @@ public class HdsPingServiceTest
 
     assertThat(status.alive).isTrue();
     assertThat(status.errorMessage).isNull();
+    assertThat(status.incidentId).isNull();
   }
 
   @Test
@@ -49,6 +50,7 @@ public class HdsPingServiceTest
     PingResponseDTO status = hdsPingService.pingHds();
 
     assertThat(status.alive).isFalse();
-    assertThat(status.errorMessage).matches("Unreachable \\(ID [0-9a-fA-F]{16}\\)\\.");
+    assertThat(status.errorMessage).isEqualTo("Unreachable");
+    assertThat(status.incidentId).matches("[0-9a-fA-F]{16}");
   }
 }

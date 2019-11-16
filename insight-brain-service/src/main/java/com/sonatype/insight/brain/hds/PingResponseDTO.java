@@ -9,13 +9,7 @@ public class PingResponseDTO
 {
   public String errorMessage;
 
+  public String incidentId;
+
   public boolean alive;
-
-  public PingResponseDTO() {
-  }
-
-  public PingResponseDTO(String errorMessage, boolean alive) {
-    this.errorMessage = errorMessage;
-    this.alive = alive;
-  }
 }

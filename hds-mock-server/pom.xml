@@ -24,6 +24,10 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
     </dependency>
@@ -41,7 +45,7 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
-      <artifactId>insight-test-reverse-proxy</artifactId>
+      <artifactId>insight-test-networking</artifactId>
       <scope>compile</scope>
     </dependency>
 

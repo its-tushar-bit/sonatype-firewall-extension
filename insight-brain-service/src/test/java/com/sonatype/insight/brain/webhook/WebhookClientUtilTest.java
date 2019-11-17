@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
 import com.sonatype.insight.test.LogOutput;
-import com.sonatype.insight.test.SslProperties;
+import com.sonatype.insight.test.networking.SslProperties;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.NetworkConnector;

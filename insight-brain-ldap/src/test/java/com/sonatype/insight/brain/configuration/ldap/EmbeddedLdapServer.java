@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.configuration.ldap;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,7 +15,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.test.SslProperties;
+import com.sonatype.insight.test.networking.PortAllocator;
+import com.sonatype.insight.test.networking.SslProperties;
 
 import org.apache.directory.api.ldap.model.constants.AuthenticationLevel;
 import org.apache.directory.api.ldap.model.constants.SchemaConstants;
@@ -101,7 +101,7 @@ public class EmbeddedLdapServer
     long start = System.currentTimeMillis();
 
     if (port <= 0) {
-      port = getRandomPort();
+      port = PortAllocator.nextFreePort();
     }
 
     log.debug("Starting EmbeddedLdapServer with working directory {} and LDIF {} on port {}", workingDirectory,
@@ -221,12 +221,6 @@ public class EmbeddedLdapServer
     acmeBrickPartition.setSchemaManager(directoryService.getSchemaManager());
     partitionFactory.addIndex(acmeBrickPartition, SchemaConstants.OBJECT_CLASS_AT, 100);
     directoryService.addPartition(acmeBrickPartition);
-  }
-
-  private static int getRandomPort() throws IOException {
-    try (ServerSocket socket = new ServerSocket(0)) {
-      return socket.getLocalPort();
-    }
   }
 
   /**

@@ -5,16 +5,10 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.io.UncheckedIOException;
-import java.net.BindException;
-import java.net.ServerSocket;
-import java.nio.channels.FileLock;
 import java.util.List;
 
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.test.networking.PortAllocator;
 
 import com.google.inject.Module;
 
@@ -41,43 +35,6 @@ public class TestCLMServer
 
   private static int totalStopTime;
 
-  private static final File NEXT_PORT_FILE = new File(System.getProperty("java.io.tmpdir"), "nx-test-port-allocator");
-
-  /**
-   * Unlike the current PortAllocator, this does deliberately NOT pick ephemeral ports which are prone to immediate
-   * reuse by the OS for a different purpose the moment we release the found port (to be used for the intended purpose).
-   * Instead, this manually scans a range which doesn't overlap with ephemeral ports and uses a shared temporary file to
-   * collaborate with other/forked JVMs. The key feature of this port allocation is that a found port is not
-   * reused/refound until the entire port range is exhausted.
-   */
-  static synchronized int nextFreePort() {
-    int minPort = 10000;
-    int maxPort = 30000;
-    try (RandomAccessFile raf = new RandomAccessFile(NEXT_PORT_FILE, "rw"); FileLock lock = raf.getChannel().lock()) {
-      int nextPort = raf.length() < 4 ? minPort : raf.readInt();
-      try {
-        while (true) {
-          if (nextPort > maxPort) {
-            nextPort = minPort;
-          }
-          try (ServerSocket socket = new ServerSocket(nextPort++)) {
-            return socket.getLocalPort();
-          }
-          catch (BindException e) {
-            // port blocked, try the next one
-          }
-        }
-      }
-      finally {
-        raf.seek(0);
-        raf.writeInt(nextPort);
-      }
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
   public TestCLMServer(boolean isProxyRequiredToReachHds,
                        List<Module> modules,
                        Configurator configurator,
@@ -88,19 +45,19 @@ public class TestCLMServer
     this.hdsMockServer = hdsMockServer;
     hdsMockServerOwned = false;
 
-    brain = new TestInsightBrainServiceRule(nextFreePort(), nextFreePort(), hdsMockServer.getHttpUrl(),
-        isProxyRequiredToReachHds, modules).setConfigurator(configurator);
+    brain = new TestInsightBrainServiceRule(PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
+        hdsMockServer.getHttpUrl(), isProxyRequiredToReachHds, modules).setConfigurator(configurator);
   }
 
   public TestCLMServer(boolean isProxyRequiredToReachHds, List<Module> modules, Configurator configurator) {
     this.isProxyRequiredToReachHds = isProxyRequiredToReachHds;
 
-    int hdsMockServerPort = nextFreePort();
+    int hdsMockServerPort = PortAllocator.nextFreePort();
 
     hdsMockServer = new HdsMockServerRule(hdsMockServerPort, isProxyRequiredToReachHds);
     hdsMockServerOwned = true;
 
-    brain = new TestInsightBrainServiceRule(nextFreePort(), nextFreePort(),
+    brain = new TestInsightBrainServiceRule(PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
         "http://localhost:" + hdsMockServerPort, isProxyRequiredToReachHds, modules)
         .setConfigurator(configurator);
   }

@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.security.PasswordService;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
-import com.sonatype.insight.test.SslProperties;
+import com.sonatype.insight.test.networking.SslProperties;
 
 import io.dropwizard.configuration.ConfigurationException;
 import io.dropwizard.configuration.ConfigurationFactory;

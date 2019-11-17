@@ -53,6 +53,7 @@ import com.sonatype.insight.mock.hds.HdsMockResponse;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import com.sonatype.insight.test.networking.PortAllocator;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
@@ -136,7 +137,7 @@ public abstract class AbstractBrainServiceTest
       hdsMockServer = null;
     }
     if (hdsMockServer == null) {
-      hdsMockServer = new HdsMockServerRule(TestCLMServer.nextFreePort(), isProxyRequiredToReachHds());
+      hdsMockServer = new HdsMockServerRule(PortAllocator.nextFreePort(), isProxyRequiredToReachHds());
       hdsMockServer.start();
     }
     else {

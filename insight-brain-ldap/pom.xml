@@ -42,7 +42,7 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
-      <artifactId>insight-test-reverse-proxy</artifactId>
+      <artifactId>insight-test-networking</artifactId>
     </dependency>
 
     <dependency>

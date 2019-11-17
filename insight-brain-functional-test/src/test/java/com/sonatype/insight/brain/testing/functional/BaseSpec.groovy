@@ -20,8 +20,8 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule
 import com.sonatype.insight.brain.testing.functional.utils.BrowserInfo
-import com.sonatype.insight.test.PortAllocator
-import com.sonatype.insight.test.SslProperties;
+import com.sonatype.insight.test.networking.PortAllocator
+import com.sonatype.insight.test.networking.SslProperties;
 
 import org.sonatype.licensing.product.ProductLicenseManager
 import org.sonatype.licensing.product.util.LicenseFingerprinter
@@ -45,7 +45,7 @@ extends GebReportingSpec {
   }
 
   @Shared
-  private int hdsPort = PortAllocator.findFreePort(8090)
+  private int hdsPort = PortAllocator.nextFreePort()
 
   @Shared
   @ClassRule
@@ -78,7 +78,7 @@ extends GebReportingSpec {
   }
 
   def createServiceRule() {
-    def rule = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070), PortAllocator.findFreePort(8071),
+    def rule = new TestInsightBrainServiceRule(PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
         "http://localhost:" + hdsPort, false, getBrainModules())
 
     rule.setConfigurator(new Configurator() {

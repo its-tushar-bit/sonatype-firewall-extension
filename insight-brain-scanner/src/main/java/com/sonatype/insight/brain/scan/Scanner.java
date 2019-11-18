@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.scan;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Date;
 import java.util.Properties;
 
@@ -77,7 +78,7 @@ public class Scanner
   public ScanResult scan(File target, String filename, File scanDir, ProprietaryConfig proprietaryConfig)
       throws IOException
   {
-    scanDir.mkdirs();
+    Files.createDirectories(scanDir.toPath());
     File scanFile = File.createTempFile("temp-", ".xml.gz", scanDir);
     log.debug("Saving scan of {} to {}", target, scanFile);
     ScanResult scanResult = new ScanResult();
@@ -118,7 +119,7 @@ public class Scanner
       String source,
       ProprietaryConfig proprietaryConfig) throws IOException
   {
-    scanDir.mkdirs();
+    Files.createDirectories(scanDir.toPath());
     File scanFile = File.createTempFile("temp-", ".xml.gz", scanDir);
     log.debug("Adding Sbom file to {}", scanFile);
     ScanResult scanResult = new ScanResult();

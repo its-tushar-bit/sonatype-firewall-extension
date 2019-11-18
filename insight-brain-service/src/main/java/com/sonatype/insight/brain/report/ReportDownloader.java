@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -69,7 +70,7 @@ public class ReportDownloader
           is = client.get(InputStream.class, HDS_PATH, null, scanId);
           // Create the parent dir after the client returns with success
           // to ensure dir is not created for unknown scanId (or other errors)
-          reportFile.getAbsoluteFile().getParentFile().mkdirs();
+          Files.createDirectories(reportFile.getAbsoluteFile().getParentFile().toPath());
           os = new BufferedOutputStream(new FileOutputStream(reportFile));
           IOUtil.copy(is, os);
           return true;

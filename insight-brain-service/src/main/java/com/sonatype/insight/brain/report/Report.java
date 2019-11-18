@@ -726,7 +726,7 @@ public final class Report
   }
 
   private static void cache(final File cacheFile, final byte[] buf) throws IOException {
-    cacheFile.getAbsoluteFile().getParentFile().mkdirs();
+    Files.createDirectories(cacheFile.getAbsoluteFile().getParentFile().toPath());
     final OutputStream os = new FileOutputStream(cacheFile);
     try {
       IOUtil.copy(buf, os);

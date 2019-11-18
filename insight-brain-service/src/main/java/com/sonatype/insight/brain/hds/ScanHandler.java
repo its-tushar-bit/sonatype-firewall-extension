@@ -239,9 +239,9 @@ public class ScanHandler
     }
   }
 
-  private File createTempScanFile(Application app, ClientScanType clientScanType) {
+  private File createTempScanFile(Application app, ClientScanType clientScanType) throws IOException {
     File scanDir = work.getScanDir(app.getId());
-    scanDir.mkdirs();
+    Files.createDirectories(scanDir.toPath());
 
     return FileUtils.createTempFile("temp-", ClientScanType.TWISTLOCK.equals(clientScanType) ? ".zip" : ".xml.gz",
         scanDir);

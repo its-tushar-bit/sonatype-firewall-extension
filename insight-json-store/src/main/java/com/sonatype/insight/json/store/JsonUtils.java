@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -66,14 +67,14 @@ public final class JsonUtils
   }
 
   public static void write(final File file, final JsonNode data) throws IOException {
-    file.getAbsoluteFile().getParentFile().mkdirs();
+    Files.createDirectories(file.getAbsoluteFile().getParentFile().toPath());
     try (final JsonGenerator generator = JSON.createGenerator(file, JsonEncoding.UTF8)) {
       generator.useDefaultPrettyPrinter().writeTree(data);
     }
   }
 
   public static void write(final File file, final Object pojo) throws IOException {
-    file.getAbsoluteFile().getParentFile().mkdirs();
+    Files.createDirectories(file.getAbsoluteFile().getParentFile().toPath());
     try (final JsonGenerator generator = JSON.createGenerator(file, JsonEncoding.UTF8)) {
       generator.useDefaultPrettyPrinter().writeObject(pojo);
     }

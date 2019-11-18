@@ -192,7 +192,7 @@ public class DatabaseMigrator
         && !file.getName().equals(databaseName + ".lock.db"));
 
     if (targets.length > 0) {
-      backupDir.mkdirs();
+      Files.createDirectories(backupDir.toPath());
       File dbBackupZip = new File(backupDir, databaseName + ".zip");
       try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(dbBackupZip))) {
         zipOut.setLevel(Deflater.BEST_SPEED);

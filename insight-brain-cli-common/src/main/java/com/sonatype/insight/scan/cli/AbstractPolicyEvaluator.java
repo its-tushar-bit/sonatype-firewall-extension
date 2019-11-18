@@ -7,6 +7,7 @@ package com.sonatype.insight.scan.cli;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -146,7 +147,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   {
     ScanMetadata scanMetadata = verifyAndPopulateMetadata(params);
     try {
-      params.getOutputDirectory().mkdirs();
+      Files.createDirectories(params.getOutputDirectory().toPath());
       File scanFile = File.createTempFile("scan-", ".xml.gz", params.getOutputDirectory());
       List<File> files = new ArrayList<>();
       for (String scanTarget : params.getScanTargets()) {

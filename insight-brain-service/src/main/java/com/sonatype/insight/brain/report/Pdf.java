@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
@@ -102,7 +103,7 @@ public final class Pdf
             FileUtils.copyFile(cacheFile, extractedFile);
           }
           else {
-            extractedFile.getParentFile().mkdirs();
+            Files.createDirectories(extractedFile.getParentFile().toPath());
             try (final FileOutputStream fos = new FileOutputStream(extractedFile)) {
               IOUtil.copy(archive.getInputStream(entry), fos);
             }

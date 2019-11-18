@@ -12,6 +12,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 
 import javax.imageio.ImageIO;
 
@@ -60,9 +61,7 @@ public class IconDAO
     g.dispose();
 
     File applicationIconDirectory = new File(iconDirectory, ownerId);
-    if (!applicationIconDirectory.exists()) {
-      applicationIconDirectory.mkdirs();
-    }
+    Files.createDirectories(applicationIconDirectory.toPath());
 
     File iconFile = new File(applicationIconDirectory, ICON_FILE_NAME);
     if (!iconFile.exists()) {

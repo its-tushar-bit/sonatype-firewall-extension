@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.file.Files;
 import java.security.Security;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -140,7 +141,7 @@ public class InsightBrainService
       protected void run(Bootstrap<InsightConfig> bootstrap, Namespace namespace, InsightConfig configuration)
           throws Exception
       {
-        configuration.getSonatypeWork().mkdirs();
+        Files.createDirectories(configuration.getSonatypeWork().toPath());
         insightFileLock = new InsightFileLock(configuration);
         insightFileLock.lock();
 

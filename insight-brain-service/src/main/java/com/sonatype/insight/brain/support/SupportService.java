@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -219,11 +220,7 @@ class SupportService
       throws IOException
   {
     final File workDir = getWorkDir();
-    if (!workDir.exists()) {
-      if (!workDir.mkdirs()) {
-        log.warn("Failed to mkdirs for: {}", workDir.getAbsolutePath());
-      }
-    }
+    Files.createDirectories(workDir.toPath());
 
     final String prefix = uniqueName("support-");
     final File supportZip = new File(workDir, prefix + ".zip").getCanonicalFile();

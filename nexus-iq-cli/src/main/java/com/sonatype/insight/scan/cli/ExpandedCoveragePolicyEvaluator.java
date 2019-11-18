@@ -8,6 +8,7 @@ package com.sonatype.insight.scan.cli;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -76,10 +77,6 @@ public class ExpandedCoveragePolicyEvaluator
                                   ProprietaryConfig proprietaryConfig,
                                   RestClient restClient) throws ExitException
   {
-    if (!params.getOutputDirectory().exists() && !params.getOutputDirectory().mkdirs()) {
-      throw new RuntimeException("Unable to create output directory " + params.getOutputDirectory());
-    }
-
     log.info("");
     log.info("*********************************************************************************************");
     log.info(EXPANDED_COVERAGE_SCAN_DISCLAIMER);
@@ -87,6 +84,8 @@ public class ExpandedCoveragePolicyEvaluator
     log.info("");
     
     try (Engine engine = newExpandedCoverageEngine()) {
+      Files.createDirectories(params.getOutputDirectory().toPath());
+
       File scanFile = File.createTempFile("scan-", ".xml.gz", params.getOutputDirectory());
 
       Scan scan = new Scan();

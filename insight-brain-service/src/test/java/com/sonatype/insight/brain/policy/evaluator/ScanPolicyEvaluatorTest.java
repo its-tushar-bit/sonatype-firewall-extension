@@ -1726,29 +1726,6 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_PolicyViolationLogger_LogsUniquePolicyConditionTriggers() throws Exception {
-    Condition securityVulnerabilitySeverityCondition1 = new Condition(SecurityVulnerabilitySeverityConditionType.ID,
-        ">=", "0");
-    Condition securityVulnerabilitySeverityCondition2 = new Condition(SecurityVulnerabilitySeverityConditionType.ID,
-        "<=", "10");
-    Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.AND);
-    constraint
-        .setConditions(Arrays.asList(securityVulnerabilitySeverityCondition1, securityVulnerabilitySeverityCondition2));
-    tempEntity.newPolicy("policy", constraint);
-
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator
-        .evaluate(application, simulateReportIsAvailable("LogPolicyViolationPolicyConditionTriggers"),
-            new Stage(Stage.ID_BUILD));
-
-    assertThat(results.allViolations).isNotEmpty();
-    List<String> exampleDuplicateReasons = results.allViolations.get(0).getConstraintFacts().stream()
-        .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
-        .map(ConditionFact::getReason).collect(toList());
-    assertThat(exampleDuplicateReasons.get(0)).isEqualTo(exampleDuplicateReasons.get(1));
-    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
-  }
-
-  @Test
   public void testEvaluate_PolicyViolationLogger_LogsPolicyConditionTriggersForMultipleConstraintsConditions()
       throws Exception
   {

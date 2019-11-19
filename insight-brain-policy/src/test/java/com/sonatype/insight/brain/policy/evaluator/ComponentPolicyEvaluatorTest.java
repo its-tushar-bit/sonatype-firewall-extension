@@ -807,7 +807,8 @@ public class ComponentPolicyEvaluatorTest
         .getConditionFacts();
     assertThat(conditionFacts).hasSize(2);
     assertConditionFact(conditionFacts.get(0), 0, SecurityVulnerabilitySeverityConditionType.ID,
-        "Found security vulnerability CVE-1234-1234 with severity 8.0.", "Security Vulnerability Severity >= 7",
+        "Found security vulnerability CVE-1234-1234 with severity >= 7 (severity = 8.0).",
+        "Security Vulnerability Severity >= 7",
         newConditionTriggerWithSeverity(0, securityVulnerability),
         new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID, "CVE-1234-1234"));
     assertConditionFact(conditionFacts.get(1), 1, SecurityVulnerabilityStatusConditionType.ID,
@@ -840,7 +841,8 @@ public class ComponentPolicyEvaluatorTest
         .get(0).getConditionFacts();
     assertThat(conditionFacts1).hasSize(1);
     assertConditionFact(conditionFacts1.get(0), 0, SecurityVulnerabilitySeverityConditionType.ID,
-        "Found security vulnerability CVE-1234-1234 with severity 8.0.", "Security Vulnerability Severity >= 7",
+        "Found security vulnerability CVE-1234-1234 with severity >= 7 (severity = 8.0).",
+        "Security Vulnerability Severity >= 7",
         newConditionTriggerWithSeverity(0, securityVulnerability),
         new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID, "CVE-1234-1234"));
 

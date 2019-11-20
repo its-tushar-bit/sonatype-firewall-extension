@@ -50,7 +50,8 @@ public class IdentificationSourceConditionType
 
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
-    return "Identification Source was " + matchFact.getComponent().getIdentificationSource().getId();
+    return "Identification Source was " + matchFact.getComponent().getIdentificationSource().getId()
+        + ("is not".equals(condition.getOperator()) ? ", not " + condition.getValue() : "");
   }
 
   @Override

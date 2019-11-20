@@ -85,6 +85,10 @@ public class LicenseConditionTypeTest
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
+
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Found 'Not Provided' License");
   }
 
   @Test
@@ -116,6 +120,10 @@ public class LicenseConditionTypeTest
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
+
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Found 'Apache-2.0' License");
   }
 
   @Test
@@ -147,6 +155,10 @@ public class LicenseConditionTypeTest
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
+
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Found 'Not Provided' License");
   }
 
   @Test
@@ -178,6 +190,10 @@ public class LicenseConditionTypeTest
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
+
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Found 'Apache-2.0' License");
   }
 
   @Test
@@ -213,6 +229,10 @@ public class LicenseConditionTypeTest
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
+
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Found 'Not Provided' License");
   }
 
   @Test
@@ -262,6 +282,10 @@ public class LicenseConditionTypeTest
     expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense("AFL-1.2"));
     assertContainsPolicyAlert(component, policy, constraint2, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
+
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Found 'AFL-1.2' and 'Apache-2.0' Licenses");
   }
 
   @Test
@@ -297,6 +321,10 @@ public class LicenseConditionTypeTest
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
+
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Found 'Apache-2.0' License");
   }
 
   @Test
@@ -329,6 +357,10 @@ public class LicenseConditionTypeTest
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense("Apache-2.0"));
     assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
+
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Found 'Apache-2.0' and 'GPL-2.0' Licenses");
   }
 
   @Test

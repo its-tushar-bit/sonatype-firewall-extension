@@ -67,7 +67,7 @@ public class LicenseStatusConditionTypeTest
 
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
-    assertThat(actualReason).isEqualTo("License Status was OPEN");
+    assertThat(actualReason).isEqualTo("License status was Open");
   }
 
   @Test
@@ -102,7 +102,7 @@ public class LicenseStatusConditionTypeTest
 
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
-    assertThat(actualReason).isEqualTo("License Status was CONFIRMED");
+    assertThat(actualReason).isEqualTo("License status was Confirmed, not Open");
   }
 
   @Test

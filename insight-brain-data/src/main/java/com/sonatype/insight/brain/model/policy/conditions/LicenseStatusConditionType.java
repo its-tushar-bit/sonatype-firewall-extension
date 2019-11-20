@@ -51,7 +51,10 @@ public class LicenseStatusConditionType
 
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
-    return "License Status was " + matchFact.getComponent().getLicenseOverrideStatus().getId();
+    return "License status was " + matchFact.getComponent().getLicenseOverrideStatus().getName()
+        + ("is not".equals(condition.getOperator())
+            ? ", not " + LicenseOverrideStatus.valueOf(condition.getValue()).getName()
+            : "");
   }
 
   @Override

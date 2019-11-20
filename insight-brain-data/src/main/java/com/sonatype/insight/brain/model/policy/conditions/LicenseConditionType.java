@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.model.component.Component;
@@ -76,22 +75,10 @@ public class LicenseConditionType
 
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
-    final LicenseDAO licenseDAO = new LicenseDAO();
-    final StringBuilder buf = new StringBuilder();
-    final Set<String> licenseIds = matchFact.getComponent().getLicenseIds();
-    if (licenseIds.isEmpty()) {
-      buf.append("no");
-    }
-    for (String licenseId : licenseIds) {
-      if (buf.length() > 0) {
-        buf.append(" and ");
-      }
-      final License license = licenseDAO.getById(licenseId);
-      if (license != null) {
-        buf.append('\'').append(license.getShortDisplayName()).append('\'');
-      }
-    }
-    return "Found " + buf + (licenseIds.size() != 1 ? " Licenses" : " License");
+    License license = new LicenseDAO().getById(condition.getValue());
+    String licenseName = license != null ? license.getShortDisplayName() : condition.getValue();
+
+    return ("is".equals(condition.getOperator()) ? "Found" : "Did not find") + " '" + licenseName + "' license";
   }
 
   @Override

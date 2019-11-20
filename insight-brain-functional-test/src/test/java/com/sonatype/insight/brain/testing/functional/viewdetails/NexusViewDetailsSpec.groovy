@@ -90,8 +90,7 @@ class NexusViewDetailsSpec
       PolicyViolationTableRow row = policyViolationTable.rows[0]
       row.policyName == policy.name
       row.constraintName == policy.constraints[0].name
-      row.summary.contains('No Source License')
-      row.summary.contains(JUNIT.declaredLicenses[0].licenseName)
+      row.summary.contains('Found \'CPL-1.0\' license')
   }
 
   def "Security vulnerabilities are highlighted"() {

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -67,7 +68,10 @@ public class CoordinatesConditionType
 
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
-    return "Coordinates were " + matchFact.getComponent().getDisplayName();
+    String conditionComponent =
+        ComponentDisplayNameUtil.fromIdentifier(getComponentIdentifier(condition.getValue())).toString();
+    return "Coordinates were " + matchFact.getComponent().getDisplayName() + " (" + condition.getOperator() + " " +
+        conditionComponent + ")";
   }
 
   @Override
@@ -114,6 +118,13 @@ public class CoordinatesConditionType
 
   @Override
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
+    final ComponentIdentifier componentIdentifier = getComponentIdentifier(value);
+
+    boolean match = new ArtifactCoordinate(componentIdentifier).matches(component.getComponentIdentifier());
+    return "match".equals(operator) ? match : !match;
+  }
+
+  private ComponentIdentifier getComponentIdentifier(final String value) {
     final String[] coordinates = value.split(":", -1);
     final String format = coordinates[0];
 
@@ -135,9 +146,7 @@ public class CoordinatesConditionType
       default:
         throw new IllegalArgumentException("Unsupported component identifier format:" + format);
     }
-
-    boolean match = new ArtifactCoordinate(componentIdentifier).matches(component.getComponentIdentifier());
-    return "match".equals(operator) ? match : !match;
+    return componentIdentifier;
   }
 
   @Override

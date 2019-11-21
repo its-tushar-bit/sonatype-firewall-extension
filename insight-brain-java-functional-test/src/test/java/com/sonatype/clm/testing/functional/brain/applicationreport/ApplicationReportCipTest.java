@@ -276,7 +276,7 @@ public class ApplicationReportCipTest
     String policyCssClass = "cip-policy-darkblue";
     String policyName = "CoordinatesPolicy";
     String constraintName = "CoordinatesPolicy constraint";
-    String conditions = "Coordinates were javancss : javancss : 29.50";
+    String conditions = "Coordinates were javancss : javancss : 29.50 (match javancss* : * : * : * : *)";
 
     CipModal cipModal = reportPage.cipModal();
     reportPage.resultRow(1).click();

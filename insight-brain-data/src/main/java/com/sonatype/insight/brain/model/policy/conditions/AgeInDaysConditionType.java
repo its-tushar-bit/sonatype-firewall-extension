@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -17,19 +16,12 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.AgeInDaysVal
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.joda.time.Interval;
-import org.joda.time.PeriodType;
-import org.joda.time.format.PeriodFormat;
-import org.joda.time.format.PeriodFormatter;
-
 public class AgeInDaysConditionType
     extends AbstractComponentConditionType<Integer>
 {
   public static final String ID = "AgeInDays";
 
   public static final long DAY_IN_MILLISECONDS = 24L * 3600L * 1000L;
-
-  private static final PeriodFormatter AGE_FORMATTER = PeriodFormat.wordBased(Locale.ENGLISH);
 
   private static List<String> supportedOperators = new ArrayList<>();
 
@@ -65,13 +57,11 @@ public class AgeInDaysConditionType
 
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
-    String age = "unknown";
-    final Long catalogDate = matchFact.getComponent().getCatalogDate();
-    if (catalogDate != null) {
-      final Interval interval = new Interval(catalogDate, System.currentTimeMillis());
-      age = interval.toPeriod(PeriodType.yearMonthDay()).toString(AGE_FORMATTER);
-    }
-    return "Age was " + age;
+    final int days = Integer.parseInt(condition.getValue());
+    final String conditionAge = days % 365 == 0 ?
+        days / 365 + " years" :
+        days % 30 == 0 ? days / 30 + " months" : days % 7 == 0 ? days / 7 + " weeks" : days + " days";
+    return "Found component " + condition.getOperator() + " " + conditionAge;
   }
 
   @Override

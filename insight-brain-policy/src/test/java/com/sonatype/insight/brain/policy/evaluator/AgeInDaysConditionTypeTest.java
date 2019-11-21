@@ -61,6 +61,9 @@ public class AgeInDaysConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, AgeInDaysConditionType.ID,
         policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Found component older than 11 days");
   }
 
   @Test
@@ -93,6 +96,9 @@ public class AgeInDaysConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, AgeInDaysConditionType.ID,
         policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Found component younger than 11 days");
   }
 
   @Test
@@ -101,5 +107,40 @@ public class AgeInDaysConditionTypeTest
     assertThatThrownBy(() -> {
       new AgeInDaysConditionType().validateCondition(null, condition, null /* applicationId */);
     }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Invalid age (in days): abc");
+  }
+
+  @Test
+  public void testExplainMatch_CalculatesDateDurationFromDays() {
+    Condition condition = new Condition(AgeInDaysConditionType.ID, "older than", "1");
+    String actualReason = new AgeInDaysConditionType().explainMatch(condition, null);
+    assertThat(actualReason).isEqualTo("Found component older than 1 days");
+
+    condition = new Condition(AgeInDaysConditionType.ID, "older than", "7");
+    actualReason = new AgeInDaysConditionType().explainMatch(condition, null);
+    assertThat(actualReason).isEqualTo("Found component older than 1 weeks");
+
+    condition = new Condition(AgeInDaysConditionType.ID, "older than", String.valueOf(7 * 2));
+    actualReason = new AgeInDaysConditionType().explainMatch(condition, null);
+    assertThat(actualReason).isEqualTo("Found component older than 2 weeks");
+
+    condition = new Condition(AgeInDaysConditionType.ID, "older than", "30");
+    actualReason = new AgeInDaysConditionType().explainMatch(condition, null);
+    assertThat(actualReason).isEqualTo("Found component older than 1 months");
+
+    condition = new Condition(AgeInDaysConditionType.ID, "older than", String.valueOf(30 * 2));
+    actualReason = new AgeInDaysConditionType().explainMatch(condition, null);
+    assertThat(actualReason).isEqualTo("Found component older than 2 months");
+
+    condition = new Condition(AgeInDaysConditionType.ID, "older than", "365");
+    actualReason = new AgeInDaysConditionType().explainMatch(condition, null);
+    assertThat(actualReason).isEqualTo("Found component older than 1 years");
+
+    condition = new Condition(AgeInDaysConditionType.ID, "older than", String.valueOf(365 * 2));
+    actualReason = new AgeInDaysConditionType().explainMatch(condition, null);
+    assertThat(actualReason).isEqualTo("Found component older than 2 years");
+
+    condition = new Condition(AgeInDaysConditionType.ID, "older than", "1000");
+    actualReason = new AgeInDaysConditionType().explainMatch(condition, null);
+    assertThat(actualReason).isEqualTo("Found component older than 1000 days");
   }
 }

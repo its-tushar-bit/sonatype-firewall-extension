@@ -229,11 +229,7 @@ public class ApiSourceControlService
     sendSourceControlTelemetryData(METHOD.DELETE, ownerId, sourceControl);
   }
 
-  @Authorize(permission = Permission.READ)
-  public SourceControl getSourceControlByOwnerDecrypted(
-      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(Key.INTERNAL_ID) final String ownerId)
-  {
+  public SourceControl getSourceControlByOwnerDecrypted(final String ownerId) {
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(ownerId);
     if (sourceControl == null) {
       return null;

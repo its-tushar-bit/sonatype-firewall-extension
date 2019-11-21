@@ -246,8 +246,7 @@ public class ApiSourceControlServiceTest
             .setProvider(SourceControlProvider.GITHUB).build());
     sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
             validSourceControl);
-    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(
-        OwnerType.ORGANIZATION, org.getId()).getToken()).isEqualTo(TOKEN);
+    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(org.getId()).getToken()).isEqualTo(TOKEN);
   }
 
   @Test
@@ -256,8 +255,7 @@ public class ApiSourceControlServiceTest
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
             .setProvider(SourceControlProvider.GITHUB).build());
     sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, app.getId(), validSourceControl);
-    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, app.getId()).getToken())
-        .isEqualTo(TOKEN);
+    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(app.getId()).getToken()).isEqualTo(TOKEN);
   }
 
   @Test
@@ -309,8 +307,7 @@ public class ApiSourceControlServiceTest
                     .setProvider(SourceControlProvider.GITHUB).build()));
     sourceControl.token = SourceControl.FAKE_SECRET_KEY;
     sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), sourceControl);
-    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, org.getId()).getToken())
-        .isEqualTo(TOKEN);
+    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(org.getId()).getToken()).isEqualTo(TOKEN);
   }
 
   @Test
@@ -323,8 +320,7 @@ public class ApiSourceControlServiceTest
     sourceControl.token = null;
     sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
         sourceControl);
-    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, org.getId()).getToken())
-        .isEqualTo(TOKEN);
+    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(org.getId()).getToken()).isEqualTo(TOKEN);
   }
 
   @Test
@@ -422,8 +418,7 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testGetSourceControlByOwnerDecrypted_DoesNotExist() {
-    SourceControl sourceControl =
-        sourceControlService.getSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, "FAKE_ID");
+    SourceControl sourceControl = sourceControlService.getSourceControlByOwnerDecrypted("FAKE_ID");
     assertThat(sourceControl).isNull();
   }
 
@@ -500,8 +495,7 @@ public class ApiSourceControlServiceTest
     sourceControlService.encryptToken(sourceControl);
     tempEntity.newSourceControl(sourceControl.getOwnerId(), sourceControl.getRepositoryUrl(), sourceControl.getToken(),
         sourceControl.getProvider());
-    SourceControl sourceControlByApplicationId = sourceControlService
-        .getSourceControlByOwnerDecrypted(OwnerType.APPLICATION, app.getId());
+    SourceControl sourceControlByApplicationId = sourceControlService.getSourceControlByOwnerDecrypted(app.getId());
     assertThat(sourceControlByApplicationId.getOwnerId()).isEqualTo(app.getId());
     assertThat(sourceControlByApplicationId.getRepositoryUrl()).isEqualTo(VALID_URL);
     assertThat(sourceControlByApplicationId.getToken()).isEqualTo(TOKEN);
@@ -510,8 +504,7 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testGetSourceControlByOwnerDecrypted_NotFound() {
-    SourceControl sourceControlByApplicationId = sourceControlService
-        .getSourceControlByOwnerDecrypted(OwnerType.APPLICATION, "INVALID_ID");
+    SourceControl sourceControlByApplicationId = sourceControlService.getSourceControlByOwnerDecrypted("INVALID_ID");
     assertThat(sourceControlByApplicationId).isNull();
   }
 

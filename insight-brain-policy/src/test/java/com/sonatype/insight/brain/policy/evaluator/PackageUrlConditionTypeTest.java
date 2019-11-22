@@ -35,7 +35,7 @@ public class PackageUrlConditionTypeTest
   private static final String OPERATOR_MATCH = "matches";
 
   private static final String OPERATOR_DO_NOT_MATCH = "does not match";
-  
+
   private static final String UNKNOWN_FORMAT = "unknown";
 
   private Constraint createConstraint(String operator, String value) {
@@ -45,67 +45,71 @@ public class PackageUrlConditionTypeTest
   @Test
   public void testEvaluate_Maven_MatchExact() {
     Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_MAVEN + "/g2/a2@v2");
-    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_MAVEN, constraint);
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_MAVEN, constraint,
+        "(matches package URL pkg:maven/g2/a2@v2?classifier=*&type=*)");
   }
 
   @Test
   public void testEvaluate_Pypi_MatchExact() {
     Constraint constraint =
         createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_PYPI + "/a2@v2?qualifier=q2&extension=e2");
-    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_PYPI, constraint);
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_PYPI, constraint,
+        "(matches package URL pkg:pypi/a2@v2?extension=e2&qualifier=q2)");
   }
-  
+
   @Test
   public void testEvaluate_Aname_MatchExact() {
     Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_ANAME + "/a2@v2?qualifier=q2");
-    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_ANAME, constraint);
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_ANAME, constraint,
+        "(matches package URL pkg:a-name/a2@v2?qualifier=q2)");
   }
-  
+
   @Test
   public void testEvaluate_Rpm_MatchExact() {
     Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_RPM + "/a2@v2?arch=q2");
-    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_RPM, constraint);
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_RPM, constraint, "(matches package URL pkg:rpm/a2@v2?arch=q2)");
   }
-  
+
   @Test
   public void testEvaluate_Npm_MatchExact() {
     Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_NPM + "/a2@v2");
-    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_NPM, constraint);
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_NPM, constraint, "(matches package URL pkg:npm/a2@v2)");
   }
-  
+
   @Test
   public void testEvaluate_Nuget_MatchExact() {
     Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_NUGET + "/a2@v2");
-    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_NUGET, constraint);
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_NUGET, constraint, "(matches package URL pkg:nuget/a2@v2)");
   }
 
   @Test
   public void testEvaluate_Nuget_MatchExact_IgnoreCase() {
     Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_NUGET + "/A2@v2");
-    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_NUGET, constraint);
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_NUGET, constraint, "(matches package URL pkg:nuget/A2@v2)");
   }
-  
+
   @Test
   public void testEvaluate_Golang_MatchExact() {
     Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_GOLANG + "/a2@v2");
-    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_GOLANG, constraint);
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_GOLANG, constraint, "(matches package URL pkg:golang/a2@v2)");
   }
-  
+
   @Test
   public void testEvaluate_Rubygems_MatchExact() {
     Constraint constraint =
         createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_RUBYGEMS + "/a2@v2?platform=q2");
-    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_RUBYGEMS, constraint);
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_RUBYGEMS, constraint,
+        "(matches package URL pkg:gem/a2@v2?platform=q2)");
   }
-  
+
   @Test
   public void testEvaluate_Unknown_MatchExact() {
     Constraint constraint =
         createConstraint(OPERATOR_MATCH, UNKNOWN_FORMAT + "/g2/a2@v2?qualifier=q2");
-    testEvaluate_MatchExact(UNKNOWN_FORMAT, constraint);
+    testEvaluate_MatchExact(UNKNOWN_FORMAT, constraint, "(matches package URL pkg:unknown/g2/a2@v2?qualifier=q2)");
   }
 
-  private void testEvaluate_MatchExact(String format, Constraint constraint) {
+  private void testEvaluate_MatchExact(String format, Constraint constraint, String expectedConditionMessage) {
     List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
@@ -130,8 +134,12 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, PackageUrlConditionType.ID,
         policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason)
+        .isEqualTo("Coordinates were " + component2.getDisplayName() + " " + expectedConditionMessage);
   }
-  
+
   @Test
   public void testEvaluate_Maven_MatchGavecNotGavce() throws Exception {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + "/g/a@v?type=e&classifier=c");
@@ -146,6 +154,10 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
         PackageUrlConditionType.ID, policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason)
+        .isEqualTo("Coordinates were g : a : e : c : v (matches package URL pkg:maven/g/a@v?classifier=c&type=e)");
   }
 
   @Test
@@ -162,6 +174,10 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
         PackageUrlConditionType.ID, policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason)
+        .isEqualTo("Coordinates were g : a : e : v (matches package URL pkg:maven/g/a@v?classifier=*&type=e)");
   }
 
   @Test
@@ -195,20 +211,44 @@ public class PackageUrlConditionTypeTest
         PackageUrlConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
         PackageUrlConditionType.ID, policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason)
+        .isEqualTo("Coordinates were g : a :  : c : v (matches package URL pkg:maven/g/a@v?classifier=*&type=*)");
+    actualReason = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason)
+        .isEqualTo("Coordinates were g : a : e : c : v (matches package URL pkg:maven/g/a@v?classifier=*&type=*)");
+    actualReason = policyAlerts.get(2).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason)
+        .isEqualTo("Coordinates were g : a : e : v (matches package URL pkg:maven/g/a@v?classifier=*&type=*)");
+    actualReason = policyAlerts.get(3).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason)
+        .isEqualTo("Coordinates were g : a : v (matches package URL pkg:maven/g/a@v?classifier=*&type=*)");
+    actualReason = policyAlerts.get(4).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason)
+        .isEqualTo("Coordinates were g : a : v (matches package URL pkg:maven/g/a@v?classifier=*&type=*)");
   }
 
   @Test
   public void testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates() throws Exception {
     //Only Name
-    testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven/a");
+    testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven/a",
+        "(matches package URL pkg:maven/*/a@*?classifier=*&type=*)");
     //Only name and namespace
-    testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven/g/a");
+    testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven/g/a",
+        "(matches package URL pkg:maven/g/a@*?classifier=*&type=*)");
     // Name and version
-    testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven/a@v");
+    testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven/a@v",
+        "(matches package URL pkg:maven/*/a@v?classifier=*&type=*)");
   }
 
   private void testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates(
-      final String coordinatesValue) throws Exception
+      final String coordinatesValue,
+      final String expectedConditionMessage) throws Exception
   {
     Policy policy = createPolicy(coordinatesValue);
 
@@ -230,18 +270,33 @@ public class PackageUrlConditionTypeTest
         PackageUrlConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
         PackageUrlConditionType.ID, policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Coordinates were g : a : e : c : v " + expectedConditionMessage);
+    actualReason = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Coordinates were g : a : e : v " + expectedConditionMessage);
+    actualReason = policyAlerts.get(2).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Coordinates were g : a : v " + expectedConditionMessage);
   }
 
   @Test
   public void testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates() throws Exception {
-    testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates("a-name/n");
-    testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates("a-name/n?qualifier=q");
-    testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates("a-name/n@v?qualifier=q");
+    testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates("a-name/n",
+        "(matches package URL pkg:a-name/n@*?qualifier=*)");
+    testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates("a-name/n?qualifier=q",
+        "(matches package URL pkg:a-name/n@*?qualifier=q)");
+    testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates("a-name/n@v?qualifier=q",
+        "(matches package URL pkg:a-name/n@v?qualifier=q)");
   }
 
-  private void testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates(final String coordinatesValue) throws Exception {
+  private void testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates(
+      final String coordinatesValue,
+      final String expectedConditionMessage) throws Exception
+  {
     Policy policy = createPolicy(coordinatesValue);
-    
+
     Component componentNqv = ComponentFactory
         .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_ANAME, "", "n", "v", "", "q");
 
@@ -250,6 +305,9 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentNqv, policy, policy.getConstraints().get(0), FailActionType.ID,
         PackageUrlConditionType.ID, policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Coordinates were n (q) v " + expectedConditionMessage);
   }
 
   @Test
@@ -266,8 +324,12 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
         PackageUrlConditionType.ID, policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason)
+        .isEqualTo("Coordinates were g : a : e : c : v (matches package URL pkg:maven/g/a@v?classifier=*&type=e)");
   }
-  
+
   @Test
   public void testEvaluate_Maven_WildcardClassifierCoordinate_Matches_AnyClassifierValue() throws Exception {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + "/g/a@v?type=e&classifier=*");
@@ -285,6 +347,14 @@ public class PackageUrlConditionTypeTest
         PackageUrlConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
         PackageUrlConditionType.ID, policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason)
+        .isEqualTo("Coordinates were g : a : e : c : v (matches package URL pkg:maven/g/a@v?classifier=*&type=e)");
+    actualReason = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason)
+        .isEqualTo("Coordinates were g : a : e : v (matches package URL pkg:maven/g/a@v?classifier=*&type=e)");
   }
 
   private Policy createPolicy(final String constraintValue) {
@@ -297,62 +367,67 @@ public class PackageUrlConditionTypeTest
   @Test
   public void testEvaluate_Maven_MatchWildcard() {
     Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_MAVEN + "/g2/a*@v2");
-    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_MAVEN, constraint);
+    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_MAVEN, constraint,
+        "(matches package URL pkg:maven/g2/a*@v2?classifier=*&type=*)");
   }
- 
+
   @Test
   public void testEvaluate_Aname_MatchWildcard() {
     Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_ANAME + "/a2@v*?qualifier=q2");
-    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_ANAME, constraint);
+    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_ANAME, constraint,
+        "(matches package URL pkg:a-name/a2@v*?qualifier=q2)");
   }
 
   @Test
   public void testEvaluate_Pypi_MatchWildcard() {
     Constraint constraint =
         createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_PYPI + "/a2@v*?qualifier=q2&extension=e2");
-    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_PYPI, constraint);
+    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_PYPI, constraint,
+        "(matches package URL pkg:pypi/a2@v*?extension=e2&qualifier=q2)");
   }
-  
+
   @Test
   public void testEvaluate_Rpm_MatchWildcard() {
     Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_RPM + "/a2@v*?arch=q2");
-    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_RPM, constraint);
+    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_RPM, constraint,
+        "(matches package URL pkg:rpm/a2@v*?arch=q2)");
   }
-  
+
   @Test
   public void testEvaluate_Npm_MatchWildcard() {
     Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_NPM + "/a2@v*");
-    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_NPM, constraint);
+    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_NPM, constraint, "(matches package URL pkg:npm/a2@v*)");
   }
-  
+
   @Test
   public void testEvaluate_Nuget_MatchWildcard() {
     Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_NUGET + "/a2@v*");
-    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_NUGET, constraint);
+    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_NUGET, constraint, "(matches package URL pkg:nuget/a2@v*)");
   }
-  
+
   @Test
   public void testEvaluate_Golang_MatchWildcard() {
     Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_GOLANG + "/a2@v*");
-    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_GOLANG, constraint);
+    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_GOLANG, constraint, "(matches package URL pkg:golang/a2@v*)");
   }
-  
+
   @Test
   public void testEvaluate_Rubygems_MatchWildcard() {
     Constraint constraint =
         createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_RUBYGEMS + "/a2@v*?platform=q2");
-    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_RUBYGEMS, constraint);
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_RUBYGEMS, constraint,
+        "(matches package URL pkg:gem/a2@v*?platform=q2)");
   }
-  
+
   @Test
   public void testEvaluate_Unknown_MatchWildcard() {
     Constraint constraint =
         createConstraint(OPERATOR_MATCH, UNKNOWN_FORMAT + "/g2/a2@v*?qualifier=q2");
-    testEvaluate_MatchExact(UNKNOWN_FORMAT, constraint);
+    testEvaluate_MatchExact(UNKNOWN_FORMAT, constraint, "(matches package URL pkg:unknown/g2/a2@v*?qualifier=q2)");
   }
 
-  private void testEvaluate_MatchWildcard(String format, Constraint constraint) {
-    
+  private void testEvaluate_MatchWildcard(String format, Constraint constraint, String expectedConditionMessage) {
+
     List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
@@ -377,67 +452,80 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, PackageUrlConditionType.ID,
         policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason)
+        .isEqualTo("Coordinates were " + component2.getDisplayName() + " " + expectedConditionMessage);
   }
 
   @Test
   public void testEvaluate_Maven_DoNotMatchExact() {
     Constraint constraint = createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_MAVEN + "/g2/a2@v2");
-    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_MAVEN, constraint);
+    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_MAVEN, constraint,
+        "(does not match package URL pkg:maven/g2/a2@v2?classifier=*&type=*)");
   }
 
   @Test
   public void testEvaluate_Aname_DoNotMatchExact() {
     Constraint constraint =
         createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_ANAME + "/a2@v2?qualifier=q2");
-    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_ANAME, constraint);
+    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_ANAME, constraint,
+        "(does not match package URL pkg:a-name/a2@v2?qualifier=q2)");
   }
 
   @Test
   public void testEvaluate_Pypi_DoNotMatchExact() {
     Constraint constraint =
         createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_PYPI + "/a2@v2?qualifier=q2&extension=e2");
-    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_PYPI, constraint);
+    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_PYPI, constraint,
+        "(does not match package URL pkg:pypi/a2@v2?extension=e2&qualifier=q2)");
   }
-  
+
   @Test
   public void testEvaluate_Rpm_DoNotMatchExact() {
     Constraint constraint = createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_RPM + "/a2@v2?arch=q2");
-    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_RPM, constraint);
+    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_RPM, constraint,
+        "(does not match package URL pkg:rpm/a2@v2?arch=q2)");
   }
-  
+
   @Test
   public void testEvaluate_Npm_DoNotMatchExact() {
     Constraint constraint = createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_NPM + "/a2@v2");
-    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_NPM, constraint);
+    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_NPM, constraint,
+        "(does not match package URL pkg:npm/a2@v2)");
   }
-  
+
   @Test
   public void testEvaluate_Nuget_DoNotMatchExact() {
     Constraint constraint = createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_NUGET + "/a2@v2");
-    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_NUGET, constraint);
+    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_NUGET, constraint,
+        "(does not match package URL pkg:nuget/a2@v2)");
   }
-  
+
   @Test
   public void testEvaluate_Golang_DoNotMatchExact() {
     Constraint constraint = createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_GOLANG + "/a2@v2");
-    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_GOLANG, constraint);
+    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_GOLANG, constraint,
+        "(does not match package URL pkg:golang/a2@v2)");
   }
-  
+
   @Test
   public void testEvaluate_Rubygems_DoNotMatchExact() {
     Constraint constraint =
         createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_RUBYGEMS + "/a2@v2?platform=q2");
-    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_RUBYGEMS, constraint);
+    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_RUBYGEMS, constraint,
+        "(does not match package URL pkg:gem/a2@v2?platform=q2)");
   }
-  
+
   @Test
   public void testEvaluate_Unknown_DoNotMatchExact() {
     Constraint constraint =
         createConstraint(OPERATOR_DO_NOT_MATCH, UNKNOWN_FORMAT + "/g2/a2@v2?qualifier=q2");
-    testEvaluate_DoNotMatchExact(UNKNOWN_FORMAT, constraint);
+    testEvaluate_DoNotMatchExact(UNKNOWN_FORMAT, constraint,
+        "(does not match package URL pkg:unknown/g2/a2@v2?qualifier=q2)");
   }
 
-  private void testEvaluate_DoNotMatchExact(String format, Constraint constraint) {
+  private void testEvaluate_DoNotMatchExact(String format, Constraint constraint, String expectedConditionMessage) {
     List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
@@ -462,68 +550,81 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, PackageUrlConditionType.ID,
         policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason)
+        .isEqualTo("Coordinates were " + component1.getDisplayName() + " " + expectedConditionMessage);
   }
 
   @Test
   public void testEvaluate_Maven_DoNotMatchWildcard() {
     Constraint constraint = createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_MAVEN + "/g2/a*@v2");
-    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_MAVEN, constraint);
+    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_MAVEN, constraint,
+        "(does not match package URL pkg:maven/g2/a*@v2?classifier=*&type=*)");
   }
 
   @Test
   public void testEvaluate_Aname_DoNotMatchWildcard() {
     Constraint constraint =
         createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_ANAME + "/a2@v*?qualifier=q2");
-    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_ANAME, constraint);
+    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_ANAME, constraint,
+        "(does not match package URL pkg:a-name/a2@v*?qualifier=q2)");
   }
 
   @Test
   public void testEvaluate_Pypi_DoNotMatchWildcard() {
     Constraint constraint =
         createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_PYPI + "/a2@v*?qualifier=q2&extension=e2");
-    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_PYPI, constraint);
+    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_PYPI, constraint,
+        "(does not match package URL pkg:pypi/a2@v*?extension=e2&qualifier=q2)");
   }
-  
+
   @Test
   public void testEvaluate_Rpm_DoNotMatchWildcard() {
     Constraint constraint = createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_RPM + "/a2@v*?arch=q2");
-    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_RPM, constraint);
+    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_RPM, constraint,
+        "(does not match package URL pkg:rpm/a2@v*?arch=q2)");
   }
-  
+
   @Test
   public void testEvaluate_Npm_DoNotMatchWildcard() {
     Constraint constraint = createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_NPM + "/a2@v*");
-    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_NPM, constraint);
+    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_NPM, constraint,
+        "(does not match package URL pkg:npm/a2@v*)");
   }
-  
+
   @Test
   public void testEvaluate_Nuget_DoNotMatchWildcard() {
     Constraint constraint = createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_NUGET + "/a2@v*");
-    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_NUGET, constraint);
+    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_NUGET, constraint,
+        "(does not match package URL pkg:nuget/a2@v*)");
   }
-  
+
   @Test
   public void testEvaluate_Golang_DoNotMatchWildcard() {
     Constraint constraint = createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_GOLANG + "/a2@v*");
-    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_GOLANG, constraint);
+    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_GOLANG, constraint,
+        "(does not match package URL pkg:golang/a2@v*)");
   }
-  
+
   @Test
   public void testEvaluate_Rubygems_DoNotMatchWildcard() {
     Constraint constraint =
         createConstraint(OPERATOR_DO_NOT_MATCH, ComponentIdentifier.FORMAT_RUBYGEMS + "/a2@v*?platform=q2");
-    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_RUBYGEMS, constraint);
+    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_RUBYGEMS, constraint,
+        "(does not match package URL pkg:gem/a2@v*?platform=q2)");
   }
-  
+
   @Test
   public void testEvaluate_Unknown_DoNotMatchWildcard() {
     Constraint constraint =
         createConstraint(OPERATOR_DO_NOT_MATCH, UNKNOWN_FORMAT + "/g2/a2@v*?qualifier=q2");
-    testEvaluate_DoNotMatchWildcard(UNKNOWN_FORMAT, constraint);
+    testEvaluate_DoNotMatchWildcard(UNKNOWN_FORMAT, constraint,
+        "(does not match package URL pkg:unknown/g2/a2@v*?qualifier=q2)");
   }
 
-  private void testEvaluate_DoNotMatchWildcard(String format, Constraint constraint) {
-   
+  private void testEvaluate_DoNotMatchWildcard(String format, Constraint constraint, String expectedConditionMessage) {
+
     List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
@@ -548,6 +649,10 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, PackageUrlConditionType.ID,
         policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason)
+        .isEqualTo("Coordinates were " + component1.getDisplayName() + " " + expectedConditionMessage);
   }
 
   @Test
@@ -561,7 +666,7 @@ public class PackageUrlConditionTypeTest
     List<Component> components = new ArrayList<>();
     Component component1 =
         ComponentFactory.forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN,
-        "g1", "test@test#", "v1");
+            "g1", "test@test#", "v1");
     components.add(component1);
 
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
@@ -569,6 +674,10 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, PackageUrlConditionType.ID,
         policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Coordinates were g1 : test@test# : v1 " +
+        "(matches package URL pkg:maven/g1/test%40test%23@*?classifier=*&type=*)");
   }
 
   @Test
@@ -586,7 +695,7 @@ public class PackageUrlConditionTypeTest
       new PackageUrlConditionType().validateCondition(null, condition, null);
     }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("missing package URL");
   }
-  
+
   @Test
   public void testValidateCondition_InvalidPackageUrl() {
     Condition condition = new Condition(PackageUrlConditionType.ID, OPERATOR_MATCH, "invalid");
@@ -612,7 +721,7 @@ public class PackageUrlConditionTypeTest
     convertIfNeededNuget();
     convertIfNeededUnknown();
   }
-  
+
   private void convertIfNeededMaven() {
     assertConvertIfNeeded("pkg:maven/a", "pkg:maven/*/a@*?classifier=*&type=*");
     assertConvertIfNeeded("pkg:maven/g/a", "pkg:maven/g/a@*?classifier=*&type=*");
@@ -628,7 +737,7 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:maven/G/A@v?type=e&classifier=c", "pkg:maven/G/A@v?classifier=c&type=e");
     assertConvertIfNeeded("pkg:maven/G/A@v?type=E&classifier=C", "pkg:maven/G/A@v?classifier=C&type=E");
   }
-  
+
   private void convertIfNeededAname() {
     assertConvertIfNeeded("pkg:a-name/n", "pkg:a-name/n@*?qualifier=*");
     assertConvertIfNeeded("pkg:a-name/n?qualifier=q", "pkg:a-name/n@*?qualifier=q");
@@ -638,7 +747,7 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:a-name/N@V?qualifier=", "pkg:a-name/N@V?qualifier=*");
     assertConvertIfNeeded("pkg:a-name/N@V?qualifier=Q", "pkg:a-name/N@V?qualifier=Q");
   }
-  
+
   private void convertIfNeededPypi() {
     assertConvertIfNeeded("pkg:pypi/n", "pkg:pypi/n@*?extension=*&qualifier=*");
     assertConvertIfNeeded("pkg:pypi/n@v", "pkg:pypi/n@v?extension=*&qualifier=*");
@@ -698,7 +807,7 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:gem/A/n@V", "pkg:gem/A/n@V?platform=*");
     assertConvertIfNeeded("pkg:gem/A/N@V", "pkg:gem/A/N@V?platform=*");
   }
-  
+
   private void convertIfNeededUnknown() {
     assertConvertIfNeeded("pkg:unknown/name", "pkg:unknown/name@*");
     assertConvertIfNeeded("pkg:unknown/name?qualifier=q", "pkg:unknown/name@*?qualifier=q");
@@ -712,11 +821,11 @@ public class PackageUrlConditionTypeTest
         "pkg:unknown/NAMEspace/name@v?arch=A&qualifier=q&type=t");
     assertConvertIfNeeded("pkg:unknown/NAME@v?qualifier=", "pkg:unknown/NAME@v");
   }
-  
+
   private void assertConvertIfNeeded(final String value, final String expectedConvertedValue) {
     assertThat(createCoordinateCondition(value).getValue()).isEqualTo(expectedConvertedValue);
   }
-  
+
   private Condition createCoordinateCondition(final String value) {
     return new Condition(PackageUrlConditionType.ID, OPERATOR_MATCH, value);
   }

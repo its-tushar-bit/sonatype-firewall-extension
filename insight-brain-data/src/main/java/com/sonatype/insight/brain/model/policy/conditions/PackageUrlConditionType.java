@@ -74,7 +74,8 @@ public class PackageUrlConditionType
 
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
-    return "Package URL was " + matchFact.getComponent().getDisplayName();
+    return "Coordinates were " + matchFact.getComponent().getDisplayName() + " (" + condition.getOperator() +
+        " package URL " + condition.getValue() + ")";
   }
 
   @Override

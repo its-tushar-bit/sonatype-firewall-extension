@@ -78,6 +78,9 @@ public class RelativePopularityConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID,
         policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Relative popularity was 30%");
   }
 
   @Test
@@ -108,6 +111,9 @@ public class RelativePopularityConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID,
         policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Relative popularity was < 30% (relative popularity = 10%)");
   }
 
   @Test
@@ -141,6 +147,12 @@ public class RelativePopularityConditionTypeTest
         policyAlerts);
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID,
         policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Relative popularity was <= 30% (relative popularity = 10%)");
+    actualReason = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Relative popularity was <= 30% (relative popularity = 30%)");
   }
 
   @Test
@@ -171,6 +183,9 @@ public class RelativePopularityConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID,
         policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Relative popularity was > 30% (relative popularity = 50%)");
   }
 
   @Test
@@ -204,6 +219,12 @@ public class RelativePopularityConditionTypeTest
         policyAlerts);
     assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID,
         policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Relative popularity was >= 30% (relative popularity = 30%)");
+    actualReason = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Relative popularity was >= 30% (relative popularity = 50%)");
   }
 
   @Test

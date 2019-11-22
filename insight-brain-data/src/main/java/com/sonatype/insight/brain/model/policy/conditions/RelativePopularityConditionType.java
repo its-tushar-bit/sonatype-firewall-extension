@@ -42,7 +42,10 @@ public class RelativePopularityConditionType
 
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
-    return "Relative Popularity was " + matchFact.getComponent().getRelativePopularity() + "%";
+    boolean isEqualsOperator = "=".equals(condition.getOperator());
+    return "Relative popularity was " + (!isEqualsOperator ? condition.getOperator() + " " : "") +
+        condition.getValue() + "%" +
+        (!isEqualsOperator ? " (relative popularity = " + matchFact.getComponent().getRelativePopularity() + "%)" : "");
   }
 
   @Override

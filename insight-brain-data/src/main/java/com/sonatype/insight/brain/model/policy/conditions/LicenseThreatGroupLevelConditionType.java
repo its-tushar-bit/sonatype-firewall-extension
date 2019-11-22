@@ -78,7 +78,7 @@ public class LicenseThreatGroupLevelConditionType
         .getConditionTriggerByConditionIndex(condition.getConditionIndex()).getTrigger();
     LicenseThreatGroup licenseThreatGroup = getLicenseThreatGroupById(matchFact.getComponent(), conditionTrigger.id);
     return "Found license threat group '" + licenseThreatGroup.getName() + "' with level "
-        + licenseThreatGroup.getThreatLevel() + ".";
+        + condition.getOperator() + " " + condition.getValue() + " (level = " + conditionTrigger.threatLevel + ")";
   }
 
   public boolean evaluateCondition(LicenseThreatGroup licenseThreatGroup,

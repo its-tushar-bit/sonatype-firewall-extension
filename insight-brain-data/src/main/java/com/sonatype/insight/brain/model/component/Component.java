@@ -7,12 +7,14 @@ package com.sonatype.insight.brain.model.component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -39,6 +41,8 @@ public class Component
   private Set<String> unassignedLicenseIds = new LinkedHashSet<>();
 
   private Map<String, LicenseThreatGroup> licenseThreatGroupsById = new LinkedHashMap<>();
+
+  private Map<String, Set<String>> licenseIdsByThreatGroupId = new HashMap<>();
 
   private LicenseOverrideStatus licenseOverrideStatus;
 
@@ -228,10 +232,6 @@ public class Component
     licenseThreatGroupsById.put(licenseThreatGroup.getId(), licenseThreatGroup);
   }
 
-  public boolean hasLicenseInLicenseThreatGroup(String licenseThreatGroupId) {
-    return licenseThreatGroupsById.keySet().contains(licenseThreatGroupId);
-  }
-
   @JsonIgnore
   public Set<LicenseThreatGroup> getLicenseThreatGroups() {
     final Set<LicenseThreatGroup> licenseThreatGroups = new LinkedHashSet<>();
@@ -239,6 +239,11 @@ public class Component
       licenseThreatGroups.add(licenseThreatGroup);
     }
     return licenseThreatGroups;
+  }
+
+  public void addLicenseIdByThreatGroupId(String licenseId, String licenseThreatGroupId) {
+    Set<String> licenseIds = licenseIdsByThreatGroupId.computeIfAbsent(licenseThreatGroupId, k -> new TreeSet<>());
+    licenseIds.add(licenseId);
   }
 
   public Integer getLicenseThreatLevel() {
@@ -318,5 +323,10 @@ public class Component
     }
 
     this.unassignedLicenseIds.addAll(unassignedLicenseIds);
+  }
+
+  @JsonIgnore
+  public Set<String> getLicenseIdsInLicenseThreatGroup(String licenseThreatGroupId) {
+    return licenseIdsByThreatGroupId.getOrDefault(licenseThreatGroupId, Collections.emptySet());
   }
 }

@@ -7,7 +7,10 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -96,23 +99,33 @@ public class LicenseThreatGroupConditionType
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
     if (LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID.equals(condition.getValue())) {
       if ("is".equals(condition.getOperator())) {
-        return "Found a license that is not assigned to any license threat group.";
+        String licenseNames = licenseIdsToLicenseNamesCsv(matchFact.getComponent().getUnassignedLicenseIds());
+        return "Found licenses that are not assigned to any license threat group (" + licenseNames + ")";
       }
       else {
-        return "Did not find a license that is not assigned to any license threat group.";
+        return "Did not find a license that is not assigned to any license threat group";
       }
     }
 
     TriggerLicenseThreatGroup conditionTrigger = (TriggerLicenseThreatGroup) matchFact
         .getConditionTriggerByConditionIndex(condition.getConditionIndex()).getTrigger();
-    String licenseThreatGroupName = getLicenseThreatGroupName(null, conditionTrigger.id);
+    String licenseThreatGroupId = conditionTrigger.id;
+    String licenseThreatGroupName = getLicenseThreatGroupName(null, licenseThreatGroupId);
 
     if ("is".equals(condition.getOperator())) {
-      return "Found a license in the '" + licenseThreatGroupName + "' license threat group.";
+      String licenseNames =
+          licenseIdsToLicenseNamesCsv(matchFact.getComponent().getLicenseIdsInLicenseThreatGroup(licenseThreatGroupId));
+      return "Found licenses in the '" + licenseThreatGroupName + "' license threat group (" + licenseNames + ")";
     }
     else {
-      return "Did not find a license in the '" + licenseThreatGroupName + "' license threat group.";
+      return "Did not find a license in the '" + licenseThreatGroupName + "' license threat group";
     }
+  }
+
+  private String licenseIdsToLicenseNamesCsv(Set<String> licenseIds) {
+    LicenseDAO licenseDAO = new LicenseDAO();
+    return licenseIds.stream().map(licenseId -> "'" + licenseDAO.getByIdNotNull(licenseId).getShortDisplayName() + "'")
+        .collect(Collectors.joining(", "));
   }
 
   @Override
@@ -122,7 +135,7 @@ public class LicenseThreatGroupConditionType
       result = !component.getUnassignedLicenseIds().isEmpty();
     }
     else {
-      result = component.hasLicenseInLicenseThreatGroup(value);
+      result = !component.getLicenseIdsInLicenseThreatGroup(value).isEmpty();
     }
     return "is".equals(operator) ? result : !result;
   }

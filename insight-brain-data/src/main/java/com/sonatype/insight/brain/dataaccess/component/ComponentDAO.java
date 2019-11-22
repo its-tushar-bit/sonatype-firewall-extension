@@ -320,6 +320,7 @@ public class ComponentDAO
 
         for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
           component.addLicenseThreatGroup(licenseThreatGroup);
+          component.addLicenseIdByThreatGroupId(licenseId, licenseThreatGroup.getId());
         }
       }
     }

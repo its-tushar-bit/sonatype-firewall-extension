@@ -50,7 +50,10 @@ public class MatchStateConditionType
 
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
-    return "Match State was " + matchFact.getComponent().getMatchState().getId();
+    return "Match state was '" + matchFact.getComponent().getMatchState().getName() + "'"
+        + ("is not".equals(condition.getOperator())
+            ? ", not '" + MatchState.getById(condition.getValue()).getName() + "'"
+            : "");
   }
 
   @Override

@@ -78,17 +78,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.appear;
-import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.disappear;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -492,7 +482,7 @@ public class RepositoryReportTest
     // Check existing violations
     WaiverCip.rows().shouldHaveSize(2);
     WaiverCip.row(0).shouldBe("cip-policy-red", CRITICAL_ROW.policyName,
-        new String[] { CRITICAL_ROW.policyName + " constraint" }, new String[] { "Match State was exact" });
+        new String[]{CRITICAL_ROW.policyName + " constraint"}, new String[]{"Match state was 'Exact'"});
     WaiverCip.row(1).shouldBe("cip-policy-red", CRITICAL_ROW_SECONDARY.policyName,
         new String[] { CRITICAL_ROW_SECONDARY.policyName + " constraint" },
         new String[] { "Coordinates were critical : threat : 1.0" });
@@ -514,7 +504,7 @@ public class RepositoryReportTest
     AddWaiverDialog.policyName().shouldHave(text(CRITICAL_ROW.policyName));
     AddWaiverDialog.policyName().shouldHave(cssClass("cip-policy-red"));
     AddWaiverDialog.constraintName().shouldHave(text(CRITICAL_ROW.policyName + " constraint"));
-    AddWaiverDialog.waiverConditions().shouldHave(text("Match State was exact"));
+    AddWaiverDialog.waiverConditions().shouldHave(text("Match state was 'Exact'"));
 
     AddWaiverDialog.comment().setValue("TEST COMMENT");
     AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
@@ -572,7 +562,7 @@ public class RepositoryReportTest
     AddWaiverDialog.policyName().shouldHave(text(CRITICAL_ROW.policyName));
     AddWaiverDialog.policyName().shouldHave(cssClass("cip-policy-red"));
     AddWaiverDialog.constraintName().shouldHave(text(CRITICAL_ROW.policyName + " constraint"));
-    AddWaiverDialog.waiverConditions().shouldHave(text("Match State was exact"));
+    AddWaiverDialog.waiverConditions().shouldHave(text("Match state was 'Exact'"));
 
     AddWaiverDialog.scopedWaiver().click();
 

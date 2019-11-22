@@ -61,7 +61,7 @@ public class MatchStateConditionTypeTest
 
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
-    assertThat(actualReason).isEqualTo("Match State was similar");
+    assertThat(actualReason).isEqualTo("Match state was 'Similar'");
   }
 
   @Test
@@ -97,7 +97,7 @@ public class MatchStateConditionTypeTest
 
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
-    assertThat(actualReason).isEqualTo("Match State was exact");
+    assertThat(actualReason).isEqualTo("Match state was 'Exact', not 'Similar'");
   }
 
   @Test

@@ -50,10 +50,12 @@ public class ApiCycloneDxServiceV2Test
   private String scanId;
 
   @Before
-  public void setup() throws IOException {
+  public void setup() {
     scanId = tempEntity.uuid();
     application = tempEntity.newApplication(tempEntity.newOrganization().getId());
+  }
 
+  private void createReportAndPolicyEvaluation() throws IOException {
     File reportFile = work.getReportFile(application.getId(), scanId);
     FileUtils.copyURLToFile(ReportHelper.zipReport("/" + getClass().getSimpleName() + "/report", tempDir), reportFile);
 
@@ -75,7 +77,8 @@ public class ApiCycloneDxServiceV2Test
   }
 
   @Test
-  public void testGetByScanId() throws ParseException {
+  public void testGetByScanId() throws Exception {
+    createReportAndPolicyEvaluation();
     Response response = service.getByScanId(application.getId(), scanId);
     assertBom(response);
   }
@@ -95,7 +98,8 @@ public class ApiCycloneDxServiceV2Test
   }
 
   @Test
-  public void testGetLatest() throws ParseException {
+  public void testGetLatest() throws Exception {
+    createReportAndPolicyEvaluation();
     Response response = service.getLatest(application.getId(), BuildStageType.ID);
     assertBom(response);
   }

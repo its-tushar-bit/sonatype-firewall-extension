@@ -36,10 +36,12 @@ public class ApiCycloneDxServiceV2AuthzTest
   private String scanId;
 
   @Before
-  public void setup() throws IOException {
+  public void setup() {
     scanId = tempEntity.uuid();
     application = tempEntity.newApplication(tempEntity.newOrganization().getId());
+  }
 
+  private void createReportAndPolicyEvaluation() throws IOException {
     File reportFile = work.getReportFile(application.getId(), scanId);
     FileUtils.copyURLToFile(ReportHelper.zipReport("/" + getClass().getSimpleName() + "/report", tempDir), reportFile);
 
@@ -47,7 +49,8 @@ public class ApiCycloneDxServiceV2AuthzTest
   }
 
   @Test
-  public void testGetByScanId_Authorized() {
+  public void testGetByScanId_Authorized() throws Exception {
+    createReportAndPolicyEvaluation();
     grantReadPermission(application.getId());
     service.getByScanId(application.getId(), scanId);
   }
@@ -64,7 +67,8 @@ public class ApiCycloneDxServiceV2AuthzTest
   }
 
   @Test
-  public void testGetLatest_Authorized() {
+  public void testGetLatest_Authorized() throws Exception {
+    createReportAndPolicyEvaluation();
     grantReadPermission(application.getId());
     service.getLatest(application.getId(), BuildStageType.ID);
   }

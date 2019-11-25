@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.codehaus.plexus.util.FileUtils;
@@ -54,8 +55,7 @@ public class ApiCycloneDxServiceV2Test
     application = tempEntity.newApplication(tempEntity.newOrganization().getId());
 
     File reportFile = work.getReportFile(application.getId(), scanId);
-    reportFile.getParentFile().mkdirs();
-    FileUtils.copyURLToFile(getClass().getResource("/ApiCycloneDxServiceV2Test/report.zip"), reportFile);
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/" + getClass().getSimpleName() + "/report", tempDir), reportFile);
 
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
   }

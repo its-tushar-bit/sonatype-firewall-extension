@@ -10,7 +10,6 @@ import java.io.IOException;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -31,34 +30,31 @@ public class ApiCycloneDxServiceV2AuthzTest
   @Inject
   private InsightWork work;
 
-  private Application application;
-
   private String scanId;
 
   @Before
   public void setup() {
     scanId = tempEntity.uuid();
-    application = tempEntity.newApplication(tempEntity.newOrganization().getId());
   }
 
   private void createReportAndPolicyEvaluation() throws IOException {
-    File reportFile = work.getReportFile(application.getId(), scanId);
+    File reportFile = work.getReportFile(app.getId(), scanId);
     FileUtils.copyURLToFile(ReportHelper.zipReport("/" + getClass().getSimpleName() + "/report", tempDir), reportFile);
 
-    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
   }
 
   @Test
   public void testGetByScanId_Authorized() throws Exception {
     createReportAndPolicyEvaluation();
-    grantReadPermission(application.getId());
-    service.getByScanId(application.getId(), scanId);
+    grantReadPermission(app.getId());
+    service.getByScanId(app.getId(), scanId);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetByScanId_Unauthorized() {
     login();
-    service.getByScanId(application.getId(), scanId);
+    service.getByScanId(app.getId(), scanId);
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -69,18 +65,18 @@ public class ApiCycloneDxServiceV2AuthzTest
   @Test
   public void testGetLatest_Authorized() throws Exception {
     createReportAndPolicyEvaluation();
-    grantReadPermission(application.getId());
-    service.getLatest(application.getId(), BuildStageType.ID);
+    grantReadPermission(app.getId());
+    service.getLatest(app.getId(), BuildStageType.ID);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetLatest_Unauthorized() {
     login();
-    service.getLatest(application.getId(), BuildStageType.ID);
+    service.getLatest(app.getId(), BuildStageType.ID);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetLatest_Unauthenticated() {
-    service.getLatest(application.getId(), BuildStageType.ID);
+    service.getLatest(app.getId(), BuildStageType.ID);
   }
 }

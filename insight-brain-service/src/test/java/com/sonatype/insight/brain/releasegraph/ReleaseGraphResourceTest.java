@@ -5,12 +5,10 @@
  */
 package com.sonatype.insight.brain.releasegraph;
 
-import java.io.File;
-import java.nio.file.Files;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Before;
@@ -21,11 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ReleaseGraphResourceTest
     extends AbstractResourceTest
 {
-  private String appId;
+  private Application app;
 
   private String scanId;
-
-  private File reportDir;
 
   private HttpRequest getRequest(String appId, String scanId) {
     return restRequest().path(ReleaseGraphResource.RESOURCE_PATH).parameter(appId, scanId);
@@ -39,32 +35,28 @@ public class ReleaseGraphResourceTest
     return request.query("groupId", groupId).query("artifactId", artifactId).query("version", version);
   }
 
-  private void copyReport(String filename) throws Exception {
-    reportDir.mkdirs();
-    Files.copy(getClass().getResourceAsStream("/ReleaseGraphResourceTest/" + filename), new File(reportDir,
-        "report.zip").toPath());
+  private void copyReport(String sourceReportDir) throws Exception {
+    createReportFile(app.getId(), scanId, "/" + getClass().getSimpleName() + "/" + sourceReportDir);
   }
 
   @Before
   public void init() throws Exception {
-    appId = getClass().getSimpleName();
-    String internalAppId = tempEntity.newApplicationWithParent(appId).getId();
+    app = tempEntity.newApplicationWithParent();
     scanId = tempEntity.uuid();
-    reportDir = getCLMServer().getReportDir(internalAppId, scanId);
   }
 
   @Test
   public void testGetImage_NeitherIdentifierNorGav() throws Exception {
-    HttpResponse response = getRequest(appId, scanId).get();
+    HttpResponse response = getRequest(app.getPublicId(), scanId).get();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid component identifier");
   }
 
   @Test
   public void testGetImage_ByComponentIdentifier() throws Exception {
-    copyReport("report.zip");
+    copyReport("report");
     HttpResponse response = addCoords(
-        addCoords(getRequest(appId, scanId),
+        addCoords(getRequest(app.getPublicId(), scanId),
             ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar")), "ignored",
         "ignored", "ignored").get();
     assertResponseStatus(200, response);
@@ -74,8 +66,8 @@ public class ReleaseGraphResourceTest
 
   @Test
   public void testGetImage_ByGav() throws Exception {
-    copyReport("report-legacy.zip");
-    HttpResponse response = addCoords(getRequest(appId, scanId), "tomcat", "tomcat-util", "5.5.23").get();
+    copyReport("report-legacy");
+    HttpResponse response = addCoords(getRequest(app.getPublicId(), scanId), "tomcat", "tomcat-util", "5.5.23").get();
     assertResponseStatus(200, response);
     byte[] image = response.getBodyBytes();
     assertThat(image).isNotEmpty();

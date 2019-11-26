@@ -1,0 +1,22 @@
+{
+  "firstCatalog" : 1318693980000,
+  "lastCatalog" : 1415996530407,
+  "popularity" : [ {
+    "catalogDates" : [ 1318693980000, 1321372380000, 1323964380000 ],
+    "currentVersionIndex" : 2,
+    "popularity" : [ 30, 25, 35 ],
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-util",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "tomcat",
+        "version" : "5.5.23"
+      }
+    },
+    "version" : "5.5.23",
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util"
+  } ]
+}

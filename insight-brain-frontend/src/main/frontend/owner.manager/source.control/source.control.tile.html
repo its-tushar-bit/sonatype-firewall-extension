@@ -1,0 +1,40 @@
+<div id="owner-pill-source-control"
+     class="iq-tile"
+     load-wrapper="vm.error"
+     loading="vm.loading"
+     reload="vm.load()"
+     ng-if="vm.isOrg || vm.isApp">
+  <div class="iq-tile-header">
+    <div class="iq-tile-header__title">
+      <i class="fa fa-code-fork size-20px slate iq-tile-header__icon"></i>
+      <h2>Source Control</h2>
+    </div>
+    <div class="iq-tile-header__subtitle">
+      <span><!--
+     -->Configures the integration with an external SCM for the {{vm.ownerName}}<!--
+     -->{{vm.isOrg ? (vm.isRootOrg ? '' : ' organization') : ' application'}}
+      </span>
+    </div>
+  </div>
+  <div id="source-control-not-supported"
+       class="iq-alert iq-alert--info"
+       ng-if="!vm.isSourceControlSupported"><!--
+    --><i class="fa fa-info-circle"></i>Source Control is not supported by your license
+  </div>
+  <div class="iq-tile-content" ng-if="vm.isSourceControlSupported">
+    <div class="iq-list">
+      <h4 class="iq-list__title">Configuration</h4>
+      <div class="iq-list iq-list--clickable">
+        <ul>
+          <li class="iq-list__item" ng-click="vm.editSourceControl()">
+            <i class="fa fa-chevron-right iq-pull-right"></i>
+            <span class="test-list-item-title" ng-if="vm.sourceControl && vm.sourceControl.provider"><!--
+           -->{{vm.itemText}}
+            </span>
+            <p class="iq-list__subtext">{{vm.itemSubText}}</p>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

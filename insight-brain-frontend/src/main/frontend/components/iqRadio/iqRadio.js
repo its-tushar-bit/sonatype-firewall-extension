@@ -25,7 +25,8 @@ var iqRadio = {
     isDisabled: '<',
     model: '=',
     value: '<',
-    onClick: '&'
+    onClick: '&',
+    isRequired: '<'
   },
   controller: angular.noop,
   controllerAs: 'vm',

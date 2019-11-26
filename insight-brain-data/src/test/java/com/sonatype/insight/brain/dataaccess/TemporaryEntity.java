@@ -252,7 +252,7 @@ public class TemporaryEntity
 
   private final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
       new AutomaticApplicationsConfigurationDAO();
-  
+
   private final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO =
       new AutomaticSourceControlConfigurationDAO();
 
@@ -311,7 +311,7 @@ public class TemporaryEntity
   private Collection<SuccessMetricsReport> successMetricsReports;
 
   private Collection<SuccessMetricsReportData> successMetricsReportDatas;
-  
+
   private Collection<SourceControl> sourceControls;
 
   private Collection<SystemConfigurationProperty> systemConfigurationProperties;
@@ -1740,7 +1740,7 @@ public class TemporaryEntity
       int evaluationCount)
   {
     PolicyViolationAggregation aggregation = new PolicyViolationAggregation(applicationId, timePeriodStart,
-        timePeriodEnd, timePeriod, mttrLowThreatStats, mttrModerateThreatStats, mttrSevereThreatStats, 
+        timePeriodEnd, timePeriod, mttrLowThreatStats, mttrModerateThreatStats, mttrSevereThreatStats,
         mttrCriticalThreatStats, discoveredCounts, fixedCounts, waivedCounts, openCounts, evaluationCount);
     policyViolationAggregationDAO.insert(aggregation);
     policyViolationAggregations.add(aggregation);
@@ -1866,12 +1866,12 @@ public class TemporaryEntity
     return organization;
   }
 
-  public SourceControl newSourceControl(String applicationId,
+  public SourceControl newSourceControl(String ownerId,
                                         String repositoryUrl,
                                         String token,
                                         SourceControlProvider provider)
   {
-    return newSourceControl(applicationId, repositoryUrl, token, provider, null, null, null);
+    return newSourceControl(ownerId, repositoryUrl, token, provider, null, null, "master");
   }
 
   public SourceControl newSourceControl(String applicationId,
@@ -1883,8 +1883,13 @@ public class TemporaryEntity
                                         String baseBranch)
   {
     SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(applicationId).setRepositoryUrl(repositoryUrl).setToken(token)
-            .setProvider(provider).setEnablePullRequests(enablePullRequests).setEnableStatusChecks(enableStatusChecks)
+        new SourceControl.Builder()
+            .setOwnerId(applicationId)
+            .setRepositoryUrl(repositoryUrl)
+            .setToken(token)
+            .setProvider(provider)
+            .setEnablePullRequests(enablePullRequests)
+            .setEnableStatusChecks(enableStatusChecks)
             .setBaseBranch(baseBranch).build();
     sourceControlDAO.insert(sourceControl);
     sourceControls.add(sourceControl);

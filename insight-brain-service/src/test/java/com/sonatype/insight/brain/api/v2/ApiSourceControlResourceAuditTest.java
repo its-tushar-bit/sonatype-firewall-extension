@@ -8,13 +8,12 @@ package com.sonatype.insight.brain.api.v2;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlAdapter;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
@@ -24,6 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.PublicApiPaths.SOURCE_CONTROL_PATH_V2;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 
 public class ApiSourceControlResourceAuditTest
     extends AbstractAuditTest
@@ -36,6 +36,7 @@ public class ApiSourceControlResourceAuditTest
   @Before
   public void setup() {
     app = tempEntity.newApplicationWithParent();
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
   }
 
   @Test
@@ -44,7 +45,7 @@ public class ApiSourceControlResourceAuditTest
     String repositoryUrl = ApiSourceControlResourceTest.VALID_URL;
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(repositoryUrl).setToken("token")
-            .setProvider(SourceControlProvider.GITHUB).build());
+            .build());
     HttpResponse response =
         restRequest().path(SOURCE_CONTROL_PATH_V2)
             .path(OwnerType.APPLICATION.toString(), app.getId())
@@ -93,9 +94,6 @@ public class ApiSourceControlResourceAuditTest
     AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO =
         new AutomaticSourceControlConfigurationDAO();
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
-
-    // create root org source control record
-    tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, "token", SourceControlProvider.GITHUB);
 
     //CREATE
     HttpResponse response = restRequest().path(SOURCE_CONTROL_PATH_V2)

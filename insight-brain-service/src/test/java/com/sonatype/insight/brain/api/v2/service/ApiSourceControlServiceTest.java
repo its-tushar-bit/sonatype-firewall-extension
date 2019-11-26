@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.METHOD;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -42,6 +42,8 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.reset;
@@ -66,17 +68,19 @@ public class ApiSourceControlServiceTest
   @Mock
   private TelemetrySender telemetrySenderMock;
 
-  private SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
-  private ApiSourceControlAdapter apiSourceControlAdapter =
+  private final ApiSourceControlAdapter apiSourceControlAdapter =
       new ApiSourceControlAdapter();
 
   private Application app;
 
   private Organization org;
 
+  private SourceControl rootOrgSourcecontrol;
+
   @Override
-  public void configure(Binder binder) {
+  public void configure(final Binder binder) {
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     super.configure(binder);
   }
@@ -84,35 +88,46 @@ public class ApiSourceControlServiceTest
   @Before
   public void setup() {
     org = tempEntity.newOrganization();
+    rootOrgSourcecontrol = tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     app = tempEntity.newApplication(org.getId());
   }
 
   @Test
   public void testGetAll_unlicensed() {
-    testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
+    setUnlicensedForSourceControl();
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService.getAll());
   }
 
   @Test
-  public void testGetAll() throws Exception {
-    List<ApiSourceControlDTO> expected = Arrays.asList(
-        tempEntity.newSourceControl(app.getId(), VALID_URL, TOKEN,
-            SourceControlProvider.GITHUB),
-        tempEntity.newSourceControl(org.getId(), null, TOKEN,
-            SourceControlProvider.GITHUB)).stream()
+  public void testGetAll_licensedByAutomation() throws Exception {
+    setLicensedForSourceControlByAutomation();
+    testGetAll();
+  }
+
+  @Test
+  public void testGetAll_licensedByNotifications() throws Exception {
+    setLicensedForSourceControlByNotifications();
+    testGetAll();
+  }
+
+  private void testGetAll() throws Exception {
+    final List<ApiSourceControlDTO> expected = Arrays.asList(
+        rootOrgSourcecontrol,
+        tempEntity.newSourceControl(app.getId(), VALID_URL, TOKEN, null),
+        tempEntity.newSourceControl(org.getId(), null, TOKEN, null)).stream()
         .map(apiSourceControlAdapter::convertToDTO)
         .collect(Collectors.toList());
 
     // decrypt retrieved tokens for comparison
-    List<ApiSourceControlDTO> retrieved = sourceControlService.getAll();
-    for (ApiSourceControlDTO it: retrieved) {
+    final List<ApiSourceControlDTO> retrieved = sourceControlService.getAll();
+    for (final ApiSourceControlDTO it : retrieved) {
       synchronized (plexusCipher) {
         it.token = plexusCipher.decrypt(it.token, "CMMDwoV");
       }
     }
 
-    assertThat(retrieved).hasSize(2);
+    assertThat(retrieved).hasSize(3);
     assertThat(JsonUtils.format(retrieved)).isEqualTo(JsonUtils.format(expected));
   }
 
@@ -160,10 +175,6 @@ public class ApiSourceControlServiceTest
       String collectedUrl,
       String expectedUrl)
   {
-    // add ROOT ORGANIZATION record
-    tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, TOKEN,
-        SourceControlProvider.GITHUB);
-
     // add application record, if needed
     if (initialUrl != null) {
       tempEntity.newSourceControl(app.getId(), initialUrl, null, null);
@@ -187,34 +198,34 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testAddSourceControlByOwner_TokenEncryption() throws Exception {
-    ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
+    final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-            .setProvider(SourceControlProvider.GITHUB).build());
-    ApiSourceControlDTO sourceControl = sourceControlService.addSourceControlByOwner(
+            .build());
+    final ApiSourceControlDTO sourceControl = sourceControlService.addSourceControlByOwner(
         OwnerType.ORGANIZATION, org.getId(), validSourceControl);
     assertThat(sourceControl.token).isNotEqualTo(TOKEN);
     assertThat(sourceControl.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
 
-    SourceControl reloaded = sourceControlDAO.getByIdNotNull(sourceControl.id);
+    final SourceControl reloaded = sourceControlDAO.getByIdNotNull(sourceControl.id);
 
-    String decrypted;
+    final String decrypted;
     synchronized (plexusCipher) {
       decrypted = plexusCipher.decrypt(reloaded.getToken(), "CMMDwoV");
     }
     assertThat(decrypted).isEqualTo(TOKEN);
     assertTelemetry(METHOD.ADD, org.getId(), reloaded.getRepositoryUrl(),
-        reloaded.getProvider().toString(), reloaded.getEnablePullRequests(), reloaded.getEnableStatusChecks(),
+        null, reloaded.getEnablePullRequests(), reloaded.getEnableStatusChecks(),
         reloaded.getBaseBranch());
   }
 
   @Test
   public void testUpdateSourceControlByOwner_TokenEncryption() throws Exception {
-    ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
+    final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-            .setProvider(SourceControlProvider.GITHUB).build()
+            .build()
     );
 
-    ApiSourceControlDTO sourceControl =
+    final ApiSourceControlDTO sourceControl =
         sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION,
             org.getId(), validSourceControl);
     sourceControl.token = "updatedToken";
@@ -222,7 +233,7 @@ public class ApiSourceControlServiceTest
         sourceControl.provider, sourceControl.enablePullRequests, sourceControl.enablePullRequests,
         sourceControl.baseBranch);
 
-    ApiSourceControlDTO updatedScm =
+    final ApiSourceControlDTO updatedScm =
         sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION,
             org.getId(), sourceControl);
     assertThat(updatedScm.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
@@ -230,9 +241,9 @@ public class ApiSourceControlServiceTest
         sourceControl.provider, sourceControl.enablePullRequests, sourceControl.enablePullRequests,
         sourceControl.baseBranch);
 
-    SourceControl reloaded = sourceControlDAO.getByIdNotNull(sourceControl.id);
+    final SourceControl reloaded = sourceControlDAO.getByIdNotNull(sourceControl.id);
 
-    String decrypted;
+    final String decrypted;
     synchronized (plexusCipher) {
       decrypted = plexusCipher.decrypt(reloaded.getToken(), "CMMDwoV");
     }
@@ -241,9 +252,9 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testGetSourceControlByOwnerDecrypted_ForOrganization() {
-    ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
+    final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-            .setProvider(SourceControlProvider.GITHUB).build());
+            .build());
     sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
             validSourceControl);
     assertThat(sourceControlService.getSourceControlByOwnerDecrypted(org.getId()).getToken()).isEqualTo(TOKEN);
@@ -251,48 +262,51 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testGetSourceControlByOwnerDecrypted_ForApplication() {
-    ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
+    final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
-            .setProvider(SourceControlProvider.GITHUB).build());
+            .build());
     sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, app.getId(), validSourceControl);
     assertThat(sourceControlService.getSourceControlByOwnerDecrypted(app.getId()).getToken()).isEqualTo(TOKEN);
   }
 
   @Test
-  public void testDeleteSourceControlByOwner_ForOrganization() {
-    ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-            .setProvider(SourceControlProvider.GITHUB).build());
+  public void testDeleteSourceControlByOwner_ForOrganization_licensedByNotifications() {
+    setLicensedForSourceControlByNotifications();
 
-    ApiSourceControlDTO sourceControl = sourceControlService
+    final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
+        new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
+            .build());
+
+    final ApiSourceControlDTO sourceControl = sourceControlService
         .addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), validSourceControl);
-    assertThat(sourceControlService.getAll()).hasSize(1);
+    assertThat(sourceControlService.getAll()).hasSize(2);
     assertTelemetry(METHOD.ADD, org.getId(), sourceControl.repositoryUrl, sourceControl.provider,
         sourceControl.enablePullRequests, sourceControl.enableStatusChecks,
         sourceControl.baseBranch);
 
     sourceControlService.deleteSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
-    assertThat(sourceControlService.getAll().isEmpty()).isTrue();
+    assertThat(sourceControlService.getAll()).hasSize(1);
     assertTelemetry(METHOD.DELETE, org.getId(), sourceControl.repositoryUrl, sourceControl.provider,
         sourceControl.enablePullRequests, sourceControl.enableStatusChecks,
         sourceControl.baseBranch);
   }
 
   @Test
-  public void testDeleteSourceControlByOwner_ForApplication() {
-    ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
+  public void testDeleteSourceControlByOwner_ForApplication_licensedByAutomation() {
+    setLicensedForSourceControlByAutomation();
+    final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
-            .setProvider(SourceControlProvider.GITHUB).build());
+            .build());
 
-    ApiSourceControlDTO sourceControl = sourceControlService
+    final ApiSourceControlDTO sourceControl = sourceControlService
         .addSourceControlByOwner(OwnerType.ORGANIZATION, app.getId(), validSourceControl);
-    assertThat(sourceControlService.getAll()).hasSize(1);
+    assertThat(sourceControlService.getAll()).hasSize(2);
     assertTelemetry(METHOD.ADD, app.getId(), sourceControl.repositoryUrl,
         sourceControl.provider, sourceControl.enablePullRequests, sourceControl.enableStatusChecks,
         sourceControl.baseBranch);
 
     sourceControlService.deleteSourceControlByOwner(OwnerType.ORGANIZATION, app.getId());
-    assertThat(sourceControlService.getAll().isEmpty()).isTrue();
+    assertThat(sourceControlService.getAll()).hasSize(1);
     assertTelemetry(METHOD.DELETE, app.getId(), sourceControl.repositoryUrl,
         sourceControl.provider, sourceControl.enablePullRequests, sourceControl.enableStatusChecks,
         sourceControl.baseBranch);
@@ -300,11 +314,11 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testUpdateSourceControlByOwner_WithFakeToken() {
-    ApiSourceControlDTO sourceControl = sourceControlService
+    final ApiSourceControlDTO sourceControl = sourceControlService
         .addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
             apiSourceControlAdapter.convertToDTO(
                 new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-                    .setProvider(SourceControlProvider.GITHUB).build()));
+                    .build()));
     sourceControl.token = SourceControl.FAKE_SECRET_KEY;
     sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), sourceControl);
     assertThat(sourceControlService.getSourceControlByOwnerDecrypted(org.getId()).getToken()).isEqualTo(TOKEN);
@@ -312,22 +326,21 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testUpdateSourceControlByOwner_WithEmptyToken() {
-    ApiSourceControlDTO sourceControl = sourceControlService
+    final ApiSourceControlDTO sourceControl = sourceControlService
         .addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
             apiSourceControlAdapter.convertToDTO(
                 new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-                    .setProvider(SourceControlProvider.GITHUB).build()));
+                    .build()));
     sourceControl.token = null;
     sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
         sourceControl);
-    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(org.getId()).getToken()).isEqualTo(TOKEN);
+    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(org.getId()).getToken()).isNull();
   }
 
   @Test
   public void testUpdateSourceControlByOwner_WrongOwnerId() {
-    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        tempEntity.newSourceControl(org.getId(), null, "token",
-            SourceControlProvider.GITHUB));
+    final ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+        tempEntity.newSourceControl(org.getId(), null, "token", null));
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
         sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION,
             "foo", sourceControl)
@@ -337,38 +350,91 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testAddSourceControlByOwner_unlicensed() {
-    testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
+    setUnlicensedForSourceControl();
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService.addSourceControlByOwner(
             OwnerType.ORGANIZATION, "foo", apiSourceControlAdapter.convertToDTO(
                 new SourceControl.Builder().setOwnerId(testName.getMethodName()).setRepositoryUrl("bar").setToken("baz")
-                    .setProvider(SourceControlProvider.GITHUB).build())));
+                    .build())));
+  }
+
+  @Test
+  public void testAddSourceControlByOwner_licensedByAutomation() {
+    setLicensedForSourceControlByAutomation();
+    ApiSourceControlDTO sourceControlDTO = sourceControlService.addSourceControlByOwner(
+        OwnerType.APPLICATION,
+        app.getId(),
+        createSourceControlDtoForTesting()
+    );
+    assertThat(sourceControlDTO).isNotNull();
+  }
+
+  @Test
+  public void testAddSourceControlByOwner_licensedByNotifications() {
+    setLicensedForSourceControlByNotifications();
+    ApiSourceControlDTO sourceControlDTO = sourceControlService.addSourceControlByOwner(
+        OwnerType.APPLICATION,
+        app.getId(),
+        createSourceControlDtoForTesting()
+    );
+    assertThat(sourceControlDTO).isNotNull();
   }
 
   @Test
   public void testUpdateSourceControlByOwner_unlicensed() {
-    testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
+    setUnlicensedForSourceControl();
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() ->
             sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION,
                 "foo", apiSourceControlAdapter.convertToDTO(
                     new SourceControl.Builder().setOwnerId(testName.getMethodName()).setRepositoryUrl("bar")
-                        .setToken("baz").setProvider(SourceControlProvider.GITHUB).build())));
+                        .setToken("baz").build())));
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_licensedByAutomation() {
+    setLicensedForSourceControlByAutomation();
+    testUpdateSourceControlByOwner();
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_licensedByNotifications() {
+    setLicensedForSourceControlByNotifications();
+    testUpdateSourceControlByOwner();
+  }
+
+  private void testUpdateSourceControlByOwner() {
+    ApiSourceControlDTO persistedSourceControlDTO = sourceControlService.addSourceControlByOwner(
+        OwnerType.APPLICATION,
+        app.getId(),
+        createSourceControlDtoForTesting()
+    );
+    assertThat(persistedSourceControlDTO).isNotNull();
+
+    persistedSourceControlDTO.token = "newToken";
+
+    ApiSourceControlDTO updatedControlDTO = sourceControlService.updateSourceControlByOwner(
+        OwnerType.APPLICATION,
+        app.getId(),
+        persistedSourceControlDTO
+    );
+
+    assertThat(updatedControlDTO).isNotNull();
   }
 
   @Test
   public void testAddSourceControlByOwner_Duplicate() {
     // given an existing source control for an organization
-    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+    final ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-            .setProvider(SourceControlProvider.GITHUB).build());
+            .build());
     sourceControlService.addSourceControlByOwner(
         OwnerType.ORGANIZATION, org.getId(), sourceControl);
 
     // expect adding another for the same organization gives error
-    ApiSourceControlDTO sourceControlAgain = apiSourceControlAdapter.convertToDTO(
+    final ApiSourceControlDTO sourceControlAgain = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-            .setProvider(SourceControlProvider.GITHUB).build());
+            .build());
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> sourceControlService.addSourceControlByOwner(
             OwnerType.ORGANIZATION, org.getId(), sourceControlAgain))
@@ -378,16 +444,15 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testDeleteSourceControlByOwner_unlicensed() {
-    testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
+    setUnlicensedForSourceControl();
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService.deleteSourceControlByOwner(OwnerType.ORGANIZATION, "foo"));
   }
 
   @Test
   public void testGetSourceControlByOwnerId_ForOrganization() {
-    tempEntity.newSourceControl(org.getId(), null, "token",
-        SourceControlProvider.GITHUB);
-    ApiSourceControlDTO sourceControlByApplicationId = sourceControlService
+    tempEntity.newSourceControl(org.getId(), null, "token", null);
+    final ApiSourceControlDTO sourceControlByApplicationId = sourceControlService
         .getSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
     assertThat(sourceControlByApplicationId.id).isEqualTo(
         sourceControlByApplicationId.id);
@@ -398,9 +463,8 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testGetSourceControlByOwnerId_ForApplication() {
-    tempEntity.newSourceControl(app.getId(), VALID_URL, "token",
-        SourceControlProvider.GITHUB);
-    ApiSourceControlDTO sourceControlByApplicationId = sourceControlService
+    tempEntity.newSourceControl(app.getId(), VALID_URL, "token", null);
+    final ApiSourceControlDTO sourceControlByApplicationId = sourceControlService
         .getSourceControlByOwner(OwnerType.ORGANIZATION, app.getId());
     assertThat(sourceControlByApplicationId.id).isEqualTo(
         sourceControlByApplicationId.id);
@@ -418,67 +482,44 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testGetSourceControlByOwnerDecrypted_DoesNotExist() {
-    SourceControl sourceControl = sourceControlService.getSourceControlByOwnerDecrypted("FAKE_ID");
+    final SourceControl sourceControl = sourceControlService.getSourceControlByOwnerDecrypted("FAKE_ID");
     assertThat(sourceControl).isNull();
   }
 
   @Test
-  public void testAddSourceControlByOwner_NoSourceControlProviderProvided() {
-    ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(org.getId()).setRepositoryUrl(null).setToken(TOKEN).build());
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> sourceControlService.addSourceControlByOwner(
-            OwnerType.ORGANIZATION, org.getId(), validSourceControl));
-  }
-
-  @Test
-  public void testUpdateSourceControlByOwner_NoSourceControlProviderProvided() {
-    ApiSourceControlDTO validSourceControl =
-        sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION,
-            org.getId(), apiSourceControlAdapter.convertToDTO(
-                new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-                    .setProvider(SourceControlProvider.GITLAB).build()));
-    validSourceControl.provider = null;
-
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> sourceControlService.updateSourceControlByOwner(
-            OwnerType.ORGANIZATION, org.getId(), validSourceControl));
-  }
-
-  @Test
   public void testAddSourceControlByOwner_PRTelemetry() throws Exception {
-    Boolean[] booleanOptions = new Boolean[]{true, false, null};
-    String[] branchOptions = new String[]{"branchA", "", null};
+    final Boolean[] booleanOptions = new Boolean[]{true, false, null};
+    final String[] branchOptions = new String[]{"branchA", "", null};
 
-    for (Boolean enablePullRequest : booleanOptions) {
-      for (Boolean enableStatusChecks : booleanOptions) {
-        for (String baseBranch : branchOptions) {
-          ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
+    for (final Boolean enablePullRequest : booleanOptions) {
+      for (final Boolean enableStatusChecks : booleanOptions) {
+        for (final String baseBranch : branchOptions) {
+          final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
               new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-                  .setProvider(SourceControlProvider.GITHUB)
                   .setEnableStatusChecks(enableStatusChecks)
                   .setEnablePullRequests(enablePullRequest)
                   .setBaseBranch(baseBranch)
                   .build());
-          Organization tmpOrg = tempEntity.newOrganization();
+          final Organization tmpOrg = tempEntity.newOrganization();
 
-          ApiSourceControlDTO sourceControl = sourceControlService.addSourceControlByOwner(
+          final ApiSourceControlDTO sourceControl = sourceControlService.addSourceControlByOwner(
               OwnerType.ORGANIZATION, tmpOrg.getId(), validSourceControl);
 
-          SourceControl reloaded = sourceControlDAO.getByIdNotNull(sourceControl.id);
+          final SourceControl reloaded = sourceControlDAO.getByIdNotNull(sourceControl.id);
 
-          Map<String, Object> expectedAttributes = new HashMap<>();
+          final Map<String, Object> expectedAttributes = new HashMap<>();
           expectedAttributes.put("method", METHOD.ADD);
           expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(tmpOrg.getId()));
           expectedAttributes.put("repository_url", HdsClientAnalytics.obfuscate(reloaded.getRepositoryUrl()));
-          expectedAttributes.put("provider", SourceControlProvider.GITHUB.toString());
+          expectedAttributes.put("provider", null);
           expectedAttributes.put("enable_pull_requests", enablePullRequest);
           expectedAttributes.put("enable_status_checks", enableStatusChecks);
           expectedAttributes.put("base_branch", baseBranch);
 
-          ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+          final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor =
+              ArgumentCaptor.forClass(TelemetryData.class);
           verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
-          TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+          final TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
           assertThat(telemetryData).isNotNull();
           assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
           reset(telemetrySenderMock);
@@ -489,22 +530,23 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testGetSourceControlByOwnerDecrypted() {
-    SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")
-            .setProvider(SourceControlProvider.GITHUB).build();
+    final SourceControl sourceControl =
+        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token").build();
     sourceControlService.encryptToken(sourceControl);
     tempEntity.newSourceControl(sourceControl.getOwnerId(), sourceControl.getRepositoryUrl(), sourceControl.getToken(),
         sourceControl.getProvider());
-    SourceControl sourceControlByApplicationId = sourceControlService.getSourceControlByOwnerDecrypted(app.getId());
+    final SourceControl sourceControlByApplicationId =
+        sourceControlService.getSourceControlByOwnerDecrypted(app.getId());
     assertThat(sourceControlByApplicationId.getOwnerId()).isEqualTo(app.getId());
     assertThat(sourceControlByApplicationId.getRepositoryUrl()).isEqualTo(VALID_URL);
     assertThat(sourceControlByApplicationId.getToken()).isEqualTo(TOKEN);
-    assertThat(sourceControlByApplicationId.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(sourceControlByApplicationId.getProvider()).isNull();
   }
 
   @Test
   public void testGetSourceControlByOwnerDecrypted_NotFound() {
-    SourceControl sourceControlByApplicationId = sourceControlService.getSourceControlByOwnerDecrypted("INVALID_ID");
+    final SourceControl sourceControlByApplicationId =
+        sourceControlService.getSourceControlByOwnerDecrypted("INVALID_ID");
     assertThat(sourceControlByApplicationId).isNull();
   }
 
@@ -516,10 +558,10 @@ public class ApiSourceControlServiceTest
                                final Boolean enableStatusChecks,
                                final String baseBranch)
   {
-    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
-    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
-    Map<String, Object> expectedAttributes = new HashMap<>();
+    final TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+    final Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("method", method);
     expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
     expectedAttributes.put("repository_url", HdsClientAnalytics.obfuscate(repositoryUrl));
@@ -532,5 +574,72 @@ public class ApiSourceControlServiceTest
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
     assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
     reset(telemetrySenderMock);
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_WithFakeSecretKey() {
+    final ApiSourceControlDTO sourceControl = sourceControlService
+        .addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
+            apiSourceControlAdapter
+                .convertToDTO(new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN).build()));
+    sourceControl.token = FAKE_SECRET_KEY;
+    sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
+        sourceControl);
+    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(org.getId()).getToken())
+        .isEqualTo(TOKEN);
+  }
+
+  @Test
+  public void testGetSourceControlByOwner_RespondsWithEmptyTokenIfNotSet() {
+    ApiSourceControlDTO sourceControl = sourceControlService
+        .addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
+            apiSourceControlAdapter.convertToDTO(new SourceControl.Builder().setOwnerId(org.getId()).build()));
+    sourceControl.token = FAKE_SECRET_KEY;
+    sourceControl = sourceControlService.getSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
+    assertThat(sourceControl.token).isEqualTo(null);
+  }
+
+  @Test
+  public void testAddSourceControlByOwner_RespondsWithEmptyTokenIfNotSet() {
+    ApiSourceControlDTO sourceControl =
+        apiSourceControlAdapter.convertToDTO(new SourceControl.Builder().setOwnerId(org.getId()).build());
+    sourceControl = sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), sourceControl);
+    assertThat(sourceControl.token).isEqualTo(null);
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_RespondsWithEmptyTokenIfNotSet() {
+    ApiSourceControlDTO sourceControl = sourceControlService
+        .addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
+            apiSourceControlAdapter
+                .convertToDTO(new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN).build()));
+    sourceControl.token = null;
+    sourceControl = sourceControlService
+        .updateSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), sourceControl);
+    assertThat(sourceControl.token).isEqualTo(null);
+  }
+
+  private ApiSourceControlDTO createSourceControlDtoForTesting() {
+    return apiSourceControlAdapter.convertToDTO(
+            new SourceControl.Builder()
+                .setOwnerId(testName.getMethodName())
+                .setRepositoryUrl("http://www.github.com/myOrg/myApp")
+                .setToken("baz")
+                .build()
+    );
+  }
+
+  private void setUnlicensedForSourceControl() {
+    testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS, LicensedFeature.AUTOMATION);
+  }
+
+  private void setLicensedForSourceControlByAutomation() {
+    // remove notification feature, leaving automation
+    testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
+  }
+
+  private void setLicensedForSourceControlByNotifications() {
+    // remove automation feature, leaving notifications
+    testProductLicense.setMissingFeatures(LicensedFeature.AUTOMATION);
   }
 }

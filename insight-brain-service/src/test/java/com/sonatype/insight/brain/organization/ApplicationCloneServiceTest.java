@@ -77,6 +77,7 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -361,9 +362,10 @@ public class ApplicationCloneServiceTest
     // The application cloning is supposed to disable pull requests for the cloned app.
     // So we set it to true in the source application in order to verify
     // that is not copied to the cloned application.
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB, true, true, "master");
     SourceControl sourceSourceControl =
         tempEntity.newSourceControl(sourceApp.getId(), "https://example.com/organization/project", "token",
-            SourceControlProvider.GITHUB, true /* enablePullRequests */, true /* enableStatusChecks */, "baseBranch");
+            null, true /* enablePullRequests */, true /* enableStatusChecks */, "baseBranch");
 
     ApiApplicationDTO clonedAppDTO =
         appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");

@@ -1,0 +1,426 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.functional.brain;
+
+import com.sonatype.clm.testing.functional.elements.ErrorBox;
+import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.nexus.scm.SourceControlProvider;
+
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
+
+public class OrganizationSourceControlEditorTest
+    extends AbstractSourceControlEditorTest
+{
+  @Override
+  @Before
+  public void init() {
+    super.init();
+    organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);
+  }
+
+  @Test
+  public void testSourceControlEditor() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartNoSourceControl();
+
+    eyesWatcher.eyesCheck("Source Control Editor Default State");
+
+    assertSourceControlDoesNotExist(rootOrganization.getId());
+    assertSourceControlDoesNotExist(organization.getId());
+  }
+
+  @Test
+  public void testSourceControlEditor_EmptySourceControlWithProviderOnRoot() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartNoSourceControl();
+
+    assertSourceControlDoesNotExist(rootOrganization.getId());
+    assertSourceControlDoesNotExist(organization.getId());
+
+    tempEntity.newSourceControl(rootOrganization.getId(), null, null, SourceControlProvider.GITHUB);
+
+    refresh();
+
+    assertSourceControlDoesNotExist(organization.getId());
+
+    verifyStartWithSourceControl();
+    SourceControlEditorPage.token().shouldBe(visible, disabled);
+    SourceControlEditorPage.tokenInheritRadio().label().shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.tokenInheritRadio().shouldBe(visible, enabled);
+    SourceControlEditorPage.tokenOverrideRadio().label().shouldHave(text("Override"));
+    SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, enabled);
+    SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
+    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
+
+    eyesWatcher.eyesCheck("Source Control Editor Default State With Provider");
+  }
+
+  @Test
+  public void testSourceControlEditor_OrganizationSourceControlExistsInheritToken() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartNoSourceControl();
+
+    assertSourceControlDoesNotExist(rootOrganization.getId());
+    assertSourceControlDoesNotExist(organization.getId());
+
+    tempEntity.newSourceControl(rootOrganization.getId(), null, null, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(organization.getId(), null, null, null);
+
+    refresh();
+
+    verifyStartWithSourceControl();
+    SourceControlEditorPage.token().shouldBe(visible, disabled);
+    SourceControlEditorPage.tokenInheritRadio().label().shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.tokenInheritRadio().shouldBe(visible, enabled);
+    SourceControlEditorPage.tokenOverrideRadio().label().shouldHave(text("Override"));
+    SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, enabled);
+    SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
+    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
+
+    eyesWatcher.eyesCheck("Source Control Editor Default State Inherited Token");
+  }
+
+  @Test
+  public void testSourceControlEditor_OrganizationSourceControlExistsOverrideToken() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartNoSourceControl();
+
+    assertSourceControlDoesNotExist(rootOrganization.getId());
+    assertSourceControlDoesNotExist(organization.getId());
+
+    tempEntity.newSourceControl(rootOrganization.getId(), null, null, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(organization.getId(), null, TOKEN, null);
+
+    refresh();
+
+    verifyStartWithSourceControl();
+    SourceControlEditorPage.token().shouldBe(visible, enabled);
+    SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
+    SourceControlEditorPage.tokenInheritRadio().label().shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.tokenInheritRadio().shouldBe(visible, enabled);
+    SourceControlEditorPage.tokenInheritRadio().shouldNotBe(selected);
+    SourceControlEditorPage.tokenOverrideRadio().label().shouldHave(text("Override"));
+    SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, enabled, selected);
+
+    eyesWatcher.eyesCheck("Source Control Editor Default State Override Token");
+  }
+
+  @Test
+  public void testSourceControlEditor_updateToken() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+    verifyStartNoSourceControl();
+    tempEntity.newSourceControl(rootOrganization.getId(), null, null, SourceControlProvider.GITHUB);
+    refresh();
+
+    SourceControlEditorPage.tokenOverrideRadio().click();
+    SourceControlEditorPage.tokenOverrideRadio().shouldBe(selected);
+    SourceControlEditorPage.tokenInheritRadio().shouldNotBe(selected);
+    SourceControlEditorPage.token().shouldBe(enabled);
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    eyesWatcher.eyesCheck("Source Control Editor Update With Missing Token");
+    assertToolTip("Unable to update: fields with invalid or missing data.");
+
+    SourceControlEditorPage.token().setValue(TOKEN);
+    eyesWatcher.eyesCheck("Source Control Editor Update With Token Provided");
+    SourceControlEditorPage.saveButton().shouldBe(enabled);
+
+    SourceControlEditorPage.tokenInheritRadio().click();
+    SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
+    SourceControlEditorPage.tokenInheritRadio().shouldBe(selected);
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    eyesWatcher.eyesCheck("Source Control Editor Update With Token Provided - No Changes");
+    assertToolTip("There are no changes to update.");
+
+    SourceControlEditorPage.tokenOverrideRadio().click();
+    SourceControlEditorPage.tokenOverrideRadio().shouldBe(selected);
+    SourceControlEditorPage.tokenInheritRadio().shouldNotBe(selected);
+    SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
+    eyesWatcher.eyesCheck("Source Control Editor Update With Token Provided - Changed to Override with value");
+
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    eyesWatcher.eyesCheck("Source Control Editor Update - After save with override");
+    assertToolTip("There are no changes to update.");
+    SourceControlEditorPage.deleteButton().shouldNotBe(visible);
+    SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
+    SourceControlEditorPage.tokenOverrideRadio().shouldBe(selected);
+    SourceControlEditorPage.tokenInheritRadio().shouldNotBe(selected);
+
+    SourceControlEditorPage.tokenInheritRadio().click();
+    SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
+    SourceControlEditorPage.tokenInheritRadio().shouldBe(selected);
+    SourceControlEditorPage.token().shouldBe(disabled);
+    SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
+    SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    eyesWatcher.eyesCheck("Source Control Editor Update - Changed to Inherit");
+
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
+    SourceControlEditorPage.tokenInheritRadio().shouldBe(selected);
+    SourceControlEditorPage.token().shouldBe(disabled);
+    SourceControlEditorPage.token().shouldHave(value(""));
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    eyesWatcher.eyesCheck("Source Control Editor Update - After changed to inherit");
+    assertToolTip("There are no changes to update.");
+  }
+
+  @Test
+  public void testSourceControlEditor_updateFailure() throws PlexusCipherException {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+    verifyStartNoSourceControl();
+    tempEntity.newSourceControl(rootOrganization.getId(), null, null, SourceControlProvider.GITHUB);
+    refresh();
+
+    SourceControlEditorPage.tokenOverrideRadio().click();
+    SourceControlEditorPage.token().setValue(TOKEN);
+
+    //Create the entry to make the insert fail
+    tempEntity.newSourceControl(organization.getId(), null, null, null);
+    SourceControlEditorPage.saveButton().click();
+
+    FormMask.seeAndWaitForDismissal();
+
+    final ErrorBox errorBox = PAGE.error();
+    errorBox.retryButton().shouldBe(visible, enabled);
+    errorBox.shouldHave(text("SourceControl already exists for organization with id: " + organization.getId()));
+    assertSourceControl(organization.getId(), null, null, null);
+
+    eyesWatcher.eyesCheck("Source Control Editor update Failed");
+
+    //Delete the entry to resolve error condition
+    deleteSourceControl(organization.getId());
+
+    errorBox.retryButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
+    SourceControlEditorPage.tokenOverrideRadio().shouldBe(selected);
+  }
+
+  @Test
+  public void testSourceControlEditor_defaultBranch() {
+
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartNoSourceControl();
+    SourceControlEditorPage.baseBranchInheritRadio().shouldBe(selected, disabled);
+    SourceControlEditorPage.baseBranchInheritRadio().shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.baseBranchOverrideRadio().shouldNotBe(selected, enabled);
+    SourceControlEditorPage.baseBranchInput().shouldHave(value(""));
+    SourceControlEditorPage.baseBranchInput().shouldBe(disabled);
+    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB, true, true, "master");
+    refresh();
+
+    SourceControlEditorPage.baseBranchInheritRadio().shouldBe(selected, enabled);
+    SourceControlEditorPage.baseBranchInheritRadio()
+        .shouldHave(text(String.format("Inherit from %s (%s)", rootOrganization.getName(), "master")));
+    SourceControlEditorPage.baseBranchOverrideRadio().shouldNotBe(selected, disabled);
+    SourceControlEditorPage.baseBranchInput().shouldHave(value(""));
+    SourceControlEditorPage.baseBranchInput().shouldBe(disabled);
+    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+
+    SourceControlEditorPage.baseBranchOverrideRadio().click();
+    SourceControlEditorPage.baseBranchOverrideRadio().shouldBe(selected);
+    SourceControlEditorPage.baseBranchInput().shouldBe(enabled);
+    SourceControlEditorPage.baseBranchInput().shouldHave(value(""));
+    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+    SourceControlEditorPage.baseBranchInput().click();
+    SourceControlEditorPage.saveButton().hover();
+    assertToolTip("Unable to update: fields with invalid or missing data.");
+
+    SourceControlEditorPage.baseBranchInput().setValue("develop");
+    SourceControlEditorPage.baseBranchInput().shouldHave(value("develop"));
+    SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    eyesWatcher.eyesCheck("Source Control Editor - update enabled");
+
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.baseBranchInput().shouldHave(value("develop"));
+  }
+
+  @Test
+  public void testSourceControlEditor_gitlabDisablePRFeature() {
+    SourceControl rootSourceControl = tempEntity
+        .newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB, true, true, "master");
+
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartWithSourceControl();
+
+    rootSourceControl.setProvider(SourceControlProvider.GITLAB);
+    sourceControlDAO.update(rootSourceControl);
+
+    refresh();
+    SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
+    SourceControlEditorPage.defaultBranchNotSupportedAlert()
+        .shouldHave(text("This feature is not currently supported for GitLab"));
+    SourceControlEditorPage.pullRequestNotSupportedAlert().shouldBe(visible);
+    SourceControlEditorPage.pullRequestNotSupportedAlert()
+        .shouldHave(text("This feature is not currently supported for GitLab"));
+    SourceControlEditorPage.pullRequestsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestsEnableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestsDisableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+
+    eyesWatcher.eyesCheck("Source Control Editor - Pull requests disabled for gitlab");
+  }
+
+  @Test
+  public void testSourceControlEditor_LicensingAwareNotificationOnly() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    refresh();
+
+    SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
+    SourceControlEditorPage.defaultBranchNotSupportedAlert()
+        .shouldHave(text("This feature is not supported by your licence"));
+    SourceControlEditorPage.pullRequestNotSupportedAlert().shouldBe(visible);
+    SourceControlEditorPage.pullRequestNotSupportedAlert()
+        .shouldHave(text("This feature is not supported by your licence"));
+    SourceControlEditorPage.pullRequestsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestsEnableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestsDisableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.baseBranchOverrideRadio().shouldNotBe(visible);
+    SourceControlEditorPage.baseBranchInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
+    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+
+    eyesWatcher.eyesCheck("Source Control Editor - Pull requests disabled no licence");
+
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITLAB, true, true, "master");
+
+    refresh();
+    SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
+    SourceControlEditorPage.defaultBranchNotSupportedAlert()
+        .shouldHave(text("This feature is not supported by your licence"));
+    SourceControlEditorPage.pullRequestNotSupportedAlert().shouldBe(visible);
+    SourceControlEditorPage.pullRequestNotSupportedAlert()
+        .shouldHave(text("This feature is not supported by your licence"));
+    SourceControlEditorPage.pullRequestsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestsEnableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestsDisableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.baseBranchOverrideRadio().shouldNotBe(visible);
+    SourceControlEditorPage.baseBranchInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
+    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+
+    eyesWatcher.eyesCheck("Source Control Editor - Pull requests disabled no licence");
+  }
+
+  @Test
+  public void testSourceControlEditor_LicensingAwareNoLicense() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    refresh();
+
+    SourceControlEditorPage.root().shouldBe(visible);
+    SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
+    SourceControlEditorPage.subTitle().shouldHave(text(String
+        .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
+    SourceControlEditorPage.form().shouldNotBe(visible);
+    SourceControlEditorPage.notSupported().shouldBe(visible);
+    SourceControlEditorPage.notSupported().shouldHave(text("Source Control is not supported by your license"));
+    eyesWatcher.eyesCheck("Source Control Editor - No License");
+  }
+
+  @Override
+  void verifyStartNoSourceControl() {
+    SourceControlEditorPage.root().shouldBe(visible);
+    SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
+    SourceControlEditorPage.subTitle().shouldHave(text(String
+        .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
+    SourceControlEditorPage.provider().shouldNotBe(visible);
+    SourceControlEditorPage.token().shouldBe(visible, disabled);
+    SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
+    SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
+    SourceControlEditorPage.saveButton().shouldBe(visible);
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.deleteButton().shouldNotBe(visible);
+    SourceControlEditorPage.saveButton().hover();
+    assertToolTip("There are no changes to update.");
+    SourceControlEditorPage.tokenInheritRadio().label().shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.tokenInheritRadio().shouldBe(visible, disabled, selected);
+    SourceControlEditorPage.tokenOverrideRadio().label().shouldHave(text("Override"));
+    SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
+    SourceControlEditorPage.providerWarning().shouldBe(visible);
+    SourceControlEditorPage.advancedSettingsTree().shouldNotBe(visible);
+    SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
+    SourceControlEditorPage.advancedSettings().shouldBe(visible);
+    SourceControlEditorPage.pullRequestsDisableRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.pullRequestsEnableRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.pullRequestsInheritRadio().shouldBe(visible, disabled, selected);
+    SourceControlEditorPage.pullRequestsInheritRadio().shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.baseBranchInheritRadio().shouldBe(visible, disabled, selected);
+    SourceControlEditorPage.baseBranchInheritRadio().shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.baseBranchOverrideRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.baseBranchOverrideRadio().shouldHave(text("Override"));
+    SourceControlEditorPage.baseBranchInput().shouldBe(visible, disabled);
+    SourceControlEditorPage.baseBranchInput().shouldHave(value(""));
+    SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.advancedSectionRule().shouldNotBe(visible);
+  }
+
+  @Override
+  void verifyStartWithSourceControl() {
+    SourceControlEditorPage.root().shouldBe(visible);
+    SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
+    SourceControlEditorPage.subTitle().shouldHave(text(String
+        .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
+    SourceControlEditorPage.provider().shouldNotBe(visible);
+    SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
+    SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
+    SourceControlEditorPage.saveButton().shouldBe(visible);
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.deleteButton().shouldNotBe(visible);
+    SourceControlEditorPage.saveButton().hover();
+    assertToolTip("There are no changes to update.");
+    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
+    SourceControlEditorPage.advancedSettingsTree().shouldNotBe(visible);
+    SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
+    SourceControlEditorPage.advancedSettings().shouldBe(visible);
+    SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.advancedSectionRule().shouldNotBe(visible);
+  }
+}

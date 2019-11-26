@@ -62,6 +62,10 @@ public class OwnerSummaryTile
     return new PillButton(scrollContainer(), "#owner-data-retention-button");
   }
 
+  public PillButton sourceControlButton() {
+    return new PillButton(scrollContainer(), "#owner-source-control-button");
+  }
+
   public PillButton accessButton() {
     return new PillButton(scrollContainer(), "#owner-access-button");
   }

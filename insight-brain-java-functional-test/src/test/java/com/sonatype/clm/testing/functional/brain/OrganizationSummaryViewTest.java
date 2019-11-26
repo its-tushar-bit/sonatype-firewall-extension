@@ -21,22 +21,29 @@ import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
+import com.sonatype.clm.testing.functional.elements.SourceControlTile;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,6 +60,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
 import static com.sonatype.clm.testing.functional.elements.TileSimpleList.CLICKABLE;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrganizationSummaryViewTest
@@ -60,9 +68,16 @@ public class OrganizationSummaryViewTest
 {
   private Organization organization;
 
+  private Organization rootOrganization;
+
+  private OrganizationDAO organizationDAO = new OrganizationDAO();
+
+  private SourceControlDAO sourceControlDAO = new SourceControlDAO();
+
   @Before
   public void init() {
     organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);
+    rootOrganization = organizationDAO.getByIdNotNull(ROOT_ORGANIZATION_ID);
     super.init(organization);
   }
 
@@ -360,5 +375,112 @@ public class OrganizationSummaryViewTest
     rowHeaders.last(rowHeaders.size() - 1).shouldHave(exactTexts(Stage.ID_RELEASE));
 
     eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testSourceControlTile() {
+    SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
+
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+
+    tile.shouldBe(visible);
+    tile.subHeader().shouldBe(visible).shouldHave(Condition.text(String
+        .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
+    tile.rows().shouldHaveSize(1);
+
+    tile.itemText().shouldNotBe(visible);
+    tile.itemSubText().shouldBe(visible)
+        .shouldHave(Condition.text("Source Control not configured"));
+
+    eyesWatcher.eyesCheck("Source control not configured");
+
+    SourceControl rootSourceControl =
+        tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+    refresh();
+
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+
+    tile.shouldBe(visible);
+    tile.subHeader().shouldBe(visible).shouldHave(Condition.text(String
+        .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
+    tile.rows().shouldHaveSize(1);
+
+    tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
+    tile.itemSubText().shouldBe(visible).shouldHave(Condition.text("Inherit access token"));
+
+    eyesWatcher.eyesCheck("Valid source control configured, token on root");
+
+    rootSourceControl.setToken("TESK_TOKEN");
+    sourceControlDAO.update(rootSourceControl);
+    refresh();
+
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+
+    tile.shouldBe(visible);
+    tile.subHeader().shouldBe(visible).shouldHave(Condition.text(String
+        .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
+    tile.rows().shouldHaveSize(1);
+
+    tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
+    tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
+        .format("Inherit access token from %s", rootOrganization.getName())));
+
+    eyesWatcher.eyesCheck("Valid source control configured, token on root");
+
+    tempEntity.newSourceControl(organization.getId(), null, "TEST_TOKEN", null);
+    refresh();
+
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+
+    tile.shouldBe(visible);
+    tile.subHeader().shouldBe(visible).shouldHave(Condition.text(String
+        .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
+    tile.rows().shouldHaveSize(1);
+
+    tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
+    tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
+        .format("Provides default access token for %s", organization.getName())));
+
+    eyesWatcher.eyesCheck("Valid source control configured, token on organization");
+  }
+
+  @Test
+  public void testSourceControlTile_LicensingAwareNoLicense() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    refresh();
+    SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
+
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+
+    tile.shouldBe(visible);
+    tile.subHeader().shouldBe(visible).shouldHave(Condition.text(String
+        .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
+    tile.notSupported().shouldBe(visible);
+    tile.content().shouldNotBe(visible);
+    tile.notSupported().shouldHave(text("Source Control is not supported by your license"));
+
+    tile.itemText().shouldNotBe(visible);
+    tile.itemSubText().shouldNotBe(visible);
+
+    eyesWatcher.eyesCheck("Source Control No License");
+  }
+
+  @Test
+  public void testSourceControlTile_LicensingAwareNotificationOnly() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    refresh();
+    SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
+
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+
+    tile.shouldBe(visible);
+    tile.subHeader().shouldBe(visible).shouldHave(Condition.text(String
+        .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
+    tile.notSupported().shouldNotBe(visible);
+    tile.content().shouldBe(visible);
+
+    tile.itemSubText().shouldBe(visible);
+
+    eyesWatcher.eyesCheck("Source Control Notifications Only License");
   }
 }

@@ -23,8 +23,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class SourceControlDAOTest
     extends AbstractDbDAOTest
@@ -57,30 +59,10 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testInsert_MissingTokenForOrganization() {
-    SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(org.getId()).build();
-    assertThatThrownBy(() -> {
-      sourceControlDAO.insert(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessage(
-        "SourceControl authentication token is required for organization");
-  }
-
-  @Test
-  public void testInsert_MissingSourceControlProviderForOrganization() {
-    SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(org.getId()).setToken("token").build();
-    assertThatThrownBy(() -> {
-      sourceControlDAO.insert(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessageContaining(
-        "SourceControl provider is required when a token is provided");
-  }
-
-  @Test
   public void testInsert_RepositoryUrlForOrganization() {
+    createRootOrgWithProvider();
     SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(org.getId()).setRepositoryUrl(VALID_URL).setToken("token")
-            .setProvider(SourceControlProvider.GITHUB).build();
+        new SourceControl.Builder().setOwnerId(org.getId()).setRepositoryUrl(VALID_URL).setToken("token").build();
     assertThatThrownBy(() ->
         sourceControlDAO.insert(sourceControl)
     ).isInstanceOf(BadRequestException.class).hasMessage(
@@ -88,10 +70,40 @@ public class SourceControlDAOTest
   }
 
   @Test
+  public void testInsert_RootOrgDefaults() {
+    String baseBranch = "development";
+
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(ROOT_ORGANIZATION_ID)
+        .setProvider(GITLAB)
+        .setBaseBranch(baseBranch)
+        .setEnablePullRequests(null)
+        .setEnableStatusChecks(null)
+        .build();
+
+    sourceControlDAO.insert(sourceControl);
+
+    SourceControl persistedSourceControl = sourceControlDAO.getById(sourceControl.getId());
+    assertThat(persistedSourceControl.getEnablePullRequests()).isTrue();
+    assertThat(persistedSourceControl.getEnableStatusChecks()).isTrue();
+  }
+
+  @Test
+  public void testInsert_RootOrgMissingDefaultBranch() {
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(ROOT_ORGANIZATION_ID)
+        .setProvider(GITLAB)
+        .build();
+
+    assertThatThrownBy(() -> sourceControlDAO.insert(sourceControl))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("SourceControl default branch is required for the root organization");
+  }
+
+  @Test
   public void testInsert_MissingRepositoryUrlForApplication() {
     SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(app.getId()).setToken("token")
-            .setProvider(SourceControlProvider.GITHUB).build();
+        new SourceControl.Builder().setOwnerId(app.getId()).setToken("token").build();
     assertThatThrownBy(() ->
         sourceControlDAO.insert(sourceControl)
     ).isInstanceOf(BadRequestException.class).hasMessage(
@@ -100,9 +112,10 @@ public class SourceControlDAOTest
 
   @Test
   public void testInsert_InvalidUrl() {
+    createRootOrgWithProvider();
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl("https://not valid").setToken("token")
-            .setProvider(SourceControlProvider.GITHUB).build();
+            .build();
     assertThatThrownBy(() -> {
       sourceControlDAO.insert(sourceControl);
     }).isInstanceOf(BadRequestException.class).hasMessageContaining("repositoryUrl is invalid");
@@ -121,7 +134,7 @@ public class SourceControlDAOTest
   public void testInsert_AppPublicIdDoesNotExist() {
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId("baz").setRepositoryUrl(VALID_URL).setToken("bar")
-            .setProvider(SourceControlProvider.GITHUB).build();
+            .build();
     assertThatThrownBy(() -> {
       sourceControlDAO.insert(sourceControl);
     }).isInstanceOf(BadRequestException.class)
@@ -130,17 +143,19 @@ public class SourceControlDAOTest
 
   @Test
   public void testInsert_DuplicateRepositoryUrlAllowed() {
+    createRootOrgWithProvider();
     Application baz = tempEntity.newApplicationWithParent("baz");
-    tempEntity.newSourceControl(baz.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(baz.getId(), VALID_URL, "bar", null);
     sourceControlDAO
         .insert(new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("bar")
-            .setProvider(SourceControlProvider.GITHUB).build());
+            .build());
   }
 
   @Test
   public void testUpdate_MissingOwnerId() {
+    createRootOrgWithProvider();
     SourceControl sourceControl =
-        tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", null);
     sourceControl.setOwnerId(null);
     assertThatThrownBy(() -> {
       sourceControlDAO.update(sourceControl);
@@ -148,31 +163,10 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testUpdate_MissingTokenForOrganization() {
-    SourceControl sourceControl =
-        tempEntity.newSourceControl(org.getId(), null, "bar", SourceControlProvider.GITHUB);
-    sourceControl.setToken(null);
-    assertThatThrownBy(() -> {
-      sourceControlDAO.update(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessage(
-        "SourceControl authentication token is required for organization");
-  }
-
-  @Test
-  public void testUpdate_MissingSourceControlProviderForOrganization() {
-    SourceControl sourceControl =
-        tempEntity.newSourceControl(org.getId(), null, "bar", SourceControlProvider.GITHUB);
-    sourceControl.setProvider(null);
-    assertThatThrownBy(() -> {
-      sourceControlDAO.update(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessage(
-        "SourceControl provider is required when a token is provided");
-  }
-
-  @Test
   public void testUpdate_MissingRepositoryUrlForApplication() {
+    createRootOrgWithProvider();
     SourceControl sourceControl = tempEntity.newSourceControl(
-        app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
+        app.getId(), VALID_URL, "bar", null);
     sourceControl.setRepositoryUrl(null);
     assertThatThrownBy(() ->
         sourceControlDAO.update(sourceControl)
@@ -182,7 +176,7 @@ public class SourceControlDAOTest
   @Test
   public void testUpdate_RepositoryUrlForOrganization() {
     SourceControl sourceControl = tempEntity.newSourceControl(
-        org.getId(), null, "bar", SourceControlProvider.GITHUB);
+        org.getId(), null, "bar", null);
     sourceControl.setRepositoryUrl(VALID_URL);
     assertThatThrownBy(() ->
         sourceControlDAO.update(sourceControl)
@@ -191,8 +185,9 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_InvalidUrl() {
+    createRootOrgWithProvider();
     SourceControl sourceControl =
-        tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
+        tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", null);
     sourceControl.setRepositoryUrl("https://not valid");
     assertThatThrownBy(() -> {
       sourceControlDAO.update(sourceControl);
@@ -201,30 +196,22 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_DuplicateRepositoryUrlAllowed() {
+    createRootOrgWithProvider();
     Application baz = tempEntity.newApplicationWithParent();
     Application foo = tempEntity.newApplicationWithParent();
-    tempEntity.newSourceControl(baz.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(baz.getId(), VALID_URL, "bar", null);
     SourceControl sourceControl =
-        tempEntity.newSourceControl(foo.getId(), VALID_URL + ".1", "bar", SourceControlProvider.GITHUB);
+        tempEntity.newSourceControl(foo.getId(), VALID_URL + ".1", "bar", null);
     sourceControl.setRepositoryUrl(VALID_URL);
     sourceControlDAO.update(sourceControl);
   }
 
   @Test
-  public void testUpdate_MissingSourceControlProvider() {
-    SourceControl sourceControl =
-        tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", SourceControlProvider.GITHUB);
-    sourceControl.setProvider(null);
-    assertThatThrownBy(() -> {
-      sourceControlDAO.update(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessageContaining("SourceControl provider is required");
-  }
-
-  @Test
   public void testCRUD() {
+    createRootOrgWithProvider();
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("bar")
-            .setProvider(SourceControlProvider.GITHUB).setBaseBranch("base/branch").setEnablePullRequests(true)
+            .setBaseBranch("base/branch").setEnablePullRequests(true)
             .setEnableStatusChecks(true).build();
 
     assertThat(sourceControl.getId()).isNull();
@@ -259,7 +246,7 @@ public class SourceControlDAOTest
   public void testCRUD_Organization() {
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(org.getId()).setToken("bar")
-            .setProvider(SourceControlProvider.GITHUB).setEnablePullRequests(true).setEnableStatusChecks(true)
+            .setEnablePullRequests(true).setEnableStatusChecks(true)
             .setBaseBranch("base/branch").build();
 
     assertThat(sourceControl.getId()).isNull();
@@ -291,9 +278,10 @@ public class SourceControlDAOTest
 
   @Test
   public void testPullRequestConfigsCanBeNull() {
+    createRootOrgWithProvider();
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("bar")
-            .setProvider(SourceControlProvider.GITHUB).build();
+            .build();
 
     assertThat(sourceControl.getId()).isNull();
     assertThat(sourceControl.getBaseBranch()).isNull();
@@ -315,20 +303,22 @@ public class SourceControlDAOTest
 
   @Test
   public void testGetAll() {
-    assertThat(sourceControlDAO.getAll().isEmpty()).isTrue();
+    createRootOrgWithProvider();
+    assertThat(sourceControlDAO.getAll()).hasSize(1);
     Application app2 = tempEntity.newApplicationWithParent("bar");
-    tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
-    tempEntity.newSourceControl(app2.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(app.getId(), VALID_URL, "token", null);
+    tempEntity.newSourceControl(app2.getId(), VALID_URL, "token", null);
 
     List<SourceControl> scms = sourceControlDAO.getAll();
-    assertThat(scms.size()).isEqualTo(2);
+    assertThat(scms).hasSize(3);
     Stream<String> appIds = scms.stream().map(SourceControl::getOwnerId);
     assertThat(appIds.collect(Collectors.toList()).containsAll(Arrays.asList(app.getId(), "bar")));
   }
 
   @Test
   public void testInsert_ProviderFromOrganization() {
-    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", SourceControlProvider.GITHUB);
+    createRootOrgWithProvider();
+    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", null);
     sourceControlDAO.insert(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).build());
   }
@@ -350,23 +340,10 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testUpdate_ProviderFromOrganization() {
-    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", SourceControlProvider.GITHUB);
-    SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("TOKEN")
-            .setProvider(SourceControlProvider.GITHUB).build();
-    sourceControlDAO.insert(sourceControl);
-    sourceControl.setProvider(null);
-    sourceControl.setToken(null);
-    sourceControlDAO.update(sourceControl);
-  }
-
-  @Test
   public void testUpdate_ProviderFromRootOrganization() {
-    tempEntity.newSourceControl(org.getParentOrganizationId(), null, "token", SourceControlProvider.GITHUB);
+    createRootOrgWithProvider();
     SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("TOKEN")
-            .setProvider(SourceControlProvider.GITHUB).build();
+        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("TOKEN").build();
     sourceControlDAO.insert(sourceControl);
     sourceControl.setProvider(null);
     sourceControl.setToken(null);
@@ -375,18 +352,21 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_ProviderNotAvailable() {
+    SourceControl root = createRootOrgWithProvider();
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("TOKEN")
-            .setProvider(SourceControlProvider.GITHUB).build();
+            .build();
     sourceControlDAO.insert(sourceControl);
     sourceControl.setProvider(null);
     sourceControl.setToken(null);
+    sourceControlDAO.delete(root);
     assertThatThrownBy(() -> sourceControlDAO.update(sourceControl)).isInstanceOf(BadRequestException.class)
         .hasMessageContaining("Cannot validate SourceControl repositoryUrl");
   }
 
   @Test
   public void test_getAllForApplications() {
+    createRootOrgWithProvider();
     // create a few sample entries
     SourceControl scApp1 = buildAppSourceControl(app.getId(), 1, null);
     sourceControlDAO.insert(scApp1);
@@ -408,7 +388,10 @@ public class SourceControlDAOTest
   @Test
   public void test_getCountOfApplicationsWithPREnabled_enabledAtRoot() {
     // create SCM entry at root, with PR enabled flag set
-    sourceControlDAO.insert(buildOrgSourceControl(Organization.ROOT_ORGANIZATION_ID, true));
+    SourceControl rootSourceControl = buildOrgSourceControl(Organization.ROOT_ORGANIZATION_ID, true);
+    rootSourceControl.setProvider(SourceControlProvider.GITHUB);
+    rootSourceControl.setBaseBranch("master");
+    sourceControlDAO.insert(rootSourceControl);
 
     // create a few child orgs of root
     Organization orgNullPrs = tempEntity.newOrganization();
@@ -447,6 +430,7 @@ public class SourceControlDAOTest
 
   @Test
   public void test_getCountOfApplicationsWithPREnabled_enabledAtOrgAndApp() {
+    createRootOrgWithProvider();
     // create SCM entries for organizations, with PR enabled flag set
     Organization orgNullPrs = tempEntity.newOrganization();
     Organization orgNoPrs = tempEntity.newOrganization();
@@ -454,6 +438,7 @@ public class SourceControlDAOTest
 
     sourceControlDAO.insert(buildOrgSourceControl(orgEnabledPrs.getId(), true));
 
+    // null for enabled defaults to true
     sourceControlDAO.insert(buildOrgSourceControl(orgNullPrs.getId(), null));
 
     sourceControlDAO.insert(buildOrgSourceControl(orgNoPrs.getId(), false));
@@ -476,8 +461,8 @@ public class SourceControlDAOTest
 
     Collection<SourceControl> enabledApplications = sourceControlDAO.getApplicationsWithPullReqsEnabled();
     Assertions.assertThat(enabledApplications)
-        .hasSize(2)
-        .containsExactlyInAnyOrder(scEnabledAtAppDisabledAtOrg, scEnabledAtOrg);
+        .hasSize(3)
+        .containsExactlyInAnyOrder(scEnabledAtAppDisabledAtOrg, scEnabledAtOrg, scDefaultAppDefaultOrg);
   }
 
   private SourceControl buildAppSourceControlAndApp(Organization organization,
@@ -493,7 +478,6 @@ public class SourceControlDAOTest
         .setOwnerId(ownerId)
         .setRepositoryUrl("http://localhost/owner/app"  + appNumber)
         .setEnablePullRequests(enablePullRequests)
-        .setProvider(SourceControlProvider.GITHUB)
         .build();
   }
 
@@ -502,7 +486,111 @@ public class SourceControlDAOTest
         .setOwnerId(ownerId)
         .setToken("token")
         .setEnablePullRequests(enablePullRequests)
-        .setProvider(SourceControlProvider.GITHUB)
         .build();
+  }
+
+  @Test
+  public void testCreate_RootOrgWithoutProvider() {
+    assertThatThrownBy(
+        () -> sourceControlDAO.insert(new SourceControl.Builder().setOwnerId(ROOT_ORGANIZATION_ID).build()))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("SourceControl provider is required for the root organization");
+  }
+
+  @Test
+  public void testUpdate_RootOrgDefaults() {
+    String baseBranch = "development";
+
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(ROOT_ORGANIZATION_ID)
+        .setProvider(GITLAB)
+        .setBaseBranch(baseBranch)
+        .setEnablePullRequests(false)
+        .setEnableStatusChecks(false)
+        .build();
+
+    sourceControlDAO.insert(sourceControl);
+
+    SourceControl persistedSourceControl = sourceControlDAO.getById(sourceControl.getId());
+    assertThat(persistedSourceControl.getEnablePullRequests()).isFalse();
+    assertThat(persistedSourceControl.getEnableStatusChecks()).isFalse();
+
+    persistedSourceControl.setEnablePullRequests(null);
+    persistedSourceControl.setEnableStatusChecks(null);
+
+    sourceControlDAO.update(persistedSourceControl);
+
+    SourceControl updatedSourceControl = sourceControlDAO.getById(persistedSourceControl.getId());
+    assertThat(updatedSourceControl.getEnablePullRequests()).isTrue();
+    assertThat(updatedSourceControl.getEnableStatusChecks()).isTrue();
+  }
+
+  @Test
+  public void testUpdate_RootOrgMissingDefaultBranch() {
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(ROOT_ORGANIZATION_ID)
+        .setProvider(GITLAB)
+        .setBaseBranch("master")
+        .build();
+
+    sourceControlDAO.insert(sourceControl);
+
+    SourceControl persistedSourceControl = sourceControlDAO.getById(sourceControl.getId());
+    persistedSourceControl.setBaseBranch(null);
+
+    assertThatThrownBy(() -> sourceControlDAO.update(persistedSourceControl))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("SourceControl default branch is required for the root organization");
+  }
+
+  @Test
+  public void testUpdate_RootOrgWithoutProvider() {
+    SourceControl sourceControl = createRootOrgWithProvider();
+    sourceControl.setProvider(null);
+    assertThatThrownBy(() -> sourceControlDAO.update(sourceControl))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("SourceControl provider is required for the root organization");
+  }
+
+  @Test
+  public void testCreate_OrganizationWithProvider() {
+    assertThatThrownBy(
+        () -> sourceControlDAO.insert(
+            new SourceControl.Builder().setOwnerId(org.getId()).setProvider(SourceControlProvider.GITHUB).build()))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("SourceControl provider can only be specified on the root organization");
+  }
+
+  @Test
+  public void testUpdate_OrganizationWithProvider() {
+    createRootOrgWithProvider();
+    SourceControl sourceControl = tempEntity.newSourceControl(org.getId(), null, "token", null);
+    sourceControl.setProvider(SourceControlProvider.GITHUB);
+    assertThatThrownBy(() -> sourceControlDAO.update(sourceControl))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("SourceControl provider can only be specified on the root organization");
+  }
+
+  @Test
+  public void testCreate_ApplicationWithProvider() {
+    assertThatThrownBy(
+        () -> sourceControlDAO.insert(
+            new SourceControl.Builder().setOwnerId(app.getId()).setProvider(SourceControlProvider.GITHUB).build()))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("SourceControl provider can only be specified on the root organization");
+  }
+
+  @Test
+  public void testUpdate_ApplicationWithProvider() {
+    createRootOrgWithProvider();
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, null, null);
+    sourceControl.setProvider(SourceControlProvider.GITHUB);
+    assertThatThrownBy(() -> sourceControlDAO.update(sourceControl))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("SourceControl provider can only be specified on the root organization");
+  }
+
+  private SourceControl createRootOrgWithProvider() {
+    return tempEntity.newSourceControl(org.getParentOrganizationId(), null, null, SourceControlProvider.GITHUB);
   }
 }

@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -17,8 +17,10 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -28,7 +30,12 @@ public class ApiSourceControlServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   private static final String VALID_URL = "https://example.com/organization/project";
-  
+
+  @Before
+  public void before() {
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+  }
+
   @Inject
   public ApiSourceControlService sourceControlService;
 
@@ -51,14 +58,14 @@ public class ApiSourceControlServiceAuthzTest
   @Test
   public void testGetAll_Authorized() {
     grantGlobalPermission(Permission.READ);
-    assertThat(sourceControlService.getAll()).isEmpty();
+    assertThat(sourceControlService.getAll()).hasSize(1);
   }
 
   @Test
   public void testGetSourceControlByOwner_Authorized() {
     grantReadPermission(app.getId());
     SourceControl sourceControl = tempEntity.newSourceControl(
-        app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
+        app.getId(), VALID_URL, "token", null);
     ApiSourceControlDTO sourceControlByApplicationId =
         sourceControlService.getSourceControlByOwner(
             OwnerType.APPLICATION, app.getId());
@@ -96,7 +103,7 @@ public class ApiSourceControlServiceAuthzTest
         OwnerType.APPLICATION, app.getId(),
         apiSourceControlAdapter.convertToDTO(
             new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")
-                .setProvider(SourceControlProvider.GITHUB).build()));
+                .build()));
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -118,7 +125,7 @@ public class ApiSourceControlServiceAuthzTest
     ApiSourceControlDTO sourceControl = sourceControlService.addSourceControlByOwner(OwnerType.APPLICATION,
         app.getId(), apiSourceControlAdapter.convertToDTO(
             new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")
-                .setProvider(SourceControlProvider.GITHUB).build()));
+              .build()));
     sourceControl.token = "newToken";
     sourceControlService.updateSourceControlByOwner(
         OwnerType.APPLICATION, app.getId(), sourceControl);
@@ -140,7 +147,7 @@ public class ApiSourceControlServiceAuthzTest
   @Test
   public void testDeleteSourceControlByOwner_Authorized() {
     grantWritePermission(app.getId());
-    tempEntity.newSourceControl(app.getId(), VALID_URL, "token", SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(app.getId(), VALID_URL, "token", null);
     sourceControlService.deleteSourceControlByOwner(
         OwnerType.APPLICATION, app.getId());
   }
@@ -148,7 +155,7 @@ public class ApiSourceControlServiceAuthzTest
   @Test
   public void testAddOrUpdateSourceControl_AutomaticScmEnabled_Authorized() {
     // ensure org record exists
-    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", null);
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
     grantEvaluateApplicationPermission(org.getId());
     sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
@@ -157,7 +164,7 @@ public class ApiSourceControlServiceAuthzTest
   @Test
   public void testAddOrUpdateSourceControl_AutomaticScmDisabled_Authorized() {
     // ensure org record exists
-    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", null);
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
     grantEvaluateApplicationPermission(org.getId());
     sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);

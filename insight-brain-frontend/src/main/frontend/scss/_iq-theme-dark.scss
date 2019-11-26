@@ -61,6 +61,7 @@ $iq-theme-dark-box-shadow: $iq-off-black;
   input[type=number],
   input[type=email],
   input[type=password],
+  input[type=url],
   textarea {
     background: $iq-theme-dark-background;
     width: 222px; //adjust for narrower border

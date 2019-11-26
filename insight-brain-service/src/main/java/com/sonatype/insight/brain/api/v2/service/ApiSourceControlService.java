@@ -14,7 +14,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
@@ -40,6 +40,8 @@ import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +49,6 @@ import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_
 import static org.apache.commons.lang.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang.StringUtils.trim;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @Named
 @Singleton
@@ -134,7 +135,7 @@ public class ApiSourceControlService
       }
     }
 
-    return apiSourceControlAdapter.convertToDTO(hideToken(sourceControl));
+    return apiSourceControlAdapter.convertToDTO(setTokenValueForReturn(sourceControl));
   }
 
   @Authorize(permission = Permission.READ)
@@ -148,7 +149,7 @@ public class ApiSourceControlService
       throw new NotFoundException(String.format(
           "Cannot find SourceControl for %s with id: %s", ownerType, ownerId));
     }
-    sourceControl.setToken(FAKE_SECRET_KEY);
+    setTokenValueForReturn(sourceControl);
     sendSourceControlTelemetryData(METHOD.GET_BY_OWNER_ID, ownerId);
 
     return apiSourceControlAdapter.convertToDTO(sourceControl);
@@ -164,6 +165,7 @@ public class ApiSourceControlService
     checkLicense();
 
     SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(sourceControlDTO);
+    setTokenValueForSave(sourceControl);
     encryptToken(sourceControl);
 
     // fail if there's already a sourcecontrol in place for the owner
@@ -174,7 +176,7 @@ public class ApiSourceControlService
 
     sourceControlDAO.insert(sourceControl);
     auditSourceControl(sourceControl);
-    sourceControl.setToken(FAKE_SECRET_KEY);
+    setTokenValueForReturn(sourceControl);
     sendSourceControlTelemetryData(METHOD.ADD, ownerId, sourceControl);
     return apiSourceControlAdapter.convertToDTO(sourceControl);
   }
@@ -197,9 +199,9 @@ public class ApiSourceControlService
     SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(sourceControlDTO);
     sourceControl.setId(storedSourceControl.getId());
 
-    // updates may come with our 'fake' token or simply omit it
-    if (isEmpty(sourceControl.getToken())
-        || FAKE_SECRET_KEY.equalsIgnoreCase(sourceControl.getToken())) {
+    setTokenValueForSave(sourceControl);
+    // updates may come with our 'fake' token
+    if (FAKE_SECRET_KEY.equalsIgnoreCase(sourceControl.getToken())) {
       sourceControl.setToken(storedSourceControl.getToken());
     }
     else {
@@ -208,7 +210,7 @@ public class ApiSourceControlService
 
     sourceControlDAO.update(sourceControl);
     auditSourceControl(sourceControl);
-    sourceControl.setToken(FAKE_SECRET_KEY);
+    setTokenValueForReturn(sourceControl);
     sendSourceControlTelemetryData(METHOD.UPDATE, ownerId, sourceControl);
     return apiSourceControlAdapter.convertToDTO(sourceControl);
   }
@@ -271,7 +273,8 @@ public class ApiSourceControlService
   }
 
   private void checkLicense() {
-    if (!productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)) {
+    if (!(productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)
+        || productLicense.hasFeature(LicensedFeature.AUTOMATION))) {
       log.debug("License does not support SourceControl notification features");
       throw new InvalidLicenseException();
     }
@@ -303,16 +306,21 @@ public class ApiSourceControlService
     telemetrySender.send(telemetryData);
   }
 
-  private void auditAndSendTelemetry(SourceControl sourceControl, String appId) {
-    auditSourceControl(hideToken(sourceControl));
-    sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE, appId);
-  }
-
-  private SourceControl hideToken(SourceControl sourceControl) {
-    if (null != sourceControl && sourceControl.getToken() != null) {
-      sourceControl.setToken(FAKE_SECRET_KEY);
+  private SourceControl setTokenValueForReturn(final SourceControl sourceControl) {
+    if (sourceControl != null) {
+      sourceControl
+          .setToken(Strings.isNullOrEmpty(sourceControl.getToken()) ? null : FAKE_SECRET_KEY);
     }
     return sourceControl;
+  }
+
+  private void setTokenValueForSave(final SourceControl sourceControl) {
+    sourceControl.setToken(StringUtils.isBlank(sourceControl.getToken()) ? null : sourceControl.getToken());
+  }
+
+  private void auditAndSendTelemetry(SourceControl sourceControl, String appId) {
+    auditSourceControl(setTokenValueForReturn(sourceControl));
+    sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE, appId);
   }
 
   private boolean shouldUpdateSourceControlRepositoryUrl(String currentValue, String newValue) {
@@ -326,6 +334,7 @@ public class ApiSourceControlService
     ADD,
     UPDATE,
     DELETE,
-    ADD_OR_UPDATE
+    ADD_OR_UPDATE,
+    GET_BY_OWNER_ID_WITH_INHERITANCE,
   }
 }

@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.client;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlAdapter;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -33,7 +33,9 @@ public class SourceControlClientTest
 
   @Before
   public void createApplication() {
+
     application = tempEntity.newApplicationWithParent(APP_ID);
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
   }
 
   @Test
@@ -61,7 +63,6 @@ public class SourceControlClientTest
   @Test
   public void testAddOrUpdateSourceControlRecord_AddWithInvalidUrl() throws Exception {
     turnOnAutomaticSourceControl();
-    createRootOrgSourceControlForTest();
     Application newApp = tempEntity.newApplicationWithParent("testAddOrUpdateSourceControlRecord_AddWithInvalidUrl");
 
     SourceControlClient client = new SourceControlClient(getCLMServer().getClientConfiguration());
@@ -97,25 +98,10 @@ public class SourceControlClientTest
     ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl("https://github.com/org/proj")
-            .setToken("token").setProvider(SourceControlProvider.GITHUB).build());
+            .setToken("token").build());
     HttpResponse response =
         restRequest().path("api", "v2", "sourceControl", OwnerType.APPLICATION.toString(), application.getId())
             .body(sourceControl).post();
-    assertResponseStatus(200, response);
-  }
-
-  private void createRootOrgSourceControlForTest() throws Exception {
-    ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
-    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder()
-            .setOwnerId(ROOT_ORGANIZATION_ID)
-            .setToken("token")
-            .setProvider(SourceControlProvider.GITLAB)
-            .build());
-    HttpResponse response = restRequest()
-        .path("api", "v2", "sourceControl", OwnerType.ORGANIZATION.toString(), ROOT_ORGANIZATION_ID)
-        .body(sourceControl)
-        .post();
     assertResponseStatus(200, response);
   }
 }

@@ -25,6 +25,9 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 public class SourceControlDAO
     extends AbstractOperationalSqlDAO<SourceControl>
 {
@@ -113,12 +116,14 @@ public class SourceControlDAO
   @Override
   public void insert(final TransactionContext tx, final SourceControl sourceControl) {
     validate(tx, sourceControl);
+    setDefaultsAsNecessary(sourceControl);
     super.insert(tx, sourceControl);
   }
 
   @Override
   public void update(final TransactionContext tx, final SourceControl sourceControl) {
     validate(tx, sourceControl);
+    setDefaultsAsNecessary(sourceControl);
     super.update(tx, sourceControl);
   }
 
@@ -142,28 +147,42 @@ public class SourceControlDAO
     return get(tx, "SELECT entity FROM SourceControl entity WHERE entity.ownerId=?1", ownerId);
   }
 
+  private void setDefaultsAsNecessary(SourceControl sourceControl) {
+    if (isForRootOrganization(sourceControl)) {
+      if (null == sourceControl.getEnablePullRequests()) {
+        sourceControl.setEnablePullRequests(SourceControl.ENABLE_PULL_REQUESTS_BY_DEFAULT);
+      }
+      if (null == sourceControl.getEnableStatusChecks()) {
+        sourceControl.setEnableStatusChecks(SourceControl.ENABLE_STATUS_CHECKS_BY_DEFAULT);
+      }
+    }
+  }
+
   private void validate(final TransactionContext tx, final SourceControl sourceControl) {
     if (StringUtils.isBlank(sourceControl.getOwnerId())) {
       throw new BadRequestException("SourceControl owner id is required");
+    }
+
+    if (isForRootOrganization(sourceControl)) {
+      if (sourceControl.getProvider() == null) {
+        throw new BadRequestException("SourceControl provider is required for the root organization");
+      }
+      if (isBlank(sourceControl.getBaseBranch())) {
+        throw new BadRequestException("SourceControl default branch is required for the root organization");
+      }
+    }
+    else {
+      if (sourceControl.getProvider() != null) {
+        throw new BadRequestException("SourceControl provider can only be specified on the root organization");
+      }
     }
 
     if (isForOrganization(tx, sourceControl)) {
       if (sourceControl.getRepositoryUrl() != null) {
         throw new BadRequestException("SourceControl repositoryUrl is not allowed for organization");
       }
-      if (StringUtils.isBlank(sourceControl.getToken())) {
-        throw new BadRequestException("SourceControl authentication token is required for organization");
-      }
-      // if the token is provided the provider must be specified as well
-      if (StringUtils.isNotEmpty(sourceControl.getToken()) && sourceControl.getProvider() == null) {
-        throw new BadRequestException("SourceControl provider is required when a token is provided");
-      }
     }
     else if (isForApplication(tx, sourceControl)) {
-      // if the token is provided the provider must be specified as well
-      if (StringUtils.isNotEmpty(sourceControl.getToken()) && sourceControl.getProvider() == null) {
-        throw new BadRequestException("SourceControl provider is required when a token is provided");
-      }
       validateRepositoryUrl(tx, sourceControl);
     }
     else {
@@ -203,6 +222,10 @@ public class SourceControlDAO
 
   private boolean isForApplication(final TransactionContext tx, final SourceControl sourceControl) {
     return applicationDAO.getById(tx, sourceControl.getOwnerId()) != null;
+  }
+
+  private boolean isForRootOrganization(final SourceControl sourceControl) {
+    return ROOT_ORGANIZATION_ID.equals(sourceControl.getOwnerId());
   }
 
   private SourceControlProvider getProviderFromOrganization(final TransactionContext tx,

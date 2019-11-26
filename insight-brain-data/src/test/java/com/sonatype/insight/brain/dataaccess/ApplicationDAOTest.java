@@ -72,6 +72,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -832,9 +833,10 @@ public class ApplicationDAOTest
 
   @Test
   public void testCascadeDeleteToSourceControl() {
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     SourceControl sourceControl = tempEntity.newSourceControl(
         application.getId(), "http://valid.sonatype.com/repository/project",
-        "token", SourceControlProvider.GITHUB);
+        "token", null);
 
     applicationDAO.delete(application);
 

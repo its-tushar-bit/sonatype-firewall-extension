@@ -73,6 +73,7 @@ import SameOwnerEditSref from './utility/same.owner.edit.sref.directive';
 import SameOwnerViewSref from './utility/same.owner.view.sref.directive';
 import PolicyViolationGrandfatheringModule from './policyViolationGrandfathering/module';
 import retentionModule from './retention/module';
+import sourceControlModule from './source.control/module';
 
 export default
 angular.module('owner.manager.module',
@@ -81,7 +82,7 @@ angular.module('owner.manager.module',
       angularCommonModule.name, formsModule.name, utilityModule.name, utilityDirectivesModule.name,
       permissionServiceModule.name, policyModule.name, CLMLocationModule.name, utilityServicesModule.name,
       validatorsModule.name, roleMembershipModule.name, moveApplicationModule.name, ProductFeaturesModule.name,
-      PolicyViolationGrandfatheringModule.name, retentionModule.name
+      PolicyViolationGrandfatheringModule.name, retentionModule.name, sourceControlModule.name
     ])
     .component('ownerPolicyList', ownerPolicyList)
     .controller('access.editor.controller', AccessEditorController)
@@ -347,6 +348,16 @@ angular.module('owner.manager.module',
                 controllerAs: 'vm',
                 templateUrl: 'owner.manager/license.threat.group/license.threat.group.editor.view.html?' +
                 clmBuildTimestamp
+              }
+            }
+          }).state('management.edit.' + ownerType.type + '.edit-source-control', {
+            url: '/source-control',
+            data: {
+              title: 'Source Control'
+            },
+            views: {
+              '@management.edit': {
+                component: 'sourceControlEditor'
               }
             }
           });

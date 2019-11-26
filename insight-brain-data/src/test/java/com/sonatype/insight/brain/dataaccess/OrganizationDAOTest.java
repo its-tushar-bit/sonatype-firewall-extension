@@ -57,6 +57,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -547,9 +548,10 @@ public class OrganizationDAOTest
 
   @Test
   public void testCascadeDeleteToSourceControl() {
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     Organization organization = tempEntity.newOrganization();
     SourceControl sourceControl = tempEntity.newSourceControl(
-        organization.getId(), null, "token", SourceControlProvider.GITHUB);
+        organization.getId(), null, "token", null);
 
     dao.delete(organization);
 

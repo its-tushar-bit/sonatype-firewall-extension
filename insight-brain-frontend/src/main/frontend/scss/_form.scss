@@ -175,6 +175,7 @@ input[type=text],
 input[type=number],
 input[type=email],
 input[type=password],
+input[type=url],
 textarea {
 
   &.iq-text-input, &.iq-textarea {
@@ -257,6 +258,10 @@ textarea {
 
 .iq-text-input--wide {
   width: $iq-form-element-wide;
+}
+
+.iq-text-input--double-indent {
+  margin-left: 52px;
 }
 
 input.iq-input-file--hidden {

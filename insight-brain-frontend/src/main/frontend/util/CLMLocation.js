@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
-import { pick } from 'ramda';
+import {pick} from 'ramda';
 
 import commonServicesModule from '../util/CommonServices';
 import {getBaseUrl, toURIParams} from './urlUtil';
@@ -425,7 +425,21 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
 
       getVulnerabilityDetailUrl,
 
-      getVulnerabilityJsonDetailUrl
+      getVulnerabilityJsonDetailUrl,
+
+      /**
+       * @since 1.79.0
+       */
+      getSourceControlUrl: function(ownerType, ownerId) {
+        return baseUrl.get() + `/api/v2/sourceControl/${ownerType}/${ownerId}`;
+      },
+
+      /**
+       * @since 1.79.0
+       */
+      getCompositeSourceControlUrl: function(ownerType, ownerId) {
+        return baseUrl.get() + `/api/v2/compositeSourceControl/${ownerType}/${ownerId}`;
+      }
     };
   }
 ]);

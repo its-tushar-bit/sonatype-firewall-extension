@@ -54,7 +54,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class PolicyAlertScmNotifierTest
@@ -105,22 +104,6 @@ public class PolicyAlertScmNotifierTest
         gitApiService, baseUrl, provider);
     Organization organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(NAME, PUBLIC_ID, organization.getId());
-
-    // TODO remove when SCM notifier is enabled
-    System.setProperty("enableScmNotification", "true");
-  }
-
-  // TODO remove when SCM notifier is enabled
-  @Test
-  public void test_featureIsDisabledByProperties() throws Exception {
-    // given property flag is not present
-    System.clearProperty("enableScmNotification");
-
-    // when we send notifications
-    scmNotifier.sendNotifications(application, "scanId", new Stage(Stage.ID_BUILD), buildPolicyNotifications());
-
-    // then no interactions
-    verifyNoInteractions(gitApiService, pullRequestFeatureCheck);
   }
 
   @Test

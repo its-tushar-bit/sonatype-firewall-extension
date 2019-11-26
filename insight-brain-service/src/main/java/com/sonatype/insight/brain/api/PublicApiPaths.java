@@ -72,4 +72,6 @@ public class PublicApiPaths
   public static final String SAML_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/saml";
 
   public static final String USER_TOKEN_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "userTokens";
+
+  public static final String COMPOSITE_SOURCE_CONTROL_PATH_V2 = API_VERSION_PATH_V2 + "compositeSourceControl";
 }

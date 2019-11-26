@@ -184,6 +184,15 @@
         </a>
       </div>
     </div>
+    <div id="source-control-tree-view-group" class="iq-tree-view iq-owner-tree-view" ng-if="!vm.isRepositories">
+      <a class="iq-tree-view__trigger iq-owner-tree-view__row"
+         ng-class="{ 'iq-tree-view__trigger--unselectable': vm.state.$current.name.endsWith('source-control') }"
+         ui-sref=".edit-source-control"
+         ui-sref-active="selected">
+        <i class="fa fa-code-fork size-16px size-fw iq-owner-tree-view__icon iq-owner-tree-view__icon--source-control"></i>
+        <span class="iq-tree-view__text">Source Control</span>
+      </a>
+    </div>
     <div id="access-tree-view-group" class="iq-tree-view iq-owner-tree-view">
       <a class="iq-tree-view__trigger iq-owner-tree-view__row"
          ng-class="{ 'iq-tree-view__trigger--unselectable': vm.state.$current.name.endsWith('access') }"

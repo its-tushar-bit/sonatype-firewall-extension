@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
+import com.sonatype.clm.testing.functional.elements.SourceControlTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -51,6 +52,10 @@ public class OwnerSummaryPage
 
   public static DataRetentionTile dataRetentionTile() {
     return new DataRetentionTile();
+  }
+
+  public static SourceControlTile sourceControlTile() {
+    return new SourceControlTile();
   }
 
   public static AccessTile accessTile() {

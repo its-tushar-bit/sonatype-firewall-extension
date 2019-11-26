@@ -5,6 +5,7 @@
          ng-disabled="vm.isDisabled"
          ng-model="vm.model"
          ng-value="vm.value"
-         ng-change="vm.onClick({value:vm.value})">
+         ng-change="vm.onClick({value:vm.value})"
+         ng-required="vm.isRequired">
   <span class="iq-radio__circle"></span><ng-transclude></ng-transclude>
 </label>

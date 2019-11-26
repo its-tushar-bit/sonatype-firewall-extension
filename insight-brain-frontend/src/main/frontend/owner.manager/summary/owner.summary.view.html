@@ -117,6 +117,11 @@
           Data Retention
         </a>
       </li>
+      <li ng-if="vm.isOrg || vm.isApp" class="iq-nav-pills__pill">
+        <a data-toggle="pill" id="owner-source-control-button" data-target="#owner-pill-source-control" ng-href="">
+          Source Control
+        </a>
+      </li>
       <li class="iq-nav-pills__pill">
         <a data-toggle="pill" id="owner-access-button" data-target="#owner-pill-access" ng-href="">Access</a>
       </li>
@@ -398,6 +403,8 @@
   </div>
 
   <retention-tile></retention-tile>
+
+  <source-control-tile></source-control-tile>
 
   <access-tile id="owner-pill-access" pad-to-top></access-tile>
 </div>

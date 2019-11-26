@@ -57,7 +57,7 @@ public abstract class BaseSourceControlDispatcherTest
       encryptedToken = plexusCipher.encrypt("token", "CMMDwoV");
     }
     String repositoryUrl = getGitApiClient().getUri() + "owner/repo";
-    tempEntity.newSourceControl(application.getId(), repositoryUrl, encryptedToken, getGitApiClient().getProvider());
+    tempEntity.newSourceControl(application.getId(), repositoryUrl, encryptedToken, null);
     event = createEvent();
   }
 

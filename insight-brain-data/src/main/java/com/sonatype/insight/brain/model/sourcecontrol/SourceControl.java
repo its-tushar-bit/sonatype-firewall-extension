@@ -27,6 +27,10 @@ public class SourceControl
 {
   public static final String FAKE_SECRET_KEY = "#~FAKE~SECRET~KEY~#";
 
+  public static final boolean ENABLE_PULL_REQUESTS_BY_DEFAULT = true;
+
+  public static final boolean ENABLE_STATUS_CHECKS_BY_DEFAULT = true;
+
   @Id
   @Column(name = "source_control_id")
   private String id;

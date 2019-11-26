@@ -10,10 +10,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -35,11 +34,11 @@ import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.service.Zipper;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyBillOfMaterialsRowDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyHealthCheckReportSecurityRowDTO;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import de.schlichtherle.truezip.file.TFile;
@@ -325,7 +324,7 @@ public class ReportServiceTest
         .isTrue();
   }
 
-  private void createReportFile() throws IOException {
+  private void createReportFile() throws IOException, URISyntaxException {
     createReportFile(app.getId(), scanId, zipReportDir("/ReportServiceTest/report"));
   }
 
@@ -333,16 +332,7 @@ public class ReportServiceTest
     FileUtils.copyFile(reportFile, insightWork.getReportFile(appId, scanId));
   }
 
-  private File zipReportDir(String resourceName) {
-    try {
-      URL resourceUrl = getClass().getResource(resourceName);
-      File resourceDir = new File(resourceUrl.toURI());
-      File reportZipFile = new File(tempDir.getRoot(), getClass().getSimpleName() + "-" + UUID.randomUUID() + ".zip");
-      Zipper.zip(resourceDir, reportZipFile);
-      return reportZipFile;
-    }
-    catch (IOException | URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
+  private File zipReportDir(String reportResourceName) throws URISyntaxException {
+    return Paths.get(ReportHelper.zipReport(reportResourceName, tempDir).toURI()).toFile();
   }
 }

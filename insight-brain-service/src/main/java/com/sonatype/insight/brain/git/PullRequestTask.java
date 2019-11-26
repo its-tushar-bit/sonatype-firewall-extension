@@ -22,6 +22,7 @@ import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
 
 import com.google.inject.Inject;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,11 @@ public class PullRequestTask
 
   private static final int HASH_LENGTH = 6;
 
-  private static final int DIRECTORY_LENGTH = 30;
+  private static final int PUBLIC_ID_LENGTH = 25;
+
+  private static final int BRANCH_LENGTH = 15;
+
+  private static final String PATH_REGEX = "[^a-z0-9\\-]";
 
   private final GitClientFactory gitClientFactory;
 
@@ -93,7 +98,7 @@ public class PullRequestTask
 
       checkoutDir = new File(
           insightConfig.getSourceControl().getCloneDirectory(),
-          toSafePathname(applicationId, gitInfo.baseBranch));
+          toSafePathname(pullRequestRemediationDetails.getApp().getPublicId(), gitInfo.baseBranch, applicationId));
 
       if (checkoutDir.exists()) {
         log.debug("Using existing directory for pull request: {}", checkoutDir.getAbsolutePath());
@@ -143,19 +148,24 @@ public class PullRequestTask
   }
 
   /**
-   * Creates a human readable string from a git branch that can be used as a path on (hopefully) all operating systems.
-   * Truncates length to <i>PATH_LENGTH</i> to try to avoid max path length limitations.
-   * Appends a hash to the path to reduce the probability of path name conflicts.
-   * @param appId application id
-   * @param branch branch
+   * Creates a human readable path name from an IQ application public ID and branch, along with a hash of the
+   * application ID. This can be used for cloning as a path on (hopefully) all operating systems. The path takes the
+   * form of:<BR><BR>
+   * {@code <application public id>-<branch name>-<hash of application id>}<BR><BR>
+   * The application public ID is truncated after {@link #PUBLIC_ID_LENGTH} and the branch name is truncated after
+   * {@link #BRANCH_LENGTH}. The hash of the app ID is appended to reduce the probability of path name conflicts. The
+   * application public ID and branch name are both lower-cased and sanitized to only include alphanumeric characters
+   * and dashes.
    * @return url and filename safe string
    */
-  private String toSafePathname(final String appId, final String branch) {
-    String name = appId + "-" + branch;
-    String safePathname = name.toLowerCase(Locale.ENGLISH).replaceAll("[^a-z0-9\\-]", "");
-    return safePathname.length() > DIRECTORY_LENGTH
-        ? safePathname.substring(0, DIRECTORY_LENGTH - (1 + HASH_LENGTH)) + "-" + truncatedHashOf(name)
-        : safePathname;
+  private String toSafePathname(final String applicationPublicId, final String branchName, final String applicationId) {
+    String safeAppPublicId = applicationPublicId.toLowerCase(Locale.ENGLISH).replaceAll(PATH_REGEX, "");
+    String safeBranchName = branchName.toLowerCase(Locale.ENGLISH).replaceAll(PATH_REGEX, "");
+
+    safeAppPublicId = StringUtils.substring(safeAppPublicId, 0, PUBLIC_ID_LENGTH);
+    safeBranchName = StringUtils.substring(safeBranchName, 0, BRANCH_LENGTH);
+
+    return String.join("-", safeAppPublicId, safeBranchName, truncatedHashOf(applicationId));
   }
 
   /**

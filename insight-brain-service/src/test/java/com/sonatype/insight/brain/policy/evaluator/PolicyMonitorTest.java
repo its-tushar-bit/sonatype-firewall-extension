@@ -619,6 +619,6 @@ public class PolicyMonitorTest
     scanReceipt.setScanId(scanId);
     scanReceipt.setTimeToReport(1L);
     mockScanReceipt(scanReceipt);
-    mockReport(scanId, "/PolicyMonitorTest/report.zip");
+    mockReport(scanId, "/" + getClass().getSimpleName() + "/report");
   }
 }

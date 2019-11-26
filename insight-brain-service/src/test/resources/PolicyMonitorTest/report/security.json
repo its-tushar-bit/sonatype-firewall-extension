@@ -1,0 +1,36 @@
+{
+  "aaData" : [ {
+    "groupId" : "commons-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "hash" : "964cd74171f427720480",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-5783",
+    "reference" : "CVE-2012-5783",
+    "source" : "cve",
+    "score" : 5.8,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "commons-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "hash" : "964cd74171f427720480",
+    "url" : "http://osvdb.org/59003",
+    "reference" : "59003",
+    "source" : "osvdb",
+    "score" : null,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "commons-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "hash" : "964cd74171f427720480",
+    "url" : "http://osvdb.org/87160",
+    "reference" : "87160",
+    "source" : "osvdb",
+    "score" : 5.8,
+    "matchState" : "exact",
+    "proprietary" : false
+  } ]
+}

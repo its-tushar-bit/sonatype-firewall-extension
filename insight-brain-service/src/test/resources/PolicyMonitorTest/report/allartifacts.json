@@ -1,0 +1,9 @@
+[ {
+  "groupId" : "ch.qos.logback",
+  "artifactId" : "logback-access",
+  "version" : "0.6"
+}, {
+  "groupId" : "commons-httpclient",
+  "artifactId" : "commons-httpclient",
+  "version" : "3.1"
+} ]

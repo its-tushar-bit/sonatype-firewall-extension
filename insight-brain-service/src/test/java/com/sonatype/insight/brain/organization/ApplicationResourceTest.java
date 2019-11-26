@@ -241,9 +241,9 @@ public class ApplicationResourceTest
     final String scanId1 = "ScanId1";
     final String scanId2 = "ScanId2";
     final String scanId3 = "ScanId3";
-    mockReport(scanId1, "/PolicyEvaluateResourceTest/report.zip");
-    mockReport(scanId2, "/PolicyEvaluateResourceTest/report.zip");
-    mockReport(scanId3, "/PolicyEvaluateResourceTest/report.zip");
+    mockReport(scanId1, "/" + getClass().getSimpleName() + "/report");
+    mockReport(scanId2, "/" + getClass().getSimpleName() + "/report");
+    mockReport(scanId3, "/" + getClass().getSimpleName() + "/report");
 
     // Eval policy
     HttpResponse response = evalRequest(applicationPublicId, scanId1, new Stage(Stage.ID_BUILD)).post();

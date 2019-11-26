@@ -1594,10 +1594,24 @@ public class TemporaryEntity
       Date time,
       Date quarantineTime)
   {
+    return newRepositoryComponent(repositoryId, matchState, pathname, hash, identifier, time, quarantineTime, null);
+  }
+
+  public RepositoryComponent newRepositoryComponent(
+      String repositoryId,
+      MatchState matchState,
+      String pathname,
+      String hash,
+      ComponentIdentifier identifier,
+      Date time,
+      Date quarantineTime,
+      Date unquarantineTime)
+  {
     RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, time, hash, identifier,
         matchState.getId(), IdentificationSource.SONATYPE.getId(), time);
 
     repositoryComponent.setQuarantineTime(quarantineTime);
+    repositoryComponent.setUnquarantineTime(unquarantineTime);
 
     repositoryComponentDAO.insert(repositoryComponent);
     return repositoryComponent;

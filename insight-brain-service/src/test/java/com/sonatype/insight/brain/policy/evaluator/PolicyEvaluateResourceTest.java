@@ -43,7 +43,7 @@ public class PolicyEvaluateResourceTest
     new PolicyDAO().update(policy);
 
     // Simulate that the report is available
-    String scanId = mockReport("/PolicyEvaluateResourceTest/report.zip");
+    String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
 
     // evaluate policy
     HttpResponse response = evaluateRequest(app.getPublicId(), scanId, new Stage(Stage.ID_BUILD)).post();
@@ -79,7 +79,7 @@ public class PolicyEvaluateResourceTest
     new PolicyDAO().update(policy);
 
     // Simulate that the report is available
-    String scanId = mockReport("/PolicyEvaluateResourceTest/report.zip");
+    String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
 
     // evaluate policy
     HttpResponse response = evaluateRequest(app.getPublicId(), scanId, new Stage(Stage.ID_BUILD)).post();

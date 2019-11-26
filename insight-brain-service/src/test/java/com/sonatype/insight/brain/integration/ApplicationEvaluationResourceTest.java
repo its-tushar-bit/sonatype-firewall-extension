@@ -70,7 +70,7 @@ public class ApplicationEvaluationResourceTest
     new PolicyDAO().update(policy);
 
     // Simulate that the report is available
-    String scanId = mockReport("/ApplicationEvaluationResourceTest/report.zip");
+    String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
 

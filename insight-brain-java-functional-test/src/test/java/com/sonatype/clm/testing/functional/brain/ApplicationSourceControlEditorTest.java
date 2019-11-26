@@ -14,8 +14,6 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -265,7 +263,7 @@ public class ApplicationSourceControlEditorTest
   }
 
   @Test
-  public void testSourceControlEditor_updateFailure() throws PlexusCipherException {
+  public void testSourceControlEditor_updateFailure() {
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
     verifyStartNoSourceControl();
     tempEntity.newSourceControl(rootOrganization.getId(), null, TOKEN, SourceControlProvider.GITHUB);

@@ -220,8 +220,9 @@ public class PolicyAlertScmNotifierTest
 
     // then we see a log that the branch already exists
     await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-      assertThat(logOutput).atDebugLevel().contains(
-          "Branch already exists for remediation [" + truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1]");
+      assertThat(logOutput).atInfoLevel().contains(
+          "Branch already exists on remote server for remediation [" + truncatedAppId +
+              "/groupid/Package1/1.2.3-to-2.0.1]");
     });
 
     // and PR engine didn't run

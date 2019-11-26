@@ -176,7 +176,7 @@ public class PolicyAlertScmNotifier
       final String branchName = getBranchName(app, entry.getKey(), nextVersion);
 
       if (isBranchOnServer(gitRepositoryInfo, branchName)) {
-        log.debug("Branch already exists for remediation [{}]", branchName);
+        log.info("Branch already exists on remote server for remediation [{}]", branchName);
         continue;
       }
 

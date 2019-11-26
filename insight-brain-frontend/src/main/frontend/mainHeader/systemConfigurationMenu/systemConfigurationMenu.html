@@ -28,7 +28,7 @@
     </div>
     <div id="system-configuration-ldap"
         ng-if="vm.permissions.CONFIGURE_SYSTEM"
-        ng-class="{'active': vm.state.includes('ldap')}">
+        ng-class="{'active': vm.state.includes('ldap-servers')}">
       <a ui-sref="ldap-servers" class="iq-dropdown-menu__link--main-header">LDAP</a>
     </div>
     <div id="system-configuration-saml"
@@ -46,7 +46,7 @@
     </div>
     <div id="system-configuration-system-notice"
          ng-if="vm.permissions.CONFIGURE_SYSTEM"
-         ng-class="{'active': vm.state.includes('systemNotice')}">
+         ng-class="{'active': vm.state.includes('systemNoticeConfiguration')}">
       <a ui-sref="systemNoticeConfiguration" class="iq-dropdown-menu__link--main-header">System Notice</a>
     </div>
     <div id="system-configuration-success-metrics"

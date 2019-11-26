@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.report;
 
-import java.io.File;
 import java.io.IOException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -16,9 +15,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
-import com.sonatype.insight.brain.service.InsightWork;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -177,7 +174,6 @@ public class ReportResourceAuditTest
   }
 
   private void createReportFile(String appId, String scanId) throws IOException {
-    File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId);
-    FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/sample-report.zip"), reportFile);
+    createReportFile(appId, scanId, "/ReportResourceTest/sample-report");
   }
 }

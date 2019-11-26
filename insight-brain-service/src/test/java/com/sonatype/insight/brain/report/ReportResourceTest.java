@@ -311,7 +311,7 @@ public class ReportResourceTest
   @Test
   public void testPrintReport() throws Exception {
     final String scanId = "ReportResourceTest_ScanId";
-    createReportFile(app.getId(), scanId);
+    createReportFile(app.getId(), scanId, "/ReportResourceTest/sample-report");
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
     final HttpResponse response;
     try {
@@ -911,11 +911,5 @@ public class ReportResourceTest
       }
     }
     return countNotZero;
-  }
-
-  private File createReportFile(String appId, String scanId) throws IOException {
-    File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId);
-    FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/sample-report.zip"), reportFile);
-    return reportFile;
   }
 }

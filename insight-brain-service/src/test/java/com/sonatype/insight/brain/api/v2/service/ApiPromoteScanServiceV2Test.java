@@ -34,7 +34,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
 import com.google.inject.Inject;
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -43,7 +42,6 @@ import org.mockito.stubbing.Answer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -79,12 +77,6 @@ public class ApiPromoteScanServiceV2Test
   @Before
   public void setup() {
     app = tempEntity.newApplicationWithParent();
-    lenient().when(reportDownloader.downloadReport(eq(NEW_SCAN_ID), any(File.class), anyInt(), anyInt())).then(
-        invocation -> {
-          File reportFile = (File) invocation.getArguments()[1];
-          FileUtils.copyURLToFile(getClass().getResource("/ApiPromoteScanServiceV2Test/report.zip"), reportFile);
-          return true;
-        });
   }
 
   @Override

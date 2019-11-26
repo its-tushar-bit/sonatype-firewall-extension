@@ -171,7 +171,7 @@ public class PolicyEvaluateServiceTest
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable();
 
     ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
@@ -188,7 +188,7 @@ public class PolicyEvaluateServiceTest
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable();
 
     PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
 
@@ -204,7 +204,7 @@ public class PolicyEvaluateServiceTest
 
     policy.setThreatLevel(2);
     policyDAO.update(policy);
-    scanId = simulateReportIsAvailable("report.zip");
+    scanId = simulateReportIsAvailable();
 
     // Threat Level 2 should show up as moderate
     policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
@@ -219,7 +219,7 @@ public class PolicyEvaluateServiceTest
 
     policy.setThreatLevel(4);
     policyDAO.update(policy);
-    scanId = simulateReportIsAvailable("report.zip");
+    scanId = simulateReportIsAvailable();
 
     // Threat Level 4 should show up as severe
     policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
@@ -234,7 +234,7 @@ public class PolicyEvaluateServiceTest
 
     policy.setThreatLevel(8);
     policyDAO.update(policy);
-    scanId = simulateReportIsAvailable("report.zip");
+    scanId = simulateReportIsAvailable();
 
     // Threat Level 8 should show up as severe
     policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
@@ -253,7 +253,7 @@ public class PolicyEvaluateServiceTest
         .getActiveByApplicationIdAndStageId(app.getId(), stage.getStageTypeId()).get(0);
     policyViolation.setGrandfatherTime(new Date());
     policyViolationDAO.update(policyViolation);
-    scanId = simulateReportIsAvailable("report.zip");
+    scanId = simulateReportIsAvailable();
     policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
     assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
     assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(7);
@@ -278,7 +278,7 @@ public class PolicyEvaluateServiceTest
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable();
 
     PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
 
@@ -327,7 +327,7 @@ public class PolicyEvaluateServiceTest
     notifications.clear();
 
     // Evaluate policy
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable();
     PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
 
     List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
@@ -398,7 +398,7 @@ public class PolicyEvaluateServiceTest
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable();
 
     ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
@@ -548,7 +548,7 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testPollEvaluationResult_Success() throws Exception {
-    String scanId = simulateReportIsAvailable("report.zip");
+    String scanId = simulateReportIsAvailable();
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
 
     Application app = tempEntity.newApplicationWithParent();
@@ -617,11 +617,10 @@ public class PolicyEvaluateServiceTest
   /**
    * Simulates that a report (based on the specified resource) exists.
    *
-   * @param reportResourceName can be a report.zip file or a directory that will be zipped up into a report.
    * @return A generated scan ID that can be used in subsequent calls to evaluate policies.
    */
-  private String simulateReportIsAvailable(String reportResourceName) {
-    return mockReportDownloader.mockDownloadReport("/PolicyEvaluateServiceTest/" + reportResourceName);
+  private String simulateReportIsAvailable() {
+    return mockReportDownloader.mockDownloadReport("/" + getClass().getSimpleName() + "/report");
   }
 
   private void addNotificationsToPolicy(Policy policy, String stageId, Notification... notifications) {

@@ -54,7 +54,7 @@ public class PolicyEvaluateServiceAuthzTest
   public void testEvaluate_Authorized() throws Exception {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 
-    String scanId = mockReportDownloader.mockDownloadReport("/PolicyEvaluateServiceTest/report.zip");
+    String scanId = mockReportDownloader.mockDownloadReport("/PolicyEvaluateServiceTest/report");
 
     policyEvaluateService.evaluate(app.getPublicId(), scanId, new Stage(BuildStageType.ID));
   }

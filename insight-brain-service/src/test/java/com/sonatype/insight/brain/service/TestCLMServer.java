@@ -27,6 +27,8 @@ public class TestCLMServer
 
   private final boolean isProxyRequiredToReachHds;
 
+  private boolean running;
+
   private static int startCount;
 
   private static int stopCount;
@@ -70,6 +72,7 @@ public class TestCLMServer
       hdsMockServer.start();
     }
     brain.start();
+    running = true;
 
     long startTime = System.currentTimeMillis() - start;
     totalStartTime += startTime;
@@ -82,6 +85,7 @@ public class TestCLMServer
     long start = System.currentTimeMillis();
     stopCount++;
 
+    running = false;
     brain.stop();
     if (hdsMockServerOwned) {
       hdsMockServer.stop();
@@ -92,6 +96,10 @@ public class TestCLMServer
 
     System.out.println("Stopped " + TestCLMServer.class.getSimpleName() + " " + stopCount + " times. This stop time="
         + stopTime + "ms. Total start time=" + totalStartTime + "ms. Total stop time=" + totalStopTime);
+  }
+
+  public boolean isRunning() {
+    return running;
   }
 
   public TestInsightBrainServiceRule getCLMServer() {

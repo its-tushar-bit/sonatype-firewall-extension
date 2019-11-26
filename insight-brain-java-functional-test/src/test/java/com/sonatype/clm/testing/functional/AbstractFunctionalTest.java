@@ -223,6 +223,9 @@ public abstract class AbstractFunctionalTest
   public final void afterTest() throws Exception {
     log.info("After: {}", testName.getMethodName());
     initMocks();
+    if (!testCLMServer.isRunning()) {
+      testCLMServer.start();
+    }
     testCLMServer.getHdsServer().reset();
     if (productLicenseManager.wasChanged()) {
       productLicenseManager.reset();

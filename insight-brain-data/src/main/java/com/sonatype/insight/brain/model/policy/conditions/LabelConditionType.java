@@ -85,10 +85,10 @@ public class LabelConditionType
         .getConditionTriggerByConditionIndex(condition.getConditionIndex()).getTrigger();
     Label label = labelDAO.getById(conditionTrigger.id);
     if ("is".equals(condition.getOperator())) {
-      return "Found label '" + label.getLabel() + "'.";
+      return "Found label '" + label.getLabel() + "'";
     }
     else {
-      return "Did not find label '" + label.getLabel() + "'.";
+      return "Did not find label '" + label.getLabel() + "'";
     }
   }
 

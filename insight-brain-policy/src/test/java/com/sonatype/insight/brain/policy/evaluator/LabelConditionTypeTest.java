@@ -96,7 +96,7 @@ public class LabelConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
 
-    assertThat(actualReason).isEqualTo("Found label 'Good'.");
+    assertThat(actualReason).isEqualTo("Found label 'Good'");
   }
 
   @Test
@@ -143,11 +143,11 @@ public class LabelConditionTypeTest
 
     String actualReason1 = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
-    assertThat(actualReason1).isEqualTo("Did not find label 'Good'.");
+    assertThat(actualReason1).isEqualTo("Did not find label 'Good'");
 
     String actualReason2 = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
-    assertThat(actualReason2).isEqualTo("Did not find label 'Good'.");
+    assertThat(actualReason2).isEqualTo("Did not find label 'Good'");
   }
 
   @Test
@@ -192,7 +192,7 @@ public class LabelConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
 
-    assertThat(actualReason).isEqualTo("Found label 'Good'.");
+    assertThat(actualReason).isEqualTo("Found label 'Good'");
   }
 
   @Test
@@ -255,7 +255,7 @@ public class LabelConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
 
-    assertThat(actualReason).isEqualTo("Found label 'Good'.");
+    assertThat(actualReason).isEqualTo("Found label 'Good'");
   }
 
   @Test

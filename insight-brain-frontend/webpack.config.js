@@ -32,7 +32,8 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
       ],
       productionPlugins = [
         new CopyModulesPlugin({
-          destination: path.join('target', 'webpack-modules')
+          destination: path.join('target', 'webpack-modules'),
+          includePackageJsons: true
         })
       ],
       plugins = [

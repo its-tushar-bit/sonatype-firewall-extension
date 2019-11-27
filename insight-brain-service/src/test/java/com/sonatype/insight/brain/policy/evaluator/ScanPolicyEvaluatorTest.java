@@ -1156,7 +1156,7 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_ErrorReport() throws Exception {
-    String scanId = simulateReportIsAvailable("empty_report.zip");
+    String scanId = simulateReportIsAvailable("empty_report");
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
@@ -1987,6 +1987,6 @@ public class ScanPolicyEvaluatorTest
    * @return A generated scan ID that can be used in subsequent calls to evaluate policies.
    */
   private String simulateReportIsAvailable(String reportResourceName) {
-    return mockReportDownloader.mockDownloadReport("/ScanPolicyEvaluatorTest/" + reportResourceName);
+    return mockReportDownloader.mockDownloadReport("/" + getClass().getSimpleName() + "/" + reportResourceName);
   }
 }

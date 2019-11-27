@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.inject.Binder;
@@ -77,7 +78,8 @@ public class ScanServiceTest
           @Override
           public Boolean answer(InvocationOnMock invocation) throws Throwable {
             File reportFile = (File) invocation.getArguments()[1];
-            FileUtils.copyURLToFile(getClass().getResource("/ScanServiceTest/report.zip"), reportFile);
+            FileUtils.copyURLToFile(ReportHelper.zipReport("/ScanServiceTest/report", tempDir),
+                reportFile);
             return true;
           }
         });

@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
 
 import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
@@ -299,9 +298,6 @@ public class UserManagementTest
     DeleteModal.body().shouldBe(visible);
     // Start the server again, and log back in
     testCLMServer.start();
-
-    // the server isn't quite done starting when it says it is
-    Selenide.sleep(1000);
 
     initialLogin();
     refreshOrOpen(UserManagementPage.url());

@@ -175,7 +175,7 @@ public class PullRequestRemediationDetailsTest extends AbstractComponentTest
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "pullRequest", policyNotifications, app,
             SCAN_ID, new Stage(Stage.ID_BUILD), lookup(BaseUrl.class));
 
-    assertThat(details.getContents())
+    assertThat(details.getContents().replace("\r\n", "\n"))
         .startsWith("## :shield: Automated pull request to fix 1 Nexus IQ Policy Violation\n");
   }
 }

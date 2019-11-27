@@ -16,7 +16,6 @@ import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.KeycloakLoginPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
-import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.api.v2.service.ApiSamlConfigurationService;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -83,7 +82,7 @@ public class SamlTest
     VulnerabilitySearchPage vulnPage = new VulnerabilitySearchPage();
 
     // VulnerabilitySearchPage access before login
-    refreshOrOpen(BaseUrl.resolvePageUrl(""));
+    refreshOrOpen(IndexPage.url());
     loginModal.vulnerabilityLookupLink().shouldBe(visible).click();
     waitUntilUrl(VulnerabilitySearchPage.url());
     loginModal.shouldNotBe(visible);
@@ -106,7 +105,7 @@ public class SamlTest
     logout();
 
     // VulnerabilitySearchPage after logout
-    refreshOrOpen(BaseUrl.resolvePageUrl(""));
+    refreshOrOpen(IndexPage.url());
     loginModal.vulnerabilityLookupText().shouldBe(visible);
     loginModal.vulnerabilityLookupLink().shouldBe(visible).click();
     waitUntilUrl(VulnerabilitySearchPage.url());

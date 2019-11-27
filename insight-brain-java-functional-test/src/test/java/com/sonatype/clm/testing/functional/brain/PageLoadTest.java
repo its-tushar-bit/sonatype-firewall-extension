@@ -9,11 +9,11 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
-import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codeborne.selenide.Selenide;
@@ -38,7 +38,7 @@ public class PageLoadTest
 
   @Test
   public void testIndexHtml() {
-    refreshOrOpen(BaseUrl.resolvePageUrl(""));
+    refreshOrOpen(IndexPage.url());
     loginAsAdmin();
     waitUntilUrl(DashboardPage.URL);
     DashboardPage.dashboardContainer().shouldBe(visible);
@@ -46,7 +46,7 @@ public class PageLoadTest
 
   @Test
   public void testLoginModalVulnerabilitiesLink() {
-    refreshOrOpen(BaseUrl.resolvePageUrl(""));
+    refreshOrOpen(IndexPage.url());
     LoginModal loginModal = new LoginModal();
     loginModal.cancelButton().shouldNotBe(visible);
     loginModal.vulnerabilityLookupText().shouldBe(visible);
@@ -194,7 +194,7 @@ public class PageLoadTest
   public void testLoadIndexHtml_NoDashboard() throws Exception {
     setMissingFeature(LicensedFeature.DASHBOARD);
 
-    refreshOrOpen(BaseUrl.resolvePageUrl(""));
+    refreshOrOpen(IndexPage.url());
     loginAsAdmin();
     waitUntilUrl(ReportListPage.URL);
     ReportListPage.listContainer().shouldBe(visible);
@@ -204,7 +204,7 @@ public class PageLoadTest
   public void testLoadIndexHtml_NoLicense() throws Exception {
     uninstallLicense();
 
-    refreshOrOpen(BaseUrl.resolvePageUrl(""));
+    refreshOrOpen(IndexPage.url());
     loginAsAdmin();
     waitUntilUrl(ProductLicensePage.url());
     ProductLicensePage.installLicenseBtn().shouldBe(visible);

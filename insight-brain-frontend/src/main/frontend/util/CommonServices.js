@@ -24,30 +24,40 @@ export const Messages = {
         headers: args.length >= 3 ? args[2] : null
       };
     }
-    let message = '',
-        headers = angular.isFunction(args.headers) ? args.headers() : args.headers;
-    if (args.status <= 0 || args.status >= 1000) {
-      message = 'Unable to reach Nexus IQ Server';
-    }
-    else if (args.data && (!headers || !headers['content-type'] ||
-      headers['content-type'].indexOf('text/html') === -1)) {
-      message = args.data;
-    }
-    // Angular misses statusText (cf. https://github.com/angular/angular.js/pull/2665)
-    // , so at least ensure message for typical proxy errors
-    else if (args.status === 502) {
-      message = 'Bad Gateway';
-    }
-    else if (args.status === 503) {
-      message = 'Service Unavailable';
-    }
-    else if (args.status === 504) {
-      message = 'Gateway Timeout';
+
+    // handle axios error objects
+    if (args.response) {
+      return Messages.getHttpErrorMessage(args.response);
     }
     else {
-      message = 'Error ' + args.status;
+      let message = '',
+          headers = angular.isFunction(args.headers) ? args.headers() : args.headers;
+      if (args.status <= 0 || args.status >= 1000) {
+        message = 'Unable to reach Nexus IQ Server';
+      }
+      else if (args.data && (!headers || !headers['content-type'] ||
+        headers['content-type'].indexOf('text/html') === -1)) {
+        message = args.data;
+      }
+      // Angular misses statusText (cf. https://github.com/angular/angular.js/pull/2665)
+      // , so at least ensure message for typical proxy errors
+      else if (args.status === 502) {
+        message = 'Bad Gateway';
+      }
+      else if (args.status === 503) {
+        message = 'Service Unavailable';
+      }
+      else if (args.status === 504) {
+        message = 'Gateway Timeout';
+      }
+      else if (args.status) {
+        message = 'Error ' + args.status;
+      }
+      else {
+        message = 'Error';
+      }
+      return message;
     }
-    return message;
   }
 };
 

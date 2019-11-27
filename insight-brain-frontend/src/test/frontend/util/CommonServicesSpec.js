@@ -59,6 +59,59 @@ describe('CommonServices', () => {
       });
     });
 
+    describe('when provided argument is an object with a response property', () => {
+      it('uses generic message if response status is less than 0', () => {
+        expect(Messages.getHttpErrorMessage({response: {data: 'Bogus String', status: -1}}))
+            .toEqual('Unable to reach Nexus IQ Server');
+      });
+
+      it('uses generic message if response status is 0', () => {
+        expect(Messages.getHttpErrorMessage({response: {data: 'Bogus String', status: 0}}))
+            .toEqual('Unable to reach Nexus IQ Server');
+      });
+
+      it('uses generic message if response status is 1000', () => {
+        expect(Messages.getHttpErrorMessage({response: {data: 'Bogus String', status: 1000}}))
+            .toEqual('Unable to reach Nexus IQ Server');
+      });
+
+      it('uses generic message if response status is greater than 1000', () => {
+        expect(Messages.getHttpErrorMessage({response: {data: 'Bogus String', status: 1001}}))
+            .toEqual('Unable to reach Nexus IQ Server');
+      });
+
+      it('uses data property if content-type is not text/html', () => {
+        expect(Messages.getHttpErrorMessage({response: {data: 'Internal Error', status: 999}}))
+            .toEqual('Internal Error');
+      });
+
+      it('uses canned status messages if content-type is text/html', () => {
+        const data = '<html>Error</html>';
+        const headers = () => ({'content-type': 'text/html'});
+
+        expect(Messages.getHttpErrorMessage({response: {data, status: 502, headers}})).toEqual('Bad Gateway');
+        expect(Messages.getHttpErrorMessage({response: {data, status: 503, headers}})).toEqual('Service Unavailable');
+        expect(Messages.getHttpErrorMessage({response: {data, status: 504, headers}})).toEqual('Gateway Timeout');
+        expect(Messages.getHttpErrorMessage({response: {data, status: 999, headers}})).toEqual('Error 999');
+      });
+
+      it('uses canned status messages if data property is empty', () => {
+        expect(Messages.getHttpErrorMessage({response: {data: '', status: 502}})).toEqual('Bad Gateway');
+        expect(Messages.getHttpErrorMessage({response: {data: '', status: 503}})).toEqual('Service Unavailable');
+        expect(Messages.getHttpErrorMessage({response: {data: '', status: 504}})).toEqual('Gateway Timeout');
+        expect(Messages.getHttpErrorMessage({response: {data: '', status: 999}})).toEqual('Error 999');
+      });
+
+      it('handles axios headers property', () => {
+        expect(Messages.getHttpErrorMessage({
+          response: {
+            headers: {'content-type': 'text/html'},
+            status: 503
+          }
+        })).toEqual('Service Unavailable');
+      });
+    });
+
     describe('when provided argument is an array', () => {
       it('uses generic message if provided status is less than 0', () => {
         expect(Messages.getHttpErrorMessage(

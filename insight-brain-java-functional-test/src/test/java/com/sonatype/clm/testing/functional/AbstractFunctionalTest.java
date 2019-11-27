@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -34,6 +35,7 @@ import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -229,8 +231,7 @@ public abstract class AbstractFunctionalTest
     testCLMServer.getHdsServer().reset();
     if (productLicenseManager.wasChanged()) {
       productLicenseManager.reset();
-      testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class)
-          .installLicense(new ByteArrayInputStream(new byte[1]));
+      installLicense();
     }
     // so we aren't on app between page loads
     navigate(() -> {
@@ -238,17 +239,6 @@ public abstract class AbstractFunctionalTest
       clearAlerts();
       return true;
     });
-  }
-
-  protected void setLicensedProducts(String... products) {
-    productLicenseManager.setProducts(products);
-    try {
-      testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class)
-          .installLicense(new ByteArrayInputStream(new byte[1]));
-    }
-    catch (Exception e) {
-      throw new RuntimeException(e);
-    }
   }
 
   @SuppressWarnings("unchecked")
@@ -499,6 +489,30 @@ public abstract class AbstractFunctionalTest
     WebDriver driver = WebDriverRunner.getWebDriver();
     JavascriptExecutor js = (JavascriptExecutor)driver;
     js.executeScript(script);
+  }
+
+  protected void setFeatures(LicensedFeature... features) {
+    productLicenseManager.setFeatures(features);
+    installLicense();
+  }
+
+  protected void setMissingFeature(LicensedFeature feature) {
+    setFeatures(EnumSet.complementOf(EnumSet.of(feature)).toArray(new LicensedFeature[0]));
+  }
+
+  protected void setLicensedProducts(String... products) {
+    productLicenseManager.setProducts(products);
+    installLicense();
+  }
+
+  private void installLicense() {
+    try {
+      testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class)
+          .installLicense(new ByteArrayInputStream(new byte[1]));
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   protected void uninstallLicense() {

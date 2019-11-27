@@ -15,7 +15,6 @@ import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Selenide;
 
@@ -35,7 +34,6 @@ public class PageLoadTest
   public void setup() {
     // ensure we are not logged in
     hardreset();
-    productLicenseManager.setFeatures(LicensedFeature.DASHBOARD);
   }
 
   @Test
@@ -194,11 +192,7 @@ public class PageLoadTest
 
   @Test
   public void testLoadIndexHtml_NoDashboard() throws Exception {
-    // Nexus Auditor license
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK);
-    productLicenseManager.setFeatures();
-    testCLMServer.stop();
-    testCLMServer.start();
+    setMissingFeature(LicensedFeature.DASHBOARD);
 
     refreshOrOpen(BaseUrl.resolvePageUrl(""));
     loginAsAdmin();

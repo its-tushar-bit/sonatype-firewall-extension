@@ -52,6 +52,8 @@ public class HdsProductNotificationService
 
   private final UserViewedProductNotificationDAO notificationViewedDAO;
 
+  public boolean disableCacheForTesting;
+
   @Inject
   public HdsProductNotificationService(final HdsClient hdsClient,
                                        final UserViewedProductNotificationDAO notificationViewedDAO)
@@ -114,7 +116,7 @@ public class HdsProductNotificationService
   @VisibleForTesting
   protected boolean isCacheExpired() {
     Date now = new Date();
-    if (now.compareTo(expirationTime) >= 0) {
+    if (now.compareTo(expirationTime) >= 0 || disableCacheForTesting) {
       expirationTime.setTime(expirationTime.getTime() + WAIT_TIME);
       return true;
     }

@@ -11,17 +11,15 @@ import java.util.List;
 import java.util.UUID;
 
 import com.sonatype.clm.dto.model.notification.ProductNotification;
+import com.sonatype.clm.dto.model.notification.ProductNotificationList;
 import com.sonatype.clm.dto.model.notification.ProductNotificationType;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 public class ProductNotificationResourceTest
     extends AbstractResourceTest
@@ -35,15 +33,11 @@ public class ProductNotificationResourceTest
     return restRequest().query("pageSize", pageSize).query("page", pageIndex);
   }
 
-  @Before
-  public void resetMock() {
-    reset(mockHdsProductNotificationService);
-  }
-
   @Test
   public void testGetNotifications() throws Exception {
     List<ProductNotification> notifications = createNotifications(2);
-    when(mockHdsProductNotificationService.getNotifications()).thenReturn(notifications);
+    hdsRespondWith(new ProductNotificationList(notifications))
+        .atUri(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH);
 
     // Get first page of notifications
     int pageSize = 10;
@@ -66,7 +60,8 @@ public class ProductNotificationResourceTest
   @Test
   public void testPostNotificationViewed() throws Exception {
     List<ProductNotification> notifications = createNotifications(1);
-    when(mockHdsProductNotificationService.getNotifications()).thenReturn(notifications);
+    hdsRespondWith(new ProductNotificationList(notifications))
+        .atUri(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH);
 
     int pageSize = 10;
     HttpResponse response = listRequest(pageSize, 1).get();

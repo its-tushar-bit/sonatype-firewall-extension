@@ -43,7 +43,6 @@ import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -111,9 +110,6 @@ public abstract class AbstractBrainServiceTest
   private static HdsMockServerRule hdsMockServer;
 
   private static TestCLMServer testCLMServer;
-
-  // The mock service that would normally talk to HDS for product notifications
-  protected static HdsProductNotificationService mockHdsProductNotificationService;
 
   protected static JiraClient mockJiraClient;
 
@@ -207,8 +203,6 @@ public abstract class AbstractBrainServiceTest
         bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
         bind(TestProductLicenseManager.class).toInstance(licenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
-        mockHdsProductNotificationService = mock(HdsProductNotificationService.class);
-        bind(HdsProductNotificationService.class).toInstance(mockHdsProductNotificationService);
 
         mockJiraClient = mock(JiraClient.class);
         JiraClientFactory jiraClientFactory = mock(JiraClientFactory.class);

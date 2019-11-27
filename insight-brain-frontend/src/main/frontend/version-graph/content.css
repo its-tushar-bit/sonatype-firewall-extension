@@ -154,6 +154,10 @@
   margin-bottom: 4px;
 }
 
+.cip-box-loading {
+  margin-top: 28px;
+}
+
 #custom {
   border: 1px #C9C9C9 solid;
   border-radius: 4px;

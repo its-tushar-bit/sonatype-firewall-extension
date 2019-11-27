@@ -84,7 +84,7 @@ public class PolicyWaiverDAO
     policyWaivers.addAll(getByOwnerId(ownerId));
   }
 
-  private List<PolicyWaiver> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {
+  public List<PolicyWaiver> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {
     String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
         " WHERE entity.ownerId=?1 AND entity.hash=?2";
     return getList(tx, sQuery, ownerId, hash);

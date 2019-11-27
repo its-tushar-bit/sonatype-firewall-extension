@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractRepositoryService
 {
-  static final String HDS_IGNORE_PATTERNS_PATH = "rest/component/details/firewall/ignorePatterns";
+  public static final String HDS_IGNORE_PATTERNS_PATH = "rest/component/details/firewall/ignorePatterns";
 
   private static final Logger log = LoggerFactory.getLogger(AbstractRepositoryService.class);
 

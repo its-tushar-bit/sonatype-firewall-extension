@@ -108,4 +108,10 @@ public class RepositoryComponentDAO
         " WHERE entity.repositoryId=?1 AND entity.unquarantineTime IS NOT NULL AND entity.unquarantineTime>=?2";
     return getList(sQuery, repositoryId, sinceUtcTimestamp);
   }
+
+  public List<RepositoryComponent> getByRepositoryIdAndMatchStateId(String repositoryId, String matchStateId) {
+    String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
+        " WHERE entity.repositoryId=?1 AND entity.matchStateId=?2";
+    return getList(sQuery, repositoryId, matchStateId);
+  }
 }

@@ -34,6 +34,8 @@ public class DataMigrator
 
   private final MarkerFileMigrator markerFileMigrator;
 
+  private final IgnoredRepositoryComponentMigrator ignoredRepositoryComponentMigrator;
+
   @Inject
   public DataMigrator(PolicyJsonMigrator policyJsonMigrator,
                       PolicyDroolsCodeMigrator policyDroolsCodeMigrator,
@@ -42,7 +44,8 @@ public class DataMigrator
                       ProprietaryConfigMigrator proprietaryConfigMigrator,
                       PolicyCoordinatesConditionTypeMigrator policyCoordinatesConditionTypeMigrator,
                       PolicySecurityVulnerabilityConditionTypeMigrator policySecurityVulnerabilityConditionTypeMigrator,
-                      MarkerFileMigrator markerFileMigrator)
+                      MarkerFileMigrator markerFileMigrator,
+                      IgnoredRepositoryComponentMigrator ignoredRepositoryComponentMigrator)
   {
     this.policyJsonMigrator = policyJsonMigrator;
     this.policyDroolsCodeMigrator = policyDroolsCodeMigrator;
@@ -52,6 +55,7 @@ public class DataMigrator
     this.policyCoordinatesConditionTypeMigrator = policyCoordinatesConditionTypeMigrator;
     this.policySecurityVulnerabilityConditionTypeMigrator = policySecurityVulnerabilityConditionTypeMigrator;
     this.markerFileMigrator = markerFileMigrator;
+    this.ignoredRepositoryComponentMigrator = ignoredRepositoryComponentMigrator;
   }
 
   /**
@@ -66,5 +70,6 @@ public class DataMigrator
     proprietaryConfigMigrator.migrate();
     policyCoordinatesConditionTypeMigrator.migrate();
     policySecurityVulnerabilityConditionTypeMigrator.migrate();
+    ignoredRepositoryComponentMigrator.migrate();
   }
 }

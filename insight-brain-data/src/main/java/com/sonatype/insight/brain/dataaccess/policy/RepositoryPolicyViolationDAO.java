@@ -146,4 +146,15 @@ public class RepositoryPolicyViolationDAO
       log.debug("Deleted repository policy violation with id {} in {} ms.", entity.getId(), duration);
     }
   }
+
+  public List<RepositoryPolicyViolation> getByRepositoryIdAndPathname(
+      TransactionContext tx,
+      String repositoryId,
+      String pathname)
+  {
+    String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
+        " WHERE entity.repositoryId=?1" + //
+        " AND entity.pathname=?2";
+    return getList(tx, sQuery, repositoryId, pathname);
+  }
 }

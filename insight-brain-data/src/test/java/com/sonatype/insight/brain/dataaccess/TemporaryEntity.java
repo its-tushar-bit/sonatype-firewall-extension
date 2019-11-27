@@ -324,6 +324,8 @@ public class TemporaryEntity
 
   private Collection<UserToken> userTokens;
 
+  private Collection<ComponentLabel> componentLabels;
+
   @Override
   protected void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -355,6 +357,7 @@ public class TemporaryEntity
     samlConfigurations = new ArrayList<>();
     thirdPartyFileConfigurations = new ArrayList<>();
     userTokens = new ArrayList<>();
+    componentLabels = new ArrayList<>();
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
@@ -402,6 +405,7 @@ public class TemporaryEntity
     delete(samlConfigurations, entity -> samlConfigurationDAO.getById(entity.getId()),
         samlConfiguration -> samlConfigurationDAO.delete());
     delete(thirdPartyFileConfigurations, thirdPartyFileDAO);
+    delete(componentLabels, componentLabelDAO);
 
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     if (config != null) {
@@ -721,6 +725,13 @@ public class TemporaryEntity
   public ComponentLabel newComponentLabel(String ownerId, String labelId, String hash) {
     ComponentLabel componentLabel = new ComponentLabel(ownerId, labelId, hash);
     componentLabelDAO.insert(componentLabel);
+    return componentLabel;
+  }
+
+  public ComponentLabel newComponentLabel(RepositoryComponent component, Label label) {
+    ComponentLabel componentLabel = new ComponentLabel(component.getRepositoryId(), label.getId(), component.getHash());
+    componentLabelDAO.insert(componentLabel);
+    componentLabels.add(componentLabel);
     return componentLabel;
   }
 
@@ -1412,6 +1423,11 @@ public class TemporaryEntity
         "policyName", null /* componentIdentifier */);
   }
 
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(RepositoryComponent component, String policyId) {
+    return newRepositoryPolicyViolation(component.getRepositoryId(), 5 /* threatLevel */, component.getPathname(),
+        false, true, policyId, "policyName", null /* componentIdentifier */);
+  }
+
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId,
                                                                 int threatLevel,
                                                                 String pathname,
@@ -1524,6 +1540,19 @@ public class TemporaryEntity
                                                     Date unquarantineTime)
   {
     return newRepositoryComponent(repositoryId, pathname, quarantineTime, unquarantineTime, new Date());
+  }
+
+  public RepositoryComponent newRepositoryComponent(
+      Repository repository,
+      String pathname,
+      MatchState matchState,
+      String hash)
+  {
+    RepositoryComponent repositoryComponent = new RepositoryComponent(repository.getId(), pathname, new Date(), hash,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), matchState.getId(),
+        IdentificationSource.SONATYPE.getId(), new Date());
+    repositoryComponentDAO.insert(repositoryComponent);
+    return repositoryComponent;
   }
 
   public RepositoryComponent newRepositoryComponent(String repositoryId,

@@ -7,8 +7,12 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.time.Clock;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,6 +33,7 @@ import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import freemarker.template.Template;
 import org.slf4j.Logger;
@@ -68,6 +73,9 @@ public class PullRequestRemediationDetails
   private ComponentIdentifier toBeRemediated;
   
   private String remediatedVersion;
+
+  @VisibleForTesting
+  static Clock clock = Clock.systemDefaultZone();
 
   static {
     String templateName = "pullrequest-threats.ftl";
@@ -128,13 +136,19 @@ public class PullRequestRemediationDetails
   }
 
   private String constructTitle() {
-    String identifierString = constructIdentifierString(toBeRemediated);
-
-    return MessageFormat.format("Bump {0} to {1}", identifierString, remediatedVersion);
+    return MessageFormat.format("Bump {0} to {1}", getShortComponentName(toBeRemediated), remediatedVersion);
   }
 
-  private String constructIdentifierString(final ComponentIdentifier componentIdentifier) {
-    // fromIdentifier has embedded spaces, so strip out all of them before returning
+  private String getShortComponentName(final ComponentIdentifier componentIdentifier) {
+    // Use a short component name for the PR title. For most formats this is just the name (e.g. npm) but for formats
+    // with longer names like Maven, we shorten it (e.g. 'jackson-databind' instead of
+    // 'com.fasterxml.jackson.core:jackson-databind')
+    if (componentIdentifier.isMaven()) {
+      return componentIdentifier.get(MAVEN_ARTIFACT_ID);
+    }
+
+    // default to 'fromIdentifier'. Note this additionally includes the version number. 'fromIdentifier' also can
+    // contain embedded spaces, so strip out all of them before returning
     return ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString().replaceAll("\\s+", "");
   }
 
@@ -158,15 +172,17 @@ public class PullRequestRemediationDetails
         .collect(Collectors.toList());
 
     Map<String, Object> model = ImmutableMap.<String, Object>builder()
+        .put("componentName", getComponentName(componentIdentifier))
+        .put("initialVersion", componentIdentifier.get(VERSION))
         .put("initialSearchUrl", constructMavenSearchUrl(componentIdentifier.getCoordinates()))
-        .put("initialCoordinates", constructIdentifierString(componentIdentifier))
         .put("targetVersion", remediatedVersion)
         .put("targetSearchUrl",
             constructMavenSearchUrl(componentIdentifier.createAlternativeVersion(remediatedVersion).getCoordinates()))
         .put("applicationName", app.getName())
         .put("organizationName", getOrganizationName(app))
         .put("threatList", threatList)
-        .put("scanId", scanId)
+        .put("date", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss O").withLocale(Locale.ENGLISH)
+            .format(ZonedDateTime.now(clock)))
         .put("stage", stage.getStageTypeId())
         .put("detailedReportUrl", baseUrl.getConfigured() +
             UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId))
@@ -174,6 +190,10 @@ public class PullRequestRemediationDetails
         .build();
 
     return TemplateUtils.render(policyThreatsTemplate, model);
+  }
+
+  private String getComponentName(final ComponentIdentifier componentIdentifier) {
+    return String.join(" : ", componentIdentifier.get(MAVEN_GROUP_ID), componentIdentifier.get(MAVEN_ARTIFACT_ID));
   }
 
   private Object getOrganizationName(final Application app) {

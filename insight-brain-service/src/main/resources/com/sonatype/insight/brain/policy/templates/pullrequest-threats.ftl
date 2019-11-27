@@ -1,19 +1,24 @@
-:shield:  **This automated pull request fixes a Nexus IQ [policy violation](${detailedReportUrl})**
+## :shield: Automated pull request to fix ${threatList?size} Nexus IQ Policy Violation<#if (threatList?size > 1)>s</#if>
 
 ### Description
-Bump component [${initialCoordinates}](${initialSearchUrl}) to version [${targetVersion}](${targetSearchUrl}) to remediate the following policy violations
+
+- Component: **${componentName}**
+- Current version (with violations): [**${initialVersion}**](${initialSearchUrl})
+- New version (for remediation): [**${targetVersion}**](${targetSearchUrl})
 
 ### Policy
-Policy | Threat | Constraint | Conditions
+Threat (of 10) | Policy | Constraint | Violation Details
 -- | -- | -- | --
 <#list threatList as threat>
-${threat.policy} | ${threat.threat} | ${threat.constraint} | ${threat.conditions}
+${threat.threat} | ${threat.policy} | ${threat.constraint} | ${threat.conditions}
 </#list>
 
-### Source
+### Nexus IQ Scan Detail
 **Application**: ${applicationName}
 **Organization**: ${organizationName}
-**Scan**: ${scanId} [view detailed report](${detailedReportUrl})
+**Date**: ${date}
 **Stage**: ${stage}
+
+[Review full report](${detailedReportUrl})
 
 _This PR was automatically created by your friendly neighbourhood [IQ Server](${baseIqUrl})_

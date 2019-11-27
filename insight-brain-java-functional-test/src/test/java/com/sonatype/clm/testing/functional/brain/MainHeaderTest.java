@@ -9,7 +9,6 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
@@ -70,19 +69,6 @@ public class MainHeaderTest
     refresh();
     MainHeader.policiesNavigationButton().shouldBe(visible);
     MainHeader.dashboardNavigationButton().shouldBe(hidden);
-  }
-
-  @Test
-  public void testDefaultPage_DashboardLicensed() {
-    refreshOrOpen(IndexPage.url());
-    waitUntilUrl(DashboardPage.URL);
-  }
-
-  @Test
-  public void testDefaultPage_DashboardNotLicensed() {
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
-    refreshOrOpen(IndexPage.url());
-    waitUntilUrl(ReportListPage.URL);
   }
 
   @Test

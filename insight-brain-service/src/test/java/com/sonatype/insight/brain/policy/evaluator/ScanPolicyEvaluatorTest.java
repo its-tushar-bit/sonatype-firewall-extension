@@ -111,11 +111,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
 import static java.time.Duration.ofSeconds;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -1747,6 +1749,86 @@ public class ScanPolicyEvaluatorTest
 
     assertThat(results.allViolations).isNotEmpty();
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testEvaluate_PolicyViolationTelemetryCollector_CreateAndFixPolicyViolations() throws Exception {
+    // Given
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+    Policy policy = newSecurityPolicy();
+    ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
+    clearInvocations(mockTelemetrySender);
+
+    // When running the first evaluation
+    scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    // Then no telemetry data is collected
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
+    assertThat(telemetryDataList).hasSize(0);
+
+    // When removing the policy
+    new PolicyDAO().delete(policy);
+    clearInvocations(mockTelemetrySender);
+    // And running the second evaluation to have all policy violations fixed
+    scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    // Then all policy violations are collected for telemetry
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    telemetryDataList = telemetryDataArgumentCaptor.getValue();
+    assertThat(telemetryDataList).hasSize(36);
+    for (TelemetryData telemetryData : telemetryDataList) {
+      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.TIME_TO_REMEDIATE_POLICY_VIOLATION);
+    }
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testEvaluate_PolicyViolationTelemetryCollector_WaiveAndUnwaivePolicyViolations() throws Exception {
+    // Create two policies that will cause policy violations and waive one policy.
+    Policy securityPolicy = newSecurityPolicy();
+    tempEntity.newWaiver(securityPolicy.getId(), application.getId());
+    Policy licensePolicy = newPolicy(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
+    String scanId = simulateReportIsAvailable("testEvaluate_PolicyViolationLogger_WaivePolicyViolations/report");
+    ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
+    clearInvocations(mockTelemetrySender);
+
+    // When evaluate policies
+    scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+
+    // Then there should be two policy violations, of which one is waived.
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
+    assertThat(telemetryDataList).hasSize(1);
+    assertThat(telemetryDataList.get(0).getPurpose()).isEqualTo(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION);
+    assertThat(telemetryDataList.get(0).getAttributes().get(COUNT)).isEqualTo(1);
+    clearInvocations(mockTelemetrySender);
+
+    // When waive the other policy and evaluate policies again
+    PolicyWaiver licensePolicyWaiver = tempEntity.newWaiver(licensePolicy.getId(), application.getId());
+    scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+
+    // Then there should be two waived policy violations, one already waived and one newly waived.
+    // Only one should be collected for telemetry
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    telemetryDataList = telemetryDataArgumentCaptor.getValue();
+    assertThat(telemetryDataList).hasSize(1);
+    assertThat(telemetryDataList.get(0).getPurpose()).isEqualTo(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION);
+    assertThat(telemetryDataList.get(0).getAttributes().get(COUNT)).isEqualTo(1);
+    clearInvocations(mockTelemetrySender);
+
+    // When remove the waiver for one of the policies and evaluate policies again.
+    new PolicyWaiverDAO().delete(licensePolicyWaiver);
+    scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+    // Then there should be an unwaived violation collected for telemetry
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    telemetryDataList = telemetryDataArgumentCaptor.getValue();
+    assertThat(telemetryDataList).hasSize(1);
+    assertThat(telemetryDataList.get(0).getPurpose()).isEqualTo(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION);
+    assertThat(telemetryDataList.get(0).getAttributes().get(COUNT)).isEqualTo(-1);
+    clearInvocations(mockTelemetrySender);
   }
 
   private void assertPolicyViolationsLogged(PolicyViolationLogEvent policyViolationLogEvent,

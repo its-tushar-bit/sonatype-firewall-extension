@@ -182,6 +182,8 @@ public class GitApiServiceTest
         .getSourceControlByOwnerDecrypted(application.getOrganizationId());
     verify(mockSourceControlService, never())
         .getSourceControlByOwnerDecrypted(Organization.ROOT_ORGANIZATION_ID);
+
+    assertThat(gitApiService.isScmEnabled(application.getId())).isTrue();
   }
 
   @Test
@@ -207,6 +209,8 @@ public class GitApiServiceTest
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getId());
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getOrganizationId());
     verify(mockSourceControlService, never()).getSourceControlByOwnerDecrypted(org.getParentOrganizationId());
+
+    assertThat(gitApiService.isScmEnabled(application.getId())).isTrue();
   }
 
   @Test
@@ -233,6 +237,8 @@ public class GitApiServiceTest
     assertThat(value.provider).isEqualTo(SourceControlProvider.GITHUB);
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getId());
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(org.getParentOrganizationId());
+
+    assertThat(gitApiService.isScmEnabled(application.getId())).isTrue();
   }
 
   @Test
@@ -259,12 +265,58 @@ public class GitApiServiceTest
     assertThat(value.baseBranch).isEqualTo(GitApiService.DEFAULT_BASE_BRANCH);
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getId());
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(eq(application.getOrganizationId()));
+
+    assertThat(gitApiService.isScmEnabled(application.getId())).isTrue();
   }
 
   @Test
   public void testGetGitRepositoryInfo_NoApplicationSourceControl() {
     GitRepositoryInfo value = gitApiService.getGitRepositoryInfoForApplication("INVALID");
     assertThat(value).isNull();
+    assertThat(gitApiService.isScmEnabled(application.getId())).isFalse();
+  }
+
+  //    return StringUtils.isNotBlank(gitRepositoryInfo.repositoryUrl)
+  //        && gitRepositoryInfo.provider != null
+  //        && StringUtils.isNotBlank(gitRepositoryInfo.token);
+
+  @Test
+  public void testIsScmEnabled_NoRepositoryUrl() {
+    SourceControl sourceControl =
+        new SourceControl.Builder().setOwnerId(application.getId()).build();
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId())))
+        .thenReturn(sourceControl);
+
+    assertThat(gitApiService.isScmEnabled(application.getId())).isFalse();
+  }
+
+  @Test
+  public void testIsScmEnabled_NoProvider() {
+    SourceControl sourceControl =
+        new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl(VALID_URL).build();
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId())))
+        .thenReturn(sourceControl);
+
+    assertThat(gitApiService.isScmEnabled(application.getId())).isFalse();
+  }
+
+  @Test
+  public void testIsScmEnabled_NoToken() {
+    SourceControl sourceControl =
+        new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl(VALID_URL).build();
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId())))
+        .thenReturn(sourceControl);
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getOrganizationId())))
+        .thenReturn(null);
+
+    SourceControl rootOrgSourceControl =
+        new SourceControl.Builder().setOwnerId(org.getParentOrganizationId())
+            .setProvider(SourceControlProvider.GITHUB).build();
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(Organization.ROOT_ORGANIZATION_ID)))
+        .thenReturn(rootOrgSourceControl);
+
+    assertThat(gitApiService.isScmEnabled(application.getId())).isFalse();
   }
 
   private void assertApplicationEvaluationOutcome(

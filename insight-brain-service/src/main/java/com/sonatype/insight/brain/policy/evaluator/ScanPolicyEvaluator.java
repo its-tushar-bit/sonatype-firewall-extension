@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.git.GitApiService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -114,6 +115,8 @@ public class ScanPolicyEvaluator
 
   private final ComponentResolver componentResolver;
 
+  private final GitApiService gitApiService;
+
   @Inject
   public ScanPolicyEvaluator(
       final InsightWork insightWork,
@@ -127,7 +130,8 @@ public class ScanPolicyEvaluator
       final PolicyViolationPersistenceLocks policyViolationPersistenceLocks,
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
       final ProductLicense productLicense,
-      final ComponentResolver componentResolver)
+      final ComponentResolver componentResolver,
+      final GitApiService gitApiService)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -141,6 +145,7 @@ public class ScanPolicyEvaluator
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.productLicense = productLicense;
     this.componentResolver = componentResolver;
+    this.gitApiService = gitApiService;
   }
 
   public ScanPolicyEvaluatorResults evaluate(final Application application, final String scanId, final Stage stage)
@@ -188,9 +193,14 @@ public class ScanPolicyEvaluator
     List<Policy> policies = new PolicyDAO().getApplicableByOwnerId(appId);
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, policies, components, forMonitoring);
 
+    PolicyViolationTelemetryCollector telemetryCollector
+        = new PolicyViolationTelemetryCollector(gitApiService.isScmEnabled(appId));
+
     // Save the policy evaluation and violations
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = processPolicyResults(application, scanId, stage, policies,
-        forMonitoring, policyResults, components);
+        forMonitoring, policyResults, components, telemetryCollector);
+
+    telemetrySender.send(telemetryCollector.getTelemetryData());
 
     sendGrandfatheredViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations);
 
@@ -271,7 +281,8 @@ public class ScanPolicyEvaluator
                                                           List<Policy> policies,
                                                           boolean forMonitoring,
                                                           PolicyResults policyResults,
-                                                          List<Component> components)
+                                                          List<Component> components,
+                                                          PolicyViolationTelemetryCollector telemetryCollector)
   {
     String appId = app.getId();
     Object lock = policyViolationPersistenceLocks.getLock(appId);
@@ -351,6 +362,8 @@ public class ScanPolicyEvaluator
           PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
               .digestPolicyViolations(oldPolicyViolations, results.allViolations);
 
+          telemetryCollector.setTimeOfPolicyEvaluation(policyEvaluation.getTime());
+
           // New policy violations.
           List<PolicyViolation> newPolicyViolations = policyViolationDiff.getAppeared();
           logPolicyViolations(newPolicyViolations, "new");
@@ -363,6 +376,7 @@ public class ScanPolicyEvaluator
             policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
             if (newPolicyViolation.isWaived()) {
               policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
+              telemetryCollector.addTelemetryForWaivedViolation(newPolicyViolation);
             }
             if (newPolicyViolation.isGrandfathered()) {
               policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, newPolicyViolation);
@@ -373,6 +387,7 @@ public class ScanPolicyEvaluator
             oldPolicyViolation.setFixTime(policyEvaluation.getTime());
             policyViolationDAO.update(tx, oldPolicyViolation);
             policyViolationLogger.add(PolicyViolationLogEvent.FIX, oldPolicyViolation);
+            telemetryCollector.addTelemetryForFixedViolation(oldPolicyViolation);
           }
           // Existing policy violations.
           List<PolicyViolation> existing = new ArrayList<>();
@@ -390,6 +405,7 @@ public class ScanPolicyEvaluator
               policyViolationDAO.insert(tx, newPolicyViolation);
 
               policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
+              telemetryCollector.addTelemetryForUnwaivedViolation(newPolicyViolation);
             }
             else {
               if (isNotifiable(oldPolicyViolation, newPolicyViolation, forMonitoring, isReevaluation)) {
@@ -407,6 +423,7 @@ public class ScanPolicyEvaluator
                 oldPolicyViolation.setPolicyWaiverComment(newPolicyViolation.getPolicyWaiverComment());
 
                 policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, oldPolicyViolation);
+                telemetryCollector.addTelemetryForWaivedViolation(oldPolicyViolation);
               }
               policyViolationDAO.update(tx, oldPolicyViolation);
 

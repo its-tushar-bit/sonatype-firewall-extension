@@ -29,6 +29,7 @@ import com.sonatype.nexus.scm.api.model.Status;
 import com.sonatype.nexus.scm.api.model.StatusRequest;
 
 import com.google.common.base.Strings;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,6 +140,24 @@ public class GitApiService
     }
 
     return gitRepositoryInfo;
+  }
+
+  /**
+   * Determines if source control is enabled for an application. That is <code>true</code> if:<ul>
+   * <li>the app record exists and it has repository URL populated,
+   * <li>the root org records exists and it has the provider populated,
+   * <li>there is a token provided somewhere in the hierarchy, starting from the app record.</ul>
+   * @param applicationId application ID
+   * @return <code>true</code> if all above conditions are met; <code>false</code> otherwise.
+   */
+  public boolean isScmEnabled(final String applicationId) {
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfoForApplication(applicationId);
+    if (gitRepositoryInfo == null) {
+      return false;
+    }
+    return StringUtils.isNotBlank(gitRepositoryInfo.repositoryUrl)
+        && gitRepositoryInfo.provider != null
+        && StringUtils.isNotBlank(gitRepositoryInfo.token);
   }
 
   private boolean isGitRepoInfoComplete(final GitRepositoryInfo gitRepositoryInfo) {

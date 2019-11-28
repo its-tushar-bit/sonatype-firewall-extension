@@ -81,6 +81,8 @@ public class ApiReportServiceV2Test
     String expectedStageId = expectedStage.getId();
     for (ApiApplicationReportDTOV2 report : actual) {
       if (app.getId().equals(report.applicationId) && expectedStageId.equals(report.stage)) {
+        assertThat(report.latestReportHtmlUrl)
+            .isEqualTo(UserInterfaceLinksResource.getLatestReportUrl(app.getPublicId(), expectedStageId));
         assertThat(report.reportPdfUrl)
             .isEqualTo(UserInterfaceLinksResource.getPdfUrl(app.getPublicId(), expectedScanId));
         assertThat(report.reportHtmlUrl)

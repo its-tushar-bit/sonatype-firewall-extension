@@ -82,6 +82,8 @@ public class ApiReportServiceV2
     report.evaluationDate = eval.getTime();
     report.stage = eval.getStageTypeId();
 
+    report.latestReportHtmlUrl = UserInterfaceLinksResource.getLatestReportUrl(app.getPublicId(), report.stage);
+
     report.reportPdfUrl = UserInterfaceLinksResource.getPdfUrl(app.getPublicId(), eval.getScanId());
     report.reportHtmlUrl = UserInterfaceLinksResource.getReportUrl(app.getPublicId(), eval.getScanId());
     report.embeddableReportHtmlUrl = UserInterfaceLinksResource.getEmbeddableReportUrl(app.getPublicId(),

@@ -16,6 +16,7 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
@@ -152,6 +153,14 @@ public class UserInterfaceLinksResourceTest
         .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id/pdf");
     HttpResponse response = get(UserInterfaceLinksResource.PDF_PATH, "app id", "scan id");
     assertRedirect(response, "rest/report/app%20id/scan%20id/printReport");
+  }
+
+  @Test
+  public void testLinkToLatestAppReport() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("app-id");
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan id");
+    HttpResponse response = get(UserInterfaceLinksResource.LATEST_REPORT_PATH, "app-id", Stage.ID_BUILD);
+    assertRedirect(response, "assets/index.html#/applicationReport/app-id/scan%20id/policy");
   }
 
   @Test

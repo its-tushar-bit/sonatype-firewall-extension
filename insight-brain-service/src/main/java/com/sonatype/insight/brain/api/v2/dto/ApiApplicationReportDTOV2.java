@@ -20,6 +20,11 @@ public class ApiApplicationReportDTOV2
   @JsonSerialize(using = ISODateSerializer.class)
   public Date evaluationDate;
 
+  /**
+   * @since 1.79
+   */
+  public String latestReportHtmlUrl;
+
   public String reportHtmlUrl;
 
   /**

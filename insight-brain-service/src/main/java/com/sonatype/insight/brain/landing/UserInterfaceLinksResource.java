@@ -18,15 +18,18 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -52,6 +55,8 @@ public class UserInterfaceLinksResource
 
   public static final String MANAGEMENT_PATH = "{ownerType: application|organization}/{ownerId}/management";
 
+  public static final String LATEST_REPORT_PATH = "application/{applicationPublicId}/latestReport/{stageId}";
+
   public static final String REPORT_PATH = "application/{applicationPublicId}/report/{scanId}";
 
   public static final String EMBEDDABLE_REPORT_PATH = "application/{applicationPublicId}/report/{scanId}/embeddable";
@@ -70,17 +75,21 @@ public class UserInterfaceLinksResource
 
   private final ApplicationDAO applicationDAO;
 
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
   @Inject
   public UserInterfaceLinksResource(
       BaseUrl baseUrl,
       TelemetrySender telemetrySender,
       CurrentUser currentUser,
-      ApplicationDAO applicationDAO)
+      ApplicationDAO applicationDAO,
+      PolicyEvaluationDAO policyEvaluationDAO)
   {
     this.baseUrl = baseUrl;
     this.telemetrySender = telemetrySender;
     this.currentUser = currentUser;
     this.applicationDAO = applicationDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
   }
 
   private Response redirect(UriBuilder uriBuilder, Object... parameters) {
@@ -97,6 +106,20 @@ public class UserInterfaceLinksResource
     uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html")
         .fragment("/management/view/{ownerType}/{ownerId}");
     return redirect(uriBuilder, ownerType, ownerId);
+  }
+
+  @GET
+  @Path(LATEST_REPORT_PATH)
+  public Response linkToLatestReport(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      @PathParam("stageId") String stageId)
+  {
+    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), stageId);
+    if (evaluation == null) {
+      throw new NotFoundException("The application " + applicationPublicId + " has no report at stage " + stageId);
+    }
+    return linkToReport(applicationPublicId, evaluation.getScanId(), false);
   }
 
   @GET
@@ -175,6 +198,10 @@ public class UserInterfaceLinksResource
 
   private static String buildStableUrl(String path, Object... parameters) {
     return UriBuilder.fromPath(UserInterfaceLinksResource.RESOURCE_PATH).path(path).build(parameters).toString();
+  }
+
+  public static String getLatestReportUrl(String applicationPublicId, String stageId) {
+    return buildStableUrl(UserInterfaceLinksResource.LATEST_REPORT_PATH, applicationPublicId, stageId);
   }
 
   /**

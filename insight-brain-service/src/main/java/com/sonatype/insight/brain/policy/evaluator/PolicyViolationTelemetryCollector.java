@@ -35,7 +35,7 @@ public class PolicyViolationTelemetryCollector
 
   static final String STAGE = "stage_id";
 
-  static final String THREAT_CATEGORY = "thread_category";
+  static final String THREAT_CATEGORY = "threat_category";
 
   static final String THREAT_LEVEL = "threat_level";
 

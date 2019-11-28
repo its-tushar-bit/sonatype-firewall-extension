@@ -20,6 +20,7 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.ext.Provider;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -37,7 +38,8 @@ import org.glassfish.jersey.uri.internal.UriTemplateParser;
 public class TelemetryContainerRequestFilter
     implements ContainerRequestFilter, TelemetryCollector
 {
-  private static final Pattern URL_PATTERN = Pattern.compile("^" + PublicApiPaths.BASE_PATH + "/.*$");
+  private static final Pattern URL_PATTERN =
+      Pattern.compile("^(" + PublicApiPaths.BASE_PATH + "|" + UserInterfaceLinksResource.RESOURCE_PATH + ")/.*$");
 
   @VisibleForTesting
   public static final Map<String, LongAdder> REST_ENDPOINT_INVOCATIONS = new ConcurrentHashMap<>();

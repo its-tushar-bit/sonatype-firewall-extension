@@ -11,6 +11,8 @@ import java.util.Collections;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -41,6 +43,18 @@ public class TelemetryContainerRequestFilterTest
   @Test
   public void testCollectAllData_NoRequests() {
     assertRestEndpointTelemetry(telemetryContainerRequestFilter.collectAllData());
+  }
+
+  @Test
+  public void testCollectAllData_MatchingPaths() {
+    telemetryContainerRequestFilter
+        .filter(mockContainerRequestContext("GET", PublicApiPaths.BASE_PATH + "/something"));
+    telemetryContainerRequestFilter
+        .filter(mockContainerRequestContext("GET", UserInterfaceLinksResource.RESOURCE_PATH + "/something"));
+
+    assertRestEndpointTelemetry(telemetryContainerRequestFilter.collectAllData(),
+        new RestEndpointTelemetry("GET", PublicApiPaths.BASE_PATH + "/something", 1),
+        new RestEndpointTelemetry("GET", UserInterfaceLinksResource.RESOURCE_PATH + "/something", 1));
   }
 
   @Test

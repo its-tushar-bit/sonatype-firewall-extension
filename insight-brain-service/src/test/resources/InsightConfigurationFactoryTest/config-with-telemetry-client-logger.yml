@@ -1,5 +1,0 @@
-logging:
-  loggers:
-    "com.sonatype.insight.scan": INFO
-    "eu.medsea.mimeutil.MimeUtil2": INFO
-    "com.sonatype.insight.brain.hds.UserTelemetryHdsClient": DEBUG

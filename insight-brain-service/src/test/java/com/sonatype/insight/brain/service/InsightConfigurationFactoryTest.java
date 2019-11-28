@@ -67,22 +67,6 @@ public class InsightConfigurationFactoryTest
   }
 
   @Test
-  public void testBuild_ConfigWithoutTelemetryClientLogger_SetsInfoLevel() throws Exception {
-    InsightConfig insightConfig = build("config-without-telemetry-client-logger.yml");
-    DefaultLoggingFactory loggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
-
-    assertLoggerLevel(loggingFactory, "com.sonatype.insight.brain.hds.UserTelemetryHdsClient", Level.INFO);
-  }
-
-  @Test
-  public void testBuild_ConfigWithTelemetryClientLogger_UsesGivenValue() throws Exception {
-    InsightConfig insightConfig = build("config-with-telemetry-client-logger.yml");
-    DefaultLoggingFactory loggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
-
-    assertLoggerLevel(loggingFactory, "com.sonatype.insight.brain.hds.UserTelemetryHdsClient", Level.DEBUG);
-  }
-
-  @Test
   public void testBuild_ConfigWithLogbackAccessRequestAppendersWithoutLogFormats_UsesOurRequestLogFormat()
       throws Exception
   {

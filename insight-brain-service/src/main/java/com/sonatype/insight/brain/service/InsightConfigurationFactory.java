@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 
 import ch.qos.logback.access.spi.IAccessEvent;
-import ch.qos.logback.classic.Level;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -109,9 +108,6 @@ public class InsightConfigurationFactory
     DefaultLoggingFactory loggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
     ImmutableMap<String, JsonNode> loggerLevels = loggingFactory.getLoggers();
     Map<String, JsonNode> newLoggerLevels = new HashMap<>(loggerLevels);
-    newLoggerLevels.putIfAbsent("com.sonatype.insight.brain.hds.UserTelemetryHdsClient",
-        new TextNode(Level.INFO.toString()));
-
     setAuditLogSettings(newLoggerLevels);
     setPolicyViolationLogSettings(newLoggerLevels);
     loggingFactory.setLoggers(newLoggerLevels);

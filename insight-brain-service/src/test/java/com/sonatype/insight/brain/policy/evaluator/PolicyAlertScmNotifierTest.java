@@ -159,9 +159,9 @@ public class PolicyAlertScmNotifierTest
 
     // and there are no suggested remediations
     ApiComponentRemediationDTO emptyRemediationDTO = new ApiComponentRemediationDTO();
-    when(remediationService.getSuggestedRemediationForComponent(
+    when(remediationService.getSuggestedRemediationForComponentNoAuth(
         any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
-        eq(application.getId()), isNull())).thenReturn(emptyRemediationDTO);
+        eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(emptyRemediationDTO);
 
     // when we send policy notifications
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
@@ -189,9 +189,9 @@ public class PolicyAlertScmNotifierTest
 
     // and there are suggested remediations
     ApiComponentRemediationDTO remediationDTO = buildRemediationDTOWithSuggestion();
-    when(remediationService.getSuggestedRemediationForComponent(
+    when(remediationService.getSuggestedRemediationForComponentNoAuth(
         any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
-        eq(application.getId()), isNull())).thenReturn(remediationDTO);
+        eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(remediationDTO);
 
     // and the branch already exists on the server
     when(gitClientFactory.create(gitRepositoryInfo)).thenReturn(gitApiClient);
@@ -224,9 +224,9 @@ public class PolicyAlertScmNotifierTest
 
     // and there are suggested remediations
     ApiComponentRemediationDTO remediationDTO = buildRemediationDTOWithSuggestion();
-    when(remediationService.getSuggestedRemediationForComponent(
+    when(remediationService.getSuggestedRemediationForComponentNoAuth(
         any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
-        eq(application.getId()), isNull())).thenReturn(remediationDTO);
+        eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(remediationDTO);
 
     // and the branch doesn't already exist on the server
     when(gitClientFactory.create(gitRepositoryInfo)).thenReturn(gitApiClient);

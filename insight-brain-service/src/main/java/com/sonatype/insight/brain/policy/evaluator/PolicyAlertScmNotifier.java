@@ -223,7 +223,7 @@ public class PolicyAlertScmNotifier
     componentDto.componentIdentifier =
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
 
-    return remediationService.getSuggestedRemediationForComponent(
-        componentDto, OWNER_TYPE, ownerId, STAGE_ID).remediation.versionChanges;
+    return remediationService.getSuggestedRemediationForComponentNoAuth(
+        componentDto, OWNER_TYPE, ownerId, STAGE_ID, null, null).remediation.versionChanges;
   }
 }

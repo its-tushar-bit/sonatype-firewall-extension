@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
@@ -26,6 +27,7 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
@@ -112,6 +114,15 @@ public class ApiComponentRemediationServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetSuggestedRemediationForComponent_ReadPermission_Unauthenticated_Organization() {
     testGetSuggestedRemediationForComponent_ReadPermission_Unauthenticated(org, org.getId());
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_NoAuth() {
+    configureHdsClientMock();
+    ApiComponentRemediationDTO result = apiComponentRemediationService
+        .getSuggestedRemediationForComponentNoAuth(API_COMPONENT_DTOV2, org.getType(), org.getId(), DevelopStageType.ID,
+            null, null);
+    assertThat(result).isNotNull();
   }
 
   private static ApiComponentDTOV2 createApiComponentDTOV2() {

@@ -96,7 +96,7 @@ public class ApiComponentRemediationService
       @AuthzContext(Key.INTERNAL_ID) final String ownerId,
       final String stageId)
   {
-    return getSuggestedRemediationForComponent(componentDTO, ownerType, ownerId, stageId, null, null);
+    return getSuggestedRemediationForComponentNoAuth(componentDTO, ownerType, ownerId, stageId, null, null);
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -108,7 +108,18 @@ public class ApiComponentRemediationService
       final String identificationSource,
       final String scanId)
   {
+    return getSuggestedRemediationForComponentNoAuth(componentDTO, ownerType, ownerId, stageId, identificationSource,
+        scanId);
+  }
 
+  public ApiComponentRemediationDTO getSuggestedRemediationForComponentNoAuth(
+      ApiComponentDTOV2 componentDTO,
+      final OwnerType ownerType,
+      final String ownerId,
+      final String stageId,
+      final String identificationSource,
+      final String scanId)
+  {
     if (stageId != null && StageTypes.getById(stageId) == null) {
       throw new BadRequestException("Invalid stage: " + stageId + ".");
     }

@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @since 1.79
+ * @since 1.80
  */
 @Named
 public class RepositoryComponentDeleteService

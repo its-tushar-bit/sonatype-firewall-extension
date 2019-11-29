@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * This migrator deletes all repository components (together with related policy violations, policy violation waivers
  * and labels) that should have been ignored either by Repository Manager/Insight Brain Server.
  *
- * @since 1.79
+ * @since 1.80
  */
 public class IgnoredRepositoryComponentMigrator
 {

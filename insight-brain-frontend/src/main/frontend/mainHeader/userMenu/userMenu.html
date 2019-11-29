@@ -66,14 +66,17 @@
     <a id="user-menu-dropdown-toggle"
        class="iq-dropdown-toggle iq-dropdown-toggle--main-header iq-dropdown-toggle--user-menu"
        data-toggle="dropdown">
-      <i class="glyphicons-sonatype medium user"></i>
-      <span id="user-name">
-        {{vm.currentUser.displayName }}
-        <i class="fa fa-caret-down"></i>
-      </span>
+      <nx-font-awesome-icon icon="vm.faUserAlt" size="'2x'"></nx-font-awesome-icon>
+      <nx-font-awesome-icon icon="vm.faCaretDown" class="nx-icon--user-caret"></nx-font-awesome-icon>
     </a>
     <div class="dropdown-menu iq-dropdown-menu iq-dropdown-menu--main-header">
-      <h4 class="iq-dropdown-menu__title">CURRENT&nbsp;USER</h4>
+      <h4 class="iq-dropdown-menu__title">
+        CURRENT&nbsp;USER:
+        <span id="user-name" class="iq-user-name">
+          {{vm.currentUser.displayName }}
+        </span>
+      </h4>
+
       <div ng-show="vm.canChangePassword">
         <a id="change-password"
            ng-click="vm.changePassword()"

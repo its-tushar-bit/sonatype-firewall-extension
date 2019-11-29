@@ -5,10 +5,15 @@
  */
 import { pick } from 'ramda';
 import modalWrapperTemplate from './userDetailsModalWrapper.html';
+import { faUserAlt } from '@fortawesome/pro-regular-svg-icons';
+import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
 
 function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, Modal, messages, pendoService, actions) {
   var vm = this;
   vm.logoutMask = undefined;
+
+  vm.faUserAlt = faUserAlt;
+  vm.faCaretDown = faCaretDown;
 
   Object.assign(vm, {
     $onInit() {

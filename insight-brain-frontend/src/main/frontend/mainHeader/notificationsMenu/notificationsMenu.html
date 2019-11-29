@@ -1,9 +1,9 @@
-<div id="notification-menu" class="iq-dropdown iq-dropdown--notifications iq-pull-right">
+<div id="notification-menu" class="iq-dropdown iq-dropdown--notifications">
   <a id="notification-dropdown-toggle"
      class="iq-dropdown-toggle iq-dropdown-toggle--main-header"
      data-toggle="dropdown"
      ng-click="vm.clearSelected()">
-    <i class="glyphicons-sonatype medium inbox"></i>
+    <nx-font-awesome-icon icon="vm.faInbox" size="'2x'"></nx-font-awesome-icon>
     <div ng-if="unreadNotificationCount" class="iq-count-circle iq-pull-right" ng-class="{'exclamation': errorText}">
       {{unreadNotificationCount}}
     </div>

@@ -42,6 +42,7 @@ public class MainHeaderTest
 
   @Test
   public void testLoggedInUserName() {
+    MainHeader.userMenu().dropdownToggle().click();
     MainHeader.userMenu().userName().shouldBe(visible).shouldHave(text("Admin BuiltIn"));
   }
 

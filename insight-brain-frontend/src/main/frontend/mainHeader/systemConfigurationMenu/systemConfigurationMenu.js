@@ -3,9 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { faCog } from '@fortawesome/pro-regular-svg-icons';
+
 function SystemConfigurationMenuController($state) {
   var vm = this;
   vm.state = $state;
+
+  vm.faCog = faCog;
 }
 
 SystemConfigurationMenuController.$inject = ['$state'];

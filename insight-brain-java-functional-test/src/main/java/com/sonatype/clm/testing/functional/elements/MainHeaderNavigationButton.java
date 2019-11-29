@@ -18,12 +18,6 @@ public class MainHeaderNavigationButton
   public static final Condition CLASS_ACTIVE = cssClass("active");
 
   public MainHeaderNavigationButton(String selector) {
-    super(".iq-navigation-menu", selector);
-  }
-
-  @Override
-  public MainHeaderNavigationButton click() {
-    child("a").click();
-    return me();
+    super(".iq-navigation", selector);
   }
 }

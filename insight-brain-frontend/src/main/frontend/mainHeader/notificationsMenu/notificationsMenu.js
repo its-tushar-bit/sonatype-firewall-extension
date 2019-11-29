@@ -3,9 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { faInbox } from '@fortawesome/pro-regular-svg-icons';
+
 function NotificationsController($scope, $http, $sce, CLMLocations, timeAgoService, Messages) {
 
   var vm = this;
+
+  vm.faInbox = faInbox;
 
   vm.$onInit = getNotifications;
   vm.openDetail = openDetail;

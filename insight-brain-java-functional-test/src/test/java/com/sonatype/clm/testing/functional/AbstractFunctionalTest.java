@@ -237,6 +237,7 @@ public abstract class AbstractFunctionalTest
     navigate(() -> {
       Selenide.open("about");
       clearAlerts();
+      closeOtherWindows();
       return true;
     });
   }
@@ -517,5 +518,21 @@ public abstract class AbstractFunctionalTest
 
   protected void uninstallLicense() {
     testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class).uninstallLicense();
+  }
+
+  // Close all tabs/windows except the currently active one.
+  // Thanks to https://stackoverflow.com/a/18504970 for the code
+  private void closeOtherWindows() {
+    WebDriver driver = WebDriverRunner.getWebDriver();
+    String currentHandle = driver.getWindowHandle();
+
+    for (String handle : driver.getWindowHandles()) {
+      if (!handle.equals(currentHandle)) {
+        driver.switchTo().window(handle);
+        driver.close();
+      }
+    }
+
+    driver.switchTo().window(currentHandle);
   }
 }

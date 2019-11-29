@@ -185,8 +185,11 @@ public class UserManagementTest
     login(user.getUsername(), newPassword);
 
     UserMenu userMenu = MainHeader.userMenu();
-    userMenu.dropdownToggle().shouldBe(visible);
+    userMenu.dropdownToggle().shouldBe(visible).click();
     userMenu.userName().shouldBe(text(user.getFirstName() + " " + user.getLastName()));
+
+    // close the menu again so the logout logic works
+    userMenu.dropdownToggle().click();
   }
 
   @Test

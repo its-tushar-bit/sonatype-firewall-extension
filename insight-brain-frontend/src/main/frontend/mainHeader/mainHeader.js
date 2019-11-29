@@ -3,11 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { faFlask, faSearch, faSitemap, faTachometerAltFast, faChartBar, faUserAlt }
+  from '@fortawesome/pro-regular-svg-icons';
+
 /* global angular, clmServerVersion, clmBuildTimestamp */
 function MainHeaderController($rootScope, $state, $scope, ProductFeatures, PermissionService, CurrentUser,
                               systemConfigurationPropertyService, routeStateUtilService) {
   var vm = this;
 
+  Object.assign(vm, { faFlask, faSearch, faSitemap, faTachometerAltFast, faChartBar, faUserAlt });
   vm.$state = $state;
   vm.isDashboardLicensed = ProductFeatures.isDashboardLicensed;
   vm.isSuccessMetricsEnabled = false;

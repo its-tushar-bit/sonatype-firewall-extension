@@ -52,6 +52,7 @@ public class SystemConfigurationMenuTest
     refreshOrOpen(ReportListPage.URL);
     login(user.getUsername(), user.getPassword());
 
+    MainHeader.userMenu().dropdownToggle().click();
     MainHeader.userMenu().userName().shouldNotBe(empty);
     systemConfigMenu.shouldBe(hidden);
   }

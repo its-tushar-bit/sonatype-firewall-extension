@@ -62,6 +62,7 @@ public class ChangePasswordTest
 
     logout();
     login(user.getUsername(), "newsecret");
+    MainHeader.userMenu().dropdownToggle().click();
     MainHeader.userMenu().userName().shouldHave(text("John Doe"));
   }
 }

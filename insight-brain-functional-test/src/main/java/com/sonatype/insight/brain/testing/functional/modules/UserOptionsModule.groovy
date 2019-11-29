@@ -27,8 +27,6 @@ class UserOptionsModule
   }
 
   private void dropdownClick() {
-    // ensure DOM has settled after a prior login
-    waitFor { displayName.text() }
     optionsDropdown.click()
   }
 

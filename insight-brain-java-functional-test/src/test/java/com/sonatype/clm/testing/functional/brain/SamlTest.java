@@ -139,9 +139,9 @@ public class SamlTest
 
     // Validations upon successful login
     DashboardPage.dashboardContainer().shouldBe(visible);
-    MainHeader.userMenu().userName().shouldBe(visible).shouldHave(text("John Doe"));
 
     MainHeader.userMenu().dropdownToggle().click();
+    MainHeader.userMenu().userName().shouldBe(visible).shouldHave(text("John Doe"));
     MainHeader.userMenu().userDetails().click();
 
     UserDetailsModal modal = new UserDetailsModal();
@@ -189,9 +189,9 @@ public class SamlTest
     KeycloakLoginPage.login(username, password);
 
     DashboardPage.dashboardContainer().shouldBe(visible);
-    MainHeader.userMenu().userName().shouldBe(visible).shouldHave(text("johanne.doanne"));
 
     MainHeader.userMenu().dropdownToggle().click();
+    MainHeader.userMenu().userName().shouldBe(visible).shouldHave(text("johanne.doanne"));
     MainHeader.userMenu().userDetails().click();
 
     UserDetailsModal modal = new UserDetailsModal();

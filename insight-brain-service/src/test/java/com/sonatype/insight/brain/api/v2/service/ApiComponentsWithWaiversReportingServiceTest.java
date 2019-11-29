@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiWaivedPolicyViolationDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -39,12 +40,15 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.api.v2.service.ApiComponentsWithWaiversReportingService.SCOPE_OWNER_TYPE_REPOSITORY_CONTAINER;
+import static com.sonatype.insight.brain.api.v2.service.ApiComponentsWithWaiversReportingService.SCOPE_OWNER_TYPE_ROOT_ORGANIZATION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiComponentsWithWaiversReportingServiceTest
@@ -141,8 +145,9 @@ public class ApiComponentsWithWaiversReportingServiceTest
         constraintFacts1, "Some comments here");
     PolicyWaiver policyWaiver2 = tempEntity.newWaiver("hash1", policy1.getId(), repo1.getId(),
         constraintFacts2, "Some comments here2");
-    PolicyWaiver policyWaiver3 = tempEntity.newWaiver("hash3", policy2.getId(), repo2.getId(),
-        constraintFacts1, "Some comments here3");
+    PolicyWaiver policyWaiver3 = tempEntity
+        .newWaiver("hash3", policy2.getId(), RepositoryContainer.REPOSITORY_CONTAINER_ID, constraintFacts1,
+            "Some comments here3");
     PolicyWaiver policyWaiver4 = tempEntity.newWaiver("hash4", policy1.getId(), repo1.getId(),
         constraintFacts1, "Some comments here4");
 
@@ -196,17 +201,20 @@ public class ApiComponentsWithWaiversReportingServiceTest
         apiComponentPolicyViolationDTO1.waivedPolicyViolations;
     assertThat(waivedPolicyViolationDTOs).hasSize(2);
     assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation1);
-    assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(0).policyWaiver, policyWaiver1);
+    assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(0).policyWaiver, policyWaiver1, OwnerType.REPOSITORY.toString(),
+        repo1.getName());
 
     assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(1), waivedViolation2);
-    assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(1).policyWaiver, policyWaiver2);
+    assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(1).policyWaiver, policyWaiver2, OwnerType.REPOSITORY.toString(),
+        repo1.getName());
 
     // Repo1-Component2 should have 1 violation
     assertComponentDTOV2(apiComponentPolicyViolationDTO2.component, waivedViolation4);
     waivedPolicyViolationDTOs = apiComponentPolicyViolationDTO2.waivedPolicyViolations;
     assertThat(waivedPolicyViolationDTOs).hasSize(1);
     assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation4);
-    assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(0).policyWaiver, policyWaiver4);
+    assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(0).policyWaiver, policyWaiver4, OwnerType.REPOSITORY.toString(),
+        repo1.getName());
 
     // Validate Repo2 Component Waivers
     apiRepositoryWaiverDTO =
@@ -227,7 +235,8 @@ public class ApiComponentsWithWaiversReportingServiceTest
     waivedPolicyViolationDTOs = apiComponentPolicyViolationDTO1.waivedPolicyViolations;
     assertThat(waivedPolicyViolationDTOs).hasSize(1);
     assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation3);
-    assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(0).policyWaiver, policyWaiver3);
+    assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(0).policyWaiver, policyWaiver3,
+        SCOPE_OWNER_TYPE_REPOSITORY_CONTAINER, "All Repositories");
   }
 
   @Test
@@ -320,7 +329,8 @@ public class ApiComponentsWithWaiversReportingServiceTest
         apiComponentPolicyViolationDTO.waivedPolicyViolations;
     assertThat(waivedPolicyViolationDTOs).hasSize(1);
     assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation);
-    assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(0).policyWaiver, policyWaiver);
+    assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(0).policyWaiver, policyWaiver, OwnerType.REPOSITORY.toString(),
+        repo1.getName());
   }
 
   @Test
@@ -328,7 +338,8 @@ public class ApiComponentsWithWaiversReportingServiceTest
     PolicyWaiver policyWaiver1 = tempEntity.newWaiver("h1", policy1.getId(), app1.getId(), "Some comments here");
     PolicyWaiver policyWaiver2 = tempEntity.newWaiver("h2", policy1.getId(), app1.getId(), "Some comments here2");
     PolicyWaiver policyWaiver3 = tempEntity.newWaiver("h3", policy1.getId(), app1.getId(), "Some comments here3");
-    PolicyWaiver policyWaiver4 = tempEntity.newWaiver("h4", policy2.getId(), app3.getId(), "Some comments here4");
+    PolicyWaiver policyWaiver4 =
+        tempEntity.newWaiver("h4", policy2.getId(), Organization.ROOT_ORGANIZATION_ID, "Some comments here4");
 
     PolicyViolation waivedViolation1 = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluationBuild, policy1,
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), "h1", policyWaiver1);
@@ -363,7 +374,8 @@ public class ApiComponentsWithWaiversReportingServiceTest
     ApiWaivedPolicyViolationDTO waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
     assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation1);
 
-    assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver1);
+    assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver1, OwnerType.APPLICATION.toString(),
+        app1.getName());
 
     assertApplicationWaiverDTO(applicationWaiverDTO, app1);
 
@@ -375,7 +387,8 @@ public class ApiComponentsWithWaiversReportingServiceTest
     waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
     assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation2);
 
-    assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver2);
+    assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver2, OwnerType.APPLICATION.toString(),
+        app1.getName());
 
     assertApplicationWaiverDTO(applicationWaiverDTO, app1);
 
@@ -390,7 +403,8 @@ public class ApiComponentsWithWaiversReportingServiceTest
     waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
     assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation3);
 
-    assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver3);
+    assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver3, OwnerType.APPLICATION.toString(),
+        app1.getName());
 
     assertApplicationWaiverDTO(applicationWaiverDTO, app1);
 
@@ -406,7 +420,8 @@ public class ApiComponentsWithWaiversReportingServiceTest
     waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
     assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation4);
 
-    assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver4);
+    assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver4, SCOPE_OWNER_TYPE_ROOT_ORGANIZATION,
+        "Root Organization");
 
     assertApplicationWaiverDTO(applicationWaiverDTO, app3);
   }
@@ -446,6 +461,36 @@ public class ApiComponentsWithWaiversReportingServiceTest
   }
 
   @Test
+  public void testGetComponentsWithWaivers_Applications_MissingWaiverOwner() {
+    PolicyWaiver policyWaiver1 = tempEntity.newWaiver("h1", policy1.getId(), org2.getId(), "Some comments here");
+    PolicyViolation waivedViolation1 = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluationBuild, policy1,
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), "h1", policyWaiver1);
+
+    ApiComponentWaiversDTO result = service.getComponentsWithWaivers();
+    assertThat(result.applicationWaivers).hasSize(1); // note applications are ordered by public id
+    assertThat(result.repositoryWaivers).hasSize(0);
+    ApiApplicationWaiverDTO applicationWaiverDTO = result.applicationWaivers.get(0);
+    assertThat(applicationWaiverDTO.stages).hasSize(1);
+    ApiPolicyViolationStageDTO policyViolationStageDTO = applicationWaiverDTO.stages.get(0);
+    assertThat(policyViolationStageDTO.stageId).isEqualTo(BuildStageType.ID);
+    assertThat(policyViolationStageDTO.componentPolicyViolations).hasSize(1);
+    ApiComponentPolicyViolationDTO componentPolicyViolationDTO =
+        policyViolationStageDTO.componentPolicyViolations.get(0);
+    assertComponentDTOV2(componentPolicyViolationDTO.component, waivedViolation1);
+    assertThat(componentPolicyViolationDTO.waivedPolicyViolations).hasSize(1);
+    ApiWaivedPolicyViolationDTO waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation1);
+    assertThat(waivedPolicyViolationDTO.policyWaiver.policyWaiverId).isEqualTo(policyWaiver1.getId());
+    assertThat(waivedPolicyViolationDTO.policyWaiver.createTime).isEqualTo(policyWaiver1.getCreateTime());
+    assertThat(waivedPolicyViolationDTO.policyWaiver.isObsolete).isTrue();
+    assertThat(waivedPolicyViolationDTO.policyWaiver.comment)
+        .isEqualTo("Related policy waiver owner is not in scope. Please re-evaluate.");
+    assertThat(waivedPolicyViolationDTO.policyWaiver.scopeOwnerId).isNull();
+    assertThat(waivedPolicyViolationDTO.policyWaiver.scopeOwnerName).isNull();
+    assertThat(waivedPolicyViolationDTO.policyWaiver.scopeOwnerType).isNull();
+  }
+
+  @Test
   public void testGetComponentsWithWaivers_Applications_NullComponentIdentifier() {
     PolicyWaiver policyWaiver1 = tempEntity.newWaiver("h1", policy1.getId(), app1.getId(), "Some comments here");
     PolicyViolation waivedViolation1 = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluationBuild, policy1,
@@ -470,7 +515,8 @@ public class ApiComponentsWithWaiversReportingServiceTest
 
     ApiWaivedPolicyViolationDTO waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
     assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation1);
-    assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver1);
+    assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver1, OwnerType.APPLICATION.toString(),
+        app1.getName());
     assertApplicationWaiverDTO(applicationWaiverDTO, app1);
   }
 
@@ -508,11 +554,16 @@ public class ApiComponentsWithWaiversReportingServiceTest
 
   private void assertPolicyWaiverDTO(
       ApiPolicyWaiverDTO policyWaiverDTO,
-      PolicyWaiver waiver)
+      PolicyWaiver waiver,
+      String waiverOwnerType,
+      String waiverOwnerName)
   {
     assertThat(policyWaiverDTO.comment).isEqualTo(waiver.getComment());
     assertThat(policyWaiverDTO.createTime).isEqualTo(waiver.getCreateTime());
     assertThat(policyWaiverDTO.policyWaiverId).isEqualTo(waiver.getId());
+    assertThat(policyWaiverDTO.scopeOwnerType).isEqualTo(waiverOwnerType);
+    assertThat(policyWaiverDTO.scopeOwnerId).isEqualTo(waiver.getOwnerId());
+    assertThat(policyWaiverDTO.scopeOwnerName).isEqualTo(waiverOwnerName);
   }
 
   private void assertApplicationWaiverDTO(ApiApplicationWaiverDTO actual, Application app) {

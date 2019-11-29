@@ -26,4 +26,13 @@ public class ApiPolicyWaiverDTO
   public Date createTime;
 
   public boolean isObsolete;
+
+  @JsonInclude(Include.NON_EMPTY)
+  public String scopeOwnerType;
+
+  @JsonInclude(Include.NON_EMPTY)
+  public String scopeOwnerId;
+
+  @JsonInclude(Include.NON_EMPTY)
+  public String scopeOwnerName;
 }

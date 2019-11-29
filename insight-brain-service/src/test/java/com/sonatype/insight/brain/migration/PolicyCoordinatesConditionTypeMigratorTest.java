@@ -54,7 +54,7 @@ public class PolicyCoordinatesConditionTypeMigratorTest
 
   @Before
   public void before() {
-    migrationTrackerDAO.delete(new MigrationTracker(MIGRATION_ID));
+    migrationTrackerDAO.deleteById(MIGRATION_ID);
   }
 
   @Test

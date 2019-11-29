@@ -41,7 +41,7 @@ public class ProprietaryConfigMigratorTest
 
   @Before
   public void before() {
-    migrationTrackerDAO.delete(new MigrationTracker(ProprietaryConfigMigrator.MIGRATION_ID));
+    migrationTrackerDAO.deleteById(ProprietaryConfigMigrator.MIGRATION_ID);
   }
 
   @Test

@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
-import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -51,7 +50,7 @@ public class IgnoredRepositoryComponentMigratorTest
 
   @Test
   public void testMigrate() {
-    new MigrationTrackerDAO().delete(new MigrationTracker(IgnoredRepositoryComponentMigrator.MIGRATION_ID));
+    new MigrationTrackerDAO().deleteById(IgnoredRepositoryComponentMigrator.MIGRATION_ID);
     Repository repository = tempEntity.newRepository("rm1", "r1", "maven2");
     tempEntity.newRepositoryComponent(repository, "a/sha", MatchState.UNKNOWN, "hash");
 

@@ -37,4 +37,8 @@ public class MigrationTrackerDAO
   public void insertTracker(TransactionContext tx, String trackerId) {
     this.insert(tx, new MigrationTracker(trackerId));
   }
+
+  public void deleteById(String migrationTrackerId) {
+    super.delete(getById(migrationTrackerId));
+  }
 }

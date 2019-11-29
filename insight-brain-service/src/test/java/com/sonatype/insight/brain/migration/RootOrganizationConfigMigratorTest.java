@@ -29,7 +29,6 @@ import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
@@ -115,8 +114,8 @@ public class RootOrganizationConfigMigratorTest
 
   @Before
   public void before() throws Exception {
-    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
-    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
+    migrationTrackerDAO.deleteById(RootOrganizationConfigMigrationUtils.MIGRATION_ID);
+    migrationTrackerDAO.deleteById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID);
   }
 
   @Test
@@ -525,7 +524,7 @@ public class RootOrganizationConfigMigratorTest
       // Delete the backup dir, fix the source org id and try again.
       // Migration should succeed and there should be no backup left on disk.
       new FileCleaner().delete(backupDir);
-      migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
+      migrationTrackerDAO.deleteById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID);
       createSourceOrg();
       migrator.migrate();
       assertThat(backupDir).doesNotExist();

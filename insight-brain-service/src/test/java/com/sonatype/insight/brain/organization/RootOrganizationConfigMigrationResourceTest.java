@@ -28,8 +28,8 @@ public class RootOrganizationConfigMigrationResourceTest
     org = tempEntity.newOrganization();
     migrationUtils = getCLMServer().getInstance(RootOrganizationConfigMigrationUtils.class);
     MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
-    migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
-    migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
+    migrationTrackerDAO.deleteById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID);
+    migrationTrackerDAO.deleteById(RootOrganizationConfigMigrationUtils.MIGRATION_ID);
   }
 
   @Test

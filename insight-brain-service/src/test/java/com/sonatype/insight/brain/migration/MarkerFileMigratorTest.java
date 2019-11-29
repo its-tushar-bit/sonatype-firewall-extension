@@ -38,7 +38,7 @@ public class MarkerFileMigratorTest
 
   @Before
   public void before() {
-    migrationTrackerDAO.delete(new MigrationTracker(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID));
+    migrationTrackerDAO.deleteById(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID);
   }
 
   @Test
@@ -125,7 +125,7 @@ public class MarkerFileMigratorTest
   }
 
   private void testMigrate(String migrationTrackerId, File markerFile) throws IOException {
-    migrationTrackerDAO.delete(new MigrationTracker(migrationTrackerId));
+    migrationTrackerDAO.deleteById(migrationTrackerId);
     assertThat(migrationTrackerDAO.getById(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isNull();
     assertThat(migrationTrackerDAO.getById(migrationTrackerId)).isNull();
     markerFile.getParentFile().mkdirs();

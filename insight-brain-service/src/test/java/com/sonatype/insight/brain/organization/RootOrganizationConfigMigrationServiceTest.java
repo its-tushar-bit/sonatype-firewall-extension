@@ -34,8 +34,8 @@ public class RootOrganizationConfigMigrationServiceTest
 
   @Before
   public void before() {
-    migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
-    migrationTrackerDAO.delete(migrationTrackerDAO.getById(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
+    migrationTrackerDAO.deleteById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID);
+    migrationTrackerDAO.deleteById(RootOrganizationConfigMigrationUtils.MIGRATION_ID);
   }
 
   @Test

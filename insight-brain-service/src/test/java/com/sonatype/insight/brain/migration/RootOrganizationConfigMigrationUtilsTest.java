@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.migration;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Before;
@@ -27,8 +26,8 @@ public class RootOrganizationConfigMigrationUtilsTest
 
   @Before
   public void before() {
-    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_ID));
-    migrationTrackerDAO.delete(new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID));
+    migrationTrackerDAO.deleteById(RootOrganizationConfigMigrationUtils.MIGRATION_ID);
+    migrationTrackerDAO.deleteById(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID);
   }
 
   @Test

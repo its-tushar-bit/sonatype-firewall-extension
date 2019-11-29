@@ -33,6 +33,8 @@ public class FirewallIgnorePatternService
 
   private final HdsClient hdsClient;
 
+  public boolean disableCacheForTesting;
+
   @Inject
   public FirewallIgnorePatternService(HdsClient hdsClient) {
     this.hdsClient = hdsClient;
@@ -52,7 +54,7 @@ public class FirewallIgnorePatternService
   }
 
   public FirewallIgnorePatterns getIgnorePatterns() {
-    return ignorePatternsCache.get();
+    return disableCacheForTesting ? fetchFirewallIgnorePatterns() : ignorePatternsCache.get();
   }
 
   private FirewallIgnorePatterns fetchFirewallIgnorePatterns() {

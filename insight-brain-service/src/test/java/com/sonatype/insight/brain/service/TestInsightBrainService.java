@@ -12,6 +12,7 @@ import java.util.Collections;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
@@ -269,6 +270,7 @@ public class TestInsightBrainService
     getInstance(ScanFileCleaner.class).disableForTesting = true;
     getInstance(PolicyEvaluateService.class).disablePollingIntervalForTesting = true;
     getInstance(HdsProductNotificationService.class).disableCacheForTesting = true;
+    getInstance(FirewallIgnorePatternService.class).disableCacheForTesting = true;
   }
 
   public void stop() throws Exception {

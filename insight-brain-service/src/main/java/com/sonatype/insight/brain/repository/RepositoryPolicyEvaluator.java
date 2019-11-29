@@ -9,7 +9,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -38,6 +41,7 @@ import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -90,6 +94,10 @@ public class RepositoryPolicyEvaluator
   private final ComponentDetailsLoader componentDetailsLoader;
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
+  
+  private final FirewallIgnorePatternService firewallIgnorePatternService;
+  
+  private final RepositoryComponentDeleteService repositoryComponentDeleteService;
 
   // CLM-13933
   private static final LoadingCache<String, Object> componentLock = CacheBuilder.newBuilder()
@@ -103,7 +111,9 @@ public class RepositoryPolicyEvaluator
                                    FirewallQuarantineHdsClient quarantineHdsClient,
                                    ComponentDetailsLoader componentDetailsLoader,
                                    PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications,
-                                   PolicyViolationLoggerFactory policyViolationLoggerFactory)
+                                   PolicyViolationLoggerFactory policyViolationLoggerFactory,
+                                   FirewallIgnorePatternService firewallIgnorePatternService,
+                                   RepositoryComponentDeleteService repositoryComponentDeleteService)
   {
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -113,6 +123,8 @@ public class RepositoryPolicyEvaluator
     this.componentDetailsLoader = componentDetailsLoader;
     this.pendingRepositoryPolicyNotifications = pendingRepositoryPolicyNotifications;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
+    this.firewallIgnorePatternService = firewallIgnorePatternService;
+    this.repositoryComponentDeleteService = repositoryComponentDeleteService;
   }
 
   public RepositoryComponentEvaluationDataList evaluate(
@@ -127,6 +139,8 @@ public class RepositoryPolicyEvaluator
 
     ComponentEvaluationDataList componentEvaluationDataList = getComponentDetailsFromHds(repository, withQuarantine,
         componentEvaluationDataRequestList, clientUserAgent);
+    Predicate<String> componentPathnameMatchesIgnorePattern =
+        firewallIgnorePatternService.componentPathnameMatchesIgnorePattern(repository);
     List<Component> components = new ArrayList<>();
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationDataRequest componentEvaluationRequest =
@@ -137,30 +151,45 @@ public class RepositoryPolicyEvaluator
             + componentEvaluationData.requestIndex + ".");
       }
 
-      // Use the claimed component data if found
-      NamedComponentDetails componentDetails = componentDetailsLoader.getComponentDetailsLocally(
-          null /* componentIdentifier */, componentEvaluationData.hash);
-      if (componentDetails == null) {
-        componentDetails = ComponentDetailsAdapter.convert(componentEvaluationData);
-        componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
+      // If the component matches the repository ignore pattern then
+      // 1. Remove it if it is already persisted
+      // 2. Do not evaluate policies on it
+      // 3. Do not persist it
+      if (componentPathnameMatchesIgnorePattern.test(componentEvaluationRequest.pathname)) {
+        RepositoryComponent repositoryComponent = repositoryComponentDAO
+            .getByRepositoryIdAndPathname(repository.getId(), componentEvaluationRequest.pathname);
+        if (repositoryComponent != null) {
+          repositoryComponentDeleteService.deleteComponent(repositoryComponent);
+        }
+        components.add(null);
       }
-
-      Component component = augmentComponentDetails(repository, componentDetails);
-      component.addPathname(componentEvaluationRequest.pathname);
-      components.add(component);
+      else {
+        // Use the claimed component data if found
+        NamedComponentDetails componentDetails = componentDetailsLoader.getComponentDetailsLocally(
+            null /* componentIdentifier */, componentEvaluationData.hash);
+        if (componentDetails == null) {
+          componentDetails = ComponentDetailsAdapter.convert(componentEvaluationData);
+          componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
+        }
+        Component component = augmentComponentDetails(repository, componentDetails);
+        component.addPathname(componentEvaluationRequest.pathname);
+        components.add(component);
+      }
     }
 
     // Evaluate the policies
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(repository.getId(), new Stage(ProxyStageType.ID),
-        components, false /* forMonitoring */);
+        components.stream().filter(Objects::nonNull).collect(Collectors.toList()), false /* forMonitoring */);
 
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
-      Component component = components.get(requestIndex);
-      RepositoryComponent repositoryComponent = persistEvaluationResults(repository, now, component,
-          policyResults, withQuarantine);
       RepositoryComponentEvaluationData repositoryComponentEvaluationResult = new RepositoryComponentEvaluationData();
       repositoryComponentEvaluationResult.requestIndex = requestIndex;
-      repositoryComponentEvaluationResult.quarantine = repositoryComponent.isQuarantined();
+      Component component = components.get(requestIndex);
+      if (component != null) {
+        RepositoryComponent repositoryComponent = persistEvaluationResults(repository, now, component,
+            policyResults, withQuarantine);
+        repositoryComponentEvaluationResult.quarantine = repositoryComponent.isQuarantined();
+      }
       componentEvaluationResultList.componentEvalResults.add(repositoryComponentEvaluationResult);
     }
 

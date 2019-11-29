@@ -58,9 +58,7 @@ public class IgnoredRepositoryComponentMigrator
     log.debug("Deleting ignored repository components...");
 
     List<Repository> repositories = repositoryDAO.getAll();
-    repositories.stream()
-        .filter(repository -> repository.getFormat() != null)
-        .forEach(repositoryComponentDeleteService::deleteUnknownIgnoredComponents);
+    repositories.forEach(repositoryComponentDeleteService::deleteUnknownIgnoredComponents);
     migrationTrackerDAO.insert(new MigrationTracker(MIGRATION_ID));
     log.info("Deleted ignored repository components for {} repositories in {} ms.", repositories.size(),
         System.currentTimeMillis() - start);

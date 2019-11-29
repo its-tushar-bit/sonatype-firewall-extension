@@ -45,7 +45,7 @@ public class RepositoryResourceTest
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
     hdsResult.regexpsByRepositoryFormat.put("foo", Collections.singletonList("bar"));
-    hdsRespondWith(hdsResult).atUri(AbstractRepositoryService.HDS_IGNORE_PATTERNS_PATH);
+    hdsRespondWith(hdsResult).atUri(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH);
 
     HttpResponse response = restRequest().path(RepositoryResource.IGNORE_PATTERNS_PATH).get();
     assertResponseStatus(200, response);

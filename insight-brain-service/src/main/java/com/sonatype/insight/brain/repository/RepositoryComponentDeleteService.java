@@ -7,18 +7,16 @@ package com.sonatype.insight.brain.repository;
 
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
-import com.sonatype.insight.brain.integration.repository.RepositoryService;
+import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -35,7 +33,7 @@ public class RepositoryComponentDeleteService
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryComponentDeleteService.class);
 
-  private final RepositoryService repositoryService;
+  private final FirewallIgnorePatternService firewallIgnorePatternService;
 
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
@@ -47,13 +45,13 @@ public class RepositoryComponentDeleteService
 
   @Inject
   public RepositoryComponentDeleteService(
-      RepositoryService repositoryService,
+      FirewallIgnorePatternService firewallIgnorePatternService,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       RepositoryComponentDAO repositoryComponentDAO,
       PolicyWaiverDAO policyWaiverDAO,
       ComponentLabelDAO componentLabelDAO)
   {
-    this.repositoryService = repositoryService;
+    this.firewallIgnorePatternService = firewallIgnorePatternService;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.policyWaiverDAO = policyWaiverDAO;
@@ -64,28 +62,20 @@ public class RepositoryComponentDeleteService
     List<RepositoryComponent> unknownAndIgnoredComponents = findUnknownAndIgnoredComponents(repository);
     log.info("Deleting {} ignored components from repository: {}.",
         unknownAndIgnoredComponents.size(), repository.getPublicId());
-    unknownAndIgnoredComponents.forEach(component -> deleteComponent(repository, component));
+    unknownAndIgnoredComponents.forEach(this::deleteComponent);
   }
 
   private List<RepositoryComponent> findUnknownAndIgnoredComponents(Repository repository) {
+    Predicate<String> componentPathnameMatchesIgnorePattern =
+        firewallIgnorePatternService.componentPathnameMatchesIgnorePattern(repository);
     return repositoryComponentDAO.getByRepositoryIdAndMatchStateId(repository.getId(), MatchState.UNKNOWN.getId())
-        .stream().filter(componentPathnameMatchesIgnorePattern(repository)).collect(Collectors.toList());
+        .stream()
+        .filter(repositoryComponent -> componentPathnameMatchesIgnorePattern.test(repositoryComponent.getPathname()))
+        .collect(Collectors.toList());
   }
 
-  private Predicate<RepositoryComponent> componentPathnameMatchesIgnorePattern(Repository repository) {
-    FirewallIgnorePatterns firewallIgnorePatterns = repositoryService.getIgnorePatterns();
-
-    List<String> regexForRepository = firewallIgnorePatterns.regexpsByRepositoryFormat.get(repository.getFormat());
-    if (regexForRepository == null) {
-      return component -> false;
-    }
-
-    List<Pattern> patterns = regexForRepository.stream().map(Pattern::compile).collect(Collectors.toList());
-    return component -> patterns.stream().anyMatch(pattern -> pattern.matcher(component.getPathname()).matches());
-  }
-
-  private void deleteComponent(Repository repository, RepositoryComponent component) {
-    String repoId = repository.getId();
+  public void deleteComponent(RepositoryComponent component) {
+    String repoId = component.getRepositoryId();
     String componentPath = component.getPathname();
     String componentHash = component.getHash();
 

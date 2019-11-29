@@ -21,12 +21,15 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -43,6 +46,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -52,6 +56,7 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 public class RepositoryReevaluationTaskTest
@@ -82,8 +87,17 @@ public class RepositoryReevaluationTaskTest
   @Inject
   private PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  @Inject
+  private FirewallIgnorePatternService firewallIgnorePatternService;
+
+  @Inject
+  private RepositoryComponentDeleteService repositoryComponentDeleteService;
+
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
+
+  @Mock
+  private HdsClient mockHdsClient;
 
   private RepositoryComponent unknownComponent;
 
@@ -96,6 +110,12 @@ public class RepositoryReevaluationTaskTest
   private ExecutorService executorService = Executors.newFixedThreadPool(1);
 
   private Map<String, AtomicInteger> activeReevaluations;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(HdsClient.class).toInstance(mockHdsClient);
+    super.configure(binder);
+  }
 
   /*
    * Setup:
@@ -124,9 +144,15 @@ public class RepositoryReevaluationTaskTest
     activeReevaluations = new HashMap<>();
     activeReevaluations.put(repository.getId(), new AtomicInteger());
 
+    FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
+    firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
+    lenient().when(mockHdsClient.get(eq(FirewallIgnorePatterns.class),
+        eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH))).thenReturn(firewallIgnorePatterns);
+
     task = new RepositoryReevaluationTask(repository, new RepositoryPolicyEvaluator(componentPolicyEvaluator,
         repositoryComponentDAO, repositoryPolicyViolationDAO, auditHdsClient, null, componentDetailsLoader,
-        pendingRepositoryPolicyNotifications, policyViolationLoggerFactory), executorService, activeReevaluations);
+        pendingRepositoryPolicyNotifications, policyViolationLoggerFactory, firewallIgnorePatternService,
+        repositoryComponentDeleteService), executorService, activeReevaluations);
     createHdsResponse();
   }
 

@@ -312,6 +312,10 @@ public class HdsMockServer
           throw new RequestException(HttpServletResponse.SC_BAD_REQUEST,
               scanId.isEmpty() ? "scan id missing" : "bad scan id");
         }
+        else if (uri.equals("/rest/component/details/firewall/ignorePatterns") && "GET".equals(request.getMethod())) {
+          consume(baseRequest);
+          sendJson(response, "{\"regexpsByRepositoryFormat\":{}}");
+        }
       }
       catch (RequestException e) {
         consume(baseRequest);

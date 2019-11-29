@@ -60,10 +60,16 @@ public class RepositoryResource
   static final String IGNORE_PATTERNS_PATH = "evaluate/ignorePatterns";
 
   private final RepositoryService repositoryService;
+  
+  private final FirewallIgnorePatternService firewallIgnorePatternService;
 
   @Inject
-  public RepositoryResource(final RepositoryService repositoryService) {
+  public RepositoryResource(
+      RepositoryService repositoryService,
+      FirewallIgnorePatternService firewallIgnorePatternService)
+  {
     this.repositoryService = repositoryService;
+    this.firewallIgnorePatternService = firewallIgnorePatternService;
   }
 
   /**
@@ -161,6 +167,6 @@ public class RepositoryResource
   @Path(IGNORE_PATTERNS_PATH)
   @Produces({ MediaType.APPLICATION_JSON })
   public FirewallIgnorePatterns getIgnorePatterns() {
-    return repositoryService.getIgnorePatterns();
+    return firewallIgnorePatternService.getIgnorePatterns();
   }
 }

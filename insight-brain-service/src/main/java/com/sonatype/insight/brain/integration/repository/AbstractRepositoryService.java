@@ -50,8 +50,6 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractRepositoryService
 {
-  public static final String HDS_IGNORE_PATTERNS_PATH = "rest/component/details/firewall/ignorePatterns";
-
   private static final Logger log = LoggerFactory.getLogger(AbstractRepositoryService.class);
 
   private static final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();

@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.ImmutableMap;
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.configuration.ResourceConfigurationSourceProvider;
 import io.dropwizard.jackson.Jackson;
@@ -414,14 +413,5 @@ public class InsightConfigurationFactoryTest
       AbstractAppenderFactory<?> appenderFactory = (AbstractAppenderFactory<?>) appenderFac;
       assertThat(appenderFactory.getFilterFactories()).hasAtLeastOneElementOfType(filterFactoryClass);
     }
-  }
-
-  private void assertLoggerLevel(DefaultLoggingFactory loggingFactory, String loggerName, Level expected) {
-    ImmutableMap<String, JsonNode> loggerLevels = loggingFactory.getLoggers();
-    JsonNode jsonNode = loggerLevels.get(loggerName);
-    String levelString = jsonNode.asText();
-    Level level = Level.valueOf(levelString);
-
-    assertThat(level).isEqualTo(expected);
   }
 }

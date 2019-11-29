@@ -63,6 +63,7 @@ import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReport
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
@@ -127,6 +128,7 @@ import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
@@ -2036,6 +2038,23 @@ public class TemporaryEntity
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity() {
     return newThirdPartyCoordinateSecurity(newThirdPartyFileCoordinate(), "r1", "d1", "l1", 5.5f, "1.1", "some source",
         "v:1", "Medium", "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>");
+  }
+
+  public ThirdPartyCoordinateLicense newThirdPartyCoordinateLicense() {
+    return newThirdPartyCoordinateLicense(newThirdPartyFileCoordinate(), "e1", "s1", "n1", "u1");
+  }
+
+  public ThirdPartyCoordinateLicense newThirdPartyCoordinateLicense(
+      ThirdPartyFileCoordinate fileCoordinate,
+      String expression,
+      String licenseId,
+      String name,
+      String url)
+  {
+    ThirdPartyCoordinateLicense coordinateLicense =
+        new ThirdPartyCoordinateLicense(fileCoordinate.getId(), expression, licenseId, name, url);
+    new ThirdPartyCoordinateLicenseDAO().insert(coordinateLicense);
+    return coordinateLicense;
   }
 
   public SamlConfiguration newSamlConfiguration(

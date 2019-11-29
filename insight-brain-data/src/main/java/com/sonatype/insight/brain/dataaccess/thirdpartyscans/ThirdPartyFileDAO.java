@@ -38,6 +38,10 @@ public class ThirdPartyFileDAO
 
   @Override
   public void delete(TransactionContext tx, ThirdPartyFile thirdPartyFile) {
+    // cascade delete license coordinate
+    new ThirdPartyFileCoordinateDAO().getByThirdPartyFileId(thirdPartyFile.getId()).forEach(thirdPartyFileCoordinate ->
+        new ThirdPartyCoordinateLicenseDAO().deleteByFileCoordinateId(tx, thirdPartyFileCoordinate.getId()));
+
     // cascade delete file coordinates
     new ThirdPartyFileCoordinateDAO().deleteByThirdPartyFileId(tx, thirdPartyFile.getId());
     // cascade delete scanned files

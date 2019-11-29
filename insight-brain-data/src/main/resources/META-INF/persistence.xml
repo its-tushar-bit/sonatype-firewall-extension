@@ -139,6 +139,7 @@
   </persistence-unit>
   <persistence-unit name="InsightBrainThirdPartyScans" transaction-type="RESOURCE_LOCAL">
     <provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
+    <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense</class>
     <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate</class>
     <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity</class>
     <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile</class>

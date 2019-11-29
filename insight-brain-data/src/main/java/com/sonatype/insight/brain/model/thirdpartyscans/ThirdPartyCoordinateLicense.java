@@ -1,0 +1,107 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.model.thirdpartyscans;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import com.sonatype.insight.model.HasStringId;
+
+@Entity
+@Table(name = "coordinate_license")
+public class ThirdPartyCoordinateLicense
+    implements HasStringId
+{
+  public ThirdPartyCoordinateLicense() {
+    // noop
+  }
+
+  public ThirdPartyCoordinateLicense(
+      String fileCoordinateId,
+      String expression,
+      String licenseId,
+      String name,
+      String url)
+  {
+
+    this.fileCoordinateId = fileCoordinateId;
+    this.expression = expression;
+    this.licenseId = licenseId;
+    this.name = name;
+    this.url = url;
+  }
+
+  @Id
+  @Column(name = "coordinate_license_id")
+  private String id;
+
+  @Column(name = "file_coordinate_id")
+  private String fileCoordinateId;
+
+  @Column(name = "expression")
+  private String expression;
+
+  @Column(name = "license_id")
+  private String licenseId;
+
+  @Column(name = "name")
+  private String name;
+
+  @Column(name = "url")
+  private String url;
+
+  @Override
+  public String getId() {
+    return id;
+  }
+
+  @Override
+  public void setId(String id) {
+    this.id = id;
+  }
+
+  public String getFileCoordinateId() {
+    return fileCoordinateId;
+  }
+
+  public void setFileCoordinateId(String fileCoordinateId) {
+    this.fileCoordinateId = fileCoordinateId;
+  }
+
+  public String getExpression() {
+    return expression;
+  }
+
+  public void setExpression(String expression) {
+    this.expression = expression;
+  }
+
+  public String getLicenseId() {
+    return licenseId;
+  }
+
+  public void setLicenseId(String licenseId) {
+    this.licenseId = licenseId;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getUrl() {
+    return url;
+  }
+
+  public void setUrl(String url) {
+    this.url = url;
+  }
+}

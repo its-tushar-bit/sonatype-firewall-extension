@@ -41,6 +41,9 @@ module.exports = {
     "eslint:recommended",
     "plugin:react/recommended"
   ],
+  "plugins": [
+    "deprecate"
+  ],
   "rules": {
     "camelcase": [
       "error",
@@ -160,11 +163,12 @@ module.exports = {
     "object-property-newline": ["error", { "allowMultiplePropertiesPerLine": true }],
     "brace-style": ["error", "stroustrup", { "allowSingleLine": true }],
     "react/jsx-indent": ["error", 2],
-    "react/jsx-indent-props": ["error", 'first']
+    "react/jsx-indent-props": ["error", 'first'],
+    "deprecate/member-expression": ["error", {"name": "angular.merge", "use": "ramdajs deep merge methods"}]
   },
   "settings": {
     "react": {
       "version": "detect"
     }
   }
-}
+};

@@ -64,6 +64,7 @@
     "enzyme-adapter-react-16": "1.12.1",
     "eslint": "=4.10.0",
     "eslint-loader": "=1.9.0",
+    "eslint-plugin-deprecate": "0.7.0",
     "eslint-plugin-react": "7.12.4",
     "exports-loader": "=0.6.4",
     "extract-text-webpack-plugin": "=3.0.2",

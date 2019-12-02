@@ -78,6 +78,20 @@ public class ApiComponentRemediationServiceTest
   private static final ComponentIdentifier MAVEN_COORDINATES_V3 = ComponentIdentifier.createMavenCoordinates("g1", "a1",
       "v3", "", "jar");
 
+  private static final ComponentIdentifier MAVEN_COORDINATES_NO_EXT =
+      ComponentIdentifier.createMavenCoordinates("g1", "a1", "v4");
+
+  private static final ComponentIdentifier PYPI_COORDINATES =
+      ComponentIdentifier.createPypiCoordinates("n", "v", "q", "e");
+
+  private static final ComponentIdentifier PYPI_COORDINATES_NO_EXT =
+      ComponentIdentifier.createPypiCoordinates("n", "v", null, null);
+
+  private static final ComponentIdentifier RPM_COORDINATES = ComponentIdentifier.createRpmCoordinates("n", "v", "a");
+
+  private static final ComponentIdentifier RPM_COORDINATES_NO_ARCH =
+      ComponentIdentifier.createRpmCoordinates("n", "v", null);
+
   PolicyAlert failAlert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10), asList(new Action(
       Action.ID_FAIL)));
 
@@ -270,26 +284,77 @@ public class ApiComponentRemediationServiceTest
   }
 
   @Test
-  public void testGetSuggestedRemediationForComponent_ThirdParty() {
-    ApiComponentDTOV2 dto = new ApiComponentDTOV2();
-    dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_V1);
-    ComponentDetailsDTO componentDetailsDTO = new ComponentDetailsDTO();
-    componentDetailsDTO.componentIdentifier = MAVEN_COORDINATES_V1;
-    componentDetailsDTO.violatedPolicyCount = 1;
-    componentDetailsDTO.policyAlerts = asList(failAlert);
+  public void testGetSuggestedRemediationForComponent_Pypi() {
+    assertSuggestedRemediationForComponent_ThirdParty(PYPI_COORDINATES);
+  }
 
+  @Test
+  public void testGetSuggestedRemediationForComponent_Pypi_NoExt() {
+    ApiComponentDTOV2 component = createComponent(PYPI_COORDINATES_NO_EXT);
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(),
+            DevelopStageType.ID)).withMessage("The following coordinates are missing for given format: [extension]");
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_Rpm() {
+    assertSuggestedRemediationForComponent_ThirdParty(RPM_COORDINATES);
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_Rpm_NoExt() {
+    ApiComponentDTOV2 component = createComponent(RPM_COORDINATES_NO_ARCH);
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(),
+            DevelopStageType.ID)).withMessage("The following coordinates are missing for given format: [architecture]");
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_Maven_ThirdParty() {
+    assertSuggestedRemediationForComponent_ThirdParty(MAVEN_COORDINATES_V1);
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_Pypi_ThirdParty() {
+    assertSuggestedRemediationForComponent_ThirdParty(PYPI_COORDINATES);
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_Rpm_ThirdParty() {
+    assertSuggestedRemediationForComponent_ThirdParty(RPM_COORDINATES);
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_Maven_ThirdParty_NoExtension() {
+    assertSuggestedRemediationForComponent_ThirdParty(MAVEN_COORDINATES_NO_EXT);
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_Pypi_ThirdParty_NoExtension() {
+    assertSuggestedRemediationForComponent_ThirdParty(PYPI_COORDINATES_NO_EXT);
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_Rpm_ThirdParty_NoArchitecture() {
+    assertSuggestedRemediationForComponent_ThirdParty(RPM_COORDINATES_NO_ARCH);
+  }
+
+  private void assertSuggestedRemediationForComponent_ThirdParty(ComponentIdentifier componentIdentifier) {
+    ApiComponentDTOV2 component = createComponent(componentIdentifier);
     final String identificationSource = "Clair";
     final String scanId = "scanId";
+    ComponentDetailsDTO componentDetailsDTO = new ComponentDetailsDTO();
+    componentDetailsDTO.componentIdentifier = componentIdentifier;
+    componentDetailsDTO.violatedPolicyCount = 1;
+    componentDetailsDTO.policyAlerts = asList(failAlert);
     doReturn(ComponentSummary.create(true)).when(thirdPartyComponentDAO)
-        .getComponentSummary(MAVEN_COORDINATES_V1, app.getId(), scanId);
+        .getComponentSummary(componentIdentifier, app.getId(), scanId);
     doReturn(Collections.singletonList(componentDetailsDTO)).when(componentInfoServiceMock)
-        .getComponentDetailsForAllVersionsNoAuth(OwnerType.APPLICATION, app.getPublicId(), MAVEN_COORDINATES_V1,
+        .getComponentDetailsForAllVersionsNoAuth(OwnerType.APPLICATION, app.getPublicId(), componentIdentifier,
             DevelopStageType.ID, identificationSource, scanId);
-
     ApiComponentRemediationDTO retVal = service
-        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID,
+        .getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID,
             identificationSource, scanId);
-
     assertRemediationZeroCounts(retVal.remediation);
     assertTelemetry("application", app.getId(), componentDetailsDTO.componentIdentifier);
   }

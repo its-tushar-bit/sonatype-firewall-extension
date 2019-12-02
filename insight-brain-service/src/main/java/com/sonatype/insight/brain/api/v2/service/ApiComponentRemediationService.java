@@ -125,12 +125,14 @@ public class ApiComponentRemediationService
     }
 
     String publicOwnerId = ownerId;
+    boolean isThirdPartySource =
+        IdentificationSource.isThirdPartyIdentificationSource(identificationSource);
 
-    ComponentIdentifier componentIdentifier = validateRequest(componentDTO);
+    ComponentIdentifier componentIdentifier = validateRequest(componentDTO, isThirdPartySource);
 
     ComponentSummary componentSummary;
 
-    if (scanId != null && IdentificationSource.isThirdPartyIdentificationSource(identificationSource)) {
+    if (scanId != null && isThirdPartySource) {
       componentSummary = thirdPartyComponentDAO
           .getComponentSummary(requestedComponentIdentifier(componentDTO.componentIdentifier), ownerId, scanId);
     }
@@ -229,28 +231,30 @@ public class ApiComponentRemediationService
     return new ApiVersionChangeOptionDTO(apiVersionChangeOptionType, new ApiComponentChangeActionDTO(componentDTOV2));
   }
 
-  private ComponentIdentifier validateRequest(ApiComponentDTOV2 componentDTO) {
+  private ComponentIdentifier validateRequest(ApiComponentDTOV2 componentDTO, boolean isThirdParty) {
     if (componentDTO == null || (componentDTO.componentIdentifier == null && componentDTO.packageUrl == null)) {
       throw new BadRequestException("One of either componentIdentifier or packageUrl must be supplied.");
     }
 
     if (componentDTO.componentIdentifier != null) {
-      return validateComponentIdentifier(componentDTO);
+      return validateComponentIdentifier(componentDTO, isThirdParty);
     }
     else {
       return validatePackageUrl(componentDTO);
     }
   }
 
-  private ComponentIdentifier validateComponentIdentifier(ApiComponentDTOV2 componentDTO) {
+  private ComponentIdentifier validateComponentIdentifier(ApiComponentDTOV2 componentDTO, boolean isThirdParty) {
     if (componentDTO.componentIdentifier == null) {
       throw new BadRequestException("ComponentIdentifier must be supplied.");
     }
-
     try {
       ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
           componentDTO.componentIdentifier.getCoordinates());
-      componentIdentifier.ensureComplete();
+      if (!isThirdParty) {
+        // The complete identifier is not required to determine the suggested remediation for third party components
+        componentIdentifier.ensureComplete();
+      }
       return componentIdentifier;
     }
     catch (InvalidComponentIdentifierException e) {

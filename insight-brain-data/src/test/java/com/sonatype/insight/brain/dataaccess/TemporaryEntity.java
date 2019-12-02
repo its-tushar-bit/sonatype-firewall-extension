@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.dataaccess;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -69,10 +72,12 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoord
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.MigrationTracker;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
@@ -442,23 +447,45 @@ public class TemporaryEntity
     return UUID.randomUUID().toString().replace("-", "");
   }
 
-  public DashboardFilter newDashboardFilter(String username, String filterName, String filter) {
-    return newDashboardFilter(username, filterName, false, null, filter);
+  public DashboardFilter newDashboardFilter(String username, String realmId, String filterName, String filter) {
+    return newDashboardFilter(username, realmId, filterName, false, null, filter);
   }
 
-  public DashboardFilter newDashboardFilter(String username,
-                                            String filterName,
-                                            boolean acknowledged,
-                                            String basedOn,
-                                            String filter)
+  public DashboardFilter newDashboardFilter(
+      String username,
+      String realmId,
+      String filterName,
+      boolean acknowledged,
+      String basedOn,
+      String filter)
   {
-    DashboardFilter dashboardFilter = new DashboardFilter();
-    dashboardFilter.setUsername(username);
+    DashboardFilter dashboardFilter = new DashboardFilter(username, realmId, filterName);
     dashboardFilter.setFilter(filter);
-    dashboardFilter.setName(filterName);
     dashboardFilter.setBasedOnFilterName(basedOn);
     dashboardFilter.setAcknowledged(acknowledged);
     dashboardFilterDAO.insert(dashboardFilter);
+    dashboardFilters.add(dashboardFilter);
+    return dashboardFilter;
+  }
+
+  public DashboardFilter newDashboardFilterLegacy(String username, String filterName, String filter) {
+    String id = uuid();
+    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+        PreparedStatement statement = connection.prepareStatement("INSERT INTO dashboard_filter " + //
+            "(dashboard_filter_id, username, username_lowercase, name, name_lowercase_no_whitespace, filter_json) " + //
+            "VALUES (?1, ?2, ?3, ?4, ?5, ?6)")) {
+      statement.setString(1, id);
+      statement.setString(2, username);
+      statement.setString(3, User.normalizeUsername(username));
+      statement.setString(4, filterName);
+      statement.setString(5, NameHelper.normalize(filterName));
+      statement.setString(6, filter);
+      statement.execute();
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+    DashboardFilter dashboardFilter = dashboardFilterDAO.getById(id);
     dashboardFilters.add(dashboardFilter);
     return dashboardFilter;
   }

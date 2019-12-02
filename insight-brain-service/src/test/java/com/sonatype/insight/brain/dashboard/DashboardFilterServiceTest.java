@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -128,18 +129,22 @@ public class DashboardFilterServiceTest
   public void testGetNamedDashboardFiltersForCurrentUser() throws IOException {
     String filterName1 = "Filter1";
     NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName1, 2, 10);
-    tempEntity.newDashboardFilter(USERNAME, filterName1, JsonUtils.format(dto1.filter));
+    tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, filterName1, JsonUtils.format(dto1.filter));
 
     String filterName2 = "Filter2";
     NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName2, 3, 9);
-    tempEntity.newDashboardFilter(USERNAME, filterName2, JsonUtils.format(dto2.filter));
+    tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, filterName2, JsonUtils.format(dto2.filter));
 
-    String filterName3 = ACTIVE_FILTER_NAME;
-    NamedDashboardFilterDTO dto3 = createNamedDashboardFilterDTO(filterName3, 5, 9);
-    tempEntity.newDashboardFilter(USERNAME, filterName3, JsonUtils.format(dto3.filter));
+    String filterName3 = "Filter3";
+    NamedDashboardFilterDTO dto3 = createNamedDashboardFilterDTO(filterName3, 1, 5);
+    tempEntity.newDashboardFilterLegacy(USERNAME, filterName3, JsonUtils.format(dto3.filter));
+
+    String filterName4 = ACTIVE_FILTER_NAME;
+    NamedDashboardFilterDTO dto4 = createNamedDashboardFilterDTO(filterName4, 5, 9);
+    tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, filterName4, JsonUtils.format(dto4.filter));
 
     List<NamedDashboardFilterDTO> actual = dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
-    assertThat(actual).hasSize(2);
+    assertThat(actual).hasSize(3);
     assertNamedDashboardFilterDTO(actual.get(0), filterName1, null /* basedOnFilterName */,
         false /* needsAcknowledgement */);
     assertFilterEmptyState(actual.get(0).filter, 2, 10);
@@ -147,6 +152,10 @@ public class DashboardFilterServiceTest
     assertNamedDashboardFilterDTO(actual.get(1), filterName2, null /* basedOnFilterName */,
         false /* needsAcknowledgement */);
     assertFilterEmptyState(actual.get(1).filter, 3, 9);
+
+    assertNamedDashboardFilterDTO(actual.get(2), filterName3, null /* basedOnFilterName */,
+        false /* needsAcknowledgement */);
+    assertFilterEmptyState(actual.get(2).filter, 1, 5);
   }
 
   @Test
@@ -155,7 +164,7 @@ public class DashboardFilterServiceTest
 
     String filterJsonWithoutMaxDaysOld = IOUtils.toString(getClass().getResource(FILTER_WITHOUT_MAX_DAYS_OLD_PATH),
         "UTF-8");
-    tempEntity.newDashboardFilter(USERNAME, filterName, filterJsonWithoutMaxDaysOld);
+    tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, filterName, filterJsonWithoutMaxDaysOld);
 
     List<NamedDashboardFilterDTO> actual = dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
     assertThat(actual).hasSize(1);
@@ -168,7 +177,7 @@ public class DashboardFilterServiceTest
 
     String filterJsonWithoutPolicyViolationStates = IOUtils
         .toString(getClass().getResource(FILTER_WITHOUT_POLICY_VIOLATION_STATES), "UTF-8");
-    tempEntity.newDashboardFilter(USERNAME, filterName, filterJsonWithoutPolicyViolationStates);
+    tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, filterName, filterJsonWithoutPolicyViolationStates);
 
     List<NamedDashboardFilterDTO> namedFilters = dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
     assertThat(namedFilters).hasSize(1);
@@ -197,7 +206,8 @@ public class DashboardFilterServiceTest
   {
     String filterName1 = "Filter1";
     NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName1, 2, 10);
-    DashboardFilter filter1 = tempEntity.newDashboardFilter(USERNAME, filterName1, JsonUtils.format(dto1.filter));
+    DashboardFilter filter1 =
+        tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, filterName1, JsonUtils.format(dto1.filter));
     assertThat(filter1.isAcknowledged()).isFalse();
 
     insightConfig.setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
@@ -210,12 +220,14 @@ public class DashboardFilterServiceTest
     DashboardFilter actual = dashboardFilterDAO.getById(filter1.getId());
     DashboardFilterDTO actualDto = JsonUtils.parse(actual.getFilter(), DashboardFilterDTO.class);
 
-    assertDashboardFilter(actual, filter1.getUsername(), filterName1, filter1.getNameLowercaseNoWhitespace(),
-        null /* basedOnFilterName */, needsAcknowledgementOfInitialDashboardFilter);
+    assertDashboardFilter(actual, filter1.getUsername(), InternalRealm.ID, filterName1,
+        filter1.getNameLowercaseNoWhitespace(), null /* basedOnFilterName */,
+        needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(actualDto, 3, 9);
 
-    DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, ACTIVE_FILTER_NAME);
-    assertDashboardFilter(activeFilter, filter1.getUsername(), ACTIVE_FILTER_NAME /* name */,
+    DashboardFilter activeFilter =
+        dashboardFilterDAO.getByUsernameAndRealmIdAndName(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME);
+    assertDashboardFilter(activeFilter, filter1.getUsername(), InternalRealm.ID, ACTIVE_FILTER_NAME /* name */,
         ACTIVE_FILTER_NAME /* nameLowercaseNoWhitespace */, "Filter1", needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(JsonUtils.parse(activeFilter.getFilter(), DashboardFilterDTO.class), 3, 9);
 
@@ -224,9 +236,50 @@ public class DashboardFilterServiceTest
     dto3.basedOnFilterName = filterName1;
     dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dto3);
 
-    activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, ACTIVE_FILTER_NAME);
-    assertDashboardFilter(activeFilter, filter1.getUsername(), ACTIVE_FILTER_NAME /* name */,
+    activeFilter = dashboardFilterDAO.getByUsernameAndRealmIdAndName(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME);
+    assertDashboardFilter(activeFilter, filter1.getUsername(), InternalRealm.ID, ACTIVE_FILTER_NAME /* name */,
         ACTIVE_FILTER_NAME /* nameLowercaseNoWhitespace */, "Filter1", needsAcknowledgementOfInitialDashboardFilter);
+    assertFilterEmptyState(JsonUtils.parse(activeFilter.getFilter(), DashboardFilterDTO.class), 7, 10);
+  }
+
+  @Test
+  public void testCreateOrUpdateDashboardFilterForCurrentUser_UpdateLegacyFilter() throws Exception {
+    boolean needsAcknowledgementOfInitialDashboardFilter = false;
+    String filterName = "Filter";
+    NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName, 2, 10);
+    DashboardFilter filter = tempEntity.newDashboardFilterLegacy(USERNAME, filterName, JsonUtils.format(dto1.filter));
+    assertThat(filter.getRealmId()).isNull();
+    assertThat(filter.isAcknowledged()).isFalse();
+
+    insightConfig.setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
+
+    NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName, 3, 9);
+    // this should update the above filter
+    dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dto2);
+
+    // verify that the filter above was updated successfully
+    DashboardFilter actual = dashboardFilterDAO.getById(filter.getId());
+    DashboardFilterDTO actualDto = JsonUtils.parse(actual.getFilter(), DashboardFilterDTO.class);
+
+    assertDashboardFilter(actual, filter.getUsername(), InternalRealm.ID, filterName,
+        filter.getNameLowercaseNoWhitespace(), null /* basedOnFilterName */,
+        needsAcknowledgementOfInitialDashboardFilter);
+    assertFilterEmptyState(actualDto, 3, 9);
+
+    DashboardFilter activeFilter =
+        dashboardFilterDAO.getByUsernameAndRealmIdAndName(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME);
+    assertDashboardFilter(activeFilter, filter.getUsername(), InternalRealm.ID, ACTIVE_FILTER_NAME /* name */,
+        ACTIVE_FILTER_NAME /* nameLowercaseNoWhitespace */, filterName, needsAcknowledgementOfInitialDashboardFilter);
+    assertFilterEmptyState(JsonUtils.parse(activeFilter.getFilter(), DashboardFilterDTO.class), 3, 9);
+
+    // check that we can update the active filter
+    NamedDashboardFilterDTO dto3 = createNamedDashboardFilterDTO(ACTIVE_FILTER_NAME, 7, 10);
+    dto3.basedOnFilterName = filterName;
+    dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dto3);
+
+    activeFilter = dashboardFilterDAO.getByUsernameAndRealmIdAndName(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME);
+    assertDashboardFilter(activeFilter, filter.getUsername(), InternalRealm.ID, ACTIVE_FILTER_NAME /* name */,
+        ACTIVE_FILTER_NAME /* nameLowercaseNoWhitespace */, filterName, needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(JsonUtils.parse(activeFilter.getFilter(), DashboardFilterDTO.class), 7, 10);
   }
 
@@ -250,15 +303,16 @@ public class DashboardFilterServiceTest
     NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO("Filter1", 2, 10);
     dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dto1);
 
-    List<DashboardFilter> actual = dashboardFilterDAO.getNamedFiltersByUsername(USERNAME);
+    List<DashboardFilter> actual = dashboardFilterDAO.getNamedFiltersByUsernameAndRealmId(USERNAME, InternalRealm.ID);
     assertThat(actual).hasSize(1);
     DashboardFilterDTO actualDto = JsonUtils.parse(actual.get(0).getFilter(), DashboardFilterDTO.class);
-    assertDashboardFilter(actual.get(0), USERNAME, "Filter1", "filter1", null /* basedOnFilterName */,
+    assertDashboardFilter(actual.get(0), USERNAME, InternalRealm.ID, "Filter1", "filter1", null /* basedOnFilterName */,
         needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(actualDto, 2, 10);
 
-    DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, ACTIVE_FILTER_NAME);
-    assertDashboardFilter(activeFilter, USERNAME, ACTIVE_FILTER_NAME, ACTIVE_FILTER_NAME, "Filter1",
+    DashboardFilter activeFilter =
+        dashboardFilterDAO.getByUsernameAndRealmIdAndName(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME);
+    assertDashboardFilter(activeFilter, USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME, ACTIVE_FILTER_NAME, "Filter1",
         needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(JsonUtils.parse(activeFilter.getFilter(), DashboardFilterDTO.class), 2, 10);
   }
@@ -297,14 +351,28 @@ public class DashboardFilterServiceTest
         needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(actual.filter, 2, 10);
 
-    assertThat(dashboardFilterDAO.getByUsernameAndName(USERNAME, ACTIVE_FILTER_NAME)).isNull();
+    assertThat(dashboardFilterDAO.getByUsernameAndRealmIdAndName(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME))
+        .isNull();
   }
 
   @Test
   public void testGetActiveDashboardFilterForCurrentUser_ExistingFilter() throws Exception {
     NamedDashboardFilterDTO namedDashboardFilterDTO = createNamedDashboardFilterDTO(ACTIVE_FILTER_NAME, 5, 7);
-    tempEntity.newDashboardFilter(USERNAME, ACTIVE_FILTER_NAME, false /* acknowledged */, null,
+    tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME, false /* acknowledged */, null,
         JsonUtils.format(namedDashboardFilterDTO.filter));
+
+    NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    assertNamedDashboardFilterDTO(actual, ACTIVE_FILTER_NAME, null /* basedOnFilterName */,
+        false /* needsAcknowledgement */);
+    assertFilterEmptyState(actual.filter, 5, 7);
+  }
+
+  @Test
+  public void testGetActiveDashboardFilterForCurrentUser_ExistingLegacyFilter() throws Exception {
+    NamedDashboardFilterDTO namedDashboardFilterDTO = createNamedDashboardFilterDTO(ACTIVE_FILTER_NAME, 5, 7);
+    DashboardFilter dashboardFilter = tempEntity.newDashboardFilterLegacy(USERNAME, ACTIVE_FILTER_NAME,
+        JsonUtils.format(namedDashboardFilterDTO.filter));
+    assertThat(dashboardFilter.getRealmId()).isNull();
 
     NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
     assertNamedDashboardFilterDTO(actual, ACTIVE_FILTER_NAME, null /* basedOnFilterName */,
@@ -318,8 +386,8 @@ public class DashboardFilterServiceTest
   {
     // Create an unnamed active filter that was not acknowledged by the user.
     NamedDashboardFilterDTO namedDashboardFilterDTO = createNamedDashboardFilterDTO(ACTIVE_FILTER_NAME, 5, 7);
-    DashboardFilter activeFilter = tempEntity.newDashboardFilter(USERNAME, ACTIVE_FILTER_NAME, false /* acknowledged */,
-        null, JsonUtils.format(namedDashboardFilterDTO.filter));
+    DashboardFilter activeFilter = tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME,
+        false /* acknowledged */, null, JsonUtils.format(namedDashboardFilterDTO.filter));
 
     // Enable the needsAcknowledgementOfInitialDashboardFilter config option
     insightConfig.setNeedsAcknowledgementOfInitialDashboardFilter(true);
@@ -340,7 +408,8 @@ public class DashboardFilterServiceTest
 
     // Update the active filter to mark it as not acknowledged, but based on a named filter.
     // It should not need acknowledgement.
-    tempEntity.newDashboardFilter(USERNAME, "My Filter", JsonUtils.format(namedDashboardFilterDTO.filter));
+    tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, "My Filter",
+        JsonUtils.format(namedDashboardFilterDTO.filter));
     activeFilter.setAcknowledged(false);
     activeFilter.setBasedOnFilterName("My Filter");
     dashboardFilterDAO.update(activeFilter);
@@ -352,7 +421,7 @@ public class DashboardFilterServiceTest
   public void testGetActiveDashboardFilterForCurrentUser_DefaultMaxDaysOld() throws Exception {
     String filterJsonWithoutMaxDaysOld = IOUtils.toString(getClass().getResource(FILTER_WITHOUT_MAX_DAYS_OLD_PATH),
         "UTF-8");
-    tempEntity.newDashboardFilter(USERNAME, ACTIVE_FILTER_NAME, filterJsonWithoutMaxDaysOld);
+    tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME, filterJsonWithoutMaxDaysOld);
 
     NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
     assertThat(actual.filter.maxDaysOld).isEqualTo(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD);
@@ -362,7 +431,8 @@ public class DashboardFilterServiceTest
   public void testGetActiveDashboardFilterForCurrentUser_DefaultPolicyViolationState() throws Exception {
     String filterJsonWithoutPolicyViolationStates = IOUtils
         .toString(getClass().getResource(FILTER_WITHOUT_POLICY_VIOLATION_STATES), "UTF-8");
-    tempEntity.newDashboardFilter(USERNAME, ACTIVE_FILTER_NAME, filterJsonWithoutPolicyViolationStates);
+    tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME,
+        filterJsonWithoutPolicyViolationStates);
 
     NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
 
@@ -375,24 +445,33 @@ public class DashboardFilterServiceTest
   public void testDeleteDashboardFiltersForCurrentUserByFilterName() {
     String filterName1 = "Filter 1";
     String filterName2 = "Filter 2";
+    String filterName3 = "Filter 3";
 
     NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName1, 5, 7);
-    tempEntity.newDashboardFilter(USERNAME, dto1.name, JsonUtils.format(dto1.filter));
+    DashboardFilter dashboardFilter1 =
+        tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, dto1.name, JsonUtils.format(dto1.filter));
 
     NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName2, 4, 8);
-    tempEntity.newDashboardFilter(USERNAME, dto2.name, JsonUtils.format(dto2.filter));
+    DashboardFilter dashboardFilter2 =
+        tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, dto2.name, JsonUtils.format(dto2.filter));
+
+    // Legacy filter
+    NamedDashboardFilterDTO dto3 = createNamedDashboardFilterDTO(filterName3, 1, 5);
+    DashboardFilter dashboardFilter3 =
+        tempEntity.newDashboardFilterLegacy(USERNAME, dto3.name, JsonUtils.format(dto3.filter));
 
     NamedDashboardFilterDTO activeDto = createNamedDashboardFilterDTO(ACTIVE_FILTER_NAME, 6, 7);
-    tempEntity.newDashboardFilter(USERNAME, activeDto.name, false, filterName1, JsonUtils.format(activeDto.filter));
+    DashboardFilter dashboardFilterActive = tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, activeDto.name,
+        false, filterName1, JsonUtils.format(activeDto.filter));
 
-    List<String> filtersToDelete = Arrays.asList(filterName1, filterName2);
+    List<String> filtersToDelete = Arrays.asList(filterName1, filterName2, filterName3);
 
     dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(filtersToDelete);
 
-    List<DashboardFilter> actual = dashboardFilterDAO.getNamedFiltersByUsername(USERNAME);
-    assertThat(actual).isEmpty();
-    DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, ACTIVE_FILTER_NAME);
-    assertThat(activeFilter.getBasedOnFilterName()).isNull();
+    assertThat(dashboardFilterDAO.getById(dashboardFilter1.getId())).isNull();
+    assertThat(dashboardFilterDAO.getById(dashboardFilter2.getId())).isNull();
+    assertThat(dashboardFilterDAO.getById(dashboardFilter3.getId())).isNull();
+    assertThat(dashboardFilterDAO.getById(dashboardFilterActive.getId())).isNotNull();
   }
 
   @Test
@@ -400,7 +479,8 @@ public class DashboardFilterServiceTest
     String filterName1 = "Filter X";
     String filterName2 = "Filter Y";
     NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName2, 5, 7);
-    tempEntity.newDashboardFilter(USERNAME, dto1.name, JsonUtils.format(dto1.filter));
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, dto1.name, JsonUtils.format(dto1.filter));
 
     List<String> filtersToDelete = Arrays.asList(filterName1, filterName2);
 
@@ -414,8 +494,7 @@ public class DashboardFilterServiceTest
     assertThat(actualErrors.get(0).status).isEqualTo(404);
 
     // verify that Filter Y got deleted
-    List<DashboardFilter> actualFilters = dashboardFilterDAO.getNamedFiltersByUsername(USERNAME);
-    assertThat(actualFilters).isEmpty();
+    assertThat(dashboardFilterDAO.getById(dashboardFilter.getId())).isNull();
   }
 
   @Test
@@ -423,16 +502,16 @@ public class DashboardFilterServiceTest
     // creating filters
     String filterName1 = "Filter 1";
     NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName1, 5, 7);
-    DashboardFilter dashboardFilter1 = tempEntity
-        .newDashboardFilter(USERNAME, dto1.name, JsonUtils.format(dto1.filter));
+    DashboardFilter dashboardFilter1 =
+        tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, dto1.name, JsonUtils.format(dto1.filter));
 
     String filterName2 = "Filter 2";
     NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName2, 5, 9);
-    tempEntity.newDashboardFilter(USERNAME, dto2.name, JsonUtils.format(dto2.filter));
+    DashboardFilter dashboardFilter2 =
+        tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, dto2.name, JsonUtils.format(dto2.filter));
 
     // spy
-    DashboardFilterDAO dashboardFilterDao = dashboardFilterDAO;
-    DashboardFilterDAO dashboardFilterDaoSpy = Mockito.spy(dashboardFilterDao);
+    DashboardFilterDAO dashboardFilterDaoSpy = Mockito.spy(dashboardFilterDAO);
     // mock
     CurrentUser currentUserMock = Mockito.mock(CurrentUser.class);
     DashboardUtils dashboardUtilsMock = Mockito.mock(DashboardUtils.class);
@@ -441,8 +520,11 @@ public class DashboardFilterServiceTest
         currentUserMock, dashboardUtilsMock, insightConfig);
 
     when(currentUserMock.getUsername()).thenReturn(USERNAME);
-    doReturn(null).when(dashboardFilterDaoSpy).getByUsernameAndName(USERNAME, ACTIVE_FILTER_NAME);
-    doReturn(dashboardFilter1).when(dashboardFilterDaoSpy).getByUsernameAndName(USERNAME, filterName1);
+    when(currentUserMock.getRealmId()).thenReturn(InternalRealm.ID);
+    doReturn(null).when(dashboardFilterDaoSpy).getByUsernameAndRealmIdAndName(USERNAME, InternalRealm.ID,
+        ACTIVE_FILTER_NAME);
+    doReturn(dashboardFilter1).when(dashboardFilterDaoSpy).getByUsernameAndRealmIdAndName(USERNAME,
+        InternalRealm.ID, filterName1);
     doThrow(new RuntimeException("Something went wrong.")).when(dashboardFilterDaoSpy).delete(dashboardFilter1);
 
     List<String> filtersToDelete = Arrays.asList(filterName1, filterName2);
@@ -458,9 +540,8 @@ public class DashboardFilterServiceTest
     assertThat(actualErrors.get(0).status).isEqualTo(500);
 
     // verify that Filter 1 is present and Filter 2 got deleted
-    List<DashboardFilter> actualFilters = dashboardFilterDao.getNamedFiltersByUsername(USERNAME);
-    assertThat(actualFilters).hasSize(1);
-    assertDashboardFilter(actualFilters.get(0), USERNAME, "Filter 1", "filter1", null, false);
+    assertThat(dashboardFilterDAO.getById(dashboardFilter1.getId())).isNotNull();
+    assertThat(dashboardFilterDAO.getById(dashboardFilter2.getId())).isNull();
   }
 
   @Test
@@ -505,15 +586,18 @@ public class DashboardFilterServiceTest
     assertThat(actual.needsAcknowledgement).isEqualTo(needsAcknowledgement);
   }
 
-  private void assertDashboardFilter(DashboardFilter actual,
-                                     String username,
-                                     String name,
-                                     String nameLowercaseNoWhitespace,
-                                     String basedOnFilterName,
-                                     boolean acknowledged)
+  private void assertDashboardFilter(
+      DashboardFilter actual,
+      String username,
+      String realmId,
+      String name,
+      String nameLowercaseNoWhitespace,
+      String basedOnFilterName,
+      boolean acknowledged)
   {
     assertThat(actual.getId()).isNotNull();
     assertThat(actual.getUsername()).isEqualTo(username);
+    assertThat(actual.getRealmId()).isEqualTo(realmId);
     assertThat(actual.getName()).isEqualTo(name);
     assertThat(actual.getNameLowercaseNoWhitespace()).isEqualTo(nameLowercaseNoWhitespace);
     assertThat(actual.getBasedOnFilterName()).isEqualTo(basedOnFilterName);

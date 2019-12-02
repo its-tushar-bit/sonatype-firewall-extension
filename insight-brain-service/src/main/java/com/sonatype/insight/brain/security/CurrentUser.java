@@ -38,6 +38,17 @@ public class CurrentUser
   }
 
   /**
+   * Gets the realm ID for the user associated with the calling thread.
+   */
+  public String getRealmId() {
+    UserPrincipal principal = getUserPrincipal();
+    if (principal == null) {
+      return null;
+    }
+    return principal.getRealmId();
+  }
+
+  /**
    * Gets the UserPrincipal for the user associated with the calling thread.
    */
   public UserPrincipal getUserPrincipal() {

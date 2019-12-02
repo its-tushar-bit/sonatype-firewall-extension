@@ -178,7 +178,9 @@ public class UserDAO
     }
 
     // Cascade to dashboard filters
-    new DashboardFilterDAO().deleteByUsername(tx, entity.getUsername());
+    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+    dashboardFilterDAO.deleteByUsernameAndRealmId(tx, entity.getUsername(), User.INTERNAL_REALM_ID);
+    dashboardFilterDAO.deleteLegacyByUsername(tx, entity.getUsername());
 
     // Cascade to user viewed notification mapping
     UserViewedProductNotificationDAO userViewedNotificationMappingDAO = new UserViewedProductNotificationDAO();

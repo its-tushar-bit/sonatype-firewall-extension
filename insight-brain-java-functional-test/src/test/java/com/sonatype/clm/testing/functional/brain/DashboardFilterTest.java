@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -46,6 +47,7 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.security.InternalRealm;
 
 import com.codeborne.selenide.Condition;
 import org.joda.time.DateTime;
@@ -116,7 +118,7 @@ public class DashboardFilterTest
   }
 
   public void clearFilters() {
-    new DashboardFilterDAO().deleteByUsername(User.ADMIN_USERNAME);
+    new DashboardFilterDAO().deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
   }
 
   private static void setupData() {
@@ -302,7 +304,7 @@ public class DashboardFilterTest
 
     // assert stored filter
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filter = new DashboardFilterDAO()
-        .getByUsername("admin");
+        .getByUsernameAndRealmId("admin", InternalRealm.ID);
     assertThat(filter.get(0).getFilter().replace("\r\n", "\n")).isEqualTo("{\n" +
         "  \"minPolicyThreatLevel\" : 2,\n" +
         "  \"maxPolicyThreatLevel\" : 7,\n" +
@@ -546,7 +548,7 @@ public class DashboardFilterTest
     DashboardFilters.saveFilterDirtyAsterisk().shouldBe(visible);
     eyesWatcher.eyesCheck("'Dirty' asterisk remains");
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = new DashboardFilterDAO()
-        .getByUsername("admin");
+        .getByUsernameAndRealmId("admin", InternalRealm.ID);
     assertThat(filters).hasSize(2);
     assertThat(filters.get(0).getName()).isEqualTo("");
     assertThat(filters.get(0).getBasedOnFilterName()).isEqualTo("Initial");
@@ -642,7 +644,8 @@ public class DashboardFilterTest
     deleteFiltersDialog.checkboxItem(1).label().shouldHave(text(filter2));
 
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
+    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters =
+        dashboardFilterDAO.getByUsernameAndRealmId("admin", InternalRealm.ID);
     assertThat(filters).hasSize(2);
     assertThat(filters.get(0).getName()).isEqualTo(""); // default filter
     assertThat(filters.get(1).getName()).isEqualTo(filter2);
@@ -678,8 +681,7 @@ public class DashboardFilterTest
 
     // verify that applied filter is no longer based on the deleted one
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-    com.sonatype.insight.brain.model.filter.DashboardFilter filter = dashboardFilterDAO
-        .getByUsernameAndName("admin", "");
+    DashboardFilter filter = dashboardFilterDAO.getByUsernameAndRealmIdAndName("admin", InternalRealm.ID, "");
     assertThat(filter.getBasedOnFilterName()).isNull();
   }
 
@@ -718,7 +720,8 @@ public class DashboardFilterTest
     String filterName = "Saved Filter";
     saveFilter(filterName, null, false, false);
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
+    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters =
+        dashboardFilterDAO.getByUsernameAndRealmId("admin", InternalRealm.ID);
 
     assertThat(filters).hasSize(2); // one for the active and named
     assertThat(filters.get(0).isAcknowledged()).isFalse();

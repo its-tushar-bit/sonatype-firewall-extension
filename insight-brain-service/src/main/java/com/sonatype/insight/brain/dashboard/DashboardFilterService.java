@@ -70,7 +70,8 @@ public class DashboardFilterService
     dashboardUtils.validateDashboardLicensed();
 
     String username = currentUser.getUsername();
-    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsernameAndName(username, ACTIVE_FILTER_NAME);
+    String realmId = currentUser.getRealmId();
+    DashboardFilter dashboardFilter = getNewOrLegacyDashboardFilter(username, realmId, ACTIVE_FILTER_NAME);
     if (dashboardFilter == null) {
       return createDefaultNamedDashboardFilterDTO();
     }
@@ -95,7 +96,10 @@ public class DashboardFilterService
     dashboardUtils.validateDashboardLicensed();
 
     String username = currentUser.getUsername();
-    List<DashboardFilter> dashboardFilters = dashboardFilterDAO.getNamedFiltersByUsername(username);
+    String realmId = currentUser.getRealmId();
+    List<DashboardFilter> dashboardFilters = new ArrayList<>();
+    dashboardFilters.addAll(dashboardFilterDAO.getNamedFiltersByUsernameAndRealmId(username, realmId));
+    dashboardFilters.addAll(dashboardFilterDAO.getLegacyNamedFiltersByUsername(username));
     
     List<NamedDashboardFilterDTO> namedDashboardFilterDTOs = new ArrayList<>();
     for (DashboardFilter dashboardFilter : dashboardFilters) {
@@ -140,18 +144,19 @@ public class DashboardFilterService
     dashboardUtils.validateDashboardLicensed();
 
     String username = currentUser.getUsername();
+    String realmId = currentUser.getRealmId();
+    String filterName = namedDashboardFilterDTO.name;
 
     if (!ACTIVE_FILTER_NAME.equals(namedDashboardFilterDTO.name)) {
       // Create or update the named filter
       DashboardFilter dashboardFilter = new DashboardFilter();
       dashboardFilter.setUsername(username);
+      dashboardFilter.setRealmId(realmId);
       dashboardFilter.setFilter(JsonUtils.format(namedDashboardFilterDTO.filter));
-      dashboardFilter.setName(namedDashboardFilterDTO.name);
+      dashboardFilter.setName(filterName);
       dashboardFilter.setAcknowledged(insightConfig.isNeedsAcknowledgementOfInitialDashboardFilter());
 
-      DashboardFilter existingDashboardFilter = dashboardFilterDAO.getByUsernameAndName(username,
-          namedDashboardFilterDTO.name);
-
+      DashboardFilter existingDashboardFilter = getNewOrLegacyDashboardFilter(username, realmId, filterName);
       if (existingDashboardFilter == null) {
         dashboardFilterDAO.insert(dashboardFilter);
       }
@@ -162,14 +167,19 @@ public class DashboardFilterService
       auditDashboardFilter(dashboardFilter);
     }
 
-    createOrUpdateActiveFilter(namedDashboardFilterDTO, username);
+    createOrUpdateActiveFilter(namedDashboardFilterDTO, username, realmId);
     namedDashboardFilterDTO.needsAcknowledgement = false;
     return namedDashboardFilterDTO;
   }
 
-  private void createOrUpdateActiveFilter(NamedDashboardFilterDTO namedDashboardFilterDTO, String username) {
+  private void createOrUpdateActiveFilter(
+      NamedDashboardFilterDTO namedDashboardFilterDTO,
+      String username,
+      String realmId)
+  {
     DashboardFilter newActiveFilter = new DashboardFilter();
     newActiveFilter.setUsername(username);
+    newActiveFilter.setRealmId(realmId);
     newActiveFilter.setFilter(JsonUtils.format(namedDashboardFilterDTO.filter));
     newActiveFilter.setName(ACTIVE_FILTER_NAME);
     newActiveFilter.setAcknowledged(insightConfig.isNeedsAcknowledgementOfInitialDashboardFilter());
@@ -181,7 +191,7 @@ public class DashboardFilterService
       newActiveFilter.setBasedOnFilterName(namedDashboardFilterDTO.name);
     }
 
-    DashboardFilter existingActiveFilter = dashboardFilterDAO.getByUsernameAndName(username, ACTIVE_FILTER_NAME);
+    DashboardFilter existingActiveFilter = getNewOrLegacyDashboardFilter(username, realmId, ACTIVE_FILTER_NAME);
     if (existingActiveFilter != null) {
       newActiveFilter.setId(existingActiveFilter.getId());
       dashboardFilterDAO.update(newActiveFilter);
@@ -200,6 +210,14 @@ public class DashboardFilterService
             dashboardFilter.getName().equals(ACTIVE_FILTER_NAME) ? "(active)" : dashboardFilter.getName());
   }
 
+  private DashboardFilter getNewOrLegacyDashboardFilter(String username, String realmId, String filterName) {
+    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsernameAndRealmIdAndName(username, realmId, filterName);
+    if (dashboardFilter == null) {
+      dashboardFilter = dashboardFilterDAO.getLegacyByUsernameAndName(username, filterName);
+    }
+    return dashboardFilter;
+  }
+
   /**
    * @since 1.24.0
    */
@@ -213,16 +231,18 @@ public class DashboardFilterService
     }
     List<DashboardFilterErrorResponseDTO> errorMessages = new ArrayList<>();
     String username = currentUser.getUsername();
-    DashboardFilter appliedDashboardFilter = dashboardFilterDAO.getByUsernameAndName(username, ACTIVE_FILTER_NAME);
+    String realmId = currentUser.getRealmId();
+    DashboardFilter appliedDashboardFilter = getNewOrLegacyDashboardFilter(username, realmId, ACTIVE_FILTER_NAME);
     AuditData.get().setEvent(null);
 
     for (String filterName : filterNames) {
       try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.DELETE_DASHBOARD_FILTER, true)) {
         try {
-          DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsernameAndName(username, filterName);
+          DashboardFilter dashboardFilter = getNewOrLegacyDashboardFilter(username, realmId, filterName);
           if (dashboardFilter != null) {
             if (appliedDashboardFilter != null && filterName.equals(appliedDashboardFilter.getBasedOnFilterName())) {
               appliedDashboardFilter.setBasedOnFilterName(null);
+              appliedDashboardFilter.setRealmId(realmId);
               dashboardFilterDAO.update(appliedDashboardFilter);
             }
             dashboardFilterDAO.delete(dashboardFilter);

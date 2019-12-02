@@ -11,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -27,6 +28,18 @@ public class DashboardFilter
 
   @Column(name = "username")
   private String username;
+
+  /**
+   * @since 1.80
+   */
+  @Column(name = "username_lowercase")
+  private String usernameLowercase;
+
+  /**
+   * @since 1.80
+   */
+  @Column(name = "realm_id")
+  private String realmId;
 
   @Column(name = "name")
   private String name;
@@ -52,7 +65,9 @@ public class DashboardFilter
   public DashboardFilter() {
   }
 
-  public DashboardFilter(final String name) {
+  public DashboardFilter(String username, String realmId, String name) {
+    setUsername(username);
+    setRealmId(realmId);
     setName(name);
   }
 
@@ -71,6 +86,7 @@ public class DashboardFilter
   }
 
   public void setUsername(final String username) {
+    usernameLowercase = User.normalizeUsername(username);
     this.username = username;
   }
 
@@ -121,5 +137,29 @@ public class DashboardFilter
 
   public void setAcknowledged(boolean acknowledged) {
     this.acknowledged = acknowledged;
+  }
+
+  public String getUsernameLowercase() {
+    return usernameLowercase;
+  }
+
+  /**
+   * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
+   * usernameLowercase field. If this method is not defined, jackson will set/access the
+   * usernameLowercase field directly via reflection, possibly setting it to an incorrect value.
+   * 
+   * @deprecated This method should not be used explicitly.
+   */
+  @Deprecated
+  @SuppressWarnings("unused")
+  private void setUsernameLowercase(String usernameLowercase) {
+  }
+
+  public String getRealmId() {
+    return realmId;
+  }
+
+  public void setRealmId(String realmId) {
+    this.realmId = realmId;
   }
 }

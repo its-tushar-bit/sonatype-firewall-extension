@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.security.InternalRealm;
 
 import com.codeborne.selenide.Selenide;
 import org.joda.time.DateTime;
@@ -197,7 +198,7 @@ public class DashboardTabNavigationTest
   }
 
   private void clearFilters() {
-    new DashboardFilterDAO().deleteByUsername(User.ADMIN_USERNAME);
+    new DashboardFilterDAO().deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
   }
 
   private static class ComponentData

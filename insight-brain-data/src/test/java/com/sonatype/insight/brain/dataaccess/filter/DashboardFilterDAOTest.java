@@ -27,75 +27,115 @@ public class DashboardFilterDAOTest
   
   @Test
   public void testCRUD() {
-    String username = "test123";
     // Add filter
-    String filterName = "TestFilterName";
-    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, filterName, "testFilterString");
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter("testUsername", "testRealmId", "testFilterName", "testFilterString");
 
     // Retrieve filter and test
-    DashboardFilter returnedFilter = dashboardFilterDAO.getByUsernameAndName(username, filterName);
+    DashboardFilter returnedFilter = dashboardFilterDAO.getById(dashboardFilter.getId());
     assertFilter(returnedFilter, dashboardFilter);
 
     // Update filter
-    String username2 = "bob";
-    dashboardFilter.setUsername(username2);
+    dashboardFilter.setFilter("testFilterString updated");
     dashboardFilterDAO.update(dashboardFilter);
 
     // Retrieve filter and test
-    returnedFilter = dashboardFilterDAO.getByUsernameAndName(username2, filterName);
+    returnedFilter = dashboardFilterDAO.getById(dashboardFilter.getId());
     assertFilter(returnedFilter, dashboardFilter);
 
     // Delete
     dashboardFilterDAO.delete(dashboardFilter);
 
     // Retrieve filter and test
-    assertThat(dashboardFilterDAO.getByUsername(username2)).isEmpty();
+    assertThat(dashboardFilterDAO.getById(dashboardFilter.getId())).isNull();
   }
 
   @Test
-  public void testGetByUsername() {
+  public void testGetByUsernameAndRealmId() {
     String username = "test123";
-    DashboardFilter dashboardFilter1 = tempEntity.newDashboardFilter(username, "filter 1", "testFilterString 1");
-    DashboardFilter dashboardFilter2 = tempEntity.newDashboardFilter(username, "", "testFilterString 2");
-    tempEntity.newDashboardFilter("admin123", "filter 2", "testFilterString 2");
+    String realmId = "realm123";
+    DashboardFilter dashboardFilter1 =
+        tempEntity.newDashboardFilter(username, realmId, "filter 1", "testFilterString 1");
+    DashboardFilter dashboardFilter2 = tempEntity.newDashboardFilter(username, realmId, "", "testFilterString 2");
+    tempEntity.newDashboardFilter("admin123", realmId, "filter 2", "testFilterString 2");
 
     // Retrieve filters and test
-    List<DashboardFilter> actual = dashboardFilterDAO.getByUsername(username);
+    List<DashboardFilter> actual = dashboardFilterDAO.getByUsernameAndRealmId(username, realmId);
     assertThat(actual).hasSize(2);
     assertFilter(actual.get(0), dashboardFilter2);
     assertFilter(actual.get(1), dashboardFilter1);
   }
 
   @Test
-  public void testGetNamedFiltersByUsername() {
-    String username = "test123";
-    DashboardFilter dashboardFilter1 = tempEntity.newDashboardFilter(username, "filter 1", "testFilterString 1");
-    DashboardFilter dashboardFilter2 = tempEntity.newDashboardFilter(username, "filter 2", "testFilterString 2");
-    tempEntity.newDashboardFilter(username, "", "testFilterString 2");
-    tempEntity.newDashboardFilter("admin123", "filter 2", "testFilterString 2");
+  public void testGetByUsernameAndRealmId_UsernameCaseInsensitive() {
+    String realmId = "realm123";
+    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter("Test123", realmId, "filter", "testFilterString");
 
     // Retrieve filters and test
-    List<DashboardFilter> actual = dashboardFilterDAO.getNamedFiltersByUsername(username);
+    List<DashboardFilter> actual = dashboardFilterDAO.getByUsernameAndRealmId("tEst123", realmId);
+    assertThat(actual).hasSize(1);
+    assertFilter(actual.get(0), dashboardFilter);
+  }
+
+  @Test
+  public void testGetNamedFiltersByUsernameAndRealmId() {
+    String username = "test123";
+    String realmId = "realm123";
+    DashboardFilter dashboardFilter1 =
+        tempEntity.newDashboardFilter(username, realmId, "filter 1", "testFilterString 1");
+    DashboardFilter dashboardFilter2 =
+        tempEntity.newDashboardFilter(username, realmId, "filter 2", "testFilterString 2");
+    tempEntity.newDashboardFilter(username, realmId, "", "testFilterString 2");
+    tempEntity.newDashboardFilter("admin123", realmId, "filter 2", "testFilterString 2");
+
+    // Retrieve filters and test
+    List<DashboardFilter> actual = dashboardFilterDAO.getNamedFiltersByUsernameAndRealmId(username, realmId);
     assertThat(actual).hasSize(2);
     assertFilter(actual.get(0), dashboardFilter1);
     assertFilter(actual.get(1), dashboardFilter2);
   }
 
   @Test
-  public void testGetByUsernameAndName() {
+  public void testGetNamedFiltersByUsernameAndRealmId_UsernameCaseInsensitive() {
+    String realmId = "realm123";
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter("Test123", realmId, "filter 1", "testFilterString 1");
+
+    // Retrieve filters and test
+    List<DashboardFilter> actual = dashboardFilterDAO.getNamedFiltersByUsernameAndRealmId("tEst123", realmId);
+    assertThat(actual).hasSize(1);
+    assertFilter(actual.get(0), dashboardFilter);
+  }
+
+  @Test
+  public void testGetByUsernameAndRealmIdAndName() {
     String username = "test123";
+    String realmId = "realm123";
     String filterName = "Abc filter";
-    DashboardFilter dashboardFilter1 = tempEntity.newDashboardFilter(username, filterName, "testFilterString 1");
-    tempEntity.newDashboardFilter(username, "Xyz Filter", "testFilterString 1");
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter(username, realmId, filterName, "testFilterString 1");
+    tempEntity.newDashboardFilter(username, realmId, "Xyz Filter", "testFilterString 1");
 
     // Retrieve filter and test
-    DashboardFilter actual = dashboardFilterDAO.getByUsernameAndName(username, filterName);
-    assertFilter(actual, dashboardFilter1);
+    DashboardFilter actual = dashboardFilterDAO.getByUsernameAndRealmIdAndName(username, realmId, filterName);
+    assertFilter(actual, dashboardFilter);
+  }
+
+  @Test
+  public void testGetByUsernameAndRealmIdAndName_UsernameCaseInsensitive() {
+    String realmId = "realm123";
+    String filterName = "Abc filter";
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter("Test123", realmId, filterName, "testFilterString 1");
+
+    // Retrieve filter and test
+    DashboardFilter actual = dashboardFilterDAO.getByUsernameAndRealmIdAndName("tEst123", realmId, filterName);
+    assertFilter(actual, dashboardFilter);
   }
 
   @Test
   public void testValidateNullName_Insert() {
-    DashboardFilter dashboardFilter = new DashboardFilter(null);
+    DashboardFilter dashboardFilter = new DashboardFilter("testUsername", "testRealmId", null);
     assertThatThrownBy(() -> {
       dashboardFilterDAO.insert(dashboardFilter);
     }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
@@ -103,7 +143,7 @@ public class DashboardFilterDAOTest
 
   @Test
   public void testValidateNullName_Update() {
-    DashboardFilter dashboardFilter = new DashboardFilter(null);
+    DashboardFilter dashboardFilter = new DashboardFilter("testUsername", "testRealmId", null);
     assertThatThrownBy(() -> {
       dashboardFilterDAO.update(dashboardFilter);
     }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
@@ -113,9 +153,9 @@ public class DashboardFilterDAOTest
   public void testValidateEmptyName_Insert() {
     String username = "test123";
     // this should create a new filter
-    DashboardFilter actualFilter = tempEntity.newDashboardFilter(username, "", "testFilterString 1");
+    DashboardFilter actualFilter = tempEntity.newDashboardFilter(username, "testRealmId", "", "testFilterString 1");
     // search for the new filter
-    DashboardFilter expectedFilter = dashboardFilterDAO.getByUsernameAndName(username, "");
+    DashboardFilter expectedFilter = dashboardFilterDAO.getById(actualFilter.getId());
     // verify
     assertFilter(actualFilter, expectedFilter);
   }
@@ -124,19 +164,20 @@ public class DashboardFilterDAOTest
   public void testValidateEmptyName_Update() {
     String username = "test123";
     // this should create a new filter
-    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, "abc filter", "testFilterString 1");
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter(username, "testRealmId", "abc filter", "testFilterString 1");
     dashboardFilter.setName("");
     // update the new filter
     dashboardFilterDAO.update(dashboardFilter);
     // search for the updated filter
-    DashboardFilter expectedFilter = dashboardFilterDAO.getByUsernameAndName(username, "");
+    DashboardFilter expectedFilter = dashboardFilterDAO.getById(dashboardFilter.getId());
     assertFilter(dashboardFilter, expectedFilter);
   }
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      DashboardFilter dashboardFilter = new DashboardFilter(name);
+      DashboardFilter dashboardFilter = new DashboardFilter("testUsername", "testRealmId", name);
       assertThatThrownBy(() -> {
         dashboardFilterDAO.insert(dashboardFilter);
       }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
@@ -146,7 +187,8 @@ public class DashboardFilterDAOTest
   @Test
   public void testValidateNameInvalidChars_Update() {
     String username = "test123";
-    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, "test 1", "testFilterString 1");
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter(username, "testRealmId", "test 1", "testFilterString 1");
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       dashboardFilter.setName(name);
       assertThatThrownBy(() -> {
@@ -159,14 +201,14 @@ public class DashboardFilterDAOTest
   public void testValidateNameValidChars_Insert() {
     String username = "test123";
     for (String name : NameHelperTest.VALID_NAMES) {
-      tempEntity.newDashboardFilter(username, name, "testFilterString 1");
+      tempEntity.newDashboardFilter(username, "testRealmId", name, "testFilterString 1");
     }
   }
 
   @Test
   public void testValidateNameValidChars_Update() {
     String username = "test123";
-    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, "", "testFilterString 1");
+    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, "testRealmId", "", "testFilterString 1");
     for (String name : NameHelperTest.VALID_NAMES) {
       dashboardFilter.setName(name);
       dashboardFilterDAO.update(dashboardFilter);
@@ -178,7 +220,7 @@ public class DashboardFilterDAOTest
     String username = "test123";
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       assertThatThrownBy(() -> {
-        tempEntity.newDashboardFilter(username, name, "testFilterString 1");
+        tempEntity.newDashboardFilter(username, "testRealmId", name, "testFilterString 1");
       }).isInstanceOf(InvalidNameException.class)
           .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
@@ -187,7 +229,8 @@ public class DashboardFilterDAOTest
   @Test
   public void testValidateNameSpaces_Update() {
     String username = "test123";
-    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, "sample filter", "testFilterString 1111");
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter(username, "testRealmId", "sample filter", "testFilterString 1111");
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       dashboardFilter.setName(name);
       assertThatThrownBy(() -> {
@@ -201,12 +244,13 @@ public class DashboardFilterDAOTest
   public void testNameIsCaseAndWhitespaceInsensitive() {
     String username = "test123";
     String name = "test string With Case and Whitespace";
-    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, name, "testFilterString 1111");
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter(username, "testRealmId", name, "testFilterString 1111");
     assertThat(dashboardFilter.getName()).isEqualTo(name);
     assertThat(dashboardFilter.getNameLowercaseNoWhitespace()).isEqualTo("teststringwithcaseandwhitespace");
 
     String name1 = "TEST String      With    cASE and      whitespace";
-    DashboardFilter actual = dashboardFilterDAO.getByUsernameAndName(username, name1);
+    DashboardFilter actual = dashboardFilterDAO.getByUsernameAndRealmIdAndName(username, "testRealmId", name1);
     assertThat(actual).isNotNull();
     assertThat(actual.getId()).isEqualTo(dashboardFilter.getId());
   }
@@ -214,17 +258,39 @@ public class DashboardFilterDAOTest
   @Test
   public void testDuplicateName_Insert() {
     String username = "test123";
-    tempEntity.newDashboardFilter(username, "Filter12345", "testFilterString 1111");
+    tempEntity.newDashboardFilter(username, "testRealmId", "Filter12345", "testFilterString 1111");
     assertThatThrownBy(() -> {
-      tempEntity.newDashboardFilter(username, "FILTER 12345", "testFilterString 1111");
+      tempEntity.newDashboardFilter(username, "testRealmId", "FILTER 12345", "testFilterString 1111");
+    }).isInstanceOf(BadRequestException.class).hasMessage("FILTER 12345 is already used as a name.");
+  }
+
+  @Test
+  public void testDuplicateName_Insert_LegacyFilter() {
+    String username = "test123";
+    tempEntity.newDashboardFilterLegacy(username, "Filter12345", "testFilterString 1111");
+    assertThatThrownBy(() -> {
+      tempEntity.newDashboardFilter(username, "testRealmId", "FILTER 12345", "testFilterString 1111");
     }).isInstanceOf(BadRequestException.class).hasMessage("FILTER 12345 is already used as a name.");
   }
 
   @Test
   public void testDuplicateName_Update() {
     String username = "test0123";
-    tempEntity.newDashboardFilter(username, "Filter12345", "testFilterString 1111");
-    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, "Filter 0123", "testFilterString 1111");
+    tempEntity.newDashboardFilter(username, "testRealmId", "Filter12345", "testFilterString 1111");
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter(username, "testRealmId", "Filter 0123", "testFilterString 1111");
+    dashboardFilter.setName("FILTER 12345");
+    assertThatThrownBy(() -> {
+      dashboardFilterDAO.update(dashboardFilter);
+    }).isInstanceOf(BadRequestException.class).hasMessage("FILTER 12345 is already used as a name.");
+  }
+
+  @Test
+  public void testDuplicateName_Update_LegacyFilter() {
+    String username = "test0123";
+    tempEntity.newDashboardFilterLegacy(username, "Filter12345", "testFilterString 1111");
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter(username, "testRealmId", "Filter 0123", "testFilterString 1111");
     dashboardFilter.setName("FILTER 12345");
     assertThatThrownBy(() -> {
       dashboardFilterDAO.update(dashboardFilter);
@@ -236,16 +302,17 @@ public class DashboardFilterDAOTest
     String username = "test123";
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     assertThatThrownBy(() -> {
-      tempEntity.newDashboardFilter(username, name + "a", "testFilterString 1111");
+      tempEntity.newDashboardFilter(username, "testRealmId", name + "a", "testFilterString 1111");
     }).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
-    tempEntity.newDashboardFilter(username, name, "testFilterString 1111");
+    tempEntity.newDashboardFilter(username, "testRealmId", name, "testFilterString 1111");
   }
 
   @Test
   public void testValidateNameLength_Update() {
     String username = "test123";
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, "valid name", "testFilterString 1111");
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter(username, "testRealmId", "valid name", "testFilterString 1111");
     dashboardFilter.setName(name + "a");
     assertThatThrownBy(() -> {
       dashboardFilterDAO.update(dashboardFilter);
@@ -256,7 +323,7 @@ public class DashboardFilterDAOTest
 
   @Test
   public void testValidate_insertNamedFilterBasedOnAnother() {
-    DashboardFilter dashboardFilter = new DashboardFilter("valid name");
+    DashboardFilter dashboardFilter = new DashboardFilter("testUsername", "testRealmId", "valid name");
     dashboardFilter.setBasedOnFilterName("any non-null value");
     assertThatThrownBy(() -> {
       dashboardFilterDAO.insert(dashboardFilter);
@@ -265,19 +332,19 @@ public class DashboardFilterDAOTest
 
   @Test
   public void testValidate_insertActiveFilterBasedOnMissingFilter() {
-    DashboardFilter dashboardFilter = new DashboardFilter("");
-    dashboardFilter.setUsername("test user");
-    dashboardFilter.setBasedOnFilterName("valid name of a filter that does not exist");
-    dashboardFilter.setFilter("some filter string");
-    dashboardFilterDAO.insert(dashboardFilter);
+    String username = "test user";
+    String realmId = "testRealmId";
+    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, realmId, "" /* filterName */,
+        true /* acknowledged */, "valid name of a filter that does not exist" /* basedOn */, "some filter string");
 
-    DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName("test user", "");
+    DashboardFilter activeFilter = dashboardFilterDAO.getById(dashboardFilter.getId());
     assertThat(activeFilter.getBasedOnFilterName()).isNull();
   }
 
   @Test
   public void testValidate_updateNamedFilterBasedOnAnother() {
-    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter("test user", "valid name", "originalFilter");
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter("test user", "testRealmId", "valid name", "originalFilter");
     dashboardFilter.setFilter("updatedFilter");
     dashboardFilter.setBasedOnFilterName("any non-null value");
     assertThatThrownBy(() -> {
@@ -287,19 +354,167 @@ public class DashboardFilterDAOTest
 
   @Test
   public void testValidate_updateActiveFilterBasedOnMissingFilter() {
-    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter("another test user", "", "originalFilter");
+    String username = "test user";
+    String realmId = "testRealmId";
+    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, realmId, "", "originalFilter");
     dashboardFilter.setFilter("updatedFilter");
     dashboardFilter.setBasedOnFilterName("valid name of a filter that does not exist");
     dashboardFilterDAO.update(dashboardFilter);
 
-    DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName("test user", "");
+    DashboardFilter activeFilter = dashboardFilterDAO.getById(dashboardFilter.getId());
     assertThat(activeFilter.getBasedOnFilterName()).isNull();
+  }
+
+  @Test
+  public void testGetLegacyByUsernameAndName() {
+    String username = "testUsername";
+    String realmId = "testRealmId";
+    String filterName = "testFilterName";
+    tempEntity.newDashboardFilter(username, realmId, filterName, "filter");
+    DashboardFilter dashboardFilterLegacy = tempEntity.newDashboardFilterLegacy(username, filterName, "filter");
+
+    assertFilter(dashboardFilterDAO.getLegacyByUsernameAndName(username, filterName), dashboardFilterLegacy);
+  }
+
+  @Test
+  public void testGetLegacyByUsernameAndName_UsernameCaseInsensitive() {
+    String realmId = "testRealmId";
+    String filterName = "testFilterName";
+    tempEntity.newDashboardFilter("testUsername", realmId, filterName, "filter");
+    DashboardFilter dashboardFilterLegacy = tempEntity.newDashboardFilterLegacy("testUsername", filterName, "filter");
+
+    assertFilter(dashboardFilterDAO.getLegacyByUsernameAndName("TestUsername", filterName), dashboardFilterLegacy);
+  }
+
+  @Test
+  public void testGetLegacyByUsernameAndName_MultipleFilters() {
+    String realmId = "testRealmId";
+    String filterName = "testFilterName";
+    tempEntity.newDashboardFilter("testUsername", realmId, filterName, "filter");
+    DashboardFilter dashboardFilterLegacy1 = tempEntity.newDashboardFilterLegacy("testUsername", filterName, "filter");
+    DashboardFilter dashboardFilterLegacy2 = tempEntity.newDashboardFilterLegacy("TestUsername", filterName, "filter");
+
+    assertFilter(dashboardFilterDAO.getLegacyByUsernameAndName("testUsername", filterName), dashboardFilterLegacy1);
+    assertFilter(dashboardFilterDAO.getLegacyByUsernameAndName("TestUsername", filterName), dashboardFilterLegacy2);
+    assertThat(dashboardFilterDAO.getLegacyByUsernameAndName("TESTUSERNAME", filterName).getRealmId()).isNull();
+  }
+
+  @Test
+  public void testGetLegacyNamedFiltersByUsername() {
+    String username = "test123";
+    DashboardFilter dashboardFilter1 = tempEntity.newDashboardFilterLegacy(username, "filter 1", "testFilterString 1");
+    DashboardFilter dashboardFilter2 = tempEntity.newDashboardFilterLegacy(username, "filter 2", "testFilterString 2");
+    tempEntity.newDashboardFilterLegacy(username, "", "testFilterString 2");
+    tempEntity.newDashboardFilterLegacy("admin123", "filter 2", "testFilterString 2");
+    tempEntity.newDashboardFilter(username, "testRealmId", "filter 3", "testFilterString 3");
+
+    // Retrieve filters and test
+    List<DashboardFilter> actual = dashboardFilterDAO.getLegacyNamedFiltersByUsername(username);
+    assertThat(actual).hasSize(2);
+    assertFilter(actual.get(0), dashboardFilter1);
+    assertFilter(actual.get(1), dashboardFilter2);
+  }
+
+  @Test
+  public void testGetLegacyNamedFiltersByUsername_UsernameCaseInsensitive() {
+    DashboardFilter dashboardFilter = tempEntity.newDashboardFilterLegacy("Test123", "filter 1", "testFilterString 1");
+
+    // Retrieve filters and test
+    List<DashboardFilter> actual = dashboardFilterDAO.getLegacyNamedFiltersByUsername("tEst123");
+    assertThat(actual).hasSize(1);
+    assertFilter(actual.get(0), dashboardFilter);
+  }
+
+  @Test
+  public void testInsert_BasedOnLegacyFilter() {
+    String username = "testUsername";
+    String realmId = "testRealmId";
+    DashboardFilter basedOnFilter = tempEntity.newDashboardFilterLegacy(username, "filter 1", "testFilterString 1");
+    assertThat(basedOnFilter.getRealmId()).isNull();
+    tempEntity.newDashboardFilter(username, realmId, "", true /* acknowledged */, basedOnFilter.getName(),
+        "testFilterString 2");
+
+    basedOnFilter = dashboardFilterDAO.getById(basedOnFilter.getId());
+    assertThat(basedOnFilter.getRealmId()).isEqualTo(realmId);
+  }
+
+  @Test
+  public void testUpdate_BasedOnLegacyFilter() {
+    String username = "testUsername";
+    String realmId = "testRealmId";
+    DashboardFilter basedOnFilter = tempEntity.newDashboardFilterLegacy(username, "filter 1", "testFilterString 1");
+    assertThat(basedOnFilter.getRealmId()).isNull();
+    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, realmId, "", "testFilterString 2");
+    dashboardFilter.setBasedOnFilterName(basedOnFilter.getName());
+    dashboardFilterDAO.update(dashboardFilter);
+
+    basedOnFilter = dashboardFilterDAO.getById(basedOnFilter.getId());
+    assertThat(basedOnFilter.getRealmId()).isEqualTo(realmId);
+  }
+
+  @Test
+  public void testUpdate_FromLegacyFilter() {
+    String username = "testUsername";
+    String realmId = "testRealmId";
+    String filterName = "testFilterName";
+    DashboardFilter legacyDashboardFilter =
+        tempEntity.newDashboardFilterLegacy(username, filterName, "testFilterString");
+    assertThat(legacyDashboardFilter.getRealmId()).isNull();
+
+    String newFilterContent = "new testFilterString";
+    DashboardFilter dashboardFilter = new DashboardFilter(username, realmId, filterName);
+    dashboardFilter.setId(legacyDashboardFilter.getId());
+    dashboardFilter.setRealmId(realmId);
+    dashboardFilter.setFilter(newFilterContent);
+    dashboardFilterDAO.update(dashboardFilter);
+
+    dashboardFilter = dashboardFilterDAO.getById(legacyDashboardFilter.getId());
+    assertThat(dashboardFilter.getRealmId()).isEqualTo(realmId);
+    assertThat(dashboardFilter.getFilter()).isEqualTo(newFilterContent);
+  }
+
+  @Test
+  public void testInsert_RealmIdNull() {
+    assertThatThrownBy(() -> {
+      tempEntity.newDashboardFilter("testUsername", null /* realmId */, "testFilterName", "testFilterString");
+    }).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
+  }
+
+  @Test
+  public void testInsert_RealmIdWhitespace() {
+    assertThatThrownBy(() -> {
+      tempEntity.newDashboardFilter("testUsername", " " /* realmId */, "testFilterName", "testFilterString");
+    }).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
+  }
+
+  @Test
+  public void testUpdate_RealmIdNull() {
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter("testUsername", "testRealmId", "testFilterName", "testFilterString");
+
+    dashboardFilter.setRealmId(null);
+    assertThatThrownBy(() -> {
+      dashboardFilterDAO.update(dashboardFilter);
+    }).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
+  }
+
+  @Test
+  public void testUpdate_RealmIdWhitespace() {
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter("testUsername", "testRealmId", "testFilterName", "testFilterString");
+
+    dashboardFilter.setRealmId(" ");
+    assertThatThrownBy(() -> {
+      dashboardFilterDAO.update(dashboardFilter);
+    }).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
   }
 
   private void assertFilter(DashboardFilter actualFilter, DashboardFilter expectedFilter) {
     assertThat(actualFilter).isNotNull();
     assertThat(actualFilter.getId()).isEqualTo(expectedFilter.getId());
     assertThat(actualFilter.getUsername()).isEqualTo(expectedFilter.getUsername());
+    assertThat(actualFilter.getUsernameLowercase()).isEqualTo(expectedFilter.getUsernameLowercase());
+    assertThat(actualFilter.getRealmId()).isEqualTo(expectedFilter.getRealmId());
     assertThat(actualFilter.getFilter()).isEqualTo(expectedFilter.getFilter());
     assertThat(actualFilter.getName()).isEqualTo(expectedFilter.getName());
     assertThat(actualFilter.getNameLowercaseNoWhitespace()).isEqualTo(expectedFilter.getNameLowercaseNoWhitespace());

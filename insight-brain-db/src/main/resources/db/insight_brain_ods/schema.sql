@@ -397,13 +397,15 @@ CREATE INDEX policy_violation_hash_idx ON policy_violation(hash);
 CREATE TABLE dashboard_filter (
   dashboard_filter_id varchar(50) NOT NULL,
   username varchar(60) NOT NULL, -- The internal name of the User (CLM User or LDAP user)
+  username_lowercase varchar(60) NOT NULL,
+  realm_id varchar(50) NULL,
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
   based_on_filter_name varchar(60),
   acknowledged boolean DEFAULT false NOT NULL,
   filter_json text NOT NULL, -- The dashboard filter stored in json format
   CONSTRAINT dashboard_filter_pk PRIMARY KEY (dashboard_filter_id),
-  CONSTRAINT dashboard_filter_uk UNIQUE (username, name_lowercase_no_whitespace)
+  CONSTRAINT dashboard_filter_uk UNIQUE (username_lowercase, realm_id, name_lowercase_no_whitespace)
 );
 
 CREATE TABLE application_component (

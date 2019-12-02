@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.security.InternalRealm;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.WebDriverRunner;
@@ -493,6 +494,6 @@ public class DashboardApplicationsTest
   }
 
   private void clearFilters() {
-    new DashboardFilterDAO().deleteByUsername(User.ADMIN_USERNAME);
+    new DashboardFilterDAO().deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
   }
 }

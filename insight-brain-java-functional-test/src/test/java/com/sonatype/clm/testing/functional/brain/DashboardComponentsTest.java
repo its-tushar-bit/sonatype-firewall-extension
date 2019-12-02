@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.security.InternalRealm;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
@@ -483,6 +484,6 @@ public class DashboardComponentsTest
   }
 
   private void clearFilters() {
-    new DashboardFilterDAO().deleteByUsername(User.ADMIN_USERNAME);
+    new DashboardFilterDAO().deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
   }
 }

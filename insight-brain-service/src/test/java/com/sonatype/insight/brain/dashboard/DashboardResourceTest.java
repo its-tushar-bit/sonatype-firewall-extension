@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -91,7 +92,8 @@ public class DashboardResourceTest
     tempEntity.newMembershipMapping(app.getId(), Role.OWNER_ROLE_ID, tempUser.getUsername());
     // creating a new filter
     DashboardFilterDTO dashboardFilterDTO = createDashboardFilter(app, tag);
-    tempEntity.newDashboardFilter(tempUser.getUsername(), filterName, JsonUtils.format(dashboardFilterDTO));
+    tempEntity.newDashboardFilter(tempUser.getUsername(), InternalRealm.ID, filterName,
+        JsonUtils.format(dashboardFilterDTO));
     HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.FILTERS_PATH);
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
@@ -115,7 +117,8 @@ public class DashboardResourceTest
     HttpResponse response = request.body(dashboardFilterDTO).put();
     assertResponseStatus(200, response);
 
-    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(tempUser.getUsername()).get(0);
+    DashboardFilter dashboardFilter =
+        dashboardFilterDAO.getByUsernameAndRealmId(tempUser.getUsername(), InternalRealm.ID).get(0);
     assertThat(dashboardFilter).isNotNull();
 
     DashboardFilterDTO returnedDashboardFilterDTO = response.getBody(DashboardFilterDTO.class);
@@ -132,7 +135,8 @@ public class DashboardResourceTest
     String filterName = "";
     NamedDashboardFilterDTO dashboardFilterDTO = createNamedDashboardFilter(app, tag);
     // creating a new filter
-    tempEntity.newDashboardFilter(tempUser.getUsername(), filterName, JsonUtils.format(dashboardFilterDTO));
+    tempEntity.newDashboardFilter(tempUser.getUsername(), InternalRealm.ID, filterName,
+        JsonUtils.format(dashboardFilterDTO));
     // updating the new filter
     dashboardFilterDTO.filter.minPolicyThreatLevel = 4;
     dashboardFilterDTO.filter.maxPolicyThreatLevel = 9;
@@ -469,13 +473,15 @@ public class DashboardResourceTest
     namedDashboardFilterDTO.name = filterName;
     namedDashboardFilterDTO.filter = createDashboardFilter(app, tag);
     // creating a new named filter
-    tempEntity.newDashboardFilter(tempUser.getUsername(), filterName, JsonUtils.format(namedDashboardFilterDTO.filter));
+    tempEntity.newDashboardFilter(tempUser.getUsername(), InternalRealm.ID, filterName,
+        JsonUtils.format(namedDashboardFilterDTO.filter));
 
     NamedDashboardFilterDTO namedDashboardFilterDTO2 = new NamedDashboardFilterDTO();
     namedDashboardFilterDTO2.name = "";
     namedDashboardFilterDTO2.filter = createDashboardFilter(app, tag);
     // creating a new active filter (without a name)
-    tempEntity.newDashboardFilter(tempUser.getUsername(), "", JsonUtils.format(namedDashboardFilterDTO.filter));
+    tempEntity.newDashboardFilter(tempUser.getUsername(), InternalRealm.ID, "",
+        JsonUtils.format(namedDashboardFilterDTO.filter));
     
     HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.NAMED_FILTERS_PATH);
     HttpResponse response = request.get();
@@ -501,7 +507,8 @@ public class DashboardResourceTest
     namedDashboardFilterDTO.filter = createDashboardFilter(app, tag);
 
     // creating a new filter
-    tempEntity.newDashboardFilter(tempUser.getUsername(), filterName, JsonUtils.format(namedDashboardFilterDTO.filter));
+    tempEntity.newDashboardFilter(tempUser.getUsername(), InternalRealm.ID, filterName,
+        JsonUtils.format(namedDashboardFilterDTO.filter));
 
     // updating the new filter
     namedDashboardFilterDTO.filter.minPolicyThreatLevel = 3;
@@ -529,10 +536,12 @@ public class DashboardResourceTest
 
     String username = tempUser.getUsername();
     String filterName1 = "Filter XYZ";
-    tempEntity.newDashboardFilter(username, filterName1, JsonUtils.format(createDashboardFilter(app, tag)));
+    DashboardFilter dashboardFilter1 = tempEntity.newDashboardFilter(username, InternalRealm.ID, filterName1,
+        JsonUtils.format(createDashboardFilter(app, tag)));
 
     String filterName2 = "Filter YYY";
-    tempEntity.newDashboardFilter(username, filterName2, JsonUtils.format(createDashboardFilter(app, tag)));
+    DashboardFilter dashboardFilter2 = tempEntity.newDashboardFilter(username, InternalRealm.ID, filterName2,
+        JsonUtils.format(createDashboardFilter(app, tag)));
 
     List<String> filterNames = Arrays.asList(filterName1, filterName2);
 
@@ -541,7 +550,8 @@ public class DashboardResourceTest
     HttpResponse response = request.parameter(filterName1).post();
     assertResponseStatus(204, response);
     // verify that both filters above got deleted
-    assertThat(dashboardFilterDAO.getByUsername(username)).isEmpty();
+    assertThat(dashboardFilterDAO.getById(dashboardFilter1.getId())).isNull();
+    assertThat(dashboardFilterDAO.getById(dashboardFilter2.getId())).isNull();
   }
 
   @Test
@@ -555,7 +565,8 @@ public class DashboardResourceTest
 
     String username = tempUser.getUsername();
     String filterName = "Filter 1";
-    tempEntity.newDashboardFilter(username, filterName, JsonUtils.format(createDashboardFilter(app, tag)));
+    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, InternalRealm.ID, filterName,
+        JsonUtils.format(createDashboardFilter(app, tag)));
 
     List<String> filterNames = Arrays.asList(filterName, "NotFoundFilter");
 
@@ -570,7 +581,7 @@ public class DashboardResourceTest
     assertThat(errorResponseDTOs[0].errorMessage)
         .isEqualTo("Cannot find a filter with name NotFoundFilter for user " + username + ".");
     // verify that Filter 1 got deleted
-    assertThat(dashboardFilterDAO.getByUsername(username)).isEmpty();
+    assertThat(dashboardFilterDAO.getById(dashboardFilter.getId())).isNull();
   }
 
   @Test
@@ -584,10 +595,12 @@ public class DashboardResourceTest
 
     String username = tempUser.getUsername();
     String filterName1 = "Filter 1";
-    tempEntity.newDashboardFilter(username, filterName1, JsonUtils.format(createDashboardFilter(app, tag)));
+    tempEntity.newDashboardFilter(username, InternalRealm.ID, filterName1,
+        JsonUtils.format(createDashboardFilter(app, tag)));
 
     String filterName2 = "Filter 2";
-    tempEntity.newDashboardFilter(username, filterName2, JsonUtils.format(createDashboardFilter(app, tag)));
+    tempEntity.newDashboardFilter(username, InternalRealm.ID, filterName2,
+        JsonUtils.format(createDashboardFilter(app, tag)));
 
     List<String> filterNames = Arrays.asList(filterName1, filterName2, "NotFoundFilter");
     
@@ -608,7 +621,8 @@ public class DashboardResourceTest
   private void verifyDbState(final User tempUser, final String filterName, final NamedDashboardFilterDTO expected)
       throws IOException
   {
-    DashboardFilter actual = dashboardFilterDAO.getByUsernameAndName(tempUser.getUsername(), filterName);
+    DashboardFilter actual =
+        dashboardFilterDAO.getByUsernameAndRealmIdAndName(tempUser.getUsername(), InternalRealm.ID, filterName);
     assertThat(actual).isNotNull();
     DashboardFilterDTO actualDto = JsonUtils.parse(actual.getFilter(), DashboardFilterDTO.class);
     assertThat(actual.getName()).isEqualTo(expected.name);

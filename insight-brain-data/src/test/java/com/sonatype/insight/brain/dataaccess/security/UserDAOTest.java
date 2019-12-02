@@ -623,15 +623,15 @@ public class UserDAOTest
 
     User user = createUser("testDeleteCascadesToDashboardFilter");
     // Add filter
-    DashboardFilter dashboardFilter = new DashboardFilter();
-    dashboardFilter.setId(tempEntity.uuid());
-    dashboardFilter.setUsername(user.getUsername());
-    dashboardFilter.setFilter("filter");
-    dashboardFilter.setName("TestFilter");
-    dashboardFilterDAO.insert(dashboardFilter);
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter(user.getUsername(), User.INTERNAL_REALM_ID, "TestFilter1", "filter1");
+    // Add legacy filter
+    DashboardFilter dashboardFilterLegacy =
+        tempEntity.newDashboardFilterLegacy(user.getUsername(), "TestFilter2", "filter2");
 
     new UserDAO().delete(user);
-    assertThat(dashboardFilterDAO.getByUsername(user.getUsername())).isEmpty();
+    assertThat(dashboardFilterDAO.getById(dashboardFilter.getId())).isNull();
+    assertThat(dashboardFilterDAO.getById(dashboardFilterLegacy.getId())).isNull();
   }
 
   @Test

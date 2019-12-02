@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -58,9 +59,9 @@ public class DashboardResourceAuditTest
   @Test
   public void testDeleteDashboardFiltersForCurrentUserByFilterName() throws Exception {
     String filterName = "some-filter";
-    DashboardFilter filter = tempEntity
-        .newDashboardFilter(ADMIN_USERNAME, filterName, JsonUtils.format(createNamedDashboardFilter(filterName)));
-    DashboardFilter activeFilter = tempEntity.newDashboardFilter(ADMIN_USERNAME, ACTIVE_FILTER_NAME,
+    DashboardFilter filter = tempEntity.newDashboardFilter(ADMIN_USERNAME, InternalRealm.ID, filterName,
+        JsonUtils.format(createNamedDashboardFilter(filterName)));
+    DashboardFilter activeFilter = tempEntity.newDashboardFilter(ADMIN_USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME,
         JsonUtils.format(createNamedDashboardFilter(ACTIVE_FILTER_NAME)));
 
     dashboardRequest().path(DashboardResource.DELETE_NAMED_FILTERS_PATH).body(asList(filterName, ACTIVE_FILTER_NAME))
@@ -83,12 +84,13 @@ public class DashboardResourceAuditTest
   @After
   public void after() {
     //required in order to avoid clashes between create/delete tests
-    dashboardFilterDAO.getByUsername(ADMIN_USERNAME).forEach(dashboardFilterDAO::delete);
+    dashboardFilterDAO.getByUsernameAndRealmId(ADMIN_USERNAME, InternalRealm.ID).forEach(dashboardFilterDAO::delete);
   }
 
   private void assertDashboardFilterAudit(final String filterName) {
     AuditDTO auditDTO = assertAuditLog(AuditEvent.SAVE_DASHBOARD_FILTER, null);
-    DashboardFilter persistedFilter = dashboardFilterDAO.getByUsernameAndName("admin", filterName);
+    DashboardFilter persistedFilter =
+        dashboardFilterDAO.getByUsernameAndRealmIdAndName(ADMIN_USERNAME, InternalRealm.ID, filterName);
     assertDashboardFilterAuditData(persistedFilter, auditDTO);
   }
 

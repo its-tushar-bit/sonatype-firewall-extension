@@ -35,6 +35,7 @@ import io.dropwizard.logging.DefaultLoggingFactory;
 import io.dropwizard.logging.filter.FilterFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
 import io.dropwizard.request.logging.RequestLogFactory;
+import io.dropwizard.request.logging.old.LogbackClassicRequestLogFactory;
 import io.dropwizard.server.AbstractServerFactory;
 import io.dropwizard.util.Duration;
 
@@ -77,6 +78,22 @@ public class InsightConfigurationFactory
 
       setAppenderFactoriesLogFormats(appenderFactories, AbstractAppenderFactory.class, DEFAULT_REQUEST_LOG_FORMAT);
       setDefaultRequestLogFilterFactory(appenderFactories, new UserTelemetryRequestLoggingFilter());
+      configureAsyncAppendersForNoLoss(appenderFactories);
+    }
+    else if (requestLogFactory instanceof LogbackClassicRequestLogFactory) {
+      Collection<? extends AppenderFactory<?>> appenderFactories =
+          ((LogbackClassicRequestLogFactory) requestLogFactory).getAppenders();
+      configureAsyncAppendersForNoLoss(appenderFactories);
+    }
+  }
+
+  private void configureAsyncAppendersForNoLoss(Collection<? extends AppenderFactory<?>> appenderFactories) {
+    for (AppenderFactory<?> appenderFactory : appenderFactories) {
+      if (appenderFactory instanceof AbstractAppenderFactory) {
+        AbstractAppenderFactory<?> factory = (AbstractAppenderFactory<?>) appenderFactory;
+        factory.setDiscardingThreshold(0);
+        factory.setNeverBlock(false);
+      }
     }
   }
 
@@ -110,7 +127,22 @@ public class InsightConfigurationFactory
     Map<String, JsonNode> newLoggerLevels = new HashMap<>(loggerLevels);
     setAuditLogSettings(newLoggerLevels);
     setPolicyViolationLogSettings(newLoggerLevels);
+    configureAsyncAppendersForNoLoss(newLoggerLevels);
+    configureAsyncAppendersForNoLoss(loggingFactory.getAppenders());
     loggingFactory.setLoggers(newLoggerLevels);
+  }
+
+  private void configureAsyncAppendersForNoLoss(Map<String, JsonNode> loggers) {
+    for (JsonNode logger : loggers.values()) {
+      JsonNode appenders = logger.path("appenders");
+      if (appenders.isArray()) {
+        for (JsonNode appender : appenders) {
+          if (appender.isObject()) {
+            ((ObjectNode) appender).put("neverBlock", false).put("discardingThreshold", 0);
+          }
+        }
+      }
+    }
   }
 
   private void setAuditLogSettings(Map<String, JsonNode> loggers) {

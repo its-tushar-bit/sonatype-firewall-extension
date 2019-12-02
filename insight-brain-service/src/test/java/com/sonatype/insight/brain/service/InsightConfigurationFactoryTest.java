@@ -414,4 +414,48 @@ public class InsightConfigurationFactoryTest
       assertThat(appenderFactory.getFilterFactories()).hasAtLeastOneElementOfType(filterFactoryClass);
     }
   }
+
+  @Test
+  public void testBuild_LosslessAsyncAppenders_ClassicRequestLog() throws Exception {
+    InsightConfig insightConfig = build("config-with-logback-classic-request-log-formats.yml");
+
+    LogbackClassicRequestLogFactory logFactory =
+        (LogbackClassicRequestLogFactory) ((DefaultServerFactory) insightConfig.getServerFactory())
+            .getRequestLogFactory();
+    assertThat(logFactory.getAppenders()).hasSize(3).allSatisfy(appenderFactory -> {
+      assertLosslessAppender(appenderFactory);
+    });
+  }
+
+  @Test
+  public void testBuild_LosslessAsyncAppenders_AccessRequestLog() throws Exception {
+    InsightConfig insightConfig = build("config-with-logback-access-request-log-formats.yml");
+
+    LogbackAccessRequestLogFactory logFactory =
+        (LogbackAccessRequestLogFactory) ((DefaultServerFactory) insightConfig.getServerFactory())
+            .getRequestLogFactory();
+    assertThat(logFactory.getAppenders()).hasSize(3).allSatisfy(appenderFactory -> {
+      assertLosslessAppender(appenderFactory);
+    });
+  }
+
+  @Test
+  public void testBuild_LosslessAsyncAppenders_ServerLog() throws Exception {
+    InsightConfig insightConfig = build("config-server-log-appenders.yml");
+
+    DefaultLoggingFactory loggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
+    assertThat(loggingFactory.getAppenders()).hasSize(3).allSatisfy(appenderFactory -> {
+      assertLosslessAppender(appenderFactory);
+    });
+    LoggerConfiguration loggerConfiguration = Jackson.newObjectMapper()
+        .treeToValue(loggingFactory.getLoggers().get("com.sonatype.insight.test"), LoggerConfiguration.class);
+    assertThat(loggerConfiguration.getAppenders()).hasSize(3).allSatisfy(appenderFactory -> {
+      assertLosslessAppender(appenderFactory);
+    });
+  }
+
+  private void assertLosslessAppender(AppenderFactory<?> appenderFactory) {
+    assertThat(appenderFactory).hasFieldOrPropertyWithValue("neverBlock", false)
+        .hasFieldOrPropertyWithValue("discardingThreshold", 0);
+  }
 }

@@ -6,11 +6,11 @@
 package com.sonatype.insight.brain.jira;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -56,7 +56,7 @@ import static org.mockito.Mockito.when;
 public class JiraPolicyAlertNotifierTest
     extends AbstractComponentTest
 {
-  private static final int NOTIFICATION_WAIT_TIMEOUT = 5000; // millisecs
+  private static final Duration NOTIFICATION_WAIT_TIMEOUT = Duration.ofMillis(5000);
 
   @Rule
   public LogOutput logOutput = new LogOutput(JiraPolicyAlertNotifier.class);
@@ -180,7 +180,7 @@ public class JiraPolicyAlertNotifierTest
     doThrow(ex).when(jiraClient).createIssue(any(JiraIssueCreateRequest.class));
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT, TimeUnit.MILLISECONDS).untilAsserted(() -> {
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> {
       assertThat(logOutput).atErrorLevel()
           .contains("Failed to create JIRA notification for JIRA project key " + projectKey + " and JIRA issue type id "
               + issueTypeId + ". Failed for application " + application.getPublicId() + " and scan " + scanId
@@ -208,7 +208,7 @@ public class JiraPolicyAlertNotifierTest
 
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT, TimeUnit.MILLISECONDS).untilAsserted(() -> {
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> {
       assertThat(logOutput).atDebugLevel()
           .contains("Not sending JIRA notifications for application " + application.getPublicId() + " and scan "
               + evaluation.getScanId() + " in stage " + evaluation.getStageTypeId()

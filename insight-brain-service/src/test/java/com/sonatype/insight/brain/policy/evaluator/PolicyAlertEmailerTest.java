@@ -5,12 +5,12 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.naming.NamingException;
@@ -87,7 +87,7 @@ import static org.mockito.Mockito.verify;
 public class PolicyAlertEmailerTest
     extends AbstractComponentTest
 {
-  private static final int NOTIFICATION_WAIT_TIMEOUT = 5000; // millisecs
+  private static final Duration NOTIFICATION_WAIT_TIMEOUT = Duration.ofMillis(5000);
 
   @Rule
   public LogOutput logOutput = new LogOutput(1, PolicyAlertEmailer.class);
@@ -165,7 +165,7 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT, TimeUnit.MILLISECONDS).untilAsserted(() -> {
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> {
       assertThat(logOutput).atDebugLevel().contains(
           "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
               + " in stage " + eval.getStageTypeId()
@@ -192,7 +192,7 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT, TimeUnit.MILLISECONDS).untilAsserted(() -> {
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> {
       assertThat(logOutput).atDebugLevel()
           .contains("Sending notification email via " + mailer.getServer() + " to " + email + " for application "
               + app.getPublicId() + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId());
@@ -219,7 +219,7 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT, TimeUnit.MILLISECONDS).untilAsserted(() -> {
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> {
       assertThat(logOutput).atErrorLevel()
           .contains("Unable to send notification email to " + email + " for application " + app.getPublicId()
               + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(), ex);
@@ -515,7 +515,7 @@ public class PolicyAlertEmailerTest
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
     // No email should be sent out with only Jira Notification
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT, TimeUnit.MILLISECONDS).untilAsserted(() -> {
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> {
       assertThat(logOutput).atDebugLevel().contains(
           "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
               + " in stage " + eval.getStageTypeId()

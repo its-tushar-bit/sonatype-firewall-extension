@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.webhook;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
@@ -80,7 +81,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 public class WebhookDispatcherTest
     extends AbstractComponentTest
 {
-  private static final int EVENT_TIMEOUT_MS = 5000;
+  private static final Duration EVENT_TIMEOUT_MS = Duration.ofMillis(5000);
 
   @Inject
   private WebhookDispatcher webhookDispatcher;

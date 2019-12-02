@@ -24,8 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import io.dropwizard.configuration.ConfigurationException;
 import io.dropwizard.configuration.ConfigurationSourceProvider;
 import io.dropwizard.configuration.YamlConfigurationFactory;
@@ -112,7 +110,7 @@ public class InsightConfigurationFactory
   {
     for (AppenderFactory<IAccessEvent> appenderFac : appenderFactories) {
       AbstractAppenderFactory<IAccessEvent> appenderFactory = (AbstractAppenderFactory<IAccessEvent>) appenderFac;
-      ImmutableList<FilterFactory<IAccessEvent>> existingFilters = appenderFactory.getFilterFactories();
+      List<FilterFactory<IAccessEvent>> existingFilters = appenderFactory.getFilterFactories();
       List<FilterFactory<IAccessEvent>> filters = new ArrayList<>(existingFilters);
 
       filters.add(filterFactory);
@@ -123,13 +121,12 @@ public class InsightConfigurationFactory
 
   private void setDefaultLogSettings(InsightConfig insightConfig) {
     DefaultLoggingFactory loggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
-    ImmutableMap<String, JsonNode> loggerLevels = loggingFactory.getLoggers();
-    Map<String, JsonNode> newLoggerLevels = new HashMap<>(loggerLevels);
-    setAuditLogSettings(newLoggerLevels);
-    setPolicyViolationLogSettings(newLoggerLevels);
-    configureAsyncAppendersForNoLoss(newLoggerLevels);
+    Map<String, JsonNode> loggersByName = new HashMap<>(loggingFactory.getLoggers());
+    setAuditLogSettings(loggersByName);
+    setPolicyViolationLogSettings(loggersByName);
+    configureAsyncAppendersForNoLoss(loggersByName);
     configureAsyncAppendersForNoLoss(loggingFactory.getAppenders());
-    loggingFactory.setLoggers(newLoggerLevels);
+    loggingFactory.setLoggers(loggersByName);
   }
 
   private void configureAsyncAppendersForNoLoss(Map<String, JsonNode> loggers) {
@@ -148,7 +145,7 @@ public class InsightConfigurationFactory
   private void setAuditLogSettings(Map<String, JsonNode> loggers) {
     JsonNode auditLogger = loggers.putIfAbsent(AuditRecorder.BASE_LOGGER_NAME, createDefaultAuditLogger());
     if (auditLogger instanceof ObjectNode) {
-      setRequiredLogSettings((ObjectNode) auditLogger);
+      setIndependentJsonLogSettings((ObjectNode) auditLogger);
     }
   }
 
@@ -156,11 +153,11 @@ public class InsightConfigurationFactory
     JsonNode policyViolationLogger = loggers
         .putIfAbsent(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME, new TextNode("OFF"));
     if (policyViolationLogger instanceof ObjectNode) {
-      setRequiredLogSettings((ObjectNode) policyViolationLogger);
+      setIndependentJsonLogSettings((ObjectNode) policyViolationLogger);
     }
   }
 
-  private void setRequiredLogSettings(ObjectNode logger) {
+  private void setIndependentJsonLogSettings(ObjectNode logger) {
     if (!logger.has("additive")) {
       logger.put("additive", false);
     }
@@ -177,7 +174,6 @@ public class InsightConfigurationFactory
       if (!type.equals("file") && !type.equals("console") && !type.equals("syslog")) {
         continue;
       }
-      logAppender.put("discardingThreshold", 0);
       if (!logAppender.has("logFormat")) {
         logAppender.put("logFormat", "%message%n");
       }
@@ -193,7 +189,7 @@ public class InsightConfigurationFactory
     auditLogAppender.put("archivedLogFilenamePattern", "./log/audit-%d.log.gz");
     auditLogAppender.put("archivedFileCount", 50);
     auditLogAppenders.add(auditLogAppender);
-    setRequiredLogSettings(auditLogger);
+    setIndependentJsonLogSettings(auditLogger);
     return auditLogger;
   }
 }

@@ -396,7 +396,7 @@ CREATE INDEX policy_violation_hash_idx ON policy_violation(hash);
 
 CREATE TABLE dashboard_filter (
   dashboard_filter_id varchar(50) NOT NULL,
-  username varchar(60) NOT NULL, -- The internal name of the User (CLM User or LDAP user)
+  username varchar(60) NOT NULL, -- The internal name of the User
   username_lowercase varchar(60) NOT NULL,
   realm_id varchar(50) NULL,
   name varchar(60) NOT NULL,
@@ -439,7 +439,7 @@ CREATE TABLE last_policy_evaluation (
 
 CREATE TABLE user_viewed_product_notification (
   user_viewed_product_notification_id varchar(50) NOT NULL,
-  username varchar(60) NOT NULL, -- The internal name of the User (CLM User or LDAP user)
+  username varchar(60) NOT NULL, -- The internal name of the User
   notification_id varchar(50) NOT NULL,
   CONSTRAINT notification_viewed_pk PRIMARY KEY (user_viewed_product_notification_id),
   CONSTRAINT notification_viewed_uk UNIQUE (notification_id, username)

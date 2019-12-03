@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -12,6 +14,10 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+
+import io.dropwizard.jetty.ConnectorFactory;
+import io.dropwizard.jetty.HttpsConnectorFactory;
+import io.dropwizard.server.DefaultServerFactory;
 
 /**
  * @since 1.69
@@ -25,6 +31,14 @@ public class PropertiesTelemetryCollector
 
   public static final String REPORT_TIMEOUT_SECONDS = "report_timeout_seconds";
 
+  static final String CONNECTOR_HTTP = "connector_http";
+
+  static final String CONNECTOR_HTTPS = "connector_https";
+
+  static final String ADMIN_CONNECTOR_HTTP = "admin_connector_http";
+
+  static final String ADMIN_CONNECTOR_HTTPS = "admin_connector_https";
+
   @Inject
   public PropertiesTelemetryCollector(InsightConfig config) {
     this.config = config;
@@ -34,6 +48,17 @@ public class PropertiesTelemetryCollector
   public TelemetryData collectData() {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.CONFIGURATION_PROPERTIES);
     telemetryData.getAttributes().put(REPORT_TIMEOUT_SECONDS, config.getReportTimeoutInSeconds());
+    List<ConnectorFactory> connectorFactories =
+        ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors();
+    boolean http = connectorFactories.stream().anyMatch(factory -> !(factory instanceof HttpsConnectorFactory));
+    boolean https = connectorFactories.stream().anyMatch(factory -> factory instanceof HttpsConnectorFactory);
+    telemetryData.getAttributes().put(CONNECTOR_HTTP, http);
+    telemetryData.getAttributes().put(CONNECTOR_HTTPS, https);
+    connectorFactories = ((DefaultServerFactory) config.getServerFactory()).getAdminConnectors();
+    http = connectorFactories.stream().anyMatch(factory -> !(factory instanceof HttpsConnectorFactory));
+    https = connectorFactories.stream().anyMatch(factory -> factory instanceof HttpsConnectorFactory);
+    telemetryData.getAttributes().put(ADMIN_CONNECTOR_HTTP, http);
+    telemetryData.getAttributes().put(ADMIN_CONNECTOR_HTTPS, https);
     return telemetryData;
   }
 }

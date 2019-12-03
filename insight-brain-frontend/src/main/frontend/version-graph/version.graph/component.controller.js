@@ -125,10 +125,7 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
     $scope.$broadcast('reload');
   };
 
-  $scope.$on('reload', function() {
-    $scope.coordinates = null;
-    coordinatesChanged();
-  });
+  $scope.$on('reload', coordinatesChanged);
 
   $scope.$watch(function() {
     return Properties.isUnknown();

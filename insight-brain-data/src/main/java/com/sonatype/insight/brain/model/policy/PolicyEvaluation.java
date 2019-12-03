@@ -48,6 +48,9 @@ public class PolicyEvaluation
   @Column(name = "time")
   private Date time;
 
+  @Column(name = "commit_hash")
+  private String commitHash;
+
   public PolicyEvaluation() {
   }
 
@@ -136,6 +139,14 @@ public class PolicyEvaluation
     this.isForObsoleteScan = isForObsoleteScan;
   }
 
+  public String getCommitHash() {
+    return commitHash;
+  }
+
+  public void setCommitHash(final String commitHash) {
+    this.commitHash = commitHash;
+  }
+
   @Override
   public String toString() {
     return "PolicyEvaluation{" + //
@@ -146,7 +157,8 @@ public class PolicyEvaluation
         ", isReevaluation=" + isReevaluation + //
         ", isForMonitoring=" + isForMonitoring + //
         ", isForObsoleteScan=" + isForObsoleteScan + //
-        ", time=" + time + " (" + time.getTime() + ")" + //
+        ", time=" + time + " (" + (time == null ? "" : time.getTime()) + ")" + //
+        ", commitHash='" + commitHash + '\'' + //
         '}';
   }
 }

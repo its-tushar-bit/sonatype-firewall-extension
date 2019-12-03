@@ -196,9 +196,11 @@ public class ScanPolicyEvaluator
     PolicyViolationTelemetryCollector telemetryCollector
         = new PolicyViolationTelemetryCollector(gitApiService.isScmEnabled(appId));
 
+    String commitHash = extractCommitHash(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME));
+
     // Save the policy evaluation and violations
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = processPolicyResults(application, scanId, stage, policies,
-        forMonitoring, policyResults, components, telemetryCollector);
+        forMonitoring, policyResults, components, telemetryCollector, commitHash);
 
     telemetrySender.send(telemetryCollector.getTelemetryData());
 
@@ -206,7 +208,7 @@ public class ScanPolicyEvaluator
 
     updateReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
 
-    postEvents(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations, reportFile);
+    postEvents(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations, commitHash);
 
     return scanPolicyEvaluatorResults;
   }
@@ -282,7 +284,8 @@ public class ScanPolicyEvaluator
                                                           boolean forMonitoring,
                                                           PolicyResults policyResults,
                                                           List<Component> components,
-                                                          PolicyViolationTelemetryCollector telemetryCollector)
+                                                          PolicyViolationTelemetryCollector telemetryCollector,
+                                                          String commitHash)
   {
     String appId = app.getId();
     Object lock = policyViolationPersistenceLocks.getLock(appId);
@@ -297,6 +300,7 @@ public class ScanPolicyEvaluator
         AuditData.get().setIsReevaluation(isReevaluation);
         PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
             forMonitoring);
+        policyEvaluation.setCommitHash(commitHash);
         PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx,
             appId, stage.getStageTypeId());
         boolean isForLatestScan = true;
@@ -674,10 +678,11 @@ public class ScanPolicyEvaluator
   /**
    * @since 1.25.0
    */
-  private void postEvents(PolicyEvaluation policyEvaluation, List<PolicyViolation> policyViolations, File reportFile)
-      throws IOException
+  private void postEvents(
+      PolicyEvaluation policyEvaluation,
+      List<PolicyViolation> policyViolations,
+      String commitHash)
   {
-    String commitHash = extractCommitHash(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME));
     PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(policyEvaluation, policyViolations,
         true);
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash);

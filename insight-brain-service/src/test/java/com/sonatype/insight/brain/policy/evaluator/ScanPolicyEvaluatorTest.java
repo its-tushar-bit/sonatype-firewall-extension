@@ -192,6 +192,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(results.evaluation.getApplicationId()).isEqualTo(application.getId());
     assertThat(results.evaluation.getStageTypeId()).isEqualTo(stage.getStageTypeId());
     assertThat(results.evaluation.getScanId()).isEqualTo(scanId);
+    assertThat(results.evaluation.getCommitHash()).isEqualTo("testCommitHash");
   }
 
   @Test
@@ -433,6 +434,7 @@ public class ScanPolicyEvaluatorTest
     results = scanPolicyEvaluator.evaluate(application, scanId, stage);
     assertThat(results.activeViolations).hasSize(2);
     assertThat(results.notifiableViolations).hasSize(1);
+    assertThat(results.evaluation.getCommitHash()).isNull();
   }
 
   @Test
@@ -461,6 +463,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(event.severeComponentCount).isEqualTo(7);
     assertThat(event.moderateComponentCount).isEqualTo(0);
     assertThat(event.outcome).isEqualTo(Action.ID_FAIL);
+    assertThat(event.commitHash).isEqualTo("testCommitHash");
   }
 
   @Test

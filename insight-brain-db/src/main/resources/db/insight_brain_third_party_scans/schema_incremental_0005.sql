@@ -1,3 +1,4 @@
+-- Since 1.77.0
 ALTER TABLE third_party_file DROP COLUMN image;
 ALTER TABLE third_party_file DROP COLUMN hash;
 ALTER TABLE third_party_file ALTER COLUMN filename DROP NOT NULL;

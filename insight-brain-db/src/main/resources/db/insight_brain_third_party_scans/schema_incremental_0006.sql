@@ -1,3 +1,4 @@
+-- Since 1.79.0
 CREATE TABLE coordinate_license (
   coordinate_license_id VARCHAR(50) NOT NULL,
   file_coordinate_id VARCHAR(50) NOT NULL,

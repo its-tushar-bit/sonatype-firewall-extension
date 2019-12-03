@@ -1,3 +1,4 @@
+-- Since 1.72.0
 -- drop all tables
 drop table coordinate_security;
 drop table coordinate_file;

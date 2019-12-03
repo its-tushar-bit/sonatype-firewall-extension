@@ -1,3 +1,4 @@
+-- Since 1.72.0
 DROP TABLE third_party_scan;
 
 CREATE TABLE third_party_scan (

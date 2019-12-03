@@ -58,7 +58,7 @@ public class ProductNotificationResourceTest
   }
 
   @Test
-  public void testPostNotificationViewed() throws Exception {
+  public void testSetNotificationViewed() throws Exception {
     List<ProductNotification> notifications = createNotifications(1);
     hdsRespondWith(new ProductNotificationList(notifications))
         .atUri(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH);

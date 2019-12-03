@@ -102,7 +102,7 @@ public class HdsProductNotificationServiceTest
         eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap()))
             .thenReturn(expectedProductNotificationList);
 
-    tempEntity.newUserViewedNotificationMapping(USERNAME, expectedNotifications.get(0).getId());
+    tempEntity.newUserViewedProductNotification(USERNAME, expectedNotifications.get(0).getId());
 
     List<ProductNotification> retrievedNotifications = hdsProductNotificationServiceSpy.getNotifications();
     assertNotifications(retrievedNotifications, expectedNotifications);

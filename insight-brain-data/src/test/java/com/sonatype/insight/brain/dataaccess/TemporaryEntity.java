@@ -229,7 +229,7 @@ public class TemporaryEntity
 
   private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
 
-  private final UserViewedProductNotificationDAO userViewedNotificationMappingDAO =
+  private final UserViewedProductNotificationDAO userViewedProductNotificationDAO =
       new UserViewedProductNotificationDAO();
 
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
@@ -291,7 +291,7 @@ public class TemporaryEntity
 
   private Collection<DashboardFilter> dashboardFilters;
 
-  private Collection<UserViewedProductNotification> userViewedNotificationMappings;
+  private Collection<UserViewedProductNotification> userViewedProductNotifications;
 
   private Collection<Policy> policies;
 
@@ -343,7 +343,7 @@ public class TemporaryEntity
     ldapServers = new ArrayList<>();
     claimedComponents = new ArrayList<>();
     dashboardFilters = new ArrayList<>();
-    userViewedNotificationMappings = new ArrayList<>();
+    userViewedProductNotifications = new ArrayList<>();
     policies = new ArrayList<>();
     policyTags = new ArrayList<>();
     tags = new ArrayList<>();
@@ -392,9 +392,9 @@ public class TemporaryEntity
     delete(roles, roleDAO);
     delete(ldapServers, ldapServerDAO);
     delete(claimedComponents, hashComponentIdentifierDAO);
-    delete(userViewedNotificationMappings, entity -> userViewedNotificationMappingDAO
+    delete(userViewedProductNotifications, entity -> userViewedProductNotificationDAO
             .getByUsernameAndNotificationId(entity.getUsername(), entity.getNotificationId()),
-        userViewedNotificationMappingDAO::delete);
+        userViewedProductNotificationDAO::delete);
     delete(policies, entity -> policyDAO.getById(entity.getId()), policyDAO::delete);
     delete(labels, labelDAO);
     delete(tags, tagDAO);
@@ -1349,16 +1349,17 @@ public class TemporaryEntity
     return applicationComponent;
   }
 
-  public UserViewedProductNotification newUserViewedNotificationMapping(final String username,
-                                                                        final String notificationId)
+  public UserViewedProductNotification newUserViewedProductNotification(
+      final String username,
+      final String notificationId)
   {
-    UserViewedProductNotification userViewedNotificationMapping = new UserViewedProductNotification();
-    userViewedNotificationMapping.setUsername(username);
-    userViewedNotificationMapping.setNotificationId(notificationId);
+    UserViewedProductNotification userViewedProductNotification = new UserViewedProductNotification();
+    userViewedProductNotification.setUsername(username);
+    userViewedProductNotification.setNotificationId(notificationId);
 
-    userViewedNotificationMappingDAO.insert(userViewedNotificationMapping);
-    userViewedNotificationMappings.add(userViewedNotificationMapping);
-    return userViewedNotificationMapping;
+    userViewedProductNotificationDAO.insert(userViewedProductNotification);
+    userViewedProductNotifications.add(userViewedProductNotification);
+    return userViewedProductNotification;
   }
 
   public PolicyMonitoring newPolicyMonitoring(String ownerId, String stageTypeId) {

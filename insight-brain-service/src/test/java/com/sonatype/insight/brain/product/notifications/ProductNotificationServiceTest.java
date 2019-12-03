@@ -86,7 +86,7 @@ public class ProductNotificationServiceTest
       notifications.add(notification);
       if (i % 2 == 0) {
         viewedIds.add(notification.getId());
-        tempEntity.newUserViewedNotificationMapping(USERNAME, notification.getId());
+        tempEntity.newUserViewedProductNotification(USERNAME, notification.getId());
       }
     }
     when(hdsNotificationService.getNotifications()).thenReturn(notifications);

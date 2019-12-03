@@ -53,9 +53,9 @@ public class UserViewedProductNotificationDAOTest
 
   @Test
   public void testGetByUsernameAndNotificationId() {
-    tempEntity.newUserViewedNotificationMapping("tmpUser1", UUID.randomUUID().toString());
-    tempEntity.newUserViewedNotificationMapping("tmpUser2", UUID.randomUUID().toString());
-    UserViewedProductNotification expected = tempEntity.newUserViewedNotificationMapping("tmpUser2", UUID.randomUUID()
+    tempEntity.newUserViewedProductNotification("tmpUser1", UUID.randomUUID().toString());
+    tempEntity.newUserViewedProductNotification("tmpUser2", UUID.randomUUID().toString());
+    UserViewedProductNotification expected = tempEntity.newUserViewedProductNotification("tmpUser2", UUID.randomUUID()
         .toString());
 
     UserViewedProductNotification retrieved = userViewedNotificationMappingDAO.getByUsernameAndNotificationId(
@@ -67,9 +67,9 @@ public class UserViewedProductNotificationDAOTest
 
   @Test
   public void testGetAll() {
-    UserViewedProductNotification expected1 = tempEntity.newUserViewedNotificationMapping("tmpUser1", UUID.randomUUID()
+    UserViewedProductNotification expected1 = tempEntity.newUserViewedProductNotification("tmpUser1", UUID.randomUUID()
         .toString());
-    UserViewedProductNotification expected2 = tempEntity.newUserViewedNotificationMapping("tmpUser2", UUID.randomUUID()
+    UserViewedProductNotification expected2 = tempEntity.newUserViewedProductNotification("tmpUser2", UUID.randomUUID()
         .toString());
 
     List<UserViewedProductNotification> notificationViewedList = userViewedNotificationMappingDAO.getAll();

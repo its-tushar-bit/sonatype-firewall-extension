@@ -15,7 +15,9 @@ import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -283,6 +285,32 @@ public class LdapServerDAOTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       dao.updatePriority(serverPriorityList);
     }).withMessageContaining("Cannot find LdapServer with ID incorrectServerId");
+  }
+
+  @Test
+  public void testDeleteCascadesToLdapConnection() {
+    LdapServer ldapServer1 = tempEntity.newLdapServer("test1");
+    LdapConnection ldapConnection1 = tempEntity.newLdapConnection(ldapServer1.getId());
+    LdapServer ldapServer2 = tempEntity.newLdapServer("test2");
+    LdapConnection ldapConnection2 = tempEntity.newLdapConnection(ldapServer2.getId());
+
+    dao.delete(ldapServer1);
+
+    assertThat(new LdapConnectionDAO().getById(ldapConnection1.getId())).isNull();
+    assertThat(new LdapConnectionDAO().getById(ldapConnection2.getId())).isNotNull();
+  }
+
+  @Test
+  public void testDeleteCascadesToLdapUserMapping() {
+    LdapServer ldapServer1 = tempEntity.newLdapServer("test1");
+    LdapUserMapping ldapUserMapping1 = tempEntity.newLdapUserMapping(ldapServer1.getId());
+    LdapServer ldapServer2 = tempEntity.newLdapServer("test2");
+    LdapUserMapping ldapUserMapping2 = tempEntity.newLdapUserMapping(ldapServer2.getId());
+
+    dao.delete(ldapServer1);
+
+    assertThat(new LdapUserMappingDAO().getById(ldapUserMapping1.getId())).isNull();
+    assertThat(new LdapUserMappingDAO().getById(ldapUserMapping2.getId())).isNotNull();
   }
 
   @Test

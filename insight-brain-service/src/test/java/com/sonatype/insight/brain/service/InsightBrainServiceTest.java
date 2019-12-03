@@ -376,4 +376,20 @@ public class InsightBrainServiceTest
     Provider[] providers = Security.getProviders();
     assertThat(providers[providers.length - 1].getName()).isEqualTo(BouncyCastleProvider.PROVIDER_NAME);
   }
+
+  @Test
+  @ManualServerInit
+  public void testHttpsConnector_SNI() throws Exception {
+    initServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+      }
+
+      @Override
+      public String getConfigFilePath() {
+        return InsightBrainService.class.getResource("/InsightBrainServiceTest/config-with-https-sni.yml").getFile();
+      }
+    });
+  }
 }

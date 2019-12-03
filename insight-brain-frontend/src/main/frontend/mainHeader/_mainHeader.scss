@@ -275,7 +275,11 @@ $iq-main-header-height: 72px;
 .iq-user-name {
   display: block;
   margin-top: 4px;
-  text-transform: initial;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+  max-width: 200px; // distance between dropdown and edge of screen at 1024px
 }
 
 .iq-dropdown-toggle--user-menu {

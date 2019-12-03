@@ -28,6 +28,10 @@
     display: inline-block;
   }
 
+  .iq-title__version {
+    border-color: $iq-off-black;
+}
+
   main-header, application-report-root, application-report-vulnerabilities, ui-view, .iq-body-container,
   .nx-root-container, .nx-tile {
     border: none !important;

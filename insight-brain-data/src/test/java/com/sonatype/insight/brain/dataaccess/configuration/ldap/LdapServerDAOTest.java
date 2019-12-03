@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
+import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -18,6 +19,7 @@ import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -323,5 +325,19 @@ public class LdapServerDAOTest
 
     assertThat(new UserTokenDAO().getById(userToken1.getId())).isNull();
     assertThat(new UserTokenDAO().getById(userToken2.getId())).isNotNull();
+  }
+
+  @Test
+  public void testDeleteCascadesToDashboardFilter() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    DashboardFilter dashboardFilter1 =
+        tempEntity.newDashboardFilter("testUsername", ldapServer.getId(), "testFilterName", "testFilter");
+    DashboardFilter dashboardFilter2 =
+        tempEntity.newDashboardFilter("testUsername", "OtherRealmId", "testFilterName", "testFilter");
+
+    dao.delete(ldapServer);
+
+    assertThat(new DashboardFilterDAO().getById(dashboardFilter1.getId())).isNull();
+    assertThat(new DashboardFilterDAO().getById(dashboardFilter2.getId())).isNotNull();
   }
 }

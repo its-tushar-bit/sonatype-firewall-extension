@@ -193,4 +193,14 @@ public class DashboardFilterDAO
   public void deleteLegacyByUsername(TransactionContext tx, String username) {
     deleteByUsernameAndRealmId(tx, username, null /* realmId */);
   }
+
+  private List<DashboardFilter> getByRealmId(TransactionContext tx, String realmId) {
+    String sQuery = "SELECT entity FROM DashboardFilter entity" + //
+        " WHERE entity.realmId=?1";
+    return getList(tx, sQuery, realmId);
+  }
+
+  public void deleteByRealmId(TransactionContext tx, String realmId) {
+    getByRealmId(tx, realmId).forEach(dashboardFilter -> delete(tx, dashboardFilter));
+  }
 }

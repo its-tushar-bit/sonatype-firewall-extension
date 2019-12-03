@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
+import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -104,6 +105,7 @@ public class LdapServerDAO
     new LdapConnectionDAO().deleteByServerId(tx, entity.getId());
     new LdapUserMappingDAO().deleteByServerId(tx, entity.getId());
     new UserTokenDAO().deleteByRealmId(tx, entity.getId());
+    new DashboardFilterDAO().deleteByRealmId(tx, entity.getId());
     super.delete(tx, entity);
   }
 

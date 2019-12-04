@@ -12,6 +12,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -55,6 +56,7 @@ public class ApplicationEvaluationResourceAuditTest
   public void testEvaluate_ErrorDuringAsyncEvaluationTask() throws Exception {
     hdsRespondWith("Service Unavailable").andStatus(503).atUri("rest/application/analysis");
     assertResponseStatus(200, evaluate(null, app.getPublicId(), Stage.ID_BUILD));
+    Thread.sleep(ScanUploader.BAD_GATEWAY_RETRY_WAIT.toMillis() * ScanUploader.BAD_GATEWAY_ATTEMPT_LIMIT);
     assertAuditLog(AuditEvent.EVALUATE_APPLICATION, "bad-gateway");
   }
 

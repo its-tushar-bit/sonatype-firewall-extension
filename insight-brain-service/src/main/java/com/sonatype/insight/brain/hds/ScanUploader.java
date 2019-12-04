@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.hds;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -18,6 +19,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.error.exception.BadGatewayException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,10 @@ public class ScanUploader
   private static final Logger log = LoggerFactory.getLogger(ScanUploader.class);
 
   private static final String HDS_PATH = "rest/application/analysis";
+
+  public static final int BAD_GATEWAY_ATTEMPT_LIMIT = 5;
+
+  public static final Duration BAD_GATEWAY_RETRY_WAIT = Duration.ofSeconds(1);
 
   private final HdsClient client;
 
@@ -46,9 +52,34 @@ public class ScanUploader
    * @since 1.8
    */
   public ScanReceipt upload(File scanFile, Application application) throws IOException {
+    return upload(scanFile, application, BAD_GATEWAY_RETRY_WAIT);
+  }
+
+  public ScanReceipt upload(File scanFile, Application application, Duration retryWait) throws IOException {
     HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(application);
 
-    ScanReceipt receipt = client.put(analytics, ScanReceipt.class, HDS_PATH, scanFile);
+    ScanReceipt receipt = null;
+    int retryCount = 0;
+
+    while (receipt == null) {
+      try {
+        receipt = client.put(analytics, ScanReceipt.class, HDS_PATH, scanFile);
+      }
+      catch (BadGatewayException e) {
+        if (++retryCount >= BAD_GATEWAY_ATTEMPT_LIMIT) {
+          throw e;
+        }
+        log.info("failed to upload scan, retrying", e);
+        try {
+          Thread.sleep(retryWait.toMillis());
+        }
+        catch (InterruptedException ignored) {
+          Thread.currentThread().interrupt();
+          //root cause is the BadGatewayException, let's throw that.
+          throw e;
+        }
+      }
+    }
 
     augmentScanReceipt(application.getPublicId(), receipt);
 

@@ -15,6 +15,9 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.notification.ProductNotification;
 import com.sonatype.clm.dto.model.notification.ProductNotificationType;
+import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
+import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
+import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.inject.Binder;
@@ -86,7 +89,7 @@ public class ProductNotificationServiceTest
       notifications.add(notification);
       if (i % 2 == 0) {
         viewedIds.add(notification.getId());
-        tempEntity.newUserViewedProductNotification(USERNAME, notification.getId());
+        tempEntity.newUserViewedProductNotification(USERNAME, InternalRealm.ID, notification.getId());
       }
     }
     when(hdsNotificationService.getNotifications()).thenReturn(notifications);
@@ -117,6 +120,38 @@ public class ProductNotificationServiceTest
     assertThat(returnNotificationListDTO).isNotNull();
     assertThat(returnNotificationListDTO.notifications).hasSize(1);
     assertNotification(returnNotificationListDTO.notifications.get(0), notifications.get(0), true);
+  }
+
+  @Test
+  public void testGetNotification_LegacyViewedNotificationExists() {
+    List<ProductNotification> notifications = createNotification(1);
+    when(hdsNotificationService.getNotifications()).thenReturn(notifications);
+
+    tempEntity.newUserViewedProductNotificationLegacy(USERNAME, notifications.get(0).getId());
+
+    int page = 1;
+    ProductNotificationListDTO notificationListDTO = notificationsService.getNotifications(1, page);
+    assertThat(notificationListDTO).isNotNull();
+    assertThat(notificationListDTO.notifications).hasSize(1);
+    ProductNotificationDTO notificationDTO = notificationListDTO.notifications.get(0);
+    assertNotification(notificationDTO, notifications.get(0), true);
+  }
+
+  @Test
+  public void testSetNotificationViewed_LegacyViewedNotificationExists() {
+    List<ProductNotification> notifications = createNotification(1);
+    ProductNotificationListDTO notificationListDTO =
+        notificationsService.convert(notifications, Collections.emptySet());
+
+    UserViewedProductNotification userViewedProductNotificationLegacy =
+        tempEntity.newUserViewedProductNotificationLegacy(USERNAME, notifications.get(0).getId());
+    ProductNotificationDTO returnedValue =
+        notificationsService.setNotificationViewed(notificationListDTO.notifications.get(0));
+    assertNotification(returnedValue, notifications.get(0), true);
+
+    assertThat(new UserViewedProductNotificationDAO().getById(userViewedProductNotificationLegacy.getId())).isNull();
+    assertThat(new UserViewedProductNotificationDAO().getByUsernameAndRealmIdAndNotificationId(USERNAME,
+        InternalRealm.ID, notifications.get(0).getId())).isNotNull();
   }
 
   @Test

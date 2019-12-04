@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
-import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
@@ -182,12 +181,10 @@ public class UserDAO
     dashboardFilterDAO.deleteByUsernameAndRealmId(tx, entity.getUsername(), User.INTERNAL_REALM_ID);
     dashboardFilterDAO.deleteLegacyByUsername(tx, entity.getUsername());
 
-    // Cascade to user viewed notification mapping
-    UserViewedProductNotificationDAO userViewedNotificationMappingDAO = new UserViewedProductNotificationDAO();
-    for (UserViewedProductNotification userViewedNotificationMapping : userViewedNotificationMappingDAO.getByUsername(
-        tx, entity.getUsername())) {
-      userViewedNotificationMappingDAO.delete(tx, userViewedNotificationMapping);
-    }
+    // Cascade to user viewed product notifications
+    UserViewedProductNotificationDAO userViewedProductNotificationDAO = new UserViewedProductNotificationDAO();
+    userViewedProductNotificationDAO.deleteByUsernameAndRealmId(tx, entity.getUsername(), User.INTERNAL_REALM_ID);
+    userViewedProductNotificationDAO.deleteLegacyByUsername(tx, entity.getUsername());
 
     super.delete(tx, entity);
   }

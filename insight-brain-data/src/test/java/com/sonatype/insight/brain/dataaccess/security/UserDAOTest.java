@@ -637,16 +637,15 @@ public class UserDAOTest
   @Test
   public void testDeleteCascadesToUserViewedNotificationMapping() {
     User user = createUser("testDeleteCascadesToMembershipMappings");
-    UserViewedProductNotification userViewedNotificationMapping = new UserViewedProductNotification();
-    userViewedNotificationMapping.setUsername(user.getUsername());
-    userViewedNotificationMapping.setNotificationId("dummyNotificationId");
-
-    UserViewedProductNotificationDAO userViewedNotificationMappingDAO = new UserViewedProductNotificationDAO();
-    userViewedNotificationMappingDAO.insert(userViewedNotificationMapping);
+    UserViewedProductNotification userViewedProductNotification =
+        tempEntity.newUserViewedProductNotification(user.getUsername(), User.INTERNAL_REALM_ID, "testNotificationId");
+    UserViewedProductNotification userViewedProductNotificationLegacy =
+        tempEntity.newUserViewedProductNotificationLegacy(user.getUsername(), "testNotificationId");
 
     new UserDAO().delete(user);
 
-    assertThat(userViewedNotificationMappingDAO.getByUsername(user.getUsername())).isEmpty();
+    assertThat(new UserViewedProductNotificationDAO().getById(userViewedProductNotification.getId())).isNull();
+    assertThat(new UserViewedProductNotificationDAO().getById(userViewedProductNotificationLegacy.getId())).isNull();
   }
 
   @Test

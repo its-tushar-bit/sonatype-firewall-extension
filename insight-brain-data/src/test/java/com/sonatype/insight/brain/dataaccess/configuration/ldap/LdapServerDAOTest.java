@@ -12,6 +12,7 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
+import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -20,6 +21,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
+import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -339,5 +341,19 @@ public class LdapServerDAOTest
 
     assertThat(new DashboardFilterDAO().getById(dashboardFilter1.getId())).isNull();
     assertThat(new DashboardFilterDAO().getById(dashboardFilter2.getId())).isNotNull();
+  }
+
+  @Test
+  public void testDeleteCascadesToUserViewedProductNotification() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    UserViewedProductNotification userViewedProductNotification1 =
+        tempEntity.newUserViewedProductNotification("testUsername", ldapServer.getId(), "testNotificationId");
+    UserViewedProductNotification userViewedProductNotification2 =
+        tempEntity.newUserViewedProductNotification("testUsername", "OtherRealmId", "testNotificationId");
+
+    dao.delete(ldapServer);
+
+    assertThat(new UserViewedProductNotificationDAO().getById(userViewedProductNotification1.getId())).isNull();
+    assertThat(new UserViewedProductNotificationDAO().getById(userViewedProductNotification2.getId())).isNotNull();
   }
 }

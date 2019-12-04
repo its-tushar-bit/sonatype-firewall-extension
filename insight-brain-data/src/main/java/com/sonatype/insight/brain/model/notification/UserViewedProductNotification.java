@@ -10,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -27,14 +28,27 @@ public class UserViewedProductNotification
   @Column(name = "username")
   private String username;
 
+  /**
+   * @since 1.81
+   */
+  @Column(name = "username_lowercase")
+  private String usernameLowercase;
+
+  /**
+   * @since 1.81
+   */
+  @Column(name = "realm_id")
+  private String realmId;
+
   @Column(name = "notification_id")
   private String notificationId;
 
   public UserViewedProductNotification() {
   }
 
-  public UserViewedProductNotification(final String username, final String notificationId) {
-    this.username = username;
+  public UserViewedProductNotification(final String username, String realmId, final String notificationId) {
+    setUsername(username);
+    setRealmId(realmId);
     this.notificationId = notificationId;
   }
 
@@ -43,6 +57,7 @@ public class UserViewedProductNotification
   }
 
   public void setUsername(final String username) {
+    usernameLowercase = User.normalizeUsername(username);
     this.username = username;
   }
 
@@ -62,5 +77,29 @@ public class UserViewedProductNotification
   @Override
   public void setId(String id) {
     this.id = id;
+  }
+
+  public String getUsernameLowercase() {
+    return usernameLowercase;
+  }
+
+  /**
+   * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
+   * usernameLowercase field. If this method is not defined, jackson will set/access the
+   * usernameLowercase field directly via reflection, possibly setting it to an incorrect value.
+   * 
+   * @deprecated This method should not be used explicitly.
+   */
+  @Deprecated
+  @SuppressWarnings("unused")
+  private void setUsernameLowercase(String usernameLowercase) {
+  }
+
+  public String getRealmId() {
+    return realmId;
+  }
+
+  public void setRealmId(String realmId) {
+    this.realmId = realmId;
   }
 }

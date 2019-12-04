@@ -442,9 +442,11 @@ CREATE TABLE last_policy_evaluation (
 CREATE TABLE user_viewed_product_notification (
   user_viewed_product_notification_id varchar(50) NOT NULL,
   username varchar(60) NOT NULL, -- The internal name of the User
+  username_lowercase varchar(60) NOT NULL,
+  realm_id varchar(50) NULL,
   notification_id varchar(50) NOT NULL,
   CONSTRAINT notification_viewed_pk PRIMARY KEY (user_viewed_product_notification_id),
-  CONSTRAINT notification_viewed_uk UNIQUE (notification_id, username)
+  CONSTRAINT notification_viewed_uk UNIQUE (notification_id, username_lowercase, realm_id)
 );
 
 CREATE TABLE repository_manager (

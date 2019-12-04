@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.notification.ProductNotificationType;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
+import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.test.LogOutput;
 
@@ -102,7 +103,7 @@ public class HdsProductNotificationServiceTest
         eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap()))
             .thenReturn(expectedProductNotificationList);
 
-    tempEntity.newUserViewedProductNotification(USERNAME, expectedNotifications.get(0).getId());
+    tempEntity.newUserViewedProductNotification(USERNAME, InternalRealm.ID, expectedNotifications.get(0).getId());
 
     List<ProductNotification> retrievedNotifications = hdsProductNotificationServiceSpy.getNotifications();
     assertNotifications(retrievedNotifications, expectedNotifications);
@@ -110,7 +111,8 @@ public class HdsProductNotificationServiceTest
     verify(mockHdsClient, times(1)).get(eq(ProductNotificationList.class),
         eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap());
 
-    List<UserViewedProductNotification> userViewedProductNotifications = notificationViewedDAO.getByUsername(USERNAME);
+    List<UserViewedProductNotification> userViewedProductNotifications =
+        notificationViewedDAO.getByUsernameAndRealmId(USERNAME, InternalRealm.ID);
     assertThat(userViewedProductNotifications).hasSize(1);
 
     reset(hdsProductNotificationServiceSpy);
@@ -131,7 +133,7 @@ public class HdsProductNotificationServiceTest
     verify(mockHdsClient, times(1)).get(eq(ProductNotificationList.class),
         eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap());
     // This should have been removed as part of the cache update
-    userViewedProductNotifications = notificationViewedDAO.getByUsername(USERNAME);
+    userViewedProductNotifications = notificationViewedDAO.getByUsernameAndRealmId(USERNAME, InternalRealm.ID);
     assertThat(userViewedProductNotifications).isEmpty();
   }
 

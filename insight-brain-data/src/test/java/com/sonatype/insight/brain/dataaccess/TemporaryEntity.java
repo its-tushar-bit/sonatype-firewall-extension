@@ -392,9 +392,7 @@ public class TemporaryEntity
     delete(roles, roleDAO);
     delete(ldapServers, ldapServerDAO);
     delete(claimedComponents, hashComponentIdentifierDAO);
-    delete(userViewedProductNotifications, entity -> userViewedProductNotificationDAO
-            .getByUsernameAndNotificationId(entity.getUsername(), entity.getNotificationId()),
-        userViewedProductNotificationDAO::delete);
+    delete(userViewedProductNotifications, userViewedProductNotificationDAO);
     delete(policies, entity -> policyDAO.getById(entity.getId()), policyDAO::delete);
     delete(labels, labelDAO);
     delete(tags, tagDAO);
@@ -1363,13 +1361,33 @@ public class TemporaryEntity
 
   public UserViewedProductNotification newUserViewedProductNotification(
       final String username,
+      String realmId,
       final String notificationId)
   {
-    UserViewedProductNotification userViewedProductNotification = new UserViewedProductNotification();
-    userViewedProductNotification.setUsername(username);
-    userViewedProductNotification.setNotificationId(notificationId);
+    UserViewedProductNotification userViewedProductNotification =
+        new UserViewedProductNotification(username, realmId, notificationId);
 
     userViewedProductNotificationDAO.insert(userViewedProductNotification);
+    userViewedProductNotifications.add(userViewedProductNotification);
+    return userViewedProductNotification;
+  }
+
+  public UserViewedProductNotification newUserViewedProductNotificationLegacy(String username, String notificationId) {
+    String id = uuid();
+    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+        PreparedStatement statement = connection.prepareStatement("INSERT INTO user_viewed_product_notification " + //
+            "(user_viewed_product_notification_id, username, username_lowercase, notification_id) " + //
+            "VALUES (?1, ?2, ?3, ?4)")) {
+      statement.setString(1, id);
+      statement.setString(2, username);
+      statement.setString(3, User.normalizeUsername(username));
+      statement.setString(4, notificationId);
+      statement.execute();
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+    UserViewedProductNotification userViewedProductNotification = userViewedProductNotificationDAO.getById(id);
     userViewedProductNotifications.add(userViewedProductNotification);
     return userViewedProductNotification;
   }

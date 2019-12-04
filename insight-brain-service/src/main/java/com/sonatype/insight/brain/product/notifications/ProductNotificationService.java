@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.notification.ProductNotification;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -55,20 +56,36 @@ public class ProductNotificationService
       throw new IllegalArgumentException("Notifications cannot be null");
     }
 
-    String username = currentUser.getUsername();
-    if (notificationViewedDAO.getByUsernameAndNotificationId(username, notificationDTO.id) == null) {
-      UserViewedProductNotification userViewedNotificationMapping = new UserViewedProductNotification(username,
-          notificationDTO.id);
-      notificationViewedDAO.insert(userViewedNotificationMapping);
+    try (TransactionContext tx = notificationViewedDAO.createTransactionContext()) {
+      tx.begin();
+
+      String username = currentUser.getUsername();
+      String realmId = currentUser.getRealmId();
+      if (notificationViewedDAO.getByUsernameAndRealmIdAndNotificationId(tx, username, realmId,
+          notificationDTO.id) == null) {
+        if (notificationViewedDAO.getLegacyByUsernameAndNotificationId(tx, username, notificationDTO.id) != null) {
+          notificationViewedDAO.deleteLegacyByUsername(tx, username);
+        }
+        UserViewedProductNotification userViewedNotificationMapping =
+            new UserViewedProductNotification(username, realmId, notificationDTO.id);
+        notificationViewedDAO.insert(tx, userViewedNotificationMapping);
+      }
+
+      tx.commit();
+
+      notificationDTO.viewed = true;
+      return notificationDTO;
     }
-    notificationDTO.viewed = true;
-    return notificationDTO;
   }
 
   private Set<String> getNotificationViewedIdSet() {
-    List<UserViewedProductNotification> viewedMappings = notificationViewedDAO.getByUsername(currentUser.getUsername());
     Set<String> notificationIdSet = new HashSet<>();
-    for (UserViewedProductNotification viewedMapping : viewedMappings) {
+    for (UserViewedProductNotification viewedMapping : notificationViewedDAO
+        .getByUsernameAndRealmId(currentUser.getUsername(), currentUser.getRealmId())) {
+      notificationIdSet.add(viewedMapping.getNotificationId());
+    }
+    for (UserViewedProductNotification viewedMapping : notificationViewedDAO
+        .getLegacyByUsername(currentUser.getUsername())) {
       notificationIdSet.add(viewedMapping.getNotificationId());
     }
     return notificationIdSet;

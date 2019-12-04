@@ -10,12 +10,14 @@ import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
+import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.tuple;
 
 public class UserViewedProductNotificationDAOTest
     extends AbstractDbDAOTest
@@ -26,56 +28,177 @@ public class UserViewedProductNotificationDAOTest
   public void testCRUD() throws Exception {
     String notificationId = UUID.randomUUID().toString();
     String username = "tmpUser";
+    String realmId = "testRealmId";
 
     // Create
-    UserViewedProductNotification notificationViewed = new UserViewedProductNotification(username, notificationId);
-    userViewedNotificationMappingDAO.insert(notificationViewed);
+    UserViewedProductNotification userViewedProductNotification =
+        new UserViewedProductNotification(username, realmId, notificationId);
+    userViewedNotificationMappingDAO.insert(userViewedProductNotification);
 
     // Get
-    List<UserViewedProductNotification> notificationViewedList = userViewedNotificationMappingDAO
-        .getByUsername(username);
-    assertThat(notificationViewedList).hasSize(1);
-    assertThat(notificationViewedList.get(0).getNotificationId()).isEqualTo(notificationId);
-    assertThat(notificationViewedList.get(0).getUsername()).isEqualTo(username);
+    assertUserViewedProductNotification(userViewedNotificationMappingDAO.getById(userViewedProductNotification.getId()),
+        userViewedProductNotification);
 
     assertThatThrownBy(() -> {
-      userViewedNotificationMappingDAO.update(notificationViewed);
+      userViewedNotificationMappingDAO.update(userViewedProductNotification);
     }).isInstanceOf(UnsupportedOperationException.class)
         .hasMessage("The UserViewedProductNotification table does not support update operations");
 
     // Delete
-    userViewedNotificationMappingDAO.delete(notificationViewed);
+    userViewedNotificationMappingDAO.delete(userViewedProductNotification);
 
     // Get
-    notificationViewedList = userViewedNotificationMappingDAO.getByUsername(username);
-    assertThat(notificationViewedList).isEmpty();
+    assertThat(userViewedNotificationMappingDAO.getById(userViewedProductNotification.getId())).isNull();
+  }
+
+  private void assertUserViewedProductNotification(
+      UserViewedProductNotification actual,
+      UserViewedProductNotification expected)
+  {
+    assertThat(actual.getId()).isEqualTo(expected.getId());
+    assertThat(actual.getNotificationId()).isEqualTo(expected.getNotificationId());
+    assertThat(actual.getUsername()).isEqualTo(expected.getUsername());
+    assertThat(actual.getUsernameLowercase()).isEqualTo(expected.getUsernameLowercase());
+    assertThat(actual.getUsernameLowercase()).isEqualTo(User.normalizeUsername(expected.getUsername()));
+    assertThat(actual.getRealmId()).isEqualTo(expected.getRealmId());
   }
 
   @Test
-  public void testGetByUsernameAndNotificationId() {
-    tempEntity.newUserViewedProductNotification("tmpUser1", UUID.randomUUID().toString());
-    tempEntity.newUserViewedProductNotification("tmpUser2", UUID.randomUUID().toString());
-    UserViewedProductNotification expected = tempEntity.newUserViewedProductNotification("tmpUser2", UUID.randomUUID()
-        .toString());
+  public void testGetByUsernameAndRealmIdAndNotificationId() {
+    String username = "testUser";
+    String notificationId = "testNotificationId";
+    UserViewedProductNotification userViewedProductNotification =
+        tempEntity.newUserViewedProductNotification(username, User.INTERNAL_REALM_ID, notificationId);
+    tempEntity.newUserViewedProductNotification("OtherUser", User.INTERNAL_REALM_ID, notificationId);
+    tempEntity.newUserViewedProductNotification(username, "OtherRealmId", notificationId);
+    tempEntity.newUserViewedProductNotification(username, User.INTERNAL_REALM_ID, "OtherNotificationId");
 
-    UserViewedProductNotification retrieved = userViewedNotificationMappingDAO.getByUsernameAndNotificationId(
-        expected.getUsername(), expected.getNotificationId());
+    UserViewedProductNotification retrieved = userViewedNotificationMappingDAO
+        .getByUsernameAndRealmIdAndNotificationId(username, User.INTERNAL_REALM_ID, notificationId);
 
-    assertThat(retrieved.getUsername()).isEqualTo(expected.getUsername());
-    assertThat(retrieved.getNotificationId()).isEqualTo(expected.getNotificationId());
+    assertUserViewedProductNotification(retrieved, userViewedProductNotification);
   }
 
   @Test
-  public void testGetAll() {
-    UserViewedProductNotification expected1 = tempEntity.newUserViewedProductNotification("tmpUser1", UUID.randomUUID()
-        .toString());
-    UserViewedProductNotification expected2 = tempEntity.newUserViewedProductNotification("tmpUser2", UUID.randomUUID()
-        .toString());
+  public void testGetByUsernameAndRealmIdAndNotificationId_UsernameCaseInsensitive() {
+    String username = "testUser";
+    String notificationId = "testNotificationId";
+    UserViewedProductNotification userViewedProductNotification =
+        tempEntity.newUserViewedProductNotification(username, User.INTERNAL_REALM_ID, notificationId);
+    tempEntity.newUserViewedProductNotification("OtherUser", User.INTERNAL_REALM_ID, notificationId);
+    tempEntity.newUserViewedProductNotification(username, "OtherRealmId", notificationId);
+    tempEntity.newUserViewedProductNotification(username, User.INTERNAL_REALM_ID, "OtherNotificationId");
 
-    List<UserViewedProductNotification> notificationViewedList = userViewedNotificationMappingDAO.getAll();
-    assertThat(notificationViewedList)
-        .extracting(UserViewedProductNotification::getUsername, UserViewedProductNotification::getNotificationId)
-        .containsExactlyInAnyOrder(tuple(expected1.getUsername(), expected1.getNotificationId()),
-            tuple(expected2.getUsername(), expected2.getNotificationId()));
+    UserViewedProductNotification retrieved = userViewedNotificationMappingDAO
+        .getByUsernameAndRealmIdAndNotificationId("TestUser", User.INTERNAL_REALM_ID, notificationId);
+
+    assertUserViewedProductNotification(retrieved, userViewedProductNotification);
+  }
+
+  @Test
+  public void testGetByUsernameAndRealmId() {
+    String username = "testUser";
+    String notificationId = "testNotificationId";
+    UserViewedProductNotification userViewedProductNotification =
+        tempEntity.newUserViewedProductNotification(username, User.INTERNAL_REALM_ID, notificationId);
+    tempEntity.newUserViewedProductNotification("OtherUser", User.INTERNAL_REALM_ID, notificationId);
+    tempEntity.newUserViewedProductNotification(username, "OtherRealmId", notificationId);
+
+    List<UserViewedProductNotification> retrieved = userViewedNotificationMappingDAO
+        .getByUsernameAndRealmId(username, User.INTERNAL_REALM_ID);
+
+    assertThat(retrieved).hasSize(1);
+    assertUserViewedProductNotification(retrieved.get(0), userViewedProductNotification);
+  }
+
+  @Test
+  public void testGetByUsernameAndRealmId_UsernameCaseInsensitive() {
+    String username = "testUser";
+    String notificationId = "testNotificationId";
+    UserViewedProductNotification userViewedProductNotification =
+        tempEntity.newUserViewedProductNotification(username, User.INTERNAL_REALM_ID, notificationId);
+    tempEntity.newUserViewedProductNotification("OtherUser", User.INTERNAL_REALM_ID, notificationId);
+    tempEntity.newUserViewedProductNotification(username, "OtherRealmId", notificationId);
+
+    List<UserViewedProductNotification> retrieved =
+        userViewedNotificationMappingDAO.getByUsernameAndRealmId("TestUser", User.INTERNAL_REALM_ID);
+
+    assertThat(retrieved).hasSize(1);
+    assertUserViewedProductNotification(retrieved.get(0), userViewedProductNotification);
+  }
+
+  @Test
+  public void testGetLegacyByUsernameAndNotificationId() {
+    String username = "testUsername";
+    String realmId = "testRealmId";
+    String notificationId = "testNotificationId";
+    tempEntity.newUserViewedProductNotification(username, realmId, notificationId);
+    UserViewedProductNotification userViewedProductNotificationLegacy =
+        tempEntity.newUserViewedProductNotificationLegacy(username, notificationId);
+
+    try (TransactionContext tx = userViewedNotificationMappingDAO.createTransactionContext()) {
+      assertUserViewedProductNotification(
+          userViewedNotificationMappingDAO.getLegacyByUsernameAndNotificationId(tx, username, notificationId),
+          userViewedProductNotificationLegacy);
+    }
+  }
+
+  @Test
+  public void testGetLegacyByUsernameAndNotificationId_UsernameCaseInsensitive() {
+    String username = "testUsername";
+    String realmId = "testRealmId";
+    String notificationId = "testNotificationId";
+    tempEntity.newUserViewedProductNotification(username, realmId, notificationId);
+    UserViewedProductNotification userViewedProductNotificationLegacy =
+        tempEntity.newUserViewedProductNotificationLegacy(username, notificationId);
+
+    try (TransactionContext tx = userViewedNotificationMappingDAO.createTransactionContext()) {
+      assertUserViewedProductNotification(
+          userViewedNotificationMappingDAO.getLegacyByUsernameAndNotificationId(tx, "TestUsername", notificationId),
+          userViewedProductNotificationLegacy);
+    }
+  }
+
+  @Test
+  public void testGetLegacyByUsername() {
+    String username = "testUsername";
+    String realmId = "testRealmId";
+    String notificationId = "testNotificationId";
+    tempEntity.newUserViewedProductNotification(username, realmId, notificationId);
+    UserViewedProductNotification userViewedProductNotificationLegacy =
+        tempEntity.newUserViewedProductNotificationLegacy(username, notificationId);
+
+    List<UserViewedProductNotification> retrieved = userViewedNotificationMappingDAO.getLegacyByUsername(username);
+    assertThat(retrieved).hasSize(1);
+    assertUserViewedProductNotification(retrieved.get(0), userViewedProductNotificationLegacy);
+  }
+
+  @Test
+  public void testGetLegacyByUsername_UsernameCaseInsensitive() {
+    String username = "testUsername";
+    String realmId = "testRealmId";
+    String notificationId = "testNotificationId";
+    tempEntity.newUserViewedProductNotification(username, realmId, notificationId);
+    UserViewedProductNotification userViewedProductNotificationLegacy =
+        tempEntity.newUserViewedProductNotificationLegacy(username, notificationId);
+
+    List<UserViewedProductNotification> retrieved =
+        userViewedNotificationMappingDAO.getLegacyByUsername("TestUsername");
+    assertThat(retrieved).hasSize(1);
+    assertUserViewedProductNotification(retrieved.get(0), userViewedProductNotificationLegacy);
+  }
+
+  @Test
+  public void testInsert_RealmIdNull() {
+    assertThatThrownBy(() -> {
+      tempEntity.newUserViewedProductNotification("testUsername", null /* realmId */, "testNotificationId");
+    }).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
+  }
+
+  @Test
+  public void testInsert_RealmIdWhitespace() {
+    assertThatThrownBy(() -> {
+      tempEntity.newUserViewedProductNotification("testUsername", " " /* realmId */, "testNotificationId");
+    }).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
   }
 }

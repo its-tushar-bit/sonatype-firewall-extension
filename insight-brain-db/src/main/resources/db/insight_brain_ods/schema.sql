@@ -348,6 +348,7 @@ CREATE TABLE policy_evaluation (
 CREATE INDEX policy_evaluation_scan_id_idx ON policy_evaluation(scan_id);
 CREATE INDEX policy_evaluation_time_idx ON policy_evaluation(time);
 CREATE INDEX policy_evaluation_app_monitoring_stage_idx ON policy_evaluation(application_id, for_monitoring, stage_type_id);
+CREATE INDEX policy_evaluation_commit_hash_idx ON policy_evaluation(commit_hash);
 
 CREATE TABLE policy_violation (
   policy_violation_id varchar(50) NOT NULL,

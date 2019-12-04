@@ -283,4 +283,11 @@ public class PolicyEvaluationDAO
         " AND entity.isForMonitoring=true AND entity.isReevaluation=false";
     return getList(sQuery, applicationId);
   }
+
+  public PolicyEvaluation getLastByCommitHash(String commitHash) {
+    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
+        " WHERE entity.commitHash=?1" + //
+        " ORDER BY entity.time DESC";
+    return createQuery(sQuery, commitHash).forceSingleResult().get();
+  }
 }

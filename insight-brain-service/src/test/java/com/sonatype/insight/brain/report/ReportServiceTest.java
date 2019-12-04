@@ -319,6 +319,40 @@ public class ReportServiceTest
     assertThatReportZipContains(reportZip, "thirdparty-security.json");
   }
 
+  @Test
+  public void testGetReportByCommitHash() throws Exception {
+    // Given
+    createReportFile(app.getId(), scanId, zipReportDir("/ReportResourceTest/report"));
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId, "commitHash");
+    ReportService reportService = createReportService();
+    // When
+    File report = reportService.getReportByCommitHash("commitHash");
+    // Then
+    assertThat(report).isFile();
+    assertThat(report).exists();
+  }
+
+  @Test
+  public void testGetReportByCommitHash_NoPolicyEvaluation() {
+    // Given
+    ReportService reportService = createReportService();
+    // When
+    File report = reportService.getReportByCommitHash("commitHash");
+    // Then
+    assertThat(report).isNull();
+  }
+
+  @Test
+  public void testGetReportByCommitHash_NoReportFile() {
+    // Given
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId, "commitHash");
+    ReportService reportService = createReportService();
+    // When
+    File report = reportService.getReportByCommitHash("commitHash");
+    // Then
+    assertThat(report).isNull();
+  }
+
   private void assertThatReportZipContains(File zipFile, final String thirdPartyFile) {
     assertThat(Stream.of(new TFile(zipFile).listFiles()).anyMatch(f -> f.getName().endsWith(thirdPartyFile)))
         .isTrue();

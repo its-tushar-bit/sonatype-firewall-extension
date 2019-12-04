@@ -26,7 +26,7 @@ public class ProductNotificationResourceAuthzTest
   }
 
   @Test
-  public void testPostNotificationsViewed() throws Exception {
+  public void testSetNotificationViewed() throws Exception {
     ProductNotificationDTO notificationDTO = new ProductNotificationDTO();
     notificationDTO.id = UUID.randomUUID().toString();
     testAuthcPost(restRequest().path(ProductNotificationResource.VIEWED_PATH).body(notificationDTO));

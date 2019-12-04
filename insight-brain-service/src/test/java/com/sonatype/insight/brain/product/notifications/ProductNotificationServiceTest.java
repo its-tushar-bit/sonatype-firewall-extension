@@ -43,7 +43,7 @@ public class ProductNotificationServiceTest
   }
 
   @Test
-  public void testGetNotification_PageSizeGreaterThanNumItems() {
+  public void testGetNotifications_PageSizeGreaterThanNumItems() {
     List<ProductNotification> notifications = createNotification(1);
     when(hdsNotificationService.getNotifications()).thenReturn(notifications);
 
@@ -59,7 +59,7 @@ public class ProductNotificationServiceTest
   }
 
   @Test
-  public void testGetNotification_Pagination() {
+  public void testGetNotifications_Pagination() {
     List<ProductNotification> notifications = createNotification(5);
     when(hdsNotificationService.getNotifications()).thenReturn(notifications);
 
@@ -79,7 +79,7 @@ public class ProductNotificationServiceTest
   }
 
   @Test
-  public void testGetNotification_SomeViewed() {
+  public void testGetNotifications_SomeViewed() {
     List<ProductNotification> notifications = new ArrayList<>();
     List<String> viewedIds = new ArrayList<>();
     int numNotifications = 10;
@@ -123,7 +123,7 @@ public class ProductNotificationServiceTest
   }
 
   @Test
-  public void testGetNotification_LegacyViewedNotificationExists() {
+  public void testGetNotifications_LegacyViewedNotificationExists() {
     List<ProductNotification> notifications = createNotification(1);
     when(hdsNotificationService.getNotifications()).thenReturn(notifications);
 

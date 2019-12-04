@@ -132,6 +132,7 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
 
     delete vm.loadError;
     delete vm.jiraError;
+    delete vm.webhookError;
   }
 
   function loadWebhooksIfSupported() {
@@ -242,14 +243,14 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
 
   function getWebhookDisplayName(recipient) {
     if (recipient.webhookId) {
-      var webhook = vm.webhooks.find(function(webhook) {
+      var webhook = vm.webhooks ? vm.webhooks.find(function(webhook) {
         return recipient.webhookId === webhook.id;
-      });
+      }) : undefined;
       if (webhook) {
         return 'Webhook: ' + (webhook.description ? webhook.description : webhook.url);
       }
       else {
-        return 'Undefined webhook';
+        return 'Undefined webhook: ' + recipient.webhookId;
       }
     }
   }
@@ -380,7 +381,7 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
   }
 
   function updateAvailableWebhooks() {
-    if (!vm.notifications.webhookNotifications || vm.notifications.webhookNotifications.length === 0) {
+    if (!vm.notifications.webhookNotifications || vm.notifications.webhookNotifications.length === 0 || !vm.webhooks) {
       availableWebhooks = vm.webhooks;
     }
     else {

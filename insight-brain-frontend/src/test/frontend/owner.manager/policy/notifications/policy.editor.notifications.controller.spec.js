@@ -21,6 +21,18 @@ describe('policy.editor.notifications.controller.spec.js', function() {
     ]
   };
 
+  var webhooks = [
+    {
+      id: 'webhook1',
+      url: 'url1'
+    },
+    {
+      id: 'webhook2',
+      url: 'url2',
+      description: 'description2'
+    }
+  ];
+
   var createJiraServiceResolver = function() {
     var enabledDefer,
         getProjectsDefer,
@@ -62,6 +74,7 @@ describe('policy.editor.notifications.controller.spec.js', function() {
   var initController,
       scope,
       CLMLocations,
+      getWebhooks,
       jiraProjects = JiraServiceMockData.getJiraProjectsUrl();
 
   var jiraServiceResolver = createJiraServiceResolver();
@@ -84,11 +97,13 @@ describe('policy.editor.notifications.controller.spec.js', function() {
       return vm;
     };
 
-    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
+    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring',
+      'webhooks-for-applications']);
 
     $httpBackend.whenGET('/rest/policy/stages?context=all').respond([]);
     $httpBackend.whenGET(CLMContextLocations.getRoleMappingUrl()).respond(membershipMapping);
-    $httpBackend.whenGET(CLMLocations.getWebhooksUrl()).respond([]);
+    getWebhooks = $httpBackend.whenGET(CLMLocations.getWebhooksUrl());
+    getWebhooks.respond(webhooks);
   }));
 
   describe('controller init', function() {
@@ -158,6 +173,27 @@ describe('policy.editor.notifications.controller.spec.js', function() {
       expect(vm.recipients[0].issueTypeId).toBe(1);
       expect(vm.recipients[1].projectKey).toBe('key2');
       expect(vm.recipients[1].issueTypeId).toBe(2);
+    });
+
+    it('populates recipients from webhookNotifications', function() {
+      var notifications = {
+        webhookNotifications: [
+          {
+            webhookId: 'key1',
+            stageIds: ['proxy', 'build']
+          },
+          {
+            webhookId: 'key2',
+            stageIds: ['develop']
+          }
+        ]
+      };
+
+      var vm = initController(notifications, true);
+
+      expect(vm.recipients.length).toBe(2);
+      expect(vm.recipients[0].webhookId).toBe('key1');
+      expect(vm.recipients[1].webhookId).toBe('key2');
     });
 
     it('still shows editor if jira projects fails', inject(function(CLMContextLocations, $controller, $httpBackend) {
@@ -698,6 +734,55 @@ describe('policy.editor.notifications.controller.spec.js', function() {
       var vm = initController(notifications, true);
 
       expect(vm.getDisplayName(recipient)).toBe('Project One (Bug)');
+    });
+
+    it('returns webhook url for webhookNotifications if not having a description', function() {
+      var recipient = {
+        webhookId: 'webhook1'
+      };
+      var notifications = {
+        webhookNotifications: [recipient]
+      };
+      var vm = initController(notifications, true);
+
+      expect(vm.getDisplayName(recipient)).toBe('Webhook: url1');
+    });
+
+    it('returns webhook description for webhookNotifications if having a description', function() {
+      var recipient = {
+        webhookId: 'webhook2'
+      };
+      var notifications = {
+        webhookNotifications: [recipient]
+      };
+      var vm = initController(notifications, true);
+
+      expect(vm.getDisplayName(recipient)).toBe('Webhook: description2');
+    });
+
+    it('returns webhook id for webhookNotifications if unable to find matching webhook', function() {
+      var recipient = {
+        webhookId: 'unknown-webhook'
+      };
+      var notifications = {
+        webhookNotifications: [recipient]
+      };
+      var vm = initController(notifications, true);
+
+      expect(vm.getDisplayName(recipient)).toBe('Undefined webhook: unknown-webhook');
+    });
+
+    it('returns webhook id for webhookNotifications if unable to load webhooks', function() {
+      getWebhooks.respond(500, 'error');
+      var recipient = {
+        webhookId: 'webhook1'
+      };
+      var notifications = {
+        webhookNotifications: [recipient]
+      };
+      var vm = initController(notifications, true);
+
+      expect(vm.getDisplayName(recipient)).toBe('Undefined webhook: webhook1');
     });
   });
 });

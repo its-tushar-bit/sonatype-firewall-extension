@@ -87,6 +87,10 @@ $iq-main-header-height: 72px;
   display: inline-block;
   margin-left: 4px;
   padding-left: 8px;
+
+  &.visual-testing-ignore {
+    padding-right: 4px; // right padding increases ignore region width
+  }
 }
 
 .iq-main-header-nav-container {

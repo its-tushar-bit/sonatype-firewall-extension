@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class UserViewedProductNotificationDAOTest
     extends AbstractDbDAOTest
 {
-  private UserViewedProductNotificationDAO userViewedNotificationMappingDAO = new UserViewedProductNotificationDAO();
+  private UserViewedProductNotificationDAO userViewedProductNotificationDAO = new UserViewedProductNotificationDAO();
 
   @Test
   public void testCRUD() throws Exception {
@@ -33,22 +33,22 @@ public class UserViewedProductNotificationDAOTest
     // Create
     UserViewedProductNotification userViewedProductNotification =
         new UserViewedProductNotification(username, realmId, notificationId);
-    userViewedNotificationMappingDAO.insert(userViewedProductNotification);
+    userViewedProductNotificationDAO.insert(userViewedProductNotification);
 
     // Get
-    assertUserViewedProductNotification(userViewedNotificationMappingDAO.getById(userViewedProductNotification.getId()),
+    assertUserViewedProductNotification(userViewedProductNotificationDAO.getById(userViewedProductNotification.getId()),
         userViewedProductNotification);
 
     assertThatThrownBy(() -> {
-      userViewedNotificationMappingDAO.update(userViewedProductNotification);
+      userViewedProductNotificationDAO.update(userViewedProductNotification);
     }).isInstanceOf(UnsupportedOperationException.class)
         .hasMessage("The UserViewedProductNotification table does not support update operations");
 
     // Delete
-    userViewedNotificationMappingDAO.delete(userViewedProductNotification);
+    userViewedProductNotificationDAO.delete(userViewedProductNotification);
 
     // Get
-    assertThat(userViewedNotificationMappingDAO.getById(userViewedProductNotification.getId())).isNull();
+    assertThat(userViewedProductNotificationDAO.getById(userViewedProductNotification.getId())).isNull();
   }
 
   private void assertUserViewedProductNotification(
@@ -73,7 +73,7 @@ public class UserViewedProductNotificationDAOTest
     tempEntity.newUserViewedProductNotification(username, "OtherRealmId", notificationId);
     tempEntity.newUserViewedProductNotification(username, User.INTERNAL_REALM_ID, "OtherNotificationId");
 
-    UserViewedProductNotification retrieved = userViewedNotificationMappingDAO
+    UserViewedProductNotification retrieved = userViewedProductNotificationDAO
         .getByUsernameAndRealmIdAndNotificationId(username, User.INTERNAL_REALM_ID, notificationId);
 
     assertUserViewedProductNotification(retrieved, userViewedProductNotification);
@@ -89,7 +89,7 @@ public class UserViewedProductNotificationDAOTest
     tempEntity.newUserViewedProductNotification(username, "OtherRealmId", notificationId);
     tempEntity.newUserViewedProductNotification(username, User.INTERNAL_REALM_ID, "OtherNotificationId");
 
-    UserViewedProductNotification retrieved = userViewedNotificationMappingDAO
+    UserViewedProductNotification retrieved = userViewedProductNotificationDAO
         .getByUsernameAndRealmIdAndNotificationId("TestUser", User.INTERNAL_REALM_ID, notificationId);
 
     assertUserViewedProductNotification(retrieved, userViewedProductNotification);
@@ -104,7 +104,7 @@ public class UserViewedProductNotificationDAOTest
     tempEntity.newUserViewedProductNotification("OtherUser", User.INTERNAL_REALM_ID, notificationId);
     tempEntity.newUserViewedProductNotification(username, "OtherRealmId", notificationId);
 
-    List<UserViewedProductNotification> retrieved = userViewedNotificationMappingDAO
+    List<UserViewedProductNotification> retrieved = userViewedProductNotificationDAO
         .getByUsernameAndRealmId(username, User.INTERNAL_REALM_ID);
 
     assertThat(retrieved).hasSize(1);
@@ -121,7 +121,7 @@ public class UserViewedProductNotificationDAOTest
     tempEntity.newUserViewedProductNotification(username, "OtherRealmId", notificationId);
 
     List<UserViewedProductNotification> retrieved =
-        userViewedNotificationMappingDAO.getByUsernameAndRealmId("TestUser", User.INTERNAL_REALM_ID);
+        userViewedProductNotificationDAO.getByUsernameAndRealmId("TestUser", User.INTERNAL_REALM_ID);
 
     assertThat(retrieved).hasSize(1);
     assertUserViewedProductNotification(retrieved.get(0), userViewedProductNotification);
@@ -136,9 +136,9 @@ public class UserViewedProductNotificationDAOTest
     UserViewedProductNotification userViewedProductNotificationLegacy =
         tempEntity.newUserViewedProductNotificationLegacy(username, notificationId);
 
-    try (TransactionContext tx = userViewedNotificationMappingDAO.createTransactionContext()) {
+    try (TransactionContext tx = userViewedProductNotificationDAO.createTransactionContext()) {
       assertUserViewedProductNotification(
-          userViewedNotificationMappingDAO.getLegacyByUsernameAndNotificationId(tx, username, notificationId),
+          userViewedProductNotificationDAO.getLegacyByUsernameAndNotificationId(tx, username, notificationId),
           userViewedProductNotificationLegacy);
     }
   }
@@ -152,9 +152,9 @@ public class UserViewedProductNotificationDAOTest
     UserViewedProductNotification userViewedProductNotificationLegacy =
         tempEntity.newUserViewedProductNotificationLegacy(username, notificationId);
 
-    try (TransactionContext tx = userViewedNotificationMappingDAO.createTransactionContext()) {
+    try (TransactionContext tx = userViewedProductNotificationDAO.createTransactionContext()) {
       assertUserViewedProductNotification(
-          userViewedNotificationMappingDAO.getLegacyByUsernameAndNotificationId(tx, "TestUsername", notificationId),
+          userViewedProductNotificationDAO.getLegacyByUsernameAndNotificationId(tx, "TestUsername", notificationId),
           userViewedProductNotificationLegacy);
     }
   }
@@ -168,7 +168,7 @@ public class UserViewedProductNotificationDAOTest
     UserViewedProductNotification userViewedProductNotificationLegacy =
         tempEntity.newUserViewedProductNotificationLegacy(username, notificationId);
 
-    List<UserViewedProductNotification> retrieved = userViewedNotificationMappingDAO.getLegacyByUsername(username);
+    List<UserViewedProductNotification> retrieved = userViewedProductNotificationDAO.getLegacyByUsername(username);
     assertThat(retrieved).hasSize(1);
     assertUserViewedProductNotification(retrieved.get(0), userViewedProductNotificationLegacy);
   }
@@ -183,7 +183,7 @@ public class UserViewedProductNotificationDAOTest
         tempEntity.newUserViewedProductNotificationLegacy(username, notificationId);
 
     List<UserViewedProductNotification> retrieved =
-        userViewedNotificationMappingDAO.getLegacyByUsername("TestUsername");
+        userViewedProductNotificationDAO.getLegacyByUsername("TestUsername");
     assertThat(retrieved).hasSize(1);
     assertUserViewedProductNotification(retrieved.get(0), userViewedProductNotificationLegacy);
   }

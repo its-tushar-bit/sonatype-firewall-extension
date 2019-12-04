@@ -50,17 +50,18 @@ public class HdsProductNotificationService
 
   private final HdsClient hdsClient;
 
-  private final UserViewedProductNotificationDAO notificationViewedDAO;
+  private final UserViewedProductNotificationDAO userViewedProductNotificationDAO;
 
   public boolean disableCacheForTesting;
 
   @Inject
-  public HdsProductNotificationService(final HdsClient hdsClient,
-                                       final UserViewedProductNotificationDAO notificationViewedDAO)
+  public HdsProductNotificationService(
+      final HdsClient hdsClient,
+      final UserViewedProductNotificationDAO userViewedProductNotificationDAO)
   {
     this.hdsClient = hdsClient;
     this.expirationTime = new Date();
-    this.notificationViewedDAO = notificationViewedDAO;
+    this.userViewedProductNotificationDAO = userViewedProductNotificationDAO;
   }
 
   public List<ProductNotification> getNotifications() {
@@ -106,9 +107,9 @@ public class HdsProductNotificationService
   }
 
   private void deleteOldUserViewedProductNotification(final Set<String> notificationIdsToKeep) {
-    for (UserViewedProductNotification notification : notificationViewedDAO.getAll()) {
+    for (UserViewedProductNotification notification : userViewedProductNotificationDAO.getAll()) {
       if (!notificationIdsToKeep.contains(notification.getNotificationId())) {
-        notificationViewedDAO.delete(notification);
+        userViewedProductNotificationDAO.delete(notification);
       }
     }
   }

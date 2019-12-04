@@ -47,7 +47,7 @@ public class HdsProductNotificationServiceTest
   private HdsProductNotificationService hdsNotificationService;
 
   @Inject
-  private UserViewedProductNotificationDAO notificationViewedDAO;
+  private UserViewedProductNotificationDAO userViewedProductNotificationDAO;
 
   @Mock
   private HdsClient mockHdsClient;
@@ -112,7 +112,7 @@ public class HdsProductNotificationServiceTest
         eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap());
 
     List<UserViewedProductNotification> userViewedProductNotifications =
-        notificationViewedDAO.getByUsernameAndRealmId(USERNAME, InternalRealm.ID);
+        userViewedProductNotificationDAO.getByUsernameAndRealmId(USERNAME, InternalRealm.ID);
     assertThat(userViewedProductNotifications).hasSize(1);
 
     reset(hdsProductNotificationServiceSpy);
@@ -133,7 +133,8 @@ public class HdsProductNotificationServiceTest
     verify(mockHdsClient, times(1)).get(eq(ProductNotificationList.class),
         eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap());
     // This should have been removed as part of the cache update
-    userViewedProductNotifications = notificationViewedDAO.getByUsernameAndRealmId(USERNAME, InternalRealm.ID);
+    userViewedProductNotifications =
+        userViewedProductNotificationDAO.getByUsernameAndRealmId(USERNAME, InternalRealm.ID);
     assertThat(userViewedProductNotifications).isEmpty();
   }
 

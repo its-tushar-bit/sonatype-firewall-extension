@@ -30,24 +30,25 @@ public class ProductNotificationService
 {
   private final HdsProductNotificationService hdsNotificationService;
 
-  private final UserViewedProductNotificationDAO notificationViewedDAO;
+  private final UserViewedProductNotificationDAO userViewedProductNotificationDAO;
 
   private final CurrentUser currentUser;
 
   @Inject
-  public ProductNotificationService(final HdsProductNotificationService hdsNotificationService,
-                                    final UserViewedProductNotificationDAO notificationViewedDAO,
-                                    final CurrentUser currentUser)
+  public ProductNotificationService(
+      final HdsProductNotificationService hdsNotificationService,
+      final UserViewedProductNotificationDAO userViewedProductNotificationDAO,
+      final CurrentUser currentUser)
   {
     this.hdsNotificationService = hdsNotificationService;
-    this.notificationViewedDAO = notificationViewedDAO;
+    this.userViewedProductNotificationDAO = userViewedProductNotificationDAO;
     this.currentUser = currentUser;
   }
 
   public ProductNotificationListDTO getNotifications(final int pagesSize, final int page) {
     List<ProductNotification> notificationList = hdsNotificationService.getNotifications();
 
-    Set<String> viewedNotificationSet = getNotificationViewedIdSet();
+    Set<String> viewedNotificationSet = getViewedNotificationIdSet();
     return convert(getPage(notificationList, pagesSize, page), viewedNotificationSet);
   }
 
@@ -56,19 +57,20 @@ public class ProductNotificationService
       throw new IllegalArgumentException("Notifications cannot be null");
     }
 
-    try (TransactionContext tx = notificationViewedDAO.createTransactionContext()) {
+    try (TransactionContext tx = userViewedProductNotificationDAO.createTransactionContext()) {
       tx.begin();
 
       String username = currentUser.getUsername();
       String realmId = currentUser.getRealmId();
-      if (notificationViewedDAO.getByUsernameAndRealmIdAndNotificationId(tx, username, realmId,
+      if (userViewedProductNotificationDAO.getByUsernameAndRealmIdAndNotificationId(tx, username, realmId,
           notificationDTO.id) == null) {
-        if (notificationViewedDAO.getLegacyByUsernameAndNotificationId(tx, username, notificationDTO.id) != null) {
-          notificationViewedDAO.deleteLegacyByUsername(tx, username);
+        if (userViewedProductNotificationDAO.getLegacyByUsernameAndNotificationId(tx, username,
+            notificationDTO.id) != null) {
+          userViewedProductNotificationDAO.deleteLegacyByUsername(tx, username);
         }
-        UserViewedProductNotification userViewedNotificationMapping =
+        UserViewedProductNotification userViewedProductNotification =
             new UserViewedProductNotification(username, realmId, notificationDTO.id);
-        notificationViewedDAO.insert(tx, userViewedNotificationMapping);
+        userViewedProductNotificationDAO.insert(tx, userViewedProductNotification);
       }
 
       tx.commit();
@@ -78,13 +80,13 @@ public class ProductNotificationService
     }
   }
 
-  private Set<String> getNotificationViewedIdSet() {
+  private Set<String> getViewedNotificationIdSet() {
     Set<String> notificationIdSet = new HashSet<>();
-    for (UserViewedProductNotification viewedMapping : notificationViewedDAO
+    for (UserViewedProductNotification viewedMapping : userViewedProductNotificationDAO
         .getByUsernameAndRealmId(currentUser.getUsername(), currentUser.getRealmId())) {
       notificationIdSet.add(viewedMapping.getNotificationId());
     }
-    for (UserViewedProductNotification viewedMapping : notificationViewedDAO
+    for (UserViewedProductNotification viewedMapping : userViewedProductNotificationDAO
         .getLegacyByUsername(currentUser.getUsername())) {
       notificationIdSet.add(viewedMapping.getNotificationId());
     }

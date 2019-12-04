@@ -635,8 +635,8 @@ public class UserDAOTest
   }
 
   @Test
-  public void testDeleteCascadesToUserViewedNotificationMapping() {
-    User user = createUser("testDeleteCascadesToMembershipMappings");
+  public void testDeleteCascadesToUserViewedProductNotification() {
+    User user = createUser("testUsername");
     UserViewedProductNotification userViewedProductNotification =
         tempEntity.newUserViewedProductNotification(user.getUsername(), User.INTERNAL_REALM_ID, "testNotificationId");
     UserViewedProductNotification userViewedProductNotificationLegacy =

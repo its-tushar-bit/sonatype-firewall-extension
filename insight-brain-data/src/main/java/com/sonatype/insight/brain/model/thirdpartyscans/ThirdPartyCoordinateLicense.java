@@ -23,14 +23,12 @@ public class ThirdPartyCoordinateLicense
 
   public ThirdPartyCoordinateLicense(
       String fileCoordinateId,
-      String expression,
       String licenseId,
       String name,
       String url)
   {
 
     this.fileCoordinateId = fileCoordinateId;
-    this.expression = expression;
     this.licenseId = licenseId;
     this.name = name;
     this.url = url;
@@ -42,9 +40,6 @@ public class ThirdPartyCoordinateLicense
 
   @Column(name = "file_coordinate_id")
   private String fileCoordinateId;
-
-  @Column(name = "expression")
-  private String expression;
 
   @Column(name = "license_id")
   private String licenseId;
@@ -71,14 +66,6 @@ public class ThirdPartyCoordinateLicense
 
   public void setFileCoordinateId(String fileCoordinateId) {
     this.fileCoordinateId = fileCoordinateId;
-  }
-
-  public String getExpression() {
-    return expression;
-  }
-
-  public void setExpression(String expression) {
-    this.expression = expression;
   }
 
   public String getLicenseId() {

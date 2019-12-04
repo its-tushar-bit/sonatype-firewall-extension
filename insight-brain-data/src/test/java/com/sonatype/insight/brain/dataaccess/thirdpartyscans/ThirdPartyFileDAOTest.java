@@ -64,10 +64,10 @@ public class ThirdPartyFileDAOTest
     ThirdPartyCoordinateSecurity tpcs21 =
         tempEntity.newThirdPartyCoordinateSecurity(coord2, "r1", "d1", "l1", 5.5f, "Medium", "f1");
 
-    ThirdPartyCoordinateLicense coordLic11 = tempEntity.newThirdPartyCoordinateLicense(coord1, "e1", "l1", "n1", "u1");
-    ThirdPartyCoordinateLicense coordLic12 = tempEntity.newThirdPartyCoordinateLicense(coord1, "e2", "l2", "n2", "u2");
-    ThirdPartyCoordinateLicense coordLic21 = tempEntity.newThirdPartyCoordinateLicense(coord2, "e1", "l1", "n1", "u1");
-    ThirdPartyCoordinateLicense coordLic22 = tempEntity.newThirdPartyCoordinateLicense(coord2, "e2", "l2", "n2", "u2");
+    ThirdPartyCoordinateLicense coordLic11 = tempEntity.newThirdPartyCoordinateLicense(coord1, "l1", "n1", "u1");
+    ThirdPartyCoordinateLicense coordLic12 = tempEntity.newThirdPartyCoordinateLicense(coord1, "l2", "n2", "u2");
+    ThirdPartyCoordinateLicense coordLic21 = tempEntity.newThirdPartyCoordinateLicense(coord2, "l1", "n1", "u1");
+    ThirdPartyCoordinateLicense coordLic22 = tempEntity.newThirdPartyCoordinateLicense(coord2, "l2", "n2", "u2");
 
     dao.delete(thirdPartyFile);
 

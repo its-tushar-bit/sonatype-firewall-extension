@@ -2110,18 +2110,17 @@ public class TemporaryEntity
   }
 
   public ThirdPartyCoordinateLicense newThirdPartyCoordinateLicense() {
-    return newThirdPartyCoordinateLicense(newThirdPartyFileCoordinate(), "e1", "s1", "n1", "u1");
+    return newThirdPartyCoordinateLicense(newThirdPartyFileCoordinate(), "s1", "n1", "u1");
   }
 
   public ThirdPartyCoordinateLicense newThirdPartyCoordinateLicense(
       ThirdPartyFileCoordinate fileCoordinate,
-      String expression,
       String licenseId,
       String name,
       String url)
   {
     ThirdPartyCoordinateLicense coordinateLicense =
-        new ThirdPartyCoordinateLicense(fileCoordinate.getId(), expression, licenseId, name, url);
+        new ThirdPartyCoordinateLicense(fileCoordinate.getId(), licenseId, name, url);
     new ThirdPartyCoordinateLicenseDAO().insert(coordinateLicense);
     return coordinateLicense;
   }

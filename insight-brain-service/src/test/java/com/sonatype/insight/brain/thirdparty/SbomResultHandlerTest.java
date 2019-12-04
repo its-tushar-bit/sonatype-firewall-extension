@@ -16,8 +16,10 @@ import java.util.Stack;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
@@ -35,6 +37,7 @@ import org.cyclonedx.BomParser;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.model.License;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Spy;
@@ -53,6 +56,9 @@ public class SbomResultHandlerTest
 
   @Spy
   private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
+
+  @Spy
+  private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
   private final String loggerName = SbomResultHandler.class.getName();
 
@@ -101,6 +107,69 @@ public class SbomResultHandlerTest
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
       assertThat(coordinatesSecurity).hasSize(1);
       assertThirdPartyCoordinateSecurity(content, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0), true);
+    }
+  }
+
+  @Test
+  public void testHandleAndFilterContents_withLicense() throws Exception {
+    String sbomContent = getSbomFile("sbom-license.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+    Bom unfilteredSbom = getBom(sbomContent);
+    Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
+
+    List<Component> components = filteredSbom.getComponents();
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
+
+    try (TransactionContext tx = thirdPartyCoordinateLicenseDAO.createTransactionContext()) {
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
+      assertThirdPartyFileCoordinate(components.get(0), thirdPartyFile, thirdPartyFileCoordinate);
+      List<ThirdPartyCoordinateLicense> coordinatesLicense =
+          thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
+      assertThat(coordinatesLicense).hasSize(1);
+      assertThirdPartyCoordinateLicense(unfilteredSbom.getComponents().get(0), thirdPartyFileCoordinate.getId(),
+          coordinatesLicense.get(0));
+    }
+  }
+
+  @Test
+  public void testHandleAndFilterContents_ignoreUnsupportedLicenseExpressions() throws Exception {
+    String sbomContent = getSbomFile("sbom-license-expression.xml");
+    assertNolicense(sbomContent);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_no_id() throws Exception {
+    String sbomContent = getSbomFile("sbom-license-no-id.xml");
+    assertNolicense(sbomContent);
+  }
+
+  private void assertNolicense(String sbomContent) throws Exception {
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+    Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
+
+    List<Component> components = filteredSbom.getComponents();
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
+
+    try (TransactionContext tx = thirdPartyCoordinateLicenseDAO.createTransactionContext()) {
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
+      assertThirdPartyFileCoordinate(components.get(0), thirdPartyFile, thirdPartyFileCoordinate);
+      List<ThirdPartyCoordinateLicense> coordinatesLicense =
+          thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
+      assertThat(coordinatesLicense).isEmpty();
     }
   }
 
@@ -410,6 +479,18 @@ public class SbomResultHandlerTest
       }
       eventType = parser.next();
     }
+  }
+
+  private void assertThirdPartyCoordinateLicense(
+      Component component,
+      String coordinateId,
+      ThirdPartyCoordinateLicense coordinateLicense)
+  {
+    License licenseSbom = component.getLicenseChoice().getLicenses().get(0);
+    assertThat(coordinateLicense.getLicenseId()).isEqualTo(licenseSbom.getId());
+    assertThat(coordinateLicense.getName()).isEqualTo(licenseSbom.getName());
+    assertThat(coordinateLicense.getUrl()).isEqualTo(licenseSbom.getUrl());
+    assertThat(coordinateLicense.getFileCoordinateId()).isEqualTo(coordinateId);
   }
 
   private void assertVulnerability(

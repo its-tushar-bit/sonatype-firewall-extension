@@ -18,9 +18,11 @@ import javax.xml.transform.TransformerException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
@@ -53,6 +55,8 @@ public class SbomResultHandler
   private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = new ThirdPartyFileCoordinateDAO();
 
   private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO = new ThirdPartyCoordinateSecurityDAO();
+
+  private final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO = new ThirdPartyCoordinateLicenseDAO();
 
   @Override
   public String handleAndFilterContents(ThirdPartyScanContent content, ThirdPartyFile thirdPartyFile) {
@@ -172,6 +176,7 @@ public class SbomResultHandler
       sbomComponent.setName(component.getChild("name").getValue());
       String fileCoordinateId = saveComponent(thirdPartyFileId, hashFileCoordinateIdMap, componentIdentifier,
           packageUrlIdentifier, packageUrl.getValue(), identificationSource, tx);
+      saveLicenses(component.getChild("licenses"), fileCoordinateId, packageUrl, tx);
       saveVulnerabilities(component.getChild("vulnerabilities"), fileCoordinateId, tx);
       sbom.addComponent(sbomComponent);
     }
@@ -260,6 +265,42 @@ public class SbomResultHandler
     if (validVulnerability) {
       thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
     }
+  }
+
+  private void saveLicenses(
+      Xpp3Dom licenses,
+      String fileCoordinateId,
+      Xpp3Dom packageUrl,
+      TransactionContext tx)
+  {
+    Set<String> licenseMap = new HashSet<>();
+    if (licenses != null) {
+      for (Xpp3Dom license : licenses.getChildren()) {
+        if (license != null) {
+          Xpp3Dom licenseInfo = license.getChild("id");
+          if (licenseInfo != null) {
+            String licenseId = licenseInfo.getValue();
+            if (!licenseMap.contains(licenseId)) {
+              saveLicense(license, fileCoordinateId, licenseId, tx);
+              licenseMap.add(licenseId);
+            }
+          }
+          else {
+            log.debug("Component with packageUrl {} has license with null/empty ID", packageUrl.getValue());
+          }
+        }
+      }
+    }
+  }
+
+  private void saveLicense(Xpp3Dom license, String fileCoordinateId, String licenseId, TransactionContext tx) {
+    ThirdPartyCoordinateLicense coordinateLicense = new ThirdPartyCoordinateLicense();
+    coordinateLicense.setFileCoordinateId(fileCoordinateId);
+
+    coordinateLicense.setLicenseId(licenseId);
+    coordinateLicense.setName(getValueFromTag(license, "name"));
+    coordinateLicense.setUrl(getValueFromTag(license, "url"));
+    thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
   }
 
   private String getValueFromTag(Xpp3Dom element, String name) {

@@ -28,7 +28,7 @@ public class ThirdPartyCoordinateLicenseDAOTest
     // Create
     ThirdPartyFileCoordinate coordinateFile = tempEntity.newThirdPartyFileCoordinate();
 
-    ThirdPartyCoordinateLicense entity = new ThirdPartyCoordinateLicense(coordinateFile.getId(), null, "Apache-2.0",
+    ThirdPartyCoordinateLicense entity = new ThirdPartyCoordinateLicense(coordinateFile.getId(), "Apache-2.0",
         "Apache", "https://www.apache.org/licenses/LICENSE-2.0");
     dao.insert(entity);
     assertThat(entity.getId()).isNotNull();
@@ -53,8 +53,8 @@ public class ThirdPartyCoordinateLicenseDAOTest
   public void testGetByCoordinateFileId() {
     ThirdPartyFileCoordinate coord =
         tempEntity.newThirdPartyFileCoordinate(tempEntity.newThirdPartyFile(), "s1", "f1", "n1", "v1");
-    ThirdPartyCoordinateLicense coordLic1 = tempEntity.newThirdPartyCoordinateLicense(coord, "e1", "l1", "n1", "u1");
-    ThirdPartyCoordinateLicense coordLic2 = tempEntity.newThirdPartyCoordinateLicense(coord, "e2", "l2", "n2", "u2");
+    ThirdPartyCoordinateLicense coordLic1 = tempEntity.newThirdPartyCoordinateLicense(coord, "l1", "n1", "u1");
+    ThirdPartyCoordinateLicense coordLic2 = tempEntity.newThirdPartyCoordinateLicense(coord, "l2", "n2", "u2");
 
     final List<ThirdPartyCoordinateLicense> results = dao.getByFileCoordinateId(coord.getId());
 
@@ -67,9 +67,9 @@ public class ThirdPartyCoordinateLicenseDAOTest
     ThirdPartyFileCoordinate coord1 =
         tempEntity.newThirdPartyFileCoordinate(tempEntity.newThirdPartyFile(), "l1", "f1", "n1", "v1");
     ThirdPartyCoordinateLicense coordLic1 =
-        tempEntity.newThirdPartyCoordinateLicense(coord1, "e1", "l1", "n1", "u1");
+        tempEntity.newThirdPartyCoordinateLicense(coord1, "l1", "n1", "u1");
     ThirdPartyCoordinateLicense coordLic2 =
-        tempEntity.newThirdPartyCoordinateLicense(coord1, "e2", "l2", "n3", "u3");
+        tempEntity.newThirdPartyCoordinateLicense(coord1, "l2", "n3", "u3");
 
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
@@ -84,7 +84,6 @@ public class ThirdPartyCoordinateLicenseDAOTest
       final ThirdPartyCoordinateLicense expected,
       final ThirdPartyCoordinateLicense actual)
   {
-    assertThat(actual.getExpression()).isEqualTo(expected.getExpression());
     assertThat(actual.getFileCoordinateId()).isEqualTo(expected.getFileCoordinateId());
     assertThat(actual.getId()).isEqualTo(expected.getId());
     assertThat(actual.getName()).isEqualTo(expected.getName());

@@ -60,7 +60,6 @@ CREATE TABLE coordinate_security (
 CREATE TABLE coordinate_license (
   coordinate_license_id VARCHAR(50) NOT NULL,
   file_coordinate_id VARCHAR(50) NOT NULL,
-  expression VARCHAR(1000) NULL,
   license_id VARCHAR(50) NOT NULL,
   name VARCHAR(50) NULL,
   url VARCHAR(200) NULL,

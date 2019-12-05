@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Collections;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationDTO;
@@ -26,9 +28,9 @@ public class ApiOrganizationServiceAuthzTest
   private ApiOrganizationService apiOrganizationService;
 
   @Test
-  public void testGetAll_Authorized() {
+  public void testGetOrganizations_Authorized() {
     grantReadPermission(org.getId());
-    ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService.getAll();
+    ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService.getOrganizations(Collections.emptySet());
     assertThat(apiOrganizationListDTO).isNotNull();
     assertThat(apiOrganizationListDTO.organizations).hasSize(1);
     assertThat(apiOrganizationListDTO.organizations.get(0).id).isEqualTo(org.getId());
@@ -36,16 +38,26 @@ public class ApiOrganizationServiceAuthzTest
   }
 
   @Test
-  public void testGetAll_Unauthenticated() {
-    ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService.getAll();
+  public void testGetOrganizations_Filtered_Authorized() {
+    Organization org2 = tempEntity.newOrganization();
+
+    ApiOrganizationListDTO apiOrganizationListDTO =
+        apiOrganizationService.getOrganizations(Collections.singleton(org2.getName()));
     assertThat(apiOrganizationListDTO).isNotNull();
     assertThat(apiOrganizationListDTO.organizations).isEmpty();
   }
 
   @Test
-  public void testGetAll_UnauthorizedButAuthenticated() {
+  public void testGetOrganizations_Unauthenticated() {
+    ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService.getOrganizations(Collections.emptySet());
+    assertThat(apiOrganizationListDTO).isNotNull();
+    assertThat(apiOrganizationListDTO.organizations).isEmpty();
+  }
+
+  @Test
+  public void testGetOrganizations_UnauthorizedButAuthenticated() {
     login();
-    ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService.getAll();
+    ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService.getOrganizations(Collections.emptySet());
     assertThat(apiOrganizationListDTO).isNotNull();
     assertThat(apiOrganizationListDTO.organizations).isEmpty();
   }
@@ -72,5 +84,22 @@ public class ApiOrganizationServiceAuthzTest
     login();
     ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO(null, "testOrganizationName");
     apiOrganizationService.addOrganization(apiOrganizationDTO);
+  }
+
+  @Test
+  public void testGetOrganizationById_Authorized() {
+    grantReadPermission(org.getId());
+    apiOrganizationService.getOrganizationById(org.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetOrganizationById_Unauthorized() {
+    login();
+    apiOrganizationService.getOrganizationById(org.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetOrganizationById_Unauthenticated() {
+    apiOrganizationService.getOrganizationById(org.getId());
   }
 }

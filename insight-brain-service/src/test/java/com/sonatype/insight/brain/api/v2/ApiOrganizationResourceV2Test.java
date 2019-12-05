@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +64,7 @@ public class ApiOrganizationResourceV2Test
   }
 
   @Test
-  public void testGetAll() throws Exception {
+  public void testGetOrganizations() throws Exception {
     Tag tag = tempEntity.newTag(organization.getId());
 
     final HttpResponse response = restRequest().get();
@@ -91,10 +92,47 @@ public class ApiOrganizationResourceV2Test
   }
 
   @Test
-  public void testGetAll_Unlicensed() throws Exception {
+  public void testGetOrganizations_OrgName() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    Tag tag = tempEntity.newTag(organization.getId());
+
+    HttpResponse response = restRequest().query("organizationName", organization.getName()).get();
+
+    assertResponseStatus(200, response);
+    ApiOrganizationListDTO organizationListDTO = response.getBody(ApiOrganizationListDTO.class);
+    assertThat(organizationListDTO).isNotNull();
+    assertThat(organizationListDTO.organizations).hasSize(1);
+    assertOrganizationData(organizationListDTO.organizations.get(0), organization, Collections.singletonList(tag));
+  }
+
+  @Test
+  public void testGetOrganizations_Unlicensed() throws Exception {
     uninstallLicense();
     final HttpResponse response = restRequest().get();
     assertResponseStatus(402, response);
+  }
+
+  @Test
+  public void testGetOrganization() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    Tag tag = tempEntity.newTag(organization.getId());
+
+    HttpResponse response =
+        restRequest().path(ApiOrganizationResourceV2.ORGANIZATION_ID).parameter(organization.getId()).get();
+
+    assertResponseStatus(200, response);
+    ApiOrganizationDTO apiOrganizationDTO = response.getBody(ApiOrganizationDTO.class);
+    assertThat(apiOrganizationDTO).isNotNull();
+    assertOrganizationData(apiOrganizationDTO, organization, Collections.singletonList(tag));
+  }
+
+  @Test
+  public void testGetOrganization_NotFound() throws Exception {
+    HttpResponse response =
+        restRequest().path(ApiOrganizationResourceV2.ORGANIZATION_ID).parameter("doesNotExist").get();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo("Cannot find organization with ID doesNotExist.");
   }
 
   @Test
@@ -278,6 +316,26 @@ public class ApiOrganizationResourceV2Test
     assertThat(returnedMembers).hasSize(1);
     assertThat(returnedMembers.get(0).type).isEqualTo(type);
     assertThat(returnedMembers.get(0).userOrGroupName).isEqualTo(user.getUsername());
+  }
+
+  private void assertOrganizationData(
+      ApiOrganizationDTO apiOrganizationDTO,
+      Organization organization,
+      List<Tag> tags)
+  {
+    assertThat(apiOrganizationDTO.id).isEqualTo(organization.getId());
+    assertThat(apiOrganizationDTO.name).isEqualTo(organization.getName());
+    assertThat(apiOrganizationDTO.tags).hasSize(tags.size());
+    apiOrganizationDTO.tags.forEach(apiTagDTO -> assertTagData(apiTagDTO, tags));
+  }
+
+  private void assertTagData(ApiTagDTO apiTagDTO, List<Tag> tags) {
+    Tag tag = tags.stream().filter(t -> t.getId().equals(apiTagDTO.id)).findFirst().orElse(null);
+    assertThat(tag).isNotNull();
+    assertThat(apiTagDTO.id).isEqualTo(tag.getId());
+    assertThat(apiTagDTO.name).isEqualTo(tag.getName());
+    assertThat(apiTagDTO.description).isEqualTo(tag.getDescription());
+    assertThat(apiTagDTO.color).isEqualTo(tag.getColor());
   }
 
   @Override

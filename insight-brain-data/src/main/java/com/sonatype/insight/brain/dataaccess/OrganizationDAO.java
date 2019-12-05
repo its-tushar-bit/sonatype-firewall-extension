@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
@@ -66,6 +68,14 @@ public class OrganizationDAO
     name = NameHelper.normalize(name);
     String sQuery = "SELECT entity FROM Organization entity WHERE entity.nameLowercaseNoWhitespace=?1";
     return get(tx, sQuery, name);
+  }
+
+  public List<Organization> getByNames(Set<String> organizationNames) {
+    organizationNames = organizationNames.stream().map(NameHelper::normalize).collect(Collectors.toSet());
+    String sQuery = "SELECT entity FROM Organization entity" + //
+        " WHERE entity.nameLowercaseNoWhitespace IN (?1)" + //
+        " ORDER BY entity.name";
+    return getList(sQuery, organizationNames);
   }
 
   public Organization getByName(String name) {

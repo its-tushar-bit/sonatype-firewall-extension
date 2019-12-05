@@ -9,16 +9,22 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationListDTO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.OrganizationService;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
@@ -27,6 +33,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 @Named
 public class ApiOrganizationService
 {
+  private final OrganizationDAO organizationDAO;
+
   private final TagDAO tagDAO;
 
   private final OrganizationService organizationService;
@@ -34,24 +42,40 @@ public class ApiOrganizationService
   private final ApiOrganizationAdapter apiOrganizationAdapter;
 
   @Inject
-  public ApiOrganizationService(final TagDAO tagDAO,
-                                final OrganizationService organizationService,
-                                final ApiOrganizationAdapter apiOrganizationAdapter)
+  public ApiOrganizationService(
+      OrganizationDAO organizationDAO,
+      final TagDAO tagDAO,
+      final OrganizationService organizationService,
+      final ApiOrganizationAdapter apiOrganizationAdapter)
   {
+    this.organizationDAO = organizationDAO;
     this.tagDAO = tagDAO;
     this.organizationService = organizationService;
     this.apiOrganizationAdapter = apiOrganizationAdapter;
   }
 
-  public ApiOrganizationListDTO getAll() {
+  public ApiOrganizationListDTO getOrganizations(Set<String> orgNames) {
     Map<String, List<Tag>> orgTagMap = new HashMap<>();
-    List<Organization> organizations = organizationService.getAll();
+    List<Organization> organizations =
+        orgNames.isEmpty() ? organizationService.getAll() : getOrganizationsByNames(orgNames);
     for (Organization organization : organizations) {
       List<Tag> tags = tagDAO.getByOrganizationId(organization.getId());
       orgTagMap.put(organization.getId(), tags);
     }
 
     return apiOrganizationAdapter.convert(organizations, orgTagMap);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiOrganizationDTO getOrganizationById(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
+    Organization organization = organizationDAO.getById(organizationId);
+    List<Tag> tags = tagDAO.getByOrganizationId(organizationId);
+    return apiOrganizationAdapter.convert(organization, tags);
+  }
+
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
+  List<Organization> getOrganizationsByNames(Set<String> orgNames) {
+    return organizationDAO.getByNames(orgNames);
   }
 
   /**

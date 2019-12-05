@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -17,6 +18,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -42,7 +44,9 @@ import com.codahale.metrics.annotation.Timed;
 @Path(PublicApiPaths.ORG_RESOURCE_PATH)
 public class ApiOrganizationResourceV2
 {
-  public static final String ROLE_MEMBERS_PATH = "{organizationId}/roleMembers";
+  public static final String ORGANIZATION_ID = "{organizationId}";
+
+  public static final String ROLE_MEMBERS_PATH = ORGANIZATION_ID + "/roleMembers";
 
   private final ApiOrganizationService apiOrganizationService;
 
@@ -62,8 +66,18 @@ public class ApiOrganizationResourceV2
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiOrganizationListDTO getAllOrganizations() {
-    return apiOrganizationService.getAll();
+  public ApiOrganizationListDTO getOrganizations(@QueryParam("organizationName") Set<String> organizationNames) {
+    return apiOrganizationService.getOrganizations(organizationNames);
+  }
+
+  /**
+   * @since 1.81
+   */
+  @GET
+  @Path(ORGANIZATION_ID)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiOrganizationDTO getOrganization(@PathParam("organizationId") String organizationId) {
+    return apiOrganizationService.getOrganizationById(organizationId);
   }
 
   /**

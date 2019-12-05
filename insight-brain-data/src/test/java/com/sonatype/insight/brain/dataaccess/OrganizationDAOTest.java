@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -52,6 +53,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -157,6 +159,43 @@ public class OrganizationDAOTest
     assertThatThrownBy(() -> {
       dao.getByIdNotNull("non-existent-org");
     }).isInstanceOf(NotFoundException.class);
+  }
+
+  @Test
+  public void testGetByNames() {
+    Organization org1 = tempEntity.newOrganization("org1");
+    tempEntity.newOrganization("org2");
+    Organization org3 = tempEntity.newOrganization("org3");
+
+    List<Organization> orgs = dao.getByNames(Sets.newHashSet(org3.getName(), org1.getName()));
+    assertThat(orgs).extracting(Organization::getId).containsExactly(org1.getId(), org3.getId());
+  }
+
+  @Test
+  public void testGetByNames_NormalizesNames() {
+    Organization organization = tempEntity.newOrganization("My AwEsOmE OrG");
+
+    List<Organization> orgs = dao.getByNames(Collections.singleton("mY aWeSoMe OrG"));
+
+    assertThat(orgs).extracting(Organization::getId).containsExactly(organization.getId());
+  }
+
+  @Test
+  public void testGetByNames_GivenEmpty() {
+    assertThat(dao.getByNames(Collections.emptySet())).isEmpty();
+  }
+
+  @Test
+  public void testGetByNames_NotFound() {
+    assertThat(dao.getByNames(Collections.singleton("doesNotExist"))).isEmpty();
+  }
+
+  @Test
+  public void testGetByNames_SomeNotFound() {
+    Organization organization = tempEntity.newOrganization("org1");
+
+    List<Organization> orgs = dao.getByNames(Sets.newHashSet("doesNotExist1", organization.getName(), "doesNotExist2"));
+    assertThat(orgs).extracting(Organization::getId).containsExactly(organization.getId());
   }
 
   @Test

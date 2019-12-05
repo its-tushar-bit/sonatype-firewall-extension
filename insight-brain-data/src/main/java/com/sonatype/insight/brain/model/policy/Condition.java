@@ -55,15 +55,11 @@ public class Condition
   }
 
   public ValidationResult validate(TransactionContext tx, String ownerId) {
-    ConditionType conditionType = ConditionTypes.getById(conditionTypeId);
-    if (conditionType == null) {
-      return new ValidationResult("Invalid condition type id: '" + conditionTypeId + "'");
-    }
-
     try {
+      ConditionType conditionType = ConditionTypes.getById(conditionTypeId);
       conditionType.validateCondition(tx, this, ownerId);
     }
-    catch (InvalidConditionException e) {
+    catch (InvalidConditionException | IllegalArgumentException e) {
       return new ValidationResult(e);
     }
 

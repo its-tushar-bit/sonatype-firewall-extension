@@ -56,6 +56,7 @@ public class ConditionTypes
       new IdentificationSourceConditionType();
 
   static {
+    // Don't add DeprecatedSecurityVulnerabilityConditionType
     add(AgeInDaysConditionType);
     add(CoordinatesConditionType);
     add(PackageUrlConditionType);
@@ -68,7 +69,6 @@ public class ConditionTypes
     add(MatchStateConditionType);
     add(ProprietaryConditionType);
     add(RelativePopularityConditionType);
-    add(DeprecatedSecurityVulnerabilityConditionType);
     add(SecurityVulnerabilitySeverityConditionType);
     add(SecurityVulnerabilityStatusConditionType);
   }
@@ -78,8 +78,15 @@ public class ConditionTypes
   }
 
   public static ConditionType getById(final String conditionTypeId) {
-    // TODO throw exception if conditionTypeId is unknown
-    return allConditionTypes.get(conditionTypeId);
+    ConditionType conditionType = allConditionTypes.get(conditionTypeId);
+    if (conditionType == null) {
+      if (DeprecatedSecurityVulnerabilityConditionType.ID.equals(conditionTypeId)) {
+        return DeprecatedSecurityVulnerabilityConditionType;
+      }
+      throw new IllegalArgumentException("Invalid condition type id: '" + conditionTypeId + "'");
+    }
+
+    return conditionType;
   }
 
   private static void add(final ConditionType conditionType) {

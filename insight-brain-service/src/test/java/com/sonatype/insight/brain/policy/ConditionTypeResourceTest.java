@@ -15,10 +15,10 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SuppressWarnings("deprecation")
 public class ConditionTypeResourceTest
     extends AbstractResourceTest
 {
-  @SuppressWarnings("deprecation")
   @Test
   public void testGetConditionTypes() throws Exception {
     final HttpResponse response = restRequest().path(ConditionTypeResource.RESOURCE_PATH).get();

@@ -1432,10 +1432,8 @@ public abstract class AbstractPolicyEditorTest
 
     int i = 0;
     for (ConditionType conditionType : ConditionTypes.getAll()) {
-      if (conditionType != ConditionTypes.DeprecatedSecurityVulnerabilityConditionType) {
-        map.put(conditionType.getClass(), new Option(i, conditionType.getName()));
-        i++;
-      }
+      map.put(conditionType.getClass(), new Option(i, conditionType.getName()));
+      i++;
     }
 
     return map;

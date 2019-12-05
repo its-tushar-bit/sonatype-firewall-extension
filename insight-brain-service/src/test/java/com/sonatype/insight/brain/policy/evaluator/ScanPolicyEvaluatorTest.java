@@ -60,7 +60,6 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.DeprecatedSecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
@@ -1713,7 +1712,6 @@ public class ScanPolicyEvaluatorTest
 
     Set<String> expectedConditionTypeIds = ConditionTypes.getAll().stream().map(ConditionType::getId)
         .collect(Collectors.toSet());
-    expectedConditionTypeIds.remove(DeprecatedSecurityVulnerabilityConditionType.ID);
     assertThat(conditions.stream().map(Condition::getConditionTypeId).collect(toSet()))
         .isEqualTo(expectedConditionTypeIds);
 

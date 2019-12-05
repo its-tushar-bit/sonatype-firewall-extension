@@ -20,7 +20,7 @@ properties(
 )
 
 pipeline {
-  agent { label 'ubuntu-zion' }
+  agent { label InsightConstants.AGENT_LABEL }
   options {
     buildDiscarder(logRotator(numToKeepStr: '10'))
     timestamps()

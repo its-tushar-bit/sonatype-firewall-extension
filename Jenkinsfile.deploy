@@ -5,7 +5,7 @@
  */
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
 pipeline {
-  agent { label 'ubuntu-zion' }
+  agent { label InsightConstants.AGENT_LABEL }
   tools {
     jdk 'Java 7'
   }

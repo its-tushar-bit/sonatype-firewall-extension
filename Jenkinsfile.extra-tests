@@ -5,7 +5,7 @@
  */
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
 
-String agentLabel = 'ubuntu-zion'
+String agentLabel = InsightConstants.AGENT_LABEL
 
 def testConfig(String mavenOptions, String pomFile = null) {
   return mavenCommon(javaVersion: 'Java 8', mavenVersion: 'Maven 3.2.x', useEventSpy: false,

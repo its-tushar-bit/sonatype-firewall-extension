@@ -102,7 +102,7 @@ public class PolicyAlertScmNotifierAuditTest
   }
 
   @Before
-  public void before() throws IOException, GitException {
+  public void before() throws IOException {
     application = tempEntity.newApplicationWithParent();
 
     config.setBaseUrl("http://localhost");
@@ -138,7 +138,7 @@ public class PolicyAlertScmNotifierAuditTest
   }
 
   @Test
-  public void testSendNotifications_GitException_No_Audit() throws IOException, GitException, InterruptedException {
+  public void testSendNotifications_GitException_No_Audit() throws Exception {
     // given a pull request will fail for a notification
     when(pullRequestExecutor.execute(any())).thenThrow(new GitException("oh no!"));
 

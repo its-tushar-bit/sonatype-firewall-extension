@@ -63,8 +63,8 @@ public class WebhookService
 
   @Authorize(permission = Permission.READ)
   List<Webhook> getPolicyNotificationWebhooks(
-      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) String ownerId)
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
     List<Webhook> result = new ArrayList<>();
     for (Webhook webhook : webhookDao.getAll()) {

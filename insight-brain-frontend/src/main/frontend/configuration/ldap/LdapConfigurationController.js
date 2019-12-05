@@ -124,7 +124,10 @@ export function LdapConfigurationController($scope, $state, Dialog, ldapStore, E
   $scope.confirmDeleteConfiguration = function() {
     Dialog.open({
       title: 'Delete Configuration',
-      body: 'Are you sure you want to delete this LDAP configuration?',
+      body: 'Are you sure you want to delete this LDAP configuration? \
+            <p>This will delete all data associated with this LDAP configuration, \
+            including all data associated with the LDAP users in this configuration. \
+            <p>This action cannot be undone.',
       id: 'delete-ldap-confirmation',
       buttons: [{
         name: 'Delete',

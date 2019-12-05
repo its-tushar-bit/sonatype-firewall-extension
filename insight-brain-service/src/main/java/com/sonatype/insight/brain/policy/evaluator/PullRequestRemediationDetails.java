@@ -77,6 +77,10 @@ public class PullRequestRemediationDetails
   @VisibleForTesting
   static Clock clock = Clock.systemDefaultZone();
 
+  private String scanId;
+
+  private Stage stage;
+
   static {
     String templateName = "pullrequest-threats.ftl";
     try {
@@ -105,6 +109,8 @@ public class PullRequestRemediationDetails
     this.pullRequestBranchName = pullRequestBranchName;
     this.title = constructTitle();
     this.app = app;
+    this.scanId = scanId;
+    this.stage = stage;
     this.contents = constructContents(toBeRemediated, notifications, app, scanId, stage, baseUrl);
   }
 
@@ -133,6 +139,14 @@ public class PullRequestRemediationDetails
 
   public Application getApp() {
     return app;
+  }
+
+  public String getScanId() {
+    return scanId;
+  }
+
+  public Stage getStage() {
+    return stage;
   }
 
   private String constructTitle() {

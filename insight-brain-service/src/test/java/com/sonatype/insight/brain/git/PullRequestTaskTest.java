@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.git;
 import java.io.File;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
@@ -17,6 +19,7 @@ import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
+import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -100,6 +103,9 @@ public class PullRequestTaskTest
   
   @Mock
   private SourceControlPullRequestMetrics metrics;
+
+  @Mock
+  private AuditRecorder auditRecorder;
   
   //Subject
   private PullRequestTask pullRequestTask;
@@ -110,14 +116,15 @@ public class PullRequestTaskTest
   @Before
   public void setup() {
     pullRequestTask = new PullRequestTask(gitApiService, gitClientFactory, insightConfig, fileCleaner, metrics,
-        gitApiFactory);
+        gitApiFactory, auditRecorder, new PullRequestExecutor());
   }
   
   @Test
   public void test_run_notInited() {
     pullRequestTask.run();
     assertThat(logOutput).atErrorLevel().contains("Missing required PullRequestRemediationDetails");
-    verifyNoInteractions(gitApiService, gitClientFactory, insightConfig, fileCleaner, app, metrics);
+    verifyNoInteractions(gitApiService, gitClientFactory, insightConfig, fileCleaner,
+        app, metrics, auditRecorder, pullRequestRemediationDetails);
   }
   
   @Test
@@ -274,6 +281,8 @@ public class PullRequestTaskTest
     when(pullRequestRemediationDetails.getRemediatedVersion()).thenReturn("1.0.1");
     when(pullRequestRemediationDetails.getToBeRemediated()).thenReturn(MAVEN_COORDINATES);
     when(pullRequestRemediationDetails.getTitle()).thenReturn(TITLE);
+    when(pullRequestRemediationDetails.getStage()).thenReturn(new Stage(Stage.ID_BUILD));
+    when(pullRequestRemediationDetails.getScanId()).thenReturn("scan-id");
     when(gitApiService.getGitRepositoryInfoForApplication(APP_INTERNAL_ID)).thenReturn(info);
     when(gitApiFactory.createGitApi(info)).thenReturn(gitApi);
     when(gitClientFactory.create(info)).thenReturn(gitClient);

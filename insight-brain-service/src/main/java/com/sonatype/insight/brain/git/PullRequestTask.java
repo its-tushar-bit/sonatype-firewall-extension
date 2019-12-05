@@ -11,6 +11,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Locale;
 
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
@@ -63,6 +67,10 @@ public class PullRequestTask
 
   private PullRequestRemediationDetails pullRequestRemediationDetails;
 
+  private AuditRecorder auditRecorder;
+
+  private PullRequestExecutor pullRequestExecutor;
+
   @Inject
   public PullRequestTask(
       final GitApiService gitApiService,
@@ -70,7 +78,9 @@ public class PullRequestTask
       final InsightConfig insightConfig,
       final FileCleaner fileCleaner,
       final SourceControlPullRequestMetrics metrics,
-      final GitApiFactory gitApiFactory)
+      final GitApiFactory gitApiFactory,
+      final AuditRecorder auditRecorder,
+      final PullRequestExecutor pullRequestExecutor)
   {
     this.gitApiService = gitApiService;
     this.gitClientFactory = gitClientFactory;
@@ -78,6 +88,8 @@ public class PullRequestTask
     this.fileCleaner = fileCleaner;
     this.metrics = metrics;
     this.gitApiFactory = gitApiFactory;
+    this.auditRecorder = auditRecorder;
+    this.pullRequestExecutor = pullRequestExecutor;
   }
   
   public void init(PullRequestRemediationDetails pullRequestRemediationDetails) {
@@ -123,8 +135,17 @@ public class PullRequestTask
           .withGitApi(gitApiFactory.createGitApi(gitInfo))
           .build();
 
-      PullRequestResult result = new PullRequestExecutor().execute(command);
+      PullRequestResult result = pullRequestExecutor.execute(command);
       metrics.addResult(applicationId, result);
+
+      try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.CREATE_PULL_REQUEST)) {
+        AuditData.get()
+            .setApplication(pullRequestRemediationDetails.getApp())
+            .setScanId(pullRequestRemediationDetails.getScanId())
+            .setStageId(pullRequestRemediationDetails.getStage().getStageTypeId())
+            .setComponentIdentifier(pullRequestRemediationDetails.getToBeRemediated())
+            .setData("pullRequestUrl", result.getPullRequestUrl());
+      }
       log.info("Pull request task completed for application '{}': {}", applicationId, result);
     }
     catch (Exception e) {

@@ -162,6 +162,8 @@ public enum AuditEvent
 
   CREATE_JIRA_ISSUE(Domain.NOTIFICATION_ISSUE_JIRA, Type.CREATE),
 
+  CREATE_PULL_REQUEST(Domain.NOTIFICATION_PULL_REQUEST, Type.CREATE),
+
   CONFIGURE_PROXY(Domain.SERVER_PROXY, Type.CONFIGURE),
   
   CREATE_SOURCE_CONTROL(Domain.GOVERNANCE_SOURCE_CONTROL, Type.CREATE),
@@ -177,7 +179,7 @@ public enum AuditEvent
   CREATE_USER_TOKEN(Domain.SECURITY_USER_TOKEN, Type.CREATE),
   DELETE_USER_TOKEN(Domain.SECURITY_USER_TOKEN, Type.DELETE),
   PURGE_USER_TOKENS(Domain.SECURITY_USER_TOKEN, Type.PURGE);
-  
+
   private final String domain;
 
   private final String type;
@@ -340,6 +342,8 @@ public enum AuditEvent
     String NOTIFICATION_MAIL = join(NOTIFICATION, "mail");
 
     String NOTIFICATION_ISSUE_JIRA = join(NOTIFICATION, join("issue", "jira"));
+
+    String NOTIFICATION_PULL_REQUEST = join(NOTIFICATION, "pull-request");
 
     static String join(String parent, String child) {
       return parent + "." + child;

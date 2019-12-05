@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.configuration.webhook;
 
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -42,6 +43,40 @@ public class WebhookServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetAllWebhookEventTypes_Unauthenticated() throws Exception {
     webhookService.getAllWebhookEventTypes();
+  }
+
+  @Test
+  public void testGetPolicyNotificationWebhooks_Authorized_Organization() {
+    grantReadPermission(org.getId());
+    webhookService.getPolicyNotificationWebhooks(OwnerType.ORGANIZATION, org.getId());
+  }
+
+  @Test
+  public void testGetPolicyNotificationWebhooks_Authorized_Application() {
+    grantReadPermission(app.getId());
+    webhookService.getPolicyNotificationWebhooks(OwnerType.APPLICATION, app.getPublicId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetPolicyNotificationWebhooks_Unauthorized_Organization() {
+    login();
+    webhookService.getPolicyNotificationWebhooks(OwnerType.ORGANIZATION, org.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetPolicyNotificationWebhooks_Unauthorized_Application() {
+    login();
+    webhookService.getPolicyNotificationWebhooks(OwnerType.APPLICATION, app.getPublicId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetPolicyNotificationWebhooks_Unauthenticated_Organization() {
+    webhookService.getPolicyNotificationWebhooks(OwnerType.ORGANIZATION, org.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetPolicyNotificationWebhooks_Unauthenticated_Application() {
+    webhookService.getPolicyNotificationWebhooks(OwnerType.APPLICATION, app.getPublicId());
   }
 
   @Test

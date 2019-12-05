@@ -241,6 +241,10 @@ locationModule.factory('CLMContextLocations', [
         return `${baseUrl.get()}/api/v2/config/saml`;
       },
 
+      getNotificationWebhooksUrl: function() {
+        return `${baseUrl.get()}/rest/config/webhook/policy/${getServicePathWithId()}`;
+      },
+
       isApplication: isApplication,
       isOrganization: isOrganization,
       isRootOrg: isRootOrg,

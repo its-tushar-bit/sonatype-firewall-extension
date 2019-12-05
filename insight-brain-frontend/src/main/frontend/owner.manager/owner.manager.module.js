@@ -41,6 +41,7 @@ import OwnerDetailTreeViewDirective from './navigation/owner.detail.tree.view.di
 import ownerTreeView from './navigation/owner.tree.view.directive';
 import CoordinatesInput from './policy/coordinates.input.directive';
 import MonitoredStageEditorController from './policy/monitored.stage.editor.controller';
+import NotificationWebhookService from './policy/notification.webhook.service';
 import PolicyEditorActionsController from './policy/policy.editor.actions.controller';
 import PolicyEditorConstraintsController from './policy/policy.editor.constraints.controller';
 import PolicyEditorController from './policy/policy.editor.controller';
@@ -112,6 +113,7 @@ angular.module('owner.manager.module',
     .directive('policyEditorNotifications', PolicyEditorNotificationsDirective)
     .directive('policyEditorConstraints', PolicyEditorConstraintsDirective)
     .service('monitored.stage.service', MonitoredStageService)
+    .service('notification.webhook.service', NotificationWebhookService)
     .controller('proprietary.config.editor.controller', ProprietaryConfigEditorController)
     .controller('policy.editor.notifications.controller', PolicyEditorNotificationsController)
     .controller('repositories.configuration.tile.controller', ConfigurationTileController)

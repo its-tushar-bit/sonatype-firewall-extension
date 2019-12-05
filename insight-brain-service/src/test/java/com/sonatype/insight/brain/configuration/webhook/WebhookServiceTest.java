@@ -5,12 +5,17 @@
  */
 package com.sonatype.insight.brain.configuration.webhook;
 
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -42,6 +47,40 @@ public class WebhookServiceTest
 
   @Inject
   private TestProductLicense testProductLicense;
+
+  @Test
+  public void testGetPolicyNotificationWebhooks_Organization() {
+    Webhook webhook1 = tempEntity.newWebhookWithSecret("http://web.hook",
+        Collections.singleton(WebhookEventType.POLICY_ALERT), "test");
+    tempEntity.newWebhook(Collections.singleton(WebhookEventType.POLICY_MANAGEMENT));
+
+    List<Webhook> webhooks =
+        webhookService.getPolicyNotificationWebhooks(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+    assertThat(webhooks).hasSize(1);
+    Webhook webhook = webhooks.get(0);
+    assertThat(webhook.getId()).isEqualTo(webhook1.getId());
+    assertThat(webhook.getUrl()).isEqualTo(webhook1.getUrl());
+    assertThat(webhook.getDescription()).isEqualTo(webhook1.getDescription());
+    assertThat(webhook.getSecretKey()).isNull();
+    assertThat(webhook.getEventTypes()).isNull();
+  }
+
+  @Test
+  public void testGetPolicyNotificationWebhooks_Application() {
+    Webhook webhook1 = tempEntity.newWebhookWithSecret("http://web.hook",
+        Collections.singleton(WebhookEventType.POLICY_ALERT), "test");
+    tempEntity.newWebhook(Collections.singleton(WebhookEventType.POLICY_MANAGEMENT));
+
+    List<Webhook> webhooks = webhookService.getPolicyNotificationWebhooks(OwnerType.APPLICATION,
+        tempEntity.newApplicationWithParent().getPublicId());
+    assertThat(webhooks).hasSize(1);
+    Webhook webhook = webhooks.get(0);
+    assertThat(webhook.getId()).isEqualTo(webhook1.getId());
+    assertThat(webhook.getUrl()).isEqualTo(webhook1.getUrl());
+    assertThat(webhook.getDescription()).isEqualTo(webhook1.getDescription());
+    assertThat(webhook.getSecretKey()).isNull();
+    assertThat(webhook.getEventTypes()).isNull();
+  }
 
   @Test
   public void testAddWebhook_EncryptsSecretKey() throws PlexusCipherException {

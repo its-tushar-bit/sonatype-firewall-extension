@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default function PolicyEditorNotificationsController($scope, $q, RoleMappingService, StageTypeStore, JiraService,
-                                                            ProductFeatures, WebhookStore) {
+                                                            ProductFeatures, NotificationWebhookService) {
   var vm = this,
       availableRoles,
       availableWebhooks,
@@ -43,7 +43,6 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
   vm.isNotificationsSupportedForStage = ProductFeatures.isNotificationsSupportedForStage;
   vm.isNotificationsFormDisabled = isNotificationsFormDisabled;
   vm.isCheckboxForStageDisabled = isCheckboxForStageDisabled;
-  vm.webhookStore = WebhookStore;
   vm.getAvailableWebhooks = getAvailableWebhooks;
 
   vm.doLoad();
@@ -140,7 +139,7 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
         ProductFeatures.isAvailable('webhooks-for-repositories');
     if (vm.isWebhooksSupported) {
       var getWebhooksDeferred = $q.defer();
-      WebhookStore[vm.loadError ? 'refresh' : 'get']().then(function(results) {
+      NotificationWebhookService.get().then(function(results) {
         getWebhooksDeferred.resolve({
           webhooks: results
         });
@@ -424,5 +423,6 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
 }
 
 PolicyEditorNotificationsController.$inject = [
-  '$scope', '$q', 'role.mapping.service', 'StageTypeStore', 'jira.service', 'ProductFeatures', 'WebhookStore'
+  '$scope', '$q', 'role.mapping.service', 'StageTypeStore', 'jira.service', 'ProductFeatures',
+  'notification.webhook.service'
 ];

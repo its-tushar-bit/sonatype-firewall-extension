@@ -21,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 
@@ -40,11 +41,26 @@ public class WebhookResource
 
   public static final String WEBHOOK_EVENT_TYPES_PATH = "eventTypes";
 
+  static final String POLICY_NOTIFICATION_WEBHOOKS_PATH = "policy/{ownerType: application|organization}/{ownerId}";
+
   private final WebhookService webhookService;
 
   @Inject
   public WebhookResource(final WebhookService webhookService) {
     this.webhookService = webhookService;
+  }
+
+  /**
+   * @since 1.81
+   */
+  @GET
+  @Path(POLICY_NOTIFICATION_WEBHOOKS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<Webhook> getPolicyNotificationWebhooks(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId)
+  {
+    return webhookService.getPolicyNotificationWebhooks(ownerType, ownerId);
   }
 
   @GET

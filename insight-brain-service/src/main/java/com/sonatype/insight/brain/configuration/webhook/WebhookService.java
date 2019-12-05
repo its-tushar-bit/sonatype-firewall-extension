@@ -16,12 +16,14 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -57,6 +59,24 @@ public class WebhookService
     this.insightConfig = insightConfig;
     this.plexusCipher = plexusCipher;
     this.productLicense = productLicense;
+  }
+
+  @Authorize(permission = Permission.READ)
+  List<Webhook> getPolicyNotificationWebhooks(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId)
+  {
+    List<Webhook> result = new ArrayList<>();
+    for (Webhook webhook : webhookDao.getAll()) {
+      if (webhook.getEventTypes().contains(WebhookEventType.POLICY_ALERT)) {
+        Webhook redacted = new Webhook();
+        redacted.setId(webhook.getId());
+        redacted.setUrl(webhook.getUrl());
+        redacted.setDescription(webhook.getDescription());
+        result.add(redacted);
+      }
+    }
+    return result;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)

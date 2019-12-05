@@ -12,6 +12,8 @@ import java.util.HashSet;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -37,6 +39,32 @@ public class WebhookResourceTest
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(WebhookResource.RESOURCE_PATH);
+  }
+
+  @Test
+  public void testGetPolicyNotificationWebhooks_Organization() throws Exception {
+    Webhook webhook = tempEntity.newWebhook(Collections.singleton(POLICY_ALERT));
+    tempEntity.newWebhook(Collections.singleton(POLICY_MANAGEMENT));
+
+    HttpResponse response = restRequest().path(WebhookResource.POLICY_NOTIFICATION_WEBHOOKS_PATH)
+        .parameter(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).get();
+    assertResponseStatus(200, response);
+
+    Webhook[] results = response.getBody(Webhook[].class);
+    assertThat(results).extracting(Webhook::getId).containsExactly(webhook.getId());
+  }
+
+  @Test
+  public void testGetPolicyNotificationWebhooks_Application() throws Exception {
+    Webhook webhook = tempEntity.newWebhook(Collections.singleton(POLICY_ALERT));
+    tempEntity.newWebhook(Collections.singleton(POLICY_MANAGEMENT));
+
+    HttpResponse response = restRequest().path(WebhookResource.POLICY_NOTIFICATION_WEBHOOKS_PATH)
+        .parameter(OwnerType.APPLICATION, tempEntity.newApplicationWithParent().getPublicId()).get();
+    assertResponseStatus(200, response);
+
+    Webhook[] results = response.getBody(Webhook[].class);
+    assertThat(results).extracting(Webhook::getId).containsExactly(webhook.getId());
   }
 
   @Test

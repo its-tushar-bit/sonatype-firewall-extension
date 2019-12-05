@@ -102,7 +102,7 @@ describe('policy.editor.notifications.controller.spec.js', function() {
 
     $httpBackend.whenGET('/rest/policy/stages?context=all').respond([]);
     $httpBackend.whenGET(CLMContextLocations.getRoleMappingUrl()).respond(membershipMapping);
-    getWebhooks = $httpBackend.whenGET(CLMLocations.getWebhooksUrl());
+    getWebhooks = $httpBackend.whenGET(CLMContextLocations.getNotificationWebhooksUrl());
     getWebhooks.respond(webhooks);
   }));
 

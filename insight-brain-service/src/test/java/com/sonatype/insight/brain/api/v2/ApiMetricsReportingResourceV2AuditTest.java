@@ -3,14 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.v2.service;
+package com.sonatype.insight.brain.api.v2;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.ApiMetricsReportingResourceV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingQueryDTOV2;
 import com.sonatype.insight.brain.audit.ApplicationAuditDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;

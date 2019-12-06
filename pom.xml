@@ -920,7 +920,7 @@
       <dependency>
         <groupId>com.applitools</groupId>
         <artifactId>eyes-selenium-java3</artifactId>
-        <version>3.37.1</version>
+        <version>3.158.8</version>
       </dependency>
       <dependency>
         <!-- lock down dependency that eyes-selenium-java3-jersey1x drags in with version range -->

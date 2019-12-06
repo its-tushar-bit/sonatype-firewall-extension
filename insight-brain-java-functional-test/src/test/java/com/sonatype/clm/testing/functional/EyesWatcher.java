@@ -60,6 +60,7 @@ public class EyesWatcher
       eyes.setApiKey(APPLITOOLS_KEY);
       eyes.setBatch(batch);
       eyes.setHideCaret(false);
+      eyes.setHideScrollbars(false);
     }
   }
 
@@ -105,18 +106,18 @@ public class EyesWatcher
     if (eyes.getIsDisabled()) {
       return;
     }
+    WebDriver remoteDriver = WebDriverRunner.getAndCheckWebDriver();
+
+    // Unwrap the the driver if needed to get the remote driver which is required by applitools.
+    if (remoteDriver instanceof WrapsDriver) {
+      remoteDriver = ((WrapsDriver) remoteDriver).getWrappedDriver();
+    }
     if (!eyes.getIsOpen()) {
-      WebDriver remoteDriver = WebDriverRunner.getAndCheckWebDriver();
-
-      if (remoteDriver instanceof WrapsDriver) {
-        remoteDriver = ((WrapsDriver) remoteDriver).getWrappedDriver();
-      }
-
       eyes.open(remoteDriver, "IQ Server", testName);
     }
     By ignoreRegion = By.className("visual-testing-ignore");
     SeleniumCheckSettings settings = Target.window();
-    for (WebElement element : WebDriverRunner.getWebDriver().findElements(ignoreRegion)) {
+    for (WebElement element : remoteDriver.findElements(ignoreRegion)) {
       settings = settings.ignore(element);
     }
 

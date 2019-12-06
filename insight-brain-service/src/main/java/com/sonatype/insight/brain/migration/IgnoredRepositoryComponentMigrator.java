@@ -56,11 +56,15 @@ public class IgnoredRepositoryComponentMigrator
 
     long start = System.currentTimeMillis();
     log.debug("Deleting ignored repository components...");
-
-    List<Repository> repositories = repositoryDAO.getAll();
-    repositories.forEach(repositoryComponentDeleteService::deleteUnknownIgnoredComponents);
-    migrationTrackerDAO.insert(new MigrationTracker(MIGRATION_ID));
-    log.info("Deleted ignored repository components for {} repositories in {} ms.", repositories.size(),
-        System.currentTimeMillis() - start);
+    try {
+      List<Repository> repositories = repositoryDAO.getAll();
+      repositories.forEach(repositoryComponentDeleteService::deleteUnknownIgnoredComponents);
+      migrationTrackerDAO.insert(new MigrationTracker(MIGRATION_ID));
+      log.info("Deleted ignored repository components for {} repositories in {} ms.", repositories.size(),
+          System.currentTimeMillis() - start);
+    }
+    catch (RuntimeException e) {
+      log.error("Failed to delete ignored repository components, will retry upon next server start", e);
+    }
   }
 }

@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternSe
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadGatewayException;
 
 import com.google.inject.Binder;
 import org.junit.Test;
@@ -67,5 +68,18 @@ public class IgnoredRepositoryComponentMigratorTest
 
     assertThat(migrationTrackerDAO.getById(IgnoredRepositoryComponentMigrator.MIGRATION_ID)).isNotNull();
     assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
+  }
+
+  @Test
+  public void testMigrate_HdsError() {
+    new MigrationTrackerDAO().deleteById(IgnoredRepositoryComponentMigrator.MIGRATION_ID);
+    tempEntity.newRepository("rm1", "r1", "maven2");
+
+    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+        .thenThrow(new BadGatewayException("ERROR"));
+
+    ignoredRepositoryComponentMigrator.migrate();
+
+    assertThat(migrationTrackerDAO.getById(IgnoredRepositoryComponentMigrator.MIGRATION_ID)).isNull();
   }
 }

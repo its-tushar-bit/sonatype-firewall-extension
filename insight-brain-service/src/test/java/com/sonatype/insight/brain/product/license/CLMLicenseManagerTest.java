@@ -226,8 +226,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.ENFORCEMENT, //
         LicensedFeature.NOTIFICATIONS, //
         LicensedFeature.POLICY_GRANDFATHERING, //
-        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS, 
-        LicensedFeature.AUTOMATION);
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
   }
 
   @Test

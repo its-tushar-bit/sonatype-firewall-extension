@@ -55,7 +55,7 @@ public class ScanUploader
     return upload(scanFile, application, BAD_GATEWAY_RETRY_WAIT);
   }
 
-  public ScanReceipt upload(File scanFile, Application application, Duration retryWait) throws IOException {
+  ScanReceipt upload(File scanFile, Application application, Duration retryWait) throws IOException {
     HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(application);
 
     ScanReceipt receipt = null;

@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.Test;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.SPSSODescriptorType;
@@ -35,6 +36,12 @@ public class ApiSamlConfigurationResourceTest
     extends AbstractResourceTest
 {
   private SamlConfigurationDAO samlConfigurationDAO = new SamlConfigurationDAO();
+
+  @After
+  public void cleanup() {
+    samlConfigurationDAO.delete();
+    getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
+  }
 
   @Test
   public void testGetSamlConfiguration() throws Exception {
@@ -59,16 +66,11 @@ public class ApiSamlConfigurationResourceTest
 
   @Test
   public void testInsertOrUpdateSamlConfiguration() throws Exception {
-    try {
-      String xml = validIdentityProviderXml();
-      ApiSamlConfigurationDTO apiSamlConfigurationDTO = new ApiSamlConfigurationDTO();
-      HttpResponse response =
-          restRequest().part("identityProviderXml", xml).part("samlConfiguration", apiSamlConfigurationDTO).put();
-      assertResponseStatus(204, response);
-    }
-    finally {
-      samlConfigurationDAO.delete();
-    }
+    String xml = validIdentityProviderXml();
+    ApiSamlConfigurationDTO apiSamlConfigurationDTO = new ApiSamlConfigurationDTO();
+    HttpResponse response =
+        restRequest().part("identityProviderXml", xml).part("samlConfiguration", apiSamlConfigurationDTO).put();
+    assertResponseStatus(204, response);
   }
 
   @Test

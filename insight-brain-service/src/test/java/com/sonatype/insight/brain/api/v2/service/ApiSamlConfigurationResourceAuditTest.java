@@ -17,9 +17,11 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
+import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,17 +48,18 @@ public class ApiSamlConfigurationResourceAuditTest
     apiSamlConfigurationDTO.validateAssertionSignature = false;
   }
 
+  @After
+  public void cleanup() {
+    new SamlConfigurationDAO().delete();
+    getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
+  }
+
   @Test
   public void testInsertOrUpdateSamlConfiguration_Insert() throws Exception {
-    try {
-      restRequest().part("identityProviderXml", xml).part("samlConfiguration", apiSamlConfigurationDTO).put();
+    restRequest().part("identityProviderXml", xml).part("samlConfiguration", apiSamlConfigurationDTO).put();
 
-      AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_SAML, null);
-      assertAuditData(auditDTO);
-    }
-    finally {
-      new SamlConfigurationDAO().delete();
-    }
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_SAML, null);
+    assertAuditData(auditDTO);
   }
 
   @Test

@@ -113,12 +113,7 @@ public class ProductNotificationResourceTest
                                   final ProductNotification notification,
                                   final boolean viewed)
   {
-    assertThat(notificationDTO.id).isEqualTo(notification.getId());
-    assertThat(notificationDTO.summaryText).isEqualTo(notification.getSummaryText());
-    assertThat(notificationDTO.summaryUrl).isEqualTo(notification.getSummaryUrl());
-    assertThat(notificationDTO.detailHtml).isEqualTo(notification.getDetailHtml());
-    assertThat(notificationDTO.type).isEqualTo(notification.getType());
-    assertThat(notificationDTO.dateCreated).isEqualTo(notification.getDateCreated());
+    assertThat(notificationDTO).usingRecursiveComparison().ignoringFields("viewed").isEqualTo(notification);
     assertThat(notificationDTO.viewed).isEqualTo(viewed);
   }
 }

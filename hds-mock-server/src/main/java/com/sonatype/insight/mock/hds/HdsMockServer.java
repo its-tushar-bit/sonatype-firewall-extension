@@ -303,7 +303,7 @@ public class HdsMockServer
         else if (uri.equals("/rest/application/analysis") && "PUT".equals(request.getMethod())) {
           consume(baseRequest);
           validateLicense(request);
-          sendJson(response, "{\"scanId\": \"" + SCAN_ID + "\", \"timeToReport\": 1}");
+          sendJson(response, "{\"scanId\": \"" + SCAN_ID + "\", \"timeToReport\": 0}");
         }
         else if (uri.startsWith(REPORT_PATH_PREFIX) && "GET".equals(request.getMethod())) {
           consume(baseRequest);

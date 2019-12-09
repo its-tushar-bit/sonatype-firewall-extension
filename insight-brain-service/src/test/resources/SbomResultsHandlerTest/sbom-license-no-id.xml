@@ -11,6 +11,16 @@
           <name>name</name>
           <url>url</url>
         </license>
+        <license>
+          <id></id>
+          <name>name</name>
+          <url>url</url>
+        </license>
+        <license>
+          <id/>
+          <name>name</name>
+          <url>url</url>
+        </license>
       </licenses>
     </component>
   </components>

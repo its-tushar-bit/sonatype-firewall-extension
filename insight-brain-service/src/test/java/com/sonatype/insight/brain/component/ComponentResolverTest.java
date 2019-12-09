@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -24,6 +26,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyBillOfMaterialsRowDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyHealthCheckReportSecurityRowDTO;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyLicenseRowDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyReportComponentDTO;
 
 import com.google.inject.Binder;
@@ -62,7 +65,7 @@ public class ComponentResolverTest
   }
 
   @Test
-  public void testGetComponents_MatchedThirdPartyDataWithVulnerabilities() {
+  public void testGetComponents_MatchedThirdPartyDataWithVulnerabilitiesAndLicenses() {
     when(componentDAO.getAll(app, null, null, null))
         .thenReturn(asList(newUnknownComponent("hash1"), newUnknownComponent("hash2")));
 
@@ -161,6 +164,7 @@ public class ComponentResolverTest
       assertThat(component.getIdentificationSource())
           .isEqualTo(IdentificationSource.getById(expectedMatch.bomRow.identificationSource));
       assertMatchedSecurityRows(component.getSecurityVulnerabilities(), expectedMatch.securityRows);
+      assertMatchedLicenseRows(component.getDeclaredLicenseIds(), expectedMatch.licensesRow);
     }
   }
 
@@ -177,6 +181,17 @@ public class ComponentResolverTest
             assertThat(sec.getUrl()).isEqualTo(matchedRow.url);
           });
     });
+  }
+  
+  private void assertMatchedLicenseRows(
+      final Set<String> declaredLicense,
+      final ThirdPartyLicenseRowDTO expectedLicense)
+  {
+    if (expectedLicense.declaredLicenses != null) {
+      assertThat(expectedLicense.declaredLicenses).hasSize(declaredLicense.size());
+      assertThat(expectedLicense.declaredLicenses.stream().collect(Collectors.toSet()))
+          .containsExactlyElementsOf(expectedLicense.declaredLicenses);
+    }
   }
 
   private ThirdPartyReportComponentDTO thirdPartyDTOWithIdentification(

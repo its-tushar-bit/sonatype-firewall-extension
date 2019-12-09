@@ -10,10 +10,12 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -98,10 +100,19 @@ public class ThirdPartyComponentDAOTest
 
     assertThat(data.get(hashGlibc).securityRows).hasSize(2);
     assertThat(data.get(hashApt).securityRows).hasSize(1);
+    
+    assertThat(data.get(hashGlibc).licensesRow).isNotNull();
+    assertThat(data.get(hashGlibc).licensesRow.declaredLicenses).hasSize(1);
+    assertThat(data.get(hashApt).licensesRow).isNotNull();
+    assertThat(data.get(hashApt).licensesRow.declaredLicenses).hasSize(2);
 
     assertThat(data.get(hashGlibc).securityRows.stream().map(s -> s.reference))
         .containsExactlyInAnyOrder("CVE-2017-16997", "CVE-2018-1000001");
     assertThat(data.get(hashApt).securityRows.stream().map(s -> s.reference)).containsOnly("CVE-2019-3462");
+    
+    assertThat(data.get(hashGlibc).licensesRow.declaredLicenses.equals(new TreeSet<>(Arrays.asList("Apache-2.0"))));
+    assertThat(
+        data.get(hashApt).licensesRow.declaredLicenses.equals(new TreeSet<>(Arrays.asList("AFL-1.2", "Apache-2.0"))));
 
     ThirdPartyHealthCheckReportSecurityRowDTO aptSecurityRow = data.get(hashApt).securityRows.get(0);
     assertThat(aptSecurityRow.source).isNull();

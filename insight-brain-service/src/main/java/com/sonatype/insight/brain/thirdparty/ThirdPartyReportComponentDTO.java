@@ -20,6 +20,8 @@ public class ThirdPartyReportComponentDTO
 
   public List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows = new ArrayList<>();
 
+  public ThirdPartyLicenseRowDTO licensesRow = new ThirdPartyLicenseRowDTO();
+
   public ThirdPartyReportComponentDTO(ThirdPartyBillOfMaterialsRowDTO bomRow) {
     super(bomRow.componentIdentifier);
     this.bomRow = bomRow;

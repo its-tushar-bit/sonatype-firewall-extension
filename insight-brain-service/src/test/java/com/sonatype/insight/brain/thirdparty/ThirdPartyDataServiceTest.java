@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -13,6 +14,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
@@ -41,7 +43,7 @@ public class ThirdPartyDataServiceTest
     ThirdPartyFileCoordinate coord1 =
         tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "f1", "n1", "v1", "hash1", "pkg:f1/n1@v1");
     ThirdPartyFileCoordinate coord2 =
-        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "f1", "n2", "v2", "hash2", null);
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "f2", "n2", "v2", "hash2", null);
     ThirdPartyFileCoordinate coord3 =
         tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "maven", "a", "v2", "hash3", "pkg:maven/a@v2");
     ThirdPartyFileCoordinate coord4 =
@@ -68,11 +70,18 @@ public class ThirdPartyDataServiceTest
         tempEntity
             .newThirdPartyCoordinateSecurity(coord2, "r3", "desc3", "l3", 3f, null, "s3", "v:3", "sd3", "<dd>333</dd>",
                 "m3", "<dd>r3</dd>", "<dd>a3</dd>");
+    
+    final ThirdPartyCoordinateLicense lic1coord1 = tempEntity.newThirdPartyCoordinateLicense(coord1, "l1", "n1", "u1");
+  
+    final ThirdPartyCoordinateLicense lic2coord1 = tempEntity.newThirdPartyCoordinateLicense(coord1, "l2", "n2", "u2");
+    
+    final ThirdPartyCoordinateLicense lic1coord2 = tempEntity.newThirdPartyCoordinateLicense(coord2, "l2", "n2", "u2");
 
     final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
 
     assertThat(scanData.billOfMaterials).hasSize(8);
     assertThat(scanData.securityRows).hasSize(3);
+    assertThat(scanData.licenseRows).hasSize(2);
 
     assertBomContains(scanData.billOfMaterials, coord1, file);
     assertBomContains(scanData.billOfMaterials, coord2, file);
@@ -84,6 +93,9 @@ public class ThirdPartyDataServiceTest
     assertBomContains(scanData.billOfMaterials, coord8, file);
     assertSecurityRowsForComponent(scanData.securityRows, coord1, sec1coord1, sec2coord1);
     assertSecurityRowsForComponent(scanData.securityRows, coord2, sec1coord2);
+    
+    assertLicenseRowsForComponent(scanData.licenseRows, coord1, 1, lic1coord1,lic2coord1);
+    assertLicenseRowsForComponent(scanData.licenseRows, coord1, 1, lic1coord2);
   }
 
   @Test
@@ -97,6 +109,8 @@ public class ThirdPartyDataServiceTest
 
     final ThirdPartyCoordinateSecurity sec1coord1 =
         tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, "Medium", null);
+    
+    final ThirdPartyCoordinateLicense lic1coord1 = tempEntity.newThirdPartyCoordinateLicense(coord1, "l1", "n1", "u1");
 
     final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
 
@@ -105,6 +119,7 @@ public class ThirdPartyDataServiceTest
 
     assertBomContains(scanData.billOfMaterials, coord1, file);
     assertSecurityRowsForComponent(scanData.securityRows, coord1, sec1coord1);
+    assertLicenseRowsForComponent(scanData.licenseRows, coord1, 1, lic1coord1);
   }
 
   @Test
@@ -121,7 +136,7 @@ public class ThirdPartyDataServiceTest
     final ThirdPartyCoordinateSecurity sec1coord1 =
         tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, "Medium", null);
     tempEntity.newThirdPartyCoordinateSecurity(coord2, "r1", "desc1", "l1", 5f, "Medium", null);
-
+    
     final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
 
     assertThat(scanData.billOfMaterials).hasSize(1);
@@ -187,7 +202,33 @@ public class ThirdPartyDataServiceTest
           });
     }
   }
+  
+  private void assertLicenseRowsForComponent(
+      final List<ThirdPartyLicenseRowDTO> licenseRows,
+      final ThirdPartyFileCoordinate coordinate,
+      final int expectedLicenseComponents,
+      final ThirdPartyCoordinateLicense... expectedLicRows)
+  {
+    final List<ThirdPartyLicenseRowDTO> found =
+        licenseRows.stream().filter(sec -> Objects.equals(sec.hash, coordinate.getHash())).collect(Collectors.toList());
+    assertThat(found).hasSize(expectedLicenseComponents);
+    for (ThirdPartyCoordinateLicense expectedLicRow : expectedLicRows) {
+      assertThat(found.stream().findFirst()).hasValueSatisfying(licenseRow -> {
+        assertThat(licenseRow.componentIdentifier).isEqualTo(ComponentIdentifierAdapter
+            .toComponentIdentifier(coordinate.getFormat(), coordinate.getName(), coordinate.getVersion()));
+        assertThat(licenseRow.declaredLicenses).contains(toLicenseRow(expectedLicRow));
+      });
+    }
+  }
 
+  private ThirdPartyLicenseDTO toLicenseRow(ThirdPartyCoordinateLicense expectedLicRow) {
+    ThirdPartyLicenseDTO license = new ThirdPartyLicenseDTO();
+    license.id = expectedLicRow.getLicenseId();
+    license.name = expectedLicRow.getName();
+    license.url = expectedLicRow.getUrl();
+    return license;
+  }
+  
   private void assertBomContains(
       final List<ThirdPartyBillOfMaterialsRowDTO> bom,
       final ThirdPartyFileCoordinate coordinate,

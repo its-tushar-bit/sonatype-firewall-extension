@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyBillOfMaterialsRowDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyHealthCheckReportSecurityRowDTO;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyLicenseRowDTO;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -312,11 +313,13 @@ public class ReportServiceTest
     final ComponentIdentifier coord = ComponentIdentifier.createRpmCoordinates("n1", "v1", "a1");
     dto.billOfMaterials.add(new ThirdPartyBillOfMaterialsRowDTO(coord, "hash1"));
     dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "hash1"));
+    dto.licenseRows.add(new ThirdPartyLicenseRowDTO(coord, "hash1"));
 
     createReportService().includeThirdPartyData(reportZip, dto);
 
     assertThatReportZipContains(reportZip, "thirdparty-bom.json");
     assertThatReportZipContains(reportZip, "thirdparty-security.json");
+    assertThatReportZipContains(reportZip, "thirdparty-license.json");
   }
 
   @Test

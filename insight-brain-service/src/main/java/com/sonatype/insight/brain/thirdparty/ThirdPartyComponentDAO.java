@@ -57,6 +57,8 @@ public class ThirdPartyComponentDAO
 
   public static final String THIRD_PARTY_SECURITY_JSON_FILENAME = "thirdparty-security.json";
 
+  public static final String THIRD_PARTY_LICENSE_JSON_FILENAME = "thirdparty-license.json";
+
   private static final Logger log = LoggerFactory.getLogger(ThirdPartyComponentDAO.class);
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -97,7 +99,10 @@ public class ThirdPartyComponentDAO
         ReportEntry tpSecurityReportEntry = Report.getEntry(reportFile, THIRD_PARTY_SECURITY_JSON_FILENAME);
         final List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows =
             readData(tpSecurityReportEntry, new TypeReference<List<ThirdPartyHealthCheckReportSecurityRowDTO>>() { });
-        prepareComponentData(bomRows, securityRows, reportData);
+        ReportEntry tpLicenseReportEntry = Report.getEntry(reportFile, THIRD_PARTY_LICENSE_JSON_FILENAME);
+        final List<ThirdPartyLicenseRowDTO> licenseRows =
+            readData(tpLicenseReportEntry, new TypeReference<List<ThirdPartyLicenseRowDTO>>() {});
+        prepareComponentData(bomRows, securityRows, licenseRows, reportData);
       }
     }
     catch (Exception e) {
@@ -281,6 +286,7 @@ public class ThirdPartyComponentDAO
   private void prepareComponentData(
       final List<ThirdPartyBillOfMaterialsRowDTO> bomRows,
       final List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows,
+      final List<ThirdPartyLicenseRowDTO> licenseRows,
       final Map<String, ThirdPartyReportComponentDTO> reportData)
   {
     for (ThirdPartyBillOfMaterialsRowDTO bomRow : bomRows) {
@@ -289,6 +295,10 @@ public class ThirdPartyComponentDAO
         dto.securityRows.addAll(
             securityRows.stream().filter(row -> row.componentIdentifier.equals(dto.componentIdentifier))
                 .collect(Collectors.toList()));
+      }
+      if (licenseRows != null && !licenseRows.isEmpty()) {
+        licenseRows.stream().filter(row -> row.componentIdentifier.equals(dto.componentIdentifier)).findFirst()
+            .ifPresent(license -> dto.licensesRow = license);
       }
       reportData.put(bomRow.hash, dto);
     }

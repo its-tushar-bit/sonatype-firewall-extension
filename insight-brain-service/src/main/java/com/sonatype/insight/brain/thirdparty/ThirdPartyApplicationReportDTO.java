@@ -13,4 +13,6 @@ public class ThirdPartyApplicationReportDTO
   public List<ThirdPartyBillOfMaterialsRowDTO> billOfMaterials = new ArrayList<>();
 
   public List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows = new ArrayList<>();
+
+  public List<ThirdPartyLicenseRowDTO> licenseRows = new ArrayList<>();
 }

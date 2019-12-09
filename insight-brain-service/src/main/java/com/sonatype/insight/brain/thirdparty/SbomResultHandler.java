@@ -280,7 +280,7 @@ public class SbomResultHandler
           Xpp3Dom licenseInfo = license.getChild("id");
           if (licenseInfo != null) {
             String licenseId = licenseInfo.getValue();
-            if (!licenseMap.contains(licenseId)) {
+            if (StringUtils.isNotBlank(licenseId) && !licenseMap.contains(licenseId)) {
               saveLicense(license, fileCoordinateId, licenseId, tx);
               licenseMap.add(licenseId);
             }

@@ -62,6 +62,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME;
 
 public final class Report
 {
@@ -71,8 +72,8 @@ public final class Report
 
   public static final String CACHE_DIRECTORY_NAME = "report.cache";
 
-  public static final List<String> THIRD_PARTY_CACHED_FILES =
-      Arrays.asList(THIRD_PARTY_BOM_JSON_FILENAME, THIRD_PARTY_SECURITY_JSON_FILENAME);
+  public static final List<String> THIRD_PARTY_CACHED_FILES = Arrays.asList(THIRD_PARTY_BOM_JSON_FILENAME,
+      THIRD_PARTY_SECURITY_JSON_FILENAME, THIRD_PARTY_LICENSE_JSON_FILENAME);
 
   private static enum ReportType
   {

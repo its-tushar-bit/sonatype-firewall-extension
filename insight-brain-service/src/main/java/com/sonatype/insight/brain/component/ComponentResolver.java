@@ -85,6 +85,8 @@ public class ComponentResolver
     component.setIdentificationSource(IdentificationSource.getOrMake(thirdPartyDTO.bomRow.identificationSource));
     component.setSecurityVulnerabilities(
         thirdPartyDTO.securityRows.stream().map(this::toSecurityVulnerability).collect(Collectors.toList()));
+    component.setDeclaredLicenseIds(
+        thirdPartyDTO.licensesRow.declaredLicenses.stream().map(license -> license.id).collect(Collectors.toSet()));
   }
 
   private SecurityVulnerability toSecurityVulnerability(

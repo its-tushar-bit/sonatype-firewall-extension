@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -38,9 +40,12 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
@@ -77,6 +82,8 @@ public class PolicyEvaluateService
   
   private final StageTypeService stageTypeService;
 
+  private final TelemetrySender telemetrySender;
+
   @VisibleForTesting
   final Cache<String, PolicyEvaluationPollingResult> policyEvaluationPollingResults =
       CacheBuilder.newBuilder().expireAfterWrite(2, TimeUnit.HOURS)
@@ -88,7 +95,8 @@ public class PolicyEvaluateService
                                ErrorResponseGenerator errorResponseGenerator,
                                ScanHandler scanHandler,
                                ProductLicense productLicense,
-                               StageTypeService stageTypeService)
+                               StageTypeService stageTypeService,
+                               TelemetrySender telemetrySender)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
@@ -96,6 +104,7 @@ public class PolicyEvaluateService
     this.scanHandler = scanHandler;
     this.productLicense = productLicense;
     this.stageTypeService = stageTypeService;
+    this.telemetrySender = telemetrySender;
 
     executor = new ThreadPoolExecutor(5, 100, 5L, TimeUnit.MINUTES,
         new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("PolicyEvaluateService-%d").build());
@@ -181,7 +190,10 @@ public class PolicyEvaluateService
 
     File tempScanFile = scanHandler.createTempScanFile(req, applicationPublicId, clientScanType);
 
-    doEvaluationWithPolling(statusId, applicationPublicId, clientScanType, stage, tempScanFile);
+    String thirdPartyScanType =
+        clientScanType == ClientScanType.SONATYPE_THIRD_PARTY ? integrationType.toString() : null;
+
+    doEvaluationWithPolling(statusId, applicationPublicId, clientScanType, stage, tempScanFile, thirdPartyScanType);
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
     policyEvaluationReceipt.setStatusId(statusId);
@@ -194,7 +206,8 @@ public class PolicyEvaluateService
       String applicationPublicId,
       ClientScanType clientScanType,
       Stage stage,
-      File tempScanFile)
+      File tempScanFile,
+      String thirdPartyScanType)
   {
     String policyEvaluationKey = getPolicyEvaluationKey(applicationPublicId, statusId);
 
@@ -207,6 +220,8 @@ public class PolicyEvaluateService
     AuditData.get()
         .continueAsync(new EvaluationTask(applicationPublicId, clientScanType, statusId, stage, tempScanFile),
             executor::submit);
+
+    sendThirdPartyScanTelemetryData(applicationPublicId, stage.getStageTypeId(), thirdPartyScanType);
   }
 
   /**
@@ -319,5 +334,18 @@ public class PolicyEvaluateService
 
   private int getNextPollingInterval() {
     return disablePollingIntervalForTesting ? 1 : NEXT_POLLING_INTERVAL_IN_SECONDS;
+  }
+
+  private void sendThirdPartyScanTelemetryData(String applicationId, String stageId, String source) {
+    if (source != null) {
+      Map<String, Object> attributes = new HashMap<>();
+      attributes.put("application_id", applicationId);
+      attributes.put("stage_id", stageId);
+      attributes.put("source", source);
+
+      TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);
+      telemetryData.setAttributes(attributes);
+      telemetrySender.send(telemetryData);
+    }
   }
 }

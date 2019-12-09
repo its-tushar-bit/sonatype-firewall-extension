@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -70,6 +71,8 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Binder;
@@ -110,13 +113,16 @@ public class PolicyEvaluateServiceTest
   @Mock
   private ScanHandler mockScanHandler;
 
+  private TelemetrySender mockTelemetrySender;
+
   @Override
   public void configure(Binder binder) {
     mockReportDownloader = new MockReportDownloader();
     binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
     mockJiraClientFactory = mock(JiraClientFactory.class);
     binder.bind(JiraClientFactory.class).toInstance(mockJiraClientFactory);
-    binder.bind(TelemetrySender.class).toInstance(mock(TelemetrySender.class));
+    mockTelemetrySender = mock(TelemetrySender.class);
+    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
     mockScanHandler = mock(ScanHandler.class);
     binder.bind(ScanHandler.class).toInstance(mockScanHandler);
 
@@ -427,6 +433,40 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationPollingResult.getScanReceipt()).isEqualTo(scanReceipt);
 
     assertEvaluate(scanId, stage, policyEvaluationResult, policy1, mockJiraClient, appComponentDAO, mailA, mailB);
+  }
+
+  @Test
+  public void doEvaluationWithPolling_sendThirdPartyScanUsageTelemetry() throws Exception {
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    String scanId = simulateReportIsAvailable();
+
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+
+    when(mockScanHandler.createTempScanFile(eq(null), any(String.class), eq(ClientScanType.SONATYPE_THIRD_PARTY)))
+        .thenReturn(mock(File.class));
+    when(mockScanHandler.handle(any(File.class), any(String.class), eq(ClientScanType.SONATYPE_THIRD_PARTY)))
+        .thenReturn(scanReceipt);
+
+    PolicyEvaluationReceipt policyEvaluationReceipt = policyEvaluateService
+        .evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY, null, stage);
+
+    waitForResult(app.getPublicId(), policyEvaluationReceipt.getStatusId(),
+        p -> p.getStatus().equals(PolicyEvaluationStatus.COMPLETED));
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender, times(3)).send(telemetryDataArgumentCaptor.capture());
+
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getAllValues().get(0);
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);
+
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("application_id", app.getPublicId());
+    expectedAttributes.put("stage_id", stage.getStageTypeId());
+    expectedAttributes.put("source", IntegrationType.CLI.toString());
+    assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
   }
 
   @Test

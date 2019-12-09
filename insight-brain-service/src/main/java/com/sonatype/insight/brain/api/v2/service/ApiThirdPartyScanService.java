@@ -108,7 +108,7 @@ public class ApiThirdPartyScanService
 
     policyEvaluateService.doEvaluationWithPolling(scanRequestId, app.getPublicId(),
         ClientScanType.SONATYPE_THIRD_PARTY, stage,
-        scanResult.getScanFile());
+        scanResult.getScanFile(), "api");
 
     return scanTicketDTO;
   }

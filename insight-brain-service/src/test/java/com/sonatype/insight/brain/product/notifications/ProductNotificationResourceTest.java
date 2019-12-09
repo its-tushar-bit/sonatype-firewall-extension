@@ -95,6 +95,7 @@ public class ProductNotificationResourceTest
   }
 
   private List<ProductNotification> createNotifications(final int numNotifications) {
+    long now = new Date().getTime();
     List<ProductNotification> notifications = new ArrayList<>();
     for (int i = 1; i <= numNotifications; i++) {
       ProductNotification notification = new ProductNotification();
@@ -103,7 +104,7 @@ public class ProductNotificationResourceTest
       notification.setSummaryUrl("Test Summary Url-" + i);
       notification.setDetailHtml("Test Details-" + i);
       notification.setType(ProductNotificationType.DEFAULT);
-      notification.setDateCreated(new Date().getTime());
+      notification.setDateCreated(now - i);
       notifications.add(notification);
     }
     return notifications;

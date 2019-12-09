@@ -27,12 +27,21 @@ public class ApiPolicyWaiverDTO
 
   public boolean isObsolete;
 
+  /**
+   * @since 1.79
+   */
   @JsonInclude(Include.NON_EMPTY)
   public String scopeOwnerType;
 
+  /**
+   * @since 1.79
+   */
   @JsonInclude(Include.NON_EMPTY)
   public String scopeOwnerId;
 
+  /**
+   * @since 1.79
+   */
   @JsonInclude(Include.NON_EMPTY)
   public String scopeOwnerName;
 }

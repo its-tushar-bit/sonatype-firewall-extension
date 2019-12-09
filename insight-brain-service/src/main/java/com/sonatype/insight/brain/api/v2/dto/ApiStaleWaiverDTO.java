@@ -13,9 +13,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 /**
  * @since 1.81
  */
-public class ApiStalePolicyWaiverDTO
+public class ApiStaleWaiverDTO
 {
-  public String policyWaiverId;
+  public String waiverId;
 
   public String policyId;
 

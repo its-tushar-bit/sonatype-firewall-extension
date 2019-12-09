@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * @since 1.81
  */
-public class ApiStalePolicyWaiversResponseDTO
+public class ApiStaleWaiversResponseDTO
 {
-  public List<ApiStalePolicyWaiverDTO> stalePolicyWaivers;
+  public List<ApiStaleWaiverDTO> staleWaivers;
 }

@@ -1,0 +1,39 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2;
+
+import javax.inject.Named;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiStaleWaiversResponseDTO;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
+
+import com.codahale.metrics.annotation.Timed;
+
+/**
+ * @since 1.81
+ */
+@Named
+@Timed
+@Path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiStaleWaiversReportingResource.PATH)
+@Consumes(MediaType.APPLICATION_JSON)
+public class ApiStaleWaiversReportingResource
+{
+  public static final String PATH = "/waivers/stale";
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_COMPONENTS_WITH_WAIVERS)
+  public ApiStaleWaiversResponseDTO getStaleWaivers() {
+    return new ApiStaleWaiversResponseDTO();
+  }
+}

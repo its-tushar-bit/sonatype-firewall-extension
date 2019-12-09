@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,5 +13,5 @@ import java.util.List;
  */
 public class ApiStaleWaiversResponseDTO
 {
-  public List<ApiStaleWaiverDTO> staleWaivers;
+  public List<ApiStaleWaiverDTO> staleWaivers = new ArrayList<>();
 }

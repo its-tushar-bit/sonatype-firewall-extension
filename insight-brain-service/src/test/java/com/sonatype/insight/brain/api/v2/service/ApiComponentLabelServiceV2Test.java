@@ -9,6 +9,8 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -28,12 +30,26 @@ public class ApiComponentLabelServiceV2Test
   private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
   @Test
-  public void testSetApplicationComponentLabel() {
+  public void testSetComponentLabel_Organization() {
+    String componentHash = "bababababa";
+    Organization org = tempEntity.newOrganization();
+    Label label = tempEntity.newLabel(org.getId(), "label");
+
+    apiComponentLabelService.setComponentLabel(OwnerType.ORGANIZATION, org.getId(), componentHash, label.getLabel());
+
+    ComponentLabel componentLabel =
+        componentLabelDAO.getByOwnerIdAndHashAndLabelId(org.getId(), componentHash, label.getId());
+    assertThat(componentLabel).isNotNull();
+  }
+
+  @Test
+  public void testSetComponentLabel_Application() {
     String componentHash = "bababababa";
     Application app = tempEntity.newApplicationWithParent();
     Label label = tempEntity.newLabel(app.getOrganizationId(), "label");
 
-    apiComponentLabelService.setApplicationComponentLabel(app.getId(), componentHash, label.getLabel());
+    apiComponentLabelService.setComponentLabel(OwnerType.APPLICATION, app.getId(), componentHash,
+        label.getLabel());
 
     ComponentLabel componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), componentHash,
         label.getId());
@@ -41,13 +57,14 @@ public class ApiComponentLabelServiceV2Test
   }
 
   @Test
-  public void testSetApplicationComponentLabel_LabelIgnoresCaseSensitivity() {
+  public void testSetComponentLabel_LabelIgnoresCaseSensitivity() {
     String componentHash = "bababababa";
     Application app = tempEntity.newApplicationWithParent();
     Label label = tempEntity.newLabel(app.getOrganizationId(), "label");
     String upperCaseLabelName = label.getLabel().toUpperCase();
 
-    apiComponentLabelService.setApplicationComponentLabel(app.getId(), componentHash, upperCaseLabelName);
+    apiComponentLabelService.setComponentLabel(OwnerType.APPLICATION, app.getId(), componentHash,
+        upperCaseLabelName);
 
     ComponentLabel componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), componentHash,
         label.getId());
@@ -55,13 +72,14 @@ public class ApiComponentLabelServiceV2Test
   }
 
   @Test
-  public void testSetApplicationComponentLabel_HashTruncation() {
+  public void testSetComponentLabel_HashTruncation() {
     String shortHash = "babababababababababa";
     String componentHash = shortHash + "cdcdcdcdcdcdcdcd";
     Application app = tempEntity.newApplicationWithParent();
     Label label = tempEntity.newLabel(app.getOrganizationId(), "label");
 
-    apiComponentLabelService.setApplicationComponentLabel(app.getId(), componentHash, label.getLabel());
+    apiComponentLabelService.setComponentLabel(OwnerType.APPLICATION, app.getId(), componentHash,
+        label.getLabel());
 
     ComponentLabel componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), shortHash,
         label.getId());
@@ -69,18 +87,32 @@ public class ApiComponentLabelServiceV2Test
   }
 
   @Test
-  public void testSetApplicationComponentLabel_UnknownLabel() {
+  public void testSetComponentLabel_UnknownLabel() {
     String componentHash = "bababababa";
     Application app = tempEntity.newApplicationWithParent();
     String label = "FAKELABEL";
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      apiComponentLabelService.setApplicationComponentLabel(app.getId(), componentHash, label);
+      apiComponentLabelService.setComponentLabel(OwnerType.APPLICATION, app.getId(), componentHash, label);
     }).withMessage("Could not find a label with name 'FAKELABEL' for application with ID " + app.getId() + ".");
   }
 
   @Test
-  public void testDeleteApplicationComponentLabel() {
+  public void testDeleteComponentLabel_Organization() {
+    String componentHash = "bababababa";
+    Organization org = tempEntity.newOrganization();
+    Label label = tempEntity.newLabel(org.getId(), "label");
+    componentLabelDAO.insert(new ComponentLabel(org.getId(), label.getId(), componentHash));
+
+    apiComponentLabelService.deleteComponentLabel(OwnerType.ORGANIZATION, org.getId(), componentHash, label.getLabel());
+
+    ComponentLabel componentLabel =
+        componentLabelDAO.getByOwnerIdAndHashAndLabelId(org.getId(), componentHash, label.getId());
+    assertThat(componentLabel).isNull();
+  }
+
+  @Test
+  public void testDeleteComponentLabel_Application() {
     String componentHash = "bababababa";
     Application app = tempEntity.newApplicationWithParent();
     Label label = tempEntity.newLabel(app.getOrganizationId(), "label");
@@ -90,7 +122,8 @@ public class ApiComponentLabelServiceV2Test
         label.getId());
     assertThat(componentLabel).isNotNull();
 
-    apiComponentLabelService.deleteApplicationComponentLabel(app.getId(), componentHash, label.getLabel());
+    apiComponentLabelService.deleteComponentLabel(OwnerType.APPLICATION, app.getId(), componentHash,
+        label.getLabel());
 
     componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), componentHash,
         label.getId());
@@ -98,7 +131,7 @@ public class ApiComponentLabelServiceV2Test
   }
 
   @Test
-  public void testDeleteApplicationComponentLabel_LabelIgnoresCaseSensitivity() {
+  public void testDeleteComponentLabel_LabelIgnoresCaseSensitivity() {
     String componentHash = "bababababa";
     Application app = tempEntity.newApplicationWithParent();
     Label label = tempEntity.newLabel(app.getOrganizationId(), "label");
@@ -109,7 +142,8 @@ public class ApiComponentLabelServiceV2Test
         label.getId());
     assertThat(componentLabel).isNotNull();
 
-    apiComponentLabelService.deleteApplicationComponentLabel(app.getId(), componentHash, upperCaseLabelName);
+    apiComponentLabelService.deleteComponentLabel(OwnerType.APPLICATION, app.getId(), componentHash,
+        upperCaseLabelName);
 
     componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), componentHash,
         label.getId());
@@ -117,7 +151,7 @@ public class ApiComponentLabelServiceV2Test
   }
 
   @Test
-  public void testDeleteApplicationComponentLabel_HashTruncation() {
+  public void testDeleteComponentLabel_HashTruncation() {
     String shortHash = "babababababababababa";
     String componentHash = shortHash + "cdcdcdcdcdcdcdcd";
     Application app = tempEntity.newApplicationWithParent();
@@ -128,7 +162,8 @@ public class ApiComponentLabelServiceV2Test
         label.getId());
     assertThat(componentLabel).isNotNull();
 
-    apiComponentLabelService.deleteApplicationComponentLabel(app.getId(), componentHash, label.getLabel());
+    apiComponentLabelService.deleteComponentLabel(OwnerType.APPLICATION, app.getId(), componentHash,
+        label.getLabel());
 
     componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), shortHash,
         label.getId());
@@ -136,13 +171,14 @@ public class ApiComponentLabelServiceV2Test
   }
 
   @Test
-  public void testDeleteApplicationComponentLabel_UnknownLabel() {
+  public void testDeleteComponentLabel_UnknownLabel() {
     String componentHash = "bababababa";
     Application app = tempEntity.newApplicationWithParent();
     String label = "FAKELABEL";
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      apiComponentLabelService.deleteApplicationComponentLabel(app.getId(), componentHash, label);
+      apiComponentLabelService.deleteComponentLabel(OwnerType.APPLICATION, app.getId(), componentHash,
+          label);
     }).withMessage("Could not find a label with name 'FAKELABEL' for application with ID " + app.getId() + ".");
   }
 }

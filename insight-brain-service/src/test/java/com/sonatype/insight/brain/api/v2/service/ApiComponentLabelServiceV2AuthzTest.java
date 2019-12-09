@@ -7,15 +7,13 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiComponentLabelServiceV2AuthzTest
     extends AbstractServiceAuthzTest
@@ -24,54 +22,76 @@ public class ApiComponentLabelServiceV2AuthzTest
   private ApiComponentLabelServiceV2 apiComponentLabelService;
 
   @Test
-  public void testSetApplicationComponentLabel_Authorized() {
+  public void testSetComponentLabel_Application_Authorized() {
     grantWritePermission(app.getId());
     Label label = tempEntity.newLabel(org.getId());
-    apiComponentLabelService.setApplicationComponentLabel(app.getId(), "bababababa", label.getLabel());
+    apiComponentLabelService.setComponentLabel(OwnerType.APPLICATION, app.getId(), "bababababa",
+        label.getLabel());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testSetApplicationComponentLabel_Unauthorized() {
+  public void testSetComponentLabel_Application_Unauthorized() {
     login();
-    apiComponentLabelService.setApplicationComponentLabel(app.getId(), "bababababa", "label");
+    apiComponentLabelService.setComponentLabel(OwnerType.APPLICATION, app.getId(), "bababababa", "label");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testSetApplicationComponentLabel_Unauthenticated() {
-    apiComponentLabelService.setApplicationComponentLabel(app.getId(), "bababababa", "label");
+  public void testSetComponentLabel_Application_Unauthenticated() {
+    apiComponentLabelService.setComponentLabel(OwnerType.APPLICATION, app.getId(), "bababababa", "label");
   }
 
   @Test
-  public void testSetApplicationComponentLabel_UnknownApplicationId() {
-    login();
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      apiComponentLabelService.setApplicationComponentLabel("fakeappid", "bababababa", "label");
-    }).withMessage("Could not find an application with ID fakeappid.");
-  }
-
-  @Test
-  public void testDeleteApplicationComponentLabel_Authorized() {
-    grantWritePermission(app.getId());
+  public void testSetComponentLabel_Organization_Authorized() {
+    grantWritePermission(org.getId());
     Label label = tempEntity.newLabel(org.getId());
-    apiComponentLabelService.deleteApplicationComponentLabel(app.getId(), "bababababa", label.getLabel());
+    apiComponentLabelService.setComponentLabel(OwnerType.ORGANIZATION, org.getId(), "bababababa", label.getLabel());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testDeleteApplicationComponentLabel_Unauthorized() {
+  public void testSetComponentLabel_Organization_Unauthorized() {
     login();
-    apiComponentLabelService.deleteApplicationComponentLabel(app.getId(), "bababababa", "label");
+    apiComponentLabelService.setComponentLabel(OwnerType.ORGANIZATION, org.getId(), "bababababa", "label");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testDeleteApplicationComponentLabel_Unauthenticated() {
-    apiComponentLabelService.deleteApplicationComponentLabel(app.getId(), "bababababa", "label");
+  public void testSetComponentLabel_Organization_Unauthenticated() {
+    apiComponentLabelService.setComponentLabel(OwnerType.ORGANIZATION, org.getId(), "bababababa", "label");
   }
 
   @Test
-  public void testDeleteApplicationComponentLabel_UnknownApplicationId() {
+  public void testDeleteComponentLabel_Application_Authorized() {
+    grantWritePermission(app.getId());
+    Label label = tempEntity.newLabel(org.getId());
+    apiComponentLabelService.deleteComponentLabel(OwnerType.APPLICATION, app.getId(), "bababababa",
+        label.getLabel());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeleteComponentLabel_Application_Unauthorized() {
     login();
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      apiComponentLabelService.deleteApplicationComponentLabel("fakeappid", "bababababa", "label");
-    }).withMessage("Could not find an application with ID fakeappid.");
+    apiComponentLabelService.deleteComponentLabel(OwnerType.APPLICATION, app.getId(), "bababababa", "label");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteComponentLabel_Application_Unauthenticated() {
+    apiComponentLabelService.deleteComponentLabel(OwnerType.APPLICATION, app.getId(), "bababababa", "label");
+  }
+
+  @Test
+  public void testDeleteComponentLabel_Organization_Authorized() {
+    grantWritePermission(org.getId());
+    Label label = tempEntity.newLabel(org.getId());
+    apiComponentLabelService.deleteComponentLabel(OwnerType.ORGANIZATION, org.getId(), "bababababa", label.getLabel());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeleteComponentLabel_Organization_Unauthorized() {
+    login();
+    apiComponentLabelService.deleteComponentLabel(OwnerType.ORGANIZATION, org.getId(), "bababababa", "label");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteComponentLabel_Organization_Unauthenticated() {
+    apiComponentLabelService.deleteComponentLabel(OwnerType.ORGANIZATION, org.getId(), "bababababa", "label");
   }
 }

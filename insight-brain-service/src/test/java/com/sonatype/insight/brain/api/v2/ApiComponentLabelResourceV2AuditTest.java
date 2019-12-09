@@ -10,6 +10,8 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
@@ -21,14 +23,17 @@ public class ApiComponentLabelResourceV2AuditTest
 {
   private static final String COMPONENT_HASH = "componentHash";
 
+  private Organization organization;
+
   private Application application;
 
   private Label label;
 
   @Before
   public void before() {
-    application = tempEntity.newApplicationWithParent();
-    label = tempEntity.newLabel(application.getId());
+    organization = tempEntity.newOrganization();
+    application = tempEntity.newApplication(organization.getId());
+    label = tempEntity.newLabel(organization.getId());
   }
 
   @Override
@@ -37,8 +42,8 @@ public class ApiComponentLabelResourceV2AuditTest
   }
 
   @Test
-  public void testAssignComponentLabelToApplication() throws Exception {
-    restRequest().parameter(COMPONENT_HASH, label.getLabel(), application.getId()).post();
+  public void testSetComponentLabel_Application() throws Exception {
+    restRequest().parameter(COMPONENT_HASH, label.getLabel(), OwnerType.APPLICATION, application.getId()).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.ASSIGN_COMPONENT_LABEL, null);
     assertApplicationData(auditDTO, application);
@@ -46,17 +51,27 @@ public class ApiComponentLabelResourceV2AuditTest
   }
 
   @Test
-  public void testAssignComponentLabelToApplication_Unauthorized() throws Exception {
-    restRequest().with(unauthorizedUser()).parameter(COMPONENT_HASH, label.getLabel(), application.getId()).post();
+  public void testSetComponentLabel_Organization() throws Exception {
+    restRequest().parameter(COMPONENT_HASH, label.getLabel(), OwnerType.ORGANIZATION, organization.getId()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.ASSIGN_COMPONENT_LABEL, null);
+    assertOrganizationData(auditDTO, organization);
+    assertComponentLabelData(auditDTO, label);
+  }
+
+  @Test
+  public void testSetComponentLabel_Unauthorized() throws Exception {
+    restRequest().with(unauthorizedUser())
+        .parameter(COMPONENT_HASH, label.getLabel(), OwnerType.APPLICATION, application.getId()).post();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.ASSIGN_COMPONENT_LABEL, "unauthorized");
     assertApplicationData(auditDTO, application);
   }
 
   @Test
-  public void testRemoveComponentLabelFromApplication() throws Exception {
+  public void testDeleteComponentLabel_Application() throws Exception {
     tempEntity.newComponentLabel(application.getId(), label.getId(), COMPONENT_HASH);
-    restRequest().parameter(COMPONENT_HASH, label.getLabel(), application.getId()).delete();
+    restRequest().parameter(COMPONENT_HASH, label.getLabel(), OwnerType.APPLICATION, application.getId()).delete();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_COMPONENT_LABEL, null);
     assertApplicationData(auditDTO, application);
@@ -64,9 +79,20 @@ public class ApiComponentLabelResourceV2AuditTest
   }
 
   @Test
-  public void testRemoveComponentLabelFromApplication_Unauthorized() throws Exception {
+  public void testDeleteComponentLabel_Organization() throws Exception {
+    tempEntity.newComponentLabel(organization.getId(), label.getId(), COMPONENT_HASH);
+    restRequest().parameter(COMPONENT_HASH, label.getLabel(), OwnerType.ORGANIZATION, organization.getId()).delete();
+
+    final AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_COMPONENT_LABEL, null);
+    assertOrganizationData(auditDTO, organization);
+    assertComponentLabelData(auditDTO, label);
+  }
+
+  @Test
+  public void testDeleteComponentLabel_Unauthorized() throws Exception {
     tempEntity.newComponentLabel(application.getId(), label.getId(), COMPONENT_HASH);
-    restRequest().with(unauthorizedUser()).parameter(COMPONENT_HASH, label.getLabel(), application.getId()).delete();
+    restRequest().with(unauthorizedUser())
+        .parameter(COMPONENT_HASH, label.getLabel(), OwnerType.APPLICATION, application.getId()).delete();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_COMPONENT_LABEL, "unauthorized");
     assertApplicationData(auditDTO, application);

@@ -49,7 +49,7 @@ public class PublicApiPaths
   public static final String COMPONENT_VERSIONS_PATH_V2 = API_VERSION_PATH_V2 + "components/versions";
 
   public static final String APP_COMPONENT_LABELS_PATH_V2 = API_VERSION_PATH_V2
-      + "components/{componentHash}/labels/{labelName}/applications/{applicationId}";
+      + "components/{componentHash}/labels/{labelName}/{ownerType: application|organization}s/{internalOwnerId}";
 
   public static final String DATA_RETENTION_POLICY_RESOURCE_PATH = API_VERSION_PATH_V2 + "dataRetentionPolicies";
 

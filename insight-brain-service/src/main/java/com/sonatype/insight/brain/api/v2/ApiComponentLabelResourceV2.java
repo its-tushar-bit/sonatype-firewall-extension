@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentLabelServiceV2;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -37,26 +38,30 @@ public class ApiComponentLabelResourceV2
   }
 
   /**
-   * Assigns an existing label to a component identified by hash in a given app.
+   * Assigns an existing label to a component identified by hash in a given owner.
    */
   @POST
   @Audited(AuditEvent.ASSIGN_COMPONENT_LABEL)
-  public void setApplicationComponentLabel(@PathParam("applicationId") final String applicationId,
-                                           @PathParam("componentHash") final String componentHash,
-                                           @PathParam("labelName") final String labelName)
+  public void setComponentLabel(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("internalOwnerId") final String internalOwnerId,
+      @PathParam("componentHash") final String componentHash,
+      @PathParam("labelName") final String labelName)
   {
-    apiComponentLabelService.setApplicationComponentLabel(applicationId, componentHash, labelName);
+    apiComponentLabelService.setComponentLabel(ownerType, internalOwnerId, componentHash, labelName);
   }
 
   /**
-   * Deletes the component label identified by hash in a given app.
+   * Deletes the component label identified by hash in a given owner.
    */
   @DELETE
   @Audited(AuditEvent.REMOVE_COMPONENT_LABEL)
-  public void deleteApplicationComponentLabel(@PathParam("applicationId") final String applicationId,
-                                              @PathParam("componentHash") final String componentHash,
-                                              @PathParam("labelName") final String labelName)
+  public void deleteComponentLabel(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("internalOwnerId") final String internalOwnerId,
+      @PathParam("componentHash") final String componentHash,
+      @PathParam("labelName") final String labelName)
   {
-    apiComponentLabelService.deleteApplicationComponentLabel(applicationId, componentHash, labelName);
+    apiComponentLabelService.deleteComponentLabel(ownerType, internalOwnerId, componentHash, labelName);
   }
 }

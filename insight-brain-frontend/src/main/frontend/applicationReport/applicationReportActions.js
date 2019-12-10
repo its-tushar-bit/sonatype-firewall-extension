@@ -113,7 +113,8 @@ export default function applicationReportActions($http, $q, $state, $window, CLM
         const promises = {
           policyResult: $http.get(CLMLocations.getReportPolicyThreatsUrl(appId, scanId)),
           dataResult: $http.get(CLMLocations.getReportDataUrl(appId, scanId)),
-          partialMatches: $http.get(CLMLocations.getReportPartialMatchedUrl(appId, scanId))
+          partialMatches: $http.get(CLMLocations.getReportPartialMatchedUrl(appId, scanId)),
+          dependencies: $http.get(CLMLocations.getDependenciesUrl(appId, scanId))
         };
 
         return $q.all(promises)
@@ -121,8 +122,10 @@ export default function applicationReportActions($http, $q, $state, $window, CLM
               const policyResult = results.policyResult.data || undefined;
               const dataResult = results.dataResult.data;
               const partialMatches = results.partialMatches.data || undefined;
+              const dependencies = results.dependencies.data;
 
-              const allEntries = createReportEntries(policyResult, bomData, unknownJsData, partialMatches);
+              const allEntries = createReportEntries(policyResult, bomData, unknownJsData, partialMatches,
+                  dependencies);
               const reportVersion = policyResult && policyResult.version || null;
               return dispatch(loadReportFulfilled({ allEntries, reportVersion, ...dataResult }));
             })

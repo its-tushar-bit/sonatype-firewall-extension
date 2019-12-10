@@ -321,7 +321,21 @@ describe('applicationReportActions', function() {
     });
 
     it('fires LOAD_REPORT_FULFILLED action if report request succeeds', function() {
-      const bomData = {aaData: [{foo: 'bar'}]};
+      const bomData = {
+        aaData: [{
+          foo: 'bar',
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              artifactId: 'logback-access',
+              classifier: '',
+              extension: 'jar',
+              groupId: 'ch.qos.logback',
+              version: '0.6'
+            }
+          }
+        }]
+      };
       const store = SpecUtil.mockReduxStore(createMockState(false, bomData, undefined, mockMetadata));
 
       const errorSpy = jasmine.createSpy('errorSpy');
@@ -344,12 +358,23 @@ describe('applicationReportActions', function() {
           allEntries: [
             {
               foo: 'bar',
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  artifactId: 'logback-access',
+                  classifier: '',
+                  extension: 'jar',
+                  groupId: 'ch.qos.logback',
+                  version: '0.6'
+                }
+              },
               policyThreatLevel: 0,
               policyName: 'None',
               waived: false,
               grandfathered: false,
               derivedComponentName: 'unknown',
-              derivedViolationState: 'notViolating'
+              derivedViolationState: 'notViolating',
+              dependencyInfo: { isDirectDependency: true }
             }
           ],
           fooReport: 'barReport',
@@ -756,6 +781,33 @@ describe('applicationReportActions', function() {
         httpCode, mockReportData);
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPartialMatchedUrl('appId', 'scanId')))
         .respond(httpCode);
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getDependenciesUrl('appId', 'scanId'))).respond(httpCode, {
+      dependencyGraph: [{
+        children: [{
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              artifactId: 'logback-access',
+              classifier: '',
+              extension: 'jar',
+              groupId: 'ch.qos.logback',
+              version: '0.6'
+            }
+          }
+        }]
+      }, {
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            artifactId: 'logback-access',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'ch.qos.logback',
+            version: '0.6'
+          }
+        }
+      }]
+    });
   }
 
   function expectReportRawDataCalls(isSuccess) {

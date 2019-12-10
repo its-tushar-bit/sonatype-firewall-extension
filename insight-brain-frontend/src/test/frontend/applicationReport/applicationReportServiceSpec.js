@@ -1,5 +1,5 @@
 import * as applicationReportService from '../../../main/frontend/applicationReport/applicationReportService';
-import {ascend, isNil, map, prop, props, reject, sortWith} from 'ramda';
+import {ascend, isNil, map, prop, propEq, props, reject, sortWith} from 'ramda';
 
 describe('applicationReportService', function() {
 
@@ -808,6 +808,113 @@ describe('applicationReportService', function() {
 
     it('can handle undefined values for all parameters', function() {
       expect(applicationReportService.createReportEntries(undefined, undefined)).toEqual([]);
+    });
+
+    it('generates dependencyInfo for violating and non-violating entries', function() {
+      const policyThreatData = {
+            version: 3,
+            aaData: [{
+              hash: 'fooHash',
+              componentIdentifier: {
+                format: 'a-name',
+                coordinates: {
+                  name: 'foo',
+                  version: '1'
+                }
+              },
+              policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+              policyName: 'Security-High',
+              policyThreatLevel: 9,
+              activeViolations: [{
+                policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+                policyName: 'Security-High',
+                policyThreatLevel: 9,
+                waived: false,
+                grandfathered: false
+              }],
+              waivedViolations: [{
+                policyId: '546fa744e6434a9e855e1ef5bcaf2068',
+                policyName: 'License-High',
+                policyThreatLevel: 8,
+                waived: true,
+                grandfathered: false
+              }],
+              allViolations: [{
+                policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+                policyName: 'Security-High',
+                policyThreatLevel: 9,
+                waived: false,
+                grandfathered: false
+              }, {
+                policyId: '546fa744e6434a9e855e1ef5bcaf2068',
+                policyName: 'License-High',
+                policyThreatLevel: 8,
+                waived: true,
+                grandfathered: true
+              }]
+            }]
+          },
+          dependencies = {
+            dependencyGraph: [{
+              children: [{
+                componentIdentifier: {
+                  format: 'a-name',
+                  coordinates: {
+                    name: 'foo',
+                    version: '1'
+                  }
+                }
+              }]
+            }, {
+              componentIdentifier: {
+                format: 'a-name',
+                coordinates: {
+                  name: 'foo',
+                  version: '1'
+                }
+              }
+            }, {
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  groupId: 'barGroup',
+                  artifactId: 'bar',
+                  version: '2'
+                }
+              }
+            }]
+          },
+          result = applicationReportService.createReportEntries(
+              policyThreatData, bomData, unknownJSData, partialMatchData, dependencies);
+
+      expect(result.length).toEqual(4);
+
+      expect(result).toContain(jasmine.objectContaining({
+        hash: 'fooHash',
+        derivedViolationState: 'open',
+        policyName: 'Security-High',
+        policyThreatLevel: 9,
+        dependencyInfo: { isDirectDependency: true }
+      }));
+
+      expect(result).toContain(jasmine.objectContaining({
+        hash: 'fooHash',
+        derivedViolationState: 'waived+grandfathered',
+        policyName: 'License-High',
+        policyThreatLevel: 8,
+        dependencyInfo: { isDirectDependency: true }
+      }));
+
+      expect(result).toContain(jasmine.objectContaining({
+        hash: 'barHash',
+        derivedViolationState: 'notViolating',
+        policyName: 'None',
+        policyThreatLevel: 0,
+        dependencyInfo: { isDirectDependency: false }
+      }));
+
+      const bazHashEntry = result.find(propEq('hash', 'bazHash'));
+      expect(bazHashEntry.dependencyInfo).toBeUndefined();
     });
   });
 

@@ -1,7 +1,5 @@
 {
-  "dependencyGraph" : {
-    "null" : [ ]
-  },
+  "dependencyGraph" : [ { } ],
   "securityIssuesByDepth" : { },
   "gavDepths" : { },
   "licenseThreatsByDepth" : { }

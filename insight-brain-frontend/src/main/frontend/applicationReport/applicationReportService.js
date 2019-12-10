@@ -39,7 +39,6 @@ import {
   reduceBy,
   reject,
   toLower,
-  sortBy,
   sortWith,
   toPairs,
   uniqBy,
@@ -47,8 +46,10 @@ import {
 } from 'ramda';
 
 import { isNilOrEmpty, multiGroupBy, setToArray } from '../util/jsUtil';
+import { serializeComponentIdentifier } from '../util/componentIdentifierUtils';
 import { getComponentName } from '../util/componentNameUtils';
 import { getDeclaredLicensesDisplay, getObservedLicensesDisplay } from './licenseDisplayUtils';
+import DependencyInfoGenerator from './DependencyInfoGenerator';
 
 const joinPathnames = join('\t'),
     toKey = component => component.hash || joinPathnames(component.pathnames || []),
@@ -178,19 +179,23 @@ const addPartialMatchData = curry(function(partialMatchesByKey, entry) {
 const defaultParamValue = { aaData: [] };
 
 export function createReportEntries(policyResult = defaultParamValue, bomResult = defaultParamValue,
-                                    unknownJsResult = defaultParamValue, partialMatches = defaultParamValue) {
+                                    unknownJsResult = defaultParamValue, partialMatches = defaultParamValue,
+                                    dependencies) {
 
   // BOM (and unknownJS) records indexed by their key
   const bomDataByKey = indexByKey(concat(bomResult.aaData, unknownJsResult.aaData)),
       partialMatchesByKey = indexByKey(partialMatches.aaData),
+      dependencyInfoGenerator = DependencyInfoGenerator(dependencies),
 
       // select the right processing function for this version of the data
       makeViolationEntries = violationEntryMakersByPolicyThreatsVersion.get(policyResult.version || null),
 
       // make entries for all violations
       violationEntries = makeViolationEntries(policyResult, bomDataByKey),
-      violationEntriesWithPartialMatches = map(addPartialMatchData(partialMatchesByKey), violationEntries),
-      violatingEntriesByKey = groupBy(toKey, violationEntriesWithPartialMatches);
+      addPartialMatchAndDependencyData = compose(map(addPartialMatchData(partialMatchesByKey)), map(addDependencyInfo)),
+      violationEntriesWithPartialMatchesAndDependencyInfo = into([], addPartialMatchAndDependencyData,
+          violationEntries),
+      violatingEntriesByKey = groupBy(toKey, violationEntriesWithPartialMatchesAndDependencyInfo);
 
   function isKeyInactive([key]) {
     const violations = violatingEntriesByKey[key];
@@ -198,10 +203,16 @@ export function createReportEntries(policyResult = defaultParamValue, bomResult 
     return isNil(violations);
   }
 
-  const nonViolatingBomData = map(prop(1), filter(isKeyInactive, toPairs(bomDataByKey))),
-      nonViolatingComponentEntries = map(makeNonViolatingComponentEntry, nonViolatingBomData);
+  function addDependencyInfo(entry) {
+    const dependencyInfo = dependencyInfoGenerator.getDependencyInfo(entry);
+    return dependencyInfo ? { ...entry, dependencyInfo } : entry;
+  }
 
-  return concat(violationEntriesWithPartialMatches, nonViolatingComponentEntries);
+  const nonViolatingBomData = map(prop(1), filter(isKeyInactive, toPairs(bomDataByKey))),
+      nonViolatingEntriesTransducer = compose(map(makeNonViolatingComponentEntry), map(addDependencyInfo)),
+      nonViolatingComponentEntries = into([], nonViolatingEntriesTransducer, nonViolatingBomData);
+
+  return concat(violationEntriesWithPartialMatchesAndDependencyInfo, nonViolatingComponentEntries);
 }
 
 export function createRawDataEntries(securityResult = defaultParamValue, licensesResult = defaultParamValue,
@@ -267,14 +278,7 @@ export function createRawDataEntries(securityResult = defaultParamValue, license
  */
 function serializeComponentId({ componentIdentifier, pathnames }) {
   if (componentIdentifier) {
-    const { format, coordinates } = componentIdentifier,
-
-        // use U+001F UNIT SEPARATOR to separate coordinate field names from values, and use U+001E RECORD SEPARATOR to
-        // separate the k/v pairs from each other
-        coordinatePairStrings = map(join('\u001f'), sortBy(prop(0), toPairs(coordinates))),
-        coordinatesString = join('\u001e', coordinatePairStrings);
-
-    return `${format}:${coordinatesString}`;
+    return serializeComponentIdentifier(componentIdentifier);
   }
   else if (pathnames) {
     return `pathnames:${joinPathnames(pathnames)}`;

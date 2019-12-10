@@ -401,6 +401,8 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
 
       getExpandedCoverageEmbeddableUrl: getBrowseReportUrl('index.html'),
 
+      getDependenciesUrl: getBrowseReportUrl('dependencies.json'),
+
       getReportAuditLogUrl: function(appPublicId, reportId, component) {
         const keyJson = JSON.stringify(pick(['hash', 'componentIdentifier'], component)),
             encodedAppId = encodeURIComponent(appPublicId),

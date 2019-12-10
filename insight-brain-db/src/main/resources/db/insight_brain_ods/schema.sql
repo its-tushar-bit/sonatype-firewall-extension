@@ -641,3 +641,16 @@ CREATE TABLE user_token (
   CONSTRAINT user_token_uk UNIQUE (username, realm_id),
   CONSTRAINT user_token_user_code_uk UNIQUE (user_code)
 );
+
+-- Since MIGRATE_MAIL_CONFIG
+CREATE TABLE mail_configuration (
+  mail_configuration_id varchar(50) NOT NULL,
+  hostname varchar(255) NOT NULL,
+  port int NOT NULL,
+  username varchar(255),
+  password varchar(255),
+  ssl_enabled boolean NOT NULL,
+  start_tls_enabled boolean NOT NULL,
+  system_email varchar(255) NOT NULL,
+  CONSTRAINT mail_configuration_pk PRIMARY KEY (mail_configuration_id)
+);

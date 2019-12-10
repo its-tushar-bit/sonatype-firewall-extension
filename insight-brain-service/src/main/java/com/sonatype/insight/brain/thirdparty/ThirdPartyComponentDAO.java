@@ -19,6 +19,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.SecurityVulnerabilityDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
@@ -44,6 +45,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.Weigher;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -227,9 +229,23 @@ public class ThirdPartyComponentDAO
     componentDetails.setIdentificationSource(componentDTO.bomRow.identificationSource);
     componentDetails.setSecurityVulnerabilities(
         componentDTO.securityRows.stream().map(this::toSecurityVulnerability).collect(Collectors.toList()));
+    componentDetails.setDeclaredLicenses(
+        componentDTO.licensesRow.declaredLicenses.stream().map(this::getLicense).collect(Collectors.toSet()));
     return componentDetails;
   }
 
+  private License getLicense(ThirdPartyLicenseDTO licenseRow) {
+    License license = new License();
+    license.setLicenseId(licenseRow.id);
+    if (StringUtils.isNotBlank(licenseRow.name)) {
+      license.setLicenseName(licenseRow.name);
+    }
+    else {
+      license.setLicenseName(licenseRow.id);
+    }
+    return license;
+  }
+  
   private void updateSummaryCounts(final File reportFile, final int thirdPartyComponentCount)
       throws IOException
   {

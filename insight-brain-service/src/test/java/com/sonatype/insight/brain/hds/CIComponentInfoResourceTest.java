@@ -140,7 +140,9 @@ public class CIComponentInfoResourceTest
     HttpResponse response = licensesRequest(tpComponentIdentifier, "Clair", scanId).get();
     assertResponseStatus(200, response);
     ComponentLicenses licenses = response.getBody(ComponentLicenses.class);
-    assertThat(licenses.declaredlicenses).isEmpty();
+    assertThat(licenses.declaredlicenses).hasSize(1);
+    assertThat(licenses.declaredlicenses).extracting(license -> license.license.getLicenseId())
+        .containsExactlyInAnyOrder("Apache-2.0");
     assertThat(licenses.observedlicenses).isEmpty();
   }
 

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.hds;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -986,6 +987,8 @@ public class ComponentInfoServiceTest
     tpComponentDetails.setSecurityVulnerabilities(asList(
         new SecurityVulnerability("cve-8", "cve", 8.1f),
         new SecurityVulnerability("cve-4", "cve", 4f)));
+    tpComponentDetails
+        .setDeclaredLicenses(new HashSet<License>(asList(new License("Apache-2.0", "Apache License 2.0"))));
     ComponentDetailsList thirdPartyComponentDetailsList = new ComponentDetailsList();
     thirdPartyComponentDetailsList.setList(Collections.singletonList(tpComponentDetails));
 
@@ -1009,6 +1012,8 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.policyMaxThreatLevelsByCategory)
         .isEqualTo(ImmutableMap.of(PolicyThreatCategory.SECURITY, 8));
     assertThat(componentDetails.violatedPolicyCount).isEqualTo(1);
+    
+    assertThat(componentDetails.declaredLicenses).hasSize(1);
   }
 
   @Test
@@ -1113,7 +1118,39 @@ public class ComponentInfoServiceTest
 
     assertGetSecurityVulnerabilityResults(vulnerability, retrievedVulnerabilities);
   }
+  
+  @Test
+  public void testGetLicenses_Application_ThirdParty() throws Exception {
+    String scanId = "scanId";
+    String hash = "01234567890123456789";
+    final String identificationSource = IdentificationSource.CLAIR.getId();
+    NamedComponentDetails tpsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
+    tpsComponentDetails.setMatchState(MatchState.EXACT.getId());
+    tpsComponentDetails.setIdentificationSource(identificationSource);
+    License license = new License("Apache-2.0", "Apache License 2.0");
+    tpsComponentDetails.setHash(hash);
+    tpsComponentDetails.setDeclaredLicenses(new HashSet<>(asList(license)));
 
+    when(thirdPartyComponentDAO.getComponentDetailsByIdentifier( MAVEN_COORDINATES, application.getId(), scanId))
+        .thenReturn(tpsComponentDetails);
+
+    tempEntity.newSecurityVulnerabilityOverride(application.getId(), hash, "source", "refId",
+        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED, "abcd");
+
+    ComponentLicenses retrievedLicenses = componentInfoService.getLicenses(OwnerType.APPLICATION,
+        application.getPublicId(), MAVEN_COORDINATES, httpRequestMock, IdentificationSource.CLAIR.getId(), scanId);
+
+    assertGetLicensesResults(license, retrievedLicenses);
+  }
+
+  private void assertGetLicensesResults(final License license, final ComponentLicenses retrievedLicenses) {
+    assertThat(retrievedLicenses.declaredlicenses).hasSize(1);
+    assertThat(retrievedLicenses.effectiveLicenses).hasSize(1);
+    License retrievedLicense = retrievedLicenses.declaredlicenses.get(0).license;
+    assertThat(retrievedLicense.getLicenseId()).isEqualTo(license.getLicenseId());
+    assertThat(retrievedLicense.getLicenseName()).isEqualTo(license.getLicenseId());
+  }
+  
   private void assertGetSecurityVulnerabilityResults(
       final SecurityVulnerability vulnerability,
       final ComponentSecurityVulnerabilities retrievedVulnerabilities)

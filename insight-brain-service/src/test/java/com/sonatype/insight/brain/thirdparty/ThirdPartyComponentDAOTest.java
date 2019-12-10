@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -341,6 +342,11 @@ public class ThirdPartyComponentDAOTest
       assertThat(sv.getUrl()).isEqualTo("https://security-tracker.debian.org/tracker/CVE-2017-16997");
       assertThat(sv.getSource()).isNull();
     });
+    
+    final Set<String> licResults = component.getDeclaredLicenseIds();
+    assertThat(licResults).hasSize(1);
+    assertThat(licResults.iterator().next()).isEqualTo("Apache-2.0");
+    
   }
 
   private ComponentIdentifier componentIdentifierFrom(final String format, final String name, final String version) {

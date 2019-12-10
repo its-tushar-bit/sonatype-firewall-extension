@@ -1,0 +1,76 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.dataaccess.configuration;
+
+import javax.mail.internet.InternetAddress;
+
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
+
+import org.apache.commons.lang3.StringUtils;
+
+/**
+ * @since MIGRATE_MAIL_CONFIG
+ */
+public class MailConfigurationDAO
+    extends AbstractOperationalSqlDAO<MailConfiguration>
+{
+  /**
+   * @return The mail server configuration or {@code null} if none.
+   */
+  public MailConfiguration get() {
+    String sQuery = "SELECT entity FROM MailConfiguration entity";
+    return createQuery(sQuery).forceSingleResult().get();
+  }
+
+  public void set(MailConfiguration mailConfiguration) {
+    if (mailConfiguration.getId() != null) {
+      update(mailConfiguration);
+    }
+    else {
+      insert(mailConfiguration);
+    }
+  }
+
+  @Override
+  public void insert(TransactionContext tx, MailConfiguration mailConfiguration) {
+    validate(mailConfiguration);
+    super.insert(tx, mailConfiguration);
+  }
+
+  @Override
+  public void update(TransactionContext tx, MailConfiguration mailConfiguration) {
+    validate(mailConfiguration);
+    super.update(tx, mailConfiguration);
+  }
+
+  private void validate(MailConfiguration mailConfiguration) {
+    if (StringUtils.isBlank(mailConfiguration.getHostname())) {
+      throw new BadRequestException("The SMTP host is required.");
+    }
+    if (mailConfiguration.getPort() <= 0 || mailConfiguration.getPort() > 65535) {
+      throw new BadRequestException("The SMTP port must be from the range 1 - 65535.");
+    }
+    if (StringUtils.isBlank(mailConfiguration.getSystemEmail())) {
+      throw new BadRequestException("The system email address is required.");
+    }
+    try {
+      new InternetAddress(mailConfiguration.getSystemEmail());
+    }
+    catch (Exception e) {
+      throw new BadRequestException("The system email address is malformed: " + e.getMessage(), e);
+    }
+  }
+
+  public void delete() {
+    MailConfiguration mailConfiguration = get();
+    if (mailConfiguration != null) {
+      delete(mailConfiguration);
+    }
+  }
+}

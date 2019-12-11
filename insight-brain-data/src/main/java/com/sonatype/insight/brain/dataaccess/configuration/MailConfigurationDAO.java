@@ -20,32 +20,37 @@ import org.apache.commons.lang3.StringUtils;
 public class MailConfigurationDAO
     extends AbstractOperationalSqlDAO<MailConfiguration>
 {
+  static final String SINGLETON_ENTITY_ID = "mail-configuration";
+
   /**
    * @return The mail server configuration or {@code null} if none.
    */
   public MailConfiguration get() {
-    String sQuery = "SELECT entity FROM MailConfiguration entity";
-    return createQuery(sQuery).forceSingleResult().get();
+    return getById(SINGLETON_ENTITY_ID);
+  }
+
+  @Override
+  protected MailConfiguration getById(TransactionContext tx, String id) {
+    String sQuery = "SELECT entity FROM MailConfiguration entity" + //
+        " WHERE entity.id=?1";
+    return get(tx, sQuery, SINGLETON_ENTITY_ID);
   }
 
   public void set(MailConfiguration mailConfiguration) {
-    if (mailConfiguration.getId() != null) {
-      update(mailConfiguration);
-    }
-    else {
-      insert(mailConfiguration);
-    }
+    update(mailConfiguration);
   }
 
   @Override
   public void insert(TransactionContext tx, MailConfiguration mailConfiguration) {
     validate(mailConfiguration);
+    mailConfiguration.setId(SINGLETON_ENTITY_ID);
     super.insert(tx, mailConfiguration);
   }
 
   @Override
   public void update(TransactionContext tx, MailConfiguration mailConfiguration) {
     validate(mailConfiguration);
+    mailConfiguration.setId(SINGLETON_ENTITY_ID);
     super.update(tx, mailConfiguration);
   }
 

@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import javax.persistence.EntityExistsException;
+import javax.persistence.PersistenceException;
+
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -233,5 +236,40 @@ public class MailConfigurationDAOTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       dao.update(config);
     }).withMessageContaining(errMessage);
+  }
+
+  @Test
+  public void testInsert_EnforceSingleton() {
+    dao.insert(newValidConfiguration());
+
+    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
+      dao.insert(newValidConfiguration());
+    }).withCauseInstanceOf(EntityExistsException.class);
+
+    MailConfiguration config = newValidConfiguration();
+    config.setId("not-singleton-id");
+    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
+      dao.insert(config);
+    }).withCauseInstanceOf(EntityExistsException.class);
+  }
+
+  @Test
+  public void testUpdate_EnforceSingleton() {
+    dao.insert(newValidConfiguration());
+
+    MailConfiguration config = newValidConfiguration();
+    config.setId("not-singleton-id");
+    dao.update(config);
+    assertThat(dao.createQuery("SELECT entity FROM MailConfiguration entity").getList())
+        .extracting(MailConfiguration::getId).containsExactly(MailConfigurationDAO.SINGLETON_ENTITY_ID);
+  }
+
+  @Test
+  public void testSet_UpdateSingleton() {
+    dao.set(newValidConfiguration());
+    MailConfiguration config = newValidConfiguration();
+    config.setHostname("singleton");
+    dao.set(config);
+    assertThat(dao.get().getHostname()).isEqualTo("singleton");
   }
 }

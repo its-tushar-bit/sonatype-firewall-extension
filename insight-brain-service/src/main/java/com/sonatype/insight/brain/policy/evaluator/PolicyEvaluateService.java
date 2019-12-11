@@ -27,6 +27,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
@@ -193,7 +194,8 @@ public class PolicyEvaluateService
     String thirdPartyScanType =
         clientScanType == ClientScanType.SONATYPE_THIRD_PARTY ? integrationType.toString() : null;
 
-    doEvaluationWithPolling(statusId, applicationPublicId, clientScanType, stage, tempScanFile, thirdPartyScanType);
+    doEvaluationWithPolling(statusId, applicationPublicId, clientScanType, stage, tempScanFile, thirdPartyScanType,
+        HdsClient.getClientUserAgent(req));
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
     policyEvaluationReceipt.setStatusId(statusId);
@@ -207,7 +209,8 @@ public class PolicyEvaluateService
       ClientScanType clientScanType,
       Stage stage,
       File tempScanFile,
-      String thirdPartyScanType)
+      String thirdPartyScanType,
+      String userAgent)
   {
     String policyEvaluationKey = getPolicyEvaluationKey(applicationPublicId, statusId);
 
@@ -221,7 +224,7 @@ public class PolicyEvaluateService
         .continueAsync(new EvaluationTask(applicationPublicId, clientScanType, statusId, stage, tempScanFile),
             executor::submit);
 
-    sendThirdPartyScanTelemetryData(applicationPublicId, stage.getStageTypeId(), thirdPartyScanType);
+    sendThirdPartyScanTelemetryData(applicationPublicId, stage.getStageTypeId(), thirdPartyScanType, userAgent);
   }
 
   /**
@@ -336,12 +339,15 @@ public class PolicyEvaluateService
     return disablePollingIntervalForTesting ? 1 : NEXT_POLLING_INTERVAL_IN_SECONDS;
   }
 
-  private void sendThirdPartyScanTelemetryData(String applicationId, String stageId, String source) {
+  private void sendThirdPartyScanTelemetryData(String applicationId, String stageId, String source, String userAgent) {
     if (source != null) {
       Map<String, Object> attributes = new HashMap<>();
       attributes.put("application_id", applicationId);
       attributes.put("stage_id", stageId);
       attributes.put("source", source);
+      if (userAgent != null) {
+        attributes.put("user_agent", userAgent);
+      }
 
       TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);
       telemetryData.setAttributes(attributes);

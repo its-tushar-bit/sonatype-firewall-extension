@@ -20,6 +20,7 @@ import java.util.function.Function;
 
 import javax.inject.Inject;
 import javax.mail.Message;
+import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -36,6 +37,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.jira.JiraClient;
@@ -444,13 +446,17 @@ public class PolicyEvaluateServiceTest
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
 
-    when(mockScanHandler.createTempScanFile(eq(null), any(String.class), eq(ClientScanType.SONATYPE_THIRD_PARTY)))
+    when(mockScanHandler
+        .createTempScanFile(any(HttpServletRequest.class), any(String.class), eq(ClientScanType.SONATYPE_THIRD_PARTY)))
         .thenReturn(mock(File.class));
     when(mockScanHandler.handle(any(File.class), any(String.class), eq(ClientScanType.SONATYPE_THIRD_PARTY)))
         .thenReturn(scanReceipt);
 
+    HttpServletRequest req = mock(HttpServletRequest.class);
+    when(req.getHeader(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).thenReturn("userAgent");
+
     PolicyEvaluationReceipt policyEvaluationReceipt = policyEvaluateService
-        .evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY, null, stage);
+        .evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY, req, stage);
 
     waitForResult(app.getPublicId(), policyEvaluationReceipt.getStatusId(),
         p -> p.getStatus().equals(PolicyEvaluationStatus.COMPLETED));
@@ -466,6 +472,7 @@ public class PolicyEvaluateServiceTest
     expectedAttributes.put("application_id", app.getPublicId());
     expectedAttributes.put("stage_id", stage.getStageTypeId());
     expectedAttributes.put("source", IntegrationType.CLI.toString());
+    expectedAttributes.put("user_agent", "userAgent");
     assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
   }
 

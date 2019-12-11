@@ -78,7 +78,7 @@ public class ApiThirdPartyScanServiceTest
     String bom = getBomFile("/ApiThirdPartyResourceTest/valid_bom.xml");
 
     ApiThirdPartyScanTicketDTO scanResult =
-        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom);
+        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null);
     assertThat(scanResult).isNotNull();
     assertThat(scanResult.statusUrl).isNotNull();
     assertThat(new URI(scanResult.statusUrl)).isNotNull();
@@ -156,7 +156,7 @@ public class ApiThirdPartyScanServiceTest
 
     String bom = getBomFile("/ApiThirdPartyResourceTest/valid_bom.xml");
 
-    thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom);
+    thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null);
 
     ApiThirdPartyScanResultDTO resultDTO = thirdPartyScanService.getScanStatus(app.getId(), scanId);
     assertThat(resultDTO.policyAction).isEqualTo(policyAction);

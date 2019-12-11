@@ -93,7 +93,8 @@ public class ApiThirdPartyScanService
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
       final String source,
       final String stageId,
-      final String sbom)
+      final String sbom,
+      final String userAgent)
   {
     Stage stage = new Stage(stageId);
     validateRequest(sbom, stage);
@@ -108,7 +109,7 @@ public class ApiThirdPartyScanService
 
     policyEvaluateService.doEvaluationWithPolling(scanRequestId, app.getPublicId(),
         ClientScanType.SONATYPE_THIRD_PARTY, stage,
-        scanResult.getScanFile(), "api");
+        scanResult.getScanFile(), "api", userAgent);
 
     return scanTicketDTO;
   }

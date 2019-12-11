@@ -619,6 +619,7 @@ INSERT INTO migration_tracker(migration_tracker_id) VALUES('root-organization');
 INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-drools-code', 2);
 INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-json', 1);
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('ignored-repository-components');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('mail-config');
 
 -- Since 1.72.0
 CREATE TABLE saml_configuration (

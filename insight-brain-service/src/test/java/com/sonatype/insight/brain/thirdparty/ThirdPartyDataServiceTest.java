@@ -71,11 +71,17 @@ public class ThirdPartyDataServiceTest
             .newThirdPartyCoordinateSecurity(coord2, "r3", "desc3", "l3", 3f, null, "s3", "v:3", "sd3", "<dd>333</dd>",
                 "m3", "<dd>r3</dd>", "<dd>a3</dd>");
     
-    final ThirdPartyCoordinateLicense lic1coord1 = tempEntity.newThirdPartyCoordinateLicense(coord1, "l1", "n1", "u1");
-  
-    final ThirdPartyCoordinateLicense lic2coord1 = tempEntity.newThirdPartyCoordinateLicense(coord1, "l2", "n2", "u2");
-    
-    final ThirdPartyCoordinateLicense lic1coord2 = tempEntity.newThirdPartyCoordinateLicense(coord2, "l2", "n2", "u2");
+    final ThirdPartyCoordinateLicense lic1coord1 =
+        tempEntity.newThirdPartyCoordinateLicense(coord1, "Apache-2.0", "n1", "u1");
+
+    final ThirdPartyCoordinateLicense lic2coord1 =
+        tempEntity.newThirdPartyCoordinateLicense(coord1, "AFL-1.2", "n2", "u2");
+
+    final ThirdPartyCoordinateLicense lic1coord2 =
+        tempEntity.newThirdPartyCoordinateLicense(coord2, "Apache-2.0", "n2", "u2");
+
+    tempEntity.newThirdPartyCoordinateLicense(coord1, "l3", "n3", "u3");
+    tempEntity.newThirdPartyCoordinateLicense(coord2, "l2", "n2", "u2");
 
     final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
 
@@ -95,7 +101,7 @@ public class ThirdPartyDataServiceTest
     assertSecurityRowsForComponent(scanData.securityRows, coord2, sec1coord2);
     
     assertLicenseRowsForComponent(scanData.licenseRows, coord1, 1, lic1coord1,lic2coord1);
-    assertLicenseRowsForComponent(scanData.licenseRows, coord1, 1, lic1coord2);
+    assertLicenseRowsForComponent(scanData.licenseRows, coord2, 1, lic1coord2);
   }
 
   @Test
@@ -110,7 +116,8 @@ public class ThirdPartyDataServiceTest
     final ThirdPartyCoordinateSecurity sec1coord1 =
         tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, "Medium", null);
     
-    final ThirdPartyCoordinateLicense lic1coord1 = tempEntity.newThirdPartyCoordinateLicense(coord1, "l1", "n1", "u1");
+    final ThirdPartyCoordinateLicense lic1coord1 =
+        tempEntity.newThirdPartyCoordinateLicense(coord1, "Apache-2.0", "n1", "u1");
 
     final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
 

@@ -17,6 +17,7 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.purl.InvalidPackageURLException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -48,6 +50,8 @@ public class ThirdPartyDataService
   private final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
   private final ThirdPartyScanDAO thirdPartyScanDAO;
+  
+  private final LicenseDAO licenseDAO;
 
   @Inject
   public ThirdPartyDataService(
@@ -55,13 +59,15 @@ public class ThirdPartyDataService
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyScanDAO thirdPartyScanDAO,
-      final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO)
+      final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
+      final LicenseDAO licenseDAO)
   {
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
+    this.licenseDAO = licenseDAO;
   }
 
   public ThirdPartyApplicationReportDTO getScanData(final String scanId) {
@@ -173,16 +179,25 @@ public class ThirdPartyDataService
     if (!licenses.isEmpty()) {
       final ThirdPartyLicenseRowDTO dto = new ThirdPartyLicenseRowDTO(componentIdentifier, coord.getHash());
       licenses.stream()
-          .forEach(thirdPartyCoordinateLicense -> dto.declaredLicenses.add(toLicenseRow(thirdPartyCoordinateLicense)));
+          .forEach(thirdPartyCoordinateLicense -> addLicense(thirdPartyCoordinateLicense, dto));
       thirdPartyApplicationReportDTO.licenseRows.add(dto);
     }
   }
   
-  private ThirdPartyLicenseDTO toLicenseRow(final ThirdPartyCoordinateLicense thirdPartyCoordinateLicense) {
-    final ThirdPartyLicenseDTO license = new ThirdPartyLicenseDTO();
-    license.id = thirdPartyCoordinateLicense.getLicenseId();
-    license.name = thirdPartyCoordinateLicense.getName();
-    license.url = thirdPartyCoordinateLicense.getUrl();
-    return license;
+  private void addLicense(
+      final ThirdPartyCoordinateLicense thirdPartyCoordinateLicense,
+      final ThirdPartyLicenseRowDTO dto)
+  {
+    try {
+      licenseDAO.getByIdNotNull(thirdPartyCoordinateLicense.getLicenseId());
+      final ThirdPartyLicenseDTO licenseThirdParty = new ThirdPartyLicenseDTO();
+      licenseThirdParty.id = thirdPartyCoordinateLicense.getLicenseId();
+      licenseThirdParty.name = thirdPartyCoordinateLicense.getName();
+      licenseThirdParty.url = thirdPartyCoordinateLicense.getUrl();
+      dto.declaredLicenses.add(licenseThirdParty);
+    }
+    catch (NotFoundException e) {
+      log.debug(e.getMessage());
+    }
   }
 }

@@ -20,8 +20,10 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient.StateType;
@@ -51,17 +53,21 @@ public class GitApiService
 
   private final GitClientFactory gitClientFactory;
 
+  private final ProductLicense productLicense;
+
   @Inject
   public GitApiService(
       final ApiSourceControlService sourceControlService,
       final BaseUrl baseUrl,
       final ApplicationDAO applicationDAO,
-      final GitClientFactory gitClientFactory)
+      final GitClientFactory gitClientFactory,
+      ProductLicense productLicense)
   {
     this.sourceControlService = sourceControlService;
     this.baseUrl = baseUrl;
     this.applicationDAO = applicationDAO;
     this.gitClientFactory = gitClientFactory;
+    this.productLicense = productLicense;
   }
 
   /**
@@ -69,6 +75,10 @@ public class GitApiService
    * the evaluation outcome and component counts if a commit hash was send with the policy evaluation request.
    */
   public void maybeRespond(final ApplicationEvaluationEvent event) {
+    if (!productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)) {
+      log.debug("License does not support Source Control notifications feature");
+      return;
+    }
     if (Strings.isNullOrEmpty(event.commitHash)) {
       return;
     }

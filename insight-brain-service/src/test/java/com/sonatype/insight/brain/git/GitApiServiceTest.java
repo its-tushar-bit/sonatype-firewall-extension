@@ -15,9 +15,11 @@ import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -52,6 +54,9 @@ public class GitApiServiceTest
 
   @Inject
   private GitApiService gitApiService;
+
+  @Inject
+  private TestProductLicense testProductLicense;
 
   private ApiSourceControlService mockSourceControlService;
 
@@ -114,6 +119,17 @@ public class GitApiServiceTest
     String policyEvaluationOutcome = Action.ID_WARN;
     String gitHubCommitStatus = "pending";
     assertApplicationEvaluationOutcome(policyEvaluationOutcome, gitHubCommitStatus);
+  }
+
+  @Test
+  public void testMaybeRespondToApplicationEvaluationEvent_Unlicensed() throws IOException {
+    // remove notification feature, leaving automation
+    testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
+
+    event = getApplicationEvaluationEvent("foo", "release", Action.ID_FAIL, 0, 0, 0, 0, "commitHash");
+    gitApiService.maybeRespond(event);
+
+    verify(mockGitApiClient, never()).createStatus(any(), any());
   }
 
   @Test

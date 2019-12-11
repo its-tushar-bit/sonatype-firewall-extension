@@ -335,8 +335,28 @@ public class SbomResultHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_sbom_no_purl() throws Exception {
-    String sbomContent = getSbomFile("scan-with-sbom-no-purl.xml");
+  public void testHandleAndFilterContents_sbom_coords_no_purl() throws Exception {
+    String sbomContent = getSbomFile("scan-with-sbom-coords-no-purl.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+    assertFilteredSbomFile(filteredContent, 2);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_sbom_coords_only_group_no_purl() throws Exception {
+    String sbomContent = getSbomFile("scan-with-sbom-coords-only-group-no-purl.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+    assertFilteredSbomFile(filteredContent, 0);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_sbom_no_coords_no_purl() throws Exception {
+    String sbomContent = getSbomFile("scan-with-sbom-no-coords-no-purl.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);

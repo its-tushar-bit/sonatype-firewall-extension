@@ -31,6 +31,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.github.packageurl.MalformedPackageURLException;
+import com.github.packageurl.PackageURLBuilder;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -141,9 +143,10 @@ public class SbomResultHandler
   {
     try {
       Xpp3Dom component = Xpp3Util.loadElement("component", parser);
-      Xpp3Dom packageUrl = component.getChild("purl");
-      if (packageUrl != null && !StringUtils.isBlank(packageUrl.getValue())) {
-        processPurlComponent(component, packageUrl, thirdPartyFileId, sbom, hashFileCoordinateIdMap,
+      String packageUrlValue = getPackageUrl(component);
+
+      if (StringUtils.isNotBlank(packageUrlValue)) {
+        processPurlComponent(component, packageUrlValue, thirdPartyFileId, sbom, hashFileCoordinateIdMap,
             identificationSource, tx);
       }
     }
@@ -155,16 +158,40 @@ public class SbomResultHandler
     }
   }
 
+  private String getPackageUrl(Xpp3Dom component) throws MalformedPackageURLException {
+    String packageUrl = getValueFromTag(component, "purl");
+    String name = getValueFromTag(component, "name");
+    String version = getValueFromTag(component, "version");
+
+    if (StringUtils.isBlank(packageUrl) && StringUtils.isNoneBlank(name, version)) {
+      String group = getValueFromTag(component, "group");
+      String publisher = getValueFromTag(component, "publisher");
+
+      PackageURLBuilder packageURLBuilder = PackageURLBuilder.aPackageURL()
+          .withType(component.getAttribute("type"))
+          .withName(name)
+          .withVersion(version);
+      if (StringUtils.isNoneBlank(group)) {
+        packageURLBuilder.withNamespace(group);
+      }
+      if (StringUtils.isNotBlank(publisher)) {
+        packageURLBuilder.withQualifier("publisher", publisher);
+      }
+      packageUrl = packageURLBuilder.build().toString();
+    }
+    return packageUrl;
+  }
+
   private void processPurlComponent(
       Xpp3Dom component,
-      Xpp3Dom packageUrl,
+      String packageUrl,
       String thirdPartyFileId,
       Bom sbom,
       Map<String, String> hashFileCoordinateIdMap,
       String identificationSource,
       TransactionContext tx)
   {
-    PackageUrlIdentifier packageUrlIdentifier = new PackageUrlIdentifier(packageUrl.getValue());
+    PackageUrlIdentifier packageUrlIdentifier = new PackageUrlIdentifier(packageUrl);
 
     if (StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion())) {
       ComponentIdentifier componentIdentifier = packageUrlIdentifier.toComponentIdentifier();
@@ -172,16 +199,15 @@ public class SbomResultHandler
       sbomComponent.setType(Component.Type.valueOf(component.getAttribute("type").toUpperCase()));
       sbomComponent.setName(packageUrlIdentifier.getName());
       sbomComponent.setVersion(packageUrlIdentifier.getVersion());
-      sbomComponent.setPurl(packageUrl.getValue());
-      sbomComponent.setName(component.getChild("name").getValue());
+      sbomComponent.setPurl(packageUrl);
       String fileCoordinateId = saveComponent(thirdPartyFileId, hashFileCoordinateIdMap, componentIdentifier,
-          packageUrlIdentifier, packageUrl.getValue(), identificationSource, tx);
+          packageUrlIdentifier, packageUrl, identificationSource, tx);
       saveLicenses(component.getChild("licenses"), fileCoordinateId, packageUrl, tx);
       saveVulnerabilities(component.getChild("vulnerabilities"), fileCoordinateId, tx);
       sbom.addComponent(sbomComponent);
     }
     else {
-      log.error("PackageUrl is not valid {}", packageUrl.getValue());
+      log.error("PackageUrl is not valid {}", packageUrl);
     }
   }
 
@@ -270,7 +296,7 @@ public class SbomResultHandler
   private void saveLicenses(
       Xpp3Dom licenses,
       String fileCoordinateId,
-      Xpp3Dom packageUrl,
+      String packageUrl,
       TransactionContext tx)
   {
     Set<String> licenseMap = new HashSet<>();
@@ -286,7 +312,7 @@ public class SbomResultHandler
             }
           }
           else {
-            log.debug("Component with packageUrl {} has license with null/empty ID", packageUrl.getValue());
+            log.debug("Component with packageUrl {} has license with null/empty ID", packageUrl);
           }
         }
       }

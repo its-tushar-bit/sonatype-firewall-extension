@@ -2,10 +2,7 @@
 <bom xmlns="http://cyclonedx.org/schema/bom/1.1" serialNumber="urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79" version="1">
   <components>
     <component type="library">
-      <publisher>Apache</publisher>
       <group>org.apache.tomcat</group>
-      <name>tomcat-catalina</name>
-      <version>9.0.14</version>
       <hashes>
         <hash alg="MD5">3942447fac867ae5cdb3229b658f4d48</hash>
         <hash alg="SHA-1">e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a</hash>
@@ -17,11 +14,6 @@
           <id>Apache-2.0</id>
         </license>
       </licenses>
-    </component>
-    <component type="library" bom-ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9">
-      <group>com.fasterxml.jackson.core</group>
-      <name>jackson-databind</name>
-      <version>2.9.9</version>
     </component>
   </components>
 </bom>

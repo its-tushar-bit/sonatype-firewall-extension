@@ -1383,13 +1383,23 @@ var clmEndpointTemplate = {
         expect(Properties.getHash()).toEqual("abcd");
       }));
 
-      it('Double Version Click', inject(function($rootScope) {
+      it('Double Version Click - IDE', inject(function($rootScope) {
         var version = null;
+        $rootScope.type = 'ide';
         parentScope.$on('viewDetails', function(event, v) {
           version = v;
         });
         Insight.ComponentInformation.calls.mostRecent().args[0].versionDblClick('5.5.23');
+        expect(version).toEqual(null);
+      }));
 
+      it('Double Version Click - Non-IDE', inject(function($rootScope) {
+        var version = null;
+        $rootScope.type = 'rm';
+        parentScope.$on('viewDetails', function(event, v) {
+          version = v;
+        });
+        Insight.ComponentInformation.calls.mostRecent().args[0].versionDblClick('5.5.23');
         expect(version).toEqual('5.5.23');
       }));
     });

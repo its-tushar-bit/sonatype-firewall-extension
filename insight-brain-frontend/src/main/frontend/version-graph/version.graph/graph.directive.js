@@ -45,7 +45,9 @@ export default function graphDirective(Coordinates, Properties) {
               });
             },
             versionDblClick: function(version) {
-              scope.$emit('viewDetails', version);
+              if (scope.$root.type !== 'ide') {
+                scope.$emit('viewDetails', version);
+              }
             }
           });
         }

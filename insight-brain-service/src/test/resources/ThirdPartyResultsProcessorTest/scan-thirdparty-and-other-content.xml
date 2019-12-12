@@ -58,7 +58,12 @@ bcrypt==3.1.7</content>
           &lt;id&gt;Apache-2.0&lt;/id&gt;
         &lt;/license&gt;
       &lt;/licenses&gt;
-      &lt;purl&gt;pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?packaging=jar&lt;/purl&gt;
+      &lt;purl&gt;pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar&lt;/purl&gt;
+    &lt;/component&gt;
+    &lt;component type=&quot;library&quot;&gt;
+      &lt;name&gt;abc&lt;/name&gt;
+      &lt;version&gt;1&lt;/version&gt;
+      &lt;purl&gt;pkg:test/abc@1?qualifier=q&lt;/purl&gt;
     &lt;/component&gt;
   &lt;/components&gt;
 &lt;/bom&gt;</content>

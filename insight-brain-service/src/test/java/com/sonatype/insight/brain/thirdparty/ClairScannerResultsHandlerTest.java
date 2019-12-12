@@ -156,6 +156,57 @@ public class ClairScannerResultsHandlerTest
     vulnerability = buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", null);
     assertThat(clairHandler.getSeverity(vulnerability.getSeverity())).isEqualTo(0f);
   }
+  
+  @Test
+  public void testHandleAndFilterContents_clairFormat_length() throws Exception {
+    assertClairFormatLength("ubuntu-16.04");
+  }
+  
+  @Test
+  public void testHandleAndFilterContents_clairFormat_lengthTruncate() throws Exception {
+    assertClairFormatLength("long_format_third_party_scans_truncation_request_test");
+  }
+
+  private void assertClairFormatLength(String format) throws Exception {
+    ClairScannerResult clairScannerResult = new ClairScannerResult();
+    clairScannerResult.setImage("imageTest");
+
+    Set<ClairScannerVulnerability> vulnerabilities = new HashSet<>();
+
+    ClairScannerVulnerability vulnerability =
+        buildVulnerability("glibc", "2.23-0ubuntu11", format, "test", "CSV-test", "www.test.com", "High");
+    vulnerabilities.add(vulnerability);
+
+    clairScannerResult.setVulnerabilities(vulnerabilities);
+
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(clairScannerResult));
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+
+    ClairScannerResult filteredClairScannerResult = toClairScannerResult(filteredContent);
+    assertClairScannerResult(filteredClairScannerResult);
+
+    assertThat(filteredClairScannerResult.getVulnerabilities()).hasSize(1);
+    filteredClairScannerResult.getVulnerabilities()
+        .forEach(filteredVulnerability -> assertClairScannerVulnerability(filteredVulnerability));
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
+
+    // creates a new mutable list as the one from the DAO is immutable
+    coordinates = new ArrayList<>(coordinates);
+    coordinates.sort(Comparator.comparing(ThirdPartyFileCoordinate::getName));
+
+    try (TransactionContext tx = thirdPartyCoordinateSecurityDAO.createTransactionContext()) {
+      ThirdPartyFileCoordinate coordinate = coordinates.get(0);
+      assertThirdPartyFileCoordinate(vulnerability, thirdPartyFile, coordinate);
+      assertThat(coordinate.getFormat())
+          .isEqualTo(filteredClairScannerResult.getVulnerabilities().iterator().next().getNamespace());
+    }
+  }
 
   private String toJson(ClairScannerResult clairScannerResult) {
     return GSON.toJson(clairScannerResult);
@@ -208,7 +259,8 @@ public class ClairScannerResultsHandlerTest
       ThirdPartyFile thirdPartyFile,
       ThirdPartyFileCoordinate coordinate)
   {
-    assertThat(coordinate.getFormat()).isEqualTo(vulnerability.getNamespace());
+    assertThat(coordinate.getFormat())
+        .isEqualTo(ThirdPartyScanResultUtils.getValidFormat(vulnerability.getNamespace()));
     assertThat(coordinate.getHash()).isNotBlank();
     assertThat(coordinate.getName()).isEqualTo(vulnerability.getFeatureName());
     assertThat(coordinate.getThirdPartyFileId()).isEqualTo(thirdPartyFile.getId());

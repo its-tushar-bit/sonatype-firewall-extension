@@ -28,4 +28,14 @@ public class ThirdPartyScanResultUtilsTest
     assertThat(ThirdPartyScanResultUtils.hash("pypi:django:1.11.1")).isEqualTo("41d44bac96b8c0e4f78c");
     assertThat(ThirdPartyScanResultUtils.hash(null)).isEqualTo("da39a3ee5e6b4b0d3255");
   }
+  
+  @Test
+  public void testTruncateFormat() {
+    assertThat(ThirdPartyScanResultUtils.getValidFormat("abcd")).isEqualTo("abcd");
+    assertThat(ThirdPartyScanResultUtils.getValidFormat("long_format_third_party_scans_truncation_request_test"))
+        .isEqualTo("long_format_third_party_scans_truncation_request_t");
+    assertThat(ThirdPartyScanResultUtils.getValidFormat("abc:d")).isEqualTo("abc-d");
+    assertThat(ThirdPartyScanResultUtils.getValidFormat("long:format_third_party_scans_truncation_request_test"))
+        .isEqualTo("long-format_third_party_scans_truncation_request_t");
+  }
 }

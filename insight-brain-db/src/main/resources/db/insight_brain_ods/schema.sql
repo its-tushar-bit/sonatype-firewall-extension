@@ -364,7 +364,7 @@ CREATE TABLE policy_violation (
 
   -- identification of the component that caused the violation
   hash varchar(20),
-  component_id_format varchar(10),
+  component_id_format varchar(50),
   component_id_coordinates_json varchar(1000),
   filename varchar(1000),
 
@@ -416,7 +416,7 @@ CREATE TABLE application_component (
   stage_type_id varchar(30) NOT NULL,
   time timestamp NOT NULL,
   hash varchar(20) NOT NULL,
-  component_id_format varchar(10),
+  component_id_format varchar(50),
   component_id_coordinates_json varchar(1000), -- the component identifier coordinates stored in json format
   match_state_id varchar(20) NOT NULL,
   identification_source_id varchar(20) NOT NULL,

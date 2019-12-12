@@ -137,7 +137,29 @@ public class SbomResultHandlerTest
           coordinatesLicense.get(0));
     }
   }
+  
+  @Test
+  public void testHandleAndFilterContents_lenghtFormat() throws Exception {
+    String sbomContent = getSbomFile("sbom-long-purl-format.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+    Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
+
+    List<Component> components = filteredSbom.getComponents();
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
+
+    try (TransactionContext tx = thirdPartyCoordinateLicenseDAO.createTransactionContext()) {
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
+      assertThirdPartyFileCoordinate(components.get(0), thirdPartyFile, thirdPartyFileCoordinate);
+    }
+  }
+ 
   @Test
   public void testHandleAndFilterContents_ignoreUnsupportedLicenseExpressions() throws Exception {
     String sbomContent = getSbomFile("sbom-license-expression.xml");
@@ -452,14 +474,16 @@ public class SbomResultHandlerTest
       ThirdPartyFileCoordinate coordinate)
   {
     PackageUrlIdentifier packageUrl = new PackageUrlIdentifier(component.getPurl());
-    ComponentIdentifier ci = packageUrl.toComponentIdentifier();
 
-    assertThat(coordinate.getFormat()).isEqualTo(ci.getFormat());
+    String format = ThirdPartyScanResultUtils.getValidFormat(packageUrl.getFormat());
+    ComponentIdentifier ci = new ComponentIdentifier(format, packageUrl.toComponentIdentifier().getCoordinates());
+
+    assertThat(coordinate.getFormat()).isEqualTo(ThirdPartyScanResultUtils.getValidFormat(ci.getFormat()));
     assertThat(coordinate.getHash()).isNotBlank();
     assertThat(coordinate.getName()).isEqualTo(component.getName());
     assertThat(coordinate.getThirdPartyFileId()).isEqualTo(thirdPartyFile.getId());
     assertThat(coordinate.getVersion()).isEqualTo(component.getVersion());
-    assertThat(coordinate.getPackageUrl()).isEqualTo(component.getPurl());
+    assertThat(coordinate.getPackageUrl()).isEqualTo(PackageUrlIdentifier.fromComponentIdentifier(ci).getPackageUrl());
   }
 
   private void assertThirdPartyCoordinateSecurity(

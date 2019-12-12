@@ -42,4 +42,9 @@ public class ThirdPartyScanResultUtils
     final String sha1 = HashUtils.hash(plainText, HashUtils.SHA1);
     return sha1.substring(0, Math.min(sha1.length(), 20));
   }
+  
+  public static String getValidFormat(String format) {
+    String newFormat = format.substring(0, Math.min(format.length(), 50));
+    return newFormat.replace(':', '-');
+  }
 }

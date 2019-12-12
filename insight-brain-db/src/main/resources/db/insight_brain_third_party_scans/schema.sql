@@ -28,7 +28,7 @@ CREATE TABLE file_coordinate (
   file_coordinate_id VARCHAR(50) NOT NULL,
   hash VARCHAR(20) NOT NULL,
   source VARCHAR(100) NOT NULL,
-  format VARCHAR(10) NOT NULL,
+  format VARCHAR(50) NOT NULL,
   name VARCHAR(300) NOT NULL,
   version VARCHAR(200) NOT NULL,
   third_party_file_id VARCHAR(50) NOT NULL,

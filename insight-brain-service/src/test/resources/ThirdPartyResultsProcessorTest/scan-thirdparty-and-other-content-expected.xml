@@ -46,7 +46,13 @@ bcrypt==3.1.7</content>
             <name>tomcat-catalina</name>
             <version>9.0.14</version>
             <scope>required</scope>
-            <purl>pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?packaging=jar</purl>
+            <purl>pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar</purl>
+        </component>
+        <component type="library">
+            <name>abc</name>
+            <version>1</version>
+            <scope>required</scope>
+            <purl>pkg:test/abc@1?qualifier=q</purl>
         </component>
     </components>
 </bom>

@@ -194,14 +194,16 @@ public class SbomResultHandler
     PackageUrlIdentifier packageUrlIdentifier = new PackageUrlIdentifier(packageUrl);
 
     if (StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion())) {
-      ComponentIdentifier componentIdentifier = packageUrlIdentifier.toComponentIdentifier();
+      ComponentIdentifier componentIdentifier = resolveComponentIdentifier(packageUrlIdentifier);
+
+      packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
       Component sbomComponent = new Component();
       sbomComponent.setType(Component.Type.valueOf(component.getAttribute("type").toUpperCase()));
       sbomComponent.setName(packageUrlIdentifier.getName());
       sbomComponent.setVersion(packageUrlIdentifier.getVersion());
       sbomComponent.setPurl(packageUrl);
       String fileCoordinateId = saveComponent(thirdPartyFileId, hashFileCoordinateIdMap, componentIdentifier,
-          packageUrlIdentifier, packageUrl, identificationSource, tx);
+          packageUrlIdentifier, identificationSource, tx);
       saveLicenses(component.getChild("licenses"), fileCoordinateId, packageUrl, tx);
       saveVulnerabilities(component.getChild("vulnerabilities"), fileCoordinateId, tx);
       sbom.addComponent(sbomComponent);
@@ -210,24 +212,27 @@ public class SbomResultHandler
       log.error("PackageUrl is not valid {}", packageUrl);
     }
   }
+  
+  private ComponentIdentifier resolveComponentIdentifier(PackageUrlIdentifier packageUrlIdentifier) {
+    String format = ThirdPartyScanResultUtils.getValidFormat(packageUrlIdentifier.getFormat());
+    return new ComponentIdentifier(format, packageUrlIdentifier.toComponentIdentifier().getCoordinates());
+  }
 
   private String saveComponent(
       String thirdPartyFileId,
       Map<String, String> hashFileCoordinateIdMap,
       ComponentIdentifier componentIdentifier,
       PackageUrlIdentifier packageUrlIdentifier,
-      String purl,
       String identificationSource,
       TransactionContext tx)
   {
-    String fakeHash =
-        ThirdPartyScanResultUtils.hash(componentIdentifier.getFormat() + ":"
-            + StringUtils.join(componentIdentifier.getCoordinates().values(), ":"));
+    String fakeHash = ThirdPartyScanResultUtils.hash(
+        componentIdentifier.getFormat() + ":" + StringUtils.join(componentIdentifier.getCoordinates().values(), ":"));
     if (!hashFileCoordinateIdMap.containsKey(fakeHash)) {
-      ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(fakeHash, identificationSource,
-          componentIdentifier.getFormat(), packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion(),
-          thirdPartyFileId);
-      fileCoordinate.setPackageUrl(purl);
+      ThirdPartyFileCoordinate fileCoordinate =
+          new ThirdPartyFileCoordinate(fakeHash, identificationSource, componentIdentifier.getFormat(),
+              packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion(), thirdPartyFileId);
+      fileCoordinate.setPackageUrl(packageUrlIdentifier.getPackageUrl());
       thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
       hashFileCoordinateIdMap.put(fakeHash, fileCoordinate.getId());
       return fileCoordinate.getId();

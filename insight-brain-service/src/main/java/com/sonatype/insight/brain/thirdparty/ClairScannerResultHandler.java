@@ -48,7 +48,6 @@ public class ClairScannerResultHandler
           Map<String, String> hashFileCoordinateIdMap = new HashMap<>();
 
           Set<ClairScannerVulnerability> filteredVulnerabilities = clairScannerResult.getVulnerabilities().stream()
-              .map(this::processNamespace)
               .map(vulnerability -> saveVulnerability(vulnerability, thirdPartyFile, hashFileCoordinateIdMap, tx))
               .map(this::filterIdentities).collect(Collectors.toSet());
 
@@ -69,14 +68,17 @@ public class ClairScannerResultHandler
       Map<String, String> hashFileCoordinateIdMap,
       TransactionContext tx)
   {
-    String fakeHash = ThirdPartyScanResultUtils.hash(
-        vulnerability.getNamespace() + ":" + vulnerability.getFeatureName() + ":" + vulnerability.getFeatureVersion());
+    String format = ThirdPartyScanResultUtils.getValidFormat(vulnerability.getNamespace());
+    vulnerability.setNamespace(format);
+
+    String fakeHash = ThirdPartyScanResultUtils
+        .hash(format + ":" + vulnerability.getFeatureName() + ":" + vulnerability.getFeatureVersion());
 
     String fileCoordinateId = hashFileCoordinateIdMap.get(fakeHash);
 
     if (fileCoordinateId == null) {
       ThirdPartyFileCoordinate fileCoordinate =
-          new ThirdPartyFileCoordinate(fakeHash, IdentificationSource.CLAIR.getId(), vulnerability.getNamespace(),
+          new ThirdPartyFileCoordinate(fakeHash, IdentificationSource.CLAIR.getId(), format,
               vulnerability.getFeatureName(), vulnerability.getFeatureVersion(), thirdPartyFile.getId());
       thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
 
@@ -116,11 +118,6 @@ public class ClairScannerResultHandler
       default:
         return 0f;
     }
-  }
-
-  private ClairScannerVulnerability processNamespace(ClairScannerVulnerability vulnerability) {
-    vulnerability.setNamespace(vulnerability.getNamespace().replace(':', '-'));
-    return vulnerability;
   }
 
   private ClairScannerVulnerability filterIdentities(ClairScannerVulnerability vulnerability) {

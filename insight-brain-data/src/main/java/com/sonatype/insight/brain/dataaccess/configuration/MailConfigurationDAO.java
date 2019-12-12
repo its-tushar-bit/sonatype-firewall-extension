@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 public class MailConfigurationDAO
     extends AbstractOperationalSqlDAO<MailConfiguration>
 {
-  static final String SINGLETON_ENTITY_ID = "mail-configuration";
+  public static final String SINGLETON_ENTITY_ID = "mail-configuration";
 
   /**
    * @return The mail server configuration or {@code null} if none.

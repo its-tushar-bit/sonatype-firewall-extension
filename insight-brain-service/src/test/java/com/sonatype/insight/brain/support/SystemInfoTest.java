@@ -30,7 +30,9 @@ import java.util.TreeSet;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
@@ -546,6 +548,36 @@ public class SystemInfoTest
     assertThat(singleLogoutServiceProps.get("signResponse")).isEqualTo(true);
     assertThat(singleLogoutServiceProps.get("validateRequestSignature")).isEqualTo(true);
     assertThat(singleLogoutServiceProps.get("validateResponseSignature")).isEqualTo(true);
+  }
+
+  @Test
+  public void testGetMailConfig_NotConfigured() {
+    assertThat(systemInfo.getMailConfig()).isEqualTo("null");
+  }
+
+  @Test
+  public void testGetMailConfig_Configured() throws Exception {
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("testHostname");
+    mailConfiguration.setPort(4567);
+    mailConfiguration.setUsername("testUsername");
+    mailConfiguration.setPassword("testPassword");
+    mailConfiguration.setSslEnabled(true);
+    mailConfiguration.setStartTlsEnabled(true);
+    mailConfiguration.setSystemEmail("test@example.com");
+    new MailConfigurationDAO().set(mailConfiguration);
+
+    mailConfiguration = new ObjectMapper().readValue(systemInfo.getMailConfig(), MailConfiguration.class);
+
+    assertThat(mailConfiguration).isNotNull();
+    assertThat(mailConfiguration.getId()).isEqualTo(MailConfigurationDAO.SINGLETON_ENTITY_ID);
+    assertThat(mailConfiguration.getHostname()).isEqualTo("testHostname");
+    assertThat(mailConfiguration.getPort()).isEqualTo(4567);
+    assertThat(mailConfiguration.getUsername()).isEqualTo("testUsername");
+    assertThat(mailConfiguration.getPassword()).isEqualTo(SystemInfo.MASK);
+    assertThat(mailConfiguration.isSslEnabled()).isTrue();
+    assertThat(mailConfiguration.isStartTlsEnabled()).isTrue();
+    assertThat(mailConfiguration.getSystemEmail()).isEqualTo("test@example.com");
   }
 
   @Test

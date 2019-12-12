@@ -31,6 +31,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
@@ -83,6 +84,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
@@ -271,6 +273,10 @@ public class TemporaryEntity
 
   private final UserTokenDAO userTokenDAO = new UserTokenDAO();
 
+  private MailConfigurationDAO mailConfigurationDAO = new MailConfigurationDAO();
+
+  private MailConfiguration savedMailConfiguration;
+
   private Collection<MigrationTracker> migrationTrackers;
 
   private Collection<Application> apps;
@@ -363,6 +369,7 @@ public class TemporaryEntity
     thirdPartyFileConfigurations = new ArrayList<>();
     userTokens = new ArrayList<>();
     componentLabels = new ArrayList<>();
+    savedMailConfiguration = mailConfigurationDAO.get();
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
@@ -419,6 +426,12 @@ public class TemporaryEntity
 
     delete(userTokens, userTokenDAO);
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
+    if (savedMailConfiguration == null) {
+      mailConfigurationDAO.delete();
+    }
+    else {
+      mailConfigurationDAO.set(savedMailConfiguration);
+    }
   }
 
   private <T extends HasStringId> void delete(Collection<T> entities, AbstractDAO<T> dao) {

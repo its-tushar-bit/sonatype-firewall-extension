@@ -38,7 +38,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
@@ -426,6 +428,16 @@ class SystemInfo
       log.warn("Failed to serialize samlDeployment.");
     }
     return JsonUtils.format(samlInfo);
+  }
+
+  String getMailConfig() {
+    MailConfiguration mailConfiguration = new MailConfigurationDAO().get();
+    if (mailConfiguration == null) {
+      return "null";
+    }
+
+    mailConfiguration.setPassword(MASK);
+    return JsonUtils.format(mailConfiguration);
   }
 
   Entry<String, SortedMap<String, Object>> getClientInfo(final String requestUrl) {

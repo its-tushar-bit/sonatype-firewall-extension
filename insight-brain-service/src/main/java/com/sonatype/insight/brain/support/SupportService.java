@@ -277,6 +277,8 @@ class SupportService
         writeTextToFile(systemInfo.getSamlInfo(), new File(workDir, "saml.json")), "saml",
         SupportFileType.CONFIG,
         true);
+    addFileIfExists(filesToZip, writeTextToFile(systemInfo.getMailConfig(), new File(workDir, "mail.json")), "mail",
+        SupportFileType.CONFIG, true);
 
     addFileIfExists(filesToZip,
         writeTextToFile(DbDiagnostics.getDBFileInfo(), new File(workDir, "dbFileInfo.txt")),

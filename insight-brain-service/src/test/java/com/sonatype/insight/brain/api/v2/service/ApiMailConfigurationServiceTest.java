@@ -1,0 +1,138 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2.service;
+
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.api.v2.dto.ApiMailConfigurationDTO;
+import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
+
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
+public class ApiMailConfigurationServiceTest
+    extends AbstractComponentTest
+{
+  @Inject
+  private ApiMailConfigurationService mailConfigurationService;
+
+  @Inject
+  private MailConfigurationDAO mailConfigurationDAO;
+
+  @Test
+  public void testGetConfiguration() {
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("servtest");
+    mailConfiguration.setPort(58285);
+    mailConfiguration.setUsername("smtpuser");
+    mailConfiguration.setPassword("smtppass");
+    mailConfiguration.setSslEnabled(true);
+    mailConfiguration.setSystemEmail("nxiq@test");
+    mailConfigurationDAO.set(mailConfiguration);
+
+    ApiMailConfigurationDTO configurationDTO = mailConfigurationService.getConfiguration();
+    assertThat(configurationDTO.hostname).isEqualTo(mailConfiguration.getHostname());
+    assertThat(configurationDTO.port).isEqualTo(mailConfiguration.getPort());
+    assertThat(configurationDTO.username).isEqualTo(mailConfiguration.getUsername());
+    assertThat(configurationDTO.password).isEqualTo(ApiMailConfigurationService.FAKE_PASSWORD);
+    assertThat(configurationDTO.sslEnabled).isEqualTo(mailConfiguration.isSslEnabled());
+    assertThat(configurationDTO.startTlsEnabled).isEqualTo(mailConfiguration.isStartTlsEnabled());
+    assertThat(configurationDTO.systemEmail).isEqualTo(mailConfiguration.getSystemEmail());
+  }
+
+  @Test
+  public void testGetConfiguration_NoConfiguration() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      mailConfigurationService.getConfiguration();
+    }).withMessageContaining("Mail server not configured");
+  }
+
+  @Test
+  public void testSetConfiguration() {
+    mailConfigurationDAO.delete();
+    ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
+    configurationDTO.hostname = "servtest";
+    configurationDTO.port = 58285;
+    configurationDTO.username = "smtpuser";
+    configurationDTO.password = "smtppass";
+    configurationDTO.sslEnabled = true;
+    configurationDTO.systemEmail = "nxiq@test";
+
+    mailConfigurationService.setConfiguration(configurationDTO);
+
+    MailConfiguration mailConfiguration = mailConfigurationDAO.get();
+    assertThat(mailConfiguration.getHostname()).isEqualTo(configurationDTO.hostname);
+    assertThat(mailConfiguration.getPort()).isEqualTo(configurationDTO.port);
+    assertThat(mailConfiguration.getUsername()).isEqualTo(configurationDTO.username);
+    assertThat(mailConfiguration.getPassword()).isEqualTo(configurationDTO.password);
+    assertThat(mailConfiguration.isSslEnabled()).isEqualTo(configurationDTO.sslEnabled);
+    assertThat(mailConfiguration.isStartTlsEnabled()).isEqualTo(configurationDTO.startTlsEnabled);
+    assertThat(mailConfiguration.getSystemEmail()).isEqualTo(configurationDTO.systemEmail);
+  }
+
+  @Test
+  public void testSetConfiguration_RetainUnchangedPassword() {
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("test");
+    mailConfiguration.setPort(1);
+    mailConfiguration.setUsername("testuser");
+    mailConfiguration.setPassword("smtppass");
+    mailConfiguration.setSystemEmail("void@test");
+    mailConfigurationDAO.set(mailConfiguration);
+
+    ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
+    configurationDTO.hostname = "servtest";
+    configurationDTO.port = 58285;
+    configurationDTO.username = "smtpuser";
+    configurationDTO.password = ApiMailConfigurationService.FAKE_PASSWORD;
+    configurationDTO.sslEnabled = true;
+    configurationDTO.systemEmail = "nxiq@test";
+
+    mailConfigurationService.setConfiguration(configurationDTO);
+
+    mailConfiguration = mailConfigurationDAO.get();
+    assertThat(mailConfiguration.getHostname()).isEqualTo(configurationDTO.hostname);
+    assertThat(mailConfiguration.getPort()).isEqualTo(configurationDTO.port);
+    assertThat(mailConfiguration.getUsername()).isEqualTo(configurationDTO.username);
+    assertThat(mailConfiguration.getPassword()).isEqualTo("smtppass");
+    assertThat(mailConfiguration.isSslEnabled()).isEqualTo(configurationDTO.sslEnabled);
+    assertThat(mailConfiguration.isStartTlsEnabled()).isEqualTo(configurationDTO.startTlsEnabled);
+    assertThat(mailConfiguration.getSystemEmail()).isEqualTo(configurationDTO.systemEmail);
+  }
+
+  @Test
+  public void testSetConfiguration_NoRequestDTO() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      mailConfigurationService.setConfiguration(null);
+    }).withMessageContaining("No mail server configuration was provided");
+  }
+
+  @Test
+  public void testDeleteConfiguration() {
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("servtest");
+    mailConfiguration.setPort(58285);
+    mailConfiguration.setSystemEmail("nxiq@test");
+    mailConfigurationDAO.set(mailConfiguration);
+
+    mailConfigurationService.deleteConfiguration();
+
+    assertThat(mailConfigurationDAO.get()).isNull();
+  }
+
+  @Test
+  public void testDeleteConfiguration_NoConfiguration() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      mailConfigurationService.deleteConfiguration();
+    }).withMessageContaining("Mail server not configured");
+  }
+}

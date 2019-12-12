@@ -69,6 +69,8 @@ public class PublicApiPaths
 
   public static final String ROLE_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "roles";
 
+  public static final String MAIL_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/mail";
+
   public static final String SAML_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/saml";
 
   public static final String USER_TOKEN_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "userTokens";

@@ -367,8 +367,8 @@ public class SbomResultHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_sbom_coords_only_group_no_purl() throws Exception {
-    String sbomContent = getSbomFile("scan-with-sbom-coords-only-group-no-purl.xml");
+  public void testHandleAndFilterContents_sbom_no_name_and_version_no_purl() throws Exception {
+    String sbomContent = getSbomFile("scan-with-sbom-no-name-and-version-no-purl.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
@@ -377,8 +377,8 @@ public class SbomResultHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_sbom_no_coords_no_purl() throws Exception {
-    String sbomContent = getSbomFile("scan-with-sbom-no-coords-no-purl.xml");
+  public void testHandleAndFilterContents_sbom_no_name_no_purl() throws Exception {
+    String sbomContent = getSbomFile("scan-with-sbom-no-name-no-purl.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
@@ -387,17 +387,31 @@ public class SbomResultHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_invalidPurl() throws Exception {
-    String sbomContent = getSbomFile("sbom-invalid-purl.xml");
+  public void testHandleAndFilterContents_invalidPurl_invalidCoords() throws Exception {
+    String sbomContent = getSbomFile("sbom-invalid-purl-invalid-coords.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
     assertThat(filteredContent).isNotNull();
-    assertLogOutput("Error processing SBOM component, invalid purl");
+    assertWarnLogOutput("Fallback to coordinates due to invalid purl: pkg:pypi/@1.2.3");
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).hasSize(0);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_invalidPurl_validCoords() throws Exception {
+    String sbomContent = getSbomFile("sbom-invalid-purl-valid-coords.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+    assertWarnLogOutput("Fallback to coordinates due to invalid purl: pkg:pypi/@1.2.3");
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
   }
 
   @Test
@@ -586,5 +600,9 @@ public class SbomResultHandlerTest
 
   private void assertLogOutput(final String message) {
     assertThat(logOutput.getErrorMessages(loggerName)).containsOnly(message);
+  }
+
+  private void assertWarnLogOutput(final String message) {
+    assertThat(logOutput.getWarnMessages(loggerName)).containsOnly(message);
   }
 }

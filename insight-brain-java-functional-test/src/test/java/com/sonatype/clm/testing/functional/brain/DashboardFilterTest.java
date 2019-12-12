@@ -829,7 +829,7 @@ public class DashboardFilterTest
   {
     ManageFilters manage = DashboardFilters.manage();
     manage.openMenuButton().click();
-    manage.saveFilter().shouldNotHave(DISABLED).click();
+    manage.saveFilter().shouldNotHave(disabled).click();
     SaveFilterDialog saveDialog = manage.saveFilterDialog();
     saveDialog.shouldBe(visible);
     // Avoid superfluous validations
@@ -839,10 +839,10 @@ public class DashboardFilterTest
     saveDialog.header().shouldHave(text("Save Filter"));
 
     if (existingFilterName != null) {
-      saveDialog.saveButton().shouldNotBe(DISABLED).shouldHave(text("Save"));
+      saveDialog.saveButton().shouldNotBe(disabled).shouldHave(text("Save"));
       saveDialog.overwriteRadio().shouldBe(selected);
       saveDialog.saveAsRadio().shouldNotBe(selected);
-      saveDialog.overwriteRadio().label().shouldHave(text("save (overwrite " + existingFilterName + ")"));
+      saveDialog.overwriteRadio().shouldHave(text("save (overwrite " + existingFilterName + ")"));
       saveDialog.nameInput().shouldBe(hidden);
 
       saveDialog.saveAsRadio().click();
@@ -851,13 +851,13 @@ public class DashboardFilterTest
       saveDialog.overwriteRadio().shouldBe(disabled);
     }
 
-    saveDialog.saveButton().shouldBe(DISABLED).shouldHave(text("Save"));
+    saveDialog.saveButton().shouldBe(disabled).shouldHave(text("Save"));
     saveDialog.overwriteRadio().shouldNotBe(selected);
     saveDialog.saveAsRadio().shouldBe(selected);
     saveDialog.nameInput().shouldBe(Condition.empty).shouldBe(visible);
 
     saveDialog.nameInput().val(filterName);
-    saveDialog.saveButton().shouldNotHave(DISABLED).click();
+    saveDialog.saveButton().shouldNotHave(disabled).click();
 
     if (existingExpected) {
       saveDialog.header().shouldHave(text("Name In Use"));

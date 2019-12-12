@@ -39,10 +39,6 @@ body {
   white-space: normal;
   width: $iq-sidebar-width;
   z-index: $iq-sidebar-zindex;
-
-  // Hack to prevent rendering issues in Chrome. This will create a new layer with its own backing surface, preventing
-  // the background and text from disappearing. Witnessed on Chrome 43.0.2357.130 (64-bit) on a MBP laptop screen.
-  -webkit-transform: translate3d(0, 0, 0);
 }
 
 .iq-body-container {

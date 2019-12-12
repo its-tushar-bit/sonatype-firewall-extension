@@ -31,6 +31,16 @@ describe('dashboardFilterReducer', function() {
     });
   });
 
+  describe('SET_DISPLAY_SAVE_FILTER_MODAL action', function() {
+    it('sets the showSaveFilterModal value to the payload', function() {
+      var state = Object.freeze({ showSaveFilterModal: true, other: otherObject });
+      var action = {type: 'SET_DISPLAY_SAVE_FILTER_MODAL', payload: false};
+      var newState = reduce(state, action);
+      expect(newState.showSaveFilterModal).toBe(false);
+      expect(newState.other).toBe(otherObject);
+    });
+  });
+
   describe('LOAD_FILTER_REQUESTED action', function() {
     it('sets loading to true and resets filter', function() {
       var state = Object.freeze({

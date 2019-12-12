@@ -26,13 +26,15 @@ function mapStateToThis({ manageFilters, dashboardFilter }) {
   return {...manageFiltersProps, ...dashboardFilterProps};
 }
 
-function ManageFilterMenuController($ngRedux, SaveFilterModal, DeleteFiltersModal, manageFiltersActions,
-                                    dashboardFilterActions) {
+function ManageFilterMenuController($ngRedux, DeleteFiltersModal, manageFiltersActions, dashboardFilterActions) {
   const vm = this;
 
   Object.assign(vm, {
     $onInit() {
-      const actions = { ...manageFiltersActions, ...(pick(['applySavedFilter'], dashboardFilterActions)) };
+      const actions = {
+        ...manageFiltersActions,
+        ...pick(['applySavedFilter', 'setDisplaySaveFilterModal'], dashboardFilterActions)
+      };
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
     },
 
@@ -45,8 +47,7 @@ function ManageFilterMenuController($ngRedux, SaveFilterModal, DeleteFiltersModa
         $event.stopPropagation();
         return;
       }
-
-      SaveFilterModal.open().finally(vm.resetSaveFilterStatus);
+      vm.setDisplaySaveFilterModal(true);
     },
 
     openDeleteFiltersModal($event) {
@@ -69,5 +70,5 @@ function ManageFilterMenuController($ngRedux, SaveFilterModal, DeleteFiltersModa
 }
 
 ManageFilterMenuController.$inject = [
-  '$ngRedux', 'saveFilterModal', 'deleteFiltersModal', 'manageFiltersActions', 'dashboardFilterActions'
+  '$ngRedux', 'deleteFiltersModal', 'manageFiltersActions', 'dashboardFilterActions'
 ];

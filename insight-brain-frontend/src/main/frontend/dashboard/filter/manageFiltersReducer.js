@@ -15,11 +15,15 @@ import {
   DELETE_SPECIFIED_FILTERS_REQUESTED,
   DELETE_SPECIFIED_FILTERS_FULFILLED,
   DELETE_SPECIFIED_FILTERS_FAILED,
-  RESET_SAVE_FILTER_STATUS,
   RESET_DELETE_FILTERS_STATUS
 } from './manageFiltersActions';
 
-import { APPLY_FILTER_FULFILLED, FETCH_CURRENT_FILTER_FULFILLED, CLEAR_FILTER } from './dashboardFilterActions';
+import {
+  APPLY_FILTER_FULFILLED,
+  FETCH_CURRENT_FILTER_FULFILLED,
+  CLEAR_FILTER,
+  SET_DISPLAY_SAVE_FILTER_MODAL
+} from './dashboardFilterActions';
 
 const initState = {
   savedFilters: null,
@@ -55,7 +59,7 @@ const reducerActionMap = {
   [DELETE_SPECIFIED_FILTERS_REQUESTED]: propSetConst('deleteFiltersSaving', true),
   [DELETE_SPECIFIED_FILTERS_FULFILLED]: deleteSpecifiedFiltersFulfilled,
   [DELETE_SPECIFIED_FILTERS_FAILED]: deleteFiltersFailed,
-  [RESET_SAVE_FILTER_STATUS]: resetProps(['saveFilterSaving', 'saveFilterError', 'saveFilterSuccess']),
+  [SET_DISPLAY_SAVE_FILTER_MODAL]: resetProps(['saveFilterSaving', 'saveFilterError', 'saveFilterSuccess']),
   [RESET_DELETE_FILTERS_STATUS]: resetProps(['deleteFiltersSaving', 'deleteFiltersError', 'deleteFiltersSuccess']),
   [CLEAR_FILTER]: resetProps(['appliedFilterName', 'showDirtyAsterisk'])
 };

@@ -6,7 +6,6 @@ describe('manageFilterMenu', function() {
   var $componentController,
       $httpBackend,
       CLMLocations,
-      saveFilterModal,
       deleteFiltersModal,
       vm,
       unsubscribeSpy,
@@ -16,12 +15,11 @@ describe('manageFilterMenu', function() {
     unsubscribeSpy = SpecUtil.mockNgRedux($provide);
   }));
 
-  beforeEach(inject(function($rootScope, _$httpBackend_, _$http_, _CLMLocations_, _saveFilterModal_,
-                             _deleteFiltersModal_, _$componentController_) {
+  beforeEach(inject(function($rootScope, _$httpBackend_, _$http_, _CLMLocations_, _deleteFiltersModal_,
+                             _$componentController_) {
 
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
-    saveFilterModal = _saveFilterModal_;
     deleteFiltersModal = _deleteFiltersModal_;
     $componentController = _$componentController_;
     scope = $rootScope.$new();
@@ -29,7 +27,6 @@ describe('manageFilterMenu', function() {
     vm = $componentController('manageFilterMenu', {
       $http: _$http_,
       CLMLocations: CLMLocations,
-      saveFilterModal: saveFilterModal,
       deleteFiltersModal: deleteFiltersModal,
       $scope: scope
     });
@@ -55,19 +52,6 @@ describe('manageFilterMenu', function() {
   });
 
   describe('openSaveFilterModal', function() {
-    var SaveFilterModal,
-        modalDeferred,
-        modalPromise;
-
-    beforeEach(inject(function($q, _saveFilterModal_) {
-      SaveFilterModal = _saveFilterModal_;
-
-      modalDeferred = $q.defer();
-      modalPromise = modalDeferred.promise;
-
-      spyOn(SaveFilterModal, 'open').and.returnValue(modalPromise);
-    }));
-
     it('calls stopPropagation on the event and does nothing else if filtersAreDirty', function() {
       var evt = jasmine.createSpyObj('$event', ['stopPropagation']);
 
@@ -76,10 +60,10 @@ describe('manageFilterMenu', function() {
       vm.openSaveFilterModal(evt);
 
       expect(evt.stopPropagation).toHaveBeenCalled();
-      expect(SaveFilterModal.open).not.toHaveBeenCalled();
+      expect(vm.setDisplaySaveFilterModal).not.toHaveBeenCalled();
     });
 
-    it('opens the save filter modal if filtersAreDirty is false', function() {
+    it('calls setDisplaySaveFilterModal if filtersAreDirty is false', function() {
       var evt = jasmine.createSpyObj('$event', ['stopPropagation']);
 
       vm.filtersAreDirty = false;
@@ -87,31 +71,7 @@ describe('manageFilterMenu', function() {
       vm.openSaveFilterModal(evt);
 
       expect(evt.stopPropagation).not.toHaveBeenCalled();
-      expect(SaveFilterModal.open).toHaveBeenCalled();
-    });
-
-    it('calls the resetSaveFilterStatus action when the modal promise resolves', function() {
-      vm.filtersAreDirty = false;
-      vm.resetSaveFilterStatus = jasmine.createSpy('resetSaveFilterStatus');
-
-      vm.openSaveFilterModal();
-
-      modalDeferred.resolve('New Filter');
-      scope.$digest();
-
-      expect(vm.resetSaveFilterStatus).toHaveBeenCalled();
-    });
-
-    it('calls the resetSaveFilterStatus action when the modal promise is rejected', function() {
-      vm.filtersAreDirty = false;
-      vm.resetSaveFilterStatus = jasmine.createSpy('resetSaveFilterStatus');
-
-      vm.openSaveFilterModal();
-
-      modalDeferred.reject();
-      scope.$digest();
-
-      expect(vm.resetSaveFilterStatus).toHaveBeenCalled();
+      expect(vm.setDisplaySaveFilterModal).toHaveBeenCalled();
     });
   });
 

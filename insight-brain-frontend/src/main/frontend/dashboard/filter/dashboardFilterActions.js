@@ -20,6 +20,7 @@ export const TOGGLE_APPS_AND_ORGS = 'TOGGLE_APPS_AND_ORGS';
 export const SELECT_AGE = 'SELECT_AGE';
 export const CLEAR_FILTER = 'CLEAR_FILTER';
 export const REVERT_FILTER = 'REVERT_FILTER';
+export const SET_DISPLAY_SAVE_FILTER_MODAL = 'SET_DISPLAY_SAVE_FILTER_MODAL';
 
 export default function dashboardFilterActions(dashboardResultsActions, manageFiltersActions, $http, CLMLocations, $q,
                                                ApplicationStore, StageTypeStore, OrganizationStore) {
@@ -150,6 +151,8 @@ export default function dashboardFilterActions(dashboardResultsActions, manageFi
 
   const selectAge = payloadParamActionCreator(SELECT_AGE);
 
+  const setDisplaySaveFilterModal = payloadParamActionCreator(SET_DISPLAY_SAVE_FILTER_MODAL);
+
   function toggleAppsAndOrgs(selectedOrganizations, selectedApplications) {
     return {
       type: TOGGLE_APPS_AND_ORGS,
@@ -164,6 +167,7 @@ export default function dashboardFilterActions(dashboardResultsActions, manageFi
     clear,
     revert,
     selectAge,
+    setDisplaySaveFilterModal,
     toggleAppsAndOrgs,
     toggleFilter,
     loadFilter,

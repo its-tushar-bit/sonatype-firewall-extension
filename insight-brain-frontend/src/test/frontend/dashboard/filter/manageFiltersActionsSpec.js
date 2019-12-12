@@ -344,21 +344,6 @@ describe('manageFiltersActions', function() {
     );
   });
 
-  describe('resetSaveFilterStatus', function() {
-    it('immediately sends a RESET_SAVE_FILTER_STATUS action with no payload', function() {
-      var payload = {},
-          mockReduxStore = SpecUtil.mockReduxStore(initialState);
-
-      mockReduxStore.dispatch(manageFiltersActions.resetSaveFilterStatus(payload));
-
-      var actions = mockReduxStore.getActions();
-
-      expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe('RESET_SAVE_FILTER_STATUS');
-      expect(actions[0].payload).toBeUndefined();
-    });
-  });
-
   describe('resetDeleteFiltersStatus', function() {
     it('immediately sends a RESET_DELETE_FILTERS_STATUS action with no payload', function() {
       var payload = {},

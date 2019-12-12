@@ -11,7 +11,7 @@ export default function withStoreProvider(WrappedComponent) {
   function StoreProvider({ $ngRedux, ...props }) {
     return (
       <Provider store={$ngRedux}>
-        <WrappedComponent {...props} />;
+        <WrappedComponent {...props} />
       </Provider>
     );
   }

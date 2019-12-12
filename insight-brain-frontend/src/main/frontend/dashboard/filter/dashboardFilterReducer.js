@@ -25,7 +25,8 @@ import {
   TOGGLE_APPS_AND_ORGS,
   SELECT_AGE,
   CLEAR_FILTER,
-  REVERT_FILTER
+  REVERT_FILTER,
+  SET_DISPLAY_SAVE_FILTER_MODAL
 } from './dashboardFilterActions';
 
 import {UI_ROUTER_ON_FINISH} from '../../reduxUiRouter/routerActions';
@@ -50,6 +51,7 @@ const initState = Object.freeze({
   needsAcknowledgement: false,
   isViolationsTab: false,
   showAgeFilter: false,
+  showSaveFilterModal: false,
 
   // available filter items
   organizations: null,
@@ -139,6 +141,9 @@ export default function dashboardFilterReducer(state = initState, {type, payload
           revertFilter,
           resetProps(['filtersAreDirty', 'loadErrorFilterName'])
       )(state);
+
+    case SET_DISPLAY_SAVE_FILTER_MODAL:
+      return {...state, showSaveFilterModal: payload};
 
     default:
       return state;

@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { react2angular } from 'react2angular';
+
 import CLMLocationModule from '../../util/CLMLocation';
 
 import dashboardFilter from './dashboardFilter/dashboardFilter';
@@ -12,8 +14,8 @@ import manageFiltersReducer from './manageFiltersReducer';
 
 import deleteFiltersModalController from './manageFilterMenu/deleteFiltersModal/deleteFiltersModalController';
 import deleteFiltersModal from './manageFilterMenu/deleteFiltersModal/deleteFiltersModal';
-import saveFilterModalController from './manageFilterMenu/saveFilterModal/saveFilterModalController';
-import saveFilterModal from './manageFilterMenu/saveFilterModal/saveFilterModal';
+import withStoreProvider from '../../reactAdapter/StoreProvider';
+import SaveFilterModalContainer from './manageFilterMenu/saveFilterModal/SaveFilterModalContainer';
 import manageFilterMenu from './manageFilterMenu/manageFilterMenu';
 import utilityModule from '../../utility/utility.module';
 import storesModule from '../../util/Stores';
@@ -27,7 +29,7 @@ import componentsModule from '../../components/module';
 var module = angular.module('dashboardFilter',
     [
       CLMLocationModule.name, storesModule.name, utilityModule.name, dashboardUtilsModule.name,
-      dashboardServicesModule.name, dashboardResultsActionsModule.name, componentsModule.name
+      dashboardServicesModule.name, dashboardResultsActionsModule.name, componentsModule.name, 'ngRedux'
     ])
     .service('dashboardFilterService', dashboardFilterService)
     .component('dashboardFilter', dashboardFilter)
@@ -35,8 +37,8 @@ var module = angular.module('dashboardFilter',
     // manage filter modal
     .controller('deleteFiltersModalController', deleteFiltersModalController)
     .service('deleteFiltersModal', deleteFiltersModal)
-    .controller('saveFilterModalController', saveFilterModalController)
-    .service('saveFilterModal', saveFilterModal)
+    .component('saveFilterModal', react2angular(withStoreProvider(SaveFilterModalContainer), [],
+        ['$ngRedux', 'manageFiltersActions', 'dashboardFilterActions', 'Messages']))
     .component('manageFilterMenu', manageFilterMenu)
     .factory('dashboardFilterActions', dashboardFilterActions)
     .factory('manageFiltersActions', manageFiltersActions)

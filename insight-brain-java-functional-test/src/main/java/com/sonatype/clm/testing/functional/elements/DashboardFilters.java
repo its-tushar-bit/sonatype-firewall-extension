@@ -147,31 +147,31 @@ public class DashboardFilters
     }
 
     public SelenideElement header() {
-      return child(".iq-modal-header");
+      return child(".nx-modal-header");
     }
 
     public SelenideElement saveButton() {
-      return child(".iq-modal-footer", ".iq-btn--primary");
+      return child(".nx-modal-footer", ".nx-btn--primary");
     }
 
     public SelenideElement cancelButton() {
-      return child("#dismiss-save-filter-modal");
+      return child("#save-filter-modal-cancel-button");
     }
 
     public SelenideElement nameInput() {
-      return $("#filter-name-input");
+      return child("#filter-name-section", "input");
     }
 
     public SelenideElement confirmation() {
       return $("#save-filter-confirmation");
     }
 
-    public IqRadio saveAsRadio() {
-      return new IqRadio($("#dashboard-filter-save-as"));
+    public NxRadio saveAsRadio() {
+      return new NxRadio($("#dashboard-filter-save-as"));
     }
 
-    public IqRadio overwriteRadio() {
-      return new IqRadio($("#dashboard-filter-overwrite"));
+    public NxRadio overwriteRadio() {
+      return new NxRadio($("#dashboard-filter-overwrite"));
     }
   }
 

@@ -175,6 +175,24 @@ describe('manageFiltersReducer', function() {
     );
   });
 
+  describe('SET_DISPLAY_SAVE_FILTER_MODAL action', function() {
+    it('resets saveFilterSaving, saveFilterError and saveFilterSuccess', function() {
+      var state = Object.freeze({
+        saveFilterSaving: true,
+        saveFilterSuccess: true,
+        saveFilterError: true,
+        warning: 'overwrite',
+        other: otherObject
+      });
+      var action = { type: 'SET_DISPLAY_SAVE_FILTER_MODAL' };
+      var newState = reduce(state, action);
+      expect(newState.saveFilterSaving).toBe(false);
+      expect(newState.saveFilterError).toBe(null);
+      expect(newState.saveFilterSuccess).toBe(false);
+      expect(newState.other).toBe(otherObject);
+    });
+  });
+
   describe('DELETE_SPECIFIED_FILTERS_REQUESTED action', function() {
     it('sets deleteFiltersSaving to true', function() {
       var state = Object.freeze({ deleteFiltersSaving: false, other: otherObject });

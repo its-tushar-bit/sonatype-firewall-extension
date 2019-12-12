@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.migration.MailConfigurationMigrator.MailConfig;
 import com.sonatype.insight.mail.EmailUtil;
 import com.sonatype.insight.mail.InsightMailer;
 
@@ -30,7 +31,12 @@ public class InsightMail
   @Inject
   public InsightMail(final InsightConfig config, final EMailer mailer) {
     this.config = config;
-    insightMailer = new InsightMailer(mailer, config.getMailConfig());
+    // CLM-14357: rework to use current db config
+    MailConfig mailConfig = config.getMailConfig();
+    if (mailConfig == null) {
+      mailConfig = new MailConfig();
+    }
+    insightMailer = new InsightMailer(mailer, mailConfig);
   }
 
   public String getServer() {

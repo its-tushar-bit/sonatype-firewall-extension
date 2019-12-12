@@ -9,7 +9,6 @@ import java.io.File;
 import java.net.URL;
 
 import javax.annotation.Nullable;
-import javax.mail.internet.InternetAddress;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -19,6 +18,7 @@ import javax.validation.constraints.Size;
 
 import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.jira.JiraConfig;
+import com.sonatype.insight.brain.migration.MailConfigurationMigrator;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -45,9 +45,8 @@ public class InsightConfig
   @JsonProperty
   private ProxyConfig proxy = new ProxyConfig();
 
-  @NotNull
   @JsonProperty
-  private MailConfig mail = new MailConfig();
+  private MailConfigurationMigrator.MailConfig mail;
 
   @JsonProperty
   private String baseUrl;
@@ -263,7 +262,7 @@ public class InsightConfig
     return proxy;
   }
 
-  public MailConfig getMailConfig() {
+  public MailConfigurationMigrator.MailConfig getMailConfig() {
     return mail;
   }
 
@@ -288,7 +287,7 @@ public class InsightConfig
     this.proxy = proxyConfig;
   }
 
-  public void setMailConfig(final MailConfig mailConfig) {
+  public void setMailConfig(final MailConfigurationMigrator.MailConfig mailConfig) {
     this.mail = mailConfig;
   }
 
@@ -347,19 +346,6 @@ public class InsightConfig
     }
     catch (Exception e) {
       log.error("Invalid baseUrl: {}", e.getMessage());
-      return false;
-    }
-  }
-
-  @JsonIgnore
-  @ValidationMethod(message = "mail.systemEmail is invalid")
-  public boolean isValidSystemMailAddress() {
-    try {
-      new InternetAddress(getMailConfig().getSystemEmail());
-      return true;
-    }
-    catch (Exception e) {
-      log.error("Invalid mail.systemEmail: {}", e.getMessage());
       return false;
     }
   }

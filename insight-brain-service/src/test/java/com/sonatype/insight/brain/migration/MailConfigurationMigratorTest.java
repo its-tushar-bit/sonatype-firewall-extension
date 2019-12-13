@@ -49,7 +49,7 @@ public class MailConfigurationMigratorTest
 
   @Test
   public void testMigrate_FirstRun_InvalidConfig() {
-    MailConfig fileConfig = new MailConfig();
+    MailConfigurationMigrator.MailConfig fileConfig = new MailConfigurationMigrator.MailConfig();
     fileConfig.setHostname(null);
     insightConfig.setMailConfig(fileConfig);
 

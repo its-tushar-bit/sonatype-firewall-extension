@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
 /**
  * @param id - tooltip id attribute.
  * @param container - container element to which tooltip is appended.

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
 import applicationSecurityModule from '../../../main/frontend/policy/AppSecurityController';
 import { httpInterceptors } from '../../../main/frontend/util/HttpInterceptors';
 import clmContextLocationModule from '../../../main/frontend/util/CLMContextLocation';

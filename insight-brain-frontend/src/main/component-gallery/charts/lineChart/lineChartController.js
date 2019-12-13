@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
 var data = [
   { 'date': new Date(2016, 0), 'days': 20 },
   { 'date': new Date(2016, 1), 'days': 18 },

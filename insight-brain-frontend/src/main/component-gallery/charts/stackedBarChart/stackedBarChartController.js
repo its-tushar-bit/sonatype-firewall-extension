@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
 var criticalViolations = [
   {policyType: 0, violations: 1},
   {policyType: 1, violations: 6},

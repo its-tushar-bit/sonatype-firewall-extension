@@ -10,7 +10,7 @@
   <parent>
     <groupId>com.sonatype.buildsupport</groupId>
     <artifactId>private-parent</artifactId>
-    <version>15</version>
+    <version>16</version>
     <relativePath />
   </parent>
 
@@ -1061,10 +1061,9 @@
           <configuration>
             <excludes combine.children="append">
               <!-- 3rd party contents (needs refinement to catch our stuff) -->
-              <exclude>**/*.js</exclude>
-              <exclude>**/*.css</exclude>
-              <exclude>**/*.html</exclude>
-              <exclude>**/src/main/frontend/lib/**/*</exclude>
+              <exclude>**/*.html</exclude> <!-- Don't repeat license in all templates as it'll end up in DOM -->
+              <exclude>**/src/main/frontend/**/lib/**/*</exclude>
+              <exclude>insight-brain-frontend/src/main/resources/assets/version-graph/protovis*.js</exclude>
               <exclude>**/src/test/resources/**/*</exclude>
               <exclude>**/node_modules/**</exclude>
               <exclude>**/org/h2/**</exclude>

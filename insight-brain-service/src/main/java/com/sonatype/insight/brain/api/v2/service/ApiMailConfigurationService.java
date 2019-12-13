@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiMailConfigurationDTO;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -74,6 +75,7 @@ public class ApiMailConfigurationService
     mailConfiguration.setStartTlsEnabled(configurationDTO.startTlsEnabled);
     mailConfiguration.setSystemEmail(configurationDTO.systemEmail);
 
+    auditConfiguration(mailConfiguration);
     mailConfigurationDAO.set(mailConfiguration);
   }
 
@@ -83,6 +85,17 @@ public class ApiMailConfigurationService
     if (mailConfiguration == null) {
       throw newNotFoundException();
     }
+    auditConfiguration(mailConfiguration);
     mailConfigurationDAO.delete();
+  }
+
+  private void auditConfiguration(MailConfiguration mailConfiguration) {
+    AuditData.get() //
+        .setData("smtpHostname", mailConfiguration.getHostname()) //
+        .setData("smtpPort", mailConfiguration.getPort()) //
+        .setData("smtpUsername", mailConfiguration.getUsername()) //
+        .setData("smtpSsl", mailConfiguration.isSslEnabled() ? "enabled" : "disabled") //
+        .setData("smtpStartTls", mailConfiguration.isStartTlsEnabled() ? "enabled" : "disabled") //
+        .setData("smtpSystemEmail", mailConfiguration.getSystemEmail());
   }
 }

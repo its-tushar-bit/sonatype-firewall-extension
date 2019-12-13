@@ -18,6 +18,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiMailConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiMailConfigurationService;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -43,12 +45,14 @@ public class ApiMailConfigurationResource
   }
 
   @PUT
+  @Audited(AuditEvent.CONFIGURE_MAIL)
   @Consumes(MediaType.APPLICATION_JSON)
   public void setConfiguration(ApiMailConfigurationDTO configurationDTO) {
     mailConfigurationService.setConfiguration(configurationDTO);
   }
 
   @DELETE
+  @Audited(AuditEvent.DELETE_MAIL)
   public void deleteConfiguration() {
     mailConfigurationService.deleteConfiguration();
   }

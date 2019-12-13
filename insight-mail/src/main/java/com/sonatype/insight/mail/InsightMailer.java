@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.mail;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import org.sonatype.micromailer.Address;
 import org.sonatype.micromailer.EMailer;
 import org.sonatype.micromailer.EmailerConfiguration;
@@ -18,8 +14,6 @@ import org.sonatype.micromailer.imp.DefaultMailType;
 
 import org.apache.commons.lang.StringUtils;
 
-@Named
-@Singleton
 public class InsightMailer
 {
   private final EMailer mailer;
@@ -44,7 +38,6 @@ public class InsightMailer
 
   private final String systemEmail;
 
-  @Inject
   public InsightMailer(EMailer mailer, MailConfig mailConfig) {
     if (System.getProperty("mail.host", "").isEmpty()) {
       // avoid DNS delays/issues in javax.mail.internet.InternetAddress.getLocalAddress()
@@ -127,11 +120,11 @@ public class InsightMailer
   }
 
   public String getSystemPersonal() {
-    return StringUtils.isEmpty(systemPersonal) ? "Sonatype Insight" : systemPersonal;
+    return StringUtils.isEmpty(systemPersonal) ? "Nexus IQ Server" : systemPersonal;
   }
 
   public String getSystemEmail() {
-    return StringUtils.isEmpty(systemEmail) ? "system@insight.com" : systemEmail;
+    return StringUtils.isEmpty(systemEmail) ? "NexusIQServer@localhost" : systemEmail;
   }
 
   public String getDefaultMailTypeId() {

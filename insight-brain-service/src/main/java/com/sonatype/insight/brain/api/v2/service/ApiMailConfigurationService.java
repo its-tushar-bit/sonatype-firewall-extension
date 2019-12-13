@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -27,9 +28,12 @@ public class ApiMailConfigurationService
 
   private final MailConfigurationDAO mailConfigurationDAO;
 
+  private final InsightMail insightMail;
+
   @Inject
-  public ApiMailConfigurationService(MailConfigurationDAO mailConfigurationDAO) {
+  public ApiMailConfigurationService(MailConfigurationDAO mailConfigurationDAO, InsightMail insightMail) {
     this.mailConfigurationDAO = mailConfigurationDAO;
+    this.insightMail = insightMail;
   }
 
   private RuntimeException newNotFoundException() {
@@ -77,6 +81,8 @@ public class ApiMailConfigurationService
 
     auditConfiguration(mailConfiguration);
     mailConfigurationDAO.set(mailConfiguration);
+
+    insightMail.loadMailConfiguration();
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -87,6 +93,8 @@ public class ApiMailConfigurationService
     }
     auditConfiguration(mailConfiguration);
     mailConfigurationDAO.delete();
+
+    insightMail.loadMailConfiguration();
   }
 
   private void auditConfiguration(MailConfiguration mailConfiguration) {

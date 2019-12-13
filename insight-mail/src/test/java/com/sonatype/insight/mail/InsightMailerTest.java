@@ -6,7 +6,6 @@
 package com.sonatype.insight.mail;
 
 import java.util.Arrays;
-import java.util.Properties;
 import java.util.UUID;
 
 import javax.mail.Message.RecipientType;
@@ -35,20 +34,15 @@ public class InsightMailerTest
   @Rule
   public GreenMailRule smtpServer = new GreenMailRule(new ServerSetup(0, null, ServerSetup.PROTOCOL_SMTP));
 
-  @Override
-  public void configure(Properties properties) {
-    properties.put("mail.hostname", "localhost");
-    properties.put("mail.port", smtpServer.getSmtp().getPort());
-    properties.put("mail.systemEmail", "test@test.com");
-
-    super.configure(properties);
-  }
-
   @Test
   public void sendTestMail() throws Exception {
-    InsightMailer mailer = lookup(InsightMailer.class);
+    MailConfig mailConfig = new MailConfig();
+    mailConfig.setHostname("localhost");
+    mailConfig.setPort(smtpServer.getSmtp().getPort());
+    mailConfig.setSystemEmail("testFrom@sonatype.com");
+    InsightMailer mailer = new InsightMailer(lookup(EMailer.class), mailConfig);
 
-    String toAddr = UUID.randomUUID() + "test@sonatype.com";
+    String toAddr = UUID.randomUUID() + "testTo@sonatype.com";
     String subject = UUID.randomUUID().toString();
     String msg = UUID.randomUUID().toString();
     MailRequest request = mailer.getDefaultMailRequest(subject, msg);
@@ -63,7 +57,6 @@ public class InsightMailerTest
 
   @Test
   public void getEmailConfigurationWithSslAndTlsToPort25() throws Exception {
-    System.clearProperty("mail.port");
     MailConfig mailConfig = new MailConfig();
     mailConfig.setSsl(true);
     mailConfig.setTls(true);

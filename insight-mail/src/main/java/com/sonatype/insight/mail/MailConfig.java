@@ -41,22 +41,17 @@ public class MailConfig
 
   @Inject
   public MailConfig(@Named("${mail.hostname}") String hostname, @Named("${mail.port}") int port,
-      @Named("${mail.disablesend:-false}") boolean disableSend, @Named("${mail.debug:-false}") boolean debug,
       @Named("${mail.ssl:-false}") boolean ssl, @Named("${mail.tls:-false}") boolean tls,
       @Named("${mail.username}") @Nullable String username, @Named("${mail.password}") @Nullable String password,
-      @Named("${mail.systemEmail}") @Nullable String systemEmail,
-      @Named("${mail.systemPersonal}") @Nullable String systemPersonal)
+      @Named("${mail.systemEmail}") @Nullable String systemEmail)
   {
     this.hostname = hostname;
     this.port = port;
-    this.disableSend = disableSend;
-    this.debug = debug;
     this.ssl = ssl;
     this.tls = tls;
     this.username = username;
     this.password = password;
     this.systemEmail = systemEmail;
-    this.systemPersonal = systemPersonal;
     log.debug("Loaded mail configuration");
   }
 

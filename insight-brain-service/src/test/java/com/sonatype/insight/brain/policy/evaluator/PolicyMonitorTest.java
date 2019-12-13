@@ -28,6 +28,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
@@ -35,6 +36,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -53,6 +55,7 @@ import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -91,6 +94,13 @@ public class PolicyMonitorTest
     insightWork = getCLMServer().getInstance(InsightWork.class);
     policyMonitor = getCLMServer().getInstance(PolicyMonitor.class);
     asyncEventBus = getCLMServer().getInstance(AsyncEventBus.class);
+
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("127.0.0.1");
+    mailConfiguration.setPort(587);
+    mailConfiguration.setSystemEmail("NexusIQServer@localhost");
+    new MailConfigurationDAO().set(mailConfiguration);
+    getCLMServer().getInstance(InsightMail.class).loadMailConfiguration();
   }
 
   @After

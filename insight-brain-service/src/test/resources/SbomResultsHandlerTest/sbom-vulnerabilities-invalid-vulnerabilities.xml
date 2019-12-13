@@ -1,0 +1,31 @@
+<bom xmlns="http://cyclonedx.org/schema/bom/1.1"
+    serialNumber="urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79"
+    xmlns:v="http://cyclonedx.org/schema/ext/vulnerability/1.0" version="1">
+    <components>
+        <component type="library">
+            <group>pypi</group>
+            <name>django</name>
+            <version>1.11.1</version>
+            <purl>pkg:pypi/django@1.11.1</purl>
+            <v:vulnerabilities>
+                <v:vulnerability ref="pkg:pypi/django@1.11.1">
+                    <v:id>CVE-2018-7489</v:id>
+                </v:vulnerability>
+                <v:vulnerability ref="pkg:pypi/django@1.11.1">
+                    <v:id></v:id>
+                </v:vulnerability>
+                <v:vulnerability ref="pkg:pypi/django@1.11.1">
+                    <v:id>CVE-2016-3189</v:id>
+                    <v:ratings>
+                        <v:rating>
+                            <v:score>
+                                <v:base></v:base>
+                            </v:score>
+                            <v:vector>CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H</v:vector>
+                        </v:rating>
+                    </v:ratings>
+                </v:vulnerability>
+            </v:vulnerabilities>
+        </component>
+    </components>
+</bom>

@@ -247,6 +247,31 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_withVulnerabilities_invalidVulnerabilities() throws Exception {
+    String sbomContent = getSbomFile("sbom-vulnerabilities-invalid-vulnerabilities.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+    Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
+
+    List<Component> components = filteredSbom.getComponents();
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
+
+    try (TransactionContext tx = thirdPartyCoordinateSecurityDAO.createTransactionContext()) {
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
+      assertThirdPartyFileCoordinate(components.get(0), thirdPartyFile, thirdPartyFileCoordinate);
+      List<ThirdPartyCoordinateSecurity> coordinatesSecurity =
+          thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
+      assertThat(coordinatesSecurity).hasSize(0);
+    }
+  }
+
+  @Test
   public void testHandleAndFilterContents_withoutVulnerabilities() throws Exception {
     String sbomContent = getSbomFile("sbom-no-vulnerabilities.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);

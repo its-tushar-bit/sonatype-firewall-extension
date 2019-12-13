@@ -258,7 +258,7 @@ public class SbomResultHandler
       for (Xpp3Dom vulnerability : vulnerabilities.getChildren()) {
         if (vulnerability != null) {
           String refId = vulnerability.getChild("id").getValue();
-          if (!vulnerabilityMap.contains(refId)) {
+          if (StringUtils.isNotBlank(refId) && !vulnerabilityMap.contains(refId)) {
             saveVulnerability(vulnerability, fileCoordinateId, refId, tx);
             vulnerabilityMap.add(refId);
           }
@@ -270,15 +270,6 @@ public class SbomResultHandler
   private void saveVulnerability(Xpp3Dom vulnerability, String fileCoordinateId, String refId, TransactionContext tx) {
     boolean validVulnerability = false;
     ThirdPartyCoordinateSecurity coordinateSecurity = new ThirdPartyCoordinateSecurity();
-    coordinateSecurity.setFileCoordinateId(fileCoordinateId);
-    Xpp3Dom cwes = vulnerability.getChild("cwes");
-    coordinateSecurity.setCwes(getList(cwes));
-
-    Xpp3Dom recommendations = vulnerability.getChild("recommendations");
-    coordinateSecurity.setRecommendations(getList(recommendations));
-
-    Xpp3Dom advisories = vulnerability.getChild("advisories");
-    coordinateSecurity.setAdvisories(getList(advisories));
 
     Xpp3Dom ratingsElements = vulnerability.getChild("ratings");
     if (ratingsElements != null) {
@@ -290,22 +281,37 @@ public class SbomResultHandler
         coordinateSecurity.setRatingMethod(getValueFromTag(rating, "method"));
         coordinateSecurity.setSeverityDescription(getValueFromTag(rating, "severity"));
 
-        if (rating.getChild("score") != null && rating.getChild("score").getChild("base") != null) {
-          float severity = Float.parseFloat(rating.getChild("score").getChild("base").getValue());
-          coordinateSecurity.setSeverity(severity);
-          validVulnerability = true;
+        Xpp3Dom score = rating.getChild("score");
+        if (score != null) {
+          String severityValue = getValueFromTag(score, "base");
+          if (StringUtils.isNotBlank(severityValue)) {
+            float severity = Float.parseFloat(severityValue);
+            coordinateSecurity.setSeverity(severity);
+            validVulnerability = true;
+          }
         }
       }
     }
 
-    Xpp3Dom source = vulnerability.getChild("source");
-    if (source != null) {
-      coordinateSecurity.setVulnerabilitySource(source.getAttribute("name"));
-      coordinateSecurity.setLink(getValueFromTag(source, "url"));
-    }
-    coordinateSecurity.setRefId(refId);
-    coordinateSecurity.setDescription(getValueFromTag(vulnerability, "description"));
     if (validVulnerability) {
+      coordinateSecurity.setFileCoordinateId(fileCoordinateId);
+      Xpp3Dom cwes = vulnerability.getChild("cwes");
+      coordinateSecurity.setCwes(getList(cwes));
+
+      Xpp3Dom recommendations = vulnerability.getChild("recommendations");
+      coordinateSecurity.setRecommendations(getList(recommendations));
+
+      Xpp3Dom advisories = vulnerability.getChild("advisories");
+      coordinateSecurity.setAdvisories(getList(advisories));
+
+      Xpp3Dom source = vulnerability.getChild("source");
+      if (source != null) {
+        coordinateSecurity.setVulnerabilitySource(source.getAttribute("name"));
+        coordinateSecurity.setLink(getValueFromTag(source, "url"));
+      }
+      coordinateSecurity.setRefId(refId);
+      coordinateSecurity.setDescription(getValueFromTag(vulnerability, "description"));
+
       thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
     }
   }

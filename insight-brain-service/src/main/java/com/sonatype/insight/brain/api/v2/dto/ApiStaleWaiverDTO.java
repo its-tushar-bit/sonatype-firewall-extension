@@ -9,6 +9,8 @@ import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * @since 1.81
@@ -23,10 +25,13 @@ public class ApiStaleWaiverDTO
 
   public String comment;
 
+  @JsonInclude(Include.NON_EMPTY)
   public String scopeOwnerType;
 
+  @JsonInclude(Include.NON_EMPTY)
   public String scopeOwnerId;
 
+  @JsonInclude(Include.NON_EMPTY)
   public String scopeOwnerName;
 
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
@@ -34,5 +39,6 @@ public class ApiStaleWaiverDTO
 
   public boolean isObsolete;
 
+  @JsonInclude(Include.NON_EMPTY)
   public List<ApiConstraintFactDTO> constraintFacts;
 }

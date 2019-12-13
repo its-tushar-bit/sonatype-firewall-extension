@@ -42,13 +42,12 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.v2.service.ApiComponentsWithWaiversReportingService.SCOPE_OWNER_TYPE_REPOSITORY_CONTAINER;
-import static com.sonatype.insight.brain.api.v2.service.ApiComponentsWithWaiversReportingService.SCOPE_OWNER_TYPE_ROOT_ORGANIZATION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiComponentsWithWaiversReportingServiceTest
@@ -236,7 +235,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     assertThat(waivedPolicyViolationDTOs).hasSize(1);
     assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation3);
     assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(0).policyWaiver, policyWaiver3,
-        SCOPE_OWNER_TYPE_REPOSITORY_CONTAINER, "All Repositories");
+        ScopeOwnerUtils.SCOPE_OWNER_TYPE_REPOSITORY_CONTAINER, "All Repositories");
   }
 
   @Test
@@ -420,8 +419,8 @@ public class ApiComponentsWithWaiversReportingServiceTest
     waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
     assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation4);
 
-    assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver4, SCOPE_OWNER_TYPE_ROOT_ORGANIZATION,
-        "Root Organization");
+    assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver4,
+        ScopeOwnerUtils.SCOPE_OWNER_TYPE_ROOT_ORGANIZATION, "Root Organization");
 
     assertApplicationWaiverDTO(applicationWaiverDTO, app3);
   }

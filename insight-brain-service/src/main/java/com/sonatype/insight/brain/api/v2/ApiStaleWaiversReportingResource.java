@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.List;
+
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -13,7 +16,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiStaleWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStaleWaiversResponseDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiStaleWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 
@@ -30,10 +35,21 @@ public class ApiStaleWaiversReportingResource
 {
   public static final String PATH = "/waivers/stale";
 
+  private final ApiStaleWaiverService staleWaiverService;
+
+  @Inject
+  public ApiStaleWaiversReportingResource(final ApiStaleWaiverService staleWaiverService) {
+    this.staleWaiverService = staleWaiverService;
+  }
+
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENTS_WITH_WAIVERS)
   public ApiStaleWaiversResponseDTO getStaleWaivers() {
-    return new ApiStaleWaiversResponseDTO();
+    ApiStaleWaiversResponseDTO staleWaiversResponseDTO = new ApiStaleWaiversResponseDTO();
+    List<ApiStaleWaiverDTO> staleRepoWaivers = staleWaiverService.getStaleRepositoryWaivers();
+    staleWaiversResponseDTO.staleWaivers = staleRepoWaivers;
+
+    return staleWaiversResponseDTO;
   }
 }

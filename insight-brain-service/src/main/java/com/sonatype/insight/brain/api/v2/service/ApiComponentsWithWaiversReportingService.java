@@ -38,20 +38,19 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
 import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
+import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.lang.mutable.MutableInt;
@@ -90,10 +89,6 @@ public class ApiComponentsWithWaiversReportingService
   private final PolicyViolationAdapter policyViolationAdapter;
 
   private final OwnerDAO ownerDAO;
-
-  static final String SCOPE_OWNER_TYPE_ROOT_ORGANIZATION = "root_organization";
-
-  static final String SCOPE_OWNER_TYPE_REPOSITORY_CONTAINER = "all_repositories";
 
   @Inject
   public ApiComponentsWithWaiversReportingService(
@@ -387,14 +382,8 @@ public class ApiComponentsWithWaiversReportingService
       final Owner owner)
   {
     policyWaiverDTO.scopeOwnerId = owner.getId();
-    policyWaiverDTO.scopeOwnerType = owner.getType().toString();
+    policyWaiverDTO.scopeOwnerType = ScopeOwnerUtils.getScopeOwnerType(owner.getType(), owner.getId());
     policyWaiverDTO.scopeOwnerName = owner.getName();
-    if (owner.getId().equals(Organization.ROOT_ORGANIZATION_ID)) {
-      policyWaiverDTO.scopeOwnerType = SCOPE_OWNER_TYPE_ROOT_ORGANIZATION;
-    }
-    else if (owner.getId().equals(RepositoryContainer.REPOSITORY_CONTAINER_ID)) {
-      policyWaiverDTO.scopeOwnerType = SCOPE_OWNER_TYPE_REPOSITORY_CONTAINER;
-    }
   }
 
   private ApiPolicyViolationStageDTO buildPolicyViolationStageDTO(

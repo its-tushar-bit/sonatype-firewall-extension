@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +74,12 @@ public class MailConfigurationMigrator
       dbConfig.setSslEnabled(fileConfig.isSsl());
       dbConfig.setStartTlsEnabled(fileConfig.isTls());
       dbConfig.setSystemEmail(fileConfig.getSystemEmail());
-      mailConfigurationDAO.insert(tx, dbConfig);
+      try {
+        mailConfigurationDAO.insert(tx, dbConfig);
+      }
+      catch (BadRequestException e) {
+        log.warn("The current mail configuration is invalid and cannot be migrated", e);
+      }
       migrationTrackerDAO.insertTracker(tx, MIGRATION_ID);
       tx.commit();
     }

@@ -48,6 +48,18 @@ public class MailConfigurationMigratorTest
   }
 
   @Test
+  public void testMigrate_FirstRun_InvalidConfig() {
+    MailConfig fileConfig = new MailConfig();
+    fileConfig.setHostname(null);
+    insightConfig.setMailConfig(fileConfig);
+
+    mailConfigurationMigrator.migrate();
+
+    assertThat(migrationTrackerDAO.isTrackerPresent(MailConfigurationMigrator.MIGRATION_ID)).isTrue();
+    assertThat(mailConfigurationDAO.get()).isNull();
+  }
+
+  @Test
   public void testMigrate_FirstRun_DefaultConfig() {
     mailConfigurationMigrator.migrate();
 

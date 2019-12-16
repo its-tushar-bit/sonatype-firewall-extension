@@ -18,7 +18,7 @@
 
   <properties>
     <node.version>v10.16.0</node.version>
-    <npm.version>6.7.0</npm.version>
+    <npm.version>6.13.4</npm.version>
     <saga.version>1.5.2</saga.version>
     <jasmine.version>2.2</jasmine.version>
     <jasmine.cip.id>test-cip-assets</jasmine.cip.id>

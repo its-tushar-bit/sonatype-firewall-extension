@@ -1,6 +1,10 @@
 /*
   #Layout
 */
+html {
+  overflow-y: hidden; // prevents programmatic window scrolling
+}
+
 body {
   background-color: $iq-grey-3;
   color: #333333;

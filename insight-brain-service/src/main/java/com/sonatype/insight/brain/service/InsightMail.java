@@ -21,6 +21,8 @@ import org.sonatype.micromailer.Address;
 import org.sonatype.micromailer.EMailer;
 import org.sonatype.micromailer.MailRequest;
 import org.sonatype.micromailer.imp.HtmlMailType;
+import org.sonatype.plexus.components.cipher.PlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,23 +33,34 @@ public class InsightMail
 {
   private static final Logger log = LoggerFactory.getLogger(InsightMail.class);
 
+  private static final String ENC = "CMMDwoV";
+
   private final EMailer eMailer;
 
   private volatile InsightMailer insightMailer;
 
   private final InsightConfig config;
 
+  private final PlexusCipher cipher;
+
   @Inject
-  public InsightMail(final InsightConfig config, final EMailer eMailer) {
+  public InsightMail(final InsightConfig config, final EMailer eMailer, PlexusCipher cipher) {
     this.config = config;
     this.eMailer = eMailer;
+    this.cipher = cipher;
 
     loadMailConfiguration();
   }
 
   public void loadMailConfiguration() {
     MailConfig mailConfig = getMailConfig();
-    insightMailer = mailConfig == null ? null : new InsightMailer(eMailer, mailConfig);
+    if (mailConfig == null) {
+      insightMailer = null;
+    }
+    else {
+      insightMailer = new InsightMailer(eMailer, mailConfig);
+      mailConfig.clearPassword();
+    }
   }
 
   private MailConfig getMailConfig() {
@@ -57,9 +70,45 @@ public class InsightMail
       return null;
     }
 
-    return new MailConfig(mailConfiguration.getHostname(), mailConfiguration.getPort(),
-        mailConfiguration.isSslEnabled(), mailConfiguration.isStartTlsEnabled(), mailConfiguration.getUsername(),
-        mailConfiguration.getPassword(), mailConfiguration.getSystemEmail());
+    MailConfig mailConfig = new MailConfig();
+    mailConfig.setHostname(mailConfiguration.getHostname());
+    mailConfig.setPort(mailConfiguration.getPort());
+    mailConfig.setSsl(mailConfiguration.isSslEnabled());
+    mailConfig.setTls(mailConfiguration.isStartTlsEnabled());
+    mailConfig.setUsername(mailConfiguration.getUsername());
+    mailConfig.setPassword(decryptPassword(mailConfiguration.getPassword()));
+    mailConfig.setSystemEmail(mailConfiguration.getSystemEmail());
+    return mailConfig;
+  }
+
+  public char[] decryptPassword(char[] encryptedPassword) {
+    if (encryptedPassword == null) {
+      return null;
+    }
+
+    try {
+      synchronized (cipher) {
+        return cipher.decryptDecorated(String.valueOf(encryptedPassword), ENC).toCharArray();
+      }
+    }
+    catch (PlexusCipherException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  public char[] encryptPassword(char[] password) {
+    if (password == null) {
+      return null;
+    }
+
+    try {
+      synchronized (cipher) {
+        return cipher.encryptAndDecorate(String.valueOf(password), ENC).toCharArray();
+      }
+    }
+    catch (PlexusCipherException e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   public String getServer() {

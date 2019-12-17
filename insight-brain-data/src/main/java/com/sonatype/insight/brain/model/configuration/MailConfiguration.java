@@ -34,7 +34,7 @@ public class MailConfiguration
   private String username;
 
   @Column(name = "password")
-  private String password;
+  private char[] password;
 
   @Column(name = "ssl_enabled")
   private boolean sslEnabled;
@@ -79,11 +79,11 @@ public class MailConfiguration
     this.username = username;
   }
 
-  public String getPassword() {
+  public char[] getPassword() {
     return password;
   }
 
-  public void setPassword(String password) {
+  public void setPassword(char[] password) {
     this.password = password;
   }
 

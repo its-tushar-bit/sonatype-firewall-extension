@@ -33,7 +33,7 @@ public class ApiMailConfigurationResourceAuditTest
       String hostname,
       int port,
       String username,
-      String password,
+      char[] password,
       boolean sslEnabled,
       boolean startTlsEnabled,
       String systemEmail)
@@ -42,6 +42,7 @@ public class ApiMailConfigurationResourceAuditTest
     assertCustomData(auditDTO, "smtpPort", port);
     assertCustomData(auditDTO, "smtpUsername", username);
     assertThat(auditDTO.data).doesNotContainValue(password);
+    assertThat(auditDTO.data).doesNotContainValue(String.valueOf(password));
     assertCustomData(auditDTO, "smtpSsl", sslEnabled ? "enabled" : "disabled");
     assertCustomData(auditDTO, "smtpStartTls", startTlsEnabled ? "enabled" : "disabled");
     assertCustomData(auditDTO, "smtpSystemEmail", systemEmail);
@@ -53,7 +54,7 @@ public class ApiMailConfigurationResourceAuditTest
     configurationDTO.hostname = "audittest";
     configurationDTO.port = 58285;
     configurationDTO.username = "audituser";
-    configurationDTO.password = "auditpass";
+    configurationDTO.password = "auditpass".toCharArray();
     configurationDTO.sslEnabled = true;
     configurationDTO.systemEmail = "audit@test";
 
@@ -78,7 +79,7 @@ public class ApiMailConfigurationResourceAuditTest
     mailConfiguration.setHostname("audittest");
     mailConfiguration.setPort(58285);
     mailConfiguration.setUsername("audituser");
-    mailConfiguration.setPassword("auditpass");
+    mailConfiguration.setPassword("auditpass".toCharArray());
     mailConfiguration.setSystemEmail("audit@test");
     mailConfigurationDAO.set(mailConfiguration);
 

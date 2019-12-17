@@ -5,20 +5,10 @@
  */
 package com.sonatype.insight.mail;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import java.util.Arrays;
 
-import org.eclipse.sisu.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-@Named
-@Singleton
 public class MailConfig
 {
-  private static final Logger log = LoggerFactory.getLogger(MailConfig.class);
-
   private String hostname;
 
   private int port;
@@ -33,31 +23,11 @@ public class MailConfig
 
   private String username;
 
-  private String password;
+  private char[] password;
 
   private String systemEmail;
 
   private String systemPersonal;
-
-  @Inject
-  public MailConfig(@Named("${mail.hostname}") String hostname, @Named("${mail.port}") int port,
-      @Named("${mail.ssl:-false}") boolean ssl, @Named("${mail.tls:-false}") boolean tls,
-      @Named("${mail.username}") @Nullable String username, @Named("${mail.password}") @Nullable String password,
-      @Named("${mail.systemEmail}") @Nullable String systemEmail)
-  {
-    this.hostname = hostname;
-    this.port = port;
-    this.ssl = ssl;
-    this.tls = tls;
-    this.username = username;
-    this.password = password;
-    this.systemEmail = systemEmail;
-    log.debug("Loaded mail configuration");
-  }
-
-  protected MailConfig() {
-    // so we can re-use this config outside sisu
-  }
 
   public void setHostname(String hostname) {
     this.hostname = hostname;
@@ -107,11 +77,11 @@ public class MailConfig
     this.username = username;
   }
 
-  public String getPassword() {
+  public char[] getPassword() {
     return password;
   }
 
-  public void setPassword(String password) {
+  public void setPassword(char[] password) {
     this.password = password;
   }
 
@@ -129,5 +99,11 @@ public class MailConfig
 
   public void setSystemPersonal(String systemPersonal) {
     this.systemPersonal = systemPersonal;
+  }
+
+  public void clearPassword() {
+    if (password != null) {
+      Arrays.fill(password, '0');
+    }
   }
 }

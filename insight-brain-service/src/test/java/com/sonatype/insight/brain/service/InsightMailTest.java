@@ -5,15 +5,16 @@
  */
 package com.sonatype.insight.brain.service;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
-import com.sonatype.insight.mail.InsightMailer;
 
 import org.sonatype.micromailer.EMailer;
-import org.sonatype.micromailer.EmailerConfiguration;
 import org.sonatype.micromailer.MailRequest;
 import org.sonatype.micromailer.MailRequestStatus;
 
+import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -30,39 +31,14 @@ public class InsightMailTest
   @Mock
   private EMailer eMailerMock;
 
-  @Test
-  public void testConstructor_MailConfigured() {
-    MailConfiguration mailConfiguration = new MailConfiguration();
-    mailConfiguration.setHostname("testHostname");
-    mailConfiguration.setPort(5555);
-    mailConfiguration.setUsername("testUsername");
-    mailConfiguration.setPassword("testPassword");
-    mailConfiguration.setSslEnabled(true);
-    mailConfiguration.setStartTlsEnabled(true);
-    mailConfiguration.setSystemEmail("testfrom@sonatype.com");
-    new MailConfigurationDAO().set(mailConfiguration);
+  @Inject
+  private InsightMail insightMail;
 
-    ArgumentCaptor<EmailerConfiguration> emailerConfigurationArgumentCaptor =
-        ArgumentCaptor.forClass(EmailerConfiguration.class);
-    InsightMail insightMail = new InsightMail(null /* insightConfig */, eMailerMock);
-    verify(eMailerMock).configure(emailerConfigurationArgumentCaptor.capture());
-    EmailerConfiguration emailerConfiguration = emailerConfigurationArgumentCaptor.getValue();
-    assertThat(emailerConfiguration.getMailHost()).isEqualTo("testHostname");
-    assertThat(emailerConfiguration.getMailPort()).isEqualTo(5555);
-    assertThat(emailerConfiguration.getUsername()).isEqualTo("testUsername");
-    assertThat(emailerConfiguration.getPassword()).isEqualTo("testPassword");
-    assertThat(emailerConfiguration.isSsl()).isTrue();
-    assertThat(emailerConfiguration.isTls()).isTrue();
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(EMailer.class).toInstance(eMailerMock);
 
-    InsightMailer insightMailer = insightMail.getInsightMailer();
-    assertThat(insightMailer.getSystemEmail()).isEqualTo("testfrom@sonatype.com");
-    assertThat(insightMailer.getSystemPersonal()).isEqualTo("Nexus IQ Server");
-  }
-
-  @Test
-  public void testConstructor_MailNotConfigured() {
-    // Should not throw any exception
-    new InsightMail(null /* insightConfig */, eMailerMock);
+    super.configure(binder);
   }
 
   @Test
@@ -71,18 +47,19 @@ public class InsightMailTest
     mailConfiguration.setHostname("testHostname");
     mailConfiguration.setPort(5555);
     mailConfiguration.setUsername("testUsername");
-    mailConfiguration.setPassword("testPassword");
+    mailConfiguration.setPassword(insightMail.encryptPassword("testPassword".toCharArray()));
     mailConfiguration.setSslEnabled(true);
     mailConfiguration.setStartTlsEnabled(true);
     mailConfiguration.setSystemEmail("testfrom@sonatype.com");
     new MailConfigurationDAO().set(mailConfiguration);
+    insightMail.loadMailConfiguration();
 
-    assertThat(new InsightMail(null /* insightConfig */, eMailerMock).getServer()).isEqualTo("testHostname:5555");
+    assertThat(insightMail.getServer()).isEqualTo("testHostname:5555");
   }
 
   @Test
   public void testGetServer_MailNotConfigured() {
-    assertThat(new InsightMail(null /* insightConfig */, eMailerMock).getServer()).isNull();
+    assertThat(insightMail.getServer()).isNull();
   }
 
   @Test
@@ -91,18 +68,18 @@ public class InsightMailTest
     mailConfiguration.setHostname("testHostname");
     mailConfiguration.setPort(5555);
     mailConfiguration.setUsername("testUsername");
-    mailConfiguration.setPassword("testPassword");
+    mailConfiguration.setPassword(insightMail.encryptPassword("testPassword".toCharArray()));
     mailConfiguration.setSslEnabled(true);
     mailConfiguration.setStartTlsEnabled(true);
     mailConfiguration.setSystemEmail("testfrom@sonatype.com");
     new MailConfigurationDAO().set(mailConfiguration);
+    insightMail.loadMailConfiguration();
 
     ArgumentCaptor<MailRequest> emailerMailRequestArgumentCaptor = ArgumentCaptor.forClass(MailRequest.class);
     MailRequestStatus mailRequestStatus = new MailRequestStatus(new MailRequest("id", "mailTypeId"));
     mailRequestStatus.setSent(true);
     when(eMailerMock.sendMail(any(MailRequest.class))).thenReturn(mailRequestStatus);
-    new InsightMail(null /* insightConfig */, eMailerMock).sendHtml("testMailId", "test@example.com", "testSubject",
-        "testBody");
+    insightMail.sendHtml("testMailId", "test@example.com", "testSubject", "testBody");
     verify(eMailerMock).sendMail(emailerMailRequestArgumentCaptor.capture());
     MailRequest mailRequest = emailerMailRequestArgumentCaptor.getValue();
     assertThat(mailRequest.getFrom().getMailAddress()).isEqualTo("testfrom@sonatype.com");
@@ -111,8 +88,24 @@ public class InsightMailTest
   @Test
   public void testSendHtml_MailNotConfigured() {
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
-      new InsightMail(null /* insightConfig */, eMailerMock).sendHtml("testMailId", "test@example.com", "testSubject",
-          "testBody");
+      insightMail.sendHtml("testMailId", "test@example.com", "testSubject", "testBody");
     }).withMessage("Mail is not configured.");
+  }
+
+  @Test
+  public void testEncryptDecryptPassword() {
+    char[] password = "testPassword".toCharArray();
+    assertThat(insightMail.encryptPassword(password)).isNotEqualTo(password);
+    assertThat(insightMail.decryptPassword(insightMail.encryptPassword(password))).isEqualTo(password);
+  }
+
+  @Test
+  public void testEncryptPassword_Null() {
+    assertThat(insightMail.encryptPassword(null)).isNull();
+  }
+
+  @Test
+  public void testDecryptPassword_Null() {
+    assertThat(insightMail.decryptPassword(null)).isNull();
   }
 }

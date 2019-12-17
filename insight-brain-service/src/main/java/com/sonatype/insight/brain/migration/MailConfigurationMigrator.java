@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -37,15 +38,19 @@ public class MailConfigurationMigrator
 
   private final InsightConfig insightConfig;
 
+  private final InsightMail insightMail;
+
   @Inject
   public MailConfigurationMigrator(
       MigrationTrackerDAO migrationTrackerDAO,
       MailConfigurationDAO mailConfigurationDAO,
-      InsightConfig insightConfig)
+      InsightConfig insightConfig,
+      InsightMail insightMail)
   {
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.mailConfigurationDAO = mailConfigurationDAO;
     this.insightConfig = insightConfig;
+    this.insightMail = insightMail;
   }
 
   void migrate() {
@@ -70,7 +75,10 @@ public class MailConfigurationMigrator
       dbConfig.setHostname(fileConfig.getHostname());
       dbConfig.setPort(fileConfig.getPort());
       dbConfig.setUsername(fileConfig.getUsername());
-      dbConfig.setPassword(fileConfig.getPassword());
+      if (fileConfig.getPassword() != null) {
+        dbConfig.setPassword(insightMail.encryptPassword(fileConfig.getPassword()));
+        fileConfig.clearPassword();
+      }
       dbConfig.setSslEnabled(fileConfig.isSsl());
       dbConfig.setStartTlsEnabled(fileConfig.isTls());
       dbConfig.setSystemEmail(fileConfig.getSystemEmail());

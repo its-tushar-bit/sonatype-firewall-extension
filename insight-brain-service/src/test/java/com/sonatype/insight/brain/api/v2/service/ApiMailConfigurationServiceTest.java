@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Arrays;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiMailConfigurationDTO;
@@ -39,7 +41,7 @@ public class ApiMailConfigurationServiceTest
     mailConfiguration.setHostname("servtest");
     mailConfiguration.setPort(58285);
     mailConfiguration.setUsername("smtpuser");
-    mailConfiguration.setPassword("smtppass");
+    mailConfiguration.setPassword(insightMail.encryptPassword("smtppass".toCharArray()));
     mailConfiguration.setSslEnabled(true);
     mailConfiguration.setSystemEmail("nxiq@test");
     mailConfigurationDAO.set(mailConfiguration);
@@ -64,11 +66,46 @@ public class ApiMailConfigurationServiceTest
   @Test
   public void testSetConfiguration() {
     mailConfigurationDAO.delete();
+    char[] password = "smtppass".toCharArray();
     ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
     configurationDTO.hostname = "servtest";
     configurationDTO.port = 58285;
     configurationDTO.username = "smtpuser";
-    configurationDTO.password = "smtppass";
+    configurationDTO.password = Arrays.copyOf(password, password.length);
+    configurationDTO.sslEnabled = true;
+    configurationDTO.systemEmail = "nxiq@test";
+
+    mailConfigurationService.setConfiguration(configurationDTO);
+
+    assertThat(configurationDTO.password).containsOnly('0');
+
+    MailConfiguration mailConfiguration = mailConfigurationDAO.get();
+    assertThat(mailConfiguration.getHostname()).isEqualTo(configurationDTO.hostname);
+    assertThat(mailConfiguration.getPort()).isEqualTo(configurationDTO.port);
+    assertThat(mailConfiguration.getUsername()).isEqualTo(configurationDTO.username);
+    assertThat(insightMail.decryptPassword(mailConfiguration.getPassword())).isEqualTo(password);
+    assertThat(mailConfiguration.isSslEnabled()).isEqualTo(configurationDTO.sslEnabled);
+    assertThat(mailConfiguration.isStartTlsEnabled()).isEqualTo(configurationDTO.startTlsEnabled);
+    assertThat(mailConfiguration.getSystemEmail()).isEqualTo(configurationDTO.systemEmail);
+
+    InsightMailer insightMailer = insightMail.getInsightMailer();
+    assertThat(insightMailer.getHostname()).isEqualTo("servtest");
+    assertThat(insightMailer.getPort()).isEqualTo(58285);
+    assertThat(insightMailer.getUsername()).isEqualTo("smtpuser");
+    assertThat(insightMailer.isSsl()).isTrue();
+    assertThat(insightMailer.isTls()).isFalse();
+    assertThat(insightMailer.getSystemEmail()).isEqualTo("nxiq@test");
+    assertThat(insightMailer.getSystemPersonal()).isEqualTo("Nexus IQ Server");
+  }
+
+  @Test
+  public void testSetConfiguration_NullPassword() {
+    mailConfigurationDAO.delete();
+    ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
+    configurationDTO.hostname = "servtest";
+    configurationDTO.port = 58285;
+    configurationDTO.username = "smtpuser";
+    configurationDTO.password = null;
     configurationDTO.sslEnabled = true;
     configurationDTO.systemEmail = "nxiq@test";
 
@@ -78,7 +115,7 @@ public class ApiMailConfigurationServiceTest
     assertThat(mailConfiguration.getHostname()).isEqualTo(configurationDTO.hostname);
     assertThat(mailConfiguration.getPort()).isEqualTo(configurationDTO.port);
     assertThat(mailConfiguration.getUsername()).isEqualTo(configurationDTO.username);
-    assertThat(mailConfiguration.getPassword()).isEqualTo(configurationDTO.password);
+    assertThat(mailConfiguration.getPassword()).isNull();
     assertThat(mailConfiguration.isSslEnabled()).isEqualTo(configurationDTO.sslEnabled);
     assertThat(mailConfiguration.isStartTlsEnabled()).isEqualTo(configurationDTO.startTlsEnabled);
     assertThat(mailConfiguration.getSystemEmail()).isEqualTo(configurationDTO.systemEmail);
@@ -87,7 +124,6 @@ public class ApiMailConfigurationServiceTest
     assertThat(insightMailer.getHostname()).isEqualTo("servtest");
     assertThat(insightMailer.getPort()).isEqualTo(58285);
     assertThat(insightMailer.getUsername()).isEqualTo("smtpuser");
-    assertThat(insightMailer.getPassword()).isEqualTo("smtppass");
     assertThat(insightMailer.isSsl()).isTrue();
     assertThat(insightMailer.isTls()).isFalse();
     assertThat(insightMailer.getSystemEmail()).isEqualTo("nxiq@test");
@@ -96,11 +132,12 @@ public class ApiMailConfigurationServiceTest
 
   @Test
   public void testSetConfiguration_RetainUnchangedPassword() {
+    char[] encryptedPassword = insightMail.encryptPassword("smtppass".toCharArray());
     MailConfiguration mailConfiguration = new MailConfiguration();
     mailConfiguration.setHostname("test");
     mailConfiguration.setPort(1);
     mailConfiguration.setUsername("testuser");
-    mailConfiguration.setPassword("smtppass");
+    mailConfiguration.setPassword(encryptedPassword);
     mailConfiguration.setSystemEmail("void@test");
     mailConfigurationDAO.set(mailConfiguration);
 
@@ -118,7 +155,7 @@ public class ApiMailConfigurationServiceTest
     assertThat(mailConfiguration.getHostname()).isEqualTo(configurationDTO.hostname);
     assertThat(mailConfiguration.getPort()).isEqualTo(configurationDTO.port);
     assertThat(mailConfiguration.getUsername()).isEqualTo(configurationDTO.username);
-    assertThat(mailConfiguration.getPassword()).isEqualTo("smtppass");
+    assertThat(mailConfiguration.getPassword()).isEqualTo(encryptedPassword);
     assertThat(mailConfiguration.isSslEnabled()).isEqualTo(configurationDTO.sslEnabled);
     assertThat(mailConfiguration.isStartTlsEnabled()).isEqualTo(configurationDTO.startTlsEnabled);
     assertThat(mailConfiguration.getSystemEmail()).isEqualTo(configurationDTO.systemEmail);

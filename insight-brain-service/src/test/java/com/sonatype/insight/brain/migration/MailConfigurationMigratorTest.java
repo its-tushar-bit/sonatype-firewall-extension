@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.migration;
 
+import java.util.Arrays;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
@@ -13,6 +15,7 @@ import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.test.LogOutput;
 
 import org.junit.After;
@@ -36,6 +39,9 @@ public class MailConfigurationMigratorTest
 
   @Inject
   private InsightConfig insightConfig;
+
+  @Inject
+  private InsightMail insightMail;
 
   @Rule
   public LogOutput logOutput = new LogOutput(MailConfigurationMigrator.class);
@@ -78,11 +84,40 @@ public class MailConfigurationMigratorTest
 
   @Test
   public void testMigrate_FirstRun_CustomConfig() {
+    char[] password = "testpass".toCharArray();
     MailConfigurationMigrator.MailConfig fileConfig = new MailConfigurationMigrator.MailConfig();
     fileConfig.setHostname("testhost");
     fileConfig.setPort(12345);
     fileConfig.setUsername("testuser");
-    fileConfig.setPassword("testpass");
+    fileConfig.setPassword(Arrays.copyOf(password, password.length));
+    fileConfig.setSsl(true);
+    fileConfig.setSystemEmail("nxiq@localhost");
+    insightConfig.setMailConfig(fileConfig);
+
+    mailConfigurationMigrator.migrate();
+
+    assertThat(fileConfig.getPassword()).containsOnly('0');
+
+    MailConfiguration dbConfig = mailConfigurationDAO.get();
+    assertThat(dbConfig).isNotNull();
+    assertThat(dbConfig.getHostname()).isEqualTo(fileConfig.getHostname());
+    assertThat(dbConfig.getPort()).isEqualTo(fileConfig.getPort());
+    assertThat(dbConfig.getUsername()).isEqualTo(fileConfig.getUsername());
+    assertThat(insightMail.decryptPassword(dbConfig.getPassword())).isEqualTo(password);
+    assertThat(dbConfig.isSslEnabled()).isEqualTo(fileConfig.isSsl());
+    assertThat(dbConfig.isStartTlsEnabled()).isEqualTo(fileConfig.isTls());
+    assertThat(dbConfig.getSystemEmail()).isEqualTo(fileConfig.getSystemEmail());
+
+    assertThat(logOutput).atWarnLevel().contains(MailConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
+  }
+
+  @Test
+  public void testMigrate_FirstRun_CustomConfig_NoPassword() {
+    MailConfigurationMigrator.MailConfig fileConfig = new MailConfigurationMigrator.MailConfig();
+    fileConfig.setHostname("testhost");
+    fileConfig.setPort(12345);
+    fileConfig.setUsername("testuser");
+    fileConfig.setPassword(null);
     fileConfig.setSsl(true);
     fileConfig.setSystemEmail("nxiq@localhost");
     insightConfig.setMailConfig(fileConfig);
@@ -94,7 +129,7 @@ public class MailConfigurationMigratorTest
     assertThat(dbConfig.getHostname()).isEqualTo(fileConfig.getHostname());
     assertThat(dbConfig.getPort()).isEqualTo(fileConfig.getPort());
     assertThat(dbConfig.getUsername()).isEqualTo(fileConfig.getUsername());
-    assertThat(dbConfig.getPassword()).isEqualTo(fileConfig.getPassword());
+    assertThat(dbConfig.getPassword()).isNull();
     assertThat(dbConfig.isSslEnabled()).isEqualTo(fileConfig.isSsl());
     assertThat(dbConfig.isStartTlsEnabled()).isEqualTo(fileConfig.isTls());
     assertThat(dbConfig.getSystemEmail()).isEqualTo(fileConfig.getSystemEmail());
@@ -108,7 +143,7 @@ public class MailConfigurationMigratorTest
     currentConfig.setHostname("testhost");
     currentConfig.setPort(12345);
     currentConfig.setUsername("testuser");
-    currentConfig.setPassword("testpass");
+    currentConfig.setPassword("testpass".toCharArray());
     currentConfig.setSslEnabled(true);
     currentConfig.setSystemEmail("nxiq@localhost");
     mailConfigurationDAO.set(currentConfig);
@@ -118,7 +153,7 @@ public class MailConfigurationMigratorTest
     fileConfig.setHostname("ignored");
     fileConfig.setPort(0);
     fileConfig.setUsername("ignored");
-    fileConfig.setPassword("ignored");
+    fileConfig.setPassword("ignored".toCharArray());
     fileConfig.setSsl(false);
     fileConfig.setTls(true);
     fileConfig.setSystemEmail("ignored");
@@ -145,7 +180,7 @@ public class MailConfigurationMigratorTest
     currentConfig.setHostname("testhost");
     currentConfig.setPort(12345);
     currentConfig.setUsername("testuser");
-    currentConfig.setPassword("testpass");
+    currentConfig.setPassword("testpass".toCharArray());
     currentConfig.setSslEnabled(true);
     currentConfig.setSystemEmail("nxiq@localhost");
     mailConfigurationDAO.set(currentConfig);

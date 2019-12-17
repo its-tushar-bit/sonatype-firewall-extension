@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Arrays;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -24,7 +26,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 @Named
 public class ApiMailConfigurationService
 {
-  static final String FAKE_PASSWORD = "#~FAKE~PASSWORD~#";
+  public static final char[] FAKE_PASSWORD = "#~FAKE~PASSWORD~#".toCharArray();
 
   private final MailConfigurationDAO mailConfigurationDAO;
 
@@ -72,8 +74,14 @@ public class ApiMailConfigurationService
     mailConfiguration.setHostname(configurationDTO.hostname);
     mailConfiguration.setPort(configurationDTO.port);
     mailConfiguration.setUsername(configurationDTO.username);
-    if (!FAKE_PASSWORD.equals(configurationDTO.password)) {
-      mailConfiguration.setPassword(configurationDTO.password);
+    if (!Arrays.equals(FAKE_PASSWORD, configurationDTO.password)) {
+      if (configurationDTO.password != null) {
+        mailConfiguration.setPassword(insightMail.encryptPassword(configurationDTO.password));
+        Arrays.fill(configurationDTO.password, '0');
+      }
+      else {
+        mailConfiguration.setPassword(null);
+      }
     }
     mailConfiguration.setSslEnabled(configurationDTO.sslEnabled);
     mailConfiguration.setStartTlsEnabled(configurationDTO.startTlsEnabled);

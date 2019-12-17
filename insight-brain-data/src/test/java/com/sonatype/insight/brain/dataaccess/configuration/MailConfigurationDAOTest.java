@@ -36,7 +36,7 @@ public class MailConfigurationDAOTest
     config.setHostname("testhost");
     config.setPort(12345);
     config.setUsername("testuser");
-    config.setPassword("testpass");
+    config.setPassword("testpass".toCharArray());
     config.setSystemEmail("test@localhost");
     config.setSslEnabled(true);
 
@@ -47,12 +47,12 @@ public class MailConfigurationDAOTest
     assertThat(config.getHostname()).isEqualTo("testhost");
     assertThat(config.getPort()).isEqualTo(12345);
     assertThat(config.getUsername()).isEqualTo("testuser");
-    assertThat(config.getPassword()).isEqualTo("testpass");
+    assertThat(config.getPassword()).isEqualTo("testpass".toCharArray());
     assertThat(config.isSslEnabled()).isEqualTo(true);
     assertThat(config.isStartTlsEnabled()).isEqualTo(false);
     assertThat(config.getSystemEmail()).isEqualTo("test@localhost");
 
-    config.setPassword("secret");
+    config.setPassword("secret".toCharArray());
     config.setPort(54321);
     config.setStartTlsEnabled(true);
     dao.set(config);
@@ -62,7 +62,7 @@ public class MailConfigurationDAOTest
     assertThat(config.getHostname()).isEqualTo("testhost");
     assertThat(config.getPort()).isEqualTo(54321);
     assertThat(config.getUsername()).isEqualTo("testuser");
-    assertThat(config.getPassword()).isEqualTo("secret");
+    assertThat(config.getPassword()).isEqualTo("secret".toCharArray());
     assertThat(config.isSslEnabled()).isEqualTo(true);
     assertThat(config.isStartTlsEnabled()).isEqualTo(true);
     assertThat(config.getSystemEmail()).isEqualTo("test@localhost");

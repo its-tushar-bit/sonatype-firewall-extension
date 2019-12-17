@@ -32,8 +32,6 @@ public class InsightMailer
 
   private final String username;
 
-  private final String password;
-
   private final String systemPersonal;
 
   private final String systemEmail;
@@ -51,23 +49,24 @@ public class InsightMailer
     this.ssl = mailConfig.isSsl();
     this.tls = mailConfig.isTls();
     this.username = mailConfig.getUsername();
-    this.password = mailConfig.getPassword();
     this.systemEmail = mailConfig.getSystemEmail();
     this.systemPersonal = mailConfig.getSystemPersonal();
-    this.mailer.configure(getEmailConfiguration());
+    this.mailer.configure(getEmailConfiguration(mailConfig));
   }
 
-  private EmailerConfiguration getEmailConfiguration() {
+  private EmailerConfiguration getEmailConfiguration(MailConfig mailConfig) {
     EmailerConfiguration config = new EmailerConfiguration();
-    config.setMailHost(getHostname());
-    config.setSendMails(!isDisableSend());
-    config.setDebug(isDebug());
+    config.setMailHost(mailConfig.getHostname());
+    config.setSendMails(!mailConfig.isDisableSend());
+    config.setDebug(mailConfig.isDebug());
     // CLM-8443 SSL must be set before the port else it may override the port (i.e. if true it changes port 25 to 465)
-    config.setSsl(isSsl());
-    config.setMailPort(getPort());
-    config.setTls(isTls());
-    config.setUsername(getUsername());
-    config.setPassword(getPassword());
+    config.setSsl(mailConfig.isSsl());
+    config.setMailPort(mailConfig.getPort());
+    config.setTls(mailConfig.isTls());
+    config.setUsername(mailConfig.getUsername());
+    if (mailConfig.getPassword() != null) {
+      config.setPassword(String.valueOf(mailConfig.getPassword()));
+    }
     return config;
   }
 
@@ -113,10 +112,6 @@ public class InsightMailer
 
   public String getUsername() {
     return username;
-  }
-
-  public String getPassword() {
-    return password;
   }
 
   public String getSystemPersonal() {

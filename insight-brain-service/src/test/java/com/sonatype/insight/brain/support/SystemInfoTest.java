@@ -561,7 +561,7 @@ public class SystemInfoTest
     mailConfiguration.setHostname("testHostname");
     mailConfiguration.setPort(4567);
     mailConfiguration.setUsername("testUsername");
-    mailConfiguration.setPassword("testPassword");
+    mailConfiguration.setPassword("testPassword".toCharArray());
     mailConfiguration.setSslEnabled(true);
     mailConfiguration.setStartTlsEnabled(true);
     mailConfiguration.setSystemEmail("test@example.com");
@@ -574,7 +574,7 @@ public class SystemInfoTest
     assertThat(mailConfiguration.getHostname()).isEqualTo("testHostname");
     assertThat(mailConfiguration.getPort()).isEqualTo(4567);
     assertThat(mailConfiguration.getUsername()).isEqualTo("testUsername");
-    assertThat(mailConfiguration.getPassword()).isEqualTo(SystemInfo.MASK);
+    assertThat(mailConfiguration.getPassword()).isEqualTo(SystemInfo.MASK.toCharArray());
     assertThat(mailConfiguration.isSslEnabled()).isTrue();
     assertThat(mailConfiguration.isStartTlsEnabled()).isTrue();
     assertThat(mailConfiguration.getSystemEmail()).isEqualTo("test@example.com");

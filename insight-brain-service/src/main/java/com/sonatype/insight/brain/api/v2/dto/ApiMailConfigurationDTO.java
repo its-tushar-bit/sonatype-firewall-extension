@@ -16,7 +16,7 @@ public class ApiMailConfigurationDTO
 
   public String username;
 
-  public String password;
+  public char[] password;
 
   public boolean sslEnabled;
 

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -40,5 +41,5 @@ public class ApiStaleWaiverDTO
   public boolean isObsolete;
 
   @JsonInclude(Include.NON_EMPTY)
-  public List<ApiConstraintFactDTO> constraintFacts;
+  public List<ApiConstraintFactDTO> constraintFacts = new ArrayList<>();
 }

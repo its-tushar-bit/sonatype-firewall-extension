@@ -41,7 +41,7 @@ public class ApiStaleWaiversReportingResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Audited(AuditEvent.VIEW_COMPONENTS_WITH_WAIVERS)
+  @Audited(AuditEvent.VIEW_STALE_WAIVERS)
   public ApiStaleWaiversResponseDTO getStaleWaivers() {
     ApiStaleWaiversResponseDTO staleWaiversResponseDTO = new ApiStaleWaiversResponseDTO();
     staleWaiversResponseDTO.staleWaivers = staleWaiverService.getStaleWaivers();

@@ -21,6 +21,7 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintFactDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStaleWaiverDTO;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dashboard.PolicyViolationState;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -69,6 +70,8 @@ public class ApiStaleWaiverService
 
   private final PolicyViolationLoader policyViolationLoader;
 
+  private static final String STALE_WAIVERS_AUDIT_KEY = "numberOfStaleWaivers";
+
   @Inject
   public ApiStaleWaiverService(OwnerDAO ownerDAO,
       PolicyDAO policyDAO,
@@ -106,6 +109,8 @@ public class ApiStaleWaiverService
       ApiStaleWaiverDTO policyWaiverDTO = createApiStaleWaiverDTO(policyIdToNameMap, policyWaiver);
       staleWaiverDTOs.add(policyWaiverDTO);
     }
+
+    AuditData.get().setData(STALE_WAIVERS_AUDIT_KEY, staleWaiverDTOs.size());
 
     return staleWaiverDTOs;
   }

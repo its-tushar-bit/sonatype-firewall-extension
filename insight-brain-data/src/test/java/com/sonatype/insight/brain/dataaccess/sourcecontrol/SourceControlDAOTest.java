@@ -381,8 +381,8 @@ public class SourceControlDAOTest
     sourceControlDAO.insert(buildOrgSourceControl(org.getId(), null));
 
     Assertions.assertThat(sourceControlDAO.getByApplication())
-        .hasSize(3)
-        .containsExactlyInAnyOrder(scApp1, scApp2, scApp3);
+        .hasSize(3).extracting(SourceControl::getId)
+        .containsExactlyInAnyOrder(scApp1.getId(), scApp2.getId(), scApp3.getId());
   }
 
   @Test
@@ -424,8 +424,9 @@ public class SourceControlDAOTest
     sourceControlDAO.insert(buildAppSourceControlAndApp(org, 4, false));
 
     Collection<SourceControl> enabledApplications = sourceControlDAO.getApplicationsWithPullReqsEnabled();
-    Assertions.assertThat(enabledApplications)
-        .containsExactlyInAnyOrder(scExplicitlyEnabled, scDefault, scEnabledAtAppDisabledAtOrg, scDefaultAppDefaultOrg);
+    Assertions.assertThat(enabledApplications).extracting(SourceControl::getId).containsExactlyInAnyOrder(
+        scExplicitlyEnabled.getId(), scDefault.getId(), scEnabledAtAppDisabledAtOrg.getId(),
+        scDefaultAppDefaultOrg.getId());
   }
 
   @Test
@@ -460,9 +461,10 @@ public class SourceControlDAOTest
     sourceControlDAO.insert(scDefaultAppDisabledOrg);
 
     Collection<SourceControl> enabledApplications = sourceControlDAO.getApplicationsWithPullReqsEnabled();
-    Assertions.assertThat(enabledApplications)
+    Assertions.assertThat(enabledApplications).extracting(SourceControl::getId)
         .hasSize(3)
-        .containsExactlyInAnyOrder(scEnabledAtAppDisabledAtOrg, scEnabledAtOrg, scDefaultAppDefaultOrg);
+        .containsExactlyInAnyOrder(scEnabledAtAppDisabledAtOrg.getId(), scEnabledAtOrg.getId(),
+            scDefaultAppDefaultOrg.getId());
   }
 
   private SourceControl buildAppSourceControlAndApp(Organization organization,

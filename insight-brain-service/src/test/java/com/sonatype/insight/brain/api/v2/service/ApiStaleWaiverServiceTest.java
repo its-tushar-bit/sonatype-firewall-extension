@@ -201,7 +201,6 @@ public class ApiStaleWaiverServiceTest
     assertThat(staleWaiver.scopeOwnerId).isEqualTo(policyWaiver.getOwnerId());
     assertThat(staleWaiver.scopeOwnerName).isEqualTo(ownerName);
     assertThat(staleWaiver.scopeOwnerType).isEqualTo(ownerType);
-    assertThat(staleWaiver.isObsolete).isTrue();
 
     if (hasConstraintFacts) {
       assertThat(staleWaiver.constraintFacts).hasSize(1);
@@ -364,7 +363,6 @@ public class ApiStaleWaiverServiceTest
     assertThat(policyWaiverDTO.policyName).isEqualTo(expectedPolicy.getName());
     assertThat(policyWaiverDTO.comment).isEqualTo(expectedWaiver.getComment());
     assertThat(policyWaiverDTO.createTime).isEqualTo(expectedWaiver.getCreateTime());
-    assertThat(policyWaiverDTO.isObsolete).isEqualTo(true);
     assertThat(policyWaiverDTO.scopeOwnerType).isEqualTo(expectedOwnerType);
     assertThat(policyWaiverDTO.scopeOwnerId).isEqualTo(expectedOwnerId);
     assertThat(policyWaiverDTO.scopeOwnerName).isEqualTo(expectedOwnerName);

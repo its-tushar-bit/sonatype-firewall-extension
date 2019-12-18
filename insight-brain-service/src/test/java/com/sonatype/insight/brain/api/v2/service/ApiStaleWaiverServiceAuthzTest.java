@@ -68,7 +68,6 @@ public class ApiStaleWaiverServiceAuthzTest
     assertThat(policyWaiver.waiverId).isEqualTo(repo1PolicyWaiver.getId());
     assertThat(policyWaiver.comment).isEqualTo(repo1PolicyWaiver.getComment());
     assertThat(policyWaiver.createTime).isEqualTo(repo1PolicyWaiver.getCreateTime());
-    assertThat(policyWaiver.isObsolete).isEqualTo(true);
   }
 
   @Test
@@ -154,7 +153,6 @@ public class ApiStaleWaiverServiceAuthzTest
     assertThat(policyWaiver.waiverId).isEqualTo(app1PolicyWaiver.getId());
     assertThat(policyWaiver.comment).isEqualTo(app1PolicyWaiver.getComment());
     assertThat(policyWaiver.createTime).isEqualTo(app1PolicyWaiver.getCreateTime());
-    assertThat(policyWaiver.isObsolete).isEqualTo(true);
   }
 
   @Test

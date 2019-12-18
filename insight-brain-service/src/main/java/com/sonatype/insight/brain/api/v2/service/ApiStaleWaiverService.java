@@ -152,7 +152,6 @@ public class ApiStaleWaiverService
     policyWaiverDTO.policyName = policyIdToNameMap.get(policyWaiver.getPolicyId());
     policyWaiverDTO.createTime = policyWaiver.getCreateTime();
     policyWaiverDTO.comment = policyWaiver.getComment();
-    policyWaiverDTO.isObsolete = true;
 
     List<ConstraintFact> constraintFacts = policyWaiver.getConstraintFacts();
     // older/legacy policy waivers do not have constraint facts

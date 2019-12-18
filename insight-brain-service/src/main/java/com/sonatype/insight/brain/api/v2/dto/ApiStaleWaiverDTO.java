@@ -38,8 +38,6 @@ public class ApiStaleWaiverDTO
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
   public Date createTime;
 
-  public boolean isObsolete;
-
   @JsonInclude(Include.NON_EMPTY)
   public List<ApiConstraintFactDTO> constraintFacts = new ArrayList<>();
 }

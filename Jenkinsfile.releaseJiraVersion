@@ -32,4 +32,9 @@ pipeline {
       }
     }
   }
+  post {
+    success {
+      slackSend color: 'good', channel: '#iq', message: "@lifecycle-pm IQ server release ${params.releaseVersion} is available, please send the notification to the clm-announcements list."
+    }
+  }
 }

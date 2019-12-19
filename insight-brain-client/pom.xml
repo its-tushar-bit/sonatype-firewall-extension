@@ -16,15 +16,6 @@
   <artifactId>insight-brain-client</artifactId>
   <name>Insight Brain Client</name>
 
-  <properties>
-    <!-- Some plugins consuming insight-brain-client must still support 1.7 -->
-    <!-- Remove the org.awaitility:awaitility version override when moving to Java 8 -->
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
-    <animal-sniffer-signature>java17</animal-sniffer-signature>
-    <animal-sniffer-signature-version>1.0</animal-sniffer-signature-version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -122,7 +113,6 @@
     <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
-      <version>3.1.6</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

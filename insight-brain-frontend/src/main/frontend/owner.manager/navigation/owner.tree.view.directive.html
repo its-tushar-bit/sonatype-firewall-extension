@@ -4,11 +4,11 @@
   </div>
   <div load-wrapper="vm.error" loading="!vm.organizations" reload="vm.doLoad()">
     <div class="iq-owner-tree-view__filter search input-prepend">
-            <span class="add-on">
-              <i role="button" class="fa fa-filter"
-                 ng-class="{ 'fa-filter': !vm.filter.value, 'fa-times': vm.filter.value }"
-                 ng-click="vm.filter.value = ''"></i>
-            </span>
+      <span class="add-on">
+        <i role="button" class="fa fa-filter"
+           ng-class="{ 'fa-filter': !vm.filter.value, 'fa-times': vm.filter.value }"
+           ng-click="vm.filter.value = ''"></i>
+      </span>
       <input type="text" ng-model="vm.filter.value" autocomplete="off" placeholder="App or Org Name">
     </div>
     <h4 ng-if="vm.filter.value && vm.filter.value.length >= 3">

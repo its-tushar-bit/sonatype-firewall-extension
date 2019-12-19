@@ -61,11 +61,11 @@ public class SamlConfigurationPageTest
     SamlConfigurationPage.validateResponseSignatureDropdown().selectedItem().shouldBe(text("Default"));
     SamlConfigurationPage.validateAssertionSignatureDropdown().selectedItem().shouldBe(text("Default"));
 
+    SamlConfigurationPage.scrollToBottom();
     SamlConfigurationPage.entityId().shouldHave(value(rootUriBuilder().build() + "api/v2/config/saml/metadata"));
 
     SamlConfigurationPage.usernameAttribute().shouldBe(value("username"));
     SamlConfigurationPage.firstNameAttribute().shouldBe(value("firstName"));
-    SamlConfigurationPage.scrollToBottom();
     eyesWatcher.eyesCheck("saml configuration editor bottom");
     SamlConfigurationPage.lastNameAttribute().shouldBe(value("lastName"));
     SamlConfigurationPage.emailAttribute().shouldBe(value("email"));
@@ -101,13 +101,13 @@ public class SamlConfigurationPageTest
     SamlConfigurationPage.entityId().click();
     SamlConfigurationPage.identityProviderName().shouldBe(value("identity provider"));
 
+    SamlConfigurationPage.scrollToBottom();
     String defaultEntityId = rootUriBuilder().build() + "api/v2/config/saml/metadata";
     SamlConfigurationPage.entityId().hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"" + defaultEntityId + "\""));
     SamlConfigurationPage.entityId().clear();
     SamlConfigurationPage.usernameAttribute().click();
     SamlConfigurationPage.entityId().shouldBe(value(defaultEntityId));
-
     SamlConfigurationPage.usernameAttribute().hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"username\""));
     SamlConfigurationPage.usernameAttribute().clear();
@@ -149,13 +149,13 @@ public class SamlConfigurationPageTest
         "com/sonatype/clm/testing/functional/brain/SamlConfigurationTest/identity-provider-metadata.xml");
     SamlConfigurationPage.validateResponseSignatureDropdown().chooseOption(new Option(1, "True"));
     SamlConfigurationPage.validateAssertionSignatureDropdown().chooseOption(new Option(2, "False"));
+    SamlConfigurationPage.scrollToBottom();
     SamlConfigurationPage.entityId().clear();
     SamlConfigurationPage.entityId().sendKeys("http://my-iq-server/entity-id");
     SamlConfigurationPage.usernameAttribute().clear();
     SamlConfigurationPage.usernameAttribute().sendKeys("my-user-name");
     SamlConfigurationPage.firstNameAttribute().clear();
     SamlConfigurationPage.firstNameAttribute().sendKeys("my-first-name");
-    SamlConfigurationPage.scrollToBottom();
     SamlConfigurationPage.lastNameAttribute().clear();
     SamlConfigurationPage.lastNameAttribute().sendKeys("my-last-name");
     SamlConfigurationPage.emailAttribute().clear();
@@ -192,13 +192,13 @@ public class SamlConfigurationPageTest
     SamlConfigurationPage.identityProviderName().sendKeys("My Awesome IdP");
     SamlConfigurationPage.validateResponseSignatureDropdown().chooseOption(new Option(2, "False"));
     SamlConfigurationPage.validateAssertionSignatureDropdown().chooseOption(new Option(1, "True"));
+    SamlConfigurationPage.scrollToBottom();
     SamlConfigurationPage.entityId().clear();
     SamlConfigurationPage.entityId().sendKeys("http://my-iq-server/entity-id");
     SamlConfigurationPage.usernameAttribute().clear();
     SamlConfigurationPage.usernameAttribute().sendKeys("my-user-name");
     SamlConfigurationPage.firstNameAttribute().clear();
     SamlConfigurationPage.firstNameAttribute().sendKeys("my-first-name");
-    SamlConfigurationPage.scrollToBottom();
     SamlConfigurationPage.lastNameAttribute().clear();
     SamlConfigurationPage.lastNameAttribute().sendKeys("my-last-name");
     SamlConfigurationPage.emailAttribute().clear();

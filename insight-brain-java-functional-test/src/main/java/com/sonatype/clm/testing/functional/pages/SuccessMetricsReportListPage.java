@@ -43,6 +43,6 @@ public class SuccessMetricsReportListPage
   }
 
   public SelenideElement subheaderDashboardLink() {
-    return child(".iq-tile-header__subtitle a");
+    return child(".nx-page-title__description a");
   }
 }

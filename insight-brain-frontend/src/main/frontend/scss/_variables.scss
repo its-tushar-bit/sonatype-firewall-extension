@@ -8,8 +8,6 @@ $iq-sonatype-orange: #f89100;
 $iq-blue: #3d4e90;
 
 // Colour variables
-$iq-main-background-color: #fff;
-
 $iq-off-black: #070707;
 $iq-slate: #575757;
 $iq-off-white: #fefefe;
@@ -102,9 +100,28 @@ $threat-bars:
   ("unspecified", #FFF, $iq-threat-color-unspecified);
 
 /*
+  #Content color variables
+*/
+$iq-main-background-color: $iq-grey-1;
+$iq-page-background: $iq-grey-1;
+$iq-content-background: $iq-grey-1;
+
+/*
   #Borders
 */
 $iq-grey-border: 1px solid $iq-grey-3;
+
+/*
+  #Margin/Padding widths
+*/
+
+$iq-spacing-xxs: 4px;
+$iq-spacing-xs: 8px;
+$iq-spacing-sm: 12px;
+$iq-spacing-md: 16px;
+$iq-spacing-l: 24px;
+$iq-spacing-xl: 32px;
+$iq-spacing-xxl: 64px;
 
 /*
   #z-indexes

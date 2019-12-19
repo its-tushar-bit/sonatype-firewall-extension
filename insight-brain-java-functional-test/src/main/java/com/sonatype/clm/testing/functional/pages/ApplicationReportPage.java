@@ -39,11 +39,11 @@ public class ApplicationReportPage
   }
 
   public SelenideElement reportTitle() {
-    return child(".iq-tile--application-report .iq-tile-header__title");
+    return child(".nx-page-title .nx-h1");
   }
 
   public SelenideElement reportDate() {
-    return child(".iq-tile--application-report .iq-tile-header__subtitle");
+    return child(".nx-page-title .nx-page-title__description");
   }
 
   public SelenideElement reevaluateButton() {

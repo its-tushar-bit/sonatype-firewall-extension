@@ -1,9 +1,10 @@
 <div>
   <root-organization-migrate></root-organization-migrate>
   <div class="dashboard-summary iq-dashboard-summary">
-    <div class="iq-tile iq-tile--top-tile iq-tile--dashboard">
+    
+    <div class="nx-page-title iq-page-title">
       <form id="export-results-form"
-            class="iq-tile__actions iq-form iq-form--no-border iq-form--no-padding"
+            class="iq-page-title__actions iq-form iq-form--no-border iq-form--no-padding"
             name="export-results"
             action="{{vm.getExportUrl()}}"
             method="post"
@@ -13,13 +14,9 @@
           <i class="fa fa-file-o"></i>Export {{vm.title}} Data
         </button>
       </form>
-      <div class="iq-tile-header">
-        <div class="iq-tile-header__title">
-          <h1>Results</h1>
-        </div>
-      </div>
-      <dashboard-tabs></dashboard-tabs>
+      <h1 class="nx-h1">Results</h1>
     </div>
+    <dashboard-tabs></dashboard-tabs>
   </div>
   <div ui-view></div>
 </div>

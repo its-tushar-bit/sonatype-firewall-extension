@@ -2,6 +2,10 @@
   #Policy Editor
 */
 
+#policy-editor.iq-tile-scroll-container {
+  width: calc(100% - #{$iq-spacing-sm});
+}
+
 // because the form wraps the anchors used by scrollspy we have to zero out padding and margins
 .iq-form--view-edit-policy {
   margin: 0;

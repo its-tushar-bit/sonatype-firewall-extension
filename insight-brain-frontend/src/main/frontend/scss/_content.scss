@@ -6,8 +6,8 @@ html {
 }
 
 body {
-  background-color: $iq-grey-3;
-  color: #333333;
+  background-color: $iq-main-background-color;
+  color: $iq-off-black;
   display: block;
   height: auto;
   overflow-y: hidden; // we want to let the sidebar-container and body-container control the vertical scrolling
@@ -23,7 +23,6 @@ body {
 }
 
 .iq-main-view {
-  background-color: $iq-off-white;
   box-sizing: border-box;
   margin: 0 auto;
   max-width: $iq-page-width-max;
@@ -31,9 +30,7 @@ body {
 }
 
 .iq-sidebar {
-  background-color: $iq-grey-2;
-  border-right: 1px solid $iq-grey-3;
-  border-left: solid 1px $iq-grey-4;
+  background-color: $iq-main-background-color;
   box-sizing: border-box;
   display: inline-block;
   height: 100%;
@@ -43,29 +40,27 @@ body {
   white-space: normal;
   width: $iq-sidebar-width;
   z-index: $iq-sidebar-zindex;
+
+  // box and display properties to handle non-HTML tags like <owner-tree-view>
+  & > :first-child {
+    box-sizing: border-box;
+    display: block;
+    margin-top: 32px;
+  }
 }
 
 .iq-body-container {
-  background: url("../img/tile_bg.png");
-  border-right: solid 1px $iq-grey-4;
+  background-color: $iq-main-background-color;
   box-sizing: border-box;
   display: inline-block;
   height: 100%;
   overflow-x: hidden;
+  margin-top: $iq-spacing-xl;
   vertical-align: top;
   white-space: normal;
   width: $iq-content-width;
-
-  @media only screen and (-moz-min-device-pixel-ratio: 2),
-  only screen and (-webkit-min-device-pixel-ratio: 2),
-  only screen and (min-devicepixel-ratio: 2),
-  only screen and (min-resolution: 2dppx) {
-    background-image: url("../img/tile_bg_@2X.jpg");
-    background-size: 150px 150px;
-  }
 }
 
 .iq-body-container--single-pane {
-  border-left: solid 1px $iq-grey-4;
   width: 100%;
 }

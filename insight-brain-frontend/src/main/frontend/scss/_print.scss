@@ -8,6 +8,7 @@
   }
 
   body {
+    background-color: #fff;
     overflow-y: initial;
     position: static;
   }
@@ -38,12 +39,23 @@
     display: block !important;
   }
 
-  #main-header-buttons, .iq-tile--back-button, .iq-alert, .nx-back-button {
+  #main-header-buttons, .iq-sys-prefs-back-button, .iq-alert, .nx-back-button {
     display: none !important;
   }
 
   .nx-cell--header {
     border-left-style: none !important;
+  }
+
+  #application-report-vulnerabilities {
+    .nx-page-main {
+      padding: 0;
+    }
+
+    .nx-tile {
+      margin-left: 0;
+      margin-right: 0;
+    }
   }
 
   #application-report-vulnerabilities-table {

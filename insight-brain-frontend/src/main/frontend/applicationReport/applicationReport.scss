@@ -11,19 +11,23 @@ $iq-application-report-vulnerability-security-issue-width: 130px;
 $iq-application-report-vulnerability-cvss-issue-width: 100px;
 $iq-application-report-vulnerability-threat-level-width: 62px;
 
-#application-report-sidebar {
-  &.iq-sidebar {
-    padding-top: 12px;
-  }
-}
-
 #application-report {
+  .iq-page-title {
+    margin-right: 12px;
+  }
+
   .iq-body-container {
     overflow-y: hidden;
   }
 
   .iq-spinner__wrapper {
     padding: 8px;
+  }
+}
+
+.iq-dropdown--application-results-options {
+  .iq-dropdown-menu {
+    left: -78px;
   }
 }
 

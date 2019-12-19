@@ -121,7 +121,7 @@ export default function SaveFilterModalContent(props) {
                isChecked={saveMode === SAVE_MODE_OVERWRITE}
                onChange={setSaveMode}
                value={SAVE_MODE_OVERWRITE}
-               isDisabled={appliedFilterName == null}>
+               disabled={appliedFilterName == null}>
         save (overwrite{appliedFilterName ? ' ' + appliedFilterName : ''})
       </NxRadio>
       <NxRadio id="dashboard-filter-save-as"

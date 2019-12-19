@@ -19,19 +19,19 @@ public class OwnerSummaryTile
   }
 
   public SelenideElement name() {
-    return child(".iq-tile-header");
+    return child(".nx-h1");
   }
 
   public SelenideElement publicId() {
-    return child(".iq-tile-header__description");
+    return child(".iq-owner-public-id");
   }
 
   public SelenideElement headerIcon() {
-    return child(".iq-tile-header__icon", "img");
+    return child(".nx-page-title__page-icon", "img");
   }
 
   public SelenideElement contact() {
-    return child(".iq-tile-header__subtitle");
+    return child(".nx-page-title__description");
   }
 
   public ErrorBox error() {

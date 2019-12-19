@@ -1,18 +1,19 @@
 <div class="iq-body-container iq-body-container--single-pane">
   <root-organization-migrate></root-organization-migrate>
     <div class="iq-report-list-container">
+      <div class="nx-page-title iq-page-title">
+        <i class="fa fa-file-text-o nx-icon nx-page-title__page-icon"></i>
+        <h1 class="nx-h1">Reporting</h1>
+      </div>
       <div class="iq-tile iq-tile--report-list-filter">
-        <div class="iq-tile-header">
-          <div class="iq-tile-header__title">
-            <i class="fa fa-file-text-o iq-tile-header__icon"></i>
-            <h1>Reporting</h1>
+        <div class="iq-form-group">
+          <div class="input-prepend">
+            <span class="add-on">
+              <i ng-class="{'icon-search': !vm.appFilter, 'icon-remove': vm.appFilter}" ng-click="vm.appFilter = ''">
+              </i>
+            </span>
+            <input type="text" ng-model="vm.appFilter" autocomplete="off" placeholder="Filter Applications" />
           </div>
-        </div>
-        <div class="input-prepend">
-          <span class="add-on">
-            <i ng-class="{'icon-search': !vm.appFilter, 'icon-remove': vm.appFilter}" ng-click="vm.appFilter = ''"></i>
-          </span>
-          <input type="text" ng-model="vm.appFilter" autocomplete="off" placeholder="Filter Applications" />
         </div>
       </div>
       <div class="iq-tile iq-tile--report-list iq-tile--fixed-table"

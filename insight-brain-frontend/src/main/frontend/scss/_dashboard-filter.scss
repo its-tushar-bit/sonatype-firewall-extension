@@ -1,29 +1,28 @@
 .dashboard-filter-container {
-  $filter-header-height: #{55px + 16px + 1px};
-  $filter-footer-height: #{32px + 12px + 12px + 1px};
+  $filter-header-height: 55px + $iq-spacing-xl + 1px;
+  $filter-footer-height: $iq-spacing-xl + 12px + 12px + 1px;
   $filter-footer-error-height: 100px;
 
   height: 100%;
-  margin: 0;
+  margin: $iq-spacing-xl 0 0 0;
   position: relative;
 
   .dashboard-filter {
     box-sizing: border-box;
-    height: calc(100% - #{$filter-header-height} - #{$filter-footer-height});
+    height: calc(100% - #{$filter-header-height + $filter-footer-height - $iq-spacing-xl});
     overflow-x: visible;
     overflow-y: auto;
     padding: 7px 0 0 8px;
   }
 
   .dashboard-filter.iq-apply-error-present {
-    height: calc(100% - #{$filter-header-height} - #{$filter-footer-error-height + 12px + 12px + 1px});
+    height: calc(100% - #{$filter-header-height} - #{$filter-footer-error-height} + #{$iq-spacing-xl});
   }
 
   .dashboard-filter-footer {
     $footer-side-margin: 8px;
 
     border-top: 1px solid $iq-grey-4;
-    box-shadow: 0px 0px 12px 10px $iq-grey-2;
     margin: 0 $footer-side-margin;
     padding: 12px 0;
     position: relative; // needed for box-shadow to render
@@ -49,9 +48,7 @@
 
 .dashboard-filter-header {
   border-bottom: 1px $iq-grey-4 solid;
-  box-shadow: 3px 7px 6px 3px $iq-grey-2;
   margin: 0px 8px;
-  padding-top: 16px;
   position: relative; // needed for box-shadow to render
   z-index: 1;
 

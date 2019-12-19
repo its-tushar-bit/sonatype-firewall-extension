@@ -72,7 +72,7 @@ describe('SaveFilterModalContent component', function() {
   it('shows the save filter form initially', () => {
     const wrapper = getShallowComponent();
     expect(wrapper.find('.nx-h2 span').text()).toBe('Save Filter');
-    expect(wrapper.find('#dashboard-filter-overwrite')).toHaveProp('isDisabled', true);
+    expect(wrapper.find('#dashboard-filter-overwrite')).toHaveProp('disabled', true);
     expect(wrapper.find('#dashboard-filter-save-as')).toExist();
     expect(wrapper.find('#save-filter-modal-continue-button')).toExist();
     expect(wrapper.find('#save-filter-modal-cancel-button')).toExist();
@@ -81,14 +81,14 @@ describe('SaveFilterModalContent component', function() {
   it('has the overwrite button disabled if there is not an appliedFilter passed in', () => {
     let wrapper = getShallowComponent();
     let overwriteRadioButton = wrapper.find('#dashboard-filter-overwrite');
-    expect(overwriteRadioButton).toHaveProp('isDisabled', true);
+    expect(overwriteRadioButton).toHaveProp('disabled', true);
 
     wrapper = getShallowComponent({
       appliedFilterName: 'filter'
     });
     overwriteRadioButton = wrapper.find('#dashboard-filter-overwrite');
     expect(overwriteRadioButton).toHaveProp('isChecked', true);
-    expect(overwriteRadioButton).toHaveProp('isDisabled', false);
+    expect(overwriteRadioButton).toHaveProp('disabled', false);
   });
 
   it('checks the overwrite radio button and shows the overwrite text if you have an active filter', () => {
@@ -103,7 +103,7 @@ describe('SaveFilterModalContent component', function() {
     const wrapper = getShallowComponent();
     const overwriteRadioButton = wrapper.find('#dashboard-filter-overwrite');
     expect(overwriteRadioButton).toHaveProp('isChecked', false);
-    expect(overwriteRadioButton).toHaveProp('isDisabled', true);
+    expect(overwriteRadioButton).toHaveProp('disabled', true);
 
     expect(wrapper.find('#dashboard-filter-save-as')).toHaveProp('isChecked', true);
     expect(wrapper.find(NxTextInput)).toExist();

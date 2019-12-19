@@ -1,12 +1,10 @@
-<div id="policy-editor-summary" class="iq-tile--summary">
-  <div class="iq-tile iq-tile--top-tile" load-wrapper="vm.loadError" loading="!vm.dirtyPolicy" reload="vm.doLoad()">
-    <div class="iq-tile-header">
-      <div class="iq-tile-header__title iq-tile-header__title--no-actions">
-        <i class="fa fa-university slate iq-tile-header__icon"></i>
-        <h1>
-          {{::vm.dirtyPolicy.id ? (vm.readOnly ? 'View' : 'Edit') : 'New'}} Policy
-        </h1>
-      </div>
+<div id="policy-editor-summary">
+  <div load-wrapper="vm.loadError" loading="!vm.dirtyPolicy" reload="vm.doLoad()">
+    <div class="nx-page-title iq-page-title">
+      <i class="fa fa-university slate nx-page-title__page-icon"></i>
+      <h1 class="nx-h1">
+        {{::vm.dirtyPolicy.id ? (vm.readOnly ? 'View' : 'Edit') : 'New'}} Policy
+      </h1>
     </div>
     <ul class="nav nav-pills iq-nav-pills">
       <li class="active iq-nav-pills__pill">

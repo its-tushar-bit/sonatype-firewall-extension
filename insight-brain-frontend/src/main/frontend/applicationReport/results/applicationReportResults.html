@@ -11,12 +11,12 @@
       to access the previous look and feel of the Application Report.
     </div>
   </div>
-  <div class="iq-tile iq-tile--top-tile iq-tile--application-report">
-    <div class="iq-tile__actions">
+  <div class="nx-page-title iq-page-title">
+    <div class="iq-page-title__actions">
       <button id="reevaluate-button" class="iq-btn iq-btn--tertiary" ng-click="vm.reevaluateReport()">
         <i class="fa fa-refresh fa-fw"/>Re-Evaluate Report
       </button>
-      <div class="iq-dropdown dropdown" id="options-dropdown">
+      <div class="iq-dropdown dropdown iq-dropdown--application-results-options" id="options-dropdown">
         <button class="btn dropdown-toggle btn-tertiary" type="button" id="options-menu" data-toggle="dropdown">
           Options <span class="caret"></span>
         </button>
@@ -46,15 +46,13 @@
         </div>
       </div>
     </div>
-    <div class="iq-tile-header">
-      <div class="iq-tile-header__title">
-        <i class="fa fa-file-text-o slate iq-tile-header__icon"></i>
-        <h1>{{vm.metadata.application.name}} {{vm.metadata.reportTitle}}</h1>
-      </div>
-      <div class="iq-tile-header__subtitle visual-testing-ignore">
-        {{vm.metadata.reportTime | date: 'yyyy-MM-dd HH:mm:ss UTCZ'}}
-      </div>
+    <i class="fa fa-file-text-o slate nx-page-title__page-icon"></i>
+    <h1 class="nx-h1">{{vm.metadata.application.name}} {{vm.metadata.reportTitle}}</h1>
+    <div class="nx-page-title__description visual-testing-ignore">
+      {{vm.metadata.reportTime | date: 'yyyy-MM-dd HH:mm:ss UTCZ'}}
     </div>
+  </div>
+  <div class="iq-tile iq-tile--application-report">
     <div class="iq-tile-content iq-tile-content--indicators">
       <div class="iq-indicator-row">
         <div class="iq-threat-indicators">

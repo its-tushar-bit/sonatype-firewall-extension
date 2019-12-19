@@ -1,5 +1,9 @@
 @import "productLicenseSummary/productLicenseSummary";
 
+.iq-scrollable--getting-started {
+  max-height: 100%;
+}
+
 .iq-icon--getting-started-reference {
   background-color: $iq-off-black;
   display: inline-block;

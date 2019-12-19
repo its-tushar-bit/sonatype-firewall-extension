@@ -9,6 +9,11 @@ $iq-cell-affected-apps-width: 109px;
 .iq-sidebar--dashboard {
   // for the Manage Filter dropdown
   overflow-x: visible;
+
+  // setting display: block on the first item breaks the filter footer stickyness
+  & > :first-child {
+    height: calc(100% - #{$iq-spacing-xl});
+  }
 }
 
 .iq-tile--dashboard-table-container {
@@ -34,6 +39,17 @@ $iq-cell-affected-apps-width: 109px;
     margin: 8px 0;
     text-align: left;
   }
+}
+
+.iq-tab-bar--dashboard {
+  background: $iq-off-white;
+  border: none;
+  margin-top: $iq-spacing-xs;
+  margin-right: $iq-spacing-sm;
+  margin-left: $iq-spacing-sm;
+  padding-top: $iq-spacing-xs;
+  padding-right: $iq-spacing-xs;
+  padding-left: $iq-spacing-xs;
 }
 
 .iq-tab {
@@ -87,8 +103,6 @@ $iq-cell-affected-apps-width: 109px;
   @include semi-bold();
 
   background-color: #fff;
-  border-right: 1px solid $iq-grey-2;
-  border-left: 1px solid $iq-grey-2;
   box-shadow: 0px 2px 5px 0px $iq-grey-1;
   display: block;
   font-size: 14px;
@@ -97,7 +111,7 @@ $iq-cell-affected-apps-width: 109px;
   top: 0;
   left: 0;
   text-transform: uppercase;
-  width: calc(100% - 2px);
+  width: 100%;
   z-index: $iq-dashboard-headers-zindex;
 
   .iq-table-row {
@@ -545,6 +559,10 @@ tbody {
 .iq-dashboard-summary {
   position: relative;
   z-index: $iq-dashboard-summary-zindex;
+
+  .iq-page-title__actions {
+    margin-right: $iq-spacing-md;
+  }
 }
 
 .dashboard-tooltip {

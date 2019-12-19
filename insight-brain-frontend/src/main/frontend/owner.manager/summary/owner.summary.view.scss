@@ -2,16 +2,26 @@
   Owner Summary View
  */
 
-.iq-tile-scroll-container--owner-summary-view {
-  .iq-tile {
-    margin: 0 0 8px 0;
-  }
-
-  .iq-tile__actions {
-    margin-top: 0;
+.nx-page-title__page-icon {
+  img {
+    height: 26px;
   }
 }
 
 .iq-owner-contact-icon {
   margin-right: 8px;
+}
+
+.iq-owner-public-id {
+  @include regular();
+
+  font-weight: normal;
+}
+
+.iq-dropdown-menu--actions {
+  left: -108px;
+}
+
+.iq-tile-scroll-container--owner-summary-view {
+  width: calc(100% - #{$iq-spacing-sm});
 }

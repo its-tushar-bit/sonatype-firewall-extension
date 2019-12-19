@@ -1,97 +1,101 @@
-<div class="iq-tile iq-tile--top-tile" id="owner-summary" ng-controller="OwnerSummaryController as vm">
+<div id="owner-summary" ng-controller="OwnerSummaryController as vm">
   <div load-wrapper="vm.error" loading="!vm.owner" reload="vm.doLoad()">
-    <div class="iq-tile__actions">
-      <div class="iq-dropdown dropdown iq-pull-right" id="action-dropdown">
-        <button class="iq-btn dropdown-toggle iq-btn--tertiary" type="button" id="action-menu" data-toggle="dropdown">
-          Actions
-          <span class="caret"></span>
-        </button>
-        <div class="dropdown-menu iq-dropdown-menu">
-          <div class="iq-dropdown-menu__actions">
-            <a ng-if="vm.isApp"
-               id="copy-app-id-link"
-               copy-to-clipboard="vm.owner.publicId"
-               copied-tooltip
-               class="iq-btn iq-btn--dropdown">
-              <i class="fa fa-clipboard fa-fw"></i>App ID to Clipboard
-            </a>
-            <a ng-if="vm.isApp"
-               id="select-contact-link"
-               ng-click="vm.selectContact(vm.owner)"
-               class="iq-btn iq-btn--dropdown">
-              <i class="fa fa-user fa-fw"></i>Select Contact
-            </a>
-            <a ng-click="vm.edit()" id="app-org-link" class="iq-btn iq-btn--dropdown">
-              <i class="fa fa-pencil fa-fw"></i>Edit {{:: vm.getShortTypeName()}} Name / Icon
-            </a>
-            <a ng-if="vm.isApp"
-               ng-click="vm.changeApplicationId()"
-               id="change-app-id-link"
-               class="iq-btn iq-btn--dropdown"
-               tooltip="{{vm.hasPermissionToChangeAppId ? undefined : 'Insufficient permissions to change App ID'}}"
-               ng-class="{'disabled': !vm.hasPermissionToChangeAppId}">
-              <i class="fa fa-random fa-fw"></i>Change App ID
-            </a>
-            <a ng-if="!vm.isApp" id="import-policies-link" ng-click="vm.importPolicy()" class="iq-btn iq-btn--dropdown">
-              <i class="fa fa-download fa-fw"></i>Import Policies
-            </a>
-            <a ng-show="vm.isApp" ng-click="vm.moveApplication()" id="app-move-link" class="iq-btn iq-btn--dropdown">
-              <i class="fa fa-arrows fa-fw"></i>Move {{vm.owner.name}}
-            </a>
-            <a ng-if="::!vm.isRootOrg"
-               id="delete-owner-link"
-               ng-click="vm.deleteOwner()"
-               class="iq-btn iq-btn--dropdown">
-              <i class="fa fa-trash"></i>Delete {{vm.owner.name}}
-            </a>
-            <div ng-if="vm.isApp" class="divider"></div>
-            <a ng-if="vm.isApp"
-               id="policy-violation-grandfather-link"
-               ng-click="vm.grandfather()"
-               tooltip="{{vm.getDisabledGrandfatherTooltipMessage()}}"
-               ng-class="{'disabled': !vm.isGrandfatheringEnabled || !vm.isGrandfatheringSupported}"
-               class="iq-btn iq-btn--dropdown">
-              <i class="fa fa-gavel"></i>Grandfather {{vm.owner.name}}
-            </a>
-            <a ng-if="vm.isApp"
-               id="revoke-policy-violation-grandfathering-link"
-               ng-click="vm.revokeGrandfathering()"
-               tooltip="{{vm.isGrandfatheringSupported ? undefined : 'Policy Violation Grandfathering is not supported by your license'}}"
-               ng-class="{'disabled': !vm.isGrandfatheringSupported}"
-               class="iq-btn iq-btn--dropdown">
-              <i class="fa fa-history"/>Revoke All Grandfathered
-            </a>
-            <div ng-if="vm.isApp" class="divider"></div>
-            <a ng-if="vm.isApp"
-               id="eval-binary-link"
-               ng-click="vm.evaluateApp()"
-               class="iq-btn iq-btn--dropdown"
-               tooltip="{{vm.hasPermissionToEvaluateApp ? undefined : 'Insufficient permissions to evaluate application'}}"
-               ng-class="{'disabled': !vm.hasPermissionToEvaluateApp}">
-              <i class="fa fa-upload fa-fw"></i>Evaluate Binary
-            </a>
-            <div ng-repeat="stage in ::vm.stages">
-              <a class="link iq-dropdown-menu__link tm-stage-{{::stage.stageTypeId}} tm-app-report-link"
-                 id="app-report-link"
-                 ng-class="{'disabled': !vm.applicationSummary.policyEvaluations[stage.stageTypeId]}"
-                 ng-click="vm.openReport(stage)">
-                <i class="fa fa-external-link fa-fw"></i>View {{::stage.shortName | lowercase}} report
+    <div class="nx-page-title iq-page-title">
+      <div class="iq-page-title__actions">
+        <div class="iq-dropdown dropdown iq-pull-right" id="action-dropdown">
+          <button class="iq-btn dropdown-toggle iq-btn--tertiary"
+                  type="button"
+                  id="action-menu"
+                  data-toggle="dropdown">
+            Actions
+            <span class="caret"></span>
+          </button>
+          <div class="dropdown-menu iq-dropdown-menu iq-dropdown-menu--actions">
+            <div class="iq-dropdown-menu__actions">
+              <a ng-if="vm.isApp"
+                 id="copy-app-id-link"
+                 copy-to-clipboard="vm.owner.publicId"
+                 copied-tooltip
+                 class="iq-btn iq-btn--dropdown">
+                <i class="fa fa-clipboard fa-fw"></i>App ID to Clipboard
               </a>
+              <a ng-if="vm.isApp"
+                 id="select-contact-link"
+                 ng-click="vm.selectContact(vm.owner)"
+                 class="iq-btn iq-btn--dropdown">
+                <i class="fa fa-user fa-fw"></i>Select Contact
+              </a>
+              <a ng-click="vm.edit()" id="app-org-link" class="iq-btn iq-btn--dropdown">
+                <i class="fa fa-pencil fa-fw"></i>Edit {{:: vm.getShortTypeName()}} Name / Icon
+              </a>
+              <a ng-if="vm.isApp"
+                 ng-click="vm.changeApplicationId()"
+                 id="change-app-id-link"
+                 class="iq-btn iq-btn--dropdown"
+                 tooltip="{{vm.hasPermissionToChangeAppId ? undefined : 'Insufficient permissions to change App ID'}}"
+                 ng-class="{'disabled': !vm.hasPermissionToChangeAppId}">
+                <i class="fa fa-random fa-fw"></i>Change App ID
+              </a>
+              <a ng-if="!vm.isApp"
+                 id="import-policies-link"
+                 ng-click="vm.importPolicy()"
+                 class="iq-btn iq-btn--dropdown">
+                <i class="fa fa-download fa-fw"></i>Import Policies
+              </a>
+              <a ng-show="vm.isApp" ng-click="vm.moveApplication()" id="app-move-link" class="iq-btn iq-btn--dropdown">
+                <i class="fa fa-arrows fa-fw"></i>Move {{vm.owner.name}}
+              </a>
+              <a ng-if="::!vm.isRootOrg"
+                 id="delete-owner-link"
+                 ng-click="vm.deleteOwner()"
+                 class="iq-btn iq-btn--dropdown">
+                <i class="fa fa-trash"></i>Delete {{vm.owner.name}}
+              </a>
+              <div ng-if="vm.isApp" class="divider"></div>
+              <a ng-if="vm.isApp"
+                 id="policy-violation-grandfather-link"
+                 ng-click="vm.grandfather()"
+                 tooltip="{{vm.getDisabledGrandfatherTooltipMessage()}}"
+                 ng-class="{'disabled': !vm.isGrandfatheringEnabled || !vm.isGrandfatheringSupported}"
+                 class="iq-btn iq-btn--dropdown">
+                <i class="fa fa-gavel"></i>Grandfather {{vm.owner.name}}
+              </a>
+              <a ng-if="vm.isApp"
+                 id="revoke-policy-violation-grandfathering-link"
+                 ng-click="vm.revokeGrandfathering()"
+                 tooltip="{{vm.isGrandfatheringSupported ? undefined : 'Policy Violation Grandfathering is not supported by your license'}}"
+                 ng-class="{'disabled': !vm.isGrandfatheringSupported}"
+                 class="iq-btn iq-btn--dropdown">
+                <i class="fa fa-history"/>Revoke All Grandfathered
+              </a>
+              <div ng-if="vm.isApp" class="divider"></div>
+              <a ng-if="vm.isApp"
+                 id="eval-binary-link"
+                 ng-click="vm.evaluateApp()"
+                 class="iq-btn iq-btn--dropdown"
+                 tooltip="{{vm.hasPermissionToEvaluateApp ? undefined : 'Insufficient permissions to evaluate application'}}"
+                 ng-class="{'disabled': !vm.hasPermissionToEvaluateApp}">
+                <i class="fa fa-upload fa-fw"></i>Evaluate Binary
+              </a>
+              <div ng-repeat="stage in ::vm.stages">
+                <a class="link iq-dropdown-menu__link tm-stage-{{::stage.stageTypeId}} tm-app-report-link"
+                   id="app-report-link"
+                   ng-class="{'disabled': !vm.applicationSummary.policyEvaluations[stage.stageTypeId]}"
+                   ng-click="vm.openReport(stage)">
+                   <i class="fa fa-external-link fa-fw"></i>View {{::stage.shortName | lowercase}} report
+                </a>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="iq-tile-header">
-      <div class="iq-tile-header__title">
-        <span owner-image="vm.owner" class="iq-tile-header__icon"></span>
-        <h1>
-          {{vm.owner.name}} <span class="iq-tile-header__description" ng-if="vm.isApp">({{vm.owner.publicId}})</span>
-        </h1>
-      </div>
-      <p class="iq-tile-header__subtitle" ng-if="vm.owner.contact">
+      <span owner-image="vm.owner" class="nx-page-title__page-icon"></span>
+      <h1 class="nx-h1">
+        {{vm.owner.name}} <span class="iq-owner-public-id" ng-if="vm.isApp">({{vm.owner.publicId}})</span>
+      </h1>
+      <div class="nx-page-title__description" ng-if="vm.owner.contact">
         <i class="fa fa-user size-12px iq-owner-contact-icon"></i>{{vm.owner.contact.displayName}}
-      </p>
+      </div>
     </div>
     <ul class="nav nav-pills iq-nav-pills">
       <li class="active iq-nav-pills__pill">
@@ -118,12 +122,17 @@
         </a>
       </li>
       <li ng-if="vm.isOrg || vm.isApp" class="iq-nav-pills__pill">
-        <a data-toggle="pill" id="owner-source-control-button" data-target="#owner-pill-source-control" ng-href="">
+        <a data-toggle="pill"
+           id="owner-source-control-button"
+           data-target="#owner-pill-source-control"
+           ng-href="">
           Source Control
         </a>
       </li>
       <li class="iq-nav-pills__pill">
-        <a data-toggle="pill" id="owner-access-button" data-target="#owner-pill-access" ng-href="">Access</a>
+        <a data-toggle="pill" id="owner-access-button" data-target="#owner-pill-access" ng-href="">
+          Access
+        </a>
       </li>
     </ul>
   </div>

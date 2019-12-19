@@ -22,3 +22,30 @@
 .nx-vulnerability-details dt {
   font-weight: normal;
 }
+
+.nx-page-title.iq-page-title {
+  margin: 0 0 $iq-spacing-md $iq-spacing-sm;
+}
+
+#application-report-vulnerabilities-table {
+  .nx-cell {
+    box-sizing: content-box;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+@media (max-width: 1366px) {
+  .nx-page-title.iq-page-title {
+    margin-right: $iq-spacing-sm;
+  }
+
+  .iq-dashboard-summary {
+    .nx-page-title.iq-page-title {
+      margin-right: 0;
+    }
+    .iq-page-title__actions {
+      margin-right: 0;
+    }
+  }
+}

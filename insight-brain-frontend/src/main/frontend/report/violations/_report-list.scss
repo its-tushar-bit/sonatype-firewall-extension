@@ -1,6 +1,10 @@
 .iq-tile--report-list-filter {
   border-bottom: 0;
   margin-bottom: 0;
+
+  .iq-form-group {
+    margin-bottom: 0;
+  }
 }
 
 .iq-tile--report-list {
@@ -47,9 +51,9 @@
 .iq-table--report-list {
   .iq-table--fixed__header {
     background: $iq-grey-1;
-    left: 8px;
+    left: 16px;
     // modified because table is not inside iq-tile-content
-    width: calc(100% - 16px);
+    width: calc(100% - #{$iq-spacing-xl});
   }
 
   .iq-table--fixed__content {

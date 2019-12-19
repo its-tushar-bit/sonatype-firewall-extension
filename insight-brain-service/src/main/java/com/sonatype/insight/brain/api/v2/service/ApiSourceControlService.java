@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
 import static org.apache.commons.lang.StringUtils.equalsIgnoreCase;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang.StringUtils.trim;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -113,25 +114,26 @@ public class ApiSourceControlService
       throw new NotFoundException("Cannot find application with public ID: '" + publicId + "'");
     }
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(application.getId());
+    String convertedRepositoryUrl = convertUrlIfNeeded(repositoryUrl);
 
     // check if automatic source control is enabled
     if (automaticSourceControlConfigurationDAO.isSourceControlConfigurationEnabled()) {
       if (sourceControl == null) { // create new record
         sourceControl = new SourceControl.Builder()
             .setOwnerId(application.getId())
-            .setRepositoryUrl(repositoryUrl)
+            .setRepositoryUrl(convertedRepositoryUrl)
             .build();
         sourceControlDAO.insert(sourceControl);
         auditAndSendTelemetry(sourceControl, application.getId());
       }
-      else if (shouldUpdateSourceControlRepositoryUrl(sourceControl.getRepositoryUrl(), repositoryUrl)) {
-        sourceControl.setRepositoryUrl(repositoryUrl);
+      else if (shouldUpdateSourceControlRepositoryUrl(sourceControl.getRepositoryUrl(), convertedRepositoryUrl)) {
+        sourceControl.setRepositoryUrl(convertedRepositoryUrl);
         sourceControlDAO.update(sourceControl);
         auditAndSendTelemetry(sourceControl, application.getId());
       }
       else {
         log.debug("Skipping update of source control repository URL from {} to {}",
-            sourceControl.getRepositoryUrl(), repositoryUrl);
+            sourceControl.getRepositoryUrl(), convertedRepositoryUrl);
       }
     }
 
@@ -173,6 +175,7 @@ public class ApiSourceControlService
       throw new BadRequestException(String.format(
           "SourceControl already exists for %s with id: %s", ownerType, ownerId));
     }
+    convertRepositoryUrlIfNeeded(sourceControl);
 
     sourceControlDAO.insert(sourceControl);
     auditSourceControl(sourceControl);
@@ -207,6 +210,7 @@ public class ApiSourceControlService
     else {
       encryptToken(sourceControl);
     }
+    convertRepositoryUrlIfNeeded(sourceControl);
 
     sourceControlDAO.update(sourceControl);
     auditSourceControl(sourceControl);
@@ -325,6 +329,28 @@ public class ApiSourceControlService
 
   private boolean shouldUpdateSourceControlRepositoryUrl(String currentValue, String newValue) {
     return !equalsIgnoreCase(trim(currentValue), trim(newValue)) && isBlank(currentValue);
+  }
+
+  @VisibleForTesting
+  String convertUrlIfNeeded(String repositoryUrl) {
+    if (repositoryUrl.startsWith("https:") || repositoryUrl.startsWith("http:")) {
+      return repositoryUrl;
+    }
+    if (repositoryUrl.startsWith("ssh:")) {
+      String url = repositoryUrl.replaceAll("/[^/@]+@", "/");
+      return url.replace("ssh:", "https:");
+    }
+    if (repositoryUrl.contains("@") && repositoryUrl.contains(":")) {
+      String url = repositoryUrl.replaceAll("[^@]+@", "");
+      return "https://" + url.replace(":", "/");
+    }
+    throw new BadRequestException("Unsupported repository URL format: `" + repositoryUrl + "`");
+  }
+
+  private void convertRepositoryUrlIfNeeded(SourceControl sourceControl) {
+    if (isNotBlank(sourceControl.getRepositoryUrl())) {
+      sourceControl.setRepositoryUrl(convertUrlIfNeeded(sourceControl.getRepositoryUrl()));
+    }
   }
 
   enum METHOD

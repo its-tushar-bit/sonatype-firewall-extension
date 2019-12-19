@@ -32,7 +32,9 @@ public class ApplicationSourceControlEditorTest
 {
   private Application application;
 
-  private static final String REPOSITORY_URL = "http://a.com/b/c";
+  private static final String REPOSITORY_URL = "https://a.com/b/c";
+
+  private static final String SSH_REPOSITORY_URL = "ssh://a.com/b/c";
 
   @Override
   @Before
@@ -300,6 +302,24 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(selected);
     SourceControlEditorPage.repositoryUrl().shouldHave(value(REPOSITORY_URL));
+  }
+
+  @Test
+  public void testSourceControlEditor_updateWithSshUrl() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+    verifyStartNoSourceControl();
+    tempEntity.newSourceControl(rootOrganization.getId(), null, TOKEN, SourceControlProvider.GITHUB);
+    refresh();
+
+    SourceControlEditorPage.repositoryUrl().setValue(SSH_REPOSITORY_URL);
+    SourceControlEditorPage.repositoryUrlInfo().shouldBe(visible);
+
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.repositoryUrl().shouldHave(value(REPOSITORY_URL));
+    SourceControlEditorPage.repositoryUrlInfo().shouldNotBe(visible);
   }
 
   @Test

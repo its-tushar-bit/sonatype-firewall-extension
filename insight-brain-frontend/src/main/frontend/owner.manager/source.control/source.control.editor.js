@@ -43,6 +43,15 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   vm.isProviderSpecifiedAndPullRequestsSupported = isProviderSpecifiedAndPullRequestsSupported;
   vm.isAutomationSupported = undefined;
   vm.isSourceControlSupported = undefined;
+  vm.showSshUrlInfo = false;
+  vm.isSshUrl = isSshUrl;
+  vm.checkUrlFormat = checkUrlFormat;
+
+  /**
+   * Matches any absolute HTTP(S) and SSH URL as per RFC 3986
+   * and SSH URL specified as 'user@server:path'
+   */
+  vm.httpAndSshUrlPattern = /((https?|ssh):\/\/[^?#\s]+|[^@\s]+@[^/?#\s:]+:[^?#\s]+)/;
 
   vm.isDirty = isDirty;
   vm.save = save;
@@ -58,6 +67,7 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
 
   function doLoad() {
     vm.loadError = undefined;
+    vm.showSshUrlInfo = false;
     vm.loading = true;
 
     let ownerPromise;
@@ -222,6 +232,22 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
 
   function toggleShowAdvanced() {
     vm.showAdvanced = !vm.showAdvanced || !vm.canCollapseAdvanced();
+  }
+
+  const sshUrlRegExp = /^(ssh:\/\/[^?#\s]+|[^@\s]+@[^/?#\s:]+:[^?#\s]+)$/;
+
+  /**
+   * Matches SSH URLs in one of the following formats:
+   * ssh://[user@]server/path
+   * user@server:path
+   */
+  function isSshUrl() {
+    return vm.dirtySourceControl.repositoryUrl &&
+        vm.dirtySourceControl.repositoryUrl.match(sshUrlRegExp);
+  }
+
+  function checkUrlFormat() {
+    vm.showSshUrlInfo = isSshUrl();
   }
 
   function canCollapseAdvanced() {

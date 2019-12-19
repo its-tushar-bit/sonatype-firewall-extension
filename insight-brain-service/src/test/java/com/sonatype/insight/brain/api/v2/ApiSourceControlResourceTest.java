@@ -31,6 +31,8 @@ public class ApiSourceControlResourceTest
 {
   static final String VALID_URL = "https://example.com/organization/project";
 
+  static final String VALID_SSH_URL = "git@example.com:organization/project";
+
   private static final ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -104,9 +106,18 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
-  public void testAddSourceControlByOwner_ByApplication() throws Exception {
+  public void testAddSourceControlByOwner_ByApplication_HttpsUrl() throws Exception {
+    testAddSourceControlByOwner_ByApplication(VALID_URL, VALID_URL);
+  }
+
+  @Test
+  public void testAddSourceControlByOwner_ByApplication_SshUrl() throws Exception {
+    testAddSourceControlByOwner_ByApplication(VALID_SSH_URL, VALID_URL);
+  }
+
+  private void testAddSourceControlByOwner_ByApplication(String givenUrl, String expectedUrl) throws Exception {
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")
+        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(givenUrl).setToken("token")
             .build());
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
@@ -117,7 +128,7 @@ public class ApiSourceControlResourceTest
 
     assertThat(result.id).isNotNull();
     assertThat(result.ownerId).isEqualTo(app.getId());
-    assertThat(result.repositoryUrl).isEqualTo(sourceControl.repositoryUrl);
+    assertThat(result.repositoryUrl).isEqualTo(expectedUrl);
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isNull();
   }
@@ -142,10 +153,19 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
-  public void testUpdateSourceControlByOwner_ByApplication() throws Exception {
+  public void testUpdateSourceControlByOwner_ByApplication_HttpsUrl() throws Exception {
+    testUpdateSourceControlByOwner_ByApplication(VALID_URL, VALID_URL);
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_ByApplication_SshUrl() throws Exception {
+    testUpdateSourceControlByOwner_ByApplication(VALID_SSH_URL, VALID_URL);
+  }
+
+  private void testUpdateSourceControlByOwner_ByApplication(String givenUrl, String expectedUrl) throws Exception {
     SourceControl sourceControl = tempEntity.newSourceControl(
         app.getId(), VALID_URL, "token", null);
-    sourceControl.setRepositoryUrl(VALID_URL + "/test/");
+    sourceControl.setRepositoryUrl(givenUrl);
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
@@ -155,7 +175,7 @@ public class ApiSourceControlResourceTest
 
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
     assertThat(result.id).isEqualTo(sourceControl.getId());
-    assertThat(result.repositoryUrl).isEqualTo(sourceControl.getRepositoryUrl());
+    assertThat(result.repositoryUrl).isEqualTo(expectedUrl);
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isNull();
   }
@@ -224,7 +244,16 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
-  public void testAddOrUpdateSourceControl_AutomaticScmEnabled() throws Exception {
+  public void testAddOrUpdateSourceControl_AutomaticScmEnabled_HttpUrl() throws Exception {
+    testAddOrUpdateSourceControl_AutomaticScmEnabled(VALID_URL, VALID_URL);
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_AutomaticScmEnabled_SshUrl() throws Exception {
+    testAddOrUpdateSourceControl_AutomaticScmEnabled(VALID_SSH_URL, VALID_URL);
+  }
+
+  private void testAddOrUpdateSourceControl_AutomaticScmEnabled(String givenUrl, String expectedUrl) throws Exception {
     // ensure organization record exists
     tempEntity.newSourceControl(app.getOrganizationId(), null, "token", null);
 
@@ -233,14 +262,14 @@ public class ApiSourceControlResourceTest
 
     HttpResponse response = restRequest()
         .query("publicId", app.getPublicId())
-        .query("repositoryUrl", VALID_URL)
+        .query("repositoryUrl", givenUrl)
         .post();
     assertResponseStatus(200, response);
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
 
     assertThat(result.id).isNotNull();
     assertThat(result.ownerId).isEqualTo(app.getId());
-    assertThat(result.repositoryUrl).isEqualTo(VALID_URL);
+    assertThat(result.repositoryUrl).isEqualTo(expectedUrl);
     assertThat(result.token).isNull();
     assertThat(result.provider).isNull();
 
@@ -254,7 +283,7 @@ public class ApiSourceControlResourceTest
 
     assertThat(result.id).isNotNull();
     assertThat(result.ownerId).isEqualTo(app.getId());
-    assertThat(result.repositoryUrl).isEqualTo(VALID_URL); // should not change
+    assertThat(result.repositoryUrl).isEqualTo(expectedUrl); // should not change
     assertThat(result.token).isNull();
     assertThat(result.provider).isNull();
   }

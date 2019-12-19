@@ -12,6 +12,7 @@ describe('source.control.editor.spec', function() {
   const SUB_ORGANIZATION_ID = 'subOrganizationId';
   const APPLICATION_ID = 'applicationId';
   const REPOSITORY_URL = 'https://a.com/b/c';
+  const SSH_REPOSITORY_URL = 'ssh://a.com/b/c';
 
   let $rootScope,
       $scope,
@@ -1752,6 +1753,55 @@ describe('source.control.editor.spec', function() {
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
 
+      it('updates the existing entry if source control is configured - ssh url', function() {
+
+        const saveSourceControl = {
+          token: null,
+          ownerId: APPLICATION_ID,
+          id: 'ID',
+          baseBranch: 'BASE_BRANCH',
+          enablePullRequests: true,
+          enableStatusChecks: true,
+          repositoryUrl: SSH_REPOSITORY_URL
+        };
+
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControl);
+
+        $scope.$digest();
+
+        expect(vm.ownerName).toEqual('applicationName');
+        expect(vm.loadError).toBeUndefined();
+        expect(vm.dirtySourceControl).toEqual(sourceControlModel);
+        expect(vm.originalSourceControl).toEqual(sourceControlModel);
+
+        let sourceControlModelCopy = angular.copy(sourceControlModel);
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        vm.dirtySourceControl = sourceControlModelCopy;
+        vm.dirtySourceControl.enablePullRequests = true;
+        vm.dirtySourceControl.repositoryUrl = SSH_REPOSITORY_URL;
+        getByIdDeferred = $q.defer();
+        getSourceControlDeferred = $q.defer();
+        saveResourceDefer.resolve();
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        compositeSourceControlCopy.enablePullRequests.value = true;
+        compositeSourceControlCopy.repositoryUrl = SSH_REPOSITORY_URL;
+        getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+        // when
+        vm.save();
+        $scope.$digest();
+
+        // then
+        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith('application',
+            APPLICATION_ID, saveSourceControl);
+        expect(vm.loadError).toBeUndefined();
+        expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
+        expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
+      });
+
       it('returns an error for unsuccessful save', function() {
         const savedSourceControl = {
           token: null,
@@ -2348,6 +2398,78 @@ describe('source.control.editor.spec', function() {
 
         $scope.$digest();
         expect(vm.baseBranchInheritText).toEqual('Inherit from Org (value)');
+      });
+    });
+
+    describe('isSshUrl', function() {
+      it('returns true when a SSH URL is provided', function() {
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControl);
+
+        $scope.$digest();
+
+        vm.dirtySourceControl.repositoryUrl = 'ssh://git@github.com/owner/repo.git';
+        expect(vm.isSshUrl()).toBeTruthy();
+
+        vm.dirtySourceControl.repositoryUrl = 'ssh://github.com/owner/repo.git';
+        expect(vm.isSshUrl()).toBeTruthy();
+
+        vm.dirtySourceControl.repositoryUrl = 'git@github.com:owner/repo.git';
+        expect(vm.isSshUrl()).toBeTruthy();
+      });
+
+      it('returns false when a non-SSH URL is provided', function() {
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControl);
+
+        $scope.$digest();
+
+        vm.dirtySourceControl.repositoryUrl = 'http://github.com/owner/repo.git';
+        expect(vm.isSshUrl()).toBeFalsy();
+
+        vm.dirtySourceControl.repositoryUrl = 'ss://github.com/owner/repo.git';
+        expect(vm.isSshUrl()).toBeFalsy();
+
+        vm.dirtySourceControl.repositoryUrl = 'ssh:/github.com/owner/repo.git';
+        expect(vm.isSshUrl()).toBeFalsy();
+
+        vm.dirtySourceControl.repositoryUrl = 'ssh://not valid';
+        expect(vm.isSshUrl()).toBeFalsy();
+
+        vm.dirtySourceControl.repositoryUrl = 'github.com/owner/repo.git';
+        expect(vm.isSshUrl()).toBeFalsy();
+
+        vm.dirtySourceControl.repositoryUrl = '@github.com/owner/repo.git';
+        expect(vm.isSshUrl()).toBeFalsy();
+
+        vm.dirtySourceControl.repositoryUrl = 'git@github.com/owner/repo.git';
+        expect(vm.isSshUrl()).toBeFalsy();
+      });
+    });
+
+    describe('httpAndSshUrlPattern', function() {
+      it('matches when a valid HTTP(S) or SSH URL is provided', function() {
+        let pattern = vm.httpAndSshUrlPattern;
+        expect('https://github.com/owner/repo.git'.match(pattern)).toBeTruthy();
+        expect('http://git@github.com/owner/repo.git'.match(pattern)).toBeTruthy();
+        expect('https://git@github.com/owner/repo.git'.match(pattern)).toBeTruthy();
+        expect('ssh://git@github.com/owner/repo.git'.match(pattern)).toBeTruthy();
+        expect('git@github.com:owner/repo.git'.match(pattern)).toBeTruthy();
+      });
+
+      it('does not match when an invalid HTTP(S) or SSH URL is provided', function() {
+        let pattern = vm.httpAndSshUrlPattern;
+        expect('http:git@github.com/owner/repo.git'.match(pattern)).toBeFalsy();
+        expect('git@gitlab.com/owner/repo.git'.match(pattern)).toBeFalsy();
+        expect('/srv/git/project.git'.match(pattern)).toBeFalsy();
+        expect('file:///srv/git/project.git'.match(pattern)).toBeFalsy();
+        expect('git://srv/git/project.git'.match(pattern)).toBeFalsy();
+        expect('http:/github.com/owner/repo.git'.match(pattern)).toBeFalsy();
+        expect('http:github.com/owner/repo.git'.match(pattern)).toBeFalsy();
+        expect('github.com/owner/repo.git'.match(pattern)).toBeFalsy();
+        expect('not valid'.match(pattern)).toBeFalsy();
       });
     });
   });

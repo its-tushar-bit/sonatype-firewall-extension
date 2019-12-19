@@ -86,6 +86,10 @@ public class SourceControlEditorPage
     return $("#editor-source-control-url");
   }
 
+  public static SelenideElement repositoryUrlInfo() {
+    return $("#editor-source-control-url-info");
+  }
+
   public static SelenideElement advancedSettingsTree() {
     return $(".iq-tree-view--source-control-editor");
   }

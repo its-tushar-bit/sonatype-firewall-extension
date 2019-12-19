@@ -619,6 +619,51 @@ public class ApiSourceControlServiceTest
     assertThat(sourceControl.token).isEqualTo(null);
   }
 
+  @Test
+  public void testConvertUrlIfNeeded_HttpUrls() {
+    String repositoryUrl = "http://server/owner/repo.git";
+    String convertedUrl = sourceControlService.convertUrlIfNeeded(repositoryUrl);
+    assertThat(convertedUrl).isEqualTo(repositoryUrl);
+
+    repositoryUrl = "https://server/owner/repo.git";
+    convertedUrl = sourceControlService.convertUrlIfNeeded(repositoryUrl);
+    assertThat(convertedUrl).isEqualTo(repositoryUrl);
+  }
+
+  @Test
+  public void testConvertUrlIfNeeded_SshUrlsFormatOne() {
+    String givenUrl = "ssh://git@server/owner/repo.git"; // user provided
+    String expectedUrl = "https://server/owner/repo.git";
+    String convertedUrl = sourceControlService.convertUrlIfNeeded(givenUrl);
+    assertThat(convertedUrl).isEqualTo(expectedUrl);
+
+    givenUrl = "ssh://server/owner/repo.git"; // no user provided
+    convertedUrl = sourceControlService.convertUrlIfNeeded(givenUrl);
+    assertThat(convertedUrl).isEqualTo(expectedUrl);
+  }
+
+  @Test
+  public void testConvertUrlIfNeeded_SshUrlsFormatTwo() {
+    String givenUrl = "git@server:owner/repo.git"; // user provided
+    String expectedUrl = "https://server/owner/repo.git";
+    String convertedUrl = sourceControlService.convertUrlIfNeeded(givenUrl);
+    assertThat(convertedUrl).isEqualTo(expectedUrl);
+  }
+
+  @Test
+  public void testConvertUrlIfNeeded_UnsupportedUrlFormat() {
+    // local protocol
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.convertUrlIfNeeded("/server/owner/repo.git"));
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.convertUrlIfNeeded("file:///server/owner/repo.git"));
+
+    // git protocol
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.convertUrlIfNeeded("git://server/owner/repo.git"));
+  }
+
   private ApiSourceControlDTO createSourceControlDtoForTesting() {
     return apiSourceControlAdapter.convertToDTO(
             new SourceControl.Builder()

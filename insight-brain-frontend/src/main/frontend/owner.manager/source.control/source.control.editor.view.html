@@ -43,7 +43,9 @@
          -->Repository URL
           </label>
           <input id="editor-source-control-url"
-                 type="url"
+                 type="text"
+                 ng-change="vm.checkUrlFormat()"
+                 ng-pattern="vm.httpAndSshUrlPattern"
                  class="iq-text-input iq-text-input--long"
                  name="repositoryUrl"
                  ng-model="vm.dirtySourceControl.repositoryUrl"
@@ -51,7 +53,12 @@
                  clm-input
                  ng-disabled="!vm.dirtySourceControl.provider"
                  required
-                 messages="{url, required: 'A valid repository URL is required'}">
+                 messages="{required: 'A valid repository URL is required',
+                    pattern: 'A valid repository URL is required. HTTP(S) and SSH URLs are supported'}">
+          <div id="editor-source-control-url-info" class="iq-alert iq-alert--info" ng-if="vm.showSshUrlInfo">
+            <i class="fa fa-info-circle"></i>SSH URLs will be converted to HTTPS on save.
+            The provided access token works over HTTPS.
+          </div>
         </div>
       </div>
       <div class="iq-tree-view iq-tree-view--source-control-editor" ng-if="vm.isApp">

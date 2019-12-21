@@ -21,8 +21,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class SourceControlClientTest
     extends AbstractBrainServiceTest
@@ -42,22 +41,17 @@ public class SourceControlClientTest
   public void testAddOrUpdateSourceControlRecord() throws Exception {
     SourceControlClient client = new SourceControlClient(getCLMServer().getClientConfiguration());
     addOrgSourceControlForTest();
-    int status = client.addOrUpdateSourceControlRecord(APP_ID, "https://github.com/org/proj2");
-    assertEquals(200, status);
+    assertThat(client.addOrUpdateSourceControlRecord(APP_ID, "https://github.com/org/proj2")).isEqualTo(200);
   }
 
   @Test
   public void testAddOrUpdateSourceControlRecord_InvalidAppId() throws Exception {
     SourceControlClient client = new SourceControlClient(getCLMServer().getClientConfiguration());
 
-    try {
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       client.addOrUpdateSourceControlRecord("abc-xyz", "https://github.com/org/proj2");
-      fail("Call should have failed due to invalid App ID");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getStatusCode()).isEqualTo(404);
-      assertThat(e.getMessage()).startsWith("Could not find an application with public ID");
-    }
+    }).withMessageStartingWith("Could not find an application with public ID")
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
   }
 
   @Test
@@ -66,15 +60,11 @@ public class SourceControlClientTest
     Application newApp = tempEntity.newApplicationWithParent("testAddOrUpdateSourceControlRecord_AddWithInvalidUrl");
 
     SourceControlClient client = new SourceControlClient(getCLMServer().getClientConfiguration());
-    try {
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       client.addOrUpdateSourceControlRecord(newApp.getPublicId(), "https://not good");
-      fail("Call should have failed due to invalid URL");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getStatusCode()).isEqualTo(400);
-      assertThat(e.getMessage()).isEqualTo(
-          "SourceControl repositoryUrl is invalid: Illegal character in authority at index 8: https://not good");
-    }
+    }).withMessage(
+        "SourceControl repositoryUrl is invalid: Illegal character in authority at index 8: https://not good")
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(400));
   }
 
   @Test

@@ -26,7 +26,7 @@ import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ReportClientTest
     extends AbstractBrainServiceTest
@@ -39,24 +39,16 @@ public class ReportClientTest
 
   @Test
   public void testScanIdNull() {
-    try {
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
       new ReportClient(getCLMServer().getClientConfiguration(), applicationPublicId, null /* scanId */);
-      fail("Expected IllegalArgumentException");
-    }
-    catch (IllegalArgumentException expected) {
-      assertThat(expected.getMessage()).isEqualTo("Cannot create a ReportClient without a scanId");
-    }
+    }).withMessage("Cannot create a ReportClient without a scanId");
   }
 
   @Test
   public void testScanIdEmpty() {
-    try {
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
       new ReportClient(getCLMServer().getClientConfiguration(), applicationPublicId, " " /* scanId */);
-      fail("Expected IllegalArgumentException");
-    }
-    catch (IllegalArgumentException expected) {
-      assertThat(expected.getMessage()).isEqualTo("Cannot create a ReportClient without a scanId");
-    }
+    }).withMessage("Cannot create a ReportClient without a scanId");
   }
 
   @Test
@@ -122,12 +114,8 @@ public class ReportClientTest
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(null);
     ReportClient client = new ReportClient(config, applicationPublicId, scanId);
-    try {
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       client.downloadBundle(retrievedFile);
-      fail("Expected an HttpResponseException for Unauthorized");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getMessage()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS);
-    }
+    }).withMessage(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS);
   }
 }

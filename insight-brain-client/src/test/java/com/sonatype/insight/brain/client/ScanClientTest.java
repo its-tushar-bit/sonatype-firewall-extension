@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ScanClientTest
     extends AbstractBrainServiceTest
@@ -103,13 +103,9 @@ public class ScanClientTest
   @Test
   public void testUploadCLIScan_InvalidAppId() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
-    try {
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       new ScanClient(config, "invalid-id").uploadCLIScan(tmpDir.newFile("scan.xml.gz"), ClientScanType.SONATYPE);
-      fail("Upload should have failed due to invalid app ID");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getStatusCode()).isEqualTo(404);
-      assertThat(e.getMessage()).isEqualTo("Could not find an application with public ID invalid-id.");
-    }
+    }).withMessage("Could not find an application with public ID invalid-id.")
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
   }
 }

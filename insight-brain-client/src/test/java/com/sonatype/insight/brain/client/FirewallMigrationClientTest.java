@@ -23,7 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.awaitility.Awaitility.await;
 
 public class FirewallMigrationClientTest
@@ -67,15 +67,11 @@ public class FirewallMigrationClientTest
     String sourceManager = "sourceManager";
     String sourceRepository = "sourceRepository";
 
-    try {
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       client.migrateRepositoryHistory(sourceManager, sourceRepository, targetRepositoryManager.getInstanceId(),
           TARGET_REPOSITORY_PUBLIC_ID);
-      fail("Expected exception");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
-      assertThat(e.getMessage()).isEqualTo(RepositoryDAO.getErrMsgMissingRepo(sourceManager, sourceRepository));
-    }
+    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(sourceManager, sourceRepository))
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND));
   }
 
   @Test
@@ -100,14 +96,10 @@ public class FirewallMigrationClientTest
 
   @Test
   public void testGetRepositoryMigrationState_Error() throws Exception {
-    try {
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       client.getRepositoryMigrationState(targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID);
-      fail("Expected exception");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
-      assertThat(e.getMessage()).isEqualTo(
-          RepositoryDAO.getErrMsgMissingRepo(targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID));
-    }
+    }).withMessage(
+        RepositoryDAO.getErrMsgMissingRepo(targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID))
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND));
   }
 }

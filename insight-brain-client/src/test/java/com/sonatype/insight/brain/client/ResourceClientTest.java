@@ -15,21 +15,17 @@ import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ResourceClientTest
     extends AbstractBrainServiceTest
 {
   @Test
   public void testMissingFile() throws Exception {
-    try {
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       new ResourceClient(getCLMServer().getClientConfiguration()).getResource("/assets/foo/bar");
-      fail("No exception thrown");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
-      assertThat(e.getMessage()).contains("Not Found");
-    }
+    }).withMessageContaining("Not Found")
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND));
   }
 
   @Test

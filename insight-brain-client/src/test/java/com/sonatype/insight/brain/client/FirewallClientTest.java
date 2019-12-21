@@ -38,7 +38,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @RunWith(Parameterized.class)
 public class FirewallClientTest
@@ -94,13 +94,9 @@ public class FirewallClientTest
     FirewallClient client =
         new FirewallClient(configuration, rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
 
-    try {
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       client.setEnabled(true);
-      fail("Did not throw the expected exception");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getStatusCode()).isEqualTo(401);
-    }
+    }).satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(401));
   }
 
   @Test
@@ -146,14 +142,10 @@ public class FirewallClientTest
   @Test
   public void testSetQuarantine_Error() throws Exception {
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
-    try {
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       client.setQuarantine(true);
-      fail("Expected HttpResponseException");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getStatusCode()).isEqualTo(404);
-      assertThat(e.getMessage()).isEqualTo(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID));
-    }
+    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID))
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
   }
 
   @Test
@@ -182,14 +174,10 @@ public class FirewallClientTest
   @Test
   public void testGetPolicyEvaluationSummary_Error() throws Exception {
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
-    try {
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       client.getPolicyEvaluationSummary();
-      fail("Expected HttpResponseException");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getStatusCode()).isEqualTo(404);
-      assertThat(e.getMessage()).isEqualTo(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID));
-    }
+    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID))
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
   }
 
   private Configuration getConfiguration() {
@@ -221,14 +209,10 @@ public class FirewallClientTest
     final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
 
-    try {
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       client.evaluateComponents(componentEvaluationDataRequestList);
-      fail("Expected exception");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getStatusCode()).isEqualTo(404);
-      assertThat(e.getMessage()).isEqualTo(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID));
-    }
+    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID))
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
   }
 
   @Test
@@ -271,14 +255,10 @@ public class FirewallClientTest
         new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components = new ArrayList<>();
 
-    try {
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       client.evaluateComponentWithQuarantine(componentEvaluationDataRequestList);
-      fail("Expected exception");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getStatusCode()).isEqualTo(404);
-      assertThat(e.getMessage()).isEqualTo(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID));
-    }
+    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID))
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
   }
 
   @Test
@@ -297,14 +277,10 @@ public class FirewallClientTest
   public void testGetUnquarantinedComponents_Error() throws Exception {
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
 
-    try {
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       client.getUnquarantinedComponents(System.currentTimeMillis());
-      fail("Expected exception");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getStatusCode()).isEqualTo(404);
-      assertThat(e.getMessage()).isEqualTo(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID));
-    }
+    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID))
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
   }
 
   @Test
@@ -323,13 +299,9 @@ public class FirewallClientTest
   @Test
   public void testRemoveComponent_Error() throws Exception {
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
-    try {
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
       client.removeComponent("somepath");
-      fail("Expected HttpResponseException");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getStatusCode()).isEqualTo(404);
-      assertThat(e.getMessage()).isEqualTo(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID));
-    }
+    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID))
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
   }
 }

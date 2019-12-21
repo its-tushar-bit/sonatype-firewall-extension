@@ -38,7 +38,7 @@ import org.mockito.ArgumentMatchers;
 import org.slf4j.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -220,15 +220,11 @@ public class PolicyClientTest
     doThrow(new IOException("EVALUATION REQUEST FAILURE")).when(policyClient)
         .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationReceipt.class));
 
-    try {
+    assertThatExceptionOfType(IOException.class).isThrownBy(() -> {
       policyClient.evaluate("cli", scanFile, ClientScanType.SONATYPE, stage);
-      fail("IOException expected to be thrown");
-    }
-    catch (IOException e) {
-      assertThat(e.getMessage()).isEqualTo("EVALUATION REQUEST FAILURE");
-      verify(policyClient, never())
-          .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
-    }
+    }).withMessage("EVALUATION REQUEST FAILURE");
+    verify(policyClient, never()).parseResult(ArgumentMatchers.any(Result.class),
+        eq(PolicyEvaluationPollingResult.class));
   }
 
   @Test
@@ -250,15 +246,11 @@ public class PolicyClientTest
     doReturn(failedResult).when(policyClient).parseResult(ArgumentMatchers.any(Result.class),
         eq(PolicyEvaluationPollingResult.class));
 
-    try {
+    assertThatExceptionOfType(IOException.class).isThrownBy(() -> {
       policyClient.evaluate("cli", scanFile, ClientScanType.SONATYPE, stage);
-      fail("IOException expected to be thrown");
-    }
-    catch (IOException e) {
-      assertThat(e.getMessage()).isEqualTo("Policy evaluation could not be completed: FAILURE REASON");
-      verify(policyClient, times(1))
-          .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
-    }
+    }).withMessage("Policy evaluation could not be completed: FAILURE REASON");
+    verify(policyClient, times(1)).parseResult(ArgumentMatchers.any(Result.class),
+        eq(PolicyEvaluationPollingResult.class));
   }
 
   @Test

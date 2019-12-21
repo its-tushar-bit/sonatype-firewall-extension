@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.violation;
 
+import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -17,7 +18,6 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
-import com.sonatype.insight.json.store.UncheckedIOException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

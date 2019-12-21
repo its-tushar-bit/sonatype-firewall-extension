@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -730,7 +729,7 @@ public class PolicyEvaluateServiceTest
 
     ArgumentCaptor<JiraIssueCreateRequest> createRequestArgumentCaptor = ArgumentCaptor
         .forClass(JiraIssueCreateRequest.class);
-    verify(mockJiraClient, timeout(Duration.ofMillis(5000))).createIssue(createRequestArgumentCaptor.capture());
+    verify(mockJiraClient, timeout(5000)).createIssue(createRequestArgumentCaptor.capture());
     JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
     assertThat(jiraIssueCreateRequest.getFields()).hasSize(4);
     Map<String, String> projectMeta = jiraIssueCreateRequest.getField(JiraField.PROJECT);

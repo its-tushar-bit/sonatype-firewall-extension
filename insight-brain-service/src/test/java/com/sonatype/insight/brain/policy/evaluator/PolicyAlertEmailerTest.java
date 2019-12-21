@@ -268,7 +268,8 @@ public class PolicyAlertEmailerTest
         .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
-    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT).times(0)).sendHtml(anyString(), any(), anyString(), anyString());
+    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()).times(0)).sendHtml(anyString(), any(), anyString(),
+        anyString());
   }
 
   @Test
@@ -350,7 +351,7 @@ public class PolicyAlertEmailerTest
         .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
-    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT)).sendHtml(endsWith(scanId), anyString(), anyString(),
+    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis())).sendHtml(endsWith(scanId), anyString(), anyString(),
         anyString());
 
     String newAddress = "newaddress@sonatype.com";
@@ -384,7 +385,7 @@ public class PolicyAlertEmailerTest
         .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
-    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT)).sendHtml(endsWith(scanId), anyString(), anyString(),
+    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis())).sendHtml(endsWith(scanId), anyString(), anyString(),
         anyString());
 
     testLdapServer1.loadData("/PolicyAlertEmailerTest/alter_testuser1_1_email.ldif");
@@ -525,7 +526,7 @@ public class PolicyAlertEmailerTest
   }
 
   private void assertEmailAddresses(String... expectedEmailAddresses) {
-    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT).times(expectedEmailAddresses.length))
+    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()).times(expectedEmailAddresses.length))
         .sendHtml(anyString(), toAddressesArgumentCaptor.capture(), anyString(), anyString());
 
     assertThat(toAddressesArgumentCaptor.getAllValues()).containsExactlyInAnyOrder(expectedEmailAddresses);

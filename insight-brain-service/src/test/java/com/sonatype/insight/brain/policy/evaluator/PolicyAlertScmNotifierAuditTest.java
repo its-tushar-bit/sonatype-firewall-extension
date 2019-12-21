@@ -149,7 +149,7 @@ public class PolicyAlertScmNotifierAuditTest
     policyAlertScmNotifier.sendNotifications(application, SCAN_ID, new Stage(STAGE_ID), policyNotifications);
 
     // then we see executor was run to trigger our failure
-    verify(pullRequestExecutor, timeout(Duration.ofSeconds(1))).execute(any());
+    verify(pullRequestExecutor, timeout(Duration.ofSeconds(1).toMillis())).execute(any());
     // and no audits events were created
     awaitLogEntries(AuditEvent.CREATE_PULL_REQUEST, 0);
   }

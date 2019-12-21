@@ -114,7 +114,8 @@ public class JiraPolicyAlertNotifierTest
 
     ArgumentCaptor<JiraIssueCreateRequest> createRequestArgumentCaptor = ArgumentCaptor
         .forClass(JiraIssueCreateRequest.class);
-    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT)).createIssue(createRequestArgumentCaptor.capture());
+    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()))
+        .createIssue(createRequestArgumentCaptor.capture());
 
     JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
     assertThat(jiraIssueCreateRequest.getFields()).hasSize(4);
@@ -150,7 +151,8 @@ public class JiraPolicyAlertNotifierTest
 
     ArgumentCaptor<JiraIssueCreateRequest> createRequestArgumentCaptor = ArgumentCaptor
         .forClass(JiraIssueCreateRequest.class);
-    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT)).createIssue(createRequestArgumentCaptor.capture());
+    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()))
+        .createIssue(createRequestArgumentCaptor.capture());
 
     JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
     assertThat((String) jiraIssueCreateRequest.getField("description"))
@@ -224,7 +226,8 @@ public class JiraPolicyAlertNotifierTest
 
     assertThat(logOutput).atDebugLevel().contains("JIRA integration is not enabled; skipping issue creation");
 
-    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT).times(0)).createIssue(any(JiraIssueCreateRequest.class));
+    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()).times(0))
+        .createIssue(any(JiraIssueCreateRequest.class));
   }
 
   @Test
@@ -261,6 +264,6 @@ public class JiraPolicyAlertNotifierTest
 
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
-    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT).times(0)).createIssue(any());
+    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()).times(0)).createIssue(any());
   }
 }

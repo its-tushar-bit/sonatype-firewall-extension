@@ -30,6 +30,9 @@ public enum Permission
 
   READ("View", PermissionCategory.IQ, "IQ Elements", false /* global */, true /* allowedInCustomRoles */),
 
+  EDIT_ACCESS_CONTROL("Edit", PermissionCategory.IQ, "Access Control", false /* global */,
+      true /* allowedInCustomRoles */),
+
   EVALUATE_APPLICATION("Evaluate", PermissionCategory.IQ, "Applications", false /* global */,
       true /* allowedInCustomRoles */),
 

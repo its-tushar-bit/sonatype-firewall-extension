@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -80,7 +81,7 @@ public class MembershipMappingServiceAuthzTest
 
   @Test
   public void testSetMembershipMappings_Application_Authorized() {
-    grantWritePermission(app.getId());
+    grantPermission(app.getId(), Permission.EDIT_ACCESS_CONTROL);
     membershipMappingService.setMembershipMappings(OwnerType.APPLICATION, app.getId(), Collections.emptyMap());
   }
 
@@ -97,7 +98,7 @@ public class MembershipMappingServiceAuthzTest
 
   @Test
   public void testSetMembershipMappings_Organization_Authorized() {
-    grantWritePermission(org.getId());
+    grantPermission(org.getId(), Permission.EDIT_ACCESS_CONTROL);
     membershipMappingService.setMembershipMappings(OwnerType.ORGANIZATION, org.getId(), Collections.emptyMap());
   }
 
@@ -131,14 +132,14 @@ public class MembershipMappingServiceAuthzTest
 
   @Test
   public void testGrantRoleMembership_Application_Authorized() {
-    grantWritePermission(app.getId());
+    grantPermission(app.getId(), Permission.EDIT_ACCESS_CONTROL);
     membershipMappingService
         .grantRoleMembership(OwnerType.APPLICATION, app.getId(), DEVELOPER_ROLE_ID, MemberType.USER, "username");
   }
 
   @Test
   public void testRevokeRoleMembership_Application_Authorized() {
-    grantWritePermission(app.getId());
+    grantPermission(app.getId(), Permission.EDIT_ACCESS_CONTROL);
     tempEntity.newMembershipMapping(app.getId(), DEVELOPER_ROLE_ID, getUsername(), MemberType.USER);
     membershipMappingService
         .revokeRoleMembership(OwnerType.APPLICATION, app.getId(), DEVELOPER_ROLE_ID, MemberType.USER, getUsername());
@@ -146,14 +147,14 @@ public class MembershipMappingServiceAuthzTest
 
   @Test
   public void testGrantRoleMembership_Organization_Authorized() {
-    grantWritePermission(org.getId());
+    grantPermission(org.getId(), Permission.EDIT_ACCESS_CONTROL);
     membershipMappingService
         .grantRoleMembership(OwnerType.ORGANIZATION, org.getId(), DEVELOPER_ROLE_ID, MemberType.USER, "username");
   }
 
   @Test
   public void testRevokeRoleMembership_Organization_Authorized() {
-    grantWritePermission(org.getId());
+    grantPermission(org.getId(), Permission.EDIT_ACCESS_CONTROL);
     tempEntity.newMembershipMapping(org.getId(), DEVELOPER_ROLE_ID, getUsername(), MemberType.USER);
     membershipMappingService
         .revokeRoleMembership(OwnerType.ORGANIZATION, org.getId(), DEVELOPER_ROLE_ID, MemberType.USER,

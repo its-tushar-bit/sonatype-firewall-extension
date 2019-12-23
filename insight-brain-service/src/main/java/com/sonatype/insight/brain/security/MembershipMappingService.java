@@ -266,7 +266,7 @@ public class MembershipMappingService
     }
   }
 
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.EDIT_ACCESS_CONTROL)
   protected void setMembershipMappingsForNonGlobalContext(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
                                                           @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
                                                           Map<String, List<Member>> roleToMembers)
@@ -283,7 +283,7 @@ public class MembershipMappingService
     setMembershipMappingsForRoles(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roleToMembers);
   }
 
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.EDIT_ACCESS_CONTROL)
   void grantRoleMembershipForNonGlobalContext(
       @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @SuppressWarnings("unused") @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
@@ -297,7 +297,7 @@ public class MembershipMappingService
     memberMapDAO.insert(membershipMapping);
   }
 
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.EDIT_ACCESS_CONTROL)
   void revokeRoleMembershipForNonGlobalContext(
       @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @SuppressWarnings("unused") @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,

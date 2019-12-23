@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -80,7 +81,7 @@ public class UserServiceAuthzTest
 
   @Test
   public void testFindMembersForRoles_RepositoryContainer_Authorized() {
-    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    grantPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID, Permission.EDIT_ACCESS_CONTROL);
     FindMembersDTO findMembersDTO = userService
         .findMembersForRoles(OwnerType.REPOSITORY_CONTAINER, null, "*", false /* groupsEnabled */);
     assertThat(findMembersDTO.getError()).isNull();
@@ -100,7 +101,7 @@ public class UserServiceAuthzTest
 
   @Test
   public void testFindMembersForRoles_Application_Authorized() {
-    grantWritePermission(app.getId());
+    grantPermission(app.getId(), Permission.EDIT_ACCESS_CONTROL);
     FindMembersDTO findMembersDTO = userService.findMembersForRoles(OwnerType.APPLICATION, app.getPublicId(), "*",
         false /* groupsEnabled */);
     assertThat(findMembersDTO.getError()).isNull();
@@ -120,7 +121,7 @@ public class UserServiceAuthzTest
 
   @Test
   public void testFindMembersForRoles_Organization_Authorized() {
-    grantWritePermission(org.getId());
+    grantPermission(org.getId(), Permission.EDIT_ACCESS_CONTROL);
     FindMembersDTO findMembersDTO = userService
         .findMembersForRoles(OwnerType.ORGANIZATION, org.getId(), "*", false /* groupsEnabled */);
     assertThat(findMembersDTO.getError()).isNull();

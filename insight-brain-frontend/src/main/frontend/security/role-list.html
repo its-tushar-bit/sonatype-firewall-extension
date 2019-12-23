@@ -1,4 +1,4 @@
-<div class="iq-body-container iq-body-container--single-pane" maximize-container-height>
+<div id="role-management" class="iq-body-container iq-body-container--single-pane" maximize-container-height>
   <div load-wrapper="error" reload="doLoad()" ng-if="$state.is('roles')">
     <div authorization-wrapper="isAuthorized" class="iq-tile iq-tile--sys-prefs">
       <div class="iq-tile__actions">
@@ -18,7 +18,7 @@
       </div>
       <div class="iq-tile-content" ng-show='roles'>
         <div class="iq-list iq-list--clickable">
-          <h4 class="iq-list__title">Built-In</h4>       
+          <h4 class="iq-list__title">Built-In</h4>
           <ul id='builtin-roles'>
             <li ng-repeat="role in roles | filter:{ builtIn : true }"
                 id="{{::role.id}}"

@@ -1,4 +1,4 @@
-<div authorization-wrapper="isAuthorized">
+<div id="role-editor" authorization-wrapper="isAuthorized">
   <div class="iq-sys-prefs-back-button">
     <iq-back-button state="roles"></iq-back-button>
   </div>
@@ -52,9 +52,13 @@
         </div>
         <h2 class="iq-tile__section-header">Permissions</h2>
         <div class="iq-list iq-list--role-permissions" ng-repeat="permissionCategory in dirtyRole.permissionCategories">
-          <h3 class="iq-list__title">{{::permissionCategory.displayName}}</h3>
-          <ul>
-            <li class="iq-list__item" ng-repeat="permission in permissionCategory.permissions" id="{{::permission.id}}">
+          <h3 class="iq-list__title test-permission-category-{{::permissionCategory.displayName}}">
+            {{::permissionCategory.displayName}}
+          </h3>
+          <ul class="test-permissions-{{::permissionCategory.displayName}}">
+            <li class="iq-list__item"
+                ng-repeat="permission in permissionCategory.permissions"
+                id="{{::permission.id}}">
               <div class="checkbox toggle-checkbox">
                 <label>
                   <input type="checkbox"
@@ -76,7 +80,7 @@
     </div>
     <div class="iq-tile-footer">
       <div clm-alerts="editorAlerts"></div>
-      <button class="iq-btn iq-btn--primary"
+      <button class="iq-btn iq-btn--primary" id="role-details-save"
               ng-disabled="!isDirty() || roleEditor.$invalid || submitActive || readOnly"
               ng-click="save()">
         Save

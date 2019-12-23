@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -41,12 +39,10 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
-import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
@@ -55,6 +51,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.telemetry.TelemetryUtils.buildThirdPartyScanTelemetryData;
 
 @Named
 @Singleton
@@ -83,8 +81,6 @@ public class PolicyEvaluateService
   
   private final StageTypeService stageTypeService;
 
-  private final TelemetrySender telemetrySender;
-
   @VisibleForTesting
   final Cache<String, PolicyEvaluationPollingResult> policyEvaluationPollingResults =
       CacheBuilder.newBuilder().expireAfterWrite(2, TimeUnit.HOURS)
@@ -96,8 +92,7 @@ public class PolicyEvaluateService
                                ErrorResponseGenerator errorResponseGenerator,
                                ScanHandler scanHandler,
                                ProductLicense productLicense,
-                               StageTypeService stageTypeService,
-                               TelemetrySender telemetrySender)
+                               StageTypeService stageTypeService)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
@@ -105,7 +100,6 @@ public class PolicyEvaluateService
     this.scanHandler = scanHandler;
     this.productLicense = productLicense;
     this.stageTypeService = stageTypeService;
-    this.telemetrySender = telemetrySender;
 
     executor = new ThreadPoolExecutor(5, 100, 5L, TimeUnit.MINUTES,
         new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("PolicyEvaluateService-%d").build());
@@ -220,11 +214,10 @@ public class PolicyEvaluateService
     initialResult.setNextPollingIntervalInSeconds(getNextPollingInterval());
     policyEvaluationPollingResults.put(policyEvaluationKey, initialResult);
 
-    AuditData.get()
-        .continueAsync(new EvaluationTask(applicationPublicId, clientScanType, statusId, stage, tempScanFile),
-            executor::submit);
-
-    sendThirdPartyScanTelemetryData(applicationPublicId, stage.getStageTypeId(), thirdPartyScanType, userAgent);
+    AuditData.get().continueAsync(
+        new EvaluationTask(applicationPublicId, clientScanType, statusId, stage, tempScanFile,
+            buildThirdPartyScanTelemetryData(applicationPublicId, stage, thirdPartyScanType, userAgent)),
+        executor::submit);
   }
 
   /**
@@ -261,17 +254,22 @@ public class PolicyEvaluateService
 
     private final File tempScanFile;
 
-    EvaluationTask(final String applicationPublicId,
-                   final ClientScanType clientScanType,
-                   final String statusId,
-                   final Stage stage,
-                   final File tempScanFile)
+    private final TelemetryData telemetryData;
+
+    EvaluationTask(
+        final String applicationPublicId,
+        final ClientScanType clientScanType,
+        final String statusId,
+        final Stage stage,
+        final File tempScanFile,
+        final TelemetryData telemetryData)
     {
       this.applicationPublicId = applicationPublicId;
       this.clientScanType = clientScanType;
       this.statusId = statusId;
       this.stage = stage;
       this.tempScanFile = tempScanFile;
+      this.telemetryData = telemetryData;
     }
 
     @Override
@@ -284,7 +282,8 @@ public class PolicyEvaluateService
       String policyEvaluationKey = getPolicyEvaluationKey(applicationPublicId, statusId);
 
       try {
-        ScanReceipt scanReceipt = scanHandler.handle(tempScanFile, applicationPublicId, clientScanType);
+        ScanReceipt scanReceipt =
+            scanHandler.handle(tempScanFile, applicationPublicId, clientScanType, telemetryData);
         scanId = scanReceipt.getScanId();
 
         policyEvaluationPollingResult.setScanReceipt(scanReceipt);
@@ -337,21 +336,5 @@ public class PolicyEvaluateService
 
   private int getNextPollingInterval() {
     return disablePollingIntervalForTesting ? 1 : NEXT_POLLING_INTERVAL_IN_SECONDS;
-  }
-
-  private void sendThirdPartyScanTelemetryData(String applicationId, String stageId, String source, String userAgent) {
-    if (source != null) {
-      Map<String, Object> attributes = new HashMap<>();
-      attributes.put("application_id", applicationId);
-      attributes.put("stage_id", stageId);
-      attributes.put("source", source);
-      if (userAgent != null) {
-        attributes.put("user_agent", userAgent);
-      }
-
-      TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);
-      telemetryData.setAttributes(attributes);
-      telemetrySender.send(telemetryData);
-    }
   }
 }

@@ -53,11 +53,14 @@ class ScanService
    * caller with a ticket that can be used to query for the status/completion of the process.
    */
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  public ScanTicket scanBinary(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
-                               InputStream is,
-                               String filename,
-                               Stage stage,
-                               boolean sendNotifications) throws IOException
+  public ScanTicket scanBinary(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
+      InputStream is,
+      String filename,
+      Stage stage,
+      boolean sendNotifications,
+      String userAgent,
+      String scanType) throws IOException
   {
     log.debug("Request to scan binary '{}' for application public id '{}'", filename, appPublicId);
 
@@ -66,7 +69,7 @@ class ScanService
     }
     File binFile = saveBinary(is, filename);
 
-    ScanTask task = newScanTask(appPublicId, binFile, filename, stage, sendNotifications);
+    ScanTask task = newScanTask(appPublicId, binFile, filename, stage, sendNotifications, userAgent, scanType);
     return task.getTicket();
   }
 
@@ -116,14 +119,18 @@ class ScanService
     return ext;
   }
 
-  private ScanTask newScanTask(String appPublicId,
-                               File binFile,
-                               String filename,
-                               Stage stage,
-                               boolean sendNotifications)
+  private ScanTask newScanTask(
+      String appPublicId,
+      File binFile,
+      String filename,
+      Stage stage,
+      boolean sendNotifications,
+      String userAgent,
+      String scanType)
   {
     Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
-    ScanTask scanTask = taskRepository.newScanTask(app, binFile, filename, stage, sendNotifications);
+    ScanTask scanTask =
+        taskRepository.newScanTask(app, binFile, filename, stage, sendNotifications, userAgent, scanType);
     return scanTask;
   }
 }

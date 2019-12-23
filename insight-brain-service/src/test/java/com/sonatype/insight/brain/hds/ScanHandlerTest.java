@@ -122,13 +122,12 @@ public class ScanHandlerTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(thirdPartyScanResultsProcessor.handle(any(File.class))).thenReturn(scanRequestId);
     when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class)))
         .thenReturn(scanReceipt);
-
+    when(thirdPartyScanResultsProcessor.handle(any(File.class), eq(null))).thenReturn(scanRequestId);
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY);
     assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
-    verify(thirdPartyScanResultsProcessor, times(1)).handle(any(File.class));
+    verify(thirdPartyScanResultsProcessor, times(1)).handle(any(File.class), eq(null));
 
     ArgumentCaptor<String> scanIdCaptor = ArgumentCaptor.forClass(String.class);
     verify(thirdPartyScanResultsProcessor, times(1)).postHandle(scanIdCaptor.capture(), eq(scanRequestId));

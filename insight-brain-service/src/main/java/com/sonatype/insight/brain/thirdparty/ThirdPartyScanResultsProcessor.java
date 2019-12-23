@@ -30,8 +30,10 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.Xpp3Util;
 import com.sonatype.insight.scan.model.ItemContentType;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
@@ -59,13 +61,20 @@ public class ThirdPartyScanResultsProcessor
 
   private final ThirdPartyFileDAO thirdPartyFileDAO;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
-  public ThirdPartyScanResultsProcessor(ThirdPartyScanDAO thirdPartyScanDAO, ThirdPartyFileDAO thirdPartyFileDAO) {
+  public ThirdPartyScanResultsProcessor(
+      ThirdPartyScanDAO thirdPartyScanDAO,
+      ThirdPartyFileDAO thirdPartyFileDAO,
+      TelemetrySender telemetrySender)
+  {
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
+    this.telemetrySender = telemetrySender;
   }
 
-  public String handle(final File scanFile) {
+  public String handle(final File scanFile, TelemetryData telemetryData) {
     String scanRequestId = UUID.randomUUID().toString().replace("-", "");
     log.info("Processing third party content with scanRequestId: {}", scanRequestId);
 
@@ -82,7 +91,7 @@ public class ThirdPartyScanResultsProcessor
 
         parser.next();
         while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
-          processEvent(parser, writer, scanFile, scanRequestId);
+          processEvent(parser, writer, scanFile, scanRequestId, telemetryData);
         }
         writer.flush();
         writer.close();
@@ -111,7 +120,8 @@ public class ThirdPartyScanResultsProcessor
       XmlPullParser parser,
       XMLEventWriter writer,
       File scanFile,
-      String scanRequestId)
+      String scanRequestId,
+      TelemetryData telemetryData)
   {
     try {
       int eventType = parser.getEventType();
@@ -122,7 +132,7 @@ public class ThirdPartyScanResultsProcessor
           writer.add(EVENT_FACTORY.createStartElement(new QName(parser.getName()), null, null));
           addElementAttributes(parser, writer);
           if ("item".equals(elementName)) {
-            processItemElement(parser, writer, scanFile, scanRequestId);
+            processItemElement(parser, writer, scanFile, scanRequestId, telemetryData);
           }
         }
         else if (eventType == XmlPullParser.END_TAG) {
@@ -148,12 +158,18 @@ public class ThirdPartyScanResultsProcessor
       XmlPullParser parser,
       XMLEventWriter writer,
       File scanFile,
-      String scanRequestId) throws Exception
+      String scanRequestId,
+      TelemetryData telemetryData) throws Exception
   {
     String contentType = parser.getAttributeValue(null, "contentType");
     if (contentType != null && thirdPartyItemContentTypes.contains(contentType)) {
       Xpp3Dom itemElement = Xpp3Util.loadElement("item", parser);
       Xpp3Dom contentElement = itemElement.getChild("content");
+      if (telemetryData != null) {
+        // add the content type to telemetry data
+        telemetryData.getAttributes().put("content_type", contentType);
+        telemetrySender.send(telemetryData);
+      }
       if (contentElement != null) {
         String filteredContent =
             handleContent(itemElement, contentElement.getValue(), contentType, scanRequestId);

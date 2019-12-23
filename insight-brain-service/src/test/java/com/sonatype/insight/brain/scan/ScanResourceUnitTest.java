@@ -8,13 +8,15 @@ package com.sonatype.insight.brain.scan;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import javax.ws.rs.core.HttpHeaders;
+import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -26,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ScanResourceUnitTest
 {
@@ -41,6 +44,16 @@ public class ScanResourceUnitTest
   @Mock
   private AntiCsrfFilter antiCsrfFilter;
 
+  @Mock
+  private HdsClient hdsClient;
+
+  private HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+
+  @Before
+  public void setUp() {
+    when(hdsClient.getClientUserAgent(httpServletRequest)).thenReturn("userAgent");
+  }
+
   @Test
   public void testUploadBinary_FilenameSelection() throws Exception {
     String appPublicId = "appPublicId";
@@ -49,14 +62,13 @@ public class ScanResourceUnitTest
 
     ScanResource scanResource = new ScanResource(scanService, errorResponseGenerator, antiCsrfFilter);
 
-    HttpHeaders httpHeaders = mock(HttpHeaders.class);
     FormDataContentDisposition formDataContentDisposition = FormDataContentDisposition.name("test")
         .fileName("Content-Disposition-Filename").build();
     scanResource
-        .uploadBinary(appPublicId, is, formDataContentDisposition, filename, "csrfToken", httpHeaders, Stage.ID_BUILD,
-            false, false);
+        .uploadBinary(appPublicId, is, formDataContentDisposition, filename, "csrfToken", null, Stage.ID_BUILD,
+            false, false, httpServletRequest);
 
-    verify(scanService).scanBinary(eq(appPublicId), eq(is), eq(filename), any(), eq(false));
+    verify(scanService).scanBinary(eq(appPublicId), eq(is), eq(filename), any(), eq(false), eq("userAgent"), eq("ui"));
   }
 
   @Test
@@ -67,13 +79,12 @@ public class ScanResourceUnitTest
 
     ScanResource scanResource = new ScanResource(scanService, errorResponseGenerator, antiCsrfFilter);
 
-    HttpHeaders httpHeaders = mock(HttpHeaders.class);
     FormDataContentDisposition formDataContentDisposition = FormDataContentDisposition.name("test").fileName(filename)
         .build();
     scanResource
-        .uploadBinary(appPublicId, is, formDataContentDisposition, null, "csrfToken", httpHeaders, Stage.ID_BUILD,
-            false, false);
+        .uploadBinary(appPublicId, is, formDataContentDisposition, null, "csrfToken", null, Stage.ID_BUILD,
+            false, false, httpServletRequest);
 
-    verify(scanService).scanBinary(eq(appPublicId), eq(is), eq(filename), any(), eq(false));
+    verify(scanService).scanBinary(eq(appPublicId), eq(is), eq(filename), any(), eq(false), eq("userAgent"), eq("ui"));
   }
 }

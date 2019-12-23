@@ -9,6 +9,7 @@ import java.io.InputStream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -25,6 +26,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
@@ -73,7 +75,8 @@ public class ScanResource
                                @Context HttpHeaders headers,
                                @QueryParam("stageId") String stageId,
                                @QueryParam("sendNotifications") boolean sendNotifications,
-                               @QueryParam("noFormData") boolean noFormData) throws Exception
+                               @QueryParam("noFormData") boolean noFormData,
+                               @Context HttpServletRequest request) throws Exception
   {
     try {
       antiCsrfFilter.validate(csrfToken, headers);
@@ -84,7 +87,8 @@ public class ScanResource
         // ... and fallback to the broken header in case of IE9
         filename = fileDetail.getFileName();
       }
-      ScanTicket result = scanService.scanBinary(appPublicId, is, filename, new Stage(stageId), sendNotifications);
+      ScanTicket result = scanService.scanBinary(appPublicId, is, filename, new Stage(stageId), sendNotifications,
+          HdsClient.getClientUserAgent(request), "ui");
       if (noFormData) {
         return Response.ok(JsonUtils.generate(result), ErrorResponse.CONTENT_TYPE).build();
       }

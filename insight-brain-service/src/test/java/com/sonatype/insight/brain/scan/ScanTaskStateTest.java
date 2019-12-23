@@ -65,7 +65,7 @@ public class ScanTaskStateTest
   @Before
   public void init() throws Exception {
     File binFile = new File("any");
-    task.init(new Application("any", "MyApp", null), binFile, "any", new Stage(Stage.ID_BUILD), false);
+    task.init(new Application("any", "MyApp", null), binFile, "any", new Stage(Stage.ID_BUILD), false, "", "");
     when(scanner.scan(any(), any(), any(), any())).thenReturn(new ScanResult(binFile, false));
   }
 

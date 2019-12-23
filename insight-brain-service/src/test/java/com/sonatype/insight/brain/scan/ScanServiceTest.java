@@ -97,7 +97,8 @@ public class ScanServiceTest
   @Test
   public void testScanBinary() throws Exception {
     InputStream appBundle = getBundle("app01.zip");
-    scanTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false);
+    scanTicket =
+        scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false, null, null);
     assertThat(scanTicket).isNotNull();
     assertThat(scanTicket.ticketId).isNotNull();
   }
@@ -112,7 +113,8 @@ public class ScanServiceTest
   @Test
   public void testGetTicket() throws IOException {
     InputStream appBundle = getBundle("app01.zip");
-    scanTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false);
+    scanTicket =
+        scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false, null, null);
 
     ScanTicket statusTicket = scanService.getTicket(app.getPublicId(), scanTicket.ticketId);
     assertThat(statusTicket.ticketId).isEqualTo(scanTicket.ticketId);
@@ -126,7 +128,7 @@ public class ScanServiceTest
   public void testGetTicketUntilTaskComplete() throws IOException {
     InputStream appBundle = getBundle("app01.zip");
     ScanTicket originalTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(
-        Stage.ID_BUILD), false);
+        Stage.ID_BUILD), false, null, null);
 
     ScanTicket statusTicket = originalTicket;
     while (statusTicket.currentStep != statusTicket.totalSteps) {
@@ -141,7 +143,8 @@ public class ScanServiceTest
   public void testFailEarlyOnInvalidStage() throws Exception {
     InputStream appBundle = getBundle("app01.zip");
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage("invalid-stage-id"), false);
+      scanService
+          .scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage("invalid-stage-id"), false, null, null);
     }).withMessageContaining("invalid-stage-id");
   }
 }

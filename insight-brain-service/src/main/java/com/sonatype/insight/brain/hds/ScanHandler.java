@@ -38,6 +38,7 @@ import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.io.ScanReader;
 import com.sonatype.insight.scan.model.io.ScanWriter;
 import com.sonatype.insight.scan.model.io.ScanWriterFactory;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -96,12 +97,14 @@ public class ScanHandler
       throws IOException
   {
     File tempScanFile = createTempScanFile(httpRequest, applicationPublicId, clientScanType);
-    return handle(tempScanFile, applicationPublicId, clientScanType);
+    return handle(tempScanFile, applicationPublicId, clientScanType, null);
   }
 
-  public ScanReceipt handle(File tempScanFile,
-                            String applicationPublicId,
-                            ClientScanType clientScanType)
+  public ScanReceipt handle(
+      File tempScanFile,
+      String applicationPublicId,
+      ClientScanType clientScanType,
+      TelemetryData telemetryData)
       throws IOException
   {
     long start = System.currentTimeMillis();
@@ -116,7 +119,7 @@ public class ScanHandler
 
       String thirdPartyScanRequestId = null;
       if (ClientScanType.SONATYPE_THIRD_PARTY.equals(clientScanType)) {
-        thirdPartyScanRequestId = thirdPartyScanResultsProcessor.handle(tempScanFile);
+        thirdPartyScanRequestId = thirdPartyScanResultsProcessor.handle(tempScanFile, telemetryData);
       }
 
       ScanReceipt scanReceipt = scanUploader.upload(tempScanFile, app);

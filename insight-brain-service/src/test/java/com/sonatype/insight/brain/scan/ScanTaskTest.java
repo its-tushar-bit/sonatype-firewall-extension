@@ -23,13 +23,17 @@ import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -96,7 +100,8 @@ public class ScanTaskTest
     when(uploader.upload(eq(tmpScanFile), eq(app))).thenReturn(scanReceipt);
     ScanResult scanResult = new ScanResult(tmpScanFile, false);
     when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq(null))).thenReturn(scanResult);
-    when(thirdPartyScanResultsProcessor.handle(any(File.class))).thenReturn("scan-request-id");
+    when(thirdPartyScanResultsProcessor.handle(any(File.class), any(TelemetryData.class)))
+        .thenReturn("scan-request-id");
   }
 
   private static Stage match(Stage stage) {
@@ -113,13 +118,13 @@ public class ScanTaskTest
   public void stateForScheduledTaskIsPending() {
     assertThat(task.getState()).as("New task state").isEqualTo(State.PENDING);
 
-    task.init(newApp("any"), new File("any"), "any", new Stage(Stage.ID_BUILD), false);
+    task.init(newApp("any"), new File("any"), "any", new Stage(Stage.ID_BUILD), false, null, null);
     assertThat(task.getState()).as("Initialized task state").isEqualTo(State.PENDING);
   }
 
   @Test
   public void savedApplicationBinaryIsScanned() throws IOException {
-    task.init(app, bundleFile, bundleFilename, stage, false);
+    task.init(app, bundleFile, bundleFilename, stage, false, null, null);
 
     assertThat(tmpScanFile).isFile();
     assertThat(scanFile).doesNotExist();
@@ -140,7 +145,7 @@ public class ScanTaskTest
    */
   @Test
   public void successfulTaskHasTicketWithIdsForUiToRouteToReport() {
-    task.init(app, bundleFile, bundleFilename, stage, false);
+    task.init(app, bundleFile, bundleFilename, stage, false, null, null);
     task.run();
 
     assertThatTaskCompletedSuccessfully(task);
@@ -155,12 +160,12 @@ public class ScanTaskTest
 
   @Test
   public void erorredTaskHasTicketWithErrorMessage() throws IOException {
-    task.init(app, bundleFile, bundleFilename, stage, false);
+    task.init(app, bundleFile, bundleFilename, stage, false, null, null);
 
     when(scanner.scan(any(File.class), any(String.class), any(File.class), eq(null)))
         .thenThrow(RuntimeException.class);
 
-    task.init(app, bundleFile, bundleFilename, stage, false);
+    task.init(app, bundleFile, bundleFilename, stage, false, null, null);
     task.run();
 
     assertThatTaskCompletedUnsuccessfully(task);
@@ -175,7 +180,7 @@ public class ScanTaskTest
   @Test
   public void policyEvaluationConsidersStageParameter() throws IOException {
     stage = new Stage(Stage.ID_RELEASE);
-    task.init(app, bundleFile, bundleFilename, stage, false);
+    task.init(app, bundleFile, bundleFilename, stage, false, null, null);
 
     task.run();
 
@@ -188,7 +193,7 @@ public class ScanTaskTest
         .thenThrow(RuntimeException.class);
 
     File appBinary = new File("any");
-    task.init(app, appBinary, bundleFilename, stage, false);
+    task.init(app, appBinary, bundleFilename, stage, false, null, null);
     task.run();
 
     assertThatTaskCompletedUnsuccessfully(task);
@@ -197,7 +202,7 @@ public class ScanTaskTest
 
   @Test
   public void sendsNotifications() throws Exception {
-    task.init(app, bundleFile, bundleFilename, stage, true);
+    task.init(app, bundleFile, bundleFilename, stage, true, null, null);
 
     ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
     results.evaluation = new PolicyEvaluation();
@@ -214,15 +219,21 @@ public class ScanTaskTest
   @Test
   public void testRun_processThirdPartyScanResults() throws Exception {
     File scanBinary = new File("any");
-    task.init(app, scanBinary, bundleFilename, stage, false);
+    when(thirdPartyScanResultsProcessor.handle(scanBinary, null)).thenReturn("scan-request-id");
+    task.init(app, scanBinary, bundleFilename, stage, false, "agent", "ui");
     when(scanner.scan(any(File.class), any(String.class), any(File.class), eq(null)))
         .thenReturn(new ScanResult(scanBinary, true));
     when(uploader.upload(any(File.class), eq(app))).thenReturn(scanReceipt);
-
     task.run();
-
-    verify(thirdPartyScanResultsProcessor).handle(scanBinary);
+    ArgumentCaptor<TelemetryData> arg = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(thirdPartyScanResultsProcessor).handle(eq(scanBinary), arg.capture());
     verify(thirdPartyScanResultsProcessor).postHandle(any(String.class), any(String.class));
+
+    TelemetryData telemetryData = arg.getValue();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);
+    assertThat(telemetryData.getAttributes())
+        .contains(entry("application_id", "public-app-id"), entry("stage_id", "build"), entry("source", "ui"),
+            entry("user_agent", "agent"));
   }
 
   private void assertThatTaskCompletedSuccessfully(ScanTask task) {

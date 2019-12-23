@@ -33,6 +33,8 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.telemetry.TelemetryUtils.buildThirdPartyScanTelemetryData;
+
 /**
  * Worker task to process a single application bundle.
  * 
@@ -97,6 +99,10 @@ class ScanTask
 
   private String filename;
 
+  private String userAgent;
+
+  private String scanType;
+
   private Stage stage;
 
   private boolean sendNotifications;
@@ -135,12 +141,22 @@ class ScanTask
   /**
    * @param binFile the binary file of what to scan
    */
-  public void init(Application app, File binFile, String filename, Stage stage, boolean sendNotifications) {
+  public void init(
+      Application app,
+      File binFile,
+      String filename,
+      Stage stage,
+      boolean sendNotifications,
+      String userAgent,
+      String scanType)
+  {
     this.app = app;
     this.binFile = binFile;
     this.filename = filename;
     this.stage = stage;
     this.sendNotifications = sendNotifications;
+    this.userAgent = userAgent;
+    this.scanType = scanType;
   }
 
   public String getId() {
@@ -201,7 +217,8 @@ class ScanTask
 
       String thirdPartyScanRequestId = null;
       if (scanResult != null && scanResult.hasThirdPartyScanContent()) {
-        thirdPartyScanRequestId = thirdPartyScanResultsProcessor.handle(scanResult.getScanFile());
+        thirdPartyScanRequestId = thirdPartyScanResultsProcessor.handle(scanResult.getScanFile(),
+            buildThirdPartyScanTelemetryData(appPublicId, stage, scanType, userAgent));
       }
       // upload the scan
       state = State.UPLOADING_SCAN;
@@ -210,7 +227,6 @@ class ScanTask
         if (thirdPartyScanRequestId != null) {
           thirdPartyScanResultsProcessor.postHandle(scanReceipt.getScanId(), thirdPartyScanRequestId);
         }
-
         FileUtils.rename(scanResult.getScanFile(), work.getScanFile(app.getId(), scanReceipt.getScanId()));
       }
 

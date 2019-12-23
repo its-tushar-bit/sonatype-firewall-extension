@@ -29,7 +29,7 @@ public class ScanTaskRepositoryTest
     when(provider.get()).thenReturn(stubTask);
     when(stubTask.getId()).thenReturn("stub-id");
 
-    repo.newScanTask(null, null, null, null, false);
+    repo.newScanTask(null, null, null, null, false, null, null);
 
     ScanTask task = repo.getByIdNotNull("stub-id");
 
@@ -49,7 +49,7 @@ public class ScanTaskRepositoryTest
     when(provider.get()).thenReturn(stubTask);
     when(stubTask.getId()).thenReturn("stub-id");
 
-    ScanTask task = repo.newScanTask(null, null, null, null, false);
+    ScanTask task = repo.newScanTask(null, null, null, null, false, null, null);
 
     repo.remove(task.getId());
 
@@ -64,12 +64,12 @@ public class ScanTaskRepositoryTest
     when(provider.get()).thenReturn(task);
     when(task.getId()).thenReturn("task-0");
     when(task.isObsolete()).thenReturn(true);
-    repo.newScanTask(null, null, null, null, false);
+    repo.newScanTask(null, null, null, null, false, null, null);
 
     task = mock(ScanTask.class);
     when(provider.get()).thenReturn(task);
     when(task.getId()).thenReturn("task-1");
-    repo.newScanTask(null, null, null, null, false);
+    repo.newScanTask(null, null, null, null, false, null, null);
 
     assertThat(repo.getByIdNotNull("task-1")).isNotNull();
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {

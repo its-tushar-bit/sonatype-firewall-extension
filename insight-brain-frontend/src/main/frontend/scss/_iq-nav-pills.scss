@@ -1,18 +1,18 @@
 .iq-nav-pills {
-  background-color: $iq-grey-2;
-  border: 1px solid $iq-grey-3;
   list-style: none;
-  margin: 0 0 0 $iq-spacing-sm;
   overflow: hidden;
-  padding: 8px;
+  margin: $iq-spacing-xs 0 $iq-spacing-md $iq-spacing-xs;
 
   // The "& >" here and below are required to override Bootstrap styles
   > .iq-nav-pills__pill {
-    float: left;
+    display: inline-block;
+    float: none; // override Bootstrap
 
     > a {
-      border: 1px solid transparent;
-      border-radius: 4px;
+      @include semi-bold();
+
+      border: 1px solid $iq-grey-5;
+      border-radius: 16px;
       color: $iq-slate;
       display: inline-block;
       font-size: 14px;
@@ -21,23 +21,23 @@
       padding: 5px 12px;
       text-align: center;
       text-decoration: none;
-      min-width: 74px;
 
       &:hover, &:focus {
-        background-color: transparent; // Bootstrap override
-        border-color: $iq-grey-4;
+        background-color: $iq-blue-light;
+        border-color: $iq-blue-light;
+        color: $iq-blue;
       }
     }
 
     &:not(:last-child) {
-      margin-right: 8px;
+      margin-right: $iq-spacing-md;
     }
 
     &.active a {
       &, &:hover, &:focus {
-        background-color: $iq-off-white;
-        border-color: $iq-grey-4;
-        color: $iq-off-black;
+        background-color: $iq-blue-light;
+        border-color: $iq-blue-light;
+        color: $iq-blue;
       }
     }
   }

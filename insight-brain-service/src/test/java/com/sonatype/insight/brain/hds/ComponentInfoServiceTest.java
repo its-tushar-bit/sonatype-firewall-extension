@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.hds;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -987,8 +986,7 @@ public class ComponentInfoServiceTest
     tpComponentDetails.setSecurityVulnerabilities(asList(
         new SecurityVulnerability("cve-8", "cve", 8.1f),
         new SecurityVulnerability("cve-4", "cve", 4f)));
-    tpComponentDetails
-        .setDeclaredLicenses(new HashSet<License>(asList(new License("Apache-2.0", "Apache License 2.0"))));
+    tpComponentDetails.setDeclaredLicenses(Collections.singleton(new License("Apache-2.0", "Apache License 2.0")));
     ComponentDetailsList thirdPartyComponentDetailsList = new ComponentDetailsList();
     thirdPartyComponentDetailsList.setList(Collections.singletonList(tpComponentDetails));
 
@@ -1129,7 +1127,7 @@ public class ComponentInfoServiceTest
     tpsComponentDetails.setIdentificationSource(identificationSource);
     License license = new License("Apache-2.0", "Apache License 2.0");
     tpsComponentDetails.setHash(hash);
-    tpsComponentDetails.setDeclaredLicenses(new HashSet<>(asList(license)));
+    tpsComponentDetails.setDeclaredLicenses(Collections.singleton(license));
 
     when(thirdPartyComponentDAO.getComponentDetailsByIdentifier( MAVEN_COORDINATES, application.getId(), scanId))
         .thenReturn(tpsComponentDetails);

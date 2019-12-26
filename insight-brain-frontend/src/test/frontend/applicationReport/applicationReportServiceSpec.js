@@ -899,7 +899,8 @@ describe('applicationReportService', function() {
         derivedViolationState: 'open',
         policyName: 'Security-High',
         policyThreatLevel: 9,
-        dependencyInfo: { isDirectDependency: true }
+        dependencyInfo: { isDirectDependency: true },
+        derivedDependencyType: 'direct'
       }));
 
       expect(result).toContain(jasmine.objectContaining({
@@ -907,7 +908,8 @@ describe('applicationReportService', function() {
         derivedViolationState: 'waived+grandfathered',
         policyName: 'License-High',
         policyThreatLevel: 8,
-        dependencyInfo: { isDirectDependency: true }
+        dependencyInfo: { isDirectDependency: true },
+        derivedDependencyType: 'direct'
       }));
 
       expect(result).toContain(jasmine.objectContaining({
@@ -915,11 +917,13 @@ describe('applicationReportService', function() {
         derivedViolationState: 'notViolating',
         policyName: 'None',
         policyThreatLevel: 0,
-        dependencyInfo: { isDirectDependency: false }
+        dependencyInfo: { isDirectDependency: false },
+        derivedDependencyType: 'transitive'
       }));
 
       const bazHashEntry = result.find(propEq('hash', 'bazHash'));
       expect(bazHashEntry.dependencyInfo).toBeUndefined();
+      expect(bazHashEntry.derivedDependencyType).toBe('unknown');
     });
   });
 

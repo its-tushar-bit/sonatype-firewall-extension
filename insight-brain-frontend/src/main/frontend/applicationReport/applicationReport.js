@@ -49,6 +49,12 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
       { id: 'grandfathered', name: 'Grandfathered' }
     ],
 
+    availableDependencyTypeFilterOptions: [
+      { id: 'direct', name: 'Direct Dependencies' },
+      { id: 'transitive', name: 'Transitive Dependencies' },
+      { id: 'unknown', name: 'Unknown' }
+    ],
+
     availablePolicyTypeFilterOptions: policyTypes,
 
     violationStateCheckedIds: new Set(),
@@ -145,6 +151,10 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
 
     setPolicyTypeFilterOptions(selectedIds) {
       vm.setExactValueFilter('policyThreatCategory', selectedIds);
+    },
+
+    setDependencyTypeFilterOptions(selectedIds) {
+      vm.setExactValueFilter('derivedDependencyType', selectedIds);
     },
 
     setPolicyThreatLevelFilter(selectedRange) {

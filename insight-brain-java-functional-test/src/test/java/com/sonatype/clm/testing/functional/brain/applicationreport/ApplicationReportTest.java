@@ -23,6 +23,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.DependencyTypeFilter;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQGrandfatheringIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.MatchStateFilter;
@@ -544,7 +545,38 @@ public class ApplicationReportTest
     policyTypeFilter.allItems().click();
     policyTypeFilter.allItems().shouldNotBe(selected);
     violations.shouldHaveSize(61);
-    
+
+    // dependency type filter
+    DependencyTypeFilter dependencyTypeFilter = ApplicationReportPage.dependencyTypeFilter();
+    dependencyTypeFilter.counter().shouldHave(exactText("3"));
+    dependencyTypeFilter.multiSelectList().shouldBe(empty);
+    dependencyTypeFilter.twisty().click();
+    dependencyTypeFilter.multiSelectList().shouldHaveSize(4);
+    dependencyTypeFilter.unknown().click();
+    dependencyTypeFilter.unknown().shouldBe(selected);
+    violations.shouldHaveSize(1);
+    dependencyTypeFilter.counter().shouldHave(exactText("1 of 3"));
+
+    dependencyTypeFilter.transitive().click();
+    violations.shouldHaveSize(19);
+    dependencyTypeFilter.counter().shouldHave(exactText("2 of 3"));
+
+    dependencyTypeFilter.direct().click();
+    dependencyTypeFilter.allItems().shouldBe(selected);
+    dependencyTypeFilter.counter().shouldHave(exactText("3 of 3"));
+    dependencyTypeFilter.allItems().click();
+    dependencyTypeFilter.allItems().shouldNotBe(selected);
+    dependencyTypeFilter.counter().shouldHave(exactText("3"));
+    dependencyTypeFilter.direct().click();
+    dependencyTypeFilter.direct().shouldBe(selected);
+    dependencyTypeFilter.counter().shouldHave(exactText("1 of 3"));
+    violations.shouldHaveSize(42);
+    eyesWatcher.eyesCheck("Test Dependency Type Filter");
+    dependencyTypeFilter.allItems().click();
+    dependencyTypeFilter.allItems().shouldBe(selected);
+    violations.shouldHaveSize(61);
+    dependencyTypeFilter.twisty().click();
+
     // policy threat level filter
     PolicyThreatLevelFilter threatLevelFilter = DashboardFilters.policyThreatLevelFilter();
     threatLevelFilter.counter().shouldBe(visible).shouldBe(ACTIVE).shouldHave(text("0 – 10"));

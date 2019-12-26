@@ -43,6 +43,12 @@
                                  on-change="vm.setViolationStateFilterOptions(selected)">
         Violation State
       </iq-tree-view-multi-select>
+      <iq-tree-view-multi-select id="dependency-type-filter"
+                                 available="vm.availableDependencyTypeFilterOptions"
+                                 selected="vm.exactValueFilters.derivedDependencyType"
+                                 on-change="vm.setDependencyTypeFilterOptions(selected)">
+        Dependency Type
+      </iq-tree-view-multi-select>
       <iq-tree-view-multi-select id="policy-type-filter"
                                  is-disabled="!vm.policyTypeFilterEnabled"
                                  disabled-tooltip="Reevaluate the report in order to enable Policy Types filter"

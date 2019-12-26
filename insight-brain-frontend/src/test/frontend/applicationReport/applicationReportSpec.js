@@ -200,6 +200,16 @@ describe('applicationReport component', function() {
     });
   });
 
+  describe('setDependencyTypeFilterOptions', function() {
+    it('calls setExactValueFilter with a fieldName of "derivedDependencyType"', function() {
+      const selectedIds = new Set(['direct']);
+
+      controller.setDependencyTypeFilterOptions(selectedIds);
+
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('derivedDependencyType', selectedIds);
+    });
+  });
+
   describe('setMatchStateFilterOptions', function() {
     it('calls setExactValueFilter with a fieldName of "matchState"', function() {
       const selectedIds = new Set([true]);

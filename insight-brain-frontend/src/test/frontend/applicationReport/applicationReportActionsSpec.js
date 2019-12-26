@@ -378,6 +378,7 @@ describe('applicationReportActions', function() {
               waived: false,
               grandfathered: false,
               derivedComponentName: 'unknown',
+              derivedDependencyType: 'direct',
               derivedViolationState: 'notViolating',
               dependencyInfo: { isDirectDependency: true }
             }
@@ -623,6 +624,7 @@ describe('applicationReportActions', function() {
             waived: false,
             grandfathered: false,
             derivedComponentName: 'foo.js',
+            derivedDependencyType: 'unknown',
             derivedViolationState: 'notViolating'
           }],
           fooReport: 'barReport',

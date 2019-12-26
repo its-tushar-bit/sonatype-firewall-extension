@@ -106,6 +106,10 @@ public class ApplicationReportPage
     return new ViolationStateFilter("#violation-state-filter");
   }
 
+  public static DependencyTypeFilter dependencyTypeFilter() {
+    return new DependencyTypeFilter("#dependency-type-filter");
+  }
+
   public PolicyTypeFilter policyTypeFilter() {
     return new PolicyTypeFilter("#policy-type-filter");
   }
@@ -413,6 +417,25 @@ public class ApplicationReportPage
 
     public IqCheckbox grandfathered() {
       return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(5)));
+    }
+  }
+
+  public static class DependencyTypeFilter extends IqTreeViewMultiSelect
+  {
+    public DependencyTypeFilter(final String selector) {
+      super(selector);
+    }
+
+    public IqCheckbox direct() {
+      return super.checkboxItem(2);
+    }
+
+    public IqCheckbox transitive() {
+      return super.checkboxItem(3);
+    }
+
+    public IqCheckbox unknown() {
+      return super.checkboxItem(4);
     }
   }
 

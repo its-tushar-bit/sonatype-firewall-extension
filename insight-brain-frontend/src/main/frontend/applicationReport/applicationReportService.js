@@ -203,9 +203,23 @@ export function createReportEntries(policyResult = defaultParamValue, bomResult 
     return isNil(violations);
   }
 
+  function getDerivedDependencyType(dependencyInfo) {
+    if (dependencyInfo) {
+      if (dependencyInfo.isDirectDependency) {
+        return 'direct';
+      }
+      else {
+        return 'transitive';
+      }
+    }
+    return 'unknown';
+  }
+
   function addDependencyInfo(entry) {
     const dependencyInfo = dependencyInfoGenerator.getDependencyInfo(entry);
-    return dependencyInfo ? { ...entry, dependencyInfo } : entry;
+    const derivedDependencyType = getDerivedDependencyType(dependencyInfo);
+    const entryWithDerivedDependencyType = { ...entry, derivedDependencyType };
+    return dependencyInfo ? { ...entryWithDerivedDependencyType, dependencyInfo } : entryWithDerivedDependencyType;
   }
 
   const nonViolatingBomData = map(prop(1), filter(isKeyInactive, toPairs(bomDataByKey))),

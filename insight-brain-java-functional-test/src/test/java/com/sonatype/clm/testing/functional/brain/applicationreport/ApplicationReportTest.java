@@ -573,14 +573,15 @@ public class ApplicationReportTest
     dependencyTypeFilter.multiSelectList().shouldHaveSize(4);
     dependencyTypeFilter.unknown().click();
     dependencyTypeFilter.unknown().shouldBe(selected);
-    violations.shouldHaveSize(1);
+    violations.shouldHaveSize(56);
     dependencyTypeFilter.counter().shouldHave(exactText("1 of 3"));
 
     dependencyTypeFilter.transitive().click();
-    violations.shouldHaveSize(19);
+    violations.shouldHaveSize(59);
     dependencyTypeFilter.counter().shouldHave(exactText("2 of 3"));
 
     dependencyTypeFilter.direct().click();
+    violations.shouldHaveSize(61);
     dependencyTypeFilter.allItems().shouldBe(selected);
     dependencyTypeFilter.counter().shouldHave(exactText("3 of 3"));
     dependencyTypeFilter.allItems().click();
@@ -589,7 +590,7 @@ public class ApplicationReportTest
     dependencyTypeFilter.direct().click();
     dependencyTypeFilter.direct().shouldBe(selected);
     dependencyTypeFilter.counter().shouldHave(exactText("1 of 3"));
-    violations.shouldHaveSize(42);
+    violations.shouldHaveSize(2);
     eyesWatcher.eyesCheck("Test Dependency Type Filter");
     dependencyTypeFilter.allItems().click();
     dependencyTypeFilter.allItems().shouldBe(selected);

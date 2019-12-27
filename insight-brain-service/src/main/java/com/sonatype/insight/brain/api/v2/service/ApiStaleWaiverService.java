@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.dashboard.PolicyViolationState;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.PolicyEvaluationRequiredException;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -120,10 +121,21 @@ public class ApiStaleWaiverService
         .stream()
         .map(Repository::getId)
         .collect(Collectors.toList());
-    return repositoryPolicyViolationDAO.getActiveWaivedRepositoryPolicyViolations(allRepositoryIds)
+
+    Set<String> allUsedWaiverIds =
+        repositoryPolicyViolationDAO.getActiveWaivedRepositoryPolicyViolations(allRepositoryIds)
         .stream()
         .map(RepositoryPolicyViolation::getPolicyWaiverId)
         .collect(Collectors.toSet());
+
+    // Repository violations can have legacy waivers without a waiverId. Throw an exception if we don't know
+    // the waiverId for a waived violation. The repository has to be re-evaluated to set the waiverId.
+    if (allUsedWaiverIds.contains(null)) {
+      throw new PolicyEvaluationRequiredException(
+          "All repositories must be re-evaluated to capture current waiver information.");
+    }
+
+    return allUsedWaiverIds;
   }
 
   private Set<PolicyWaiver> getStaleRepositoryWaivers(final Set<String> allUsedWaiverIds) {

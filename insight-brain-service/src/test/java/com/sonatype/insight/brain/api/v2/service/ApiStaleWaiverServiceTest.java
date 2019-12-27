@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -18,6 +19,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.dto.ApiConditionFactReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintFactDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStaleWaiverDTO;
+import com.sonatype.insight.brain.dataaccess.PolicyEvaluationRequiredException;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -38,6 +40,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiStaleWaiverServiceTest
     extends AbstractComponentTest
@@ -438,5 +441,27 @@ public class ApiStaleWaiverServiceTest
     assertStaleWaiver(staleWaiver, policy, unappliedRootOrgWaiver, "root_organization",
         Organization.ROOT_ORGANIZATION_ID, "Root Organization");
     assertContraintFacts(staleWaiver.constraintFacts);
+  }
+
+  @Test
+  public void testGetStaleWaivers_LegacyRepositoryWaiver() {
+    Date date = new Date();
+    List<ConstraintFact> constraintFacts1 = Collections.singletonList(constraintFact1);
+    Repository repo = tempEntity.newRepository("repo");
+    // legacy waived repo violation does not have these pieces of information
+    String legacyWaiverId = null;
+    String legacyWaiverComment = null;
+    Date legacyWaiverDate = null;
+
+    tempEntity.newWaiver("h2", policy.getId(), RepositoryContainer.REPOSITORY_CONTAINER_ID, "repo waiver");
+
+    tempEntity.newRepositoryPolicyViolation(
+        repo.getId(), 6, "pathName1", "hash1", constraintFacts1, true, true,
+        "actionId1", policy.getId(), policy.getName(), componentIdentifier, date,
+        legacyWaiverId, legacyWaiverComment, legacyWaiverDate);
+
+    assertThatExceptionOfType(PolicyEvaluationRequiredException.class)
+        .isThrownBy(() -> apiStaleWaiverService.getStaleWaivers())
+        .withMessage("All repositories must be re-evaluated to capture current waiver information.");
   }
 }

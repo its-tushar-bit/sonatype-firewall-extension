@@ -158,7 +158,13 @@
                       ng-show="component.grandfathered">
                   Grandfathered<i class="fa fa-history"></i>
                 </span>
-                <component-display component="component" truncate="true"></component-display>
+                <div ng-if="component.dependencyInfo"
+                     class="iq-dependency-indicator"
+                     data-tooltip="{{component.dependencyInfo.isDirectDependency ? 'Direct' : 'Transitive'}} Dependency"
+                     data-tooltip-append-to-body="true"
+                     ng-class="component.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'">
+                </div><!--
+             --><component-display component="component" truncate="true"></component-display>
               </td>
             </tr>
             <tr ng-if="vm.selectedReport.displayedEntries.length === 0" class="iq-table-row">

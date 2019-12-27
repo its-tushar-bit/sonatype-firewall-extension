@@ -27,6 +27,12 @@ public class ApplicationReportPage
 {
   public static final String ROOT = "#application-report";
 
+  public static final Condition DIRECT_DEPENDENCY_CLASS = cssClass("direct");
+  
+  public static final Condition TRANSITIVE_DEPENDENCY_CLASS = cssClass("transitive");
+
+  private static final String DEPENDENCY_INDICATOR_SELECTOR = ".iq-dependency-indicator";
+
   private static final String ROW_SELECTOR = ".iq-table--application-report tbody .iq-table-row";
 
   public static String url(Application app, String scanId) {
@@ -80,6 +86,10 @@ public class ApplicationReportPage
 
   public ElementsCollection getThreatBars(String threatLevel) {
     return children(ROW_SELECTOR, ".iq-threat-indication." + threatLevel);
+  }
+
+  public ElementsCollection rowsWithDependencyInfo() {
+    return children(ROW_SELECTOR, DEPENDENCY_INDICATOR_SELECTOR);
   }
 
   public CipModal cipModal() {
@@ -147,6 +157,10 @@ public class ApplicationReportPage
 
     public SelenideElement waivedIndicator() {
       return child(".iq-text-indicator--waived");
+    }
+
+    public SelenideElement dependencyIndicator() {
+      return child(DEPENDENCY_INDICATOR_SELECTOR);
     }
   }
 

@@ -1,0 +1,28 @@
+.iq-dependency-indicator {
+  @include bold();
+
+  border-radius: 5px;
+  color: $iq-off-white;
+  display: inline-block;
+  height: 26px;
+  line-height: 27px;
+  padding: 0 3px;
+  text-align: center;
+  width: 20px;
+
+  &.direct {
+    background: $iq-dark-blue;
+
+    &::after {
+      content: "D"
+    }
+  }
+
+  &.transitive {
+    background: $iq-dark-purple;
+
+    &::after {
+      content: "T"
+    }
+  }
+}

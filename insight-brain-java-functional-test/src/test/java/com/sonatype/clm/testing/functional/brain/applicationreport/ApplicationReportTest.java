@@ -78,6 +78,8 @@ import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.ACTIVE;
+import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.DIRECT_DEPENDENCY_CLASS;
+import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.TRANSITIVE_DEPENDENCY_CLASS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationReportTest
@@ -122,7 +124,7 @@ public class ApplicationReportTest
   }
 
   @Test
-    public void testSummary() throws Exception {
+  public void testSummary() throws Exception {
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
     Date policyEvaluationTime = policyEvaluation.getTime();
 
@@ -188,7 +190,7 @@ public class ApplicationReportTest
     }
 
     // detect PDF magic number ("%PDF")
-    assertThat(fileBeginning).isEqualTo(new byte[] { 0x25, 0x50, 0x44, 0x46 });
+    assertThat(fileBeginning).isEqualTo(new byte[]{0x25, 0x50, 0x44, 0x46});
   }
 
   @Test
@@ -316,6 +318,21 @@ public class ApplicationReportTest
     reportPage.resultRows().shouldHaveSize(2);
     reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
     reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
+  }
+
+  @Test
+  public void testDependencyIndicators() {
+    reportPage.rowsWithDependencyInfo().shouldHaveSize(5);
+    reportPage.resultRow(5).shouldHave(text("apache-httpclient : commons-httpclient : 3.1"))
+        .dependencyIndicator().shouldHave(DIRECT_DEPENDENCY_CLASS);
+    reportPage.resultRow(16).shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
+        .dependencyIndicator().shouldHave(DIRECT_DEPENDENCY_CLASS);
+    reportPage.resultRow(26).shouldHave(text("org.springframework : spring-core : 3.2.8.RELEASE"))
+        .dependencyIndicator().shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+    reportPage.resultRow(57).shouldHave(text("org.springframework : spring-aop : 3.2.8.RELEASE"))
+        .dependencyIndicator().shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+    reportPage.resultRow(58).shouldHave(text("org.springframework : spring-beans : 3.2.4.RELEASE"))
+        .dependencyIndicator().shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
   }
 
   @Test
@@ -475,6 +492,7 @@ public class ApplicationReportTest
     proprietaryFilter.nonProprietary().shouldBe(selected);
 
     violations.shouldHaveSize(61);
+    proprietaryFilter.twisty().click();
 
     // match state filter
     MatchStateFilter matchStateFilter = reportPage.matchStateFilter();
@@ -500,6 +518,7 @@ public class ApplicationReportTest
     matchStateFilter.exact().shouldBe(selected);
     matchStateFilter.counter().shouldHave(exactText("3 of 3"));
     violations.shouldHaveSize(61);
+    matchStateFilter.twisty().click();
 
     //policy type filter
     PolicyTypeFilter policyTypeFilter = reportPage.policyTypeFilter();

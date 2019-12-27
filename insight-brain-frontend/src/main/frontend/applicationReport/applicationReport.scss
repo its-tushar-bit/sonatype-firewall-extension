@@ -52,6 +52,18 @@ tbody .iq-cell--application-report-policy-threat-level {
   min-width: 0;
 }
 
+tbody .iq-cell--application-report-component-display {
+  padding-left: 4px;
+
+  .iq-component-display {
+    display: inline;
+  }
+
+  .iq-dependency-indicator {
+    margin-right: 8px;
+  }
+}
+
 .iq-cell--application-report-policy-name-filter {
   width: $iq-application-report-policy-name-filter-width;
 }

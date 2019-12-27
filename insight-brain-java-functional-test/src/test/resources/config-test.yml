@@ -30,7 +30,7 @@ server:
       # ports cannot be in the range 1-1024. A port value of 0 will
       # make the OS use an arbitrary unused port.
       port: 9070
-  
+
   adminConnectors:
     - type: http
       # The port on which the HTTP server listens for administrative

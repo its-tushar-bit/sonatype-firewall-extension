@@ -18,6 +18,8 @@ public class ApiMailConfigurationDTO
 
   public char[] password;
 
+  public boolean passwordIsIncluded;
+
   public boolean sslEnabled;
 
   public boolean startTlsEnabled;

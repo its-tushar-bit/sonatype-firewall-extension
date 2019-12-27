@@ -9,7 +9,6 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiMailConfigurationDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiMailConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -47,7 +46,8 @@ public class ApiMailConfigurationResourceTest
     assertThat(configurationDTO.hostname).isEqualTo(mailConfiguration.getHostname());
     assertThat(configurationDTO.port).isEqualTo(mailConfiguration.getPort());
     assertThat(configurationDTO.username).isEqualTo(mailConfiguration.getUsername());
-    assertThat(configurationDTO.password).isEqualTo(ApiMailConfigurationService.FAKE_PASSWORD);
+    assertThat(configurationDTO.password).isNull();
+    assertThat(configurationDTO.passwordIsIncluded).isFalse();
     assertThat(configurationDTO.sslEnabled).isEqualTo(mailConfiguration.isSslEnabled());
     assertThat(configurationDTO.startTlsEnabled).isEqualTo(mailConfiguration.isStartTlsEnabled());
     assertThat(configurationDTO.systemEmail).isEqualTo(mailConfiguration.getSystemEmail());
@@ -60,6 +60,7 @@ public class ApiMailConfigurationResourceTest
     configurationDTO.port = 58285;
     configurationDTO.username = "smtpuser";
     configurationDTO.password = "smtppass".toCharArray();
+    configurationDTO.passwordIsIncluded = true;
     configurationDTO.sslEnabled = true;
     configurationDTO.systemEmail = "nxiq@test";
 

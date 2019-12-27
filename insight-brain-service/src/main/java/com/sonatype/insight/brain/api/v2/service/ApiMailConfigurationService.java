@@ -26,8 +26,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 @Named
 public class ApiMailConfigurationService
 {
-  public static final char[] FAKE_PASSWORD = "#~FAKE~PASSWORD~#".toCharArray();
-
   private final MailConfigurationDAO mailConfigurationDAO;
 
   private final InsightMail insightMail;
@@ -53,7 +51,7 @@ public class ApiMailConfigurationService
     configurationDTO.hostname = mailConfiguration.getHostname();
     configurationDTO.port = mailConfiguration.getPort();
     configurationDTO.username = mailConfiguration.getUsername();
-    configurationDTO.password = FAKE_PASSWORD;
+    configurationDTO.passwordIsIncluded = false;
     configurationDTO.sslEnabled = mailConfiguration.isSslEnabled();
     configurationDTO.startTlsEnabled = mailConfiguration.isStartTlsEnabled();
     configurationDTO.systemEmail = mailConfiguration.getSystemEmail();
@@ -70,12 +68,27 @@ public class ApiMailConfigurationService
     if (mailConfiguration == null) {
       mailConfiguration = new MailConfiguration();
     }
+    else {
+      // This is a mail configuration update.
+      // If the hostname and port are changed, then the user must provide the password.
+      // Otherwise, the password can be stolen by using a fake email server:
+      // - The user starts a fake server that logs the password
+      // - The user sets the configuration to the hostname & port of the fake server and passwordIsIncluded to false
+      // - Because passwordIsIncluded is false, the system does not update the password field
+      // - The next email notification sends a request to the fake server and the password is stolen
+      if (!configurationDTO.passwordIsIncluded) {
+        if (!mailConfiguration.getHostname().equals(configurationDTO.hostname)
+            || mailConfiguration.getPort() != configurationDTO.port) {
+          throw new BadRequestException("The password must be provided when the hostname or port are updated");
+        }
+      }
+    }
 
     mailConfiguration.setHostname(configurationDTO.hostname);
     mailConfiguration.setPort(configurationDTO.port);
     mailConfiguration.setUsername(configurationDTO.username);
-    if (!Arrays.equals(FAKE_PASSWORD, configurationDTO.password)) {
-      if (configurationDTO.password != null) {
+    if (configurationDTO.passwordIsIncluded) {
+      if (configurationDTO.password != null && configurationDTO.password.length != 0) {
         mailConfiguration.setPassword(insightMail.encryptPassword(configurationDTO.password));
         Arrays.fill(configurationDTO.password, '0');
       }

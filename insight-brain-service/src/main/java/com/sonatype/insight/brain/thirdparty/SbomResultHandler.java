@@ -7,8 +7,11 @@ package com.sonatype.insight.brain.thirdparty;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -44,6 +47,8 @@ import org.cyclonedx.BomGeneratorFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Hash;
+import org.cyclonedx.model.Hash.Algorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,12 +148,7 @@ public class SbomResultHandler
   {
     try {
       Xpp3Dom component = Xpp3Util.loadElement("component", parser);
-      PackageUrlIdentifier packageUrlIdentifier = getPackageUrlIdentifier(component);
-
-      if (packageUrlIdentifier != null) {
-        processPurlComponent(component, packageUrlIdentifier, thirdPartyFileId, sbom, hashFileCoordinateIdMap,
-            identificationSource, tx);
-      }
+      processComponent(component, thirdPartyFileId, sbom, hashFileCoordinateIdMap, identificationSource, tx);
     }
     catch (InvalidPackageURLException | InvalidComponentIdentifierException e) {
       log.error("Error processing SBOM component, invalid purl", e);
@@ -158,42 +158,88 @@ public class SbomResultHandler
     }
   }
 
-  private PackageUrlIdentifier getPackageUrlIdentifier(Xpp3Dom component) throws MalformedPackageURLException {
+  private void processComponent(
+      Xpp3Dom component,
+      String thirdPartyFileId,
+      Bom sbom,
+      Map<String, String> hashFileCoordinateIdMap,
+      String identificationSource,
+      TransactionContext tx) throws MalformedPackageURLException
+  {
     String packageUrl = getValueFromTag(component, "purl");
     try {
       if (StringUtils.isNotBlank(packageUrl)) {
-        return new PackageUrlIdentifier(packageUrl);
+        PackageUrlIdentifier packageUrlIdentifier = new PackageUrlIdentifier(packageUrl);
+        if (StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion())) {
+          processPurlComponent(component, packageUrlIdentifier, thirdPartyFileId, sbom,
+              hashFileCoordinateIdMap, identificationSource, tx);
+        }
+        else {
+          log.warn("PackageUrl is not valid {}", packageUrl);
+          processComponentFromHashOrCoordinates(thirdPartyFileId, sbom, hashFileCoordinateIdMap, identificationSource,
+              tx, component);
+        }
+      }
+      else {
+        processComponentFromHashOrCoordinates(thirdPartyFileId, sbom, hashFileCoordinateIdMap, identificationSource, tx,
+            component);
       }
     }
     catch (InvalidPackageURLException e) {
       log.warn("Fallback to coordinates due to invalid purl: {}", packageUrl);
-      return new PackageUrlIdentifier(getPackageUrlFromCoordinates(component));
+      processComponentFromHashOrCoordinates(thirdPartyFileId, sbom, hashFileCoordinateIdMap, identificationSource, tx,
+          component);
     }
-    return new PackageUrlIdentifier(getPackageUrlFromCoordinates(component));
   }
 
-  private String getPackageUrlFromCoordinates(Xpp3Dom component) throws MalformedPackageURLException {
+  private void processComponentFromHashOrCoordinates(
+      final String thirdPartyFileId,
+      final Bom sbom,
+      final Map<String, String> hashFileCoordinateIdMap,
+      final String identificationSource,
+      final TransactionContext tx,
+      final Xpp3Dom component) throws MalformedPackageURLException
+  {
     String name = getValueFromTag(component, "name");
     String version = getValueFromTag(component, "version");
 
     if (StringUtils.isNoneBlank(name, version)) {
-      String group = getValueFromTag(component, "group");
-      String publisher = getValueFromTag(component, "publisher");
-
-      PackageURLBuilder packageURLBuilder = PackageURLBuilder.aPackageURL()
-          .withType(component.getAttribute("type"))
-          .withName(name)
-          .withVersion(version);
-      if (StringUtils.isNoneBlank(group)) {
-        packageURLBuilder.withNamespace(group);
+      String sha1 = getSha1(component);
+      if (StringUtils.isNotBlank(sha1)) {
+        processSha1Component(createComponent(component, name, version), sha1, sbom);
       }
-      if (StringUtils.isNotBlank(publisher)) {
-        packageURLBuilder.withQualifier("publisher", publisher);
+      else {
+        PackageUrlIdentifier packageUrlIdentifier =
+            new PackageUrlIdentifier(getPackageUrlFromCoordinates(component, name, version));
+        processPurlComponent(component, packageUrlIdentifier, thirdPartyFileId, sbom,
+            hashFileCoordinateIdMap, identificationSource, tx);
       }
-      return packageURLBuilder.build().toString();
     }
+  }
 
-    return null;
+  private String getPackageUrlFromCoordinates(Xpp3Dom component, String name, String version)
+      throws MalformedPackageURLException
+  {
+    String group = getValueFromTag(component, "group");
+    String publisher = getValueFromTag(component, "publisher");
+
+    PackageURLBuilder packageURLBuilder = PackageURLBuilder.aPackageURL()
+        .withType(component.getAttribute("type"))
+        .withName(name)
+        .withVersion(version);
+    if (StringUtils.isNotBlank(group)) {
+      packageURLBuilder.withNamespace(group);
+    }
+    if (StringUtils.isNotBlank(publisher)) {
+      packageURLBuilder.withQualifier("publisher", publisher);
+    }
+    return packageURLBuilder.build().toString();
+  }
+
+  private String getSha1(Xpp3Dom component) {
+    List<Xpp3Dom> hashes = getValuesFromTag(component, "hashes");
+    Xpp3Dom alg = hashes.stream().filter(h -> h.getAttribute("alg").equals("SHA-1")).findFirst().orElse(null);
+    return alg != null ? alg.getValue() : null;
   }
 
   private void processPurlComponent(
@@ -205,26 +251,31 @@ public class SbomResultHandler
       String identificationSource,
       TransactionContext tx)
   {
-    if (StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion())) {
-      ComponentIdentifier componentIdentifier = resolveComponentIdentifier(packageUrlIdentifier);
-
-      packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
-      Component sbomComponent = new Component();
-      sbomComponent.setType(Component.Type.valueOf(component.getAttribute("type").toUpperCase()));
-      sbomComponent.setName(packageUrlIdentifier.getName());
-      sbomComponent.setVersion(packageUrlIdentifier.getVersion());
-      sbomComponent.setPurl(packageUrlIdentifier.getPackageUrl());
-      String fileCoordinateId = saveComponent(thirdPartyFileId, hashFileCoordinateIdMap, componentIdentifier,
-          packageUrlIdentifier, identificationSource, tx);
-      saveLicenses(component.getChild("licenses"), fileCoordinateId, packageUrlIdentifier.getPackageUrl(), tx);
-      saveVulnerabilities(component.getChild("vulnerabilities"), fileCoordinateId, tx);
-      sbom.addComponent(sbomComponent);
-    }
-    else {
-      log.error("PackageUrl is not valid {}", packageUrlIdentifier.getPackageUrl());
-    }
+    ComponentIdentifier componentIdentifier = resolveComponentIdentifier(packageUrlIdentifier);
+    packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+    Component sbomComponent =
+        createComponent(component, packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion());
+    sbomComponent.setPurl(packageUrlIdentifier.getPackageUrl());
+    String fileCoordinateId = saveComponent(thirdPartyFileId, hashFileCoordinateIdMap, componentIdentifier,
+        packageUrlIdentifier, identificationSource, tx);
+    saveLicenses(component.getChild("licenses"), fileCoordinateId, packageUrlIdentifier.getPackageUrl(), tx);
+    saveVulnerabilities(component.getChild("vulnerabilities"), fileCoordinateId, tx);
+    sbom.addComponent(sbomComponent);
   }
-  
+
+  private Component createComponent(Xpp3Dom component, String name, String version) {
+    Component sbomComponent = new Component();
+    sbomComponent.setType(Component.Type.valueOf(component.getAttribute("type").toUpperCase()));
+    sbomComponent.setName(name);
+    sbomComponent.setVersion(version);
+    return sbomComponent;
+  }
+
+  private void processSha1Component(Component sbomComponent, String sha1, Bom sbom) {
+    sbomComponent.setHashes(Arrays.asList(new Hash(Algorithm.SHA1, sha1)));
+    sbom.addComponent(sbomComponent);
+  }
+
   private ComponentIdentifier resolveComponentIdentifier(PackageUrlIdentifier packageUrlIdentifier) {
     String format = ThirdPartyScanResultUtils.getValidFormat(packageUrlIdentifier.getFormat());
     return new ComponentIdentifier(format, packageUrlIdentifier.toComponentIdentifier().getCoordinates());
@@ -357,6 +408,13 @@ public class SbomResultHandler
       return element.getChild(name).getValue();
     }
     return null;
+  }
+
+  private List<Xpp3Dom> getValuesFromTag(Xpp3Dom element, String name) {
+    if (element.getChild(name) != null) {
+      return Arrays.asList(element.getChild(name).getChildren());
+    }
+    return Collections.emptyList();
   }
 
   private String getList(Xpp3Dom element) {

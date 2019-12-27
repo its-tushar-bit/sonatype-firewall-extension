@@ -37,6 +37,7 @@ import org.cyclonedx.BomParser;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.License;
 import org.junit.Rule;
 import org.junit.Test;
@@ -82,6 +83,57 @@ public class SbomResultHandlerTest
     assertThat(coordinates).allSatisfy(coord -> {
       assertThat(coord.getSource()).isEqualTo("clair");
     });
+  }
+
+  @Test
+  public void testHandleAndFilterContents_priorityPurl_Then_Sha1_Then_Coordinates() throws Exception {
+    String sbomContent = getSbomFile("sbom-component-purl-hashes-coordinates-components.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+    Bom bom = assertFilteredSbomFile(filteredContent, 3);
+    List<Component> components = bom.getComponents();
+    assertThat(components).extracting("name")
+        .containsOnly("tomcat-catalina", "django", "jackson-databind");
+    assertThat(components).extracting("version")
+        .containsOnly("9.0.14", "1.2.3", "2.9.9");
+    assertThat(components).extracting("purl")
+        .containsOnly("pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14", null,
+            "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9");
+    assertThat(components).extracting("hashes.size")
+        .containsOnly(null, 1, null);
+    assertThat(components.get(1).getHashes())
+        .flatExtracting(Hash::getValue, Hash::getAlgorithm)
+        .contains("e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a", "SHA-1");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_filterContent_hashes() throws Exception {
+    String sbomContent = getSbomFile("sbom-component-hashes-components.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("clair-bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+    Bom bom = assertFilteredSbomFile(filteredContent, 2);
+    List<Component> components = bom.getComponents();
+    assertThat(components).extracting("name")
+        .containsOnly("tomcat-catalina", "jackson-databind");
+    assertThat(components).extracting("version")
+        .containsOnly("9.0.14", "2.9.9");
+    assertThat(components).extracting("type.name")
+        .containsOnly("LIBRARY", "LIBRARY");
+    assertThat(components).extracting("purl")
+        .containsOnly(null, "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9");
+    assertThat(components).extracting("hashes.size")
+        .containsOnly(1, null);
+    assertThat(components.get(0).getHashes())
+        .flatExtracting(Hash::getValue, Hash::getAlgorithm)
+        .contains("e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a", "SHA-1");
   }
 
   @Test
@@ -446,11 +498,13 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
     assertThat(filteredContent).isNotNull();
-    assertLogOutput("PackageUrl is not valid pkg:pypi/django");
+    assertWarnLogOutput("PackageUrl is not valid pkg:pypi/django");
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
-    assertThat(coordinates).hasSize(0);
+    assertThat(coordinates).hasSize(1);
+    assertThat(coordinates).extracting("name").containsOnly("django");
+    assertThat(coordinates).extracting("version").containsOnly("1.11.1");
   }
 
   @Test

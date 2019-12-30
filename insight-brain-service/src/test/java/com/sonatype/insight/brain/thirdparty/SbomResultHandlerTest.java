@@ -677,10 +677,6 @@ public class SbomResultHandlerTest
     }
   }
 
-  private void assertLogOutput(final String message) {
-    assertThat(logOutput.getErrorMessages(loggerName)).containsOnly(message);
-  }
-
   private void assertWarnLogOutput(final String message) {
     assertThat(logOutput.getWarnMessages(loggerName)).containsOnly(message);
   }

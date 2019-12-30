@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
@@ -289,9 +290,8 @@ public class SamlConfigurationPageTest
   public void testIdentityProviderName_MaximumLength() {
     SamlConfigurationPage.loadXmlInput().uploadFromClasspath(
         "com/sonatype/clm/testing/functional/brain/SamlConfigurationTest/identity-provider-metadata.xml");
-    SamlConfigurationPage.identityProviderName().clear();
-    SamlConfigurationPage.identityProviderName()
-        .sendKeys(StringUtils.repeat('a', SamlConfiguration.IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH));
+    SamlConfigurationPage.identityProviderName().sendKeys(Keys.HOME, Keys.chord(Keys.SHIFT, Keys.END),
+        StringUtils.repeat('a', SamlConfiguration.IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH));
     popoverViolations(SamlConfigurationPage.identityProviderName()).shouldBe(hidden);
     SamlConfigurationPage.scrollToBottom();
     SamlConfigurationPage.saveButton().shouldNotHave(DISABLED);

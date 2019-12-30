@@ -211,7 +211,7 @@ public class ApplicationSummaryViewTest
       ActionDropDown.reportLink(i).shouldBe(visible).shouldNotBe(CLM.DISABLED)
           .shouldHave(ActionDropDown.reportLinkText(stages.get(i).getName()));
 
-      ActionDropDown.reportLink(i).followLink();
+      ActionDropDown.reportLink(i).click();
       Selenide.switchTo().window(1);
 
       waitUntilUrl(ApplicationReportPage.url(application, policyEvaluations.get(i).getScanId()));

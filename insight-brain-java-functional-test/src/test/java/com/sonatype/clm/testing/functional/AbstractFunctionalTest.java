@@ -71,8 +71,11 @@ import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.UnexpectedAlertBehaviour;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,9 +107,9 @@ public abstract class AbstractFunctionalTest
   protected static TestCLMServer testCLMServer;
 
   protected static ReverseProxyServer reverseProxyServer;
-  
+
   private static final int VIEWPORT_WIDTH = 1366;
-  
+
   private static final int VIEWPORT_HEIGHT = 1024;
 
   private static String getBaseUrl(String contextPath) {
@@ -195,6 +198,17 @@ public abstract class AbstractFunctionalTest
   }
 
   protected static void setupWebDriver() {
+    // in between tests we navigate to the 'about' page. If the page we are navigating away from was dirty then
+    // we get an alert. Prior to version 75 the chrome driver ignored these alerts by default. That behavior has
+    // since changed and without this setting an UnhandledAlertException is thrown.
+    // See also https://bugs.chromium.org/p/chromedriver/issues/detail?id=3002
+    if (Configuration.browser.equalsIgnoreCase("chrome")) {
+      ChromeOptions options = new ChromeOptions();
+      options.setUnhandledPromptBehaviour(UnexpectedAlertBehaviour.IGNORE);
+      Configuration.browserCapabilities = new DesiredCapabilities();
+      Configuration.browserCapabilities.setCapability(ChromeOptions.CAPABILITY, options);
+    }
+
     WebDriver driver = WebDriverRunner.getAndCheckWebDriver();
 
     // Enforcing specific view port size for stable applitools validations.
@@ -248,7 +262,7 @@ public abstract class AbstractFunctionalTest
     // get the windows size for the specified view port
     @SuppressWarnings("rawtypes")
     List<Long> sizes = (List) executor.executeScript(
-        "return [window.outerWidth - window.innerWidth + arguments[0], " + 
+        "return [window.outerWidth - window.innerWidth + arguments[0], " +
             "window.outerHeight - window.innerHeight + arguments[1]];",
         VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
     driver.manage().window().setSize(new Dimension(sizes.get(0).intValue(), sizes.get(1).intValue()));

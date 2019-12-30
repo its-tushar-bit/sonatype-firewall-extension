@@ -20,7 +20,7 @@
     <it.includes>**/*Test.*</it.includes>
     <selenide.driverManagerEnabled>false</selenide.driverManagerEnabled>
     <selenide.timeout>4000</selenide.timeout>
-    <docker.image.version>3.8.1-aluminum</docker.image.version>
+    <docker.image.version>3.141.59-yttrium</docker.image.version>
     <docker.image>standalone-chrome:${docker.image.version}</docker.image>
     <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
   </properties>
@@ -286,7 +286,7 @@
                     <artifactItem>
                       <groupId>org.chromium</groupId>
                       <artifactId>chromedriver</artifactId>
-                      <version>2.36</version>
+                      <version>79.0.3945.36</version>
                       <classifier>${chromedriver.classifier}</classifier>
                       <type>zip</type>
                     </artifactItem>

@@ -17,7 +17,7 @@ import org.junit.runner.Description;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.internal.WrapsDriver;
+import org.openqa.selenium.WrapsDriver;
 
 public class EyesWatcher
     extends TestWatcher

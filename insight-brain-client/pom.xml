@@ -47,6 +47,10 @@
       <groupId>com.sonatype.clm</groupId>
       <artifactId>com.sonatype.clm.dto.model</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.nexus</groupId>
+      <artifactId>nexus-git-utils</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>

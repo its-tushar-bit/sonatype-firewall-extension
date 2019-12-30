@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.client;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Optional;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
@@ -20,6 +21,9 @@ import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
+import com.sonatype.nexus.git.utils.Environment.BambooCI;
+import com.sonatype.nexus.git.utils.Environment.GitLabCI;
+import com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderBuilder;
 
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
@@ -37,6 +41,8 @@ public class PolicyClient
 
   private final String appId;
 
+  private final SourceControlClient sourceControlClient;
+
   public PolicyClient(final Configuration config, final String appId) {
     this(config, appId, null);
   }
@@ -46,6 +52,7 @@ public class PolicyClient
     this.log = log != null ? log : LoggerFactory.getLogger(PolicyClient.class);
     this.serverUrl = config.getServerUrl();
     this.appId = UrlUtils.encodeUrlComponent(appId);
+    this.sourceControlClient = new SourceControlClient(config);
   }
 
   /**
@@ -90,6 +97,7 @@ public class PolicyClient
                                          final ClientScanType clientScanType,
                                          final Stage stage) throws IOException
   {
+    addOrUpdateSourceControl();
     final FileEntity entity = new FileEntity(scanFile, GZIP_CONTENT_TYPE);
     long start = System.currentTimeMillis();
     Result evaluateResult = path("rest/integration/applications/", appId, "/evaluations/", integrationPath, "/stages/",
@@ -100,6 +108,31 @@ public class PolicyClient
     PolicyEvaluationPollingResult result = pollEvaluationResult(receipt.getStatusId());
     log.info("Policy evaluation completed in {} seconds.", (System.currentTimeMillis() - start) / 1000);
     return result;
+  }
+
+  private void addOrUpdateSourceControl() {
+    try {
+      Optional<String> optional = new RepositoryUrlFinderBuilder()
+          .withEnvironmentVariableDefault()
+          .withEnvironmentVariableNamed(GitLabCI.REPOSITORY_URL_ENV_VARIABLE)
+          .withEnvironmentVariableNamed(BambooCI.REPOSITORY_URL_ENV_VARIABLE)
+          .withGitRepo()
+          .build()
+          .tryGetRepositoryUrl();
+      if (optional.isPresent()) {
+        String repositoryUrl = optional.get();
+        log.debug(
+            "Amending source control record for application with id: {} with discovered Repository URL: {}",
+            appId, repositoryUrl);
+        sourceControlClient.addOrUpdateSourceControlRecord(appId, repositoryUrl);
+      }
+      else {
+        log.debug("Repository URL for application with id: {} could not be found.", appId);
+      }
+    }
+    catch (Exception e) {
+      log.debug("Failed to add or update the source control record due to:", e);
+    }
   }
 
   private PolicyEvaluationPollingResult pollEvaluationResult(final String statusId) throws IOException {

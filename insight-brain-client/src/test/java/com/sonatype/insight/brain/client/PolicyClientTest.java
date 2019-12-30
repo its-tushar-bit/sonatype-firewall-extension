@@ -122,13 +122,19 @@ public class PolicyClientTest
     completedResult.setStatus(PolicyEvaluationStatus.COMPLETED);
     completedResult.setResult(new PolicyEvaluationResult());
 
-    PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId()));
+    Logger logger = mock(Logger.class);
+    PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId(), logger));
     doReturn(completedResult).when(policyClient).parseResult(ArgumentMatchers.any(Result.class),
         eq(PolicyEvaluationPollingResult.class));
     ClientScanResult clientScanResult = new ClientScanResult(scanFile, thirdPartyScanningEnabled);
     PolicyEvaluationPollingResult policyEvaluationResult =
         policyClient.evaluateCLI(clientScanResult, ClientScanType.SONATYPE, stage);
     assertThat(policyEvaluationResult).isNotNull();
+
+    verify(logger).debug(
+        "Amending source control record for application with id: {} with discovered Repository URL: {}",
+        "test-app",
+        "https://github.com/sonatype/insight-brain");
   }
 
   @Test
@@ -146,12 +152,18 @@ public class PolicyClientTest
     completedResult.setStatus(PolicyEvaluationStatus.COMPLETED);
     completedResult.setResult(new PolicyEvaluationResult());
 
-    PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId()));
+    Logger logger = mock(Logger.class);
+    PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId(), logger));
     doReturn(completedResult).when(policyClient)
         .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
     ClientScanResult clientScanResult = new ClientScanResult(scanFile, false);
     PolicyEvaluationPollingResult policyEvaluationResult = policyClient.evaluateCI(clientScanResult, stage);
     assertThat(policyEvaluationResult).isNotNull();
+
+    verify(logger).debug(
+        "Amending source control record for application with id: {} with discovered Repository URL: {}",
+        "test-app",
+        "https://github.com/sonatype/insight-brain");
   }
 
   @Test

@@ -31,7 +31,6 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.nexus.git.utils.Environment.GitLabCI;
 import com.sonatype.nexus.git.utils.commit.CommitHashFinderBuilder;
-import com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderBuilder;
 
 import org.apache.http.client.HttpResponseException;
 import org.codehaus.plexus.util.StringUtils;
@@ -63,8 +62,6 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     validateServerAccess(params, restClient);
 
     validateScanTargets(params, restClient);
-
-    addOrUpdateSourceControl(restClient, params);
 
     ClientScanResult clientScanResult = scan(params, getProprietaryConfiguration(params, restClient), restClient);
 
@@ -312,29 +309,5 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       log.debug("Commit hash for application with id: {} could not be found.", params.getApplicationId());
     }
     return scanMetadata;
-  }
-
-  private void addOrUpdateSourceControl(final RestClient restClient, final P params) {
-    try {
-      Optional<String> optional = new RepositoryUrlFinderBuilder()
-          .withEnvironmentVariableDefault()
-          .withEnvironmentVariableNamed(GitLabCI.REPOSITORY_URL_ENV_VARIABLE)
-          .withGitRepo()
-          .build()
-          .tryGetRepositoryUrl();
-      if (optional.isPresent()) {
-        String repositoryUrl = optional.get();
-        log.debug(
-            "Amending source control record for application with id: {} with discovered Repository URL: {}",
-            params.getApplicationId(), repositoryUrl);
-        restClient.addOrUpdateSourceControlRecord(params.getApplicationId(), repositoryUrl);
-      }
-      else {
-        log.debug("Repository URL for application with id: {} could not be found.", params.getApplicationId());
-      }
-    }
-    catch (Exception e) {
-      log.debug("Failed to add or update the source control record due to:", e);
-    }
   }
 }

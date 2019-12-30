@@ -101,7 +101,7 @@ public class MailConfigurationMigrator
    * include our changes. Setting them in the constructor means they always get applied first.
    * 
    * This class should be used only for the migration of the mail configuration from config.yml to the db.
-   * We need to keep this class because customers could specify only some values for the mai configuration (in
+   * We need to keep this class because customers could specify only some values for the mail configuration (in
    * config.yml or system properties) and rely on other values from the default mail configuration.
    */
   public static class MailConfig

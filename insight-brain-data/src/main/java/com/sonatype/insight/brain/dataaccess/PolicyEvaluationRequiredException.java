@@ -11,6 +11,8 @@ import com.sonatype.insight.error.HttpStatusCode;
 public class PolicyEvaluationRequiredException
     extends RuntimeException
 {
+  private static final long serialVersionUID = 2284566547971290095L;
+
   public PolicyEvaluationRequiredException(String message) {
     super(message);
   }

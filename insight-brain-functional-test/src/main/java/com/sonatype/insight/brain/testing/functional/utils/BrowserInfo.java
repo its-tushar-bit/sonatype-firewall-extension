@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.testing.functional.utils;
 
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.internal.WrapsDriver;
+import org.openqa.selenium.WrapsDriver;
 
 /**
  * Helps to account for browser-specific behavior.

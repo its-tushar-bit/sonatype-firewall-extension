@@ -92,5 +92,9 @@
       "componentCategoryId": 89,
       "path": "Programming Language Utilites"
     }
-  ]
+  ],
+  "hygieneRating": {
+    "id": 1,
+    "label": "Exemplar"
+  }
 }

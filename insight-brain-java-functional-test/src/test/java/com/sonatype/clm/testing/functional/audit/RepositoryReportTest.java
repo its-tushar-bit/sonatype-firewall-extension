@@ -390,6 +390,7 @@ public class RepositoryReportTest
     VersionsCIP.highestPolicyThreat().shouldHave(text(String.valueOf(extremelyBadPolicy.getThreatLevel())));
     VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"));
     VersionsCIP.securityCount().shouldHave(text("3"));
+    VersionsCIP.hygieneRating().shouldHave(text("Laggard"));
     VersionsCIP.matchState().shouldHave(text("exact"));
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
     VersionsCIP.componentCategory().shouldHave(text("Other"));

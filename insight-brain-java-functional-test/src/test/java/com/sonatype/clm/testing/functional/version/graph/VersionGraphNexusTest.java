@@ -83,6 +83,7 @@ public class VersionGraphNexusTest
     VersionsCIP.policyCount().shouldHave(exactText("within 3 policies"));
     VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"));
     VersionsCIP.securityCount().shouldHave(exactText("within 3 security issues"));
+    VersionsCIP.hygieneRating().shouldHave(text("Exemplar"));
     VersionsCIP.matchState().shouldHave(text("exact"));
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
     VersionsCIP.componentCategory().shouldHave(text("Programming Language Utilites"));
@@ -128,6 +129,7 @@ public class VersionGraphNexusTest
     VersionsCIP.policyCount().shouldNotBe(visible);
     VersionsCIP.highestSecurityThreat().shouldHave(text("NA"));
     VersionsCIP.securityCount().shouldNotBe(visible);
+    VersionsCIP.hygieneRating().shouldNotBe(visible);
   }
 
   @Test
@@ -150,6 +152,7 @@ public class VersionGraphNexusTest
     VersionsCIP.policyCount().shouldHave(exactText("within 3 policies"));
     VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"));
     VersionsCIP.securityCount().shouldHave(exactText("within 3 security issues"));
+    VersionsCIP.hygieneRating().shouldHave(text("Exemplar"));
     VersionsCIP.matchState().shouldHave(text("exact"));
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
     VersionsCIP.componentCategory().shouldHave(text("Programming Language Utilites"));

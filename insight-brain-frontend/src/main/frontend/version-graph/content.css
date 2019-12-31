@@ -275,3 +275,11 @@ form.form-horizontal .control-label {
 .version-graph-link {
   cursor: pointer;
 }
+
+.cip-color-exemplar {
+  color: #885195;
+}
+
+.cip-color-laggard {
+  color: #f5c648;
+}

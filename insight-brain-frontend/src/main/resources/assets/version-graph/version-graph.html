@@ -182,6 +182,16 @@
                   <span ng-if='componentDetails.securityVulnerabilities.length > 1'> within {{componentDetails.securityVulnerabilities.length}} security issues</span>
                 </td>
               </tr>
+              <tr id='artifactHygieneRating' ng-if='componentDetails.hygieneRating'>
+                <td>Hygiene Rating:</td>
+                <td>
+                  <i class='fa' ng-class="{
+                    'fa-trophy cip-color-exemplar': componentDetails.hygieneRating.id === 1,
+                    'fa-warning cip-color-laggard': componentDetails.hygieneRating.id === 4
+                  }"></i>
+                  {{componentDetails.hygieneRating.label}}
+                </td>
+              </tr>
               <tr id='artifactInfoCatalogDateRow'>
                 <td>Cataloged:</td>
                 <td ng-if='componentDetails.catalogDate'>{{componentDetails.catalogDate | ago | agoLastDay}}</td>

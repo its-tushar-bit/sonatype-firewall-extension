@@ -131,10 +131,7 @@ public class PolicyClientTest
         policyClient.evaluateCLI(clientScanResult, ClientScanType.SONATYPE, stage);
     assertThat(policyEvaluationResult).isNotNull();
 
-    verify(logger).debug(
-        "Amending source control record for application with id: {} with discovered Repository URL: {}",
-        "test-app",
-        "https://github.com/sonatype/insight-brain");
+    verify(logger, never()).debug("Repository URL for application with id: {} could not be found.", "test-app");
   }
 
   @Test
@@ -160,10 +157,7 @@ public class PolicyClientTest
     PolicyEvaluationPollingResult policyEvaluationResult = policyClient.evaluateCI(clientScanResult, stage);
     assertThat(policyEvaluationResult).isNotNull();
 
-    verify(logger).debug(
-        "Amending source control record for application with id: {} with discovered Repository URL: {}",
-        "test-app",
-        "https://github.com/sonatype/insight-brain");
+    verify(logger, never()).debug("Repository URL for application with id: {} could not be found.", "test-app");
   }
 
   @Test

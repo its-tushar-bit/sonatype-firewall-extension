@@ -2,7 +2,7 @@
   <div ng-if="ldapConn == null" class="ldap-loading">
     <h5><i class="icon icon-time"></i> Loading...</h5>
   </div>
-  <form ng-show="ldapConn != null" name="ldapConnectionEditor" class="iq-form" novalidate autocomplete="off">
+  <form ng-show="ldapConn != null" name="ldapConnectionEditor" class="iq-form iq-form--no-border" novalidate autocomplete="off">
 
     <!-- These two fields are in place solely to stop browsers from autopopulating the ldap auth fields -->
     <input type="text" class="hidden-input-hack">

@@ -1,15 +1,9 @@
 .iq-cip-tab-panel {
   padding: 0 5px;
 
-  .iq-tab-bar {
-    margin-top: 8px;
-    padding-right: 6px;
-    padding-left: 6px;
-  }
-
   .iq-tab {
-    margin-right: 13px; // 13px: maximum value possible for all tabs to be visible in a single row.
-    padding-right: 4px;
-    padding-left: 4px;
+    margin-right: 2px;
+    padding-right: 10px;
+    padding-left: 10px;
   }
 }

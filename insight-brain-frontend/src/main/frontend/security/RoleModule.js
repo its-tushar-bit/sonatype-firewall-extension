@@ -91,7 +91,9 @@ module.controller('RoleListController', [
 
 module.controller('RoleEditorController', [
   '$scope', '$stateParams', '$q', '$http', '$state', 'CLMLocations', 'RoleStore', 'Messages', 'rolePermissions',
-  function($scope, $stateParams, $q, $http, $state, CLMLocations, RoleStore, Messages, rolePermissions) {
+  'role.mapping.service',
+  function($scope, $stateParams, $q, $http, $state, CLMLocations, RoleStore, Messages, rolePermissions,
+           RoleMappingService) {
     $scope.errorFn = function(error) {
       $scope.submitActive = false;
       $scope.editorAlerts = [{
@@ -133,6 +135,7 @@ module.controller('RoleEditorController', [
 
       $http[$scope.role.id ? 'put' : 'post'](CLMLocations.getRoleListUrl(), $scope.dirtyRole).then(function () {
         RoleStore.refresh();
+        RoleMappingService.refresh();
         delete $scope.dirtyRole;
         $state.go('roles');
       }, function(error) {
@@ -158,8 +161,9 @@ module.controller('RoleEditorController', [
   }
 ]);
 
-module.controller('DeleteRoleController', ['$scope', '$state', '$stateParams', 'RoleStore', 'Dialog', 'Messages',
-  function ($scope, $state, $stateParams, RoleStore, Dialog, Messages) {
+module.controller('DeleteRoleController', [
+  '$scope', '$state', '$stateParams', 'RoleStore', 'Dialog', 'Messages', 'role.mapping.service',
+  function($scope, $state, $stateParams, RoleStore, Dialog, Messages, RoleMappingService) {
     function error() {
       Dialog.open({
         title: 'Failed to Delete',
@@ -190,6 +194,7 @@ module.controller('DeleteRoleController', ['$scope', '$state', '$stateParams', '
             if (role.id === $stateParams.roleId) {
               role.$delete().then(function () {
                 $state.go('roles');
+                RoleMappingService.refresh();
               }, function (error) {
                 error(error);
               });

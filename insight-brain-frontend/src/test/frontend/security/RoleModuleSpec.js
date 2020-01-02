@@ -7,6 +7,7 @@ import roleModule from '../../../main/frontend/security/RoleModule';
 
 describe('RoleModuleSpec.js', function() {
   var scope,
+      roleMappingService,
       roleSummaries = [{
         id: 'roleIdOne',
         name: 'Role Name One',
@@ -98,7 +99,13 @@ describe('RoleModuleSpec.js', function() {
 
   describe('RoleEditorController', function() {
 
-    beforeEach(angular.mock.module(roleModule.name));
+    beforeEach(function() {
+      angular.mock.module(roleModule.name);
+      roleMappingService = {
+        refresh: function() {
+        }
+      };
+    });
 
     afterEach(inject(function($httpBackend) {
       $httpBackend.verifyNoOutstandingExpectation();
@@ -115,7 +122,8 @@ describe('RoleModuleSpec.js', function() {
             $stateParams: {
               roleId: 'id'
             },
-            rolePermissions: rolePermissions
+            rolePermissions: rolePermissions,
+            'role.mapping.service': roleMappingService
           });
         });
       }
@@ -161,7 +169,8 @@ describe('RoleModuleSpec.js', function() {
           rolePermissions: {
             editRoles: true,
             viewRoles: true
-          }
+          },
+          'role.mapping.service': roleMappingService
         });
 
         $httpBackend.expectGET(CLMLocations.getRoleByIdUrl(roleOne.id)).respond(roleOne);
@@ -191,6 +200,7 @@ describe('RoleModuleSpec.js', function() {
 
       it('save', inject(function ($httpBackend, CLMLocations, $state) {
         spyOn($state, 'go');
+        spyOn(roleMappingService, 'refresh');
         scope.$apply(function () {
           scope.role.name = 'foo';
           scope.role.description = 'bar';
@@ -202,6 +212,7 @@ describe('RoleModuleSpec.js', function() {
         $httpBackend.expectGET(CLMLocations.getRoleListUrl()).respond(roleSummaries);
         $httpBackend.flush();
         expect($state.go).toHaveBeenCalledWith('roles');
+        expect(roleMappingService.refresh).toHaveBeenCalled();
       }));
 
       describe('DeleteController', function () {
@@ -214,7 +225,8 @@ describe('RoleModuleSpec.js', function() {
             $scope: deleteScope,
             $stateParams: {
               roleId: roleOne.id
-            }
+            },
+            'role.mapping.service': roleMappingService
           });
 
           spyOn(Dialog, 'open').and.returnValue({
@@ -226,6 +238,7 @@ describe('RoleModuleSpec.js', function() {
 
         it('delete', inject(function ($httpBackend, CLMLocations, $state, Dialog) {
           spyOn($state, 'go');
+          spyOn(roleMappingService, 'refresh');
 
           deleteScope.deleteRole();
           expect(Dialog.open).toHaveBeenCalled();
@@ -236,6 +249,7 @@ describe('RoleModuleSpec.js', function() {
           $httpBackend.expectDELETE(CLMLocations.getRoleByIdUrl(roleOne.id)).respond(204);
           $httpBackend.flush();
           expect($state.go).toHaveBeenCalledWith('roles');
+          expect(roleMappingService.refresh).toHaveBeenCalled();
         }));
       });
     });
@@ -251,7 +265,8 @@ describe('RoleModuleSpec.js', function() {
           rolePermissions: {
             editRoles: true,
             viewRoles: true
-          }
+          },
+          'role.mapping.service': roleMappingService
         });
 
         $httpBackend.expectGET(CLMLocations.getRoleForNewUrl()).respond({
@@ -270,6 +285,7 @@ describe('RoleModuleSpec.js', function() {
 
       it('save', inject(function ($httpBackend, CLMLocations, $state) {
         spyOn($state, 'go');
+        spyOn(roleMappingService, 'refresh');
         scope.$apply(function () {
           scope.role.name = 'foo';
           scope.role.description = 'bar';
@@ -281,6 +297,7 @@ describe('RoleModuleSpec.js', function() {
         expect(scope.submitActive).toBeTruthy();
         $httpBackend.flush();
         expect($state.go).toHaveBeenCalledWith('roles');
+        expect(roleMappingService.refresh).toHaveBeenCalled();
       }));
     });
   });

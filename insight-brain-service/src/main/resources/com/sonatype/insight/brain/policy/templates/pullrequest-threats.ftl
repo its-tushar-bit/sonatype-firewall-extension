@@ -3,8 +3,8 @@
 ### Description
 
 - Component: **${componentName}**
-- Current version (with violations): [**${initialVersion}**](${initialSearchUrl})
-- New version (for remediation): [**${targetVersion}**](${targetSearchUrl})
+- Current version (with violations): **${initialVersionDisplay}**
+- New version (for remediation): **${targetVersionDisplay}**
 
 ### Policy
 Threat (of 10) | Policy | Constraint | Violation Details

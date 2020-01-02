@@ -13,7 +13,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -26,11 +25,6 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
-import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
-import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
@@ -45,7 +39,8 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class PullRequestRemediationDetailsTest extends AbstractComponentTest
+public class PullRequestRemediationDetailsTest
+    extends AbstractComponentTest
 {
   @Inject
   private InsightConfig config;
@@ -58,6 +53,8 @@ public class PullRequestRemediationDetailsTest extends AbstractComponentTest
   public void before() {
     config.setBaseUrl("http://localhost:1122");
     app = tempEntity.newApplicationWithParent("my-public-app-id", "MyTestApp", "Integrations");
+    PullRequestRemediationDetails.clock = Clock
+        .fixed(Instant.parse("2019-11-26T18:15:30Z"), ZoneId.of("America/Los_Angeles"));
   }
 
   @Test
@@ -65,6 +62,72 @@ public class PullRequestRemediationDetailsTest extends AbstractComponentTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("org.jooq", "jooq", "3.11.2");
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("foo", "bar", "baz");
 
+    List<PolicyNotification> policyNotifications = createPolicyNotifications(componentIdentifier, componentIdentifier2);
+
+    PullRequestRemediationDetails details =
+        new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "pullRequest", policyNotifications, app,
+            SCAN_ID, Stage.ID_BUILD, lookup(BaseUrl.class).getConfigured());
+
+    assertThat(details.getTitle()).isEqualTo("Bump jooq to 3.11.3");
+
+    Path path = Paths.get(getClass().getResource("/PullRequestRemediationDetailsTest/VulnerabilityReport.md").toURI());
+    String expectedContent = new String(Files.readAllBytes(path));
+    assertThat(details.getContents()).isEqualTo(expectedContent);
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_npmComponent() throws Exception {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("@sonatype/foo", "1.0");
+
+    List<PolicyNotification> policyNotifications = new ArrayList<>();
+
+    PolicyNotification criticalPolicyNotification = new PolicyNotification(
+        new PolicyFact("critical-id", "Security-Critical", 10),
+        new Notifications(new UserNotification("tester@foo.com")));
+    ComponentFact criticalComponentFact = new ComponentFact(componentIdentifier, "dummy-hash");
+    ConstraintFact criticalConstraintFact = new ConstraintFact("constraint-id", "Critical risk CVSS score", "OR");
+    criticalConstraintFact.addConditionFact(new ConditionFact("SecurityVulnerabilitySeverity", 0,
+        "Security Vulnerability Severity >= 9",
+        "Found security vulnerability CVE-2016-1000031 with severity 9.8.",
+        new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "CVE-2016-1000031")));
+    criticalComponentFact.addConstraintFact(criticalConstraintFact);
+    criticalPolicyNotification.getPolicyFact().addComponentFact(criticalComponentFact);
+
+    policyNotifications.add(criticalPolicyNotification);
+
+    PullRequestRemediationDetails details =
+        new PullRequestRemediationDetails(componentIdentifier, "1.1", "pullRequest", policyNotifications, app,
+            SCAN_ID, Stage.ID_BUILD, lookup(BaseUrl.class).getConfigured());
+
+    assertThat(details.getTitle()).isEqualTo("Bump @sonatype/foo to 1.1");
+
+    Path path = Paths
+        .get(getClass().getResource("/PullRequestRemediationDetailsTest/VulnerabilityReport_npm.md").toURI());
+    String expectedContent = new String(Files.readAllBytes(path));
+    assertThat(details.getContents()).isEqualTo(expectedContent);
+  }
+
+  @Test
+  public void testSinglePolicyViolationPlurality() throws IOException {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("org.jooq", "jooq", "3.11.2");
+    List<PolicyNotification> policyNotifications = ImmutableList.of(new PolicyNotification(
+        new PolicyFact("critical-id", "Security-Critical", 10), new Notifications()));
+
+    PullRequestRemediationDetails details =
+        new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "pullRequest", policyNotifications, app,
+            SCAN_ID, Stage.ID_BUILD, lookup(BaseUrl.class).getConfigured());
+
+    assertThat(details.getContents().replace("\r\n", "\n"))
+        .startsWith("## :shield: Automated pull request to fix 1 Nexus IQ Policy Violation\n");
+  }
+
+  /**
+   * A complex set of policy violations covering multiple components and policies. Intended as a superset of
+   * possible scenarios we could encounter when synthesizing these into a simple aggregated display.
+   */
+  private List<PolicyNotification> createPolicyNotifications(final ComponentIdentifier componentIdentifier,
+                                                             final ComponentIdentifier componentIdentifier2)
+  {
     List<PolicyNotification> policyNotifications = new ArrayList<>();
 
     PolicyNotification criticalPolicyNotification = new PolicyNotification(
@@ -140,42 +203,6 @@ public class PullRequestRemediationDetailsTest extends AbstractComponentTest
     lowComponentFact.addConstraintFact(lowConstraintFact);
     lowPolicyNotification.getPolicyFact().addComponentFact(lowComponentFact);
     policyNotifications.add(lowPolicyNotification);
-
-    ApiVersionChangeOptionDTO versionChangeOptionDTO = new ApiVersionChangeOptionDTO();
-    ApiComponentChangeActionDTO changeActionDTO = new ApiComponentChangeActionDTO();
-    versionChangeOptionDTO.setData(changeActionDTO);
-    ApiComponentDTOV2 componentDTOV2 = new ApiComponentDTOV2();
-    changeActionDTO.setComponent(componentDTOV2);
-    // upgrade version
-    componentDTOV2.componentIdentifier = ApiComponentIdentifierDTOV2
-        .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("org.jooq", "jooq", "3.11.3"));
-    ApiComponentRemediationDTO remediationDTO = new ApiComponentRemediationDTO();
-    remediationDTO.remediation.versionChanges = Arrays.asList(versionChangeOptionDTO);
-
-    PullRequestRemediationDetails.clock = Clock
-        .fixed(Instant.parse("2019-11-26T18:15:30Z"), ZoneId.of("America/Los_Angeles"));
-    PullRequestRemediationDetails details =
-        new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "pullRequest", policyNotifications, app,
-            SCAN_ID, new Stage(Stage.ID_BUILD), lookup(BaseUrl.class));
-
-    assertThat(details.getTitle()).isEqualTo("Bump jooq to 3.11.3");
-
-    Path path = Paths.get(getClass().getResource("/PullRequestRemediationDetailsTest/VulnerabilityReport.md").toURI());
-    String expectedContent = new String(Files.readAllBytes(path));
-    assertThat(details.getContents()).isEqualTo(expectedContent);
-  }
-
-  @Test
-  public void testSinglePolicyViolationPlurality() throws IOException {
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("org.jooq", "jooq", "3.11.2");
-    List<PolicyNotification> policyNotifications = ImmutableList.of(new PolicyNotification(
-        new PolicyFact("critical-id", "Security-Critical", 10), new Notifications()));
-
-    PullRequestRemediationDetails details =
-        new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "pullRequest", policyNotifications, app,
-            SCAN_ID, new Stage(Stage.ID_BUILD), lookup(BaseUrl.class));
-
-    assertThat(details.getContents().replace("\r\n", "\n"))
-        .startsWith("## :shield: Automated pull request to fix 1 Nexus IQ Policy Violation\n");
+    return policyNotifications;
   }
 }

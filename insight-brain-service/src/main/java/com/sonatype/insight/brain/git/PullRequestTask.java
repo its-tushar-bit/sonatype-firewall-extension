@@ -142,7 +142,7 @@ public class PullRequestTask
         AuditData.get()
             .setApplication(pullRequestRemediationDetails.getApp())
             .setScanId(pullRequestRemediationDetails.getScanId())
-            .setStageId(pullRequestRemediationDetails.getStage().getStageTypeId())
+            .setStageId(pullRequestRemediationDetails.getStage())
             .setComponentIdentifier(pullRequestRemediationDetails.getToBeRemediated())
             .setData("pullRequestUrl", result.getPullRequestUrl());
       }

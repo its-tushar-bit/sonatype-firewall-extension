@@ -24,13 +24,11 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
-import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -48,9 +46,15 @@ import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
  */
 public class PullRequestRemediationDetails
 {
+  @VisibleForTesting
+  static Clock clock = Clock.systemDefaultZone();
+  
   private static final Logger log = LoggerFactory.getLogger(PullRequestRemediationDetails.class);
 
   private static final Pattern CVE_REGEX_PATTERN = Pattern.compile("((CVE|SONATYPE|sonatype)-\\d+-\\d+)");
+
+  private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
+      .ofPattern("yyyy-MM-dd HH:mm:ss O").withLocale(Locale.ENGLISH);
 
   private static final OrganizationDAO organizationDAO = new OrganizationDAO();
 
@@ -66,20 +70,19 @@ public class PullRequestRemediationDetails
 
   private final String pullRequestBranchName;
 
-  private String title;
+  private final String title;
 
-  private String contents;
+  private final String contents;
   
-  private ComponentIdentifier toBeRemediated;
+  private final ComponentIdentifier toBeRemediated;
   
-  private String remediatedVersion;
+  private final String remediatedVersion;
 
-  @VisibleForTesting
-  static Clock clock = Clock.systemDefaultZone();
+  private final String scanId;
 
-  private String scanId;
+  private final String stage;
 
-  private Stage stage;
+  private final String baseUrl;
 
   static {
     String templateName = "pullrequest-threats.ftl";
@@ -97,8 +100,8 @@ public class PullRequestRemediationDetails
                                        final List<PolicyNotification> notifications,
                                        final Application app,
                                        final String scanId,
-                                       final Stage stage,
-                                       final BaseUrl baseUrl) throws IOException
+                                       final String stage,
+                                       final String baseUrl) throws IOException
   {
     if (policyThreatsTemplate == null) {
       throw new IOException("Unable to construct PullRequestRemediationDetails: no template available");
@@ -111,7 +114,8 @@ public class PullRequestRemediationDetails
     this.app = app;
     this.scanId = scanId;
     this.stage = stage;
-    this.contents = constructContents(toBeRemediated, notifications, app, scanId, stage, baseUrl);
+    this.baseUrl = baseUrl;
+    this.contents = constructContents(notifications);
   }
 
   public String getTitle() {
@@ -145,69 +149,91 @@ public class PullRequestRemediationDetails
     return scanId;
   }
 
-  public Stage getStage() {
+  public String getStage() {
     return stage;
+  }
+
+  public String getBaseUrl() {
+    return baseUrl;
   }
 
   private String constructTitle() {
     return MessageFormat.format("Bump {0} to {1}", getShortComponentName(toBeRemediated), remediatedVersion);
   }
-
-  private String getShortComponentName(final ComponentIdentifier componentIdentifier) {
-    // Use a short component name for the PR title. For most formats this is just the name (e.g. npm) but for formats
-    // with longer names like Maven, we shorten it (e.g. 'jackson-databind' instead of
-    // 'com.fasterxml.jackson.core:jackson-databind')
-    if (componentIdentifier.isMaven()) {
-      return componentIdentifier.get(MAVEN_ARTIFACT_ID);
-    }
-
-    // default to 'fromIdentifier'. Note this additionally includes the version number. 'fromIdentifier' also can
-    // contain embedded spaces, so strip out all of them before returning
-    return ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString().replaceAll("\\s+", "");
-  }
-
+  
   private String constructContents(
-      final ComponentIdentifier componentIdentifier,
-      final List<PolicyNotification> notifications,
-      final Application app,
-      final String scanId,
-      final Stage stage, 
-      final BaseUrl baseUrl) throws IOException
+      final List<PolicyNotification> notifications
+  ) throws IOException
   {
     List<Map<String, Object>> threatList = notifications.stream()
-        .map(policyNotification -> {
-          return ImmutableMap.<String, Object>builder()
-              .put("policy", policyNotification.getPolicyFact().getPolicyName())
-              .put("threat", policyNotification.getPolicyFact().getThreatLevel())
-              .put("constraint", getConstraintName(policyNotification))
-              .put("conditions", getConditionText(policyNotification, baseUrl))
-              .build();
-        })
+        .map(policyNotification -> ImmutableMap.<String, Object>builder()
+            .put("policy", policyNotification.getPolicyFact().getPolicyName())
+            .put("threat", policyNotification.getPolicyFact().getThreatLevel())
+            .put("constraint", getConstraintName(policyNotification))
+            .put("conditions", getConditionText(policyNotification))
+            .build())
         .collect(Collectors.toList());
 
+    ComponentIdentifier remediatedComponent = toBeRemediated.createAlternativeVersion(remediatedVersion);
     Map<String, Object> model = ImmutableMap.<String, Object>builder()
-        .put("componentName", getComponentName(componentIdentifier))
-        .put("initialVersion", componentIdentifier.get(VERSION))
-        .put("initialSearchUrl", constructMavenSearchUrl(componentIdentifier.getCoordinates()))
-        .put("targetVersion", remediatedVersion)
-        .put("targetSearchUrl",
-            constructMavenSearchUrl(componentIdentifier.createAlternativeVersion(remediatedVersion).getCoordinates()))
+        .put("componentName", getComponentName(getToBeRemediated()))
+        .put("initialVersionDisplay", constructVersionDisplay(toBeRemediated))
+        .put("targetVersionDisplay", constructVersionDisplay(remediatedComponent))
         .put("applicationName", app.getName())
         .put("organizationName", getOrganizationName(app))
         .put("threatList", threatList)
-        .put("date", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss O").withLocale(Locale.ENGLISH)
-            .format(ZonedDateTime.now(clock)))
-        .put("stage", stage.getStageTypeId())
-        .put("detailedReportUrl", baseUrl.getConfigured() +
-            UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId))
-        .put("baseIqUrl", baseUrl.getConfigured())
+        .put("date", DATE_TIME_FORMATTER.format(ZonedDateTime.now(clock)))
+        .put("stage", stage)
+        .put("detailedReportUrl", baseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId))
+        .put("baseIqUrl", baseUrl)
         .build();
 
     return TemplateUtils.render(policyThreatsTemplate, model);
   }
 
+  /**
+   * Strip out whitespace from the display name.
+   */
+  private String sanitizeDisplayName(final ComponentIdentifier componentIdentifier) {
+    return ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString().replaceAll("\\s+", "");
+  }
+  
+  private String constructVersionDisplay(final ComponentIdentifier componentIdentifier) {
+    switch (componentIdentifier.getFormat()) {
+      // maven includes a markdown formatted link 
+      case ComponentIdentifier.FORMAT_MAVEN:
+        return "[" + componentIdentifier.get(VERSION) + "]" + "(" +
+            constructMavenSearchUrl(componentIdentifier.getCoordinates()) + ")";
+      default:
+        return componentIdentifier.get(VERSION);
+    }
+  }
+
+  /**
+   * Use a short component name for the PR title. For most formats this is just the name (e.g. npm) but for formats
+   * with longer names like Maven, we shorten it (e.g. 'jackson-databind' instead of
+   * 'com.fasterxml.jackson.core:jackson-databind')
+   */
+  private String getShortComponentName(final ComponentIdentifier componentIdentifier) {
+    switch (componentIdentifier.getFormat()) {
+      case ComponentIdentifier.FORMAT_MAVEN:
+        return componentIdentifier.get(MAVEN_ARTIFACT_ID);
+      case ComponentIdentifier.FORMAT_NPM:
+        return componentIdentifier.get(ComponentIdentifier.NPM_PACKAGE_ID);
+      default:
+        return sanitizeDisplayName(componentIdentifier);
+    }
+  }
+
   private String getComponentName(final ComponentIdentifier componentIdentifier) {
-    return String.join(" : ", componentIdentifier.get(MAVEN_GROUP_ID), componentIdentifier.get(MAVEN_ARTIFACT_ID));
+    switch (componentIdentifier.getFormat()) {
+      case ComponentIdentifier.FORMAT_MAVEN:
+        return String.join(" : ", componentIdentifier.get(MAVEN_GROUP_ID), componentIdentifier.get(MAVEN_ARTIFACT_ID));
+      case ComponentIdentifier.FORMAT_NPM:
+        return componentIdentifier.get(ComponentIdentifier.NPM_PACKAGE_ID);
+      default:
+        return sanitizeDisplayName(componentIdentifier);
+    }
   }
 
   private Object getOrganizationName(final Application app) {
@@ -215,7 +241,7 @@ public class PullRequestRemediationDetails
     return organization.getName();
   }
 
-  private String getConditionText(final PolicyNotification policyNotification, BaseUrl baseUrl) {
+  private String getConditionText(final PolicyNotification policyNotification) {
     PolicyFact policyFact = policyNotification.getPolicyFact();
     if (!hasComponentFacts(policyFact)) {
       return "";
@@ -230,7 +256,7 @@ public class PullRequestRemediationDetails
         .flatMap(Collection::stream)
         .map(ConditionFact::getReason)
         .distinct()
-        .map(reason -> addCveLinks(reason, baseUrl))
+        .map(this::addCveLinks)
         .collect(Collectors.joining(DELIMITER, PREFIX, SUFFIX));
   }
 
@@ -253,13 +279,13 @@ public class PullRequestRemediationDetails
     return !(policyFact == null || policyFact.getComponentFacts() == null || policyFact.getComponentFacts().isEmpty());
   }
 
-  private String addCveLinks(String text, BaseUrl baseUrl) {
+  private String addCveLinks(String text) {
     Matcher matcher = CVE_REGEX_PATTERN.matcher(text);
     StringBuffer stringBuffer = new StringBuffer();
     while (matcher.find()) {
       String cveCode = matcher.group(1);
       matcher.appendReplacement(stringBuffer,
-          MessageFormat.format("[{0}]({1}ui/links/vln/{0})", cveCode, baseUrl.getConfigured()));
+          MessageFormat.format("[{0}]({1}ui/links/vln/{0})", cveCode, baseUrl));
     }
     matcher.appendTail(stringBuffer);
     return stringBuffer.toString();

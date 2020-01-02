@@ -281,7 +281,7 @@ public class PullRequestTaskTest
     when(pullRequestRemediationDetails.getRemediatedVersion()).thenReturn("1.0.1");
     when(pullRequestRemediationDetails.getToBeRemediated()).thenReturn(MAVEN_COORDINATES);
     when(pullRequestRemediationDetails.getTitle()).thenReturn(TITLE);
-    when(pullRequestRemediationDetails.getStage()).thenReturn(new Stage(Stage.ID_BUILD));
+    when(pullRequestRemediationDetails.getStage()).thenReturn(Stage.ID_BUILD);
     when(pullRequestRemediationDetails.getScanId()).thenReturn("scan-id");
     when(gitApiService.getGitRepositoryInfoForApplication(APP_INTERNAL_ID)).thenReturn(info);
     when(gitApiFactory.createGitApi(info)).thenReturn(gitApi);

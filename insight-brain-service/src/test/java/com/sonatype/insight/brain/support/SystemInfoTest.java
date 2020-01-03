@@ -581,6 +581,31 @@ public class SystemInfoTest
   }
 
   @Test
+  public void testGetMailConfig_Configured_NoPassword() throws Exception {
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("testHostname");
+    mailConfiguration.setPort(4567);
+    mailConfiguration.setUsername("testUsername");
+    mailConfiguration.setPassword(null);
+    mailConfiguration.setSslEnabled(true);
+    mailConfiguration.setStartTlsEnabled(true);
+    mailConfiguration.setSystemEmail("test@example.com");
+    new MailConfigurationDAO().set(mailConfiguration);
+
+    mailConfiguration = new ObjectMapper().readValue(systemInfo.getMailConfig(), MailConfiguration.class);
+
+    assertThat(mailConfiguration).isNotNull();
+    assertThat(mailConfiguration.getId()).isEqualTo(MailConfigurationDAO.SINGLETON_ENTITY_ID);
+    assertThat(mailConfiguration.getHostname()).isEqualTo("testHostname");
+    assertThat(mailConfiguration.getPort()).isEqualTo(4567);
+    assertThat(mailConfiguration.getUsername()).isEqualTo("testUsername");
+    assertThat(mailConfiguration.getPassword()).isNull();
+    assertThat(mailConfiguration.isSslEnabled()).isTrue();
+    assertThat(mailConfiguration.isStartTlsEnabled()).isTrue();
+    assertThat(mailConfiguration.getSystemEmail()).isEqualTo("test@example.com");
+  }
+
+  @Test
   public void testGetClientInfo() {
     final String requestUrl = "myRequestUrl";
     final Entry<String, SortedMap<String, Object>> entry = systemInfo.getClientInfo(requestUrl);

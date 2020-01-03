@@ -436,7 +436,9 @@ class SystemInfo
       return "null";
     }
 
-    mailConfiguration.setPassword(MASK.toCharArray());
+    if (mailConfiguration.getPassword() != null) {
+      mailConfiguration.setPassword(MASK.toCharArray());
+    }
     return JsonUtils.format(mailConfiguration);
   }
 

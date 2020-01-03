@@ -40,4 +40,10 @@ public class ApiStaleWaiverDTO
 
   @JsonInclude(Include.NON_EMPTY)
   public List<ApiConstraintFactDTO> constraintFacts = new ArrayList<>();
+
+  /**
+   * @since 1.83
+   */
+  @JsonInclude(Include.NON_EMPTY)
+  public ApiStaleEvaluationsDTO staleEvaluations;
 }

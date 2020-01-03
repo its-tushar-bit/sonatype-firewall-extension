@@ -11,7 +11,6 @@ import java.util.NoSuchElementException;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -22,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
@@ -68,12 +68,11 @@ public class HdsIdeResourcePerformanceUtils
 
   static HdsClient createHdsClient(String hdsUrl) {
     InsightConfig config = new InsightConfig();
-    ApiProxyConfigurationServiceV2 proxyConfig = new ApiProxyConfigurationServiceV2(new ProxyConfigurationDAO());
     config.setHdsUrl(hdsUrl);
     ((HttpConnectorFactory) ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors().get(0))
         .setPort(8877);
-    return new HdsClient(new InsightProxy(config, proxyConfig), mock(ProductLicense.class), config,
-        new VersionService(), new TelemetryId(config));
+    return new HdsClient(new InsightProxy(config, new ProxyConfigurationDAO(), new PasswordHandler(null)),
+        mock(ProductLicense.class), config, new VersionService(), new TelemetryId(config));
   }
 
   static void addPolicy(Application app, Policy[] policies) throws Exception {

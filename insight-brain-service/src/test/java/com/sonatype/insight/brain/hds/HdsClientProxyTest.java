@@ -17,12 +17,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
-import com.sonatype.insight.brain.service.ProxyConfig;
 import com.sonatype.insight.brain.utils.AbstractHttpClientTest;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
@@ -48,6 +47,9 @@ public class HdsClientProxyTest
   static {
     SslProperties.use();
   }
+
+  @Inject
+  private PasswordHandler passwordHandler;
 
   private Server server;
 
@@ -77,10 +79,8 @@ public class HdsClientProxyTest
     });
     server.start();
 
-    ProxyConfig proxyConfig = new ProxyConfig();
-    proxyConfig.setHostname("localhost");
-    proxyConfig.setPort(((NetworkConnector) server.getConnectors()[0]).getLocalPort());
-    config.setProxyConfig(proxyConfig);
+    tempEntity.setProxyConfiguration("localhost", ((NetworkConnector) server.getConnectors()[0]).getLocalPort());
+
     config.setHdsUrl("https://www.somehost.com/");
     initClient();
   }
@@ -88,9 +88,8 @@ public class HdsClientProxyTest
   private void initClient() {
     ProductLicense productLicense = mock(ProductLicense.class);
     lenient().when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
-    ApiProxyConfigurationServiceV2 proxyConfig = new ApiProxyConfigurationServiceV2(new ProxyConfigurationDAO());
-    client = new HdsClient(new InsightProxy(config, proxyConfig), productLicense, config, new VersionService(),
-        telemetryId);
+    client = new HdsClient(new InsightProxy(config, new ProxyConfigurationDAO(), passwordHandler), productLicense,
+        config, new VersionService(), telemetryId);
   }
 
   @After

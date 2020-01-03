@@ -40,10 +40,8 @@ public class InsightConfig
     setServerFactory(new InsightDefaultServerFactory());
   }
 
-  @Valid
-  @NotNull
   @JsonProperty
-  private ProxyConfig proxy = new ProxyConfig();
+  private ProxyConfigurationMigrator.ProxyConfig proxy;
 
   @JsonProperty
   private MailConfigurationMigrator.MailConfig mail;
@@ -263,8 +261,7 @@ public class InsightConfig
   @JsonProperty
   private boolean enableStaleEvaluations = false;
 
-  @NotNull
-  public ProxyConfig getProxyConfig() {
+  public ProxyConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
   }
 
@@ -289,7 +286,7 @@ public class InsightConfig
     return new File(sonatypeWork, "config");
   }
 
-  public void setProxyConfig(ProxyConfig proxyConfig) {
+  public void setProxyConfig(ProxyConfigurationMigrator.ProxyConfig proxyConfig) {
     this.proxy = proxyConfig;
   }
 

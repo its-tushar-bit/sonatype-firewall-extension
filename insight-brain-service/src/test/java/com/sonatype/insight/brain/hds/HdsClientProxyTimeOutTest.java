@@ -14,18 +14,22 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
-import com.sonatype.insight.brain.service.ProxyConfig;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.BadGatewayException;
+import com.sonatype.insight.test.InjectedTest;
 import com.sonatype.insight.test.PortAllocator;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,7 +39,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class HdsClientProxyTimeOutTest
+    extends InjectedTest
 {
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
+
+  @Inject
+  private PasswordHandler passwordHandler;
+
   private InsightConfig config;
 
   private TelemetryId telemetryId;
@@ -84,22 +95,18 @@ public class HdsClientProxyTimeOutTest
   public void init() {
     port = PortAllocator.findFreePort(8090);
 
-    ProxyConfig proxyConfig = new ProxyConfig();
-    proxyConfig.setHostname("localhost");
-    proxyConfig.setPort(port);
+    tempEntity.setProxyConfiguration("localhost", port);
 
     config = new InsightConfig();
-    config.setProxyConfig(proxyConfig);
     config.setHdsUrl("https://www.example.com/");
     config.setConnectTimeoutInSeconds(1);
     telemetryId = new TelemetryId(config);
 
     productLicense = mock(ProductLicense.class);
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
-    ApiProxyConfigurationServiceV2 proxyConfigService = new ApiProxyConfigurationServiceV2(new ProxyConfigurationDAO());
 
     nonResponsiveServerThread = new Thread(nonResponsiveServer);
-    insightProxy = new InsightProxy(config, proxyConfigService);
+    insightProxy = new InsightProxy(config, new ProxyConfigurationDAO(), passwordHandler);
   }
 
   @After

@@ -566,8 +566,6 @@ INSERT INTO system_configuration_property (system_configuration_property_id, nam
 -- Add default values for automatic application configuration settings
 INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('3a927fda2992470e9fc479376702c6b5', 'AUTOMATIC_APPLICATION_CREATION_ENABLED', 'false');
 INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('3ba8d0f1601946efb376fd841a149bb0', 'AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID', '');
--- Add default value for no proxy hosts
-INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('2b00042f7481c7b056c4b410d28f33cf', 'PROXY_EXCLUDE_HOSTS', '');
 -- Add default values for automatic source control configuration settings
 INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('f488d35a40d24ba589ba14280c40fe04', 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED', 'false');
 
@@ -620,6 +618,7 @@ INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-droo
 INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-json', 1);
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('ignored-repository-components');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('mail-config');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('proxy-configuration');
 
 -- Since 1.72.0
 CREATE TABLE saml_configuration (
@@ -654,4 +653,15 @@ CREATE TABLE mail_configuration (
   start_tls_enabled boolean NOT NULL,
   system_email varchar(255) NOT NULL,
   CONSTRAINT mail_configuration_pk PRIMARY KEY (mail_configuration_id)
+);
+
+-- Since MIGRATE_PROXY_CONFIG
+CREATE TABLE proxy_configuration (
+  proxy_configuration_id varchar(50) NOT NULL,
+  hostname varchar(255) NOT NULL,
+  port int NOT NULL,
+  username varchar(255),
+  password varchar(255),
+  exclude_hosts varchar(500),
+  CONSTRAINT proxy_configuration_pk PRIMARY KEY (proxy_configuration_id)
 );

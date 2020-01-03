@@ -54,6 +54,7 @@
     <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControl</class>
     <class>com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternal</class>
     <class>com.sonatype.insight.brain.model.security.UserToken</class>
+    <class>com.sonatype.insight.brain.model.configuration.ProxyConfiguration</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

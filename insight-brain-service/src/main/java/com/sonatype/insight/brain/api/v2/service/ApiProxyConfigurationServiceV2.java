@@ -11,6 +11,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.api.v2.dto.ApiProxyConfigurationDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.ProxyConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 
@@ -31,17 +32,16 @@ public class ApiProxyConfigurationServiceV2
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public ApiProxyConfigurationDTOV2 update(ApiProxyConfigurationDTOV2 configuration) {
-    persistConfiguration(configuration);
+    ProxyConfiguration proxyConfiguration = proxyConfigurationDAO.get();
+    proxyConfiguration.setExcludeHosts(join(", ", configuration.getProxyExcludeHosts()));
+    proxyConfigurationDAO.set(proxyConfiguration);
+    auditProxyConfiguration(configuration);
     return configuration;
   }
 
   public ApiProxyConfigurationDTOV2 get() {
-    return new ApiProxyConfigurationDTOV2(proxyConfigurationDAO.getProxyExcludeHosts());
-  }
-
-  private void persistConfiguration(ApiProxyConfigurationDTOV2 proxy) {
-    proxyConfigurationDAO.setProxyExcludeHosts(join(", ", proxy.getProxyExcludeHosts()));
-    auditProxyConfiguration(proxy);
+    ProxyConfiguration proxyConfiguration = proxyConfigurationDAO.get();
+    return new ApiProxyConfigurationDTOV2(proxyConfiguration.getExcludeHostsList());
   }
 
   private void auditProxyConfiguration(ApiProxyConfigurationDTOV2 proxy) {

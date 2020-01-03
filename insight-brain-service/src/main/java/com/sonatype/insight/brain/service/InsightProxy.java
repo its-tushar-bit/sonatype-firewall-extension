@@ -5,11 +5,15 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.util.Arrays;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.ProxyConfiguration;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
@@ -19,14 +23,19 @@ public class InsightProxy
 {
   private final InsightConfig insightConfig;
 
-  private final ApiProxyConfigurationServiceV2 proxyConfigurationService;
+  private final ProxyConfigurationDAO proxyConfigurationDAO;
+
+  private final PasswordHandler passwordHandler;
 
   @Inject
-  public InsightProxy(final InsightConfig insightConfig,
-                      final ApiProxyConfigurationServiceV2 proxyConfigurationService)
+  public InsightProxy(
+      InsightConfig insightConfig,
+      ProxyConfigurationDAO proxyConfigurationDAO,
+      PasswordHandler passwordHandler)
   {
     this.insightConfig = insightConfig;
-    this.proxyConfigurationService = proxyConfigurationService;
+    this.proxyConfigurationDAO = proxyConfigurationDAO;
+    this.passwordHandler = passwordHandler;
   }
 
   public <T extends HttpClientUtils.Configuration> T contextualize(final T httpConfig) {
@@ -37,15 +46,21 @@ public class InsightProxy
     httpConfig.setServerUrl(serverUrl);
     httpConfig.setUserAgent(httpConfig.getUserAgent() + " " + insightConfig.getUserAgentSuffix());
 
-    final ProxyConfig proxyConfig = insightConfig.getProxyConfig();
-    if (proxyConfig.getHostname() != null) {
+    ProxyConfiguration proxyConfig = proxyConfigurationDAO.get();
+    if (proxyConfig != null) {
       httpConfig.setProxyHost(proxyConfig.getHostname());
       httpConfig.setProxyPort(proxyConfig.getPort());
-      httpConfig.setProxyExcludeHosts(proxyConfigurationService.get().getProxyExcludeHosts());
+      httpConfig.setProxyExcludeHosts(proxyConfig.getExcludeHostsList());
       if (proxyConfig.getUsername() != null) {
         final SimpleAuthentication proxyAuth = new SimpleAuthentication();
         proxyAuth.setUsername(proxyConfig.getUsername());
-        proxyAuth.setPassword(proxyConfig.getPassword());
+
+        char[] password = passwordHandler.decryptPassword(proxyConfig.getPassword());
+        proxyAuth.setPassword(password);
+        if (password != null) {
+          Arrays.fill(password, '0');
+        }
+
         // TODO: do we need to support NTLM?
         httpConfig.setProxyAuth(proxyAuth);
       }

@@ -29,7 +29,6 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -71,9 +70,8 @@ public class HdsClientTest
   protected void initClient() {
     ProductLicense productLicense = mock(ProductLicense.class);
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
-    ApiProxyConfigurationServiceV2 proxyConfig = new ApiProxyConfigurationServiceV2(new ProxyConfigurationDAO());
-    client = new HdsClient(new InsightProxy(config, proxyConfig), productLicense, config, new VersionService(),
-        telemetryId);
+    client = new HdsClient(new InsightProxy(config, new ProxyConfigurationDAO(), passwordHandler), productLicense,
+        config, new VersionService(), telemetryId);
   }
 
   @Test

@@ -15,12 +15,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.test.InjectedTest;
 import com.sonatype.insight.test.PortAllocator;
 
 import org.junit.After;
@@ -32,7 +35,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class HdsClientKeepConnectionAliveTest
+    extends InjectedTest
 {
+  @Inject
+  private PasswordHandler passwordHandler;
+
   private InsightConfig config;
 
   private TelemetryId telemetryId;
@@ -88,10 +95,9 @@ public class HdsClientKeepConnectionAliveTest
 
     productLicense = mock(ProductLicense.class);
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
-    ApiProxyConfigurationServiceV2 proxyConfigService = new ApiProxyConfigurationServiceV2(new ProxyConfigurationDAO());
 
     stallingServerThread = new Thread(stallingServer);
-    insightProxy = new InsightProxy(config, proxyConfigService);
+    insightProxy = new InsightProxy(config, new ProxyConfigurationDAO(), passwordHandler);
   }
 
   @After

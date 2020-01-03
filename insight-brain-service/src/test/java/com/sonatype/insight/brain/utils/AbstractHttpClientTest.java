@@ -12,11 +12,8 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.ProxyConfig;
 import com.sonatype.insight.error.exception.BadGatewayException;
 
 import org.apache.http.client.HttpResponseException;
@@ -34,16 +31,10 @@ public abstract class AbstractHttpClientTest
   protected abstract void pingUrl(String url) throws Exception;
 
   @Inject
-  private InsightConfig appConfig;
+  private PasswordHandler passwordHandler;
 
   @Test
   public void testProxyUsage() throws Exception {
-    ProxyConfig proxyConfig = new ProxyConfig();
-    proxyConfig.setHostname("localhost");
-    proxyConfig.setUsername("test-proxy-user");
-    proxyConfig.setPassword("test-proxy-pass");
-    appConfig.setProxyConfig(proxyConfig);
-
     Server proxyServer = new Server(0);
     AtomicBoolean proxyServerUsed = new AtomicBoolean();
     AtomicBoolean proxyAuthenticationProvided = new AtomicBoolean();
@@ -69,7 +60,8 @@ public abstract class AbstractHttpClientTest
 
     proxyServer.start();
     try {
-      proxyConfig.setPort(((NetworkConnector) proxyServer.getConnectors()[0]).getLocalPort());
+      tempEntity.setProxyConfiguration("localhost", ((NetworkConnector) proxyServer.getConnectors()[0]).getLocalPort(),
+          "test-proxy-user", passwordHandler.encryptPassword("test-proxy-pass".toCharArray()));
       pingUrl("http://proxy.test/");
     }
     catch (HttpResponseException | BadGatewayException ignored) {
@@ -85,12 +77,6 @@ public abstract class AbstractHttpClientTest
 
   @Test
   public void testProxyExclusion() throws Exception {
-    ProxyConfig proxyConfig = new ProxyConfig();
-    proxyConfig.setHostname("proxy.test");
-    appConfig.setProxyConfig(proxyConfig);
-    new SystemConfigurationPropertyDAO()
-        .update(new SystemConfigurationProperty(SystemConfigurationProperty.PROXY_EXCLUDE_HOSTS, "localhost"));
-
     Server targetServer = new Server(0);
     AtomicBoolean proxyServerBypassed = new AtomicBoolean();
     targetServer.setHandler(new AbstractHandler()
@@ -107,6 +93,7 @@ public abstract class AbstractHttpClientTest
 
     targetServer.start();
     try {
+      tempEntity.setProxyConfiguration("proxy.test", 80, null, null, "localhost");
       pingUrl("http://localhost:" + ((NetworkConnector) targetServer.getConnectors()[0]).getLocalPort() + "/");
     }
     catch (HttpResponseException | BadGatewayException ignored) {

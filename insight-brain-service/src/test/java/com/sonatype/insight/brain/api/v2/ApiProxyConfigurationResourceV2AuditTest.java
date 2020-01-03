@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.Collections;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiProxyConfigurationDTOV2;
@@ -12,14 +14,20 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class ApiProxyConfigurationResourceV2AuditTest
     extends AbstractAuditTest
 {
+  @Before
+  public void before() {
+    tempEntity.setProxyConfiguration("localhost", 80);
+  }
+
   @Test
   public void testUpdate() throws Exception {
-    ApiProxyConfigurationDTOV2 proxy = new ApiProxyConfigurationDTOV2("example.com");
+    ApiProxyConfigurationDTOV2 proxy = new ApiProxyConfigurationDTOV2(Collections.singletonList("example.com"));
     proxyConfigurationRequest().body(proxy).put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_PROXY, null);
@@ -28,7 +36,7 @@ public class ApiProxyConfigurationResourceV2AuditTest
 
   @Test
   public void testUpdate_Unauthorized() throws Exception {
-    proxyConfigurationRequest().body(new ApiProxyConfigurationDTOV2("example.com"))
+    proxyConfigurationRequest().body(new ApiProxyConfigurationDTOV2(Collections.singletonList("example.com")))
         .with(unauthorizedUser()).put();
 
     assertAuditLog(AuditEvent.CONFIGURE_PROXY, "unauthorized");

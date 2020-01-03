@@ -10,18 +10,24 @@ import java.io.IOException;
 import java.util.Collections;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
+import com.sonatype.insight.brain.model.configuration.ProxyConfiguration;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PasswordService;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.test.networking.SslProperties;
+
+import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 import io.dropwizard.configuration.ConfigurationException;
 import io.dropwizard.configuration.ConfigurationFactory;
@@ -75,7 +81,7 @@ public class TestInsightBrainService
 
   private String testHdsUrl;
 
-  private ProxyConfig testProxyConfig;
+  private ProxyConfiguration testProxyConfig;
 
   private Server testBrainServer;
 
@@ -101,11 +107,16 @@ public class TestInsightBrainService
   }
 
   public void setProxyConfig(final String host, final int port, final String user, final String pass) {
-    testProxyConfig = new ProxyConfig();
+    testProxyConfig = new ProxyConfiguration();
     testProxyConfig.setHostname(host);
     testProxyConfig.setPort(port);
     testProxyConfig.setUsername(user);
-    testProxyConfig.setPassword(pass);
+    try {
+      testProxyConfig.setPassword(new PasswordHandler(new DefaultPlexusCipher()).encryptPassword(pass.toCharArray()));
+    }
+    catch (PlexusCipherException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public void setConfigurator(Configurator configurator) {
@@ -248,7 +259,7 @@ public class TestInsightBrainService
     }
 
     if (testProxyConfig != null) {
-      config.setProxyConfig(testProxyConfig);
+      new ProxyConfigurationDAO().set(testProxyConfig);
     }
     insightConfig = config;
 

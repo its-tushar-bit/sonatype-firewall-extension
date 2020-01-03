@@ -35,7 +35,7 @@ public class SystemConfigurationPropertyDAO
     }
   }
 
-  private SystemConfigurationProperty getByName(TransactionContext tx, String name) {
+  public SystemConfigurationProperty getByName(TransactionContext tx, String name) {
     String sQuery = "SELECT entity FROM SystemConfigurationProperty entity WHERE entity.name=?1";
     return get(tx, sQuery, name);
   }

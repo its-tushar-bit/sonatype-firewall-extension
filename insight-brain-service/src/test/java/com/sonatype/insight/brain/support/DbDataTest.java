@@ -24,7 +24,6 @@ import static com.sonatype.insight.brain.hds.TelemetryId.TELEMETRY_GENERATED_INS
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.PROXY_EXCLUDE_HOSTS;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_MANAGEMENT;
 import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,8 +72,6 @@ public class DbDataTest
       // We need TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME which is not available by default in sample data
       tempEntity.newSystemConfigurationProperty(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME, "Sensitive. Must be masked.");
     }
-    systemConfigurationPropertyDAO
-        .update(new SystemConfigurationProperty(SystemConfigurationProperty.PROXY_EXCLUDE_HOSTS, "host1, host2"));
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     List<SystemConfigurationProperty> sysConfigs = (List) dbData.getSystemConfiguration().getValue();
@@ -85,7 +82,6 @@ public class DbDataTest
         .containsEntry(AUTOMATIC_APPLICATION_CREATION_ENABLED, "false")
         .containsEntry(AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID, "")
         .containsEntry(SuccessMetricsService.PROPERTY_ENABLED, "true")
-        .containsEntry(PROXY_EXCLUDE_HOSTS, "host1, host2")
         .containsEntry(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME, SystemInfo.MASK)
         .containsEntry(AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED, "false");
   }

@@ -7,11 +7,14 @@ package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
 
+import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.test.InjectedTest;
 import com.sonatype.insight.test.networking.SslProperties;
 
 import io.dropwizard.jetty.HttpConnectorFactory;
@@ -26,10 +29,14 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
 public abstract class AbstractHdsClientTest
+    extends InjectedTest
 {
   static {
     SslProperties.use();
   }
+
+  @Inject
+  protected PasswordHandler passwordHandler;
 
   private static final String USER_AGENT_SUFFIX = "test suffix";
 

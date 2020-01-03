@@ -5,23 +5,64 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.configuration.ProxyConfiguration;
+import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.PROXY_EXCLUDE_HOSTS;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * @since 1.65
+ * @since MIGRATE_PROXY_CONFIG
  */
 public class ProxyConfigurationDAO
+    extends AbstractOperationalSqlDAO<ProxyConfiguration>
 {
-  private final SystemConfigurationPropertyDAO configurationPropertyDAO = new SystemConfigurationPropertyDAO();
+  static final String SINGLETON_ENTITY_ID = "proxy-configuration";
 
-  public String getProxyExcludeHosts() {
-    SystemConfigurationProperty configurationProperty = configurationPropertyDAO.getByName(PROXY_EXCLUDE_HOSTS);
-    return configurationProperty == null ? "" : configurationProperty.getValue();
+  /**
+   * @return The proxy configuration or {@code null} if none.
+   */
+  public ProxyConfiguration get() {
+    return getById(SINGLETON_ENTITY_ID);
   }
 
-  public void setProxyExcludeHosts(String proxyExcludeHosts) {
-    configurationPropertyDAO.update(new SystemConfigurationProperty(PROXY_EXCLUDE_HOSTS, proxyExcludeHosts));
+  public void set(ProxyConfiguration proxyConfiguration) {
+    update(proxyConfiguration);
+  }
+
+  @Override
+  protected ProxyConfiguration getById(TransactionContext tx, String id) {
+    return get(tx, "SELECT entity FROM ProxyConfiguration entity WHERE entity.id=?1", SINGLETON_ENTITY_ID);
+  }
+
+  @Override
+  public void insert(TransactionContext tx, ProxyConfiguration proxyConfiguration) {
+    validate(proxyConfiguration);
+    proxyConfiguration.setId(SINGLETON_ENTITY_ID);
+    super.insert(tx, proxyConfiguration);
+  }
+
+  @Override
+  public void update(TransactionContext tx, ProxyConfiguration proxyConfiguration) {
+    validate(proxyConfiguration);
+    proxyConfiguration.setId(SINGLETON_ENTITY_ID);
+    super.update(tx, proxyConfiguration);
+  }
+
+  public void delete() {
+    ProxyConfiguration proxyConfiguration = get();
+    if (proxyConfiguration != null) {
+      delete(proxyConfiguration);
+    }
+  }
+
+  private void validate(ProxyConfiguration proxyConfiguration) {
+    if (StringUtils.isBlank(proxyConfiguration.getHostname())) {
+      throw new BadRequestException("Host is required.");
+    }
+    if (proxyConfiguration.getPort() <= 0 || proxyConfiguration.getPort() > 65535) {
+      throw new BadRequestException("The port must be from the range 1 - 65535.");
+    }
   }
 }

@@ -22,8 +22,8 @@ Please read our [contribution rules and guidelines](contributing.md).
 This week's rotating reviewers are:
 
 <!-- rotating-reviewers-begin -->
-* [@(TK) Tim Kemper](https://github.com/tkemperSonatype)
-* [@Kasun Ranawaka](https://github.com/kakumara)
+* [@Andrey Marushkevych](https://github.com/marushkevych)
+* [@Vlad Tatavu](https://github.com/vladt)
 <!-- rotating-reviewers-end -->
 # Building #
 

@@ -191,7 +191,7 @@ public class SbomResultHandlerTest
   }
   
   @Test
-  public void testHandleAndFilterContents_lenghtFormat() throws Exception {
+  public void testHandleAndFilterContents_lengthFormat() throws Exception {
     String sbomContent = getSbomFile("sbom-long-purl-format.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -215,16 +215,28 @@ public class SbomResultHandlerTest
   @Test
   public void testHandleAndFilterContents_ignoreUnsupportedLicenseExpressions() throws Exception {
     String sbomContent = getSbomFile("sbom-license-expression.xml");
-    assertNolicense(sbomContent);
+    assertNoLicense(sbomContent);
   }
 
   @Test
-  public void testHandleAndFilterContents_no_id() throws Exception {
+  public void testHandleAndFilterContents_licenseMissingId() throws Exception {
     String sbomContent = getSbomFile("sbom-license-no-id.xml");
-    assertNolicense(sbomContent);
+    assertNoLicense(sbomContent);
   }
 
-  private void assertNolicense(String sbomContent) throws Exception {
+  @Test
+  public void testHandleAndFilterContents_missingLicenses() throws Exception {
+    String sbomContent = getSbomFile("sbom-missing-licenses.xml");
+    assertNoLicense(sbomContent);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_emptyLicenses() throws Exception {
+    String sbomContent = getSbomFile("sbom-empty-licenses.xml");
+    assertNoLicense(sbomContent);
+  }
+
+  private void assertNoLicense(String sbomContent) throws Exception {
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 

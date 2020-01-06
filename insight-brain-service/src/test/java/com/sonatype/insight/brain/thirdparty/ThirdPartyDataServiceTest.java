@@ -37,7 +37,6 @@ public class ThirdPartyDataServiceTest
 
   @Test
   public void testGetScanData() {
-
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     ThirdPartyFileCoordinate coord1 =
@@ -87,7 +86,7 @@ public class ThirdPartyDataServiceTest
 
     assertThat(scanData.billOfMaterials).hasSize(8);
     assertThat(scanData.securityRows).hasSize(3);
-    assertThat(scanData.licenseRows).hasSize(2);
+    assertThat(scanData.licenseRows).hasSize(8);
 
     assertBomContains(scanData.billOfMaterials, coord1, file);
     assertBomContains(scanData.billOfMaterials, coord2, file);
@@ -102,6 +101,12 @@ public class ThirdPartyDataServiceTest
     
     assertLicenseRowsForComponent(scanData.licenseRows, coord1, 1, lic1coord1,lic2coord1);
     assertLicenseRowsForComponent(scanData.licenseRows, coord2, 1, lic1coord2);
+    assertLicenseNotProvided(scanData.licenseRows, coord3);
+    assertLicenseNotProvided(scanData.licenseRows, coord4);
+    assertLicenseNotProvided(scanData.licenseRows, coord5);
+    assertLicenseNotProvided(scanData.licenseRows, coord6);
+    assertLicenseNotProvided(scanData.licenseRows, coord7);
+    assertLicenseNotProvided(scanData.licenseRows, coord8);
   }
 
   @Test
@@ -209,7 +214,21 @@ public class ThirdPartyDataServiceTest
           });
     }
   }
-  
+
+  private void assertLicenseNotProvided(
+      final List<ThirdPartyLicenseRowDTO> licenseRows,
+      final ThirdPartyFileCoordinate coordinate)
+  {
+    final List<ThirdPartyLicenseRowDTO> found =
+        licenseRows.stream().filter(sec -> Objects.equals(sec.hash, coordinate.getHash())).collect(Collectors.toList());
+    assertThat(found).hasSize(1);
+    assertThat(found.get(0).declaredLicenses).hasSize(1);
+    final ThirdPartyLicenseDTO license = found.get(0).declaredLicenses.first();
+    assertThat(license.id).isEqualTo("UNSPECIFIED");
+    assertThat(license.name).isEqualTo("Not Provided");
+    assertThat(license.url).isNull();
+  }
+
   private void assertLicenseRowsForComponent(
       final List<ThirdPartyLicenseRowDTO> licenseRows,
       final ThirdPartyFileCoordinate coordinate,

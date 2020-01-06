@@ -375,21 +375,30 @@ public class SbomResultHandler
   {
     Set<String> licenseMap = new HashSet<>();
     if (licenses != null) {
-      for (Xpp3Dom license : licenses.getChildren()) {
-        if (license != null) {
-          Xpp3Dom licenseInfo = license.getChild("id");
-          if (licenseInfo != null) {
-            String licenseId = licenseInfo.getValue();
-            if (StringUtils.isNotBlank(licenseId) && !licenseMap.contains(licenseId)) {
-              saveLicense(license, fileCoordinateId, licenseId, tx);
-              licenseMap.add(licenseId);
+      Xpp3Dom[] children = licenses.getChildren();
+      if (children.length > 0 ) {
+        for (Xpp3Dom license : licenses.getChildren()) {
+          if (license != null) {
+            Xpp3Dom licenseInfo = license.getChild("id");
+            if (licenseInfo != null) {
+              String licenseId = licenseInfo.getValue();
+              if (StringUtils.isNotBlank(licenseId) && !licenseMap.contains(licenseId)) {
+                saveLicense(license, fileCoordinateId, licenseId, tx);
+                licenseMap.add(licenseId);
+              }
             }
-          }
-          else {
-            log.debug("Component with packageUrl {} has license with null/empty ID", packageUrl);
+            else {
+              log.debug("Component with packageUrl {} has license with null/empty ID", packageUrl);
+            }
           }
         }
       }
+      else {
+        log.debug("Found empty licenses element for Component with packageUrl {}", packageUrl);
+      }
+    }
+    else {
+      log.debug("No licenses provided for Component with packageUrl {}", packageUrl);
     }
   }
 

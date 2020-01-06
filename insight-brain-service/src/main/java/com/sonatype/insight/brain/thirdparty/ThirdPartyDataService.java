@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoord
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -176,12 +177,15 @@ public class ThirdPartyDataService
       final ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO)
   {
     List<ThirdPartyCoordinateLicense> licenses = thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(coord.getId());
+    final ThirdPartyLicenseRowDTO dto = new ThirdPartyLicenseRowDTO(componentIdentifier, coord.getHash());
     if (!licenses.isEmpty()) {
-      final ThirdPartyLicenseRowDTO dto = new ThirdPartyLicenseRowDTO(componentIdentifier, coord.getHash());
       licenses.stream()
           .forEach(thirdPartyCoordinateLicense -> addLicense(thirdPartyCoordinateLicense, dto));
-      thirdPartyApplicationReportDTO.licenseRows.add(dto);
     }
+    else {
+      licenseNotProvided(dto);
+    }
+    thirdPartyApplicationReportDTO.licenseRows.add(dto);
   }
   
   private void addLicense(
@@ -199,5 +203,14 @@ public class ThirdPartyDataService
     catch (NotFoundException e) {
       log.debug(e.getMessage());
     }
+  }
+
+  private void licenseNotProvided(final ThirdPartyLicenseRowDTO dto) {
+    final License licenseNotProvided = licenseDAO.getByIdNotNull(License.UNSPECIFIED_ID);
+
+    final ThirdPartyLicenseDTO licenseThirdParty = new ThirdPartyLicenseDTO();
+    licenseThirdParty.id = licenseNotProvided.getId();
+    licenseThirdParty.name = licenseNotProvided.getShortDisplayName();
+    dto.declaredLicenses.add(licenseThirdParty);
   }
 }

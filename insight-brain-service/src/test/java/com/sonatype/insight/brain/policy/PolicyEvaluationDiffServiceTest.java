@@ -73,7 +73,7 @@ public class PolicyEvaluationDiffServiceTest
         diffOptional = policyEvaluationDiffService.createPolicyViolationDiff(from, to);
 
     //assert added, same and cleared are correct
-    assertThat(diffOptional.isPresent());
+    assertThat(diffOptional).isNotEmpty();
     assertThat(diffOptional.get().getSame()).isNotNull();
     assertThat(diffOptional.get().getAppeared()).isNotNull();
     assertThat(diffOptional.get().getCleared()).isNotNull();
@@ -99,7 +99,7 @@ public class PolicyEvaluationDiffServiceTest
         diffOptional = policyEvaluationDiffService.createPolicyViolationDiff(from, to);
 
     //assert empty optional
-    assertThat(!diffOptional.isPresent());
+    assertThat(diffOptional).isEmpty();
     assertLogDebug(String.format(
         "Could not find report file for 'from' scan report with commit %s, " +
             "policy evaluation id %s and application id %s",
@@ -121,7 +121,7 @@ public class PolicyEvaluationDiffServiceTest
         diffOptional = policyEvaluationDiffService.createPolicyViolationDiff(from, to);
 
     //assert empty optional
-    assertThat(!diffOptional.isPresent());
+    assertThat(diffOptional).isEmpty();
     assertLogDebug(String.format(
         "Could not find report file for 'to' scan report with commit %s, " +
             "policy evaluation id %s and application id %s",
@@ -145,7 +145,7 @@ public class PolicyEvaluationDiffServiceTest
         diffOptional = policyEvaluationDiffService.createPolicyViolationDiff(from, to);
 
     //assert empty optional
-    assertThat(!diffOptional.isPresent());
+    assertThat(diffOptional).isEmpty();
     assertLogDebug(String.format(
         "Could not find policy alerts for 'from' scan report with commit %s, " +
             "policy evaluation id %s, application id %s and scan report",
@@ -169,7 +169,7 @@ public class PolicyEvaluationDiffServiceTest
         diffOptional = policyEvaluationDiffService.createPolicyViolationDiff(from, to);
 
     //assert empty optional
-    assertThat(!diffOptional.isPresent());
+    assertThat(diffOptional).isEmpty();
     assertLogDebug(String.format(
         "Could not find policy alerts for 'to' scan report with commit %s, " +
             "policy evaluation id %s, application id %s and scan report",

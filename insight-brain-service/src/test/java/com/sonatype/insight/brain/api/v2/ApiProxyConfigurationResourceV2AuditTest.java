@@ -22,7 +22,7 @@ public class ApiProxyConfigurationResourceV2AuditTest
 {
   @Before
   public void before() {
-    tempEntity.setProxyConfiguration("localhost", 80);
+    tempEntity.setProxyServerConfiguration("localhost", 80);
   }
 
   @Test

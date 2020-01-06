@@ -154,7 +154,7 @@ public class SupportServiceTest
     assertThat(entries.nextElement().getName())
         .isEqualTo(zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/ldap.json");
     assertThat(entries.nextElement().getName())
-        .isEqualTo(zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/proxy.json");
+        .isEqualTo(zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/proxy-server.json");
     assertThat(entries.nextElement().getName())
         .isEqualTo(zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/saml.json");
     assertThat(entries.nextElement().getName())

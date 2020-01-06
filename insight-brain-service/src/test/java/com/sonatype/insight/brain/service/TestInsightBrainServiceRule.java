@@ -71,7 +71,7 @@ public class TestInsightBrainServiceRule
       brain.setHdsUrl(hdsUrl);
     }
     if (isHdsProxyRequired) {
-      brain.setProxyConfig("127.0.0.1", new URL(hdsUrl).getPort(), "proxyuser", "proxypass");
+      brain.setProxyServerConfiguration("127.0.0.1", new URL(hdsUrl).getPort(), "proxyuser", "proxypass");
     }
     if (modules != null) {
       brain.addModules(modules);

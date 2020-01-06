@@ -60,8 +60,9 @@ public abstract class AbstractHttpClientTest
 
     proxyServer.start();
     try {
-      tempEntity.setProxyConfiguration("localhost", ((NetworkConnector) proxyServer.getConnectors()[0]).getLocalPort(),
-          "test-proxy-user", passwordHandler.encryptPassword("test-proxy-pass".toCharArray()));
+      tempEntity.setProxyServerConfiguration("localhost",
+          ((NetworkConnector) proxyServer.getConnectors()[0]).getLocalPort(), "test-proxy-user",
+          passwordHandler.encryptPassword("test-proxy-pass".toCharArray()));
       pingUrl("http://proxy.test/");
     }
     catch (HttpResponseException | BadGatewayException ignored) {
@@ -93,7 +94,7 @@ public abstract class AbstractHttpClientTest
 
     targetServer.start();
     try {
-      tempEntity.setProxyConfiguration("proxy.test", 80, null, null, "localhost");
+      tempEntity.setProxyServerConfiguration("proxy.test", 80, null, null, "localhost");
       pingUrl("http://localhost:" + ((NetworkConnector) targetServer.getConnectors()[0]).getLocalPort() + "/");
     }
     catch (HttpResponseException | BadGatewayException ignored) {

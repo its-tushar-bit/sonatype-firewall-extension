@@ -11,10 +11,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
-import com.sonatype.insight.brain.model.configuration.ProxyConfiguration;
+import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -28,22 +28,23 @@ import org.slf4j.LoggerFactory;
  * @since MIGRATE_PROXY_CONFIG
  */
 @Named
-public class ProxyConfigurationMigrator
+public class ProxyServerConfigurationMigrator
 {
-  private static final Logger log = LoggerFactory.getLogger(ProxyConfigurationMigrator.class);
+  private static final Logger log = LoggerFactory.getLogger(ProxyServerConfigurationMigrator.class);
 
   static final String PROXY_EXCLUDE_HOSTS_PROP_NAME = "PROXY_EXCLUDE_HOSTS";
 
   static final String OBSOLETE_CONFIG_MESSAGE = "The proxy is now configured using the UI or the REST API. "
       + "The configuration in the config.yml or via system properties is obsolete.";
 
-  static final String INVALID_CONFIG_MESSAGE = "The current proxy configuration is invalid and cannot be migrated.";
+  static final String INVALID_CONFIG_MESSAGE =
+      "The current proxy server configuration is invalid and cannot be migrated.";
 
-  static final String MIGRATION_ID = "proxy-configuration";
+  static final String MIGRATION_ID = "proxy-server-configuration";
 
   private final MigrationTrackerDAO migrationTrackerDAO;
 
-  private final ProxyConfigurationDAO proxyConfigurationDAO;
+  private final ProxyServerConfigurationDAO proxyServerConfigurationDAO;
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
@@ -52,15 +53,15 @@ public class ProxyConfigurationMigrator
   private final PasswordHandler passwordHandler;
 
   @Inject
-  public ProxyConfigurationMigrator(
+  public ProxyServerConfigurationMigrator(
       MigrationTrackerDAO migrationTrackerDAO,
-      ProxyConfigurationDAO proxyConfigurationDAO,
+      ProxyServerConfigurationDAO proxyServerConfigurationDAO,
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       InsightConfig insightConfig,
       PasswordHandler passwordHandler)
   {
     this.migrationTrackerDAO = migrationTrackerDAO;
-    this.proxyConfigurationDAO = proxyConfigurationDAO;
+    this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.insightConfig = insightConfig;
     this.passwordHandler = passwordHandler;
@@ -73,20 +74,20 @@ public class ProxyConfigurationMigrator
     }
 
     if (migrationTrackerDAO.isTrackerPresent(MIGRATION_ID)) {
-      log.debug("Proxy configuration already migrated.");
+      log.debug("Proxy server configuration already migrated.");
       return;
     }
 
-    log.debug("Migrating proxy configuration to database...");
+    log.debug("Migrating proxy server configuration to database...");
 
-    try (TransactionContext tx = proxyConfigurationDAO.createTransactionContext()) {
+    try (TransactionContext tx = proxyServerConfigurationDAO.createTransactionContext()) {
       tx.begin();
 
       SystemConfigurationProperty excludeHostsConfig =
           systemConfigurationPropertyDAO.getByName(tx, PROXY_EXCLUDE_HOSTS_PROP_NAME);
 
       if (fileConfig != null) {
-        ProxyConfiguration dbConfig = new ProxyConfiguration();
+        ProxyServerConfiguration dbConfig = new ProxyServerConfiguration();
         dbConfig.setHostname(fileConfig.getHostname());
         dbConfig.setPort(fileConfig.getPort());
         dbConfig.setUsername(fileConfig.getUsername());
@@ -102,14 +103,14 @@ public class ProxyConfigurationMigrator
         }
 
         try {
-          proxyConfigurationDAO.insert(tx, dbConfig);
+          proxyServerConfigurationDAO.insert(tx, dbConfig);
         }
         catch (BadRequestException e) {
           log.warn(INVALID_CONFIG_MESSAGE, e);
         }
       }
       else {
-        log.info("There is no proxy configuration to migrate database.");
+        log.info("There is no proxy server configuration to migrate database.");
       }
 
       if (excludeHostsConfig != null) {
@@ -121,7 +122,7 @@ public class ProxyConfigurationMigrator
       tx.commit();
     }
 
-    log.info("Migrated proxy configuration to database.");
+    log.info("Migrated proxy server configuration to database.");
   }
 
   /**

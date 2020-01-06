@@ -29,7 +29,7 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -70,7 +70,7 @@ public class HdsClientTest
   protected void initClient() {
     ProductLicense productLicense = mock(ProductLicense.class);
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
-    client = new HdsClient(new InsightProxy(config, new ProxyConfigurationDAO(), passwordHandler), productLicense,
+    client = new HdsClient(new InsightProxy(config, new ProxyServerConfigurationDAO(), passwordHandler), productLicense,
         config, new VersionService(), telemetryId);
   }
 

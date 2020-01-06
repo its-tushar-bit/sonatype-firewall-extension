@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -97,7 +97,7 @@ public class HdsClientKeepConnectionAliveTest
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
 
     stallingServerThread = new Thread(stallingServer);
-    insightProxy = new InsightProxy(config, new ProxyConfigurationDAO(), passwordHandler);
+    insightProxy = new InsightProxy(config, new ProxyServerConfigurationDAO(), passwordHandler);
   }
 
   @After

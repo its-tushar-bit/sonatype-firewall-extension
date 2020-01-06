@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiProxyConfigurationDTOV2;
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.http.HttpStatus;
@@ -27,7 +27,7 @@ public class ApiProxyConfigurationResourceV2Test
 {
   @Before
   public void before() {
-    tempEntity.setProxyConfiguration("localhost", 80);
+    tempEntity.setProxyServerConfiguration("localhost", 80);
   }
 
   @Override
@@ -53,8 +53,8 @@ public class ApiProxyConfigurationResourceV2Test
     ApiProxyConfigurationDTOV2 configuration = response.getBody(ApiProxyConfigurationDTOV2.class);
     assertThat(configuration.getProxyExcludeHosts()).containsExactly("example.com");
 
-    ProxyConfigurationDAO proxyConfigurationDAO = new ProxyConfigurationDAO();
-    assertThat(proxyConfigurationDAO.get().getExcludeHosts()).isEqualTo("example.com");
+    ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
+    assertThat(proxyServerConfigurationDAO.get().getExcludeHosts()).isEqualTo("example.com");
   }
 
   @Test
@@ -67,7 +67,7 @@ public class ApiProxyConfigurationResourceV2Test
     assertThat(configuration.getProxyExcludeHosts()).isEqualTo(
         asList("example.com", "example.org"));
 
-    ProxyConfigurationDAO proxyConfigurationDAO = new ProxyConfigurationDAO();
-    assertThat(proxyConfigurationDAO.get().getExcludeHosts()).isEqualTo("example.com, example.org");
+    ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
+    assertThat(proxyServerConfigurationDAO.get().getExcludeHosts()).isEqualTo("example.com, example.org");
   }
 }

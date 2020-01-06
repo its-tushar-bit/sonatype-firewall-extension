@@ -24,12 +24,12 @@ import static java.util.stream.Collectors.toList;
  * @since MIGRATE_PROXY_CONFIG
  */
 @Entity
-@Table(name = "proxy_configuration")
-public class ProxyConfiguration
+@Table(name = "proxy_server_configuration")
+public class ProxyServerConfiguration
     implements HasStringId
 {
   @Id
-  @Column(name = "proxy_configuration_id")
+  @Column(name = "proxy_server_configuration_id")
   private String id;
 
   @Column(name = "hostname")

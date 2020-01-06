@@ -19,6 +19,7 @@ import javax.validation.constraints.Size;
 import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.jira.JiraConfig;
 import com.sonatype.insight.brain.migration.MailConfigurationMigrator;
+import com.sonatype.insight.brain.migration.ProxyServerConfigurationMigrator;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -41,7 +42,7 @@ public class InsightConfig
   }
 
   @JsonProperty
-  private ProxyConfigurationMigrator.ProxyConfig proxy;
+  private ProxyServerConfigurationMigrator.ProxyConfig proxy;
 
   @JsonProperty
   private MailConfigurationMigrator.MailConfig mail;
@@ -261,7 +262,7 @@ public class InsightConfig
   @JsonProperty
   private boolean enableStaleEvaluations = false;
 
-  public ProxyConfigurationMigrator.ProxyConfig getProxyConfig() {
+  public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
   }
 
@@ -286,7 +287,7 @@ public class InsightConfig
     return new File(sonatypeWork, "config");
   }
 
-  public void setProxyConfig(ProxyConfigurationMigrator.ProxyConfig proxyConfig) {
+  public void setProxyConfig(ProxyServerConfigurationMigrator.ProxyConfig proxyConfig) {
     this.proxy = proxyConfig;
   }
 

@@ -22,7 +22,7 @@ public class ApiProxyConfigurationServiceV2AuthzTest
 
   @Test
   public void testGet_Unauthenticated() {
-    tempEntity.setProxyConfiguration("localhost", 80);
+    tempEntity.setProxyServerConfiguration("localhost", 80);
     proxyConfigurationService.get();
   }
 
@@ -39,7 +39,7 @@ public class ApiProxyConfigurationServiceV2AuthzTest
 
   @Test
   public void testUpdate_Authorized() {
-    tempEntity.setProxyConfiguration("localhost", 80);
+    tempEntity.setProxyServerConfiguration("localhost", 80);
     grantConfigureSystemPermission();
     proxyConfigurationService.update(new ApiProxyConfigurationDTOV2());
   }

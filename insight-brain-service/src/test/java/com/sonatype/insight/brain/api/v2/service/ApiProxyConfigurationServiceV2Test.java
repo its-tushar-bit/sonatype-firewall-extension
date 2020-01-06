@@ -10,8 +10,8 @@ import java.util.Arrays;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiProxyConfigurationDTOV2;
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
-import com.sonatype.insight.brain.model.configuration.ProxyConfiguration;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Before;
@@ -26,11 +26,11 @@ public class ApiProxyConfigurationServiceV2Test
   private ApiProxyConfigurationServiceV2 service;
 
   @Inject
-  private ProxyConfigurationDAO dao;
+  private ProxyServerConfigurationDAO dao;
 
   @Before
   public void before() {
-    tempEntity.setProxyConfiguration("localhost", 80);
+    tempEntity.setProxyServerConfiguration("localhost", 80);
   }
 
   @Test
@@ -46,9 +46,9 @@ public class ApiProxyConfigurationServiceV2Test
   public void testGet_multipleValues() {
     setExcludeHosts("example.com,example.net, example.org");
 
-    ApiProxyConfigurationDTOV2 proxyConfiguration = service.get();
+    ApiProxyConfigurationDTOV2 proxyServerConfiguration = service.get();
 
-    assertThat(proxyConfiguration.getProxyExcludeHosts())
+    assertThat(proxyServerConfiguration.getProxyExcludeHosts())
         .containsExactlyInAnyOrder("example.com", "example.net", "example.org");
   }
 
@@ -56,7 +56,7 @@ public class ApiProxyConfigurationServiceV2Test
   public void testSet_multipleValues() {
     service.update(new ApiProxyConfigurationDTOV2(Arrays.asList("example.com", "example.net", "example.org")));
 
-    ProxyConfiguration actual = dao.get();
+    ProxyServerConfiguration actual = dao.get();
 
     assertThat(actual.getExcludeHosts()).isEqualTo("example.com, example.net, example.org");
   }
@@ -65,14 +65,14 @@ public class ApiProxyConfigurationServiceV2Test
   public void testSet_emptyList() {
     service.update(new ApiProxyConfigurationDTOV2());
 
-    ProxyConfiguration actual = dao.get();
+    ProxyServerConfiguration actual = dao.get();
 
     assertThat(actual.getExcludeHosts()).isEqualTo("");
   }
 
   private void setExcludeHosts(String excludeHosts) {
-    ProxyConfiguration proxyConfiguration = dao.get();
-    proxyConfiguration.setExcludeHosts(excludeHosts);
-    dao.set(proxyConfiguration);
+    ProxyServerConfiguration proxyServerConfiguration = dao.get();
+    proxyServerConfiguration.setExcludeHosts(excludeHosts);
+    dao.set(proxyServerConfiguration);
   }
 }

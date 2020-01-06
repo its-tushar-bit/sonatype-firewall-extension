@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -95,7 +95,7 @@ public class HdsClientProxyTimeOutTest
   public void init() {
     port = PortAllocator.findFreePort(8090);
 
-    tempEntity.setProxyConfiguration("localhost", port);
+    tempEntity.setProxyServerConfiguration("localhost", port);
 
     config = new InsightConfig();
     config.setHdsUrl("https://www.example.com/");
@@ -106,7 +106,7 @@ public class HdsClientProxyTimeOutTest
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
 
     nonResponsiveServerThread = new Thread(nonResponsiveServer);
-    insightProxy = new InsightProxy(config, new ProxyConfigurationDAO(), passwordHandler);
+    insightProxy = new InsightProxy(config, new ProxyServerConfigurationDAO(), passwordHandler);
   }
 
   @After

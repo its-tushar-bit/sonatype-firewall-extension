@@ -11,8 +11,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
-import com.sonatype.insight.brain.model.configuration.ProxyConfiguration;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
@@ -23,18 +23,18 @@ public class InsightProxy
 {
   private final InsightConfig insightConfig;
 
-  private final ProxyConfigurationDAO proxyConfigurationDAO;
+  private final ProxyServerConfigurationDAO proxyServerConfigurationDAO;
 
   private final PasswordHandler passwordHandler;
 
   @Inject
   public InsightProxy(
       InsightConfig insightConfig,
-      ProxyConfigurationDAO proxyConfigurationDAO,
+      ProxyServerConfigurationDAO proxyServerConfigurationDAO,
       PasswordHandler passwordHandler)
   {
     this.insightConfig = insightConfig;
-    this.proxyConfigurationDAO = proxyConfigurationDAO;
+    this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;
     this.passwordHandler = passwordHandler;
   }
 
@@ -46,16 +46,16 @@ public class InsightProxy
     httpConfig.setServerUrl(serverUrl);
     httpConfig.setUserAgent(httpConfig.getUserAgent() + " " + insightConfig.getUserAgentSuffix());
 
-    ProxyConfiguration proxyConfig = proxyConfigurationDAO.get();
-    if (proxyConfig != null) {
-      httpConfig.setProxyHost(proxyConfig.getHostname());
-      httpConfig.setProxyPort(proxyConfig.getPort());
-      httpConfig.setProxyExcludeHosts(proxyConfig.getExcludeHostsList());
-      if (proxyConfig.getUsername() != null) {
+    ProxyServerConfiguration proxyServerConfiguration = proxyServerConfigurationDAO.get();
+    if (proxyServerConfiguration != null) {
+      httpConfig.setProxyHost(proxyServerConfiguration.getHostname());
+      httpConfig.setProxyPort(proxyServerConfiguration.getPort());
+      httpConfig.setProxyExcludeHosts(proxyServerConfiguration.getExcludeHostsList());
+      if (proxyServerConfiguration.getUsername() != null) {
         final SimpleAuthentication proxyAuth = new SimpleAuthentication();
-        proxyAuth.setUsername(proxyConfig.getUsername());
+        proxyAuth.setUsername(proxyServerConfiguration.getUsername());
 
-        char[] password = passwordHandler.decryptPassword(proxyConfig.getPassword());
+        char[] password = passwordHandler.decryptPassword(proxyServerConfiguration.getPassword());
         proxyAuth.setPassword(password);
         if (password != null) {
           Arrays.fill(password, '0');

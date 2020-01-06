@@ -39,10 +39,10 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
-import com.sonatype.insight.brain.model.configuration.ProxyConfiguration;
+import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
@@ -462,18 +462,18 @@ class SystemInfo
     Map<String, Object> samlDeployment;
   }
 
-  String getProxyConfig() {
-    ProxyConfiguration proxyConfiguration = new ProxyConfigurationDAO().get();
-    if (proxyConfiguration == null) {
+  String getProxyServerConfiguration() {
+    ProxyServerConfiguration proxyServerConfiguration = new ProxyServerConfigurationDAO().get();
+    if (proxyServerConfiguration == null) {
       return "null";
     }
 
-    if (proxyConfiguration.getPassword() != null) {
-      proxyConfiguration.setPassword(MASK.toCharArray());
+    if (proxyServerConfiguration.getPassword() != null) {
+      proxyServerConfiguration.setPassword(MASK.toCharArray());
     }
-    if (!StringUtils.isBlank(proxyConfiguration.getExcludeHosts())) {
-      proxyConfiguration.setExcludeHosts(MASK);
+    if (!StringUtils.isBlank(proxyServerConfiguration.getExcludeHosts())) {
+      proxyServerConfiguration.setExcludeHosts(MASK);
     }
-    return JsonUtils.format(proxyConfiguration);
+    return JsonUtils.format(proxyServerConfiguration);
   }
 }

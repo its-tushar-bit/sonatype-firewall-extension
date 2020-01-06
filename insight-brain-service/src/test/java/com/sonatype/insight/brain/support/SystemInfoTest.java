@@ -31,8 +31,10 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.model.configuration.ProxyConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
@@ -611,5 +613,73 @@ public class SystemInfoTest
     final Entry<String, SortedMap<String, Object>> entry = systemInfo.getClientInfo(requestUrl);
     final SortedMap<String, Object> entries = entry.getValue();
     assertThat(entries.get("requestUrl").toString()).isEqualTo(requestUrl);
+  }
+
+  @Test
+  public void testGetProxyConfig_NotConfigured() {
+    assertThat(systemInfo.getProxyConfig()).isEqualTo("null");
+  }
+
+  @Test
+  public void testGetProxyConfig_Configured() throws Exception {
+    ProxyConfiguration proxyConfiguration = new ProxyConfiguration();
+    proxyConfiguration.setHostname("testHostname");
+    proxyConfiguration.setPort(4567);
+    proxyConfiguration.setUsername("testUsername");
+    proxyConfiguration.setPassword("testPassword".toCharArray());
+    proxyConfiguration.setExcludeHosts("host1,host2");
+    new ProxyConfigurationDAO().set(proxyConfiguration);
+
+    proxyConfiguration = new ObjectMapper().readValue(systemInfo.getProxyConfig(), ProxyConfiguration.class);
+
+    assertThat(proxyConfiguration).isNotNull();
+    assertThat(proxyConfiguration.getId()).isEqualTo(ProxyConfigurationDAO.SINGLETON_ENTITY_ID);
+    assertThat(proxyConfiguration.getHostname()).isEqualTo("testHostname");
+    assertThat(proxyConfiguration.getPort()).isEqualTo(4567);
+    assertThat(proxyConfiguration.getUsername()).isEqualTo("testUsername");
+    assertThat(proxyConfiguration.getPassword()).isEqualTo(SystemInfo.MASK.toCharArray());
+    assertThat(proxyConfiguration.getExcludeHosts()).isEqualTo(SystemInfo.MASK);
+  }
+
+  @Test
+  public void testGetProxyConfig_Configured_NoPassword() throws Exception {
+    ProxyConfiguration proxyConfiguration = new ProxyConfiguration();
+    proxyConfiguration.setHostname("testHostname");
+    proxyConfiguration.setPort(4567);
+    proxyConfiguration.setUsername("testUsername");
+    proxyConfiguration.setPassword(null);
+    proxyConfiguration.setExcludeHosts("host1,host2");
+    new ProxyConfigurationDAO().set(proxyConfiguration);
+
+    proxyConfiguration = new ObjectMapper().readValue(systemInfo.getProxyConfig(), ProxyConfiguration.class);
+
+    assertThat(proxyConfiguration).isNotNull();
+    assertThat(proxyConfiguration.getId()).isEqualTo(ProxyConfigurationDAO.SINGLETON_ENTITY_ID);
+    assertThat(proxyConfiguration.getHostname()).isEqualTo("testHostname");
+    assertThat(proxyConfiguration.getPort()).isEqualTo(4567);
+    assertThat(proxyConfiguration.getUsername()).isEqualTo("testUsername");
+    assertThat(proxyConfiguration.getPassword()).isNull();
+    assertThat(proxyConfiguration.getExcludeHosts()).isEqualTo(SystemInfo.MASK);
+  }
+
+  @Test
+  public void testGetProxyConfig_Configured_NoExcludeHosts() throws Exception {
+    ProxyConfiguration proxyConfiguration = new ProxyConfiguration();
+    proxyConfiguration.setHostname("testHostname");
+    proxyConfiguration.setPort(4567);
+    proxyConfiguration.setUsername("testUsername");
+    proxyConfiguration.setPassword("testPassword".toCharArray());
+    proxyConfiguration.setExcludeHosts(null);
+    new ProxyConfigurationDAO().set(proxyConfiguration);
+
+    proxyConfiguration = new ObjectMapper().readValue(systemInfo.getProxyConfig(), ProxyConfiguration.class);
+
+    assertThat(proxyConfiguration).isNotNull();
+    assertThat(proxyConfiguration.getId()).isEqualTo(ProxyConfigurationDAO.SINGLETON_ENTITY_ID);
+    assertThat(proxyConfiguration.getHostname()).isEqualTo("testHostname");
+    assertThat(proxyConfiguration.getPort()).isEqualTo(4567);
+    assertThat(proxyConfiguration.getUsername()).isEqualTo("testUsername");
+    assertThat(proxyConfiguration.getPassword()).isEqualTo(SystemInfo.MASK.toCharArray());
+    assertThat(proxyConfiguration.getExcludeHosts()).isNull();
   }
 }

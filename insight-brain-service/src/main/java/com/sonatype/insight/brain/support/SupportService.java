@@ -273,6 +273,8 @@ class SupportService
         writeTextToFile(systemInfo.getLdapConfig(ldapServers), new File(workDir, "ldap.json")), "ldap",
         SupportFileType.CONFIG,
         true);
+    addFileIfExists(filesToZip, writeTextToFile(systemInfo.getProxyConfig(), new File(workDir, "proxy.json")), "proxy",
+        SupportFileType.CONFIG, true);
     addFileIfExists(filesToZip,
         writeTextToFile(systemInfo.getSamlInfo(), new File(workDir, "saml.json")), "saml",
         SupportFileType.CONFIG,

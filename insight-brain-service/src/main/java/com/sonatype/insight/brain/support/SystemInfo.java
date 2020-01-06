@@ -39,8 +39,10 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.model.configuration.ProxyConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
@@ -60,6 +62,7 @@ import com.google.common.collect.Sets;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.GsonBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -457,5 +460,20 @@ class SystemInfo
 
     @JsonProperty
     Map<String, Object> samlDeployment;
+  }
+
+  String getProxyConfig() {
+    ProxyConfiguration proxyConfiguration = new ProxyConfigurationDAO().get();
+    if (proxyConfiguration == null) {
+      return "null";
+    }
+
+    if (proxyConfiguration.getPassword() != null) {
+      proxyConfiguration.setPassword(MASK.toCharArray());
+    }
+    if (!StringUtils.isBlank(proxyConfiguration.getExcludeHosts())) {
+      proxyConfiguration.setExcludeHosts(MASK);
+    }
+    return JsonUtils.format(proxyConfiguration);
   }
 }

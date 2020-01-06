@@ -18,7 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 public class ProxyConfigurationDAO
     extends AbstractOperationalSqlDAO<ProxyConfiguration>
 {
-  static final String SINGLETON_ENTITY_ID = "proxy-configuration";
+  public static final String SINGLETON_ENTITY_ID = "proxy-configuration";
 
   /**
    * @return The proxy configuration or {@code null} if none.

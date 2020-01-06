@@ -16,6 +16,8 @@ import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -95,6 +97,7 @@ public class ProxyConfiguration
     this.excludeHosts = excludeHosts;
   }
 
+  @JsonIgnore
   public List<String> getExcludeHostsList() {
     if (excludeHosts == null) {
       return Collections.emptyList();

@@ -61,19 +61,19 @@ public class ApplicationReportRawDataPage
       extends BasicElement<VulnerabilityModal>
   {
     VulnerabilityModal() {
-      super("#sv-info-modal");
+      super("#vulnerability-details-modal");
     }
 
     public SelenideElement header() {
-      return child(".iq-modal-header");
+      return child(".nx-modal-header");
     }
 
     public SelenideElement content() {
-      return child(".iq-modal-content");
+      return child(".nx-modal-content");
     }
 
     public SelenideElement closeButton() {
-      return child(".iq-modal-footer .btn");
+      return child(".nx-modal-footer .nx-btn-bar .nx-btn");
     }
   }
 

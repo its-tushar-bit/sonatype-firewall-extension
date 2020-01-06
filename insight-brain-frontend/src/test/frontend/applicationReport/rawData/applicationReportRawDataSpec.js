@@ -8,7 +8,7 @@ import { mapStateToThis } from '../../../../main/frontend/applicationReport/rawD
 
 describe('applicationReportRawData', function() {
 
-  let vm, VulnerabilityDetails, SelectedComponent;
+  let vm, SelectedComponent;
 
   beforeEach(angular.mock.module(applicationReportModule.name));
 
@@ -17,10 +17,8 @@ describe('applicationReportRawData', function() {
   }));
 
   beforeEach(inject(function(_$componentController_) {
-    VulnerabilityDetails = jasmine.createSpyObj('VulnerabilityDetails', ['open']);
     SelectedComponent = jasmine.createSpyObj('SelectedComponent', ['toggle']);
     vm = _$componentController_('applicationReportRawData', {
-      VulnerabilityDetails,
       SelectedComponent
     });
     vm.$onInit();
@@ -133,6 +131,9 @@ describe('applicationReportRawData', function() {
           foo: 'bar',
           rawDataSubstringFilters: {},
           rawDataNumericFilters: {}
+        },
+        vulnerabilityDetailsModal: {
+          vulnerabilityId: null
         }
       };
 
@@ -150,6 +151,9 @@ describe('applicationReportRawData', function() {
             securityCode: 'filter3'
           },
           rawDataNumericFilters: {}
+        },
+        vulnerabilityDetailsModal: {
+          vulnerabilityId: null
         }
       };
 
@@ -167,6 +171,9 @@ describe('applicationReportRawData', function() {
           rawDataNumericFilters: {
             cvssScore: [1, 3.5]
           }
+        },
+        vulnerabilityDetailsModal: {
+          vulnerabilityId: null
         }
       };
 
@@ -183,6 +190,9 @@ describe('applicationReportRawData', function() {
           rawDataNumericFilters: {
             cvssScore: 9
           }
+        },
+        vulnerabilityDetailsModal: {
+          vulnerabilityId: null
         }
       };
 
@@ -197,6 +207,9 @@ describe('applicationReportRawData', function() {
               pendingLoads: new Set(['foo']),
               rawDataSubstringFilters: {},
               rawDataNumericFilters: {}
+            },
+            vulnerabilityDetailsModal: {
+              vulnerabilityId: null
             }
           },
           nonLoadingState = {
@@ -204,12 +217,43 @@ describe('applicationReportRawData', function() {
               pendingLoads: new Set(),
               rawDataSubstringFilters: {},
               rawDataNumericFilters: {}
+            },
+            vulnerabilityDetailsModal: {
+              vulnerabilityId: null
             }
           };
 
       expect(mapStateToThis(loadingState).loading).toBe(true);
       expect(mapStateToThis(nonLoadingState).loading).toBe(false);
     });
+
+    it('maps vulnerabilityId from state', () => {
+      let stateWithIdPresent = {
+        applicationReport: {
+          pendingLoads: new Set(),
+          rawDataSubstringFilters: {},
+          rawDataNumericFilters: {}
+        },
+        vulnerabilityDetailsModal: {
+          vulnerabilityId: 'CVE-3456'
+        }
+      };
+
+      let stateWithNullId = {
+        applicationReport: {
+          pendingLoads: new Set(),
+          rawDataSubstringFilters: {},
+          rawDataNumericFilters: {}
+        },
+        vulnerabilityDetailsModal: {
+          vulnerabilityId: null
+        }
+      };
+
+      expect(mapStateToThis(stateWithIdPresent)).toEqual(jasmine.objectContaining({ vulnerabilityId: 'CVE-3456' }));
+      expect(mapStateToThis(stateWithNullId)).toEqual(jasmine.objectContaining({ vulnerabilityId: null }));
+    });
+
   });
 
   describe('openVulnerabilitiesModal', function() {
@@ -229,16 +273,27 @@ describe('applicationReportRawData', function() {
               version: '1.2.16'
             }
           }
+        },
+        componentIdentifier: {
+          'format': 'a-name',
+          'coordinates': {
+            'name': 'org.webjars bootstrap',
+            'qualifier': '',
+            'version': '3.1.1'
+          }
         }
       };
     });
 
-    it('calls selectedComponent.toggle first and then calls VulnerabilityDetails.open', function() {
-      const { source, securityCode } = mockRawDataEntry;
+    it('calls selectedComponent.toggle first and then calls openVulnerabilityDetailsModal', function() {
+      const { securityCode, componentIdentifier } = mockRawDataEntry;
       vm.openVulnerabilitiesModal(mockRawDataEntry);
-      expect(SelectedComponent.toggle).toHaveBeenCalledBefore(VulnerabilityDetails.open);
+      expect(SelectedComponent.toggle).toHaveBeenCalledBefore(vm.openVulnerabilityDetailsModal);
       expect(SelectedComponent.toggle).toHaveBeenCalledWith(mockRawDataEntry);
-      expect(VulnerabilityDetails.open).toHaveBeenCalledWith(source, securityCode);
+      expect(vm.openVulnerabilityDetailsModal).toHaveBeenCalledWith({
+        vulnerabilityId: securityCode,
+        componentIdentifier
+      });
     });
   });
 });

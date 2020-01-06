@@ -11,6 +11,7 @@ import dashboardFilterReducer from '../dashboard/filter/dashboardFilterReducer';
 import applicationReportReducer from '../applicationReport/applicationReportReducer';
 import userReducer from '../user/userReducer';
 import vulnerabilitySearchReducer from '../vulnerabilitySearch/vulnerabilitySearchReducer';
+import vulnerabilityDetailsModalReducer from '../vulnerabilityDetails/vulnerabilityDetailsModalReducer';
 
 export default combineReducers({
   router: routerStateReducer,
@@ -19,5 +20,6 @@ export default combineReducers({
   dashboardFilter: dashboardFilterReducer,
   applicationReport: applicationReportReducer,
   user: userReducer,
+  vulnerabilityDetailsModal: vulnerabilityDetailsModalReducer,
   vulnerabilitySearch: vulnerabilitySearchReducer
 });

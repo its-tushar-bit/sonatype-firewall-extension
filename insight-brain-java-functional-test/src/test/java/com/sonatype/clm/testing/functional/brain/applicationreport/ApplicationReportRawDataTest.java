@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.SelenideElement;
 import org.joda.time.format.DateTimeFormat;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -133,7 +134,10 @@ public class ApplicationReportRawDataTest
   @Test
   public void testVulnerabilityModal() {
     testCLMServer.getHdsServer().respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails2.json"))
-        .atUri("rest/vulnerability/details/sonatype/sonatype-2017-0507");
+        .atUri("rest/vulnerability/details/json/sonatype-2017-0507?componentIdentifier=%7B%22format%22%3A%22maven%22" +
+            "%2C%22coordinates%22%3A%7B%22artifactId%22%3A%22spring-security-web%22%2C%22classifier%22%3A%22%22%2C%2" +
+            "2extension%22%3A%22jar%22%2C%22groupId%22%3A%22org.springframework.security%22%2C%22version%22%3A%223.2" +
+            ".4.RELEASE%22%7D%7D");
 
     ResultTable resultTable = rawDataPage.resultTable();
     ResultRow springSecurity = resultTable.resultRow(94);
@@ -143,7 +147,16 @@ public class ApplicationReportRawDataTest
     VulnerabilityModal vulnerabilityModal = rawDataPage.vulnerabilityModal();
     vulnerabilityModal.shouldBe(visible);
     vulnerabilityModal.header().shouldHave(text("Vulnerability Information"));
-    vulnerabilityModal.content().$("#somedivfortest").shouldHave(text("sonatype-2017-0507"));
+    SelenideElement vulnerabilityDetails = vulnerabilityModal.content().$(".nx-vulnerability-details");
+    vulnerabilityDetails.shouldHave(text("sonatype-2017-0507"));
+    vulnerabilityDetails.shouldHave(text("Sonatype CVSS 3:5.4"));
+    vulnerabilityDetails.shouldHave(text("Sonatype Data Research"));
+    vulnerabilityDetails.shouldHave(text("There is no non vulnerable version of this package. We recommend " +
+        "investigating alternative components or a potential mitigating control."));
+
+    // test that component-specific fields are present
+    vulnerabilityDetails.shouldHave(text("Root Cause " +
+        "org.webjars:bootstrap:3.1.1META-INF/resources/webjars/bootstrap/3.1.1/js/bootstrap.js[3.1.1-1,3.1.1-2]"));
 
     eyesWatcher.eyesCheck("Test Raw Data Vulnerability Modal");
 

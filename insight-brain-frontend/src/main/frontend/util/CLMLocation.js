@@ -37,8 +37,15 @@ export function getVulnerabilityDetailUrl(
   return url;
 }
 
-export function getVulnerabilityJsonDetailUrl(refId) {
-  return `${getBaseUrl(window.location.href)}/api/v2/vulnerabilities/${encodeURIComponent(refId)}`;
+export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier) {
+  const urlWithPath = `${getBaseUrl(window.location.href)}/api/v2/vulnerabilities/${encodeURIComponent(refId)}`;
+
+  if (componentIdentifier) {
+    const params = toURIParams({ componentIdentifier: JSON.stringify(componentIdentifier) });
+    return `${urlWithPath}?${params}`;
+  }
+
+  return urlWithPath;
 }
 
 export default

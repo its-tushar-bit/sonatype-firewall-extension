@@ -3,7 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { defaultTo, join, pipe } from 'ramda';
+import { defaultTo, join, pipe, pick } from 'ramda';
+import { openVulnerabilityDetailsModal } from '../../vulnerabilityDetails/vulnerabilityDetailsModalActions';
 
 import template from './applicationReportRawData.html';
 
@@ -13,12 +14,22 @@ export default {
   controller: ApplicationReportRawController
 };
 
-function ApplicationReportRawController($ngRedux, applicationReportActions, VulnerabilityDetails, SelectedComponent) {
+function ApplicationReportRawController($ngRedux, applicationReportActions, SelectedComponent) {
   const vm = this;
 
   Object.assign(vm, {
     $onInit() {
-      vm.unsubscribe = $ngRedux.connect(mapStateToThis, applicationReportActions)(vm);
+      const actions = {
+        openVulnerabilityDetailsModal,
+        ...pick([
+          'loadReportRawData',
+          'setRawDataNumericMinFilter',
+          'setRawDataNumericMaxFilter',
+          'setRawDataStringFieldFilter',
+          'setSortingRawData'
+        ], applicationReportActions)
+      };
+      vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
       vm.load();
     },
 
@@ -66,15 +77,17 @@ function ApplicationReportRawController($ngRedux, applicationReportActions, Vuln
     },
 
     openVulnerabilitiesModal(rawDataEntry) {
-      const { source, securityCode } = rawDataEntry;
-
+      const { securityCode, componentIdentifier } = rawDataEntry;
       SelectedComponent.toggle(rawDataEntry);
-      VulnerabilityDetails.open(source, securityCode);
+      vm.openVulnerabilityDetailsModal({
+        vulnerabilityId: securityCode,
+        componentIdentifier
+      });
     }
   });
 }
 
-export function mapStateToThis({applicationReport}) {
+export function mapStateToThis({applicationReport, vulnerabilityDetailsModal}) {
   const { derivedComponentName, licenseSortKey, securityCode } = applicationReport.rawDataSubstringFilters;
   const { cvssScore } = applicationReport.rawDataNumericFilters;
   let cvssScoreMin, cvssScoreMax;
@@ -91,13 +104,13 @@ export function mapStateToThis({applicationReport}) {
     licenseSortKeySubstringFilter: licenseSortKey,
     securityCodeSubstringFilter: securityCode,
     cvssMinNumericFilter: cvssScoreMin,
-    cvssMaxNumericFilter: cvssScoreMax
+    cvssMaxNumericFilter: cvssScoreMax,
+    ...pick(['vulnerabilityId'], vulnerabilityDetailsModal)
   };
 }
 
 ApplicationReportRawController.$inject = [
   '$ngRedux',
   'applicationReportActions',
-  'VulnerabilityDetails',
   'SelectedComponent'
 ];

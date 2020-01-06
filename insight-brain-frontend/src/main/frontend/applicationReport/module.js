@@ -22,6 +22,8 @@ import applicationReportRoot from './applicationReportRoot';
 import rawLicenseDisplay from './rawData/rawLicenseDisplay/rawLicenseDisplay';
 import applicationReportRawData from './rawData/applicationReportRawData';
 import applicationReportVulnerabilities from './vulnerabilities/ApplicationReportVulnerabilities';
+import vulnerabilityDetailsModalContainer from '../vulnerabilityDetails/VulnerabilityDetailsModalContainer';
+import withStoreProvider from '../reactAdapter/StoreProvider';
 
 export default angular.module('applicationReportModule',
     [
@@ -37,6 +39,8 @@ export default angular.module('applicationReportModule',
     .component('applicationReportRawData', applicationReportRawData)
     .component('applicationReportVulnerabilities', react2angular(applicationReportVulnerabilities, [],
         ['$ngRedux', '$state', 'applicationReportActions']))
+    .component('vulnerabilityDetailsModal', react2angular(withStoreProvider(vulnerabilityDetailsModalContainer), [],
+        ['$ngRedux']))
     .value('applicationReportReducer', applicationReportReducer) // add to angular so we can test it
     .factory('applicationReportActions', applicationReportActions)
     .config(routes);

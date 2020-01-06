@@ -259,15 +259,4 @@ public class ReportService
     responseBuilder.entity(pdfFile);
     return responseBuilder.build();
   }
-
-  public File getReportByCommitHash(final String commitHash) {
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByCommitHash(commitHash);
-    if (policyEvaluation != null) {
-      File reportFile = work.getReportFile(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
-      if (reportFile.exists()) {
-        return reportFile;
-      }
-    }
-    return null;
-  }
 }

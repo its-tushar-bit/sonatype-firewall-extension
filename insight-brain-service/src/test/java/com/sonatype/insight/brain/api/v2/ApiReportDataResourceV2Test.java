@@ -6,25 +6,72 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Date;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightWork;
 
+import org.json.JSONException;
+import org.junit.Before;
 import org.junit.Test;
+import org.skyscreamer.jsonassert.Customization;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.skyscreamer.jsonassert.comparator.CustomComparator;
 
+import static com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2.SCAN_PATH;
+import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiReportDataResourceV2Test
     extends AbstractResourceTest
 {
+  private static final String FROM_COMMIT_HASH = "abcdef1234abcdef1234abcdef1234abcdef1234";
+
+  private static final String TO_COMMIT_HASH = "1234567890123456789012345678901234567890";
+
+  private static final String FROM_SCAN_ID = "fromScanId";
+
+  private static final String TO_SCAN_ID = "toScanId";
+
+  private static final String ORG_NAME = "TEST ORG";
+
+  private static final String ORG_ID = "TEST_ORG_ID";
+
+  private static final String APP_NAME = "TEST APP";
+
+  private static final String APP_INTERNAL_ID = "TEST_APP_INTERNAL_ID";
+
+  private static final String APP_PUBLIC_ID = "TEST_APP_PUBLIC_ID";
+
+  private Application app;
+
+  private final Date date = new Date();
+
+  private InsightWork insightWork;
+
+  @Before
+  public void setupApplication() {
+    tempEntity.newOrganizationWithSpecificId(ORG_ID, ORG_NAME);
+    app = tempEntity.newApplicationWithSpecificId(APP_INTERNAL_ID, APP_NAME, APP_PUBLIC_ID, ORG_ID);
+    insightWork = new InsightWork(getCLMServer().getConfiguration());
+  }
+
   @Test
   public void testGetData_Redirect() throws Exception {
-    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(SCAN_PATH)
         .parameter("app id", "scan/id").get();
 
     assertResponseStatus(307, response);
@@ -44,7 +91,7 @@ public class ApiReportDataResourceV2Test
     final String scanId = "ScanId";
     createReport(appPublicId, scanId, "report");
 
-    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(SCAN_PATH)
         .path(ApiReportDataResourceV2.RAW_DATA_PATH).parameter(appPublicId, scanId).get();
 
     assertResponseStatus(200, response);
@@ -58,7 +105,7 @@ public class ApiReportDataResourceV2Test
     final String scanId = "ScanId";
     createReport(appPublicId, scanId, "report");
 
-    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(SCAN_PATH)
         .path(ApiReportDataResourceV2.POLICY_DATA_PATH).parameter(appPublicId, scanId).get();
 
     assertResponseStatus(200, response);
@@ -75,7 +122,7 @@ public class ApiReportDataResourceV2Test
     final String scanId = "ScanId";
     createReport(appPublicId, scanId, "report-no-counts");
 
-    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(SCAN_PATH)
         .path(ApiReportDataResourceV2.POLICY_DATA_PATH).parameter(appPublicId, scanId).get();
 
     assertResponseStatus(200, response);
@@ -85,9 +132,211 @@ public class ApiReportDataResourceV2Test
     assertThat(response.getBodyText()).doesNotContain("counts");
   }
 
+  @Test
+  public void testGetPolicyViolationDiff() throws Exception {
+    setupValidReportsAndEvaluations();
+
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
+        .get();
+
+    assertResponseStatus(200, response);
+
+    assertValidDiffResults(response);
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_AbbreviatedCommits() throws Exception {
+    setupValidReportsAndEvaluations();
+
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH.substring(0, 7),
+            TO_COMMIT_HASH.substring(0, 7)))
+        .get();
+
+    assertResponseStatus(200, response);
+
+    assertValidDiffResults(response);
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_NoFromCommitSpecified() throws Exception {
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("toCommit=%s", TO_COMMIT_HASH))
+        .get();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("The commit identifier for `fromCommit` must be specified.");
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_NoToCommitSpecified() throws Exception {
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromCommit=%s", FROM_COMMIT_HASH))
+        .get();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("The commit identifier for `toCommit` must be specified.");
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_SameCommitSpecified() throws Exception {
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, FROM_COMMIT_HASH))
+        .get();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("The specified commits cannot be identical.");
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_InvalidFromCommitSpecified() throws Exception {
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromCommit=%s&toCommit=%s", "aaa", TO_COMMIT_HASH))
+        .get();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("The commit identifier `aaa` supplied is not a valid commit hash");
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_InvalidToCommitSpecified() throws Exception {
+    final Date date = new Date();
+    tempEntity
+        .newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan1", false, false, false,
+            date, FROM_COMMIT_HASH);
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, "aaa"))
+        .get();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("The commit identifier `aaa` supplied is not a valid commit hash");
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_FromCommitNotFound() throws Exception {
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
+        .get();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText())
+        .isEqualTo("The policy violation diff could not be determined for the given request.");
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_ToCommitNotFound() throws Exception {
+    final Date date = new Date();
+    tempEntity
+        .newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan1", false, false, false,
+            date, FROM_COMMIT_HASH);
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
+        .get();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText())
+        .isEqualTo("The policy violation diff could not be determined for the given request.");
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_AppNotFound() throws Exception {
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter("INVALID APP")
+        .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
+        .get();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText())
+        .isEqualTo("Could not find an application with public ID INVALID APP.");
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_FromCommitNoReport() throws Exception {
+    //setup evaluations
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID, false, false, false,
+        date, FROM_COMMIT_HASH);
+    tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID, false, false, false,
+        date, TO_COMMIT_HASH);
+
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
+        .get();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText())
+        .isEqualTo("The policy violation diff could not be determined for the given request.");
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_FromCommitMissingAlerts() throws Exception {
+    //setup reports
+    ReportTestUtils.createReportFile(app.getId(), FROM_SCAN_ID,
+        zipReportDir("/PolicyEvaluationDiffServiceTest/report-missing-policyalerts", tempDir), insightWork);
+    ReportTestUtils
+        .createReportFile(app.getId(), TO_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/to-report", tempDir),
+            insightWork);
+
+    //setup evaluations
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID, false, false, false,
+        date, FROM_COMMIT_HASH);
+    tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID, false, false, false,
+        date, TO_COMMIT_HASH);
+
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
+        .get();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText())
+        .isEqualTo("The policy violation diff could not be determined for the given request.");
+  }
+
   private void createReport(String appPublicId, String scanId, String resource) throws IOException {
     Application app = tempEntity.newApplicationWithParent(appPublicId);
     createReportFile(app.getId(), scanId, "/ApiReportDataResourceV2Test/" + resource);
     tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId);
+  }
+
+  private void setupValidReportsAndEvaluations() throws IOException, URISyntaxException {
+    //setup reports
+    ReportTestUtils.createReportFile(app.getId(), FROM_SCAN_ID,
+        zipReportDir("/PolicyEvaluationDiffServiceTest/from-report", tempDir), insightWork);
+    ReportTestUtils
+        .createReportFile(app.getId(), TO_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/to-report", tempDir),
+            insightWork);
+
+    //setup evaluations
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID, false, false, false,
+        date, FROM_COMMIT_HASH);
+    tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID, false, false, false,
+        date, TO_COMMIT_HASH);
+  }
+
+  private void assertValidDiffResults(final HttpResponse response) throws URISyntaxException, JSONException,
+                                                                          IOException
+  {
+    final String result = response.getBodyText();
+
+    final String expectedResult = new String(Files.readAllBytes(Paths
+        .get(ApiReportDataResourceV2Test.class.getResource("/ApiReportDataResourceV2Test/diff-result/diffResult.json")
+            .toURI())));
+    JSONAssert.assertEquals(expectedResult, result, new CustomComparator(JSONCompareMode.NON_EXTENSIBLE,
+        new Customization("diffTime", (o1, o2) -> true),
+        new Customization("*Commit.scanTime", (o1, o2) -> true)
+    ));
   }
 }

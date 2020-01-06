@@ -1092,8 +1092,22 @@ public class TemporaryEntity
                                               boolean isForObsoleteScan,
                                               Date time)
   {
+    return newPolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation, isForMonitoring, isForObsoleteScan,
+        time, null);
+  }
+
+  public PolicyEvaluation newPolicyEvaluation(String applicationId,
+                                              String stageTypeId,
+                                              String scanId,
+                                              boolean isReevaluation,
+                                              boolean isForMonitoring,
+                                              boolean isForObsoleteScan,
+                                              Date time,
+                                              String commitHash)
+  {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
         isForMonitoring);
+    policyEvaluation.setCommitHash(commitHash);
     policyEvaluation.setTime(time);
     policyEvaluation.setForObsoleteScan(isForObsoleteScan);
     policyEvaluationDAO.insert(policyEvaluation);

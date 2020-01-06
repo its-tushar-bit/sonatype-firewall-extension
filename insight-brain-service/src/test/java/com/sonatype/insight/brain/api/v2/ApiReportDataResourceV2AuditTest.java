@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2.SCAN_PATH;
+
 public class ApiReportDataResourceV2AuditTest
     extends AbstractAuditTest
 {
@@ -73,7 +75,7 @@ public class ApiReportDataResourceV2AuditTest
   }
 
   private HttpRequest reportDataRequest(String appId, String scanId, String reportTypePath) {
-    return restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(reportTypePath)
+    return restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(SCAN_PATH).path(reportTypePath)
         .parameter(appId, scanId);
   }
 }

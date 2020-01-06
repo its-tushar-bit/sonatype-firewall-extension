@@ -29,6 +29,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class PolicyEvaluationDAOTest
     extends AbstractDbDAOTest
 {
+  private static final String COMMIT_HASH = "abcdef1234abcdef1234abcdef1234abcdef1234";
+
   @Test
   public void testCRUD() throws Exception {
     PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
@@ -544,5 +546,107 @@ public class PolicyEvaluationDAOTest
     assertThat(dao.getPrimaryForMonitoringByApplicationId(app1.getId()))
         .usingElementComparator(Comparator.comparing(PolicyEvaluation::getId))
         .containsExactlyInAnyOrder(evaluation1, evaluation2);
+  }
+
+  @Test
+  public void testGetLastByCommitHash() {
+    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    final Date date = new Date();
+    final Application app1 = tempEntity.newApplicationWithParent();
+    final Application app2 = tempEntity.newApplicationWithParent();
+
+    tempEntity
+        .newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false, false,
+            new Date(date.getTime() - 1000), COMMIT_HASH);
+    PolicyEvaluation evaluation2 =
+        tempEntity
+            .newPolicyEvaluation(app2.getId(), Stage.ID_OPERATE, "scan2", false, false, false, date, COMMIT_HASH);
+
+    assertThat(dao.getLastByCommitHash(COMMIT_HASH).getId())
+        .isEqualTo(evaluation2.getId());
+  }
+
+  @Test
+  public void testGetLastByCommitHash_NotFound() {
+    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    assertThat(dao.getLastByCommitHash(COMMIT_HASH))
+        .isNull();
+  }
+
+  @Test
+  public void testGetLastByApplicationAndCommitHash() {
+    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    final Date date = new Date();
+    final Application app1 = tempEntity.newApplicationWithParent();
+
+    tempEntity
+        .newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false, false,
+            new Date(date.getTime() - 1000), COMMIT_HASH);
+    final PolicyEvaluation evaluation2 =
+        tempEntity
+            .newPolicyEvaluation(app1.getId(), Stage.ID_OPERATE, "scan2", false, false, false, date, COMMIT_HASH);
+
+    assertThat(dao.getLastByApplicationAndCommitHash(app1.getId(), COMMIT_HASH).getId())
+        .isEqualTo(evaluation2.getId());
+  }
+
+  @Test
+  public void testGetLastByApplicationAndCommitHash_NotFound() {
+    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    final Date date = new Date();
+    final Application app1 = tempEntity.newApplicationWithParent();
+    final Application app2 = tempEntity.newApplicationWithParent();
+
+    tempEntity
+        .newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false, false,
+            new Date(date.getTime() - 1000), COMMIT_HASH.replace('a', '0'));
+
+    tempEntity
+        .newPolicyEvaluation(app2.getId(), Stage.ID_RELEASE, "scan1", false, false, false,
+            new Date(date.getTime() - 1000), COMMIT_HASH);
+
+    assertThat(dao.getLastByApplicationAndCommitHash(app1.getId(), COMMIT_HASH))
+        .isNull();
+  }
+
+  @Test
+  public void testGetLastByApplicationAndAbbreviatedCommitHash() {
+    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    final Date date = new Date();
+    final Application app1 = tempEntity.newApplicationWithParent();
+
+    tempEntity
+        .newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false, false,
+            new Date(date.getTime() - 1000), COMMIT_HASH);
+    final PolicyEvaluation evaluation2 =
+        tempEntity
+            .newPolicyEvaluation(app1.getId(), Stage.ID_OPERATE, "scan2", false, false, false, date, COMMIT_HASH);
+
+    assertThat(dao.getLastByApplicationAndAbbreviatedCommitHash(app1.getId(), COMMIT_HASH.substring(0, 7)).getId())
+        .isEqualTo(evaluation2.getId());
+  }
+
+  @Test
+  public void testGetLastByApplicationAndAbbreviatedCommitHash_NotFound() {
+    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    final Date date = new Date();
+    final Application app1 = tempEntity.newApplicationWithParent();
+    final Application app2 = tempEntity.newApplicationWithParent();
+
+    tempEntity
+        .newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false, false,
+            new Date(date.getTime() - 1000), COMMIT_HASH.replace('a', '0'));
+
+    tempEntity
+        .newPolicyEvaluation(app2.getId(), Stage.ID_RELEASE, "scan1", false, false, false,
+            new Date(date.getTime() - 1000), COMMIT_HASH);
+    assertThat(dao.getLastByApplicationAndAbbreviatedCommitHash(app1.getId(), COMMIT_HASH.substring(0, 7)))
+        .isNull();
   }
 }

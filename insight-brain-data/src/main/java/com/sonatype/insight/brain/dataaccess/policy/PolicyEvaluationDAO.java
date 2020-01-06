@@ -290,4 +290,26 @@ public class PolicyEvaluationDAO
         " ORDER BY entity.time DESC";
     return createQuery(sQuery, commitHash).forceSingleResult().get();
   }
+
+  public PolicyEvaluation getLastByApplicationAndCommitHash(
+      final String applicationInternalId,
+      final String commitHash)
+  {
+    final String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
+        " WHERE entity.commitHash=?2" + //
+        " AND entity.applicationId=?1" + //
+        " ORDER BY entity.time DESC";
+    return createQuery(sQuery, applicationInternalId, commitHash).forceSingleResult().get();
+  }
+
+  public PolicyEvaluation getLastByApplicationAndAbbreviatedCommitHash(
+      final String applicationInternalId,
+      final String commitHash)
+  {
+    final String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
+        " WHERE entity.commitHash like ?2" + //
+        " AND entity.applicationId=?1" + //
+        " ORDER BY entity.time DESC";
+    return createQuery(sQuery, applicationInternalId, commitHash + "%").forceSingleResult().get();
+  }
 }

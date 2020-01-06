@@ -115,21 +115,6 @@ server:
     # Example 'datetime' type custom field
     #customfield_14000: "2016-11-01"
 
-# Proxy settings.
-#proxy:
-
-  # The host running the proxy server to use.
-  #hostname: "127.0.0.1"
-
-  # The port at which the proxy server listens on.
-  #port: 80
-
-  # The username used to access the proxy server.
-  #username: "anonymous"
-
-  # The password used to access the proxy server.
-  #password: "guest"
-
 # Configures reverse proxy authentication for the web UI.
 #reverseProxyAuthentication:
 

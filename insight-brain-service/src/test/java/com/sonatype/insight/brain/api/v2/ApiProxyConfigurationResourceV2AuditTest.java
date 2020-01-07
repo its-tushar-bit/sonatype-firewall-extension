@@ -10,6 +10,7 @@ import java.util.Collections;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiProxyConfigurationDTOV2;
+import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
@@ -23,6 +24,11 @@ public class ApiProxyConfigurationResourceV2AuditTest
   @Before
   public void before() {
     tempEntity.setProxyServerConfiguration("localhost", 80);
+  }
+
+  @Override
+  protected void afterDatabaseReset() {
+    getCLMServer().getInstance(ApiProxyConfigurationServiceV2.class).applyProxyServerConfigurationToClients();
   }
 
   @Test

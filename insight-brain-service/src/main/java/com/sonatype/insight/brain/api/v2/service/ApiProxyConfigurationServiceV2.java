@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiProxyConfigurationDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -21,13 +24,20 @@ import static java.lang.String.join;
  * @since 1.65
  */
 @Named
+@Singleton
 public class ApiProxyConfigurationServiceV2
 {
   private final ProxyServerConfigurationDAO proxyServerConfigurationDAO;
 
+  private final List<ProxyServerConfigurationListener> proxyServerConfigurationListeners;
+
   @Inject
-  public ApiProxyConfigurationServiceV2(ProxyServerConfigurationDAO proxyServerConfigurationDAO) {
+  public ApiProxyConfigurationServiceV2(
+      ProxyServerConfigurationDAO proxyServerConfigurationDAO,
+      List<ProxyServerConfigurationListener> proxyConfigurationListeners)
+  {
     this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;
+    this.proxyServerConfigurationListeners = proxyConfigurationListeners;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -36,7 +46,12 @@ public class ApiProxyConfigurationServiceV2
     proxyConfiguration.setExcludeHosts(join(", ", configuration.getProxyExcludeHosts()));
     proxyServerConfigurationDAO.set(proxyConfiguration);
     auditProxyConfiguration(configuration);
+    applyProxyServerConfigurationToClients();
     return configuration;
+  }
+
+  public void applyProxyServerConfigurationToClients() {
+    proxyServerConfigurationListeners.forEach(ProxyServerConfigurationListener::proxyServerConfigurationChanged);
   }
 
   public ApiProxyConfigurationDTOV2 get() {

@@ -14,10 +14,13 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurat
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
+import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 public class ApiProxyConfigurationServiceV2Test
     extends AbstractComponentTest
@@ -27,6 +30,15 @@ public class ApiProxyConfigurationServiceV2Test
 
   @Inject
   private ProxyServerConfigurationDAO dao;
+
+  @Mock
+  private ProxyServerConfigurationListener proxyServerConfigurationListener;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(ProxyServerConfigurationListener.class).toInstance(proxyServerConfigurationListener);
+    super.configure(binder);
+  }
 
   @Before
   public void before() {
@@ -68,6 +80,13 @@ public class ApiProxyConfigurationServiceV2Test
     ProxyServerConfiguration actual = dao.get();
 
     assertThat(actual.getExcludeHosts()).isEqualTo("");
+  }
+
+  @Test
+  public void testSet_InvokeListeners() {
+    service.update(new ApiProxyConfigurationDTOV2());
+
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 
   private void setExcludeHosts(String excludeHosts) {

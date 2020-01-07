@@ -140,4 +140,30 @@ public class HdsClientProxyTest
 
     assertThat(headers).containsEntry(HttpHeaders.USER_AGENT, UserAgentUtils.getDefaultUserAgent());
   }
+
+  @Test
+  public void testProxyServerConfigurationChanged() throws Exception {
+    new ProxyServerConfigurationDAO().delete();
+    config.setHdsUrl("http://proxy.test/");
+    initClient();
+
+    tempEntity.setProxyServerConfiguration("localhost", ((NetworkConnector) server.getConnectors()[0]).getLocalPort());
+    client.proxyServerConfigurationChanged();
+
+    String proxyResponse = "PROXY-TEST-PASSED";
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().print(proxyResponse);
+        baseRequest.setHandled(true);
+      }
+    };
+
+    assertThat(client.get(String.class, "/rest/test")).isEqualTo(proxyResponse);
+  }
 }

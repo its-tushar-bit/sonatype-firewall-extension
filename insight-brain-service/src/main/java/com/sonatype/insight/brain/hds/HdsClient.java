@@ -23,6 +23,7 @@ import javax.net.ssl.SSLException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.insight.brain.api.v2.service.ProxyServerConfigurationListener;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -68,14 +69,20 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class HdsClient
-    implements Managed
+    implements Managed, ProxyServerConfigurationListener
 {
   // Logger is instance variable so that subclasses will have a different one which can be configured differently
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  protected final Configuration config;
+  private volatile Configuration config;
 
-  private final CloseableHttpClient client;
+  private volatile CloseableHttpClient client;
+
+  private final int connectionPoolSize;
+
+  private final InsightProxy proxy;
+
+  private final InsightConfig insightConfig;
 
   private final ProductLicense productLicense;
 
@@ -114,22 +121,47 @@ public class HdsClient
                       TelemetryId telemetryId,
                       int poolSize)
   {
+    this.proxy = proxy;
     this.productLicense = productLicense;
-    config = new Configuration(); 
-    config.setConnectTimeout(insightConfig.getConnectTimeoutInSeconds() * 1000);
-    customizeConfiguration(config);
-    proxy.contextualize(config);
-    HttpClientBuilder clientBuilder = HttpClientUtils.create(config);
-    clientBuilder.setMaxConnTotal(poolSize);
-    clientBuilder.setMaxConnPerRoute(poolSize);
-    clientBuilder.evictIdleConnections(30, TimeUnit.SECONDS);
-    client = clientBuilder.build();
+    this.insightConfig = insightConfig;
+    connectionPoolSize = poolSize;
+    updateClient();
     this.versionService = versionService;
     rutHeader = insightConfig.getReverseProxyAuthentication().isEnabled()
         ? insightConfig.getReverseProxyAuthentication().getUsernameHeader() : null;
     // TODO Need to determine if there is additional information we should be sending to the HDS
     loadVersion();
     this.telemetryId = telemetryId;
+  }
+
+  private synchronized void updateClient() {
+    Configuration config = new Configuration();
+    config.setConnectTimeout(insightConfig.getConnectTimeoutInSeconds() * 1000);
+    customizeConfiguration(config);
+    proxy.contextualize(config);
+    this.config = config;
+    HttpClientBuilder clientBuilder = HttpClientUtils.create(config);
+    clientBuilder.setMaxConnTotal(connectionPoolSize);
+    clientBuilder.setMaxConnPerRoute(connectionPoolSize);
+    clientBuilder.evictIdleConnections(30, TimeUnit.SECONDS);
+    CloseableHttpClient oldClient = client;
+    client = clientBuilder.build();
+    if (oldClient != null) {
+      new Thread("HttpClientCloser")
+      {
+        @Override
+        public void run() {
+          try {
+            Thread.sleep(TimeUnit.MINUTES.toMillis(15));
+            // hopefully by now, the old connections are unused
+            oldClient.close();
+          }
+          catch (Exception e) {
+            log.error("Failed to cleanly shutdown obsolete HTTP client", e);
+          }
+        }
+      }.start();
+    }
   }
 
   protected void customizeConfiguration(@SuppressWarnings("unused") Configuration configuration) {
@@ -142,6 +174,12 @@ public class HdsClient
   @Override
   public void stop() throws Exception {
     client.close();
+  }
+
+  @Override
+  public void proxyServerConfigurationChanged() {
+    updateClient();
+    log.debug("Applied new proxy server configuration");
   }
 
   public <T> T get(Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams) {

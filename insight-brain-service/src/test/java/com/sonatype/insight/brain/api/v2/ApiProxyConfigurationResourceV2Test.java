@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiProxyConfigurationDTOV2;
+import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -28,6 +29,11 @@ public class ApiProxyConfigurationResourceV2Test
   @Before
   public void before() {
     tempEntity.setProxyServerConfiguration("localhost", 80);
+  }
+
+  @Override
+  protected void afterDatabaseReset() {
+    getCLMServer().getInstance(ApiProxyConfigurationServiceV2.class).applyProxyServerConfigurationToClients();
   }
 
   @Override

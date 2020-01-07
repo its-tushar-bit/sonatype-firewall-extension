@@ -88,7 +88,14 @@ public abstract class AbstractBrainServiceTest
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
+  public TemporaryEntity tempEntity = new TemporaryEntity()
+  {
+    @Override
+    protected void after() {
+      super.after();
+      afterDatabaseReset();
+    }
+  };
 
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
@@ -190,6 +197,10 @@ public abstract class AbstractBrainServiceTest
         installLicense();
       }
     }
+  }
+
+  protected void afterDatabaseReset() {
+    // hook for subclasses to perform further cleanup action after TemporaryEntity has reset the database
   }
 
   private List<Module> getBrainModules() {

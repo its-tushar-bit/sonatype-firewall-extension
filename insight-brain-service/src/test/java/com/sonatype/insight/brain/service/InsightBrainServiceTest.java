@@ -52,6 +52,7 @@ import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.logging.AppenderFactory;
@@ -178,6 +179,7 @@ public class InsightBrainServiceTest
     Collection<TelemetryData> allTelemetryData = new ArrayList<>();
     VersionService versionService = getCLMServer().getInstance(VersionService.class);
     TelemetryId telemetryId = getCLMServer().getInstance(TelemetryId.class);
+    ObjectMapper objectMapper = new ObjectMapper().disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
     for (Map.Entry<ByteArrayDataSource, Integer> response : responses.entrySet()) {
       Integer status = response.getValue();
       MimeMultipart multipart = new MimeMultipart(response.getKey());
@@ -186,12 +188,9 @@ public class InsightBrainServiceTest
       assertThat(TelemetrySender.ZIP_FILENAME).isEqualTo(filename);
       assertThat(status).isEqualTo(204);
       try (ZipInputStream zipInputStream = new ZipInputStream(bodyPart.getInputStream())) {
-        byte[] buffer = new byte[1024];
-
         ZipEntry zipEntryHeader = zipInputStream.getNextEntry();
         assertThat(zipEntryHeader.getName()).isEqualTo(TelemetrySender.HEADER_ENTRY_NAME);
-        zipInputStream.read(buffer);
-        TelemetryHeader telemetryHeaderReceived = JsonUtils.parse(buffer, TelemetryHeader.class);
+        TelemetryHeader telemetryHeaderReceived = objectMapper.readValue(zipInputStream, TelemetryHeader.class);
         assertThat(telemetryHeaderReceived.getCreateTime()).isAfterOrEqualTo(expectedMinCreateTime)
             .isBeforeOrEqualTo(expectedMaxCreateTime);
         assertThat(telemetryHeaderReceived.getTelemetryId()).isEqualTo(telemetryId.getId());
@@ -201,9 +200,8 @@ public class InsightBrainServiceTest
 
         ZipEntry zipEntryData = zipInputStream.getNextEntry();
         assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);
-        zipInputStream.read(buffer);
         List<TelemetryData> telemetryDataReceived =
-            new ObjectMapper().readValue(buffer, new TypeReference<List<TelemetryData>>() { });
+            objectMapper.readValue(zipInputStream, new TypeReference<List<TelemetryData>>() { });
         allTelemetryData.addAll(telemetryDataReceived);
       }
     }

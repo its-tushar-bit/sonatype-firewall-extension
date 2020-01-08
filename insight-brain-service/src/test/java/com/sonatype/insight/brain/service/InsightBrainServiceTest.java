@@ -120,7 +120,7 @@ public class InsightBrainServiceTest
         responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
       }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
     });
-    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(6));
+    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(7));
     Date expectedMaxCreateTime = new Date();
     Collection<TelemetryData> allTelemetryData =
         assertTelemetry(responses, expectedMinCreateTime, expectedMaxCreateTime);
@@ -161,14 +161,17 @@ public class InsightBrainServiceTest
           assertThat(telemetryDataReceived.getAttributes())
               .containsEntry(RealmTelemetryCollector.SAML_CONFIGURED, "false");
           break;
+        case ROLE_USAGE:
+          assertThat(telemetryDataReceived.getAttributes()).isNotEmpty();
+          break;
         default:
           fail("Unexpected telemetry purpose: " + telemetryPurpose);
           break;
       }
     }
-    assertThat(telemetryPurposes).containsExactlyInAnyOrder(TelemetryPurpose.HIERARCHY_METRICS,
+    assertThat(telemetryPurposes).containsOnly(TelemetryPurpose.HIERARCHY_METRICS,
         TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE, TelemetryPurpose.CONFIGURATION_PROPERTIES,
-        TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS);
+        TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS, TelemetryPurpose.ROLE_USAGE);
   }
 
   private Collection<TelemetryData> assertTelemetry(
@@ -244,7 +247,7 @@ public class InsightBrainServiceTest
     TelemetryScheduler telemetryScheduler = getCLMServer().getInstance(TelemetryScheduler.class);
     responses.clear();
     telemetryScheduler.getTelemetryRunnable().run();
-    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(7));
+    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(8));
     Date expectedMaxCreateTime = new Date();
     Collection<TelemetryData> allTelemetryData =
         assertTelemetry(responses, expectedMinCreateTime, expectedMaxCreateTime);

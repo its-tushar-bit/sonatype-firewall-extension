@@ -79,6 +79,7 @@ public class ApiMailConfigurationService
       if (!configurationDTO.passwordIsIncluded) {
         if (!mailConfiguration.getHostname().equals(configurationDTO.hostname)
             || mailConfiguration.getPort() != configurationDTO.port) {
+          clearPassword(configurationDTO);
           throw new BadRequestException("The password must be provided when the hostname or port are updated");
         }
       }
@@ -90,7 +91,6 @@ public class ApiMailConfigurationService
     if (configurationDTO.passwordIsIncluded) {
       if (configurationDTO.password != null && configurationDTO.password.length != 0) {
         mailConfiguration.setPassword(insightMail.encryptPassword(configurationDTO.password));
-        Arrays.fill(configurationDTO.password, '0');
       }
       else {
         mailConfiguration.setPassword(null);
@@ -100,10 +100,18 @@ public class ApiMailConfigurationService
     mailConfiguration.setStartTlsEnabled(configurationDTO.startTlsEnabled);
     mailConfiguration.setSystemEmail(configurationDTO.systemEmail);
 
+    clearPassword(configurationDTO);
+
     auditConfiguration(mailConfiguration);
     mailConfigurationDAO.set(mailConfiguration);
 
     insightMail.loadMailConfiguration();
+  }
+
+  private void clearPassword(ApiMailConfigurationDTO configurationDTO) {
+    if (configurationDTO.password != null && configurationDTO.password.length != 0) {
+      Arrays.fill(configurationDTO.password, '0');
+    }
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)

@@ -307,11 +307,14 @@ public class ApiMailConfigurationServiceTest
     configurationDTO.hostname = mailConfiguration.getHostname();
     configurationDTO.port = mailConfiguration.getPort();
     configurationDTO.username = "smtpuser";
+    configurationDTO.password = "mysecret".toCharArray();
     configurationDTO.passwordIsIncluded = false;
     configurationDTO.sslEnabled = true;
     configurationDTO.systemEmail = "nxiq@test";
 
     mailConfigurationService.setConfiguration(configurationDTO);
+
+    assertThat(configurationDTO.password).containsOnly('0');
 
     mailConfiguration = mailConfigurationDAO.get();
     assertThat(mailConfiguration.getHostname()).isEqualTo(configurationDTO.hostname);
@@ -338,6 +341,7 @@ public class ApiMailConfigurationServiceTest
     configurationDTO.hostname = "othertest";
     configurationDTO.port = mailConfiguration.getPort();
     configurationDTO.username = "smtpuser";
+    configurationDTO.password = "mysecret".toCharArray();
     configurationDTO.passwordIsIncluded = false;
     configurationDTO.sslEnabled = true;
     configurationDTO.systemEmail = "nxiq@test";
@@ -345,6 +349,8 @@ public class ApiMailConfigurationServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       mailConfigurationService.setConfiguration(configurationDTO);
     }).withMessageContaining("The password must be provided when the hostname or port are updated");
+
+    assertThat(configurationDTO.password).containsOnly('0');
 
     // Verify the stored mail configuration was not changed
     MailConfiguration storedMailConfiguration = mailConfigurationDAO.get();
@@ -372,6 +378,7 @@ public class ApiMailConfigurationServiceTest
     configurationDTO.hostname = mailConfiguration.getHostname();
     configurationDTO.port = 2;
     configurationDTO.username = "smtpuser";
+    configurationDTO.password = "mysecret".toCharArray();
     configurationDTO.passwordIsIncluded = false;
     configurationDTO.sslEnabled = true;
     configurationDTO.systemEmail = "nxiq@test";
@@ -379,6 +386,8 @@ public class ApiMailConfigurationServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       mailConfigurationService.setConfiguration(configurationDTO);
     }).withMessageContaining("The password must be provided when the hostname or port are updated");
+
+    assertThat(configurationDTO.password).containsOnly('0');
 
     // Verify the stored mail configuration was not changed
     MailConfiguration storedMailConfiguration = mailConfigurationDAO.get();

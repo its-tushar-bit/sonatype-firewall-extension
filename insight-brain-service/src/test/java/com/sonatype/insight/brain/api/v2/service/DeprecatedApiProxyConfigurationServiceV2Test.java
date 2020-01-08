@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiProxyConfigurationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.DeprecatedApiProxyConfigurationDTOV2;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -22,11 +22,15 @@ import org.mockito.Mock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
-public class ApiProxyConfigurationServiceV2Test
+/**
+ * @deprecated The tested class is deprecated.
+ */
+@Deprecated
+public class DeprecatedApiProxyConfigurationServiceV2Test
     extends AbstractComponentTest
 {
   @Inject
-  private ApiProxyConfigurationServiceV2 service;
+  private DeprecatedApiProxyConfigurationServiceV2 service;
 
   @Inject
   private ProxyServerConfigurationDAO dao;
@@ -49,7 +53,7 @@ public class ApiProxyConfigurationServiceV2Test
   public void testGet_singleValue() {
     setExcludeHosts("example.com");
 
-    ApiProxyConfigurationDTOV2 proxyConfiguration = service.get();
+    DeprecatedApiProxyConfigurationDTOV2 proxyConfiguration = service.get();
 
     assertThat(proxyConfiguration.getProxyExcludeHosts()).containsExactly("example.com");
   }
@@ -58,7 +62,7 @@ public class ApiProxyConfigurationServiceV2Test
   public void testGet_multipleValues() {
     setExcludeHosts("example.com,example.net, example.org");
 
-    ApiProxyConfigurationDTOV2 proxyServerConfiguration = service.get();
+    DeprecatedApiProxyConfigurationDTOV2 proxyServerConfiguration = service.get();
 
     assertThat(proxyServerConfiguration.getProxyExcludeHosts())
         .containsExactlyInAnyOrder("example.com", "example.net", "example.org");
@@ -66,7 +70,8 @@ public class ApiProxyConfigurationServiceV2Test
 
   @Test
   public void testSet_multipleValues() {
-    service.update(new ApiProxyConfigurationDTOV2(Arrays.asList("example.com", "example.net", "example.org")));
+    service
+        .update(new DeprecatedApiProxyConfigurationDTOV2(Arrays.asList("example.com", "example.net", "example.org")));
 
     ProxyServerConfiguration actual = dao.get();
 
@@ -75,7 +80,7 @@ public class ApiProxyConfigurationServiceV2Test
 
   @Test
   public void testSet_emptyList() {
-    service.update(new ApiProxyConfigurationDTOV2());
+    service.update(new DeprecatedApiProxyConfigurationDTOV2());
 
     ProxyServerConfiguration actual = dao.get();
 
@@ -84,7 +89,7 @@ public class ApiProxyConfigurationServiceV2Test
 
   @Test
   public void testSet_InvokeListeners() {
-    service.update(new ApiProxyConfigurationDTOV2());
+    service.update(new DeprecatedApiProxyConfigurationDTOV2());
 
     verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }

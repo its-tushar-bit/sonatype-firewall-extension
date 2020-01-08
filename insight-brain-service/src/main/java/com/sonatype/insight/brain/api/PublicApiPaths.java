@@ -56,7 +56,13 @@ public class PublicApiPaths
   public static final String COMPONENT_REMEDIATION_PATH_V2 =
       API_VERSION_PATH_V2 + "components/remediation/{ownerType: application|organization}/{ownerId}";
 
-  public static final String PROXY_CONFIG_PATH_V2 = API_VERSION_PATH_V2 + "config/proxy";
+  /**
+   * @deprecated Replaced by {@link #PROXY_SERVER_CONFIG_PATH_V2}
+   */
+  @Deprecated
+  public static final String DEPRECATED_PROXY_CONFIG_PATH_V2 = API_VERSION_PATH_V2 + "config/proxy";
+
+  public static final String PROXY_SERVER_CONFIG_PATH_V2 = API_VERSION_PATH_V2 + "config/httpProxyServer";
 
   public static final String SOURCE_CONTROL_PATH_V2 = API_VERSION_PATH_V2 + "sourceControl";
 

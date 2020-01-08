@@ -15,31 +15,35 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiProxyConfigurationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.DeprecatedApiProxyConfigurationDTOV2;
+import com.sonatype.insight.brain.api.v2.service.DeprecatedApiProxyConfigurationServiceV2;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
 
 import com.codahale.metrics.annotation.Timed;
 
 /**
  * @since 1.65
+ * 
+ * @deprecated Replaced by {@link ApiProxyServerConfigurationResource} in MIGRATE_PROXY_CONFIG.
+ *             Scheduled for removal in July 2020.
  */
+@Deprecated
 @Named
 @Timed
-@Path(PublicApiPaths.PROXY_CONFIG_PATH_V2)
-public class ApiProxyConfigurationResourceV2
+@Path(PublicApiPaths.DEPRECATED_PROXY_CONFIG_PATH_V2)
+public class DeprecatedApiProxyConfigurationResourceV2
 {
-  private ApiProxyConfigurationServiceV2 proxyConfigurationService;
+  private DeprecatedApiProxyConfigurationServiceV2 proxyConfigurationService;
 
   @Inject
-  public ApiProxyConfigurationResourceV2(ApiProxyConfigurationServiceV2 proxyConfigurationService) {
+  public DeprecatedApiProxyConfigurationResourceV2(DeprecatedApiProxyConfigurationServiceV2 proxyConfigurationService) {
     this.proxyConfigurationService = proxyConfigurationService;
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiProxyConfigurationDTOV2 get() {
+  public DeprecatedApiProxyConfigurationDTOV2 get() {
     return proxyConfigurationService.get();
   }
 
@@ -47,7 +51,7 @@ public class ApiProxyConfigurationResourceV2
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_PROXY)
-  public ApiProxyConfigurationDTOV2 update(ApiProxyConfigurationDTOV2 configuration) {
+  public DeprecatedApiProxyConfigurationDTOV2 update(DeprecatedApiProxyConfigurationDTOV2 configuration) {
     return proxyConfigurationService.update(configuration);
   }
 }

@@ -10,8 +10,9 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.ws.rs.BadRequestException;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiProxyConfigurationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.DeprecatedApiProxyConfigurationDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
@@ -22,17 +23,21 @@ import static java.lang.String.join;
 
 /**
  * @since 1.65
+ * 
+ * @deprecated Replaced by {@link ApiProxyServerConfigurationService} in MIGRATE_PROXY_CONFIG.
+ *             Scheduled for removal in July 2020.
  */
+@Deprecated
 @Named
 @Singleton
-public class ApiProxyConfigurationServiceV2
+public class DeprecatedApiProxyConfigurationServiceV2
 {
   private final ProxyServerConfigurationDAO proxyServerConfigurationDAO;
 
   private final List<ProxyServerConfigurationListener> proxyServerConfigurationListeners;
 
   @Inject
-  public ApiProxyConfigurationServiceV2(
+  public DeprecatedApiProxyConfigurationServiceV2(
       ProxyServerConfigurationDAO proxyServerConfigurationDAO,
       List<ProxyServerConfigurationListener> proxyConfigurationListeners)
   {
@@ -41,8 +46,11 @@ public class ApiProxyConfigurationServiceV2
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public ApiProxyConfigurationDTOV2 update(ApiProxyConfigurationDTOV2 configuration) {
+  public DeprecatedApiProxyConfigurationDTOV2 update(DeprecatedApiProxyConfigurationDTOV2 configuration) {
     ProxyServerConfiguration proxyConfiguration = proxyServerConfigurationDAO.get();
+    if (proxyConfiguration == null) {
+      throw new BadRequestException("There is no proxy configuration.");
+    }
     proxyConfiguration.setExcludeHosts(join(", ", configuration.getProxyExcludeHosts()));
     proxyServerConfigurationDAO.set(proxyConfiguration);
     auditProxyConfiguration(configuration);
@@ -54,12 +62,15 @@ public class ApiProxyConfigurationServiceV2
     proxyServerConfigurationListeners.forEach(ProxyServerConfigurationListener::proxyServerConfigurationChanged);
   }
 
-  public ApiProxyConfigurationDTOV2 get() {
+  public DeprecatedApiProxyConfigurationDTOV2 get() {
     ProxyServerConfiguration proxyConfiguration = proxyServerConfigurationDAO.get();
-    return new ApiProxyConfigurationDTOV2(proxyConfiguration.getExcludeHostsList());
+    if (proxyConfiguration == null) {
+      throw new BadRequestException("There is no proxy configuration.");
+    }
+    return new DeprecatedApiProxyConfigurationDTOV2(proxyConfiguration.getExcludeHostsList());
   }
 
-  private void auditProxyConfiguration(ApiProxyConfigurationDTOV2 proxy) {
+  private void auditProxyConfiguration(DeprecatedApiProxyConfigurationDTOV2 proxy) {
     AuditData.get().setData("proxyConfiguration", proxy);
   }
 }

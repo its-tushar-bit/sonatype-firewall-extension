@@ -12,15 +12,18 @@ import static java.util.Collections.unmodifiableList;
 
 /**
  * @since 1.65
+ * 
+ * @deprecated Replaced by {@link ApiProxyServerConfigurationDTO} in MIGRATE_PROXY_CONFIG.
  */
-public class ApiProxyConfigurationDTOV2
+@Deprecated
+public class DeprecatedApiProxyConfigurationDTOV2
 {
   private List<String> proxyExcludeHosts;
 
-  public ApiProxyConfigurationDTOV2() {
+  public DeprecatedApiProxyConfigurationDTOV2() {
   }
 
-  public ApiProxyConfigurationDTOV2(List<String> proxyExcludeHosts) {
+  public DeprecatedApiProxyConfigurationDTOV2(List<String> proxyExcludeHosts) {
     this.proxyExcludeHosts = unmodifiableList(proxyExcludeHosts);
   }
 

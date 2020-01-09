@@ -18,6 +18,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiProxyServerConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -43,12 +45,14 @@ public class ApiProxyServerConfigurationResource
   }
 
   @PUT
+  @Audited(AuditEvent.CONFIGURE_PROXY)
   @Consumes(MediaType.APPLICATION_JSON)
   public void setConfiguration(ApiProxyServerConfigurationDTO configurationDTO) {
     proxyServerConfigurationService.setConfiguration(configurationDTO);
   }
 
   @DELETE
+  @Audited(AuditEvent.DELETE_PROXY)
   public void deleteConfiguration() {
     proxyServerConfigurationService.deleteConfiguration();
   }

@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiProxyServerConfigurationDTO;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -109,6 +110,8 @@ public class ApiProxyServerConfigurationService
 
     proxyServerConfigurationDAO.set(proxyServerConfiguration);
 
+    auditConfiguration(proxyServerConfiguration);
+
     applyProxyServerConfigurationToClients();
   }
 
@@ -120,7 +123,17 @@ public class ApiProxyServerConfigurationService
     }
     proxyServerConfigurationDAO.delete();
 
+    auditConfiguration(proxyServerConfiguration);
+
     applyProxyServerConfigurationToClients();
+  }
+
+  private void auditConfiguration(ProxyServerConfiguration proxyServerConfiguration) {
+    AuditData.get() //
+        .setData("proxyServerHostname", proxyServerConfiguration.getHostname()) //
+        .setData("proxyServerPort", proxyServerConfiguration.getPort()) //
+        .setData("proxyServerUsername", proxyServerConfiguration.getUsername()) //
+        .setData("proxyServerExcludeHosts", proxyServerConfiguration.getExcludeHostsList());
   }
 
   private void clearPassword(ApiProxyServerConfigurationDTO configurationDTO) {

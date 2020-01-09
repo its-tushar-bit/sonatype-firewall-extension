@@ -62,7 +62,6 @@ import com.google.common.collect.Sets;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.GsonBuilder;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -470,9 +469,6 @@ class SystemInfo
 
     if (proxyServerConfiguration.getPassword() != null) {
       proxyServerConfiguration.setPassword(MASK.toCharArray());
-    }
-    if (!StringUtils.isBlank(proxyServerConfiguration.getExcludeHosts())) {
-      proxyServerConfiguration.setExcludeHosts(MASK);
     }
     return JsonUtils.format(proxyServerConfiguration);
   }

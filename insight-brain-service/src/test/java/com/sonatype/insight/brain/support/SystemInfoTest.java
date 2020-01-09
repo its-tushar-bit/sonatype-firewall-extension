@@ -639,7 +639,7 @@ public class SystemInfoTest
     assertThat(proxyServerConfiguration.getPort()).isEqualTo(4567);
     assertThat(proxyServerConfiguration.getUsername()).isEqualTo("testUsername");
     assertThat(proxyServerConfiguration.getPassword()).isEqualTo(SystemInfo.MASK.toCharArray());
-    assertThat(proxyServerConfiguration.getExcludeHosts()).isEqualTo(SystemInfo.MASK);
+    assertThat(proxyServerConfiguration.getExcludeHosts()).isEqualTo("host1,host2");
   }
 
   @Test
@@ -661,7 +661,7 @@ public class SystemInfoTest
     assertThat(proxyServerConfiguration.getPort()).isEqualTo(4567);
     assertThat(proxyServerConfiguration.getUsername()).isEqualTo("testUsername");
     assertThat(proxyServerConfiguration.getPassword()).isNull();
-    assertThat(proxyServerConfiguration.getExcludeHosts()).isEqualTo(SystemInfo.MASK);
+    assertThat(proxyServerConfiguration.getExcludeHosts()).isEqualTo("host1,host2");
   }
 
   @Test

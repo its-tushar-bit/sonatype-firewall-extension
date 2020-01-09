@@ -110,7 +110,7 @@ public class ProxyServerConfigurationMigrator
         }
       }
       else {
-        log.info("There is no proxy server configuration to migrate database.");
+        log.info("There is no proxy server configuration to migrate to database.");
       }
 
       if (excludeHostsConfig != null) {

@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -12,6 +16,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.service.InsightWork;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -22,6 +27,9 @@ public class ApiComponentEvaluationServiceV2AuthzTest
 {
   @Inject
   private ApiComponentEvaluationServiceV2 apiComponentEvaluationService;
+
+  @Inject
+  private InsightWork work;
 
   @Test
   public void testEvaluateComponents_Authorized() {
@@ -58,5 +66,26 @@ public class ApiComponentEvaluationServiceV2AuthzTest
     component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     component.hash = hash;
     return component;
+  }
+
+  @Test
+  public void testGetComponentEvaluation_Authorized() throws Exception {
+    String resultId = "testResultId";
+    File resultFile = work.getComponentDetailsFile(app.getId(), resultId);
+    resultFile.getParentFile().mkdirs();
+    Files.write(resultFile.toPath(), "{}".getBytes(StandardCharsets.UTF_8));
+    grantReadPermission(app.getId());
+    apiComponentEvaluationService.getComponentEvaluation(app.getId(), resultId);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentEvaluation_Unauthenticated() throws Exception {
+    apiComponentEvaluationService.getComponentEvaluation(app.getId(), "resultId");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentEvaluation_UnauthorizedButAuthenticated() throws Exception {
+    login();
+    apiComponentEvaluationService.getComponentEvaluation(app.getId(), "resultId");
   }
 }

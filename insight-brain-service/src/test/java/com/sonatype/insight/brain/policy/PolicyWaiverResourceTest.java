@@ -14,7 +14,9 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -24,7 +26,10 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource.AppliedWaivers;
+import com.sonatype.insight.brain.policy.PolicyWaiverResource.PolicyWaiverDTO;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource.WaiversByOwner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -99,7 +104,7 @@ public class PolicyWaiverResourceTest
     assertThat(policyWaivers).isNotNull();
     assertThat(policyWaivers.waiversByOwner).hasSize(1);
     assertThat(policyWaivers.waiversByOwner.get(0).waivers).hasSize(1);
-    assertPolicyWaiver(policyId, ownerPublicId, "My comment", policyWaivers.waiversByOwner.get(0).waivers.get(0));
+    assertPolicyWaiverDTO(policyId, ownerPublicId, "My comment", policyWaivers.waiversByOwner.get(0).waivers.get(0));
 
     // Delete
     response = restRequest(ownerType, ownerPublicId).path(policyWaiver.getId()).delete();
@@ -146,7 +151,7 @@ public class PolicyWaiverResourceTest
     assertThat(actual.ownerName).isEqualTo(owner.getName());
     assertThat(actual.ownerType).isEqualTo(owner.getType());
     assertThat(actual.waivers).hasSize(1);
-    assertPolicyWaiver(policyId, expectedOwnerId, waiverComment, actual.waivers.get(0));
+    assertPolicyWaiverDTO(policyId, expectedOwnerId, waiverComment, actual.waivers.get(0));
   }
 
   @Test
@@ -225,6 +230,29 @@ public class PolicyWaiverResourceTest
     assertWaiversByOwner(grandparent, policy.getId(), "My comment", waivers.waiversByOwner.get(0));
   }
 
+  @Test
+  public void testGetPolicyWaiversByHash_WaiverOnNoLongerApplicablePolicy() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Tag tag1 = tempEntity.newTag(org.getId());
+    Tag tag2 = tempEntity.newTag(org.getId());
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newApplicationTag(app.getId(), tag1.getId());
+    Policy policy = tempEntity.newPolicy(org);
+    PolicyTag policyTag = tempEntity.newPolicyTag(policy.getId(), tag1.getId());
+
+    tempEntity.newWaiver("hash", policy.getId(), app.getId(), "Test Comment");
+
+    // update policy tags so it no longer applies to the application
+    new PolicyTagDAO().delete(policyTag);
+    tempEntity.newPolicyTag(policy.getId(), tag2.getId());
+
+    HttpResponse response = restRequest(OwnerType.APPLICATION, app.getPublicId()).path("component", "hash").get();
+    assertResponseStatus(200, response);
+    AppliedWaivers waivers = response.getBody(AppliedWaivers.class);
+    assertThat(waivers.waiversByOwner).hasSize(1);
+    assertWaiversByOwner(app, policy.getId(), "Test Comment", waivers.waiversByOwner.get(0));
+  }
+
   private void testDelete_OwnerIdMismatch(OwnerType ownerType,
                                           String ownerPublicId1,
                                           String ownerId1,
@@ -283,6 +311,11 @@ public class PolicyWaiverResourceTest
         "YettiId").delete();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Cannot find a policy waiver with ID YettiId.");
+  }
+
+  private void assertPolicyWaiverDTO(String policyId, String ownerId, String comment, PolicyWaiverDTO actual) {
+    assertPolicyWaiver(policyId, ownerId, comment, actual);
+    assertThat(actual.policyName).isEqualTo(new PolicyDAO().getById(policyId).getName());
   }
 
   private void assertPolicyWaiver(String policyId, String ownerId, String comment, PolicyWaiver actual) {

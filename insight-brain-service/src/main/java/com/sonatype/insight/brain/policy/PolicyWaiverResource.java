@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.inject.Named;
@@ -116,20 +117,25 @@ public class PolicyWaiverResource
     AuditData.get().setComponentHash(hash);
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
+    PolicyDAO policyDAO = new PolicyDAO();
+    Map<String, String> policyNamesById = new HashMap<>();
+    Function<String, String> policyNameLoader =
+        policyId -> policyNamesById.computeIfAbsent(policyId, id -> policyDAO.getById(id).getName());
+
     AppliedWaivers result = new AppliedWaivers();
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      result.add(owner, getAppliedWaivers(owner.getId(), hash));
+      result.add(owner, getAppliedWaivers(owner.getId(), hash, policyNameLoader));
     }
 
     return result;
   }
 
-  private List<PolicyWaiverDTO> getAppliedWaivers(String ownerId, String hash) {
+  private List<PolicyWaiverDTO> getAppliedWaivers(
+      String ownerId,
+      String hash,
+      Function<String, String> policyNameLoader)
+  {
     List<PolicyWaiver> waivers = new PolicyWaiverDAO().getByOwnerIdAndHash(ownerId, hash);
-    Map<String, String> policyNamesById = new HashMap<>();
-    for (Policy policy : new PolicyDAO().getApplicableByOwnerId(ownerId)) {
-      policyNamesById.put(policy.getId(), policy.getName());
-    }
     List<PolicyWaiverDTO> dtos = new ArrayList<>(waivers.size());
     for (PolicyWaiver waiver : waivers) {
       PolicyWaiverDTO dto = new PolicyWaiverDTO();
@@ -139,7 +145,7 @@ public class PolicyWaiverResource
       dto.setId(waiver.getId());
       dto.setOwnerId(waiver.getOwnerId());
       dto.setPolicyId(waiver.getPolicyId());
-      dto.policyName = policyNamesById.get(dto.getPolicyId());
+      dto.policyName = policyNameLoader.apply(dto.getPolicyId());
       dtos.add(dto);
     }
     return dtos;

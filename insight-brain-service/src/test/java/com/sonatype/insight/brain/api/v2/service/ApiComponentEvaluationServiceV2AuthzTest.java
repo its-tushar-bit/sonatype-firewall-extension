@@ -33,7 +33,7 @@ public class ApiComponentEvaluationServiceV2AuthzTest
 
   @Test
   public void testEvaluateComponents_Authorized() {
-    grantReadPermission(app.getId());
+    grantEvaluateComponentPermission(app.getId());
 
     ApiComponentEvaluationRequestDTOV2 evaluationRequest = createEvaluationRequest();
     apiComponentEvaluationService.evaluateComponents(app.getId(), evaluationRequest);
@@ -74,7 +74,7 @@ public class ApiComponentEvaluationServiceV2AuthzTest
     File resultFile = work.getComponentDetailsFile(app.getId(), resultId);
     resultFile.getParentFile().mkdirs();
     Files.write(resultFile.toPath(), "{}".getBytes(StandardCharsets.UTF_8));
-    grantReadPermission(app.getId());
+    grantEvaluateComponentPermission(app.getId());
     apiComponentEvaluationService.getComponentEvaluation(app.getId(), resultId);
   }
 

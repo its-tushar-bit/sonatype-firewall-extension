@@ -113,7 +113,7 @@ public class ApiComponentEvaluationServiceV2
     executor.shutdown();
   }
 
-  @Authorize(permission = Permission.READ)
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public ApiComponentEvaluationTicketDTOV2 evaluateComponents(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
       final ApiComponentEvaluationRequestDTOV2 evaluationRequest)
@@ -130,7 +130,7 @@ public class ApiComponentEvaluationServiceV2
     return evaluationTicketDTO;
   }
 
-  @Authorize(permission = Permission.READ)
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public ApiComponentEvaluationResultDTOV2 getComponentEvaluation(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
       final String resultId) throws IOException

@@ -73,6 +73,8 @@ public class DbDataTest
       // We need TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME which is not available by default in sample data
       tempEntity.newSystemConfigurationProperty(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME, "Sensitive. Must be masked.");
     }
+    systemConfigurationPropertyDAO
+        .update(new SystemConfigurationProperty(SystemConfigurationProperty.PROXY_EXCLUDE_HOSTS, "host1, host2"));
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     List<SystemConfigurationProperty> sysConfigs = (List) dbData.getSystemConfiguration().getValue();
@@ -83,7 +85,7 @@ public class DbDataTest
         .containsEntry(AUTOMATIC_APPLICATION_CREATION_ENABLED, "false")
         .containsEntry(AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID, "")
         .containsEntry(SuccessMetricsService.PROPERTY_ENABLED, "true")
-        .containsEntry(PROXY_EXCLUDE_HOSTS, "")
+        .containsEntry(PROXY_EXCLUDE_HOSTS, "host1, host2")
         .containsEntry(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME, SystemInfo.MASK)
         .containsEntry(AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED, "false");
   }

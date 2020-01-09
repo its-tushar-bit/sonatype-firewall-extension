@@ -49,7 +49,6 @@ import org.apache.commons.lang.StringUtils;
 
 import static com.sonatype.insight.brain.hds.TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.PROXY_EXCLUDE_HOSTS;
 
 /**
  * @since 1.35
@@ -289,7 +288,6 @@ class DbData
     HashSet<String> needsMasking = new HashSet<>();
     needsMasking.add(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
     needsMasking.add(AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID);
-    needsMasking.add(PROXY_EXCLUDE_HOSTS);
 
     // Obfuscation (CLM-12603)
     for (SystemConfigurationProperty scp : systemConfigurationPropertyList) {

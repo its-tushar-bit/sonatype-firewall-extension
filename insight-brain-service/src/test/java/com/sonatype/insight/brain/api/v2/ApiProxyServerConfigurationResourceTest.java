@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiProxyServerConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
@@ -24,6 +25,11 @@ public class ApiProxyServerConfigurationResourceTest
     extends AbstractResourceTest
 {
   private ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
+
+  @Override
+  protected void afterDatabaseReset() {
+    getCLMServer().getInstance(ApiProxyServerConfigurationService.class).applyProxyServerConfigurationToClients();
+  }
 
   @Override
   protected HttpRequest restRequest() {

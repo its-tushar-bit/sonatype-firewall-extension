@@ -18,10 +18,14 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.inject.Binder;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class ApiProxyServerConfigurationServiceTest
     extends AbstractComponentTest
@@ -33,6 +37,15 @@ public class ApiProxyServerConfigurationServiceTest
   private PasswordHandler passwordHandler;
 
   private ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
+
+  @Mock
+  private ProxyServerConfigurationListener proxyServerConfigurationListener;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(ProxyServerConfigurationListener.class).toInstance(proxyServerConfigurationListener);
+    super.configure(binder);
+  }
 
   @Test
   public void testGetConfiguration() {
@@ -83,7 +96,7 @@ public class ApiProxyServerConfigurationServiceTest
     assertThat(passwordHandler.decryptPassword(proxyServerConfiguration.getPassword())).isEqualTo(password);
     assertThat(proxyServerConfiguration.getExcludeHosts()).isEqualTo("host1, host2");
 
-    // TODO Assert the proxy config was applied
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 
   @Test
@@ -116,7 +129,7 @@ public class ApiProxyServerConfigurationServiceTest
     assertThat(passwordHandler.decryptPassword(proxyServerConfiguration.getPassword())).isEqualTo(password);
     assertThat(proxyServerConfiguration.getExcludeHosts()).isEqualTo("host1, host2");
 
-    // TODO Assert the proxy config was applied
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 
   @Test
@@ -139,7 +152,7 @@ public class ApiProxyServerConfigurationServiceTest
     assertThat(proxyServerConfiguration.getPassword()).isNull();
     assertThat(proxyServerConfiguration.getExcludeHosts()).isEqualTo("host1, host2");
 
-    // TODO Assert the proxy config was applied
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 
   @Test
@@ -162,7 +175,7 @@ public class ApiProxyServerConfigurationServiceTest
     assertThat(proxyServerConfiguration.getPassword()).isNull();
     assertThat(proxyServerConfiguration.getExcludeHosts()).isEqualTo("host1, host2");
 
-    // TODO Assert the proxy config was applied
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 
   @Test
@@ -192,7 +205,7 @@ public class ApiProxyServerConfigurationServiceTest
     assertThat(proxyServerConfiguration.getPassword()).isNull();
     assertThat(proxyServerConfiguration.getExcludeHosts()).isEqualTo("host1, host2");
 
-    // TODO Assert the proxy config was applied
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 
   @Test
@@ -222,7 +235,7 @@ public class ApiProxyServerConfigurationServiceTest
     assertThat(proxyServerConfiguration.getPassword()).isNull();
     assertThat(proxyServerConfiguration.getExcludeHosts()).isEqualTo("host1, host2");
 
-    // TODO Assert the proxy config was applied
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 
   @Test
@@ -252,7 +265,7 @@ public class ApiProxyServerConfigurationServiceTest
     assertThat(proxyServerConfiguration.getUsername()).isEqualTo(configurationDTO.username);
     assertThat(proxyServerConfiguration.getPassword()).isEqualTo(encryptedPassword);
 
-    // TODO Assert the proxy config was applied
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 
   @Test
@@ -284,6 +297,8 @@ public class ApiProxyServerConfigurationServiceTest
     assertThat(storedProxyServerConfiguration.getPort()).isEqualTo(proxyServerConfiguration.getPort());
     assertThat(storedProxyServerConfiguration.getUsername()).isEqualTo(proxyServerConfiguration.getUsername());
     assertThat(storedProxyServerConfiguration.getPassword()).isEqualTo(proxyServerConfiguration.getPassword());
+
+    verifyNoInteractions(proxyServerConfigurationListener);
   }
 
   @Test
@@ -315,6 +330,8 @@ public class ApiProxyServerConfigurationServiceTest
     assertThat(storedProxyServerConfiguration.getPort()).isEqualTo(proxyServerConfiguration.getPort());
     assertThat(storedProxyServerConfiguration.getUsername()).isEqualTo(proxyServerConfiguration.getUsername());
     assertThat(storedProxyServerConfiguration.getPassword()).isEqualTo(proxyServerConfiguration.getPassword());
+
+    verifyNoInteractions(proxyServerConfigurationListener);
   }
 
   @Test
@@ -330,13 +347,12 @@ public class ApiProxyServerConfigurationServiceTest
     proxyServerConfiguration.setHostname("servtest");
     proxyServerConfiguration.setPort(58285);
     proxyServerConfigurationDAO.set(proxyServerConfiguration);
-    // TODO Apply proxy config
 
     proxyServerConfigurationService.deleteConfiguration();
 
     assertThat(proxyServerConfigurationDAO.get()).isNull();
 
-    // TODO Assert the proxy config was applied
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 
   @Test
@@ -344,6 +360,8 @@ public class ApiProxyServerConfigurationServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       proxyServerConfigurationService.deleteConfiguration();
     }).withMessageContaining("Proxy server not configured");
+
+    verifyNoInteractions(proxyServerConfigurationListener);
   }
 
   @Test
@@ -366,7 +384,7 @@ public class ApiProxyServerConfigurationServiceTest
     assertThat(proxyServerConfiguration.getPassword()).isNull();
     assertThat(proxyServerConfiguration.getExcludeHosts()).isNull();
 
-    // TODO Assert the proxy config was applied
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 
   @Test
@@ -389,7 +407,7 @@ public class ApiProxyServerConfigurationServiceTest
     assertThat(proxyServerConfiguration.getPassword()).isNull();
     assertThat(proxyServerConfiguration.getExcludeHosts()).isNull();
 
-    // TODO Assert the proxy config was applied
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 
   @Test
@@ -411,7 +429,7 @@ public class ApiProxyServerConfigurationServiceTest
     proxyServerConfiguration = proxyServerConfigurationDAO.get();
     assertThat(proxyServerConfiguration.getExcludeHosts()).isNull();
 
-    // TODO Assert the proxy config was applied
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 
   @Test
@@ -433,6 +451,6 @@ public class ApiProxyServerConfigurationServiceTest
     proxyServerConfiguration = proxyServerConfigurationDAO.get();
     assertThat(proxyServerConfiguration.getExcludeHosts()).isNull();
 
-    // TODO Assert the proxy config was applied
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 }

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Arrays;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -26,13 +27,17 @@ public class ApiProxyServerConfigurationService
 
   private final PasswordHandler passwordHandler;
 
+  private final List<ProxyServerConfigurationListener> proxyServerConfigurationListeners;
+
   @Inject
   public ApiProxyServerConfigurationService(
       ProxyServerConfigurationDAO proxyServerConfigurationDAO,
-      PasswordHandler passwordHandler)
+      PasswordHandler passwordHandler,
+      List<ProxyServerConfigurationListener> proxyServerConfigurationListeners)
   {
     this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;
     this.passwordHandler = passwordHandler;
+    this.proxyServerConfigurationListeners = proxyServerConfigurationListeners;
   }
 
   private RuntimeException newNotFoundException() {
@@ -103,6 +108,8 @@ public class ApiProxyServerConfigurationService
     }
 
     proxyServerConfigurationDAO.set(proxyServerConfiguration);
+
+    applyProxyServerConfigurationToClients();
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -112,11 +119,17 @@ public class ApiProxyServerConfigurationService
       throw newNotFoundException();
     }
     proxyServerConfigurationDAO.delete();
+
+    applyProxyServerConfigurationToClients();
   }
 
   private void clearPassword(ApiProxyServerConfigurationDTO configurationDTO) {
     if (configurationDTO.password != null && configurationDTO.password.length != 0) {
       Arrays.fill(configurationDTO.password, '0');
     }
+  }
+
+  public void applyProxyServerConfigurationToClients() {
+    proxyServerConfigurationListeners.forEach(ProxyServerConfigurationListener::proxyServerConfigurationChanged);
   }
 }

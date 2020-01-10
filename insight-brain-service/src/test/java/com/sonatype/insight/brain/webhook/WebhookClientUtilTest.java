@@ -12,15 +12,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.brain.api.v2.service.ApiProxyConfigurationServiceV2;
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.test.networking.SslProperties;
@@ -38,6 +36,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class WebhookClientUtilTest
+    extends AbstractComponentTest
 {
   static {
     SslProperties.use();
@@ -47,6 +46,7 @@ public class WebhookClientUtilTest
 
   private AbstractHandler handler;
 
+  @Inject
   private WebhookClientUtil webhookClientUtil;
 
   private final String webhookId = "webhookId";
@@ -69,9 +69,6 @@ public class WebhookClientUtilTest
       }
     });
     server.start();
-
-    ApiProxyConfigurationServiceV2 proxyConfig = new ApiProxyConfigurationServiceV2(new ProxyConfigurationDAO());
-    webhookClientUtil = new WebhookClientUtil(new InsightProxy(new InsightConfig(), proxyConfig));
   }
 
   @After

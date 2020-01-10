@@ -291,21 +291,21 @@ public class ComponentInfoServiceAuthzTest
   public void testGetComponentDetailsForAllVersions_EvaluateComponentPermission_Authorized() throws Exception {
     configureHdsClientMock();
     grantEvaluateComponentPermission(app.getId());
-    componentInfoService.getComponentDetailsForAllVersions_EvaluateComponentPermission(app.getPublicId(),
+    componentInfoService.getComponentVersionInfo_EvaluateComponentPermission(app.getPublicId(),
         COMPONENT_IDENTIFIER);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetComponentDetailsForAllVersions_EvaluateComponentPermission_Unauthorized() {
     login();
-    componentInfoService.getComponentDetailsForAllVersions_EvaluateComponentPermission(app.getPublicId(),
+    componentInfoService.getComponentVersionInfo_EvaluateComponentPermission(app.getPublicId(),
         COMPONENT_IDENTIFIER);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetComponentDetailsForAllVersions_EvaluateComponentPermission_Unauthenticated() {
     componentInfoService
-        .getComponentDetailsForAllVersions_EvaluateComponentPermission(app.getPublicId(), COMPONENT_IDENTIFIER);
+        .getComponentVersionInfo_EvaluateComponentPermission(app.getPublicId(), COMPONENT_IDENTIFIER);
   }
 
   private void testGetComponentDetailsForAllVersions_ReadPermission_Authorized(final Owner owner, final String ownerId)
@@ -314,7 +314,7 @@ public class ComponentInfoServiceAuthzTest
     configureHdsClientMock();
     grantReadPermission(owner.getId());
     componentInfoService
-        .getComponentDetailsForAllVersions_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER, null, null);
+        .getComponentVersionInfo_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER, null, null);
   }
 
   @Test
@@ -331,7 +331,7 @@ public class ComponentInfoServiceAuthzTest
                                                                                  final String ownerId)
   {
     login();
-    componentInfoService.getComponentDetailsForAllVersions_ReadPermission(owner.getType(), ownerId,
+    componentInfoService.getComponentVersionInfo_ReadPermission(owner.getType(), ownerId,
         COMPONENT_IDENTIFIER, null, null);
   }
 
@@ -348,7 +348,7 @@ public class ComponentInfoServiceAuthzTest
   private void testGetComponentDetailsForAllVersions_ReadPermission_Unauthenticated(final Owner owner,
                                                                                     final String ownerId)
   {
-    componentInfoService.getComponentDetailsForAllVersions_ReadPermission(owner.getType(), ownerId,
+    componentInfoService.getComponentVersionInfo_ReadPermission(owner.getType(), ownerId,
         COMPONENT_IDENTIFIER, null, null);
   }
 

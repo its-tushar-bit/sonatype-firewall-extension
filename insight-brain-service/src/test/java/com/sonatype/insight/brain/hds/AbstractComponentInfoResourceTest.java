@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.hds;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
@@ -14,6 +15,9 @@ import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
@@ -175,7 +179,7 @@ public abstract class AbstractComponentInfoResourceTest
   }
 
   @Test
-  public void testGetComponentDetailsForAllVersions() throws Exception {
+  public void testGetComponentVersionInfo() throws Exception {
     ComponentDetails hdsComponentDetails = newComponentDetails(MAVEN_COORDINATES);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
@@ -185,10 +189,23 @@ public abstract class AbstractComponentInfoResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
 
-    ComponentDetailsDTO[] componentDetailsForAllVersions = response.getBody(ComponentDetailsDTO[].class);
+    ComponentVersionInfoDTO responseDto = response.getBody(ComponentVersionInfoDTO.class);
+    List<ComponentDetailsDTO> componentDetailsForAllVersions = responseDto.allVersions;
+
     assertThat(componentDetailsForAllVersions).hasSize(1);
-    ComponentDetailsDTO componentDetailsDTO = componentDetailsForAllVersions[0];
+    ComponentDetailsDTO componentDetailsDTO = componentDetailsForAllVersions.get(0);
     assertComponentDetails(componentDetailsDTO, hdsComponentDetails);
+    assertRemediation(responseDto.remediation);
+  }
+
+  protected void assertRemediation(ApiComponentRemediationValueDTO remediationValue) {
+    assertThat(remediationValue.componentOverrides).hasSize(0);
+    assertThat(remediationValue.policyWaivers).hasSize(0);
+    assertThat(remediationValue.versionChanges).hasSize(1);
+
+    ApiVersionChangeOptionDTO versionChange = remediationValue.versionChanges.get(0);
+    assertThat(versionChange.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    assertThat(versionChange.getData().getComponent().packageUrl).isEqualTo("pkg:maven/g1/a1@v1?type=jar");
   }
 
   private void assertComponentDetails(ComponentDetails actual, ComponentDetails expected) {

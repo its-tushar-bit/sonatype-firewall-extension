@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -91,11 +90,11 @@ public class RepoManComponentInfoResource
   @Path(APPLICATION_COMPONENT_DETAILS_PATH + "/allVersions")
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
-  public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(
+  public ComponentVersionInfoDTO getComponentVersionInfo(
       @PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
-    return componentInfoService.getComponentDetailsForAllVersions_EvaluateComponentPermission(applicationPublicId,
+    return componentInfoService.getComponentVersionInfo_EvaluateComponentPermission(applicationPublicId,
         componentIdentifier);
   }
 }

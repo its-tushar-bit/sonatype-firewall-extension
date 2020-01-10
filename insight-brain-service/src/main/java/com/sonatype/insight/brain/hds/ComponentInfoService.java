@@ -33,6 +33,7 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -84,6 +85,8 @@ public class ComponentInfoService
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
+  private final ComponentRemediationService componentRemediationService;
+
   private final ThirdPartyComponentDAO thirdPartyComponentDAO;
 
   private String toolName;
@@ -93,11 +96,13 @@ public class ComponentInfoService
       HdsClient hdsClient,
       ComponentDetailsLoader componentDetailsLoader,
       ComponentPolicyEvaluator componentPolicyEvaluator,
+      ComponentRemediationService componentRemediationService,
       ThirdPartyComponentDAO thirdPartyComponentDAO)
   {
     this.hdsClient = hdsClient;
     this.componentDetailsLoader = componentDetailsLoader;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
+    this.componentRemediationService = componentRemediationService;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
   }
 
@@ -255,12 +260,12 @@ public class ComponentInfoService
    * This method is called by the IDE and RM plugins, so it needs to check the EVALUATE_COMPONENT permission.
    */
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  public List<ComponentDetailsDTO> getComponentDetailsForAllVersions_EvaluateComponentPermission(
+  public ComponentVersionInfoDTO getComponentVersionInfo_EvaluateComponentPermission(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
       ComponentIdentifier componentIdentifier)
   {
     auditComponentAccess(componentIdentifier, null);
-    return getComponentDetailsForAllVersionsNoAuth(OwnerType.APPLICATION, applicationPublicId, componentIdentifier,
+    return getComponentVersionInfoNoAuth(OwnerType.APPLICATION, applicationPublicId, componentIdentifier,
         null, null);
   }
 
@@ -292,7 +297,7 @@ public class ComponentInfoService
    * This method is called by the CIP, so it needs to check the READ permission.
    */
   @Authorize(permission = Permission.READ)
-  public List<ComponentDetailsDTO> getComponentDetailsForAllVersions_ReadPermission(
+  public ComponentVersionInfoDTO getComponentVersionInfo_ReadPermission(
       @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.ID) final String ownerId,
       ComponentIdentifier componentIdentifier,
@@ -300,26 +305,45 @@ public class ComponentInfoService
       String scanId)
   {
     auditComponentAccess(componentIdentifier, null);
-    return getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId, componentIdentifier, identificationSource,
+    return getComponentVersionInfoNoAuth(ownerType, ownerId, componentIdentifier, identificationSource,
         scanId);
   }
 
-  public List<ComponentDetailsDTO> getComponentDetailsForAllVersionsNoAuth(OwnerType ownerType,
-                                                                           String ownerId,
-                                                                           ComponentIdentifier componentIdentifier,
-                                                                           String identificationSource,
-                                                                           String scanId)
+  public ComponentVersionInfoDTO getComponentVersionInfoNoAuth(
+      OwnerType ownerType,
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      String identificationSource,
+      String scanId)
   {
-    return getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId, componentIdentifier, null, identificationSource,
+    return getComponentVersionInfoNoAuth(ownerType, ownerId, componentIdentifier, null, identificationSource,
         scanId);
   }
 
-  public List<ComponentDetailsDTO> getComponentDetailsForAllVersionsNoAuth(OwnerType ownerType,
-                                                                           String ownerId,
-                                                                           ComponentIdentifier componentIdentifier,
-                                                                           String stageId,
-                                                                           String identificationSource,
-                                                                           String scanId)
+  public ComponentVersionInfoDTO getComponentVersionInfoNoAuth(
+      OwnerType ownerType,
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      String stageId,
+      String identificationSource,
+      String scanId)
+  {
+    List<ComponentDetailsDTO> componentDetailsDTOs = getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId,
+        componentIdentifier, stageId, identificationSource, scanId);
+
+    ApiComponentRemediationValueDTO remediationDto = componentRemediationService.getSuggestedRemediation(
+        componentIdentifier, componentDetailsDTOs, ownerType, ownerId, null);
+
+    return new ComponentVersionInfoDTO(componentDetailsDTOs, remediationDto);
+  }
+
+  public List<ComponentDetailsDTO> getComponentDetailsForAllVersionsNoAuth(
+      OwnerType ownerType,
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      String stageId,
+      String identificationSource,
+      String scanId)
   {
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     List<ComponentDetails> componentDetailsList =

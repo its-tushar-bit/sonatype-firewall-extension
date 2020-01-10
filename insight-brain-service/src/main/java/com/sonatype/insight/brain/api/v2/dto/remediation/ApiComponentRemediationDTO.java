@@ -10,5 +10,13 @@ package com.sonatype.insight.brain.api.v2.dto.remediation;
  */
 public class ApiComponentRemediationDTO
 {
-  public ApiComponentRemediationValueDTO remediation = new ApiComponentRemediationValueDTO();
+  public ApiComponentRemediationValueDTO remediation;
+
+  public ApiComponentRemediationDTO() {
+    this.remediation = new ApiComponentRemediationValueDTO();
+  }
+
+  public ApiComponentRemediationDTO(ApiComponentRemediationValueDTO remediation) {
+    this.remediation = remediation;
+  }
 }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.hds;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.License;
@@ -16,6 +17,8 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
@@ -111,7 +114,7 @@ public class CIComponentInfoResourceTest
   }
 
   @Test
-  public void testGetComponentDetailsForAllVersions_ThirdParty() throws Exception {
+  public void testGetComponentVersionInfo_ThirdParty() throws Exception {
     final String scanId = "ScanId";
     createReportFile(getOwner().getId(), scanId, "/CIComponentInfoResourceTest/report");
     final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian", "glibc", "2.24-11+deb9u3");
@@ -121,14 +124,19 @@ public class CIComponentInfoResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
 
-    ComponentDetailsDTO[] tpAllVersions = response.getBody(ComponentDetailsDTO[].class);
+    ComponentVersionInfoDTO responseDto = response.getBody(ComponentVersionInfoDTO.class);
+    List<ComponentDetailsDTO> tpAllVersions = responseDto.allVersions;
     assertThat(tpAllVersions).hasSize(1);
-    ComponentDetailsDTO componentDetailsDTO = tpAllVersions[0];
+    ComponentDetailsDTO componentDetailsDTO = tpAllVersions.get(0);
     assertThat(componentDetailsDTO.identificationSource).isEqualTo("Clair");
     assertThat(componentDetailsDTO.matchState).isEqualTo("exact");
     assertThat(componentDetailsDTO.componentIdentifier).isEqualTo(tpComponentIdentifier);
     assertThat(componentDetailsDTO.highestSecurityVulnerabilitySeverity).isEqualTo(10.0f);
     assertThat(componentDetailsDTO.securityVulnerabilityCount).isEqualTo(2);
+    assertThat(responseDto.remediation.versionChanges).hasSize(1);
+    ApiVersionChangeOptionDTO versionChangeDTO = responseDto.remediation.versionChanges.get(0);
+    assertThat(versionChangeDTO.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    assertThat(versionChangeDTO.getData().getComponent().packageUrl).isEqualTo("pkg:debian/glibc@2.24-11%2Bdeb9u3");
   }
 
   @Test

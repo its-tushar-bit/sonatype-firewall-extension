@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.ide;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -24,8 +23,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -88,11 +87,11 @@ public class IDEComponentInfoResource
   @Path(APPLICATION_COMPONENT_DETAILS_PATH + "/allVersions")
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
-  public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(
+  public ComponentVersionInfoDTO getComponentVersionInfo(
       @PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
-    return componentInfoService.getComponentDetailsForAllVersions_EvaluateComponentPermission(applicationPublicId,
+    return componentInfoService.getComponentVersionInfo_EvaluateComponentPermission(applicationPublicId,
         componentIdentifier);
   }
 }

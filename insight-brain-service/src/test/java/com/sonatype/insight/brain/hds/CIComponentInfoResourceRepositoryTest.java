@@ -5,11 +5,14 @@
  */
 package com.sonatype.insight.brain.hds;
 
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.repository.Repository;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CIComponentInfoResourceRepositoryTest
     extends AbstractComponentInfoResourceTest
@@ -45,5 +48,10 @@ public class CIComponentInfoResourceRepositoryTest
   @Test
   public void testGetComponentDetailsList() throws Exception {
     testGetComponentDetailsList_ReadPermission();
+  }
+
+  @Override
+  protected void assertRemediation(ApiComponentRemediationValueDTO remediationValue) {
+    assertThat(remediationValue).isNull();
   }
 }

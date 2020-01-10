@@ -888,9 +888,9 @@ public class ComponentInfoServiceTest
     testGetComponentDetailsList_ReadPermission(repository, repository.getId());
   }
 
-  private List<ComponentDetailsDTO> testGetComponentDetailsForAllVersions_ReadPermission(final Owner owner,
-                                                                                         final String ownerId)
-      throws Exception
+  private ComponentVersionInfoDTO testGetComponentVersionInfo_ReadPermission(
+      final Owner owner,
+      final String ownerId) throws Exception
   {
     ComponentDetails hdsComponentDetails1 = newNamedComponentDetails(MAVEN_COORDINATES);
     long timestamp = DateTime.now().getMillis();
@@ -906,8 +906,10 @@ public class ComponentInfoServiceTest
     hdsComponentDetailsList.setList(asList(hdsComponentDetails1, hdsComponentDetails2));
     mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_COORDINATES);
 
-    List<ComponentDetailsDTO> componentDetailsList = componentInfoService
-        .getComponentDetailsForAllVersions_ReadPermission(owner.getType(), ownerId, MAVEN_COORDINATES, null, null);
+    ComponentVersionInfoDTO dto = componentInfoService
+        .getComponentVersionInfo_ReadPermission(owner.getType(), ownerId, MAVEN_COORDINATES, null, null);
+
+    List<ComponentDetailsDTO> componentDetailsList = dto.allVersions;
 
     assertThat(componentDetailsList).hasSize(2);
 
@@ -928,11 +930,11 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails2.securityVulnerabilityCount).isEqualTo(1);
     assertThat(componentDetails2.catalogDate).isEqualTo(timestamp);
 
-    return componentDetailsList;
+    return dto;
   }
 
   @Test
-  public void testGetComponentDetailsForAllVersions_ReadPermission_Application() throws Exception {
+  public void testGetComponentVersionInfo_ReadPermission_Application() throws Exception {
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "8"));
     Policy policy1 = new Policy("security-high", "Security-High");
@@ -949,8 +951,10 @@ public class ComponentInfoServiceTest
     policy2.setAction(BuildStageType.ID, WarnActionType.ID);
     addPolicy(applicationPublicId, policy2);
 
-    List<ComponentDetailsDTO> componentDetailsList = testGetComponentDetailsForAllVersions_ReadPermission(
+    ComponentVersionInfoDTO dto = testGetComponentVersionInfo_ReadPermission(
         application, application.getPublicId());
+
+    List<ComponentDetailsDTO> componentDetailsList = dto.allVersions;
 
     ComponentDetailsDTO componentDetails1 = componentDetailsList.get(0);
     assertThat(componentDetails1.policyMaxThreatLevelsByCategory)
@@ -961,15 +965,19 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails2.policyMaxThreatLevelsByCategory)
         .isEqualTo(ImmutableMap.of(PolicyThreatCategory.LICENSE, 6));
     assertThat(componentDetails2.violatedPolicyCount).isEqualTo(1);
+
+    assertThat(dto.remediation.versionChanges).isNotNull();
+    assertThat(dto.remediation.versionChanges).hasSize(0);
   }
 
   @Test
-  public void testGetComponentDetailsForAllVersions_ReadPermission_Repository() throws Exception {
-    testGetComponentDetailsForAllVersions_ReadPermission(repository, repository.getId());
+  public void testGetComponentVersionInfo_ReadPermission_Repository() throws Exception {
+    ComponentVersionInfoDTO dto = testGetComponentVersionInfo_ReadPermission(repository, repository.getId());
+    assertThat(dto.remediation).isNull();
   }
 
   @Test
-  public void testGetComponentDetailsForAllVersions_ReadPermission_ThirdParty() throws Exception {
+  public void testGetComponentVersionInfo_ReadPermission_ThirdParty() throws Exception {
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "8"));
     Policy policy1 = new Policy("security-high", "Security-High");
@@ -993,11 +1001,15 @@ public class ComponentInfoServiceTest
     when(thirdPartyComponentDAO.getAllVersions(application.getId(), MAVEN_COORDINATES, scanId))
         .thenReturn(thirdPartyComponentDetailsList);
 
-    List<ComponentDetailsDTO> componentDetailsList = componentInfoService
-        .getComponentDetailsForAllVersions_ReadPermission(application.getType(), application.getPublicId(),
+    ComponentVersionInfoDTO dto = componentInfoService
+        .getComponentVersionInfo_ReadPermission(application.getType(), application.getPublicId(),
             MAVEN_COORDINATES, identificationSource, scanId);
 
+    List<ComponentDetailsDTO> componentDetailsList = dto.allVersions;
+
     assertThat(componentDetailsList).hasSize(1);
+    assertThat(dto.remediation).isNotNull();
+    assertThat(dto.remediation.versionChanges).hasSize(0);
 
     ComponentDetailsDTO componentDetails = componentDetailsList.get(0);
     assertThat(componentDetails.displayName)

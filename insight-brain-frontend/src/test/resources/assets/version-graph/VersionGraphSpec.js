@@ -663,17 +663,9 @@ var clmEndpointTemplate = {
         it('retrieves the application internal ID and suggested remediations',
             inject(function($httpBackend, $rootScope) {
           $httpBackend.verifyNoOutstandingRequest();
-          spyOn(Brain, 'getInternalApplicationIdUrlForApplicationId').and.returnValue('bar');
-          $httpBackend.expectGET('bar').respond({
-            "applications": [
-              {
-                "id": "InternalAppId"
-              }
-            ]
-          });
-
-          spyOn(Brain, 'getSuggestedRemediationUrlForApplication').and.returnValue('foo');
-          $httpBackend.expectPOST('foo').respond({
+          spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
+          $httpBackend.expectGET('foo').respond({
+            allVersions: [],
             "remediation" : {
               "versionChanges" : [ {
                 "type" : "next-no-violations",
@@ -695,53 +687,13 @@ var clmEndpointTemplate = {
 
           Insight.setCoordinates('maven', coords, properties);
           $httpBackend.flush();
-          expect(Brain.getInternalApplicationIdUrlForApplicationId).toHaveBeenCalledWith('myFirstApp');
-          expect(Brain.getSuggestedRemediationUrlForApplication).toHaveBeenCalledWith('InternalAppId', 'Sonatype',
-              'scanId');
-          expect(scope.applicationInternalIds).not.toBeNull();
-          expect(scope.applicationInternalIds.size).toEqual(1);
-          expect(scope.applicationInternalIds.get('myFirstApp')).toEqual('InternalAppId');
+          expect(Brain[clmEndpoint.type].getComponentListUrl).toHaveBeenCalled();
+
           expect(scope.suggestedRemediations.size).toEqual(2);
           expect(scope.suggestedRemediations.has('next-non-failing'));
           expect(scope.suggestedRemediations.get('next-non-failing')).toEqual("C2");
           expect(scope.suggestedRemediations.has('next-no-violations'));
           expect(scope.suggestedRemediations.get('next-no-violations')).toEqual("C1");
-        }));
-
-        it('does not retrieve internal app ids for know apps', inject(function($httpBackend, $rootScope) {
-          $httpBackend.verifyNoOutstandingRequest();
-          spyOn(Brain, 'getInternalApplicationIdUrlForApplicationId');
-
-          scope.applicationInternalIds = new Map();
-          scope.applicationInternalIds.set('myFirstApp', 'InternalAppId')
-
-          spyOn(Brain, 'getSuggestedRemediationUrlForApplication').and.returnValue('foo');
-          $httpBackend.expectPOST('foo').respond({});
-
-          Insight.setCoordinates('maven', coords, properties);
-          $httpBackend.flush();
-          expect(Brain.getInternalApplicationIdUrlForApplicationId).not.toHaveBeenCalled();
-          expect(Brain.getSuggestedRemediationUrlForApplication).toHaveBeenCalledWith('InternalAppId', 'Sonatype',
-              'scanId');
-          expect(scope.applicationInternalIds).not.toBeNull();
-          expect(scope.applicationInternalIds.size).toEqual(1);
-          expect(scope.applicationInternalIds.get('myFirstApp')).toEqual('InternalAppId');
-        }));
-
-        it('does not retrieve remediations when app id is invalid', inject(function($httpBackend, $rootScope) {
-          $httpBackend.verifyNoOutstandingRequest();
-          spyOn(Brain, 'getInternalApplicationIdUrlForApplicationId').and.returnValue('bar');
-          $httpBackend.expectGET('bar').respond({
-            "applications": []
-          });
-          spyOn(Brain, 'getSuggestedRemediationUrlForApplication');
-
-          Insight.setCoordinates('maven', coords, properties);
-          $httpBackend.flush();
-          expect(Brain.getInternalApplicationIdUrlForApplicationId).toHaveBeenCalledWith('myFirstApp');
-          expect(Brain.getSuggestedRemediationUrlForApplication).not.toHaveBeenCalled();
-          expect(scope.applicationInternalIds).not.toBeNull();
-          expect(scope.applicationInternalIds.size).toEqual(0);
         }));
       });
 

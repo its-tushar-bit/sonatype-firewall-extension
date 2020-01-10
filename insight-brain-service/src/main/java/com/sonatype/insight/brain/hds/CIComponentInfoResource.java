@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -96,14 +95,14 @@ public class CIComponentInfoResource
   @Path(COMPONENT_DETAILS_PATH + "/allVersions")
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
-  public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(
+  public ComponentVersionInfoDTO getComponentVersionInfo(
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
       @QueryParam("identificationSource") String identificationSource,
       @QueryParam("scanId") String scanId)
   {
-    return componentInfoService.getComponentDetailsForAllVersions_ReadPermission(ownerType, ownerId,
+    return componentInfoService.getComponentVersionInfo_ReadPermission(ownerType, ownerId,
         componentIdentifier, identificationSource, scanId);
   }
 

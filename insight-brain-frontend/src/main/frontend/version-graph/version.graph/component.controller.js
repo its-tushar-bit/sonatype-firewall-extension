@@ -25,94 +25,27 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
             Coordinates.getFormat(), Properties.getHash(), Properties.getMatchState(), Properties.getProprietary(),
             Coordinates.get(), Properties.getPathname(), Properties.getIdentificationSource(), OwnerContext.scanId))
             .then(function(response) {
-              $scope.componentDetailsList = response.data.list || response.data;
+              $scope.componentDetailsList = response.data.allVersions || response.data.list || response.data;
               for (var i = 0; i < $scope.componentDetailsList.length; i++) {
                 $scope.componentDetailsList[i].proprietary = Coordinates.get().proprietary;
               }
               $scope.loaded = true;
+
+              setRemediations(response.data);
             }, function(error) {
               $scope.setError(error);
             });
-        populateSuggestedRemediationVersions();
       }
     }
   }
 
-  function populateSuggestedRemediationVersions() {
+  function setRemediations({ remediation }) {
+    $scope.suggestedRemediations = new Map();
 
-    if ($scope.recommendationsSupported === null || $scope.recommendationsSupported === false) {
-      return;
-    }
-
-    if (OwnerContext.ownerType !== 'application') {
-      return;
-    }
-
-    ensureApplicationInternalIdAndApply(function() {
-      $scope.recommendationsLoaded = false;
-      $scope.suggestedRemediations = new Map();
-
-      if (!$scope.applicationInternalIds.get(OwnerContext.ownerId)
-          || !Coordinates.get()
-          || !Coordinates.getFormat()) {
-        $scope.recommendationsLoaded = true;
-        return;
-      }
-
-      let applicationId = $scope.applicationInternalIds.get(OwnerContext.ownerId);
-
-      let componentIdentifier = {
-        componentIdentifier: {
-          format: Coordinates.getFormat(),
-          coordinates: Coordinates.get()
-        }
-      };
-
-      let path = Brain.getSuggestedRemediationUrlForApplication(applicationId, Properties.getIdentificationSource(),
-          OwnerContext.scanId);
-
-      let request = {
-        method: 'post',
-        url: path,
-        data: componentIdentifier
-      };
-
-      if (typeof Brain.getCsrfHeaders === 'function') {
-        request.headers = Brain.getCsrfHeaders();
-      }
-      $http(request).then(handleRemediationResponse);
-    });
-  }
-
-  function handleRemediationResponse(response) {
-    if (response.data.remediation.versionChanges) {
-      $.each(response.data.remediation.versionChanges, function(index, item) {
+    if (remediation && remediation.versionChanges) {
+      $.each(remediation.versionChanges, function(index, item) {
         $scope.suggestedRemediations.set(item.type,
             item.data.component.componentIdentifier);
-      });
-    }
-    $scope.recommendationsLoaded = true;
-  }
-
-  function ensureApplicationInternalIdAndApply(action) {
-    if (!OwnerContext.ownerId) {
-      return;
-    }
-
-    if (!$scope.applicationInternalIds) {
-      $scope.applicationInternalIds = new Map();
-    }
-
-    if ($scope.applicationInternalIds.get(OwnerContext.ownerId)) {
-      action.apply();
-    } else {
-      $http.get(Brain.getInternalApplicationIdUrlForApplicationId(OwnerContext.ownerId)).then(function(response) {
-        if (response.data.applications && response.data.applications.length > 0) {
-          $scope.applicationInternalIds.set(OwnerContext.ownerId, response.data.applications[0].id);
-          action.apply();
-        }
-      }, function(error) {
-        $scope.setError(error);
       });
     }
   }

@@ -29,6 +29,8 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class GitApiFactoryTest
 {
+  private static final String GIT_EXECUTABLE = "/usr/bin/git";
+
   @Mock
   private InsightConfig insightConfig;
 
@@ -58,7 +60,7 @@ public class GitApiFactoryTest
 
   @Test
   public void test_noNativeAvailable_noConfig() {
-    when(gitApiFactory.isNativeGitAvailable()).thenReturn(false);
+    when(gitApiFactory.isNativeGitAvailable(null)).thenReturn(false);
     when(sourceControlConfig.getGitImplementation()).thenReturn(null);
 
     GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
@@ -68,7 +70,7 @@ public class GitApiFactoryTest
 
   @Test
   public void test_nativeAvailable_forceViaConfig() {
-    lenient().when(gitApiFactory.isNativeGitAvailable()).thenReturn(true);
+    lenient().when(gitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
     when(sourceControlConfig.getGitImplementation()).thenReturn(JGIT);
 
     GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
@@ -78,7 +80,7 @@ public class GitApiFactoryTest
 
   @Test
   public void test_nativeAvailable_noConfig() {
-    when(gitApiFactory.isNativeGitAvailable()).thenReturn(true);
+    when(gitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
     when(sourceControlConfig.getGitImplementation()).thenReturn(null);
 
     GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
@@ -87,8 +89,29 @@ public class GitApiFactoryTest
   }
 
   @Test
-  public void test_noNativeAvailable_forceViaConfig() {
-    lenient().when(gitApiFactory.isNativeGitAvailable()).thenReturn(false);
+  public void test_nativeAvailable_gitExecutable_noConfig() {
+    when(gitApiFactory.isNativeGitAvailable(GIT_EXECUTABLE)).thenReturn(true);
+    when(sourceControlConfig.getGitImplementation()).thenReturn(null);
+    when(sourceControlConfig.getGitExecutable()).thenReturn(GIT_EXECUTABLE);
+
+    GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
+
+    assertThat(gitApi).isInstanceOf(NativeGitApi.class);
+  }
+
+  @Test
+  public void test_noNativeAvailable_forceNativeViaConfig() {
+    lenient().when(gitApiFactory.isNativeGitAvailable(null)).thenReturn(false);
+    when(sourceControlConfig.getGitImplementation()).thenReturn(NATIVE_GIT);
+
+    GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
+
+    assertThat(gitApi).isInstanceOf(JGitApi.class);
+  }
+
+  @Test
+  public void test_nativeAvailable_forceJavaViaConfig() {
+    lenient().when(gitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
     when(sourceControlConfig.getGitImplementation()).thenReturn(NATIVE_GIT);
 
     GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
@@ -97,8 +120,19 @@ public class GitApiFactoryTest
   }
 
   @Test
+  public void test_noNativeAvailable_gitExecutable_forceViaConfig() {
+    lenient().when(gitApiFactory.isNativeGitAvailable(GIT_EXECUTABLE)).thenReturn(false);
+    when(sourceControlConfig.getGitImplementation()).thenReturn(NATIVE_GIT);
+    when(sourceControlConfig.getGitExecutable()).thenReturn(GIT_EXECUTABLE);
+
+    GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
+
+    assertThat(gitApi).isInstanceOf(JGitApi.class);
+  }
+
+  @Test
   public void test_unknownConfig_defaultToWhatIsAvailable() {
-    when(gitApiFactory.isNativeGitAvailable()).thenReturn(true);
+    when(gitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
     when(sourceControlConfig.getGitImplementation()).thenReturn("badconfig");
 
     GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);

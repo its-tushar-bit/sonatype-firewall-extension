@@ -23,6 +23,11 @@ public class SourceControlConfig
   private String gitImplementation;
 
   /**
+   * @since 1.83
+   */
+  private String gitExecutable;
+
+  /**
    * Return the {@link #cloneDirectory} as a {@link File}. If not set will default to {@link
    * #DEFAULT_SOURCE_CONTROL_CLONE_DIR}. If {@link #cloneDirectory} is not a fully qualified path then it will be
    * created under the {@link #sonatypeWorkDir} which needs to be set with {@link #setCloneDirectory(String)}. Note that
@@ -55,5 +60,13 @@ public class SourceControlConfig
 
   public void setGitImplementation(final String gitImplementation) {
     this.gitImplementation = gitImplementation;
+  }
+
+  public String getGitExecutable() {
+    return gitExecutable;
+  }
+
+  public void setGitExecutable(final String gitExecutable) {
+    this.gitExecutable = gitExecutable;
   }
 }

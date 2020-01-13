@@ -43,15 +43,19 @@ public class GitApiFactory
   @VisibleForTesting
   GitApi createGitApi(final GitRepositoryInfo gitInfo) {
     String gitImplFromConfig = sourceControlConfig.getGitImplementation();
+    String gitExecutable = sourceControlConfig.getGitExecutable();
     if (gitImplFromConfig != null) {
       if (gitImplFromConfig.equalsIgnoreCase(JGIT)) {
         return new JGitApi(gitInfo.repositoryUrl, gitInfo.token);
       }
       else if (gitImplFromConfig.equalsIgnoreCase(NATIVE_GIT)) {
-        if (!isNativeGitAvailable()) {
-          log.warn("System is configured to use native git, but the git executable was not found on the system path");
+        if (!isNativeGitAvailable(gitExecutable)) {
+          String messageSuffix = gitExecutable != null ? "at configured path: " + gitExecutable : "on the path";
+          log.warn("System is configured to use native git, but the git executable was not found {}. Defaulting to " +
+              "use {} implementation", messageSuffix, JGIT);
+          return new JGitApi(gitInfo.repositoryUrl, gitInfo.token);
         }
-        return new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token);
+        return new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token, gitExecutable);
       }
       else {
         log.error("Unknown option '{}' for configuration 'sourceControl.gitImplementation'. Available options: {}, {}",
@@ -59,13 +63,17 @@ public class GitApiFactory
       }
     }
 
-    return isNativeGitAvailable() ?
-        new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token) :
+    return isNativeGitAvailable(gitExecutable) ?
+        new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token, gitExecutable) :
         new JGitApi(gitInfo.repositoryUrl, gitInfo.token);
   }
 
+  /**
+   * @param gitExecutable fully qualified path to a git executable, may be null in which case git will attempt to find
+   *                     an executable in the PATH
+   */
   @VisibleForTesting
-  boolean isNativeGitAvailable() {
-    return NativeGitUtils.isNativeGitAvailable();
+  boolean isNativeGitAvailable(String gitExecutable) { 
+    return NativeGitUtils.isNativeGitAvailable(gitExecutable);
   }
 }

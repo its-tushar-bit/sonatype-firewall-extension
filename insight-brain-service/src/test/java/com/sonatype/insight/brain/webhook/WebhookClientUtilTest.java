@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.utils.AbstractHttpClientTest;
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.test.networking.SslProperties;
@@ -36,7 +36,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class WebhookClientUtilTest
-    extends AbstractComponentTest
+    extends AbstractHttpClientTest
 {
   static {
     SslProperties.use();
@@ -76,6 +76,11 @@ public class WebhookClientUtilTest
     if (server != null) {
       server.stop();
     }
+  }
+
+  @Override
+  protected void pingUrl(String url) {
+    doWebhookClientUtilPost(url);
   }
 
   @Test
@@ -154,8 +159,12 @@ public class WebhookClientUtilTest
   }
 
   private void doWebhookClientUtilPost() {
+    doWebhookClientUtilPost("http://localhost:" + ((NetworkConnector) server.getConnectors()[0]).getLocalPort());
+  }
+
+  private void doWebhookClientUtilPost(String url) {
     Webhook webhook = new Webhook();
-    webhook.setUrl("http://localhost:" + ((NetworkConnector) server.getConnectors()[0]).getLocalPort());
+    webhook.setUrl(url);
     webhook.setSecretKey("secret");
     WebhookPayload webhookPayload = new WebhookPayload()
     {

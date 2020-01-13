@@ -12,6 +12,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,6 +23,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.ProxyConfig;
+import com.sonatype.insight.brain.utils.AbstractHttpClientTest;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.test.networking.SslProperties;
@@ -36,10 +38,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class HdsClientProxyTest
+    extends AbstractHttpClientTest
 {
   static {
     SslProperties.use();
@@ -51,8 +55,10 @@ public class HdsClientProxyTest
 
   private AbstractHandler handler;
 
+  @Inject
   private InsightConfig config;
 
+  @Inject
   private TelemetryId telemetryId;
 
   @Before
@@ -71,19 +77,17 @@ public class HdsClientProxyTest
     });
     server.start();
 
-    config = new InsightConfig();
     ProxyConfig proxyConfig = new ProxyConfig();
     proxyConfig.setHostname("localhost");
     proxyConfig.setPort(((NetworkConnector) server.getConnectors()[0]).getLocalPort());
     config.setProxyConfig(proxyConfig);
     config.setHdsUrl("https://www.somehost.com/");
-    telemetryId = new TelemetryId(config);
     initClient();
   }
 
   private void initClient() {
     ProductLicense productLicense = mock(ProductLicense.class);
-    when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
+    lenient().when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
     ApiProxyConfigurationServiceV2 proxyConfig = new ApiProxyConfigurationServiceV2(new ProxyConfigurationDAO());
     client = new HdsClient(new InsightProxy(config, proxyConfig), productLicense, config, new VersionService(),
         telemetryId);
@@ -94,6 +98,13 @@ public class HdsClientProxyTest
     if (server != null) {
       server.stop();
     }
+  }
+
+  @Override
+  protected void pingUrl(String url) throws Exception {
+    config.setHdsUrl(url);
+    initClient();
+    client.get(String.class, "test/path");
   }
 
   @Test

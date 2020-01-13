@@ -1,0 +1,121 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.utils;
+
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.ProxyConfig;
+import com.sonatype.insight.error.exception.BadGatewayException;
+
+import org.apache.http.client.HttpResponseException;
+import org.eclipse.jetty.server.NetworkConnector;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public abstract class AbstractHttpClientTest
+    extends AbstractComponentTest
+{
+  protected abstract void pingUrl(String url) throws Exception;
+
+  @Inject
+  private InsightConfig appConfig;
+
+  @Test
+  public void testProxyUsage() throws Exception {
+    ProxyConfig proxyConfig = new ProxyConfig();
+    proxyConfig.setHostname("localhost");
+    proxyConfig.setUsername("test-proxy-user");
+    proxyConfig.setPassword("test-proxy-pass");
+    appConfig.setProxyConfig(proxyConfig);
+
+    Server proxyServer = new Server(0);
+    AtomicBoolean proxyServerUsed = new AtomicBoolean();
+    AtomicBoolean proxyAuthenticationProvided = new AtomicBoolean();
+    proxyServer.setHandler(new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException
+      {
+        proxyServerUsed.set(true);
+        String proxyAuth = request.getHeader("Proxy-Authorization");
+        if ("Basic dGVzdC1wcm94eS11c2VyOnRlc3QtcHJveHktcGFzcw==".equals(proxyAuth)) {
+          proxyAuthenticationProvided.set(true);
+          response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
+        }
+        else {
+          response.setStatus(HttpServletResponse.SC_PROXY_AUTHENTICATION_REQUIRED);
+          response.setHeader("Proxy-Authenticate", "Basic realm=\"ProxyTestRealm\"");
+        }
+        baseRequest.setHandled(true);
+      }
+    });
+
+    proxyServer.start();
+    try {
+      proxyConfig.setPort(((NetworkConnector) proxyServer.getConnectors()[0]).getLocalPort());
+      pingUrl("http://proxy.test/");
+    }
+    catch (HttpResponseException | BadGatewayException ignored) {
+      // given a generic HTTP 501 response from the proxy, client failure isn't unusual (but not required)
+    }
+    finally {
+      proxyServer.stop();
+    }
+
+    assertThat(proxyServerUsed).isTrue();
+    assertThat(proxyAuthenticationProvided).isTrue();
+  }
+
+  @Test
+  public void testProxyExclusion() throws Exception {
+    ProxyConfig proxyConfig = new ProxyConfig();
+    proxyConfig.setHostname("proxy.test");
+    appConfig.setProxyConfig(proxyConfig);
+    new SystemConfigurationPropertyDAO()
+        .update(new SystemConfigurationProperty(SystemConfigurationProperty.PROXY_EXCLUDE_HOSTS, "localhost"));
+
+    Server targetServer = new Server(0);
+    AtomicBoolean proxyServerBypassed = new AtomicBoolean();
+    targetServer.setHandler(new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException
+      {
+        proxyServerBypassed.set(true);
+        response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
+        baseRequest.setHandled(true);
+      }
+    });
+
+    targetServer.start();
+    try {
+      pingUrl("http://localhost:" + ((NetworkConnector) targetServer.getConnectors()[0]).getLocalPort() + "/");
+    }
+    catch (HttpResponseException | BadGatewayException ignored) {
+      // given a generic HTTP 501 response from the server, client failure isn't unusual (but not required)
+    }
+    finally {
+      targetServer.stop();
+    }
+
+    assertThat(proxyServerBypassed).isTrue();
+  }
+}

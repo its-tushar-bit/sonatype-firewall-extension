@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -206,7 +207,8 @@ public class SbomResultHandler
     if (StringUtils.isNoneBlank(name, version)) {
       String sha1 = getSha1(component);
       if (StringUtils.isNotBlank(sha1)) {
-        processSha1Component(createComponent(component, name, version), sha1, sbom);
+        processSha1Component(createComponent(component, name, version),
+            StringUtils.truncate(sha1, 0, HashHelper.MAX_LENGTH), sbom);
       }
       else {
         PackageUrlIdentifier packageUrlIdentifier =

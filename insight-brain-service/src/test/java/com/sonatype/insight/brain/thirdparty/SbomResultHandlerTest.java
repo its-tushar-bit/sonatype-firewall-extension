@@ -94,20 +94,23 @@ public class SbomResultHandlerTest
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
     assertThat(filteredContent).isNotNull();
-    Bom bom = assertFilteredSbomFile(filteredContent, 3);
+    Bom bom = assertFilteredSbomFile(filteredContent, 4);
     List<Component> components = bom.getComponents();
     assertThat(components).extracting("name")
-        .containsOnly("tomcat-catalina", "django", "jackson-databind");
+        .containsOnly("tomcat-catalina", "django", "jackson-databind", "joda-time");
     assertThat(components).extracting("version")
-        .containsOnly("9.0.14", "1.2.3", "2.9.9");
+        .containsOnly("9.0.14", "1.2.3", "2.9.9", "2.1.0");
     assertThat(components).extracting("purl")
         .containsOnly("pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14", null,
-            "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9");
+            "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9", null);
     assertThat(components).extracting("hashes.size")
-        .containsOnly(null, 1, null);
+        .containsOnly(null, 1, null, 1);
     assertThat(components.get(1).getHashes())
         .flatExtracting(Hash::getValue, Hash::getAlgorithm)
-        .contains("e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a", "SHA-1");
+        .contains("e6b1000b94e835ffd37f", "SHA-1");
+    assertThat(components.get(3).getHashes())
+        .flatExtracting(Hash::getValue, Hash::getAlgorithm)
+        .contains("f498a8ff2dd00", "SHA-1");
   }
 
   @Test
@@ -133,7 +136,7 @@ public class SbomResultHandlerTest
         .containsOnly(1, null);
     assertThat(components.get(0).getHashes())
         .flatExtracting(Hash::getValue, Hash::getAlgorithm)
-        .contains("e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a", "SHA-1");
+        .contains("e6b1000b94e835ffd37f", "SHA-1");
   }
 
   @Test

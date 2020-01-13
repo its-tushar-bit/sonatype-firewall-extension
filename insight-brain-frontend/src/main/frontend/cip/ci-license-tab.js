@@ -57,7 +57,8 @@ import cipLicenseEditorModule from './cip.license.editor/cip.license.editor.modu
       }]).service('OwnerContext', function () {
         return {
           ownerType: 'application',
-          ownerId: applicationId
+          ownerId: applicationId,
+          scanId: window.reportId
         };
       });
 

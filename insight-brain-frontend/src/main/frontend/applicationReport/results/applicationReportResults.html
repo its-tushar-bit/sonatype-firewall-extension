@@ -52,7 +52,7 @@
       {{vm.metadata.reportTime | date: 'yyyy-MM-dd HH:mm:ss UTCZ'}}
     </div>
   </div>
-  <div class="iq-tile iq-tile--application-report">
+  <div class="iq-tile iq-tile--indicators">
     <div class="iq-tile-content iq-tile-content--indicators">
       <div class="iq-indicator-row">
         <div class="iq-threat-indicators">
@@ -93,6 +93,8 @@
         </div>
       </div>
     </div>
+  </div>
+  <div class="iq-tile iq-tile--application-report">
     <div class="iq-tile-content iq-tile-content--fixed-table">
       <div class="iq-scrollable iq-scrollable--fixed-table"
            maximize-container-height
@@ -145,7 +147,7 @@
             <tr class="iq-table-row iq-clickable"
                 ng-repeat="component in vm.renderedEntries"
                 ng-click="vm.openCipModal($index)">
-              <td class="iq-cell iq-cell--label iq-cell--application-report-policy-threat-level">
+              <td class="iq-cell iq-cell--application-report-policy-threat-level">
                 <span class="iq-threat-indication" threat-class="component.policyThreatLevel"></span>
                 <span class="iq-threat-number">{{component.policyThreatLevel}}</span>
               </td><!--

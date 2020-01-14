@@ -16,6 +16,7 @@ $iq-cell-report-raw-data-cvss-width: 120px;
 }
 
 .iq-scrollable--report-raw-data {
+  height: 100%;
   .iq-table--fixed__header, .iq-table--fixed__content {
     .iq-cell--report-raw-data-license, .iq-cell--report-raw-data-component {
       width: calc(

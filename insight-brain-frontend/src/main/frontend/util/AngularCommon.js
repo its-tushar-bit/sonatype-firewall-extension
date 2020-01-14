@@ -314,7 +314,7 @@ angularCommon.directive('chiclets', function() {
       '<span ng-show="none || alwaysShow" class="{{baseClass}}" ng-class="{\'none\': none }" ' +
       'ng-style="style">{{ none || "" }}</span>',
     link: function(scope, element, attrs) {
-      scope.style = {margin: attrs.margin || '2px'};
+      scope.style = {margin: attrs.margin || '1px'};
       scope.alwaysShow = attrs.alwaysShow || false;
       scope.baseClass = attrs.baseClass || 'iq-threat-indicator';
     }

@@ -33,39 +33,62 @@
 }
 
 .iq-report-list__stage-links {
-  margin-top: 10px;
+  align-items: center;
+  display: flex;
+  font-size: 12px;
+  line-height: 12px;
 
   a {
     @extend .truncate-ellipsis;
+    @include semi-bold();
 
     display: inline-block;
-    width: calc(100% - 1px);
   }
 }
 
-.iq-report-list__violation-links,
+.iq-report-list__violation-links {
+  flex-shrink: 0;
+}
+
 .iq-report-list__report-links {
-  line-height: 21px;
+  min-width: 0;
+}
+
+.iq-report-list__violation-links {
+  margin-right: 6px;
+}
+
+.iq-report-list__violation-links .iq-threat-indicator {
+  font-size: 12px;
+  height: 18px;
+  line-height: 19px;
+  margin-right: 1px;
+  width: 16px;
+  min-width: 0;
+}
+
+.iq-report-list__report-age {
+  @extend .truncate-ellipsis;
+  display: block;
 }
 
 .iq-table--report-list {
   .iq-table--fixed__header {
-    background: $iq-grey-1;
     left: 16px;
     // modified because table is not inside iq-tile-content
     width: calc(100% - #{$iq-spacing-xl});
   }
 
   .iq-table--fixed__content {
+    padding-top: 6px;
+
     .iq-table-row {
       border-top: 1px solid $iq-grey-1;
-      height: auto;
     }
 
     .iq-cell {
       border-top: 0;
-      height: 68px;
-      line-height: 68px;
+      height: 100%;
       vertical-align: middle;
     }
   }

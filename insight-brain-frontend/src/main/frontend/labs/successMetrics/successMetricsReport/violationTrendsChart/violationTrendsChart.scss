@@ -13,22 +13,15 @@ $total-delta-icon-margin-left: 8px;
     .iq-table-row {
       border-top: 0;
       border-bottom: 0;
-
-      .iq-cell {
-        border-top: 0;
-        border-bottom: 0;
-      }
     }
   }
 
-  h4 {
+  .iq-cell--header {
+    border: none;
     color: $iq-off-black;
     font-size: 10px;
     margin: 0;
     padding: 0;
-  }
-
-  thead h4 {
     text-align: center;
   }
 

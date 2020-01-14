@@ -105,7 +105,11 @@
                            publicId: application.publicId,
                            scanId: application.policyEvaluations[stage.stageTypeId].scanId
                          })">
-                        View Report ({{::application.policyEvaluations[stage.stageTypeId].time | ago}})</a>
+                        View Report
+                      </a>
+                      <span class="iq-report-list__report-age">
+                        ({{::application.policyEvaluations[stage.stageTypeId].time | ago}})
+                      </span>
                     </div>
                   </div>
                 </td>

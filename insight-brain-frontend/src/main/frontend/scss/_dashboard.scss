@@ -1,10 +1,10 @@
-$iq-cell-default-width: 90px;
-$iq-cell-threat-width: 65px;
-$iq-cell-age-width: 65px;
-$iq-cell-report-width: 140px;
+$iq-cell-default-width: 114px;
+$iq-cell-threat-width: 89px;
+$iq-cell-age-width: 89px;
+$iq-cell-report-width: 164px;
 $iq-cell-scroll-bar-width: 14px;
 $iq-cell-chevron-width: 21px;
-$iq-cell-affected-apps-width: 109px;
+$iq-cell-affected-apps-width: 133px;
 
 .iq-sidebar--dashboard {
   // for the Manage Filter dropdown
@@ -74,7 +74,6 @@ $iq-cell-affected-apps-width: 109px;
 .iq-table--dashboard-violations,
 .iq-table--dashboard-applications,
 .iq-table--dashboard-components {
-  border-top: 1px solid $iq-grey-3;
   display: block;
   margin-top: 0;
   width: 100%;
@@ -88,7 +87,6 @@ $iq-cell-affected-apps-width: 109px;
   }
 
   .iq-cell {
-    display: inline-block;
     min-width: 0;
 
     .iq-spinner__wrapper {
@@ -98,18 +96,13 @@ $iq-cell-affected-apps-width: 109px;
 }
 
 .iq-dashboard-headers {
-  @include semi-bold();
-
-  background-color: #fff;
-  box-shadow: 0px 2px 5px 0px $iq-grey-1;
+  background-color: $iq-off-white;
+  border-top: 8px solid $iq-off-white;
   display: block;
   font-size: 14px;
-  padding-top: 8px; // temporary until 8 Shapes table mods are in place: CLM-14376
-  padding-bottom: 8px;
   position: absolute;
   top: 0;
   left: 0;
-  text-transform: uppercase;
   width: 100%;
   z-index: $iq-dashboard-headers-zindex;
 
@@ -118,18 +111,16 @@ $iq-cell-affected-apps-width: 109px;
   }
 
   .iq-cell--header {
-    &:first-child {
-      border-left: 8px solid $iq-off-white;
-      line-height: 16px;
-    }
+    height: 28px;
+    line-height: 28px;
   }
 
   .iq-threat-indication {
     height: 6px;
     position: absolute;
-    top: 41px;
-    left: 1px;
-    width: calc(100% - 2px);
+    top: 21px;
+    left: -1px;
+    width: 100%;
   }
 }
 
@@ -182,8 +173,9 @@ $iq-cell-affected-apps-width: 109px;
 .iq-cell--chevron {
   border-left: none;
   color: $iq-slate;
-  padding: 0 12px;
+  padding: $iq-spacing-xs $iq-spacing-sm;
   text-align: right;
+  text-overflow: clip;
   width: $iq-cell-chevron-width;
   max-width: $iq-cell-chevron-width;
 
@@ -199,8 +191,8 @@ $iq-cell-affected-apps-width: 109px;
 
   .header-text {
     height: 40px;
-    line-height: 16px;
-    padding-top: 4px;
+    line-height: 12px;
+    padding-top: 0;
     position: absolute;
     top: 0;
     white-space: normal;
@@ -208,9 +200,7 @@ $iq-cell-affected-apps-width: 109px;
 }
 
 .iq-violations-results, .iq-components-results, .iq-applications-results {
-  border-top: 6px solid transparent;
   box-sizing: border-box;
-  display: block;
   position: relative;
 
   .form-mask {
@@ -221,16 +211,29 @@ $iq-cell-affected-apps-width: 109px;
 /*
   VIOLATIONS & COMPONENTS TABS
 */
-.iq-violations-results, .iq-components-results {
-  margin-top: 46px;
 
+.iq-dashboard-headers {
+  .iq-cell--report {
+    width: $iq-cell-report-width + $iq-cell-scroll-bar-width;
+    max-width: $iq-cell-report-width + $iq-cell-scroll-bar-width;
+  }
+}
+
+.iq-violations-results, .iq-components-results {
   .iq-table-row {
     background-color: $iq-off-white;
-    border: 1px solid $iq-grey-2;
-    margin-bottom: 4px;
+    border-top: 1px solid $iq-grey-2;
 
     &:hover {
-      border-color: $iq-grey-4;
+      border-top: $iq-border-row-hover;
+
+      + .iq-table-row {
+        border-top: $iq-border-row-hover;
+      }
+
+      .iq-cell--label, .iq-cell--chevron {
+        color: $iq-text-color;
+      }
     }
   }
 }
@@ -243,17 +246,7 @@ $iq-cell-affected-apps-width: 109px;
 .iq-cell--policy,
 .iq-cell--application,
 .iq-cell--component {
-  // format is $cell-width + padding + border
-  width: calc(
-          (100% -
-             (
-               (24px + 1px) * 3
-               + #{$iq-cell-threat-width} + 24px + 8px
-               + #{$iq-cell-age-width} + 24px + 1px
-               + #{$iq-cell-report-width} + 24px + 8px
-             )
-          )
-          / 3);
+  width: calc((100% - (#{$iq-cell-threat-width} + 8px + #{$iq-cell-age-width} + #{$iq-cell-report-width} + 8px)) / 3);
 }
 
 .iq-cell--age {
@@ -283,31 +276,20 @@ $iq-cell-affected-apps-width: 109px;
 
 // Cells in the <tbody> must adjust their size to accommodate wider space
 .iq-violations-results {
-  .iq-cell--threat {
-    padding-left: 0;
-    width: $iq-cell-threat-width + 24px;
-    max-width: $iq-cell-threat-width + 24px;
+  .iq-table-row:first-child {
+    border-top: none;
   }
 
-  .iq-cell--policy,
-  .iq-cell--application,
-  .iq-cell--component {
-    // in calc below 24px is L/R padding, 1px is borders
-    width: calc(
-             (100% -
-               (
-                 (24px + 1px) * 3
-                 + #{$iq-cell-threat-width} + 24px + 12px
-                 + #{$iq-cell-age-width} + 24px + 1px
-                 + #{$iq-cell-report-width} + 24px + 1px
-               )
-             )
-           / 3);
+  .iq-cell--threat {
+    padding-top: 0;
+    padding-left: 0;
+    width: $iq-cell-threat-width;
+    max-width: $iq-cell-threat-width;
   }
 
   .iq-cell--report {
-    width: $iq-cell-report-width - 10px;
-    max-width: $iq-cell-report-width - 10px;
+    width: $iq-cell-report-width;
+    max-width: $iq-cell-report-width;
   }
 }
 
@@ -318,17 +300,7 @@ $iq-cell-affected-apps-width: 109px;
     .iq-cell--policy,
     .iq-cell--application,
     .iq-cell--component {
-      // in calc below 24px is L/R padding, 1px is borders
-      width: calc(
-               (100% -
-                 (
-                   (24px + 1px) * 3
-                   + #{$iq-cell-threat-width} + 24px
-                   + #{$iq-cell-age-width} + 24px + 1px
-                   + #{$iq-cell-report-width} + 24px + 1px
-                 )
-               )
-             / 3);
+      width: calc((100% - (#{$iq-cell-threat-width} + #{$iq-cell-age-width} + #{$iq-cell-report-width})) / 3);
     }
   }
 }
@@ -366,54 +338,32 @@ $iq-cell-affected-apps-width: 109px;
 
 .iq-table--dashboard-components {
   .iq-dashboard-headers {
-    .iq-cell--critical-risk,
-    .iq-cell--severe-risk,
-    .iq-cell--moderate-risk,
-    .iq-cell--low-risk {
-      overflow: visible;
-    }
-
     .iq-cell--component-name {
-      // in calc below 8px are header LR spacing, 24px is L/R padding, 1px is borders
-      width: calc(
-             100% -
-             (
-               8px + 24px
-               + (#{$iq-cell-default-width} + 24px + 1px) * 6
-               + 8px
-             )
-           );
+      width: calc(100% - (#{$iq-cell-default-width} * 6));
     }
   }
   .iq-components-results {
     .iq-cell--affected-apps {
-      width: $iq-cell-default-width + 1px;
-      max-width: $iq-cell-default-width + 1px;
+      width: $iq-cell-default-width;
+      max-width: $iq-cell-default-width;
     }
     .iq-cell--low-risk {
       padding-right: 0;
-      width: $iq-cell-default-width - $iq-cell-chevron-width + 8px;
-      max-width: $iq-cell-default-width - $iq-cell-chevron-width + 8px;
+      width: $iq-cell-default-width - $iq-cell-chevron-width;
+      max-width: $iq-cell-default-width - $iq-cell-chevron-width;
     }
     .iq-cell--chevron {
       padding-left: 0;
     }
     .iq-cell--component-name {
-      // in calc below 8px is header padding, 24px is L/R padding, 1px is borders
-      width: calc(
-               100% -
-               (
-                 8px + 24px
-                 + (#{$iq-cell-default-width} + 24px + 1px) * 5
-                 + (#{$iq-cell-default-width} - #{$iq-cell-chevron-width} + 12px + 1px)
-                 + #{$iq-cell-chevron-width} + 12px
-               )
-             );
+      width: calc(100% - (#{$iq-cell-default-width} * 6));
     }
   }
 }
 
 .iq-components-results {
+  padding-top: 36px;
+
   .iq-cell--affected-apps {
     text-align: center;
   }
@@ -422,25 +372,13 @@ $iq-cell-affected-apps-width: 109px;
 // If the scrollbar is present the cells must adjust to fill the lost space
 .scrollbar-present {
   .iq-components-results {
-    .iq-cell--chevron {
-      padding-left: 0;
-    }
     .iq-cell--low-risk {
-      padding-right: 0;
-      width: $iq-cell-default-width - $iq-cell-chevron-width - 8px;
-      max-width: $iq-cell-default-width - $iq-cell-chevron-width - 8px;
+      text-overflow: clip;
+      width: $iq-cell-default-width - $iq-cell-chevron-width - $iq-cell-scroll-bar-width;
+      max-width: $iq-cell-default-width - $iq-cell-chevron-width - $iq-cell-scroll-bar-width;
     }
     .iq-cell--component-name {
-      // in calc below 8px is header padding, 24px is L/R padding, 1px is borders
-      width: calc(
-               100% -
-               (
-                 8px + 24px
-                 + (#{$iq-cell-default-width} + 24px + 1px) * 5
-                 + (#{$iq-cell-default-width} - #{$iq-cell-chevron-width})
-                 + #{$iq-cell-chevron-width} + 9px
-               )
-             );
+      width: calc((100% - (#{$iq-cell-default-width} * 6)) + #{$iq-cell-scroll-bar-width});
     }
   }
 }
@@ -463,11 +401,12 @@ $iq-cell-affected-apps-width: 109px;
 }
 
 .iq-applications-results {
-  margin-top: 42px;
+  padding-top: 37px;
 
   .iq-table-row {
     background-color: $iq-off-white;
-    border: 1px solid $iq-grey-2;
+    border-top: 1px solid $iq-grey-2;
+    border-bottom: 1px solid $iq-grey-2;
   }
 
   .total-application-risks {
@@ -502,54 +441,32 @@ tbody {
 
 .iq-dashboard-headers {
   .iq-cell--application-name {
-    // in calc below 8px is header padding, 24px is L/R padding, 1px is borders
-    width: calc(
-             100% -
-             (
-               8px + 24px + 1px
-               + (#{$iq-cell-default-width} + 24px + 1px) * 5
-               + 8px
-             )
-           );
+    width: calc(100% - (#{$iq-cell-default-width}) * 5);
   }
 }
 
 .iq-applications-results {
   .iq-cell--low-risk {
-    width: $iq-cell-default-width + 8px;
-    max-width: $iq-cell-default-width + 8px;
+    width: $iq-cell-default-width;
+    max-width: $iq-cell-default-width;
   }
 }
 
 .iq-cell--application-name {
   // in calc below 8px is header padding, 24px is L/R padding, 1px is borders
-  width: calc(
-           100% -
-           (
-              8px + 24px + 1px
-              + (#{$iq-cell-default-width} + 24px + 1px) * 5
-           )
-         );
+  width: calc(100% - (#{$iq-cell-default-width}) * 5);
 }
 
 // If the scrollbar is present the cells must adjust to accommodate the lost space
 .scrollbar-present {
   .iq-applications-results {
     .iq-cell--low-risk {
-      width: $iq-cell-default-width - 6px;
-      max-width: $iq-cell-default-width - 6px;
+      width: $iq-cell-default-width - $iq-cell-scroll-bar-width - 1px;
+      max-width: $iq-cell-default-width - $iq-cell-scroll-bar-width - 1px;
     }
 
     .iq-cell--application-name {
-      // in calc below 24px is L/R padding, 1px is borders
-      width: calc(
-               100% -
-               (
-                  24px + 1px
-                  + (#{$iq-cell-default-width} + 24px + 1px) * 4
-                  + #{$iq-cell-default-width} + 18px
-               )
-             );
+      width: calc((100% - (#{$iq-cell-default-width} * 5)) + #{$iq-cell-scroll-bar-width} + 1px);
     }
   }
 }
@@ -580,8 +497,4 @@ tbody {
   .tooltip-arrow {
     left: 10%;
   }
-}
-
-.iq-scrollable--component-details {
-  max-height: 100%;
 }

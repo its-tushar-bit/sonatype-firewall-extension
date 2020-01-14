@@ -109,15 +109,31 @@ $iq-main-background-color: $iq-grey-1;
 $iq-page-background: $iq-grey-1;
 $iq-content-background: $iq-grey-1;
 
+//  Text Colors
+$iq-text-color: $iq-off-black;
+$iq-text-color-light: $iq-slate;
+$iq-text-color-disabled: $iq-grey-4;
+$iq-text-color-error: $iq-fail-color;
+
 /*
   #Borders
 */
-$iq-grey-border: 1px solid $iq-grey-3;
+$iq-border-darker: 1px solid $iq-slate;
+$iq-border-dark: 1px solid $iq-grey-4;
+$iq-border: 1px solid $iq-grey-3; // default
+$iq-border-light: 1px solid $iq-grey-2;
+$iq-border-lighter: 1px solid $iq-grey-1;
+$iq-border-error: 1px solid $iq-fail-color;
+
+// Border rows are used by lists and tables
+$iq-border-row: 1px solid $iq-grey-1;
+$iq-border-row-hover: 1px solid $iq-grey-4;
+$iq-border-row-disabled: 1px solid $iq-grey-1;
+$iq-border-row-dark: 1px solid $iq-grey-5;
 
 /*
   #Margin/Padding widths
 */
-
 $iq-spacing-xxs: 4px;
 $iq-spacing-xs: 8px;
 $iq-spacing-sm: 12px;

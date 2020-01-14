@@ -17,7 +17,7 @@ function createRow(data, $state) {
 
   return (
     <tr key={key} className="nx-table-row">
-      <td className="nx-cell iq-cell--vulnerability-policy-threat-level">
+      <td className="nx-cell nx-cell--threat-bar iq-cell--vulnerability-policy-threat-level">
         <NxThreatBar policyThreatLevel={policyThreatLevel} />
         <span className="nx-threat-number">{policyThreatLevel}</span>
       </td>

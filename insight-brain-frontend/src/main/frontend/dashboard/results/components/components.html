@@ -1,8 +1,8 @@
 <div id="dashboard-components">
   <div class="iq-tile iq-tile--dashboard-table-container" maximize-container-height>
-    <div class="iq-scrollable" detect-scrollbar="vm.appliedFilter">
-      <table class="iq-table iq-table--dashboard-components">
-        <thead class="iq-dashboard-headers">
+    <div class="iq-scrollable iq-scrollable--fixed-table" detect-scrollbar="vm.appliedFilter">
+      <table class="iq-table iq-table--fixed iq-table--dashboard-components">
+        <thead class="iq-dashboard-headers iq-table--fixed__header">
           <tr class="iq-table-row components-row"
               sort="vm.results.components.sortFields"
               on-sort-change="vm.sortResults('components', sortFields)">
@@ -13,7 +13,7 @@
                 sort-column="-affectedApplications">
               <span class="header-text">Affected Apps</span>
             </th><!--
-         --><th class="iq-cell iq-cell--header iq-cell--total-risk split-line" sort-column="-score">
+         --><th class="iq-cell iq-cell--header iq-cell--total-risk" sort-column="-score">
               <span class="header-text">Total Risk</span>
             </th><!--
          --><th class="iq-cell iq-cell--header iq-cell--critical-risk" sort-column="-scoreCritical">
@@ -36,7 +36,7 @@
         </thead>
 
         <tbody id="dashboard-results"
-               class="iq-components-results"
+               class="iq-components-results iq-table--fixed__content"
                form-mask="vm.maskController"
                mask-message="">
           <tr class="iq-table-row iq-clickable"

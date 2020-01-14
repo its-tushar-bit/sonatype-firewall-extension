@@ -2,7 +2,7 @@
   #Tables
 */
 
-$iq-table-header-row-height: 40px;
+$iq-table-header-row-height: 24px;
 $iq-table-header-filter-row-height: 38px;
 $iq-cell-filter-left-padding: 3px;
 $iq-cell-filter-right-padding: 2px;
@@ -10,13 +10,13 @@ $iq-cell-filter-right-padding: 2px;
 .iq-table {
   border-collapse: collapse;
   display: table;
-  margin-top: 8px;
+  height: 1px; // hack to fix threat bars in multi-line cells in FF
+  margin: $iq-spacing-sm 0 $iq-spacing-l 0;
   width: 100%;
 }
 
 thead {
   .iq-table-row {
-    border-top: 1px solid $iq-grey-3;
     border-bottom: 1px solid $iq-grey-2;
   }
 }
@@ -30,70 +30,90 @@ tbody {
 }
 
 .iq-table-row {
+  &:last-child {
+    .iq-cell:not(.iq-cell--header):not(.iq-error) {
+      border-bottom: $iq-border-row;
+    }
+  }
+
   &.iq-clickable {
     &:last-child {
       &:hover .iq-cell {
-        border-bottom: 1px solid $iq-grey-4;
+        border-bottom: $iq-border-row-hover;
       }
     }
 
     &:hover {
       .iq-cell {
-        border-top: 1px solid $iq-grey-4;
+        border-top: $iq-border-row-hover;
       }
 
       + .iq-table-row .iq-cell {
-        border-top: 1px solid $iq-grey-4;
+        border-top: $iq-border-row-hover;
       }
 
       .iq-cell--label, .iq-cell--chevron {
-        color: $iq-off-black;
+        color: $iq-text-color;
       }
     }
 
     .iq-cell--label {
       @include semi-bold();
 
-      color: $iq-slate;
+      color: $iq-text-color-light;
     }
   }
+}
+
+.iq-table-row--header {
+  border-bottom: $iq-border-row-dark;
 }
 
 .iq-cell {
   @extend .truncate-ellipsis;
 
-  border-top: 1px solid $iq-grey-1;
-  color: $iq-off-black;
+  background-clip: padding-box;
+  border-top: $iq-border-row;
+  box-sizing: border-box;
+  color: $iq-text-color;
   display: table-cell;
-  height: 40px;
-  line-height: 40px;
-  padding: 0 $iq-cell-side-padding;
+  height: 39px; // 38px cell, 1px top border
+  line-height: 14px;
+  padding: $iq-spacing-xs $iq-spacing-sm;
+  position: relative;
   text-align: left;
 
   &.iq-disabled {
     color: $iq-grey-4;
   }
+
+  &.iq-error {
+    border-color: $iq-fail-color-bg;
+    border-bottom-color: $iq-fail-color;
+    color: $iq-text-color-error;
+    text-align: center;
+  }
 }
 
 .iq-cell--header {
-  background-color: $iq-grey-1;
+  @include semi-bold;
+  background-color: $iq-off-white;
+  border-bottom: $iq-border-row-dark;
   border-top: none;
-  border-left: 1px solid $iq-grey-2;
-  color: $iq-slate;
-  position: relative;
+  color: $iq-text-color-light;
+  font-size: 12px;
+  height: 24px;
+  line-height: 12px;
+  padding-bottom: $iq-spacing-xxs;
   text-align: left;
   text-transform: uppercase;
 
-  &:first-child {
-    border-left: none;
-  }
-
-  &.iq-cell--chevron {
-    border-color: $iq-grey-1;
-  }
-
   &.iq-cell--selected, &.selected-column {
-    background-color: $iq-grey-2;
+    color: $iq-text-color;
+
+    .iq-column-sort-trigger {
+      color: $iq-text-color;
+    }
   }
 
   &.iq-disabled {
@@ -113,19 +133,14 @@ tbody {
   }
 }
 
-.iq-cell--header--noborder {
-  border-left: 1px solid $iq-grey-1;
-}
-
 .iq-cell--selected-column, .iq-cell--selected {
   background-color: $iq-grey-2;
 }
 
 .iq-column-sort-trigger {
   color: $iq-slate;
-  display: block;
-  height: 40px;
-  line-height: 40px;
+  display: inline-block;
+  width: 100%;
 
   &:hover {
     color: $iq-off-black;
@@ -168,12 +183,12 @@ tbody {
   color: $iq-off-black;
 }
 
+// Used when table contents are empty
 .iq-cell--empty {
   @include regular();
 
   box-sizing: border-box;
-
-  color: $iq-slate;
+  color: $iq-text-color-light;
   text-align: center;
 
   // for tables that don't use display: table due to sticky headers. Assumes the empty cell is the only
@@ -181,21 +196,22 @@ tbody {
   width: 100%;
 }
 
+// special cells that usually contain a button or indicator - usually on the right side
 .iq-cell--chevron {
-  color: $iq-slate;
-  padding: 0 12px;
+  color: $iq-text-color-light;
+  padding: 0 $iq-spacing-sm;
   text-align: right;
   width: 14px;
-  max-width: 14px;
+  max-width: 32px;
   min-width: 14px;
 }
 
 .iq-cell--icon {
-  color: $iq-slate;
-  padding: 0 12px;
+  color: $iq-text-color-light;
+  padding: 0 $iq-spacing-sm;
   text-align: right;
   width: 14px;
-  max-width: 14px;
+  max-width: 32px;
   min-width: 14px;
 }
 
@@ -227,11 +243,17 @@ thead {
     margin: 0;
     vertical-align: top;
     width: 100%;
-  }
 
-  input {
-    padding-left: 0;
-    width: calc(100% - 30px);
+    .add-on {
+      padding: 3px 4px 3px 2px;
+
+      // NOTE [type=text] was necessary to increase specificity above that of some of the styles from clm-form
+      & + input[type=text] {
+        height: 18px;
+        padding-left: 0;
+        width: calc(100% - 30px);
+      }
+    }
   }
 
   .fa-filter {
@@ -268,6 +290,7 @@ thead {
 }
 
 .iq-scrollable--fixed-table, .iq-scrollable--full-height {
+  height: 100%;
   max-height: 100%;
 }
 
@@ -276,10 +299,6 @@ thead {
   border-bottom: 1px solid $iq-grey-1;
   display: block;
   margin-top: 0;
-
-  thead, tbody {
-    display: block;
-  }
 
   .iq-cell {
     box-sizing: border-box;
@@ -296,7 +315,6 @@ thead {
   @include semi-bold();
 
   background-color: $iq-off-white;
-  box-shadow: 0px 5px 5px 0px transparentize($iq-grey-1, .50) ;
   display: block;
   font-size: 14px;
   position: absolute;
@@ -308,17 +326,13 @@ thead {
 
   .iq-cell--header {
     display: inline-block;
-    // 2px is so it doesn't cover over the table row borders
-    height: $iq-table-header-row-height - 2px;
-    line-height: $iq-table-header-row-height - 2px;
-
-    &:first-child {
-      border-left: 1px solid $iq-grey-1;
-    }
+    height: $iq-table-header-row-height;
+    line-height: $iq-table-header-row-height;
+    padding-top: 0;
+    padding-bottom: 0;
   }
 
   .iq-cell--filter {
-    border-left: 1px solid transparent;
     display: inline-block;
   }
 }
@@ -330,8 +344,8 @@ thead {
   width: 100%;
 
   .iq-cell {
-    border-left: 1px solid $iq-off-white;
     display: inline-block;
+    line-height: 23px; // necessary for vertical centering of contents
     min-width: 0;
 
     &:last-child {

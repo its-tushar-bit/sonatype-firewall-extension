@@ -1,8 +1,8 @@
 <div id="dashboard-violations">
   <div class="iq-tile iq-tile--dashboard-table-container" maximize-container-height>
-    <div class="iq-scrollable" detect-scrollbar="vm.appliedFilter">
-      <table class="iq-table iq-table--dashboard-violations">
-        <thead class="dashboard-headers iq-dashboard-headers">
+    <div class="iq-scrollable iq-scrollable--fixed-table" detect-scrollbar="vm.appliedFilter">
+      <table class="iq-table iq-table--fixed iq-table--dashboard-violations">
+        <thead class="dashboard-headers iq-dashboard-headers iq-table--fixed__header">
           <tr class="iq-table-row"
               sort="vm.results.violations.sortFields"
               on-sort-change="vm.sortResults('violations', sortFields)">
@@ -29,7 +29,7 @@
           </tr>
         </thead>
         <tbody id="dashboard-results"
-               class="iq-violations-results"
+               class="iq-violations-results iq-table iq-table--fixed__content"
                form-mask="vm.maskController"
                mask-message="">
           <tr violations-table-row risk="risk"

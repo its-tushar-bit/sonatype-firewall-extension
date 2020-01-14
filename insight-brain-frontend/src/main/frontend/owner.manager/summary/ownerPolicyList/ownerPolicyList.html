@@ -38,8 +38,8 @@
           ng-repeat="policy in vm.ownerPolicyList.policies | orderBy:vm.sortFields"
           ng-click="vm.onPolicyClick({policyId: policy.id})">
         <td class="iq-cell iq-cell--policy-list-name" colspan="2">
-          <span class="iq-threat-bar iq-threat-bar--policy-level-{{policy.threatLevel}}"></span><!--
-          -->{{policy.name}}
+          <span class="iq-threat-bar iq-threat-bar--policy-level-{{policy.threatLevel}}"></span>
+          <span class="iq-policy-name">{{policy.name}}</span>
         </td>
         <td class="iq-cell iq-cell--policy-list-stage" ng-repeat="stage in vm.actionStages"
             ng-class="{'iq-disabled' : !vm.isEnforcementSupportedForStage({stage: stage.stageTypeId})}">

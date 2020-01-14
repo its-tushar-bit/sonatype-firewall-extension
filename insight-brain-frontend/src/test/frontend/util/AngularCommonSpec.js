@@ -329,7 +329,7 @@ describe('AngularCommon', function() {
 
     it('should show all defined chiclets with a default margin', function() {
       chicletElement = compileElement('<div chiclets critical="1" severe="1" moderate="1" none="1"></div>');
-      expect(chicletElement.scope().$$childTail.style.margin).toBe('2px');
+      expect(chicletElement.scope().$$childTail.style.margin).toBe('1px');
       var chiclets = chicletElement.find('span');
       expect(chiclets.length).toBe(4);
       angular.forEach(chiclets, function(chiclet) {
@@ -359,7 +359,7 @@ describe('AngularCommon', function() {
       var chiclets = chicletElement.find('span');
       expect(chiclets.length).toBe(4);
       angular.forEach(chiclets, function(chiclet) {
-        expect($(chiclet).css('margin-top')).toBe('2px');
+        expect($(chiclet).css('margin-top')).toBe('1px');
       });
     });
     it('should respect a provided margin', function() {

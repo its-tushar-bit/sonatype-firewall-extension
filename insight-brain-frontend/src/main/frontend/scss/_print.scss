@@ -104,13 +104,8 @@
       }
 
       .nx-threat-bar {
-        height: $row-height;
-
-        // fill entire row height (include cell padding)
-        margin-top: -$cell-padding-top;
-        margin-bottom: -$cell-padding-bottom;
-
-        vertical-align: top;
+        margin: 0 12px 0 0;
+        width: 0;
       }
     }
 

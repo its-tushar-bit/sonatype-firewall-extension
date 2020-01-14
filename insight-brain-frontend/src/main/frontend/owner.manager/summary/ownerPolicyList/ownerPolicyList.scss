@@ -20,17 +20,17 @@ owner-policy-list {
   }
 
   .policy-list__threat-column {
-    width: 67px;
+    width: 91px;
   }
 
   // All the columns have the same class but require different widths so we have to count them.
   // The numbers represent minimum values for the column header text + arrows to fit.
-  $iq-cell-proxy-width: 61px;
-  $iq-cell-build-width: 61px;
-  $iq-cell-stage-width: 61px;
-  $iq-cell-develop-width: 77px;
-  $iq-cell-release-width: 73px;
-  $iq-cell-operate-width: 76px;
+  $iq-cell-proxy-width: 85px;
+  $iq-cell-build-width: 85px;
+  $iq-cell-stage-width: 85px;
+  $iq-cell-develop-width: 101px;
+  $iq-cell-release-width: 98px;
+  $iq-cell-operate-width: 101px;
 
   .policy-list__stage-column {
     // Proxy, Build, and Stage columns
@@ -59,18 +59,26 @@ owner-policy-list {
   .iq-cell--policy-list-name {
     @include semi-bold();
 
-    // values below are the values in the classes above + padding + border
+    // padding removed for threat bars
+    padding-top: 0;
+    padding-bottom: 0;
+    // values below are the values in the classes above + border
     // last value is the chevron column
     width: calc(100% - (
-                        + #{$iq-cell-proxy-width} + 24px + 1px
-                        + #{$iq-cell-build-width} + 24px + 1px
-                        + #{$iq-cell-stage-width} + 24px + 1px
-                        + #{$iq-cell-develop-width} + 24px + 1px
-                        + #{$iq-cell-release-width} + 24px + 1px
-                        + #{$iq-cell-operate-width} + 24px + 1px
+                        #{$iq-cell-proxy-width} + 1px
+                        + #{$iq-cell-build-width} + 1px
+                        + #{$iq-cell-stage-width} + 1px
+                        + #{$iq-cell-develop-width} + 1px
+                        + #{$iq-cell-release-width} + 1px
+                        + #{$iq-cell-operate-width} + 1px
                         + 33px
                       )
                     );
+  }
+
+  .iq-policy-name {
+    display: inline-block;
+    padding-top: $iq-spacing-sm;
   }
 }
 

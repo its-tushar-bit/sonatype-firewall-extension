@@ -12,17 +12,18 @@
 
   &.direct {
     background: $iq-dark-blue;
-
-    &::after {
-      content: "D"
-    }
   }
 
   &.transitive {
     background: $iq-dark-purple;
-
-    &::after {
-      content: "T"
-    }
   }
+}
+
+.iq-dependency-indicator--long {
+  $side-padding: 20px;
+
+  border-radius: 13px;
+  padding-left: $side-padding;
+  padding-right: $side-padding;
+  width: auto;
 }

@@ -177,3 +177,30 @@ cip-similar {
     max-width: 280px;
   }
 }
+
+#cip-modal-header {
+  align-items: center;
+  display: flex;
+
+  height: 37px;
+
+  // controlled by the height and align-items instead
+  padding-top: 0;
+  padding-bottom: 0;
+
+  h2 {
+    overflow: hidden;
+
+    em {
+      // the instrinsic width of the header box fails to take into account that italic letters are wider, at least in
+      // Chrome.  Without this extra space, they get cut off
+      padding-right: 5px;
+    }
+  }
+
+  .iq-dependency-indicator {
+    line-height: 26px;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+}

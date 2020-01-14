@@ -136,12 +136,16 @@ public class ApplicationReportCipTest
     reportPage.resultRow(1).click();
     cipModal.getElement().shouldBe(visible);
 
-    cipModal.header().shouldHave(exactText("javancss : javancss : 29.50"));
+    cipModal.header().shouldHave(text("javancss : javancss : 29.50"));
     cipModal.previousButton().shouldBe(disabled);
+    cipModal.dependencyIndicator().shouldBe(visible).shouldHave(cssClass("direct"))
+        .shouldHave(exactText("Direct Dependency"));
     cipModal.nextButton().shouldBe(enabled).click();
 
-    cipModal.header().shouldHave(exactText("ch.qos.logback : logback-access : 0.6"));
+    cipModal.header().shouldHave(text("ch.qos.logback : logback-access : 0.6"));
     cipModal.previousButton().shouldBe(enabled);
+    cipModal.dependencyIndicator().shouldBe(visible).shouldHave(cssClass("transitive"))
+        .shouldHave(exactText("Transitive Dependency"));
     cipModal.nextButton().shouldBe(enabled).click();
     cipModal.closeButton().click();
     cipModal.getElement().shouldBe(hidden);
@@ -151,11 +155,13 @@ public class ApplicationReportCipTest
 
     cipModal.header().shouldHave(exactText("unknown.jar"));
     cipModal.nextButton().shouldBe(disabled);
+    cipModal.dependencyIndicator().shouldNot(exist);
     cipModal.previousButton().shouldBe(enabled).click();
 
     cipModal.header().shouldHave(exactText("org.apache.geronimo.framework : geronimo-security : 2.1"));
     cipModal.nextButton().shouldBe(enabled);
     cipModal.previousButton().shouldBe(enabled);
+    cipModal.dependencyIndicator().shouldNot(exist);
     cipModal.closeButton().click();
     cipModal.getElement().shouldBe(hidden);
 

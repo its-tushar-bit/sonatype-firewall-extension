@@ -237,6 +237,10 @@ public class ApplicationReportPage
       return child("#cip-modal-header");
     }
 
+    public SelenideElement dependencyIndicator() {
+      return header().$(".iq-dependency-indicator");
+    }
+
     public SelenideElement tabLink(int i) {
       return child(".iq-tab-bar a", nthChild(i));
     }

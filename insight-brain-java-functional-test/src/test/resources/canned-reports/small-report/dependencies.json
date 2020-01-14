@@ -1,5 +1,52 @@
 {
-  "dependencyGraph" : [ { } ],
+  "dependencyGraph" : [{
+    "children": [{
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "groupId" : "javancss",
+          "artifactId" : "javancss",
+          "version" : "29.50",
+          "extension": "jar",
+          "classifier": null
+        }
+      }
+    }]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "javancss",
+        "artifactId" : "javancss",
+        "version" : "29.50",
+        "extension": "jar",
+        "classifier": null
+      }
+    },
+    "children": [{
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "groupId" : "ch.qos.logback",
+          "artifactId" : "logback-access",
+          "version" : "0.6",
+          "extension": "jar",
+          "classifier": null
+        }
+      }
+    }]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "ch.qos.logback",
+        "artifactId" : "logback-access",
+        "version" : "0.6",
+        "extension": "jar",
+        "classifier": null
+      }
+    }
+  }],
   "securityIssuesByDepth" : { },
   "gavDepths" : { },
   "licenseThreatsByDepth" : { }

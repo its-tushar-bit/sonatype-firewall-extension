@@ -163,6 +163,8 @@
                      data-tooltip="{{component.dependencyInfo.isDirectDependency ? 'Direct' : 'Transitive'}} Dependency"
                      data-tooltip-append-to-body="true"
                      ng-class="component.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'">
+                  <span ng-if="component.dependencyInfo.isDirectDependency">D</span>
+                  <span ng-if="!component.dependencyInfo.isDirectDependency">T</span>
                 </div><!--
              --><component-display component="component" truncate="true"></component-display>
               </td>

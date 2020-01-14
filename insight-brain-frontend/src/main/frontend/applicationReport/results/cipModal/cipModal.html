@@ -3,6 +3,13 @@
     <h2>
       <component-display component="vm.selectedComponent" truncate="true"></component-display>
     </h2>
+    <div ng-if="vm.selectedComponent.dependencyInfo"
+         class="iq-dependency-indicator iq-dependency-indicator--long"
+         ng-class="vm.selectedComponent.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'">
+      <span ng-if="vm.selectedComponent.dependencyInfo.isDirectDependency">Direct</span>
+      <span ng-if="!vm.selectedComponent.dependencyInfo.isDirectDependency">Transitive</span>
+      Dependency
+    </div>
   </header>
   <cip-tab-panel class="iq-modal-content"
                  scan-id="vm.selectedReport.scanId"

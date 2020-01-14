@@ -1,8 +1,6 @@
 /*
   #Main Header
 */
-$dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87, 87, 87, 1);
-$header-dropdown-panel-border: 1px solid $iq-grey-4;
 $header-dropdown-panel-background-color-rgba: rgba(0, 0, 0, 0.2);
 $main-header-background: $iq-blue;
 $main-header-color: $iq-off-white;
@@ -207,10 +205,6 @@ $iq-main-header-height: 72px;
 }
 
 .iq-dropdown-menu--main-header {
-  border: $header-dropdown-panel-border;
-  box-shadow: $dropdown-menu-box-shadow;
-  padding: 0;
-
   &:first-child {
     padding-bottom: 12px;
   }
@@ -358,16 +352,14 @@ $iq-main-header-height: 72px;
 
 .iq-dropdown-submenu {
   background-color: $iq-off-white;
-  border: $header-dropdown-panel-border;
-  border-radius: 4px;
   box-shadow: $dropdown-menu-box-shadow;
-  height: 378px;
+  height: 375px;
   list-style: none;
   margin-right: 12px;
   padding-bottom: 12px;
   position: absolute;
   top: 0;
-  right: 360px;
+  right: 390px;
   width: 500px;
 
   &::before {
@@ -432,14 +424,14 @@ $iq-main-header-height: 72px;
 // Help Menus
 .iq-dropdown--help-menu {
   .iq-dropdown-menu--main-header {
-    left: -125px;
+    left: -154px;
 
     &::before {
-      left: 135px;
+      left: 165px;
     }
 
     &::after {
-      left: 136px;
+      left: 166px;
     }
   }
 }

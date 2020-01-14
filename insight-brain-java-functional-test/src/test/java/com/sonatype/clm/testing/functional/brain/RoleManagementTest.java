@@ -131,10 +131,11 @@ public class RoleManagementTest
     remediationPermissionCategory.shouldBe(visible).shouldHave(text(remediationDisplayName));
 
     // verify permissions under Remediation category, and that they are in the right order
-    roleEditorPage.permissions(remediationDisplayName).shouldHaveSize(1);
+    roleEditorPage.permissions(remediationDisplayName).shouldHaveSize(2);
 
     assertPermission(roleEditorPage.permission(remediationDisplayName, 0), !ON, !ENABLED,
         Permission.WAIVE_POLICY_VIOLATIONS);
+    assertPermission(roleEditorPage.permission(remediationDisplayName, 1), !ON, !ENABLED, Permission.CHANGE_LICENSES);
   }
 
   @Test

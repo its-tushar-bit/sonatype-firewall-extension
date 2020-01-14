@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -37,7 +38,7 @@ public class LicenseOverrideServiceAuthzTest
   }
 
   private void testAddLicenseOverride_Authorized(final Owner owner, final String ownerId) throws Exception {
-    grantWritePermission(owner.getId());
+    grantPermission(owner.getId(), Permission.CHANGE_LICENSES);
     LicenseOverride override = new LicenseOverride(null, COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED,
         (String) null, "test");
     tempEntity.register(override);
@@ -130,7 +131,7 @@ public class LicenseOverrideServiceAuthzTest
   }
 
   private void testDeleteLicenseOverride_Authorized(final Owner owner, final String ownerId) throws Exception {
-    grantWritePermission(owner.getId());
+    grantPermission(owner.getId(), Permission.CHANGE_LICENSES);
     LicenseOverride override = tempEntity.newLicenseOverride(owner.getId(), COMPONENT_IDENTIFIER,
         LicenseOverrideStatus.CONFIRMED, (String) null);
     licenseOverrideService.deleteLicenseOverride(owner.getType(), ownerId, override.getId(), null, mockRequest);

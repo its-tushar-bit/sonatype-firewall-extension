@@ -80,7 +80,7 @@ public class LicenseOverrideService
     this.licenseOverrideEventService = licenseOverrideEventService;
   }
 
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.CHANGE_LICENSES)
   public LicenseOverride addLicenseOverride(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
                                             @AuthzContext(AuthzContext.Key.ID) final String ownerId,
                                             final LicenseOverride licenseOverride,
@@ -148,7 +148,7 @@ public class LicenseOverrideService
     store.commit("licenses.json", JsonUtils.stamp(user, ipAddress, where, JsonUtils.asTree(licenseOverrideAudit)));
   }
 
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.CHANGE_LICENSES)
   public void deleteLicenseOverride(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
                                     @AuthzContext(AuthzContext.Key.ID) final String ownerId,
                                     final String licenseOverrideId,

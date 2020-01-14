@@ -24,6 +24,9 @@ public enum Permission
   WAIVE_POLICY_VIOLATIONS("Waive", PermissionCategory.REMEDIATION, "Policy Violations", false /* global */,
       true /* allowedInCustomRoles */),
 
+  CHANGE_LICENSES("Change", PermissionCategory.REMEDIATION, "Licenses", false /* global */,
+      true /* allowedInCustomRoles */),
+
   MANAGE_PROPRIETARY("Edit", PermissionCategory.IQ, "Proprietary Components", false /* global */,
       true /* allowedInCustomRoles */),
 

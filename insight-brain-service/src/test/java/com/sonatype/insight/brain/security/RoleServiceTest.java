@@ -73,7 +73,7 @@ public class RoleServiceTest
 
     category = roleDTO.permissionCategories.get(2);
     assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
-    assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS);
+    assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES);
   }
 
   @Test
@@ -108,7 +108,7 @@ public class RoleServiceTest
 
     category = roleDTO.permissionCategories.get(2);
     assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
-    assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS);
+    assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES);
   }
 
   @Test
@@ -141,7 +141,7 @@ public class RoleServiceTest
 
     category = roleDTO.permissionCategories.get(2);
     assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
-    assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS);
+    assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES);
   }
 
   @Test

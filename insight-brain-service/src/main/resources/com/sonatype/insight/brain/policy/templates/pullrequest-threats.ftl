@@ -7,10 +7,10 @@
 - New version (for remediation): **${targetVersionDisplay}**
 
 ### Policy
-Threat (of 10) | Policy | Constraint | Violation Details
--- | -- | -- | --
+Threat (of 10) | Policy | Violation Details
+--- | --- | ---
 <#list threatList as threat>
-${threat.threat} | ${threat.policy} | ${threat.constraint} | ${threat.conditions}
+${threat.threat} | ${threat.policy} | ${threat.details}
 </#list>
 
 ### Nexus IQ Scan Detail

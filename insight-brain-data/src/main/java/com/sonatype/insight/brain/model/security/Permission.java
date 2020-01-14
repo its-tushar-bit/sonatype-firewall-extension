@@ -27,6 +27,9 @@ public enum Permission
   CHANGE_LICENSES("Change", PermissionCategory.REMEDIATION, "Licenses", false /* global */,
       true /* allowedInCustomRoles */),
 
+  CHANGE_SECURITY_VULNERABILITIES("Change", PermissionCategory.REMEDIATION, "Security Vulnerabilities",
+      false /* global */, true /* allowedInCustomRoles */),
+
   MANAGE_PROPRIETARY("Edit", PermissionCategory.IQ, "Proprietary Components", false /* global */,
       true /* allowedInCustomRoles */),
 

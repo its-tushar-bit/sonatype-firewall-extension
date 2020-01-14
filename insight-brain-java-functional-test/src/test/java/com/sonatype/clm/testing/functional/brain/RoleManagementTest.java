@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.RoleEditorPage;
 import com.sonatype.clm.testing.functional.pages.RoleManagementPage;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -25,6 +26,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -82,8 +84,8 @@ public class RoleManagementTest
     RoleEditorPage roleEditorPage = new RoleEditorPage();
     roleEditorPage.pageTitle().shouldBe(visible).shouldHave(text(BUILTIN_ROLES[roleId]));
 
-    // verify there are two permission categories
-    roleEditorPage.permissionCategories().shouldHaveSize(2);
+    // verify there are three permission categories
+    roleEditorPage.permissionCategories().shouldHaveSize(3);
 
     // Administrator permission category
     String adminDisplayName = PermissionCategory.ADMINISTRATOR.getDisplayName();
@@ -121,6 +123,18 @@ public class RoleManagementTest
         !ON, !ENABLED, Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
     assertPermission(roleEditorPage.permission(iqDisplayName, 9),
         !ON, !ENABLED, Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+
+    // Remediation permission category
+    String remediationDisplayName = PermissionCategory.REMEDIATION.getDisplayName();
+    RoleEditorPage.PermissionCategory remediationPermissionCategory =
+        roleEditorPage.permissionCategory(remediationDisplayName);
+    remediationPermissionCategory.shouldBe(visible).shouldHave(text(remediationDisplayName));
+
+    // verify permissions under Remediation category, and that they are in the right order
+    roleEditorPage.permissions(remediationDisplayName).shouldHaveSize(1);
+
+    assertPermission(roleEditorPage.permission(remediationDisplayName, 0), !ON, !ENABLED,
+        Permission.WAIVE_POLICY_VIOLATIONS);
   }
 
   @Test
@@ -171,6 +185,7 @@ public class RoleManagementTest
     roleEditorPage.nameEditor().val(newRoleName + updateSuffix);
     roleEditorPage.save().scrollIntoView(true).shouldBe(enabled);
     roleEditorPage.descriptionEditor().val(newRoleDescription + updateSuffix);
+    ScrollUtil.awaitEndOfScrolling(roleEditorPage.save().should(exist).scrollIntoView(true));
     roleEditorPage.save().click();
 
     // verify update is saved

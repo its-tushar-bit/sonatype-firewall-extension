@@ -9,6 +9,8 @@ public enum PermissionCategory
 {
   ADMINISTRATOR("Administrator"),
 
+  REMEDIATION("Remediation"),
+
   IQ("IQ");
 
   private final String displayName;

@@ -74,7 +74,7 @@ public class ApiPolicyWaiverService
     addPolicyWaiver(ownerType, ownerId, policyViolation, comment);
   }
 
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
   void addPolicyWaiver(
       /* used to perform authz check even though owner type is unused */
       @AuthzContext(Key.TYPE) @SuppressWarnings("unused") final OwnerType ownerType,

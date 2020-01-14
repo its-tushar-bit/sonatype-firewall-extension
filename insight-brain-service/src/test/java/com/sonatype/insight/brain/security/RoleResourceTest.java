@@ -56,7 +56,7 @@ public class RoleResourceTest
     assertResponseStatus(200, response);
     RoleDTO role = response.getBody(RoleDTO.class);
     assertThat(role).isNotNull();
-    assertThat(role.permissionCategories).hasSize(2);
+    assertThat(role.permissionCategories).hasSize(3);
   }
 
   @Test

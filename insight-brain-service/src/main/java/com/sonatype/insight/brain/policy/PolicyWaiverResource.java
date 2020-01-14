@@ -60,7 +60,7 @@ public class PolicyWaiverResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
   @Audited(AuditEvent.CREATE_WAIVER)
   public PolicyWaiver addPolicyWaiver(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
                                       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
@@ -81,7 +81,7 @@ public class PolicyWaiverResource
 
   @DELETE
   @Path("{policyWaiverId}")
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
   @Audited(AuditEvent.DELETE_WAIVER)
   public void deletePolicyWaiver(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
                                  @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,

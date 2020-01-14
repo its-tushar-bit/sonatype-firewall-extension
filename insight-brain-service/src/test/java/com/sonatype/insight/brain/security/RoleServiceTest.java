@@ -50,7 +50,7 @@ public class RoleServiceTest
     RoleDTO roleDTO = roleService.getRoleById(Role.SYSTEM_ADMIN_ROLE_ID);
 
     assertThat(roleDTO.id).isEqualTo(Role.SYSTEM_ADMIN_ROLE_ID);
-    assertThat(roleDTO.permissionCategories).hasSize(2);
+    assertThat(roleDTO.permissionCategories).hasSize(3);
     assertAllowedPermissions(roleDTO, Permission.CONFIGURE_SYSTEM, Permission.VIEW_ROLES);
 
     PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
@@ -70,6 +70,10 @@ public class RoleServiceTest
         Permission.ADD_APPLICATION, //
         Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, //
         Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+
+    category = roleDTO.permissionCategories.get(2);
+    assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
+    assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS);
   }
 
   @Test
@@ -81,7 +85,7 @@ public class RoleServiceTest
     assertThat(roleDTO.name).isEqualTo(expectedRole.getName());
     assertThat(roleDTO.description).isEqualTo(expectedRole.getDescription());
 
-    assertThat(roleDTO.permissionCategories).hasSize(2);
+    assertThat(roleDTO.permissionCategories).hasSize(3);
     assertAllowedPermissions(roleDTO, Permission.WRITE);
 
     PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
@@ -101,6 +105,10 @@ public class RoleServiceTest
         Permission.ADD_APPLICATION, //
         Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, //
         Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+
+    category = roleDTO.permissionCategories.get(2);
+    assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
+    assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS);
   }
 
   @Test
@@ -110,7 +118,7 @@ public class RoleServiceTest
     assertThat(roleDTO.name).isNull();
     assertThat(roleDTO.description).isNull();
 
-    assertThat(roleDTO.permissionCategories).hasSize(2);
+    assertThat(roleDTO.permissionCategories).hasSize(3);
     assertAllowedPermissions(roleDTO);
 
     PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
@@ -130,6 +138,10 @@ public class RoleServiceTest
         Permission.ADD_APPLICATION, //
         Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, //
         Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+
+    category = roleDTO.permissionCategories.get(2);
+    assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
+    assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS);
   }
 
   @Test

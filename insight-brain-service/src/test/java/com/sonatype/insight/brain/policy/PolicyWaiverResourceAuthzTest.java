@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Before;
@@ -36,14 +37,14 @@ public class PolicyWaiverResourceAuthzTest
 
   @Test
   public void testAddPolicyWaiver() throws Exception {
-    grantWritePermission(app.getId());
+    grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
 
     HttpRequest request = restRequest().body(new PolicyWaiver("hash", policy.getId(), null,
         Collections.singletonList(new ConstraintFact("id", "name", "operator")), "comment"));
     HttpResponse response = testAuthzPost(request.parameter(OwnerType.APPLICATION, app.getPublicId()));
     new PolicyWaiverDAO().delete(response.getBody(PolicyWaiver.class));
 
-    grantWritePermission(org.getId());
+    grantPermission(org.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
 
     request.body(new PolicyWaiver("hash", policy.getId(), null,
         Collections.singletonList(new ConstraintFact("id", "name", "operator")), "comment"));
@@ -55,11 +56,11 @@ public class PolicyWaiverResourceAuthzTest
   public void testDeletePolicyWaiver() throws Exception {
     HttpRequest request = restRequest().path("{waiverId}");
 
-    grantWritePermission(app.getId());
+    grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
     PolicyWaiver waiver = tempEntity.newWaiver("hash", policy.getId(), app.getId());
     testAuthzDelete(request.parameter(OwnerType.APPLICATION, app.getPublicId(), waiver.getId()));
 
-    grantWritePermission(org.getId());
+    grantPermission(org.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
     waiver = tempEntity.newWaiver("hash", policy.getId(), org.getId());
     testAuthzDelete(request.parameter(OwnerType.ORGANIZATION, org.getId(), waiver.getId()));
   }

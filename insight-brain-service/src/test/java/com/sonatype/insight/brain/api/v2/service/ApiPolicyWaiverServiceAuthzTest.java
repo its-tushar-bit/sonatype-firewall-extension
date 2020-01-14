@@ -37,7 +37,7 @@ public class ApiPolicyWaiverServiceAuthzTest
 
   @Test
   public void testAddPolicyWaiver_Application_Authorized() {
-    grantPermission(app.getId(), Permission.WRITE);
+    grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.APPLICATION, "waiver comment");
   }
 
@@ -54,7 +54,7 @@ public class ApiPolicyWaiverServiceAuthzTest
 
   @Test
   public void testAddPolicyWaiver_Organization_Authorized() {
-    grantPermission(org.getId(), Permission.WRITE);
+    grantPermission(org.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.ORGANIZATION, "waiver comment");
   }
 

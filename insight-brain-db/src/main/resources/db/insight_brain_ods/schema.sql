@@ -204,6 +204,7 @@ INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('f
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('f3fe74d34577471c936c332293c5ba0b', 'b9646757e98e486da7d730025f5245f8', 'ADD_APPLICATION');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('043024fcd34c47a1bea907cc0c84955f', 'b9646757e98e486da7d730025f5245f8', 'MANAGE_AUTOMATIC_APPLICATION_CREATION');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('0df19389f12947fabfa3028afb28eb26', 'b9646757e98e486da7d730025f5245f8', 'MANAGE_AUTOMATIC_SCM_CONFIGURATION');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('d6760c9dc2d1425a925cfb1296dbbbf9', 'b9646757e98e486da7d730025f5245f8', 'WAIVE_POLICY_VIOLATIONS');
 -- Owner role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c8d6f420845466bbc1eb5eaf6d4baa2', '1cddabf7fdaa47d6833454af10e0a3ef', 'WRITE');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c2587ba144341fd9d937dd36c850f5a', '1cddabf7fdaa47d6833454af10e0a3ef', 'READ');
@@ -213,6 +214,7 @@ INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('4
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('33fbb19ce93e4420a0ebcd846b0705d5', '1cddabf7fdaa47d6833454af10e0a3ef', 'EVALUATE_COMPONENT');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1bbcd0fe101449f09c3682fe6837267e', '1cddabf7fdaa47d6833454af10e0a3ef', 'VIEW_ROLES');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1bbcd0fe101449f09c3682fe6837267f', '1cddabf7fdaa47d6833454af10e0a3ef', 'ADD_APPLICATION');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('938168536594435aaae3e58668b7c46c', '1cddabf7fdaa47d6833454af10e0a3ef', 'WAIVE_POLICY_VIOLATIONS');
 -- Developer role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1a6a3ba60818476781a6a2cb9adcb7f6', '1da70fae1fd54d6cb7999871ebdb9a36', 'READ');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('61159b674eb94cdcb00ebdec77a47373', '1da70fae1fd54d6cb7999871ebdb9a36', 'EVALUATE_COMPONENT');

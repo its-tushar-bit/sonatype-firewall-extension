@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.io.File;
+
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.SourceControlConfig;
 import com.sonatype.nexus.git.utils.api.GitApi;
@@ -22,6 +24,7 @@ import static com.sonatype.insight.brain.git.GitApiFactory.JGIT;
 import static com.sonatype.insight.brain.git.GitApiFactory.NATIVE_GIT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -90,6 +93,8 @@ public class GitApiFactoryTest
 
   @Test
   public void test_nativeAvailable_gitExecutable_noConfig() {
+    assumeThat(new File(GIT_EXECUTABLE)).exists();
+
     when(gitApiFactory.isNativeGitAvailable(GIT_EXECUTABLE)).thenReturn(true);
     when(sourceControlConfig.getGitImplementation()).thenReturn(null);
     when(sourceControlConfig.getGitExecutable()).thenReturn(GIT_EXECUTABLE);

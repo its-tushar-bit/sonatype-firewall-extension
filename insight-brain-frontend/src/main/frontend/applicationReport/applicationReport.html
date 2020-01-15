@@ -4,9 +4,14 @@
      form-mask="vm.formMaskController"
      mask-message="Re-Evaluating"
      mask-attach-to-body>
-  <aside class="iq-sidebar iq-sidebar--theme-dark" id="application-report-sidebar">
+  <aside class="iq-sidebar" id="application-report-sidebar">
+    <iq-back-button ng-if="!vm.reportParameters.embeddable"
+                    state="violations"
+                    text="All Reports"
+                    class="iq-sidebar-back-button">
+    </iq-back-button>
     <fieldset class="iq-radio-group iq-form-group">
-      <legend class="iq-label">Aggregation</legend>
+      <legend class="iq-label">Application Report View</legend>
       <iq-radio id="aggregate-by-component-radio"
                 model="vm.aggregate"
                 value="true"
@@ -54,8 +59,7 @@
                                  disabled-tooltip="Reevaluate the report in order to enable Policy Types filter"
                                  available="vm.availablePolicyTypeFilterOptions"
                                  selected="vm.exactValueFilters.policyThreatCategory"
-                                 on-change="vm.setPolicyTypeFilterOptions(selected)"
-                                 tooltip-modifier-class="iq-tooltip--theme-dark">
+                                 on-change="vm.setPolicyTypeFilterOptions(selected)">
         Policy Types
       </iq-tree-view-multi-select>
       <iq-tree-view-policy-threat-level-slider id="threat-level-filter"

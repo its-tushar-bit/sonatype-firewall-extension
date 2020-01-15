@@ -95,15 +95,3 @@
 .tooltip {
   pointer-events: none; // prevent flicking and other display issues when hovering on the tooltip border
 }
-
-// dark theme
-.tooltip.iq-tooltip--theme-dark {
-  .tooltip-arrow::after {
-    border-top-color: $iq-grey-2;
-  }
-
-  .tooltip-inner {
-    background-color: $iq-grey-2;
-    color: $iq-off-black;
-  }
-}

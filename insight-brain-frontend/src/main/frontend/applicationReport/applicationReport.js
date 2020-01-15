@@ -170,7 +170,7 @@ function mapStateToThis(state) {
     'reevaluating',
     'reevaluationError',
     'exactValueFilters',
-    'policyTypeFilterEnabled'
+    'reportParameters'
   ], state.applicationReport || {});
 }
 

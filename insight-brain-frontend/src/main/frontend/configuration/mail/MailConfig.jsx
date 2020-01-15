@@ -86,23 +86,19 @@ export default function MailConfig(props) {
   }
 
   const sslInput = (
-    <div className="nx-form-group">
-      <NxCheckbox id="email-config-ssl-enabled"
-                  isChecked={sslEnabledState}
-                  onChange={() => setSslEnabled(!sslEnabledState)}>
-        SSL Enabled
-      </NxCheckbox>
-    </div>
+    <NxCheckbox id="email-config-ssl-enabled"
+                isChecked={sslEnabledState}
+                onChange={() => setSslEnabled(!sslEnabledState)}>
+      SSL Enabled
+    </NxCheckbox>
   );
 
   const tlsInput = (
-    <div className="nx-form-group">
-      <NxCheckbox id="email-config-starttls-enabled"
-                  isChecked={startTlsEnabledState}
-                  onChange={() => setStartTlsEnabled(!startTlsEnabledState)}>
-        STARTTLS Enabled
-      </NxCheckbox>
-    </div>
+    <NxCheckbox id="email-config-starttls-enabled"
+                isChecked={startTlsEnabledState}
+                onChange={() => setStartTlsEnabled(!startTlsEnabledState)}>
+      STARTTLS Enabled
+    </NxCheckbox>
   );
 
   const modal = (

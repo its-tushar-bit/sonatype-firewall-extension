@@ -12,6 +12,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQThreatIndicators;
 import com.sonatype.clm.testing.functional.pages.ReportListPage.ReportListRow;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
@@ -28,6 +29,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.visible;
 
 public class ReportListTest
@@ -56,28 +58,25 @@ public class ReportListTest
     Organization org = tempEntity.newOrganization();
     policyImportExport.importOrganization(org, referencePolicies);
     app = tempEntity.newApplication("ApplicationReportTest", "ApplicationReportTest", org.getId());
-    URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
+    URL zippedLargeReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
+    URL zippedSmallReport = ReportHelper.zipReport("/canned-reports/small-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
 
     // Build report
-    TestReportEvaluator evaluatorBuild =
-        new TestReportEvaluator(app, BUILD_SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    TestReportEvaluator evaluatorBuild = new TestReportEvaluator(app, BUILD_SCAN_ID, zippedLargeReport,
+        Configuration.baseUrl, work);
     evaluatorBuild.evaluatePolicy();
 
     // Stage Release report
-    TestReportEvaluator stageBuild =
-        new TestReportEvaluator(app, STAGE_SCAN_ID, zippedReport, Configuration.baseUrl, work, Stage.ID_STAGE_RELEASE);
+    TestReportEvaluator stageBuild = new TestReportEvaluator(app, STAGE_SCAN_ID, zippedSmallReport,
+        Configuration.baseUrl, work, Stage.ID_STAGE_RELEASE);
     stageBuild.evaluatePolicy();
 
-    // Release report
-    TestReportEvaluator releaseBuild =
-        new TestReportEvaluator(app, RELEASE_SCAN_ID, zippedReport, Configuration.baseUrl, work, Stage.ID_RELEASE);
-    releaseBuild.evaluatePolicy();
+    refreshOrOpen(ReportListPage.URL);
   }
 
   @Test
   public void testReportLinks() {
-    refreshOrOpen(ReportListPage.URL);
     ReportListRow firstRow = ReportListPage.firstRow();
     firstRow.shouldBe(visible);
 
@@ -87,7 +86,7 @@ public class ReportListTest
 
     buildLink.shouldBe(visible);
     stageReleaseLink.shouldBe(visible);
-    releaseLink.shouldBe(visible);
+    releaseLink.shouldNotBe(visible);
     ApplicationReportPage reportPage = new ApplicationReportPage();
 
     buildLink.click();
@@ -96,9 +95,24 @@ public class ReportListTest
 
     stageReleaseLink.click();
     reportPage.shouldBe(visible);
-    refreshOrOpen(ReportListPage.URL);
+  }
 
-    releaseLink.click();
-    reportPage.shouldBe(visible);
+  @Test
+  public void testChiclets() {
+    ReportListRow firstRow = ReportListPage.firstRow();
+    firstRow.shouldBe(visible);
+
+    IQThreatIndicators buildThreatIndicators = firstRow.buildReportThreatIndicators();
+    buildThreatIndicators.critical().shouldHave(exactText("22"));
+    buildThreatIndicators.severe().shouldHave(exactText("39"));
+    buildThreatIndicators.moderate().shouldHave(exactText("4"));
+
+    IQThreatIndicators stageReleaseThreatIndicators = firstRow.stageReleaseReportThreatIndicators();
+    stageReleaseThreatIndicators.critical().shouldNotBe(visible);
+    stageReleaseThreatIndicators.severe().shouldNotBe(visible);
+    stageReleaseThreatIndicators.moderate().shouldHave(exactText("1"));
+
+    IQThreatIndicators releaseThreatIndicators = firstRow.releaseReportThreatIndicators();
+    releaseThreatIndicators.shouldNotBe(visible);
   }
 }

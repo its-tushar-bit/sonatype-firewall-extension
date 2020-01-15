@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQThreatIndicators;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
@@ -43,6 +44,18 @@ public class ReportListPage
 
     public SelenideElement releaseReportLink() {
       return child(".iq-cell:nth-child(6) .iq-report-list__report-links a");
+    }
+
+    public IQThreatIndicators buildReportThreatIndicators() {
+      return new IQThreatIndicators(".iq-cell:nth-child(4) .iq-threat-indicators");
+    }
+
+    public IQThreatIndicators stageReleaseReportThreatIndicators() {
+      return new IQThreatIndicators(".iq-cell:nth-child(5) .iq-threat-indicators");
+    }
+
+    public IQThreatIndicators releaseReportThreatIndicators() {
+      return new IQThreatIndicators(".iq-cell:nth-child(6) .iq-threat-indicators");
     }
   }
 }

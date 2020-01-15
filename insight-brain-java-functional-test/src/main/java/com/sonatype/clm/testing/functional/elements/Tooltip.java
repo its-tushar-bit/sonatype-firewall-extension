@@ -9,7 +9,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 public class Tooltip extends BasicElement<Tooltip>
 {
-  private static final String DEFAULT_SELECTOR = ".tooltip";
+  private static final String DEFAULT_SELECTOR = ".tooltip, .nx-tooltip";
 
   public Tooltip(String... selectors) {
     super(selectors);

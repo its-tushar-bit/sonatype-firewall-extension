@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {curryN} from 'ramda';
+import { applyTo, curryN, isNil, map, reject, test } from 'ramda';
 
 export const validateNonEmpty = (val) => val && val.length ? null : 'Must be non-empty';
 
@@ -13,6 +13,16 @@ export const validateMaxLength = curryN(2, function validateMaxLength(maxLength,
   }
   return val.length <= maxLength ? null : `Please enter less than ${maxLength} characters`;
 });
+
+export const validatePatternMatch = curryN(3, function validatePatternMatch(regex, message, val) {
+  return test(regex, val) ? null : message;
+});
+
+/**
+ * Given a list of validator functions that return either a single string or null, returns a validator that
+ * returns a list of validation messages
+ */
+export const combineValidators = validators => val => reject(isNil, map(applyTo(val), validators));
 
 export const hasValidationErrors = (validationErrors) => {
   if (validationErrors == null) {

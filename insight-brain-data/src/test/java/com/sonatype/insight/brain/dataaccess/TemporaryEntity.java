@@ -2220,4 +2220,23 @@ public class TemporaryEntity
     userTokens.add(userToken);
     return userToken;
   }
+
+  public MailConfiguration newMailConfigurationWithNoAuthentication() {
+    return newMailConfiguration(null, null);
+  }
+
+  public MailConfiguration newMailConfiguration(String username, char[] password) {
+    MailConfiguration mailConfiguration = new MailConfiguration();
+
+    mailConfiguration.setHostname("smtp.hostname.com");
+    mailConfiguration.setPort(465);
+    mailConfiguration.setUsername(username);
+    mailConfiguration.setPassword(password);
+    mailConfiguration.setSystemEmail("nexus@iqserver.com");
+    mailConfiguration.setSslEnabled(true);
+    mailConfiguration.setStartTlsEnabled(true);
+
+    mailConfigurationDAO.set(mailConfiguration);
+    return mailConfiguration;
+  }
 }

@@ -37,6 +37,10 @@ export function getVulnerabilityDetailUrl(
   return url;
 }
 
+export function getMailConfigUrl() {
+  return `${getBaseUrl(window.location.href)}/api/v2/config/mail`;
+}
+
 export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier) {
   const urlWithPath = `${getBaseUrl(window.location.href)}/api/v2/vulnerabilities/${encodeURIComponent(refId)}`;
 

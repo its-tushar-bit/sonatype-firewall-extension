@@ -12,6 +12,7 @@ import applicationReportReducer from '../applicationReport/applicationReportRedu
 import userReducer from '../user/userReducer';
 import vulnerabilitySearchReducer from '../vulnerabilitySearch/vulnerabilitySearchReducer';
 import vulnerabilityDetailsModalReducer from '../vulnerabilityDetails/vulnerabilityDetailsModalReducer';
+import mailConfigReducer from '../configuration/mail/mailConfigReducer';
 
 export default combineReducers({
   router: routerStateReducer,
@@ -21,5 +22,6 @@ export default combineReducers({
   applicationReport: applicationReportReducer,
   user: userReducer,
   vulnerabilityDetailsModal: vulnerabilityDetailsModalReducer,
-  vulnerabilitySearch: vulnerabilitySearchReducer
+  vulnerabilitySearch: vulnerabilitySearchReducer,
+  mailConfig: mailConfigReducer
 });

@@ -78,7 +78,6 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.timeout;
@@ -215,7 +214,7 @@ public class PolicyAlertEmailerTest
         .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     Exception ex = new RuntimeException();
-    doThrow(ex).when(mailer).sendHtml(anyString(), anyString(), anyString(), anyString());
+    doThrow(ex).when(mailer).sendHtml(anyString(), anyString(), anyString());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
@@ -268,8 +267,7 @@ public class PolicyAlertEmailerTest
         .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
-    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()).times(0)).sendHtml(anyString(), any(), anyString(),
-        anyString());
+    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()).times(0)).sendHtml(any(), anyString(), anyString());
   }
 
   @Test
@@ -351,8 +349,7 @@ public class PolicyAlertEmailerTest
         .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
-    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis())).sendHtml(endsWith(scanId), anyString(), anyString(),
-        anyString());
+    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis())).sendHtml(anyString(), anyString(), anyString());
 
     String newAddress = "newaddress@sonatype.com";
     user.setEmail(newAddress);
@@ -385,8 +382,7 @@ public class PolicyAlertEmailerTest
         .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
-    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis())).sendHtml(endsWith(scanId), anyString(), anyString(),
-        anyString());
+    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis())).sendHtml(anyString(), anyString(), anyString());
 
     testLdapServer1.loadData("/PolicyAlertEmailerTest/alter_testuser1_1_email.ldif");
 
@@ -527,7 +523,7 @@ public class PolicyAlertEmailerTest
 
   private void assertEmailAddresses(String... expectedEmailAddresses) {
     verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()).times(expectedEmailAddresses.length))
-        .sendHtml(anyString(), toAddressesArgumentCaptor.capture(), anyString(), anyString());
+        .sendHtml(toAddressesArgumentCaptor.capture(), anyString(), anyString());
 
     assertThat(toAddressesArgumentCaptor.getAllValues()).containsExactlyInAnyOrder(expectedEmailAddresses);
   }

@@ -5,41 +5,30 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.nio.charset.StandardCharsets;
+
 import javax.inject.Inject;
+import javax.mail.Address;
+import javax.mail.Message;
+import javax.mail.Message.RecipientType;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
 
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 
-import org.sonatype.micromailer.EMailer;
-import org.sonatype.micromailer.MailRequest;
-import org.sonatype.micromailer.MailRequestStatus;
-
-import com.google.inject.Binder;
+import org.codehaus.plexus.util.IOUtil;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
+import org.jvnet.mock_javamail.Mailbox;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class InsightMailTest
     extends AbstractComponentTest
 {
-  @Mock
-  private EMailer eMailerMock;
-
   @Inject
   private InsightMail insightMail;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(EMailer.class).toInstance(eMailerMock);
-
-    super.configure(binder);
-  }
 
   @Test
   public void testGetServer_MailConfigured() {
@@ -52,7 +41,6 @@ public class InsightMailTest
     mailConfiguration.setStartTlsEnabled(true);
     mailConfiguration.setSystemEmail("testfrom@sonatype.com");
     new MailConfigurationDAO().set(mailConfiguration);
-    insightMail.loadMailConfiguration();
 
     assertThat(insightMail.getServer()).isEqualTo("testHostname:5555");
   }
@@ -63,32 +51,114 @@ public class InsightMailTest
   }
 
   @Test
-  public void testSendHtml_MailConfigured() {
+  public void testSendHtml_MailConfigured_SslEnabled() throws Exception {
     MailConfiguration mailConfiguration = new MailConfiguration();
-    mailConfiguration.setHostname("testHostname");
-    mailConfiguration.setPort(5555);
+    mailConfiguration.setHostname("mail.example.com");
+    mailConfiguration.setPort(12345);
+    mailConfiguration.setSystemEmail("noreply@example.com");
+    mailConfiguration.setSslEnabled(true);
+
+    testSendHtml_MailConfigured(mailConfiguration);
+  }
+
+  @Test
+  public void testSendHtml_MailConfigured_StartTlsEnabled() throws Exception {
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("mail.example.com");
+    mailConfiguration.setPort(12345);
+    mailConfiguration.setSystemEmail("noreply@example.com");
+    mailConfiguration.setStartTlsEnabled(true);
+
+    testSendHtml_MailConfigured(mailConfiguration);
+  }
+
+  @Test
+  public void testSendHtml_MailConfigured_NoAuthentication() throws Exception {
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("mail.example.com");
+    mailConfiguration.setPort(12345);
+    mailConfiguration.setSystemEmail("noreply@example.com");
+
+    testSendHtml_MailConfigured(mailConfiguration);
+  }
+
+  @Test
+  public void testSendHtml_MailConfigured_Authentication() throws Exception {
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("mail.example.com");
+    mailConfiguration.setPort(12345);
     mailConfiguration.setUsername("testUsername");
     mailConfiguration.setPassword(insightMail.encryptPassword("testPassword".toCharArray()));
-    mailConfiguration.setSslEnabled(true);
-    mailConfiguration.setStartTlsEnabled(true);
-    mailConfiguration.setSystemEmail("testfrom@sonatype.com");
-    new MailConfigurationDAO().set(mailConfiguration);
-    insightMail.loadMailConfiguration();
+    mailConfiguration.setSystemEmail("noreply@example.com");
 
-    ArgumentCaptor<MailRequest> emailerMailRequestArgumentCaptor = ArgumentCaptor.forClass(MailRequest.class);
-    MailRequestStatus mailRequestStatus = new MailRequestStatus(new MailRequest("id", "mailTypeId"));
-    mailRequestStatus.setSent(true);
-    when(eMailerMock.sendMail(any(MailRequest.class))).thenReturn(mailRequestStatus);
-    insightMail.sendHtml("testMailId", "test@example.com", "testSubject", "testBody");
-    verify(eMailerMock).sendMail(emailerMailRequestArgumentCaptor.capture());
-    MailRequest mailRequest = emailerMailRequestArgumentCaptor.getValue();
-    assertThat(mailRequest.getFrom().getMailAddress()).isEqualTo("testfrom@sonatype.com");
+    testSendHtml_MailConfigured(mailConfiguration);
+  }
+
+  @Test
+  public void testSendHtml_MailConfigured_Authentication_NoPassword() throws Exception {
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("mail.example.com");
+    mailConfiguration.setPort(12345);
+    mailConfiguration.setUsername("testUsername");
+    mailConfiguration.setPassword(null);
+    mailConfiguration.setSystemEmail("noreply@example.com");
+
+    testSendHtml_MailConfigured(mailConfiguration);
+  }
+
+  private void testSendHtml_MailConfigured(MailConfiguration mailConfiguration) throws Exception {
+    new MailConfigurationDAO().set(mailConfiguration);
+
+    String toEmailAddress = "testuser@example.com";
+    Mailbox.clearAll();
+    Mailbox emails = Mailbox.get(toEmailAddress);
+
+    String subject = "testSubject";
+    String message = "testMessage";
+    insightMail.sendHtml(toEmailAddress, subject, message);
+
+    assertThat(emails).hasSize(1);
+    Message email = emails.get(0);
+
+    // Assert mail server
+    Session session = email.getSession();
+    assertThat(session.getProperties()) //
+        .containsEntry("mail.smtp.host", mailConfiguration.getHostname())
+        .containsEntry("mail.smtp.port", String.valueOf(mailConfiguration.getPort()))
+        .containsEntry("mail.smtp.starttls.enable", String.valueOf(mailConfiguration.isStartTlsEnabled()));
+
+    // Assert authentication
+    PasswordAuthentication passwordAuthentication = session.requestPasswordAuthentication(null, 0, null, null, null);
+    if (mailConfiguration.getUsername() == null) {
+      assertThat(passwordAuthentication).isNull();
+    }
+    else {
+      assertThat(passwordAuthentication.getUserName()).isEqualTo(mailConfiguration.getUsername());
+      if (mailConfiguration.getPassword() == null) {
+        assertThat(passwordAuthentication.getPassword()).isNull();
+      }
+      else {
+        assertThat(passwordAuthentication.getPassword())
+            .isEqualTo(String.valueOf(insightMail.decryptPassword(mailConfiguration.getPassword())));
+      }
+    }
+
+    // Assert "to" and "from" addresses
+    Address[] recipients = email.getRecipients(RecipientType.TO);
+    assertThat(recipients).hasSize(1);
+    assertThat(recipients[0].toString()).isEqualTo(toEmailAddress);
+    assertThat(email.getFrom()[0].toString()).isEqualTo("Nexus IQ Server <" + mailConfiguration.getSystemEmail() + ">");
+    
+    // Assert email subject and body
+    assertThat(email.getSubject()).isEqualTo(subject);
+    String emailBody = IOUtil.toString(email.getDataHandler().getInputStream(), StandardCharsets.UTF_8.name());
+    assertThat(emailBody).contains(message);
   }
 
   @Test
   public void testSendHtml_MailNotConfigured() {
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
-      insightMail.sendHtml("testMailId", "test@example.com", "testSubject", "testBody");
+      insightMail.sendHtml("test@example.com", "testSubject", "testBody");
     }).withMessage("Mail is not configured.");
   }
 

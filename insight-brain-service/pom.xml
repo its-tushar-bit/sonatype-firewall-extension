@@ -114,10 +114,6 @@
       <artifactId>insight-brain-scanner</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-mail</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-error-handling</artifactId>
     </dependency>
@@ -226,6 +222,11 @@
       <version>1.17</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-email</artifactId>
+      <version>1.5</version>
+    </dependency>
     <dependency>
       <groupId>org.freemarker</groupId>
       <artifactId>freemarker</artifactId>

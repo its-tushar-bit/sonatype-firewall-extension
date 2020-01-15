@@ -113,7 +113,7 @@ public class RepositoryPolicyAlertEmailerTest
   private void sendNotificationsAndVerify(Repository repository, User user, List<PolicyNotification> notifications) {
     emailer.sendNotifications(repository, notifications);
 
-    verify(mail).sendHtml(eq("SONATYPE-IQ-" + repository.getPublicId()), eq(user.getEmail()), anyString(), anyString());
+    verify(mail).sendHtml(eq(user.getEmail()), anyString(), anyString());
   }
 
   @Test

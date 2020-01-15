@@ -55,7 +55,6 @@ import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -100,7 +99,6 @@ public class PolicyMonitorTest
     mailConfiguration.setPort(587);
     mailConfiguration.setSystemEmail("NexusIQServer@localhost");
     new MailConfigurationDAO().set(mailConfiguration);
-    getCLMServer().getInstance(InsightMail.class).loadMailConfiguration();
   }
 
   @After

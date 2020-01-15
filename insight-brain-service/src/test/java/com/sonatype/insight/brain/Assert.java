@@ -46,6 +46,8 @@ public class Assert
     long start = System.currentTimeMillis();
     do {
       if (notifications.size() == notificationCount) {
+        System.out.println("Found " + notificationCount + " expected notifications in "
+            + (System.currentTimeMillis() - start) + " ms");
         return;
       }
       Thread.sleep(50);

@@ -84,8 +84,7 @@ public class RepositoryPolicyAlertEmailerAuditTest
   @Test
   public void testSendNotifications_MailException() {
     List<PolicyNotification> policyNotifications = createPolicyNotifications();
-    doThrow(new RuntimeException()).doNothing().when(mockInsightMail)
-        .sendHtml(anyString(), any(), anyString(), anyString());
+    doThrow(new RuntimeException()).doNothing().when(mockInsightMail).sendHtml(any(), anyString(), anyString());
 
     repositoryPolicyAlertEmailer.sendNotifications(repository, policyNotifications);
 

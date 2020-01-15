@@ -23,4 +23,5 @@
   <logger name="com.sonatype" level="DEBUG" />
   <logger name="org.apache.http.headers" level="DEBUG" />
   <logger name="org.eclipse.jetty.server.HttpChannel" level="DEBUG" />
+  <logger name="com.icegreen.greenmail" level="DEBUG" />
 </configuration>

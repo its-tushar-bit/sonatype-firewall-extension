@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.mail.InsightMailer;
 
 import org.junit.Test;
 
@@ -89,15 +88,6 @@ public class ApiMailConfigurationServiceTest
     assertThat(mailConfiguration.isSslEnabled()).isEqualTo(configurationDTO.sslEnabled);
     assertThat(mailConfiguration.isStartTlsEnabled()).isEqualTo(configurationDTO.startTlsEnabled);
     assertThat(mailConfiguration.getSystemEmail()).isEqualTo(configurationDTO.systemEmail);
-
-    InsightMailer insightMailer = insightMail.getInsightMailer();
-    assertThat(insightMailer.getHostname()).isEqualTo("servtest");
-    assertThat(insightMailer.getPort()).isEqualTo(58285);
-    assertThat(insightMailer.getUsername()).isEqualTo("smtpuser");
-    assertThat(insightMailer.isSsl()).isTrue();
-    assertThat(insightMailer.isTls()).isFalse();
-    assertThat(insightMailer.getSystemEmail()).isEqualTo("nxiq@test");
-    assertThat(insightMailer.getSystemPersonal()).isEqualTo("Nexus IQ Server");
   }
 
   @Test
@@ -133,15 +123,6 @@ public class ApiMailConfigurationServiceTest
     assertThat(mailConfiguration.isSslEnabled()).isEqualTo(configurationDTO.sslEnabled);
     assertThat(mailConfiguration.isStartTlsEnabled()).isEqualTo(configurationDTO.startTlsEnabled);
     assertThat(mailConfiguration.getSystemEmail()).isEqualTo(configurationDTO.systemEmail);
-
-    InsightMailer insightMailer = insightMail.getInsightMailer();
-    assertThat(insightMailer.getHostname()).isEqualTo("servtest");
-    assertThat(insightMailer.getPort()).isEqualTo(58285);
-    assertThat(insightMailer.getUsername()).isEqualTo("smtpuser");
-    assertThat(insightMailer.isSsl()).isTrue();
-    assertThat(insightMailer.isTls()).isFalse();
-    assertThat(insightMailer.getSystemEmail()).isEqualTo("nxiq@test");
-    assertThat(insightMailer.getSystemPersonal()).isEqualTo("Nexus IQ Server");
   }
 
   @Test
@@ -166,15 +147,6 @@ public class ApiMailConfigurationServiceTest
     assertThat(mailConfiguration.isSslEnabled()).isEqualTo(configurationDTO.sslEnabled);
     assertThat(mailConfiguration.isStartTlsEnabled()).isEqualTo(configurationDTO.startTlsEnabled);
     assertThat(mailConfiguration.getSystemEmail()).isEqualTo(configurationDTO.systemEmail);
-
-    InsightMailer insightMailer = insightMail.getInsightMailer();
-    assertThat(insightMailer.getHostname()).isEqualTo("servtest");
-    assertThat(insightMailer.getPort()).isEqualTo(58285);
-    assertThat(insightMailer.getUsername()).isEqualTo("smtpuser");
-    assertThat(insightMailer.isSsl()).isTrue();
-    assertThat(insightMailer.isTls()).isFalse();
-    assertThat(insightMailer.getSystemEmail()).isEqualTo("nxiq@test");
-    assertThat(insightMailer.getSystemPersonal()).isEqualTo("Nexus IQ Server");
   }
 
   @Test
@@ -199,15 +171,6 @@ public class ApiMailConfigurationServiceTest
     assertThat(mailConfiguration.isSslEnabled()).isEqualTo(configurationDTO.sslEnabled);
     assertThat(mailConfiguration.isStartTlsEnabled()).isEqualTo(configurationDTO.startTlsEnabled);
     assertThat(mailConfiguration.getSystemEmail()).isEqualTo(configurationDTO.systemEmail);
-
-    InsightMailer insightMailer = insightMail.getInsightMailer();
-    assertThat(insightMailer.getHostname()).isEqualTo("servtest");
-    assertThat(insightMailer.getPort()).isEqualTo(58285);
-    assertThat(insightMailer.getUsername()).isEqualTo("smtpuser");
-    assertThat(insightMailer.isSsl()).isTrue();
-    assertThat(insightMailer.isTls()).isFalse();
-    assertThat(insightMailer.getSystemEmail()).isEqualTo("nxiq@test");
-    assertThat(insightMailer.getSystemPersonal()).isEqualTo("Nexus IQ Server");
   }
 
   @Test
@@ -240,15 +203,6 @@ public class ApiMailConfigurationServiceTest
     assertThat(mailConfiguration.isSslEnabled()).isEqualTo(configurationDTO.sslEnabled);
     assertThat(mailConfiguration.isStartTlsEnabled()).isEqualTo(configurationDTO.startTlsEnabled);
     assertThat(mailConfiguration.getSystemEmail()).isEqualTo(configurationDTO.systemEmail);
-
-    InsightMailer insightMailer = insightMail.getInsightMailer();
-    assertThat(insightMailer.getHostname()).isEqualTo("servtest");
-    assertThat(insightMailer.getPort()).isEqualTo(58285);
-    assertThat(insightMailer.getUsername()).isEqualTo("smtpuser");
-    assertThat(insightMailer.isSsl()).isTrue();
-    assertThat(insightMailer.isTls()).isFalse();
-    assertThat(insightMailer.getSystemEmail()).isEqualTo("nxiq@test");
-    assertThat(insightMailer.getSystemPersonal()).isEqualTo("Nexus IQ Server");
   }
 
   @Test
@@ -281,15 +235,6 @@ public class ApiMailConfigurationServiceTest
     assertThat(mailConfiguration.isSslEnabled()).isEqualTo(configurationDTO.sslEnabled);
     assertThat(mailConfiguration.isStartTlsEnabled()).isEqualTo(configurationDTO.startTlsEnabled);
     assertThat(mailConfiguration.getSystemEmail()).isEqualTo(configurationDTO.systemEmail);
-
-    InsightMailer insightMailer = insightMail.getInsightMailer();
-    assertThat(insightMailer.getHostname()).isEqualTo("servtest");
-    assertThat(insightMailer.getPort()).isEqualTo(58285);
-    assertThat(insightMailer.getUsername()).isEqualTo("smtpuser");
-    assertThat(insightMailer.isSsl()).isTrue();
-    assertThat(insightMailer.isTls()).isFalse();
-    assertThat(insightMailer.getSystemEmail()).isEqualTo("nxiq@test");
-    assertThat(insightMailer.getSystemPersonal()).isEqualTo("Nexus IQ Server");
   }
 
   @Test
@@ -414,14 +359,10 @@ public class ApiMailConfigurationServiceTest
     mailConfiguration.setPort(58285);
     mailConfiguration.setSystemEmail("nxiq@test");
     mailConfigurationDAO.set(mailConfiguration);
-    insightMail.loadMailConfiguration();
-    assertThat(insightMail.getInsightMailer()).isNotNull();
 
     mailConfigurationService.deleteConfiguration();
 
     assertThat(mailConfigurationDAO.get()).isNull();
-
-    assertThat(insightMail.getInsightMailer()).isNull();
   }
 
   @Test

@@ -5,25 +5,24 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.util.Collections;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
 
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
-import com.sonatype.insight.mail.EmailUtil;
-import com.sonatype.insight.mail.InsightMailer;
-import com.sonatype.insight.mail.MailConfig;
 
-import org.sonatype.micromailer.Address;
-import org.sonatype.micromailer.EMailer;
-import org.sonatype.micromailer.MailRequest;
-import org.sonatype.micromailer.imp.HtmlMailType;
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.mail.EmailException;
+import org.apache.commons.mail.HtmlEmail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,50 +34,14 @@ public class InsightMail
 
   private static final String ENC = "CMMDwoV";
 
-  private final EMailer eMailer;
-
-  private volatile InsightMailer insightMailer;
-
   private final InsightConfig config;
 
   private final PlexusCipher cipher;
 
   @Inject
-  public InsightMail(final InsightConfig config, final EMailer eMailer, PlexusCipher cipher) {
+  public InsightMail(final InsightConfig config, PlexusCipher cipher) {
     this.config = config;
-    this.eMailer = eMailer;
     this.cipher = cipher;
-
-    loadMailConfiguration();
-  }
-
-  public void loadMailConfiguration() {
-    MailConfig mailConfig = getMailConfig();
-    if (mailConfig == null) {
-      insightMailer = null;
-    }
-    else {
-      insightMailer = new InsightMailer(eMailer, mailConfig);
-      mailConfig.clearPassword();
-    }
-  }
-
-  private MailConfig getMailConfig() {
-    MailConfiguration mailConfiguration = new MailConfigurationDAO().get();
-    if (mailConfiguration == null) {
-      log.debug("Mail is not configured.");
-      return null;
-    }
-
-    MailConfig mailConfig = new MailConfig();
-    mailConfig.setHostname(mailConfiguration.getHostname());
-    mailConfig.setPort(mailConfiguration.getPort());
-    mailConfig.setSsl(mailConfiguration.isSslEnabled());
-    mailConfig.setTls(mailConfiguration.isStartTlsEnabled());
-    mailConfig.setUsername(mailConfiguration.getUsername());
-    mailConfig.setPassword(decryptPassword(mailConfiguration.getPassword()));
-    mailConfig.setSystemEmail(mailConfiguration.getSystemEmail());
-    return mailConfig;
   }
 
   public char[] decryptPassword(char[] encryptedPassword) {
@@ -112,29 +75,82 @@ public class InsightMail
   }
 
   public String getServer() {
-    return insightMailer == null ? null : insightMailer.getHostname() + ':' + insightMailer.getPort();
+    MailConfiguration mailConfiguration = new MailConfigurationDAO().get();
+    return mailConfiguration == null ? null : mailConfiguration.getHostname() + ':' + mailConfiguration.getPort();
   }
 
   public String getCdnUrl() {
     return config.getCdnUrl();
   }
 
-  public void sendHtml(final String mailId, final String mailAddress, final String subject, final String body) {
-    if (insightMailer == null) {
+  public void sendHtml(String mailAddress, String subject, String body) {
+    long start = System.currentTimeMillis();
+
+    MailConfiguration mailConfiguration = new MailConfigurationDAO().get();
+    if (mailConfiguration == null) {
       throw new IllegalStateException("Mail is not configured.");
     }
 
-    final MailRequest message = new MailRequest(mailId, HtmlMailType.HTML_TYPE_ID);
+    log.debug("Sending mail to {} using server {}:{}.", mailAddress, mailConfiguration.getHostname(),
+        mailConfiguration.getPort());
 
-    message.setToAddresses(Collections.singletonList(new Address(mailAddress)));
-    message.setExpandedSubject(subject);
-    message.setExpandedBody(body);
+    try {
+      HtmlEmail email = new InsightHtmlEmail();
+      email.setHostName(mailConfiguration.getHostname());
+      if (mailConfiguration.isSslEnabled()) {
+        email.setSslSmtpPort(Integer.toString(mailConfiguration.getPort()));
+      }
+      else {
+        email.setSmtpPort(mailConfiguration.getPort());
+      }
+      email.setSSLOnConnect(mailConfiguration.isSslEnabled());
+      email.setStartTLSEnabled(mailConfiguration.isStartTlsEnabled());
 
-    EmailUtil.waitForMailStatus(insightMailer.sendMail(message));
+      if (StringUtils.isNotBlank(mailConfiguration.getUsername())) {
+        email.setAuthentication( //
+            mailConfiguration.getUsername(), //
+            mailConfiguration.getPassword() == null ? null
+                : String.valueOf(decryptPassword(mailConfiguration.getPassword())));
+      }
+
+      email.addTo(mailAddress);
+      email.setFrom(mailConfiguration.getSystemEmail(), "Nexus IQ Server");
+
+      email.setSubject(subject);
+      email.setHtmlMsg(body);
+
+      email.send();
+
+      log.debug("Sent mail to {} in {} ms.", mailAddress, System.currentTimeMillis() - start);
+    }
+    catch (EmailException e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  /* Visible for tests only */
-  public InsightMailer getInsightMailer() {
-    return insightMailer;
+  private static class InsightHtmlEmail
+      extends HtmlEmail
+  {
+    @Override
+    protected MimeMessage createMimeMessage(Session aSession) {
+      return new InsightMimeMessage(aSession);
+    }
+  }
+
+  private static class InsightMimeMessage
+      extends MimeMessage
+  {
+    public InsightMimeMessage(Session session) {
+      super(session);
+    }
+
+    /**
+     * This method is very slow (can be seconds) in the {@link MimeMessage} parent class.
+     * We don't need fancy message IDs.
+     */
+    @Override
+    protected void updateMessageID() throws MessagingException {
+      setHeader("Message-ID", UUID.randomUUID().toString());
+    }
   }
 }

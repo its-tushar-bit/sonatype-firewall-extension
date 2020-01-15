@@ -102,11 +102,10 @@ public class PolicyAlertEmailer
               PolicyAlertCounts policyAlertCounts = new PolicyAlertCounts(details.getValue());
               AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
               StageType stageType = StageTypes.getById(stage.getStageTypeId());
-              final String mailId = "SONATYPE-CLM-" + applicationPublicId + '-' + scanId;
               final String subject = createPolicyMailSubject(policyAlertCounts, app.getName(), stageType);
               final String body = createPolicyMailBody(
                   createPolicyMailModel(app, scanId, stageType, details.getValue(), grandfatheredPolicyViolationCount));
-              getMail().sendHtml(mailId, details.getKey(), subject, body);
+              getMail().sendHtml(details.getKey(), subject, body);
             }
             catch (final Exception e) {
               log.error("Unable to send notification email to {} for application {} and scan {} in stage {}",

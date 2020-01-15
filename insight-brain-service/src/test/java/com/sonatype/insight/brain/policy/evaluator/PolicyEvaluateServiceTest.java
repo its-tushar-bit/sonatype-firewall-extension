@@ -69,7 +69,6 @@ import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -142,7 +141,6 @@ public class PolicyEvaluateServiceTest
     mailConfiguration.setPort(587);
     mailConfiguration.setSystemEmail("NexusIQServer@localhost");
     new MailConfigurationDAO().set(mailConfiguration);
-    lookup(InsightMail.class).loadMailConfiguration();
   }
 
   private void assertPolicyEvaluation(String applicationId, String scanId, boolean isReevaluation) {

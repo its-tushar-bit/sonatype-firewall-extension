@@ -91,8 +91,7 @@ public class PolicyAlertEmailerAuditTest
   @Test
   public void testSendNotifications_MailException() {
     List<PolicyNotification> policyNotifications = createPolicyNotifications();
-    doThrow(new RuntimeException()).doNothing().when(mockInsightMail)
-        .sendHtml(anyString(), any(), anyString(), anyString());
+    doThrow(new RuntimeException()).doNothing().when(mockInsightMail).sendHtml(any(), anyString(), anyString());
 
     policyAlertEmailer.sendNotifications(application, SCAN_ID, new Stage(STAGE_ID), policyNotifications, 0);
 

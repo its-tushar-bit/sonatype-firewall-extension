@@ -104,8 +104,6 @@ public class ApiMailConfigurationService
 
     auditConfiguration(mailConfiguration);
     mailConfigurationDAO.set(mailConfiguration);
-
-    insightMail.loadMailConfiguration();
   }
 
   private void clearPassword(ApiMailConfigurationDTO configurationDTO) {
@@ -122,8 +120,6 @@ public class ApiMailConfigurationService
     }
     auditConfiguration(mailConfiguration);
     mailConfigurationDAO.delete();
-
-    insightMail.loadMailConfiguration();
   }
 
   private void auditConfiguration(MailConfiguration mailConfiguration) {

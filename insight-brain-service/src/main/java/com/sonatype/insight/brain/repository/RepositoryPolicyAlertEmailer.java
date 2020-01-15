@@ -64,10 +64,9 @@ public class RepositoryPolicyAlertEmailer
           AuditData.get().setRepository(repository).setData("emailAddress", details.getKey());
           PolicyAlertCounts policyAlertCounts = new PolicyAlertCounts(details.getValue());
           AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
-          final String mailId = "SONATYPE-IQ-" + repository.getPublicId();
           final String subject = createPolicyMailSubject(policyAlertCounts, repository.getName(), null);
           final String body = createPolicyMailBody(createPolicyMailModel(repository, details.getValue()));
-          getMail().sendHtml(mailId, details.getKey(), subject, body);
+          getMail().sendHtml(details.getKey(), subject, body);
         }
         catch (final Exception e) {
           log.error("Unable to send notification email to {} for repository {}", details.getKey(), repository.getId(),

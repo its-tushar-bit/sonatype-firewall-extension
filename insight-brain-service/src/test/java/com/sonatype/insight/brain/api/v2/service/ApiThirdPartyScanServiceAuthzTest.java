@@ -30,7 +30,7 @@ public class ApiThirdPartyScanServiceAuthzTest
   public void testEvaluateComponents_Authorized() throws Exception {
     String bom = getBomFile("/ApiThirdPartyEvaluationServiceAuthzTest/valid_sbom.xml");
 
-    grantReadPermission(app.getId());
+    grantEvaluateApplicationPermission(app.getId());
     apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", bom, null);
   }
 

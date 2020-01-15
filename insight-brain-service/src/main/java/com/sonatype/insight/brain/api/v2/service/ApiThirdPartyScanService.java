@@ -88,7 +88,7 @@ public class ApiThirdPartyScanService
     this.applicationDAO = applicationDAO;
   }
 
-  @Authorize(permission = Permission.READ)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public ApiThirdPartyScanTicketDTO scanComponents(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
       final String source,

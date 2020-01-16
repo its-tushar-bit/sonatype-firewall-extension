@@ -35,6 +35,12 @@ public class PolicyClient
 {
   private static final ContentType GZIP_CONTENT_TYPE = ContentType.create("application/x-gzip");
 
+  private static final String CLI_INTEGRATION_PATH = "cli";
+
+  private static final String CI_INTEGRATION_PATH = "ci";
+
+  private static final String REPOSITORY_MANAGER_INTEGRATION_PATH = "rm";
+
   private final Logger log;
 
   private final String serverUrl;
@@ -62,7 +68,8 @@ public class PolicyClient
                                                    final ClientScanType clientScanType,
                                                    final Stage stage) throws IOException
   {
-    return evaluate("cli", clientScanResult.getScanFile(), getClientScanType(clientScanResult, clientScanType), stage);
+    return evaluate(CLI_INTEGRATION_PATH, clientScanResult.getScanFile(),
+        getClientScanType(clientScanResult, clientScanType), stage);
   }
 
   /**
@@ -71,8 +78,8 @@ public class PolicyClient
   public PolicyEvaluationPollingResult evaluateCI(final ClientScanResult clientScanResult,
                                                   final Stage stage) throws IOException
   {
-    return evaluate("ci", clientScanResult.getScanFile(), getClientScanType(clientScanResult, ClientScanType.SONATYPE),
-        stage);
+    return evaluate(CI_INTEGRATION_PATH, clientScanResult.getScanFile(),
+        getClientScanType(clientScanResult, ClientScanType.SONATYPE), stage);
   }
 
   private ClientScanType getClientScanType(ClientScanResult clientScanResult, ClientScanType clientScanType) {
@@ -88,7 +95,7 @@ public class PolicyClient
   public PolicyEvaluationPollingResult evaluateRepoMan(final File scanFile,
                                                        final Stage stage) throws IOException
   {
-    return evaluate("rm", scanFile, ClientScanType.SONATYPE, stage);
+    return evaluate(REPOSITORY_MANAGER_INTEGRATION_PATH, scanFile, ClientScanType.SONATYPE, stage);
   }
 
   // visible for testing
@@ -97,7 +104,9 @@ public class PolicyClient
                                          final ClientScanType clientScanType,
                                          final Stage stage) throws IOException
   {
-    addOrUpdateSourceControl();
+    if (CLI_INTEGRATION_PATH.equals(integrationPath)) {
+      addOrUpdateSourceControl();
+    }
     final FileEntity entity = new FileEntity(scanFile, GZIP_CONTENT_TYPE);
     long start = System.currentTimeMillis();
     Result evaluateResult = path("rest/integration/applications/", appId, "/evaluations/", integrationPath, "/stages/",
@@ -122,8 +131,7 @@ public class PolicyClient
       if (optional.isPresent()) {
         String repositoryUrl = optional.get();
         log.debug(
-            "Amending source control record for application with id: {} with discovered Repository URL: {}",
-            appId, repositoryUrl);
+            "Amending source control record for application with id: {} with discovered repository URL", appId);
         sourceControlClient.addOrUpdateSourceControlRecord(appId, repositoryUrl);
       }
       else {

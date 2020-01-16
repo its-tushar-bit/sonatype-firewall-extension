@@ -151,8 +151,15 @@ public class InsightMailTest
     
     // Assert email subject and body
     assertThat(email.getSubject()).isEqualTo(subject);
-    String emailBody = IOUtil.toString(email.getDataHandler().getInputStream(), StandardCharsets.UTF_8.name());
+    String emailBody = IOUtil.toString(email.getInputStream(), StandardCharsets.UTF_8.name());
     assertThat(emailBody).contains(message);
+  }
+
+  @Test
+  public void testSendHtml_MailConfigurationNull() {
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
+      insightMail.sendHtml(null /* mailConfiguration */, "test@example.com", "testSubject", "testBody");
+    }).withMessage("Mail is not configured.");
   }
 
   @Test

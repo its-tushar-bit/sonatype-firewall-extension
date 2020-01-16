@@ -10,8 +10,10 @@ import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
@@ -32,6 +34,8 @@ import com.codahale.metrics.annotation.Timed;
 public class ApiMailConfigurationResource
 {
   private final ApiMailConfigurationService mailConfigurationService;
+
+  static final String TEST_CONFIGURATION = "test/{recipientEmail}";
 
   @Inject
   public ApiMailConfigurationResource(ApiMailConfigurationService mailConfigurationService) {
@@ -55,5 +59,15 @@ public class ApiMailConfigurationResource
   @Audited(AuditEvent.DELETE_MAIL)
   public void deleteConfiguration() {
     mailConfigurationService.deleteConfiguration();
+  }
+
+  @POST
+  @Path(TEST_CONFIGURATION)
+  @Consumes(MediaType.APPLICATION_JSON)
+  public void testConfiguration(
+      @PathParam("recipientEmail") String recipientEmail,
+      ApiMailConfigurationDTO configurationDTO)
+  {
+    mailConfigurationService.testConfiguration(recipientEmail, configurationDTO);
   }
 }

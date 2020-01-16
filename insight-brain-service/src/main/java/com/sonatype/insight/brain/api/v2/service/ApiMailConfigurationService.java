@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -30,10 +31,17 @@ public class ApiMailConfigurationService
 
   private final InsightMail insightMail;
 
+  private final BaseUrl baseUrl;
+
   @Inject
-  public ApiMailConfigurationService(MailConfigurationDAO mailConfigurationDAO, InsightMail insightMail) {
+  public ApiMailConfigurationService(
+      MailConfigurationDAO mailConfigurationDAO,
+      InsightMail insightMail,
+      BaseUrl baseUrl)
+  {
     this.mailConfigurationDAO = mailConfigurationDAO;
     this.insightMail = insightMail;
+    this.baseUrl = baseUrl;
   }
 
   private RuntimeException newNotFoundException() {
@@ -64,6 +72,15 @@ public class ApiMailConfigurationService
       throw new BadRequestException("No mail server configuration was provided.");
     }
 
+    MailConfiguration mailConfiguration = importMailConfigurationFromDto(configurationDTO);
+
+    auditConfiguration(mailConfiguration);
+    mailConfigurationDAO.set(mailConfiguration);
+  }
+
+  private MailConfiguration importMailConfigurationFromDto(
+      ApiMailConfigurationDTO configurationDTO)
+  {
     MailConfiguration mailConfiguration = mailConfigurationDAO.get();
     if (mailConfiguration == null) {
       mailConfiguration = new MailConfiguration();
@@ -99,11 +116,8 @@ public class ApiMailConfigurationService
     mailConfiguration.setSslEnabled(configurationDTO.sslEnabled);
     mailConfiguration.setStartTlsEnabled(configurationDTO.startTlsEnabled);
     mailConfiguration.setSystemEmail(configurationDTO.systemEmail);
-
     clearPassword(configurationDTO);
-
-    auditConfiguration(mailConfiguration);
-    mailConfigurationDAO.set(mailConfiguration);
+    return mailConfiguration;
   }
 
   private void clearPassword(ApiMailConfigurationDTO configurationDTO) {
@@ -120,6 +134,25 @@ public class ApiMailConfigurationService
     }
     auditConfiguration(mailConfiguration);
     mailConfigurationDAO.delete();
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void testConfiguration(String recipientEmail, ApiMailConfigurationDTO mailConfigurationDTO) {
+    if (mailConfigurationDTO == null) {
+      throw new BadRequestException("No mail server configuration was provided.");
+    }
+
+    MailConfiguration mailConfiguration = importMailConfigurationFromDto(mailConfigurationDTO);
+    mailConfigurationDAO.validate(mailConfiguration);
+
+    try {
+      String subject = "Test Email Configuration";
+      String messageBody = "Success! This is a test mail from " + baseUrl.getConfigured();
+      insightMail.sendHtml(mailConfiguration, recipientEmail, subject, messageBody);
+    }
+    catch (Exception e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
   }
 
   private void auditConfiguration(MailConfiguration mailConfiguration) {

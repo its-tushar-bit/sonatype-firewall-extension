@@ -72,4 +72,21 @@ public class ApiMailConfigurationServiceAuthzTest
     grantConfigureSystemPermission();
     mailConfigurationService.deleteConfiguration();
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testTestConfiguration_Unauthenticated() {
+    mailConfigurationService.testConfiguration("user@example.com", new ApiMailConfigurationDTO());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testTestConfiguration_Unauthorized() {
+    login();
+    mailConfigurationService.testConfiguration("user@example.com", new ApiMailConfigurationDTO());
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testTestConfiguration_Authorized() {
+    grantConfigureSystemPermission();
+    mailConfigurationService.testConfiguration("user@example.com", new ApiMailConfigurationDTO());
+  }
 }

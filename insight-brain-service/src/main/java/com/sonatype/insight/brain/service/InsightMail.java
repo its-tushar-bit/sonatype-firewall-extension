@@ -84,12 +84,16 @@ public class InsightMail
   }
 
   public void sendHtml(String mailAddress, String subject, String body) {
-    long start = System.currentTimeMillis();
-
     MailConfiguration mailConfiguration = new MailConfigurationDAO().get();
+    sendHtml(mailConfiguration, mailAddress, subject, body);
+  }
+
+  public void sendHtml(MailConfiguration mailConfiguration, String mailAddress, String subject, String body) {
     if (mailConfiguration == null) {
       throw new IllegalStateException("Mail is not configured.");
     }
+
+    long start = System.currentTimeMillis();
 
     log.debug("Sending mail to {} using server {}:{}.", mailAddress, mailConfiguration.getHostname(),
         mailConfiguration.getPort());

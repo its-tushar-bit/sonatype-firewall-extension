@@ -89,4 +89,18 @@ public class ApiMailConfigurationResourceTest
 
     assertThat(mailConfigurationDAO.get()).isNull();
   }
+
+  @Test
+  public void testTestConfiguration() throws Exception {
+    ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
+    configurationDTO.hostname = "resttest";
+    configurationDTO.port = 58285;
+    configurationDTO.username = "smtpuser";
+    configurationDTO.password = "smtppass".toCharArray();
+    configurationDTO.sslEnabled = true;
+    configurationDTO.systemEmail = "nxiq@test";
+
+    assertResponseStatus(204, restRequest().path(ApiMailConfigurationResource.TEST_CONFIGURATION).parameter("user@test")
+        .body(configurationDTO).post());
+  }
 }

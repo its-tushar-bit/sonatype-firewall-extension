@@ -54,7 +54,7 @@ public class MailConfigurationDAO
     super.update(tx, mailConfiguration);
   }
 
-  private void validate(MailConfiguration mailConfiguration) {
+  public void validate(MailConfiguration mailConfiguration) {
     if (StringUtils.isBlank(mailConfiguration.getHostname())) {
       throw new BadRequestException("The SMTP host is required.");
     }

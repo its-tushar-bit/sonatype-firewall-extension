@@ -5,19 +5,31 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import javax.inject.Inject;
+import javax.mail.Address;
+import javax.mail.Message;
+import javax.mail.Message.RecipientType;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiMailConfigurationDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.codehaus.plexus.util.IOUtil;
 import org.junit.Test;
+import org.jvnet.mock_javamail.Mailbox;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -33,6 +45,9 @@ public class ApiMailConfigurationServiceTest
 
   @Inject
   private InsightMail insightMail;
+
+  @Inject
+  private InsightConfig insightConfig;
 
   @Test
   public void testGetConfiguration() {
@@ -346,7 +361,7 @@ public class ApiMailConfigurationServiceTest
   }
 
   @Test
-  public void testSetConfiguration_NoRequestDTO() {
+  public void testSetConfiguration_NoConfigurationDTO() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       mailConfigurationService.setConfiguration(null);
     }).withMessageContaining("No mail server configuration was provided");
@@ -370,5 +385,253 @@ public class ApiMailConfigurationServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       mailConfigurationService.deleteConfiguration();
     }).withMessageContaining("Mail server not configured");
+  }
+
+  @Test
+  public void testTestConfiguration_DoesNotChangeStoredMailConfiguration() throws Exception {
+    char[] encryptedPassword = insightMail.encryptPassword("testpass".toCharArray());
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("test");
+    mailConfiguration.setPort(1);
+    mailConfiguration.setUsername("testuser");
+    mailConfiguration.setPassword(encryptedPassword);
+    mailConfiguration.setSslEnabled(true);
+    mailConfiguration.setStartTlsEnabled(true);
+    mailConfiguration.setSystemEmail("void@test");
+    mailConfigurationDAO.set(mailConfiguration);
+
+    Mailbox.clearAll();
+    insightConfig.setBaseUrl("http://localhost");
+
+    char[] password = "smtppass".toCharArray();
+    ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
+    configurationDTO.hostname = "smtpserver";
+    configurationDTO.port = 58285;
+    configurationDTO.username = "smtpuser";
+    configurationDTO.password = password.clone();
+    configurationDTO.passwordIsIncluded = true;
+    configurationDTO.sslEnabled = false;
+    configurationDTO.startTlsEnabled = false;
+    configurationDTO.systemEmail = "noreply@localhost";
+    String recipientEmail = "test@example.com";
+    mailConfigurationService.testConfiguration(recipientEmail, configurationDTO);
+
+    assertThat(configurationDTO.password).containsOnly('0');
+
+    assertTestConfigurationEmail(recipientEmail, configurationDTO, password);
+
+    mailConfiguration = mailConfigurationDAO.get();
+    assertThat(mailConfiguration.getHostname()).isEqualTo("test");
+    assertThat(mailConfiguration.getPort()).isEqualTo(1);
+    assertThat(mailConfiguration.getUsername()).isEqualTo("testuser");
+    assertThat(mailConfiguration.getPassword()).isEqualTo(encryptedPassword);
+    assertThat(mailConfiguration.isSslEnabled()).isTrue();
+    assertThat(mailConfiguration.isStartTlsEnabled()).isTrue();
+    assertThat(mailConfiguration.getSystemEmail()).isEqualTo("void@test");
+  }
+
+  @Test
+  public void testTestConfiguration_PasswordNotIncluded_HostnameChanged_PortUnchanged() throws Exception {
+    char[] password = "smtppass".toCharArray();
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("test");
+    mailConfiguration.setPort(1);
+    mailConfiguration.setUsername("testuser");
+    mailConfiguration.setPassword(insightMail.encryptPassword(password));
+    mailConfiguration.setSystemEmail("void@test");
+    mailConfigurationDAO.set(mailConfiguration);
+
+    Mailbox.clearAll();
+    insightConfig.setBaseUrl("http://localhost");
+
+    ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
+    configurationDTO.hostname = "otherhost";
+    configurationDTO.port = mailConfiguration.getPort();
+    configurationDTO.username = "smtpuser";
+    configurationDTO.password = "foo".toCharArray();
+    configurationDTO.passwordIsIncluded = false;
+    configurationDTO.systemEmail = "noreply@localhost";
+    String recipientEmail = "test@example.com";
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      mailConfigurationService.testConfiguration(recipientEmail, configurationDTO);
+    }).withMessageContaining("The password must be provided when the hostname or port are updated");
+
+    assertThat(configurationDTO.password).containsOnly('0');
+  }
+
+  @Test
+  public void testTestConfiguration_PasswordNotIncluded_HostnameUnchanged_PortChanged() throws Exception {
+    char[] password = "smtppass".toCharArray();
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("test");
+    mailConfiguration.setPort(1);
+    mailConfiguration.setUsername("testuser");
+    mailConfiguration.setPassword(insightMail.encryptPassword(password));
+    mailConfiguration.setSystemEmail("void@test");
+    mailConfigurationDAO.set(mailConfiguration);
+
+    Mailbox.clearAll();
+    insightConfig.setBaseUrl("http://localhost");
+
+    ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
+    configurationDTO.hostname = mailConfiguration.getHostname();
+    configurationDTO.port = 234;
+    configurationDTO.username = "smtpuser";
+    configurationDTO.password = "foo".toCharArray();
+    configurationDTO.passwordIsIncluded = false;
+    configurationDTO.systemEmail = "noreply@localhost";
+    String recipientEmail = "test@example.com";
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      mailConfigurationService.testConfiguration(recipientEmail, configurationDTO);
+    }).withMessageContaining("The password must be provided when the hostname or port are updated");
+
+    assertThat(configurationDTO.password).containsOnly('0');
+  }
+
+  @Test
+  public void testTestConfiguration_PasswordNotIncluded_HostnameUnchanged_PortUnchanged() throws Exception {
+    char[] password = "smtppass".toCharArray();
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("test");
+    mailConfiguration.setPort(1);
+    mailConfiguration.setUsername("testuser");
+    mailConfiguration.setPassword(insightMail.encryptPassword(password));
+    mailConfiguration.setSystemEmail("void@test");
+    mailConfigurationDAO.set(mailConfiguration);
+
+    Mailbox.clearAll();
+    insightConfig.setBaseUrl("http://localhost");
+
+    ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
+    configurationDTO.hostname = mailConfiguration.getHostname();
+    configurationDTO.port = mailConfiguration.getPort();
+    configurationDTO.username = "smtpuser";
+    configurationDTO.password = "foo".toCharArray();
+    configurationDTO.passwordIsIncluded = false;
+    configurationDTO.systemEmail = "noreply@localhost";
+    String recipientEmail = "test@example.com";
+
+    mailConfigurationService.testConfiguration(recipientEmail, configurationDTO);
+
+    assertThat(configurationDTO.password).containsOnly('0');
+
+    assertTestConfigurationEmail(recipientEmail, configurationDTO, password);
+  }
+
+  @Test
+  public void testTestConfiguration_PasswordNotNull() throws Exception {
+    Mailbox.clearAll();
+    insightConfig.setBaseUrl("http://localhost");
+
+    char[] password = "smtppass".toCharArray();
+    ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
+    configurationDTO.hostname = "smtpserver";
+    configurationDTO.port = 58285;
+    configurationDTO.username = "smtpuser";
+    configurationDTO.password = password.clone();
+    configurationDTO.passwordIsIncluded = true;
+    configurationDTO.systemEmail = "noreply@localhost";
+    String recipientEmail = "test@example.com";
+    mailConfigurationService.testConfiguration(recipientEmail, configurationDTO);
+
+    assertThat(configurationDTO.password).containsOnly('0');
+
+    assertTestConfigurationEmail(recipientEmail, configurationDTO, password);
+  }
+
+  @Test
+  public void testTestConfiguration_PasswordNull() throws Exception {
+    Mailbox.clearAll();
+    insightConfig.setBaseUrl("http://localhost");
+
+    ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
+    configurationDTO.hostname = "smtpserver";
+    configurationDTO.port = 58285;
+    configurationDTO.username = "smtpuser";
+    configurationDTO.password = null;
+    configurationDTO.passwordIsIncluded = true;
+    configurationDTO.systemEmail = "noreply@localhost";
+    String recipientEmail = "test@example.com";
+    mailConfigurationService.testConfiguration(recipientEmail, configurationDTO);
+
+    assertTestConfigurationEmail(recipientEmail, configurationDTO, null /* password */);
+  }
+
+  @Test
+  public void testTestConfiguration_BadConfigurationDTO() {
+    ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
+    configurationDTO.hostname = null;
+    configurationDTO.port = 58285;
+    configurationDTO.username = "smtpuser";
+    configurationDTO.password = "smtppass".toCharArray();
+    configurationDTO.systemEmail = "noreply@localhost";
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      mailConfigurationService.testConfiguration("test@example.com", configurationDTO);
+    }).withMessage("The SMTP host is required.");
+    assertThat(configurationDTO.password).containsOnly('0');
+  }
+
+  @Test
+  public void testTestConfiguration_NoBaseUrl() {
+    ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
+    configurationDTO.hostname = "smtpserver";
+    configurationDTO.port = 58285;
+    configurationDTO.systemEmail = "noreply@localhost";
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      mailConfigurationService.testConfiguration("test@example.com", configurationDTO);
+    }).withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+  }
+
+  @Test
+  public void testTestConfiguration_NoConfigurationDTO() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      mailConfigurationService.testConfiguration("test@example.com", null);
+    }).withMessage("No mail server configuration was provided.");
+  }
+
+  private void assertTestConfigurationEmail(
+      String toEmailAddress,
+      ApiMailConfigurationDTO configurationDTO,
+      char[] password) throws MessagingException, IOException
+  {
+    Mailbox emails = Mailbox.get(toEmailAddress);
+
+    assertThat(emails).hasSize(1);
+    Message email = emails.get(0);
+
+    // Assert mail server
+    Session session = email.getSession();
+    assertThat(session.getProperties()) //
+        .containsEntry("mail.smtp.host", configurationDTO.hostname)
+        .containsEntry("mail.smtp.port", String.valueOf(configurationDTO.port))
+        .containsEntry("mail.smtp.starttls.enable", String.valueOf(configurationDTO.startTlsEnabled));
+
+    // Assert authentication
+    PasswordAuthentication passwordAuthentication = session.requestPasswordAuthentication(null, 0, null, null, null);
+    if (configurationDTO.username == null) {
+      assertThat(passwordAuthentication).isNull();
+    }
+    else {
+      assertThat(passwordAuthentication.getUserName()).isEqualTo(configurationDTO.username);
+      if (password == null) {
+        assertThat(passwordAuthentication.getPassword()).isNull();
+      }
+      else {
+        assertThat(passwordAuthentication.getPassword()).isEqualTo(String.valueOf(password));
+      }
+    }
+
+    // Assert "to" and "from" addresses
+    Address[] recipients = email.getRecipients(RecipientType.TO);
+    assertThat(recipients).hasSize(1);
+    assertThat(recipients[0].toString()).isEqualTo(toEmailAddress);
+    assertThat(email.getFrom()[0].toString()).isEqualTo("Nexus IQ Server <" + configurationDTO.systemEmail + ">");
+
+    // Assert email subject and body
+    assertThat(email.getSubject()).isEqualTo("Test Email Configuration");
+    String emailBody = IOUtil.toString(email.getInputStream(), StandardCharsets.UTF_8.name());
+    assertThat(emailBody).contains("Success! This is a test mail from http://localhost");
   }
 }

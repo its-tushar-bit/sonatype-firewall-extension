@@ -364,6 +364,10 @@ $iq-cell-affected-apps-width: 133px;
 .iq-components-results {
   padding-top: 36px;
 
+  .iq-table-row:first-child {
+    border-top: none;
+  }
+
   .iq-cell--affected-apps {
     text-align: center;
   }

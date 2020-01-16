@@ -1,8 +1,10 @@
 .iq-tile--report-list-filter {
   border-bottom: 0;
   margin-bottom: 0;
+  margin-top: 0;
 
-  .iq-form-group {
+  .iq-form-group,
+  .input-prepend {
     margin-bottom: 0;
   }
 }

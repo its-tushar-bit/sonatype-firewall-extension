@@ -2,17 +2,20 @@
   <root-organization-migrate></root-organization-migrate>
     <div class="iq-report-list-container">
       <div class="nx-page-title iq-page-title">
-        <i class="fa fa-file-text-o nx-icon nx-page-title__page-icon"></i>
         <h1 class="nx-h1">Reporting</h1>
       </div>
       <div class="iq-tile iq-tile--report-list-filter">
         <div class="iq-form-group">
           <div class="input-prepend">
             <span class="add-on">
-              <i ng-class="{'icon-search': !vm.appFilter, 'icon-remove': vm.appFilter}" ng-click="vm.appFilter = ''">
+              <i ng-class="{'icon-filter': !vm.appFilter, 'icon-remove': vm.appFilter}" ng-click="vm.appFilter = ''">
               </i>
             </span>
-            <input type="text" ng-model="vm.appFilter" autocomplete="off" placeholder="Filter Applications" />
+            <input type="text"
+                   ng-model="vm.appFilter"
+                   autocomplete="off"
+                   placeholder="Filter Applications"
+                   class="iq-text-input--long" />
           </div>
         </div>
       </div>
@@ -58,11 +61,9 @@
                    vs-scroll-parent=".iq-scrollable">
               <tr ng-repeat="application in vm.applications" class="iq-table-row">
                 <td class="tm-report-list-application iq-cell">
-                  <a ui-sref="management.view.application({applicationPublicId: application.publicId})">
-                    <img ng-src="../rest/application/icon/{{::vm.encodeURIComponent(application.publicId)}}"
-                         class="image-thumbnail"/><!--
-                 -->{{::application.name}}
-                  </a>
+                  <img ng-src="../rest/application/icon/{{::vm.encodeURIComponent(application.publicId)}}"
+                       class="image-thumbnail"/><!--
+               -->{{::application.name}}
                 </td><!--
              --><td class="iq-cell">
                   <span ng-if="application.contact.error">
@@ -71,9 +72,7 @@
                   <span>{{::application.contact.displayName || application.contact.internalName}}</span>
                 </td><!--
              --><td class="tm-report-list-organization iq-cell">
-                  <a ui-sref="management.view.organization({organizationId: application.organizationId})">
-                    {{::application.organizationName}}
-                  </a>
+                  {{::application.organizationName}}
                 </td><!--
              --><td ng-repeat="stage in vm.stages | filterReportColumns"
                     class="tm-report-list-stage-{{::stage.stageTypeId}} iq-cell">

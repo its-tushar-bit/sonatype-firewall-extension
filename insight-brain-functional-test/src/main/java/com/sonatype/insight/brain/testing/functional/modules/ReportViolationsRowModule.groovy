@@ -11,8 +11,8 @@ class ReportViolationsRowModule
     extends Module
 {
   static content = {
-    name { $('td:first-child a') }
+    name { $('td:first-child') }
     contactName { $('td:nth-child(2) span') }
-    orgName { $('td:nth-child(3) a') }
+    orgName { $('td:nth-child(3)') }
   }
 }

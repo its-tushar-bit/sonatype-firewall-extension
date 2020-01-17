@@ -643,7 +643,7 @@ CREATE TABLE user_token (
   CONSTRAINT user_token_user_code_uk UNIQUE (user_code)
 );
 
--- Since MIGRATE_MAIL_CONFIG
+-- Since 1.83
 CREATE TABLE mail_configuration (
   mail_configuration_id varchar(50) NOT NULL,
   hostname varchar(255) NOT NULL,

@@ -22,7 +22,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
- * @since MIGRATE_MAIL_CONFIG
+ * @since 1.83
  */
 @Named
 public class ApiMailConfigurationService

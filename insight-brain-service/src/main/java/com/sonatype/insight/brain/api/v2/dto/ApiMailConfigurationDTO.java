@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.api.v2.dto;
 
 /**
- * @since MIGRATE_MAIL_CONFIG
+ * @since 1.83
  */
 public class ApiMailConfigurationDTO
 {

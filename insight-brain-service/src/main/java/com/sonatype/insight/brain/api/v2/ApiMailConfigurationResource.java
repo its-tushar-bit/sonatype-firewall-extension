@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.codahale.metrics.annotation.Timed;
 
 /**
- * @since MIGRATE_MAIL_CONFIG
+ * @since 1.83
  */
 @Named
 @Timed

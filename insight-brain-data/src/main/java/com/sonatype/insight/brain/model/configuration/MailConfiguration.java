@@ -13,7 +13,7 @@ import javax.persistence.Table;
 import com.sonatype.insight.model.HasStringId;
 
 /**
- * @since MIGRATE_MAIL_CONFIG
+ * @since 1.83
  */
 @Entity
 @Table(name = "mail_configuration")

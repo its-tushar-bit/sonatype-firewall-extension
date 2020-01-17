@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @since MIGRATE_MAIL_CONFIG
+ * @since 1.83
  */
 @Named
 public class MailConfigurationMigrator

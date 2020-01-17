@@ -15,7 +15,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * @since MIGRATE_MAIL_CONFIG
+ * @since 1.83
  */
 public class MailConfigurationDAO
     extends AbstractOperationalSqlDAO<MailConfiguration>

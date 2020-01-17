@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,12 +31,70 @@ public class ThirdPartyScanResultUtilsTest
   }
   
   @Test
-  public void testTruncateFormat() {
+  public void testGetValidFormat() {
     assertThat(ThirdPartyScanResultUtils.getValidFormat("abcd")).isEqualTo("abcd");
     assertThat(ThirdPartyScanResultUtils.getValidFormat("long_format_third_party_scans_truncation_request_test"))
         .isEqualTo("long_format_third_party_scans_truncation_request_t");
     assertThat(ThirdPartyScanResultUtils.getValidFormat("abc:d")).isEqualTo("abc-d");
     assertThat(ThirdPartyScanResultUtils.getValidFormat("long:format_third_party_scans_truncation_request_test"))
         .isEqualTo("long-format_third_party_scans_truncation_request_t");
+  }
+
+  @Test
+  public void testGetTruncatedName() {
+    assertThat(ThirdPartyScanResultUtils
+        .getTruncatedName(StringUtils.repeat("*", ThirdPartyScanResultUtils.NAME_MAX_LENGTH + 10)))
+        .hasSize(ThirdPartyScanResultUtils.NAME_MAX_LENGTH);
+  }
+
+  @Test
+  public void testGetTruncatedVersion() {
+    assertThat(ThirdPartyScanResultUtils
+        .getTruncatedVersion(StringUtils.repeat("*", ThirdPartyScanResultUtils.VERSION_MAX_LENGTH + 10)))
+        .hasSize(ThirdPartyScanResultUtils.VERSION_MAX_LENGTH);
+  }
+
+  @Test
+  public void testGetTruncatedLink() {
+    assertThat(ThirdPartyScanResultUtils
+        .getTruncatedLink(StringUtils.repeat("*", ThirdPartyScanResultUtils.LINK_MAX_LENGTH + 10)))
+        .hasSize(ThirdPartyScanResultUtils.LINK_MAX_LENGTH);
+  }
+
+  @Test
+  public void testGetTruncatedFixedBy() {
+    assertThat(ThirdPartyScanResultUtils
+        .getTruncatedFixedBy(StringUtils.repeat("*", ThirdPartyScanResultUtils.FIXED_BY_MAX_LENGTH + 10)))
+        .hasSize(ThirdPartyScanResultUtils.FIXED_BY_MAX_LENGTH);
+  }
+
+  @Test
+  public void testGetTruncatedVulnerabilitySource() {
+    assertThat(ThirdPartyScanResultUtils
+        .getTruncatedVulnerabilitySource(
+            StringUtils.repeat("*", ThirdPartyScanResultUtils.VULNERABILITY_SOURCE_MAX_LENGTH + 10)))
+        .hasSize(ThirdPartyScanResultUtils.VULNERABILITY_SOURCE_MAX_LENGTH);
+  }
+
+  @Test
+  public void testGetTruncatedSeverityDescription() {
+    assertThat(ThirdPartyScanResultUtils
+        .getTruncatedSeverityDescription(
+            StringUtils.repeat("*", ThirdPartyScanResultUtils.SEVERITY_DESCRIPTION_MAX_LENGTH + 10)))
+        .hasSize(ThirdPartyScanResultUtils.SEVERITY_DESCRIPTION_MAX_LENGTH);
+  }
+
+  @Test
+  public void testGetTruncatedAttackVector() {
+    assertThat(ThirdPartyScanResultUtils
+        .getTruncatedAttackVector(StringUtils.repeat("*", ThirdPartyScanResultUtils.ATTACK_VECTOR_MAX_LENGTH + 10)))
+        .hasSize(ThirdPartyScanResultUtils.ATTACK_VECTOR_MAX_LENGTH);
+  }
+
+  @Test
+  public void testGetTruncatedRatingMethod() {
+    assertThat(ThirdPartyScanResultUtils
+        .getTruncatedRatingMethod(StringUtils.repeat("*", ThirdPartyScanResultUtils.RATING_METHOD_MAX_LENGTH + 10)))
+        .hasSize(ThirdPartyScanResultUtils.RATING_METHOD_MAX_LENGTH);
   }
 }

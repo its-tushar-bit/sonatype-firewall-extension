@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -24,6 +25,7 @@ import com.sonatype.insight.scan.file.clair.ClairScannerResult;
 import com.sonatype.insight.scan.file.clair.ClairScannerVulnerability;
 
 import com.google.gson.Gson;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.mockito.Spy;
 
@@ -42,6 +44,28 @@ public class ClairScannerResultsHandlerTest
   private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
   private static final Gson GSON = new Gson();
+
+  @Test
+  public void testHandleAndFilterContents_truncateFilteredIdentities() {
+    String name = StringUtils.repeat("*", ThirdPartyScanResultUtils.NAME_MAX_LENGTH + 1);
+    String version = StringUtils.repeat("*", ThirdPartyScanResultUtils.VERSION_MAX_LENGTH + 1);
+    String namespace = StringUtils.repeat("*", ThirdPartyScanResultUtils.FORMAT_MAX_LENGTH + 1);
+
+    ClairScannerResult clairScannerResult = new ClairScannerResult();
+    clairScannerResult.setVulnerabilities(new HashSet<>(
+        Arrays.asList(buildVulnerability(name, version, namespace, "test", "csv-test", "www.test.com", "High"))));
+
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(clairScannerResult));
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile);
+    ClairScannerResult filteredClairScannerResult = toClairScannerResult(filteredContent);
+    assertThat(filteredClairScannerResult.getVulnerabilities()).hasSize(1).allSatisfy(v -> {
+      assertThat(v.getFeatureName()).hasSize(ThirdPartyScanResultUtils.NAME_MAX_LENGTH);
+      assertThat(v.getFeatureVersion()).hasSize(ThirdPartyScanResultUtils.VERSION_MAX_LENGTH);
+      assertThat(v.getNamespace()).hasSize(ThirdPartyScanResultUtils.FORMAT_MAX_LENGTH);
+    });
+  }
 
   @Test
   public void testHandleAndFilterContents_filterContent_newThirdPartyFileMultipleEntries() throws Exception {

@@ -10,10 +10,28 @@ import java.util.regex.Pattern;
 
 import com.sonatype.insight.scan.util.HashUtils;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class ThirdPartyScanResultUtils
 {
+  public static final int FORMAT_MAX_LENGTH = 50;
+
+  public static final int NAME_MAX_LENGTH = 300;
+
+  public static final int VERSION_MAX_LENGTH = 200;
+
+  public static final int LINK_MAX_LENGTH = 200;
+
+  public static final int FIXED_BY_MAX_LENGTH = 200;
+
+  public static final int VULNERABILITY_SOURCE_MAX_LENGTH = 100;
+
+  public static final int SEVERITY_DESCRIPTION_MAX_LENGTH = 100;
+
+  public static final int ATTACK_VECTOR_MAX_LENGTH = 100;
+
+  public static final int RATING_METHOD_MAX_LENGTH = 10;
+
   private static final Pattern VULNERABILITY_REF_SOURCE_PATTERN = Pattern.compile("^([a-zA-Z]*)-?(.*)$");
 
   /**
@@ -44,7 +62,39 @@ public class ThirdPartyScanResultUtils
   }
   
   public static String getValidFormat(String format) {
-    String newFormat = format.substring(0, Math.min(format.length(), 50));
+    String newFormat = StringUtils.truncate(format, FORMAT_MAX_LENGTH);
     return newFormat.replace(':', '-');
+  }
+
+  public static String getTruncatedName(String name) {
+    return StringUtils.truncate(name, NAME_MAX_LENGTH);
+  }
+
+  public static String getTruncatedVersion(String version) {
+    return StringUtils.truncate(version, VERSION_MAX_LENGTH);
+  }
+
+  public static String getTruncatedLink(String link) {
+    return StringUtils.truncate(link, LINK_MAX_LENGTH);
+  }
+
+  public static String getTruncatedFixedBy(String fixedBy) {
+    return StringUtils.truncate(fixedBy, FIXED_BY_MAX_LENGTH);
+  }
+
+  public static String getTruncatedVulnerabilitySource(String vulnerabilitySource) {
+    return StringUtils.truncate(vulnerabilitySource, VULNERABILITY_SOURCE_MAX_LENGTH);
+  }
+
+  public static String getTruncatedSeverityDescription(String severityDescription) {
+    return StringUtils.truncate(severityDescription, SEVERITY_DESCRIPTION_MAX_LENGTH);
+  }
+
+  public static String getTruncatedAttackVector(String attackVector) {
+    return StringUtils.truncate(attackVector, ATTACK_VECTOR_MAX_LENGTH);
+  }
+
+  public static String getTruncatedRatingMethod(String ratingMethod) {
+    return StringUtils.truncate(ratingMethod, RATING_METHOD_MAX_LENGTH);
   }
 }

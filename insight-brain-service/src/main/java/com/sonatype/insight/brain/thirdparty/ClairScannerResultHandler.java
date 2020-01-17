@@ -24,6 +24,15 @@ import com.sonatype.insight.scan.file.clair.ClairScannerVulnerability;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedFixedBy;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedLink;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedName;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedSeverityDescription;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedVersion;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedVulnerabilitySource;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getValidFormat;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getVulnerabilitySourceFromReference;
+
 public class ClairScannerResultHandler
     implements ThirdPartyScanResultHandler
 {
@@ -68,8 +77,14 @@ public class ClairScannerResultHandler
       Map<String, String> hashFileCoordinateIdMap,
       TransactionContext tx)
   {
-    String format = ThirdPartyScanResultUtils.getValidFormat(vulnerability.getNamespace());
+    String format = getValidFormat(vulnerability.getNamespace());
     vulnerability.setNamespace(format);
+
+    String name = getTruncatedName(vulnerability.getFeatureName());
+    vulnerability.setFeatureName(name);
+
+    String version = getTruncatedVersion(vulnerability.getFeatureVersion());
+    vulnerability.setFeatureVersion(version);
 
     String fakeHash = ThirdPartyScanResultUtils
         .hash(format + ":" + vulnerability.getFeatureName() + ":" + vulnerability.getFeatureVersion());
@@ -78,8 +93,8 @@ public class ClairScannerResultHandler
 
     if (fileCoordinateId == null) {
       ThirdPartyFileCoordinate fileCoordinate =
-          new ThirdPartyFileCoordinate(fakeHash, IdentificationSource.CLAIR.getId(), format,
-              vulnerability.getFeatureName(), vulnerability.getFeatureVersion(), thirdPartyFile.getId());
+          new ThirdPartyFileCoordinate(fakeHash, IdentificationSource.CLAIR.getId(), format, name, version,
+              thirdPartyFile.getId());
       thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
 
       fileCoordinateId = fileCoordinate.getId();
@@ -88,12 +103,20 @@ public class ClairScannerResultHandler
 
     float severity = getSeverity(vulnerability.getSeverity());
 
+    String link = getTruncatedLink(vulnerability.getLink());
+
+    String fixedBy = getTruncatedFixedBy(vulnerability.getFixedBy());
+
+    String vulnerabilitySource =
+        getTruncatedVulnerabilitySource(getVulnerabilitySourceFromReference(vulnerability.getVulnerability()));
+
+    String severityDescription = getTruncatedSeverityDescription(vulnerability.getSeverity());
+
     ThirdPartyCoordinateSecurity coordinateSecurity =
         new ThirdPartyCoordinateSecurity(fileCoordinateId, vulnerability.getVulnerability(),
-            vulnerability.getDescription(), vulnerability.getLink(), severity, vulnerability.getFixedBy());
-    coordinateSecurity.setVulnerabilitySource(
-        ThirdPartyScanResultUtils.getVulnerabilitySourceFromReference(vulnerability.getVulnerability()));
-    coordinateSecurity.setSeverityDescription(vulnerability.getSeverity());
+            vulnerability.getDescription(), link, severity, fixedBy);
+    coordinateSecurity.setVulnerabilitySource(vulnerabilitySource);
+    coordinateSecurity.setSeverityDescription(severityDescription);
     thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
 
     return vulnerability;

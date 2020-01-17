@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 
@@ -36,6 +37,7 @@ import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.github.packageurl.MalformedPackageURLException;
+import com.github.packageurl.PackageURL;
 import com.github.packageurl.PackageURLBuilder;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +54,12 @@ import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.Hash.Algorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedAttackVector;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedLink;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedRatingMethod;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedSeverityDescription;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedVulnerabilitySource;
 
 public class SbomResultHandler
     implements ThirdPartyScanResultHandler
@@ -279,8 +287,27 @@ public class SbomResultHandler
   }
 
   private ComponentIdentifier resolveComponentIdentifier(PackageUrlIdentifier packageUrlIdentifier) {
-    String format = ThirdPartyScanResultUtils.getValidFormat(packageUrlIdentifier.getFormat());
-    return new ComponentIdentifier(format, packageUrlIdentifier.toComponentIdentifier().getCoordinates());
+    PackageURLBuilder packageURLBuilder = PackageURLBuilder.aPackageURL();
+    packageURLBuilder.withType(ThirdPartyScanResultUtils.getValidFormat(packageUrlIdentifier.getFormat()));
+    packageURLBuilder.withName(ThirdPartyScanResultUtils.getTruncatedName(packageUrlIdentifier.getName()));
+    packageURLBuilder.withVersion(ThirdPartyScanResultUtils.getTruncatedVersion(packageUrlIdentifier.getVersion()));
+
+    if (packageUrlIdentifier.getNamespace() != null) {
+      packageURLBuilder.withNamespace(packageUrlIdentifier.getNamespace());
+    }
+
+    Map<String, String> qualifiers = packageUrlIdentifier.getQualifiers();
+    for (Entry<String, String> entry : qualifiers.entrySet()) {
+      packageURLBuilder.withQualifier(entry.getKey(), entry.getValue());
+    }
+
+    try {
+      PackageURL packageUrl = packageURLBuilder.build();
+      return new PackageUrlIdentifier(packageUrl.canonicalize()).toComponentIdentifier();
+    }
+    catch (MalformedPackageURLException e) {
+      throw new InvalidPackageURLException(e.getMessage(), e);
+    }
   }
 
   private String saveComponent(
@@ -330,9 +357,9 @@ public class SbomResultHandler
       if (ratings != null && ratings.length > 0) {
         Xpp3Dom rating = ratings[0];
 
-        coordinateSecurity.setAttackVector(getValueFromTag(rating, "vector"));
-        coordinateSecurity.setRatingMethod(getValueFromTag(rating, "method"));
-        coordinateSecurity.setSeverityDescription(getValueFromTag(rating, "severity"));
+        coordinateSecurity.setAttackVector(getTruncatedAttackVector(getValueFromTag(rating, "vector")));
+        coordinateSecurity.setRatingMethod(getTruncatedRatingMethod(getValueFromTag(rating, "method")));
+        coordinateSecurity.setSeverityDescription(getTruncatedSeverityDescription(getValueFromTag(rating, "severity")));
 
         Xpp3Dom score = rating.getChild("score");
         if (score != null) {
@@ -359,8 +386,8 @@ public class SbomResultHandler
 
       Xpp3Dom source = vulnerability.getChild("source");
       if (source != null) {
-        coordinateSecurity.setVulnerabilitySource(source.getAttribute("name"));
-        coordinateSecurity.setLink(getValueFromTag(source, "url"));
+        coordinateSecurity.setVulnerabilitySource(getTruncatedVulnerabilitySource(source.getAttribute("name")));
+        coordinateSecurity.setLink(getTruncatedLink(getValueFromTag(source, "url")));
       }
       coordinateSecurity.setRefId(refId);
       coordinateSecurity.setDescription(getValueFromTag(vulnerability, "description"));

@@ -551,6 +551,23 @@ public class SbomResultHandlerTest
     assertThat(sbomResultHandler.determineIdentificationSource(null)).isEqualTo("Third-Party");
   }
 
+  @Test
+  public void testHandleAndFilterContents_truncateFilteredSbom() throws Exception {
+    String sbomContent = getSbomFile("sbom-truncate-coordinates-for-hds.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    Bom filteredSbom = getBom(filteredContent);
+    Component component = filteredSbom.getComponents().get(0);
+    assertThat(component.getName()).hasSize(ThirdPartyScanResultUtils.NAME_MAX_LENGTH);
+    assertThat(component.getVersion()).hasSize(ThirdPartyScanResultUtils.VERSION_MAX_LENGTH);
+
+    PackageUrlIdentifier packageUrlIdentifier = new PackageUrlIdentifier(component.getPurl());
+    assertThat(packageUrlIdentifier.getName()).hasSize(ThirdPartyScanResultUtils.NAME_MAX_LENGTH);
+    assertThat(packageUrlIdentifier.getVersion()).hasSize(ThirdPartyScanResultUtils.VERSION_MAX_LENGTH);
+  }
+
   private String getSbomFile(final String fileName) throws Exception {
     URL resource = getClass().getResource("/SbomResultsHandlerTest/" + fileName);
     return new String(Files.readAllBytes(Paths.get(resource.toURI())));

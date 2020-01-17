@@ -488,12 +488,4 @@ public class ApplicationReportPage
   public SelenideElement policyTypeFilterWarning() {
     return child("#application-report-policy-type-filter-warning");
   }
-
-  public SelenideElement oldReportLinkTile() {
-    return child("#old-report-link-tile");
-  }
-
-  public SelenideElement oldReportLink() {
-    return child("#old-report-link-tile a");
-  }
 }

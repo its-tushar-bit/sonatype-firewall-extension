@@ -10,7 +10,7 @@ import { mapStateToThis } from '../../../../main/frontend/applicationReport/resu
 
 describe('applicationReportResults', function() {
 
-  let vm, scope, OwnerContext, mockModal, $q, mockProductFeatures;
+  let vm, scope, OwnerContext, mockModal, $q;
 
   beforeEach(angular.mock.module(applicationReportModule.name));
 
@@ -20,15 +20,13 @@ describe('applicationReportResults', function() {
 
   beforeEach(inject(function(_$componentController_, $rootScope, _OwnerContext_, _$q_) {
     OwnerContext = _OwnerContext_;
-    mockProductFeatures = jasmine.createSpyObj('ProductFeatures', ['isAvailable']);
     scope = $rootScope.$new();
     $q = _$q_;
     mockModal = jasmine.createSpyObj('Modal', ['open']);
     vm = _$componentController_('applicationReportResults', {
       $state: {params: {publicId: 'testApp', scanId: 'testReport'}},
       $scope: scope,
-      Modal: mockModal,
-      ProductFeatures: mockProductFeatures
+      Modal: mockModal
     });
     scope.vm = vm;
     vm.$onInit();
@@ -73,20 +71,6 @@ describe('applicationReportResults', function() {
         scanId: 'scanId'
       };
       expect(vm.getReportPdfDownloadUrl()).toEqual('/rest/report/appId/scanId/printReport');
-    });
-  });
-
-  describe('isEnablePolicyReportPreviousVersionLink', () => {
-    it('returns true if the enable-policy-report-previous-version-link is an available feature', () => {
-      mockProductFeatures.isAvailable.and.returnValue(true);
-      expect(vm.isEnablePolicyReportPreviousVersionLink()).toEqual(true);
-      expect(mockProductFeatures.isAvailable).toHaveBeenCalledWith('enable-policy-report-previous-version-link');
-    });
-
-    it('returns false if the enable-policy-report-previous-version-link is not an available feature', () => {
-      mockProductFeatures.isAvailable.and.returnValue(false);
-      expect(vm.isEnablePolicyReportPreviousVersionLink()).toEqual(false);
-      expect(mockProductFeatures.isAvailable).toHaveBeenCalledWith('enable-policy-report-previous-version-link');
     });
   });
 

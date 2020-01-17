@@ -253,12 +253,6 @@ public class InsightConfig
   private boolean cspEnabled = true;
 
   /**
-   * @since 1.66
-   */
-  @JsonProperty
-  private boolean enablePolicyReportPreviousVersionLink = true;
-
-  /**
    * @since 1.73
    */
   @JsonProperty
@@ -680,15 +674,6 @@ public class InsightConfig
   @JsonIgnore
   public boolean isDatabaseEmbedded() {
     return database == null;
-  }
-
-  @JsonIgnore
-  public boolean isEnablePolicyReportPreviousVersionLink() {
-    return enablePolicyReportPreviousVersionLink;
-  }
-
-  public void setEnablePolicyReportPreviousVersionLink(final boolean enablePolicyReportPreviousVersionLink) {
-    this.enablePolicyReportPreviousVersionLink = enablePolicyReportPreviousVersionLink;
   }
 
   /**

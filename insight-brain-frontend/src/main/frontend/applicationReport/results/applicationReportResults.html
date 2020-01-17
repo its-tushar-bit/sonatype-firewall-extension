@@ -5,12 +5,6 @@
     <i class="fa fa-warning"></i>This report has not been upgraded for the new Policy Types filter introduced in
     release 61. Re-evaluate in order to enable the Policy Types filter.
   </div>
-  <div ng-if="vm.isEnablePolicyReportPreviousVersionLink()" id="old-report-link-tile" class="iq-tile iq-alert iq-alert--info">
-    <div class="iq-tile-content">
-      <a ui-sref="report({ publicId: vm.reportParameters.appId, scanId: vm.reportParameters.scanId })">Click here</a>
-      to access the previous look and feel of the Application Report.
-    </div>
-  </div>
   <div class="nx-page-title iq-page-title">
     <div class="iq-page-title__actions">
       <button id="reevaluate-button" class="iq-btn iq-btn--tertiary" ng-click="vm.reevaluateReport()">
@@ -41,6 +35,11 @@
                  'Reevaluate the report in order to enable Vulnerabilities view'}}"
                tooltip-append-to-body="true">
               <i class="fa fa-file fa-fw"/>View vulnerabilities
+            </a>
+            <a id="old-report-link"
+               class="link iq-dropdown-menu__link"
+               ui-sref="report({ publicId: vm.reportParameters.appId, scanId: vm.reportParameters.scanId })">
+              <i class="fa fa-file fa-fw"/>View legacy report
             </a>
           </div>
         </div>

@@ -65,10 +65,6 @@ public class FeaturesService
       if (insightConfig.isExternalHyperlinksAllowed()) {
         features.add(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS);
       }
-
-      if (insightConfig.isEnablePolicyReportPreviousVersionLink()) {
-        features.add(NonLicensedFeature.ENABLE_POLICY_REPORT_PREVIOUS_VERSION_LINK);
-      }
     }
     log.debug("Found features: {}", features);
     return features;

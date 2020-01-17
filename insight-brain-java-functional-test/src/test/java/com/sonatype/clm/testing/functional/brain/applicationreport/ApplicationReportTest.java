@@ -162,7 +162,7 @@ public class ApplicationReportTest
     IQDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.shouldBe(visible).menu().shouldNotBe(visible);
     optionsDropdown.button().shouldHave(text("Options")).click();
-    optionsDropdown.menu().shouldBe(visible).entries().shouldHaveSize(3);
+    optionsDropdown.menu().shouldBe(visible).entries().shouldHaveSize(4);
 
     eyesWatcher.eyesCheck();
   }
@@ -207,7 +207,7 @@ public class ApplicationReportTest
   public void testVulnerabilitiesLink() {
     IQDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
-    optionsDropdown.menu().entries().last().shouldHave(text("View vulnerabilities")).click();
+    optionsDropdown.menu().entries().get(2).shouldHave(text("View vulnerabilities")).click();
 
     waitUntilUrl(ApplicationReportVulnerabilitiesPage.url(app, SCAN_ID));
     new ApplicationReportVulnerabilitiesPage().title().shouldHave(text(app.getName()));
@@ -215,21 +215,11 @@ public class ApplicationReportTest
 
   @Test
   public void testLinkToOldReport() {
-    reportPage.oldReportLinkTile().shouldBe(visible);
-    reportPage.oldReportLink().shouldBe(visible).click();
+    IQDropdown optionsDropdown = reportPage.optionsDropdown();
+    optionsDropdown.button().click();
+    optionsDropdown.menu().entries().last().shouldHave(text("View legacy report")).click();
 
     ApplicationReportContainerPage.getIframe().shouldBe(visible);
-  }
-
-  @Test
-  public void testSettingConfigControlsDisplayOfOldReportLinkTile() {
-    testCLMServer.getCLMServer().getConfiguration().setEnablePolicyReportPreviousVersionLink(false);
-    refresh();
-    reportPage.oldReportLinkTile().shouldNotBe(visible);
-
-    testCLMServer.getCLMServer().getConfiguration().setEnablePolicyReportPreviousVersionLink(true);
-    refresh();
-    reportPage.oldReportLinkTile().shouldBe(visible);
   }
 
   @Test

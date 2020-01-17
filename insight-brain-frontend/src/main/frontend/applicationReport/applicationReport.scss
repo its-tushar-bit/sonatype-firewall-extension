@@ -36,6 +36,10 @@ $iq-application-report-vulnerability-threat-level-width: 62px;
   }
 }
 
+#application-report-policy-type-filter-warning {
+  margin-top: 0;
+}
+
 .iq-cell--application-report-policy-threat-level {
   width: $iq-application-report-policy-threat-level-width;
 }

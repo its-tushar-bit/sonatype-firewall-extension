@@ -15,7 +15,7 @@ export default {
 };
 
 function ApplicationReportResultsController($state, $ngRedux, $scope, $timeout, applicationReportActions, Modal,
-                                            OwnerContext, CLMLocations, ProductFeatures) {
+                                            OwnerContext, CLMLocations) {
   const vm = this;
 
   Object.assign(vm, {
@@ -68,10 +68,6 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, $timeout, 
 
     getReportPdfDownloadUrl: function() {
       return CLMLocations.getReportPdfDownloadUrl(vm.metadata.application.publicId, vm.reportParameters.scanId);
-    },
-
-    isEnablePolicyReportPreviousVersionLink() {
-      return ProductFeatures.isAvailable('enable-policy-report-previous-version-link');
     }
   });
 
@@ -115,5 +111,5 @@ export function mapStateToThis({applicationReport}) {
 }
 
 ApplicationReportResultsController.$inject = [
-  '$state', '$ngRedux', '$scope', '$timeout', 'applicationReportActions', 'Modal', 'OwnerContext', 'CLMLocations',
-  'ProductFeatures'];
+  '$state', '$ngRedux', '$scope', '$timeout', 'applicationReportActions', 'Modal', 'OwnerContext', 'CLMLocations'
+];

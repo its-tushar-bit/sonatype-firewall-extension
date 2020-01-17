@@ -109,20 +109,6 @@ public class FeatureServiceTest
   }
 
   @Test
-  public void testGetFeatures_WithoutEnablePolicyReportPreviousVersionLink() {
-    when(productLicense.isValid()).thenReturn(true);
-    insightConfig.setEnablePolicyReportPreviousVersionLink(false);
-    assertThat(featuresService.getFeatures())
-        .doesNotContain(NonLicensedFeature.ENABLE_POLICY_REPORT_PREVIOUS_VERSION_LINK);
-  }
-
-  @Test
-  public void testGetFeatures_WithEnablePolicyReportPreviousVersionLink() {
-    when(productLicense.isValid()).thenReturn(true);
-    assertThat(featuresService.getFeatures()).contains(NonLicensedFeature.ENABLE_POLICY_REPORT_PREVIOUS_VERSION_LINK);
-  }
-
-  @Test
   public void testGetFeatures_WithFirewallForArtifactoryFeature_BecomesFirewallFeature() {
     Set<LicensedFeature> features = EnumSet.of(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
     when(productLicense.isValid()).thenReturn(true);

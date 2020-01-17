@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.Componen
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -31,7 +32,6 @@ import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;

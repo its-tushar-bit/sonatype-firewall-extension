@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.IdentificationSourceValueType;

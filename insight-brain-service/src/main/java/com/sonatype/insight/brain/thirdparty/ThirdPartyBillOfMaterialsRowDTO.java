@@ -14,8 +14,6 @@ import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 public class ThirdPartyBillOfMaterialsRowDTO
     extends BillOfMaterialsRowDTO
 {
-  public String identificationSource;
-
   public String packageUrl;
 
   public ThirdPartyBillOfMaterialsRowDTO(

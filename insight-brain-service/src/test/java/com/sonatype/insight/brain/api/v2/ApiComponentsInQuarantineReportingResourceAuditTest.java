@@ -8,11 +8,11 @@ package com.sonatype.insight.brain.api.v2;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;

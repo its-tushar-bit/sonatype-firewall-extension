@@ -19,13 +19,13 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
-import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -81,7 +81,9 @@ public class ComponentDetailsLoader
       if (StringUtils.isNotBlank(matchState)) {
         componentDetails.setMatchState(matchState);
       }
-      componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
+      if (StringUtils.isBlank(componentDetails.getIdentificationSource())) {
+        componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
+      }
     }
 
     return componentDetails;

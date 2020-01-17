@@ -25,6 +25,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -37,7 +38,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
-import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -757,6 +757,22 @@ public class ComponentInfoServiceTest
     policyAlerts = componentDetails.getPolicyAlerts();
     assertThat(policyAlerts).hasSize(1);
     assertThat(policyAlerts.get(0).getTrigger().getPolicyName()).isEqualTo("Policy1");
+  }
+
+  @Test
+  public void testGetComponentDetails_ComponentIdentifiedByCommunity() throws Exception {
+    String hash = "01234567890123456789";
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
+    hdsComponentDetails.setHash(hash);
+    hdsComponentDetails.setIdentificationSource(IdentificationSource.COMMUNITY.getId());
+    mockHdsGetComponentDetails(hdsComponentDetails);
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
+        MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock,
+        hdsComponentDetails.getIdentificationSource(), null /* scanId */);
+
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getHash()).isEqualTo(hash);
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo(IdentificationSource.COMMUNITY.getId());
   }
 
   @Test

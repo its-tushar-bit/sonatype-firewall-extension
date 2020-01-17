@@ -1,0 +1,22 @@
+{
+  "popularity" : [ {
+    "catalogDates" : [ 1447958674000 ],
+    "currentVersionIndex" : 0,
+    "popularity" : [ 100 ],
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "reactivex:rxjs",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars.npm",
+        "version" : "5.0.0-alpha.7"
+      }
+    },
+    "version" : "5.0.0-alpha.7",
+    "groupId" : "org.webjars.npm",
+    "artifactId" : "reactivex:rxjs"
+  } ],
+  "lastCatalog" : 1484947519931,
+  "firstCatalog" : 1447958674000
+}

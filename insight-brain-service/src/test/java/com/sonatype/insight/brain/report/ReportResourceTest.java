@@ -27,6 +27,7 @@ import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
@@ -42,7 +43,6 @@ import com.sonatype.insight.brain.hds.TestNamedComponentDetails;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
-import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -62,6 +62,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -669,6 +670,32 @@ public class ReportResourceTest
           + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7"
           + "/list.json")), ComponentDetailsList.class);
       assertThat(list.getList()).hasSize(1);
+    }
+  }
+
+  @Test
+  public void testDownloadBundle_ComponentIdentifiedByCommunity() throws Exception {
+    String scanId = "ReportResourceTest_ScanId";
+    mockReport(scanId, "/ReportResourceTest/community/");
+
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
+        .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
+    assertResponseStatus(200, response);
+
+    response =
+        restRequest(app.getPublicId(), scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
+
+    File temp = tempDir.newFile();
+    Files.write(temp.toPath(), response.getBodyBytes());
+
+    try (ZipFile zip = new ZipFile(temp)) {
+      ZipEntry bomEntry = zip.getEntry("data/bom.json");
+
+      JsonNode containerNode = JsonUtils.parse(zip.getInputStream(bomEntry), JsonNode.class);
+      BillOfMaterialsRowDTO row =
+          JsonUtils.parse(containerNode.withArray("aaData").get(0).toString(), BillOfMaterialsRowDTO.class);
+      assertThat(row).isNotNull();
+      assertThat(row.identificationSource).isEqualTo(IdentificationSource.COMMUNITY.getId());
     }
   }
 

@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
@@ -21,7 +22,6 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -61,7 +61,9 @@ public abstract class AbstractComponentInfoResourceTest
                                        MatchState matchState,
                                        Boolean proprietary)
   {
-    return detailsRequest(ownerId, componentIdentifier, hash, matchState, proprietary, null, null);
+    String identificationSource =
+        MatchState.UNKNOWN == matchState || matchState == null ? null : IdentificationSource.SONATYPE.getId();
+    return detailsRequest(ownerId, componentIdentifier, hash, matchState, proprietary, identificationSource, null);
   }
 
   protected HttpRequest detailsRequest(String ownerId,

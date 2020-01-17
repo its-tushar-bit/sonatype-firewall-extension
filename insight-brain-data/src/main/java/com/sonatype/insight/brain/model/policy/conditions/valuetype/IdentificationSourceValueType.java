@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.model.policy.conditions.valuetype;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.model.component.IdentificationSource;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
 
 public class IdentificationSourceValueType

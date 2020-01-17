@@ -8,11 +8,11 @@ package com.sonatype.insight.brain.testing.functional.report.violation
 import javax.ws.rs.core.UriBuilder
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier
+import com.sonatype.insight.IdentificationSource
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier
-import com.sonatype.insight.brain.model.component.IdentificationSource
 import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator

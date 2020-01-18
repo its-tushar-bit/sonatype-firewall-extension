@@ -35,7 +35,7 @@ public class CycloneDxSchemaValidatorTest
     assertThatThrownBy(
         () -> validator.validate(readSbom("/CycloneDxSchemaValidatorTest/invalid_sbom.xml")))
         .isInstanceOf(SAXParseException.class)
-        .hasMessageMatching("cvc-complex-type.4:.*'ref'.*'v:vulnerability'.*");
+        .hasMessageMatching("cvc-complex-type.4:.*['\"]ref['\"].*['\"]v:vulnerability['\"].*");
   }
 
   @Test
@@ -53,7 +53,7 @@ public class CycloneDxSchemaValidatorTest
     assertThatThrownBy(
         () -> validator.validate(readSbom("/CycloneDxSchemaValidatorTest/invalid_vulnerability.xml")))
         .isInstanceOf(SAXParseException.class)
-        .hasMessageMatching("cvc-complex-type.4:.*'ref'.*'v:vulnerability'.*");
+        .hasMessageMatching("cvc-complex-type.4:.*['\"]ref['\"].*['\"]v:vulnerability['\"].*");
   }
 
   @Test

@@ -22,8 +22,8 @@ Please read our [contribution rules and guidelines](contributing.md).
 This week's rotating reviewers are:
 
 <!-- rotating-reviewers-begin -->
-* [@Dennis Warren](https://github.com/DennisWarren)
-* [@Benjamin Bentmann](https://github.com/bentmann)
+* [@Koray Tugay](https://github.com/koraytugay)
+* [@Guillermo Varela](https://github.com/guillermo-varela)
 <!-- rotating-reviewers-end -->
 # Building #
 

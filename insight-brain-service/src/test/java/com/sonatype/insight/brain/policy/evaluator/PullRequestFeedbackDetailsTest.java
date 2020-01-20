@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,6 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -229,8 +229,8 @@ public class PullRequestFeedbackDetailsTest
     // setup
     setupTestData();
     final Map<String, List<PolicyViolation>> componentMap = new HashMap<>();
-    componentMap.put("NAME", Lists.newArrayList(diff.getAppeared().get(0)));
-    componentMap.put("NAME_EMPTY", Lists.newArrayList());
+    componentMap.put("NAME", Collections.singletonList(diff.getAppeared().get(0)));
+    componentMap.put("NAME_EMPTY", Collections.emptyList());
     // when
     final List<Map<String, Object>> result = PullRequestFeedbackDetails.getComponentFeedbackList(componentMap,
         config.getBaseUrl());
@@ -240,35 +240,35 @@ public class PullRequestFeedbackDetailsTest
     assertThat(result.get(0)).isNotNull();
     assertThat(result.get(0).get("componentNameAndVersion")).isEqualTo("NAME");
     assertThat(result.get(0).get("highestThreatLevel")).isEqualTo(diff.getAppeared().get(0).getThreatLevel());
-    assertThat((ArrayList) (result.get(0).get("policiesViolated"))).hasSize(1);
+    assertThat((List<?>) (result.get(0).get("policiesViolated"))).hasSize(1);
     assertThat(result.get(1)).isNotNull();
     assertThat(result.get(1).get("componentNameAndVersion")).isEqualTo("NAME_EMPTY");
     assertThat(result.get(1).get("highestThreatLevel")).isEqualTo(0);
-    assertThat((ArrayList) (result.get(1).get("policiesViolated"))).isEmpty();
+    assertThat((List<?>) (result.get(1).get("policiesViolated"))).isEmpty();
   }
 
   @Test
   public void testGetHighestThreatLevel_noViolations() {
-    assertThat(PullRequestFeedbackDetails.getHighestThreatLevel(Lists.newArrayList())).isEqualTo(0);
+    assertThat(PullRequestFeedbackDetails.getHighestThreatLevel(Collections.emptyList())).isEqualTo(0);
   }
 
   @Test
   public void testGetHighestThreatLevel_singleViolation() throws IOException, URISyntaxException {
-    // setup
     setupTestData();
-    final int result = PullRequestFeedbackDetails.getHighestThreatLevel(Lists.newArrayList(diff.getAppeared().get(0)));
+    final int result =
+        PullRequestFeedbackDetails.getHighestThreatLevel(Collections.singletonList(diff.getAppeared().get(0)));
 
     assertThat(result).isEqualTo(diff.getAppeared().get(0).getThreatLevel());
   }
 
   @Test
   public void testGetPoliciesViolatedMap_noPolicies() {
-    assertThat(PullRequestFeedbackDetails.getPoliciesViolatedMap(Lists.newArrayList(), config.getBaseUrl())).isEmpty();
+    assertThat(PullRequestFeedbackDetails.getPoliciesViolatedMap(Collections.emptyList(), config.getBaseUrl()))
+        .isEmpty();
   }
 
   @Test
   public void testGetPoliciesViolatedMap_allSamePolicyId() throws IOException, URISyntaxException {
-    // setup
     setupTestData();
 
     final List<Map<String, Object>> result = PullRequestFeedbackDetails.getPoliciesViolatedMap(
@@ -281,17 +281,17 @@ public class PullRequestFeedbackDetailsTest
   @Test
   public void testGetConstraintsForPolicyViolationsPerPolicy_NoViolations() {
     assertThat(PullRequestFeedbackDetails
-        .getConstraintsForPolicyViolationsPerPolicy(Lists.newArrayList(), config.getBaseUrl()))
+        .getConstraintsForPolicyViolationsPerPolicy(Collections.emptyList(), config.getBaseUrl()))
         .isEmpty();
   }
 
   @Test
   public void testGetConstraintsForPolicyViolationsPerPolicy_SingleViolation() throws IOException, URISyntaxException {
-    // setup
     setupTestData();
 
     final List<Map<String, Object>> result = PullRequestFeedbackDetails
-        .getConstraintsForPolicyViolationsPerPolicy(Lists.newArrayList(diff.getAppeared().get(0)), config.getBaseUrl());
+        .getConstraintsForPolicyViolationsPerPolicy(Collections.singletonList(diff.getAppeared().get(0)),
+            config.getBaseUrl());
 
     assertThat(result).hasSize(1);
   }
@@ -300,13 +300,12 @@ public class PullRequestFeedbackDetailsTest
   public void testGetConstraintsForPolicyViolationsPerPolicy_MultipleViolationsNoConstraints()
       throws IOException, URISyntaxException
   {
-    // setup
     setupTestData();
 
     final List<Map<String, Object>> result = PullRequestFeedbackDetails
         .getConstraintsForPolicyViolationsPerPolicy(diff.getAppeared().stream().peek(policyViolation -> {
           policyViolation.setPolicyId("1");
-          policyViolation.setConstraintFacts(Lists.newArrayList(policyViolation.getConstraintFacts()));
+          policyViolation.setConstraintFacts(new ArrayList<>(policyViolation.getConstraintFacts()));
           policyViolation.getConstraintFacts().clear();
         }).collect(Collectors.toList()), config.getBaseUrl());
 
@@ -317,7 +316,6 @@ public class PullRequestFeedbackDetailsTest
   public void testGetConstraintsForPolicyViolationsPerPolicy_MultipleViolationsWithConstraints()
       throws IOException, URISyntaxException
   {
-    // setup
     setupTestData();
 
     final List<Map<String, Object>> result = PullRequestFeedbackDetails
@@ -332,13 +330,13 @@ public class PullRequestFeedbackDetailsTest
   public void testGetConstraintsForPolicyViolationsPerPolicy_SingleViolationWithoutConstraints()
       throws IOException, URISyntaxException
   {
-    // setup
     setupTestData();
-    diff.getAppeared().get(0).setConstraintFacts(Lists.newArrayList(diff.getAppeared().get(0).getConstraintFacts()));
+    diff.getAppeared().get(0).setConstraintFacts(new ArrayList<>(diff.getAppeared().get(0).getConstraintFacts()));
     diff.getAppeared().get(0).getConstraintFacts().clear();
 
     final List<Map<String, Object>> result = PullRequestFeedbackDetails
-        .getConstraintsForPolicyViolationsPerPolicy(Lists.newArrayList(diff.getAppeared().get(0)), config.getBaseUrl());
+        .getConstraintsForPolicyViolationsPerPolicy(Collections.singletonList(diff.getAppeared().get(0)),
+            config.getBaseUrl());
 
     assertThat(result).isEmpty();
   }

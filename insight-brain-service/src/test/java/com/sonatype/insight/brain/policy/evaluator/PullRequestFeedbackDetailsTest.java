@@ -80,7 +80,7 @@ public class PullRequestFeedbackDetailsTest
   private Application app;
 
   @Before
-  public void before() throws IOException, URISyntaxException {
+  public void before() {
     config.setBaseUrl("http://localhost:1122");
     tempEntity.newOrganizationWithSpecificId(ORG_ID, ORG_NAME);
     app = tempEntity.newApplicationWithSpecificId(APP_INTERNAL_ID, APP_NAME, APP_PUBLIC_ID, ORG_ID);

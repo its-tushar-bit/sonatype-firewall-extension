@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,7 +36,7 @@ public class PullRequestDetailsBaseTest
   private InsightConfig config;
 
   @Before
-  public void before() throws IOException, URISyntaxException {
+  public void before() {
     config.setBaseUrl("http://localhost:1122");
   }
 

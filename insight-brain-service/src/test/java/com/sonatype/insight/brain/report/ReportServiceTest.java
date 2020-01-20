@@ -352,7 +352,7 @@ public class ReportServiceTest
   }
 
   @Test
-  public void testGetBomForPolicyEvaluation_NoPolicyEvaluation() throws URISyntaxException, IOException {
+  public void testGetBomForPolicyEvaluation_NoPolicyEvaluation() {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID");
 
     assertThatExceptionOfType(NotFoundException.class)

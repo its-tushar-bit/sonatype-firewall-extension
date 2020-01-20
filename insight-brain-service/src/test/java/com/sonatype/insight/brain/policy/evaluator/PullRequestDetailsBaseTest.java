@@ -66,7 +66,12 @@ public class PullRequestDetailsBaseTest
     assertThat(results).hasSize(1);
     assertThat(results.get(0)).containsKeys("constraintName", "conditions");
     assertThat(results.get(0).get("constraintName")).isEqualTo("Constraint 1");
-    assertThat((List<String>) (results.get(0).get("conditions"))).hasSize(4);
+    assertThat(getConditions(results.get(0))).hasSize(4);
+  }
+
+  @SuppressWarnings("unchecked")
+  private List<String> getConditions(Map<String, Object> result) {
+    return (List<String>) result.get("conditions");
   }
 
   @Test
@@ -95,10 +100,10 @@ public class PullRequestDetailsBaseTest
     assertThat(results).hasSize(2);
     assertThat(results.get(0)).containsKeys("constraintName", "conditions");
     assertThat(results.get(0).get("constraintName")).isEqualTo("Constraint 1");
-    assertThat((List<String>) (results.get(0).get("conditions"))).hasSize(3);
+    assertThat(getConditions(results.get(0))).hasSize(3);
     assertThat(results.get(1)).containsKeys("constraintName", "conditions");
     assertThat(results.get(1).get("constraintName")).isEqualTo("Constraint 2");
-    assertThat((List<String>) (results.get(1).get("conditions"))).hasSize(2);
+    assertThat(getConditions(results.get(1))).hasSize(2);
   }
 
   @Test
@@ -116,7 +121,7 @@ public class PullRequestDetailsBaseTest
     assertThat(results).hasSize(1);
     assertThat(results.get(0)).containsKeys("constraintName", "conditions");
     assertThat(results.get(0).get("constraintName")).isEqualTo("Constraint 1");
-    assertThat((List<String>) (results.get(0).get("conditions"))).hasSize(1);
+    assertThat(getConditions(results.get(0))).hasSize(1);
   }
 
   @Test
@@ -142,7 +147,7 @@ public class PullRequestDetailsBaseTest
     assertThat(results).hasSize(1);
     assertThat(results.get(0)).containsKeys("constraintName", "conditions");
     assertThat(results.get(0).get("constraintName")).isEqualTo("Constraint 1");
-    assertThat((List<String>) (results.get(0).get("conditions"))).isEmpty();
+    assertThat(getConditions(results.get(0))).isEmpty();
   }
 
   @Test
@@ -159,7 +164,7 @@ public class PullRequestDetailsBaseTest
     assertThat(results).hasSize(1);
     assertThat(results.get(0)).containsKeys("constraintName", "conditions");
     assertThat(results.get(0).get("constraintName")).isEqualTo("Constraint 1");
-    assertThat((List<String>) (results.get(0).get("conditions"))).isEmpty();
+    assertThat(getConditions(results.get(0))).isEmpty();
   }
 
   @Test

@@ -21,13 +21,13 @@
        ui-sref="management.view.organization({organizationId: vm.rootOrganization.id})">
       <i class="fa fa-globe fa-lg iq-owner-tree-view__icon"></i><!--
    --><span class="iq-tree-view__text">{{vm.rootOrganization.name}}</span>
-      <div class="iq-owner-tree-view__new-organization"
-           ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }">
-        <button class="iq-btn" ng-click="vm.createOrganization()">
-          <i class="fa fa-plus"></i> New Organization
-        </button>
-      </div>
     </a>
+    <div class="iq-owner-tree-view__new-organization"
+         ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }">
+      <button class="iq-btn iq-btn--text-only" ng-click="vm.createOrganization()">
+        <i class="fa fa-plus"></i>Add New Org
+      </button>
+    </div>
     <div id="owner-tree-view-owner-rows" class="iq-tree-view__children">
       <a id="owner-tree-view-repositories-row"
          class="iq-tree-view__child iq-owner-tree-view__row iq-owner-tree-view__row--repositories"
@@ -37,7 +37,7 @@
         <div class="iq-tree-view__twisty">
           <span class="iq-tree-view__twisty-icon empty"></span>
         </div><!--
-     --><i class="fa fa-database iq-owner-tree-view__icon iq-owner-tree-view__icon--12px inverse"></i><!--
+     --><i class="fa fa-database iq-owner-tree-view__icon iq-owner-tree-view__icon--14px"></i><!--
      --><span class="iq-tree-view__text">Repositories</span>
       </a>
       <div class="iq-tree-view__child iq-tree-view iq-owner-tree-view__row--organization"
@@ -60,18 +60,18 @@
                       expand: organization.applications.length > 0 && !organization.isExpanded,
                       collapse: organization.applications.length > 0 && organization.isExpanded }"></span>
           </div><!--
-       --><i class="fa fa-sitemap iq-owner-tree-view__icon iq-owner-tree-view__icon--12px inverse"></i><!--
+       --><i class="fa fa-sitemap iq-owner-tree-view__icon iq-owner-tree-view__icon--14px"></i><!--
        --><span class="iq-tree-view__text"><!--
          -->{{organization.name}}<!--
        --></span>
-          <div class="iq-owner-tree-view__new-application"
-               ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: organization.id}) }">
-            <button class="iq-btn"
-                    ng-click="$event.preventDefault(); $event.stopPropagation(); vm.createApplication(organization);">
-              <i class="fa fa-plus"></i> New Application
-            </button>
-          </div>
         </a>
+        <div class="iq-owner-tree-view__new-application"
+             ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: organization.id}) }">
+          <button class="iq-btn iq-btn--text-only"
+                  ng-click="$event.preventDefault(); $event.stopPropagation(); vm.createApplication(organization);">
+            <i class="fa fa-plus"></i> Add New App
+          </button>
+        </div>
         <div class="iq-tree-view__children" ng-if="organization.isExpanded">
           <a class="iq-tree-view__child iq-owner-tree-view__row iq-owner-tree-view__row--child"
              ng-repeat="application in organization.applications | orderBy:'name'"
@@ -83,7 +83,7 @@
              tooltip-attach-to-body="true"
              tooltip-class="entity-item-tooltip"
              tooltip-only-on-overflow="true">
-            <i class="fa fa-terminal iq-owner-tree-view__icon iq-owner-tree-view__icon--12px inverse"></i><!--
+            <i class="fa fa-terminal iq-owner-tree-view__icon iq-owner-tree-view__icon--12px fa-border"></i><!--
          --><span class="iq-tree-view__text"><!--
            -->{{application.name}}<!--
          --></span>

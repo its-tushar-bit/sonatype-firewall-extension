@@ -2,16 +2,19 @@
   ##Organization Tree View
 */
 
+$child-row-left-padding: 40px;
+
 .iq-owner-tree-view {
   box-sizing: border-box;
   height: 100%;
+  margin-right: $iq-spacing-md;
   overflow-x: visible;
   overflow-y: auto;
   padding: 0;
   min-width: 0;
 
   h4 {
-    margin-left: 8px;
+    margin-left: $iq-spacing-xs;
   }
 
   .iq-tree-view {
@@ -28,9 +31,8 @@
   }
 
   .iq-tree-view__child {
-    border-left-style: none;
-    border-right-style: none;
     height: auto;
+    width: auto;
 
     &:hover,
     &:focus {
@@ -53,6 +55,11 @@
         border-left-color: $iq-grey-4;
       }
     }
+    &.selected {
+      .iq-tree-view__text {
+        color: $iq-blue;
+      }
+    }
   }
 
   .iq-tree-view__text {
@@ -61,7 +68,7 @@
   }
 
   .iq-spinner__wrapper {
-    margin-left: 8px;
+    margin-left: $iq-spacing-xs;
   }
 }
 
@@ -71,7 +78,7 @@
   @include semi-bold();
 
   color: $iq-slate;
-  margin: 0 8px 12px 8px;
+  margin: 0 $iq-spacing-xs $iq-spacing-sm $iq-spacing-xs;
 
   a {
     &:hover,
@@ -87,26 +94,45 @@
 
 .iq-owner-tree-view__filter {
   display: block;
-  margin: 0 8px 12px 8px;
+  margin: 0 $iq-spacing-xs $iq-spacing-sm $iq-spacing-xs;
 
   input {
-    width: calc(100% - 34px);
+    width: calc(100% - 28px);
   }
 }
 
 .iq-owner-tree-view__row {
-  border-left-style: none;
-  border-right-style: none;
+  background-clip: padding-box;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  border-right: 16px solid transparent;
+  border-radius: 0 16px 16px 0;
   color: $iq-slate;
   display: block;
   height: auto;
   line-height: 16px;
-  padding: 7px 8px; // one less on top and bottom to account for border
+  margin-left: $iq-spacing-xs;
+  padding: 9px $iq-spacing-xs;
   text-decoration: none;
 
+  .fa-border {
+    border-color: $iq-slate;
+  }
+
   &.selected {
-    background: $iq-off-white;
+    background-color: $iq-blue-light;
+    border-right: 16px solid $iq-blue-light;
+    color: $iq-blue;
     cursor: default;
+
+    .iq-tree-view__text {
+      color: $iq-blue;
+    }
+
+    .fa-border {
+      border-color: $iq-blue;
+    }
   }
 
   &.disabled {
@@ -130,17 +156,78 @@
 
 .iq-owner-tree-view__new-organization,
 .iq-owner-tree-view__new-application {
-  margin-top: 12px;
-  text-align: center;
+  background-color: $iq-off-white;
+  border-right: 16px solid $iq-grey-1;
+  margin-left: $iq-spacing-xs;
+
+  .iq-btn--text-only {
+    padding-left: 34px;
+    text-align: left;
+    width: 100%;
+
+    &:hover, &:active, &:focus {
+      background-color: $iq-off-white;
+      color: $iq-link-color-active;
+    }
+  }
 }
 
-.iq-owner-tree-view__new-application {
-  margin-right: 8px;
+#owner-tree-view-owner-rows {
+  margin-top: $iq-spacing-xs;
+
+  .iq-owner-tree-view__row--organization:first-of-type {
+    margin-top: $iq-spacing-sm;
+  }
+
+  .iq-owner-tree-view__new-application {
+    margin-left: $iq-spacing-xs;
+    .iq-btn--text-only {
+      padding-left: 52px;
+    }
+  }
+
+  .iq-owner-tree-view__row--child {
+    border-right: 16px solid $iq-grey-1;
+    margin-left: $iq-spacing-xs;
+    padding-left: $child-row-left-padding;
+
+    &.selected {
+      background: $iq-blue-light;
+      border-right-color: $iq-blue-light;
+      cursor: default;
+    }
+  }
+}
+
+.iq-owner-tree-view__row.child-selected {
+  background-color: $iq-off-white;
+  border-right-color: $iq-grey-1;
+}
+
+.iq-owner-tree-view__row {
+  &.child-selected {
+    background-color: $iq-off-white;
+    border-right-color: $iq-grey-1;
+  }
+
+  &.selected:not(#owner-tree-view-root-org-row), &.child-selected {
+    // we use ~ to match all of the siblings of a parent to change their backgrounds
+    // https://developer.mozilla.org/en-US/docs/Web/CSS/General_sibling_combinator
+    ~ .iq-tree-view__children {
+      .iq-owner-tree-view__row--child {
+        background-color: $iq-off-white;
+
+        &.selected {
+          background: $iq-blue-light;
+        }
+      }
+    }
+  }
 }
 
 .iq-owner-tree-view__icon {
-  margin-right: 8px;
-  margin-left: 8px;
+  margin-right: $iq-spacing-xs;
+  margin-left: $iq-spacing-xs;
   vertical-align: bottom;
 
   &.fa-globe {
@@ -152,38 +239,44 @@
   }
 }
 
+.iq-owner-tree-view__icon--14px {
+  font-size: 14px;
+  line-height: 14px;
+  vertical-align: top;
+}
+
 .iq-owner-tree-view__icon--12px {
   font-size: 12px;
-  height: 16px;
-  line-height: 12px;
+  height: 12px;
+  line-height: 9px;
   text-align: center;
-  width: 16px;
+  width: 10px;
 
   &::before {
     vertical-align: -2px;
   }
 }
 
-.iq-owner-tree-view__row--child {
-  margin: 0;
-
-  .iq-owner-tree-view__icon {
-    margin-left: 48px;
-  }
-}
-
-.iq-owner-tree-view__icon--source-control {
-  margin-left: 24px;
-  margin-right: 4px;
-}
-
 .iq-owner-tree-view__row--repositories {
-  margin-top: 12px;
-  margin-bottom: 12px;
+  margin-top: $iq-spacing-xxs;
+  padding-left: 10px;
+  width: auto;
 }
 
 .iq-owner-tree-view--detail {
   .iq-spinner__wrapper {
-    margin-top: 12px;
+    margin-top: $iq-spacing-sm;
+  }
+}
+
+#owner-editing-detail-tree-view {
+  .iq-owner-tree-view__row--child {
+    padding-left: $child-row-left-padding;
+  }
+}
+
+#source-control-tree-view-group {
+  .iq-owner-tree-view__row {
+    padding-left: $iq-spacing-l;
   }
 }

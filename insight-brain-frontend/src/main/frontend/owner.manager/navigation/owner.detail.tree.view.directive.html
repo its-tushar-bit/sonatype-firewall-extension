@@ -9,7 +9,7 @@
          ng-if="!vm.isRepositories"
          class="iq-tree-view iq-owner-tree-view">
       <a class="iq-tree-view__trigger iq-owner-tree-view__row"
-         ng-class="{ 'iq-tree-view__trigger--unselectable': vm.state.$current.name.endsWith('category') }"
+         ng-class="{ 'child-selected': vm.state.$current.name.endsWith('category') }"
          ng-click="vm.categoryState.isExpanded = vm.state.$current.name.endsWith('category') ? true : !vm.categoryState.isExpanded">
         <div class="iq-tree-view__twisty">
           <span class="iq-tree-view__twisty-icon"
@@ -55,7 +55,7 @@
          ng-if="!vm.isRepositories"
          class="iq-tree-view iq-owner-tree-view">
       <a class="iq-tree-view__trigger iq-owner-tree-view__row"
-         ng-class="{ 'iq-tree-view__trigger--unselectable': vm.state.$current.name.endsWith('policy') }"
+         ng-class="{ 'child-selected': vm.state.$current.name.endsWith('policy') }"
          ng-click="vm.policyState.isExpanded = vm.state.$current.name.endsWith('policy') ? true : !vm.policyState.isExpanded">
         <div class="iq-tree-view__twisty">
           <span class="iq-tree-view__twisty-icon"
@@ -122,7 +122,7 @@
          ng-if="!vm.isRepositories"
          class="iq-tree-view iq-owner-tree-view">
       <a class="iq-tree-view__trigger iq-owner-tree-view__row"
-         ng-class="{ 'iq-tree-view__trigger--unselectable': vm.state.$current.name.endsWith('label') }"
+         ng-class="{ 'child-selected': vm.state.$current.name.endsWith('label') }"
          ng-click="vm.labelState.isExpanded = vm.state.$current.name.endsWith('label') ? true : !vm.labelState.isExpanded">
         <div class="iq-tree-view__twisty">
           <span class="iq-tree-view__twisty-icon"
@@ -155,7 +155,7 @@
          ng-if="!vm.isRepositories && (vm.details.licenseThreatGroups.length > 0 || !vm.isApp)"
          class="iq-tree-view iq-owner-tree-view">
       <a class="iq-tree-view__trigger iq-owner-tree-view__row"
-         ng-class="{ 'iq-tree-view__trigger--unselectable': vm.state.$current.name.endsWith('license-threat-group') }"
+         ng-class="{ 'child-selected': vm.state.$current.name.endsWith('license-threat-group') }"
          ng-click="vm.ltgState.isExpanded = vm.state.$current.name.endsWith('license-threat-group') ? true : !vm.ltgState.isExpanded">
         <div class="iq-tree-view__twisty">
           <span class="iq-tree-view__twisty-icon"
@@ -186,7 +186,7 @@
     </div>
     <div id="source-control-tree-view-group" class="iq-tree-view iq-owner-tree-view" ng-if="!vm.isRepositories">
       <a class="iq-tree-view__trigger iq-owner-tree-view__row"
-         ng-class="{ 'iq-tree-view__trigger--unselectable': vm.state.$current.name.endsWith('source-control') }"
+         ng-class="{ 'selected': vm.state.$current.name.endsWith('source-control') }"
          ui-sref=".edit-source-control"
          ui-sref-active="selected">
         <i class="fa fa-code-fork size-16px size-fw iq-owner-tree-view__icon iq-owner-tree-view__icon--source-control"></i>
@@ -195,7 +195,7 @@
     </div>
     <div id="access-tree-view-group" class="iq-tree-view iq-owner-tree-view">
       <a class="iq-tree-view__trigger iq-owner-tree-view__row"
-         ng-class="{ 'iq-tree-view__trigger--unselectable': vm.state.$current.name.endsWith('access') }"
+         ng-class="{ 'child-selected': vm.state.$current.name.endsWith('access') }"
          ng-click="vm.accessState.isExpanded = vm.state.$current.name.endsWith('access') ? true : !vm.accessState.isExpanded">
         <div class="iq-tree-view__twisty">
           <span class="iq-tree-view__twisty-icon"

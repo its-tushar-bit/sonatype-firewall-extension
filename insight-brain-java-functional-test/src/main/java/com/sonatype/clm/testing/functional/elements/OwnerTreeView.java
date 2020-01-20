@@ -44,7 +44,7 @@ public class OwnerTreeView
     }
 
     public static SelenideElement newOrganizationButton() {
-      return $("#owner-tree-view-root-org-row button");
+      return $(".iq-owner-tree-view__new-organization button");
     }
   }
 

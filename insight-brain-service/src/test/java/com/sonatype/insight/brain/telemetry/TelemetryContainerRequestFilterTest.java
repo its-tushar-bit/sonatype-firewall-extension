@@ -133,7 +133,8 @@ public class TelemetryContainerRequestFilterTest
     assertThat(telemetryData).extracting(TelemetryData::getPurpose)
         .allMatch(purpose -> purpose.equals(TelemetryPurpose.REST_ENDPOINT_USAGE));
     assertThat(telemetryData)
-        .extracting(t -> t.getAttributes().get(TelemetryContainerRequestFilter.REST_ENDPOINT_TELEMETRY))
+        .extracting(
+            t -> (RestEndpointTelemetry) t.getAttributes().get(TelemetryContainerRequestFilter.REST_ENDPOINT_TELEMETRY))
         .usingFieldByFieldElementComparator().containsExactlyInAnyOrder(restEndpointTelemetry);
   }
 }

@@ -259,4 +259,13 @@ public class ReportService
     responseBuilder.entity(pdfFile);
     return responseBuilder.build();
   }
+
+  public ReportEntry getBomForPolicyEvaluation(PolicyEvaluation policyEvaluation) throws IOException {
+    if (policyEvaluation == null) {
+      return null;
+    }
+    File reportFile = getReport(work, policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
+
+    return Report.getEntry(reportFile, "bom.json");
+  }
 }

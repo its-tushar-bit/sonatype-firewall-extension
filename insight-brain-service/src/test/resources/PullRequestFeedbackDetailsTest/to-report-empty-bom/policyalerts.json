@@ -1,0 +1,2608 @@
+{
+  "aaData": [
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "h2",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.h2database",
+                "version": "1.4.190"
+              }
+            },
+            "hash": "df71536d44e3b07f0c15",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "License Threat Group",
+                    "conditionIndex": 0,
+                    "summary": "License Threat Group is 'Liberal'",
+                    "reason": "Found licenses in the 'Liberal' license threat group ('BSD-3-Clause')",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "com.h2database"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "h2"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "1.4.190"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "h2",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.h2database",
+                "version": "1.4.190"
+              }
+            },
+            "hash": "df71536d44e3b07f0c15",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "License Threat Group Level",
+                    "conditionIndex": 0,
+                    "summary": "License Threat Group Level >= 1",
+                    "reason": "Found license threat group 'Weak Copyleft' with level >= 1 (level = 2)",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "com.h2database"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "h2"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "1.4.190"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "h2",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.h2database",
+                "version": "1.4.190"
+              }
+            },
+            "hash": "df71536d44e3b07f0c15",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "MatchState",
+                    "conditionIndex": 0,
+                    "summary": "Match State is exact",
+                    "reason": "Match state was 'Exact'",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "com.h2database"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "h2"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "1.4.190"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "h2",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.h2database",
+                "version": "1.4.190"
+              }
+            },
+            "hash": "df71536d44e3b07f0c15",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "Proprietary",
+                    "conditionIndex": 0,
+                    "summary": "Proprietary is false",
+                    "reason": "Component does not contain proprietary packages",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "com.h2database"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "h2"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "1.4.190"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "h2",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.h2database",
+                "version": "1.4.190"
+              }
+            },
+            "hash": "df71536d44e3b07f0c15",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "RelativePopularity",
+                    "conditionIndex": 0,
+                    "summary": "Relative Popularity (Percentage) < 100",
+                    "reason": "Relative popularity was < 100% (relative popularity = 3%)",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "com.h2database"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "h2"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "1.4.190"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "h2",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.h2database",
+                "version": "1.4.190"
+              }
+            },
+            "hash": "df71536d44e3b07f0c15",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity > 1",
+                    "reason": "Found security vulnerability CVE-2018-14335 with severity > 1 (severity = 6.5)",
+                    "reference": {
+                      "value": "CVE-2018-14335",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "com.h2database"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "h2"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "1.4.190"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "h2",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.h2database",
+                "version": "1.4.190"
+              }
+            },
+            "hash": "df71536d44e3b07f0c15",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilityStatus",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Status is OPEN",
+                    "reason": "Found security vulnerability CVE-2018-14335 with status 'Open'",
+                    "reference": {
+                      "value": "CVE-2018-14335",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "com.h2database"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "h2"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "1.4.190"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "h2",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.h2database",
+                "version": "1.4.190"
+              }
+            },
+            "hash": "df71536d44e3b07f0c15",
+            "constraintFacts": [
+              {
+                "constraintId": "bb7f4c9f188e4570bdcaac173dce6cc6",
+                "constraintName": "Illogical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "AgeInDays",
+                    "conditionIndex": 0,
+                    "summary": "Age older than 1 days",
+                    "reason": "Found component older than 1 days",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "com.h2database"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "h2"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "1.4.190"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "h2",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.h2database",
+                "version": "1.4.190"
+              }
+            },
+            "hash": "df71536d44e3b07f0c15",
+            "constraintFacts": [
+              {
+                "constraintId": "bb7f4c9f188e4570bdcaac173dce6cc6",
+                "constraintName": "Illogical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "Coordinates",
+                    "conditionIndex": 0,
+                    "summary": "Coordinates match maven:com.h2database:h2:1.4.190:*:*",
+                    "reason": "Coordinates were com.h2database : h2 : 1.4.190 (match com.h2database : h2 : * : * : 1.4.190)",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "com.h2database"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "h2"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "1.4.190"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "h2",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.h2database",
+                "version": "1.4.190"
+              }
+            },
+            "hash": "df71536d44e3b07f0c15",
+            "constraintFacts": [
+              {
+                "constraintId": "bb7f4c9f188e4570bdcaac173dce6cc6",
+                "constraintName": "Illogical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "IdentificationSource",
+                    "conditionIndex": 0,
+                    "summary": "Identification Source is Sonatype",
+                    "reason": "Identification Source was Sonatype",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "com.h2database"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "h2"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "1.4.190"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "h2",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.h2database",
+                "version": "1.4.190"
+              }
+            },
+            "hash": "df71536d44e3b07f0c15",
+            "constraintFacts": [
+              {
+                "constraintId": "bb7f4c9f188e4570bdcaac173dce6cc6",
+                "constraintName": "Illogical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "Label",
+                    "conditionIndex": 0,
+                    "summary": "Label is 'Architecture-Blacklisted'",
+                    "reason": "Found label 'Architecture-Blacklisted'",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "com.h2database"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "h2"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "1.4.190"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "h2",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.h2database",
+                "version": "1.4.190"
+              }
+            },
+            "hash": "df71536d44e3b07f0c15",
+            "constraintFacts": [
+              {
+                "constraintId": "bb7f4c9f188e4570bdcaac173dce6cc6",
+                "constraintName": "Illogical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "License",
+                    "conditionIndex": 0,
+                    "summary": "License is 'MPL-2.0'",
+                    "reason": "Found 'MPL-2.0' license",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "com.h2database"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "h2"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "1.4.190"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "h2",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.h2database",
+                "version": "1.4.190"
+              }
+            },
+            "hash": "df71536d44e3b07f0c15",
+            "constraintFacts": [
+              {
+                "constraintId": "bb7f4c9f188e4570bdcaac173dce6cc6",
+                "constraintName": "Illogical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "LicenseStatus",
+                    "conditionIndex": 0,
+                    "summary": "License Status is OPEN",
+                    "reason": "License status was Open",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "com.h2database"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "h2"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "1.4.190"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "h2",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.h2database",
+                "version": "1.4.190"
+              }
+            },
+            "hash": "df71536d44e3b07f0c15",
+            "constraintFacts": [
+              {
+                "constraintId": "bb7f4c9f188e4570bdcaac173dce6cc6",
+                "constraintName": "Illogical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "Package URL",
+                    "conditionIndex": 0,
+                    "summary": "Package URL matches pkg:maven/com.h2database/h2@1.4.190?classifier=*&type=jar",
+                    "reason": "Coordinates were com.h2database : h2 : 1.4.190 (matches package URL pkg:maven/com.h2database/h2@1.4.190?classifier=*&type=jar)",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "com.h2database"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "h2"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "1.4.190"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "f48231a74eb943c1ad866d60e4073099",
+        "policyName": "Security-Medium",
+        "threatLevel": 7,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "h2",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.h2database",
+                "version": "1.4.190"
+              }
+            },
+            "hash": "df71536d44e3b07f0c15",
+            "constraintFacts": [
+              {
+                "constraintId": "040e4bfba7ed4d7d90d2e2ccd05de7c7",
+                "constraintName": "Medium risk CVSS score",
+                "operatorName": "AND",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity >= 4",
+                    "reason": "Found security vulnerability CVE-2018-14335 with severity >= 4 (severity = 6.5)",
+                    "reference": {
+                      "value": "CVE-2018-14335",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  },
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity < 7",
+                    "reason": "Found security vulnerability CVE-2018-14335 with severity < 7 (severity = 6.5)",
+                    "reference": {
+                      "value": "CVE-2018-14335",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  },
+                  {
+                    "conditionTypeId": "SecurityVulnerabilityStatus",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Status is not NOT_APPLICABLE",
+                    "reason": "Found security vulnerability CVE-2018-14335 with status 'Open', not 'Not Applicable'",
+                    "reference": {
+                      "value": "CVE-2018-14335",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "com.h2database"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "h2"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "1.4.190"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "f48231a74eb943c1ad866d60e4073099",
+        "policyName": "Security-Medium",
+        "threatLevel": 7,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "040e4bfba7ed4d7d90d2e2ccd05de7c7",
+                "constraintName": "Medium risk CVSS score",
+                "operatorName": "AND",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity >= 4",
+                    "reason": "Found security vulnerability CVE-2018-1199 with severity >= 4 (severity = 5.3)",
+                    "reference": {
+                      "value": "CVE-2018-1199",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  },
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity < 7",
+                    "reason": "Found security vulnerability CVE-2018-1199 with severity < 7 (severity = 5.3)",
+                    "reference": {
+                      "value": "CVE-2018-1199",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  },
+                  {
+                    "conditionTypeId": "SecurityVulnerabilityStatus",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Status is not NOT_APPLICABLE",
+                    "reason": "Found security vulnerability CVE-2018-1199 with status 'Open', not 'Not Applicable'",
+                    "reference": {
+                      "value": "CVE-2018-1199",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "f48231a74eb943c1ad866d60e4073099",
+        "policyName": "Security-Medium",
+        "threatLevel": 7,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "040e4bfba7ed4d7d90d2e2ccd05de7c7",
+                "constraintName": "Medium risk CVSS score",
+                "operatorName": "AND",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity >= 4",
+                    "reason": "Found security vulnerability sonatype-2017-0507 with severity >= 4 (severity = 5.0)",
+                    "reference": {
+                      "value": "sonatype-2017-0507",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  },
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity < 7",
+                    "reason": "Found security vulnerability sonatype-2017-0507 with severity < 7 (severity = 5.0)",
+                    "reference": {
+                      "value": "sonatype-2017-0507",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  },
+                  {
+                    "conditionTypeId": "SecurityVulnerabilityStatus",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Status is not NOT_APPLICABLE",
+                    "reason": "Found security vulnerability sonatype-2017-0507 with status 'Open', not 'Not Applicable'",
+                    "reference": {
+                      "value": "sonatype-2017-0507",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "f48231a74eb943c1ad866d60e4073099",
+        "policyName": "Security-Medium",
+        "threatLevel": 7,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "040e4bfba7ed4d7d90d2e2ccd05de7c7",
+                "constraintName": "Medium risk CVSS score",
+                "operatorName": "AND",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity >= 4",
+                    "reason": "Found security vulnerability sonatype-2019-0469 with severity >= 4 (severity = 5.4)",
+                    "reference": {
+                      "value": "sonatype-2019-0469",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  },
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity < 7",
+                    "reason": "Found security vulnerability sonatype-2019-0469 with severity < 7 (severity = 5.4)",
+                    "reference": {
+                      "value": "sonatype-2019-0469",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  },
+                  {
+                    "conditionTypeId": "SecurityVulnerabilityStatus",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Status is not NOT_APPLICABLE",
+                    "reason": "Found security vulnerability sonatype-2019-0469 with status 'Open', not 'Not Applicable'",
+                    "reference": {
+                      "value": "sonatype-2019-0469",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "License Threat Group",
+                    "conditionIndex": 0,
+                    "summary": "License Threat Group is 'Liberal'",
+                    "reason": "Found licenses in the 'Liberal' license threat group ('Apache-2.0')",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "MatchState",
+                    "conditionIndex": 0,
+                    "summary": "Match State is exact",
+                    "reason": "Match state was 'Exact'",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "Proprietary",
+                    "conditionIndex": 0,
+                    "summary": "Proprietary is false",
+                    "reason": "Component does not contain proprietary packages",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "RelativePopularity",
+                    "conditionIndex": 0,
+                    "summary": "Relative Popularity (Percentage) < 100",
+                    "reason": "Relative popularity was < 100% (relative popularity = 20%)",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity > 1",
+                    "reason": "Found security vulnerability CVE-2018-1199 with severity > 1 (severity = 5.3)",
+                    "reference": {
+                      "value": "CVE-2018-1199",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity > 1",
+                    "reason": "Found security vulnerability sonatype-2017-0507 with severity > 1 (severity = 5.0)",
+                    "reference": {
+                      "value": "sonatype-2017-0507",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity > 1",
+                    "reason": "Found security vulnerability sonatype-2017-0641 with severity > 1 (severity = 7.1)",
+                    "reference": {
+                      "value": "sonatype-2017-0641",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity > 1",
+                    "reason": "Found security vulnerability sonatype-2019-0341 with severity > 1 (severity = 3.7)",
+                    "reference": {
+                      "value": "sonatype-2019-0341",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity > 1",
+                    "reason": "Found security vulnerability sonatype-2019-0469 with severity > 1 (severity = 5.4)",
+                    "reference": {
+                      "value": "sonatype-2019-0469",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilityStatus",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Status is OPEN",
+                    "reason": "Found security vulnerability CVE-2018-1199 with status 'Open'",
+                    "reference": {
+                      "value": "CVE-2018-1199",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilityStatus",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Status is OPEN",
+                    "reason": "Found security vulnerability sonatype-2017-0507 with status 'Open'",
+                    "reference": {
+                      "value": "sonatype-2017-0507",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilityStatus",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Status is OPEN",
+                    "reason": "Found security vulnerability sonatype-2017-0641 with status 'Open'",
+                    "reference": {
+                      "value": "sonatype-2017-0641",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilityStatus",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Status is OPEN",
+                    "reason": "Found security vulnerability sonatype-2019-0341 with status 'Open'",
+                    "reference": {
+                      "value": "sonatype-2019-0341",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "6dc809c375334d9196af693756c95683",
+                "constraintName": "Nonsensical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilityStatus",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Status is OPEN",
+                    "reason": "Found security vulnerability sonatype-2019-0469 with status 'Open'",
+                    "reference": {
+                      "value": "sonatype-2019-0469",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "bb7f4c9f188e4570bdcaac173dce6cc6",
+                "constraintName": "Illogical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "AgeInDays",
+                    "conditionIndex": 0,
+                    "summary": "Age older than 1 days",
+                    "reason": "Found component older than 1 days",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "bb7f4c9f188e4570bdcaac173dce6cc6",
+                "constraintName": "Illogical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "IdentificationSource",
+                    "conditionIndex": 0,
+                    "summary": "Identification Source is Sonatype",
+                    "reason": "Identification Source was Sonatype",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "041a17c5f04944178eb8cdfa0880d81b",
+        "policyName": "Unlikely Test Policy",
+        "threatLevel": 10,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "bb7f4c9f188e4570bdcaac173dce6cc6",
+                "constraintName": "Illogical Constraint",
+                "operatorName": "OR",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "LicenseStatus",
+                    "conditionIndex": 0,
+                    "summary": "License Status is OPEN",
+                    "reason": "License status was Open",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "05f79154757d4fcfa3d1f7b0b539b7fb",
+        "policyName": "Security-Low",
+        "threatLevel": 3,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "755261b0dcc945adb7ecdbdeb900ddcb",
+                "constraintName": "Low risk CVSS score",
+                "operatorName": "AND",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity >= 0",
+                    "reason": "Found security vulnerability sonatype-2019-0341 with severity >= 0 (severity = 3.7)",
+                    "reference": {
+                      "value": "sonatype-2019-0341",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  },
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity < 4",
+                    "reason": "Found security vulnerability sonatype-2019-0341 with severity < 4 (severity = 3.7)",
+                    "reference": {
+                      "value": "sonatype-2019-0341",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  },
+                  {
+                    "conditionTypeId": "SecurityVulnerabilityStatus",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Status is not NOT_APPLICABLE",
+                    "reason": "Found security vulnerability sonatype-2019-0341 with status 'Open', not 'Not Applicable'",
+                    "reference": {
+                      "value": "sonatype-2019-0341",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "2aadd95bd58345e69723815413dd4a97",
+        "policyName": "Security-High",
+        "threatLevel": 9,
+        "componentFacts": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "spring-security-web",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.springframework.security",
+                "version": "4.2.3.RELEASE"
+              }
+            },
+            "hash": "7a03e737484ca232d714",
+            "constraintFacts": [
+              {
+                "constraintId": "42b8b763e2dc497eb7e3f3c217a884d5",
+                "constraintName": "High risk CVSS score",
+                "operatorName": "AND",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity >= 7",
+                    "reason": "Found security vulnerability sonatype-2017-0641 with severity >= 7 (severity = 7.1)",
+                    "reference": {
+                      "value": "sonatype-2017-0641",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  },
+                  {
+                    "conditionTypeId": "SecurityVulnerabilitySeverity",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Severity < 10",
+                    "reason": "Found security vulnerability sonatype-2017-0641 with severity < 10 (severity = 7.1)",
+                    "reference": {
+                      "value": "sonatype-2017-0641",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  },
+                  {
+                    "conditionTypeId": "SecurityVulnerabilityStatus",
+                    "conditionIndex": 0,
+                    "summary": "Security Vulnerability Status is not NOT_APPLICABLE",
+                    "reason": "Found security vulnerability sonatype-2017-0641 with status 'Open', not 'Not Applicable'",
+                    "reference": {
+                      "value": "sonatype-2017-0641",
+                      "type": "SECURITY_VULNERABILITY_REFID"
+                    },
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": {
+              "parts": [
+                {
+                  "field": "Group",
+                  "value": "org.springframework.security"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Artifact",
+                  "value": "spring-security-web"
+                },
+                {
+                  "value": " : "
+                },
+                {
+                  "field": "Version",
+                  "value": "4.2.3.RELEASE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "actionTypeId": "fail",
+          "target": null
+        }
+      ]
+    },
+    {
+      "trigger": {
+        "policyId": "703d23823ddb40f9a3207011f315e37c",
+        "policyName": "Component-Unknown",
+        "threatLevel": 2,
+        "componentFacts": [
+          {
+            "componentIdentifier": null,
+            "hash": "f7582e676c731e86b44f",
+            "constraintFacts": [
+              {
+                "constraintId": "93cf725ded2c42f1bd5ce1c7a1a04e76",
+                "constraintName": "Unknown 3rd party component",
+                "operatorName": "AND",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "MatchState",
+                    "conditionIndex": 0,
+                    "summary": "Match State is unknown",
+                    "reason": "Match state was 'Unknown'",
+                    "reference": null,
+                    "triggerJson": null
+                  },
+                  {
+                    "conditionTypeId": "Proprietary",
+                    "conditionIndex": 0,
+                    "summary": "Proprietary is false",
+                    "reason": "Component does not contain proprietary packages",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": null
+          }
+        ]
+      },
+      "actions": []
+    },
+    {
+      "trigger": {
+        "policyId": "703d23823ddb40f9a3207011f315e37c",
+        "policyName": "Component-Unknown",
+        "threatLevel": 2,
+        "componentFacts": [
+          {
+            "componentIdentifier": null,
+            "hash": "5c7d0432745d8b8461c0",
+            "constraintFacts": [
+              {
+                "constraintId": "93cf725ded2c42f1bd5ce1c7a1a04e76",
+                "constraintName": "Unknown 3rd party component",
+                "operatorName": "AND",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "MatchState",
+                    "conditionIndex": 0,
+                    "summary": "Match State is unknown",
+                    "reason": "Match state was 'Unknown'",
+                    "reference": null,
+                    "triggerJson": null
+                  },
+                  {
+                    "conditionTypeId": "Proprietary",
+                    "conditionIndex": 0,
+                    "summary": "Proprietary is false",
+                    "reason": "Component does not contain proprietary packages",
+                    "reference": null,
+                    "triggerJson": null
+                  }
+                ]
+              }
+            ],
+            "pathnames": [],
+            "displayName": null
+          }
+        ]
+      },
+      "actions": []
+    }
+  ]
+}

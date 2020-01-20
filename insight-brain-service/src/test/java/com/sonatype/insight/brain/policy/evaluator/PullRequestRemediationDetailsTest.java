@@ -169,14 +169,14 @@ public class PullRequestRemediationDetailsTest
         new PolicyFact("high-id", "Security-High", 9),
         new Notifications(new UserNotification("tester@foo.com")));
     ComponentFact highComponentFact = new ComponentFact(componentIdentifier, "dummy-high-hash");
-    ConstraintFact highConstraintFact = new ConstraintFact("constraint-id", "High risk CVSS score", "OR");
+    ConstraintFact highConstraintFact = new ConstraintFact("constraint-id-high", "High risk CVSS score", "OR");
     highConstraintFact.addConditionFact(createSecuritySeverityConditionFact("SONATYPE-2017-0312", ">= 7", "8.5"));
     highConstraintFact.addConditionFact(createSecuritySeverityConditionFact("SONATYPE-2017-0312", "< 9", "8.5"));
     highComponentFact.addConstraintFact(highConstraintFact);
     highPolicyNotification.getPolicyFact().addComponentFact(highComponentFact);
 
     ComponentFact highComponentFact2 = new ComponentFact(componentIdentifier, "dummy-high-hash");
-    ConstraintFact highConstraintFact2 = new ConstraintFact("constraint-id", "High risk CVSS score", "OR");
+    ConstraintFact highConstraintFact2 = new ConstraintFact("constraint-id-high", "High risk CVSS score", "OR");
     highConstraintFact2.addConditionFact(createSecuritySeverityConditionFact("SONATYPE-2017-9999", ">= 7", "8.5"));
     highConstraintFact2.addConditionFact(createSecuritySeverityConditionFact("SONATYPE-2017-9999", "< 9", "8.5"));
     // add another non-security ConstraintFact to this ComponentFact
@@ -186,7 +186,7 @@ public class PullRequestRemediationDetailsTest
 
     // third ComponentFact on high, not a security vulnerability
     ComponentFact highComponentFact3 = new ComponentFact(componentIdentifier, "dummy-high-hash");
-    ConstraintFact highConstraintFact3 = new ConstraintFact("constraint-id", "Version is old and unpopular", "OR");
+    ConstraintFact highConstraintFact3 = new ConstraintFact("constraint-id-old", "Version is old and unpopular", "OR");
     highConstraintFact3.addConditionFact(createAgeConditionFact("6 years, 5 months, and 2 days"));
     highConstraintFact3.addConditionFact(createPopularityConditionFact("<3%"));
     highComponentFact3.addConstraintFact(highConstraintFact3);
@@ -214,7 +214,7 @@ public class PullRequestRemediationDetailsTest
         new PolicyFact("low-id", "Security-Low", 4),
         new Notifications(new UserNotification("tester@foo.com")));
     ComponentFact lowComponentFact = new ComponentFact(componentIdentifier, "dummy-low-hash");
-    ConstraintFact lowConstraintFact = new ConstraintFact("constraint-id", "Low risk CVSS score", "OR");
+    ConstraintFact lowConstraintFact = new ConstraintFact("constraint-id-low", "Low risk CVSS score", "OR");
     lowConstraintFact
         .addConditionFact(createSecurityStatusConditionFact("sonatype-2017-1234", "Open", "Not Applicable"));
     lowComponentFact.addConstraintFact(lowConstraintFact);

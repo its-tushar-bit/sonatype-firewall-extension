@@ -10,7 +10,15 @@
 Threat (of 10) | Policy | Violation Details
 --- | --- | ---
 <#list threatList as threat>
-${threat.threat} | ${threat.policy} | ${threat.details}
+    ${threat.threat} | ${threat.policy} | <#list threat.constraints as constraint><#t>
+  <b>${constraint.constraintName}:</b><#t>
+  <ul><#t>
+    <#list constraint.conditions as condition>
+      <li>${condition}</li><#t>
+    </#list>
+  </ul><#t>
+</#list>
+
 </#list>
 
 ### Nexus IQ Scan Detail

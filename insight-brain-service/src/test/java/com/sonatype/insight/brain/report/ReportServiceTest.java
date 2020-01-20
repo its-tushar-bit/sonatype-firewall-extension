@@ -322,6 +322,43 @@ public class ReportServiceTest
     assertThatReportZipContains(reportZip, "thirdparty-license.json");
   }
 
+  @Test
+  public void testGetBomForPolicyEvaluation() throws URISyntaxException, IOException {
+    createReportFile(app.getId(), "SCAN_ID", zipReportDir("/ReportServiceTest/report"));
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID");
+
+    ReportEntry reportEntry = createReportService().getBomForPolicyEvaluation(policyEvaluation);
+
+    assertThat(reportEntry).isNotNull();
+    assertThat(reportEntry.buf).isNotNull();
+    assertThat(reportEntry.buf).isNotEmpty();
+  }
+
+  @Test
+  public void testGetBomForPolicyEvaluation_NoBomFile() throws URISyntaxException, IOException {
+    createReportFile(app.getId(), "SCAN_ID", zipReportDir("/ReportServiceTest/report-missing-bom-json"));
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID");
+
+    ReportEntry reportEntry = createReportService().getBomForPolicyEvaluation(policyEvaluation);
+
+    assertThat(reportEntry).isNull();
+  }
+
+  @Test
+  public void testGetBomForPolicyEvaluation_NullPolicyEvaluation() throws IOException {
+    ReportEntry reportEntry = createReportService().getBomForPolicyEvaluation(null);
+
+    assertThat(reportEntry).isNull();
+  }
+
+  @Test
+  public void testGetBomForPolicyEvaluation_NoPolicyEvaluation() throws URISyntaxException, IOException {
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID");
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> createReportService().getBomForPolicyEvaluation(policyEvaluation));
+  }
+
   private void assertThatReportZipContains(File zipFile, final String thirdPartyFile) {
     assertThat(Stream.of(new TFile(zipFile).listFiles()).anyMatch(f -> f.getName().endsWith(thirdPartyFile)))
         .isTrue();

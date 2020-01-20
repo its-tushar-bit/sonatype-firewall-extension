@@ -26,11 +26,13 @@ public class ThirdPartyScanResultUtils
 
   public static final int VULNERABILITY_SOURCE_MAX_LENGTH = 100;
 
-  public static final int SEVERITY_DESCRIPTION_MAX_LENGTH = 100;
+  public static final int SEVERITY_DESCRIPTION_MAX_LENGTH = 15;
 
   public static final int ATTACK_VECTOR_MAX_LENGTH = 100;
 
   public static final int RATING_METHOD_MAX_LENGTH = 10;
+
+  public static final int REFID_MAX_LENGTH = 20;
 
   private static final Pattern VULNERABILITY_REF_SOURCE_PATTERN = Pattern.compile("^([a-zA-Z]*)-?(.*)$");
 
@@ -96,5 +98,9 @@ public class ThirdPartyScanResultUtils
 
   public static String getTruncatedRatingMethod(String ratingMethod) {
     return StringUtils.truncate(ratingMethod, RATING_METHOD_MAX_LENGTH);
+  }
+
+  public static String getTruncatedRefId(String refId) {
+    return StringUtils.truncate(refId, REFID_MAX_LENGTH);
   }
 }

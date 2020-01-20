@@ -29,6 +29,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.mockito.Spy;
 
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.FIXED_BY_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.FORMAT_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.LINK_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.NAME_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.REFID_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.SEVERITY_DESCRIPTION_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VERSION_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getValidFormat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ClairScannerResultsHandlerTest
@@ -46,25 +54,36 @@ public class ClairScannerResultsHandlerTest
   private static final Gson GSON = new Gson();
 
   @Test
-  public void testHandleAndFilterContents_truncateFilteredIdentities() {
-    String name = StringUtils.repeat("*", ThirdPartyScanResultUtils.NAME_MAX_LENGTH + 1);
-    String version = StringUtils.repeat("*", ThirdPartyScanResultUtils.VERSION_MAX_LENGTH + 1);
-    String namespace = StringUtils.repeat("*", ThirdPartyScanResultUtils.FORMAT_MAX_LENGTH + 1);
-
+  public void testHandleAndFilterContents_truncate() {
     ClairScannerResult clairScannerResult = new ClairScannerResult();
-    clairScannerResult.setVulnerabilities(new HashSet<>(
-        Arrays.asList(buildVulnerability(name, version, namespace, "test", "csv-test", "www.test.com", "High"))));
+    clairScannerResult.setVulnerabilities(new HashSet<>(Arrays.asList(buildVulnerabilityToTruncateValues())));
 
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(clairScannerResult));
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile);
     ClairScannerResult filteredClairScannerResult = toClairScannerResult(filteredContent);
-    assertThat(filteredClairScannerResult.getVulnerabilities()).hasSize(1).allSatisfy(v -> {
-      assertThat(v.getFeatureName()).hasSize(ThirdPartyScanResultUtils.NAME_MAX_LENGTH);
-      assertThat(v.getFeatureVersion()).hasSize(ThirdPartyScanResultUtils.VERSION_MAX_LENGTH);
-      assertThat(v.getNamespace()).hasSize(ThirdPartyScanResultUtils.FORMAT_MAX_LENGTH);
-    });
+
+    // check filtered content (sent to HDS) has been truncated
+    ClairScannerVulnerability clairScannerVulnerability =
+        filteredClairScannerResult.getVulnerabilities().iterator().next();
+    assertThat(clairScannerVulnerability.getFeatureName()).hasSize(NAME_MAX_LENGTH);
+    assertThat(clairScannerVulnerability.getFeatureVersion()).hasSize(VERSION_MAX_LENGTH);
+    assertThat(clairScannerVulnerability.getNamespace()).hasSize(FORMAT_MAX_LENGTH);
+
+    // check third party coordinates (stored in IQ) have been truncated
+    ThirdPartyFileCoordinate coordinate =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()).get(0);
+    assertThat(coordinate.getFormat()).hasSize(FORMAT_MAX_LENGTH);
+    assertThat(coordinate.getName()).hasSize(NAME_MAX_LENGTH);
+    assertThat(coordinate.getVersion()).hasSize(VERSION_MAX_LENGTH);
+
+    ThirdPartyCoordinateSecurity coordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(coordinate.getId()).get(0);
+    assertThat(coordinateSecurity.getLink()).hasSize(LINK_MAX_LENGTH);
+    assertThat(coordinateSecurity.getFixedBy()).hasSize(FIXED_BY_MAX_LENGTH);
+    assertThat(coordinateSecurity.getSeverityDescription()).hasSize(SEVERITY_DESCRIPTION_MAX_LENGTH);
+    assertThat(coordinateSecurity.getRefId()).hasSize(REFID_MAX_LENGTH);
   }
 
   @Test
@@ -240,6 +259,18 @@ public class ClairScannerResultsHandlerTest
     return GSON.fromJson(content, ClairScannerResult.class);
   }
 
+  private ClairScannerVulnerability buildVulnerabilityToTruncateValues() {
+    ClairScannerVulnerability vulnerability = new ClairScannerVulnerability();
+    vulnerability.setFeatureName(StringUtils.repeat("*", NAME_MAX_LENGTH + 1));
+    vulnerability.setFeatureVersion(StringUtils.repeat("*", VERSION_MAX_LENGTH + 1));
+    vulnerability.setNamespace(StringUtils.repeat("*", FORMAT_MAX_LENGTH + 1));
+    vulnerability.setLink(StringUtils.repeat("*", LINK_MAX_LENGTH + 1));
+    vulnerability.setFixedBy(StringUtils.repeat("*", FIXED_BY_MAX_LENGTH + 1));
+    vulnerability.setVulnerability("CSV-test-1" + StringUtils.repeat("*", REFID_MAX_LENGTH + 1));
+    vulnerability.setSeverity(StringUtils.repeat("*", SEVERITY_DESCRIPTION_MAX_LENGTH + 1));
+    return vulnerability;
+  }
+
   private ClairScannerVulnerability buildVulnerability(
       String name,
       String version,
@@ -283,8 +314,7 @@ public class ClairScannerResultsHandlerTest
       ThirdPartyFile thirdPartyFile,
       ThirdPartyFileCoordinate coordinate)
   {
-    assertThat(coordinate.getFormat())
-        .isEqualTo(ThirdPartyScanResultUtils.getValidFormat(vulnerability.getNamespace()));
+    assertThat(coordinate.getFormat()).isEqualTo(getValidFormat(vulnerability.getNamespace()));
     assertThat(coordinate.getHash()).isNotBlank();
     assertThat(coordinate.getName()).isEqualTo(vulnerability.getFeatureName());
     assertThat(coordinate.getThirdPartyFileId()).isEqualTo(thirdPartyFile.getId());

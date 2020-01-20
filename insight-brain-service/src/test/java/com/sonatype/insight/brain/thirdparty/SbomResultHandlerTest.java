@@ -43,6 +43,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Spy;
 
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.ATTACK_VECTOR_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.FORMAT_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.LINK_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.NAME_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.RATING_METHOD_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.REFID_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.SEVERITY_DESCRIPTION_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VERSION_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VULNERABILITY_SOURCE_MAX_LENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -552,20 +561,40 @@ public class SbomResultHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_truncateFilteredSbom() throws Exception {
+  public void testHandleAndFilterContents_truncate() throws Exception {
     String sbomContent = getSbomFile("sbom-truncate-coordinates-for-hds.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
 
+    // check filtered content (will be sent to HDS) has been truncated
     Bom filteredSbom = getBom(filteredContent);
     Component component = filteredSbom.getComponents().get(0);
-    assertThat(component.getName()).hasSize(ThirdPartyScanResultUtils.NAME_MAX_LENGTH);
-    assertThat(component.getVersion()).hasSize(ThirdPartyScanResultUtils.VERSION_MAX_LENGTH);
+    assertThat(component.getName()).hasSize(NAME_MAX_LENGTH);
+    assertThat(component.getVersion()).hasSize(VERSION_MAX_LENGTH);
 
     PackageUrlIdentifier packageUrlIdentifier = new PackageUrlIdentifier(component.getPurl());
-    assertThat(packageUrlIdentifier.getName()).hasSize(ThirdPartyScanResultUtils.NAME_MAX_LENGTH);
-    assertThat(packageUrlIdentifier.getVersion()).hasSize(ThirdPartyScanResultUtils.VERSION_MAX_LENGTH);
+    assertThat(packageUrlIdentifier.getFormat()).hasSize(FORMAT_MAX_LENGTH);
+    assertThat(packageUrlIdentifier.getName()).hasSize(NAME_MAX_LENGTH);
+    assertThat(packageUrlIdentifier.getVersion()).hasSize(VERSION_MAX_LENGTH);
+
+    // check third party coordinates (stored in IQ) has been truncated
+    ThirdPartyFileCoordinate coordinate =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()).get(0);
+    assertThat(coordinate.getFormat()).hasSize(FORMAT_MAX_LENGTH);
+    assertThat(coordinate.getName()).hasSize(NAME_MAX_LENGTH);
+    assertThat(coordinate.getVersion()).hasSize(VERSION_MAX_LENGTH);
+
+    ThirdPartyCoordinateSecurity coordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(coordinate.getId()).get(0);
+    assertThat(coordinateSecurity.getLink()).hasSize(LINK_MAX_LENGTH);
+    assertThat(coordinateSecurity.getSeverityDescription()).hasSize(SEVERITY_DESCRIPTION_MAX_LENGTH);
+    assertThat(coordinateSecurity.getRefId()).hasSize(REFID_MAX_LENGTH);
+    assertThat(coordinateSecurity.getVulnerabilitySource()).hasSize(VULNERABILITY_SOURCE_MAX_LENGTH);
+    assertThat(coordinateSecurity.getSeverityDescription()).hasSize(SEVERITY_DESCRIPTION_MAX_LENGTH);
+    assertThat(coordinateSecurity.getAttackVector()).hasSize(ATTACK_VECTOR_MAX_LENGTH);
+    assertThat(coordinateSecurity.getRatingMethod()).hasSize(RATING_METHOD_MAX_LENGTH);
+    assertThat(coordinateSecurity.getRefId()).hasSize(REFID_MAX_LENGTH);
   }
 
   private String getSbomFile(final String fileName) throws Exception {

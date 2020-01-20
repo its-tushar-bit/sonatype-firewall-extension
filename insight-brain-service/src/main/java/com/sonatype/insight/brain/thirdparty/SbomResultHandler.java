@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedAttackVector;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedLink;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedRatingMethod;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedRefId;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedSeverityDescription;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedVulnerabilitySource;
 
@@ -389,7 +390,7 @@ public class SbomResultHandler
         coordinateSecurity.setVulnerabilitySource(getTruncatedVulnerabilitySource(source.getAttribute("name")));
         coordinateSecurity.setLink(getTruncatedLink(getValueFromTag(source, "url")));
       }
-      coordinateSecurity.setRefId(refId);
+      coordinateSecurity.setRefId(getTruncatedRefId(refId));
       coordinateSecurity.setDescription(getValueFromTag(vulnerability, "description"));
 
       thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);

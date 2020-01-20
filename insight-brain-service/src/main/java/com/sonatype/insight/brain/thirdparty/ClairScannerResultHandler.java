@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedFixedBy;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedLink;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedName;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedRefId;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedSeverityDescription;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedVersion;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedVulnerabilitySource;
@@ -107,13 +108,15 @@ public class ClairScannerResultHandler
 
     String fixedBy = getTruncatedFixedBy(vulnerability.getFixedBy());
 
+    String refId = getTruncatedRefId(vulnerability.getVulnerability());
+
     String vulnerabilitySource =
-        getTruncatedVulnerabilitySource(getVulnerabilitySourceFromReference(vulnerability.getVulnerability()));
+        getTruncatedVulnerabilitySource(getVulnerabilitySourceFromReference(refId));
 
     String severityDescription = getTruncatedSeverityDescription(vulnerability.getSeverity());
 
     ThirdPartyCoordinateSecurity coordinateSecurity =
-        new ThirdPartyCoordinateSecurity(fileCoordinateId, vulnerability.getVulnerability(),
+        new ThirdPartyCoordinateSecurity(fileCoordinateId, refId,
             vulnerability.getDescription(), link, severity, fixedBy);
     coordinateSecurity.setVulnerabilitySource(vulnerabilitySource);
     coordinateSecurity.setSeverityDescription(severityDescription);

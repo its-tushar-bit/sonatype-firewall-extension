@@ -97,4 +97,11 @@ public class ThirdPartyScanResultUtilsTest
         .getTruncatedRatingMethod(StringUtils.repeat("*", ThirdPartyScanResultUtils.RATING_METHOD_MAX_LENGTH + 10)))
         .hasSize(ThirdPartyScanResultUtils.RATING_METHOD_MAX_LENGTH);
   }
+
+  @Test
+  public void testGetTruncatedRefId() {
+    assertThat(ThirdPartyScanResultUtils
+        .getTruncatedRefId(StringUtils.repeat("*", ThirdPartyScanResultUtils.REFID_MAX_LENGTH + 10)))
+        .hasSize(ThirdPartyScanResultUtils.REFID_MAX_LENGTH);
+  }
 }

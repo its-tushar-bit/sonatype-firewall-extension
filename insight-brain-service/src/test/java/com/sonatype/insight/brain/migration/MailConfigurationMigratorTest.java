@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.util.Arrays;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
@@ -89,7 +87,7 @@ public class MailConfigurationMigratorTest
     fileConfig.setHostname("testhost");
     fileConfig.setPort(12345);
     fileConfig.setUsername("testuser");
-    fileConfig.setPassword(Arrays.copyOf(password, password.length));
+    fileConfig.setPassword(password.clone());
     fileConfig.setSsl(true);
     fileConfig.setSystemEmail("nxiq@localhost");
     insightConfig.setMailConfig(fileConfig);

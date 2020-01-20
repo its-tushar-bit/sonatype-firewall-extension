@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 import javax.inject.Inject;
 import javax.mail.Address;
@@ -86,7 +85,7 @@ public class ApiMailConfigurationServiceTest
     configurationDTO.hostname = "servtest";
     configurationDTO.port = 58285;
     configurationDTO.username = "smtpuser";
-    configurationDTO.password = Arrays.copyOf(password, password.length);
+    configurationDTO.password = password.clone();
     configurationDTO.passwordIsIncluded = true;
     configurationDTO.sslEnabled = true;
     configurationDTO.systemEmail = "nxiq@test";
@@ -121,7 +120,7 @@ public class ApiMailConfigurationServiceTest
     configurationDTO.hostname = "servtest";
     configurationDTO.port = 58285;
     configurationDTO.username = "smtpuser";
-    configurationDTO.password = Arrays.copyOf(password, password.length);
+    configurationDTO.password = password.clone();
     configurationDTO.passwordIsIncluded = true;
     configurationDTO.sslEnabled = true;
     configurationDTO.systemEmail = "nxiq@test";

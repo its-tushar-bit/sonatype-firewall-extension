@@ -57,6 +57,8 @@ public class ScannerTest extends InjectedTest
     assertThat(item.getItems()).hasSize(1);
     assertThat(item.isProprietary()).isNull();
     item = item.getItems().get(0);
+    assertThat(item.getSha512()).isEqualTo("b1c5fe2f797abc2da1df1a103abcfe391a1fdf4d3de08012c4f121065ff055742"
+        + "f726550bbde22958baf3be18b5eeae12b39fdd4069736e620b5d0397e0c4e2c");
     assertThat(item.getSha1()).isEqualTo("44a17e5a5594edeebc94");
     assertThat(item.getSha1JA001()).isNotNull();
     assertThat(item.getSha1JB001()).isNotNull();

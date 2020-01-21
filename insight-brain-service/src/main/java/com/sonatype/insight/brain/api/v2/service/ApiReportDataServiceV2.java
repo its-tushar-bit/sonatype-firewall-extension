@@ -45,7 +45,6 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -64,8 +63,6 @@ import static java.util.stream.Collectors.toList;
 @Named
 public class ApiReportDataServiceV2
 {
-  private final InsightWork work;
-
   private final ApplicationDAO appDAO;
 
   private final ReportService reportService;
@@ -78,14 +75,12 @@ public class ApiReportDataServiceV2
 
   @Inject
   public ApiReportDataServiceV2(
-      InsightWork work,
       ApplicationDAO appDAO,
       ReportService reportService,
       ApiLicenseDataAdapter licenseDataAdapter,
       ApiSecurityDataAdapter securityDataAdapter,
       ComponentResolver componentResolver)
   {
-    this.work = work;
     this.appDAO = appDAO;
     this.reportService = reportService;
     this.licenseDataAdapter = licenseDataAdapter;
@@ -110,7 +105,7 @@ public class ApiReportDataServiceV2
       String scanId) throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    File reportFile = reportService.getReport(work, app.getId(), scanId);
+    File reportFile = reportService.getReport(app.getId(), scanId);
 
     ReportEntry bomEntry = Report.getEntry(reportFile, "bom.json");
     ReportEntry countsEntry = Report.getEntry(reportFile, Report.DATA_JSON_FILENAME);
@@ -246,7 +241,7 @@ public class ApiReportDataServiceV2
 
   public ApiReportRawDataDTOV2 getDataNoAuth(String applicationPublicId, String scanId) throws IOException {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    File reportFile = reportService.getReport(work, app.getId(), scanId);
+    File reportFile = reportService.getReport(app.getId(), scanId);
 
     ReportEntry bomEntry = Report.getEntry(reportFile, "bom.json");
     ReportEntry securityEntry = Report.getEntry(reportFile, "security.json");

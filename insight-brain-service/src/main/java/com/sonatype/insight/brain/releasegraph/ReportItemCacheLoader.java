@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.model.ReportPopularity;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.cache.CacheLoader;
@@ -25,15 +24,12 @@ import com.google.common.cache.CacheLoader;
 public class ReportItemCacheLoader
     extends CacheLoader<ReportItemKey, ReportPopularity>
 {
-  private final InsightWork work;
-
   private final ReportService reportService;
 
   private final ApplicationDAO applicationDAO;
 
   @Inject
-  public ReportItemCacheLoader(InsightWork work, ReportService reportService, ApplicationDAO applicationDAO) {
-    this.work = work;
+  public ReportItemCacheLoader(ReportService reportService, ApplicationDAO applicationDAO) {
     this.reportService = reportService;
     this.applicationDAO = applicationDAO;
   }
@@ -44,7 +40,7 @@ public class ReportItemCacheLoader
     String appId = application.getId();
 
     final String name = Report.toEntryName("popularity.json");
-    final File reportFile = reportService.getReport(work, appId, key.getScanId());
+    final File reportFile = reportService.getReport(appId, key.getScanId());
     ReportEntry reportEntry = Report.getEntry(reportFile, name);
 
     if (reportEntry == null) {

@@ -171,7 +171,7 @@ public class ReportService
     }
   }
 
-  public File getReport(final InsightWork work, final String appId, final String scanId) {
+  public File getReport(final String appId, final String scanId) {
     File reportFile = work.getReportFile(appId, scanId);
     if (reportFile.exists()) {
       return reportFile;
@@ -194,7 +194,7 @@ public class ReportService
     ReportMetadataDTO metadata = new ReportMetadataDTO();
     metadata.setApplication(application);
 
-    File reportFile = getReport(work, application.getId(), scanId);
+    File reportFile = getReport(application.getId(), scanId);
     final ContainerNode<?> data = JsonUtils.parse(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME).buf);
     metadata.setExpandedCoverage(data.path("globals").path("expandedCoverage").booleanValue());
 
@@ -241,7 +241,7 @@ public class ReportService
       throw new BadRequestException("Unable to locate scan " + scanId + " for application " + appId + ".");
     }
 
-    File reportFile = getReport(work, appId, scanId);
+    File reportFile = getReport(appId, scanId);
 
     ContactDTO contact = applicationAdapter.getContact(application.getContactInternalName());
     String stageName = StageTypes.getById(policyEvaluation.getStageTypeId()).getName();
@@ -264,7 +264,7 @@ public class ReportService
     if (policyEvaluation == null) {
       return null;
     }
-    File reportFile = getReport(work, policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
+    File reportFile = getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
 
     return Report.getEntry(reportFile, "bom.json");
   }

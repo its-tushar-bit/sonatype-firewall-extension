@@ -52,11 +52,11 @@ public class ReleaseGraphPerformance
 
   private LoadingCache<ReleaseGraphKey, byte[]> cache;
 
-  private ReleaseGraphPerformance(int threads, InsightWork work) throws Exception {
+  private ReleaseGraphPerformance(int threads) throws Exception {
     callables = new LinkedList<>();
     pool = new ThreadPoolExecutor(threads, threads, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(threads));
     cache = CacheBuilder.newBuilder().maximumSize(1000)
-        .build(new ReleaseGraphCacheLoader(new ReportItemCacheLoader(work, null, new ApplicationDAO())));
+        .build(new ReleaseGraphCacheLoader(new ReportItemCacheLoader(null, new ApplicationDAO())));
     reportResource = new ReleaseGraphResource(new ReleaseGraphService(cache));
 
     // trigger db
@@ -67,7 +67,7 @@ public class ReleaseGraphPerformance
   }
 
   ReleaseGraphPerformance(int reports, int users, InsightWork work) throws Exception {
-    this(users * reports, work);
+    this(users * reports);
 
     List<ComponentPopularity> components = getComponents();
     for (int r = 0; r < reports; r++) {
@@ -88,7 +88,7 @@ public class ReleaseGraphPerformance
    * @throws Exception
    */
   ReleaseGraphPerformance(int reports, int usersPerReport, int connectionsPerUser, InsightWork work) throws Exception {
-    this(connectionsPerUser * usersPerReport * reports, work);
+    this(connectionsPerUser * usersPerReport * reports);
 
     List<ComponentPopularity> components = getComponents();
     for (int r = 0; r < reports; r++) {
@@ -110,7 +110,7 @@ public class ReleaseGraphPerformance
   }
 
   ReleaseGraphPerformance(int users, boolean preload, InsightWork work) throws Exception {
-    this(users, work);
+    this(users);
 
     List<ComponentPopularity> components = getComponents();
     List<String> scanIds = new LinkedList<>();

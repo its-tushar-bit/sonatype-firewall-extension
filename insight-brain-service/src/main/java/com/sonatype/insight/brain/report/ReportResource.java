@@ -220,7 +220,7 @@ public class ReportResource
 
     final String name = Report.toEntryName(path);
     auditBrowseReport(scanId, name);
-    final File reportFile = reportService.getReport(work, appId, scanId);
+    final File reportFile = reportService.getReport(appId, scanId);
     ReportEntry reportEntry = null;
     try {
       reportEntry = Report.getEntry(reportFile, name);
@@ -342,7 +342,7 @@ public class ReportResource
   {
     AuditData.get().setReportId(scanId);
     Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
-    File reportFile = reportService.getReport(work, app.getId(), scanId);
+    File reportFile = reportService.getReport(app.getId(), scanId);
     String filename = "report-" + scanId + ".zip";
 
     Properties templateProps = Report.getTemplateProperties(reportFile);

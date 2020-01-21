@@ -133,7 +133,7 @@ public class ReportServiceTest
   public void testGetReport_Exists() throws Exception {
     createReportFile();
     ReportService reportService = createReportService();
-    File report = reportService.getReport(insightWork, app.getId(), scanId);
+    File report = reportService.getReport(app.getId(), scanId);
     assertThat(report).isNotNull();
     assertThat(report).isFile();
     assertThat(report.getName()).isEqualTo("report.zip");
@@ -143,7 +143,7 @@ public class ReportServiceTest
   public void testGetReport_DoesNotExist() throws Exception {
     ReportService reportService = createReportService();
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      reportService.getReport(insightWork, app.getId(), scanId);
+      reportService.getReport(app.getId(), scanId);
     }).withMessage("Could not find a report with ID ReportServiceTestScanId");
   }
 
@@ -152,7 +152,7 @@ public class ReportServiceTest
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), scanId);
     ReportService reportService = createReportService();
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      reportService.getReport(insightWork, app.getId(), scanId);
+      reportService.getReport(app.getId(), scanId);
     }).withMessageContaining("The report for application ID " + app.getId() + " and scan ID " + scanId
         + " does not exist. Usually this means the report was deemed obsolete according "
         + "to the data retention policies and hence purged to the trash.");

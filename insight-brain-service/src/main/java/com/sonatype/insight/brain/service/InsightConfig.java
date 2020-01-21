@@ -257,6 +257,12 @@ public class InsightConfig
   @JsonProperty
   private SourceControlConfig sourceControl = new SourceControlConfig();
 
+  /**
+   * @since 1.83
+   */
+  @JsonProperty
+  private boolean enableStaleEvaluations = false;
+
   @NotNull
   public ProxyConfig getProxyConfig() {
     return proxy;
@@ -693,5 +699,16 @@ public class InsightConfig
     else {
       this.sourceControl = sourceControl;
     }
+  }
+
+  /**
+   * @since 1.83
+   */
+  public boolean isEnableStaleEvaluations() {
+    return enableStaleEvaluations;
+  }
+
+  public void setEnableStaleEvaluations(final boolean enableStaleEvaluations) {
+    this.enableStaleEvaluations = enableStaleEvaluations;
   }
 }

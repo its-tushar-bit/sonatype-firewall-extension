@@ -17,9 +17,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 public class ApiStaleEvaluationsDTO
 {
   @JsonInclude(Include.NON_EMPTY)
-  public String context;
-
-  @JsonInclude(Include.NON_EMPTY)
   public List<ApiStaleApplicationEvaluationDTO> applications = new ArrayList<>();
 
   @JsonInclude(Include.NON_EMPTY)

@@ -885,6 +885,19 @@ public class TemporaryEntity
     return waiver;
   }
 
+  public PolicyWaiver newWaiver(String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      String comment,
+      Date createTime)
+  {
+    PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
+    waiver.setCreateTime(createTime);
+    waiverDAO.insert(waiver);
+    return waiver;
+  }
+
   public LdapServer newLdapServer(String name) {
     LdapServer ldapServer = new LdapServer(name);
     ldapServerDAO.insert(ldapServer);
@@ -1728,6 +1741,23 @@ public class TemporaryEntity
 
     repositoryComponent.setQuarantineTime(quarantineTime);
     repositoryComponent.setUnquarantineTime(unquarantineTime);
+
+    repositoryComponentDAO.insert(repositoryComponent);
+    return repositoryComponent;
+  }
+
+  public RepositoryComponent newRepositoryComponent(
+      String repositoryId,
+      String pathname,
+      Date createTime,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      String matchStateId,
+      String identificationSourceId,
+      Date lastEvaluationTime)
+  {
+    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, createTime, hash,
+        componentIdentifier, matchStateId, identificationSourceId, lastEvaluationTime);
 
     repositoryComponentDAO.insert(repositoryComponent);
     return repositoryComponent;

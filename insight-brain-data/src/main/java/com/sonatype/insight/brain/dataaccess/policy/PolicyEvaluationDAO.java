@@ -54,6 +54,13 @@ public class PolicyEvaluationDAO
     return getList(sQuery, appIds);
   }
 
+  public List<PolicyEvaluation> getAllLast() {
+    String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
+        " LastPolicyEvaluation lpe" + //
+        " WHERE pe.id = lpe.policyEvaluationId";
+    return getList(sQuery);
+  }
+
   /**
    * As measurements have shown (cf. CLM-6085), H2 doesn't handle an {@code IN} operator with a huge list of values well
    * and at some point it is faster to just load all entities and filter them manually afterwards. Per those

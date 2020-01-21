@@ -172,7 +172,7 @@ public class ScanPolicyEvaluator
 
     AuditData.get().setStageId(stage.getStageTypeId());
 
-    final File reportFile = reportService.fetchReport(work, application, scanId);
+    final File reportFile = reportService.fetchReport(application, scanId);
 
     final ReportEntry licenseReportEntry = Report.getEntry(reportFile, "licenses.json");
     final ReportEntry securityReportEntry = Report.getEntry(reportFile, "security.json");

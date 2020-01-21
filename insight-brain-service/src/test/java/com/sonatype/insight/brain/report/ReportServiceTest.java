@@ -105,7 +105,7 @@ public class ReportServiceTest
     createReportFile();
 
     ReportService reportService = createReportService();
-    File report = reportService.fetchReport(insightWork, app, scanId);
+    File report = reportService.fetchReport(app, scanId);
     assertThat(report).isNotNull();
     assertThat(report).isFile();
     assertThat(report.getName()).isEqualTo("report.zip");
@@ -121,7 +121,7 @@ public class ReportServiceTest
     ReportService reportService = createReportService();
     when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(new ThirdPartyApplicationReportDTO());
 
-    File report = reportService.fetchReport(insightWork, app, scanId);
+    File report = reportService.fetchReport(app, scanId);
     assertThat(report).isNotNull();
     assertThat(report).isFile();
     assertThat(report.getName()).isEqualTo("report.zip");

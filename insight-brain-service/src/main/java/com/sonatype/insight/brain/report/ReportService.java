@@ -97,7 +97,7 @@ public class ReportService
     this.thirdPartyDataService = thirdPartyDataService;
   }
 
-  public File fetchReport(final InsightWork work, final Application app, final String scanId)
+  public File fetchReport(final Application app, final String scanId)
       throws IOException
   {
     String appId = app.getId();
@@ -224,7 +224,7 @@ public class ReportService
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
-    fetchReport(work, application, scanId);
+    fetchReport(application, scanId);
   }
 
   @Authorize(permission = Permission.READ)

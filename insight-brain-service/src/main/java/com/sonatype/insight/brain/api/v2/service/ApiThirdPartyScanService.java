@@ -17,9 +17,11 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiEvaluationResultCounterDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.cyclonedx.CycloneDxSchemaValidator;
@@ -193,7 +195,25 @@ public class ApiThirdPartyScanService
         }
       }
     }
-    return new ApiThirdPartyScanResultDTO(outcome.toString(), reportUrl);
+
+    PolicyEvaluationResult result = policyEvaluationPollingResult.getResult();
+
+    ApiEvaluationResultCounterDTO componentsAffected = buildResultCounter(result.getCriticalComponentCount(),
+        result.getModerateComponentCount(), result.getSevereComponentCount());
+
+    ApiEvaluationResultCounterDTO openPolicyViolations = buildResultCounter(result.getCriticalPolicyViolationCount(),
+        result.getModeratePolicyViolationCount(), result.getSeverePolicyViolationCount());
+
+    return new ApiThirdPartyScanResultDTO(outcome.toString(), reportUrl, componentsAffected, openPolicyViolations,
+        result.getGrandfatheredPolicyViolationCount());
+  }
+
+  private ApiEvaluationResultCounterDTO buildResultCounter(int critical, int moderate, int severe) {
+    ApiEvaluationResultCounterDTO counter = new ApiEvaluationResultCounterDTO();
+    counter.critical = critical;
+    counter.moderate = moderate;
+    counter.severe = severe;
+    return counter;
   }
 
   private ApiThirdPartyScanResultDTO failed(final PolicyEvaluationPollingResult policyEvaluationPollingResult) {

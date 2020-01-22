@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiEvaluationResultCounterDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.model.Application;
@@ -110,6 +111,9 @@ public class ApiThirdPartyResourceTest
     assertThat(resultDTO.policyAction).isEqualTo("None");
     assertThat(resultDTO.isError).isFalse();
     assertThat(resultDTO.errorMessage).isNull();
+    assertEvaluationResultCounter(resultDTO.componentsAffected);
+    assertEvaluationResultCounter(resultDTO.openPolicyViolations);
+    assertThat(resultDTO.grandfatheredPolicyViolations).isEqualTo(0);
   }
 
   private ApiThirdPartyScanResultDTO getApiThirdPartyTicketResultDTO(String statusUrl) throws Exception {
@@ -129,5 +133,12 @@ public class ApiThirdPartyResourceTest
     byte[] bytes =
         Files.readAllBytes(Paths.get(getClass().getResource(path).toURI()));
     return new String(bytes, StandardCharsets.UTF_8);
+  }
+
+  private void assertEvaluationResultCounter(ApiEvaluationResultCounterDTO counter) {
+    assertThat(counter).isNotNull();
+    assertThat(counter.critical).isEqualTo(0);
+    assertThat(counter.moderate).isEqualTo(0);
+    assertThat(counter.severe).isEqualTo(0);
   }
 }

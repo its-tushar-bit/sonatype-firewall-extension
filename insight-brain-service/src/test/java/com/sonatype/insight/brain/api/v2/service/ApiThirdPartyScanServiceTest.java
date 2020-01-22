@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.dto.ApiEvaluationResultCounterDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiThirdPartyScanService.ApiPolicyAction;
@@ -127,7 +128,38 @@ public class ApiThirdPartyScanServiceTest
     testGetScanStatus_Completed(Action.ID_FAIL, "Failure");
   }
 
+  @Test
+  public void testGetScanStatus_Completed_Counters() throws Exception {
+    ApiEvaluationResultCounterDTO componentsAffected = new ApiEvaluationResultCounterDTO();
+    componentsAffected.critical = 1;
+    componentsAffected.moderate = 3;
+    componentsAffected.severe = 4;
+    ApiEvaluationResultCounterDTO openPolicyViolations = new ApiEvaluationResultCounterDTO();
+    openPolicyViolations.critical = 0;
+    openPolicyViolations.moderate = 1;
+    openPolicyViolations.severe = 10;
+    testGetScanStatus_Completed(null, "None", componentsAffected, openPolicyViolations, 5);
+  }
+
   private void testGetScanStatus_Completed(String actionId, String policyAction) throws Exception {
+    ApiEvaluationResultCounterDTO componentsAffected = new ApiEvaluationResultCounterDTO();
+    componentsAffected.critical = 0;
+    componentsAffected.moderate = 0;
+    componentsAffected.severe = 0;
+    ApiEvaluationResultCounterDTO openPolicyViolations = new ApiEvaluationResultCounterDTO();
+    openPolicyViolations.critical = 0;
+    openPolicyViolations.moderate = 0;
+    openPolicyViolations.severe = 0;
+    testGetScanStatus_Completed(actionId, policyAction, componentsAffected, openPolicyViolations, 0);
+  }
+
+  private void testGetScanStatus_Completed(
+      String actionId,
+      String policyAction,
+      ApiEvaluationResultCounterDTO componentsAffected,
+      ApiEvaluationResultCounterDTO openPolicyViolations,
+      Integer grandfatheredPolicyViolations) throws Exception
+  {
     String scanId = "testScan";
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
 
@@ -144,6 +176,13 @@ public class ApiThirdPartyScanServiceTest
 
     PolicyEvaluationResult evaluationResult = new PolicyEvaluationResult();
     evaluationResult.setAlerts(alerts);
+    evaluationResult.setCriticalComponentCount(componentsAffected.critical);
+    evaluationResult.setModerateComponentCount(componentsAffected.moderate);
+    evaluationResult.setSevereComponentCount(componentsAffected.severe);
+    evaluationResult.setCriticalPolicyViolationCount(openPolicyViolations.critical);
+    evaluationResult.setModeratePolicyViolationCount(openPolicyViolations.moderate);
+    evaluationResult.setSeverePolicyViolationCount(openPolicyViolations.severe);
+    evaluationResult.setGrandfatheredPolicyViolationCount(grandfatheredPolicyViolations);
 
     PolicyEvaluationPollingResult pollingResult = new PolicyEvaluationPollingResult();
     pollingResult.setScanReceipt(scanReceipt);
@@ -163,6 +202,15 @@ public class ApiThirdPartyScanServiceTest
     assertThat(resultDTO.reportHtmlUrl).isEqualTo("http://iq.server/link_to_report");
     assertThat(resultDTO.isError).isFalse();
     assertThat(resultDTO.errorMessage).isNull();
+    assertThat(resultDTO.componentsAffected).isNotNull();
+    assertThat(resultDTO.componentsAffected.critical).isEqualTo(componentsAffected.critical);
+    assertThat(resultDTO.componentsAffected.moderate).isEqualTo(componentsAffected.moderate);
+    assertThat(resultDTO.componentsAffected.severe).isEqualTo(componentsAffected.severe);
+    assertThat(resultDTO.openPolicyViolations).isNotNull();
+    assertThat(resultDTO.openPolicyViolations.critical).isEqualTo(openPolicyViolations.critical);
+    assertThat(resultDTO.openPolicyViolations.moderate).isEqualTo(openPolicyViolations.moderate);
+    assertThat(resultDTO.openPolicyViolations.severe).isEqualTo(openPolicyViolations.severe);
+    assertThat(resultDTO.grandfatheredPolicyViolations).isEqualTo(grandfatheredPolicyViolations);
   }
 
   private String getBomFile(String path) throws Exception {

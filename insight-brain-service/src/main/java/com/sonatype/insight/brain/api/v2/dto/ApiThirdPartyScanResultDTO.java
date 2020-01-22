@@ -22,13 +22,28 @@ public class ApiThirdPartyScanResultDTO
 
   public String errorMessage;
 
+  public ApiEvaluationResultCounterDTO componentsAffected;
+
+  public ApiEvaluationResultCounterDTO openPolicyViolations;
+
+  public Integer grandfatheredPolicyViolations;
+
   public ApiThirdPartyScanResultDTO() {
     // noop
   }
 
-  public ApiThirdPartyScanResultDTO(String policyAction, String reportHtmlUrl) {
+  public ApiThirdPartyScanResultDTO(
+      String policyAction,
+      String reportHtmlUrl,
+      ApiEvaluationResultCounterDTO componentsAffected,
+      ApiEvaluationResultCounterDTO openPolicyViolations,
+      Integer grandfatheredPolicyViolations)
+  {
     this.policyAction = policyAction;
     this.reportHtmlUrl = reportHtmlUrl;
+    this.componentsAffected = componentsAffected;
+    this.openPolicyViolations = openPolicyViolations;
+    this.grandfatheredPolicyViolations = grandfatheredPolicyViolations;
   }
 
   public ApiThirdPartyScanResultDTO(String errorMessage) {

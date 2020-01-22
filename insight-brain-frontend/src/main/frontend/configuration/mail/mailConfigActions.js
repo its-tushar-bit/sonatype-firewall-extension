@@ -6,7 +6,7 @@
 import axios from 'axios';
 import { map, pick } from 'ramda';
 
-import { getMailConfigUrl } from '../../util/CLMLocation';
+import { getMailConfigUrl, getTestMailUrl } from '../../util/CLMLocation';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { FAKE_PASSWORD } from './mailConfigReducer';
 
@@ -17,6 +17,10 @@ export const LOAD_FAILED = 'LOAD_FAILED';
 export const SAVE_REQUESTED = 'SAVE_REQUESTED';
 export const SAVE_FULFILLED = 'SAVE_FULFILLED';
 export const SAVE_FAILED = 'SAVE_FAILED';
+
+export const SEND_TEST_MAIL_REQUESTED = 'SEND_TEST_MAIL_REQUESTED';
+export const SEND_TEST_MAIL_FULFILLED = 'SEND_TEST_MAIL_FULFILLED';
+export const SEND_TEST_MAIL_FAILED = 'SEND_TEST_MAIL_FAILED';
 
 export const DELETE_REQUESTED = 'DELETE_REQUESTED';
 export const DELETE_FULFILLED = 'DELETE_FULFILLED';
@@ -31,6 +35,7 @@ export const SET_PASSWORD = 'SET_PASSWORD';
 export const SET_SSL_ENABLED = 'SET_SSL_ENABLED';
 export const SET_STARTTLS_ENABLED = 'SET_STARTTLS_ENABLED';
 export const SET_SYSTEM_EMAIL = 'SET_SYSTEM_EMAIL';
+export const SET_TEST_EMAIL = 'SET_TEST_EMAIL';
 
 export const SET_SHOW_DELETE_MODAL = 'SET_SHOW_DELETE_MODAL';
 
@@ -54,6 +59,17 @@ export function load() {
     axios.get(getMailConfigUrl())
         .then(({ data }) => { dispatch(loadFulfilled(data)); })
         .catch(error => { dispatch(loadFailed(error)); });
+  };
+}
+
+export function sendTestEmail() {
+  return function(dispatch, getState) {
+    dispatch(sendTestMailRequested());
+
+    const formState = getState().mailConfig.formState;
+    axios.post(getTestMailUrl(formState.testEmail.trimmedValue), toServerData(formState))
+        .then(() => { dispatch(sendTestMailFulfilled()); })
+        .catch(error => { dispatch(sendTestMailFailed(error)); });
   };
 }
 
@@ -88,6 +104,10 @@ const saveRequested = noPayloadActionCreator(SAVE_REQUESTED);
 const saveFulfilled = payloadParamActionCreator(SAVE_FULFILLED);
 const saveFailed = payloadParamActionCreator(SAVE_FAILED);
 
+const sendTestMailRequested = noPayloadActionCreator(SEND_TEST_MAIL_REQUESTED);
+const sendTestMailFulfilled = noPayloadActionCreator(SEND_TEST_MAIL_FULFILLED);
+const sendTestMailFailed = payloadParamActionCreator(SEND_TEST_MAIL_FAILED);
+
 const deleteRequested = noPayloadActionCreator(DELETE_REQUESTED);
 const deleteFulfilled = payloadParamActionCreator(DELETE_FULFILLED);
 const deleteFailed = payloadParamActionCreator(DELETE_FAILED);
@@ -101,5 +121,6 @@ export const setPassword = payloadParamActionCreator(SET_PASSWORD);
 export const setSslEnabled = payloadParamActionCreator(SET_SSL_ENABLED);
 export const setStartTlsEnabled = payloadParamActionCreator(SET_STARTTLS_ENABLED);
 export const setSystemEmail = payloadParamActionCreator(SET_SYSTEM_EMAIL);
+export const setTestEmail = payloadParamActionCreator(SET_TEST_EMAIL);
 
 export const setShowDeleteModal = payloadParamActionCreator(SET_SHOW_DELETE_MODAL);

@@ -41,6 +41,10 @@ export function getMailConfigUrl() {
   return `${getBaseUrl(window.location.href)}/api/v2/config/mail`;
 }
 
+export function getTestMailUrl(mailRecipient) {
+  return `${getBaseUrl(window.location.href)}/api/v2/config/mail/test/${encodeURIComponent(mailRecipient)}`;
+}
+
 export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier) {
   const urlWithPath = `${getBaseUrl(window.location.href)}/api/v2/vulnerabilities/${encodeURIComponent(refId)}`;
 

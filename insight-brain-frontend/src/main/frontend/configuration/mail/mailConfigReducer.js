@@ -30,10 +30,15 @@ import {
   SET_SSL_ENABLED,
   SET_STARTTLS_ENABLED,
   SET_SYSTEM_EMAIL,
-  SET_SHOW_DELETE_MODAL
+  SET_SHOW_DELETE_MODAL,
+  SET_TEST_EMAIL,
+  SEND_TEST_MAIL_REQUESTED,
+  SEND_TEST_MAIL_FULFILLED,
+  SEND_TEST_MAIL_FAILED
 } from './mailConfigActions';
 
 const SUBMIT_MASK_SAVING_MESSAGE = 'Saving';
+const SUBMIT_MASK_SENDING_TEST_MAIL_MESSAGE = 'Sending Test Email';
 const SUBMIT_MASK_DELETING_MESSAGE = 'Deleting';
 export const FAKE_PASSWORD = '\x00\x00\x00\x00\x00';
 
@@ -47,7 +52,8 @@ const initialState = {
     password: textInputStateHelpers.initialState(''),
     sslEnabled: false,
     startTlsEnabled: false,
-    systemEmail: textInputStateHelpers.initialState('')
+    systemEmail: textInputStateHelpers.initialState(''),
+    testEmail: textInputStateHelpers.initialState('')
   },
   isDirty: false,
   isValid: true,
@@ -57,7 +63,8 @@ const initialState = {
   submitMaskMessage: null,
   error: null,
   showDeleteModal: false,
-  mustReenterPassword: false
+  mustReenterPassword: false,
+  testEmailSent: false
 };
 
 const textProps = ['hostname', 'port', 'username', 'password', 'systemEmail'],
@@ -74,7 +81,8 @@ function setFormStateFromServerData(state) {
         password: textInputStateHelpers.initialState(FAKE_PASSWORD),
         sslEnabled: serverData.sslEnabled,
         startTlsEnabled: serverData.startTlsEnabled,
-        systemEmail: textInputStateHelpers.initialState(serverData.systemEmail)
+        systemEmail: textInputStateHelpers.initialState(serverData.systemEmail),
+        testEmail: state.formState.testEmail
       };
 
   return computeHasAllRequiredData({ ...state, formState });
@@ -147,7 +155,8 @@ function loadFulfilled(payload, state) {
     submitMaskState: initialState.submitMaskState,
     submitMaskMessage: initialState.submitMaskMessage,
     serverData: payload,
-    mustReenterPassword: false
+    mustReenterPassword: false,
+    testEmailSent: false
   });
 }
 
@@ -165,7 +174,7 @@ function loadFailed(payload) {
 }
 
 function saveRequested(payload, state) {
-  return { ...state, submitMaskState: false, submitMaskMessage: SUBMIT_MASK_SAVING_MESSAGE };
+  return { ...state, submitMaskState: false, submitMaskMessage: SUBMIT_MASK_SAVING_MESSAGE, testEmailSent: false };
 }
 
 function saveFulfilled(payload, state) {
@@ -185,6 +194,32 @@ function saveFailed(payload, state) {
     loading: false,
     submitMaskState: null,
     error: Messages.getHttpErrorMessage(payload)
+  };
+}
+
+function sendTestMailRequested(payload, state) {
+  return {
+    ...state,
+    submitMaskState: false,
+    submitMaskMessage: SUBMIT_MASK_SENDING_TEST_MAIL_MESSAGE
+  };
+}
+
+function sendTestMailFulfilled(payload, state) {
+  return {
+    ...state,
+    submitMaskState: true,
+    testEmailSent: true,
+    error: null
+  };
+}
+
+function sendTestMailFailed(payload, state) {
+  return {
+    ...state,
+    submitMaskState: null,
+    error: 'Sending test mail failed. Is your Mail Server up and running and your configuration correct?',
+    testEmailSent: false
   };
 }
 
@@ -241,6 +276,10 @@ const reducerActionMap = {
   [SET_SSL_ENABLED]: setCheckbox('sslEnabled'),
   [SET_STARTTLS_ENABLED]: setCheckbox('startTlsEnabled'),
   [SET_SYSTEM_EMAIL]: setTextInput('systemEmail', validateNonEmpty),
+  [SEND_TEST_MAIL_REQUESTED]: sendTestMailRequested,
+  [SEND_TEST_MAIL_FULFILLED]: sendTestMailFulfilled,
+  [SEND_TEST_MAIL_FAILED]: sendTestMailFailed,
+  [SET_TEST_EMAIL]: setTextInput('testEmail', null),
   [SET_SHOW_DELETE_MODAL]: propSet('showDeleteModal')
 };
 

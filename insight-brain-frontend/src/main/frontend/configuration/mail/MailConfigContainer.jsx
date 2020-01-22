@@ -21,7 +21,8 @@ function mapStateToProps({ mailConfig }) {
       'mustReenterPassword',
       'error',
       'serverData',
-      'showDeleteModal'
+      'showDeleteModal',
+      'testEmailSent'
     ], mailConfig),
     hostnameState: mailConfig.formState.hostname,
     portState: mailConfig.formState.port,
@@ -29,7 +30,8 @@ function mapStateToProps({ mailConfig }) {
     passwordState: mailConfig.formState.password,
     sslEnabledState: mailConfig.formState.sslEnabled,
     startTlsEnabledState: mailConfig.formState.startTlsEnabled,
-    systemEmailState: mailConfig.formState.systemEmail
+    systemEmailState: mailConfig.formState.systemEmail,
+    testEmailState: mailConfig.formState.testEmail
   };
 }
 

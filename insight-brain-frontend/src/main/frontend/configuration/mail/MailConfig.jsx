@@ -16,6 +16,7 @@ import {
   NxTextInput,
   NxTooltip,
   NxWarningAlert,
+  NxInfoAlert,
   NxStatefulSubmitMask,
   NxFontAwesomeIcon
 } from '@sonatype/react-shared-components';
@@ -35,7 +36,9 @@ export default function MailConfig(props) {
         setSslEnabled,
         setStartTlsEnabled,
         setSystemEmail,
-        setShowDeleteModal
+        setShowDeleteModal,
+        setTestEmail,
+        sendTestEmail
       } = props,
       {
         loading,
@@ -54,7 +57,9 @@ export default function MailConfig(props) {
         sslEnabledState,
         startTlsEnabledState,
         systemEmailState,
-        mustReenterPassword
+        mustReenterPassword,
+        testEmailState,
+        testEmailSent
       } = props,
       isSubmitEnabled = hasAllRequiredData && isDirty && isValid && !mustReenterPassword;
 
@@ -128,8 +133,20 @@ export default function MailConfig(props) {
     </NxModal>
   );
 
-  const tooltipText = !hasAllRequiredData ? 'Hostname, Port and System Email are required details.'
+  const saveButtonTooltipText = !hasAllRequiredData ? 'Hostname, Port and System Email are required details.'
     : 'Password must be provided when updating Hostname or Port.';
+
+  // If required fields are not filled in, mention that
+  // Otherwise either mention password is required (if it is), or no tooltip
+  const sendTestEmailTooltipText = !hasAllRequiredData || !testEmailState.trimmedValue ?
+    'Hostname, Port, System Email and Recipient address are required.' :
+    mustReenterPassword ? 'Password must be provided when updating Hostname or Port.' : '';
+
+  function sendTestEmailOnClickHandler() {
+    if (isValid && testEmailState.trimmedValue && !mustReenterPassword) {
+      sendTestEmail();
+    }
+  }
 
   const form = (
     <form className="nx-form" onSubmit={onSubmit}>
@@ -162,13 +179,43 @@ export default function MailConfig(props) {
         {tlsInput}
       </fieldset>
 
+      <hr />
+
+      <div className="nx-form-row">
+        <div className="nx-form-group">
+          <label className="nx-label">
+            <span className="nx-label__text">Test Configuration</span>
+            <span className="nx-sub-label">Send a test e-mail to verify the configuration.</span>
+            <NxTextInput { ...testEmailState }
+                         id="email-config-test-email-recipient"
+                         onChange={setTestEmail}
+                         onFocus={evt => { evt.target.select(); }}
+                         className="nx-text-input nx-text-input--long"
+                         autoComplete="new-password" />
+          </label>
+        </div>
+        <div className="nx-form-group">
+          <NxTooltip
+              title={sendTestEmailTooltipText}>
+            <NxButton type="button"
+                      id="email-config-test-email-send"
+                      onClick={sendTestEmailOnClickHandler}
+                      className={classnames({disabled: !isValid || !testEmailState.trimmedValue
+                        || mustReenterPassword})}>
+              Send Test Email
+            </NxButton>
+          </NxTooltip>
+        </div>
+      </div>
+
       {/* Messages */}
       { error && <NxErrorAlert><span>{error}</span></NxErrorAlert> }
+      { testEmailSent && <NxInfoAlert><span>A test email has been sent. Please check your mailbox.</span></NxInfoAlert>}
 
       {/* Buttons */}
       <div className='iq-tile-footer'>
         <div className="nx-btn-bar">
-          <NxTooltip title={!isDirty || isSubmitEnabled ? '' : tooltipText}>
+          <NxTooltip title={!isDirty || isSubmitEnabled ? '' : saveButtonTooltipText}>
             <NxButton type="submit"
                       className={classnames({ disabled: !isSubmitEnabled })}
                       id="email-config-save"
@@ -257,5 +304,9 @@ MailConfig.propTypes = {
   error: PropTypes.string,
   serverData: PropTypes.any,
   showDeleteModal: PropTypes.bool.isRequired,
-  mustReenterPassword: PropTypes.bool.isRequired
+  mustReenterPassword: PropTypes.bool.isRequired,
+  testEmailState: textInputPropType.isRequired,
+  sendTestEmail: PropTypes.func.isRequired,
+  setTestEmail: PropTypes.func.isRequired,
+  testEmailSent: PropTypes.bool
 };

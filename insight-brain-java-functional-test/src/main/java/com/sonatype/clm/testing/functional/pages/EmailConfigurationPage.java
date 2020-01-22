@@ -66,6 +66,14 @@ public class EmailConfigurationPage
     return child("#email-config-systemEmail");
   }
 
+  public SelenideElement testEmailRecipient() {
+    return child("#email-config-test-email-recipient");
+  }
+
+  public SelenideElement testEmailSend() {
+    return child("#email-config-test-email-send");
+  }
+
   public NxCheckbox sslEnabled() {
     return new NxCheckbox(child("#email-config-ssl-enabled"));
   }

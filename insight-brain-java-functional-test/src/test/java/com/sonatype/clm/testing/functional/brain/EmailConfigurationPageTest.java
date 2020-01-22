@@ -5,6 +5,16 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import javax.mail.Address;
+import javax.mail.Message;
+import javax.mail.Message.RecipientType;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NxCheckbox;
@@ -15,8 +25,10 @@ import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.service.InsightMail;
 
 import com.codeborne.selenide.SelenideElement;
+import org.codehaus.plexus.util.IOUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.jvnet.mock_javamail.Mailbox;
 
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.disabled;
@@ -50,6 +62,8 @@ public class EmailConfigurationPageTest
 
   @Test
   public void testCrud() {
+    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+
     // ## -- CREATE -- ##
     assertNoMailServerIsConfigured();
     eyesWatcher.eyesCheck("Email Configuration Page - Empty State");
@@ -287,7 +301,7 @@ public class EmailConfigurationPageTest
 
   private void assertConfigurationCanBeSaved() {
     // When save is enabled, tooltip must not be visible
-    emailConfigurationPage.shouldNotBe(DISABLED).hover();
+    emailConfigurationPage.save().shouldNotBe(DISABLED).hover();
     Tooltip.get().shouldNotBe(visible);
   }
 
@@ -309,6 +323,162 @@ public class EmailConfigurationPageTest
     dirtyBehaviourTextInput(emailConfigurationPage.systemEmail());
     dirtyBehaviourCheckBox(emailConfigurationPage.sslEnabled());
     dirtyBehaviourCheckBox(emailConfigurationPage.startTlsEnabled());
+  }
+
+  @Test
+  public void testSendTestEmailConfigurationNotSaved_MinimalData() throws MessagingException, IOException {
+    Mailbox.clearAll();
+    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    emailConfigurationPage.testEmailSend().shouldBe(DISABLED).hover();
+    Tooltip.get().shouldBe(visible).shouldBe(text("Hostname, Port, System Email and Recipient address are required."));
+
+    emailConfigurationPage.hostName().setValue("localhost");
+    emailConfigurationPage.port().setValue("465");
+    emailConfigurationPage.systemEmail().setValue("nexus@iq.com");
+    emailConfigurationPage.testEmailRecipient().setValue("admin@company.com");
+    sendTestEmail();
+
+    // Sending a test email must not persist the mail configuration
+    assertThat(mailConfigurationDAO.get()).isNull();
+
+    // Sending a test mail must not modify UI state upon sending the test email
+    emailConfigurationPage.hostName().shouldBe(value("localhost"));
+    emailConfigurationPage.port().shouldBe(value("465"));
+    emailConfigurationPage.systemEmail().shouldBe(value("nexus@iq.com"));
+
+    assertTestConfigurationEmail("localhost", "465", null, null, "nexus@iq.com", false, false, "admin@company.com");
+  }
+
+  @Test
+  public void testSendEmailConfigurationNotSaved_FullData() throws MessagingException, IOException {
+    Mailbox.clearAll();
+    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+
+    emailConfigurationPage.hostName().setValue("localhost");
+    emailConfigurationPage.port().setValue("465");
+    emailConfigurationPage.systemEmail().setValue("nexus@iq.com");
+    emailConfigurationPage.username().setValue("u");
+    emailConfigurationPage.password().setValue("p");
+    emailConfigurationPage.sslEnabled().click();
+    emailConfigurationPage.startTlsEnabled().click();
+    emailConfigurationPage.testEmailRecipient().setValue("admin@company.com");
+    sendTestEmail();
+
+    // Sending a test email must not persist the mail configuration
+    assertThat(mailConfigurationDAO.get()).isNull();
+
+    // Sending a test mail must not modify UI state upon sending the test email
+    emailConfigurationPage.hostName().shouldBe(value("localhost"));
+    emailConfigurationPage.port().shouldBe(value("465"));
+    emailConfigurationPage.systemEmail().shouldBe(value("nexus@iq.com"));
+    emailConfigurationPage.username().shouldBe(value("u"));
+    emailConfigurationPage.password().shouldBe(value("p"));
+    emailConfigurationPage.startTlsEnabled().shouldBe(selected);
+
+    assertTestConfigurationEmail("localhost", "465", "u", "p", "nexus@iq.com", true, true, "admin@company.com");
+  }
+
+  @Test
+  public void testSendEmailConfigExistsNoUpdateOnUI() throws IOException, MessagingException {
+    MailConfiguration mailConfiguration = tempEntity.newMailConfigurationWithNoAuthentication();
+
+    Mailbox.clearAll();
+    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+
+    emailConfigurationPage.testEmailRecipient().setValue("cr@ppy.dev");
+    sendTestEmail();
+
+    assertTestConfigurationEmail(mailConfiguration.getHostname(), String.valueOf(mailConfiguration.getPort()),
+        null, null, mailConfiguration.getSystemEmail(), mailConfiguration.isStartTlsEnabled(),
+        mailConfiguration.isSslEnabled(), "cr@ppy.dev");
+  }
+
+  @Test
+  public void testSendEmailConfigExistsAddUsernameAndPasswordSwitchTLS() throws IOException, MessagingException {
+    MailConfiguration mailConfiguration = tempEntity.newMailConfigurationWithNoAuthentication();
+
+    Mailbox.clearAll();
+    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+
+    emailConfigurationPage.username().setValue("u");
+    emailConfigurationPage.password().setValue("p");
+    emailConfigurationPage.startTlsEnabled().click();
+
+    emailConfigurationPage.testEmailRecipient().setValue("cr@ppy.dev");
+    sendTestEmail();
+
+    assertTestConfigurationEmail(mailConfiguration.getHostname(), String.valueOf(mailConfiguration.getPort()),
+        "u", "p", mailConfiguration.getSystemEmail(), !mailConfiguration.isStartTlsEnabled(),
+        mailConfiguration.isSslEnabled(), "cr@ppy.dev");
+  }
+
+  @Test
+  public void testSendEmailConfigExistsHostnameUpdateRequiresPassword() throws IOException, MessagingException {
+    MailConfiguration mailConfiguration = tempEntity.newMailConfiguration("u", "p".toCharArray());
+
+    Mailbox.clearAll();
+    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+
+    emailConfigurationPage.hostName().setValue("another-host");
+    emailConfigurationPage.testEmailRecipient().setValue("cr@ppy.dev");
+    emailConfigurationPage.testEmailSend().shouldBe(DISABLED).hover();
+    Tooltip.get().shouldBe(visible).shouldBe(text("Password must be provided when updating Hostname or Port."));
+
+    emailConfigurationPage.password().setValue("not-same-password");
+    sendTestEmail();
+
+    assertTestConfigurationEmail("another-host", String.valueOf(mailConfiguration.getPort()), "u",
+        "not-same-password", mailConfiguration.getSystemEmail(), mailConfiguration.isStartTlsEnabled(),
+        mailConfiguration.isSslEnabled(), "cr@ppy.dev");
+  }
+
+  @Test
+  public void testSendEmailConfigExistsPortUpdateRequiresPassword() throws IOException, MessagingException {
+    MailConfiguration mailConfiguration = tempEntity.newMailConfiguration("u", "p".toCharArray());
+
+    Mailbox.clearAll();
+    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+
+    emailConfigurationPage.port().setValue("25");
+    emailConfigurationPage.testEmailRecipient().setValue("cr@ppy.dev");
+    emailConfigurationPage.testEmailSend().shouldBe(DISABLED).hover();
+    Tooltip.get().shouldBe(visible).shouldBe(text("Password must be provided when updating Hostname or Port."));
+
+    emailConfigurationPage.password().setValue("not-same-password");
+    sendTestEmail();
+
+    assertTestConfigurationEmail("smtp.hostname.com", "25", "u",
+        "not-same-password", mailConfiguration.getSystemEmail(), mailConfiguration.isStartTlsEnabled(),
+        mailConfiguration.isSslEnabled(), "cr@ppy.dev");
+  }
+
+  @Test
+  public void testSendEmailModifyExistingConfigurationPasswordNotRequired() throws IOException, MessagingException {
+    MailConfiguration mailConfiguration = tempEntity.newMailConfigurationWithNoAuthentication();
+
+    Mailbox.clearAll();
+    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+
+    emailConfigurationPage.sslEnabled().click();
+    emailConfigurationPage.startTlsEnabled().click();
+    emailConfigurationPage.systemEmail().setValue("modified@system.com");
+    emailConfigurationPage.testEmailRecipient().setValue("koray@tugay.biz");
+    sendTestEmail();
+
+    assertTestConfigurationEmail(mailConfiguration.getHostname(), String.valueOf(mailConfiguration.getPort()), null,
+        null, "modified@system.com", !mailConfiguration.isStartTlsEnabled(), !mailConfiguration.isSslEnabled(),
+        "koray@tugay.biz");
+  }
+
+  @Test
+  public void testMustNotBeAbleToSendEmailToEmptySpace() {
+    tempEntity.newMailConfigurationWithNoAuthentication();
+
+    Mailbox.clearAll();
+    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+
+    emailConfigurationPage.testEmailRecipient().setValue("  ");
+    emailConfigurationPage.testEmailSend().shouldBe(DISABLED);
   }
 
   private void dirtyBehaviourTextInput(SelenideElement element) {
@@ -352,5 +522,71 @@ public class EmailConfigurationPageTest
     emailConfigurationPage.cancel().shouldBe(disabled);
 
     assertThat(mailConfigurationDAO.get()).isNull();
+  }
+
+  private void sendTestEmail() {
+    emailConfigurationPage.testEmailSend().shouldNotBe(DISABLED).hover();
+    Tooltip.get().shouldNotBe(visible);
+
+    emailConfigurationPage.testEmailSend().click();
+    FormMask.seeAndWaitForDismissal();
+  }
+
+  private void assertTestConfigurationEmail(
+      String hostname,
+      String port,
+      String username,
+      String password,
+      String systemEmail,
+      boolean startTlsEnabled,
+      boolean sslEnabled,
+      String recipientAddress) throws MessagingException, IOException
+  {
+    Mailbox emails = Mailbox.get(recipientAddress);
+
+    assertThat(emails).hasSize(1);
+    Message email = emails.get(0);
+
+    // Assert mail server
+    Session session = email.getSession();
+    assertThat(session.getProperties()) //
+        .containsEntry("mail.smtp.host", hostname)
+        .containsEntry("mail.smtp.port", port)
+        .containsEntry("mail.smtp.starttls.enable", String.valueOf(startTlsEnabled));
+
+    if (sslEnabled) {
+      assertThat(session.getProperties())
+          .containsEntry("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+    }
+    else {
+      assertThat(session.getProperties())
+          .doesNotContainEntry("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+    }
+
+    // Assert authentication
+    PasswordAuthentication passwordAuthentication = session.requestPasswordAuthentication(null, 0, null, null, null);
+    if (username == null) {
+      assertThat(passwordAuthentication).isNull();
+    }
+    else {
+      assertThat(passwordAuthentication.getUserName()).isEqualTo(username);
+      if (password == null) {
+        assertThat(passwordAuthentication.getPassword()).isNull();
+      }
+      else {
+        assertThat(passwordAuthentication.getPassword()).isEqualTo(password);
+      }
+    }
+
+    // Assert "to" and "from" addresses
+    Address[] recipients = email.getRecipients(RecipientType.TO);
+    assertThat(recipients).hasSize(1);
+    assertThat(recipients[0].toString()).isEqualTo(recipientAddress);
+    assertThat(email.getFrom()[0].toString()).isEqualTo("Nexus IQ Server <" + systemEmail + ">");
+
+    // Assert email subject and body
+    assertThat(email.getSubject()).isEqualTo("Test Email Configuration");
+    String emailBody = IOUtil.toString(email.getInputStream(), StandardCharsets.UTF_8.name());
+    assertThat(emailBody).contains("Success! This is a test mail from");
   }
 }

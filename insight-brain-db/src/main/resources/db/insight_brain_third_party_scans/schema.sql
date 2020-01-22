@@ -45,7 +45,7 @@ CREATE TABLE coordinate_security (
   link VARCHAR(200),
   severity FLOAT NOT NULL,
   fixed_by VARCHAR(200),
-  vulnerability_source VARCHAR(100),
+  vulnerability_source VARCHAR(10),
   severity_description VARCHAR(15),
   attack_vector VARCHAR(100),
   rating_method VARCHAR(10),

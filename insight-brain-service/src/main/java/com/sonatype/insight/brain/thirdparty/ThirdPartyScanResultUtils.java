@@ -24,7 +24,7 @@ public class ThirdPartyScanResultUtils
 
   public static final int FIXED_BY_MAX_LENGTH = 200;
 
-  public static final int VULNERABILITY_SOURCE_MAX_LENGTH = 100;
+  public static final int VULNERABILITY_SOURCE_MAX_LENGTH = 10;
 
   public static final int SEVERITY_DESCRIPTION_MAX_LENGTH = 15;
 

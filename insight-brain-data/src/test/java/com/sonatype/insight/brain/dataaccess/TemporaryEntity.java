@@ -2147,7 +2147,7 @@ public class TemporaryEntity
       String severityDescription,
       String fixedBy)
   {
-    return newThirdPartyCoordinateSecurity(fileCoordinate, refId, description, link, severity, fixedBy, "some source",
+    return newThirdPartyCoordinateSecurity(fileCoordinate, refId, description, link, severity, fixedBy, "source",
         "v:1", severityDescription, "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>");
   }
 
@@ -2180,7 +2180,7 @@ public class TemporaryEntity
   }
 
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity() {
-    return newThirdPartyCoordinateSecurity(newThirdPartyFileCoordinate(), "r1", "d1", "l1", 5.5f, "1.1", "some source",
+    return newThirdPartyCoordinateSecurity(newThirdPartyFileCoordinate(), "r1", "d1", "l1", 5.5f, "1.1", "source",
         "v:1", "Medium", "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>");
   }
 

@@ -70,6 +70,10 @@ public final class Report
 
   public static final String DATA_JSON_FILENAME = "data.json";
 
+  public static final String SECURITY_JSON_FILENAME = "security.json";
+
+  public static final String LICENSES_JSON_FILENAME = "licenses.json";
+
   public static final String CACHE_DIRECTORY_NAME = "report.cache";
 
   public static final List<String> THIRD_PARTY_CACHED_FILES = Arrays.asList(THIRD_PARTY_BOM_JSON_FILENAME,
@@ -165,8 +169,8 @@ public final class Report
     cacheThirdPartyData(reportFile);
 
     // these data items have already had changes applied as part of applyComponentRelatedChanges above
-    final ContainerNode<?> security = JsonUtils.parse(getEntry(reportFile, "security.json").buf);
-    final ContainerNode<?> licenses = JsonUtils.parse(getEntry(reportFile, "licenses.json").buf);
+    final ContainerNode<?> security = JsonUtils.parse(getEntry(reportFile, SECURITY_JSON_FILENAME).buf);
+    final ContainerNode<?> licenses = JsonUtils.parse(getEntry(reportFile, LICENSES_JSON_FILENAME).buf);
     final ContainerNode<?> partialMatched = JsonUtils.parse(getEntry(reportFile, "partialmatched.json").buf);
 
     Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = parseDependencyDepths(JsonUtils.parse(extractEntry(
@@ -232,7 +236,7 @@ public final class Report
       }
     }
 
-    saveReportEntry(reportFile, "licenses.json", licenses);
+    saveReportEntry(reportFile, LICENSES_JSON_FILENAME, licenses);
     saveReportEntry(reportFile, "partialmatched.json", partialMatched);
     writeLicenseThreatsToReportFile(application, reportFile);
 
@@ -597,24 +601,24 @@ public final class Report
     saveReportEntry(reportFile, "summary.json", summaryJsonData);
 
     // Must start from un-edited license data.
-    ContainerNode<?> licensesJsonData = loadReportEntry(reportFile, "licenses.json");
+    ContainerNode<?> licensesJsonData = loadReportEntry(reportFile, LICENSES_JSON_FILENAME);
     fixComponentIdentifiers(licensesJsonData, componentIdentifiers);
     Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = applyLicenseOverrides(licensesJsonData,
         application);
     ArrayNode licensesAaData = (ArrayNode) licensesJsonData.get("aaData");
     componentIdentifiersWithLicenseOverrides
         .addAll(addLicenseOverridesForClaimedComponents(licensesAaData, claimedComponentsByHash.values(), application));
-    saveReportEntry(reportFile, "licenses.json", licensesJsonData);
+    saveReportEntry(reportFile, LICENSES_JSON_FILENAME, licensesJsonData);
 
     // now apply any data edits (e.g. modified flag)
     augmentModified(componentIdentifiersWithLicenseOverrides, bomJsonData);
     saveReportEntry(reportFile, "bom.json", bomJsonData);
 
     // must start from un-edited data
-    ContainerNode<?> securityJsonData = loadReportEntry(reportFile, "security.json");
+    ContainerNode<?> securityJsonData = loadReportEntry(reportFile, SECURITY_JSON_FILENAME);
     fixComponentIdentifiers(securityJsonData, componentIdentifiers);
     applySecurityVulnerabilityOverrides(securityJsonData, application);
-    saveReportEntry(reportFile, "security.json", securityJsonData);
+    saveReportEntry(reportFile, SECURITY_JSON_FILENAME, securityJsonData);
 
     // must start from un-edited data
     ContainerNode<?> partialmatchedJsonData = loadReportEntry(reportFile, "partialmatched.json");
@@ -696,7 +700,7 @@ public final class Report
 
   private static ReportType getType(final File reportFile) throws IOException {
     try (final ZipFile archive = new ZipFile(reportFile)) {
-      if (archive.getEntry("security.json") == null && archive.getEntry("licenses.json") == null) {
+      if (archive.getEntry(SECURITY_JSON_FILENAME) == null && archive.getEntry(LICENSES_JSON_FILENAME) == null) {
         return ReportType.ERROR;
       }
       return ReportType.FULL;

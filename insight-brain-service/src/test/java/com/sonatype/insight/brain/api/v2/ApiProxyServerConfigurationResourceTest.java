@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -59,6 +60,16 @@ public class ApiProxyServerConfigurationResourceTest
   }
 
   @Test
+  public void testGetConfiguration_Unlicensed() throws Exception {
+    uninstallLicense();
+
+    tempEntity.setProxyServerConfiguration("resttest", 58285);
+
+    HttpResponse response = restRequest().get();
+    assertResponseStatus(200, response);
+  }
+
+  @Test
   public void testSetConfiguration() throws Exception {
     ApiProxyServerConfigurationDTO configurationDTO = new ApiProxyServerConfigurationDTO();
     configurationDTO.hostname = "resttest";
@@ -81,11 +92,35 @@ public class ApiProxyServerConfigurationResourceTest
   }
 
   @Test
+  public void testSetConfiguration_Unlicensed() throws Exception {
+    uninstallLicense();
+
+    ApiProxyServerConfigurationDTO configurationDTO = new ApiProxyServerConfigurationDTO();
+    configurationDTO.hostname = "resttest";
+    configurationDTO.port = 58285;
+    configurationDTO.username = "smtpuser";
+    configurationDTO.password = "smtppass".toCharArray();
+    configurationDTO.passwordIsIncluded = true;
+    configurationDTO.excludeHosts = Collections.singletonList("localhost");
+
+    assertResponseStatus(204, restRequest().body(configurationDTO).put());
+  }
+
+  @Test
   public void testDeleteConfiguration() throws Exception {
     tempEntity.setProxyServerConfiguration("resttest", 58285);
 
     assertResponseStatus(204, restRequest().delete());
 
     assertThat(proxyServerConfigurationDAO.get()).isNull();
+  }
+
+  @Test
+  public void testDeleteConfiguration_Unlicensed() throws Exception {
+    uninstallLicense();
+
+    tempEntity.setProxyServerConfiguration("resttest", 58285);
+
+    assertResponseStatus(204, restRequest().delete());
   }
 }

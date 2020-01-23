@@ -267,11 +267,8 @@ public class SbomResultHandler
     Component sbomComponent =
         createComponent(component, packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion());
     sbomComponent.setPurl(packageUrlIdentifier.getPackageUrl());
-    String fileCoordinateId = saveComponent(thirdPartyFileId, hashFileCoordinateIdMap, componentIdentifier,
-        packageUrlIdentifier, identificationSource, tx);
-    saveLicenses(component.getChild("licenses"), fileCoordinateId, packageUrlIdentifier.getPackageUrl(), tx);
-    saveVulnerabilities(component.getChild("vulnerabilities"), fileCoordinateId, tx);
-    sbom.addComponent(sbomComponent);
+    saveComponent(thirdPartyFileId, hashFileCoordinateIdMap, componentIdentifier, packageUrlIdentifier,
+        identificationSource, component, sbom, sbomComponent, tx);
   }
 
   private Component createComponent(Xpp3Dom component, String name, String version) {
@@ -311,12 +308,15 @@ public class SbomResultHandler
     }
   }
 
-  private String saveComponent(
+  private void saveComponent(
       String thirdPartyFileId,
       Map<String, String> hashFileCoordinateIdMap,
       ComponentIdentifier componentIdentifier,
       PackageUrlIdentifier packageUrlIdentifier,
       String identificationSource,
+      Xpp3Dom component,
+      Bom sbom,
+      Component sbomComponent,
       TransactionContext tx)
   {
     String fakeHash = ThirdPartyScanResultUtils.hash(
@@ -328,9 +328,11 @@ public class SbomResultHandler
       fileCoordinate.setPackageUrl(packageUrlIdentifier.getPackageUrl());
       thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
       hashFileCoordinateIdMap.put(fakeHash, fileCoordinate.getId());
-      return fileCoordinate.getId();
+
+      saveLicenses(component.getChild("licenses"), fileCoordinate.getId(), packageUrlIdentifier.getPackageUrl(), tx);
+      saveVulnerabilities(component.getChild("vulnerabilities"), fileCoordinate.getId(), tx);
+      sbom.addComponent(sbomComponent);
     }
-    return hashFileCoordinateIdMap.get(fakeHash);
   }
 
   private void saveVulnerabilities(Xpp3Dom vulnerabilities, String fileCoordinateId, TransactionContext tx) {

@@ -58,11 +58,11 @@ extends BaseSpec {
 
     when: 'looking at available applications to filter on'
     waitFor { filters.applicationFilter.displayed }
-    filters.applicationFilter.twisty.click()
+    filters.applicationFilter.nxTwisty.click()
 
     then: 'only the permissioned application and the all application option are shown'
-    filters.applicationFilter.multiSelectList.size() == 2
-    filters.applicationFilter.counter.text() == '1'
+    !filters.applicationFilter.multiSelectList.displayed
+    filters.applicationFilter.nxCounter.text() == '1'
   }
 
   def 'Should have no applications to choose from without permissions'() {
@@ -73,8 +73,7 @@ extends BaseSpec {
     waitFor { filters.applicationFilter.displayed }
 
     then: 'application filter is disabled with a tooltip on hover'
-    filters.applicationFilter.trigger.hasClass("disabled")
-    filters.applicationFilter.tooltip.getTooltipContent() == "There are no applications to filter."
+    filters.applicationFilter.hasClass("nx-tree-view--disabled")
   }
 
   def 'Should have only the "uncategorized applications" application category to choose from'() {

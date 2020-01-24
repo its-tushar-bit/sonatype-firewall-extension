@@ -5,7 +5,7 @@
  */
 import componentsModule from '../../../main/frontend/components/module';
 
-describe('iqOrgAppPicker', function() {
+describe('iqOrgAppPickerAngular', function() {
 
   var getVm, onChange;
 
@@ -27,7 +27,7 @@ describe('iqOrgAppPicker', function() {
   beforeEach(inject(function($componentController) {
     onChange = jasmine.createSpy('onChange');
     getVm = function(selectedOrganizations, selectedApplications) {
-      return $componentController('iqOrgAppPicker', null, {
+      return $componentController('iqOrgAppPickerAngular', null, {
         onChange: onChange,
         organizations: organizations,
         applications: applications,
@@ -105,12 +105,12 @@ describe('iqOrgAppPicker', function() {
     describe('when an org is selected', function() {
       it('selects related apps', function() {
         var selectedOrganizations = new Set();
-        var selectedApplications = new Set(['fooApp2']);
+        var selectedApplications = new Set(['fooApp2', 'barApp1']);
 
         var vm = getVm(selectedOrganizations, selectedApplications);
 
         var newSelectedOrganizations = new Set(['fooOrg']);
-        var expectedSelectedApplications = new Set(['fooApp1', 'fooApp2']);
+        var expectedSelectedApplications = new Set(['fooApp1', 'fooApp2', 'barApp1']);
 
         vm.onSelectedOrganizationsChange(newSelectedOrganizations);
         expect(onChange).toHaveBeenCalledWith({

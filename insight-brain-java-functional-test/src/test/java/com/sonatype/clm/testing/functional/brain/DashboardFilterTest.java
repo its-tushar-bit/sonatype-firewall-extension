@@ -24,8 +24,9 @@ import com.sonatype.clm.testing.functional.elements.DashboardFilters.StageFilter
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationTile;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.IqTreeViewMultiSelect;
+import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
 import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
@@ -59,6 +60,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
@@ -952,12 +954,12 @@ public class DashboardFilterTest
   }
 
   private void assertInitialFilterState(final String savedFilterName) {
-    IqTreeViewMultiSelect appFilter = DashboardFilters.applicationFilter();
+    NxTreeViewMultiSelect appFilter = DashboardFilters.applicationFilter();
 
     appFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("2"));
-    appFilter.multiSelectList().shouldBe(empty);
+    appFilter.multiSelectList().filter(visible).shouldBe(empty);
     appFilter.twisty().shouldBe(visible).click();
-    appFilter.multiSelectList().shouldHave(size(3));
+    appFilter.multiSelectList().filter(visible).shouldHave(size(3));
     appFilter.checkboxItem(1).shouldNotBe(selected).label().shouldHave(text("all/none"));
     appFilter.checkboxItem(2).shouldNotBe(selected).label().shouldHave(text(firstApp.getName()));
     appFilter.checkboxItem(3).shouldNotBe(selected).label().shouldHave(text(secondApp.getName()));
@@ -1061,7 +1063,8 @@ public class DashboardFilterTest
   }
 
   private void assertNewCounterState() {
-    DashboardFilters.applicationFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 2"));
+    DashboardFilters.applicationFilter().counter().shouldHave(cssClass("nx-counter--active"))
+        .shouldHave(text("1 of 2"));
     DashboardFilters.applicationCategoryFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 3"));
     DashboardFilters.stageFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
     DashboardFilters.policyTypeFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
@@ -1069,14 +1072,14 @@ public class DashboardFilterTest
     DashboardFilters.policyThreatLevelFilter().counter().shouldHave(text("2 – 7"));
   }
 
-  private void assertFilterDisabled(IqTreeViewMultiSelect filter, String filterType) {
+  private void assertFilterDisabled(NxTreeViewMultiSelect filter, String filterType) {
     filter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("0"));
 
-    filter.anchor().shouldBe(DISABLED);
-    filter.multiSelectList().shouldBe(empty);
-    filter.twisty().shouldBe(visible).shouldHave(DISABLED).click();
-    filter.multiSelectList().shouldBe(empty);
+    filter.shouldHave(cssClass("nx-tree-view--disabled"));
+    filter.multiSelectList().filter(visible).shouldBe(empty);
+    filter.twisty().shouldBe(visible).click();
+    filter.multiSelectList().filter(visible).shouldBe(empty);
 
-    filter.hover().tooltip().shouldHave(text("There are no " + filterType + " to filter."));
+    Tooltip.get().shouldBe(visible).shouldHave(text("There are no " + filterType + " options"));
   }
 }

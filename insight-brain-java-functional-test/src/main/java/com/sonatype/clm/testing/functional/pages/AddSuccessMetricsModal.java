@@ -66,7 +66,7 @@ public class AddSuccessMetricsModal
   }
 
   public SelenideElement orgPicker() {
-    return child("iq-org-app-picker > [name=organizations]");
+    return child("iq-org-app-picker-angular > [name=organizations]");
   }
 
   public SelenideElement orgPickerTrigger() {
@@ -78,7 +78,7 @@ public class AddSuccessMetricsModal
   }
 
   public SelenideElement appPicker() {
-    return child("iq-org-app-picker > [name=applications]");
+    return child("iq-org-app-picker-angular > [name=applications]");
   }
 
   public SelenideElement appPickerCounter() {

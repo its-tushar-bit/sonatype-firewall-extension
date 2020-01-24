@@ -12,7 +12,7 @@ import iqPolicyThreatLevelSlider from './iqPolicyThreatLevelSlider/iqPolicyThrea
 import iqTreeViewPolicyThreatLevelSlider from './iqTreeViewPolicyThreatLevelSlider/iqTreeViewPolicyThreatLevelSlider';
 import utilityModule from '../utility/utility.module';
 import utilityDirectivesModule from '../utility/directives/utility.directives.module';
-import iqOrgAppPicker from './iqOrgAppPicker/iqOrgAppPicker';
+import iqOrgAppPickerAngular from './iqOrgAppPicker/iqOrgAppPickerAngular';
 import iqRenderPlottable from './iqRenderPlottable/iqRenderPlottable';
 import coverageDonut from './coverageDonut';
 import externalLink from './externalLink/externalLink';
@@ -25,7 +25,7 @@ export default angular.module('components', [utilityModule.name, utilityDirectiv
     .component('iqTreeViewMultiSelect', iqTreeViewMultiSelect)
     .component('iqTreeViewRadioSelect', iqTreeViewRadioSelect)
     .component('iqTreeViewPolicyThreatLevelSlider', iqTreeViewPolicyThreatLevelSlider)
-    .component('iqOrgAppPicker', iqOrgAppPicker)
+    .component('iqOrgAppPickerAngular', iqOrgAppPickerAngular)
     .component('externalLink', externalLink)
     .directive('iqRenderPlottable', iqRenderPlottable)
     .directive('coverageDonut', coverageDonut)

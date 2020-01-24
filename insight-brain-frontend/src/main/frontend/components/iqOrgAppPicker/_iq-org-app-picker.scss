@@ -1,3 +1,11 @@
+iq-org-app-picker-angular {
+  display: block;
+}
+
 iq-org-app-picker {
   display: block;
+
+  .nx-tree-view {
+    padding-right: 8px;
+  }
 }

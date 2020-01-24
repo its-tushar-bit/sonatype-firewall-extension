@@ -3,13 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import template from './iqOrgAppPicker.html';
+import template from './iqOrgAppPickerAngular.html';
 
 import {isSelected, areAllSelected, groupAppsByOrgId, selectedMapToSet} from './utils';
 
-const iqOrgAppPicker = {
+const iqOrgAppPickerAngular = {
   template,
-  controller: IqOrgAppPickerController,
+  controller: IqOrgAppPickerAngularController,
   controllerAs: 'vm',
   bindings: {
     organizations: '<',
@@ -20,9 +20,9 @@ const iqOrgAppPicker = {
   }
 };
 
-export default iqOrgAppPicker;
+export default iqOrgAppPickerAngular;
 
-function IqOrgAppPickerController() {
+function IqOrgAppPickerAngularController() {
   const vm = this;
   vm.selectedOrganizations = new Set();
   vm.selectedApplications = new Set();

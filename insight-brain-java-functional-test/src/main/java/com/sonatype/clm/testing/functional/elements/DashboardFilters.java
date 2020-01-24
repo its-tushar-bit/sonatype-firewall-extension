@@ -25,12 +25,12 @@ public class DashboardFilters
 
   public static final Condition NO_CHANGES_MESSAGE = text("There are no changes to update.");
 
-  public static IqTreeViewMultiSelect organizationFilter() {
-    return new IqTreeViewMultiSelect("#org-app-filters iq-tree-view-multi-select:nth-child(1)");
+  public static NxTreeViewMultiSelect organizationFilter() {
+    return new NxTreeViewMultiSelect("#org-app-filters > div:nth-child(1)");
   }
 
-  public static IqTreeViewMultiSelect applicationFilter() {
-    return new IqTreeViewMultiSelect("#org-app-filters iq-tree-view-multi-select:nth-child(2)");
+  public static NxTreeViewMultiSelect applicationFilter() {
+    return new NxTreeViewMultiSelect("#org-app-filters > div:nth-child(2)");
   }
 
   public static CategoryFilter applicationCategoryFilter() {

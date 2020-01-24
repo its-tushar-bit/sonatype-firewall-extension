@@ -12,11 +12,11 @@ class FilterModule
 {
   static content = {
     organizationFilter(required: false) {
-      $('#org-app-filters iq-tree-view-multi-select:nth-child(1)').module(DashboardFilterDimensionModule)
+      $('#org-app-filters > div:nth-child(1)').module(DashboardFilterDimensionModule)
     }
 
     applicationFilter(required: false) {
-      $('#org-app-filters iq-tree-view-multi-select:nth-child(2)').module(DashboardFilterDimensionModule)
+      $('#org-app-filters > div:nth-child(2)').module(DashboardFilterDimensionModule)
     }
 
     applicationCategoryFilter(required: false) {

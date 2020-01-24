@@ -46,13 +46,13 @@
          --><i class="fa fa-globe"></i> all applications
           </iq-radio>
           <iq-radio id="add-success-metrics-report-custom" model="vm.isAllApplications" value="false">custom</iq-radio>
-          <iq-org-app-picker ng-if="!vm.isAllApplications"
+          <iq-org-app-picker-angular ng-if="!vm.isAllApplications"
                              organizations="vm.organizations"
                              applications="vm.applications"
                              selected-applications="vm.selectedApplications"
                              selected-organizations="vm.selectedOrganizations"
                              on-change="vm.onOrgAppSelectionChange(selectedOrganizations, selectedApplications)">
-          </iq-org-app-picker>
+          </iq-org-app-picker-angular>
         </fieldset>
     </div>
     <footer class="iq-modal-footer" ng-class="{ 'iq-error' : vm.error }">

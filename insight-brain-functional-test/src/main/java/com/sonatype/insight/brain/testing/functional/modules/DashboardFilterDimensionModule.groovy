@@ -11,6 +11,8 @@ public class DashboardFilterDimensionModule
     extends Module
 {
   static content = {
+    nxTwisty { $('.nx-tree-view__twisty') }
+    nxCounter { $('.nx-counter') }
     twisty { $('.iq-tree-view__twisty') }
     counter { $('.iq-counter') }
     trigger { $('.iq-tree-view__trigger')}

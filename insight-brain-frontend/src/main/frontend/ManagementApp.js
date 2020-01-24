@@ -19,11 +19,13 @@ import rootOrganizationMigrateModule from './root.organization.migrate/root.orga
 import systemNoticeModule from './systemNotice/systemNoticeModule';
 import labsModule from './labs/module';
 import vulnerabilitySearchModule from './vulnerabilitySearch/module';
+import violationPageModule from './violation/module';
 
 export default angular.module('managementApp',
     [
       MainModule.name, UserModule.name, RoleModule.name, ownerManagerModule.name, rootOrganizationMigrateModule.name,
       systemNoticeModule.name, componentsModule.name, directivesModule.name, labsModule.name, configurationModule.name,
       legacyConfigurationModule.name, dashboardModule.name, reduxConfigModule.name,
-      changeDefaultAdminPasswordModule.name, applicationReportModule.name, vulnerabilitySearchModule.name
+      changeDefaultAdminPasswordModule.name, applicationReportModule.name, vulnerabilitySearchModule.name,
+      violationPageModule.name
     ]);

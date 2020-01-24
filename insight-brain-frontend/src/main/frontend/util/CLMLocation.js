@@ -56,6 +56,11 @@ export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier) {
   return urlWithPath;
 }
 
+export function getViolationDetailsUrl(violationId) {
+  // TODO when Violation Page backend is implemented
+  return `${getBaseUrl(window.location.href)}/foo/${violationId}`;
+}
+
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {

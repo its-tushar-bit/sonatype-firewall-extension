@@ -35,7 +35,7 @@
                 <th id="report-list-header-app" class="iq-cell iq-cell--header">
                   <div sort-column="name">Application Name</div>
                 </th><!--
-             --><th id="report-list-header-contact" class="iq-cell iq-cell--header">Contact</th><!--
+             --><th id="report-list-header-contact" class="iq-cell iq-cell--header iq-cell--contact">Contact</th><!--
              --><th id="report-list-header-org" class="iq-cell iq-cell--header">
                   <div sort-column="organizationName">Organization</div>
                 </th><!--
@@ -65,7 +65,7 @@
                        class="image-thumbnail"/><!--
                -->{{::application.name}}
                 </td><!--
-             --><td class="iq-cell">
+             --><td class="iq-cell iq-cell--contact">
                   <span ng-if="application.contact.error">
                     <i class="icon-warning-sign" tooltip="{{::application.contact.error}}" tooltip-placement="left"></i>
                   </span>
@@ -75,7 +75,7 @@
                   {{::application.organizationName}}
                 </td><!--
              --><td ng-repeat="stage in vm.stages | filterReportColumns"
-                    class="tm-report-list-stage-{{::stage.stageTypeId}} iq-cell">
+                    class="tm-report-list-stage-{{::stage.stageTypeId}} iq-cell iq-cell--stage">
                   <div ng-if="application.policyEvaluationsResults[stage.stageTypeId]"
                        class="iq-report-list__stage-links">
                     <div class="iq-report-list__violation-links"

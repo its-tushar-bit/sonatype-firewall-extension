@@ -12,6 +12,7 @@
 .iq-tile--report-list {
   border-top: 0;
   margin-top: 0;
+  padding-top: 0;
   position: relative;
 
   div.modal-help-icon {
@@ -32,6 +33,24 @@
 
   max-height: 100%;
   width: 100%;
+}
+
+// When there's a scrollbar this takes a bit away of space from the contacts column
+// and gives it to the last column so that the text doesn't disappear under the scrollbar
+.iq-scrollable--report-list.scrollbar-present {
+  .iq-table--fixed__header, .iq-table--fixed__content {
+    .iq-cell--contact {
+      width: calc(((100% + #{$iq-cell-scroll-bar-width}) / 6) - #{$iq-cell-scroll-bar-width});
+    }
+
+    .iq-cell:last-child {
+      width: calc(100% / 6);
+    }
+
+    .iq-cell--header:last-child {
+      width: calc(((100% + #{$iq-cell-scroll-bar-width}) / 6) + #{$iq-spacing-xs});
+    }
+  }
 }
 
 .iq-report-list__stage-links {
@@ -81,8 +100,12 @@
     width: calc(100% - #{$iq-spacing-xl});
   }
 
+  thead .iq-table-row {
+    border-bottom: none;
+  }
+
   .iq-table--fixed__content {
-    padding-top: 6px;
+    padding-top: $iq-spacing-l;
 
     .iq-table-row {
       border-top: 1px solid $iq-grey-1;
@@ -123,6 +146,16 @@
 
   .vs-repeat-before-content, .vs-repeat-after-content {
     display: block;
+  }
+}
+
+.iq-table--fixed__content {
+  .iq-cell--stage {
+    padding-right: 0;
+
+    &:last-child {
+      padding-right: 0;
+    }
   }
 }
 

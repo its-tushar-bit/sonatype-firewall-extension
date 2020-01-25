@@ -22,8 +22,8 @@ Please read our [contribution rules and guidelines](contributing.md).
 This week's rotating reviewers are:
 
 <!-- rotating-reviewers-begin -->
-* [@Koray Tugay](https://github.com/koraytugay)
-* [@Guillermo Varela](https://github.com/guillermo-varela)
+* [@Ross Pokorny](https://github.com/rpokorny)
+* [@(TK) Tim Kemper](https://github.com/tkemperSonatype)
 <!-- rotating-reviewers-end -->
 # Building #
 

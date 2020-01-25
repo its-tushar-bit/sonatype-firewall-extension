@@ -1768,6 +1768,10 @@ public class TemporaryEntity
     return repositoryComponent;
   }
 
+  public void deleteRepositoryComponent(RepositoryComponent repositoryComponent) {
+    repositoryComponentDAO.delete(repositoryComponent);
+  }
+
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId) {
     return newRepositoryPolicyViolation(repositoryId, new Date());
   }

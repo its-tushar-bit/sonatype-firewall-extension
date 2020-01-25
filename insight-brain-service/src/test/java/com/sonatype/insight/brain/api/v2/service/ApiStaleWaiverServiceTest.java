@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationBaseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConditionFactReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintFactDTO;
@@ -32,7 +33,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -780,6 +781,49 @@ public class ApiStaleWaiverServiceTest
 
     tempEntity.newRepositoryComponent(repo.getId(), "path", evaluationTime, "hash", componentIdentifier,
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), evaluationTime);
+
+    List<ApiStaleWaiverDTO> staleRepositoryWaivers = apiStaleWaiverService.getStaleWaivers();
+    assertThat(staleRepositoryWaivers).hasSize(1);
+    assertThat(staleRepositoryWaivers.get(0).staleEvaluations).isNull();
+  }
+
+  @Test
+  public void testGetStaleWaivers_NoStaleRepositoryEvaluationsWhenRepositoryAlwaysEmpty() {
+    insightConfig.setEnableStaleEvaluations(true);
+
+    List<ConstraintFact> constraintFacts = Collections.singletonList(constraintFact1);
+    Repository emptyRepo = tempEntity.newRepository("repo");
+
+    // stale waiver
+    tempEntity.newWaiver("hash", policy.getId(), emptyRepo.getId(), constraintFacts, "stale waiver comment",
+        new Date());
+
+    List<ApiStaleWaiverDTO> staleRepositoryWaivers = apiStaleWaiverService.getStaleWaivers();
+    assertThat(staleRepositoryWaivers).hasSize(1);
+    assertThat(staleRepositoryWaivers.get(0).staleEvaluations).isNull();
+  }
+
+  @Test
+  public void testGetStaleWaivers_NoStaleRepositoryEvaluationsWhenRepositoryNowEmpty() {
+    insightConfig.setEnableStaleEvaluations(true);
+
+    Date now = new Date();
+    Date staleEvaluationTime = new Date(now.getTime() - 5);
+    Date componentCreateTime = new Date(now.getTime() - 10);
+    List<ConstraintFact> constraintFacts = Collections.singletonList(constraintFact1);
+    Repository repo = tempEntity.newRepository("repo");
+
+    // stale waiver
+    tempEntity.newWaiver("hash", policy.getId(), repo.getId(), constraintFacts, "stale waiver comment",
+        now);
+
+    // stale evaluation
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repo.getId(), "path", componentCreateTime, "hash", componentIdentifier,
+            MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), staleEvaluationTime);
+
+    // remove component from repo
+    tempEntity.deleteRepositoryComponent(repositoryComponent);
 
     List<ApiStaleWaiverDTO> staleRepositoryWaivers = apiStaleWaiverService.getStaleWaivers();
     assertThat(staleRepositoryWaivers).hasSize(1);

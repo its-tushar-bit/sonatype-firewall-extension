@@ -97,8 +97,6 @@ public class ApiStaleWaiverService
 
   private final RepositoryComponentDAO repositoryComponentDAO;
 
-  private static final Date EMPTY_DATE = new Date(1);
-
   private final ApplicationDAO applicationDAO;
 
   private final InsightConfig insightConfig;
@@ -187,18 +185,17 @@ public class ApiStaleWaiverService
   }
 
   /**
-   * @return may have EMPTY_DATE for date value if no evals on that repo
+   * @return All repos that have a component evaluation time (no empty repos)
    */
   private Map<String, RepositoryWithDate> getOldestEvalTimesByRepoId() {
     List<Repository> allRepositories = repositoryDAO.getAll();
-    return allRepositories.stream().collect(Collectors.toMap(Repository::getId,
+    return allRepositories.stream().map(
         repository -> {
           Date oldestDate = repositoryComponentDAO.getOldestComponentEvaluationTimeByRepositoryId(repository.getId());
-          if (oldestDate == null) {
-            oldestDate = EMPTY_DATE;
-          }
           return new RepositoryWithDate(repository, oldestDate);
-        }));
+        })
+        .filter(repoWithDate -> repoWithDate.date != null)   // no date on repo means it has no components
+        .collect(Collectors.toMap(repoWithDate -> repoWithDate.repository.getId(), Function.identity()));
   }
 
   private List<ApiStaleApplicationEvaluationDTO>  getStaleApplicationEvaluations(

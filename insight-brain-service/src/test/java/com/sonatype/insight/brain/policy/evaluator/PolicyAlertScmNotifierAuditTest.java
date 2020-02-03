@@ -119,6 +119,7 @@ public class PolicyAlertScmNotifierAuditTest
     // given a pull request can execute successfully for a notification
     final PullRequestResult result = new PullRequestResult();
     result.setPullRequestUrl("my url");
+    when(pullRequestExecutor.isSupportedFormat(any())).thenReturn(true);
     when(pullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(result);
 
     // and some notifications to send
@@ -140,6 +141,7 @@ public class PolicyAlertScmNotifierAuditTest
   @Test
   public void testSendNotifications_GitException_No_Audit() throws Exception {
     // given a pull request will fail for a notification
+    when(pullRequestExecutor.isSupportedFormat(any())).thenReturn(true);
     when(pullRequestExecutor.execute(any())).thenThrow(new GitException("oh no!"));
 
     // and some notifications to send

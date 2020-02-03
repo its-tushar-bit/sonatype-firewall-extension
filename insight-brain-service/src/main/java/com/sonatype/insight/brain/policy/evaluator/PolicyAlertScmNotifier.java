@@ -35,8 +35,8 @@ import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.nexus.git.utils.VersionRemediationTitleGenerator;
+import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,8 +54,6 @@ public class PolicyAlertScmNotifier
   public static final int APP_ID_BRANCH_TRUNCATE_INDEX = 6;
 
   private static final String VERSION_KEY = "version";
-
-  private static final List<String> SUPPORTED_FORMATS = ImmutableList.of(ComponentIdentifier.FORMAT_MAVEN);
 
   private final PullRequestFeatureCheck pullRequestFeatureCheck;
 
@@ -80,6 +78,8 @@ public class PolicyAlertScmNotifier
 
   private final Provider<PullRequestTask> pullRequestTaskProvider;
 
+  private final PullRequestExecutor pullRequestExecutor;
+
   /**
    * notifier for sending to hosted git source control manager service
    *
@@ -98,6 +98,7 @@ public class PolicyAlertScmNotifier
       final GitClientFactory gitClientFactory,
       final GitApiService gitApiService,
       final BaseUrl baseUrl,
+      final PullRequestExecutor pullRequestExecutor,
       final Provider<PullRequestTask> pullRequestTaskProvider)
   {
     this.pullRequestFeatureCheck = pullRequestFeatureCheck;
@@ -106,6 +107,7 @@ public class PolicyAlertScmNotifier
     this.gitClientFactory = gitClientFactory;
     this.gitApiService = gitApiService;
     this.baseUrl = baseUrl;
+    this.pullRequestExecutor = pullRequestExecutor;
     this.pullRequestTaskProvider = pullRequestTaskProvider;
     this.executor = new ThreadPoolExecutor(1, 1, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
         new ThreadFactoryBuilder().setDaemon(true).setNameFormat("PullRequestTask-%s").build());
@@ -180,7 +182,7 @@ public class PolicyAlertScmNotifier
               stage.getStageTypeId(), baseUrl.getConfigured());
 
       PullRequestTask pullRequestTask = pullRequestTaskProvider.get();
-      pullRequestTask.init(pullRequestRemediationDetails);
+      pullRequestTask.init(pullRequestRemediationDetails, pullRequestExecutor);
       executor.execute(new SystemRunnable(pullRequestTask));
       log.info("Executing pull request task for [{}] on application with id [{}]. {} tasks in the queue" +
               " and {} total tasks since startup", entry.getKey(), app.getId(), executor.getQueue().size(),
@@ -213,7 +215,7 @@ public class PolicyAlertScmNotifier
   }
 
   private boolean isFormatSupported(final ComponentIdentifier componentIdentifier) {
-    return SUPPORTED_FORMATS.contains(componentIdentifier.getFormat());
+    return pullRequestExecutor.isSupportedFormat(componentIdentifier.getFormat());
   }
 
   private List<ApiVersionChangeOptionDTO> getRemediationList(

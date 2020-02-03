@@ -116,7 +116,7 @@ public class PullRequestTaskTest
   @Before
   public void setup() {
     pullRequestTask = new PullRequestTask(gitApiService, gitClientFactory, insightConfig, fileCleaner, metrics,
-        gitApiFactory, auditRecorder, new PullRequestExecutor());
+        gitApiFactory, auditRecorder);
   }
   
   @Test
@@ -134,7 +134,7 @@ public class PullRequestTaskTest
     config.setSonatypeWorkDir(sonatypeWorkDir);
     configureExpectations(config);
 
-    pullRequestTask.init(pullRequestRemediationDetails);
+    pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());
     pullRequestTask.run();
 
     File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-" + INFO.baseBranch + APP_HASH);
@@ -154,7 +154,7 @@ public class PullRequestTaskTest
     configureExpectations(config, new GitRepositoryInfo("localhost", "token", SourceControlProvider.GITHUB, "d\\e/v_",
         true, true));
 
-    pullRequestTask.init(pullRequestRemediationDetails);
+    pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());
     pullRequestTask.run();
 
     // then directory is created without special characters
@@ -175,7 +175,7 @@ public class PullRequestTaskTest
     String longName = StringUtils.repeat("long", 21);
     when(app.getPublicId()).thenReturn(longName);
 
-    pullRequestTask.init(pullRequestRemediationDetails);
+    pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());
     pullRequestTask.run();
 
     // then directory is created with truncated name and hash appended
@@ -193,7 +193,7 @@ public class PullRequestTaskTest
     configureExpectations(config, new GitRepositoryInfo("localhost", "token", SourceControlProvider.GITHUB,
         StringUtils.repeat("long", 21) + "branchname", true, true));
 
-    pullRequestTask.init(pullRequestRemediationDetails);
+    pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());
     pullRequestTask.run();
 
     // then directory is created with truncated name and hash appended
@@ -211,7 +211,7 @@ public class PullRequestTaskTest
     config.setCloneDirectory(APP_INTERNAL_ID);
     configureExpectations(config);
 
-    pullRequestTask.init(pullRequestRemediationDetails);
+    pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());
     pullRequestTask.run();
 
     File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-" + INFO.baseBranch + APP_HASH);
@@ -236,7 +236,7 @@ public class PullRequestTaskTest
     when(gitClient.createPullRequest(BRANCH, INFO.baseBranch, TITLE, CONTENT)).thenReturn(pullRequestResponse);
     when(pullRequestResponse.getUrl()).thenReturn(INFO.repositoryUrl);
 
-    pullRequestTask.init(pullRequestRemediationDetails);
+    pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());
     pullRequestTask.run();
     
     verify(gitApi).cloneOrPullRepository(targetDirectory, INFO.baseBranch);
@@ -262,7 +262,7 @@ public class PullRequestTaskTest
     when(gitApi.cloneOrPullRepository(targetDirectory, INFO.baseBranch))
         .thenThrow(new GitException("Something bad happened"));
 
-    pullRequestTask.init(pullRequestRemediationDetails);
+    pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());
     pullRequestTask.run();
 
     verify(fileCleaner).delete(targetDirectory);

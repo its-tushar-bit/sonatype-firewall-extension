@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.test.LogOutput;
+import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 import com.sonatype.nexus.scm.api.GitApiClient;
 
 import org.junit.Before;
@@ -89,6 +90,9 @@ public class PolicyAlertScmNotifierTest
 
   @Mock
   PullRequestTask pullRequestTask;
+  
+  @Mock
+  PullRequestExecutor pullRequestExecutor;
 
   private PolicyAlertScmNotifier scmNotifier;
 
@@ -101,7 +105,7 @@ public class PolicyAlertScmNotifierTest
   public void setup() throws Exception {
     scmNotifier = new PolicyAlertScmNotifier(pullRequestFeatureCheck,
         remediationService, new PolicyAlertSourceCodeOrganizer(), gitClientFactory,
-        gitApiService, baseUrl, provider);
+        gitApiService, baseUrl, pullRequestExecutor, provider);
     Organization organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(NAME, PUBLIC_ID, organization.getId());
   }
@@ -163,6 +167,8 @@ public class PolicyAlertScmNotifierTest
         any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
         eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(emptyRemediationDTO);
 
+    when(pullRequestExecutor.isSupportedFormat(any())).thenReturn(true);
+    
     // when we send policy notifications
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
 
@@ -186,6 +192,7 @@ public class PolicyAlertScmNotifierTest
     // and feature is enabled
     when(pullRequestFeatureCheck.isPullRequestFeatureSupported(
         application, gitRepositoryInfo)).thenReturn(true);
+    when(pullRequestExecutor.isSupportedFormat(any())).thenReturn(true);
 
     // and there are suggested remediations
     ApiComponentRemediationDTO remediationDTO = buildRemediationDTOWithSuggestion();
@@ -228,6 +235,8 @@ public class PolicyAlertScmNotifierTest
         any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
         eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(remediationDTO);
 
+    when(pullRequestExecutor.isSupportedFormat(any())).thenReturn(true);
+    
     // and the branch doesn't already exist on the server
     when(gitClientFactory.create(gitRepositoryInfo)).thenReturn(gitApiClient);
     String truncatedAppId = application.getId().substring(0, APP_ID_BRANCH_TRUNCATE_INDEX);
@@ -254,7 +263,7 @@ public class PolicyAlertScmNotifierTest
 
     ArgumentCaptor<PullRequestRemediationDetails> captor =
         ArgumentCaptor.forClass(PullRequestRemediationDetails.class);
-    verify(pullRequestTask).init(captor.capture());
+    verify(pullRequestTask).init(captor.capture(), eq(pullRequestExecutor));
     await().atMost(1, TimeUnit.SECONDS).until( () -> finished.getCount() == 0);
     verify(pullRequestTask).run();
     assertThat(captor.getValue().getToBeRemediated())

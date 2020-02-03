@@ -79,8 +79,7 @@ public class PullRequestTask
       final FileCleaner fileCleaner,
       final SourceControlPullRequestMetrics metrics,
       final GitApiFactory gitApiFactory,
-      final AuditRecorder auditRecorder,
-      final PullRequestExecutor pullRequestExecutor)
+      final AuditRecorder auditRecorder)
   {
     this.gitApiService = gitApiService;
     this.gitClientFactory = gitClientFactory;
@@ -89,11 +88,14 @@ public class PullRequestTask
     this.metrics = metrics;
     this.gitApiFactory = gitApiFactory;
     this.auditRecorder = auditRecorder;
-    this.pullRequestExecutor = pullRequestExecutor;
   }
-  
-  public void init(PullRequestRemediationDetails pullRequestRemediationDetails) {
+
+  public void init(
+      PullRequestRemediationDetails pullRequestRemediationDetails,
+      PullRequestExecutor pullRequestExecutor)
+  {
     this.pullRequestRemediationDetails = pullRequestRemediationDetails;
+    this.pullRequestExecutor = pullRequestExecutor;
   }
 
   @Override

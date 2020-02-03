@@ -10,6 +10,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.security.Security;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -94,6 +98,8 @@ public class InsightBrainService
 
   private static volatile File configFile;
 
+  private static long startTime;
+
   public static void main(final String[] args) {
     try {
       setupServerLogging(args);
@@ -115,7 +121,7 @@ public class InsightBrainService
 
   static void setupServerLogging(final String... args) {
     if (args.length == 0 || "server".equals(args[0])) {
-      printInstanceId("Starting");
+      logServerInstanceMessage("Starting " + getServerInstanceMessage());
       addShutdownLogger();
     }
   }
@@ -125,13 +131,19 @@ public class InsightBrainService
     {
       @Override
       public void run() {
-        printInstanceId("Stopping");
+        String formattedStartTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(startTime), ZoneId.systemDefault())
+            .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        // The Support team required "Uptime" in this log message in https://issues.sonatype.org/browse/CLM-14607,
+        // so it should not be removed or changed to something else.
+        logServerInstanceMessage("Stopping " + getServerInstanceMessage() + " Uptime: " + formattedStartTime);
       }
     });
   }
 
   @Override
   public void run(String... arguments) throws Exception {
+    startTime = System.currentTimeMillis();
+
     final Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(this);
     bootstrap.addCommand(new ServerCommand<InsightConfig>(this)
     {
@@ -201,7 +213,7 @@ public class InsightBrainService
 
   @Override
   public void run(InsightConfig configuration, Environment environment) throws Exception {
-    printInstanceId("Started");
+    logServerInstanceMessage("Started " + getServerInstanceMessage());
 
     initializeDatabases(configuration);
 
@@ -219,9 +231,14 @@ public class InsightBrainService
     log.info("|------------------------------------------");
   }
 
-  private static void printInstanceId(String messagePrefix) {
-    String message = messagePrefix + " " + PRODUCT_NAME + " instance ID " + INSTANCE_ID + " on " + getLocalHostString()
-        + ".";
+  private static String getServerInstanceMessage() {
+    String version = new VersionService().getLogDisplayVersion();
+    return PRODUCT_NAME + " 1 release " + version + //
+        " instance ID " + INSTANCE_ID + //
+        " on " + getLocalHostString() + ".";
+  }
+
+  private static void logServerInstanceMessage(String message) {
     // Log to stdout first because the standard logging may not be operational at this point.
     System.out.println(message);
     log.info(message);

@@ -87,7 +87,7 @@ public class GitApiService
 
     if (null == gitRepositoryInfo || null == gitRepositoryInfo.provider ||
         Strings.isNullOrEmpty(gitRepositoryInfo.token)) {
-      log.error("The git repository information could not be found for application with id {}, " +
+      log.debug("The git repository information could not be found for application with id {}, " +
           "scm status could not be created.", event.ownerId);
       return;
     }

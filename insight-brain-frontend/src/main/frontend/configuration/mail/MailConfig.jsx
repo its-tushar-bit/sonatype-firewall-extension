@@ -185,7 +185,7 @@ export default function MailConfig(props) {
         <div className="nx-form-group">
           <label className="nx-label">
             <span className="nx-label__text">Test Configuration</span>
-            <span className="nx-sub-label">Send a test e-mail to verify the configuration.</span>
+            <span className="nx-sub-label">Send a test email to verify the configuration.</span>
             <NxTextInput { ...testEmailState }
                          id="email-config-test-email-recipient"
                          onChange={setTestEmail}

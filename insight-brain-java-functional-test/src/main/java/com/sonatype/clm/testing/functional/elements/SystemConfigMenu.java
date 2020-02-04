@@ -55,4 +55,8 @@ public class SystemConfigMenu
   public SelenideElement automaticApplications() {
     return child("#system-configuration-automatic-applications a");
   }
+
+  public SelenideElement emailConfiguration() {
+    return child("#system-configuration-email a");
+  }
 }

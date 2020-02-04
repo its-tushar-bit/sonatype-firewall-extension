@@ -93,4 +93,8 @@ public class EmailConfigurationPage
   public SelenideElement delete() {
     return child("#email-config-delete");
   }
+
+  public SelenideElement insufficientPermissionsError() {
+    return child("#email-config-insufficient-permissions-error");
+  }
 }

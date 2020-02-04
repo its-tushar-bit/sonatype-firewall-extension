@@ -24,7 +24,7 @@ export default angular.module('configurationModule',
       gettingStartedModule.name, successMetricsConfigurationModule.name, systemNoticeConfigurationModule.name,
       automaticApplicationsConfigurationModule.name, ldapModule.name, samlModule.name, webhookModule.name,
       ProductLicenseModule.name, automaticSourceControlConfigurationModule.name, 'ngRedux'])
-    .component('mailConfig', react2angular(withStoreProvider(MailConfigContainer), [], ['$ngRedux']))
+    .component('mailConfig', react2angular(withStoreProvider(MailConfigContainer), ['isAuthorized'], ['$ngRedux']))
     .config(routes);
 
 function routes($stateProvider) {
@@ -34,6 +34,13 @@ function routes($stateProvider) {
         url: '/mailConfig',
         data: {
           title: 'Mail Config'
+        },
+        resolve: {
+          isAuthorized: [
+            'PermissionService', function(PermissionService) {
+              return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+            }
+          ]
         }
       });
 }

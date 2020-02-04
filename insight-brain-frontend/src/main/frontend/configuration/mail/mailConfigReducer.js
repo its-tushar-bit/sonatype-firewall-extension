@@ -218,7 +218,7 @@ function sendTestMailFailed(payload, state) {
   return {
     ...state,
     submitMaskState: null,
-    error: 'Sending test mail failed. Is your Mail Server up and running and your configuration correct?',
+    error: Messages.getHttpErrorMessage(payload),
     testEmailSent: false
   };
 }

@@ -383,7 +383,9 @@ public class PolicyEvaluateServiceTest
     testEvaluateWithPolling(LicensedFeature.RM_STAGING_INTEGRATION, IntegrationType.RM);
   }
 
-  public void testEvaluateWithPolling(LicensedFeature requiredFeature, IntegrationType integrationType)
+  private void testEvaluateWithPolling(
+      LicensedFeature requiredFeature,
+      IntegrationType integrationType)
       throws Exception
   {
     productLicenseManager.setFeatures(requiredFeature, LicensedFeature.NOTIFICATIONS);
@@ -446,7 +448,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  public void doEvaluationWithPolling_sendThirdPartyScanUsageTelemetry() throws Exception {
+  public void testEvaluateWithPolling_sendThirdPartyScanUsageTelemetry() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
 
     String scanId = simulateReportIsAvailable();
@@ -550,7 +552,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  public void testPollEvaluationResult_Pending() throws Exception {
+  public void testEvaluateWithPolling_PollEvaluationResult_Pending() throws Exception {
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanid");
 
     PolicyEvaluateService policyEvaluationServiceSpy = spy(policyEvaluateService);
@@ -577,7 +579,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  public void testPollEvaluationResult_Failure() throws Exception {
+  public void testEvaluateWithPolling_PollEvaluationResult_Failure() throws Exception {
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanid");
 
     Application app = tempEntity.newApplicationWithParent();
@@ -603,7 +605,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  public void testPollEvaluationResult_Success() throws Exception {
+  public void testEvaluateWithPolling_PollEvaluationResult_Success() throws Exception {
     String scanId = simulateReportIsAvailable();
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
 

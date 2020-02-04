@@ -385,12 +385,12 @@ public class EmailConfigurationPageTest
     Mailbox.clearAll();
     refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
 
-    emailConfigurationPage.testEmailRecipient().setValue("cr@ppy.dev");
+    emailConfigurationPage.testEmailRecipient().setValue("john@doe");
     sendTestEmail();
 
     assertTestConfigurationEmail(mailConfiguration.getHostname(), String.valueOf(mailConfiguration.getPort()),
         null, null, mailConfiguration.getSystemEmail(), mailConfiguration.isStartTlsEnabled(),
-        mailConfiguration.isSslEnabled(), "cr@ppy.dev");
+        mailConfiguration.isSslEnabled(), "john@doe");
   }
 
   @Test
@@ -404,12 +404,12 @@ public class EmailConfigurationPageTest
     emailConfigurationPage.password().setValue("p");
     emailConfigurationPage.startTlsEnabled().click();
 
-    emailConfigurationPage.testEmailRecipient().setValue("cr@ppy.dev");
+    emailConfigurationPage.testEmailRecipient().setValue("john@doe");
     sendTestEmail();
 
     assertTestConfigurationEmail(mailConfiguration.getHostname(), String.valueOf(mailConfiguration.getPort()),
         "u", "p", mailConfiguration.getSystemEmail(), !mailConfiguration.isStartTlsEnabled(),
-        mailConfiguration.isSslEnabled(), "cr@ppy.dev");
+        mailConfiguration.isSslEnabled(), "john@doe");
   }
 
   @Test
@@ -420,7 +420,7 @@ public class EmailConfigurationPageTest
     refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
 
     emailConfigurationPage.hostName().setValue("another-host");
-    emailConfigurationPage.testEmailRecipient().setValue("cr@ppy.dev");
+    emailConfigurationPage.testEmailRecipient().setValue("john@doe");
     emailConfigurationPage.testEmailSend().shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("Password must be provided when updating Hostname or Port."));
 
@@ -429,7 +429,7 @@ public class EmailConfigurationPageTest
 
     assertTestConfigurationEmail("another-host", String.valueOf(mailConfiguration.getPort()), "u",
         "not-same-password", mailConfiguration.getSystemEmail(), mailConfiguration.isStartTlsEnabled(),
-        mailConfiguration.isSslEnabled(), "cr@ppy.dev");
+        mailConfiguration.isSslEnabled(), "john@doe");
   }
 
   @Test
@@ -440,7 +440,7 @@ public class EmailConfigurationPageTest
     refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
 
     emailConfigurationPage.port().setValue("25");
-    emailConfigurationPage.testEmailRecipient().setValue("cr@ppy.dev");
+    emailConfigurationPage.testEmailRecipient().setValue("john@doe");
     emailConfigurationPage.testEmailSend().shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("Password must be provided when updating Hostname or Port."));
 
@@ -449,7 +449,7 @@ public class EmailConfigurationPageTest
 
     assertTestConfigurationEmail("smtp.hostname.com", "25", "u",
         "not-same-password", mailConfiguration.getSystemEmail(), mailConfiguration.isStartTlsEnabled(),
-        mailConfiguration.isSslEnabled(), "cr@ppy.dev");
+        mailConfiguration.isSslEnabled(), "john@doe");
   }
 
   @Test

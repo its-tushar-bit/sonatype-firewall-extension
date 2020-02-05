@@ -24,3 +24,6 @@ awsPerfRun_*/
 override.tf
 .terraform
 terraform.tfvars
+
+# config file for tsc-based javascript editing plugins
+jsconfig.json

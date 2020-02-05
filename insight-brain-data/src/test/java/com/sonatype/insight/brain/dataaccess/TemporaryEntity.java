@@ -2071,8 +2071,9 @@ public class TemporaryEntity
 
   private String validIdentityProviderXml() {
     try {
+      Class<TemporaryEntity> tempEntity = TemporaryEntity.class;
       return IOUtil.toString(
-          getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/identity-provider-metadata.xml"),
+          tempEntity.getResourceAsStream("/" + tempEntity.getSimpleName() + "/identity-provider-metadata.xml"),
           StandardCharsets.UTF_8.toString());
     }
     catch (IOException e) {

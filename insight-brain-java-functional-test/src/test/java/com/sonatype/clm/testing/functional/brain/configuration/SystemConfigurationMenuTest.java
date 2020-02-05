@@ -75,6 +75,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.successMetrics().shouldBe(visible);
     systemConfigMenu.automaticApplications().shouldBe(visible);
     systemConfigMenu.emailConfiguration().shouldBe(visible);
+    systemConfigMenu.proxyConfiguration().shouldBe(visible);
   }
 
   @Test
@@ -97,6 +98,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.successMetrics().shouldBe(visible);
     systemConfigMenu.automaticApplications().shouldBe(hidden);
     systemConfigMenu.emailConfiguration().shouldBe(visible);
+    systemConfigMenu.proxyConfiguration().shouldBe(visible);
     eyesWatcher.eyesCheck();
   }
 
@@ -120,6 +122,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.successMetrics().shouldBe(hidden);
     systemConfigMenu.automaticApplications().shouldBe(hidden);
     systemConfigMenu.emailConfiguration().shouldBe(hidden);
+    systemConfigMenu.proxyConfiguration().shouldBe(hidden);
   }
 
   @Test
@@ -142,6 +145,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.successMetrics().shouldBe(hidden);
     systemConfigMenu.automaticApplications().shouldBe(visible);
     systemConfigMenu.emailConfiguration().shouldBe(hidden);
+    systemConfigMenu.proxyConfiguration().shouldBe(hidden);
   }
 
   @Test
@@ -170,5 +174,6 @@ public class SystemConfigurationMenuTest
     WebhookConfigurationPage webhookConfigurationPage = new WebhookConfigurationPage();
     webhookConfigurationPage.shouldNotBe(visible);
     systemConfigMenu.emailConfiguration().shouldBe(hidden);
+    systemConfigMenu.proxyConfiguration().shouldBe(hidden);
   }
 }

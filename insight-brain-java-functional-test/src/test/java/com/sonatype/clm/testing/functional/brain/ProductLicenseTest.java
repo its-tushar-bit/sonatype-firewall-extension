@@ -39,6 +39,20 @@ public class ProductLicenseTest
   }
 
   @Test
+  public void testGuidelinesNotVisibleWhenLicenseInstalled() {
+    ProductLicensePage.licenseInstallGuideline().shouldNotBe(visible);
+    ProductLicensePage.licenseProxyGuideline().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testGuidelinesVisibleWhenLicenseNotInstalled() {
+    uninstallLicense();
+    refreshOrOpen(ProductLicensePage.url());
+    ProductLicensePage.licenseInstallGuideline().shouldBe(visible);
+    ProductLicensePage.licenseProxyGuideline().shouldBe(visible);
+  }
+
+  @Test
   public void testLicenseInformation() {
     ProductLicensePage.expiryDate().shouldBe(visible).should(matchText("[a-zA-Z]+ [0-9]+, 2[0-9]{3}"));
     ProductLicensePage.daysToExpiration().shouldBe(visible).shouldHave(matchText("[0-1]"));
@@ -111,7 +125,7 @@ public class ProductLicenseTest
   public void testUpdateLicense() {
     ProductLicensePage.installLicenseBtn().shouldBe(visible).shouldHave(text("Update License"));
 
-    installLicense();
+    uploadMockLicense();
 
     ProductLicensePage.fingerprint().shouldBe(visible).should(matchText(FINGERPRINT_PATTERN));
     ProductLicensePage.installLicenseBtn().shouldBe(visible).shouldHave(text("Update License"));
@@ -153,7 +167,7 @@ public class ProductLicenseTest
 
     eyesWatcher.eyesCheck();
 
-    installLicense();
+    uploadMockLicense();
 
     // should redirect to Getting Started page after fresh license install
     new GettingStartedPage().shouldBe(visible);
@@ -163,7 +177,7 @@ public class ProductLicenseTest
     ProductLicensePage.installLicenseBtn().shouldBe(visible).shouldHave(text("Update License"));
   }
 
-  private void installLicense() {
+  private void uploadMockLicense() {
     // NOTE: the contents of the license file don't matter for this test because the MockProductLicenseManager ignores
     // it anyway
     ProductLicensePage.installLicenseFileUpload()

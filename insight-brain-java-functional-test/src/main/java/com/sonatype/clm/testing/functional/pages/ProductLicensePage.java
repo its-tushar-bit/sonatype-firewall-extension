@@ -72,6 +72,14 @@ public class ProductLicensePage
     return $("#uninstall-license");
   }
 
+  public static SelenideElement licenseInstallGuideline() {
+    return $("#license-install-guideline");
+  }
+
+  public static SelenideElement licenseProxyGuideline() {
+    return $("#license-proxy-guideline");
+  }
+
   public static ElementsCollection products() {
     return $$(".license-product");
   }

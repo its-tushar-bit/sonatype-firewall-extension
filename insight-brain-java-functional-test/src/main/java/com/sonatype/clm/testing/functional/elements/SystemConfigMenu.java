@@ -59,4 +59,8 @@ public class SystemConfigMenu
   public SelenideElement emailConfiguration() {
     return child("#system-configuration-email a");
   }
+
+  public SelenideElement proxyConfiguration() {
+    return child("#system-configuration-proxy a");
+  }
 }

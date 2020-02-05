@@ -72,11 +72,15 @@
       </div>
       <div class="iq-tile-content" load-wrapper="vm.loadError" loading="!vm.isLoaded()" reload="vm.$onInit()">
         <div ng-show="!vm.loadError && vm.isLoaded()">
-          <p ng-if="!vm.license">
+          <p id="license-install-guideline" ng-if="!vm.license">
             To continue, locate your license key, and use the "Install License" button below to install it.
             This is a file with extension ".lic", which will have been emailed to one or more technical
             contacts in your organization. If you have issues locating or installing your license key,
             contact <a href="mailto:support@sonatype.com">support</a>.
+          </p>
+          <p id="license-proxy-guideline" ng-if="!vm.license">
+            If you need to configure a Proxy Server, use either the public REST API or the
+            <a ui-sref="proxyConfig">Proxy Server Configuration</a> form.
           </p>
           <div ng-if="vm.license" class="iq-grid-row">
             <dl class="iq-grid-col iq-license-info iq-read-only">

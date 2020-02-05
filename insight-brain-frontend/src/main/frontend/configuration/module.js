@@ -17,7 +17,9 @@ import ProductLicenseModule from './license/ProductLicenseModule';
 import automaticSourceControlConfigurationModule
   from './automaticSourceControlConfiguration/automaticSourceControlConfigurationModule';
 import MailConfigContainer from './mail/MailConfigContainer';
+import ProxyConfigContainer from './proxy/ProxyConfigContainer';
 import withStoreProvider from '../reactAdapter/StoreProvider';
+import { always } from 'ramda';
 
 export default angular.module('configurationModule',
     [
@@ -25,6 +27,8 @@ export default angular.module('configurationModule',
       automaticApplicationsConfigurationModule.name, ldapModule.name, samlModule.name, webhookModule.name,
       ProductLicenseModule.name, automaticSourceControlConfigurationModule.name, 'ngRedux'])
     .component('mailConfig', react2angular(withStoreProvider(MailConfigContainer), ['isAuthorized'], ['$ngRedux']))
+    .component('proxyConfig', react2angular(withStoreProvider(ProxyConfigContainer), ['isAuthorized', 'licensed'],
+        ['$ngRedux', '$state']))
     .config(routes);
 
 function routes($stateProvider) {
@@ -39,6 +43,27 @@ function routes($stateProvider) {
           isAuthorized: [
             'PermissionService', function(PermissionService) {
               return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+            }
+          ]
+        }
+      })
+      .state('proxyConfig', {
+        component: 'proxyConfig',
+        url: '/proxyConfig',
+        data: {
+          title: 'Proxy Config'
+        },
+        resolve: {
+          isAuthorized: [
+            'PermissionService', function(PermissionService) {
+              return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+            }
+          ],
+          licensed: [
+            'ProductLicense', function(ProductLicense) {
+              return ProductLicense.load()
+                  .then(always(true))
+                  .catch(always(false));
             }
           ]
         }

@@ -10,34 +10,34 @@ import { getMailConfigUrl, getTestMailUrl } from '../../util/CLMLocation';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { FAKE_PASSWORD } from './mailConfigReducer';
 
-export const LOAD_REQUESTED = 'LOAD_REQUESTED';
-export const LOAD_FULFILLED = 'LOAD_FULFILLED';
-export const LOAD_FAILED = 'LOAD_FAILED';
+export const MAIL_CONFIG_LOAD_REQUESTED = 'MAIL_CONFIG_LOAD_REQUESTED';
+export const MAIL_CONFIG_LOAD_FULFILLED = 'MAIL_CONFIG_LOAD_FULFILLED';
+export const MAIL_CONFIG_LOAD_FAILED = 'MAIL_CONFIG_LOAD_FAILED';
 
-export const SAVE_REQUESTED = 'SAVE_REQUESTED';
-export const SAVE_FULFILLED = 'SAVE_FULFILLED';
-export const SAVE_FAILED = 'SAVE_FAILED';
+export const MAIL_CONFIG_SAVE_REQUESTED = 'MAIL_CONFIG_SAVE_REQUESTED';
+export const MAIL_CONFIG_SAVE_FULFILLED = 'MAIL_CONFIG_SAVE_FULFILLED';
+export const MAIL_CONFIG_SAVE_FAILED = 'MAIL_CONFIG_SAVE_FAILED';
 
-export const SEND_TEST_MAIL_REQUESTED = 'SEND_TEST_MAIL_REQUESTED';
-export const SEND_TEST_MAIL_FULFILLED = 'SEND_TEST_MAIL_FULFILLED';
-export const SEND_TEST_MAIL_FAILED = 'SEND_TEST_MAIL_FAILED';
+export const MAIL_CONFIG_SEND_TEST_MAIL_REQUESTED = 'MAIL_CONFIG_SEND_TEST_MAIL_REQUESTED';
+export const MAIL_CONFIG_SEND_TEST_MAIL_FULFILLED = 'MAIL_CONFIG_SEND_TEST_MAIL_FULFILLED';
+export const MAIL_CONFIG_SEND_TEST_MAIL_FAILED = 'MAIL_CONFIG_SEND_TEST_MAIL_FAILED';
 
-export const DELETE_REQUESTED = 'DELETE_REQUESTED';
-export const DELETE_FULFILLED = 'DELETE_FULFILLED';
-export const DELETE_FAILED = 'DELETE_FAILED';
+export const MAIL_CONFIG_DELETE_REQUESTED = 'MAIL_CONFIG_DELETE_REQUESTED';
+export const MAIL_CONFIG_DELETE_FULFILLED = 'MAIL_CONFIG_DELETE_FULFILLED';
+export const MAIL_CONFIG_DELETE_FAILED = 'MAIL_CONFIG_DELETE_FAILED';
 
-export const RESET_FORM = 'RESET_FORM';
+export const MAIL_CONFIG_RESET_FORM = 'MAIL_CONFIG_RESET_FORM';
 
-export const SET_HOSTNAME = 'SET_HOSTNAME';
-export const SET_PORT = 'SET_PORT';
-export const SET_USERNAME = 'SET_USERNAME';
-export const SET_PASSWORD = 'SET_PASSWORD';
-export const SET_SSL_ENABLED = 'SET_SSL_ENABLED';
-export const SET_STARTTLS_ENABLED = 'SET_STARTTLS_ENABLED';
-export const SET_SYSTEM_EMAIL = 'SET_SYSTEM_EMAIL';
-export const SET_TEST_EMAIL = 'SET_TEST_EMAIL';
+export const MAIL_CONFIG_SET_HOSTNAME = 'MAIL_CONFIG_SET_HOSTNAME';
+export const MAIL_CONFIG_SET_PORT = 'MAIL_CONFIG_SET_PORT';
+export const MAIL_CONFIG_SET_USERNAME = 'MAIL_CONFIG_SET_USERNAME';
+export const MAIL_CONFIG_SET_PASSWORD = 'MAIL_CONFIG_SET_PASSWORD';
+export const MAIL_CONFIG_SET_SSL_ENABLED = 'MAIL_CONFIG_SET_SSL_ENABLED';
+export const MAIL_CONFIG_SET_STARTTLS_ENABLED = 'MAIL_CONFIG_SET_STARTTLS_ENABLED';
+export const MAIL_CONFIG_SET_SYSTEM_EMAIL = 'MAIL_CONFIG_SET_SYSTEM_EMAIL';
+export const MAIL_CONFIG_SET_TEST_EMAIL = 'MAIL_CONFIG_SET_TEST_EMAIL';
 
-export const SET_SHOW_DELETE_MODAL = 'SET_SHOW_DELETE_MODAL';
+export const MAIL_CONFIG_SET_SHOW_DELETE_MODAL = 'MAIL_CONFIG_SET_SHOW_DELETE_MODAL';
 
 function toServerData(formState) {
   // pull the trimmedValue out of the input state object and convert empty strings to null
@@ -96,31 +96,31 @@ export function del() {
   };
 }
 
-const loadRequested = noPayloadActionCreator(LOAD_REQUESTED);
-const loadFulfilled = payloadParamActionCreator(LOAD_FULFILLED);
-const loadFailed = payloadParamActionCreator(LOAD_FAILED);
+const loadRequested = noPayloadActionCreator(MAIL_CONFIG_LOAD_REQUESTED);
+const loadFulfilled = payloadParamActionCreator(MAIL_CONFIG_LOAD_FULFILLED);
+const loadFailed = payloadParamActionCreator(MAIL_CONFIG_LOAD_FAILED);
 
-const saveRequested = noPayloadActionCreator(SAVE_REQUESTED);
-const saveFulfilled = payloadParamActionCreator(SAVE_FULFILLED);
-const saveFailed = payloadParamActionCreator(SAVE_FAILED);
+const saveRequested = noPayloadActionCreator(MAIL_CONFIG_SAVE_REQUESTED);
+const saveFulfilled = payloadParamActionCreator(MAIL_CONFIG_SAVE_FULFILLED);
+const saveFailed = payloadParamActionCreator(MAIL_CONFIG_SAVE_FAILED);
 
-const sendTestMailRequested = noPayloadActionCreator(SEND_TEST_MAIL_REQUESTED);
-const sendTestMailFulfilled = noPayloadActionCreator(SEND_TEST_MAIL_FULFILLED);
-const sendTestMailFailed = payloadParamActionCreator(SEND_TEST_MAIL_FAILED);
+const sendTestMailRequested = noPayloadActionCreator(MAIL_CONFIG_SEND_TEST_MAIL_REQUESTED);
+const sendTestMailFulfilled = noPayloadActionCreator(MAIL_CONFIG_SEND_TEST_MAIL_FULFILLED);
+const sendTestMailFailed = payloadParamActionCreator(MAIL_CONFIG_SEND_TEST_MAIL_FAILED);
 
-const deleteRequested = noPayloadActionCreator(DELETE_REQUESTED);
-const deleteFulfilled = payloadParamActionCreator(DELETE_FULFILLED);
-const deleteFailed = payloadParamActionCreator(DELETE_FAILED);
+const deleteRequested = noPayloadActionCreator(MAIL_CONFIG_DELETE_REQUESTED);
+const deleteFulfilled = payloadParamActionCreator(MAIL_CONFIG_DELETE_FULFILLED);
+const deleteFailed = payloadParamActionCreator(MAIL_CONFIG_DELETE_FAILED);
 
-export const resetForm = noPayloadActionCreator(RESET_FORM);
+export const resetForm = noPayloadActionCreator(MAIL_CONFIG_RESET_FORM);
 
-export const setHostname = payloadParamActionCreator(SET_HOSTNAME);
-export const setPort = payloadParamActionCreator(SET_PORT);
-export const setUsername = payloadParamActionCreator(SET_USERNAME);
-export const setPassword = payloadParamActionCreator(SET_PASSWORD);
-export const setSslEnabled = payloadParamActionCreator(SET_SSL_ENABLED);
-export const setStartTlsEnabled = payloadParamActionCreator(SET_STARTTLS_ENABLED);
-export const setSystemEmail = payloadParamActionCreator(SET_SYSTEM_EMAIL);
-export const setTestEmail = payloadParamActionCreator(SET_TEST_EMAIL);
+export const setHostname = payloadParamActionCreator(MAIL_CONFIG_SET_HOSTNAME);
+export const setPort = payloadParamActionCreator(MAIL_CONFIG_SET_PORT);
+export const setUsername = payloadParamActionCreator(MAIL_CONFIG_SET_USERNAME);
+export const setPassword = payloadParamActionCreator(MAIL_CONFIG_SET_PASSWORD);
+export const setSslEnabled = payloadParamActionCreator(MAIL_CONFIG_SET_SSL_ENABLED);
+export const setStartTlsEnabled = payloadParamActionCreator(MAIL_CONFIG_SET_STARTTLS_ENABLED);
+export const setSystemEmail = payloadParamActionCreator(MAIL_CONFIG_SET_SYSTEM_EMAIL);
+export const setTestEmail = payloadParamActionCreator(MAIL_CONFIG_SET_TEST_EMAIL);
 
-export const setShowDeleteModal = payloadParamActionCreator(SET_SHOW_DELETE_MODAL);
+export const setShowDeleteModal = payloadParamActionCreator(MAIL_CONFIG_SET_SHOW_DELETE_MODAL);

@@ -161,7 +161,18 @@ public abstract class AbstractFunctionalTest
   public static TemporaryEntity staticTempEntity = new TemporaryEntity();
 
   @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
+  public TemporaryEntity tempEntity = new TemporaryEntity()
+  {
+    @Override
+    protected void after() {
+      super.after();
+      afterDatabaseReset();
+    }
+  };
+
+  protected void afterDatabaseReset() {
+    // hook for subclasses to perform further cleanup action after TemporaryEntity has reset the database
+  }
 
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
@@ -520,7 +531,7 @@ public abstract class AbstractFunctionalTest
     installLicense();
   }
 
-  private void installLicense() {
+  protected void installLicense() {
     try {
       testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class)
           .installLicense(new ByteArrayInputStream(new byte[1]));

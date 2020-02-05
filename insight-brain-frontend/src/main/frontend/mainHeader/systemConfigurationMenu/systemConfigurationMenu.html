@@ -41,6 +41,11 @@
          ng-class="{'active': vm.state.includes('mailConfig')}">
       <a ui-sref="mailConfig" class="iq-dropdown-menu__link--main-header">Email</a>
     </div>
+    <div id="system-configuration-proxy"
+         ng-if="vm.permissions.CONFIGURE_SYSTEM"
+         ng-class="{'active': vm.state.includes('proxyConfig')}">
+      <a ui-sref="proxyConfig" class="iq-dropdown-menu__link--main-header">Proxy</a>
+    </div>
     <div id="system-configuration-webhooks"
         ng-if="vm.permissions.CONFIGURE_SYSTEM"
         tooltip="{{vm.isWebhooksSupported ? undefined : 'Webhooks feature is not supported by your license'}}"

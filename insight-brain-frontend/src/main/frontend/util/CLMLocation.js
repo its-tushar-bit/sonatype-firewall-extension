@@ -61,6 +61,10 @@ export function getViolationDetailsUrl(violationId) {
   return `${getBaseUrl(window.location.href)}/foo/${violationId}`;
 }
 
+export function getProxyConfigUrl() {
+  return `${getBaseUrl(window.location.href)}/api/v2/config/httpProxyServer`;
+}
+
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {

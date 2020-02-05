@@ -22,6 +22,7 @@ import pendoModule from './pendo/module';
 import externalLinkModule from './externalLink/module';
 import utilityServicesModule from './utility/services/utility.services.module';
 import unsavedChangesModalModule from './unsavedChangesModal/module';
+import { not, contains } from 'ramda';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function() {
@@ -164,7 +165,7 @@ export const InitModule = angular.module('InitModule', [
       }
 
       function unlicensedStateChangeHandler(event, toState) {
-        if (toState.name !== 'productlicense') {
+        if (not(contains(toState.name, ['productlicense', 'proxyConfig']))) {
           event.preventDefault();
         }
       }

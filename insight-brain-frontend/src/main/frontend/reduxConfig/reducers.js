@@ -14,6 +14,7 @@ import vulnerabilitySearchReducer from '../vulnerabilitySearch/vulnerabilitySear
 import vulnerabilityDetailsModalReducer from '../vulnerabilityDetails/vulnerabilityDetailsModalReducer';
 import mailConfigReducer from '../configuration/mail/mailConfigReducer';
 import violationPageReducer from '../violation/violationPageReducer';
+import proxyConfigReducer from '../configuration/proxy/proxyConfigReducer';
 
 export default combineReducers({
   router: routerStateReducer,
@@ -25,5 +26,6 @@ export default combineReducers({
   vulnerabilityDetailsModal: vulnerabilityDetailsModalReducer,
   vulnerabilitySearch: vulnerabilitySearchReducer,
   mailConfig: mailConfigReducer,
-  violationPage: violationPageReducer
+  violationPage: violationPageReducer,
+  proxyConfig: proxyConfigReducer
 });

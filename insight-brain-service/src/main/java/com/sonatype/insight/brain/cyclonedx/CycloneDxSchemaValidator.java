@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.UncheckedIOException;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
@@ -24,6 +25,13 @@ import org.xml.sax.SAXNotSupportedException;
 @Named
 public class CycloneDxSchemaValidator
 {
+  private final CycloneDxErrorHandler cycloneDxErrorHandler;
+
+  @Inject
+  public CycloneDxSchemaValidator(CycloneDxErrorHandler cycloneDxErrorHandler) {
+    this.cycloneDxErrorHandler = cycloneDxErrorHandler;
+  }
+
   public void validate(final String sbom) throws SAXException {
     final Schema schema = getXmlSchema();
     final Validator validator = getValidator(schema);
@@ -63,6 +71,7 @@ public class CycloneDxSchemaValidator
       final Validator validator = schema.newValidator();
       validator.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
       validator.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+      validator.setErrorHandler(cycloneDxErrorHandler);
       return validator;
     }
     catch (SAXNotSupportedException | SAXNotRecognizedException ex) {

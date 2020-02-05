@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
@@ -237,6 +238,35 @@ public class ApiThirdPartyScanServiceTest
     assertApiPolicy(ApiPolicyAction.FAIL, ApiPolicyAction.NONE, ApiPolicyAction.FAIL);
     assertApiPolicy(ApiPolicyAction.FAIL, ApiPolicyAction.WARN, ApiPolicyAction.FAIL);
     assertApiPolicy(ApiPolicyAction.FAIL, ApiPolicyAction.FAIL, ApiPolicyAction.FAIL);
+  }
+
+  @Test
+  public void testScanComponents_invalid_vulnerability_id() throws Exception {
+    String bom = getBomFile("/ApiThirdPartyResourceTest/invalid_bom_id_vulnerability.xml");
+
+    assertThatThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null))
+        .isInstanceOf(BadRequestException.class).hasMessage(
+        "Error in component jackson-databind: An element <id> of vulnerability with " +
+            "ref pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9 is null or empty");
+  }
+
+  @Test
+  public void testScanComponents_invalid_vulnerability_score_base() throws Exception {
+    String bom = getBomFile("/ApiThirdPartyResourceTest/invalid_bom_base_score_vulnerability.xml");
+
+    assertThatThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null))
+        .isInstanceOf(BadRequestException.class).hasMessage(
+        "Error in component jackson-databind: An element <base> of a vulnerability score with " +
+            "ref pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9 is null or empty");
+  }
+
+  @Test
+  public void testScanComponents_invalid_license_id() throws Exception {
+    String bom = getBomFile("/ApiThirdPartyResourceTest/invalid_bom_id_license.xml");
+
+    assertThatThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Error in component jackson-databind: An element <id> of a license is null or empty");
   }
 
   private void assertApiPolicy(ApiPolicyAction action1, ApiPolicyAction action2, ApiPolicyAction result) {

@@ -5,8 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.List;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -37,6 +39,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartySbomValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -71,6 +74,8 @@ public class ApiThirdPartyScanService
 
   private final ApplicationDAO applicationDAO;
 
+  private final ThirdPartySbomValidator thirdPartySbomValidator;
+
   @Inject
   public ApiThirdPartyScanService(
       final CycloneDxSchemaValidator schemaValidator,
@@ -79,7 +84,8 @@ public class ApiThirdPartyScanService
       final BaseUrl baseUrl,
       final InsightWork work,
       final PolicyEvaluateService policyEvaluateService,
-      final ApplicationDAO applicationDAO)
+      final ApplicationDAO applicationDAO,
+      final ThirdPartySbomValidator thirdPartySbomValidator)
   {
     this.schemaValidator = schemaValidator;
     this.scanner = scanner;
@@ -88,6 +94,7 @@ public class ApiThirdPartyScanService
     this.work = work;
     this.policyEvaluateService = policyEvaluateService;
     this.applicationDAO = applicationDAO;
+    this.thirdPartySbomValidator = thirdPartySbomValidator;
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
@@ -100,7 +107,6 @@ public class ApiThirdPartyScanService
   {
     Stage stage = new Stage(stageId);
     validateRequest(sbom, stage);
-    
     String scanRequestId = UUID.randomUUID().toString().replace("-", "");
     ApiThirdPartyScanTicketDTO scanTicketDTO = createScanTicket(applicationId, scanRequestId);
 
@@ -108,6 +114,8 @@ public class ApiThirdPartyScanService
         + "The status ID of the operation is {}.", applicationId, source, stage.getStageTypeId(), scanRequestId);
     Application app = new ApplicationDAO().getById(applicationId);
     ScanResult scanResult = createScanFile(app, sbom, source);
+
+    validateSbomContent(scanResult.getScanFile());
 
     policyEvaluateService.doEvaluationWithPolling(scanRequestId, app.getPublicId(),
         ClientScanType.SONATYPE_THIRD_PARTY, stage,
@@ -130,6 +138,13 @@ public class ApiThirdPartyScanService
     }
     catch (SAXException ex) {
       throw new BadRequestException(ex.getMessage());
+    }
+  }
+
+  private void validateSbomContent(File scanFile) {
+    List<String> errors = thirdPartySbomValidator.validateSbomContent(scanFile);
+    if (!errors.isEmpty()) {
+      throw new BadRequestException(String.join("\n", errors));
     }
   }
 

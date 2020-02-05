@@ -42,7 +42,6 @@ import com.github.packageurl.PackageURLBuilder;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.codehaus.plexus.util.xml.pull.MXParser;
 import org.codehaus.plexus.util.xml.pull.XmlPullParser;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.cyclonedx.BomGenerator;
@@ -104,9 +103,7 @@ public class SbomResultHandler
   {
     final Map<String, String> hashFileCoordinateIdMap = new HashMap<>();
     Stack<String> elementNameStack = new Stack<>();
-    XmlPullParser parser = new MXParser();
-    parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-    parser.setInput(new StringReader(content.getContent()));
+    XmlPullParser parser = ThirdPartyUtils.getXmlParser(new StringReader(content.getContent()));
 
     String identificationSource = determineIdentificationSource(content.getPath());
     try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {

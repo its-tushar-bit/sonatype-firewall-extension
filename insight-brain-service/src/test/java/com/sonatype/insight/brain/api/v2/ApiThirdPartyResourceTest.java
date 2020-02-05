@@ -84,7 +84,9 @@ public class ApiThirdPartyResourceTest
 
     HttpResponse response = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD, bom).post();
     String error = response.getBodyText();
-    assertThat(error).matches("cvc-complex-type.4:.*['\"]name['\"].*['\"]v:source['\"].*");
+    assertThat(error).matches(
+        ".*Error on line number: 14, column number: 21 message: " +
+            "cvc-complex-type.4:.*['\"]name['\"].*['\"]v:source['\"].*");
   }
 
   @Test

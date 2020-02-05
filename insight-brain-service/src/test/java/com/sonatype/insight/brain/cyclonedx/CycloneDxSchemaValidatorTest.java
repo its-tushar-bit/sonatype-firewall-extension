@@ -9,20 +9,26 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import javax.inject.Inject;
+
+import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class CycloneDxSchemaValidatorTest
+    extends InjectedTest
 {
   private CycloneDxSchemaValidator validator;
 
+  @Inject
+  private CycloneDxErrorHandler cycloneDxErrorHandler;
+
   @Before
   public void setup() {
-    validator = new CycloneDxSchemaValidator();
+    validator = new CycloneDxSchemaValidator(cycloneDxErrorHandler);
   }
 
   @Test
@@ -31,11 +37,13 @@ public class CycloneDxSchemaValidatorTest
   }
 
   @Test
-  public void testValidate_invalidSbom()  {
+  public void testValidate_invalidSbom() {
     assertThatThrownBy(
         () -> validator.validate(readSbom("/CycloneDxSchemaValidatorTest/invalid_sbom.xml")))
-        .isInstanceOf(SAXParseException.class)
-        .hasMessageMatching("cvc-complex-type.4:.*['\"]ref['\"].*['\"]v:vulnerability['\"].*");
+        .isInstanceOf(SAXException.class)
+        .hasMessageMatching(
+            ".*Error on line number: 12, column number: 27 message: " +
+                "cvc-complex-type.4:.*['\"]ref['\"].*['\"]v:vulnerability['\"].*");
   }
 
   @Test
@@ -52,8 +60,10 @@ public class CycloneDxSchemaValidatorTest
   public void testValidate_withInvalidVulnerability() {
     assertThatThrownBy(
         () -> validator.validate(readSbom("/CycloneDxSchemaValidatorTest/invalid_vulnerability.xml")))
-        .isInstanceOf(SAXParseException.class)
-        .hasMessageMatching("cvc-complex-type.4:.*['\"]ref['\"].*['\"]v:vulnerability['\"].*");
+        .isInstanceOf(SAXException.class)
+        .hasMessageMatching(
+            ".*Error on line number: 12, column number: 27 message: " +
+                "cvc-complex-type.4:.*['\"]ref['\"].*['\"]v:vulnerability['\"].*");
   }
 
   @Test

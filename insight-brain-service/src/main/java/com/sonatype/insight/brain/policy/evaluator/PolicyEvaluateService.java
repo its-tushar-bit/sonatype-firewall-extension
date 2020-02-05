@@ -63,6 +63,9 @@ public class PolicyEvaluateService
 
   private static final int NEXT_POLLING_INTERVAL_IN_SECONDS = 5;
 
+  // Visible for tests
+  static final int THREAD_POOL_SIZE = 100;
+
   public boolean disablePollingIntervalForTesting = false;
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
@@ -101,9 +104,15 @@ public class PolicyEvaluateService
     this.productLicense = productLicense;
     this.stageTypeService = stageTypeService;
 
-    executor = new ThreadPoolExecutor(5, 100, 5L, TimeUnit.MINUTES,
+    executor = createThreadPoolExecutor();
+  }
+
+  // Visible for tests
+  ThreadPoolExecutor createThreadPoolExecutor() {
+    ThreadPoolExecutor executor = new ThreadPoolExecutor(THREAD_POOL_SIZE, THREAD_POOL_SIZE, 5L, TimeUnit.MINUTES,
         new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("PolicyEvaluateService-%d").build());
     executor.allowCoreThreadTimeOut(true);
+    return executor;
   }
 
   @Override
@@ -214,6 +223,12 @@ public class PolicyEvaluateService
     initialResult.setNextPollingIntervalInSeconds(getNextPollingInterval());
     policyEvaluationPollingResults.put(policyEvaluationKey, initialResult);
 
+    log.debug(
+        "Submitting policy evaluation task for app public id {}, clientScanType {}, stageTypeId {}. "
+            + "The status ID of the operation is {}.",
+        applicationPublicId, clientScanType, stage.getStageTypeId(), statusId);
+    log.debug("Policy evaluation executor stats: queueSize={}, activeThreads={}, totalThreads={}",
+        executor.getQueue().size(), executor.getActiveCount(), executor.getPoolSize());
     AuditData.get().continueAsync(
         new EvaluationTask(applicationPublicId, clientScanType, statusId, stage, tempScanFile,
             buildThirdPartyScanTelemetryData(applicationPublicId, stage, thirdPartyScanType, userAgent)),

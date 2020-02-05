@@ -1080,6 +1080,6 @@ public class DashboardFilterTest
     filter.twisty().shouldBe(visible).click();
     filter.multiSelectList().filter(visible).shouldBe(empty);
 
-    Tooltip.get().shouldBe(visible).shouldHave(text("There are no " + filterType + " options"));
+    Tooltip.get().shouldBe(visible).shouldHave(text("There are no " + filterType + " to filter"));
   }
 }

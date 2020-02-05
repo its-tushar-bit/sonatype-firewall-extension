@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -47,7 +45,6 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,9 +60,6 @@ public class PolicyEvaluateService
 
   private static final int NEXT_POLLING_INTERVAL_IN_SECONDS = 5;
 
-  // Visible for tests
-  static final int THREAD_POOL_SIZE = 100;
-
   public boolean disablePollingIntervalForTesting = false;
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
@@ -76,7 +70,7 @@ public class PolicyEvaluateService
 
   private final ErrorResponseGenerator errorResponseGenerator;
 
-  private final ThreadPoolExecutor executor;
+  private final PolicyEvaluationThreadPoolExecutor executor;
 
   private final ScanHandler scanHandler;
 
@@ -104,15 +98,7 @@ public class PolicyEvaluateService
     this.productLicense = productLicense;
     this.stageTypeService = stageTypeService;
 
-    executor = createThreadPoolExecutor();
-  }
-
-  // Visible for tests
-  ThreadPoolExecutor createThreadPoolExecutor() {
-    ThreadPoolExecutor executor = new ThreadPoolExecutor(THREAD_POOL_SIZE, THREAD_POOL_SIZE, 5L, TimeUnit.MINUTES,
-        new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("PolicyEvaluateService-%d").build());
-    executor.allowCoreThreadTimeOut(true);
-    return executor;
+    executor = new PolicyEvaluationThreadPoolExecutor();
   }
 
   @Override
@@ -227,8 +213,6 @@ public class PolicyEvaluateService
         "Submitting policy evaluation task for app public id {}, clientScanType {}, stageTypeId {}. "
             + "The status ID of the operation is {}.",
         applicationPublicId, clientScanType, stage.getStageTypeId(), statusId);
-    log.debug("Policy evaluation executor stats: queueSize={}, activeThreads={}, totalThreads={}",
-        executor.getQueue().size(), executor.getActiveCount(), executor.getPoolSize());
     AuditData.get().continueAsync(
         new EvaluationTask(applicationPublicId, clientScanType, statusId, stage, tempScanFile,
             buildThirdPartyScanTelemetryData(applicationPublicId, stage, thirdPartyScanType, userAgent)),

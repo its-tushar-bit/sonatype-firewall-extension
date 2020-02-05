@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -779,24 +778,5 @@ public class PolicyEvaluateServiceTest
 
     messagesA.clear();
     messagesB.clear();
-  }
-
-  @Test
-  public void testCreateThreadPoolExecutor_MaxThreadsAreUsed() throws Exception {
-    CountDownLatch countDownLatch = new CountDownLatch(PolicyEvaluateService.THREAD_POOL_SIZE);
-    ThreadPoolExecutor threadPoolExecutor = policyEvaluateService.createThreadPoolExecutor();
-
-    for (int i = 0; i < PolicyEvaluateService.THREAD_POOL_SIZE; i++) {
-      threadPoolExecutor.submit(() -> {
-        countDownLatch.countDown();
-        try {
-          Thread.sleep(10000);
-        }
-        catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-      });
-    }
-    countDownLatch.await(5, TimeUnit.SECONDS);
   }
 }

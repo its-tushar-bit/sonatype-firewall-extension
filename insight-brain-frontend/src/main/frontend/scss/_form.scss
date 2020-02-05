@@ -191,8 +191,6 @@ textarea {
     // The :focus styling is required to over-ride Bootstrap styles.
     &:focus {
       @include box-shadow(none);
-
-      border-color: $iq-grey-3;
     }
 
     &.ng-dirty {

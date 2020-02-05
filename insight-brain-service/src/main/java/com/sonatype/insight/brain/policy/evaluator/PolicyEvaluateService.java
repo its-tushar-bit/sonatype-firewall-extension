@@ -271,6 +271,8 @@ public class PolicyEvaluateService
 
     private final TelemetryData telemetryData;
 
+    private final long taskCreateTime = System.currentTimeMillis();
+
     EvaluationTask(
         final String applicationPublicId,
         final ClientScanType clientScanType,
@@ -289,6 +291,10 @@ public class PolicyEvaluateService
 
     @Override
     public void run() {
+      log.debug(
+          "Policy evaluation task (appPublicId {}, stageTypeId {}, statusId {}) waited in queue for {} ms.",
+          applicationPublicId, stage.getStageTypeId(), statusId, System.currentTimeMillis() - taskCreateTime);
+
       String scanId = null;
       PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
       policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.PENDING);

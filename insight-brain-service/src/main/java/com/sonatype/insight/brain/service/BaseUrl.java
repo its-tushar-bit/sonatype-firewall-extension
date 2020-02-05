@@ -6,18 +6,15 @@
 package com.sonatype.insight.brain.service;
 
 import java.net.URI;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
 
-import static com.google.common.net.HttpHeaders.X_FORWARDED_PROTO;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 @Named
@@ -35,9 +32,6 @@ public class BaseUrl
   @Context
   private UriInfo uriInfo;
 
-  @Context
-  private HttpHeaders httpHeaders;
-
   @Inject
   public BaseUrl(final InsightConfig appConfig) {
     this.appConfig = appConfig;
@@ -46,10 +40,9 @@ public class BaseUrl
   /**
    * public for testing only
    */
-  public BaseUrl(final InsightConfig appConfig, final UriInfo uriInfo, final HttpHeaders httpHeaders) {
+  public BaseUrl(final InsightConfig appConfig, final UriInfo uriInfo) {
     this.appConfig = appConfig;
     this.uriInfo = uriInfo;
-    this.httpHeaders = httpHeaders;
   }
 
   /**
@@ -89,13 +82,6 @@ public class BaseUrl
         return null;
       }
       UriBuilder baseUri = uriInfo.getBaseUriBuilder();
-      if (httpHeaders != null) {
-        // Jetty 8.1.x does not correctly respect X-Forwarded-Proto when configured with an SSL connector.
-        List<String> xForwardedProtoHeaders = httpHeaders.getRequestHeader(X_FORWARDED_PROTO);
-        if (xForwardedProtoHeaders != null && !xForwardedProtoHeaders.isEmpty()) {
-          baseUri.scheme(xForwardedProtoHeaders.get(0));
-        }
-      }
       String url = baseUri.build().toString();
       if (!url.endsWith("/")) {
         url += '/';

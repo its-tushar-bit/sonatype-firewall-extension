@@ -6,16 +6,12 @@
 package com.sonatype.insight.brain.service;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Collections;
 
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 
-import static com.google.common.net.HttpHeaders.X_FORWARDED_PROTO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
@@ -36,7 +32,7 @@ public class BaseUrlTest
   private void testGet_BaseUrlNotSet(UriInfo uriInfo) {
     final InsightConfig appConfig = new InsightConfig();
 
-    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, null);
+    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo);
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       baseUrl.get();
     }).withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
@@ -49,7 +45,7 @@ public class BaseUrlTest
 
     UriInfo uriInfo = mock(UriInfo.class);
 
-    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, null);
+    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo);
     when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com:8080")));
     assertThat(baseUrl.get()).isEqualTo("http://clm.sonatype.com:8080/");
     when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com/")));
@@ -57,41 +53,6 @@ public class BaseUrlTest
     when(uriInfo.getBaseUriBuilder())
         .thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com/contextRoot/")));
     assertThat(baseUrl.get()).isEqualTo("http://clm.sonatype.com/contextRoot/");
-  }
-
-  @Test
-  public void testGet_UsesBaseUri_WithXForwardedProtoSet() {
-    InsightConfig appConfig = new InsightConfig();
-    appConfig.setBaseUrl("http://localhost:8070");
-
-    UriInfo uriInfo = mock(UriInfo.class);
-    HttpHeaders httpHeaders = mock(HttpHeaders.class);
-    when(httpHeaders.getRequestHeader(X_FORWARDED_PROTO)).thenReturn(Collections.singletonList("https"));
-
-    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, httpHeaders);
-    when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com:8080")));
-    assertThat(baseUrl.get()).isEqualTo("https://clm.sonatype.com:8080/");
-    when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com/")));
-    assertThat(baseUrl.get()).isEqualTo("https://clm.sonatype.com/");
-    when(uriInfo.getBaseUriBuilder())
-        .thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com/contextRoot/")));
-    assertThat(baseUrl.get()).isEqualTo("https://clm.sonatype.com/contextRoot/");
-  }
-
-  @Test
-  public void testGet_UsesBaseUri_WithMultipleXForwardedProtosSet() {
-    InsightConfig appConfig = new InsightConfig();
-    appConfig.setBaseUrl("http://localhost:8070");
-
-    UriInfo uriInfo = mock(UriInfo.class);
-    HttpHeaders httpHeaders = mock(HttpHeaders.class);
-    when(httpHeaders.getRequestHeader(X_FORWARDED_PROTO)).thenReturn(Arrays.asList("https", "http"));
-
-    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, httpHeaders);
-    when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com:8080")));
-    assertThat(baseUrl.get()).isEqualTo("https://clm.sonatype.com:8080/");
-    when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com/")));
-    assertThat(baseUrl.get()).isEqualTo("https://clm.sonatype.com/");
   }
 
   @Test
@@ -106,7 +67,7 @@ public class BaseUrlTest
   private void testGet_UsesInsightConfigBaseUrl(UriInfo uriInfo) {
     InsightConfig appConfig = new InsightConfig();
 
-    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, null);
+    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo);
     appConfig.setBaseUrl("http://test.sonatype.com");
     assertThat(baseUrl.get()).isEqualTo("http://test.sonatype.com/");
     appConfig.setBaseUrl("http://test.sonatype.com/");
@@ -126,7 +87,7 @@ public class BaseUrlTest
     InsightConfig appConfig = new InsightConfig();
     appConfig.setForceBaseUrl(true);
 
-    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, null);
+    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo);
     appConfig.setBaseUrl("http://test.sonatype.com");
     assertThat(baseUrl.get()).isEqualTo("http://test.sonatype.com/");
     appConfig.setBaseUrl("http://test.sonatype.com/");
@@ -140,7 +101,7 @@ public class BaseUrlTest
     UriInfo uriInfo = mock(UriInfo.class);
     when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com:8080")));
 
-    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, null);
+    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo);
     when(uriInfo.getRequestUri()).thenReturn(URI.create("http://clm.sonatype.com:8080/foo"));
     assertThat(baseUrl.redirect().path("dst").build().toString()).isEqualTo("http://clm.sonatype.com:8080/dst");
     when(uriInfo.getRequestUri()).thenReturn(URI.create("http://clm.sonatype.com:8080/foo?x=y&a=b"));
@@ -149,36 +110,19 @@ public class BaseUrlTest
   }
 
   @Test
-  public void testRedirect_XForwardedProtoHeaderSet() {
-    InsightConfig appConfig = new InsightConfig();
-
-    UriInfo uriInfo = mock(UriInfo.class);
-    when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com:8080")));
-
-    HttpHeaders httpHeaders = mock(HttpHeaders.class);
-
-    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, httpHeaders);
-
-    when(httpHeaders.getRequestHeader(X_FORWARDED_PROTO)).thenReturn(Collections.singletonList("https"));
-    when(uriInfo.getRequestUri()).thenReturn(URI.create("http://clm.sonatype.com:8080/foo?x=y&a=b"));
-    assertThat(baseUrl.redirect().path("dst/index.html").build().toString())
-        .isEqualTo("https://clm.sonatype.com:8080/dst/index.html?x=y&a=b");
-  }
-
-  @Test
   public void testGetConfigured_BaseUrlConfigured() {
     String configuredBaseUrl = "http://testBaseUrl:8070/";
     InsightConfig insightConfig = new InsightConfig();
     insightConfig.setBaseUrl(configuredBaseUrl);
 
-    BaseUrl baseUrl = new BaseUrl(insightConfig, null, null);
+    BaseUrl baseUrl = new BaseUrl(insightConfig, null);
     assertThat(baseUrl.getConfigured()).isEqualTo(configuredBaseUrl);
   }
 
   @Test
   public void testGetConfigured_BaseUrlNotConfigured() {
     InsightConfig insightConfig = new InsightConfig();
-    BaseUrl baseUrl = new BaseUrl(insightConfig, null, null);
+    BaseUrl baseUrl = new BaseUrl(insightConfig, null);
 
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       baseUrl.getConfigured();

@@ -96,21 +96,20 @@ public class ScanHandler
                      ClientScanType clientScanType)
       throws IOException
   {
-    File tempScanFile = createTempScanFile(httpRequest, applicationPublicId, clientScanType);
-    return handle(tempScanFile, applicationPublicId, clientScanType, null);
+    Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
+    File tempScanFile = createTempScanFile(httpRequest, app, clientScanType);
+    return handle(tempScanFile, app, clientScanType, null);
   }
 
   public ScanReceipt handle(
       File tempScanFile,
-      String applicationPublicId,
+      Application app,
       ClientScanType clientScanType,
       TelemetryData telemetryData)
       throws IOException
   {
     long start = System.currentTimeMillis();
-    log.debug("Received {} scan for application public id {}.", clientScanType, applicationPublicId);
-
-    Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
+    log.debug("Received {} scan for application public id {}.", clientScanType, app.getPublicId());
 
     try {
       if (ClientScanType.TWISTLOCK.equals(clientScanType)) {
@@ -136,7 +135,7 @@ public class ScanHandler
       }
 
       log.debug("Handled {} scan id {} for application public id {} in {} ms.", clientScanType, scanReceipt.getScanId(),
-          applicationPublicId, System.currentTimeMillis() - start);
+          app.getPublicId(), System.currentTimeMillis() - start);
 
       return scanReceipt;
     }
@@ -152,12 +151,11 @@ public class ScanHandler
     }
   }
 
-  public File createTempScanFile(HttpServletRequest httpRequest,
-                                 String applicationPublicId,
-                                 ClientScanType clientScanType)
-      throws IOException
+  public File createTempScanFile(
+      HttpServletRequest httpRequest,
+      Application app,
+      ClientScanType clientScanType) throws IOException
   {
-    Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     File tempScanFile = createTempScanFile(app, clientScanType);
 
     try {

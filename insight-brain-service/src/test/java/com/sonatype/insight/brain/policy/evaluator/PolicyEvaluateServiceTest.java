@@ -424,10 +424,10 @@ public class PolicyEvaluateServiceTest
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
 
-    when(mockScanHandler.createTempScanFile(eq(null), any(String.class), eq(ClientScanType.SONATYPE)))
+    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(mock(File.class));
     when(mockScanHandler
-        .handle(any(File.class), any(String.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class)))
+        .handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class)))
         .thenReturn(scanReceipt);
 
     // evaluate policy
@@ -456,10 +456,9 @@ public class PolicyEvaluateServiceTest
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    when(mockScanHandler
-        .createTempScanFile(any(HttpServletRequest.class), any(String.class), eq(ClientScanType.SONATYPE_THIRD_PARTY)))
-        .thenReturn(mock(File.class));
-    when(mockScanHandler.handle(any(File.class), any(String.class), eq(ClientScanType.SONATYPE_THIRD_PARTY),
+    when(mockScanHandler.createTempScanFile(any(HttpServletRequest.class), any(Application.class),
+        eq(ClientScanType.SONATYPE_THIRD_PARTY))).thenReturn(mock(File.class));
+    when(mockScanHandler.handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE_THIRD_PARTY),
         telemetryDataArgumentCaptor.capture()))
         .thenReturn(scanReceipt);
 
@@ -499,11 +498,11 @@ public class PolicyEvaluateServiceTest
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
 
-    when(mockScanHandler.createTempScanFile(eq(null), any(String.class), eq(ClientScanType.SONATYPE)))
+    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(mock(File.class));
 
     when(mockScanHandler
-        .handle(any(File.class), any(String.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class)))
+        .handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class)))
         .thenReturn(scanReceipt);
 
     // using the spy to put a delay into the real service so we make sure the Polling Result does not
@@ -519,7 +518,7 @@ public class PolicyEvaluateServiceTest
         Thread.sleep(100);
         return super.answer(invocation);
       }
-    }).when(spyService).doPolicyEvaluation(anyString(), anyString(), any(Stage.class));
+    }).when(spyService).evaluate(any(Application.class), anyString(), any(Stage.class));
 
     // evaluate policy
     PolicyEvaluationReceipt policyEvaluationReceipt =
@@ -561,7 +560,7 @@ public class PolicyEvaluateServiceTest
     lenient().doAnswer((Answer<PolicyEvaluationResult>) invocationOnSpy -> {
       countDownLatch.await(1, TimeUnit.MINUTES);
       return null;
-    }).when(policyEvaluationServiceSpy).doPolicyEvaluation(any(String.class), any(String.class), any(Stage.class));
+    }).when(policyEvaluationServiceSpy).evaluate(any(Application.class), any(String.class), any(Stage.class));
 
     Application app = tempEntity.newApplicationWithParent();
     PolicyEvaluationReceipt receipt = policyEvaluationServiceSpy
@@ -586,7 +585,7 @@ public class PolicyEvaluateServiceTest
 
     doThrow(new IOException("HDS Upload Scan Failure!!!"))
         .when(mockScanHandler)
-        .handle(any(File.class), any(String.class), any(ClientScanType.class), any(TelemetryData.class));
+        .handle(any(File.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class));
 
     PolicyEvaluationReceipt receipt = policyEvaluateService
         .evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
@@ -614,10 +613,10 @@ public class PolicyEvaluateServiceTest
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
 
-    when(mockScanHandler.createTempScanFile(eq(null), any(String.class), eq(ClientScanType.SONATYPE)))
+    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(mock(File.class));
     when(mockScanHandler
-        .handle(any(File.class), any(String.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class)))
+        .handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class)))
         .thenReturn(scanReceipt);
 
     PolicyEvaluationReceipt receipt = policyEvaluateService

@@ -117,8 +117,7 @@ public class ApiThirdPartyScanService
 
     validateSbomContent(scanResult.getScanFile());
 
-    policyEvaluateService.doEvaluationWithPolling(scanRequestId, app.getPublicId(),
-        ClientScanType.SONATYPE_THIRD_PARTY, stage,
+    policyEvaluateService.evaluateWithPolling(scanRequestId, app, ClientScanType.SONATYPE_THIRD_PARTY, stage,
         scanResult.getScanFile(), "api", userAgent);
 
     return scanTicketDTO;

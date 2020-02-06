@@ -110,16 +110,14 @@ public class PolicyEvaluateService
     executor.shutdown();
   }
 
-  private String getPolicyEvaluationKey(String applicationId, String statusId) {
-    return applicationId + ":" + statusId;
+  private String getPolicyEvaluationKey(String applicationPublicId, String statusId) {
+    return applicationPublicId + ":" + statusId;
   }
 
   // default access for testing
-  PolicyEvaluationResult doPolicyEvaluation(String applicationPublicId, String scanId, Stage stage)
+  PolicyEvaluationResult evaluate(Application application, String scanId, Stage stage)
       throws IOException
   {
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
     PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
         results.allViolations, true);
@@ -140,7 +138,8 @@ public class PolicyEvaluateService
     log.debug("Received request to evaluate policy for app public id {}, scan id {}, stageTypeId {}",
         applicationPublicId, scanId, stage.getStageTypeId());
 
-    return doPolicyEvaluation(applicationPublicId, scanId, stage);
+    Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    return evaluate(app, scanId, stage);
   }
 
   /**
@@ -178,12 +177,13 @@ public class PolicyEvaluateService
             "The status ID of the operation is {}.",
         applicationPublicId, clientScanType, stage.getStageTypeId(), statusId);
 
-    File tempScanFile = scanHandler.createTempScanFile(req, applicationPublicId, clientScanType);
+    Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    File tempScanFile = scanHandler.createTempScanFile(req, app, clientScanType);
 
     String thirdPartyScanType =
         clientScanType == ClientScanType.SONATYPE_THIRD_PARTY ? integrationType.toString() : null;
 
-    doEvaluationWithPolling(statusId, applicationPublicId, clientScanType, stage, tempScanFile, thirdPartyScanType,
+    evaluateWithPolling(statusId, app, clientScanType, stage, tempScanFile, thirdPartyScanType,
         HdsClient.getClientUserAgent(req));
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
@@ -192,16 +192,16 @@ public class PolicyEvaluateService
     return policyEvaluationReceipt;
   }
 
-  public void doEvaluationWithPolling(
+  public void evaluateWithPolling(
       String statusId,
-      String applicationPublicId,
+      Application app,
       ClientScanType clientScanType,
       Stage stage,
       File tempScanFile,
       String thirdPartyScanType,
       String userAgent)
   {
-    String policyEvaluationKey = getPolicyEvaluationKey(applicationPublicId, statusId);
+    String policyEvaluationKey = getPolicyEvaluationKey(app.getPublicId(), statusId);
 
     // to avoid any race condition when the following task attempts to update
     PolicyEvaluationPollingResult initialResult = new PolicyEvaluationPollingResult();
@@ -212,10 +212,10 @@ public class PolicyEvaluateService
     log.debug(
         "Submitting policy evaluation task for app public id {}, clientScanType {}, stageTypeId {}. "
             + "The status ID of the operation is {}.",
-        applicationPublicId, clientScanType, stage.getStageTypeId(), statusId);
+        app.getPublicId(), clientScanType, stage.getStageTypeId(), statusId);
     AuditData.get().continueAsync(
-        new EvaluationTask(applicationPublicId, clientScanType, statusId, stage, tempScanFile,
-            buildThirdPartyScanTelemetryData(applicationPublicId, stage, thirdPartyScanType, userAgent)),
+        new EvaluationTask(app, clientScanType, statusId, stage, tempScanFile,
+            buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, userAgent)),
         executor::submit);
   }
 
@@ -243,7 +243,7 @@ public class PolicyEvaluateService
   class EvaluationTask
       implements Runnable
   {
-    private final String applicationPublicId;
+    private final Application app;
 
     private final ClientScanType clientScanType;
 
@@ -258,14 +258,14 @@ public class PolicyEvaluateService
     private final long taskCreateTime = System.currentTimeMillis();
 
     EvaluationTask(
-        final String applicationPublicId,
+        final Application app,
         final ClientScanType clientScanType,
         final String statusId,
         final Stage stage,
         final File tempScanFile,
         final TelemetryData telemetryData)
     {
-      this.applicationPublicId = applicationPublicId;
+      this.app = app;
       this.clientScanType = clientScanType;
       this.statusId = statusId;
       this.stage = stage;
@@ -277,18 +277,17 @@ public class PolicyEvaluateService
     public void run() {
       log.debug(
           "Policy evaluation task (appPublicId {}, stageTypeId {}, statusId {}) waited in queue for {} ms.",
-          applicationPublicId, stage.getStageTypeId(), statusId, System.currentTimeMillis() - taskCreateTime);
+          app.getPublicId(), stage.getStageTypeId(), statusId, System.currentTimeMillis() - taskCreateTime);
 
       String scanId = null;
       PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
       policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.PENDING);
       policyEvaluationPollingResult.setNextPollingIntervalInSeconds(getNextPollingInterval());
 
-      String policyEvaluationKey = getPolicyEvaluationKey(applicationPublicId, statusId);
+      String policyEvaluationKey = getPolicyEvaluationKey(app.getPublicId(), statusId);
 
       try {
-        ScanReceipt scanReceipt =
-            scanHandler.handle(tempScanFile, applicationPublicId, clientScanType, telemetryData);
+        ScanReceipt scanReceipt = scanHandler.handle(tempScanFile, app, clientScanType, telemetryData);
         scanId = scanReceipt.getScanId();
 
         policyEvaluationPollingResult.setScanReceipt(scanReceipt);
@@ -298,14 +297,14 @@ public class PolicyEvaluateService
 
         log.debug(
             "Evaluating policy for app public id {}, scan id {}, stageTypeId {}. The status ID of the operation is {}.",
-            applicationPublicId, scanId, stage.getStageTypeId(), statusId);
+            app.getPublicId(), scanId, stage.getStageTypeId(), statusId);
 
-        PolicyEvaluationResult policyEvaluationResult = doPolicyEvaluation(applicationPublicId, scanId, stage);
+        PolicyEvaluationResult policyEvaluationResult = evaluate(app, scanId, stage);
 
         log.debug(
-            "Evaluated policy for app public id {}, scan id {}, stageTypeId {} in {} ms." +
-                " The status ID of the operation is {}.",
-            applicationPublicId, scanId, stage.getStageTypeId(), System.currentTimeMillis() - start, statusId);
+            "Evaluated policy for app public id {}, scan id {}, stageTypeId {} in {} ms."
+                + " The status ID of the operation is {}.",
+            app.getPublicId(), scanId, stage.getStageTypeId(), System.currentTimeMillis() - start, statusId);
 
         policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
         policyEvaluationPollingResult.setScanReceipt(scanReceipt);
@@ -316,7 +315,7 @@ public class PolicyEvaluateService
         log.error(
             "Failed to evaluate policy for app public id {}, scan id {}, stageTypeId {}." +
                 " The status ID of the operation is {}.",
-            applicationPublicId, scanId, stage.getStageTypeId(), statusId);
+            app.getPublicId(), scanId, stage.getStageTypeId(), statusId);
         // in failed status, hold onto as much as we have obtained so far
         policyEvaluationPollingResult = makeCopy(policyEvaluationPollingResult);
         policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.FAILED);

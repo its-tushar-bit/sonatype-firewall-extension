@@ -17,9 +17,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.landing.LandingService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -54,11 +54,14 @@ class SamlFilter
 
   private final SamlDeploymentManager samlDeploymentManager;
 
+  private final LandingService landingService;
+
   private final SessionIdMapper idMapper;
 
   @Inject
-  public SamlFilter(SamlDeploymentManager samlDeploymentManager) {
+  public SamlFilter(SamlDeploymentManager samlDeploymentManager, LandingService landingService) {
     this.samlDeploymentManager = samlDeploymentManager;
+    this.landingService = landingService;
     idMapper = new InMemorySessionIdMapper();
   }
 
@@ -143,9 +146,7 @@ class SamlFilter
     else if (hash.startsWith("#")) {
       hash = hash.substring(1);
     }
-    URI uri = UriBuilder.fromUri(httpServletRequest.getRequestURL().toString())
-        .replacePath(httpServletRequest.getContextPath()).path(InsightBrainService.BRAIN_ASSET_PATH).path("index.html")
-        .fragment(hash).build();
+    URI uri = UriBuilder.fromUri(landingService.getDestination()).replaceQuery("").fragment(hash).build();
     uri = URI.create(uri.toString().replaceAll("%2F", "/"));
     return uri.toString();
   }

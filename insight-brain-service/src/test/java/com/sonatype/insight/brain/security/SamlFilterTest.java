@@ -12,10 +12,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import org.apache.shiro.subject.support.DefaultSubjectContext;
+import org.junit.After;
 import org.junit.Test;
 import org.keycloak.adapters.saml.SamlAuthenticator;
 import org.keycloak.adapters.saml.SamlDeployment;
@@ -45,6 +48,12 @@ public class SamlFilterTest
   @Inject
   public SamlFilter samlFilter;
 
+  @Inject
+  private BaseUrl baseUrl;
+
+  @Inject
+  private InsightConfig appConfig;
+
   @Mock
   private HttpServletRequest mockHttpServletRequest;
 
@@ -59,6 +68,11 @@ public class SamlFilterTest
 
   @Mock
   private AuthChallenge mockAuthChallenge;
+
+  @After
+  public void exit() {
+    baseUrl.release();
+  }
 
   @Test
   public void testOnPrehandle_NullSamlDeployment_ReturnsTrue() throws Exception {
@@ -133,6 +147,9 @@ public class SamlFilterTest
   public void testNewSamlSessionStore_IsSamlSessionStoreForRedirect() {
     HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
     when(mockHttpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8070/context/place"));
+    when(mockHttpServletRequest.getRequestURI()).thenReturn("/context/place");
+    when(mockHttpServletRequest.getContextPath()).thenReturn("/context");
+    baseUrl.capture(mockHttpServletRequest);
 
     assertThat(samlFilter.newSamlSessionStore(mockHttpServletRequest, null, null))
         .isInstanceOf(SamlSessionStoreForRedirect.class);
@@ -165,7 +182,9 @@ public class SamlFilterTest
   public void testGetDestinationOrDefault_NoHash_ReturnsDefault() {
     HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
     when(mockHttpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8070/context/place"));
+    when(mockHttpServletRequest.getRequestURI()).thenReturn("/context/place");
     when(mockHttpServletRequest.getContextPath()).thenReturn("/context");
+    baseUrl.capture(mockHttpServletRequest);
 
     assertThat(samlFilter.getDestinationOrDefault(mockHttpServletRequest))
         .isEqualTo("http://localhost:8070/context/assets/index.html");
@@ -176,11 +195,25 @@ public class SamlFilterTest
     String hash = "#/some/example";
     HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
     when(mockHttpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8070/context/place"));
+    when(mockHttpServletRequest.getRequestURI()).thenReturn("/context/place");
     when(mockHttpServletRequest.getContextPath()).thenReturn("/context");
+    when(mockHttpServletRequest.getQueryString()).thenReturn("hash=" + hash);
     when(mockHttpServletRequest.getParameter("hash")).thenReturn(hash);
+    baseUrl.capture(mockHttpServletRequest);
 
     assertThat(samlFilter.getDestinationOrDefault(mockHttpServletRequest))
         .isEqualTo("http://localhost:8070/context/assets/index.html" + hash);
+  }
+
+  @Test
+  public void testGetDestinationOrDefault_ForcedBaseUrl() {
+    appConfig.setBaseUrl("https://host.test:1234/iq");
+    appConfig.setForceBaseUrl(true);
+    HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
+    baseUrl.capture(mockHttpServletRequest);
+
+    assertThat(samlFilter.getDestinationOrDefault(mockHttpServletRequest))
+        .isEqualTo("https://host.test:1234/iq/assets/index.html");
   }
 
   private void testOnPrehandle(

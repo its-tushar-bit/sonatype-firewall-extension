@@ -144,9 +144,13 @@ export default function MailConfig(props) {
     mustReenterPassword ? 'Password must be provided when updating Hostname or Port.' : '';
 
   function sendTestEmailOnClickHandler() {
-    if (isValid && testEmailState.trimmedValue && !mustReenterPassword) {
+    if (isSendTestEmailEnabled()) {
       sendTestEmail();
     }
+  }
+
+  function isSendTestEmailEnabled() {
+    return hasAllRequiredData && isValid && testEmailState.trimmedValue && !mustReenterPassword;
   }
 
   const form = (
@@ -201,8 +205,7 @@ export default function MailConfig(props) {
             <NxButton type="button"
                       id="email-config-test-email-send"
                       onClick={sendTestEmailOnClickHandler}
-                      className={classnames({disabled: !isValid || !testEmailState.trimmedValue
-                        || mustReenterPassword})}>
+                      className={classnames({disabled: !isSendTestEmailEnabled()})}>
               Send Test Email
             </NxButton>
           </NxTooltip>

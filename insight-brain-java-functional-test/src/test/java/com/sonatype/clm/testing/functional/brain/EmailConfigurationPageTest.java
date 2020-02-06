@@ -329,6 +329,23 @@ public class EmailConfigurationPageTest
   }
 
   @Test
+  public void testSendTestEmailDisabledWhenNoConfigurationExists() {
+    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    emailConfigurationPage.testEmailRecipient().setValue("koraytugay@icloud.com");
+    emailConfigurationPage.testEmailSend().shouldBe(DISABLED);
+  }
+
+  @Test
+  public void testEmailRecipientIsEmptyWhenPageIsNavigated() {
+    tempEntity.newMailConfiguration("a", insightMail.encryptPassword("password".toCharArray()));
+    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    emailConfigurationPage.testEmailRecipient().setValue("koraytugay@icloud.com");
+    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    emailConfigurationPage.testEmailRecipient().shouldBe(empty);
+  }
+
+  @Test
   public void testSendTestEmailConfigurationNotSaved_MinimalData() throws MessagingException, IOException {
     Mailbox.clearAll();
     refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());

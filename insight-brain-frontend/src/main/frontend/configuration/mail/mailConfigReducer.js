@@ -6,7 +6,7 @@
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { __, any, complement, compose, curryN, eqProps, map, pick, prop, propEq, values } from 'ramda';
 
-import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
+import { createReducerFromActionMap } from '../../util/reduxUtil';
 import { pathSet, propSet } from '../../util/jsUtil';
 import { combineValidators, hasValidationErrors, validateNonEmpty, validatePatternMatch }
   from '../../util/validationUtil';
@@ -146,6 +146,13 @@ function computeMustReenterPassword(state) {
 const updatedComputedProps = compose(computeHasAllRequiredData, computeIsDirty, computeIsValid,
     computeMustReenterPassword);
 
+function loadRequested() {
+  return {
+    ...initialState,
+    loading: true
+  };
+}
+
 function loadFulfilled(payload, state) {
   return setFormStateFromServerData({
     ...state,
@@ -259,7 +266,7 @@ const setCheckbox = curryN(3, function setCheckbox(fieldName, payload, state) {
 });
 
 const reducerActionMap = {
-  [LOAD_REQUESTED]: propSetConst('loading', true),
+  [LOAD_REQUESTED]: loadRequested,
   [LOAD_FULFILLED]: loadFulfilled,
   [LOAD_FAILED]: loadFailed,
   [SAVE_REQUESTED]: saveRequested,

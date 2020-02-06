@@ -12,7 +12,7 @@ import com.sonatype.insight.error.HttpStatusCode;
 public class InvalidStageException
     extends RuntimeException
 {
-  public InvalidStageException(String message) {
-    super(message);
+  public InvalidStageException(String stageTypeId) {
+    super("Invalid stage id=" + stageTypeId);
   }
 }

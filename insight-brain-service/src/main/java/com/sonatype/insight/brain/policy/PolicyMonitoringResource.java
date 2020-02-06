@@ -27,12 +27,12 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -97,7 +97,7 @@ public class PolicyMonitoringResource
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     if (!Stage.isValidStageTypeId(policyMonitoring.getStageTypeId())) {
-      throw new BadRequestException("Invalid stage: " + policyMonitoring.getStageTypeId() + ".");
+      throw new InvalidStageException(policyMonitoring.getStageTypeId());
     }
 
     policyMonitoring.setOwnerId(ownerId);

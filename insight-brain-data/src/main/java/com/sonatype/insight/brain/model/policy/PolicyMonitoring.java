@@ -63,7 +63,7 @@ public class PolicyMonitoring
 
   public void setStageTypeId(String stageTypeId) {
     if (!Stage.isValidStageTypeId(stageTypeId)) {
-      throw new InvalidStageException("Invalid stage id=" + stageTypeId);
+      throw new InvalidStageException(stageTypeId);
     }
     this.stageTypeId = stageTypeId;
   }

@@ -167,7 +167,7 @@ public class ScanPolicyEvaluator
       throws IOException
   {
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
-      throw new InvalidStageException("Invalid stage id=" + stage.getStageTypeId());
+      throw new InvalidStageException(stage.getStageTypeId());
     }
 
     AuditData.get().setStageId(stage.getStageTypeId());

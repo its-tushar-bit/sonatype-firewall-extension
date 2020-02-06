@@ -164,7 +164,7 @@ public class PolicyEvaluateService
     }
 
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
-      throw new InvalidStageException("Invalid stage id=" + stage.getStageTypeId());
+      throw new InvalidStageException(stage.getStageTypeId());
     }
 
     if (!stageTypeService.getLicensedStageTypes().contains(StageTypes.getById(stage.getStageTypeId()))) {

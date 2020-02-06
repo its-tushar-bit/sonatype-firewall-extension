@@ -19,10 +19,10 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
@@ -65,7 +65,7 @@ class ScanService
     log.debug("Request to scan binary '{}' for application public id '{}'", filename, appPublicId);
 
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
-      throw new BadRequestException("Invalid Nexus IQ stage: " + stage.getStageTypeId() + ".");
+      throw new InvalidStageException(stage.getStageTypeId());
     }
     File binFile = saveBinary(is, filename);
 

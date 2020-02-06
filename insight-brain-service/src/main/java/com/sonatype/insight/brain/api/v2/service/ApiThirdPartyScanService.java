@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.cyclonedx.CycloneDxSchemaValidator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
@@ -126,7 +127,7 @@ public class ApiThirdPartyScanService
   private void validateRequest(final String sbom, Stage stage) {
 
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
-      throw new BadRequestException("Invalid stage id=" + stage.getStageTypeId());
+      throw new InvalidStageException(stage.getStageTypeId());
     }
     if (StringUtils.isBlank(sbom)) {
       throw new BadRequestException("sbom content is null or empty");

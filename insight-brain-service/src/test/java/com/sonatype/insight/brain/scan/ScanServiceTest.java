@@ -15,10 +15,10 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.utils.ReportHelper;
-import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.inject.Binder;
 import org.codehaus.plexus.util.FileUtils;
@@ -142,7 +142,7 @@ public class ScanServiceTest
   @Test
   public void testFailEarlyOnInvalidStage() throws Exception {
     InputStream appBundle = getBundle("app01.zip");
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+    assertThatExceptionOfType(InvalidStageException.class).isThrownBy(() -> {
       scanService
           .scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage("invalid-stage-id"), false, null, null);
     }).withMessageContaining("invalid-stage-id");

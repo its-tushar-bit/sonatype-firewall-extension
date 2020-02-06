@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiEvaluationResultCounterDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Before;
@@ -35,8 +34,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiThirdPartyResourceTest
     extends AbstractResourceTest
 {
-  private Organization org;
-
   private Application app;
 
   private HttpRequest scanBomRequest(String applicationId, String source, String stageId, String bom) {
@@ -49,8 +46,7 @@ public class ApiThirdPartyResourceTest
 
   @Before
   public void setupApplication() {
-    org = tempEntity.newOrganization();
-    app = tempEntity.newApplication(org.getId());
+    app = tempEntity.newApplicationWithParent();
   }
 
   @Test

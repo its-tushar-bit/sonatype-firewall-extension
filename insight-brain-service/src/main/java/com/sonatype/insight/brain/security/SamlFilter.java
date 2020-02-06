@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.net.URI;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -12,10 +14,12 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -131,14 +135,19 @@ class SamlFilter
   }
 
   @VisibleForTesting
-  static String getDestinationOrDefault(HttpServletRequest httpServletRequest) {
-    String referer = httpServletRequest.getHeader("Referer");
-    if (referer == null) {
-      return httpServletRequest.getRequestURL()
-          .substring(0, httpServletRequest.getRequestURL().length() - httpServletRequest.getRequestURI().length()) +
-          "/";
+  String getDestinationOrDefault(HttpServletRequest httpServletRequest) {
+    String hash = httpServletRequest.getParameter("hash");
+    if (hash == null) {
+      hash = "";
     }
-    return referer;
+    else if (hash.startsWith("#")) {
+      hash = hash.substring(1);
+    }
+    URI uri = UriBuilder.fromUri(httpServletRequest.getRequestURL().toString())
+        .replacePath(httpServletRequest.getContextPath()).path(InsightBrainService.BRAIN_ASSET_PATH).path("index.html")
+        .fragment(hash).build();
+    uri = URI.create(uri.toString().replaceAll("%2F", "/"));
+    return uri.toString();
   }
 
   @VisibleForTesting
@@ -147,7 +156,8 @@ class SamlFilter
       HttpFacade httpFacade,
       SamlDeployment samlDeployment)
   {
-    return new SamlSessionStoreForRedirect(httpRequest, httpFacade, 0, idMapper, samlDeployment);
+    return new SamlSessionStoreForRedirect(httpRequest, httpFacade, 0, idMapper, samlDeployment,
+        getDestinationOrDefault(httpRequest));
   }
 
   @VisibleForTesting

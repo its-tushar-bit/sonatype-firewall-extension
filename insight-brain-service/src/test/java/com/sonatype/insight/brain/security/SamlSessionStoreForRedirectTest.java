@@ -22,12 +22,11 @@ public class SamlSessionStoreForRedirectTest
   @Test
   public void testSaveRequest_SetsTheSessionAttributeRedirectURI() {
     HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
-    String originalDestination = "http://localhost:8070/assets/index.html";
-    when(mockHttpServletRequest.getHeader("Referer")).thenReturn(originalDestination);
     HttpSession mockHttpSession = mock(HttpSession.class);
     when(mockHttpServletRequest.getSession(true)).thenReturn(mockHttpSession);
+    String originalDestination = "http://localhost:8070/assets/index.html";
 
-    new SamlSessionStoreForRedirect(mockHttpServletRequest, null, 0, null, null).saveRequest();
+    new SamlSessionStoreForRedirect(mockHttpServletRequest, null, 0, null, null, originalDestination).saveRequest();
 
     verify(mockHttpSession).setAttribute(FilterSessionStore.REDIRECT_URI, originalDestination);
   }
@@ -41,13 +40,13 @@ public class SamlSessionStoreForRedirectTest
     HttpFacade mockHttpFacade = mock(HttpFacade.class);
     when(mockHttpFacade.getRequest()).thenReturn(mock(HttpFacade.Request.class));
 
-    assertThat(new SamlSessionStoreForRedirect(mockHttpServletRequest, mockHttpFacade, 0, null, null).getRedirectUri())
-        .isEqualTo("http://localhost:8070/");
+    assertThat(new SamlSessionStoreForRedirect(mockHttpServletRequest, mockHttpFacade, 0, null, null,
+        null).getRedirectUri()).isEqualTo("http://localhost:8070/");
   }
 
   @Test
   public void testGetRedirectUri_HandlesNull() {
-    assertThat(new SamlSessionStoreForRedirect(mock(HttpServletRequest.class), null, 0, null, null).getRedirectUri())
-        .isNull();
+    assertThat(new SamlSessionStoreForRedirect(mock(HttpServletRequest.class), null, 0, null, null,
+        null).getRedirectUri()).isNull();
   }
 }

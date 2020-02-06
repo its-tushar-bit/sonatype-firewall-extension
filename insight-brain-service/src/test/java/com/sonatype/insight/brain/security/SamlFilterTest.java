@@ -131,7 +131,11 @@ public class SamlFilterTest
 
   @Test
   public void testNewSamlSessionStore_IsSamlSessionStoreForRedirect() {
-    assertThat(samlFilter.newSamlSessionStore(null, null, null)).isInstanceOf(SamlSessionStoreForRedirect.class);
+    HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
+    when(mockHttpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8070/context/place"));
+
+    assertThat(samlFilter.newSamlSessionStore(mockHttpServletRequest, null, null))
+        .isInstanceOf(SamlSessionStoreForRedirect.class);
   }
 
   @Test
@@ -158,21 +162,25 @@ public class SamlFilterTest
   }
 
   @Test
-  public void testGetDestinationOrDefault_NoReferer_ReturnsDefault() {
+  public void testGetDestinationOrDefault_NoHash_ReturnsDefault() {
     HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
-    when(mockHttpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8070/some/context"));
-    when(mockHttpServletRequest.getRequestURI()).thenReturn("/some/context");
+    when(mockHttpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8070/context/place"));
+    when(mockHttpServletRequest.getContextPath()).thenReturn("/context");
 
-    assertThat(SamlFilter.getDestinationOrDefault(mockHttpServletRequest)).isEqualTo("http://localhost:8070/");
+    assertThat(samlFilter.getDestinationOrDefault(mockHttpServletRequest))
+        .isEqualTo("http://localhost:8070/context/assets/index.html");
   }
 
   @Test
-  public void testGetDestinationOrDefault_Referer_ReturnsReferer() {
+  public void testGetDestinationOrDefault_Hash_ReturnsWithHash() {
+    String hash = "#/some/example";
     HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
-    String destination = "http://localhost:8070/assets/index.html";
-    when(mockHttpServletRequest.getHeader("Referer")).thenReturn(destination);
+    when(mockHttpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8070/context/place"));
+    when(mockHttpServletRequest.getContextPath()).thenReturn("/context");
+    when(mockHttpServletRequest.getParameter("hash")).thenReturn(hash);
 
-    assertThat(SamlFilter.getDestinationOrDefault(mockHttpServletRequest)).isEqualTo(destination);
+    assertThat(samlFilter.getDestinationOrDefault(mockHttpServletRequest))
+        .isEqualTo("http://localhost:8070/context/assets/index.html" + hash);
   }
 
   private void testOnPrehandle(

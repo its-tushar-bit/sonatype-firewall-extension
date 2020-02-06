@@ -16,19 +16,23 @@ import org.keycloak.adapters.spi.SessionIdMapper;
 public class SamlSessionStoreForRedirect
     extends FilterSamlSessionStore
 {
+  private final String redirect;
+
   SamlSessionStoreForRedirect(
       HttpServletRequest request,
       HttpFacade facade,
       int maxBuffer,
       SessionIdMapper idMapper,
-      SamlDeployment samlDeployment)
+      SamlDeployment samlDeployment,
+      String redirect)
   {
     super(request, facade, maxBuffer, idMapper, samlDeployment);
+    this.redirect = redirect;
   }
 
   @Override
   public void saveRequest() {
-    request.getSession(true).setAttribute(FilterSessionStore.REDIRECT_URI, SamlFilter.getDestinationOrDefault(request));
+    request.getSession(true).setAttribute(FilterSessionStore.REDIRECT_URI, redirect);
   }
 
   @Override

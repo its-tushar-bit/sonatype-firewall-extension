@@ -45,7 +45,11 @@ function LoginModalController($scope, $http, CLMLocations, Messages, routeStateU
   };
 
   vm.initiateSamlSso = function() {
-    $window.location.assign('../saml/login');
+    let destination = '../saml/login';
+    if ($window.location.hash) {
+      destination += '?hash=' + encodeURIComponent($window.location.hash);
+    }
+    $window.location.assign(destination);
   };
 
   vm.showSamlSso = showSamlSso;

@@ -8,16 +8,23 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.Arrays;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.UserDetailsModal;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.KeycloakLoginPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.insight.brain.api.v2.service.ApiSamlConfigurationService;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Group;
+import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.keycloak.KeycloakServerRule;
 import com.sonatype.insight.keycloak.KeycloakServerUtil;
@@ -236,6 +243,31 @@ public class SamlTest
     logout();
     loginModal.loginButton().shouldBe(visible);
     loginModal.ssoButton().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testRedirect() {
+    Application application = tempEntity.newApplicationWithParent("_.-a1b2c3-._éÝÏ");
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scanId");
+    apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
+    String metadata = apiSamlConfigurationService.getMetadata();
+    ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
+    clientRepresentation.setProtocolMappers(protocolMappers());
+    keycloak.createClient(clientRepresentation);
+    String username = "johanne.doanne";
+    String password = "her-secret";
+    keycloak.createUser("Johanne", "Doanne", username, "johnanne@doanne.com", password, null);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.POLICY_ADMIN_ROLE_ID, username,
+        MemberType.USER);
+
+    String urlEncoded = ApplicationReportPage.url(application, policyEvaluation.getScanId());
+    refreshOrOpen(urlEncoded);
+    LoginModal loginModal = new LoginModal();
+    loginModal.loginButton().shouldBe(visible);
+    loginModal.ssoButton().shouldBe(visible).click();
+    KeycloakLoginPage.login(username, password);
+
+    waitUntilUrl(urlEncoded);
   }
 
   /**

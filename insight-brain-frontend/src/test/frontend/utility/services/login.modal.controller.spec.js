@@ -33,10 +33,19 @@ describe('login.modal.controller.spec.js', function() {
   }));
 
   describe('initiateSamlSso', function() {
-    it('redirects to the SAML login', inject(function($window) {
+    it('redirects to the SAML login without a hash', inject(function($window) {
+      $window.location.hash = undefined;
       vm.initiateSamlSso();
 
       expect($window.location.assign).toHaveBeenCalledWith('../saml/login');
+    }));
+
+    it('redirects to the SAML login with a hash', inject(function($window) {
+      $window.location.hash = '#/some/example';
+      vm.initiateSamlSso();
+
+      expect($window.location.assign).toHaveBeenCalledWith(
+          '../saml/login?hash=' + encodeURIComponent($window.location.hash));
     }));
   });
 

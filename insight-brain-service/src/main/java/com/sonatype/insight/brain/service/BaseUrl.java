@@ -5,21 +5,16 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.net.URI;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.ws.rs.core.Context;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.Provider;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 @Named
 @Singleton
-@Provider
 public class BaseUrl
 {
   public static final String ERR_MSG_BASE_URL_NOT_CONFIGURED = "The server base URL (baseUrl) is not configured. "
@@ -27,22 +22,27 @@ public class BaseUrl
 
   private final InsightConfig appConfig;
 
-  // According to JAX-RS 2.0 specs, chapter 9, it is OK to inject UriInfo and HttpHeaders here even if this class is a
-  // singleton.
-  @Context
-  private UriInfo uriInfo;
+  private final ThreadLocal<HttpServletRequest> currentHttpRequest = new ThreadLocal<>();
 
   @Inject
   public BaseUrl(final InsightConfig appConfig) {
     this.appConfig = appConfig;
   }
 
-  /**
-   * public for testing only
-   */
-  public BaseUrl(final InsightConfig appConfig, final UriInfo uriInfo) {
-    this.appConfig = appConfig;
-    this.uriInfo = uriInfo;
+  public void capture(HttpServletRequest httpRequest) {
+    currentHttpRequest.set(httpRequest);
+  }
+
+  public void release() {
+    currentHttpRequest.remove();
+  }
+
+  private HttpServletRequest getHttpRequest() {
+    HttpServletRequest httpRequest = currentHttpRequest.get();
+    if (httpRequest == null) {
+      throw new IllegalStateException("Not inside a request");
+    }
+    return httpRequest;
   }
 
   /**
@@ -78,11 +78,11 @@ public class BaseUrl
 
   private String tryGetBaseUriWithEndingForwardSlash() {
     try {
-      if (uriInfo == null) {
-        return null;
-      }
-      UriBuilder baseUri = uriInfo.getBaseUriBuilder();
-      String url = baseUri.build().toString();
+      HttpServletRequest httpRequest = getHttpRequest();
+      StringBuffer requestUrl = httpRequest.getRequestURL();
+      String requestUri = httpRequest.getRequestURI();
+      String contextPath = httpRequest.getContextPath();
+      String url = requestUrl.substring(0, requestUrl.length() - requestUri.length() + contextPath.length());
       if (!url.endsWith("/")) {
         url += '/';
       }
@@ -95,7 +95,6 @@ public class BaseUrl
   }
 
   public UriBuilder redirect() {
-    URI requestUri = uriInfo.getRequestUri();
-    return UriBuilder.fromUri(get()).replaceQuery(requestUri.getRawQuery());
+    return UriBuilder.fromUri(get()).replaceQuery(getHttpRequest().getQueryString());
   }
 }

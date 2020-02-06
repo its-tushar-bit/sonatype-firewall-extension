@@ -359,6 +359,7 @@ public class InsightBrainService
     env.jersey().register(new InsightJacksonMessageBodyProvider(env.getObjectMapper()));
     env.jersey().register(new ComponentIdentifierParamConverterProvider(env.getObjectMapper()));
 
+    addServletFilter(env, BaseUrlFilter.class, "/*");
     addServletFilter(env, AuditFilter.class, AuditFilter.URL_PATTERNS);
     addServletFilter(env, HttpHeaderValidatorFilter.class, HttpHeaderValidatorFilter.URL_PATTERN);
     addServletFilter(env, ContentTypeOptionsHeaderFilter.class, "/*");

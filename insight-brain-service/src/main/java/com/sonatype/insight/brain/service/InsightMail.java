@@ -16,9 +16,7 @@ import javax.mail.internet.MimeMessage;
 
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
-
-import org.sonatype.plexus.components.cipher.PlexusCipher;
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
+import com.sonatype.insight.brain.security.PasswordHandler;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
@@ -32,46 +30,22 @@ public class InsightMail
 {
   private static final Logger log = LoggerFactory.getLogger(InsightMail.class);
 
-  private static final String ENC = "CMMDwoV";
-
   private final InsightConfig config;
 
-  private final PlexusCipher cipher;
+  private final PasswordHandler passwordHandler;
 
   @Inject
-  public InsightMail(final InsightConfig config, PlexusCipher cipher) {
+  public InsightMail(final InsightConfig config, PasswordHandler passwordHandler) {
     this.config = config;
-    this.cipher = cipher;
+    this.passwordHandler = passwordHandler;
   }
 
   public char[] decryptPassword(char[] encryptedPassword) {
-    if (encryptedPassword == null) {
-      return null;
-    }
-
-    try {
-      synchronized (cipher) {
-        return cipher.decryptDecorated(String.valueOf(encryptedPassword), ENC).toCharArray();
-      }
-    }
-    catch (PlexusCipherException e) {
-      throw new IllegalStateException(e);
-    }
+    return passwordHandler.decryptPassword(encryptedPassword);
   }
 
   public char[] encryptPassword(char[] password) {
-    if (password == null) {
-      return null;
-    }
-
-    try {
-      synchronized (cipher) {
-        return cipher.encryptAndDecorate(String.valueOf(password), ENC).toCharArray();
-      }
-    }
-    catch (PlexusCipherException e) {
-      throw new IllegalStateException(e);
-    }
+    return passwordHandler.encryptPassword(password);
   }
 
   public String getServer() {

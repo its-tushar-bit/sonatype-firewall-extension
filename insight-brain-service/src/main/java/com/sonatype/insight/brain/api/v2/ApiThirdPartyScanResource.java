@@ -36,7 +36,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.THIRD_PARTY_SCAN_PATH)
-public class ApiThirdPartyResource
+public class ApiThirdPartyScanResource
 {
   public static final String SCAN_COMPONENTS = "{applicationId}/sources/{source}";
 
@@ -45,7 +45,7 @@ public class ApiThirdPartyResource
   private final ApiThirdPartyScanService thirdPartyScanService;
 
   @Inject
-  public ApiThirdPartyResource(final ApiThirdPartyScanService thirdPartyScanService) {
+  public ApiThirdPartyScanResource(final ApiThirdPartyScanService thirdPartyScanService) {
     this.thirdPartyScanService = thirdPartyScanService;
   }
 

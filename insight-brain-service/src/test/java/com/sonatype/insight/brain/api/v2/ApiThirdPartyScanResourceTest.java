@@ -28,14 +28,14 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApiThirdPartyResourceTest
+public class ApiThirdPartyScanResourceTest
     extends AbstractResourceTest
 {
   private Application app;
 
   private HttpRequest scanBomRequest(String applicationId, String source, String stageId, String bom) {
     return restRequest()
-        .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyResource.SCAN_COMPONENTS)
+        .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyScanResource.SCAN_COMPONENTS)
         .parameter(applicationId, source)
         .query("stageId", stageId)
         .body(bom, MediaType.APPLICATION_XML);

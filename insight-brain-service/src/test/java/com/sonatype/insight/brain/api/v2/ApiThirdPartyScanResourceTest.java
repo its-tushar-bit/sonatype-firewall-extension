@@ -79,10 +79,10 @@ public class ApiThirdPartyScanResourceTest
     assertThat(new URI(ticketDTO.statusUrl)).isNotNull();
 
     ApiThirdPartyScanResultDTO resultDTO = getApiThirdPartyTicketResultDTO(ticketDTO.statusUrl);
+    assertThat(resultDTO.errorMessage).isNull();
+    assertThat(resultDTO.isError).isFalse();
     assertThat(resultDTO.reportHtmlUrl).contains("/ui/links/application/" + app.getPublicId() + "/report/" + scanId);
     assertThat(resultDTO.policyAction).isEqualTo("None");
-    assertThat(resultDTO.isError).isFalse();
-    assertThat(resultDTO.errorMessage).isNull();
     assertEvaluationResultCounter(resultDTO.componentsAffected);
     assertEvaluationResultCounter(resultDTO.openPolicyViolations);
     assertThat(resultDTO.grandfatheredPolicyViolations).isEqualTo(0);

@@ -79,7 +79,7 @@ public class DataMigrator
     policyCoordinatesConditionTypeMigrator.migrate();
     policySecurityVulnerabilityConditionTypeMigrator.migrate();
     mailConfigurationMigrator.migrate();
-    ignoredRepositoryComponentMigrator.migrate();
     proxyServerConfigurationMigrator.migrate();
+    ignoredRepositoryComponentMigrator.migrate();
   }
 }

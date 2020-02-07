@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.codahale.metrics.annotation.Timed;
 
 /**
- * @since MIGRATE_PROXY_CONFIG
+ * @since 1.84
  */
 @Named
 @Timed

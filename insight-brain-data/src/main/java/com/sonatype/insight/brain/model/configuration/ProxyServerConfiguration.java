@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import static java.util.stream.Collectors.toList;
 
 /**
- * @since MIGRATE_PROXY_CONFIG
+ * @since 1.84
  */
 @Entity
 @Table(name = "proxy_server_configuration")

@@ -13,7 +13,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * @since MIGRATE_PROXY_CONFIG
+ * @since 1.84
  */
 public class ProxyServerConfigurationDAO
     extends AbstractOperationalSqlDAO<ProxyServerConfiguration>

@@ -24,7 +24,7 @@ import static java.lang.String.join;
 /**
  * @since 1.65
  * 
- * @deprecated Replaced by {@link ApiProxyServerConfigurationService} in MIGRATE_PROXY_CONFIG.
+ * @deprecated Replaced by {@link ApiProxyServerConfigurationService} in 1.84.
  *             Scheduled for removal in July 2020.
  */
 @Deprecated

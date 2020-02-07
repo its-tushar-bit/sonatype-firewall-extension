@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @since MIGRATE_PROXY_CONFIG
+ * @since 1.84
  */
 @Named
 public class ProxyServerConfigurationMigrator

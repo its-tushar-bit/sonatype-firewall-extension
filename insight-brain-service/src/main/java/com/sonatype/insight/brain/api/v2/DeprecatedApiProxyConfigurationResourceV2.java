@@ -25,7 +25,7 @@ import com.codahale.metrics.annotation.Timed;
 /**
  * @since 1.65
  * 
- * @deprecated Replaced by {@link ApiProxyServerConfigurationResource} in MIGRATE_PROXY_CONFIG.
+ * @deprecated Replaced by {@link ApiProxyServerConfigurationResource} in 1.84
  *             Scheduled for removal in July 2020.
  */
 @Deprecated

@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiThirdPartyScanService.ApiPolicyAction;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -45,7 +46,6 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ApiThirdPartyScanServiceTest
@@ -67,8 +67,6 @@ public class ApiThirdPartyScanServiceTest
 
   @Override
   public void configure(Binder binder) {
-    mockPolicyEvaluateService = mock(PolicyEvaluateService.class);
-    mockBaseUrl = mock(BaseUrl.class);
     binder.bind(PolicyEvaluateService.class).toInstance(mockPolicyEvaluateService);
     binder.bind(BaseUrl.class).toInstance(mockBaseUrl);
 
@@ -84,7 +82,7 @@ public class ApiThirdPartyScanServiceTest
   public void testScanComponents()
       throws Exception
   {
-    String bom = getBomFile("/ApiThirdPartyResourceTest/valid_bom.xml");
+    String bom = getBomFile("valid_bom.xml");
 
     ApiThirdPartyScanTicketDTO scanResult =
         thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null);
@@ -201,7 +199,7 @@ public class ApiThirdPartyScanServiceTest
         .thenReturn(pollingResult);
     when(mockBaseUrl.get()).thenReturn("http://iq.server");
 
-    String bom = getBomFile("/ApiThirdPartyResourceTest/valid_bom.xml");
+    String bom = getBomFile("valid_bom.xml");
 
     thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null);
 
@@ -222,7 +220,8 @@ public class ApiThirdPartyScanServiceTest
   }
 
   private String getBomFile(String path) throws Exception {
-    byte[] bytes = Files.readAllBytes(Paths.get(getClass().getResource(path).toURI()));
+    byte[] bytes =
+        Files.readAllBytes(Paths.get(getClass().getResource("/" + getClass().getSimpleName() + "/" + path).toURI()));
     return new String(bytes, StandardCharsets.UTF_8);
   }
 
@@ -249,7 +248,7 @@ public class ApiThirdPartyScanServiceTest
 
   @Test
   public void testScanComponents_invalid_vulnerability_id() throws Exception {
-    String bom = getBomFile("/ApiThirdPartyResourceTest/invalid_bom_id_vulnerability.xml");
+    String bom = getBomFile("invalid_bom_id_vulnerability.xml");
 
     assertThatThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null))
         .isInstanceOf(BadRequestException.class).hasMessage(
@@ -259,7 +258,7 @@ public class ApiThirdPartyScanServiceTest
 
   @Test
   public void testScanComponents_invalid_vulnerability_score_base() throws Exception {
-    String bom = getBomFile("/ApiThirdPartyResourceTest/invalid_bom_base_score_vulnerability.xml");
+    String bom = getBomFile("invalid_bom_base_score_vulnerability.xml");
 
     assertThatThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null))
         .isInstanceOf(BadRequestException.class).hasMessage(
@@ -269,7 +268,7 @@ public class ApiThirdPartyScanServiceTest
 
   @Test
   public void testScanComponents_invalid_license_id() throws Exception {
-    String bom = getBomFile("/ApiThirdPartyResourceTest/invalid_bom_id_license.xml");
+    String bom = getBomFile("invalid_bom_id_license.xml");
 
     assertThatThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null))
         .isInstanceOf(BadRequestException.class)
@@ -283,6 +282,34 @@ public class ApiThirdPartyScanServiceTest
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, "bom", null);
     }).withMessage("Stage 'build' is not supported by your license.");
+  }
+
+  @Test
+  public void testScanComponents_InvalidBom() throws Exception {
+    String bom = getBomFile("invalid_bom.xml");
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null);
+    }).withMessage("Error on line number: 14, column number: 21 message: cvc-complex-type.4: "
+        + "Attribute 'name' must appear on element 'v:source'.");
+  }
+
+  @Test
+  public void testScanComponents_NullBom() throws Exception {
+    String bom = null;
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null);
+    }).withMessage("sbom content is null or empty");
+  }
+
+  @Test
+  public void testScanComponents_InvalidStage() throws Exception {
+    String bom = getBomFile("invalid_bom.xml");
+
+    assertThatExceptionOfType(InvalidStageException.class).isThrownBy(() -> {
+      thirdPartyScanService.scanComponents(app.getId(), "clair", "invalidStage", bom, null);
+    }).withMessage("Invalid stage id=invalidStage");
   }
 
   private void assertApiPolicy(ApiPolicyAction action1, ApiPolicyAction action2, ApiPolicyAction result) {

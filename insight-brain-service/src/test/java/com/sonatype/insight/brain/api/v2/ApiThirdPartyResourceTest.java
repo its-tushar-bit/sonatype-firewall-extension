@@ -28,9 +28,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * @since 1.75
- */
 public class ApiThirdPartyResourceTest
     extends AbstractResourceTest
 {
@@ -50,8 +47,8 @@ public class ApiThirdPartyResourceTest
   }
 
   @Test
-  public void testEvaluateComponents_thirdPartyScan() throws Exception {
-    String bom = getBomFile("/ApiThirdPartyResourceTest/valid_bom.xml");
+  public void testScanComponents_thirdPartyScan() throws Exception {
+    String bom = getBomFile("valid_bom.xml");
 
     HttpResponse response = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD, bom).post();
     assertResponseStatus(202, response);
@@ -60,29 +57,6 @@ public class ApiThirdPartyResourceTest
     assertThat(ticketDTO).isNotNull();
     assertThat(ticketDTO.statusUrl).isNotNull();
     assertThat(new URI(ticketDTO.statusUrl)).isNotNull();
-  }
-
-  @Test
-  public void testEvaluateComponents_nullBom() throws Exception {
-    HttpResponse response = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD, null).post();
-    assertResponseStatus(400, response);
-  }
-  
-  @Test
-  public void testEvaluateComponents_invalidStage() throws Exception {
-    HttpResponse response = scanBomRequest(app.getId(), "clair", "invalidStage", null).post();
-    assertResponseStatus(400, response);
-  }
-
-  @Test
-  public void testEvaluateComponents_invalidBom() throws Exception {
-    String bom = getBomFile("/ApiThirdPartyResourceTest/invalid_bom.xml");
-
-    HttpResponse response = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD, bom).post();
-    String error = response.getBodyText();
-    assertThat(error).matches(
-        ".*Error on line number: 14, column number: 21 message: " +
-            "cvc-complex-type.4:.*['\"]name['\"].*['\"]v:source['\"].*");
   }
 
   @Test
@@ -95,7 +69,7 @@ public class ApiThirdPartyResourceTest
     scanReceipt.setScanId(scanId);
     mockScanReceipt(scanReceipt);
 
-    String bom = getBomFile("/" + getClass().getSimpleName() + "/valid_bom.xml");
+    String bom = getBomFile("valid_bom.xml");
     HttpResponse response = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD, bom).post();
     assertResponseStatus(202, response);
 
@@ -129,7 +103,7 @@ public class ApiThirdPartyResourceTest
 
   private String getBomFile(String path) throws Exception {
     byte[] bytes =
-        Files.readAllBytes(Paths.get(getClass().getResource(path).toURI()));
+        Files.readAllBytes(Paths.get(getClass().getResource("/" + getClass().getSimpleName() + "/" + path).toURI()));
     return new String(bytes, StandardCharsets.UTF_8);
   }
 

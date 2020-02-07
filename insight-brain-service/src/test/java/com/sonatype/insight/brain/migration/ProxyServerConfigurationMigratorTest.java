@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.migration;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.service.ProxyServerConfigurationListener;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -19,12 +20,16 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.LogOutput;
 
+import com.google.inject.Binder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class ProxyServerConfigurationMigratorTest
     extends AbstractComponentTest
@@ -46,6 +51,15 @@ public class ProxyServerConfigurationMigratorTest
 
   @Rule
   public LogOutput logOutput = new LogOutput(ProxyServerConfigurationMigrator.class);
+
+  @Mock
+  private ProxyServerConfigurationListener proxyServerConfigurationListener;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(ProxyServerConfigurationListener.class).toInstance(proxyServerConfigurationListener);
+    super.configure(binder);
+  }
 
   @Before
   @After
@@ -73,6 +87,7 @@ public class ProxyServerConfigurationMigratorTest
         new SystemConfigurationPropertyDAO().getByName(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME))
             .isNull();
     assertThat(logOutput).doesNotContain(ProxyServerConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
+    verifyNoInteractions(proxyServerConfigurationListener);
   }
 
   @Test
@@ -90,6 +105,7 @@ public class ProxyServerConfigurationMigratorTest
         new SystemConfigurationPropertyDAO().getByName(ProxyServerConfigurationMigrator.PROXY_EXCLUDE_HOSTS_PROP_NAME))
             .isNull();
     assertThat(logOutput).atWarnLevel().contains(ProxyServerConfigurationMigrator.INVALID_CONFIG_MESSAGE);
+    verifyNoInteractions(proxyServerConfigurationListener);
   }
 
   @Test
@@ -120,6 +136,7 @@ public class ProxyServerConfigurationMigratorTest
             .isNull();
 
     assertThat(logOutput).atWarnLevel().contains(ProxyServerConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 
   @Test
@@ -150,6 +167,7 @@ public class ProxyServerConfigurationMigratorTest
             .isNull();
 
     assertThat(logOutput).atWarnLevel().contains(ProxyServerConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 
   @Test
@@ -177,6 +195,7 @@ public class ProxyServerConfigurationMigratorTest
             .isNull();
 
     assertThat(logOutput).atWarnLevel().contains(ProxyServerConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
   }
 
   @Test
@@ -208,6 +227,7 @@ public class ProxyServerConfigurationMigratorTest
     assertThat(dbConfig.getExcludeHosts()).isEqualTo(currentConfig.getExcludeHosts());
 
     assertThat(logOutput).atWarnLevel().contains(ProxyServerConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
+    verifyNoInteractions(proxyServerConfigurationListener);
   }
 
   @Test
@@ -231,5 +251,6 @@ public class ProxyServerConfigurationMigratorTest
     assertThat(dbConfig.getExcludeHosts()).isNull();
 
     assertThat(logOutput).doesNotContain(ProxyServerConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
+    verifyNoInteractions(proxyServerConfigurationListener);
   }
 }

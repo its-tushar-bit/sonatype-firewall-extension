@@ -6,10 +6,12 @@
 package com.sonatype.insight.brain.migration;
 
 import java.util.Arrays;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v2.service.ProxyServerConfigurationListener;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -52,19 +54,23 @@ public class ProxyServerConfigurationMigrator
 
   private final PasswordHandler passwordHandler;
 
+  private final List<ProxyServerConfigurationListener> proxyServerConfigurationListeners;
+
   @Inject
   public ProxyServerConfigurationMigrator(
       MigrationTrackerDAO migrationTrackerDAO,
       ProxyServerConfigurationDAO proxyServerConfigurationDAO,
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       InsightConfig insightConfig,
-      PasswordHandler passwordHandler)
+      PasswordHandler passwordHandler,
+      List<ProxyServerConfigurationListener> proxyServerConfigurationListeners)
   {
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.insightConfig = insightConfig;
     this.passwordHandler = passwordHandler;
+    this.proxyServerConfigurationListeners = proxyServerConfigurationListeners;
   }
 
   public void migrate() {
@@ -80,6 +86,7 @@ public class ProxyServerConfigurationMigrator
 
     log.debug("Migrating proxy server configuration to database...");
 
+    boolean migrated = false;
     try (TransactionContext tx = proxyServerConfigurationDAO.createTransactionContext()) {
       tx.begin();
 
@@ -104,6 +111,7 @@ public class ProxyServerConfigurationMigrator
 
         try {
           proxyServerConfigurationDAO.insert(tx, dbConfig);
+          migrated = true;
         }
         catch (BadRequestException e) {
           log.warn(INVALID_CONFIG_MESSAGE, e);
@@ -123,6 +131,10 @@ public class ProxyServerConfigurationMigrator
     }
 
     log.info("Migrated proxy server configuration to database.");
+
+    if (migrated) {
+      proxyServerConfigurationListeners.forEach(ProxyServerConfigurationListener::proxyServerConfigurationChanged);
+    }
   }
 
   /**

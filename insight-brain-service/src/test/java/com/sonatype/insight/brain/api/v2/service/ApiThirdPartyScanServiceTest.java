@@ -33,7 +33,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -57,18 +57,17 @@ public class ApiThirdPartyScanServiceTest
   @Inject
   private TestProductLicenseManager productLicenseManager;
 
+  @Inject
+  private InsightConfig insightConfig;
+
   private Application app;
 
   @Mock
   private PolicyEvaluateService mockPolicyEvaluateService;
 
-  @Mock
-  private BaseUrl mockBaseUrl;
-
   @Override
   public void configure(Binder binder) {
     binder.bind(PolicyEvaluateService.class).toInstance(mockPolicyEvaluateService);
-    binder.bind(BaseUrl.class).toInstance(mockBaseUrl);
 
     super.configure(binder);
   }
@@ -197,7 +196,7 @@ public class ApiThirdPartyScanServiceTest
 
     when(mockPolicyEvaluateService.pollEvaluationResult(app.getPublicId(), scanId))
         .thenReturn(pollingResult);
-    when(mockBaseUrl.get()).thenReturn("http://iq.server");
+    insightConfig.setBaseUrl("http://iq.server");
 
     String bom = getBomFile("valid_bom.xml");
 

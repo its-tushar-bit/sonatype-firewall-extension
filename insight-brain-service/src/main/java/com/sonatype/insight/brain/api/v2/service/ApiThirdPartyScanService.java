@@ -31,8 +31,11 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
@@ -77,6 +80,8 @@ public class ApiThirdPartyScanService
 
   private final ThirdPartySbomValidator thirdPartySbomValidator;
 
+  private final StageTypeService stageTypeService;
+
   @Inject
   public ApiThirdPartyScanService(
       final CycloneDxSchemaValidator schemaValidator,
@@ -86,7 +91,8 @@ public class ApiThirdPartyScanService
       final InsightWork work,
       final PolicyEvaluateService policyEvaluateService,
       final ApplicationDAO applicationDAO,
-      final ThirdPartySbomValidator thirdPartySbomValidator)
+      final ThirdPartySbomValidator thirdPartySbomValidator,
+      StageTypeService stageTypeService)
   {
     this.schemaValidator = schemaValidator;
     this.scanner = scanner;
@@ -96,39 +102,42 @@ public class ApiThirdPartyScanService
     this.policyEvaluateService = policyEvaluateService;
     this.applicationDAO = applicationDAO;
     this.thirdPartySbomValidator = thirdPartySbomValidator;
+    this.stageTypeService = stageTypeService;
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public ApiThirdPartyScanTicketDTO scanComponents(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
       final String source,
-      final String stageId,
+      final String stageTypeId,
       final String sbom,
       final String userAgent)
   {
-    Stage stage = new Stage(stageId);
-    validateRequest(sbom, stage);
+    if (!Stage.isValidStageTypeId(stageTypeId)) {
+      throw new InvalidStageException(stageTypeId);
+    }
+    if (!stageTypeService.getLicensedStageTypes().contains(StageTypes.getById(stageTypeId))) {
+      throw new InvalidLicenseException("Stage '" + stageTypeId + "' is not supported by your license.");
+    }
+
+    validateSbom(sbom);
     String scanRequestId = UUID.randomUUID().toString().replace("-", "");
     ApiThirdPartyScanTicketDTO scanTicketDTO = createScanTicket(applicationId, scanRequestId);
 
     log.debug("Received request to scan SBOM for app id {}, source {}, stageTypeId {}. "
-        + "The status ID of the operation is {}.", applicationId, source, stage.getStageTypeId(), scanRequestId);
+        + "The status ID of the operation is {}.", applicationId, source, stageTypeId, scanRequestId);
     Application app = new ApplicationDAO().getById(applicationId);
     ScanResult scanResult = createScanFile(app, sbom, source);
 
     validateSbomContent(scanResult.getScanFile());
 
-    policyEvaluateService.evaluateWithPolling(scanRequestId, app, ClientScanType.SONATYPE_THIRD_PARTY, stage,
-        scanResult.getScanFile(), "api", userAgent);
+    policyEvaluateService.evaluateWithPolling(scanRequestId, app, ClientScanType.SONATYPE_THIRD_PARTY,
+        new Stage(stageTypeId), scanResult.getScanFile(), "api", userAgent);
 
     return scanTicketDTO;
   }
 
-  private void validateRequest(final String sbom, Stage stage) {
-
-    if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
-      throw new InvalidStageException(stage.getStageTypeId());
-    }
+  private void validateSbom(final String sbom) {
     if (StringUtils.isBlank(sbom)) {
       throw new BadRequestException("sbom content is null or empty");
     }

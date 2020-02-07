@@ -22,12 +22,15 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.v2.dto.ApiEvaluationResultCounterDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiThirdPartyScanService.ApiPolicyAction;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -40,6 +43,7 @@ import org.mockito.Mock;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -49,6 +53,9 @@ public class ApiThirdPartyScanServiceTest
 {
   @Inject
   private ApiThirdPartyScanService thirdPartyScanService;
+
+  @Inject
+  private TestProductLicenseManager productLicenseManager;
 
   private Application app;
 
@@ -267,6 +274,15 @@ public class ApiThirdPartyScanServiceTest
     assertThatThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Error in component jackson-databind: An element <id> of a license is null or empty");
+  }
+
+  @Test
+  public void testScanComponents_StageNotLicensed() {
+    productLicenseManager.setStageTypes(StageTypes.RELEASE);
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, "bom", null);
+    }).withMessage("Stage 'build' is not supported by your license.");
   }
 
   private void assertApiPolicy(ApiPolicyAction action1, ApiPolicyAction action2, ApiPolicyAction result) {

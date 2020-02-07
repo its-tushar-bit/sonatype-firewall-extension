@@ -95,7 +95,7 @@ public class ApiThirdPartyScanResourceTest
       if (response.getStatusCode() == 200) {
         return response.getBody(ApiThirdPartyScanResultDTO.class);
       }
-      Thread.sleep(500);
+      Thread.sleep(10);
     }
     throw new RuntimeException(
         "Retrieving scan status did not complete within the expected 10 seconds to get the scan result");

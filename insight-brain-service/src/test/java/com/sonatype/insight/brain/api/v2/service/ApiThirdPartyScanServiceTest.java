@@ -289,8 +289,8 @@ public class ApiThirdPartyScanServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null);
-    }).withMessage("Error on line number: 14, column number: 21 message: cvc-complex-type.4: "
-        + "Attribute 'name' must appear on element 'v:source'.");
+    }).withMessageMatching("Error on line number: 14, column number: 21 message: "
+        + "cvc-complex-type.4:.*['\"]name['\"].*['\"]v:source['\"].*");
   }
 
   @Test

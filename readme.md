@@ -22,8 +22,8 @@ Please read our [contribution rules and guidelines](contributing.md).
 This week's rotating reviewers are:
 
 <!-- rotating-reviewers-begin -->
-* [@Kasun Ranawaka](https://github.com/kakumara)
-* [@Andrey Marushkevych](https://github.com/marushkevych)
+* [@Vlad Tatavu](https://github.com/vladt)
+* [@Dennis Warren](https://github.com/DennisWarren)
 <!-- rotating-reviewers-end -->
 # Building #
 

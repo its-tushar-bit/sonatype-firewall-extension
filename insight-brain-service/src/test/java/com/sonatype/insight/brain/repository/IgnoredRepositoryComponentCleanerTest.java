@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.migration;
+package com.sonatype.insight.brain.repository;
 
 import java.util.HashMap;
 
@@ -28,14 +28,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class IgnoredRepositoryComponentMigratorTest
+public class IgnoredRepositoryComponentCleanerTest
     extends AbstractComponentTest
 {
   @Mock
   private HdsClient hdsClientMock;
 
   @Inject
-  private IgnoredRepositoryComponentMigrator ignoredRepositoryComponentMigrator;
+  private IgnoredRepositoryComponentCleaner ignoredRepositoryComponentMigrator;
 
   @Inject
   private MigrationTrackerDAO migrationTrackerDAO;
@@ -50,8 +50,8 @@ public class IgnoredRepositoryComponentMigratorTest
   }
 
   @Test
-  public void testMigrate() {
-    new MigrationTrackerDAO().deleteById(IgnoredRepositoryComponentMigrator.MIGRATION_ID);
+  public void testStart() {
+    new MigrationTrackerDAO().deleteById(IgnoredRepositoryComponentCleaner.MIGRATION_ID);
     Repository repository = tempEntity.newRepository("rm1", "r1", "maven2");
     tempEntity.newRepositoryComponent(repository, "a/sha", MatchState.UNKNOWN, "hash");
 
@@ -61,25 +61,25 @@ public class IgnoredRepositoryComponentMigratorTest
     when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
-    assertThat(migrationTrackerDAO.getById(IgnoredRepositoryComponentMigrator.MIGRATION_ID)).isNull();
+    assertThat(migrationTrackerDAO.getById(IgnoredRepositoryComponentCleaner.MIGRATION_ID)).isNull();
     assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isNotEmpty();
 
-    ignoredRepositoryComponentMigrator.migrate();
+    ignoredRepositoryComponentMigrator.start();
 
-    assertThat(migrationTrackerDAO.getById(IgnoredRepositoryComponentMigrator.MIGRATION_ID)).isNotNull();
+    assertThat(migrationTrackerDAO.getById(IgnoredRepositoryComponentCleaner.MIGRATION_ID)).isNotNull();
     assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
   }
 
   @Test
-  public void testMigrate_HdsError() {
-    new MigrationTrackerDAO().deleteById(IgnoredRepositoryComponentMigrator.MIGRATION_ID);
+  public void testStart_HdsError() {
+    new MigrationTrackerDAO().deleteById(IgnoredRepositoryComponentCleaner.MIGRATION_ID);
     tempEntity.newRepository("rm1", "r1", "maven2");
 
     when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
         .thenThrow(new BadGatewayException("ERROR"));
 
-    ignoredRepositoryComponentMigrator.migrate();
+    ignoredRepositoryComponentMigrator.start();
 
-    assertThat(migrationTrackerDAO.getById(IgnoredRepositoryComponentMigrator.MIGRATION_ID)).isNull();
+    assertThat(migrationTrackerDAO.getById(IgnoredRepositoryComponentCleaner.MIGRATION_ID)).isNull();
   }
 }

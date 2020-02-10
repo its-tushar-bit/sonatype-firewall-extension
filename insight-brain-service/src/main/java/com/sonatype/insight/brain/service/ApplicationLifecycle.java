@@ -64,13 +64,14 @@ public class ApplicationLifecycle
 
   public void boot() throws Exception {
     auditServerLifecycle(AuditEvent.START_SERVER);
+
+    dataMigrator.migrate();
+
     licenseManager.loadLicense();
     // If a license is not installed and the config has a license file path, then try to install it from there.
     licenseManager.installLicenseIfUnlicensed(configuration.getLicenseFile());
 
     LicenseDataUpdater.setUpdater(licenseDataUpdater);
-
-    dataMigrator.migrate();
 
     // This call must come after the DataMigrator. Specifically, the RootOrganizationConfigMigrator as the sample data
     // will interfere with its decision to determine a fresh install and mistakenly trigger the root org migration.

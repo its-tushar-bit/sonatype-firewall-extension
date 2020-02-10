@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.migration;
+package com.sonatype.insight.brain.repository;
 
 import java.util.List;
 
@@ -13,21 +13,22 @@ import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.repository.RepositoryComponentDeleteService;
 
+import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // Motivation and related discussion: CLM-14021
 /**
- * This migrator deletes all repository components (together with related policy violations, policy violation waivers
+ * Deletes all repository components (together with related policy violations, policy violation waivers
  * and labels) that should have been ignored either by Repository Manager/Insight Brain Server.
  *
  * @since 1.80
  */
-public class IgnoredRepositoryComponentMigrator
+public class IgnoredRepositoryComponentCleaner
+    implements Managed
 {
-  private static final Logger log = LoggerFactory.getLogger(IgnoredRepositoryComponentMigrator.class);
+  private static final Logger log = LoggerFactory.getLogger(IgnoredRepositoryComponentCleaner.class);
 
   static final String MIGRATION_ID = "ignored-repository-components";
 
@@ -38,7 +39,7 @@ public class IgnoredRepositoryComponentMigrator
   private final MigrationTrackerDAO migrationTrackerDAO;
 
   @Inject
-  public IgnoredRepositoryComponentMigrator(
+  public IgnoredRepositoryComponentCleaner(
       RepositoryComponentDeleteService repositoryComponentDeleteService,
       RepositoryDAO repositoryDAO,
       MigrationTrackerDAO migrationTrackerDAO)
@@ -48,7 +49,8 @@ public class IgnoredRepositoryComponentMigrator
     this.migrationTrackerDAO = migrationTrackerDAO;
   }
 
-  public void migrate() {
+  @Override
+  public void start() {
     if (migrationTrackerDAO.isTrackerPresent(MIGRATION_ID)) {
       log.debug("Ignored repository components already deleted.");
       return;
@@ -66,5 +68,10 @@ public class IgnoredRepositoryComponentMigrator
     catch (RuntimeException e) {
       log.error("Failed to delete ignored repository components, will retry upon next server start", e);
     }
+  }
+
+  @Override
+  public void stop() {
+    // noop
   }
 }

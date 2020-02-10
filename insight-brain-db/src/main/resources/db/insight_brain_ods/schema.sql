@@ -618,7 +618,7 @@ INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-droo
 INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-json', 1);
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('ignored-repository-components');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('mail-config');
-INSERT INTO migration_tracker(migration_tracker_id) VALUES('proxy-configuration');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('proxy-server-configuration');
 
 -- Since 1.72.0
 CREATE TABLE saml_configuration (

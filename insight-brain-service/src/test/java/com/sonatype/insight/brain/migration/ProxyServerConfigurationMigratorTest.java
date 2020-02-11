@@ -253,4 +253,26 @@ public class ProxyServerConfigurationMigratorTest
     assertThat(logOutput).doesNotContain(ProxyServerConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
     verifyNoInteractions(proxyServerConfigurationListener);
   }
+
+  @Test
+  public void testMigrate_FirstRun_EmptyUsername_EmptyPassword() {
+    ProxyServerConfigurationMigrator.ProxyConfig fileConfig = new ProxyServerConfigurationMigrator.ProxyConfig();
+    fileConfig.setHostname("host");
+    fileConfig.setPort(12345);
+    fileConfig.setUsername("");
+    fileConfig.setPassword("".toCharArray());
+    insightConfig.setProxyConfig(fileConfig);
+
+    proxyServerConfigurationMigrator.migrate();
+
+    ProxyServerConfiguration dbConfig = proxyServerConfigurationDAO.get();
+    assertThat(dbConfig).isNotNull();
+    assertThat(dbConfig.getHostname()).isEqualTo("host");
+    assertThat(dbConfig.getPort()).isEqualTo(12345);
+    assertThat(dbConfig.getUsername()).isEqualTo("");
+    assertThat(String.valueOf(passwordHandler.decryptPassword(dbConfig.getPassword()))).isEqualTo("");
+    assertThat(dbConfig.getExcludeHosts()).isNull();
+
+    verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
+  }
 }

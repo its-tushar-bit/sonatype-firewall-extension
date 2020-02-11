@@ -198,4 +198,29 @@ public class MailConfigurationMigratorTest
 
     assertThat(logOutput).doesNotContain(MailConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
   }
+
+  @Test
+  public void testMigrate_FirstRun_CustomConfig_EmptyUsername_EmptyPassword() {
+    MailConfigurationMigrator.MailConfig fileConfig = new MailConfigurationMigrator.MailConfig();
+    fileConfig.setHostname("testhost");
+    fileConfig.setPort(12345);
+    fileConfig.setUsername("");
+    fileConfig.setPassword("".toCharArray());
+    fileConfig.setSystemEmail("system@email");
+    insightConfig.setMailConfig(fileConfig);
+
+    mailConfigurationMigrator.migrate();
+
+    MailConfiguration dbConfig = mailConfigurationDAO.get();
+    assertThat(dbConfig).isNotNull();
+    assertThat(dbConfig.getHostname()).isEqualTo(fileConfig.getHostname());
+    assertThat(dbConfig.getPort()).isEqualTo(fileConfig.getPort());
+    assertThat(dbConfig.getUsername()).isEqualTo("");
+    assertThat(String.valueOf(insightMail.decryptPassword(dbConfig.getPassword()))).isEqualTo("");
+    assertThat(dbConfig.isSslEnabled()).isFalse();
+    assertThat(dbConfig.isStartTlsEnabled()).isFalse();
+    assertThat(dbConfig.getSystemEmail()).isEqualTo("system@email");
+
+    assertThat(logOutput).atWarnLevel().contains(MailConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
+  }
 }

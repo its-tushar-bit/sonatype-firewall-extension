@@ -28,6 +28,13 @@ public class PasswordHandler
       return null;
     }
 
+    // PlexusCipher encrypts empty strings (i.e. "") to "{}".
+    // Unfortunately it fails to decrypt "{}" back to an empty string.
+    // We handle this special case here.
+    if ("{}".equals(String.valueOf(encryptedPassword))) {
+      return "".toCharArray();
+    }
+
     try {
       synchronized (cipher) {
         return cipher.decryptDecorated(String.valueOf(encryptedPassword), ENC).toCharArray();

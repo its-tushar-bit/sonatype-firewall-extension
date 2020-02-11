@@ -41,15 +41,18 @@ public class InsightFileLock
         lockFile.seek(0);
         lockFile.write(payload);
       }
+      else {
+        throw new IllegalStateException("Work directory " + file.getParent() + " is already in use.");
+      }
     }
     catch (Exception e) {
       log.error("Failed to write lock file {}", file, e);
       releaseLock();
+      throw new IllegalStateException("Work directory " + file.getParent() + " is already in use.", e);
     }
     finally {
       if (lock == null) {
         releaseLockFile();
-        throw new IllegalStateException("Work directory " + file.getParent() + " is already in use.");
       }
     }
   }

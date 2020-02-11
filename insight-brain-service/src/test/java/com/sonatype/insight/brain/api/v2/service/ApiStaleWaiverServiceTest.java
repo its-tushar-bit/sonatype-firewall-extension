@@ -47,7 +47,6 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
 
 import org.junit.Before;
@@ -77,9 +76,6 @@ public class ApiStaleWaiverServiceTest
   private ConstraintFact constraintFact2;
 
   private ComponentIdentifier componentIdentifier;
-
-  @Inject
-  private InsightConfig insightConfig;
 
   @Before
   public void setupData() {
@@ -237,8 +233,6 @@ public class ApiStaleWaiverServiceTest
 
   @Test
   public void testGetStaleWaivers_ApplicationWaivers() {
-    insightConfig.setEnableStaleEvaluations(true);
-
     Policy policy2 = tempEntity.newPolicy(org);
     Application app1 = tempEntity.newApplication("app1", org.getId());
     Application app2 = tempEntity.newApplication("app2", org.getId());
@@ -271,8 +265,6 @@ public class ApiStaleWaiverServiceTest
 
   @Test
   public void testGetStaleWaivers_ApplicationWithOrganizationWaivers() {
-    insightConfig.setEnableStaleEvaluations(true);
-
     Application app1 = tempEntity.newApplication("app1", org.getId());
     Organization org2 = tempEntity.newOrganization();
     Owner waiverOwnerOrg2 = org2;
@@ -305,8 +297,6 @@ public class ApiStaleWaiverServiceTest
 
   @Test
   public void testGetStaleWaivers_ApplicationWithRootOrganizationWaivers() {
-    insightConfig.setEnableStaleEvaluations(true);
-
     Owner waiverOwnerRootOrg = new OwnerDAO().getById(Organization.ROOT_ORGANIZATION_ID);
     Application app1InWaiverScope = tempEntity.newApplication("app1", org.getId());
     Application app2InWaiverScope = tempEntity.newApplication("app2", org.getId());
@@ -342,8 +332,6 @@ public class ApiStaleWaiverServiceTest
 
   @Test
   public void testGetStaleWaivers_ApplicationWaiversAndStaleEvaluations() {
-    insightConfig.setEnableStaleEvaluations(true);
-
     Application app1 = tempEntity.newApplication("app1", org.getId());
     Application app2 = tempEntity.newApplication("app2", org.getId());
     Application app3InWaiverScope = tempEntity.newApplication("app3", org.getId());
@@ -383,8 +371,6 @@ public class ApiStaleWaiverServiceTest
 
   @Test
   public void testGetStaleWaivers_ApplicationWithOrganizationWaiversAndStaleEvaluations() {
-    insightConfig.setEnableStaleEvaluations(true);
-
     Application app1 = tempEntity.newApplication("app1", org.getId());
     Organization org2 = tempEntity.newOrganization();
     Owner waiverOwnerOrg2 = org2;
@@ -430,8 +416,6 @@ public class ApiStaleWaiverServiceTest
 
   @Test
   public void testGetStaleWaivers_ApplicationWithRootOrganizationWaiversAndStaleEvaluations() {
-    insightConfig.setEnableStaleEvaluations(true);
-
     Owner waiverOwnerRootOrg = new OwnerDAO().getById(Organization.ROOT_ORGANIZATION_ID);
     Application app1InWaiverScope = tempEntity.newApplication("app1", org.getId());
     Organization org2 = tempEntity.newOrganization();
@@ -632,8 +616,6 @@ public class ApiStaleWaiverServiceTest
 
   @Test
   public void testGetStaleWaivers_StaleRepositoryEvaluationWithRepositoryScopedWaivers() {
-    insightConfig.setEnableStaleEvaluations(true);
-
     Date now = new Date();
     Date componentCreateTime = new Date(now.getTime() - 10);
     Date staleEvaluationTime = new Date(now.getTime() - 5);
@@ -675,8 +657,6 @@ public class ApiStaleWaiverServiceTest
 
   @Test
   public void testGetStaleWaivers_StaleRepositoryEvaluationsWithRootOrganizationScopedWaiver() {
-    insightConfig.setEnableStaleEvaluations(true);
-
     Date now = new Date();
     Date evaluationTime = new Date(now.getTime() - 5);
     Date componentCreateTime = new Date(now.getTime() - 10);
@@ -725,8 +705,6 @@ public class ApiStaleWaiverServiceTest
 
   @Test
   public void testGetStaleWaivers_StaleRepositoryEvaluationWithAllReposScopedWaiver() {
-    insightConfig.setEnableStaleEvaluations(true);
-
     Date now = new Date();
     Date staleEvaluationTime = new Date(now.getTime() - 5);
     Date evaluationTime = new Date(now.getTime() + 1);
@@ -765,8 +743,6 @@ public class ApiStaleWaiverServiceTest
 
   @Test
   public void testGetStaleWaivers_NoStaleRepositoryEvaluations() {
-    insightConfig.setEnableStaleEvaluations(true);
-
     Date now = new Date();
     Date waiverCreateTime = new Date(now.getTime() - 2);
     Date evaluationTime = new Date();
@@ -789,8 +765,6 @@ public class ApiStaleWaiverServiceTest
 
   @Test
   public void testGetStaleWaivers_NoStaleRepositoryEvaluationsWhenRepositoryAlwaysEmpty() {
-    insightConfig.setEnableStaleEvaluations(true);
-
     List<ConstraintFact> constraintFacts = Collections.singletonList(constraintFact1);
     Repository emptyRepo = tempEntity.newRepository("repo");
 
@@ -805,8 +779,6 @@ public class ApiStaleWaiverServiceTest
 
   @Test
   public void testGetStaleWaivers_NoStaleRepositoryEvaluationsWhenRepositoryNowEmpty() {
-    insightConfig.setEnableStaleEvaluations(true);
-
     Date now = new Date();
     Date staleEvaluationTime = new Date(now.getTime() - 5);
     Date componentCreateTime = new Date(now.getTime() - 10);
@@ -828,71 +800,6 @@ public class ApiStaleWaiverServiceTest
     List<ApiStaleWaiverDTO> staleRepositoryWaivers = apiStaleWaiverService.getStaleWaivers();
     assertThat(staleRepositoryWaivers).hasSize(1);
     assertThat(staleRepositoryWaivers.get(0).staleEvaluations).isNull();
-  }
-
-  @Test
-  public void testGetStaleWaivers_ApplicationWaiversWithStaleRepositoryEvaluationsDisabled() {
-    Application app1 = tempEntity.newApplication("app1", org.getId());
-    Application app2 = tempEntity.newApplication("app2", org.getId());
-    Application app3InWaiverScope = tempEntity.newApplication("app3", org.getId());
-    Owner waiverOwnerApp3 = app3InWaiverScope;
-
-    // unapplied waiver
-    PolicyWaiver unappliedAppWaiver = addUnappliedWaiver(policy, waiverOwnerApp3.getId());
-    Date staleEvalDate = new Date(0);
-    Date nonStaleEvalDate = unappliedAppWaiver.getCreateTime();
-
-    // stale evaluations out of scope - not at app3 waiver scope
-    tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "test scan app1 id (build)", staleEvalDate);
-    tempEntity.newPolicyEvaluation(app2.getId(), StageReleaseStageType.ID, "test scan app2 id (stage)", staleEvalDate);
-
-    // stale evaluations for app3 waiver
-    tempEntity.newPolicyEvaluation(app3InWaiverScope.getId(), ReleaseStageType.ID, "test scan app3 id (release)",
-        staleEvalDate);
-    tempEntity.newPolicyEvaluation(app3InWaiverScope.getId(), OperateStageType.ID, "test scan app3 id (operate)",
-        staleEvalDate);
-
-    // non-stale evaluation
-    tempEntity.newPolicyEvaluation(app3InWaiverScope.getId(), DevelopStageType.ID, "test scan app3 id (develop)",
-        nonStaleEvalDate);
-
-    List<ApiStaleWaiverDTO> staleWaivers = apiStaleWaiverService.getStaleWaivers();
-
-    assertThat(staleWaivers).hasSize(1);
-    ApiStaleWaiverDTO staleWaiver = staleWaivers.get(0);
-    assertThat(staleWaiver.staleEvaluations).isNull();
-  }
-
-  @Test
-  public void testGetStaleWaivers_RepositoryWaiversWithStaleRepositoryEvaluationsDisabled() {
-    Date now = new Date();
-    Date componentCreateTime = new Date(now.getTime() - 10);
-    Date staleEvaluationTime = new Date(now.getTime() - 5);
-    Date evaluationTime = new Date(now.getTime() + 1);
-
-    List<ConstraintFact> constraintFacts = Collections.singletonList(constraintFact1);
-    Repository repo1 = tempEntity.newRepository("repo1");
-    Repository repo2 = tempEntity.newRepository("repo2");
-    ComponentIdentifier componentIdentifier =
-        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version");
-
-    // stale waivers
-    tempEntity.newWaiver("hash", policy.getId(), repo1.getId(), constraintFacts, "waiver comment1", now);
-    tempEntity.newWaiver("hash", policy.getId(), repo2.getId(), constraintFacts, "waiver comment2", now);
-
-    // repo1 stale evaluation
-    tempEntity.newRepositoryComponent(repo1.getId(), "path", componentCreateTime, "hash", componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), staleEvaluationTime);
-
-    // repo2 non-stale evaluation
-    tempEntity.newRepositoryComponent(repo2.getId(), "path", componentCreateTime, "hash", componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), evaluationTime);
-
-    List<ApiStaleWaiverDTO> staleRepositoryWaivers = apiStaleWaiverService.getStaleWaivers();
-    assertThat(staleRepositoryWaivers).hasSize(2);
-    staleRepositoryWaivers.sort(Comparator.comparing(o -> o.comment));
-    assertThat(staleRepositoryWaivers.get(0).staleEvaluations).isNull();
-    assertThat(staleRepositoryWaivers.get(1).staleEvaluations).isNull();
   }
 
   @Test

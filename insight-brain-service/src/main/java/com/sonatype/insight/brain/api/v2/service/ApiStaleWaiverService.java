@@ -61,7 +61,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.Applica
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
 import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
-import com.sonatype.insight.brain.service.InsightConfig;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toSet;
@@ -99,8 +98,6 @@ public class ApiStaleWaiverService
 
   private final ApplicationDAO applicationDAO;
 
-  private final InsightConfig insightConfig;
-
   @Inject
   public ApiStaleWaiverService(OwnerDAO ownerDAO,
       PolicyDAO policyDAO,
@@ -112,8 +109,7 @@ public class ApiStaleWaiverService
       ApplicationService applicationService,
       PolicyViolationLoader policyViolationLoader,
       RepositoryComponentDAO repositoryComponentDAO,
-      ApplicationDAO applicationDAO,
-      InsightConfig insightConfig)
+      ApplicationDAO applicationDAO)
   {
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
@@ -126,7 +122,6 @@ public class ApiStaleWaiverService
     this.policyViolationLoader = policyViolationLoader;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.applicationDAO = applicationDAO;
-    this.insightConfig = insightConfig;
   }
 
   public List<ApiStaleWaiverDTO> getStaleWaivers() {
@@ -393,22 +388,20 @@ public class ApiStaleWaiverService
     staleWaiverDTO.scopeOwnerName = owner.getName();
     staleWaiverDTO.scopeOwnerType = ScopeOwnerUtils.getScopeOwnerType(owner.getType(), owner.getId());
 
-    if (insightConfig.isEnableStaleEvaluations()) {
-      List<ApiStaleApplicationEvaluationDTO> staleApplicationEvaluations =
-          getStaleApplicationEvaluations(policyWaiver, lastEvaluationByApplicationId, lastEvaluations, allApplications,
-              authorizedApplicationIds, owner);
+    List<ApiStaleApplicationEvaluationDTO> staleApplicationEvaluations =
+        getStaleApplicationEvaluations(policyWaiver, lastEvaluationByApplicationId, lastEvaluations, allApplications,
+            authorizedApplicationIds, owner);
 
-      List<ApiStaleRepositoryEvaluationDTO> staleRepoEvaluations =
-          getStaleRepositoryEvaluations(policyWaiver, oldestEvalTimesByRepoId, owner, authorizedReposMap);
+    List<ApiStaleRepositoryEvaluationDTO> staleRepoEvaluations =
+        getStaleRepositoryEvaluations(policyWaiver, oldestEvalTimesByRepoId, owner, authorizedReposMap);
 
-      if (staleApplicationEvaluations.size() > 0 || staleRepoEvaluations.size() > 0) {
-        staleWaiverDTO.staleEvaluations = new ApiStaleEvaluationsDTO();
-        if (staleApplicationEvaluations.size() > 0) {
-          staleWaiverDTO.staleEvaluations.applications = staleApplicationEvaluations;
-        }
-        if (staleRepoEvaluations.size() > 0) {
-          staleWaiverDTO.staleEvaluations.repositories = staleRepoEvaluations;
-        }
+    if (staleApplicationEvaluations.size() > 0 || staleRepoEvaluations.size() > 0) {
+      staleWaiverDTO.staleEvaluations = new ApiStaleEvaluationsDTO();
+      if (staleApplicationEvaluations.size() > 0) {
+        staleWaiverDTO.staleEvaluations.applications = staleApplicationEvaluations;
+      }
+      if (staleRepoEvaluations.size() > 0) {
+        staleWaiverDTO.staleEvaluations.repositories = staleRepoEvaluations;
       }
     }
 

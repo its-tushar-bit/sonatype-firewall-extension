@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 
 import org.junit.Test;
 
@@ -41,9 +40,6 @@ public class ApiStaleWaiverServiceAuthzTest
 {
   @Inject
   private ApiStaleWaiverService apiStaleWaiverService;
-
-  @Inject
-  private InsightConfig insightConfig;
 
   @Test
   public void testGetStaleWaivers_StaleRepositoryWaiversUnauthenticated() {
@@ -189,8 +185,6 @@ public class ApiStaleWaiverServiceAuthzTest
 
   @Test
   public void testGetStaleWaivers_DoesNotReturnStaleEvaluationInUnreadableApps() {
-    insightConfig.setEnableStaleEvaluations(true);
-
     Date waiverCreateDate = new Date();
     Date staleEvalDate = new Date(waiverCreateDate.getTime() - 5);
 
@@ -229,8 +223,6 @@ public class ApiStaleWaiverServiceAuthzTest
 
   @Test
   public void testGetStaleWaivers_DoesNotReturnStaleEvaluationInUnreadableRepos() {
-    insightConfig.setEnableStaleEvaluations(true);
-
     Date waiverCreateDate = new Date();
     Date staleEvalDate = new Date(waiverCreateDate.getTime() - 5);
     Date componentCreateDate = new Date(waiverCreateDate.getTime() - 10);

@@ -86,6 +86,7 @@
   </persistence-unit>
   <persistence-unit name="InsightBrainDM" transaction-type="RESOURCE_LOCAL">
     <provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
+    <class>com.sonatype.insight.brain.model.component.ComponentCategory</class>
     <class>com.sonatype.insight.brain.model.license.License</class>
     <class>com.sonatype.insight.brain.model.license.MultiLicense</class>
     <class>com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal</class>

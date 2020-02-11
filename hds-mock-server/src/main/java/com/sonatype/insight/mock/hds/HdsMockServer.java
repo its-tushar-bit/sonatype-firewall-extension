@@ -316,6 +316,10 @@ public class HdsMockServer
           consume(baseRequest);
           sendJson(response, "{\"regexpsByRepositoryFormat\":{}}");
         }
+        else if (uri.equals("/rest/componentCategories") && "GET".equals(request.getMethod())) {
+          consume(baseRequest);
+          sendJson(response, "{\"componentCategories\": []}");
+        }
       }
       catch (RequestException e) {
         consume(baseRequest);

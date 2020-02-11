@@ -13,6 +13,8 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.dataaccess.AbstractComponentCategoryUpdater;
+import com.sonatype.insight.brain.hds.ComponentCategoryUpdater;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.migration.DataMigrator;
@@ -44,14 +46,18 @@ public class ApplicationLifecycle
 
   private final AuditRecorder auditRecorder;
 
+  private final ComponentCategoryUpdater componentCategoryUpdater;
+
   @Inject
-  public ApplicationLifecycle(InsightConfig configuration,
-                              CLMLicenseManager licenseManager,
-                              DataMigrator dataMigrator,
-                              NewInstancePopulator newInstancePopulator,
-                              DefaultLicenseDataUpdater licenseDataUpdater,
-                              VersionService versionService,
-                              AuditRecorder auditRecorder)
+  public ApplicationLifecycle(
+      InsightConfig configuration,
+      CLMLicenseManager licenseManager,
+      DataMigrator dataMigrator,
+      NewInstancePopulator newInstancePopulator,
+      DefaultLicenseDataUpdater licenseDataUpdater,
+      VersionService versionService,
+      AuditRecorder auditRecorder,
+      ComponentCategoryUpdater componentCategoryUpdater)
   {
     this.configuration = configuration;
     this.licenseManager = licenseManager;
@@ -60,6 +66,7 @@ public class ApplicationLifecycle
     this.licenseDataUpdater = licenseDataUpdater;
     this.versionService = versionService;
     this.auditRecorder = auditRecorder;
+    this.componentCategoryUpdater = componentCategoryUpdater;
   }
 
   public void boot() throws Exception {
@@ -86,6 +93,20 @@ public class ApplicationLifecycle
         }
         catch (Exception e) {
           log.info("Failed to retrieve license data from Sonatype HDS", log.isDebugEnabled() ? e : null);
+        }
+      }
+    }.start();
+
+    AbstractComponentCategoryUpdater.setUpdater(componentCategoryUpdater);
+    new Thread("Startup component category updater")
+    {
+      @Override
+      public void run() {
+        try {
+          AbstractComponentCategoryUpdater.update();
+        }
+        catch (Exception e) {
+          log.info("Failed to retrieve component categories from Sonatype HDS", log.isDebugEnabled() ? e : null);
         }
       }
     }.start();

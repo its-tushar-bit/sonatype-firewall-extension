@@ -4,6 +4,13 @@ CREATE TABLE test_table (
   name varchar(50) NOT NULL
 );
 
+CREATE TABLE component_category (
+  component_category_id varchar(1000) NOT NULL,
+  path varchar(1000) NOT NULL,
+  CONSTRAINT component_category_pk PRIMARY KEY (component_category_id),
+  CONSTRAINT component_category_path_uk UNIQUE (path)
+);
+
 CREATE TABLE license (
   license_id varchar(1000) NOT NULL,
   shortDisplayName varchar(1000) NOT NULL,

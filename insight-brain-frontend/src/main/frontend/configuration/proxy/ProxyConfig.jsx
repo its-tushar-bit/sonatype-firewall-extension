@@ -115,6 +115,15 @@ export default function ProxyConfig(props) {
   const tooltipText = !hasAllRequiredData || !isValid ? 'Hostname and Port are required details.'
     : 'Password must be provided when updating Hostname or Port.';
 
+  const saveButton =
+    <NxButton type="submit"
+              className={classnames({ disabled: !isSubmitEnabled })}
+              id="proxy-config-save"
+              variant="primary">
+      Save
+    </NxButton>;
+
+  const isTooltipHidden = !isDirty || isSubmitEnabled;
   const form = (
     <form className="nx-form" onSubmit={onSubmit}>
       {/* Input Fields */}
@@ -153,14 +162,11 @@ export default function ProxyConfig(props) {
       {/* Buttons */}
       <div className="iq-tile-footer">
         <div className="nx-btn-bar">
-          <NxTooltip title={!isDirty || isSubmitEnabled ? '' : tooltipText}>
-            <NxButton type="submit"
-                      className={classnames({ disabled: !isSubmitEnabled })}
-                      id="proxy-config-save"
-                      variant="primary">
-              Save
-            </NxButton>
+          {isTooltipHidden ? saveButton :
+          <NxTooltip id="save-button-tooltip" title={tooltipText}>
+            {saveButton}
           </NxTooltip>
+          }
           <NxButton type="button"
                     id="proxy-config-cancel"
                     onClick={resetForm}

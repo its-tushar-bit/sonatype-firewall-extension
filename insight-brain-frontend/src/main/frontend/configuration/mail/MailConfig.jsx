@@ -153,6 +153,23 @@ export default function MailConfig(props) {
     return hasAllRequiredData && isValid && testEmailState.trimmedValue && !mustReenterPassword;
   }
 
+  const sendTestEmailButton =
+    <NxButton type="button"
+              id="email-config-test-email-send"
+              onClick={sendTestEmailOnClickHandler}
+              className={classnames({disabled: !isSendTestEmailEnabled()})}>
+      Send Test Email
+    </NxButton>;
+
+  const saveButton =
+    <NxButton type="submit"
+              className={classnames({ disabled: !isSubmitEnabled })}
+              id="email-config-save"
+              variant="primary">
+      Save
+    </NxButton>;
+
+  const isSaveTooltipHidden = !isDirty || isSubmitEnabled;
   const form = (
     <form className="nx-form" onSubmit={onSubmit}>
       {/* Input Fields */}
@@ -200,15 +217,9 @@ export default function MailConfig(props) {
           </label>
         </div>
         <div className="nx-form-group">
-          <NxTooltip
-              title={sendTestEmailTooltipText}>
-            <NxButton type="button"
-                      id="email-config-test-email-send"
-                      onClick={sendTestEmailOnClickHandler}
-                      className={classnames({disabled: !isSendTestEmailEnabled()})}>
-              Send Test Email
-            </NxButton>
-          </NxTooltip>
+          {sendTestEmailTooltipText ?
+            <NxTooltip title={sendTestEmailTooltipText}>{sendTestEmailButton}</NxTooltip> : sendTestEmailButton
+          }
         </div>
       </div>
 
@@ -219,14 +230,7 @@ export default function MailConfig(props) {
       {/* Buttons */}
       <div className='iq-tile-footer'>
         <div className="nx-btn-bar">
-          <NxTooltip title={!isDirty || isSubmitEnabled ? '' : saveButtonTooltipText}>
-            <NxButton type="submit"
-                      className={classnames({ disabled: !isSubmitEnabled })}
-                      id="email-config-save"
-                      variant="primary">
-              Save
-            </NxButton>
-          </NxTooltip>
+          {isSaveTooltipHidden ? saveButton : <NxTooltip title={saveButtonTooltipText}>{saveButton}</NxTooltip>}
           <NxButton type="button"
                     id="email-config-cancel"
                     onClick={resetForm}

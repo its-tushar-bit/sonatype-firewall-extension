@@ -1126,7 +1126,7 @@
             <dependency>
               <groupId>com.sonatype</groupId>
               <artifactId>pmd-ruleset</artifactId>
-              <version>3</version>
+              <version>13</version>
             </dependency>
           </dependencies>
         </plugin>

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.thirdparty;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -213,9 +212,10 @@ public class ThirdPartyScanResultsProcessor
     thirdPartyScanDAO.insert(thirdPartyScan);
   }
 
-  private void compressScanFile(File filteredFile, File scanFile) throws FileNotFoundException, IOException {
-    try (GzipCompressorOutputStream outStream = new GzipCompressorOutputStream(new FileOutputStream(scanFile))) {
-      IOUtils.copy(new FileInputStream(filteredFile), outStream);
+  private void compressScanFile(File filteredFile, File scanFile) throws IOException {
+    try (FileInputStream inputStream = new FileInputStream(filteredFile);
+         GzipCompressorOutputStream outStream = new GzipCompressorOutputStream(new FileOutputStream(scanFile))) {
+      IOUtils.copy(inputStream, outStream);
     }
   }
 

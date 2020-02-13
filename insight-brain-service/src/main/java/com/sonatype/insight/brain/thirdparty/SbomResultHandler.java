@@ -55,6 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedAttackVector;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedIdentificationSource;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedLink;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedRatingMethod;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedRefId;
@@ -105,7 +106,7 @@ public class SbomResultHandler
     Stack<String> elementNameStack = new Stack<>();
     XmlPullParser parser = ThirdPartyUtils.getXmlParser(new StringReader(content.getContent()));
 
-    String identificationSource = determineIdentificationSource(content.getPath());
+    String identificationSource = getTruncatedIdentificationSource(determineIdentificationSource(content.getPath()));
     try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
       tx.begin();
       int eventType = parser.getEventType();

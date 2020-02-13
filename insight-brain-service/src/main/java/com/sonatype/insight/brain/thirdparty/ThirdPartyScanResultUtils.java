@@ -34,6 +34,8 @@ public class ThirdPartyScanResultUtils
 
   public static final int REFID_MAX_LENGTH = 20;
 
+  public static final int IDENTIFICATION_SOURCE_MAX_LENGTH = 20;
+
   private static final Pattern VULNERABILITY_REF_SOURCE_PATTERN = Pattern.compile("^([a-zA-Z]*)-?(.*)$");
 
   /**
@@ -62,7 +64,7 @@ public class ThirdPartyScanResultUtils
     final String sha1 = HashUtils.hash(plainText, HashUtils.SHA1);
     return sha1.substring(0, Math.min(sha1.length(), 20));
   }
-  
+ 
   public static String getValidFormat(String format) {
     String newFormat = StringUtils.truncate(format, FORMAT_MAX_LENGTH);
     return newFormat.replace(':', '-');
@@ -102,5 +104,9 @@ public class ThirdPartyScanResultUtils
 
   public static String getTruncatedRefId(String refId) {
     return StringUtils.truncate(refId, REFID_MAX_LENGTH);
+  }
+
+  public static String getTruncatedIdentificationSource(String identificationSource) {
+    return StringUtils.truncate(identificationSource, IDENTIFICATION_SOURCE_MAX_LENGTH);
   }
 }

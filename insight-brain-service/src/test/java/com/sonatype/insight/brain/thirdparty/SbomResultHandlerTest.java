@@ -29,6 +29,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.test.LogOutput;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.pull.MXParser;
 import org.codehaus.plexus.util.xml.pull.XmlPullParser;
@@ -52,6 +53,7 @@ import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.RE
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.SEVERITY_DESCRIPTION_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VERSION_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VULNERABILITY_SOURCE_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.IDENTIFICATION_SOURCE_MAX_LENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -92,6 +94,22 @@ public class SbomResultHandlerTest
     assertThat(coordinates).allSatisfy(coord -> {
       assertThat(coord.getSource()).isEqualTo("clair");
     });
+  }
+
+  @Test
+  public void testHandleAndFilterContents_veryLongIdentificationSource() throws Exception {
+    String sbomContent = getSbomFile("sbom-multiple-components.xml");
+    String identificationSource = "identification-source-very-long";
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent(identificationSource + "-bom.xml", null, null, null,
+            sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).allSatisfy(coord -> assertThat(coord.getSource())
+        .isEqualTo(StringUtils.truncate(identificationSource, IDENTIFICATION_SOURCE_MAX_LENGTH)));
   }
 
   @Test

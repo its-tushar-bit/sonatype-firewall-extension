@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
@@ -74,6 +76,7 @@ import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
+import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -156,6 +159,21 @@ public class ReportResourceTest
     // make sure index.html always returns 200, no 304s here
     response = request.subpath("index.html").header("If-Modified-Since", ifModifiedSinceHeader).get();
     assertResponseStatus(200, response);
+  }
+
+  @Test
+  public void testBrowseSecurityReport() throws Exception {
+    assertSecurityReport("security", 2);
+  }
+
+  @Test
+  public void testBrowseSecurity_And_ThirdParty_Report() throws Exception {
+    assertSecurityReport("security-thirdparty", 3);
+  }
+
+  @Test
+  public void testBrowseSecurity_ThirdParty_Report() throws Exception {
+    assertSecurityReport("security-only-thirdparty", 1);
   }
 
   @Test
@@ -951,4 +969,19 @@ public class ReportResourceTest
     }
     return countNotZero;
   }
+
+  private void assertSecurityReport(String dirName, int vulnerabilitiesSize) throws Exception {
+    final String scanId = "ReportResourceTest_ScanId";
+    createReportFile(app.getId(), scanId, "/ReportResourceTest/" + dirName);
+    HttpResponse response =
+        restRequest(app.getPublicId(), scanId).path(BROWSE_PATH, Report.SECURITY_JSON_FILENAME).get();
+    assertResponseStatus(200, response);
+
+    File temp = tempDir.newFile();
+    Files.write(temp.toPath(), response.getBodyBytes());
+    InputStream targetStream = new FileInputStream(temp);
+    JsonNode jsonNode = JsonUtils.parse(targetStream, JsonNode.class);
+    assertThat(jsonNode.withArray("aaData").size()).isEqualTo(vulnerabilitiesSize);
+  }
 }
+

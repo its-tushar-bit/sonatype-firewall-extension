@@ -1,0 +1,45 @@
+{
+  "aaData" : [ {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.5.23",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "hash" : "1249e25aebb15358bedd",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-3385",
+    "reference" : "CVE-2007-3385",
+    "source" : "cve",
+    "score" : 4.3,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.5.23",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "hash" : "1249e25aebb15358bedd",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-5333",
+    "reference" : "CVE-2007-5333",
+    "source" : "cve",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }]
+}

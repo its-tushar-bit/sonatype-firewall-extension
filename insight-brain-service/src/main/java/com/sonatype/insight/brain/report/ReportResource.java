@@ -73,6 +73,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -81,6 +82,7 @@ import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
@@ -224,6 +226,9 @@ public class ReportResource
     ReportEntry reportEntry = null;
     try {
       reportEntry = Report.getEntry(reportFile, name);
+      if (Report.SECURITY_JSON_FILENAME.equals(name)) {
+        reportEntry = loadCombinedSecurityData(reportEntry, reportFile);
+      }
     }
     catch (final Exception e) {
       log.warn("Problem embedding report: " + e.getMessage(), e);
@@ -263,6 +268,21 @@ public class ReportResource
       return response.build();
     }
     return Response.status(Status.NOT_FOUND).build();
+  }
+
+  private ReportEntry loadCombinedSecurityData(ReportEntry reportEntry, File reportFile) throws IOException {
+    ReportEntry thirdPartyReportEntry =
+        Report.getEntry(reportFile, ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME);
+    if (reportEntry != null && thirdPartyReportEntry != null) {
+      ContainerNode<?> thirdPartySecurityNode = JsonUtils.parse(thirdPartyReportEntry.buf);
+      ContainerNode<?> securityNode = JsonUtils.parse(reportEntry.buf);
+      ArrayNode thirdPartySecurityRootNode = (ArrayNode) thirdPartySecurityNode.get("aaData");
+      ArrayNode securityRootNode = (ArrayNode) securityNode.get("aaData");
+      securityRootNode.addAll(thirdPartySecurityRootNode);
+
+      return new ReportEntry(Report.SECURITY_JSON_FILENAME, reportEntry.time, JsonUtils.generate(securityNode));
+    }
+    return reportEntry;
   }
 
   private void auditBrowseReport(final String scanId, final String name) {

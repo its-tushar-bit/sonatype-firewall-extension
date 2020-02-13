@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
@@ -31,6 +32,10 @@ public class ProxyConfigurationPage
     public SelenideElement cancel() {
       return child("#proxy-config-delete-cancel");
     }
+  }
+
+  public Tooltip saveTooltip() {
+    return new Tooltip("#save-button-tooltip");
   }
 
   public DeleteModal deleteModal() {

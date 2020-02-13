@@ -316,7 +316,7 @@ public class ProxyConfigurationPageTest
     proxyConfigurationPage.port().setValue("nineteen-eighty-four");
 
     proxyConfigurationPage.save().hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("Hostname and Port are required details."));
+    proxyConfigurationPage.saveTooltip().shouldBe(visible).shouldBe(text("Hostname and Port are required details."));
   }
 
   private void assertNoProxyServerConfigured() {

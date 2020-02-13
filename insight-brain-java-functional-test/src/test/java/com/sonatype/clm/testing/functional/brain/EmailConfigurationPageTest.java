@@ -320,7 +320,11 @@ public class EmailConfigurationPageTest
     // Form is said to be dirty if I make any change in any field.
     // Cancel button must be active for a dirty form, and clicking it must bring the form back to its original state
     dirtyBehaviourTextInput(emailConfigurationPage.hostName());
-    dirtyBehaviourTextInput(emailConfigurationPage.port());
+
+    emailConfigurationPage.port().setValue("1234");
+    assertButtonsAndTooltipMessageAndClickCancel();
+    emailConfigurationPage.port().shouldBe(value(""));
+
     dirtyBehaviourTextInput(emailConfigurationPage.username());
     dirtyBehaviourTextInput(emailConfigurationPage.password());
     dirtyBehaviourTextInput(emailConfigurationPage.systemEmail());

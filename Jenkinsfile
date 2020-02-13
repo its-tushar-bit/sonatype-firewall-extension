@@ -12,6 +12,7 @@ make(
     mavenOptions: '-D skipTests -D skip-functional-test',
     downstreamJobName: 'extra-tests',
     artifactsForDownstream: '.zion/repository/com/sonatype/insight/brain/**',
+    runFeatureBranchPolicyEvaluations: true,
     iqPolicyEvaluation: { stage ->
       nexusPolicyEvaluation iqStage: stage, iqApplication: 'CLM-server',
           iqScanPatterns: [[scanPattern: 'scan_nothing']],

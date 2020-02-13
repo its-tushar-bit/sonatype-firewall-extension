@@ -19,14 +19,20 @@ public class ConditionTypesTest
   public void testGetAll() {
     Collection<ConditionType> allConditionTypes = ConditionTypes.getAll();
 
-    assertThat(allConditionTypes).hasSize(14);
+    assertThat(allConditionTypes).hasSize(15);
     assertThat(allConditionTypes).extracting(ConditionType::getId)
-        .doesNotContain(DeprecatedSecurityVulnerabilityConditionType.ID);
+        .doesNotContain(DeprecatedSecurityVulnerabilityConditionType.ID, HygieneRatingConditionType.ID);
   }
 
   @Test
   public void testGetById_DeprecatedSecurityVulnerabilityConditionType() {
     assertThat(ConditionTypes.getById(DeprecatedSecurityVulnerabilityConditionType.ID))
         .isEqualTo(ConditionTypes.DeprecatedSecurityVulnerabilityConditionType);
+  }
+
+  @Test
+  public void testGetById_LicensedConditionTypes() {
+    assertThat(ConditionTypes.getById(HygieneRatingConditionType.ID))
+        .isEqualTo(ConditionTypes.HygieneRatingConditionType);
   }
 }

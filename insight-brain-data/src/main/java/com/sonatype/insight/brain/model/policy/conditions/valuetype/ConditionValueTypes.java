@@ -16,9 +16,11 @@ public class ConditionValueTypes
   public static Collection<ConditionValueType<?>> getAll(String ownerId) {
     List<ConditionValueType<?>> allConditionValueTypes = new ArrayList<>();
     allConditionValueTypes.add(new AgeInDaysValueType());
+    allConditionValueTypes.add(new ComponentCategoryValueType());
     allConditionValueTypes.add(new CoordinatesValueType());
     allConditionValueTypes.add(new PackageUrlValueType());
     allConditionValueTypes.add(new FloatValueType());
+    allConditionValueTypes.add(new HygieneRatingValueType());
     allConditionValueTypes.add(new IntegerValueType());
     allConditionValueTypes.add(new IdentificationSourceValueType());
     allConditionValueTypes.add(new LabelValueType(ownerId));

@@ -63,6 +63,10 @@ public class Component
 
   private List<String> pathnames = new ArrayList<>();
 
+  private List<ComponentCategory> componentCategories = new ArrayList<>();
+
+  private HygieneRating hygieneRating;
+
   private ComponentIdentifier componentIdentifier;
 
   public Component() {
@@ -329,5 +333,21 @@ public class Component
   @JsonIgnore
   public Set<String> getLicenseIdsInLicenseThreatGroup(String licenseThreatGroupId) {
     return licenseIdsByThreatGroupId.getOrDefault(licenseThreatGroupId, Collections.emptySet());
+  }
+
+  public List<ComponentCategory> getComponentCategories() {
+    return componentCategories;
+  }
+
+  public void addComponentCategory(ComponentCategory componentCategory) {
+    componentCategories.add(componentCategory);
+  }
+
+  public HygieneRating getHygieneRating() {
+    return hygieneRating;
+  }
+
+  public void setHygieneRating(final HygieneRating hygieneRating) {
+    this.hygieneRating = hygieneRating;
   }
 }

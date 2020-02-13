@@ -58,8 +58,10 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ComponentCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
@@ -1705,27 +1707,35 @@ public class ScanPolicyEvaluatorTest
     Condition securityVulnerabilityStatusCondition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is",
         "ACKNOWLEDGED");
     Condition packageUrlCondition = new Condition(PackageUrlConditionType.ID, "matches", "pkg:maven/*/*@*");
+    Condition componentCategoryCondition = new Condition(ComponentCategoryConditionType.ID, "is not", "113");
+    Condition hygieneCondition = new Condition(HygieneRatingConditionType.ID, "is not", "1");
     List<Condition> conditions = Arrays.asList(ageCondition, coordinatesCondition, identificationSourceCondition,
         labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,
         licenseThreatGroupLevelCondition, matchStateCondition, proprietaryCondition, relativePopularityCondition,
-        securityVulnerabilitySeverityCondition, securityVulnerabilityStatusCondition, packageUrlCondition);
+        securityVulnerabilitySeverityCondition, securityVulnerabilityStatusCondition, packageUrlCondition,
+        componentCategoryCondition, hygieneCondition);
+    ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
+    try {
+      Set<String> expectedConditionTypeIds = ConditionTypes.getAll().stream().map(ConditionType::getId)
+          .collect(Collectors.toSet());
+      assertThat(conditions.stream().map(Condition::getConditionTypeId).collect(toSet()))
+          .isEqualTo(expectedConditionTypeIds);
 
-    Set<String> expectedConditionTypeIds = ConditionTypes.getAll().stream().map(ConditionType::getId)
-        .collect(Collectors.toSet());
-    assertThat(conditions.stream().map(Condition::getConditionTypeId).collect(toSet()))
-        .isEqualTo(expectedConditionTypeIds);
+      Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.OR);
+      constraint.setConditions(conditions);
 
-    Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.OR);
-    constraint.setConditions(conditions);
+      tempEntity.newPolicy("policyName", constraint);
 
-    tempEntity.newPolicy("policyName", constraint);
+      ScanPolicyEvaluatorResults results = scanPolicyEvaluator
+          .evaluate(application, simulateReportIsAvailable("LogPolicyViolationPolicyConditionTriggers"),
+              new Stage(Stage.ID_BUILD));
 
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator
-        .evaluate(application, simulateReportIsAvailable("LogPolicyViolationPolicyConditionTriggers"),
-            new Stage(Stage.ID_BUILD));
-
-    assertThat(results.allViolations).hasSize(conditions.size());
-    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
+      assertThat(results.allViolations).hasSize(conditions.size());
+      assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
+    }
+    finally {
+      ConditionTypes.disableConditionType(ConditionTypes.HygieneRatingConditionType);
+    }
   }
 
   @Test

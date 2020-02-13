@@ -23,6 +23,7 @@
     "createTime" : 1453427378000,
     "lastModifiedTime" : 1549542000000,
     "lastModifiedEntryTime" : 1187431150000,
-    "website" : null
+    "website" : null,
+    "hygieneRating" : { "id" : "4", "label" : "Laggard"}
   } ]
 }

@@ -462,6 +462,10 @@ public class CLMLicenseManager
       features.add(LicensedFeature.EXTERNAL_DATABASE);
     }
 
+    if (licenseDetails.features.contains(LicensedFeature.HYGIENE.name())) {
+      features.add(LicensedFeature.HYGIENE);
+    }
+
     productLicense.set(key, licenseFingerprint, products, features, stageTypes, applicationCount,
         maxUsers, maxFirewallUsers);
     notifyListeners();

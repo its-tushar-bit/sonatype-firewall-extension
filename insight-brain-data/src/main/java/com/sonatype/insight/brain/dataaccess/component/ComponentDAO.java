@@ -25,6 +25,8 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerability
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.ComponentCategory;
+import com.sonatype.insight.brain.model.component.HygieneRating;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
@@ -118,6 +120,26 @@ public class ComponentDAO
 
             component.setRelativePopularity(relativePopularity);
             component.setCatalogDate(catalogDate);
+          }
+
+          JsonNode componentCategoriesNode = componentJson.get("componentCategories");
+          if (componentCategoriesNode != null) {
+            for (JsonNode componentCategory : componentCategoriesNode) {
+              JsonNode idNode = componentCategory.get("componentCategoryId");
+              JsonNode pathNode = componentCategory.get("path");
+              if (idNode != null && pathNode != null) {
+                component.addComponentCategory(new ComponentCategory(idNode.asText(), pathNode.asText()));
+              }
+            }
+          }
+
+          JsonNode hygieneRatingNode = componentJson.get("hygieneRating");
+          if (hygieneRatingNode != null) {
+            JsonNode idNode = hygieneRatingNode.get("id");
+            JsonNode labelNode = hygieneRatingNode.get("label");
+            if (idNode != null && labelNode != null) {
+              component.setHygieneRating(new HygieneRating(idNode.asText(), labelNode.asText()));
+            }
           }
 
           components.add(component);

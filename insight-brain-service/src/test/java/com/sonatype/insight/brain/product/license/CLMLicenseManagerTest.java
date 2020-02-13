@@ -601,6 +601,18 @@ public class CLMLicenseManagerTest
     assertThat(migrationTrackerDAO.isTrackerPresent(CLMLicenseManager.MIGRATION_TRACKER_EXTERNAL_DB)).isFalse();
   }
 
+  @Test
+  public void testInstallLicense_HygieneFeatureFromHds() throws Exception {
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).doesNotContain(LicensedFeature.HYGIENE);
+
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.HYGIENE));
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.HYGIENE);
+  }
+
+  @Test
   public void testNotifyListener_LoadLicense() throws Exception {
     ProductLicenseListener listener = mock(ProductLicenseListener.class);
     clmLicenseManager.addListener(listener);

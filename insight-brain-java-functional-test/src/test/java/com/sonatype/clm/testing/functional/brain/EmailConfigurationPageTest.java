@@ -18,6 +18,7 @@ import javax.mail.Session;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NxCheckbox;
+import com.sonatype.clm.testing.functional.elements.ReactTextInput;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.EmailConfigurationPage;
@@ -26,7 +27,6 @@ import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.InsightMail;
 
-import com.codeborne.selenide.SelenideElement;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -527,10 +527,10 @@ public class EmailConfigurationPageTest
     }
   }
 
-  private void dirtyBehaviourTextInput(SelenideElement element) {
-    element.setValue("koray-was-here");
+  private void dirtyBehaviourTextInput(ReactTextInput reactTextInput) {
+    reactTextInput.setValue("koray-was-here");
     assertButtonsAndTooltipMessageAndClickCancel();
-    element.shouldBe(value(""));
+    reactTextInput.shouldBe(value(""));
   }
 
   private void dirtyBehaviourCheckBox(NxCheckbox checkbox) {

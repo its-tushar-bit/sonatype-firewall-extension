@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.NxCheckbox;
+import com.sonatype.clm.testing.functional.elements.ReactTextInput;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
@@ -46,28 +47,28 @@ public class EmailConfigurationPage
     return BaseUrl.resolvePageUrl("/mailConfig");
   }
 
-  public SelenideElement hostName() {
-    return child("#email-config-hostname");
+  public ReactTextInput hostName() {
+    return new ReactTextInput(child("#email-config-hostname"));
   }
 
-  public SelenideElement port() {
-    return child("#email-config-port");
+  public ReactTextInput port() {
+    return new ReactTextInput(child("#email-config-port"));
   }
 
-  public SelenideElement username() {
-    return child("#email-config-username");
+  public ReactTextInput username() {
+    return new ReactTextInput(child("#email-config-username"));
   }
 
-  public SelenideElement password() {
-    return child("#email-config-password");
+  public ReactTextInput password() {
+    return new ReactTextInput(child("#email-config-password"));
   }
 
-  public SelenideElement systemEmail() {
-    return child("#email-config-systemEmail");
+  public ReactTextInput systemEmail() {
+    return new ReactTextInput(child("#email-config-systemEmail"));
   }
 
-  public SelenideElement testEmailRecipient() {
-    return child("#email-config-test-email-recipient");
+  public ReactTextInput testEmailRecipient() {
+    return new ReactTextInput(child("#email-config-test-email-recipient"));
   }
 
   public SelenideElement testEmailSend() {

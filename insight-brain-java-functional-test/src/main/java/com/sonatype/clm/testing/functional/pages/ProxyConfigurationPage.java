@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.ReactTextInput;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -50,24 +51,24 @@ public class ProxyConfigurationPage
     return BaseUrl.resolvePageUrl("/proxyConfig");
   }
 
-  public SelenideElement hostName() {
-    return child("#proxy-config-hostname");
+  public ReactTextInput hostName() {
+    return new ReactTextInput(child("#proxy-config-hostname"));
   }
 
-  public SelenideElement port() {
-    return child("#proxy-config-port");
+  public ReactTextInput port() {
+    return new ReactTextInput(child("#proxy-config-port"));
   }
 
-  public SelenideElement username() {
-    return child("#proxy-config-username");
+  public ReactTextInput username() {
+    return new ReactTextInput(child("#proxy-config-username"));
   }
 
-  public SelenideElement password() {
-    return child("#proxy-config-password");
+  public ReactTextInput password() {
+    return new ReactTextInput(child("#proxy-config-password"));
   }
 
-  public SelenideElement excludeHosts() {
-    return child("#proxy-config-exclude-hosts");
+  public ReactTextInput excludeHosts() {
+    return new ReactTextInput(child("#proxy-config-exclude-hosts"));
   }
 
   public SelenideElement save() {

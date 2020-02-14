@@ -12,10 +12,9 @@ import org.openqa.selenium.Keys;
 
 import static org.openqa.selenium.Keys.BACK_SPACE;
 
-// SelenideElement#clear and SelenideElement#setValue do not behave as expected for React components.
-// We have this wrapper that works around the unexpected behaviour.
-// For future reference see:
-// https://github.com/sonatype/insight-brain/pull/4806#discussion_r378425407
+// SelenideElement#clear, SelenideElement#setValue(String) and SelenideElement#val(String) do not behave as expected
+// for React components. This wrapper class works around the unexpected behaviour.
+// For future reference see: https://github.com/sonatype/insight-brain/pull/4806#discussion_r378425407
 public class ReactTextInput
     extends BasicElement<ReactTextInput>
 {
@@ -30,6 +29,8 @@ public class ReactTextInput
     return element;
   }
 
+  // SelenideElement#clear does not actually clear the field.
+  // As a workaround we send backspace until the field is empty.
   public ReactTextInput clear() {
     while (!element.getValue().equals("")) {
       element.sendKeys(BACK_SPACE);
@@ -37,12 +38,15 @@ public class ReactTextInput
     return this;
   }
 
+  // SelenideElement#setValue appends the value instead of replacing it (most likely due to same reason clear not
+  // behaving as expected). We clear the field explicitly before setting value.
   public ReactTextInput setValue(String value) {
     clear();
     element.setValue(value);
     return this;
   }
 
+  // Same trouble and same solution with setValue.
   public ReactTextInput val(String val) {
     return setValue(val);
   }

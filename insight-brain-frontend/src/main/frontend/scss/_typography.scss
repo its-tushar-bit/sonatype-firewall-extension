@@ -25,63 +25,43 @@
 /*
   #Typography
 */
+
+@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
 @font-face {
-  font-family: Proxima Nova Regular;
-  src: url('../fonts/proximanova-reg-webfont.eot');
-  src: url('../fonts/proximanova-reg-webfont.eot') format('eot'),
-       url('../fonts/proximanova-reg-webfont.woff') format('woff'),
-       url('../fonts/proximanova-reg-webfont.ttf') format('ttf'),
-       url('../fonts/proximanova-reg-webfont.svg') format('svg');
+  font-family: Proxima Nova;
+  src: url('../fonts/proximanova-reg-webfont.woff') format('woff');
   font-weight: normal;
   font-style: normal;
 }
-
 @font-face {
-  font-family: Proxima Nova Bold;
-  src: url('../fonts/proximanova-bold-webfont.eot');
-  src: url('../fonts/proximanova-bold-webfont.eot') format('eot'),
-       url('../fonts/proximanova-bold-webfont.woff') format('woff'),
-       url('../fonts/proximanova-bold-webfont.ttf') format('ttf'),
-       url('../fonts/proximanova-bold-webfont.svg') format('svg');
+  font-family: Proxima Nova;
+  src: url('../fonts/proximanova-bold-webfont.woff') format('woff');
   font-weight: bold;
   font-style: normal;
 }
-
 @font-face {
-  font-family: Proxima Nova Semibold;
-  src: url('../fonts/proximanova-sbold-webfont.eot');
-  src: url('../fonts/proximanova-sbold-webfont.eot') format('eot'),
-       url('../fonts/proximanova-sbold-webfont.woff') format('woff'),
-       url('../fonts/proximanova-sbold-webfont.ttf') format('ttf'),
-       url('../fonts/proximanova-sbold-webfont.svg') format('svg');
-  font-weight: bold;
+  font-family: Proxima Nova;
+  src: url('../fonts/proximanova-sbold-webfont.woff') format('woff');
+  font-weight: 600;
   font-style: normal;
 }
 
 // These are deprecated - use the mixins instead
 // will remove from here when all references have been removed
 .bold {
-  font-family: Proxima Nova Bold, sans-serif;
+  @include nx-font-family;
+  font-weight: bold;
 }
 
 .semi-bold {
-  font-family: Proxima Nova Semibold, sans-serif;
+  @include nx-font-family;
+  font-weight: 600;
 }
 
 .regular {
-  font-family: Proxima Nova Regular, sans-serif;
-}
-
-@mixin regular() {
-  font-family: Proxima Nova Regular, sans-serif;
-}
-
-@mixin bold() {
-  font-family: Proxima Nova Bold, sans-serif;
-}
-
-@mixin semi-bold() {
-  font-family: Proxima Nova Semibold, sans-serif;
+  @include nx-font-family;
+  font-weight: normal;
 }
 
 body {

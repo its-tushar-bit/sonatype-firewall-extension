@@ -760,22 +760,6 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetComponentDetails_ComponentIdentifiedByCommunity() throws Exception {
-    String hash = "01234567890123456789";
-    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
-    hdsComponentDetails.setHash(hash);
-    hdsComponentDetails.setIdentificationSource(IdentificationSource.COMMUNITY.getId());
-    mockHdsGetComponentDetails(hdsComponentDetails);
-    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
-        MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock,
-        hdsComponentDetails.getIdentificationSource(), null /* scanId */);
-
-    assertThat(componentDetails).isNotNull();
-    assertThat(componentDetails.getHash()).isEqualTo(hash);
-    assertThat(componentDetails.getIdentificationSource()).isEqualTo(IdentificationSource.COMMUNITY.getId());
-  }
-
-  @Test
   public void testGetComponentDetails_Label_DefinedAtAppLevel() throws Exception {
     testGetComponentDetails_Label(false, false);
   }

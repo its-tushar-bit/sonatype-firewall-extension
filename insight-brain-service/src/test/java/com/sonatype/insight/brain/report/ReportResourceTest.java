@@ -692,32 +692,6 @@ public class ReportResourceTest
   }
 
   @Test
-  public void testDownloadBundle_ComponentIdentifiedByCommunity() throws Exception {
-    String scanId = "ReportResourceTest_ScanId";
-    mockReport(scanId, "/ReportResourceTest/community/");
-
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
-        .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
-    assertResponseStatus(200, response);
-
-    response =
-        restRequest(app.getPublicId(), scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
-
-    File temp = tempDir.newFile();
-    Files.write(temp.toPath(), response.getBodyBytes());
-
-    try (ZipFile zip = new ZipFile(temp)) {
-      ZipEntry bomEntry = zip.getEntry("data/bom.json");
-
-      JsonNode containerNode = JsonUtils.parse(zip.getInputStream(bomEntry), JsonNode.class);
-      BillOfMaterialsRowDTO row =
-          JsonUtils.parse(containerNode.withArray("aaData").get(0).toString(), BillOfMaterialsRowDTO.class);
-      assertThat(row).isNotNull();
-      assertThat(row.identificationSource).isEqualTo(IdentificationSource.COMMUNITY.getId());
-    }
-  }
-
-  @Test
   public void testToDataPathV3_invalidCharacters() {
     for (char c = 0; c < 16; c++) {
       assertThat(ReportResource.toDataPathV3(identifier(c))).isEqualTo("bb/x=%0" + Integer.toHexString(c));

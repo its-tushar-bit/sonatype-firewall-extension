@@ -161,6 +161,9 @@ public class SbomResultHandler
     catch (InvalidPackageURLException | InvalidComponentIdentifierException e) {
       log.error("Error processing SBOM component, invalid purl", e);
     }
+    catch (XmlPullParserException e) {
+      log.error("Error parsing SBOM component, invalid XML file", e);
+    }
     catch (Exception e) {
       log.error("Error processing SBOM component", e);
     }
@@ -264,9 +267,9 @@ public class SbomResultHandler
     packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
     Component sbomComponent =
         createComponent(component, packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion());
-    sbomComponent.setPurl(packageUrlIdentifier.getPackageUrl());
-    saveComponent(thirdPartyFileId, hashFileCoordinateIdMap, componentIdentifier, packageUrlIdentifier,
-        identificationSource, component, sbom, sbomComponent, tx);
+    sbomComponent.setPurl(ThirdPartyScanResultUtils.getTruncatedPurl(packageUrlIdentifier.getPackageUrl()));
+    saveComponent(thirdPartyFileId, hashFileCoordinateIdMap, componentIdentifier, identificationSource, component, sbom,
+        sbomComponent, tx);
   }
 
   private Component createComponent(Xpp3Dom component, String name, String version) {
@@ -310,7 +313,6 @@ public class SbomResultHandler
       String thirdPartyFileId,
       Map<String, String> hashFileCoordinateIdMap,
       ComponentIdentifier componentIdentifier,
-      PackageUrlIdentifier packageUrlIdentifier,
       String identificationSource,
       Xpp3Dom component,
       Bom sbom,
@@ -320,14 +322,13 @@ public class SbomResultHandler
     String fakeHash = ThirdPartyScanResultUtils.hash(
         componentIdentifier.getFormat() + ":" + StringUtils.join(componentIdentifier.getCoordinates().values(), ":"));
     if (!hashFileCoordinateIdMap.containsKey(fakeHash)) {
-      ThirdPartyFileCoordinate fileCoordinate =
-          new ThirdPartyFileCoordinate(fakeHash, identificationSource, componentIdentifier.getFormat(),
-              packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion(), thirdPartyFileId);
-      fileCoordinate.setPackageUrl(packageUrlIdentifier.getPackageUrl());
+      ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(fakeHash, identificationSource,
+          componentIdentifier.getFormat(), sbomComponent.getName(), sbomComponent.getVersion(), thirdPartyFileId);
+      fileCoordinate.setPackageUrl(sbomComponent.getPurl());
       thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
       hashFileCoordinateIdMap.put(fakeHash, fileCoordinate.getId());
 
-      saveLicenses(component.getChild("licenses"), fileCoordinate.getId(), packageUrlIdentifier.getPackageUrl(), tx);
+      saveLicenses(component.getChild("licenses"), fileCoordinate.getId(), sbomComponent.getPurl(), tx);
       saveVulnerabilities(component.getChild("vulnerabilities"), fileCoordinate.getId(), tx);
       sbom.addComponent(sbomComponent);
     }

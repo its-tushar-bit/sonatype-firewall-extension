@@ -104,4 +104,11 @@ public class ThirdPartyScanResultUtilsTest
         .getTruncatedRefId(StringUtils.repeat("*", ThirdPartyScanResultUtils.REFID_MAX_LENGTH + 10)))
         .hasSize(ThirdPartyScanResultUtils.REFID_MAX_LENGTH);
   }
+
+  @Test
+  public void testGetTruncatedPurl() {
+    assertThat(ThirdPartyScanResultUtils
+        .getTruncatedPurl(StringUtils.repeat("*", ThirdPartyScanResultUtils.PURL_MAX_LENGTH + 10)))
+            .hasSize(ThirdPartyScanResultUtils.PURL_MAX_LENGTH);
+  }
 }

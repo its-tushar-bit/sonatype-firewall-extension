@@ -35,6 +35,8 @@ public class ThirdPartyScanResultUtils
   public static final int REFID_MAX_LENGTH = 20;
 
   public static final int IDENTIFICATION_SOURCE_MAX_LENGTH = 20;
+  
+  public static final int PURL_MAX_LENGTH = 1000;
 
   private static final Pattern VULNERABILITY_REF_SOURCE_PATTERN = Pattern.compile("^([a-zA-Z]*)-?(.*)$");
 
@@ -108,5 +110,9 @@ public class ThirdPartyScanResultUtils
 
   public static String getTruncatedIdentificationSource(String identificationSource) {
     return StringUtils.truncate(identificationSource, IDENTIFICATION_SOURCE_MAX_LENGTH);
+  }
+
+  public static String getTruncatedPurl(String purl) {
+    return StringUtils.truncate(purl, PURL_MAX_LENGTH);
   }
 }

@@ -54,6 +54,7 @@ import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.SE
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VERSION_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VULNERABILITY_SOURCE_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.IDENTIFICATION_SOURCE_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.PURL_MAX_LENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -620,6 +621,7 @@ public class SbomResultHandlerTest
     assertThat(component.getName()).hasSize(NAME_MAX_LENGTH);
     assertThat(component.getVersion()).hasSize(VERSION_MAX_LENGTH);
 
+    assertThat(component.getPurl()).hasSize(PURL_MAX_LENGTH);
     PackageUrlIdentifier packageUrlIdentifier = new PackageUrlIdentifier(component.getPurl());
     assertThat(packageUrlIdentifier.getFormat()).hasSize(FORMAT_MAX_LENGTH);
     assertThat(packageUrlIdentifier.getName()).hasSize(NAME_MAX_LENGTH);
@@ -631,6 +633,7 @@ public class SbomResultHandlerTest
     assertThat(coordinate.getFormat()).hasSize(FORMAT_MAX_LENGTH);
     assertThat(coordinate.getName()).hasSize(NAME_MAX_LENGTH);
     assertThat(coordinate.getVersion()).hasSize(VERSION_MAX_LENGTH);
+    assertThat(coordinate.getPackageUrl()).hasSize(PURL_MAX_LENGTH);
 
     ThirdPartyCoordinateSecurity coordinateSecurity =
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(coordinate.getId()).get(0);

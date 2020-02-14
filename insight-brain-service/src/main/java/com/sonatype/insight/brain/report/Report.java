@@ -6,11 +6,7 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -732,23 +728,11 @@ public final class Report
 
   private static void cache(final File cacheFile, final byte[] buf) throws IOException {
     Files.createDirectories(cacheFile.getAbsoluteFile().getParentFile().toPath());
-    final OutputStream os = new FileOutputStream(cacheFile);
-    try {
-      IOUtil.copy(buf, os);
-    }
-    finally {
-      IOUtil.close(os);
-    }
+    Files.write(cacheFile.toPath(), buf);
   }
 
   private static byte[] fetch(final File cacheFile) throws IOException {
-    final InputStream is = new FileInputStream(cacheFile);
-    try {
-      return IOUtil.toByteArray(is);
-    }
-    finally {
-      IOUtil.close(is);
-    }
+    return Files.readAllBytes(cacheFile.toPath());
   }
 
   public static void fill(final ArrayNode node, final int[] data) {

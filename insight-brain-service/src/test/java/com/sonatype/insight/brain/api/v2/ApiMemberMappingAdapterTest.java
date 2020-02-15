@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 
 public class ApiMemberMappingAdapterTest
     extends AbstractComponentTest
@@ -117,7 +116,7 @@ public class ApiMemberMappingAdapterTest
         membersByOwner.ownerName = org.getName();
         break;
       default:
-        fail("Unexpected owner type " + ownerType);
+        throw new IllegalArgumentException("Unexpected owner type " + ownerType);
     }
     membersByOwner.ownerType = ownerType;
     final Member member = new Member();

@@ -38,8 +38,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static com.sonatype.insight.brain.git.PullRequestTask.DEFAULT_COMMITTER;
 import static com.sonatype.insight.brain.git.PullRequestTask.DEFAULT_COMMITTER_EMAIL;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -138,7 +136,7 @@ public class PullRequestTaskTest
     pullRequestTask.run();
 
     File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-" + INFO.baseBranch + APP_HASH);
-    assertThat(targetDirectory.exists(), is(true));
+    assertThat(targetDirectory).exists();
     verify(gitApi).cloneOrPullRepository(targetDirectory, INFO.baseBranch);
     verify(gitApi).branch(targetDirectory, BRANCH);
     verifyNoMoreInteractions(gitApi);
@@ -159,7 +157,7 @@ public class PullRequestTaskTest
 
     // then directory is created without special characters
     File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-dev" + APP_HASH);
-    assertThat(targetDirectory.exists(), is(true));
+    assertThat(targetDirectory).exists();
     // and git branch name is not modified
     verify(gitApi).cloneOrPullRepository(targetDirectory, "d\\e/v_");
   }
@@ -180,7 +178,7 @@ public class PullRequestTaskTest
 
     // then directory is created with truncated name and hash appended
     File targetDirectory = new File(config.getCloneDirectory(), "longlonglonglonglonglongl-branchname" + APP_HASH);
-    assertThat(targetDirectory.exists(), is(true));
+    assertThat(targetDirectory).exists();
     // and git branch name is not modified
     verify(gitApi).cloneOrPullRepository(targetDirectory, "branchname");
   }
@@ -198,7 +196,7 @@ public class PullRequestTaskTest
 
     // then directory is created with truncated name and hash appended
     File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-longlonglonglon" + APP_HASH);
-    assertThat(targetDirectory.exists(), is(true));
+    assertThat(targetDirectory).exists();
     // and git branch name is not modified
     verify(gitApi).cloneOrPullRepository(targetDirectory, StringUtils.repeat("long", 21) + "branchname");
   }
@@ -215,8 +213,8 @@ public class PullRequestTaskTest
     pullRequestTask.run();
 
     File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-" + INFO.baseBranch + APP_HASH);
-    assertThat(targetDirectory.exists(), is(true));
-    assertThat(targetDirectory.getParentFile().getName(), is(APP_INTERNAL_ID));
+    assertThat(targetDirectory).exists();
+    assertThat(targetDirectory.getParentFile()).hasName(APP_INTERNAL_ID);
     verify(gitApi).cloneOrPullRepository(targetDirectory, INFO.baseBranch);
     verify(metrics).addResult(anyString(), any(PullRequestResult.class));
     verifyNoInteractions(fileCleaner, gitClient);

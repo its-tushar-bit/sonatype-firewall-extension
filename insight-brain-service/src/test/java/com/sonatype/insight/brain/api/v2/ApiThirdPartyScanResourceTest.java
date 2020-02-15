@@ -9,6 +9,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.core.MediaType;
 
@@ -23,16 +24,14 @@ import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 public class ApiThirdPartyScanResourceTest
     extends AbstractResourceTest
 {
-  private Application app;
-
   private HttpRequest scanBomRequest(String applicationId, String source, String stageId, String bom) {
     return restRequest()
         .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyScanResource.SCAN_COMPONENTS)
@@ -41,26 +40,8 @@ public class ApiThirdPartyScanResourceTest
         .body(bom, MediaType.APPLICATION_XML);
   }
 
-  @Before
-  public void setupApplication() {
-    app = tempEntity.newApplicationWithParent();
-  }
-
   @Test
-  public void testScanComponents_thirdPartyScan() throws Exception {
-    String bom = getBomFile("valid_bom.xml");
-
-    HttpResponse response = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD, bom).post();
-    assertResponseStatus(202, response);
-
-    ApiThirdPartyScanTicketDTO ticketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
-    assertThat(ticketDTO).isNotNull();
-    assertThat(ticketDTO.statusUrl).isNotNull();
-    assertThat(new URI(ticketDTO.statusUrl)).isNotNull();
-  }
-
-  @Test
-  public void testGetScanStatus_Completed() throws Exception {
+  public void testScanComponentAndGetScanStatus() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
 
     // Simulate that the report is available
@@ -76,7 +57,7 @@ public class ApiThirdPartyScanResourceTest
     ApiThirdPartyScanTicketDTO ticketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
     assertThat(ticketDTO).isNotNull();
     assertThat(ticketDTO.statusUrl).isNotNull();
-    assertThat(new URI(ticketDTO.statusUrl)).isNotNull();
+    assertThat(URI.create(ticketDTO.statusUrl).isAbsolute()).isFalse();
 
     ApiThirdPartyScanResultDTO resultDTO = getApiThirdPartyTicketResultDTO(ticketDTO.statusUrl);
     assertThat(resultDTO.errorMessage).isNull();
@@ -89,16 +70,9 @@ public class ApiThirdPartyScanResourceTest
   }
 
   private ApiThirdPartyScanResultDTO getApiThirdPartyTicketResultDTO(String statusUrl) throws Exception {
-    long endTime = System.currentTimeMillis() + 10000;
-    while (System.currentTimeMillis() < endTime) {
-      HttpResponse response = restRequest().path(statusUrl).get();
-      if (response.getStatusCode() == 200) {
-        return response.getBody(ApiThirdPartyScanResultDTO.class);
-      }
-      Thread.sleep(10);
-    }
-    throw new RuntimeException(
-        "Retrieving scan status did not complete within the expected 10 seconds to get the scan result");
+    HttpResponse response = await().atMost(10, TimeUnit.SECONDS).until(() -> restRequest().path(statusUrl).get(),
+        resp -> resp.getStatusCode() == 200);
+    return response.getBody(ApiThirdPartyScanResultDTO.class);
   }
 
   private String getBomFile(String path) throws Exception {

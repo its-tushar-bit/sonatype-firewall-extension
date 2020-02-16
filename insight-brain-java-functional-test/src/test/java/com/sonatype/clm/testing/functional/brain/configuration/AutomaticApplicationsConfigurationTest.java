@@ -33,7 +33,7 @@ public class AutomaticApplicationsConfigurationTest
     AutomaticApplicationsConfigurationPage automaticApplicationsConfigurationPage =
         new AutomaticApplicationsConfigurationPage();
 
-    refreshOrOpen(AutomaticApplicationsConfigurationPage.URL);
+    refreshOrOpen(AutomaticApplicationsConfigurationPage.url());
     loginAsAdmin();
 
     // check description is present

@@ -28,9 +28,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.ACTIVE;
-import static com.sonatype.clm.testing.functional.pages.DashboardPage.APPLICATIONS_URL;
-import static com.sonatype.clm.testing.functional.pages.DashboardPage.COMPONENTS_URL;
-import static com.sonatype.clm.testing.functional.pages.DashboardPage.VIOLATIONS_URL;
 
 public class DashboardTabNavigationTest
     extends AbstractFunctionalTest
@@ -56,14 +53,14 @@ public class DashboardTabNavigationTest
   @BeforeClass
   public static void beforeClass() throws Exception {
     setupData();
-    refreshOrOpen(DashboardPage.VIOLATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToViolations());
     loginAsAdmin();
   }
 
   @Before
   public void before() {
     clearFilters();
-    refreshOrOpen(DashboardPage.VIOLATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToViolations());
   }
 
   public static void setupData() {
@@ -169,31 +166,31 @@ public class DashboardTabNavigationTest
 
   @Test
   public void testTabNavigation() {
-    waitUntilUrl(VIOLATIONS_URL);
+    waitUntilUrl(DashboardPage.urlToViolations());
     DashboardPage.violationsTab().shouldBe(ACTIVE);
     DashboardPage.applicationsTab().shouldNotBe(ACTIVE);
     DashboardPage.componentsTab().shouldNotBe(ACTIVE).click();
-    waitUntilUrl(COMPONENTS_URL);
+    waitUntilUrl(DashboardPage.urlToComponents());
     DashboardPage.componentsTab().shouldBe(ACTIVE);
 
     DashboardPage.applicationsTab().shouldNotBe(ACTIVE).click();
-    waitUntilUrl(APPLICATIONS_URL);
+    waitUntilUrl(DashboardPage.urlToApplications());
     DashboardPage.applicationsTab().shouldBe(ACTIVE);
 
     DashboardPage.violationsTab().shouldNotBe(ACTIVE).click();
-    waitUntilUrl(VIOLATIONS_URL);
+    waitUntilUrl(DashboardPage.urlToViolations());
     DashboardPage.violationsTab().shouldBe(ACTIVE);
 
     Selenide.back();
-    waitUntilUrl(APPLICATIONS_URL);
+    waitUntilUrl(DashboardPage.urlToApplications());
     DashboardPage.applicationsTab().shouldBe(ACTIVE);
 
     Selenide.back();
-    waitUntilUrl(COMPONENTS_URL);
+    waitUntilUrl(DashboardPage.urlToComponents());
     DashboardPage.componentsTab().shouldBe(ACTIVE);
 
     Selenide.back();
-    waitUntilUrl(VIOLATIONS_URL);
+    waitUntilUrl(DashboardPage.urlToViolations());
     DashboardPage.violationsTab().shouldBe(ACTIVE);
   }
 

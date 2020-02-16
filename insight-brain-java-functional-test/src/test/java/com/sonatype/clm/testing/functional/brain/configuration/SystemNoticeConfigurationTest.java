@@ -47,7 +47,7 @@ public class SystemNoticeConfigurationTest
 
   @BeforeClass
   public static void beforeClass() {
-    refreshOrOpen(SystemNoticeConfigurationPage.URL);
+    refreshOrOpen(SystemNoticeConfigurationPage.url());
     loginAsAdmin();
   }
 
@@ -203,7 +203,7 @@ public class SystemNoticeConfigurationTest
 
   private void init() {
     systemNoticeDAO.update(DEFAULT_SYSTEM_NOTICE);
-    refreshOrOpen(SystemNoticeConfigurationPage.URL);
+    refreshOrOpen(SystemNoticeConfigurationPage.url());
     systemNoticeConfigurationPage.should(appear);
     text = DEFAULT_SYSTEM_NOTICE.getMessage();
     display = DEFAULT_SYSTEM_NOTICE.isEnabled();

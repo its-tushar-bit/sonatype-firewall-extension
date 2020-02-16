@@ -16,7 +16,9 @@ import com.codeborne.selenide.SelenideElement;
 public class SuccessMetricsReportListPage
     extends BasicElement<SuccessMetricsReportListPage>
 {
-  public static final String URL = BaseUrl.resolvePageUrl("/labs/successMetrics");
+  public static String url() {
+    return BaseUrl.resolvePageUrl("/labs/successMetrics");
+  }
 
   private static final String ROOT_SELECTOR = "success-metrics-report-list";
 

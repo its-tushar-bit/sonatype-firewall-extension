@@ -51,7 +51,7 @@ public class LdapConfigurationTest
 
   @BeforeClass
   public static void startup() {
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
   }
 
@@ -73,18 +73,18 @@ public class LdapConfigurationTest
   public void testCreateLdapServer() throws Exception {
     LdapServerDAO ldapServerDAO = new LdapServerDAO();
 
-    refreshOrOpen(LdapServerListPage.URL);
+    refreshOrOpen(LdapServerListPage.url());
 
     LdapServerListPage serverListPage = new LdapServerListPage();
     serverListPage.ldapServerList().elements().shouldHaveSize(1);
     serverListPage.newServerButton().click();
 
-    waitUntilUrl(LdapConfigurationPage.createLdapUrl());
+    waitUntilUrl(LdapConfigurationPage.urlToCreate());
     LdapConfigurationPage.backButton().shouldHave(text("Back to LDAP Servers")).click();
     serverListPage.ldapServerList().elements().shouldHaveSize(1);
     serverListPage.newServerButton().click();
 
-    waitUntilUrl(LdapConfigurationPage.createLdapUrl());
+    waitUntilUrl(LdapConfigurationPage.urlToCreate());
     LdapNameEditor ldapNameEditor = LdapConfigurationPage.ldapNameEditor();
     NameEditor nameEditor = ldapNameEditor.nameEditor();
 
@@ -114,7 +114,7 @@ public class LdapConfigurationTest
 
   @Test
   public void testCancelCreate() {
-    refreshOrOpen(LdapServerListPage.URL);
+    refreshOrOpen(LdapServerListPage.url());
 
     LdapServerListPage serverListPage = new LdapServerListPage();
     serverListPage.newServerButton().click();
@@ -138,7 +138,7 @@ public class LdapConfigurationTest
 
   @Test
   public void testResetForm() {
-    refreshOrOpen(LdapConfigurationPage.editLdapUrl(server.getId()));
+    refreshOrOpen(LdapConfigurationPage.urlToEdit(server.getId()));
     LdapConfigurationPage.root().should(appear);
     LdapConnectionForm ldapConnectionForm = LdapConfigurationPage.ldapConnectionForm();
 
@@ -162,17 +162,17 @@ public class LdapConfigurationTest
 
   @Test
   public void testDeleteServer() {
-    refreshOrOpen(LdapServerListPage.URL);
+    refreshOrOpen(LdapServerListPage.url());
 
     LdapServerListPage serverListPage = new LdapServerListPage();
     serverListPage.ldapServerList().elements().shouldHaveSize(1).get(0).shouldBe(visible).click();
 
-    waitUntilUrl(LdapConfigurationPage.editLdapUrl(server.getId()));
+    waitUntilUrl(LdapConfigurationPage.urlToEdit(server.getId()));
     LdapConfigurationPage.root().should(appear);
     LdapConfigurationPage.deleteButton().shouldBe(visible).click();
     LdapConfigurationPage.deleteConfirmationButton().shouldBe(visible).click();
 
-    waitUntilUrl(LdapServerListPage.URL);
+    waitUntilUrl(LdapServerListPage.url());
     serverListPage.ldapServerList().elements().shouldHaveSize(0);
     serverListPage.ldapServerList().emptyDescriptor().shouldBe(visible);
     assertThat(new LdapServerDAO().getById(server.getId())).isNull();

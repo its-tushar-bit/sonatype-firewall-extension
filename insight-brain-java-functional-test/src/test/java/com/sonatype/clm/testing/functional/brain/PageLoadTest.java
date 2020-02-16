@@ -40,7 +40,7 @@ public class PageLoadTest
   public void testIndexHtml() {
     refreshOrOpen(IndexPage.url());
     loginAsAdmin();
-    waitUntilUrl(DashboardPage.URL);
+    waitUntilUrl(DashboardPage.url());
     DashboardPage.dashboardContainer().shouldBe(visible);
   }
 
@@ -73,7 +73,7 @@ public class PageLoadTest
 
   @Test
   public void testLoginModalVulnerabilitiesLink_FromDashboard() {
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
     LoginModal loginModal = new LoginModal();
     loginModal.cancelButton().shouldNotBe(visible);
     loginModal.vulnerabilityLookupText().shouldBe(visible);
@@ -100,7 +100,7 @@ public class PageLoadTest
 
   @Test
   public void testLoginModalCancelFromVulnerabilitiesPage() {
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
     LoginModal loginModal = new LoginModal();
     loginModal.cancelButton().shouldNotBe(visible);
     loginModal.vulnerabilityLookupText().shouldBe(visible);
@@ -157,7 +157,7 @@ public class PageLoadTest
     VulnerabilitySearchPage vulnPage = new VulnerabilitySearchPage();
     vulnPage.shouldBe(visible);
 
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
     loginModal.shouldBe(visible);
     vulnPage.shouldBe(visible);
 
@@ -169,7 +169,7 @@ public class PageLoadTest
 
   @Test
   public void testLoadUnauthPageWhileOnLogin() {
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
 
     LoginModal loginModal = new LoginModal();
     loginModal.shouldBe(visible);
@@ -181,7 +181,7 @@ public class PageLoadTest
 
   @Test
   public void testLoadNonDefaultAuthPage() {
-    refreshOrOpen(SuccessMetricsReportListPage.URL);
+    refreshOrOpen(SuccessMetricsReportListPage.url());
     LoginModal loginModal = new LoginModal();
     loginModal.shouldBe(visible);
     loginAsAdmin();
@@ -196,7 +196,7 @@ public class PageLoadTest
 
     refreshOrOpen(IndexPage.url());
     loginAsAdmin();
-    waitUntilUrl(ReportListPage.URL);
+    waitUntilUrl(ReportListPage.url());
     ReportListPage.listContainer().shouldBe(visible);
   }
 
@@ -209,7 +209,7 @@ public class PageLoadTest
     waitUntilUrl(ProductLicensePage.url());
     ProductLicensePage.installLicenseBtn().shouldBe(visible);
 
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
     Selenide.sleep(1000);
 
     // no effect - navigating to other pages not allowed
@@ -226,7 +226,7 @@ public class PageLoadTest
   public void testLoadNonDefaultAuthPage_NoLicense() throws Exception {
     uninstallLicense();
 
-    refreshOrOpen(SuccessMetricsReportListPage.URL);
+    refreshOrOpen(SuccessMetricsReportListPage.url());
     LoginModal loginModal = new LoginModal();
     loginModal.shouldBe(visible);
 

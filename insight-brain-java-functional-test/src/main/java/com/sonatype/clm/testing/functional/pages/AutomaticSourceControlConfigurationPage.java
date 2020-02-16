@@ -14,7 +14,9 @@ import com.codeborne.selenide.SelenideElement;
 public class AutomaticSourceControlConfigurationPage
     extends BasicElement<AutomaticSourceControlConfigurationPage>
 {
-  public static final String URL = BaseUrl.resolvePageUrl("/automaticSourceControlConfiguration");
+  public static String url() {
+    return BaseUrl.resolvePageUrl("/automaticSourceControlConfiguration");
+  }
 
   private static final String ROOT_SELECTOR = "#automatic-source-control-configuration";
 

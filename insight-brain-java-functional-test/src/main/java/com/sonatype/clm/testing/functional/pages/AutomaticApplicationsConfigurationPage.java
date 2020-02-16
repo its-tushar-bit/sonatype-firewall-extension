@@ -15,7 +15,9 @@ import com.codeborne.selenide.SelenideElement;
 public class AutomaticApplicationsConfigurationPage
     extends BasicElement<AutomaticApplicationsConfigurationPage>
 {
-  public static final String URL = BaseUrl.resolvePageUrl("/automaticApplicationsConfiguration");
+  public static String url() {
+    return BaseUrl.resolvePageUrl("/automaticApplicationsConfiguration");
+  }
 
   private static final String ROOT_SELECTOR = "#automatic-applications-configuration";
 

@@ -14,7 +14,6 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.elements.ProprietaryConfigInheritedList;
 import com.sonatype.clm.testing.functional.elements.ProprietaryConfigInheritedTile;
-import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -50,7 +49,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
 
   @BeforeClass
   public static void boot() {
-    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
+    refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
     loginAsAdmin();
   }
 

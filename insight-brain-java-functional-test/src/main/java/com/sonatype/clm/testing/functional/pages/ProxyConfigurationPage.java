@@ -47,7 +47,7 @@ public class ProxyConfigurationPage
     super(ROOT);
   }
 
-  public static String proxyConfigurationUrl() {
+  public static String url() {
     return BaseUrl.resolvePageUrl("/proxyConfig");
   }
 

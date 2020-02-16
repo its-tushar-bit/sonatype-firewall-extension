@@ -56,6 +56,6 @@ public class SuccessMetricsChartsNavigationTest
     successMetricsChartsPage.backButton().shouldBe(visible).shouldHave(text("Back to Success Metrics")).click();
     successMetricsPage.should(appear);
     successMetricsPage.subheaderDashboardLink().shouldBe(visible).shouldHave(text("Dashboard")).click();
-    waitUntilUrl(DashboardPage.URL);
+    waitUntilUrl(DashboardPage.url());
   }
 }

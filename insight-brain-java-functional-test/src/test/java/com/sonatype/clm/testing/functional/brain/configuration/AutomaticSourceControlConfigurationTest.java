@@ -28,7 +28,7 @@ public class AutomaticSourceControlConfigurationTest
     AutomaticSourceControlConfigurationPage configurationPage =
         new AutomaticSourceControlConfigurationPage();
 
-    refreshOrOpen(AutomaticSourceControlConfigurationPage.URL);
+    refreshOrOpen(AutomaticSourceControlConfigurationPage.url());
     loginAsAdmin();
 
     // check description is present

@@ -61,13 +61,13 @@ public class RepositoriesSummaryViewTest
 
   @BeforeClass
   public static void startup() {
-    refreshOrOpen(RepositoriesSummaryPage.URL);
+    refreshOrOpen(RepositoriesSummaryPage.url());
     loginAsAdmin();
   }
 
   @Before
   public void init() {
-    refreshOrOpen(RepositoriesSummaryPage.URL);
+    refreshOrOpen(RepositoriesSummaryPage.url());
   }
 
   @Test

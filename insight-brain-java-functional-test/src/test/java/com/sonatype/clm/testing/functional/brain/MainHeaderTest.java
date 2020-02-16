@@ -9,7 +9,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
@@ -30,7 +30,7 @@ public class MainHeaderTest
 {
   @Before
   public void before() {
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
   }
 
@@ -75,26 +75,26 @@ public class MainHeaderTest
   @Test
   public void testNavigation_ToDashboard() {
     MainHeader.dashboardNavigationButton().click();
-    waitUntilUrl(DashboardPage.URL);
+    waitUntilUrl(DashboardPage.url());
   }
 
   @Test
   public void testNavigation_ToReporting() {
-    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
+    refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
     MainHeader.reportingNavigationButton().click();
-    waitUntilUrl(ReportListPage.URL);
+    waitUntilUrl(ReportListPage.url());
   }
 
   @Test
   public void testNavigation_ToPolicies() {
     MainHeader.policiesNavigationButton().click();
-    waitUntilUrl(OrganizationManagementPage.ROOT_ORG_URL);
+    waitUntilUrl(OwnerSummaryPage.urlToRootOrg());
   }
 
   @Test
   public void testNavigation_ToLabs() {
     MainHeader.labsNavigationButton().click();
-    waitUntilUrl(SuccessMetricsReportListPage.URL);
+    waitUntilUrl(SuccessMetricsReportListPage.url());
   }
 
   @Test

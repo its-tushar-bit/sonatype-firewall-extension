@@ -66,7 +66,7 @@ public class DashboardApplicationsTest
 
   @BeforeClass
   public static void beforeClass() {
-    refreshOrOpen(DashboardPage.APPLICATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToApplications());
     loginAsAdmin();
     originalSize = WebDriverRunner.getWebDriver().manage().window().getSize();
   }
@@ -76,7 +76,7 @@ public class DashboardApplicationsTest
     componentCounter = 0;
     org = tempEntity.newOrganization("DashboardApplicationsTest");
     policy = tempEntity.newPolicy(org);
-    refreshOrOpen(DashboardPage.APPLICATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToApplications());
   }
 
   @After

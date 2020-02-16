@@ -35,13 +35,13 @@ public class LdapServerListTest
 {
   @BeforeClass
   public static void startup() {
-    refreshOrOpen(LdapServerListPage.URL);
+    refreshOrOpen(LdapServerListPage.url());
     loginAsAdmin();
   }
 
   @Before
   public void before() {
-    refreshOrOpen(LdapServerListPage.URL);
+    refreshOrOpen(LdapServerListPage.url());
   }
 
   @After

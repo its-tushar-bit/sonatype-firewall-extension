@@ -8,7 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.RootOrganizationNode;
 import com.sonatype.clm.testing.functional.elements.RoutingErrorBox;
-import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -20,17 +20,19 @@ import org.junit.Test;
 public class RoutingErrorTest
     extends AbstractFunctionalTest
 {
-  private static String INVALID_URL = BaseUrl.resolvePageUrl("/foo");
+  private static String invalidUrl() {
+    return BaseUrl.resolvePageUrl("/foo");
+  }
 
   @BeforeClass
   public static void startup() {
-    refreshOrOpen(OrganizationManagementPage.URL);
+    refreshOrOpen(OwnerSummaryPage.url());
     loginAsAdmin();
   }
 
   @Before
   public void before() {
-    refreshOrOpen(OrganizationManagementPage.URL);
+    refreshOrOpen(OwnerSummaryPage.url());
     RootOrganizationNode.treeViewElement().shouldBe(Condition.visible);
   }
 
@@ -41,22 +43,22 @@ public class RoutingErrorTest
 
   @Test
   public void invalidRoutesShowErrorThenHiddenOnOriginalValidRoute() {
-    refreshOrOpen(INVALID_URL);
+    refreshOrOpen(invalidUrl());
     RoutingErrorBox.errorBox().shouldBe(Condition.visible);
     RoutingErrorBox.errorMessage().shouldHave(RoutingErrorBox.errorText("Unknown Address"));
 
-    refreshOrOpen(OrganizationManagementPage.URL);
+    refreshOrOpen(OwnerSummaryPage.url());
     RoutingErrorBox.errorBox().shouldNotBe(Condition.visible);
   }
 
   @Test
   public void invalidRoutesShowErrorThenHiddenOnNewValidRoute() {
-    refreshOrOpen(INVALID_URL);
+    refreshOrOpen(invalidUrl());
     RoutingErrorBox.errorBox().shouldBe(Condition.visible);
     RoutingErrorBox.errorMessage().shouldHave(RoutingErrorBox.errorText("Unknown Address"));
     eyesWatcher.eyesCheck();
 
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     RoutingErrorBox.errorBox().shouldNotBe(Condition.visible);
   }
 }

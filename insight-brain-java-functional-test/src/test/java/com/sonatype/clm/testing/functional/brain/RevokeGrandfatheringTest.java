@@ -43,7 +43,7 @@ public class RevokeGrandfatheringTest
 
   @BeforeClass
   public static void beforeClass() {
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
   }
 

@@ -58,7 +58,7 @@ public class DashboardComponentDetailsTest
 
   @BeforeClass
   public static void beforeClass() {
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
     loginAsAdmin();
   }
 
@@ -87,7 +87,7 @@ public class DashboardComponentDetailsTest
     tempEntity.newApplicationComponent(app2.getId(), ReleaseStageType.ID, "hash", component);
     tempEntity.newPolicyViolation(eval2, policy2, 5, LICENSE, component, "hash", WarnActionType.ID);
 
-    refreshOrOpen(DashboardPage.COMPONENTS_URL);
+    refreshOrOpen(DashboardPage.urlToComponents());
   }
 
   @Test

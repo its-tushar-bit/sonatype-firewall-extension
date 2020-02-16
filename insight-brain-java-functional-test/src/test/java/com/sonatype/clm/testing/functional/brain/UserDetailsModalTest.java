@@ -26,7 +26,7 @@ public class UserDetailsModalTest
   @Test
   public void testUserDetails() {
     User user = tempEntity.newUser("jonny", "John", "Smith", "john@smith.com");
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
     login(user.getUsername(), user.getPassword());
     MainHeader.userMenu().dropdownToggle().shouldBe(visible).click();
 

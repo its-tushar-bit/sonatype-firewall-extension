@@ -7,7 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -54,7 +54,7 @@ public abstract class AbstractSourceControlEditorTest
 
   @BeforeClass
   public static void beforeClass() {
-    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
+    refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
     loginAsAdmin();
   }
 

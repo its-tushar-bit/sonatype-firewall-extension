@@ -17,7 +17,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class RoleEditorPage
     extends BasicElement<RoleEditorPage>
 {
-  public static final String url() {
+  public static String url() {
     return BaseUrl.resolvePageUrl("/roles");
   }
 

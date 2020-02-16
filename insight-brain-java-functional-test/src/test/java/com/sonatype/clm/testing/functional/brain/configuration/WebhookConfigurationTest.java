@@ -15,7 +15,6 @@ import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.WebhookEditPage;
-import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
@@ -56,14 +55,14 @@ public class WebhookConfigurationTest
 
   @BeforeClass
   public static void startup() {
-    refreshOrOpen(WebhookConfigurationPage.URL);
+    refreshOrOpen(WebhookConfigurationPage.url());
     loginAsAdmin();
   }
 
   @Before
   public void before() {
     insertWebhooks();
-    refreshOrOpen(WebhookConfigurationPage.URL);
+    refreshOrOpen(WebhookConfigurationPage.url());
     webhookConfigurationPage.should(appear);
   }
 
@@ -176,7 +175,7 @@ public class WebhookConfigurationTest
   @Test
   public void testInvalidWebhookIDErrorMessage() {
     //navigate to a non-existing webhook
-    String badWebhookIdUrl = BaseUrl.resolvePageUrl("/webhooks/BAD_ID");
+    String badWebhookIdUrl = WebhookEditPage.url("BAD_ID");
     refreshOrOpen(badWebhookIdUrl);
 
     webhookEditPage.should(appear);
@@ -201,7 +200,7 @@ public class WebhookConfigurationTest
     // make sure we display an error when navigating directly to webhooks pages
     String notLicensedText = "Webhooks feature is not supported by your license.";
 
-    refreshOrOpen(WebhookConfigurationPage.URL);
+    refreshOrOpen(WebhookConfigurationPage.url());
     webhookConfigurationPage.shouldHave(text(notLicensedText));
     
     refreshOrOpen(WebhookEditPage.url(webhookList.get(0).getId()));
@@ -212,7 +211,7 @@ public class WebhookConfigurationTest
   public void testWebhooks_Foundation_Firewall() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
 
-    refreshOrOpen(WebhookConfigurationPage.URL);
+    refreshOrOpen(WebhookConfigurationPage.url());
     webhookConfigurationPage.should(appear);
 
     refreshOrOpen(WebhookEditPage.url(webhookList.get(0).getId()));

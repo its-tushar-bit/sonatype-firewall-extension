@@ -72,7 +72,7 @@ public class SuccessMetricsReportListTest
 
   @Before
   public void before() {
-    refreshOrOpen(SuccessMetricsReportListPage.URL);
+    refreshOrOpen(SuccessMetricsReportListPage.url());
     loginAsAdmin();
   }
 

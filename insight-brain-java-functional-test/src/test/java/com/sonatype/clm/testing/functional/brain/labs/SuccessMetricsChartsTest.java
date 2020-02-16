@@ -185,7 +185,7 @@ public class SuccessMetricsChartsTest
     SuccessMetricsReport successMetricsReport = staticTempEntity.newSuccessMetricsReport("admin", "Test",
         JsonUtils.format(successMetricsScope));
 
-    successMetricsChartsPageUrl = SuccessMetricsReportPage.getUrl(successMetricsReport.getId());
+    successMetricsChartsPageUrl = SuccessMetricsReportPage.url(successMetricsReport.getId());
 
     refreshOrOpen(successMetricsChartsPageUrl);
     loginAsAdmin();
@@ -591,7 +591,7 @@ public class SuccessMetricsChartsTest
     SuccessMetricsReport successMetricsReport = tempEntity.newSuccessMetricsReport("admin", "invalid metrics",
         JsonUtils.format(invalidScopeDTO));
 
-    refreshOrOpen(SuccessMetricsReportPage.getUrl(successMetricsReport.getId()));
+    refreshOrOpen(SuccessMetricsReportPage.url(successMetricsReport.getId()));
 
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
     successMetricsChartsPage.should(appear);

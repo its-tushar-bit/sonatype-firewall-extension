@@ -58,13 +58,13 @@ public class EmailConfigurationPageTest
 
   @BeforeClass
   public static void beforeClass() {
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
     loginAsAdmin();
   }
 
   @Test
   public void testCrud() {
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
     emailConfigurationPage.insufficientPermissionsError().shouldNotBe(visible);
 
     // ## -- CREATE -- ##
@@ -89,7 +89,7 @@ public class EmailConfigurationPageTest
     emailConfigurationPage.startTlsEnabled().shouldNotBe(selected);
 
     // State after refresh
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
     emailConfigurationPage.hostName().shouldBe(value("smtp.myserver.com"));
     emailConfigurationPage.port().shouldBe(value("465"));
     emailConfigurationPage.username().shouldBe(value(""));
@@ -118,7 +118,7 @@ public class EmailConfigurationPageTest
     emailConfigurationPage.startTlsEnabled().shouldBe(selected);
 
     // State after refresh
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
     emailConfigurationPage.hostName().shouldBe(value("smtp.myserver.com"));
     emailConfigurationPage.port().shouldBe(value("465"));
     emailConfigurationPage.username().shouldBe(value("admin"));
@@ -162,7 +162,7 @@ public class EmailConfigurationPageTest
   public void testHostnameOrPortUpdateRequiresPasswordToBeProvided() {
     tempEntity.newMailConfigurationWithNoAuthentication();
 
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
 
     // Test Hostname requires Password
     emailConfigurationPage.hostName().setValue("123");
@@ -197,7 +197,7 @@ public class EmailConfigurationPageTest
     MailConfiguration existing
         = tempEntity.newMailConfiguration("admin", insightMail.encryptPassword("password".toCharArray()));
 
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
 
     // These are all the values I am allowed to modify without providing my password
     emailConfigurationPage.username().setValue("new-username");
@@ -229,7 +229,7 @@ public class EmailConfigurationPageTest
     MailConfiguration existing =
         tempEntity.newMailConfiguration("admin", insightMail.encryptPassword("password".toCharArray()));
 
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.password().setValue("new-password");
     assertConfigurationCanBeSaved();
@@ -260,7 +260,7 @@ public class EmailConfigurationPageTest
     MailConfiguration existing
         = tempEntity.newMailConfiguration("a", insightMail.encryptPassword("password".toCharArray()));
 
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.username().click();
     emailConfigurationPage.username().sendKeys(BACK_SPACE);
@@ -315,7 +315,7 @@ public class EmailConfigurationPageTest
 
   @Test
   public void testDirtyBehaviour() {
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
 
     // Form is said to be dirty if I make any change in any field.
     // Cancel button must be active for a dirty form, and clicking it must bring the form back to its original state
@@ -334,7 +334,7 @@ public class EmailConfigurationPageTest
 
   @Test
   public void testSendTestEmailDisabledWhenNoConfigurationExists() {
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
     emailConfigurationPage.testEmailRecipient().setValue("koraytugay@icloud.com");
     emailConfigurationPage.testEmailSend().shouldBe(DISABLED);
   }
@@ -342,17 +342,17 @@ public class EmailConfigurationPageTest
   @Test
   public void testEmailRecipientIsEmptyWhenPageIsNavigated() {
     tempEntity.newMailConfiguration("a", insightMail.encryptPassword("password".toCharArray()));
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
     emailConfigurationPage.testEmailRecipient().setValue("koraytugay@icloud.com");
-    refreshOrOpen(DashboardPage.URL);
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(DashboardPage.url());
+    refreshOrOpen(EmailConfigurationPage.url());
     emailConfigurationPage.testEmailRecipient().shouldBe(empty);
   }
 
   @Test
   public void testSendTestEmailConfigurationNotSaved_MinimalData() throws MessagingException, IOException {
     Mailbox.clearAll();
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
     emailConfigurationPage.testEmailSend().shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("Hostname, Port, System Email and Recipient address are required."));
 
@@ -376,7 +376,7 @@ public class EmailConfigurationPageTest
   @Test
   public void testSendEmailConfigurationNotSaved_FullData() throws MessagingException, IOException {
     Mailbox.clearAll();
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.hostName().setValue("localhost");
     emailConfigurationPage.port().setValue("465");
@@ -407,7 +407,7 @@ public class EmailConfigurationPageTest
     MailConfiguration mailConfiguration = tempEntity.newMailConfigurationWithNoAuthentication();
 
     Mailbox.clearAll();
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.testEmailRecipient().setValue("john@doe");
     sendTestEmail();
@@ -422,7 +422,7 @@ public class EmailConfigurationPageTest
     MailConfiguration mailConfiguration = tempEntity.newMailConfigurationWithNoAuthentication();
 
     Mailbox.clearAll();
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.username().setValue("u");
     emailConfigurationPage.password().setValue("p");
@@ -441,7 +441,7 @@ public class EmailConfigurationPageTest
     MailConfiguration mailConfiguration = tempEntity.newMailConfiguration("u", "p".toCharArray());
 
     Mailbox.clearAll();
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.hostName().setValue("another-host");
     emailConfigurationPage.testEmailRecipient().setValue("john@doe");
@@ -461,7 +461,7 @@ public class EmailConfigurationPageTest
     MailConfiguration mailConfiguration = tempEntity.newMailConfiguration("u", "p".toCharArray());
 
     Mailbox.clearAll();
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.port().setValue("25");
     emailConfigurationPage.testEmailRecipient().setValue("john@doe");
@@ -481,7 +481,7 @@ public class EmailConfigurationPageTest
     MailConfiguration mailConfiguration = tempEntity.newMailConfigurationWithNoAuthentication();
 
     Mailbox.clearAll();
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.sslEnabled().click();
     emailConfigurationPage.startTlsEnabled().click();
@@ -499,7 +499,7 @@ public class EmailConfigurationPageTest
     tempEntity.newMailConfigurationWithNoAuthentication();
 
     Mailbox.clearAll();
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.testEmailRecipient().setValue("  ");
     emailConfigurationPage.testEmailSend().shouldBe(DISABLED);
@@ -509,10 +509,10 @@ public class EmailConfigurationPageTest
   public void testPageNotAccessible() {
     try {
       User user = tempEntity.newUser("username", "john", "doe", "john@doe");
-      refreshOrOpen(DashboardPage.URL);
+      refreshOrOpen(DashboardPage.url());
       logout();
       login(user.getUsername(), user.getPassword());
-      refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+      refreshOrOpen(EmailConfigurationPage.url());
       emailConfigurationPage.hostName().shouldNotBe(visible);
       emailConfigurationPage.insufficientPermissionsError()
           .shouldBe(visible)
@@ -522,7 +522,7 @@ public class EmailConfigurationPageTest
     }
     finally {
       logout();
-      refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+      refreshOrOpen(EmailConfigurationPage.url());
       loginAsAdmin();
     }
   }

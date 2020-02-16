@@ -19,7 +19,9 @@ public class LdapServerListPage
 {
   private static final String ROOT_SELECTOR = "#ldap-server-list";
 
-  public static String URL = BaseUrl.resolvePageUrl("/ldap-servers");
+  public static String url() {
+    return BaseUrl.resolvePageUrl("/ldap-servers");
+  }
 
   public LdapServerListPage() {
     super(ROOT_SELECTOR);

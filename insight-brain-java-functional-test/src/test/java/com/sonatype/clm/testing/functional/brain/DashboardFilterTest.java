@@ -73,9 +73,6 @@ import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMav
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.ACTIVE;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.NO_CHANGES_MESSAGE;
-import static com.sonatype.clm.testing.functional.pages.DashboardPage.APPLICATIONS_URL;
-import static com.sonatype.clm.testing.functional.pages.DashboardPage.COMPONENTS_URL;
-import static com.sonatype.clm.testing.functional.pages.DashboardPage.VIOLATIONS_URL;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.applicationsTab;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.componentsTab;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.violationsTab;
@@ -104,13 +101,13 @@ public class DashboardFilterTest
   @BeforeClass
   public static void beforeClass() throws Exception {
     setupData();
-    refreshOrOpen(VIOLATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToViolations());
     loginAsAdmin();
   }
 
   @Before
   public void before() {
-    refreshOrOpen(VIOLATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToViolations());
   }
 
   @After
@@ -196,14 +193,14 @@ public class DashboardFilterTest
    */
   @Test
   public void testAgeFilter() {
-    refreshOrOpen(APPLICATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToApplications());
     AgeFilter ageFilter = DashboardFilters.ageFilter();
     ageFilter.shouldBe(hidden);
 
-    refreshOrOpen(COMPONENTS_URL);
+    refreshOrOpen(DashboardPage.urlToComponents());
     ageFilter.shouldBe(hidden);
 
-    refreshOrOpen(VIOLATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToViolations());
     ageFilter.shouldBe(visible).shouldHave(text("past 30 days"));
     ageFilter.twisty().click();
     ageFilter.singleSelectList().shouldHaveSize(6).shouldHave(
@@ -221,7 +218,7 @@ public class DashboardFilterTest
     ageFilter.singleSelectList().shouldHaveSize(6);
     eyesWatcher.eyesCheck("90 days selected - after apply");
 
-    refreshOrOpen(VIOLATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToViolations());
     ageFilter.twisty().click();
     ageFilter.past30days().shouldNotBe(selected).click();
     // check that revert button restores previously applied value
@@ -238,7 +235,7 @@ public class DashboardFilterTest
     createUser();
     logout();
     login();
-    refreshOrOpen(VIOLATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToViolations());
 
     assertFilterDisabled(DashboardFilters.applicationFilter(), "applications");
     eyesWatcher.eyesCheck();
@@ -690,7 +687,7 @@ public class DashboardFilterTest
   @Test
   public void testNeedsAcknowledgement() {
     testCLMServer.getCLMServer().getConfiguration().setNeedsAcknowledgementOfInitialDashboardFilter(true);
-    refreshOrOpen(VIOLATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToViolations());
 
     DashboardFilters.saveFilterNameLabel().shouldBe(hidden);
     DashboardPage.needsAcknowledgementMessage().shouldBe(visible)
@@ -730,14 +727,14 @@ public class DashboardFilterTest
     assertThat(filters.get(1).isAcknowledged()).isFalse();
 
     testCLMServer.getCLMServer().getConfiguration().setNeedsAcknowledgementOfInitialDashboardFilter(true);
-    refreshOrOpen(VIOLATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToViolations());
 
     assertNeedsAcknowledgementPostFilterState(filterName);
   }
 
   @Test
   public void testOrgFilterIncludesNewApplications() {
-    refreshOrOpen(APPLICATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToApplications());
 
     // filter by Org
     DashboardFilters.organizationFilter().twisty().click();
@@ -756,12 +753,12 @@ public class DashboardFilterTest
         "Artifact1", "Version1", "hash", FailActionType.ID);
 
     // new App should be included in results
-    refreshOrOpen(APPLICATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToApplications());
     results.applications().shouldHaveSize(3);
     eyesWatcher.eyesCheck();
 
     appDAO.delete(thirdApp);
-    refreshOrOpen(APPLICATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToApplications());
     results.applications().shouldHaveSize(2);
   }
 
@@ -777,12 +774,12 @@ public class DashboardFilterTest
     violationsResults.noDataMessage().shouldBe(visible);
     eyesWatcher.eyesCheck();
 
-    refreshOrOpen(APPLICATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToApplications());
     ApplicationsResults applicationsResults = DashboardPage.applicationsView().results();
     applicationsResults.applications().shouldHaveSize(0);
     applicationsResults.noDataMessage().shouldBe(visible);
 
-    refreshOrOpen(COMPONENTS_URL);
+    refreshOrOpen(DashboardPage.urlToComponents());
     ComponentsResults componentsResults = DashboardPage.componentsView().results();
     componentsResults.components().shouldHaveSize(0);
     componentsResults.noDataMessage().shouldBe(visible);

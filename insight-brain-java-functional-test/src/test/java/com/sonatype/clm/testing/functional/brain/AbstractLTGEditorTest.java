@@ -18,7 +18,6 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
-import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.utils.DoubleColumnPickerTestHelper;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
@@ -58,7 +57,7 @@ public abstract class AbstractLTGEditorTest
 
   @BeforeClass
   public static void beforeClass() {
-    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
+    refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
     loginAsAdmin();
   }
 

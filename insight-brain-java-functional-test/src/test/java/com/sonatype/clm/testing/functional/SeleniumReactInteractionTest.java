@@ -31,7 +31,7 @@ public class SeleniumReactInteractionTest
    */
   @Test
   public void testSeleniumReactInteraction() {
-    refreshOrOpen(EmailConfigurationPage.emailConfigurationUrl());
+    refreshOrOpen(EmailConfigurationPage.url());
     loginAsAdmin();
 
     SelenideElement hostname = $(byId("email-config-hostname"));

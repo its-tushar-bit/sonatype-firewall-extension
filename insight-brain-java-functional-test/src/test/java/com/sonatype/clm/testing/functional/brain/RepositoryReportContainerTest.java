@@ -40,7 +40,7 @@ public class RepositoryReportContainerTest
 
   @BeforeClass
   public static void beforeAll() {
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
   }
 

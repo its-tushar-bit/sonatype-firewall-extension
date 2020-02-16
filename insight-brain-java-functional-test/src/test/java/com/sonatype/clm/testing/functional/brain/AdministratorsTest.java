@@ -31,7 +31,7 @@ public class AdministratorsTest
 {
   @BeforeClass
   public static void initialLogin() {
-    refreshOrOpen(AdministratorsPage.URL);
+    refreshOrOpen(AdministratorsPage.url());
     loginAsAdmin();
   }
 
@@ -41,7 +41,7 @@ public class AdministratorsTest
     tempEntity.newUser("test-a", "secret", "John", "Doe", "john@doe.net");
     tempEntity.newUser("test-b", "secret", "Jane", "Doe", "jane@doe.net");
 
-    refreshOrOpen(AdministratorsPage.URL);
+    refreshOrOpen(AdministratorsPage.url());
   }
 
   @After
@@ -201,7 +201,7 @@ public class AdministratorsTest
     userMapping2.setDynamicGroupSearchEnabled(false);
     ldapUserMappingDAO.update(userMapping2);
 
-    refreshOrOpen(AdministratorsPage.URL);
+    refreshOrOpen(AdministratorsPage.url());
 
     policyAdministrator = AdministratorsPage.administratorsRoleMappingList().element(0);
     policyAdministrator.shouldBe(visible).editButton().click();
@@ -213,7 +213,7 @@ public class AdministratorsTest
     ldapUserMappingDAO.update(userMapping2);
 
     prepareToLeavePage();
-    refreshOrOpen(AdministratorsPage.URL);
+    refreshOrOpen(AdministratorsPage.url());
 
     policyAdministrator = AdministratorsPage.administratorsRoleMappingList().element(0);
     policyAdministrator.shouldBe(visible).editButton().click();
@@ -225,7 +225,7 @@ public class AdministratorsTest
     ldapUserMappingDAO.update(userMapping1);
 
     prepareToLeavePage();
-    refreshOrOpen(AdministratorsPage.URL);
+    refreshOrOpen(AdministratorsPage.url());
 
     policyAdministrator = AdministratorsPage.administratorsRoleMappingList().element(1);
     policyAdministrator.shouldBe(visible).editButton().click();

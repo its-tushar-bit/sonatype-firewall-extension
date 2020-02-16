@@ -12,7 +12,9 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 public class RepositoriesSummaryPage
 {
-  public static String URL = BaseUrl.resolvePageUrl("/management/view/repositories");
+  public static String url() {
+    return BaseUrl.resolvePageUrl("/management/view/repositories");
+  }
 
   public static RepositoriesSummaryTile summaryTile() {
     return new RepositoriesSummaryTile();

@@ -13,7 +13,6 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage.DeleteErrorModal;
-import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
@@ -54,7 +53,7 @@ public class CategoryEditorTest
 
   @BeforeClass
   public static void beforeClass() {
-    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
+    refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
     loginAsAdmin();
   }
 

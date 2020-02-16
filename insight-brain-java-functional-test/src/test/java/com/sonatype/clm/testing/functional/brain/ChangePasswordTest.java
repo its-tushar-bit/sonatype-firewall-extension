@@ -28,7 +28,7 @@ public class ChangePasswordTest
   @Test
   public void testChangePassword() {
     User user = tempEntity.newUser("testchangepass", "John", "Doe", "john@doe.com");
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     login(user.getUsername(), user.getPassword());
 
     MainHeader.userMenu().dropdownToggle().shouldBe(visible).click();

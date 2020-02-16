@@ -16,7 +16,7 @@ import static com.codeborne.selenide.Selenide.$$;
 
 public class ProductLicensePage
 {
-  public static final String url() {
+  public static String url() {
     return BaseUrl.resolvePageUrl("/productlicense");
   }
 

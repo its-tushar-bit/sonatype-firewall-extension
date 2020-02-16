@@ -42,7 +42,7 @@ public class SamlConfigurationPageTest
 {
   @Before
   public void before() {
-    refreshOrOpen(SamlConfigurationPage.samlConfigurationUrl());
+    refreshOrOpen(SamlConfigurationPage.url());
     loginAsAdmin();
     SamlConfigurationPage.scrollToTop();
   }
@@ -232,7 +232,7 @@ public class SamlConfigurationPageTest
     assertThat(SamlConfigurationPage.identityProviderMetadataXmlTextArea().getValue()).startsWith("<?xml");
 
     logout();
-    refreshOrOpen(SamlConfigurationPage.samlConfigurationUrl());
+    refreshOrOpen(SamlConfigurationPage.url());
     loginAsAdmin();
 
     // Any saved configuration is loaded when going to the page.
@@ -311,7 +311,7 @@ public class SamlConfigurationPageTest
       statement.execute("INSERT INTO insight_brain_ods.saml_configuration " +
           "VALUES ('474878d8bfe44d2086ca8387e340692f', '{}', '', '');");
     }
-    refreshOrOpen(SamlConfigurationPage.samlConfigurationUrl());
+    refreshOrOpen(SamlConfigurationPage.url());
     SamlConfigurationPage.deleteButton().shouldBe(visible, enabled).click();
     SamlConfigurationPage.deleteButtonModal().click();
     SamlConfigurationPage.scrollToBottom();

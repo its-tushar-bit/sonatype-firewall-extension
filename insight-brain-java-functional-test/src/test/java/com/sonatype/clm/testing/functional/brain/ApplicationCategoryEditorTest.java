@@ -46,7 +46,7 @@ public class ApplicationCategoryEditorTest
 
   @BeforeClass
   public static void boot() {
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
   }
 

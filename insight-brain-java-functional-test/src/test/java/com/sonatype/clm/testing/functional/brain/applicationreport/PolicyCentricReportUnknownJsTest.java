@@ -42,7 +42,7 @@ public class PolicyCentricReportUnknownJsTest
 
   @BeforeClass
   public static void startup() {
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
   }
 

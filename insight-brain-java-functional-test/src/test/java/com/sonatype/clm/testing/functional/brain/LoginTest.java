@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
-import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
@@ -45,7 +44,7 @@ public class LoginTest
 
   @Test
   public void testInitialLoginFormState() {
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginModal.shouldBe(visible);
     loginModal.ssoText().shouldBe(hidden);
     loginModal.username().shouldBe(focused);
@@ -60,7 +59,7 @@ public class LoginTest
     new SamlConfigurationDAO().update(samlConfiguration);
     testCLMServer.getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
 
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
 
     loginModal.shouldBe(visible);
     loginModal.ssoText().shouldBe(visible).shouldHave(text(samlConfiguration.getIdentityProviderName()));
@@ -78,7 +77,7 @@ public class LoginTest
 
   @Test
   public void testValidCredentials() {
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginModal.shouldBe(visible);
     loginModal.username().setValue("admin");
     loginModal.password().setValue("admin123");
@@ -88,7 +87,7 @@ public class LoginTest
 
   @Test
   public void testInvalidCredentials() {
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginModal.shouldBe(visible);
     loginModal.username().setValue("unknown");
     loginModal.password().setValue("user");
@@ -100,19 +99,19 @@ public class LoginTest
 
   @Test
   public void testAuthenticationSessionStateIsRememberedByCookie() {
-    refreshOrOpen(OrganizationManagementPage.URL);
+    refreshOrOpen(OwnerSummaryPage.url());
     loginAsAdmin();
     OwnerSummaryPage.summaryTile().shouldBe(visible);
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     ReportListPage.listContainer().shouldBe(visible);
     clearCookies();
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginModal.shouldBe(visible);
   }
 
   @Test
   public void testLogout() {
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
     logout();
     MainHeader.mainHeaderButtons().shouldBe(hidden);
@@ -124,9 +123,9 @@ public class LoginTest
 
   @Test
   public void testNavigationWhileLoggedOut() {
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginModal.shouldBe(visible);
-    refreshOrOpen(OrganizationManagementPage.URL);
+    refreshOrOpen(OwnerSummaryPage.url());
     loginModal.shouldBe(visible);
     Selenide.back();
     loginModal.shouldBe(visible);

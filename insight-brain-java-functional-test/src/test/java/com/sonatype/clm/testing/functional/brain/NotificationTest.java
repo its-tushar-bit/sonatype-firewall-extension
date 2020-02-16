@@ -42,7 +42,7 @@ public class NotificationTest
         "\"dateCreated\" : " + tenHoursAgo +
         "}]}").atUri("rest/productNotifications");
 
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
   }
 
@@ -107,6 +107,6 @@ public class NotificationTest
     waitUntilUrl("about:blank?foo");
     WebDriverRunner.getWebDriver().close();
     Selenide.switchTo().window(0);
-    waitUntilUrl(ReportListPage.URL);
+    waitUntilUrl(ReportListPage.url());
   }
 }

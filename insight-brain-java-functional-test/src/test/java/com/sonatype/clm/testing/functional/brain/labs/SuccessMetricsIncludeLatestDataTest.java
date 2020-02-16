@@ -60,7 +60,7 @@ public class SuccessMetricsIncludeLatestDataTest
 
   @Test
   public void testIncludeLatestData() {
-    refreshOrOpen(SuccessMetricsReportListPage.URL);
+    refreshOrOpen(SuccessMetricsReportListPage.url());
     loginAsAdmin();
 
     // Create Success Metrics report with latest data.

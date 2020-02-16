@@ -55,7 +55,7 @@ public class DashboardComponentsTest
 
   @BeforeClass
   public static void beforeClass() {
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
     loginAsAdmin();
   }
 
@@ -71,7 +71,7 @@ public class DashboardComponentsTest
     policy = tempEntity.newPolicy(app.getParentOwnerId());
     policyEvaluation = tempEntity
         .newPolicyEvaluation(app.getId(), BuildStageType.ID, "DashboardComponentsTestFirstEval");
-    refreshOrOpen(DashboardPage.COMPONENTS_URL);
+    refreshOrOpen(DashboardPage.urlToComponents());
   }
 
   @Test
@@ -89,7 +89,7 @@ public class DashboardComponentsTest
 
     // 101 results
     addComponentWithViolation(101, 5);
-    refreshOrOpen(DashboardPage.COMPONENTS_URL);
+    refreshOrOpen(DashboardPage.urlToComponents());
     DashboardPage.dashboardContainer().shouldBe(visible);
     table.maxResultsMessage().shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
   }
@@ -101,7 +101,7 @@ public class DashboardComponentsTest
     addComponentWithViolation(1, 1);   // low
     addComponentWithViolation(4, 10);  // critical
     addComponentWithViolation(3, 7);   // severe
-    refreshOrOpen(DashboardPage.COMPONENTS_URL);
+    refreshOrOpen(DashboardPage.urlToComponents());
     showLowRiskViolations();
 
     DashboardPage.dashboardContainer().shouldBe(visible);
@@ -282,7 +282,7 @@ public class DashboardComponentsTest
         "to ensure overflow in cell", "hash-b", 7);
     addComponentWithViolation("A", null, null, "hash-a", 3);
 
-    refreshOrOpen(DashboardPage.COMPONENTS_URL);
+    refreshOrOpen(DashboardPage.urlToComponents());
     DashboardPage.dashboardContainer().shouldBe(visible);
     ComponentsResults table = DashboardPage.componentsView().results();
 
@@ -299,7 +299,7 @@ public class DashboardComponentsTest
   public void testBreadCrumb() {
     addComponentWithViolation("g", "a", "v", "hash-b", 7);
 
-    refreshOrOpen(DashboardPage.COMPONENTS_URL);
+    refreshOrOpen(DashboardPage.urlToComponents());
     DashboardPage.dashboardContainer().shouldBe(visible);
     ComponentsResults table = DashboardPage.componentsView().results();
 
@@ -328,7 +328,7 @@ public class DashboardComponentsTest
     policy = tempEntity.newPolicy(app.getParentOwnerId());
     policyEvaluation = tempEntity
         .newPolicyEvaluation(app.getId(), BuildStageType.ID, "AnotherAppEval");
-    refreshOrOpen(DashboardPage.COMPONENTS_URL);
+    refreshOrOpen(DashboardPage.urlToComponents());
     addComponents(40, 0, "low");
 
     refresh();

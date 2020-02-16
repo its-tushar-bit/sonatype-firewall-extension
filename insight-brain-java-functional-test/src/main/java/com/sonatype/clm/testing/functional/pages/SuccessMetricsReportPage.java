@@ -84,7 +84,7 @@ public class SuccessMetricsReportPage
     return child("#delete-success-metrics-report");
   }
 
-  public static String getUrl(String successMetricsId) {
+  public static String url(String successMetricsId) {
     return BaseUrl.resolvePageUrl("/labs/successMetrics/{successMetricsId}", successMetricsId);
   }
 

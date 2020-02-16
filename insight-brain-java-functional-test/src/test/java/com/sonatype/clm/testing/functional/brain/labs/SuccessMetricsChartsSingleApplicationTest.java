@@ -70,7 +70,7 @@ public class SuccessMetricsChartsSingleApplicationTest
     SuccessMetricsReport successMetrics = staticTempEntity.newSuccessMetricsReport("admin", "Test",
         JsonUtils.format(successMetricsScope));
 
-    successMetricsReportPageUrl = SuccessMetricsReportPage.getUrl(successMetrics.getId());
+    successMetricsReportPageUrl = SuccessMetricsReportPage.url(successMetrics.getId());
 
     refreshOrOpen(successMetricsReportPageUrl);
     loginAsAdmin();

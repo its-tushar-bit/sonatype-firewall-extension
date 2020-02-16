@@ -10,7 +10,7 @@ import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
-import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.RoleManagementPage;
@@ -50,16 +50,16 @@ public class SystemNoticeTest
   private static final SystemNotice FILLED_ENABLED = createSystemNotice(FIVE_HUNDRED_CHARACTERS, true);
 
   private static final String[] PAGE_URLS = new String[]{
-      DashboardPage.URL,
-      ReportListPage.URL,
-      OrganizationManagementPage.URL,
+      DashboardPage.url(),
+      ReportListPage.url(),
+      OwnerSummaryPage.url(),
       UserManagementPage.url(),
       RoleManagementPage.url(),
       ProductLicensePage.url(),
-      AdministratorsPage.URL,
-      LdapServerListPage.URL,
-      WebhookConfigurationPage.URL,
-      SystemNoticeConfigurationPage.URL
+      AdministratorsPage.url(),
+      LdapServerListPage.url(),
+      WebhookConfigurationPage.url(),
+      SystemNoticeConfigurationPage.url()
   };
 
   private com.sonatype.clm.testing.functional.elements.SystemNotice systemNotice =
@@ -111,7 +111,7 @@ public class SystemNoticeTest
 
   private void checkSystemNoticeVisibilityOnLogin(final SystemNotice systemNotice, final Condition visibility) {
     systemNoticeDAO.update(systemNotice);
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
     new LoginModal().systemNotice().shouldBe(visibility);
   }
 

@@ -42,7 +42,7 @@ public abstract class AbstractVersionGraphMavenTest
 
   @BeforeClass
   public static void startup() {
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
     loginAsAdmin();
   }
 

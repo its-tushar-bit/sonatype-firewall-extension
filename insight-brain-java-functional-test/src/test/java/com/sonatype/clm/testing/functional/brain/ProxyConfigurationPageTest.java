@@ -42,7 +42,7 @@ public class ProxyConfigurationPageTest
 
   @BeforeClass
   public static void beforeClass() {
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
     loginAsAdmin();
   }
 
@@ -54,7 +54,7 @@ public class ProxyConfigurationPageTest
 
   @Test
   public void testSave_MinimalData() {
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.insufficientPermissionsError().shouldNotBe(visible);
     assertNoProxyServerConfigured();
     eyesWatcher.eyesCheck("Proxy Configuration Page - Empty State");
@@ -79,7 +79,7 @@ public class ProxyConfigurationPageTest
 
   @Test
   public void testSave_CompleteData() {
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
 
     proxyConfigurationPage.hostName().setValue("proxy.server");
     proxyConfigurationPage.port().setValue("8080");
@@ -107,7 +107,7 @@ public class ProxyConfigurationPageTest
   public void testRead() {
     tempEntity.setProxyServerConfiguration("proxy.server", 8080, "u", "p".toCharArray(), "host.to.exclude");
 
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
 
     proxyConfigurationPage.hostName().shouldBe(value("proxy.server"));
     proxyConfigurationPage.port().shouldBe(value("8080"));
@@ -119,7 +119,7 @@ public class ProxyConfigurationPageTest
   @Test
   public void testDelete() {
     tempEntity.setProxyServerConfiguration("proxy.server", 8080);
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
 
     // Make sure cancel does not delete
     proxyConfigurationPage.deleteModal().shouldNotBe(visible);
@@ -148,7 +148,7 @@ public class ProxyConfigurationPageTest
 
   @Test
   public void testPortIsRequired() {
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.hostName().setValue("a.hostname");
     proxyConfigurationPage.save().shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("Hostname and Port are required details."));
@@ -156,7 +156,7 @@ public class ProxyConfigurationPageTest
 
   @Test
   public void testHostnameIsRequired() {
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.port().setValue("8080");
     proxyConfigurationPage.save().shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("Hostname and Port are required details."));
@@ -165,7 +165,7 @@ public class ProxyConfigurationPageTest
   @Test
   public void testHostnameUpdateRequiresPassword() {
     tempEntity.setProxyServerConfiguration("host", 8080);
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.hostName().setValue("new-host");
     proxyConfigurationPage.save().shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("Password must be provided when updating Hostname or Port."));
@@ -174,7 +174,7 @@ public class ProxyConfigurationPageTest
   @Test
   public void testPortUpdateRequiresPassword() {
     tempEntity.setProxyServerConfiguration("host", 8080);
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.port().setValue("9090");
     proxyConfigurationPage.save().shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("Password must be provided when updating Hostname or Port."));
@@ -183,7 +183,7 @@ public class ProxyConfigurationPageTest
   @Test
   public void testCancelRevertsAllFields() {
     tempEntity.setProxyServerConfiguration("host", 8080);
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
 
     proxyConfigurationPage.hostName().setValue("new-hostname");
     proxyConfigurationPage.port().setValue("9090");
@@ -203,7 +203,7 @@ public class ProxyConfigurationPageTest
   @Test
   public void testUpdateExcludeHostsPasswordNotModified() {
     tempEntity.setProxyServerConfiguration("proxy.server", 8080, "u", encrypt("p"), "host.to.exclude");
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.excludeHosts().setValue("new.host");
 
     save();
@@ -219,7 +219,7 @@ public class ProxyConfigurationPageTest
   @Test
   public void testUpdateConfigurationAddCredentials() {
     tempEntity.setProxyServerConfiguration("proxy.server", 8080);
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.username().setValue("u");
     proxyConfigurationPage.password().setValue("p");
 
@@ -237,7 +237,7 @@ public class ProxyConfigurationPageTest
   public void testUpdateConfigurationRemovePassword() {
     tempEntity.setProxyServerConfiguration("proxy.server", 8080, "u", encrypt("password"));
 
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
 
     // Tests the field is completely selected by one click
     proxyConfigurationPage.password().click();
@@ -256,7 +256,7 @@ public class ProxyConfigurationPageTest
   public void testUpdateAddPassword() {
     tempEntity.setProxyServerConfiguration("proxy.server", 8080, "u", null);
 
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
 
     // Tests the field is completely selected by one click
     proxyConfigurationPage.password().click();
@@ -274,15 +274,15 @@ public class ProxyConfigurationPageTest
   @Test
   public void testAccessWithoutLicense() {
     uninstallLicense();
-    refreshOrOpen(DashboardPage.URL);
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(DashboardPage.url());
+    refreshOrOpen(ProxyConfigurationPage.url());
     assertNoProxyServerConfigured();
     proxyConfigurationPage.productLicenseNavigation().shouldBe(visible);
   }
 
   @Test
   public void testAccessWithLicense() {
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.productLicenseNavigation().shouldNotBe(visible);
   }
 
@@ -290,10 +290,10 @@ public class ProxyConfigurationPageTest
   public void testPageNotAccessible() {
     try {
       User user = tempEntity.newUser("john.doe", "John", "Doe", "john@doe.com");
-      refreshOrOpen(DashboardPage.URL);
+      refreshOrOpen(DashboardPage.url());
       logout();
       login(user.getUsername(), user.getPassword());
-      refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+      refreshOrOpen(ProxyConfigurationPage.url());
       proxyConfigurationPage.hostName().shouldNotBe(visible);
       proxyConfigurationPage.insufficientPermissionsError()
           .shouldBe(visible)
@@ -303,14 +303,14 @@ public class ProxyConfigurationPageTest
     }
     finally {
       logout();
-      refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+      refreshOrOpen(ProxyConfigurationPage.url());
       loginAsAdmin();
     }
   }
 
   @Test
   public void testMustShowHostnameAndPortRequiredTooltipForInvalidPort() {
-    refreshOrOpen(ProxyConfigurationPage.proxyConfigurationUrl());
+    refreshOrOpen(ProxyConfigurationPage.url());
 
     proxyConfigurationPage.hostName().setValue("proxy.server");
     proxyConfigurationPage.port().setValue("nineteen-eighty-four");

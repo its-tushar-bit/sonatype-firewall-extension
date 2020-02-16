@@ -35,7 +35,6 @@ import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.utils.ConditionUtils;
@@ -115,7 +114,7 @@ public abstract class AbstractPolicyEditorTest
 
   @BeforeClass
   public static void boot() {
-    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
+    refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
     loginAsAdmin();
   }
 
@@ -402,7 +401,7 @@ public abstract class AbstractPolicyEditorTest
     unsavedModal.shouldBe(hidden);
     MainHeader.dashboardNavigationButton().shouldBe(visible, enabled).click();
     unsavedModal.shouldBe(hidden);
-    waitUntilUrl(DashboardPage.URL);
+    waitUntilUrl(DashboardPage.url());
     DashboardPage.dashboardContainer().shouldBe(visible);
 
     back();
@@ -414,7 +413,7 @@ public abstract class AbstractPolicyEditorTest
 
     MainHeader.dashboardNavigationButton().click();
     unsavedModal.continueButton().shouldBe(visible).click();
-    waitUntilUrl(DashboardPage.URL);
+    waitUntilUrl(DashboardPage.url());
     DashboardPage.dashboardContainer().shouldBe(visible);
 
     back();

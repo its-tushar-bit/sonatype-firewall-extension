@@ -30,8 +30,8 @@ public class ChangeDefaultAdminPasswordNoticeTest
     extends AbstractFunctionalTest
 {
   private static final String[] URLs = new String[] {
-      DashboardPage.URL,
-      ReportListPage.URL,
+      DashboardPage.url(),
+      ReportListPage.url(),
       RoleManagementPage.url()
   };
 
@@ -49,7 +49,7 @@ public class ChangeDefaultAdminPasswordNoticeTest
 
   @Before
   public void before() {
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
   }
 
   @After

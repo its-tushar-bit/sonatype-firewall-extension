@@ -48,7 +48,7 @@ public class SuccessMetricsConfigurationTest
 
   @BeforeClass
   public static void startup() {
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
     loginAsAdmin();
   }
 
@@ -56,12 +56,12 @@ public class SuccessMetricsConfigurationTest
   public void testSuccessMetricsConfiguration() {
     SuccessMetricsReport successMetricsReport = tempEntity.newSuccessMetricsReport("admin", "Test Success Metrics",
         JsonUtils.format(new SuccessMetricsReportScopeDTO()));
-    String successMetricsChartsPageUrl = SuccessMetricsReportPage.getUrl(successMetricsReport.getId());
+    String successMetricsChartsPageUrl = SuccessMetricsReportPage.url(successMetricsReport.getId());
 
     systemConfigMenu.dropdownToggle().click();
     systemConfigMenu.successMetrics().parent().shouldNotHave(cssClass("active"));
     systemConfigMenu.successMetrics().shouldBe(visible).shouldHave(text("Success Metrics")).click();
-    waitUntilUrl(SuccessMetricsConfigurationPage.URL);
+    waitUntilUrl(SuccessMetricsConfigurationPage.url());
 
     // check configuration menu entry is selected
     systemConfigMenu.dropdownToggle().click();
@@ -104,8 +104,8 @@ public class SuccessMetricsConfigurationTest
     MainHeader.labsNavigationButton().shouldNot(exist);
 
     // ... the success metrics list page,
-    refreshOrOpen(SuccessMetricsReportListPage.URL);
-    waitUntilUrl(SuccessMetricsReportListPage.URL);
+    refreshOrOpen(SuccessMetricsReportListPage.url());
+    waitUntilUrl(SuccessMetricsReportListPage.url());
     successMetricsPage.successMetricsChartActionItems().elements().shouldHaveSize(0);
     successMetricsPage.errorBox().shouldBe(visible).shouldHave(text(SUCCESS_METRICS_DISABLED_TEXT));
     successMetricsPage.errorBox().retryButton().shouldBe(hidden);
@@ -120,15 +120,15 @@ public class SuccessMetricsConfigurationTest
     successMetricsChartsPage.errorBox().retryButton().shouldBe(hidden);
 
     // now re-enable success metrics.
-    refreshOrOpen(SuccessMetricsConfigurationPage.URL);
-    waitUntilUrl(SuccessMetricsConfigurationPage.URL);
+    refreshOrOpen(SuccessMetricsConfigurationPage.url());
+    waitUntilUrl(SuccessMetricsConfigurationPage.url());
     metricsConfigPage.toggle().shouldBe(enabled).shouldNotBe(checked).click();
     metricsConfigPage.update().shouldNotBe(CLM.DISABLED).click();
 
     // check that it worked on the header,
     MainHeader.labsNavigationButton().should(exist);
-    refreshOrOpen(SuccessMetricsReportListPage.URL);
-    waitUntilUrl(SuccessMetricsReportListPage.URL);
+    refreshOrOpen(SuccessMetricsReportListPage.url());
+    waitUntilUrl(SuccessMetricsReportListPage.url());
 
     // ... the success metrics list page,
     successMetricsPage.errorBox().shouldBe(hidden);

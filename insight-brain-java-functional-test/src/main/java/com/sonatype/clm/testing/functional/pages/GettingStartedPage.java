@@ -16,7 +16,9 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class GettingStartedPage
     extends BasicElement<GettingStartedPage>
 {
-  public static final String URL = BaseUrl.resolvePageUrl("/gettingStarted");
+  public static String url() {
+    return BaseUrl.resolvePageUrl("/gettingStarted");
+  }
 
   private static final String ROOT = "#getting-started";
 

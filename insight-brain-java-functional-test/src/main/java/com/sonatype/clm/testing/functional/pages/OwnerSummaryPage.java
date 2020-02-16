@@ -19,6 +19,14 @@ import com.sonatype.insight.brain.model.OwnerType;
 
 public class OwnerSummaryPage
 {
+  public static String url() {
+    return BaseUrl.resolvePageUrl("/management/view");
+  }
+
+  public static String urlToRootOrg() {
+    return url(OwnerType.ORGANIZATION, "ROOT_ORGANIZATION_ID");
+  }
+
   public static String url(Owner owner) {
     return url(owner.getType(), owner.getPublicId());
   }

@@ -28,7 +28,6 @@ import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -65,7 +64,6 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardViolations.SEVERE;
-import static com.sonatype.clm.testing.functional.pages.DashboardPage.VIOLATIONS_URL;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
@@ -83,8 +81,6 @@ public class DashboardViolationsTest
 
   private static final String CSV_HEADERS =
       "Threat Level,Policy Name,Organization Name,Application Name,Component Name,Date First Seen,Timestamp First Seen";
-
-  private static final String NEWEST_RISK_URL = BaseUrl.resolvePageUrl("/dashboard/newest-risk");
 
   private static final ViolationsHeaders headers = DashboardPage.violationsView().headers();
 
@@ -122,7 +118,7 @@ public class DashboardViolationsTest
 
   @BeforeClass
   public static void beforeClass() {
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
     loginAsAdmin();
   }
 
@@ -160,7 +156,7 @@ public class DashboardViolationsTest
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     File reportZip = work.getReportFile(buildEvalNow.getApplicationId(), buildEvalNow.getScanId());
     FileUtils.copyURLToFile(ReportHelper.zipReport("/canned-reports/small-report", tempDir), reportZip);
-    refreshOrOpen(DashboardPage.VIOLATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToViolations());
   }
 
   @Test
@@ -202,7 +198,7 @@ public class DashboardViolationsTest
     ageFilter.past90days().shouldNotBe(selected);
     ageFilter.past30days().shouldBe(selected);
     DashboardFilters.apply();
-    refreshOrOpen(VIOLATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToViolations());
     table.violations().shouldHaveSize(4);
 
     // check the tile details - tooltips should not show for short names
@@ -246,7 +242,7 @@ public class DashboardViolationsTest
     reportPage.shouldBe(visible);
     WebDriverRunner.getWebDriver().close();
     Selenide.switchTo().window(0);
-    waitUntilUrl(DashboardPage.VIOLATIONS_URL);
+    waitUntilUrl(DashboardPage.urlToViolations());
 
     // open component details and back
     DashboardComponentDetailsPage dashboardComponentDetailsPage = new DashboardComponentDetailsPage();
@@ -445,8 +441,8 @@ public class DashboardViolationsTest
 
   @Test
   public void testNewestRiskRedirectsToViolations() {
-    refreshOrOpen(NEWEST_RISK_URL);
-    waitUntilUrl(DashboardPage.VIOLATIONS_URL);
+    refreshOrOpen(DashboardPage.urlToNewestRisk());
+    waitUntilUrl(DashboardPage.urlToViolations());
   }
 
   @Test

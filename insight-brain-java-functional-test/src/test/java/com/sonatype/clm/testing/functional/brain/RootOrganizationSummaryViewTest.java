@@ -31,7 +31,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
 
   @BeforeClass
   public static void boot() {
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
   }
 

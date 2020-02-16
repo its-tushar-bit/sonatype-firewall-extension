@@ -15,7 +15,7 @@ import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -45,7 +45,7 @@ public class OwnerTreeViewTest
 
   @BeforeClass
   public static void startup() {
-    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
+    refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
     loginAsAdmin();
   }
 
@@ -71,7 +71,7 @@ public class OwnerTreeViewTest
       }
     }
 
-    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
+    refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
     OwnerTreeView.organizationElements().shouldHaveSize(organizations.size());
   }
 
@@ -162,7 +162,7 @@ public class OwnerTreeViewTest
     logout();
     login();
 
-    refreshOrOpen(OrganizationManagementPage.URL);
+    refreshOrOpen(OwnerSummaryPage.url());
     SelenideElement repositoriesTreeViewElement = OwnerTreeView.repositories();
     repositoriesTreeViewElement.shouldBe(hidden);
 
@@ -202,7 +202,7 @@ public class OwnerTreeViewTest
     logout();
     login();
 
-    refreshOrOpen(OrganizationManagementPage.URL);
+    refreshOrOpen(OwnerSummaryPage.url());
     OwnerTreeView.organizationElements().shouldHaveSize(1);
     OrganizationNode parentNode = OwnerTreeView.organization(0);
     parentNode.treeViewElement().shouldBe(CLM.DISABLED);

@@ -19,7 +19,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class SamlConfigurationPage
     extends BasicElement<SamlConfigurationPage>
 {
-  public static String samlConfigurationUrl() {
+  public static String url() {
     return BaseUrl.resolvePageUrl("/saml");
   }
 

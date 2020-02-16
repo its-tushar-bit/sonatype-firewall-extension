@@ -19,11 +19,11 @@ public class LdapConfigurationPage
 {
   private static final String ROOT_SELECTOR = "#ldap-configuration-editor";
 
-  public static String editLdapUrl(String ldapId) {
+  public static String urlToEdit(String ldapId) {
     return BaseUrl.resolvePageUrl("/ldap/edit/{ldapId}", ldapId);
   }
 
-  public static String createLdapUrl() {
+  public static String urlToCreate() {
     return BaseUrl.resolvePageUrl("/ldap/create");
   }
 

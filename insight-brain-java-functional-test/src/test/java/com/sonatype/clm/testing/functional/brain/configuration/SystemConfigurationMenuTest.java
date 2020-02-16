@@ -49,7 +49,7 @@ public class SystemConfigurationMenuTest
   public void testPermissionAwareness_NoPermissionsAtAll() {
     User user = newUser();
 
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     login(user.getUsername(), user.getPassword());
 
     MainHeader.userMenu().dropdownToggle().click();
@@ -59,7 +59,7 @@ public class SystemConfigurationMenuTest
 
   @Test
   public void testPermissionAwareness_Admin() {
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
 
     systemConfigMenu.shouldBe(visible);
@@ -82,7 +82,7 @@ public class SystemConfigurationMenuTest
   public void testPermissionAwareness_CONFIGURE_SYSTEM() {
     User user = newUser(Permission.CONFIGURE_SYSTEM);
 
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     login(user.getUsername(), user.getPassword());
 
     systemConfigMenu.shouldBe(visible);
@@ -106,7 +106,7 @@ public class SystemConfigurationMenuTest
   public void testPermissionAwareness_VIEW_ROLES() {
     User user = newUser(Permission.VIEW_ROLES);
 
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     login(user.getUsername(), user.getPassword());
 
     systemConfigMenu.shouldBe(visible);
@@ -129,7 +129,7 @@ public class SystemConfigurationMenuTest
   public void testPermissionAwareness_MANAGE_AUTOMATIC_APPLICATION_CREATION() {
     User user = newUser(Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
 
-    refreshOrOpen(AutomaticApplicationsConfigurationPage.URL);
+    refreshOrOpen(AutomaticApplicationsConfigurationPage.url());
     login(user.getUsername(), user.getPassword());
 
     systemConfigMenu.shouldBe(visible);
@@ -152,7 +152,7 @@ public class SystemConfigurationMenuTest
   public void testMenu_Foundation() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
 
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
 
     systemConfigMenu.shouldBe(visible);

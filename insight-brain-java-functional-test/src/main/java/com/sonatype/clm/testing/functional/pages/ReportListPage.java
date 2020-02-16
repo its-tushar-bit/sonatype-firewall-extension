@@ -17,7 +17,9 @@ public class ReportListPage
 {
   public static final String ROOT = ".iq-report-list-container";
 
-  public static String URL = BaseUrl.resolvePageUrl("/reports/violations");
+  public static String url() {
+    return BaseUrl.resolvePageUrl("/reports/violations");
+  }
 
   public static SelenideElement listContainer() {
     return $(ROOT);

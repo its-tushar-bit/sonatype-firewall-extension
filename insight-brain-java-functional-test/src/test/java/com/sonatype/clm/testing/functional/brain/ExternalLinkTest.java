@@ -37,7 +37,7 @@ public class ExternalLinkTest
 
   @Test
   public void testExternalLinks_Enabled() {
-    refreshOrOpen(GettingStartedPage.URL);
+    refreshOrOpen(GettingStartedPage.url());
     loginAsAdmin();
     GettingStartedPage gettingStartedPage = new GettingStartedPage();
 
@@ -51,7 +51,7 @@ public class ExternalLinkTest
   @Test
   public void testExternalLinks_Disabled() {
     testCLMServer.getCLMServer().getConfiguration().setExternalHyperlinksAllowed(false);
-    refreshOrOpen(GettingStartedPage.URL);
+    refreshOrOpen(GettingStartedPage.url());
     loginAsAdmin();
     GettingStartedPage gettingStartedPage = new GettingStartedPage();
     gettingStartedPage.systemSetup().shouldBe(visible);
@@ -70,7 +70,7 @@ public class ExternalLinkTest
   @Test
   public void testExternalLinks_Disabled_Icon() {
     testCLMServer.getCLMServer().getConfiguration().setExternalHyperlinksAllowed(false);
-    refreshOrOpen(GettingStartedPage.URL);
+    refreshOrOpen(GettingStartedPage.url());
     loginAsAdmin();
     GettingStartedPage gettingStartedPage = new GettingStartedPage();
     gettingStartedPage.systemSetup().shouldBe(visible);

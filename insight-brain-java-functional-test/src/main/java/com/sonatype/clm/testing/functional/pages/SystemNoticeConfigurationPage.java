@@ -21,7 +21,9 @@ import static com.codeborne.selenide.Selenide.$;
 public class SystemNoticeConfigurationPage
     extends BasicElement<SystemNoticeConfigurationPage>
 {
-  public static final String URL = BaseUrl.resolvePageUrl("/systemNoticeConfiguration");
+  public static String url() {
+    return BaseUrl.resolvePageUrl("/systemNoticeConfiguration");
+  }
 
   private static final String ROOT_SELECTOR = "#system-notice-configuration";
 

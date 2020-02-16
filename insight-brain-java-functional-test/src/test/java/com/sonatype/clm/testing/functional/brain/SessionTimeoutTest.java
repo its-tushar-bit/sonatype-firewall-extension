@@ -49,7 +49,7 @@ public class SessionTimeoutTest
 
   @Before
   public void before() {
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
 
     sessionManager = testCLMServer.getCLMServer().getInstance(DefaultWebSessionManager.class);
     oldSessionTimeout = sessionManager.getGlobalSessionTimeout();

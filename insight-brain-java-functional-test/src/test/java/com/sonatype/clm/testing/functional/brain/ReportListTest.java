@@ -45,7 +45,7 @@ public class ReportListTest
 
   @BeforeClass
   public static void startup() {
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
   }
 
@@ -72,7 +72,7 @@ public class ReportListTest
         Configuration.baseUrl, work, Stage.ID_STAGE_RELEASE);
     stageBuild.evaluatePolicy();
 
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
   }
 
   @Test
@@ -91,7 +91,7 @@ public class ReportListTest
 
     buildLink.click();
     reportPage.shouldBe(visible);
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
 
     stageReleaseLink.click();
     reportPage.shouldBe(visible);

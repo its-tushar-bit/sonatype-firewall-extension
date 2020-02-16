@@ -39,7 +39,7 @@ public class VersionGraphVsTest
 
   @BeforeClass
   public static void startup() {
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
     loginAsAdmin();
   }
 

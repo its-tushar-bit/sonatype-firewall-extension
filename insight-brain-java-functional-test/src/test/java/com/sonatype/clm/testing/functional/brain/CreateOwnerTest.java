@@ -23,7 +23,6 @@ import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.RootOrganizationNode;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
-import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -81,13 +80,13 @@ public class CreateOwnerTest
   @BeforeClass
   public static void beforeClass() {
     parentOrg = staticTempEntity.newOrganization("Parent");
-    refreshOrOpen(OrganizationManagementPage.URL);
+    refreshOrOpen(OwnerSummaryPage.url());
     loginAsAdmin();
   }
 
   @Before
   public void init() {
-    refreshOrOpen(OrganizationManagementPage.URL);
+    refreshOrOpen(OwnerSummaryPage.url());
   }
 
   @After
@@ -371,7 +370,7 @@ public class CreateOwnerTest
     OwnerEditorDialog.robotIcon().click();
 
     UnsavedModal unsavedModal = new UnsavedModal();
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     unsavedModal.cancelButton().shouldBe(visible).click();
 
     OwnerEditorDialog.defaultIcon().click();
@@ -381,7 +380,7 @@ public class CreateOwnerTest
     OwnerEditorDialog.defaultIcon().shouldBe(visible).shouldBe(selected);
 
     UnsavedModal unsavedModal = new UnsavedModal();
-    refreshOrOpen(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.url());
     unsavedModal.shouldBe(hidden);
     ReportListPage.listContainer().should(appear);
     Selenide.back();

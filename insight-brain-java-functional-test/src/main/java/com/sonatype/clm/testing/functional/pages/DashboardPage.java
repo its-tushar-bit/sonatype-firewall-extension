@@ -22,13 +22,25 @@ public class DashboardPage
 {
   public static final Condition ACTIVE = cssClass("active");
 
-  public static final String URL = BaseUrl.resolvePageUrl("/dashboard/violations");
+  public static String url() {
+    return urlToViolations();
+  }
 
-  public static final String COMPONENTS_URL = BaseUrl.resolvePageUrl("/dashboard/components");
+  public static String urlToComponents() {
+    return BaseUrl.resolvePageUrl("/dashboard/components");
+  }
 
-  public static final String VIOLATIONS_URL = BaseUrl.resolvePageUrl("/dashboard/violations");
+  public static String urlToViolations() {
+    return BaseUrl.resolvePageUrl("/dashboard/violations");
+  }
 
-  public static final String APPLICATIONS_URL = BaseUrl.resolvePageUrl("/dashboard/applications");
+  public static String urlToApplications() {
+    return BaseUrl.resolvePageUrl("/dashboard/applications");
+  }
+
+  public static String urlToNewestRisk() {
+    return BaseUrl.resolvePageUrl("/dashboard/newest-risk");
+  }
 
   public static final String ROOT =  ".dashboard-container";
 

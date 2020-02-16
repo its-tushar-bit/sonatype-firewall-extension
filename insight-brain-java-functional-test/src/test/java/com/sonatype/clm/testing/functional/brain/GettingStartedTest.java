@@ -34,13 +34,13 @@ public class GettingStartedTest
 
   @Test
   public void testNavigation() {
-    refreshOrOpen(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.url());
     loginAsAdmin();
     HelpMenu help = MainHeader.helpMenu();
 
     help.dropdownToggle().shouldBe(visible).click();
     help.gettingStartedLink().shouldBe(visible).click();
-    waitUntilUrl(GettingStartedPage.URL);
+    waitUntilUrl(GettingStartedPage.url());
     new GettingStartedPage().shouldBe(visible);
   }
 
@@ -48,7 +48,7 @@ public class GettingStartedTest
   public void testGettingStartedPage() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     testCLMServer.getHdsServer().respondWith("alive").atUri("ping");
-    refreshOrOpen(GettingStartedPage.URL);
+    refreshOrOpen(GettingStartedPage.url());
     loginAsAdmin();
     GettingStartedPage gettingStartedPage = new GettingStartedPage();
 
@@ -65,7 +65,7 @@ public class GettingStartedTest
     createUser();
     login();
     testCLMServer.getHdsServer().respondWith("").andStatus(503).atUri("ping");
-    refreshOrOpen(GettingStartedPage.URL);
+    refreshOrOpen(GettingStartedPage.url());
 
     // non-admin user only sees the HDS connectivity warning and learning topics tile
     gettingStartedPage.hdsConnectivityWarning().shouldBe(visible).shouldHave(text("retry in a bit"));

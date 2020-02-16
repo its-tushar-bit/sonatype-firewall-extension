@@ -43,7 +43,7 @@ public class EmailConfigurationPage
     super(ROOT);
   }
 
-  public static String emailConfigurationUrl() {
+  public static String url() {
     return BaseUrl.resolvePageUrl("/mailConfig");
   }
 

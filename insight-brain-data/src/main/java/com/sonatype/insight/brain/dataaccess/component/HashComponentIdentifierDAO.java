@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.component;
 
+import java.util.List;
+
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -55,6 +57,11 @@ public class HashComponentIdentifierDAO
         " WHERE entity.componentIdFormat=?1 and entity.componentIdCoordinatesJson=?2";
     return get(tx, sQuery, componentIdentifier.getFormat(),
         ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
+  }
+
+  public List<HashComponentIdentifier> getAll() {
+    String sQuery = "SELECT entity FROM HashComponentIdentifier entity ORDER BY entity.hash";
+    return getList(sQuery);
   }
 
   @Override

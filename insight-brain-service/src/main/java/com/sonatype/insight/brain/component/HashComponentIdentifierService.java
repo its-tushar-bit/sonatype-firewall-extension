@@ -113,7 +113,7 @@ public class HashComponentIdentifierService
   public void delete(final String hash) {
     HashComponentIdentifier toDelete = hashComponentIdentifierDAO.getByHash(hash);
     if (toDelete == null) {
-      throw new BadRequestException("Unable to find a claimed component with hash: " + hash + ".");
+      throw new NotFoundException("Cannot find component claim for hash " + hash);
     }
     auditHashComponentIdentifier(toDelete);
 

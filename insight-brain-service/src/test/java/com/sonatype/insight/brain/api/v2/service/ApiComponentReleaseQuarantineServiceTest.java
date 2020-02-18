@@ -261,10 +261,8 @@ public class ApiComponentReleaseQuarantineServiceTest
   {
     assertThat(repositoryComponentDTO.hash).isEqualTo(repositoryComponent.getHash());
     if (repositoryComponent.getComponentIdentifier() != null) {
-      assertThat(repositoryComponentDTO.componentIdentifier.getFormat())
-          .isEqualTo(repositoryComponent.getComponentIdentifier().getFormat());
-      assertThat(repositoryComponentDTO.componentIdentifier.getCoordinates())
-          .isEqualTo(repositoryComponent.getComponentIdentifier().getCoordinates());
+      assertThat(repositoryComponentDTO.componentIdentifier.toComponentIdentifier())
+          .isEqualTo(repositoryComponent.getComponentIdentifier());
       assertThat(repositoryComponentDTO.packageUrl)
           .isEqualTo(PackageUrlIdentifier.toPackageUrl(repositoryComponent.getComponentIdentifier()));
     }

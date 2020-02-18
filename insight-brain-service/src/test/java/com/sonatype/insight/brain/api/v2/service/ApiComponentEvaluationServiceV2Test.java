@@ -162,10 +162,8 @@ public class ApiComponentEvaluationServiceV2Test
     assertThat(details.isError).isFalse();
     assertThat(details.results).hasSize(1);
     assertThat(details.results.get(0).component.hash).isEqualTo(hash);
-    assertThat(details.results.get(0).component.componentIdentifier.getFormat())
-        .isEqualTo(componentIdentifier.getFormat());
-    assertThat(details.results.get(0).component.componentIdentifier.getCoordinates())
-        .isEqualTo(componentIdentifier.getCoordinates());
+    assertThat(details.results.get(0).component.componentIdentifier.toComponentIdentifier())
+        .isEqualTo(componentIdentifier);
   }
 
   private ApiComponentEvaluationResultDTOV2 getComponentEvaluationResult(

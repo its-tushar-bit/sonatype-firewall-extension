@@ -36,6 +36,14 @@ public class ApiComponentIdentifierDTOV2
     return new ApiComponentIdentifierDTOV2(componentIdentifier);
   }
 
+  public static ComponentIdentifier toComponentIdentifier(ApiComponentIdentifierDTOV2 dto) {
+    return dto == null ? null : dto.toComponentIdentifier();
+  }
+
+  public ComponentIdentifier toComponentIdentifier() {
+    return new ComponentIdentifier(getFormat(), getCoordinates());
+  }
+
   public void setFormat(String format) {
     this.format = format;
   }

@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.SearchTestHelper.ComponentInfo;
 import com.sonatype.insight.brain.api.v2.SearchTestHelper.PolicyViolationInfo;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -70,14 +71,8 @@ public class ApiSearchResourceV2Test
     assertResponseStatus(200, HttpRequest.to(result.reportUrl).followRedirects().get());
     assertThat(result.hash).isEqualTo(hash);
     assertThat(result.packageUrl).isEqualTo(packageUrl);
-    if (componentIdentifier != null) {
-      assertThat(result.componentIdentifier).isNotNull();
-      assertThat(result.componentIdentifier.getFormat()).isEqualTo(componentIdentifier.getFormat());
-      assertThat(result.componentIdentifier.getCoordinates()).isEqualTo(componentIdentifier.getCoordinates());
-    }
-    else {
-      assertThat(result.componentIdentifier).isNull();
-    }
+    assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(result.componentIdentifier))
+        .isEqualTo(componentIdentifier);
     assertThat(result.threatLevel).isEqualTo(threatLevel);
   }
 
@@ -469,9 +464,8 @@ public class ApiSearchResourceV2Test
     assertThat(results.criteria).isNotNull();
     assertThat(results.criteria.stageId).isEqualTo(Stage.ID_BUILD);
     assertThat(results.criteria.hash).isEqualTo("1249e25aebb15358bedd");
-    assertThat(results.criteria.componentIdentifier.getFormat()).isEqualTo(componentIdentifier.getFormat());
-    assertThat(results.criteria.componentIdentifier.getCoordinates())
-        .isEqualTo(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1", "*", "*").getCoordinates());
+    assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(results.criteria.componentIdentifier))
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1", "*", "*"));
   }
 
   @Test
@@ -480,9 +474,8 @@ public class ApiSearchResourceV2Test
     HttpResponse response = searchRequest(Stage.ID_BUILD).with(coords(componentIdentifier)).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
-    assertThat(results.criteria.componentIdentifier.getFormat()).isEqualTo(componentIdentifier.getFormat());
-    assertThat(results.criteria.componentIdentifier.getCoordinates())
-        .isEqualTo(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1", "*", "*").getCoordinates());
+    assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(results.criteria.componentIdentifier))
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1", "*", "*"));
     assertThat(results.criteria.hash).isNull();
     assertThat(results.criteria.packageUrl).isNull();
   }

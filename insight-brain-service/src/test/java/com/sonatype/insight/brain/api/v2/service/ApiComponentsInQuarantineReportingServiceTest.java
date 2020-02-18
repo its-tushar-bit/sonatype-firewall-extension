@@ -357,10 +357,8 @@ public class ApiComponentsInQuarantineReportingServiceTest
     assertThat(repositoryComponentDTO.hash).isEqualTo(expectedComponent.getHash());
 
     ComponentIdentifier expectedComponentIdentifier = expectedComponent.getComponentIdentifier();
-    assertThat(repositoryComponentDTO.componentIdentifier.getFormat())
-        .isEqualTo(expectedComponentIdentifier.getFormat());
-    assertThat(repositoryComponentDTO.componentIdentifier.getCoordinates())
-        .isEqualTo(expectedComponentIdentifier.getCoordinates());
+    assertThat(repositoryComponentDTO.componentIdentifier.toComponentIdentifier())
+        .isEqualTo(expectedComponentIdentifier);
 
     assertThat(repositoryComponentDTO.quarantineId).isEqualTo(expectedComponent.getId());
     assertThat(repositoryComponentDTO.quarantineTime).isEqualTo(expectedComponent.getQuarantineTime());

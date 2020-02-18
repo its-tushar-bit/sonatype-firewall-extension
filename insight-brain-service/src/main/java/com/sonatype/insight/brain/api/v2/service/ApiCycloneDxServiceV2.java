@@ -26,7 +26,6 @@ import javax.ws.rs.core.Response;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
@@ -211,9 +210,8 @@ public class ApiCycloneDxServiceV2
 
     bomComponent.setType(Type.LIBRARY);
 
-    PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(new ComponentIdentifier(
-        reportComponent.componentIdentifier.getFormat(),
-            reportComponent.componentIdentifier.getCoordinates()));
+    PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(
+        reportComponent.componentIdentifier.toComponentIdentifier());
     try {
       PackageURL packageUrl = new PackageURL(purl.getPackageUrl());
       bomComponent.setPurl(packageUrl);

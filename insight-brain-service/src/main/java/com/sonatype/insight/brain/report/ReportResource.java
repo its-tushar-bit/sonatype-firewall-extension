@@ -528,7 +528,8 @@ public class ReportResource
                                             final ReportBundleUpdater updater) throws IOException
   {
     for (ApiReportComponentDTOV2 component : components) {
-      ComponentIdentifier componentIdentifier = convertFromApi(component.componentIdentifier);
+      ComponentIdentifier componentIdentifier =
+          ApiComponentIdentifierDTOV2.toComponentIdentifier(component.componentIdentifier);
       if (componentIdentifier != null) {
         String imagePath;
         if (dataVersion >= 3) {
@@ -553,14 +554,6 @@ public class ReportResource
         }
       }
     }
-  }
-
-  private ComponentIdentifier convertFromApi(ApiComponentIdentifierDTOV2 apiComponentIdentifier) {
-    if (apiComponentIdentifier == null) {
-      return null;
-    }
-
-    return new ComponentIdentifier(apiComponentIdentifier.getFormat(), apiComponentIdentifier.getCoordinates());
   }
 
   private List<PolicyAlert> getAlertsForComponent(String hash, List<PolicyAlert> appAlerts) {

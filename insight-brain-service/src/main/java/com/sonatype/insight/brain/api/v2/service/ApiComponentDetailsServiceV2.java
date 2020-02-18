@@ -115,8 +115,7 @@ public class ApiComponentDetailsServiceV2
 
   private void validateComponentIdentifier(ApiComponentDTOV2 componentDTO) {
     try {
-      ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
-          componentDTO.componentIdentifier.getCoordinates());
+      ComponentIdentifier componentIdentifier = componentDTO.componentIdentifier.toComponentIdentifier();
       componentIdentifier.ensureComplete();
     }
     catch (InvalidComponentIdentifierException e) {
@@ -187,9 +186,7 @@ public class ApiComponentDetailsServiceV2
           new PackageUrlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
     }
     else if (componentDTO.componentIdentifier != null) {
-      componentEvaluationDataRequest.componentIdentifier =
-          new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
-              componentDTO.componentIdentifier.getCoordinates());
+      componentEvaluationDataRequest.componentIdentifier = componentDTO.componentIdentifier.toComponentIdentifier();
       componentEvaluationDataRequest.componentIdentifier.ensureComplete();
     }
     return componentEvaluationDataRequest;

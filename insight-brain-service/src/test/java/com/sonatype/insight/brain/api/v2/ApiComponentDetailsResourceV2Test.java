@@ -100,12 +100,8 @@ public class ApiComponentDetailsResourceV2Test
     ApiComponentDetailsDTOV2 componentDetails = result.componentDetails.get(0);
     assertThat(componentDetails).isNotNull();
     assertThat(componentDetails.component).isNotNull();
-    ApiComponentIdentifierDTOV2 expectedComponentIdentifier = ApiComponentIdentifierDTOV2
-        .fromComponentIdentifier(componentIdentifier);
-    assertThat(componentDetails.component.componentIdentifier.getFormat())
-        .isEqualTo(expectedComponentIdentifier.getFormat());
-    assertThat(componentDetails.component.componentIdentifier.getCoordinates())
-        .isEqualTo(expectedComponentIdentifier.getCoordinates());
+    assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(componentDetails.component.componentIdentifier))
+        .isEqualTo(componentIdentifier);
     assertThat(componentDetails.component.hash).isEqualTo("h1");
     assertThat(componentDetails.component.packageUrl).isEqualTo(expectedPackageUrl);
     assertThat(componentDetails.licenseData.declaredLicenses).extracting(dto -> dto.licenseId)

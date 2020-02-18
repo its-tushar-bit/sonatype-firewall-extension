@@ -65,7 +65,6 @@ import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMav
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_ALERT;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -462,8 +461,8 @@ public class WebhookDispatcherTest
     event.application.organizationId = organization.getId();
     event.applicationEvaluation = evaluationEvent;
     PolicyFact policyFact = new PolicyFact("policyId", "name", 5, "policyViolationId");
-    policyFact.addComponentFact(
-        new ComponentFact(createMavenCoordinates("com.group", "artifact", "1.0", "test", "jar"), "123"));
+    ComponentIdentifier mavenCoordinates = createMavenCoordinates("com.group", "artifact", "1.0", "test", "jar");
+    policyFact.addComponentFact(new ComponentFact(mavenCoordinates, "123"));
     event.policyFacts.add(policyFact);
     asyncEventBus.post(event);
 
@@ -495,9 +494,7 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.applicationEvaluation.stage).isEqualTo("stage");
     assertThat(webhookPayload.applicationEvaluation.ownerId).isEqualTo("ownerId");
     ApiComponentIdentifierDTOV2 componentIdentifier = policyAlertDTO.componentFacts.get(0).componentIdentifier;
-    assertThat(componentIdentifier.getFormat()).isEqualTo("maven");
-    assertThat(componentIdentifier.getCoordinates()).containsExactly(entry("artifactId", "artifact"),
-        entry("classifier", "test"), entry("extension", "jar"), entry("groupId", "com.group"), entry("version", "1.0"));
+    assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(componentIdentifier)).isEqualTo(mavenCoordinates);
   }
 
   @Test
@@ -596,8 +593,8 @@ public class WebhookDispatcherTest
     assertThat(actualOverride.id).isEqualTo(givenOverride.getId());
     assertThat(actualOverride.comment).isEqualTo("testing");
     assertThat(actualOverride.componentIdentifier).isNotNull();
-    assertThat(actualOverride.componentIdentifier.getFormat()).isEqualTo(mavenCoordinates.getFormat());
-    assertThat(actualOverride.componentIdentifier.getCoordinates()).isEqualTo(mavenCoordinates.getCoordinates());
+    assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(actualOverride.componentIdentifier))
+        .isEqualTo(mavenCoordinates);
     assertThat(actualOverride.licenseIds).isEmpty();
     assertThat(actualOverride.ownerId).isEqualTo(organization.getId());
     assertThat(actualOverride.status).isEqualTo(LicenseOverrideStatus.ACKNOWLEDGED.name());

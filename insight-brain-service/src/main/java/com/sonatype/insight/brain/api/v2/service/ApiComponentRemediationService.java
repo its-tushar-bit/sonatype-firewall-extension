@@ -17,7 +17,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -111,7 +110,7 @@ public class ApiComponentRemediationService
 
     if (scanId != null && isThirdPartySource) {
       componentSummary = thirdPartyComponentDAO
-          .getComponentSummary(requestedComponentIdentifier(componentDTO.componentIdentifier), ownerId, scanId);
+          .getComponentSummary(componentDTO.componentIdentifier.toComponentIdentifier(), ownerId, scanId);
     }
     else {
       componentSummary = getComponentSummary(componentIdentifier);
@@ -136,10 +135,6 @@ public class ApiComponentRemediationService
     return remediationValueDto == null ? null : new ApiComponentRemediationDTO(remediationValueDto);
   }
 
-  private ComponentIdentifier requestedComponentIdentifier(final ApiComponentIdentifierDTOV2 identifierDTOV2) {
-    return new ComponentIdentifier(identifierDTOV2.getFormat(), identifierDTOV2.getCoordinates());
-  }
-
   private ComponentIdentifier validateRequest(ApiComponentDTOV2 componentDTO, boolean isThirdParty) {
     if (componentDTO == null || (componentDTO.componentIdentifier == null && componentDTO.packageUrl == null)) {
       throw new BadRequestException("One of either componentIdentifier or packageUrl must be supplied.");
@@ -158,8 +153,7 @@ public class ApiComponentRemediationService
       throw new BadRequestException("ComponentIdentifier must be supplied.");
     }
     try {
-      ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
-          componentDTO.componentIdentifier.getCoordinates());
+      ComponentIdentifier componentIdentifier = componentDTO.componentIdentifier.toComponentIdentifier();
       if (!isThirdParty) {
         // The complete identifier is not required to determine the suggested remediation for third party components
         componentIdentifier.ensureComplete();

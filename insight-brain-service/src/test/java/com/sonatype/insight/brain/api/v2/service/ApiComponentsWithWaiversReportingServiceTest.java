@@ -521,10 +521,8 @@ public class ApiComponentsWithWaiversReportingServiceTest
 
   private void assertComponentDTOV2(ApiComponentDTOV2 componentDTOV2, AbstractPolicyViolation policyViolation) {
     assertThat(componentDTOV2.hash).isEqualTo(policyViolation.getHash());
-    assertThat(componentDTOV2.componentIdentifier.getFormat())
-        .isEqualTo(policyViolation.getComponentIdentifier().getFormat());
-    assertThat(componentDTOV2.componentIdentifier.getCoordinates())
-        .isEqualTo(policyViolation.getComponentIdentifier().getCoordinates());
+    assertThat(componentDTOV2.componentIdentifier.toComponentIdentifier())
+        .isEqualTo(policyViolation.getComponentIdentifier());
     assertThat(componentDTOV2.packageUrl)
         .isEqualTo(PackageUrlIdentifier.toPackageUrl(policyViolation.getComponentIdentifier()));
     assertThat(componentDTOV2.proprietary).isNull();

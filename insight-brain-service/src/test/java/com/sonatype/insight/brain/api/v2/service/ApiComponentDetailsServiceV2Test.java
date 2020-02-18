@@ -178,8 +178,7 @@ public class ApiComponentDetailsServiceV2Test
 
     assertThat(result).isNotNull();
     assertThat(result.componentDetails).hasSize(1);
-    assertComponentDetails(result.componentDetails.get(0),
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(resultComponentIdentifier), "h1",
+    assertComponentDetails(result.componentDetails.get(0), resultComponentIdentifier, "h1",
         PackageUrlIdentifier.toPackageUrl(resultComponentIdentifier));
   }
 
@@ -197,7 +196,7 @@ public class ApiComponentDetailsServiceV2Test
 
     assertThat(result).isNotNull();
     assertThat(result.componentDetails).hasSize(1);
-    assertComponentDetails(result.componentDetails.get(0), component.componentIdentifier, "h1",
+    assertComponentDetails(result.componentDetails.get(0), componentIdentifier, "h1",
         PackageUrlIdentifier.toPackageUrl(componentIdentifier));
   }
 
@@ -217,8 +216,7 @@ public class ApiComponentDetailsServiceV2Test
 
     assertThat(result).isNotNull();
     assertThat(result.componentDetails).hasSize(1);
-    assertComponentDetails(result.componentDetails.get(0),
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(packageURLIdentifier.toComponentIdentifier()), null,
+    assertComponentDetails(result.componentDetails.get(0), packageURLIdentifier.toComponentIdentifier(), null,
         packageURLIdentifier.getPackageUrl());
   }
 
@@ -279,8 +277,7 @@ public class ApiComponentDetailsServiceV2Test
     assertThat(result).isNotNull();
     assertThat(result.componentDetails).isNotNull();
     assertThat(result.componentDetails).hasSize(1);
-    assertComponentDetails(result.componentDetails.get(0),
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier1), "h1",
+    assertComponentDetails(result.componentDetails.get(0), componentIdentifier1, "h1",
         PackageUrlIdentifier.toPackageUrl(componentIdentifier1));
   }
 
@@ -301,8 +298,7 @@ public class ApiComponentDetailsServiceV2Test
     assertThat(result).isNotNull();
     assertThat(result.componentDetails).isNotNull();
     assertThat(result.componentDetails).hasSize(1);
-    assertComponentDetails(result.componentDetails.get(0),
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(packageURLIdentifier.toComponentIdentifier()), "h1",
+    assertComponentDetails(result.componentDetails.get(0), packageURLIdentifier.toComponentIdentifier(), "h1",
         packageURLIdentifier.getPackageUrl());
   }
 
@@ -325,11 +321,9 @@ public class ApiComponentDetailsServiceV2Test
 
     assertThat(result).isNotNull();
     assertThat(result.componentDetails).hasSize(2);
-    assertComponentDetails(result.componentDetails.get(0),
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier1), "h1",
+    assertComponentDetails(result.componentDetails.get(0), componentIdentifier1, "h1",
         PackageUrlIdentifier.toPackageUrl(componentIdentifier1));
-    assertComponentDetails(result.componentDetails.get(1),
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier2), "h1",
+    assertComponentDetails(result.componentDetails.get(1), componentIdentifier2, "h1",
         PackageUrlIdentifier.toPackageUrl(componentIdentifier2));
   }
 
@@ -356,22 +350,19 @@ public class ApiComponentDetailsServiceV2Test
 
     assertThat(result).isNotNull();
     assertThat(result.componentDetails).hasSize(1);
-    assertComponentDetails(result.componentDetails.get(0),
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier), hash,
+    assertComponentDetails(result.componentDetails.get(0), componentIdentifier, hash,
         PackageUrlIdentifier.toPackageUrl(componentIdentifier));
   }
 
   private void assertComponentDetails(ApiComponentDetailsDTOV2 resultComponentDTO,
-                                      ApiComponentIdentifierDTOV2 expectedComponentIdentifier,
+                                      ComponentIdentifier expectedComponentIdentifier,
                                       String expectedHash,
                                       String expectedPackageUrl)
   {
     assertThat(resultComponentDTO).isNotNull();
     assertThat(resultComponentDTO.component).isNotNull();
-    assertThat(resultComponentDTO.component.componentIdentifier.getFormat())
-        .isEqualTo(expectedComponentIdentifier.getFormat());
-    assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates())
-        .isEqualTo(expectedComponentIdentifier.getCoordinates());
+    assertThat(resultComponentDTO.component.componentIdentifier.toComponentIdentifier())
+        .isEqualTo(expectedComponentIdentifier);
     assertThat(resultComponentDTO.component.hash).isEqualTo(expectedHash);
     assertThat(resultComponentDTO.component.packageUrl).isEqualTo(expectedPackageUrl);
   }
@@ -390,10 +381,8 @@ public class ApiComponentDetailsServiceV2Test
 
     assertThat(resultComponentDTO).isNotNull();
     assertThat(resultComponentDTO.component).isNotNull();
-    assertThat(resultComponentDTO.component.componentIdentifier.getFormat())
-        .isEqualTo(expectedComponentIdentifier.getFormat());
-    assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates())
-        .isEqualTo(expectedComponentIdentifier.getCoordinates());
+    assertThat(resultComponentDTO.component.componentIdentifier.toComponentIdentifier())
+        .isEqualTo(expectedComponentIdentifier.toComponentIdentifier());
     assertThat(resultComponentDTO.component.hash).isEqualTo(expectedHash);
     assertThat(resultComponentDTO.component.packageUrl).isEqualTo(expectedPackageUrl);
     assertThat(resultComponentDTO.matchState).isEqualTo(matchState);

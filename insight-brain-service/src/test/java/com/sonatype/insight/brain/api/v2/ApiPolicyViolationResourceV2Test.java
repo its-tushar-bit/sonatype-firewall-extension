@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
@@ -63,10 +62,8 @@ public class ApiPolicyViolationResourceV2Test
         .isEqualTo("ui/links/application/" + app.getPublicId() + "/report/" + pe1App1.getScanId());
     assertThat(apiPolicyViolationDTO.stageId).isEqualTo(pe1App1.getStageTypeId());
     assertThat(apiPolicyViolationDTO.component.hash).isEqualTo(pv1App1.getHash());
-    ComponentIdentifier componentIdentifier = new ComponentIdentifier(
-        apiPolicyViolationDTO.component.componentIdentifier.getFormat(),
-        apiPolicyViolationDTO.component.componentIdentifier.getCoordinates());
-    assertThat(componentIdentifier).isEqualTo(pv1App1.getComponentIdentifier());
+    assertThat(apiPolicyViolationDTO.component.componentIdentifier.toComponentIdentifier())
+        .isEqualTo(pv1App1.getComponentIdentifier());
     assertThat(apiPolicyViolationDTO.component.packageUrl).isEqualTo("pkg:maven/g1/a1@v1");
 
     assertThat(apiPolicyViolationDTO.constraintViolations).hasSize(1);

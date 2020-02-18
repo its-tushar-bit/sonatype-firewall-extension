@@ -9,7 +9,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
@@ -101,10 +100,8 @@ public class ApiPolicyViolationServiceV2AuthzTest
     assertThat(apiPolicyViolationDTO.stageId).isEqualTo(pe1App1.getStageTypeId());
     assertThat(apiPolicyViolationDTO.component.hash).isEqualTo(pv1App1.getHash());
     assertThat(apiPolicyViolationDTO.component.proprietary).isFalse();
-    ComponentIdentifier componentIdentifier = new ComponentIdentifier(
-        apiPolicyViolationDTO.component.componentIdentifier.getFormat(),
-        apiPolicyViolationDTO.component.componentIdentifier.getCoordinates());
-    assertThat(componentIdentifier).isEqualTo(pv1App1.getComponentIdentifier());
+    assertThat(apiPolicyViolationDTO.component.componentIdentifier.toComponentIdentifier())
+        .isEqualTo(pv1App1.getComponentIdentifier());
     assertThat(apiPolicyViolationDTO.component.packageUrl).isEqualTo(PACKAGE_URL);
 
     assertThat(apiPolicyViolationDTO.constraintViolations).hasSize(1);

@@ -173,8 +173,7 @@ public class ApiComponentEvaluationServiceV2
 
   private void validateComponentIdentifier(final ApiComponentDTOV2 componentDTO) {
     try {
-      ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
-          componentDTO.componentIdentifier.getCoordinates());
+      ComponentIdentifier componentIdentifier = componentDTO.componentIdentifier.toComponentIdentifier();
       componentIdentifier.ensureComplete();
     }
     catch (InvalidComponentIdentifierException e) {

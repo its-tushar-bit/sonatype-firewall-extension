@@ -179,10 +179,8 @@ public class ApiPolicyViolationServiceV2Test
     assertThat(apiPolicyViolationDTO.component.proprietary)
         .isEqualTo(appPolicyData.applicationComponent.isProprietary());
     if (policyViolation.getComponentIdentifier() != null) {
-      ComponentIdentifier componentIdentifier = new ComponentIdentifier(
-          apiPolicyViolationDTO.component.componentIdentifier.getFormat(),
-          apiPolicyViolationDTO.component.componentIdentifier.getCoordinates());
-      assertThat(componentIdentifier).isEqualTo(policyViolation.getComponentIdentifier());
+      assertThat(apiPolicyViolationDTO.component.componentIdentifier.toComponentIdentifier())
+          .isEqualTo(policyViolation.getComponentIdentifier());
       assertThat(apiPolicyViolationDTO.component.packageUrl).isEqualTo(packageUrl);
     }
     else {

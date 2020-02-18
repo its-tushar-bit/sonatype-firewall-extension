@@ -161,10 +161,8 @@ public class ComponentEvaluationV2Helper
   {
     assertThat(resultComponentDTO).isNotNull();
     assertThat(resultComponentDTO.component).isNotNull();
-    assertThat(resultComponentDTO.component.componentIdentifier.getFormat())
-        .isEqualTo(expectedComponentIdentifier.getFormat());
-    assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates())
-        .isEqualTo(expectedComponentIdentifier.getCoordinates());
+    assertThat(resultComponentDTO.component.componentIdentifier.toComponentIdentifier())
+        .isEqualTo(expectedComponentIdentifier.toComponentIdentifier());
     assertThat(resultComponentDTO.component.hash).isEqualTo(expectedHash);
     assertThat(resultComponentDTO.component.packageUrl).isEqualTo(expectedPackageUrl);
     assertThat(resultComponentDTO.matchState).isEqualTo(matchState);
@@ -213,9 +211,7 @@ public class ComponentEvaluationV2Helper
             new PackageUrlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
       }
       else if (componentDTO.componentIdentifier != null) {
-        componentEvaluationDataRequest.componentIdentifier =
-            new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
-                componentDTO.componentIdentifier.getCoordinates());
+        componentEvaluationDataRequest.componentIdentifier = componentDTO.componentIdentifier.toComponentIdentifier();
         componentEvaluationDataRequest.componentIdentifier.ensureComplete();
       }
       hdsRequest.components.add(componentEvaluationDataRequest);

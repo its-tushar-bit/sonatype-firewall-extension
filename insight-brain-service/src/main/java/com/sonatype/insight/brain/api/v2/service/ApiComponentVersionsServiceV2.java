@@ -58,8 +58,7 @@ public class ApiComponentVersionsServiceV2
 
   private List<String> getComponentVersions(final ApiComponentIdentifierDTOV2 componentIdentifierDTO) {
     try {
-      ComponentIdentifier componentIdentifier =
-          new ComponentIdentifier(componentIdentifierDTO.getFormat(), componentIdentifierDTO.getCoordinates());
+      ComponentIdentifier componentIdentifier = componentIdentifierDTO.toComponentIdentifier();
       return getComponentVersions(componentIdentifier);
     }
     catch (InvalidComponentIdentifierException e) {

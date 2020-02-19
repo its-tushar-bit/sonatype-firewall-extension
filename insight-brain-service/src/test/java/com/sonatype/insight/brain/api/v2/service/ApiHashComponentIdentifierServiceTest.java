@@ -113,7 +113,6 @@ public class ApiHashComponentIdentifierServiceTest
 
     HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(givenDTO.hash);
     tempEntity.register(hashComponentIdentifier);
-    assertThat(returnedDTO).usingRecursiveComparison().isEqualTo(givenDTO);
     assertClaimedComponent(returnedDTO, hashComponentIdentifier);
   }
 
@@ -127,7 +126,6 @@ public class ApiHashComponentIdentifierServiceTest
 
     ApiHashComponentIdentifierDTO returnedDTO = apiHashComponentIdentifierService.set(givenDTO);
 
-    assertThat(returnedDTO).usingRecursiveComparison().isEqualTo(givenDTO);
     assertClaimedComponent(returnedDTO, hashComponentIdentifierDAO.getByHash(givenDTO.hash));
   }
 
@@ -142,7 +140,6 @@ public class ApiHashComponentIdentifierServiceTest
 
     HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(givenDTO.hash);
     tempEntity.register(hashComponentIdentifier);
-    assertThat(returnedDTO).usingRecursiveComparison().isEqualTo(givenDTO);
     assertClaimedComponent(returnedDTO, hashComponentIdentifier);
   }
 
@@ -156,7 +153,6 @@ public class ApiHashComponentIdentifierServiceTest
 
     ApiHashComponentIdentifierDTO returnedDTO = apiHashComponentIdentifierService.set(givenDTO);
 
-    assertThat(returnedDTO).usingRecursiveComparison().isEqualTo(givenDTO);
     assertClaimedComponent(returnedDTO, hashComponentIdentifierDAO.getByHash(givenDTO.hash));
   }
 
@@ -172,8 +168,7 @@ public class ApiHashComponentIdentifierServiceTest
 
     HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(givenDTO.hash);
     tempEntity.register(hashComponentIdentifier);
-    assertThat(returnedDTO).usingRecursiveComparison().ignoringFields("hash").isEqualTo(givenDTO);
-    assertThat(returnedDTO.hash).isEqualTo(HashHelper.truncateHash(givenDTO.hash));
+    assertThat(hashComponentIdentifier.getHash()).isEqualTo(HashHelper.truncateHash(givenDTO.hash));
     assertClaimedComponent(returnedDTO, hashComponentIdentifier);
   }
 
@@ -189,9 +184,40 @@ public class ApiHashComponentIdentifierServiceTest
 
     ApiHashComponentIdentifierDTO returnedDTO = apiHashComponentIdentifierService.set(givenDTO);
 
-    assertThat(returnedDTO).usingRecursiveComparison().ignoringFields("hash").isEqualTo(givenDTO);
-    assertThat(returnedDTO.hash).isEqualTo(HashHelper.truncateHash(givenDTO.hash));
-    assertClaimedComponent(returnedDTO, hashComponentIdentifierDAO.getByHash(givenDTO.hash));
+    HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(givenDTO.hash);
+    assertThat(hashComponentIdentifier.getHash()).isEqualTo(HashHelper.truncateHash(givenDTO.hash));
+    assertClaimedComponent(returnedDTO, hashComponentIdentifier);
+  }
+
+  @Test
+  public void testSet_ComponentIdentifierWithoutOptionalCoordinates() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", null, "e");
+    ApiHashComponentIdentifierDTO givenDTO = newApiHashComponentIdentifierDTO("hash", componentIdentifier, null);
+    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
+        .thenReturn(ComponentSummary.create(false));
+
+    ApiHashComponentIdentifierDTO returnedDTO = apiHashComponentIdentifierService.set(givenDTO);
+
+    HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(givenDTO.hash);
+    tempEntity.register(hashComponentIdentifier);
+    componentIdentifier.ensureComplete();
+    assertThat(hashComponentIdentifier.getComponentIdentifier()).isEqualTo(componentIdentifier);
+    assertClaimedComponent(returnedDTO, hashComponentIdentifier);
+  }
+
+  @Test
+  public void testSet_PackageUrlWithoutOptionalCoordinates() {
+    ApiHashComponentIdentifierDTO givenDTO = newApiHashComponentIdentifierDTO("hash", null, "pkg:maven/g/a@v?type=e");
+    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
+        .thenReturn(ComponentSummary.create(false));
+
+    ApiHashComponentIdentifierDTO returnedDTO = apiHashComponentIdentifierService.set(givenDTO);
+
+    HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(givenDTO.hash);
+    tempEntity.register(hashComponentIdentifier);
+    assertThat(hashComponentIdentifier.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e"));
+    assertClaimedComponent(returnedDTO, hashComponentIdentifier);
   }
 
   @Test

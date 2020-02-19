@@ -12,7 +12,6 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiHashComponentIdentifierDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiHashComponentIdentifiersDTO;
 import com.sonatype.insight.brain.component.HashComponentIdentifierService;
@@ -54,24 +53,21 @@ public class ApiHashComponentIdentifierService
 
   @Authorize(permission = Permission.CLAIM_COMPONENT)
   public ApiHashComponentIdentifierDTO set(ApiHashComponentIdentifierDTO apiHashComponentIdentifierDTO) {
-    validateAndComplete(apiHashComponentIdentifierDTO);
-    HashComponentIdentifier hashComponentIdentifier = apiHashComponentIdentifierDTO.toHashComponentIdentifier();
+    HashComponentIdentifier hashComponentIdentifier = validateAndComplete(apiHashComponentIdentifierDTO);
     return new ApiHashComponentIdentifierDTO(
         hashComponentIdentifierDAO.getByHash(hashComponentIdentifier.getHash()) == null ? hashComponentIdentifierService
             .set(hashComponentIdentifier) : hashComponentIdentifierService.update(hashComponentIdentifier));
   }
 
-  private void validateAndComplete(ApiHashComponentIdentifierDTO apiHashComponentIdentifierDTO) {
+  private HashComponentIdentifier validateAndComplete(ApiHashComponentIdentifierDTO apiHashComponentIdentifierDTO) {
     if (apiHashComponentIdentifierDTO == null || apiHashComponentIdentifierDTO.hash == null ||
         (apiHashComponentIdentifierDTO.componentIdentifier == null &&
             apiHashComponentIdentifierDTO.packageUrl == null)) {
       throw new BadRequestException("A component hash and identifier/package url are required.");
     }
     try {
-      ComponentIdentifier componentIdentifier = null;
-      if (apiHashComponentIdentifierDTO.componentIdentifier != null) {
-        componentIdentifier = apiHashComponentIdentifierDTO.componentIdentifier.toComponentIdentifier();
-      }
+      HashComponentIdentifier hashComponentIdentifier = apiHashComponentIdentifierDTO.toHashComponentIdentifier();
+      ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
       ComponentIdentifier componentIdentifierFromPackageUrl = null;
       if (apiHashComponentIdentifierDTO.packageUrl != null) {
         componentIdentifierFromPackageUrl =
@@ -83,15 +79,11 @@ public class ApiHashComponentIdentifierService
       }
       if (componentIdentifier == null) {
         componentIdentifier = componentIdentifierFromPackageUrl;
-        apiHashComponentIdentifierDTO.componentIdentifier =
-            ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
       }
       componentIdentifier.validate();
       componentIdentifier.ensureComplete();
-      if (apiHashComponentIdentifierDTO.packageUrl == null) {
-        apiHashComponentIdentifierDTO.packageUrl =
-            PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
-      }
+      hashComponentIdentifier.setComponentIdentifier(componentIdentifier);
+      return hashComponentIdentifier;
     }
     catch (InvalidComponentIdentifierException e) {
       throw new BadRequestException(e.getMessage(), e);

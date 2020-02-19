@@ -279,6 +279,22 @@ public class ApiHashComponentIdentifierServiceTest
   }
 
   @Test
+  public void testSet_ComponentIdentifierWithOptionalCoordinateAndPackageUrlWithoutOptionalCoordinate() {
+    ApiHashComponentIdentifierDTO givenDTO = newApiHashComponentIdentifierDTO("hash",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e"), "pkg:maven/g/a@v?type=e");
+    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
+        .thenReturn(ComponentSummary.create(false));
+
+    ApiHashComponentIdentifierDTO returnedDTO = apiHashComponentIdentifierService.set(givenDTO);
+
+    HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(givenDTO.hash);
+    tempEntity.register(hashComponentIdentifier);
+    assertThat(hashComponentIdentifier.getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e"));
+    assertClaimedComponent(returnedDTO, hashComponentIdentifier);
+  }
+
+  @Test
   public void testDelete_ShortHash() {
     HashComponentIdentifier hashComponentIdentifier =
         tempEntity.newClaimedComponent("h", ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"));

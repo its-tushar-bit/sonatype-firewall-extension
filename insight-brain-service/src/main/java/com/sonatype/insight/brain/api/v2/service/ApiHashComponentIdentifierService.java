@@ -72,16 +72,17 @@ public class ApiHashComponentIdentifierService
       if (apiHashComponentIdentifierDTO.packageUrl != null) {
         componentIdentifierFromPackageUrl =
             new PackageUrlIdentifier(apiHashComponentIdentifierDTO.packageUrl).toComponentIdentifier();
-      }
-      if (componentIdentifier != null && componentIdentifierFromPackageUrl != null &&
-          !componentIdentifier.equals(componentIdentifierFromPackageUrl)) {
-        throw new BadRequestException("Mismatched component identifier and package url.");
+        componentIdentifierFromPackageUrl.ensureComplete();
       }
       if (componentIdentifier == null) {
         componentIdentifier = componentIdentifierFromPackageUrl;
       }
-      componentIdentifier.validate();
-      componentIdentifier.ensureComplete();
+      else {
+        componentIdentifier.ensureComplete();
+      }
+      if (componentIdentifierFromPackageUrl != null && !componentIdentifier.equals(componentIdentifierFromPackageUrl)) {
+        throw new BadRequestException("Mismatched component identifier and package url.");
+      }
       hashComponentIdentifier.setComponentIdentifier(componentIdentifier);
       return hashComponentIdentifier;
     }

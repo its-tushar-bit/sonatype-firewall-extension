@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.search.results;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @since GLOBAL_SEARCH
+ */
 public class SearchResultDTO
 {
   public String searchQuery;

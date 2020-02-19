@@ -10,6 +10,9 @@ import java.util.List;
 
 import com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier;
 
+/**
+ * @since GLOBAL_SEARCH
+ */
 public class GroupingByDTO
 {
   public FieldIdentifier groupIdentifier;

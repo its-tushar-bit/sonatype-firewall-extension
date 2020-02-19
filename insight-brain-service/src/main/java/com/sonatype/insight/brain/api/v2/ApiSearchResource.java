@@ -22,6 +22,9 @@ import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codahale.metrics.annotation.Timed;
 
+/**
+ * @since GLOBAL_SEARCH
+ */
 @Named
 @Timed
 @Path(PublicApiPaths.INDEX_RESOURCE_PATH)

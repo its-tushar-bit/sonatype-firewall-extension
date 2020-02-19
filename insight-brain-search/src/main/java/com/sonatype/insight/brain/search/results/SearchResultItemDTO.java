@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.search.results;
 
+/**
+ * @since GLOBAL_SEARCH
+ */
 public class SearchResultItemDTO
 {
   public String documentType;

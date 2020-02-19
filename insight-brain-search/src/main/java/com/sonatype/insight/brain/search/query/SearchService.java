@@ -57,6 +57,9 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier.*;
 
+/**
+ * @since GLOBAL_SEARCH
+ */
 @Named
 @Singleton
 public class SearchService

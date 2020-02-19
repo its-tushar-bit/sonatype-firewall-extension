@@ -20,6 +20,9 @@ import com.sonatype.insight.brain.vulnerability.VulnerabilityDetailResource;
 
 import com.codahale.metrics.annotation.Timed;
 
+/**
+ * @since GLOBAL_SEARCH
+ */
 @Named
 @Timed
 @Path(PublicApiPaths.INDEX_RESOURCE_PATH)

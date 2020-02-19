@@ -78,6 +78,9 @@ import static com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentif
 import static com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier.ORGANIZATION_NAME;
 import static java.util.stream.Collectors.toList;
 
+/**
+ * @since GLOBAL_SEARCH
+ */
 @Named
 @Singleton
 public class IndexService

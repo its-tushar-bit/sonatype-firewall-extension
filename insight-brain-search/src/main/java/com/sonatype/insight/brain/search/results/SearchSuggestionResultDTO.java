@@ -7,6 +7,9 @@ package com.sonatype.insight.brain.search.results;
 
 import java.util.List;
 
+/**
+ * @since GLOBAL_SEARCH
+ */
 public class SearchSuggestionResultDTO
 {
   public List<String> searchResultItems;

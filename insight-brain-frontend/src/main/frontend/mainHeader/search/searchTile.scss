@@ -1,0 +1,38 @@
+.result-table {
+  tr td {
+    vertical-align: top;
+  }
+
+  tr td:nth-child(2) {
+    white-space: nowrap;
+  }
+}
+
+#search-navigation {
+  margin-left: auto;
+  margin-right: 0;
+
+  h1 {
+    padding: 0 10px;
+    vertical-align: middle;
+  }
+}
+
+#search-results {
+  hr {
+    border: 1px solid;
+  }
+}
+
+.result-number {
+  float: right;
+  font-size: 2em;
+  padding-right: 5px;
+  color: orangered;
+}
+
+#search-title {
+  span {
+    color: orangered;
+  }
+}

@@ -1,0 +1,14 @@
+<div style="margin-top: 20px; margin-left: 40px">
+  <input id="search-input"
+         type="text"
+         list="suggestionsList"
+         ng-model="vm.query"
+         placeholder="Search..."
+         ng-keyup="vm.query && vm.searchSuggester()"
+         style="width: 100px !important;">
+  <button class="nx-btn nx-btn--primary" style="width: 60px !important; min-width: 60px !important"
+          ng-click="vm.query && vm.search()">⏎</button>
+  <datalist id="suggestionsList">
+    <option ng-repeat="suggestion in vm.suggestions track by $index" value="{{suggestion}}">
+  </datalist>
+</div>

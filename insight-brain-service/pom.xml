@@ -74,6 +74,10 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-search</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-data</artifactId>
       <type>test-jar</type>
     </dependency>

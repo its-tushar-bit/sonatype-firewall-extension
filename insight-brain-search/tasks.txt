@@ -1,0 +1,44 @@
+- cve/sonatype id -> latest application reports with those
+- cve/sonatype id/text -> description
+- names (apps/orgs/policies/users/labels/tags) -> config page
+
+- general learning (lucene, report structure, database structure, etc)
+- gathering report data
+- determine each document structure (what to index)
+- query parsing to determine search fields
+- results json structure
+-- application info
+-- org data
+-- user data
+-- policy data
+-- etc
+- frontend search bar + results tile
+- demo
+
+
+CVE/sonatype vulnerabilities (url + description)
+Application
+Organization
+User
+Policy
+Report (application + stage)
+
+- what info in index to get to url?
+
+- user -> configuration
+- id search -> relevant configuration pages
+- webhook url -> associated webhooks
+- role -> associated users
+- license text -> relevant licenses
+- policy -> latest application reports (violating it)
+- component -> latest application reports
+- label name/description -> label config
+- license override comment -> latest application report
+- security override comment -> latest application report
+- component violating policy -> latest application report/policy config
+- role description -> role config/users in role
+- permission -> role / users with perm
+- system config name -> relevant config page
+- system notice -> config
+- application tag description -> tag config
+- data in old reports -> old reports

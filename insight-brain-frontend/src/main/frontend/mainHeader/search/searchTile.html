@@ -1,0 +1,117 @@
+<div class="iq-body-container iq-body-container--single-pane">
+  <div class="iq-tile iq-tile--top-tile">
+    <div class="iq-tile-header__title">
+      <i class="fa fa-search size-20px iq-tile-header__icon"></i>
+      <h1 id="search-title">Search Results: <span>{{vm.totalNumberOfHits ? vm.totalNumberOfHits : 0}}</span></h1>
+      <div id="search-navigation">
+        <button class="iq-btn iq-btn--primary" ng-click="vm.previous()">Previous</button>
+        <h1>Page {{vm.page}} of {{vm.getMaxPage()}}</h1>
+        <button class="iq-btn iq-btn--primary" ng-click="vm.next()">Next</button>
+      </div>
+    </div>
+  </div>
+  <div class="iq-tile-scroll-container" scrollspy="#search-results" maximize-container-height>
+    <div id="search-results" class="iq-tile" reload="vm.load()">
+      <div ng-repeat="groupingBy in vm.results">
+        <span ng-if="$index != 0"><br/></span>
+        <h2>{{groupingBy.groupBy}}</h2>
+        <p ng-if="groupingBy.additionalInfo">
+          {{groupingBy.additionalInfo}}
+          <span ng-if="groupingBy.groupIdentifier == 'REFERENCE_ID' || groupingBy.groupIdentifier == 'DESCRIPTION'">
+            Click <a ng-href="/assets/#/vulnerabilities/{{groupingBy.groupBy}}">here</a> for detailed information.
+          </span>
+          <br/>
+        </p>
+        <div ng-repeat="result in groupingBy.searchResultItemDTOS">
+          <span class="result-number">{{result.resultIndex}}</span>
+          <table class="result-table">
+            <hr ng-if="$index == 0" style="border-width: 0.5px"/>
+            <tr ng-if="result.organizationId && result.organizationName
+            && (result.documentType == 'ORGANIZATION' || groupingBy.groupIdentifier != 'ORGANIZATION_NAME')">
+              <td><i class="fa fa-sitemap iq-owner-tree-view__icon--12px inverse"></i></td>
+              <td>Organization:</td>
+              <td>
+                <a ui-sref="management.view.organization({organizationId: result.organizationId})">
+                  {{result.organizationName}}
+                </a>
+              </td>
+            </tr>
+            <tr ng-if="result.applicationPublicId && result.applicationName
+            && (result.documentType == 'APPLICATION' || groupingBy.groupIdentifier != 'APPLICATION_NAME')">
+              <td><i class="fa fa-terminal iq-owner-tree-view__icon--12px inverse"></i></td>
+              <td>Application:</td>
+              <td>
+                <a ui-sref="management.view.application({applicationPublicId: result.applicationPublicId})">
+                  {{result.applicationName}}
+                </a>
+              </td>
+            </tr>
+            <tr ng-if="result.componentDisplayName">
+              <td><i class="fa fa-cogs iq-owner-tree-view__icon--12px inverse"></i></td>
+              <td>Component:</td>
+              <td>{{result.componentDisplayName}}</td>
+            </tr>
+            <tr ng-if="result.applicationPublicId && result.scanId && result.stage">
+              <td><i class="sonatype-icons medium reporting"></i></td>
+              <td>Report:</td>
+              <td>
+                <a ui-sref="applicationReport.policy({publicId: result.applicationPublicId, scanId: result.scanId})">
+                  {{result.stage}}
+                </a>
+              </td>
+            </tr>
+            <tr ng-if="result.reference && groupingBy.groupIdentifier != 'REFERENCE_ID'">
+              <td><i class="fa fa-exclamation-triangle iq-owner-tree-view__icon--12px inverse"></i></td>
+              <td>Security Issue:</td>
+              <td>{{result.reference}}</td>
+            </tr>
+            <tr ng-if="result.description && groupingBy.groupIdentifier != 'REFERENCE_ID'">
+              <td><i class="fa fa-file-text iq-owner-tree-view__icon--12px inverse"></i></td>
+              <td>Description:</td>
+              <td>
+                {{result.description}}
+                <span>
+                  Click <a ng-href="/assets/#/vulnerabilities/{{groupingBy.groupBy}}">here</a> for detailed information.
+                </span>
+              </td>
+            </tr>
+            <tr ng-if="result.organizationId && result.tagColor && result.tagId && result.tagName">
+              <td>
+                <hexagon class="size-16px size-fw {{result.tagColor}}"></hexagon>
+              </td>
+              <td>Tag:</td>
+              <td>
+                <a href="#/management/edit/organization/{{result.organizationId}}/category/{{result.tagId}}">{{result.tagName}}</a>
+                <span ng-if="result.tagDescription">- {{result.tagDescription}}</span>
+              </td>
+            </tr>
+            <tr ng-if="result.labelColor && result.labelId && result.labelName">
+              <td><i class="fa fa-tag size-16px size-fw {{result.labelColor}}"></i></td>
+              <td>Label:</td>
+              <td>
+                <a ng-if="result.organizationId"
+                   href="#/management/edit/organization/{{result.organizationId}}/label/{{result.labelId}}">{{result.labelName}}</a>
+                <a ng-if="result.applicationPublicId"
+                   href="#/management/edit/application/{{result.applicationPublicId}}/label/{{result.labelId}}">{{result.labelName}}</a>
+                <span ng-if="result.labelDescription">- {{result.labelDescription}}</span>
+              </td>
+            </tr>
+            <tr ng-if="result.policyId && result.policyName && result.policyThreatLevel && result.policyThreatCategory">
+              <td><i class="fa fa-bank size-16px size-fw"></i></td>
+              <td>Policy:</td>
+              <td>
+                <span class="iq-threat-indicator {{vm.threatIndicator(result.policyThreatLevel)}}">{{result.policyThreatLevel}}</span>
+                <span>{{result.policyThreatCategory}} -</span>
+                <a ng-if="result.organizationId"
+                   href="#/management/edit/organization/{{result.organizationId}}/policy/{{result.policyId}}">{{result.policyName}}</a>
+                <a ng-if="result.applicationPublicId"
+                   href="#/management/edit/application/{{result.applicationPublicId}}/policy/{{result.policyId}}">{{result.policyName}}</a>
+              </td>
+            </tr>
+          </table>
+          <hr style="border-width: 0.5px"/>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

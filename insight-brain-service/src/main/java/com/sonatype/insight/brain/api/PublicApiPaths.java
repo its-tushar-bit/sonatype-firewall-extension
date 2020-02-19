@@ -84,4 +84,6 @@ public class PublicApiPaths
   public static final String COMPOSITE_SOURCE_CONTROL_PATH_V2 = API_VERSION_PATH_V2 + "compositeSourceControl";
 
   public static final String CLAIM_PATH_V2 = API_VERSION_PATH_V2 + "claim/components";
+
+  public static final String INDEX_RESOURCE_PATH = API_VERSION_PATH_V2 + "index";
 }

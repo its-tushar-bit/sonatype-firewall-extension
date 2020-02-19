@@ -19,12 +19,13 @@ import userActions from '../user/userActions';
 import userReducer from '../user/userReducer';
 import userDetailsModal from './userMenu/userDetailsModal';
 import reactComponentsModule from '../react/module.js';
+import searchModule from './search/module';
 
 export default angular.module('mainHeader',
     [
       'ui.router', 'ui.validate', angularCommonModule.name, CLMLocationModule.name, productFeaturesModule.name,
       permissionServiceModule.name, 'ngSanitize', utilityServicesModule.name, telemetryServiceModule.name,
-      reactComponentsModule.name
+      reactComponentsModule.name, searchModule.name
     ])
     .factory('CurrentUser', currentUserService)
     .factory('userActions', userActions)

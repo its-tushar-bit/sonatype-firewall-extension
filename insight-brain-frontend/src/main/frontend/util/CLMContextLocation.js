@@ -242,11 +242,11 @@ locationModule.factory('CLMContextLocations', [
       },
 
       getIndexUrl: function() {
-        return `${baseUrl.get()}/api/v2/index`;
+        return `${baseUrl.get()}/api/experimental/index`;
       },
 
       getSearchSuggesterUrl: function() {
-        return `${baseUrl.get()}/api/v2/index/suggester`;
+        return `${baseUrl.get()}/api/experimental/index/suggester`;
       },
 
       getNotificationWebhooksUrl: function() {

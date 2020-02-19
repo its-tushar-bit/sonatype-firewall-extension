@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.v2;
+package com.sonatype.insight.brain.api.experimental;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -34,7 +34,7 @@ public class ApiSearchResource
 
   private final InsightWork insightWork;
 
-  public static final String SUGGESTER = "suggester";
+  private static final String SUGGESTER = "suggester";
 
   @Inject
   public ApiSearchResource(SearchService searchService, InsightWork insightWork) {

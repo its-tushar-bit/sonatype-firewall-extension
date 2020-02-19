@@ -119,9 +119,6 @@ public class ConditionTypes
     if (!allConditionTypes.keySet().contains(conditionType.getId())) {
       throw new IllegalStateException("Condition type not found with type id: " + conditionType.getId());
     }
-    if (enabledConditionTypeIds.contains(conditionType.getId())) {
-      throw new IllegalStateException("Duplicate condition type id: " + conditionType.getId());
-    }
     enabledConditionTypeIds.add(conditionType.getId());
   }
 

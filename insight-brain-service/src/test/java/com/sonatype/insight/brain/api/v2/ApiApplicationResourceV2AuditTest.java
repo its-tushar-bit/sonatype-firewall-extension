@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.security.AbstractMembershipMappingAuditTest;
@@ -37,12 +38,15 @@ public class ApiApplicationResourceV2AuditTest
 {
   private Organization organization;
 
+  private Organization targetOrganization;
+
   private Application application;
 
   @Before
   public void before() {
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication("appName", "appPubId", organization.getId(), "appContactName");
+    targetOrganization = tempEntity.newOrganization();
   }
 
   @Test
@@ -246,5 +250,39 @@ public class ApiApplicationResourceV2AuditTest
     assertCustomData(auditDTO, "sourceApplicationId", application.getId());
     assertCustomData(auditDTO, "sourceApplicationPublicId", application.getPublicId());
     assertCustomData(auditDTO, "sourceApplicationName", application.getName());
+  }
+
+  @Test
+  public void testMoveApplication() throws Exception {
+    moveRequest(application.getId(), targetOrganization.getId()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.MOVE_APPLICATION, null);
+    assertApplicationData(auditDTO, application);
+    assertCustomData(auditDTO, "contactUsername", application.getContactInternalName());
+    assertParentOrganizationData(auditDTO, targetOrganization);
+  }
+
+  @Test
+  public void testMoveApplication_UnauthorizedWrite() throws Exception {
+    moveRequest(application.getId(), targetOrganization.getId()).with(unauthorizedUser()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.MOVE_APPLICATION, "unauthorized");
+    assertApplicationData(auditDTO, application);
+  }
+
+  @Test
+  public void testMoveApplication_UnauthorizedAddApplication() throws Exception {
+    tempEntity.newMembershipMapping(application.getId(), Role.OWNER_ROLE_ID, getUnauthorizedUsername());
+
+    moveRequest(application.getId(), targetOrganization.getId()).with(unauthorizedUser()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.MOVE_APPLICATION, "unauthorized");
+    assertApplicationData(auditDTO, application);
+    assertParentOrganizationData(auditDTO, targetOrganization);
+  }
+
+  private HttpRequest moveRequest(String applicationId, String targetOrganizationId) {
+    return restRequest().path(PublicApiPaths.APP_RESOURCE_PATH)
+        .path(ApiApplicationResourceV2.MOVE_PATH).parameter(applicationId, targetOrganizationId);
   }
 }

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.organization;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -35,34 +34,5 @@ public class ApplicationMoveResourceTest
     assertThat(orgs).hasSize(1);
     assertThat(orgs[0].getId()).isEqualTo(org.getId());
     assertThat(orgs[0].getName()).isEqualTo(org.getName());
-  }
-
-  @Test
-  public void testMoveApplication() throws Exception {
-    Organization org = tempEntity.newOrganization();
-    Application app = tempEntity.newApplicationWithParent("test-app-id");
-
-    HttpResponse response = restRequest().path(ApplicationMoveResource.DESTINATION_PATH)
-        .parameter(app.getId(), org.getId()).post();
-    assertResponseStatus(200, response);
-    String[] warnings = response.getBody(String[].class);
-    assertThat(warnings).isEmpty();
-    assertThat(new ApplicationDAO().getById(app.getId()).getOrganizationId()).isEqualTo(org.getId());
-  }
-
-  @Test
-  public void testMoveApplication_UnsatisfiedPreconditions() throws Exception {
-    Organization org1 = tempEntity.newOrganization("New Parent");
-    Organization org2 = tempEntity.newOrganization("Old Parent");
-    Application app = tempEntity.newApplication("My App", "test-app-id", org2.getId());
-    tempEntity.newPolicy(app.getOrganizationId(), "Missing Policy");
-
-    HttpResponse response = restRequest().path(ApplicationMoveResource.DESTINATION_PATH)
-        .parameter(app.getId(), org1.getId()).post();
-    assertResponseStatus(409, response);
-    String[] issues = response.getBody(String[].class);
-    assertThat(issues)
-        .containsExactly(String.format(ApplicationMoveService.POLICY_MISSING_MSG, "Missing Policy", org2.getName()));
-    assertThat(new ApplicationDAO().getById(app.getId()).getOrganizationId()).isEqualTo(app.getOrganizationId());
   }
 }

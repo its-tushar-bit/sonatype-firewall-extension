@@ -86,7 +86,7 @@ describe('move.application.service.js', function() {
 
   describe('moveApplication()', function() {
     it('refreshes application cache and returns data on success', function() {
-      $httpBackend.expectPOST(CLMLocations.getMoveApplicationUrl(1, 2)).respond(['message1', 'message2']);
+      $httpBackend.expectPOST(CLMLocations.getMoveApplicationUrl(1, 2)).respond({'warnings': ['message1', 'message2']});
 
       applicationStore.refresh.and.returnValue($q.resolve());
 
@@ -100,7 +100,7 @@ describe('move.application.service.js', function() {
     });
 
     it('refreshes application cache and returns nothing on success if provided array of messages is empty', function() {
-      $httpBackend.expectPOST(CLMLocations.getMoveApplicationUrl(1, 2)).respond([]);
+      $httpBackend.expectPOST(CLMLocations.getMoveApplicationUrl(1, 2)).respond({});
 
       applicationStore.refresh.and.returnValue($q.resolve());
 
@@ -113,7 +113,7 @@ describe('move.application.service.js', function() {
     });
 
     it('does not resolve until application cache is refreshed', function() {
-      $httpBackend.expectPOST(CLMLocations.getMoveApplicationUrl(1, 2)).respond(['message1', 'message2']);
+      $httpBackend.expectPOST(CLMLocations.getMoveApplicationUrl(1, 2)).respond({'warnings': ['message1', 'message2']});
 
       var refreshPromise = $q.defer();
 
@@ -128,7 +128,7 @@ describe('move.application.service.js', function() {
 
     it('handles 409 response with incompatibilities list', function() {
       $httpBackend.expectPOST(CLMLocations.getMoveApplicationUrl(1, 2)).respond(409,
-          ['incompatibility1', 'incompatibility2']);
+          {'errors': ['incompatibility1', 'incompatibility2'] });
 
       moveApplicationService.moveApplication(1, 2).then(function() {
         throw 'promise should have been rejected';

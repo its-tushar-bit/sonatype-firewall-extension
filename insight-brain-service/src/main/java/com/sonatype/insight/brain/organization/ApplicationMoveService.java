@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.organization;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -19,6 +18,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.ApiMoveApplicationResponseDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -60,6 +60,7 @@ import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -76,7 +77,7 @@ public class ApplicationMoveService
   static final String TAG_MISSING_MSG = "The application category '%s' from the organization '%s' has no counterpart"
       + " in the new parent organization.";
 
-  static final String POLICY_MISSING_MSG = "The policy '%s' from the organization '%s' has no counterpart"
+  public static final String POLICY_MISSING_MSG = "The policy '%s' from the organization '%s' has no counterpart"
       + " in the new parent organization.";
 
   static final String TAG_MISMATCH_MSG = "The policy '%s' from the organization '%s' inherits to different"
@@ -198,16 +199,19 @@ public class ApplicationMoveService
    * @return Warning messages about differences in policy configuration after move.
    */
   @Authorize(permission = Permission.WRITE)
-  public List<String> moveApplication(@AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
-                                      String organizationId)
+  public ApiMoveApplicationResponseDTOV2 moveApplication(
+      @AuthzContext(Key.APPLICATION_ID) String applicationId,
+      String organizationId)
   {
     AuditData.get().setParentOrganization(organizationDAO.getById(organizationId));
     Application application = applicationDAO.getByIdNotNull(applicationId);
     AuditData.get().setApplicationWithDetails(application);
     if (application.getOrganizationId().equals(organizationId)) {
-      return Collections.emptyList();
+      throw new BadRequestException("The destination organization must be different from the current organization");
     }
-    return moveApplication(application, organizationId);
+    ApiMoveApplicationResponseDTOV2 response = new ApiMoveApplicationResponseDTOV2();
+    response.warnings = moveApplication(application, organizationId);
+    return response;
   }
 
   @Authorize(permission = Permission.ADD_APPLICATION)
@@ -494,7 +498,9 @@ public class ApplicationMoveService
 
     private void failIfErrorsPresent() {
       if (!errors.isEmpty()) {
-        throw new ApplicationMoveException(errors);
+        ApiMoveApplicationResponseDTOV2 apiMoveApplicationResponseDTOV2 = new ApiMoveApplicationResponseDTOV2();
+        apiMoveApplicationResponseDTOV2.errors = errors;
+        throw new ApplicationMoveException(apiMoveApplicationResponseDTOV2);
       }
     }
 

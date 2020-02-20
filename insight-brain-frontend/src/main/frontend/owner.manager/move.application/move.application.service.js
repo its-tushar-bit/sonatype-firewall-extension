@@ -45,16 +45,17 @@ function MoveApplicationService($http, Messages, ApplicationStore, $q, CLMLocati
   function handleResponse(response) {
     // wait till application cache is refreshed
     return ApplicationStore.refresh().then(function() {
-      return response.data && response.data.length ? response.data : null;
+      const hasWarnings = response.data && response.data.warnings && response.data.warnings.length;
+      return hasWarnings ? response.data.warnings : null;
     });
   }
 
   function handleError(error) {
-    if (error.status === 409 && angular.isArray(error.data) && error.data.length) {
+    if (error.status === 409 && error.data && error.data.errors && error.data.errors.length) {
       // this is response with array of incompatibilities
       return $q.reject({
         message: moveApplicationMessages.ERROR_INCOMPATIBLE_DESTINATION,
-        incompatibilities: error.data
+        incompatibilities: error.data.errors
       });
     }
 

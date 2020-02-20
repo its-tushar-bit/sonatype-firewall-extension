@@ -5,17 +5,17 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.util.List;
-
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import com.sonatype.insight.brain.api.v2.dto.ApiMoveApplicationResponseDTOV2;
 
 @SuppressWarnings("serial")
 class ApplicationMoveException
     extends WebApplicationException
 {
-  public ApplicationMoveException(List<String> issues) {
-    super(Response.status(Response.Status.CONFLICT).entity(issues).type(MediaType.APPLICATION_JSON).build());
+  public ApplicationMoveException(ApiMoveApplicationResponseDTOV2 dto) {
+    super(Response.status(Response.Status.CONFLICT).entity(dto).type(MediaType.APPLICATION_JSON).build());
   }
 }

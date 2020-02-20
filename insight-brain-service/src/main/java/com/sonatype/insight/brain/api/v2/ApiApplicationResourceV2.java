@@ -26,6 +26,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiMoveApplicationResponseDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiApplicationService;
@@ -34,6 +35,7 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.organization.ApplicationCloneService;
+import com.sonatype.insight.brain.organization.ApplicationMoveService;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembershipMappingService;
@@ -62,6 +64,8 @@ public class ApiApplicationResourceV2
   // NOTE: more specific path param name than applicationId to avoid default handling by AuditContainerRequestFilter
   public static final String CLONE_PATH = "{sourceApplicationId}/clone";
 
+  public static final String MOVE_PATH = APPLICATION_ID + "/move/organization/{organizationId}";
+
   private final ApiApplicationService apiApplicationService;
 
   private final MembershipMappingService membershipMappingService;
@@ -70,16 +74,20 @@ public class ApiApplicationResourceV2
 
   private final ApplicationCloneService applicationCloneService;
 
+  private final ApplicationMoveService applicationMoveService;
+
   @Inject
   public ApiApplicationResourceV2(final ApiApplicationService apiApplicationService,
                                 final MembershipMappingService membershipMappingService,
       final ApiMemberMappingAdapter apiMemberMappingAdapter,
-      final ApplicationCloneService applicationCloneService)
+      final ApplicationCloneService applicationCloneService,
+      final ApplicationMoveService applicationMoveService)
   {
     this.apiApplicationService = apiApplicationService;
     this.membershipMappingService = membershipMappingService;
     this.apiMemberMappingAdapter = apiMemberMappingAdapter;
     this.applicationCloneService = applicationCloneService;
+    this.applicationMoveService = applicationMoveService;
   }
 
   @GET
@@ -192,5 +200,16 @@ public class ApiApplicationResourceV2
   {
     return applicationCloneService.cloneApplication(sourceApplicationId, clonedApplicationName,
         clonedApplicationPublicId);
+  }
+
+  @POST
+  @Path(MOVE_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.MOVE_APPLICATION)
+  public ApiMoveApplicationResponseDTOV2 moveApplication(
+      @PathParam("applicationId") String applicationId,
+      @PathParam("organizationId") String organizationId)
+  {
+    return applicationMoveService.moveApplication(applicationId, organizationId);
   }
 }

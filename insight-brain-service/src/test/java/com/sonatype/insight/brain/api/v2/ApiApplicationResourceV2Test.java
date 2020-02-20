@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiMoveApplicationResponseDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationTagDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
@@ -35,6 +36,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.organization.ApplicationMoveService;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.telemetry.RestEndpointTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetryContainerRequestFilter;
@@ -514,6 +516,35 @@ public class ApiApplicationResourceV2Test
     assertThat(restEndpointTelemetry.method).isEqualTo("POST");
     assertThat(restEndpointTelemetry.path).isEqualTo(expectedTelemetryPath);
     assertThat(restEndpointTelemetry.invocations).isEqualTo(1);
+  }
+
+  @Test
+  public void testMoveApplication() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent("test-app-id");
+
+    HttpResponse response = restRequest().path(ApiApplicationResourceV2.MOVE_PATH)
+        .parameter(app.getId(), org.getId()).post();
+    assertResponseStatus(200, response);
+    List<String> warnings = response.getBody(ApiMoveApplicationResponseDTOV2.class).warnings;
+    assertThat(warnings).isEmpty();
+    assertThat(new ApplicationDAO().getById(app.getId()).getOrganizationId()).isEqualTo(org.getId());
+  }
+
+  @Test
+  public void testMoveApplication_UnsatisfiedPreconditions() throws Exception {
+    Organization org1 = tempEntity.newOrganization("New Parent");
+    Organization org2 = tempEntity.newOrganization("Old Parent");
+    Application app = tempEntity.newApplication("My App", "test-app-id", org2.getId());
+    tempEntity.newPolicy(app.getOrganizationId(), "Missing Policy");
+
+    HttpResponse response = restRequest().path(ApiApplicationResourceV2.MOVE_PATH)
+        .parameter(app.getId(), org1.getId()).post();
+    assertResponseStatus(409, response);
+    ApiMoveApplicationResponseDTOV2 issues = response.getBody(ApiMoveApplicationResponseDTOV2.class);
+    assertThat(issues.errors)
+        .containsExactly(String.format(ApplicationMoveService.POLICY_MISSING_MSG, "Missing Policy", org2.getName()));
+    assertThat(new ApplicationDAO().getById(app.getId()).getOrganizationId()).isEqualTo(app.getOrganizationId());
   }
 
   private ApiRoleMemberMappingListDTO newMemberMapping(final List<ApiMemberDTO> memberList, final String roleId) {

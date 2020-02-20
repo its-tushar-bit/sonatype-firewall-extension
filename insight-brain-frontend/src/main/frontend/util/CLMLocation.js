@@ -349,7 +349,7 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       },
 
       getMoveApplicationUrl: function(applicationId, organizationId) {
-        return baseUrl.get() + '/rest/move/application/' + applicationId + '/destinations/' + organizationId;
+        return baseUrl.get() + `/api/v2/applications/${applicationId}/move/organization/${organizationId}`;
       },
 
       getIsJiraEnabledUrl: function() {

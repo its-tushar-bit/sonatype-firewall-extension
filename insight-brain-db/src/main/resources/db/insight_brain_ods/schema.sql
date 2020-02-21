@@ -655,7 +655,7 @@ CREATE TABLE mail_configuration (
   CONSTRAINT mail_configuration_pk PRIMARY KEY (mail_configuration_id)
 );
 
--- Since MIGRATE_PROXY_CONFIG
+-- Since 1.84
 CREATE TABLE proxy_server_configuration (
   proxy_server_configuration_id varchar(50) NOT NULL,
   hostname varchar(255) NOT NULL,

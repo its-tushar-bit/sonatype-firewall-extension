@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.search.results;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+
 /**
  * @since GLOBAL_SEARCH
  */

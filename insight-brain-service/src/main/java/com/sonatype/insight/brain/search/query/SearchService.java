@@ -23,9 +23,9 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.search.LowerCaseAnalyzer;
 import com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier;
-import com.sonatype.insight.brain.search.results.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -69,9 +69,9 @@ public class SearchService
   private Set<String> analyzedFields = Stream
       .of(VULNERABILITY_DESCRIPTION.label, APPLICATION_NAME.label, ORGANIZATION_NAME.label).collect(Collectors.toSet());
 
-  private Analyzer standardAnalyzer = new StandardAnalyzer();
+  private final Analyzer standardAnalyzer = new StandardAnalyzer();
 
-  private Map<String, Analyzer> fieldsWithAnalyzers = new HashMap<String, Analyzer>()
+  private final Map<String, Analyzer> fieldsWithAnalyzers = new HashMap<String, Analyzer>()
   {
     {
       put(VULNERABILITY_DESCRIPTION.label, standardAnalyzer);

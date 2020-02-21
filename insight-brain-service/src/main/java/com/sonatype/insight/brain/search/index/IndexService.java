@@ -106,9 +106,9 @@ public class IndexService
 
   private final PolicyDAO policyDAO;
 
-  private Analyzer standardAnalyzer = new StandardAnalyzer();
+  private final Analyzer standardAnalyzer = new StandardAnalyzer();
 
-  private Map<String, Analyzer> fieldsWithAnalyzers = new HashMap<String, Analyzer>()
+  private final Map<String, Analyzer>fieldsWithAnalyzers = new HashMap<String, Analyzer>()
   {
     {
       put(VULNERABILITY_DESCRIPTION.label, standardAnalyzer);
@@ -257,14 +257,13 @@ public class IndexService
     return docFieldValues;
   }
 
-  private static Long addDocsWithException(IndexWriter writer, List<Document> docs) {
+  private static void addDocsWithException(IndexWriter writer, List<Document> docs) {
     try {
-      return writer.addDocuments(docs);
+      writer.addDocuments(docs);
     }
     catch (IOException e) {
       log.error(e.getMessage(), e);
     }
-    return -1L;
   }
 
   private List<Document> buildOrganizationDocs(List<Organization> organizations) {

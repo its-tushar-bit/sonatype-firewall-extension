@@ -15,7 +15,6 @@ import javax.ws.rs.Path;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.search.index.IndexService;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.vulnerability.VulnerabilityDetailResource;
 
 import com.codahale.metrics.annotation.Timed;
@@ -30,25 +29,20 @@ public class ApiIndexResource
 {
   private final IndexService indexService;
 
-  private final InsightWork insightWork;
-
   private final VulnerabilityDetailResource vulnerabilityDetailResource;
 
   @Inject
   public ApiIndexResource(
       IndexService indexService,
-      InsightWork insightWork,
       VulnerabilityDetailResource vulnerabilityDetailResource)
   {
     this.indexService = indexService;
-    this.insightWork = insightWork;
     this.vulnerabilityDetailResource = vulnerabilityDetailResource;
   }
 
   @POST
   public void createSearchIndex() throws IOException {
-    indexService
-        .createSearchIndex(insightWork.getWorkDir().toPath(), this::getHtml);
+    indexService.createSearchIndex(this::getHtml);
   }
 
   private String getHtml(String refId) {

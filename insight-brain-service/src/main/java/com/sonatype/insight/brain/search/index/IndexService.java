@@ -43,11 +43,13 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.search.LowerCaseAnalyzer;
 import com.sonatype.insight.brain.search.docs.DocumentFields;
 import com.sonatype.insight.brain.search.docs.DocumentFields.ItemType;
 import com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier;
 import com.sonatype.insight.brain.search.iterator.FieldIterator;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.ImmutableSet;
@@ -106,6 +108,8 @@ public class IndexService
 
   private final PolicyDAO policyDAO;
 
+  private final InsightWork insightWork;
+
   private final Analyzer standardAnalyzer = new StandardAnalyzer();
 
   private final Map<String, Analyzer>fieldsWithAnalyzers = new HashMap<String, Analyzer>()
@@ -126,7 +130,8 @@ public class IndexService
       TagDAO tagDAO,
       LabelDAO labelDAO,
       OwnerDAO ownerDAO,
-      PolicyDAO policyDAO)
+      PolicyDAO policyDAO,
+      InsightWork insightWork)
   {
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
@@ -136,12 +141,10 @@ public class IndexService
     this.labelDAO = labelDAO;
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
+    this.insightWork = insightWork;
   }
 
-  public void createSearchIndex(
-      Path sonatypeWork,
-      Function<String, String> refIdToHtml) throws IOException
-  {
+  public void createSearchIndex(Function<String, String> refIdToHtml) throws IOException  {
     log.info("creating search index...");
     ConcurrentMap<String, String> refIdToHtmlStore = new ConcurrentHashMap<String, String>()
     {
@@ -153,8 +156,8 @@ public class IndexService
 
     IndexWriter indexWriter = null;
     try {
-      Path indexPath = sonatypeWork.resolve("search").resolve("index");
-      Path suggesterPath = sonatypeWork.resolve("search").resolve("suggester");
+      Path indexPath = insightWork.getSearchIndexDir().toPath();
+      Path suggesterPath = insightWork.getSearchSuggesterDir().toPath();
       Files.createDirectories(indexPath);
       Files.createDirectories(suggesterPath);
 
@@ -179,7 +182,7 @@ public class IndexService
       List<CompletableFuture<Void>> appSVDocs = applications
           .parallelStream()
           .map(application -> CompletableFuture
-              .supplyAsync(() -> buildApplicationSVDocs(application, sonatypeWork, refIdToHtmlStore))
+              .supplyAsync(() -> buildApplicationSVDocs(application, refIdToHtmlStore))
               .thenAccept(docs -> addDocsWithException(finalWriter, docs))).collect(toList());
 
       CompletableFuture<Void> tagDocs = CompletableFuture.supplyAsync(() -> buildTagDocs(tagDAO.getAll()))
@@ -339,18 +342,16 @@ public class IndexService
 
   private List<Document> buildApplicationSVDocs(
       Application application,
-      Path sonatypeWork,
       Map<String, String> refIdToHtmlStore)
   {
     return StageTypes.getAll().parallelStream()
-        .map(stageType -> buildApplicationStageSVDocs(application, stageType, sonatypeWork, refIdToHtmlStore))
+        .map(stageType -> buildApplicationStageSVDocs(application, stageType, refIdToHtmlStore))
         .flatMap(Collection::stream).collect(toList());
   }
 
   private List<Document> buildApplicationStageSVDocs(
       Application application,
       StageType stageType,
-      Path sonatypeWork,
       Map<String, String> refIdToHtmlStore)
   {
     try {
@@ -360,9 +361,8 @@ public class IndexService
         return Collections.emptyList();
       }
       String scanId = latestPolicyEvaluation.getScanId();
-      Path reportCachePath =
-          sonatypeWork.resolve("report").resolve(application.getId()).resolve(scanId).resolve("report.cache");
-      if (!reportCachePath.toFile().exists()) {
+      Path reportCachePath = Report.getCacheDir(insightWork.getReportFile(application.getId(), scanId)).toPath();
+      if (!Files.exists(reportCachePath)) {
         return Collections.emptyList();
       }
       byte[] licenseReportEntry = Files.readAllBytes(reportCachePath.resolve("licenses.json"));

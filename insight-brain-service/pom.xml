@@ -19,6 +19,7 @@
   <properties>
     <test.forkCount>0.5C</test.forkCount>
     <freemarker.version>2.3.29</freemarker.version>
+    <lucene.version>8.4.1</lucene.version>
     <truezipVersion>7.7.10</truezipVersion>
   </properties>
 
@@ -71,10 +72,6 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-data</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-brain-search</artifactId>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
@@ -289,6 +286,32 @@
       <groupId>org.sonatype.plexus</groupId>
       <artifactId>plexus-cipher</artifactId>
       <version>1.7</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>1.12.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+      <version>${lucene.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-queryparser</artifactId>
+      <version>${lucene.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-analyzers-common</artifactId>
+      <version>${lucene.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-suggest</artifactId>
+      <version>${lucene.version}</version>
     </dependency>
 
     <dependency>

@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.model.component.Component;
 
-import lombok.Getter;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Store;
@@ -24,7 +23,6 @@ import org.apache.lucene.document.TextField;
 
 import static com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier.*;
 
-@Getter
 public class DocumentFields
 {
   public enum ItemType

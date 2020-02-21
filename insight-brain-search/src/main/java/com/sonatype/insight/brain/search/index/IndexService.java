@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.search.index;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -67,7 +66,6 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.codehaus.plexus.util.IOUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
@@ -368,9 +366,9 @@ public class IndexService
       if (!reportCachePath.toFile().exists()) {
         return Collections.emptyList();
       }
-      byte[] licenseReportEntry = extractBytes(reportCachePath, "licenses.json");
-      byte[] securityReportEntry = extractBytes(reportCachePath, "security.json");
-      byte[] bomReportEntry = extractBytes(reportCachePath, "bom.json");
+      byte[] licenseReportEntry = Files.readAllBytes(reportCachePath.resolve("licenses.json"));
+      byte[] securityReportEntry = Files.readAllBytes(reportCachePath.resolve("security.json"));
+      byte[] bomReportEntry = Files.readAllBytes(reportCachePath.resolve("bom.json"));
       if (licenseReportEntry == null || securityReportEntry == null || bomReportEntry == null) {
         return Collections.emptyList();
       }
@@ -412,12 +410,6 @@ public class IndexService
       documentFields.setDescription(getDescription(securityVulnerability.getRefId(), refIdToHtmlStore));
       return documentFields.build();
     }).collect(toList());
-  }
-
-  private byte[] extractBytes(Path reportCachePath, String name) throws IOException {
-    try (FileInputStream fileInputStream = new FileInputStream(reportCachePath.resolve(name).toString())) {
-      return IOUtil.toByteArray(fileInputStream);
-    }
   }
 
   private String getDescription(

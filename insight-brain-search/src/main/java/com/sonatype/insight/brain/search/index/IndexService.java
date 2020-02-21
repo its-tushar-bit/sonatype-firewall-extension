@@ -153,8 +153,8 @@ public class IndexService
 
     IndexWriter indexWriter = null;
     try {
-      Path indexPath = sonatypeWork.resolve("index");
-      Path suggesterPath = sonatypeWork.resolve("search-suggester");
+      Path indexPath = sonatypeWork.resolve("search").resolve("index");
+      Path suggesterPath = sonatypeWork.resolve("search").resolve("suggester");
       Files.createDirectories(indexPath);
       Files.createDirectories(suggesterPath);
 

@@ -50,9 +50,8 @@ public class ApiSearchResource
       @DefaultValue("1") @QueryParam("page") int page)
       throws Exception
   {
-    return searchService
-        .searchApplicationComponentSecurityVulnerabilityIndex(insightWork.getWorkDir().toPath().resolve("index"),
-            search, pageSize, page);
+    return searchService.searchApplicationComponentSecurityVulnerabilityIndex(
+        insightWork.getWorkDir().toPath().resolve("search").resolve("index"), search, pageSize, page);
   }
 
   @GET
@@ -64,7 +63,7 @@ public class ApiSearchResource
   {
     return searchService
         .autocompleteSearchApplicationComponentSecurityVulnerability(
-            insightWork.getWorkDir().toPath().resolve("search-suggester"),
+            insightWork.getWorkDir().toPath().resolve("search").resolve("suggester"),
             searchQuery);
   }
 }

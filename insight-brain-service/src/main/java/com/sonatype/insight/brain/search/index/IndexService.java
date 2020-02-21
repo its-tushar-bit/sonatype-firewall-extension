@@ -152,61 +152,59 @@ public class IndexService
       }
     };
 
-    IndexWriter indexWriter = null;
     try {
       Path indexPath = insightWork.getSearchIndexDir().toPath();
       Path suggesterPath = insightWork.getSearchSuggesterDir().toPath();
       Files.createDirectories(indexPath);
       Files.createDirectories(suggesterPath);
 
-      Directory directory = FSDirectory.open(indexPath);
       Analyzer analyzer = new PerFieldAnalyzerWrapper(new LowerCaseAnalyzer(), fieldsWithAnalyzers);
 
       IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
       indexWriterConfig.setOpenMode(OpenMode.CREATE);
-      indexWriter = new IndexWriter(directory, indexWriterConfig);
-      final IndexWriter finalWriter = indexWriter;
-      log.info("begin indexing");
+      try (Directory directory = FSDirectory.open(indexPath);
+          IndexWriter indexWriter = new IndexWriter(directory, indexWriterConfig)) {
+        log.info("begin indexing");
 
-      CompletableFuture<Void> orgDocs =
-          CompletableFuture.supplyAsync(() -> buildOrganizationDocs(organizationDAO.getAll()))
-              .thenAccept(docs -> addDocsWithException(finalWriter, docs));
+        CompletableFuture<Void> orgDocs =
+            CompletableFuture.supplyAsync(() -> buildOrganizationDocs(organizationDAO.getAll()))
+                .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-      List<Application> applications = applicationDAO.getAll();
+        List<Application> applications = applicationDAO.getAll();
 
-      CompletableFuture<Void> appDocs = CompletableFuture.supplyAsync(() -> buildApplicationDocs(applications))
-          .thenAccept(docs -> addDocsWithException(finalWriter, docs));
+        CompletableFuture<Void> appDocs = CompletableFuture.supplyAsync(() -> buildApplicationDocs(applications))
+            .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-      List<CompletableFuture<Void>> appSVDocs = applications
-          .parallelStream()
-          .map(application -> CompletableFuture
-              .supplyAsync(() -> buildApplicationSVDocs(application, refIdToHtmlStore))
-              .thenAccept(docs -> addDocsWithException(finalWriter, docs))).collect(toList());
+        List<CompletableFuture<Void>> appSVDocs = applications
+            .parallelStream()
+            .map(application -> CompletableFuture
+                .supplyAsync(() -> buildApplicationSVDocs(application, refIdToHtmlStore))
+                .thenAccept(docs -> addDocsWithException(indexWriter, docs))).collect(toList());
 
-      CompletableFuture<Void> tagDocs = CompletableFuture.supplyAsync(() -> buildTagDocs(tagDAO.getAll()))
-          .thenAccept(docs -> addDocsWithException(finalWriter, docs));
+        CompletableFuture<Void> tagDocs = CompletableFuture.supplyAsync(() -> buildTagDocs(tagDAO.getAll()))
+            .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-      CompletableFuture<Void> labelDocs = CompletableFuture.supplyAsync(() -> buildLabelDocs(labelDAO.getAll()))
-          .thenAccept(docs -> addDocsWithException(finalWriter, docs));
+        CompletableFuture<Void> labelDocs = CompletableFuture.supplyAsync(() -> buildLabelDocs(labelDAO.getAll()))
+            .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-      CompletableFuture<Void> policyDocs = CompletableFuture.supplyAsync(() -> buildPolicyDocs(policyDAO.getAll()))
-          .thenAccept(docs -> addDocsWithException(finalWriter, docs));
+        CompletableFuture<Void> policyDocs = CompletableFuture.supplyAsync(() -> buildPolicyDocs(policyDAO.getAll()))
+            .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-      log.info("indexing threads started");
-      orgDocs.join();
-      log.info("org indexing complete");
-      appDocs.join();
-      log.info("app indexing complete");
-      appSVDocs.forEach(CompletableFuture::join);
-      log.info("appSV indexing complete");
-      tagDocs.join();
-      log.info("tag indexing complete");
-      labelDocs.join();
-      log.info("label indexing complete");
-      policyDocs.join();
-      log.info("policy indexing complete");
-      log.info("all indexing complete");
-      indexWriter.close();
+        log.info("indexing threads started");
+        orgDocs.join();
+        log.info("org indexing complete");
+        appDocs.join();
+        log.info("app indexing complete");
+        appSVDocs.forEach(CompletableFuture::join);
+        log.info("appSV indexing complete");
+        tagDocs.join();
+        log.info("tag indexing complete");
+        labelDocs.join();
+        log.info("label indexing complete");
+        policyDocs.join();
+        log.info("policy indexing complete");
+        log.info("all indexing complete");
+      }
 
       // write to search-suggester dir
       try (IndexReader sourceIndexReader = DirectoryReader.open(FSDirectory.open(indexPath));
@@ -226,19 +224,10 @@ public class IndexService
           log.info("completed building suggester");
         }
       }
-      catch (Exception e) {
-        log.error(e.getMessage(), e);
-        throw e;
-      }
     }
     catch (IOException e) {
       log.error(e.getMessage(), e);
       throw e;
-    }
-    finally {
-      if (indexWriter != null) {
-        indexWriter.close();
-      }
     }
     log.info("index creation exit");
   }

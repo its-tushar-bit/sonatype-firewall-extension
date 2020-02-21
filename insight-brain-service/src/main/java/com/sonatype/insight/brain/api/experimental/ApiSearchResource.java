@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.search.query.SearchService;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchSuggestionResultDTO;
-import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -32,38 +31,28 @@ public class ApiSearchResource
 {
   private final SearchService searchService;
 
-  private final InsightWork insightWork;
-
   private static final String SUGGESTER = "suggester";
 
   @Inject
-  public ApiSearchResource(SearchService searchService, InsightWork insightWork) {
+  public ApiSearchResource(SearchService searchService) {
     this.searchService = searchService;
-    this.insightWork = insightWork;
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public SearchResultDTO searchApplicationComponentSecurityVulnerabilityIndex(
+  public SearchResultDTO searchIndex(
       @QueryParam("search") String search,
       @DefaultValue("10") @QueryParam("pageSize") int pageSize,
       @DefaultValue("1") @QueryParam("page") int page)
       throws Exception
   {
-    return searchService.searchApplicationComponentSecurityVulnerabilityIndex(
-        insightWork.getWorkDir().toPath().resolve("search").resolve("index"), search, pageSize, page);
+    return searchService.searchIndex(search, pageSize, page);
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(SUGGESTER)
-  public SearchSuggestionResultDTO autoCompleteSearchApplicationComponentSecurityVulnerabilityIndex(
-      @QueryParam("search") String searchQuery)
-      throws Exception
-  {
-    return searchService
-        .autocompleteSearchApplicationComponentSecurityVulnerability(
-            insightWork.getWorkDir().toPath().resolve("search").resolve("suggester"),
-            searchQuery);
+  public SearchSuggestionResultDTO autoCompleteSearchQuery(@QueryParam("search") String searchQuery) throws Exception {
+    return searchService.autoCompleteSearchQuery(searchQuery);
   }
 }

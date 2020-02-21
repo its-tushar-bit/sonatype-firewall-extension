@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.search.query;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -19,6 +18,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.search.results.SearchSuggestionResultDTO;
+import com.sonatype.insight.brain.service.InsightWork;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
@@ -66,7 +67,9 @@ public class SearchService
 {
   private static final Logger log = LoggerFactory.getLogger(SearchService.class);
 
-  private Set<String> analyzedFields = Stream
+  private final InsightWork insightWork;
+
+  private final Set<String> analyzedFields = Stream
       .of(VULNERABILITY_DESCRIPTION.label, APPLICATION_NAME.label, ORGANIZATION_NAME.label).collect(Collectors.toSet());
 
   private final Analyzer standardAnalyzer = new StandardAnalyzer();
@@ -80,13 +83,13 @@ public class SearchService
     }
   };
 
-  public SearchResultDTO searchApplicationComponentSecurityVulnerabilityIndex(
-      Path indexRoot,
-      String searchQuery,
-      int pageSize,
-      int page) throws Exception
-  {
-    try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(indexRoot))) {
+  @Inject
+  public SearchService(InsightWork insightWork) {
+    this.insightWork = insightWork;
+  }
+
+  public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page) throws Exception {
+    try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(insightWork.getSearchIndexDir().toPath()))) {
       SearchResultDTO searchResultDTO = new SearchResultDTO();
       searchResultDTO.searchQuery = searchQuery;
       searchResultDTO.page = page;
@@ -161,15 +164,12 @@ public class SearchService
     }
   }
 
-  public SearchSuggestionResultDTO autocompleteSearchApplicationComponentSecurityVulnerability(
-      Path suggesterRoot,
-      String searchQuery) throws Exception
-  {
+  public SearchSuggestionResultDTO autoCompleteSearchQuery(String searchQuery) throws Exception {
     List<String> searchSuggestionResultItems = new ArrayList<>();
     SearchSuggestionResultDTO searchResultDTO = new SearchSuggestionResultDTO();
     Analyzer analyzer = new SimpleAnalyzer();
 
-    try (FSDirectory suggesterFile = FSDirectory.open(suggesterRoot);
+    try (FSDirectory suggesterFile = FSDirectory.open(insightWork.getSearchSuggesterDir().toPath());
          AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(suggesterFile, analyzer)) {
       List<Lookup.LookupResult> results;
       HashSet<BytesRef> contexts = new HashSet<>();

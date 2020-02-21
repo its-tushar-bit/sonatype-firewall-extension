@@ -66,8 +66,8 @@ public class SearchService
 {
   private static final Logger log = LoggerFactory.getLogger(SearchService.class);
 
-  private Set<String> analyzedFields =
-      Stream.of(VULNERABILITY_DESCRIPTION.label, APPLICATION_NAME.label, ORGANIZATION_NAME.label).collect(Collectors.toSet());
+  private Set<String> analyzedFields = Stream
+      .of(VULNERABILITY_DESCRIPTION.label, APPLICATION_NAME.label, ORGANIZATION_NAME.label).collect(Collectors.toSet());
 
   private Analyzer standardAnalyzer = new StandardAnalyzer();
 

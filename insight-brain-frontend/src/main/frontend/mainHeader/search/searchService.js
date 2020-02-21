@@ -15,7 +15,7 @@ export default function searchService($http, CLMContextLocations) {
   };
 
   function search() {
-    return $http.get(CLMContextLocations.getIndexUrl(),
+    return $http.get(CLMContextLocations.getSearchIndexUrl(),
         {params: {search: this.query, pageSize: this.pageSize, page: this.page}});
   }
 }

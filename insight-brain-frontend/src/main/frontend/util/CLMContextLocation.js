@@ -241,12 +241,12 @@ locationModule.factory('CLMContextLocations', [
         return `${baseUrl.get()}/api/v2/config/saml`;
       },
 
-      getIndexUrl: function() {
-        return `${baseUrl.get()}/api/experimental/index`;
+      getSearchIndexUrl: function() {
+        return `${baseUrl.get()}/api/experimental/search/index`;
       },
 
       getSearchSuggesterUrl: function() {
-        return `${baseUrl.get()}/api/experimental/index/suggester`;
+        return `${baseUrl.get()}/api/experimental/search/index/suggester`;
       },
 
       getNotificationWebhooksUrl: function() {

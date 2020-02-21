@@ -13,7 +13,7 @@ the relevant application and policy report.
 ## Indexing
 Before the data can be searched an index must be created. This can be achieved by the following cURL command
 ```
-curl -u admin:admin123 -X POST 'http://localhost:8070/api/experimental/index'
+curl -u admin:admin123 -X POST 'http://localhost:8070/api/experimental/search/index'
 ```
 
 Currently the following fields will be indexed and available for searching.

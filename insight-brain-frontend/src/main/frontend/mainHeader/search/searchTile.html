@@ -1,12 +1,21 @@
 <div class="iq-body-container iq-body-container--single-pane">
   <div class="iq-tile iq-tile--top-tile">
-    <div class="iq-tile-header__title">
-      <i class="fa fa-search size-20px iq-tile-header__icon"></i>
-      <h1 id="search-title">Search Results: <span>{{vm.totalNumberOfHits ? vm.totalNumberOfHits : 0}}</span></h1>
-      <div id="search-navigation">
-        <button class="iq-btn iq-btn--primary" ng-click="vm.previous()">Previous</button>
-        <h1>Page {{vm.page}} of {{vm.getMaxPage()}}</h1>
-        <button class="iq-btn iq-btn--primary" ng-click="vm.next()">Next</button>
+    <div class="iq-tile-header">
+      <div class="iq-tile-header__title">
+        <h1>Global Search</h1>
+      </div>
+    </div>
+    <search-bar></search-bar>
+  </div>
+  <div class="iq-tile">
+    <div class="iq-tile-header">
+      <div class="iq-tile-header__title">
+        <h1 id="search-title">Results: <span>{{vm.totalNumberOfHits ? vm.totalNumberOfHits : 0}}</span></h1>
+        <div id="search-navigation">
+          <button class="iq-btn iq-btn--primary" ng-click="vm.previous()">Previous</button>
+          <h1>Page {{vm.page}} of {{vm.getMaxPage()}}</h1>
+          <button class="iq-btn iq-btn--primary" ng-click="vm.next()">Next</button>
+        </div>
       </div>
     </div>
   </div>

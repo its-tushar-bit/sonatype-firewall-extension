@@ -270,14 +270,14 @@ public class SearchService
       return null;
     }
 
-    searchResultItemDTO.documentType = document.get(ITEM_TYPE.label);
+    searchResultItemDTO.itemType = document.get(ITEM_TYPE.label);
     searchResultItemDTO.organizationId = document.get(ORGANIZATION_ID.label);
     searchResultItemDTO.organizationName = document.get(ORGANIZATION_NAME.label);
     searchResultItemDTO.applicationId = document.get(APPLICATION_ID.label);
     searchResultItemDTO.applicationPublicId = document.get(APPLICATION_PUBLIC_ID.label);
     searchResultItemDTO.applicationName = document.get(APPLICATION_NAME.label);
-    searchResultItemDTO.stage = document.get(POLICY_EVALUATION_STAGE.label);
-    searchResultItemDTO.scanId = document.get(REPORT_ID.label);
+    searchResultItemDTO.policyEvaluationStage = document.get(POLICY_EVALUATION_STAGE.label);
+    searchResultItemDTO.reportId = document.get(REPORT_ID.label);
     searchResultItemDTO.componentHash = document.get(COMPONENT_HASH.label);
     ApiComponentIdentifierDTOV2 apiComponentIdentifierDTOV2 = new ApiComponentIdentifierDTOV2();
     String format = document.get(COMPONENT_FORMAT.label);
@@ -292,18 +292,18 @@ public class SearchService
     }
     apiComponentIdentifierDTOV2.setCoordinates(coordinates);
     searchResultItemDTO.componentIdentifier = apiComponentIdentifierDTOV2;
-    searchResultItemDTO.componentDisplayName = document.get(COMPONENT_NAME.label);
-    searchResultItemDTO.reference = document.get(VULNERABILITY_ID.label);
-    searchResultItemDTO.description = document.get(VULNERABILITY_DESCRIPTION.label);
-    searchResultItemDTO.status = document.get(VULNERABILITY_STATUS.label);
-    searchResultItemDTO.tagId = document.get(APPLICATION_CATEGORY_ID.label);
-    searchResultItemDTO.tagName = document.get(APPLICATION_CATEGORY_NAME.label);
-    searchResultItemDTO.tagColor = document.get(APPLICATION_CATEGORY_COLOR.label);
-    searchResultItemDTO.tagDescription = document.get(APPLICATION_CATEGORY_DESCRIPTION.label);
-    searchResultItemDTO.labelId = document.get(COMPONENT_LABEL_ID.label);
-    searchResultItemDTO.labelName = document.get(COMPONENT_LABEL_NAME.label);
-    searchResultItemDTO.labelColor = document.get(COMPONENT_LABEL_COLOR.label);
-    searchResultItemDTO.labelDescription = document.get(COMPONENT_LABEL_DESCRIPTION.label);
+    searchResultItemDTO.componentName = document.get(COMPONENT_NAME.label);
+    searchResultItemDTO.vulnerabilityId = document.get(VULNERABILITY_ID.label);
+    searchResultItemDTO.vulnerabilityDescription = document.get(VULNERABILITY_DESCRIPTION.label);
+    searchResultItemDTO.vulnerabilityStatus = document.get(VULNERABILITY_STATUS.label);
+    searchResultItemDTO.applicationCategoryId = document.get(APPLICATION_CATEGORY_ID.label);
+    searchResultItemDTO.applicationCategoryName = document.get(APPLICATION_CATEGORY_NAME.label);
+    searchResultItemDTO.applicationCategoryColor = document.get(APPLICATION_CATEGORY_COLOR.label);
+    searchResultItemDTO.applicationCategoryDescription = document.get(APPLICATION_CATEGORY_DESCRIPTION.label);
+    searchResultItemDTO.componentLabelId = document.get(COMPONENT_LABEL_ID.label);
+    searchResultItemDTO.componentLabelName = document.get(COMPONENT_LABEL_NAME.label);
+    searchResultItemDTO.componentLabelColor = document.get(COMPONENT_LABEL_COLOR.label);
+    searchResultItemDTO.componentLabelDescription = document.get(COMPONENT_LABEL_DESCRIPTION.label);
     searchResultItemDTO.policyId = document.get(POLICY_ID.label);
     searchResultItemDTO.policyName = document.get(POLICY_NAME.label);
     searchResultItemDTO.policyThreatCategory = document.get(POLICY_THREAT_CATEGORY.label);

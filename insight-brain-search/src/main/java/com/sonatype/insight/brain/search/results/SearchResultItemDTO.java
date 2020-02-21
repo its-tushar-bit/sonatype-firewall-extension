@@ -10,7 +10,7 @@ package com.sonatype.insight.brain.search.results;
  */
 public class SearchResultItemDTO
 {
-  public String documentType;
+  public String itemType;
 
   public String organizationId;
 
@@ -22,37 +22,37 @@ public class SearchResultItemDTO
 
   public String applicationName;
 
-  public String stage;
+  public String policyEvaluationStage;
 
-  public String scanId;
+  public String reportId;
 
   public String componentHash;
 
   public ApiComponentIdentifierDTOV2 componentIdentifier;
 
-  public String componentDisplayName;
+  public String componentName;
 
-  public String reference;
+  public String vulnerabilityId;
 
-  public String description;
+  public String vulnerabilityDescription;
 
-  public String status;
+  public String vulnerabilityStatus;
 
-  public String tagId;
+  public String applicationCategoryId;
 
-  public String tagName;
+  public String applicationCategoryName;
 
-  public String tagColor;
+  public String applicationCategoryColor;
 
-  public String tagDescription;
+  public String applicationCategoryDescription;
 
-  public String labelId;
+  public String componentLabelId;
 
-  public String labelName;
+  public String componentLabelName;
 
-  public String labelColor;
+  public String componentLabelColor;
 
-  public String labelDescription;
+  public String componentLabelDescription;
 
   public String policyId;
 

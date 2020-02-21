@@ -36,7 +36,7 @@
           <table class="result-table">
             <hr ng-if="$index == 0" style="border-width: 0.5px"/>
             <tr ng-if="result.organizationId && result.organizationName
-            && (result.documentType == 'ORGANIZATION' || groupingBy.groupIdentifier != 'ORGANIZATION_NAME')">
+            && (result.itemType == 'ORGANIZATION' || groupingBy.groupIdentifier != 'ORGANIZATION_NAME')">
               <td><i class="fa fa-sitemap iq-owner-tree-view__icon--12px inverse"></i></td>
               <td>Organization:</td>
               <td>
@@ -46,7 +46,7 @@
               </td>
             </tr>
             <tr ng-if="result.applicationPublicId && result.applicationName
-            && (result.documentType == 'APPLICATION' || groupingBy.groupIdentifier != 'APPLICATION_NAME')">
+            && (result.itemType == 'APPLICATION' || groupingBy.groupIdentifier != 'APPLICATION_NAME')">
               <td><i class="fa fa-terminal iq-owner-tree-view__icon--12px inverse"></i></td>
               <td>Application:</td>
               <td>
@@ -55,49 +55,49 @@
                 </a>
               </td>
             </tr>
-            <tr ng-if="result.componentDisplayName">
+            <tr ng-if="result.componentName">
               <td><i class="fa fa-cogs iq-owner-tree-view__icon--12px inverse"></i></td>
               <td>Component:</td>
-              <td>{{result.componentDisplayName}}</td>
+              <td>{{result.componentName}}</td>
             </tr>
-            <tr ng-if="result.applicationPublicId && result.scanId && result.stage">
+            <tr ng-if="result.applicationPublicId && result.reportId && result.policyEvaluationStage">
               <td><i class="sonatype-icons medium reporting"></i></td>
               <td>Report:</td>
               <td>
-                <a ui-sref="applicationReport.policy({publicId: result.applicationPublicId, scanId: result.scanId})">
-                  {{result.stage}}
+                <a ui-sref="applicationReport.policy({publicId: result.applicationPublicId, scanId: result.reportId})">
+                  {{result.policyEvaluationStage}}
                 </a>
               </td>
             </tr>
-            <tr ng-if="result.reference && groupingBy.groupIdentifier != 'VULNERABILITY_ID'">
+            <tr ng-if="result.vulnerabilityId && groupingBy.groupIdentifier != 'VULNERABILITY_ID'">
               <td><i class="fa fa-exclamation-triangle iq-owner-tree-view__icon--12px inverse"></i></td>
               <td>Security Issue:</td>
-              <td><a ng-href="/assets/#/vulnerabilities/{{result.reference}}">{{result.reference}}</a></td>
+              <td><a ng-href="/assets/#/vulnerabilities/{{result.vulnerabilityId}}">{{result.vulnerabilityId}}</a></td>
             </tr>
-            <tr ng-if="result.description && groupingBy.groupIdentifier != 'VULNERABILITY_ID'">
+            <tr ng-if="result.vulnerabilityDescription && groupingBy.groupIdentifier != 'VULNERABILITY_ID'">
               <td><i class="fa fa-file-text iq-owner-tree-view__icon--12px inverse"></i></td>
               <td>Description:</td>
-              <td>{{result.description}}</td>
+              <td>{{result.vulnerabilityDescription}}</td>
             </tr>
-            <tr ng-if="result.organizationId && result.tagColor && result.tagId && result.tagName">
+            <tr ng-if="result.organizationId && result.applicationCategoryColor && result.applicationCategoryId && result.applicationCategoryName">
               <td>
-                <hexagon class="size-16px size-fw {{result.tagColor}}"></hexagon>
+                <hexagon class="size-16px size-fw {{result.applicationCategoryColor}}"></hexagon>
               </td>
-              <td>Tag:</td>
+              <td>Application Category:</td>
               <td>
-                <a href="#/management/edit/organization/{{result.organizationId}}/category/{{result.tagId}}">{{result.tagName}}</a>
-                <span ng-if="result.tagDescription">- {{result.tagDescription}}</span>
+                <a href="#/management/edit/organization/{{result.organizationId}}/category/{{result.applicationCategoryId}}">{{result.applicationCategoryName}}</a>
+                <span ng-if="result.applicationCategoryDescription">- {{result.applicationCategoryDescription}}</span>
               </td>
             </tr>
-            <tr ng-if="result.labelColor && result.labelId && result.labelName">
-              <td><i class="fa fa-tag size-16px size-fw {{result.labelColor}}"></i></td>
-              <td>Label:</td>
+            <tr ng-if="result.componentLabelColor && result.componentLabelId && result.componentLabelName">
+              <td><i class="fa fa-tag size-16px size-fw {{result.componentLabelColor}}"></i></td>
+              <td>Component Label:</td>
               <td>
                 <a ng-if="result.organizationId"
-                   href="#/management/edit/organization/{{result.organizationId}}/label/{{result.labelId}}">{{result.labelName}}</a>
+                   href="#/management/edit/organization/{{result.organizationId}}/label/{{result.componentLabelId}}">{{result.componentLabelName}}</a>
                 <a ng-if="result.applicationPublicId"
-                   href="#/management/edit/application/{{result.applicationPublicId}}/label/{{result.labelId}}">{{result.labelName}}</a>
-                <span ng-if="result.labelDescription">- {{result.labelDescription}}</span>
+                   href="#/management/edit/application/{{result.applicationPublicId}}/label/{{result.componentLabelId}}">{{result.componentLabelName}}</a>
+                <span ng-if="result.componentLabelDescription">- {{result.componentLabelDescription}}</span>
               </td>
             </tr>
             <tr ng-if="result.policyId && result.policyName && result.policyThreatLevel && result.policyThreatCategory">

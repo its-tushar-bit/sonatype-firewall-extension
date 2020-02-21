@@ -11,6 +11,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 
 import org.apache.lucene.document.Document;
@@ -21,9 +23,9 @@ import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 
-import static com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier.*;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.*;
 
-public class DocumentFields
+public class DocumentBuilder
 {
   public enum ItemType
   {
@@ -134,124 +136,162 @@ public class DocumentFields
 
   private Optional<List<Field>> policyThreatLevel = Optional.empty();
 
-  public DocumentFields(ItemType itemType) {
+  public DocumentBuilder(ItemType itemType) {
     this.itemType = new StringField(ITEM_TYPE.label, itemType.name(), Store.YES);
   }
 
-  public void setOrganizationId(final String organizationId) {
+  public DocumentBuilder setOwner(Owner owner) {
+    if (owner.getType() == OwnerType.ORGANIZATION) {
+      setOrganizationId(owner.getId());
+      setOrganizationName(owner.getName());
+    }
+    else if (owner.getType() == OwnerType.APPLICATION) {
+      setApplicationId(owner.getId());
+      setApplicationPublicId(owner.getPublicId());
+      setApplicationName(owner.getName());
+    }
+    return this;
+  }
+
+  public DocumentBuilder setOrganizationId(final String organizationId) {
     this.organizationId = Optional.of(new StringField(ORGANIZATION_ID.label, organizationId, Store.YES));
+    return this;
   }
 
-  public void setOrganizationName(final String organizationName) {
+  public DocumentBuilder setOrganizationName(final String organizationName) {
     this.organizationName = Optional.of(new TextField(ORGANIZATION_NAME.label, organizationName, Store.YES));
+    return this;
   }
 
-  public void setApplicationId(final String applicationId) {
+  public DocumentBuilder setApplicationId(final String applicationId) {
     this.applicationId = Optional.of(new StringField(APPLICATION_ID.label, applicationId, Store.YES));
+    return this;
   }
 
-  public void setApplicationPublicId(final String applicationPublicId) {
+  public DocumentBuilder setApplicationPublicId(final String applicationPublicId) {
     this.applicationPublicId =
         Optional.of(new StringField(APPLICATION_PUBLIC_ID.label, applicationPublicId, Store.YES));
+    return this;
   }
 
-  public void setApplicationName(final String applicationName) {
+  public DocumentBuilder setApplicationName(final String applicationName) {
     this.applicationName = Optional.of(new TextField(APPLICATION_NAME.label, applicationName, Store.YES));
+    return this;
   }
 
-  public void setPolicyEvaluationStage(final String stageTypeName) {
+  public DocumentBuilder setPolicyEvaluationStage(final String stageTypeName) {
     this.policyEvaluationStage = Optional.of(new StringField(POLICY_EVALUATION_STAGE.label, stageTypeName, Store.YES));
+    return this;
   }
 
-  public void setReportId(final String reportId) {
+  public DocumentBuilder setReportId(final String reportId) {
     this.reportId = Optional.of(new StringField(REPORT_ID.label, reportId, Store.YES));
+    return this;
   }
 
-  public void setComponentHash(final String hash) {
+  public DocumentBuilder setComponentHash(final String hash) {
     this.componentHash = Optional.of(new StringField(COMPONENT_HASH.label, hash, Store.YES));
+    return this;
   }
 
-  public void setComponentFormat(final String format) {
+  public DocumentBuilder setComponentFormat(final String format) {
     this.componentFormat = Optional.of(new StringField(COMPONENT_FORMAT.label, format, Store.YES));
+    return this;
   }
 
-  public void setComponentCoordinates(final Component component) {
+  public DocumentBuilder setComponentCoordinates(final Component component) {
     this.componentCoordinates = Optional.of(component.getComponentIdentifier().getCoordinates().entrySet().stream()
         .map(coordinate -> new StringField(toFieldName(coordinate.getKey()), coordinate.getValue(), Store.YES))
         .collect(Collectors.toList()));
+    return this;
   }
 
   private static String toFieldName(String coordinateName) {
     return "componentCoordinate" + Character.toUpperCase(coordinateName.charAt(0)) + coordinateName.substring(1);
   }
 
-  public void setComponentName(final String componentDisplayName) {
-    this.componentName =
-        Optional.of(new StringField(COMPONENT_NAME.label, componentDisplayName, Store.YES));
+  public DocumentBuilder setComponentName(final String componentDisplayName) {
+    this.componentName = Optional.of(new StringField(COMPONENT_NAME.label, componentDisplayName, Store.YES));
+    return this;
   }
 
-  public void setVulnerabilityId(final String refId) {
+  public DocumentBuilder setVulnerabilityId(final String refId) {
     this.vulnerabilityId = Optional.of(new StringField(VULNERABILITY_ID.label, refId, Store.YES));
+    return this;
   }
 
-  public void setVulnerabilityStatus(final String status) {
+  public DocumentBuilder setVulnerabilityStatus(final String status) {
     this.vulnerabilityStatus = Optional.of(new StringField(VULNERABILITY_STATUS.label, status, Store.YES));
+    return this;
   }
 
-  public void setVulnerabilityDescription(final String description) {
+  public DocumentBuilder setVulnerabilityDescription(final String description) {
     this.vulnerabilityDescription = Optional.of(new TextField(VULNERABILITY_DESCRIPTION.label, description, Store.YES));
+    return this;
   }
 
-  public void setApplicationCategoryId(final String tagId) {
+  public DocumentBuilder setApplicationCategoryId(final String tagId) {
     this.applicationCategoryId = Optional.of(new StringField(APPLICATION_CATEGORY_ID.label, tagId, Store.YES));
+    return this;
   }
 
-  public void setApplicationCategoryName(final String tagName) {
+  public DocumentBuilder setApplicationCategoryName(final String tagName) {
     this.applicationCategoryName = Optional.of(new StringField(APPLICATION_CATEGORY_NAME.label, tagName, Store.YES));
+    return this;
   }
 
-  public void setApplicationCategoryColor(final String tagColor) {
+  public DocumentBuilder setApplicationCategoryColor(final String tagColor) {
     this.applicationCategoryColor = Optional.of(new StringField(APPLICATION_CATEGORY_COLOR.label, tagColor, Store.YES));
+    return this;
   }
 
-  public void setApplicationCategoryDescription(final String tagDescription) {
+  public DocumentBuilder setApplicationCategoryDescription(final String tagDescription) {
     this.applicationCategoryDescription =
         Optional.of(new StringField(APPLICATION_CATEGORY_DESCRIPTION.label, tagDescription, Store.YES));
+    return this;
   }
 
-  public void setComponentLabelId(final String labelId) {
+  public DocumentBuilder setComponentLabelId(final String labelId) {
     this.componentLabelId = Optional.of(new StringField(COMPONENT_LABEL_ID.label, labelId, Store.YES));
+    return this;
   }
 
-  public void setComponentLabelName(final String labelName) {
+  public DocumentBuilder setComponentLabelName(final String labelName) {
     this.componentLabelName = Optional.of(new StringField(COMPONENT_LABEL_NAME.label, labelName, Store.YES));
+    return this;
   }
 
-  public void setComponentLabelColor(final String labelColor) {
+  public DocumentBuilder setComponentLabelColor(final String labelColor) {
     this.componentLabelColor = Optional.of(new StringField(COMPONENT_LABEL_COLOR.label, labelColor, Store.YES));
+    return this;
   }
 
-  public void setComponentLabelDescription(final String labelDescription) {
+  public DocumentBuilder setComponentLabelDescription(final String labelDescription) {
     this.componentLabelDescription = Optional.of(new StringField(COMPONENT_LABEL_DESCRIPTION.label,
         Optional.ofNullable(labelDescription).orElse(""), Store.YES));
+    return this;
   }
 
-  public void setPolicyId(final String policyId) {
+  public DocumentBuilder setPolicyId(final String policyId) {
     this.policyId = Optional.of(new StringField(POLICY_ID.label, policyId, Store.YES));
+    return this;
   }
 
-  public void setPolicyName(final String policyName) {
+  public DocumentBuilder setPolicyName(final String policyName) {
     this.policyName = Optional.of(new StringField(POLICY_NAME.label, policyName, Store.YES));
+    return this;
   }
 
-  public void setPolicyThreatCategory(final String policyThreatCategory) {
+  public DocumentBuilder setPolicyThreatCategory(final String policyThreatCategory) {
     this.policyThreatCategory =
         Optional.of(new StringField(POLICY_THREAT_CATEGORY.label, policyThreatCategory, Store.YES));
+    return this;
   }
 
-  public void setPolicyThreatLevel(final int policyThreatLevel) {
+  public DocumentBuilder setPolicyThreatLevel(final int policyThreatLevel) {
     this.policyThreatLevel = Optional.of(Arrays.asList(new IntPoint(POLICY_THREAT_LEVEL.label, policyThreatLevel),
         new StoredField(POLICY_THREAT_LEVEL.label, policyThreatLevel)));
+    return this;
   }
 
   public Document build() {

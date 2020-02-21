@@ -25,7 +25,7 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.search.LowerCaseAnalyzer;
-import com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier;
+import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -56,7 +56,7 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier.*;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.*;
 
 /**
  * @since GLOBAL_SEARCH

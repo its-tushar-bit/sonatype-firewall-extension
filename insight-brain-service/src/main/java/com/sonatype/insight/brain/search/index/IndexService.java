@@ -34,8 +34,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -45,9 +43,9 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.search.LowerCaseAnalyzer;
-import com.sonatype.insight.brain.search.docs.DocumentFields;
-import com.sonatype.insight.brain.search.docs.DocumentFields.ItemType;
-import com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier;
+import com.sonatype.insight.brain.search.docs.DocumentBuilder;
+import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
+import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.iterator.FieldIterator;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -73,9 +71,9 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier.APPLICATION_NAME;
-import static com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier.VULNERABILITY_DESCRIPTION;
-import static com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier.ORGANIZATION_NAME;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_NAME;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.VULNERABILITY_DESCRIPTION;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.ORGANIZATION_NAME;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -271,73 +269,55 @@ public class IndexService
 
   private List<Document> buildOrganizationDocs(List<Organization> organizations) {
     return organizations.stream().map(org -> {
-      DocumentFields documentFields = new DocumentFields(ItemType.ORGANIZATION);
-      documentFields.setOrganizationId(org.getId());
-      documentFields.setOrganizationName(org.getName());
-      return documentFields.build();
+      return new DocumentBuilder(ItemType.ORGANIZATION) //
+          .setOwner(org) //
+          .build();
     }).collect(toList());
   }
 
   private List<Document> buildApplicationDocs(List<Application> applications) {
     return applications.stream().map(app -> {
-      DocumentFields documentFields = new DocumentFields(ItemType.APPLICATION);
-      documentFields.setApplicationId(app.getId());
-      documentFields.setApplicationPublicId(app.getPublicId());
-      documentFields.setApplicationName(app.getName());
-      String organizationId = app.getOrganizationId();
-      documentFields.setOrganizationId(organizationId);
-      documentFields.setOrganizationName(organizationDAO.getById(organizationId).getName());
-      return documentFields.build();
+      return new DocumentBuilder(ItemType.APPLICATION) //
+          .setOwner(app) //
+          .setOwner(organizationDAO.getById(app.getOrganizationId())) //
+          .build();
     }).collect(toList());
   }
 
   private List<Document> buildTagDocs(List<Tag> tags) {
     return tags.stream().map(tag -> {
-      DocumentFields documentFields = new DocumentFields(ItemType.APPLICATION_CATEGORY);
-      documentFields.setApplicationCategoryId(tag.getId());
-      documentFields.setApplicationCategoryName(tag.getName());
-      documentFields.setApplicationCategoryColor(tag.getColor().toValue());
-      documentFields.setApplicationCategoryDescription(tag.getDescription());
-      documentFields.setOrganizationId(tag.getOrganizationId());
-      documentFields.setOrganizationName(organizationDAO.getById(tag.getOrganizationId()).getName());
-      return documentFields.build();
+      return new DocumentBuilder(ItemType.APPLICATION_CATEGORY) //
+          .setApplicationCategoryId(tag.getId()) //
+          .setApplicationCategoryName(tag.getName()) //
+          .setApplicationCategoryColor(tag.getColor().toValue()) //
+          .setApplicationCategoryDescription(tag.getDescription()) //
+          .setOwner(organizationDAO.getById(tag.getOrganizationId())) //
+          .build();
     }).collect(toList());
   }
 
   private List<Document> buildLabelDocs(List<Label> labels) {
     return labels.stream().map(label -> {
-      DocumentFields documentFields = new DocumentFields(ItemType.COMPONENT_LABEL);
-      documentFields.setComponentLabelId(label.getId());
-      documentFields.setComponentLabelName(label.getLabel());
-      documentFields.setComponentLabelColor(label.getColor().toValue());
-      documentFields.setComponentLabelDescription(label.getDescription());
-      setOwner(documentFields, ownerDAO.getById(label.getOwnerId()));
-      return documentFields.build();
+      return new DocumentBuilder(ItemType.COMPONENT_LABEL) //
+          .setComponentLabelId(label.getId()) //
+          .setComponentLabelName(label.getLabel()) //
+          .setComponentLabelColor(label.getColor().toValue()) //
+          .setComponentLabelDescription(label.getDescription()) //
+          .setOwner(ownerDAO.getById(label.getOwnerId())) //
+          .build();
     }).collect(toList());
   }
 
   private List<Document> buildPolicyDocs(List<Policy> policies) {
     return policies.stream().map(policy -> {
-      DocumentFields documentFields = new DocumentFields(ItemType.POLICY);
-      documentFields.setPolicyId(policy.getId());
-      documentFields.setPolicyName(policy.getName());
-      documentFields.setPolicyThreatCategory(policy.getThreatCategory().getName());
-      documentFields.setPolicyThreatLevel(policy.getThreatLevel());
-      setOwner(documentFields, ownerDAO.getById(policy.getOwnerId()));
-      return documentFields.build();
+      return new DocumentBuilder(ItemType.POLICY) //
+          .setPolicyId(policy.getId()) //
+          .setPolicyName(policy.getName()) //
+          .setPolicyThreatCategory(policy.getThreatCategory().getName()) //
+          .setPolicyThreatLevel(policy.getThreatLevel()) //
+          .setOwner(ownerDAO.getById(policy.getOwnerId())) //
+          .build();
     }).collect(toList());
-  }
-
-  private void setOwner(DocumentFields documentFields, Owner owner) {
-    if (owner.getType() == OwnerType.ORGANIZATION) {
-      documentFields.setOrganizationId(owner.getId());
-      documentFields.setOrganizationName(owner.getName());
-    }
-    else if (owner.getType() == OwnerType.APPLICATION) {
-      documentFields.setApplicationId(owner.getId());
-      documentFields.setApplicationPublicId(owner.getPublicId());
-      documentFields.setApplicationName(owner.getName());
-    }
   }
 
   private List<Document> buildApplicationSVDocs(
@@ -394,20 +374,18 @@ public class IndexService
       Map<String, String> refIdToHtmlStore)
   {
     return component.getSecurityVulnerabilities().parallelStream().map(securityVulnerability -> {
-      DocumentFields documentFields = new DocumentFields(ItemType.SECURITY_VULNERABILITY);
-      documentFields.setApplicationId(application.getId());
-      documentFields.setApplicationPublicId(application.getPublicId());
-      documentFields.setApplicationName(application.getName());
-      documentFields.setPolicyEvaluationStage(stageType.getName());
-      documentFields.setReportId(scanId);
-      documentFields.setComponentHash(component.getHash());
-      documentFields.setComponentFormat(component.getComponentIdentifier().getFormat());
-      documentFields.setComponentCoordinates(component);
-      documentFields.setComponentName(component.getDisplayName());
-      documentFields.setVulnerabilityId(securityVulnerability.getRefId());
-      documentFields.setVulnerabilityStatus(securityVulnerability.getStatus().getName());
-      documentFields.setVulnerabilityDescription(getDescription(securityVulnerability.getRefId(), refIdToHtmlStore));
-      return documentFields.build();
+      return new DocumentBuilder(ItemType.SECURITY_VULNERABILITY) //
+          .setOwner(application) //
+          .setPolicyEvaluationStage(stageType.getName()) //
+          .setReportId(scanId) //
+          .setComponentHash(component.getHash()) //
+          .setComponentFormat(component.getComponentIdentifier().getFormat()) //
+          .setComponentCoordinates(component) //
+          .setComponentName(component.getDisplayName()) //
+          .setVulnerabilityId(securityVulnerability.getRefId()) //
+          .setVulnerabilityStatus(securityVulnerability.getStatus().getName()) //
+          .setVulnerabilityDescription(getDescription(securityVulnerability.getRefId(), refIdToHtmlStore)) //
+          .build();
     }).collect(toList());
   }
 

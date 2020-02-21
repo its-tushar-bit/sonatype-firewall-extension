@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.search.results;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier;
+import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 
 /**
  * @since GLOBAL_SEARCH

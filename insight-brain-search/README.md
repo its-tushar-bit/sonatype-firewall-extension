@@ -23,20 +23,28 @@ Currently the following fields will be indexed and available for searching.
 - applicationId (description goes here)
 - applicationName (description goes here)
 - applicationPublicId (description goes here)
-- documentType (description goes here)
-- stage (description goes here)
-- scanId (description goes here)
-- hash (description goes here)
-- format (description goes here)
-- componentDisplayName (description goes here)
-- refId (description goes here)
-- status (description goes here)
-- description (description goes here)
-- tagId (description goes here) 
-- tagName (description goes here)
-- tagColor (description goes here)
-- tagDescription (description goes here)
-- labels (description goes here)
+- itemType (description goes here)
+- policyId
+- policyName
+- policyThreatCategory
+- policyThreatLevel
+- policyEvaluationStage (description goes here)
+- reportId (description goes here)
+- componentHash (description goes here)
+- componentFormat (description goes here)
+- componentName (description goes here)
+- componentCoordinate[GroupId|ArtifactId|Version|Extension|Classifier|...]
+- componentLabelId
+- componentLabelName
+- componentLabelColor
+- componentLabelDescription
+- vulnerabilityId (description goes here)
+- vulnerabilityStatus (description goes here)
+- vulnerabilityDescription (description goes here)
+- applicationCategoryId (description goes here) 
+- applicationCategoryName (description goes here)
+- applicationCategoryColor (description goes here)
+- applicationCategoryDescription (description goes here)
 
 ## Searching
 Data can be searched for by using the search box located in the top menu bar. If no field is provided then search is 

@@ -67,14 +67,14 @@ public class SearchService
   private static final Logger log = LoggerFactory.getLogger(SearchService.class);
 
   private Set<String> analyzedFields =
-      Stream.of(DESCRIPTION.label, APPLICATION_NAME.label, ORGANIZATION_NAME.label).collect(Collectors.toSet());
+      Stream.of(VULNERABILITY_DESCRIPTION.label, APPLICATION_NAME.label, ORGANIZATION_NAME.label).collect(Collectors.toSet());
 
   private Analyzer standardAnalyzer = new StandardAnalyzer();
 
   private Map<String, Analyzer> fieldsWithAnalyzers = new HashMap<String, Analyzer>()
   {
     {
-      put(DESCRIPTION.label, standardAnalyzer);
+      put(VULNERABILITY_DESCRIPTION.label, standardAnalyzer);
       put(APPLICATION_NAME.label, standardAnalyzer);
       put(ORGANIZATION_NAME.label, standardAnalyzer);
     }
@@ -139,8 +139,8 @@ public class SearchService
           groupingByDTO.groupBy = groupBy;
           groupingByDTO.groupIdentifier = groupIdentifier;
 
-          if (groupIdentifier == REFERENCE_ID || groupIdentifier == DESCRIPTION) {
-            groupingByDTO.additionalInfo = document.get(DESCRIPTION.label);
+          if (groupIdentifier == VULNERABILITY_ID || groupIdentifier == VULNERABILITY_DESCRIPTION) {
+            groupingByDTO.additionalInfo = document.get(VULNERABILITY_DESCRIPTION.label);
           }
 
           searchResultDTO.groupingByDTOS.add(groupingByDTO);
@@ -194,13 +194,13 @@ public class SearchService
     if (searchBy.isPresent()) {
       FieldIdentifier fieldIdentifier = byLabel(searchQuery.substring(0, searchQuery.indexOf(":")));
 
-      if (fieldIdentifier == DESCRIPTION) {  // Grouping by description does not make sense
-        return REFERENCE_ID;
+      if (fieldIdentifier == VULNERABILITY_DESCRIPTION) {  // Grouping by description does not make sense
+        return VULNERABILITY_ID;
       }
 
       return fieldIdentifier;
     }
-    return REFERENCE_ID;
+    return VULNERABILITY_ID;
   }
 
   private Query createQuery(String searchQuery) throws Exception {
@@ -213,11 +213,11 @@ public class SearchService
       searchQuery = searchQuery.substring(searchQuery.indexOf(":") + 1);
     }
 
-    return createQuery(searchField.orElse(REFERENCE_ID.label), searchQuery);
+    return createQuery(searchField.orElse(VULNERABILITY_ID.label), searchQuery);
   }
 
   private Query createQuery(String field, String searchQuery) throws Exception {
-    if (fieldRequiresAnalysis(field) || field.equalsIgnoreCase(COMPONENT_DISPLAY_NAME.label)) {
+    if (fieldRequiresAnalysis(field) || field.equalsIgnoreCase(COMPONENT_NAME.label)) {
       return createQueryUsingParser(field, searchQuery);
     }
     else {
@@ -237,7 +237,7 @@ public class SearchService
 
     String finalSearchQuery = searchQuery;
     // componentDisplayName in the form of: org.bouncycastle : bcprov-jdk15on : 1.50
-    if (field.equalsIgnoreCase(COMPONENT_DISPLAY_NAME.label)) {
+    if (field.equalsIgnoreCase(COMPONENT_NAME.label)) {
       finalSearchQuery = searchQuery.replace(":", "\\:").replace(" ", "\\ ");
     }
     return new QueryParser(field, analyzer).parse(finalSearchQuery);
@@ -270,17 +270,17 @@ public class SearchService
       return null;
     }
 
-    searchResultItemDTO.documentType = document.get(DOCUMENT_TYPE.label);
+    searchResultItemDTO.documentType = document.get(ITEM_TYPE.label);
     searchResultItemDTO.organizationId = document.get(ORGANIZATION_ID.label);
     searchResultItemDTO.organizationName = document.get(ORGANIZATION_NAME.label);
     searchResultItemDTO.applicationId = document.get(APPLICATION_ID.label);
     searchResultItemDTO.applicationPublicId = document.get(APPLICATION_PUBLIC_ID.label);
     searchResultItemDTO.applicationName = document.get(APPLICATION_NAME.label);
-    searchResultItemDTO.stage = document.get(STAGE.label);
-    searchResultItemDTO.scanId = document.get(SCAN_ID.label);
-    searchResultItemDTO.componentHash = document.get(HASH.label);
+    searchResultItemDTO.stage = document.get(POLICY_EVALUATION_STAGE.label);
+    searchResultItemDTO.scanId = document.get(REPORT_ID.label);
+    searchResultItemDTO.componentHash = document.get(COMPONENT_HASH.label);
     ApiComponentIdentifierDTOV2 apiComponentIdentifierDTOV2 = new ApiComponentIdentifierDTOV2();
-    String format = document.get(FORMAT.label);
+    String format = document.get(COMPONENT_FORMAT.label);
     apiComponentIdentifierDTOV2.setFormat(format);
     Map<String, String> coordinates = new TreeMap<>();
     for (String coordinateName : ComponentIdentifier.getAllCoordinateNames(format)) {
@@ -292,18 +292,18 @@ public class SearchService
     }
     apiComponentIdentifierDTOV2.setCoordinates(coordinates);
     searchResultItemDTO.componentIdentifier = apiComponentIdentifierDTOV2;
-    searchResultItemDTO.componentDisplayName = document.get(COMPONENT_DISPLAY_NAME.label);
-    searchResultItemDTO.reference = document.get(REFERENCE_ID.label);
-    searchResultItemDTO.description = document.get(DESCRIPTION.label);
-    searchResultItemDTO.status = document.get(STATUS.label);
-    searchResultItemDTO.tagId = document.get(TAG_ID.label);
-    searchResultItemDTO.tagName = document.get(TAG_NAME.label);
-    searchResultItemDTO.tagColor = document.get(TAG_COLOR.label);
-    searchResultItemDTO.tagDescription = document.get(TAG_DESCRIPTION.label);
-    searchResultItemDTO.labelId = document.get(LABEL_ID.label);
-    searchResultItemDTO.labelName = document.get(LABEL_NAME.label);
-    searchResultItemDTO.labelColor = document.get(LABEL_COLOR.label);
-    searchResultItemDTO.labelDescription = document.get(LABEL_DESCRIPTION.label);
+    searchResultItemDTO.componentDisplayName = document.get(COMPONENT_NAME.label);
+    searchResultItemDTO.reference = document.get(VULNERABILITY_ID.label);
+    searchResultItemDTO.description = document.get(VULNERABILITY_DESCRIPTION.label);
+    searchResultItemDTO.status = document.get(VULNERABILITY_STATUS.label);
+    searchResultItemDTO.tagId = document.get(APPLICATION_CATEGORY_ID.label);
+    searchResultItemDTO.tagName = document.get(APPLICATION_CATEGORY_NAME.label);
+    searchResultItemDTO.tagColor = document.get(APPLICATION_CATEGORY_COLOR.label);
+    searchResultItemDTO.tagDescription = document.get(APPLICATION_CATEGORY_DESCRIPTION.label);
+    searchResultItemDTO.labelId = document.get(COMPONENT_LABEL_ID.label);
+    searchResultItemDTO.labelName = document.get(COMPONENT_LABEL_NAME.label);
+    searchResultItemDTO.labelColor = document.get(COMPONENT_LABEL_COLOR.label);
+    searchResultItemDTO.labelDescription = document.get(COMPONENT_LABEL_DESCRIPTION.label);
     searchResultItemDTO.policyId = document.get(POLICY_ID.label);
     searchResultItemDTO.policyName = document.get(POLICY_NAME.label);
     searchResultItemDTO.policyThreatCategory = document.get(POLICY_THREAT_CATEGORY.label);

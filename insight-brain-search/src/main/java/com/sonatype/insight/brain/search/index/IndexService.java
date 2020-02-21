@@ -45,7 +45,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.search.LowerCaseAnalyzer;
 import com.sonatype.insight.brain.search.docs.DocumentFields;
-import com.sonatype.insight.brain.search.docs.DocumentFields.DocumentType;
+import com.sonatype.insight.brain.search.docs.DocumentFields.ItemType;
 import com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier;
 import com.sonatype.insight.brain.search.iterator.FieldIterator;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -72,7 +72,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier.APPLICATION_NAME;
-import static com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier.DESCRIPTION;
+import static com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier.VULNERABILITY_DESCRIPTION;
 import static com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentifier.ORGANIZATION_NAME;
 import static java.util.stream.Collectors.toList;
 
@@ -84,9 +84,9 @@ import static java.util.stream.Collectors.toList;
 public class IndexService
 {
   private static final ImmutableSet<String> SUGGESTER_FIELDS_TO_IGNORE = ImmutableSet.of(
-          FieldIdentifier.LABEL_DESCRIPTION.label, 
-          FieldIdentifier.DESCRIPTION.label, 
-          FieldIdentifier.TAG_DESCRIPTION.label);
+          FieldIdentifier.COMPONENT_LABEL_DESCRIPTION.label, 
+          FieldIdentifier.VULNERABILITY_DESCRIPTION.label, 
+          FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION.label);
 
   private static final Logger log = LoggerFactory.getLogger(IndexService.class);
 
@@ -111,7 +111,7 @@ public class IndexService
   private Map<String, Analyzer> fieldsWithAnalyzers = new HashMap<String, Analyzer>()
   {
     {
-      put(DESCRIPTION.label, standardAnalyzer);
+      put(VULNERABILITY_DESCRIPTION.label, standardAnalyzer);
       put(APPLICATION_NAME.label, standardAnalyzer);
       put(ORGANIZATION_NAME.label, standardAnalyzer);
     }
@@ -269,7 +269,7 @@ public class IndexService
 
   private List<Document> buildOrganizationDocs(List<Organization> organizations) {
     return organizations.stream().map(org -> {
-      DocumentFields documentFields = new DocumentFields(DocumentType.ORGANIZATION);
+      DocumentFields documentFields = new DocumentFields(ItemType.ORGANIZATION);
       documentFields.setOrganizationId(org.getId());
       documentFields.setOrganizationName(org.getName());
       return documentFields.build();
@@ -278,7 +278,7 @@ public class IndexService
 
   private List<Document> buildApplicationDocs(List<Application> applications) {
     return applications.stream().map(app -> {
-      DocumentFields documentFields = new DocumentFields(DocumentType.APPLICATION);
+      DocumentFields documentFields = new DocumentFields(ItemType.APPLICATION);
       documentFields.setApplicationId(app.getId());
       documentFields.setApplicationPublicId(app.getPublicId());
       documentFields.setApplicationName(app.getName());
@@ -291,11 +291,11 @@ public class IndexService
 
   private List<Document> buildTagDocs(List<Tag> tags) {
     return tags.stream().map(tag -> {
-      DocumentFields documentFields = new DocumentFields(DocumentType.TAG);
-      documentFields.setTagId(tag.getId());
-      documentFields.setTagName(tag.getName());
-      documentFields.setTagColor(tag.getColor().toValue());
-      documentFields.setTagDescription(tag.getDescription());
+      DocumentFields documentFields = new DocumentFields(ItemType.APPLICATION_CATEGORY);
+      documentFields.setApplicationCategoryId(tag.getId());
+      documentFields.setApplicationCategoryName(tag.getName());
+      documentFields.setApplicationCategoryColor(tag.getColor().toValue());
+      documentFields.setApplicationCategoryDescription(tag.getDescription());
       documentFields.setOrganizationId(tag.getOrganizationId());
       documentFields.setOrganizationName(organizationDAO.getById(tag.getOrganizationId()).getName());
       return documentFields.build();
@@ -304,11 +304,11 @@ public class IndexService
 
   private List<Document> buildLabelDocs(List<Label> labels) {
     return labels.stream().map(label -> {
-      DocumentFields documentFields = new DocumentFields(DocumentType.LABEL);
-      documentFields.setLabelId(label.getId());
-      documentFields.setLabelName(label.getLabel());
-      documentFields.setLabelColor(label.getColor().toValue());
-      documentFields.setLabelDescription(label.getDescription());
+      DocumentFields documentFields = new DocumentFields(ItemType.COMPONENT_LABEL);
+      documentFields.setComponentLabelId(label.getId());
+      documentFields.setComponentLabelName(label.getLabel());
+      documentFields.setComponentLabelColor(label.getColor().toValue());
+      documentFields.setComponentLabelDescription(label.getDescription());
       setOwner(documentFields, ownerDAO.getById(label.getOwnerId()));
       return documentFields.build();
     }).collect(toList());
@@ -316,7 +316,7 @@ public class IndexService
 
   private List<Document> buildPolicyDocs(List<Policy> policies) {
     return policies.stream().map(policy -> {
-      DocumentFields documentFields = new DocumentFields(DocumentType.POLICY);
+      DocumentFields documentFields = new DocumentFields(ItemType.POLICY);
       documentFields.setPolicyId(policy.getId());
       documentFields.setPolicyName(policy.getName());
       documentFields.setPolicyThreatCategory(policy.getThreatCategory().getName());
@@ -395,19 +395,19 @@ public class IndexService
       Map<String, String> refIdToHtmlStore)
   {
     return component.getSecurityVulnerabilities().parallelStream().map(securityVulnerability -> {
-      DocumentFields documentFields = new DocumentFields(DocumentType.SECURITY_VULNERABILITY);
+      DocumentFields documentFields = new DocumentFields(ItemType.SECURITY_VULNERABILITY);
       documentFields.setApplicationId(application.getId());
       documentFields.setApplicationPublicId(application.getPublicId());
       documentFields.setApplicationName(application.getName());
-      documentFields.setStage(stageType.getName());
-      documentFields.setScan(scanId);
-      documentFields.setHash(component.getHash());
-      documentFields.setFormat(component.getComponentIdentifier().getFormat());
-      documentFields.setCoordinates(component);
-      documentFields.setComponentDisplayName(component.getDisplayName());
-      documentFields.setRefId(securityVulnerability.getRefId());
-      documentFields.setStatus(securityVulnerability.getStatus().getName());
-      documentFields.setDescription(getDescription(securityVulnerability.getRefId(), refIdToHtmlStore));
+      documentFields.setPolicyEvaluationStage(stageType.getName());
+      documentFields.setReportId(scanId);
+      documentFields.setComponentHash(component.getHash());
+      documentFields.setComponentFormat(component.getComponentIdentifier().getFormat());
+      documentFields.setComponentCoordinates(component);
+      documentFields.setComponentName(component.getDisplayName());
+      documentFields.setVulnerabilityId(securityVulnerability.getRefId());
+      documentFields.setVulnerabilityStatus(securityVulnerability.getStatus().getName());
+      documentFields.setVulnerabilityDescription(getDescription(securityVulnerability.getRefId(), refIdToHtmlStore));
       return documentFields.build();
     }).collect(toList());
   }

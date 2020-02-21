@@ -17,7 +17,7 @@
         <h2>{{groupingBy.groupBy}}</h2>
         <p ng-if="groupingBy.additionalInfo">
           {{groupingBy.additionalInfo}}
-          <span ng-if="groupingBy.groupIdentifier == 'REFERENCE_ID' || groupingBy.groupIdentifier == 'DESCRIPTION'">
+          <span ng-if="groupingBy.groupIdentifier == 'VULNERABILITY_ID' || groupingBy.groupIdentifier == 'VULNERABILITY_DESCRIPTION'">
             Click <a ng-href="/assets/#/vulnerabilities/{{groupingBy.groupBy}}">here</a> for detailed information.
           </span>
           <br/>
@@ -60,12 +60,12 @@
                 </a>
               </td>
             </tr>
-            <tr ng-if="result.reference && groupingBy.groupIdentifier != 'REFERENCE_ID'">
+            <tr ng-if="result.reference && groupingBy.groupIdentifier != 'VULNERABILITY_ID'">
               <td><i class="fa fa-exclamation-triangle iq-owner-tree-view__icon--12px inverse"></i></td>
               <td>Security Issue:</td>
               <td>{{result.reference}}</td>
             </tr>
-            <tr ng-if="result.description && groupingBy.groupIdentifier != 'REFERENCE_ID'">
+            <tr ng-if="result.description && groupingBy.groupIdentifier != 'VULNERABILITY_ID'">
               <td><i class="fa fa-file-text iq-owner-tree-view__icon--12px inverse"></i></td>
               <td>Description:</td>
               <td>

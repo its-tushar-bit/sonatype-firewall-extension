@@ -27,40 +27,40 @@ import static com.sonatype.insight.brain.search.docs.DocumentFields.FieldIdentif
 @Getter
 public class DocumentFields
 {
-  public enum DocumentType
+  public enum ItemType
   {
     ORGANIZATION,
     APPLICATION,
     SECURITY_VULNERABILITY,
-    TAG,
-    LABEL,
+    APPLICATION_CATEGORY,
+    COMPONENT_LABEL,
     POLICY
   }
 
   public enum FieldIdentifier
   {
-    DOCUMENT_TYPE("documentType"),
+    ITEM_TYPE("itemType"),
     ORGANIZATION_ID("organizationId"),
     ORGANIZATION_NAME("organizationName"),
     APPLICATION_ID("applicationId"),
     APPLICATION_NAME("applicationName"),
     APPLICATION_PUBLIC_ID("applicationPublicId"),
-    STAGE("stage"),
-    SCAN_ID("scanId"),
-    HASH("hash"),
-    FORMAT("format"),
-    COMPONENT_DISPLAY_NAME("componentDisplayName"),
-    REFERENCE_ID("refId"),
-    STATUS("status"),
-    DESCRIPTION("description"),
-    TAG_ID("tagId"),
-    TAG_NAME("tagName"),
-    TAG_COLOR("tagColor"),
-    TAG_DESCRIPTION("tagDescription"),
-    LABEL_ID("labelId"),
-    LABEL_NAME("labelName"),
-    LABEL_COLOR("labelColor"),
-    LABEL_DESCRIPTION("labelDescription"),
+    POLICY_EVALUATION_STAGE("policyEvaluationStage"),
+    REPORT_ID("reportId"),
+    COMPONENT_HASH("componentHash"),
+    COMPONENT_FORMAT("componentFormat"),
+    COMPONENT_NAME("componentName"),
+    VULNERABILITY_ID("vulnerabilityId"),
+    VULNERABILITY_STATUS("vulnerabilityStatus"),
+    VULNERABILITY_DESCRIPTION("vulnerabilityDescription"),
+    APPLICATION_CATEGORY_ID("applicationCategoryId"),
+    APPLICATION_CATEGORY_NAME("applicationCategoryName"),
+    APPLICATION_CATEGORY_COLOR("applicationCategoryColor"),
+    APPLICATION_CATEGORY_DESCRIPTION("applicationCategoryDescription"),
+    COMPONENT_LABEL_ID("componentLabelId"),
+    COMPONENT_LABEL_NAME("componentLabelName"),
+    COMPONENT_LABEL_COLOR("componentLabelColor"),
+    COMPONENT_LABEL_DESCRIPTION("componentLabelDescription"),
     POLICY_ID("policyId"),
     POLICY_NAME("policyName"),
     POLICY_THREAT_CATEGORY("policyThreatCategory"),
@@ -82,7 +82,7 @@ public class DocumentFields
     }
   }
 
-  private final Field documentType;
+  private final Field itemType;
 
   private Optional<Field> organizationId = Optional.empty();
 
@@ -94,39 +94,39 @@ public class DocumentFields
 
   private Optional<Field> applicationName = Optional.empty();
 
-  private Optional<Field> stage = Optional.empty();
+  private Optional<Field> policyEvaluationStage = Optional.empty();
 
-  private Optional<Field> scan = Optional.empty();
+  private Optional<Field> reportId = Optional.empty();
 
-  private Optional<Field> hash = Optional.empty();
+  private Optional<Field> componentHash = Optional.empty();
 
-  private Optional<Field> format = Optional.empty();
+  private Optional<Field> componentFormat = Optional.empty();
 
-  private Optional<List<Field>> coordinates = Optional.empty();
+  private Optional<List<Field>> componentCoordinates = Optional.empty();
 
-  private Optional<Field> componentDisplayName = Optional.empty();
+  private Optional<Field> componentName = Optional.empty();
 
-  private Optional<Field> refId = Optional.empty();
+  private Optional<Field> vulnerabilityId = Optional.empty();
 
-  private Optional<Field> status = Optional.empty();
+  private Optional<Field> vulnerabilityStatus = Optional.empty();
 
-  private Optional<Field> description = Optional.empty();
+  private Optional<Field> vulnerabilityDescription = Optional.empty();
 
-  private Optional<Field> tagId = Optional.empty();
+  private Optional<Field> applicationCategoryId = Optional.empty();
 
-  private Optional<Field> tagName = Optional.empty();
+  private Optional<Field> applicationCategoryName = Optional.empty();
 
-  private Optional<Field> tagColor = Optional.empty();
+  private Optional<Field> applicationCategoryColor = Optional.empty();
 
-  private Optional<Field> tagDescription = Optional.empty();
+  private Optional<Field> applicationCategoryDescription = Optional.empty();
 
-  private Optional<Field> labelId = Optional.empty();
+  private Optional<Field> componentLabelId = Optional.empty();
 
-  private Optional<Field> labelName = Optional.empty();
+  private Optional<Field> componentLabelName = Optional.empty();
 
-  private Optional<Field> labelColor = Optional.empty();
+  private Optional<Field> componentLabelColor = Optional.empty();
 
-  private Optional<Field> labelDescription = Optional.empty();
+  private Optional<Field> componentLabelDescription = Optional.empty();
 
   private Optional<Field> policyId = Optional.empty();
 
@@ -136,8 +136,8 @@ public class DocumentFields
 
   private Optional<List<Field>> policyThreatLevel = Optional.empty();
 
-  public DocumentFields(DocumentType documentType) {
-    this.documentType = new StringField(DOCUMENT_TYPE.label, documentType.name(), Store.YES);
+  public DocumentFields(ItemType itemType) {
+    this.itemType = new StringField(ITEM_TYPE.label, itemType.name(), Store.YES);
   }
 
   public void setOrganizationId(final String organizationId) {
@@ -161,79 +161,80 @@ public class DocumentFields
     this.applicationName = Optional.of(new TextField(APPLICATION_NAME.label, applicationName, Store.YES));
   }
 
-  public void setStage(final String stageTypeName) {
-    this.stage = Optional.of(new StringField(STAGE.label, stageTypeName, Store.YES));
+  public void setPolicyEvaluationStage(final String stageTypeName) {
+    this.policyEvaluationStage = Optional.of(new StringField(POLICY_EVALUATION_STAGE.label, stageTypeName, Store.YES));
   }
 
-  public void setScan(final String scanId) {
-    this.scan = Optional.of(new StringField(SCAN_ID.label, scanId, Store.YES));
+  public void setReportId(final String reportId) {
+    this.reportId = Optional.of(new StringField(REPORT_ID.label, reportId, Store.YES));
   }
 
-  public void setHash(final String hash) {
-    this.hash = Optional.of(new StringField(HASH.label, hash, Store.YES));
+  public void setComponentHash(final String hash) {
+    this.componentHash = Optional.of(new StringField(COMPONENT_HASH.label, hash, Store.YES));
   }
 
-  public void setFormat(final String format) {
-    this.format = Optional.of(new StringField(FORMAT.label, format, Store.YES));
+  public void setComponentFormat(final String format) {
+    this.componentFormat = Optional.of(new StringField(COMPONENT_FORMAT.label, format, Store.YES));
   }
 
-  public void setCoordinates(final Component component) {
-    this.coordinates = Optional.of(component.getComponentIdentifier().getCoordinates().entrySet().stream()
-        .map(coordinate -> new StringField(coordinate.getKey(), coordinate.getValue(), Store.YES))
+  public void setComponentCoordinates(final Component component) {
+    this.componentCoordinates = Optional.of(component.getComponentIdentifier().getCoordinates().entrySet().stream()
+        .map(coordinate -> new StringField(toFieldName(coordinate.getKey()), coordinate.getValue(), Store.YES))
         .collect(Collectors.toList()));
   }
 
-  public Optional<Field> getComponentDisplayName() {
-    return componentDisplayName;
+  private static String toFieldName(String coordinateName) {
+    return "componentCoordinate" + Character.toUpperCase(coordinateName.charAt(0)) + coordinateName.substring(1);
   }
 
-  public void setComponentDisplayName(final String componentDisplayName) {
-    this.componentDisplayName =
-        Optional.of(new StringField(COMPONENT_DISPLAY_NAME.label, componentDisplayName, Store.YES));
+  public void setComponentName(final String componentDisplayName) {
+    this.componentName =
+        Optional.of(new StringField(COMPONENT_NAME.label, componentDisplayName, Store.YES));
   }
 
-  public void setRefId(final String refId) {
-    this.refId = Optional.of(new StringField(REFERENCE_ID.label, refId, Store.YES));
+  public void setVulnerabilityId(final String refId) {
+    this.vulnerabilityId = Optional.of(new StringField(VULNERABILITY_ID.label, refId, Store.YES));
   }
 
-  public void setStatus(final String status) {
-    this.status = Optional.of(new StringField(STATUS.label, status, Store.YES));
+  public void setVulnerabilityStatus(final String status) {
+    this.vulnerabilityStatus = Optional.of(new StringField(VULNERABILITY_STATUS.label, status, Store.YES));
   }
 
-  public void setDescription(final String description) {
-    this.description = Optional.of(new TextField(DESCRIPTION.label, description, Store.YES));
+  public void setVulnerabilityDescription(final String description) {
+    this.vulnerabilityDescription = Optional.of(new TextField(VULNERABILITY_DESCRIPTION.label, description, Store.YES));
   }
 
-  public void setTagId(final String tagId) {
-    this.tagId = Optional.of(new StringField(TAG_ID.label, tagId, Store.YES));
+  public void setApplicationCategoryId(final String tagId) {
+    this.applicationCategoryId = Optional.of(new StringField(APPLICATION_CATEGORY_ID.label, tagId, Store.YES));
   }
 
-  public void setTagName(final String tagName) {
-    this.tagName = Optional.of(new StringField(TAG_NAME.label, tagName, Store.YES));
+  public void setApplicationCategoryName(final String tagName) {
+    this.applicationCategoryName = Optional.of(new StringField(APPLICATION_CATEGORY_NAME.label, tagName, Store.YES));
   }
 
-  public void setTagColor(final String tagColor) {
-    this.tagColor = Optional.of(new StringField(TAG_COLOR.label, tagColor, Store.YES));
+  public void setApplicationCategoryColor(final String tagColor) {
+    this.applicationCategoryColor = Optional.of(new StringField(APPLICATION_CATEGORY_COLOR.label, tagColor, Store.YES));
   }
 
-  public void setTagDescription(final String tagDescription) {
-    this.tagDescription = Optional.of(new StringField(TAG_DESCRIPTION.label, tagDescription, Store.YES));
+  public void setApplicationCategoryDescription(final String tagDescription) {
+    this.applicationCategoryDescription =
+        Optional.of(new StringField(APPLICATION_CATEGORY_DESCRIPTION.label, tagDescription, Store.YES));
   }
 
-  public void setLabelId(final String labelId) {
-    this.labelId = Optional.of(new StringField(LABEL_ID.label, labelId, Store.YES));
+  public void setComponentLabelId(final String labelId) {
+    this.componentLabelId = Optional.of(new StringField(COMPONENT_LABEL_ID.label, labelId, Store.YES));
   }
 
-  public void setLabelName(final String labelName) {
-    this.labelName = Optional.of(new StringField(LABEL_NAME.label, labelName, Store.YES));
+  public void setComponentLabelName(final String labelName) {
+    this.componentLabelName = Optional.of(new StringField(COMPONENT_LABEL_NAME.label, labelName, Store.YES));
   }
 
-  public void setLabelColor(final String labelColor) {
-    this.labelColor = Optional.of(new StringField(LABEL_COLOR.label, labelColor, Store.YES));
+  public void setComponentLabelColor(final String labelColor) {
+    this.componentLabelColor = Optional.of(new StringField(COMPONENT_LABEL_COLOR.label, labelColor, Store.YES));
   }
 
-  public void setLabelDescription(final String labelDescription) {
-    this.labelDescription = Optional.of(new StringField(LABEL_DESCRIPTION.label,
+  public void setComponentLabelDescription(final String labelDescription) {
+    this.componentLabelDescription = Optional.of(new StringField(COMPONENT_LABEL_DESCRIPTION.label,
         Optional.ofNullable(labelDescription).orElse(""), Store.YES));
   }
 
@@ -257,29 +258,29 @@ public class DocumentFields
 
   public Document build() {
     Document document = new Document();
-    document.add(documentType);
+    document.add(itemType);
     organizationId.ifPresent(document::add);
     organizationName.ifPresent(document::add);
     applicationId.ifPresent(document::add);
     applicationPublicId.ifPresent(document::add);
     applicationName.ifPresent(document::add);
-    stage.ifPresent(document::add);
-    scan.ifPresent(document::add);
-    hash.ifPresent(document::add);
-    format.ifPresent(document::add);
-    coordinates.ifPresent(coordinates -> coordinates.forEach(document::add));
-    componentDisplayName.ifPresent(document::add);
-    refId.ifPresent(document::add);
-    status.ifPresent(document::add);
-    description.ifPresent(document::add);
-    tagId.ifPresent(document::add);
-    tagName.ifPresent(document::add);
-    tagColor.ifPresent(document::add);
-    tagDescription.ifPresent(document::add);
-    labelId.ifPresent(document::add);
-    labelName.ifPresent(document::add);
-    labelColor.ifPresent(document::add);
-    labelDescription.ifPresent(document::add);
+    policyEvaluationStage.ifPresent(document::add);
+    reportId.ifPresent(document::add);
+    componentHash.ifPresent(document::add);
+    componentFormat.ifPresent(document::add);
+    componentCoordinates.ifPresent(coordinates -> coordinates.forEach(document::add));
+    componentName.ifPresent(document::add);
+    vulnerabilityId.ifPresent(document::add);
+    vulnerabilityStatus.ifPresent(document::add);
+    vulnerabilityDescription.ifPresent(document::add);
+    applicationCategoryId.ifPresent(document::add);
+    applicationCategoryName.ifPresent(document::add);
+    applicationCategoryColor.ifPresent(document::add);
+    applicationCategoryDescription.ifPresent(document::add);
+    componentLabelId.ifPresent(document::add);
+    componentLabelName.ifPresent(document::add);
+    componentLabelColor.ifPresent(document::add);
+    componentLabelDescription.ifPresent(document::add);
     policyId.ifPresent(document::add);
     policyName.ifPresent(document::add);
     policyThreatCategory.ifPresent(document::add);

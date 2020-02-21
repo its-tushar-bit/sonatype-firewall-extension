@@ -56,7 +56,7 @@
             </td>
             <td class="share-risk-column"><span risk-pie risk="{{totalRisk === 0 ? 0 : (applicationComponent.risk/totalRisk)}}" height="24" width="24"
                       clazz="clm-arc application"></span>
-              &nbsp;{{totalRisk === 0 ? 0 : (applicationComponent.risk/totalRisk*100 | number:0)}}%
+              &nbsp;{{formatRiskPercent(applicationComponent.risk, totalRisk)}}
             </td>
             <td class="risk-column">
               {{applicationComponent.risk}}
@@ -90,7 +90,7 @@
                         <td class="share-risk-column">
                           <span risk-pie risk="{{totalRisk === 0 ? 0 : (policyViolation.threatLevel/totalRisk)}}"
                                   height="24" width="24" clazz="clm-arc violation"></span>
-                          &nbsp;{{totalRisk === 0 ? 0 : (policyViolation.threatLevel/totalRisk*100 | number:0)}}%
+                          &nbsp;{{formatRiskPercent(policyViolation.threatLevel, totalRisk)}}
                         </td>
                         <td class="risk-column">
                           {{policyViolation.threatLevel}}

@@ -79,6 +79,34 @@ describe('ComponentController tests', function() {
     it('loads a component name', function() {
       expect(scope.component.displayName).toEqual(displayName);
     });
+
+    describe('formatRiskPercent', function() {
+      it('returns "0%" if the totalRisk is 0', function() {
+        expect(scope.formatRiskPercent(1, 0)).toBe('0%');
+      });
+
+      it('returns "0%" if the riskValue is 0', function() {
+        expect(scope.formatRiskPercent(0, 1)).toBe('0%');
+        expect(scope.formatRiskPercent(0, 0)).toBe('0%');
+      });
+
+      it('returns "< 1%" if the riskValue divided by the totalRisk is less than 0.01', function() {
+        expect(scope.formatRiskPercent(1, 101)).toBe('< 1%');
+        expect(scope.formatRiskPercent(0.000001, 1)).toBe('< 1%');
+        expect(scope.formatRiskPercent(10000, 2000000000)).toBe('< 1%');
+      });
+
+      it('returns the percentage of risk, rounded to a whole number, if it is greater than or equal to one',
+          function() {
+            expect(scope.formatRiskPercent(1, 100)).toBe('1%');
+            expect(scope.formatRiskPercent(1, 50)).toBe('2%');
+            expect(scope.formatRiskPercent(494, 1000)).toBe('49%');
+            expect(scope.formatRiskPercent(495, 1000)).toBe('50%');
+            expect(scope.formatRiskPercent(1, 1)).toBe('100%');
+            expect(scope.formatRiskPercent(100, 100)).toBe('100%');
+          }
+      );
+    });
   });
 
   describe('riskPie', function() {

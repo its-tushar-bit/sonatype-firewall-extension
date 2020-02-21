@@ -46,6 +46,17 @@ componentModule.controller('componentController', ['$scope', '$state', '$q', '$h
       });
     };
 
+    $scope.formatRiskPercent = function(riskValue, totalRisk) {
+      if (totalRisk === 0 || riskValue === 0) {
+        return '0%';
+      }
+      else {
+        const riskPercent = riskValue / totalRisk * 100;
+
+        return riskPercent < 1 ? '< 1%' : `${Math.round(riskPercent)}%`;
+      }
+    };
+
     $scope.doLoad();
   }
 ]);

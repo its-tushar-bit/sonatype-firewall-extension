@@ -41,7 +41,7 @@ public class CSVMessageBodyWriter
   }
 
   /**
-   * This method is deprecated/unused in jersey 2, and just returing -1 is recommended
+   * This method is deprecated/unused in Jersey 2, and returning -1 is recommended.
    */
   @Override
   public long getSize(Object obj, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {

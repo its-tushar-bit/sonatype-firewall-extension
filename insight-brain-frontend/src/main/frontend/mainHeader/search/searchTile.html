@@ -63,17 +63,12 @@
             <tr ng-if="result.reference && groupingBy.groupIdentifier != 'VULNERABILITY_ID'">
               <td><i class="fa fa-exclamation-triangle iq-owner-tree-view__icon--12px inverse"></i></td>
               <td>Security Issue:</td>
-              <td>{{result.reference}}</td>
+              <td><a ng-href="/assets/#/vulnerabilities/{{result.reference}}">{{result.reference}}</a></td>
             </tr>
             <tr ng-if="result.description && groupingBy.groupIdentifier != 'VULNERABILITY_ID'">
               <td><i class="fa fa-file-text iq-owner-tree-view__icon--12px inverse"></i></td>
               <td>Description:</td>
-              <td>
-                {{result.description}}
-                <span>
-                  Click <a ng-href="/assets/#/vulnerabilities/{{groupingBy.groupBy}}">here</a> for detailed information.
-                </span>
-              </td>
+              <td>{{result.description}}</td>
             </tr>
             <tr ng-if="result.organizationId && result.tagColor && result.tagId && result.tagName">
               <td>

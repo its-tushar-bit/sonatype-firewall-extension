@@ -107,7 +107,7 @@ public class ApiReportDataServiceV2
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     File reportFile = reportService.getReport(app.getId(), scanId);
 
-    ReportEntry bomEntry = Report.getEntry(reportFile, "bom.json");
+    ReportEntry bomEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
     ReportEntry countsEntry = Report.getEntry(reportFile, Report.DATA_JSON_FILENAME);
     ReportEntry policyThreatsEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
 
@@ -243,9 +243,9 @@ public class ApiReportDataServiceV2
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     File reportFile = reportService.getReport(app.getId(), scanId);
 
-    ReportEntry bomEntry = Report.getEntry(reportFile, "bom.json");
-    ReportEntry securityEntry = Report.getEntry(reportFile, "security.json");
-    ReportEntry licenseEntry = Report.getEntry(reportFile, "licenses.json");
+    ReportEntry bomEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
+    ReportEntry securityEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
+    ReportEntry licenseEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
     ReportEntry dataEntry = Report.getEntry(reportFile, Report.DATA_JSON_FILENAME);
 
     if (bomEntry == null || securityEntry == null || licenseEntry == null || dataEntry == null) {

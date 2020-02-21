@@ -174,9 +174,9 @@ public class ScanPolicyEvaluator
 
     final File reportFile = reportService.fetchReport(application, scanId);
 
-    final ReportEntry licenseReportEntry = Report.getEntry(reportFile, "licenses.json");
-    final ReportEntry securityReportEntry = Report.getEntry(reportFile, "security.json");
-    final ReportEntry bomReportEntry = Report.getEntry(reportFile, "bom.json");
+    final ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
+    final ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
+    final ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
 
     if (bomReportEntry == null || securityReportEntry == null || licenseReportEntry == null) {
       throw new BadRequestException("Unable to evaluate policy, the scan " + scanId + " could not be processed.");

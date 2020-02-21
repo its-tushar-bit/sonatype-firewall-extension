@@ -64,6 +64,8 @@ public final class Report
 {
   private static final Logger log = LoggerFactory.getLogger(Report.class);
 
+  public static final String BOM_JSON_FILENAME = "bom.json";
+
   public static final String DATA_JSON_FILENAME = "data.json";
 
   public static final String SECURITY_JSON_FILENAME = "security.json";
@@ -586,7 +588,7 @@ public final class Report
   {
     long start = System.currentTimeMillis();
 
-    ContainerNode<?> bomJsonData = loadReportEntry(reportFile, "bom.json");
+    ContainerNode<?> bomJsonData = loadReportEntry(reportFile, BOM_JSON_FILENAME);
     ContainerNode<?> dataJson = loadReportEntry(reportFile, DATA_JSON_FILENAME);
     ContainerNode<?> summaryJsonData = loadReportEntry(reportFile, "summary.json");
 
@@ -608,7 +610,7 @@ public final class Report
 
     // now apply any data edits (e.g. modified flag)
     augmentModified(componentIdentifiersWithLicenseOverrides, bomJsonData);
-    saveReportEntry(reportFile, "bom.json", bomJsonData);
+    saveReportEntry(reportFile, BOM_JSON_FILENAME, bomJsonData);
 
     // must start from un-edited data
     ContainerNode<?> securityJsonData = loadReportEntry(reportFile, SECURITY_JSON_FILENAME);

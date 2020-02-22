@@ -22,8 +22,8 @@ Please read our [contribution rules and guidelines](contributing.md).
 This week's rotating reviewers are:
 
 <!-- rotating-reviewers-begin -->
-* [@Benjamin Bentmann](https://github.com/bentmann)
-* [@Koray Tugay](https://github.com/koraytugay)
+* [@Guillermo Varela](https://github.com/guillermo-varela)
+* [@Ross Pokorny](https://github.com/rpokorny)
 <!-- rotating-reviewers-end -->
 # Building #
 

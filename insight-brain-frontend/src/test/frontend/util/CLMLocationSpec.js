@@ -23,8 +23,7 @@ describe('CLMLocation.js', function() {
   });
 
   beforeEach(angular.mock.module(function($provide) {
-    $provide.value('$window', {
-    });
+    $provide.value('$window', {});
   }));
 
   beforeEach(inject(function(CLMLocations, _$window_) {
@@ -108,38 +107,50 @@ describe('CLMLocation.js', function() {
     });
   }
 
-  describe('getVulnerabilityDetailUrl', function() {
-    let mockHash, mockRefId, mockComponentIdentifier, mockSource;
+  describe('getVulnerabilityJsonDetailUrl', function() {
+    let mockRefId, mockComponentIdentifier, mockThirdPartyScanParameters;
 
     beforeEach(function() {
-      mockHash = 'hash';
       mockRefId = 'refId';
       mockComponentIdentifier = { coordinates: 'a-coordinate' };
-      mockSource = 'sonatype';
+      mockThirdPartyScanParameters = {
+        'identificationSource': 'CLAIR',
+        'scanId': 'bf5f6cf419',
+        'ownerId': 'appId',
+        'ownerType': 'APPLICATION'
+      };
     });
 
-    it('returns URL to get the vulnerability details', function() {
-      const expectedUrl = 'http://localhost/rest/vulnerability/details/sonatype/refId';
-      const actualUrl = CLMLocation.getVulnerabilityDetailUrl(mockSource, mockRefId);
+    it('returns URL to get the vulnerability details without query params', function() {
+      const expectedUrl = 'http://localhost/api/v2/vulnerabilities/refId';
+      const actualUrl = CLMLocation.getVulnerabilityJsonDetailUrl(mockRefId);
 
       expect(actualUrl).toEqual(expectedUrl);
     });
 
-    it('returns URL to get the vulnerability details with the supplied params', function() {
-      const expectedUrl = 'http://localhost/rest/vulnerability/details/sonatype/refId'
-          + '?hash=hash&componentIdentifier=%7B%22coordinates%22%3A%22a-coordinate%22%7D';
-      const actualUrl = CLMLocation.getVulnerabilityDetailUrl(mockSource, mockRefId, mockComponentIdentifier, mockHash);
+    it('returns URL to get the vulnerability details when componentIdentifier param is passed', function() {
+      const expectedUrl = 'http://localhost/api/v2/vulnerabilities/refId'
+          + '?componentIdentifier=%7B%22coordinates%22%3A%22a-coordinate%22%7D';
+      const actualUrl = CLMLocation.getVulnerabilityJsonDetailUrl(mockRefId, mockComponentIdentifier);
 
       expect(actualUrl).toEqual(expectedUrl);
     });
 
-    it('returns URL to get the vulnerability details with the supplied params for third party scans', function() {
-      const expectedUrl = 'http://localhost/rest/vulnerability/details/sonatype/refId'
-          + '?hash=hash&componentIdentifier=%7B%22coordinates%22%3A%22a-coordinate%22%7D&identificationSource=CLAIR'
-          + '&scanId=scanId&ownerType=APPLICATION&ownerId=appId';
-      const actualUrl = CLMLocation.getVulnerabilityDetailUrl(mockSource, mockRefId, mockComponentIdentifier, mockHash,
-          'CLAIR', 'scanId', 'APPLICATION', 'appId');
+    it('returns URL to get the vulnerability details when componentIdentifier and thirdPartyScanParameters are passed',
+        function() {
+          const expectedUrl = 'http://localhost/api/v2/vulnerabilities/refId'
+              + '?componentIdentifier=%7B%22coordinates%22%3A%22a-coordinate%22%7D&identificationSource=CLAIR'
+              + '&scanId=bf5f6cf419&ownerId=appId&ownerType=APPLICATION';
+          const actualUrl = CLMLocation.getVulnerabilityJsonDetailUrl(mockRefId, mockComponentIdentifier,
+              mockThirdPartyScanParameters);
+          expect(actualUrl).toEqual(expectedUrl);
+        });
 
+    it('returns URL to get the vulnerability details when only one third party query param is passed', function() {
+      const expectedUrl = 'http://localhost/api/v2/vulnerabilities/refId?scanId=scanId';
+      const actualUrl = CLMLocation.getVulnerabilityJsonDetailUrl(mockRefId, null, {
+        scanId: 'scanId'
+      });
       expect(actualUrl).toEqual(expectedUrl);
     });
   });

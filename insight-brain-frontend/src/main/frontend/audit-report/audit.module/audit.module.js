@@ -6,6 +6,7 @@
 /*global angular, angularDebug*/
 
 import legacyConfigurationModule from '../../LegacyConfigurationModule';
+import reduxConfigModule from '../../reduxConfig/module';
 import auditReportPendoModule from '../pendo/module';
 import componentInformationPanelModule from '../cip/component.information.panel.module';
 import componentsModule from '../../components/module';
@@ -25,7 +26,7 @@ window.CLM = {
 
 (function () {
   'use strict';
-  
+
   function init($rootScope, ComponentUpdateService, pendoService) {
     $rootScope.$on('reevaluate.component', function (event, componentKey) {
       ComponentUpdateService.reevaluate(componentKey, true);
@@ -45,7 +46,7 @@ window.CLM = {
   angular.module('audit',
       ['AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation',
         auditReportPendoModule.name, componentInformationPanelModule.name, legacyConfigurationModule.name,
-        componentsModule.name])
+        componentsModule.name, reduxConfigModule.name])
       .controller('audit.summary.controller', auditSummaryController)
       .directive('auditThreat', auditThreatDirective)
       .service('OwnerContext', ownerContextService)

@@ -79,7 +79,6 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
-import static com.codeborne.selenide.Selenide.$;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryReportTest
@@ -117,7 +116,7 @@ public class RepositoryReportTest
   }
 
   @Test
-  public void testSummary() throws Exception {
+  public void testSummary() {
     tempEntity.newRepositoryComponent(repo.getId());
     tempEntity.newRepositoryComponent(repo.getId(), MatchState.UNKNOWN, null);
 
@@ -148,7 +147,7 @@ public class RepositoryReportTest
   }
 
   @Test
-  public void testSummary_Empty() throws Exception {
+  public void testSummary_Empty() {
     refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
     RepositoryReportPage.summary().shouldBe(visible);
@@ -160,7 +159,7 @@ public class RepositoryReportTest
   }
 
   @Test
-  public void testUnquarantine() throws Exception {
+  public void testUnquarantine() {
     RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("severe", "threat", "1.0."), true);
     tempEntity.newRepositoryPolicyViolation(component, 6, false, "Really Bad", Action.ID_FAIL);
@@ -287,7 +286,7 @@ public class RepositoryReportTest
   }
 
   @Test
-  public void testUnknownComponentCip() throws Exception {
+  public void testUnknownComponentCip() {
     tempEntity.newRepositoryComponent(repo.getId(), MatchState.UNKNOWN, null);
     refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
@@ -305,7 +304,7 @@ public class RepositoryReportTest
   }
 
   @Test
-  public void testLicenseCip() throws Exception {
+  public void testLicenseCip() {
     cipSetup();
     refreshOrOpen(RepositoryReportPage.url(repo.getId()));
     tempEntity.newLicenseOverride(RepositoryContainer.REPOSITORY_CONTAINER_ID, CRITICAL_IDENTIFIER,
@@ -373,7 +372,7 @@ public class RepositoryReportTest
   }
 
   @Test
-  public void testVersionGraphCip() throws Exception {
+  public void testVersionGraphCip() {
     cipSetup();
     refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
@@ -398,7 +397,7 @@ public class RepositoryReportTest
     VersionsCIP.nextNoViolationVersionLink().shouldNotBe(visible);
     VersionsCIP.nextNoFailVersionLink().shouldNotBe(visible);
     eyesWatcher.eyesCheck("Repository report version graph");
-    
+
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);
 
@@ -410,7 +409,7 @@ public class RepositoryReportTest
   }
 
   @Test
-  public void testLabelsCip() throws Exception {
+  public void testLabelsCip() {
     cipSetup();
     refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
@@ -474,7 +473,7 @@ public class RepositoryReportTest
   }
 
   @Test
-  public void testPolicyCip() throws Exception {
+  public void testPolicyCip() {
     cipSetup();
     refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
@@ -621,16 +620,15 @@ public class RepositoryReportTest
 
     testCLMServer.getHdsServer()
         .respondWith(getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails.json"))
-        .atUri("rest/vulnerability/details/cve/CVE-1234-56789?componentIdentifier=" + componentIdentifier + "&hash="
-            + criticalComponentHash);
+        .atUri("rest/vulnerability/details/json/CVE-1234-56789?componentIdentifier=" + componentIdentifier);
 
     SVTableRow row = VulnerabilityCIP.row(0);
     row.info().click();
 
     SVDetailModal.root().shouldBe(Condition.visible);
 
-    // html from the json response we send above
-    $("#somedivfortest").shouldBe(Condition.visible);
+    // data from the json response we send above
+    SVDetailModal.contents().shouldHave(text("CVE-1234-56789"));
 
     SVDetailModal.closeButton().shouldBe(Condition.enabled).click();
 

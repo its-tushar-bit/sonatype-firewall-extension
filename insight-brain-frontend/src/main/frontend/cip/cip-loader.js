@@ -139,7 +139,7 @@ import pendoModule from './pendo/module';
   injector.invoke(startPendo);
 
   var head = $('head'),
-      styles = ['cip.css'];
+      styles = ['cip-loader.css'];
 
   applyHttpOverride();
 

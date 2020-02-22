@@ -18,9 +18,8 @@ import '../util/CLMLocation';
 import '../util/HttpInterceptors';
 import 'angular-sanitize';
 import 'angular-vs-repeat';
-
-// vulnerability.details
-import '../audit-report/cip/vulnerability.details/vulnerability.details.module';
+import 'es6-collections';
+import { polyfill } from 'es6-promise';
 
 // cip-version-graph
 import './cip.version.graph/cip.version.graph.module';
@@ -38,3 +37,5 @@ import './cip.policy.violations/cip.policy.violations.module';
 // cip-claim-component
 import 'bootstrap-datepicker';
 import './cip-claim-component';
+
+polyfill();

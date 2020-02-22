@@ -76,7 +76,6 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
-import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.elements.reports.ClaimComponentCIP.ERROR_CLASS;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal.ACTIVE_CLASS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -311,13 +310,13 @@ public class ApplicationReportCipTest
     RequestWaiverDialog.constraintName().shouldHave(exactText(constraintName));
     RequestWaiverDialog.waiverConditions().shouldHave(exactText(conditions));
     RequestWaiverDialog.policyViolationId().shouldNotBe(empty);
-    
+
     String requestWaiverUrl = Configuration.baseUrl + "api/v2/policyWaiver/" +
         RequestWaiverDialog.policyViolationId().getText() + "/application";
     assertThat(RequestWaiverDialog.policyCurlExample().getText()).contains(requestWaiverUrl);
-    
+
     eyesWatcher.eyesCheck("Request Waiver");
-    
+
     RequestWaiverDialog.closeButton().click();
 
     // Waive violation
@@ -629,16 +628,15 @@ public class ApplicationReportCipTest
 
     testCLMServer.getHdsServer()
         .respondWith(getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails.json"))
-        .atUri("rest/vulnerability/details/cve/CVE-1234-56789?componentIdentifier=" + componentIdentifier + "&hash="
-            + JAVANCSS_HASH);
+        .atUri("rest/vulnerability/details/json/CVE-1234-56789?componentIdentifier=" + componentIdentifier);
 
     SVTableRow row = VulnerabilityCIP.row(0);
     row.info().click();
 
     SVDetailModal.root().shouldBe(visible);
 
-    // html from the json response we send above
-    $("#somedivfortest").shouldBe(visible);
+    // data from the json response we send above
+    SVDetailModal.contents().shouldHave(text("CVE-1234-56789"));
 
     SVDetailModal.closeButton().shouldBe(enabled).click();
 
@@ -722,7 +720,7 @@ public class ApplicationReportCipTest
   }
 
   @Test
-  public void testClaimComponentTab() throws Exception {
+  public void testClaimComponentTab() {
     mockHdsResponseForClaimedComponent();
     CipModal cipModal = reportPage.cipModal();
     reportPage.resultRow(5).shouldHave(text("unknown.jar")).click();
@@ -897,7 +895,7 @@ public class ApplicationReportCipTest
   private void mockHdsResponseForClaimedComponent() {
     testCLMServer.getHdsServer().respondWith("{\"known\":false}").atUri("rest/component/summary");
   }
-    
+
   private static void assertRow(SVTableRow actualRow, Integer threatLevel, String identifier) {
     actualRow.identifier().shouldHave(text(identifier));
     actualRow.info().shouldBe(visible);

@@ -10,7 +10,6 @@ import CLMLocationsModule from '../util/CLMLocation';
 import utilityModule from '../utility/utility.module';
 import utilityDirectivesModule from '../utility/directives/utility.directives.module';
 import ComponentDisplayModule from '../ComponentDisplay/module';
-import vulnerabilityDetailsServiceModule from '../services/vulnerabilityDetailService';
 import selectedComponentServiceModule from '../services/selectedComponentService';
 
 import applicationReport from './applicationReport';
@@ -22,14 +21,11 @@ import applicationReportRoot from './applicationReportRoot';
 import rawLicenseDisplay from './rawData/rawLicenseDisplay/rawLicenseDisplay';
 import applicationReportRawData from './rawData/applicationReportRawData';
 import applicationReportVulnerabilities from './vulnerabilities/ApplicationReportVulnerabilities';
-import vulnerabilityDetailsModalContainer from '../vulnerabilityDetails/VulnerabilityDetailsModalContainer';
-import withStoreProvider from '../reactAdapter/StoreProvider';
 
 export default angular.module('applicationReportModule',
     [
       cipModalModule.name, CLMLocationsModule.name, utilityModule.name, utilityDirectivesModule.name,
-      ComponentDisplayModule.name, vulnerabilityDetailsServiceModule.name, selectedComponentServiceModule.name,
-      'ngRedux'
+      ComponentDisplayModule.name, selectedComponentServiceModule.name, 'ngRedux'
     ])
     .component('applicationReport', applicationReport)
     .component('applicationReportRoot', applicationReportRoot)
@@ -39,8 +35,6 @@ export default angular.module('applicationReportModule',
     .component('applicationReportRawData', applicationReportRawData)
     .component('applicationReportVulnerabilities', react2angular(applicationReportVulnerabilities, [],
         ['$ngRedux', '$state', 'applicationReportActions']))
-    .component('vulnerabilityDetailsModal', react2angular(withStoreProvider(vulnerabilityDetailsModalContainer), [],
-        ['$ngRedux']))
     .value('applicationReportReducer', applicationReportReducer) // add to angular so we can test it
     .factory('applicationReportActions', applicationReportActions)
     .config(routes);

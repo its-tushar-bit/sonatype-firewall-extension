@@ -490,3 +490,7 @@ h4 {
 .nav-pills > li > a {
   cursor: pointer;
 }
+
+#vulnerability-details-modal h4 {
+  padding-left: 0;
+}

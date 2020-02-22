@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -168,7 +169,7 @@ public class ThirdPartyComponentDAO
     return ComponentSummary.create(false);
   }
 
-  public SecurityVulnerabilityDetails getSecurityVulnerabilityDetailsByIdentifier(
+  private ThirdPartyHealthCheckReportSecurityRowDTO findThirdPartyHealthCheckReportSecurityRowDTO(
       final ComponentIdentifier identifier,
       final String appId,
       final String scanId,
@@ -178,14 +179,39 @@ public class ThirdPartyComponentDAO
 
     if (dto != null) {
       return dto.securityRows.stream()
-        .filter(row -> row.reference.equals(refId))
-        .map(row -> new SecurityVulnerabilityDetails(
-            row.source, refId, ThirdPartySecurityVulnerabilityRenderer.renderHtml(row)))
-        .findFirst()
-        .orElseThrow(() -> new NotFoundException("Vulnerability with refid: " + refId + " not found."));
+          .filter(row -> row.reference.equals(refId))
+          .findFirst()
+          .orElseThrow(() -> new NotFoundException("Vulnerability with refid: " + refId + " not found."));
     }
 
     throw new NotFoundException("Vulnerability with refid: " + refId + " not found.");
+  }
+
+  /**
+   * @deprecated Replaced with {@link #getVulnerabilityData}, which is consumed by the API resource
+   *             ApiVulnerabilityDetailsResourceV2. This code path must remain until the legacy ("old style")
+   *             application report is removed.
+   */
+  public SecurityVulnerabilityDetails getSecurityVulnerabilityDetailsByIdentifier(
+      final ComponentIdentifier identifier,
+      final String appId,
+      final String scanId,
+      final String refId)
+  {
+    ThirdPartyHealthCheckReportSecurityRowDTO dto =
+        findThirdPartyHealthCheckReportSecurityRowDTO(identifier, appId, scanId, refId);
+    return new SecurityVulnerabilityDetails(dto.source, refId, ThirdPartySecurityVulnerabilityRenderer.renderHtml(dto));
+  }
+
+  public SecurityVulnerabilityData getVulnerabilityData(
+      final ComponentIdentifier identifier,
+      final String appId,
+      final String scanId,
+      final String refId)
+  {
+    ThirdPartyHealthCheckReportSecurityRowDTO dto =
+        findThirdPartyHealthCheckReportSecurityRowDTO(identifier, appId, scanId, refId);
+    return ThirdPartyVulnerabilityDataAdapter.map(dto);
   }
 
   private ThirdPartyReportComponentDTO findComponent(
@@ -245,7 +271,7 @@ public class ThirdPartyComponentDAO
     }
     return license;
   }
-  
+
   private void updateSummaryCounts(final File reportFile, final int thirdPartyComponentCount)
       throws IOException
   {

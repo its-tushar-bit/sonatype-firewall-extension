@@ -9,32 +9,19 @@ import {pick} from 'ramda';
 import commonServicesModule from '../util/CommonServices';
 import {getBaseUrl, toURIParams} from './urlUtil';
 
-export function getVulnerabilityDetailUrl(
-  source,
-  refId,
-  componentIdentifier,
-  hash,
-  identificationSource,
-  scanId,
-  ownerType,
-  ownerId) {
-  const url = getBaseUrl(window.location.href) + '/rest/vulnerability/details/' +
-      encodeURIComponent(source) + '/' + encodeURIComponent(refId);
+export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, thirdPartyScanParameters) {
+  const urlWithPath = `${getBaseUrl(window.location.href)}/api/v2/vulnerabilities/${encodeURIComponent(refId)}`;
 
   const params = toURIParams({
-    hash,
     componentIdentifier: componentIdentifier && JSON.stringify(componentIdentifier),
-    identificationSource,
-    scanId,
-    ownerType,
-    ownerId
+    ...thirdPartyScanParameters
   });
 
   if (params.length > 0) {
-    return url + '?' + params;
+    return `${urlWithPath}?${params}`;
   }
 
-  return url;
+  return urlWithPath;
 }
 
 export function getMailConfigUrl() {
@@ -43,17 +30,6 @@ export function getMailConfigUrl() {
 
 export function getTestMailUrl(mailRecipient) {
   return `${getBaseUrl(window.location.href)}/api/v2/config/mail/test/${encodeURIComponent(mailRecipient)}`;
-}
-
-export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier) {
-  const urlWithPath = `${getBaseUrl(window.location.href)}/api/v2/vulnerabilities/${encodeURIComponent(refId)}`;
-
-  if (componentIdentifier) {
-    const params = toURIParams({ componentIdentifier: JSON.stringify(componentIdentifier) });
-    return `${urlWithPath}?${params}`;
-  }
-
-  return urlWithPath;
 }
 
 export function getViolationDetailsUrl(violationId) {
@@ -448,8 +424,6 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
 
         return hash ? `${base}/${encodeURIComponent(hash)}` : base;
       },
-
-      getVulnerabilityDetailUrl,
 
       getVulnerabilityJsonDetailUrl,
 

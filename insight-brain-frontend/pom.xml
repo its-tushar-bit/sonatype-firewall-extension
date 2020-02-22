@@ -61,8 +61,8 @@
               <preloadSources>
                 <source>resources/assets/cip/cip-test-util.js</source>
                 <include>node_modules/jquery/dist/jquery.js</include>
-                <source>root/target/classes/assets/cip-loader.js</source>
                 <source>node_modules/es6-collections/es6-collections.js</source>
+                <source>root/target/classes/assets/cip-loader.js</source>
                 <source>${basedir}/node_modules/angular-mocks/angular-mocks.js</source>
               </preloadSources>
               <sourceIncludes>
@@ -105,9 +105,9 @@
                 <include>node_modules/angular-aria/angular-aria.js</include>
                 <include>frontend/lib/protovis/protovis.min.js</include>
                 <include>node_modules/angular-ui-bootstrap/ui-bootstrap-tpls.js</include>
+                <source>node_modules/es6-collections/es6-collections.js</source>
                 <source>root/target/classes/assets/audit-report.js</source>
                 <source>root/target/classes/assets/cip.js</source>
-                <source>node_modules/es6-collections/es6-collections.js</source>
                 <source>${basedir}/node_modules/angular-mocks/angular-mocks.js</source>
               </preloadSources>
               <sourceIncludes>

@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -42,10 +41,9 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.report.Report;
-import com.sonatype.insight.brain.search.LowerCaseAnalyzer;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
-import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
+import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.iterator.FieldIterator;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -54,8 +52,6 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
-import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -71,9 +67,6 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_NAME;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.VULNERABILITY_DESCRIPTION;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.ORGANIZATION_NAME;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -108,16 +101,7 @@ public class IndexService
 
   private final InsightWork insightWork;
 
-  private final Analyzer standardAnalyzer = new StandardAnalyzer();
-
-  private final Map<String, Analyzer>fieldsWithAnalyzers = new HashMap<String, Analyzer>()
-  {
-    {
-      put(VULNERABILITY_DESCRIPTION.label, standardAnalyzer);
-      put(APPLICATION_NAME.label, standardAnalyzer);
-      put(ORGANIZATION_NAME.label, standardAnalyzer);
-    }
-  };
+  private final Analyzer analyzer;
 
   @Inject
   public IndexService(
@@ -129,7 +113,8 @@ public class IndexService
       LabelDAO labelDAO,
       OwnerDAO ownerDAO,
       PolicyDAO policyDAO,
-      InsightWork insightWork)
+      InsightWork insightWork,
+      Analyzer analyzer)
   {
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
@@ -140,6 +125,7 @@ public class IndexService
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
     this.insightWork = insightWork;
+    this.analyzer = analyzer;
   }
 
   public void createSearchIndex(Function<String, String> refIdToHtml) throws IOException  {
@@ -157,8 +143,6 @@ public class IndexService
       Path suggesterPath = insightWork.getSearchSuggesterDir().toPath();
       Files.createDirectories(indexPath);
       Files.createDirectories(suggesterPath);
-
-      Analyzer analyzer = new PerFieldAnalyzerWrapper(new LowerCaseAnalyzer(), fieldsWithAnalyzers);
 
       IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
       indexWriterConfig.setOpenMode(OpenMode.CREATE);

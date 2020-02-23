@@ -24,7 +24,6 @@ import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.search.LowerCaseAnalyzer;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
@@ -34,8 +33,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
-import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -72,20 +69,12 @@ public class SearchService
   private final Set<String> analyzedFields = Stream
       .of(VULNERABILITY_DESCRIPTION.label, APPLICATION_NAME.label, ORGANIZATION_NAME.label).collect(Collectors.toSet());
 
-  private final Analyzer standardAnalyzer = new StandardAnalyzer();
-
-  private final Map<String, Analyzer> fieldsWithAnalyzers = new HashMap<String, Analyzer>()
-  {
-    {
-      put(VULNERABILITY_DESCRIPTION.label, standardAnalyzer);
-      put(APPLICATION_NAME.label, standardAnalyzer);
-      put(ORGANIZATION_NAME.label, standardAnalyzer);
-    }
-  };
+  private final Analyzer analyzer;
 
   @Inject
-  public SearchService(InsightWork insightWork) {
+  public SearchService(InsightWork insightWork, Analyzer analyzer) {
     this.insightWork = insightWork;
+    this.analyzer = analyzer;
   }
 
   public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page) throws Exception {
@@ -233,8 +222,6 @@ public class SearchService
   }
 
   private Query createQueryUsingParser(String field, String searchQuery) throws Exception {
-    PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new LowerCaseAnalyzer(), fieldsWithAnalyzers);
-
     String finalSearchQuery = searchQuery;
     // componentDisplayName in the form of: org.bouncycastle : bcprov-jdk15on : 1.50
     if (field.equalsIgnoreCase(COMPONENT_NAME.label)) {

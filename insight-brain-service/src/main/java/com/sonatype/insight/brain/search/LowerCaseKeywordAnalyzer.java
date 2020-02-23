@@ -11,7 +11,7 @@ import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.KeywordTokenizer;
 
-public class LowerCaseAnalyzer
+class LowerCaseKeywordAnalyzer
     extends Analyzer
 {
   @Override

@@ -215,10 +215,7 @@ public class SearchService
   }
 
   private boolean fieldRequiresAnalysis(final String field) {
-    String analyzedField =
-        analyzedFields.stream().filter(fieldName -> StringUtils.equalsIgnoreCase(fieldName, field)).findFirst()
-            .orElse(null);
-    return analyzedField != null;
+    return analyzedFields.stream().anyMatch(fieldName -> fieldName.equalsIgnoreCase(field));
   }
 
   private Query createQueryUsingParser(String field, String searchQuery) throws Exception {

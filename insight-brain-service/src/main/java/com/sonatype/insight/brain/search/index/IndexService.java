@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 import javax.inject.Inject;
@@ -33,13 +32,11 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
@@ -103,6 +100,35 @@ public class IndexService
 
   private final Analyzer analyzer;
 
+  class IndexingContext
+  {
+    final List<Organization> organizations;
+
+    final List<Application> applications;
+
+    private final Map<String, Owner> ownersById = new ConcurrentHashMap<>();
+
+    private final Function<String, String> vulnIdToHtml;
+
+    private final Map<String, String> htmlByVulnId = new ConcurrentHashMap<>();
+
+    public IndexingContext(Function<String, String> vulnIdToHtml) {
+      organizations = organizationDAO.getAll();
+      organizations.forEach(org -> ownersById.put(org.getId(), org));
+      applications = applicationDAO.getAll();
+      applications.forEach(app -> ownersById.put(app.getId(), app));
+      this.vulnIdToHtml = vulnIdToHtml;
+    }
+
+    public Owner getOwner(String id) {
+      return ownersById.computeIfAbsent(id, ownerDAO::getById);
+    }
+
+    public String getVulnerabilityHtml(String vulnerabilityId) {
+      return htmlByVulnId.computeIfAbsent(vulnerabilityId, vulnIdToHtml);
+    }
+  }
+
   @Inject
   public IndexService(
       OrganizationDAO organizationDAO,
@@ -130,14 +156,6 @@ public class IndexService
 
   public void createSearchIndex(Function<String, String> refIdToHtml) throws IOException  {
     log.info("creating search index...");
-    ConcurrentMap<String, String> refIdToHtmlStore = new ConcurrentHashMap<String, String>()
-    {
-      @Override
-      public String get(Object key) {
-        return computeIfAbsent((String) key, refIdToHtml);
-      }
-    };
-
     try {
       Path indexPath = insightWork.getSearchIndexDir().toPath();
       Path suggesterPath = insightWork.getSearchSuggesterDir().toPath();
@@ -150,28 +168,28 @@ public class IndexService
           IndexWriter indexWriter = new IndexWriter(directory, indexWriterConfig)) {
         log.info("begin indexing");
 
+        IndexingContext indexingContext = new IndexingContext(refIdToHtml);
+
         CompletableFuture<Void> orgDocs =
-            CompletableFuture.supplyAsync(() -> buildOrganizationDocs(organizationDAO.getAll()))
+            CompletableFuture.supplyAsync(() -> buildOrganizationDocs(indexingContext))
                 .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-        List<Application> applications = applicationDAO.getAll();
-
-        CompletableFuture<Void> appDocs = CompletableFuture.supplyAsync(() -> buildApplicationDocs(applications))
+        CompletableFuture<Void> appDocs = CompletableFuture.supplyAsync(() -> buildApplicationDocs(indexingContext))
             .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-        List<CompletableFuture<Void>> appSVDocs = applications
+        List<CompletableFuture<Void>> appSVDocs = indexingContext.applications
             .parallelStream()
             .map(application -> CompletableFuture
-                .supplyAsync(() -> buildApplicationSVDocs(application, refIdToHtmlStore))
+                .supplyAsync(() -> buildApplicationSVDocs(indexingContext, application))
                 .thenAccept(docs -> addDocsWithException(indexWriter, docs))).collect(toList());
 
-        CompletableFuture<Void> tagDocs = CompletableFuture.supplyAsync(() -> buildTagDocs(tagDAO.getAll()))
+        CompletableFuture<Void> tagDocs = CompletableFuture.supplyAsync(() -> buildTagDocs(indexingContext))
             .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-        CompletableFuture<Void> labelDocs = CompletableFuture.supplyAsync(() -> buildLabelDocs(labelDAO.getAll()))
+        CompletableFuture<Void> labelDocs = CompletableFuture.supplyAsync(() -> buildLabelDocs(indexingContext))
             .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-        CompletableFuture<Void> policyDocs = CompletableFuture.supplyAsync(() -> buildPolicyDocs(policyDAO.getAll()))
+        CompletableFuture<Void> policyDocs = CompletableFuture.supplyAsync(() -> buildPolicyDocs(indexingContext))
             .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
         log.info("indexing threads started");
@@ -240,72 +258,72 @@ public class IndexService
     }
   }
 
-  private List<Document> buildOrganizationDocs(List<Organization> organizations) {
-    return organizations.stream().map(org -> {
+  private List<Document> buildOrganizationDocs(IndexingContext indexingContext) {
+    return indexingContext.organizations.stream().map(org -> {
       return new DocumentBuilder(ItemType.ORGANIZATION) //
           .setOwner(org) //
           .build();
     }).collect(toList());
   }
 
-  private List<Document> buildApplicationDocs(List<Application> applications) {
-    return applications.stream().map(app -> {
+  private List<Document> buildApplicationDocs(IndexingContext indexingContext) {
+    return indexingContext.applications.stream().map(app -> {
       return new DocumentBuilder(ItemType.APPLICATION) //
           .setOwner(app) //
-          .setOwner(organizationDAO.getById(app.getOrganizationId())) //
+          .setOwner(indexingContext.getOwner(app.getOrganizationId())) //
           .build();
     }).collect(toList());
   }
 
-  private List<Document> buildTagDocs(List<Tag> tags) {
-    return tags.stream().map(tag -> {
+  private List<Document> buildTagDocs(IndexingContext indexingContext) {
+    return tagDAO.getAll().stream().map(tag -> {
       return new DocumentBuilder(ItemType.APPLICATION_CATEGORY) //
           .setApplicationCategoryId(tag.getId()) //
           .setApplicationCategoryName(tag.getName()) //
           .setApplicationCategoryColor(tag.getColor().toValue()) //
           .setApplicationCategoryDescription(tag.getDescription()) //
-          .setOwner(organizationDAO.getById(tag.getOrganizationId())) //
+          .setOwner(indexingContext.getOwner(tag.getOrganizationId())) //
           .build();
     }).collect(toList());
   }
 
-  private List<Document> buildLabelDocs(List<Label> labels) {
-    return labels.stream().map(label -> {
+  private List<Document> buildLabelDocs(IndexingContext indexingContext) {
+    return labelDAO.getAll().stream().map(label -> {
       return new DocumentBuilder(ItemType.COMPONENT_LABEL) //
           .setComponentLabelId(label.getId()) //
           .setComponentLabelName(label.getLabel()) //
           .setComponentLabelColor(label.getColor().toValue()) //
           .setComponentLabelDescription(label.getDescription()) //
-          .setOwner(ownerDAO.getById(label.getOwnerId())) //
+          .setOwner(indexingContext.getOwner(label.getOwnerId())) //
           .build();
     }).collect(toList());
   }
 
-  private List<Document> buildPolicyDocs(List<Policy> policies) {
-    return policies.stream().map(policy -> {
+  private List<Document> buildPolicyDocs(IndexingContext indexingContext) {
+    return policyDAO.getAll().stream().map(policy -> {
       return new DocumentBuilder(ItemType.POLICY) //
           .setPolicyId(policy.getId()) //
           .setPolicyName(policy.getName()) //
           .setPolicyThreatCategory(policy.getThreatCategory().getName()) //
           .setPolicyThreatLevel(policy.getThreatLevel()) //
-          .setOwner(ownerDAO.getById(policy.getOwnerId())) //
+          .setOwner(indexingContext.getOwner(policy.getOwnerId())) //
           .build();
     }).collect(toList());
   }
 
   private List<Document> buildApplicationSVDocs(
-      Application application,
-      Map<String, String> refIdToHtmlStore)
+      IndexingContext indexingContext,
+      Application application)
   {
     return StageTypes.getAll().parallelStream()
-        .map(stageType -> buildApplicationStageSVDocs(application, stageType, refIdToHtmlStore))
+        .map(stageType -> buildApplicationStageSVDocs(indexingContext, application, stageType))
         .flatMap(Collection::stream).collect(toList());
   }
 
   private List<Document> buildApplicationStageSVDocs(
+      IndexingContext indexingContext,
       Application application,
-      StageType stageType,
-      Map<String, String> refIdToHtmlStore)
+      StageType stageType)
   {
     try {
       PolicyEvaluation latestPolicyEvaluation =
@@ -327,11 +345,11 @@ public class IndexService
 
       return componentDAO.getAll(application, licenseReportEntry, securityReportEntry, bomReportEntry).parallelStream()
           .map(component -> buildApplicationComponentSecurityVulnerabilities(
+              indexingContext,
               application,
               stageType,
               scanId,
-              component,
-              refIdToHtmlStore)).flatMap(Collection::stream).collect(toList());
+              component)).flatMap(Collection::stream).collect(toList());
     }
     catch (IOException e) {
       log.error(e.getMessage(), e);
@@ -340,11 +358,11 @@ public class IndexService
   }
 
   private List<Document> buildApplicationComponentSecurityVulnerabilities(
+      IndexingContext indexingContext,
       Application application,
       StageType stageType,
       String scanId,
-      Component component,
-      Map<String, String> refIdToHtmlStore)
+      Component component)
   {
     return component.getSecurityVulnerabilities().parallelStream().map(securityVulnerability -> {
       return new DocumentBuilder(ItemType.SECURITY_VULNERABILITY) //
@@ -357,17 +375,17 @@ public class IndexService
           .setComponentName(component.getDisplayName()) //
           .setVulnerabilityId(securityVulnerability.getRefId()) //
           .setVulnerabilityStatus(securityVulnerability.getStatus().getName()) //
-          .setVulnerabilityDescription(getDescription(securityVulnerability.getRefId(), refIdToHtmlStore)) //
+          .setVulnerabilityDescription(getDescription(indexingContext, securityVulnerability.getRefId())) //
           .build();
     }).collect(toList());
   }
 
   private String getDescription(
-      String refId,
-      Map<String, String> refIdToHtmlStore)
+      IndexingContext indexingContext,
+      String refId)
   {
     try {
-      String html = refIdToHtmlStore.get(refId);
+      String html = indexingContext.getVulnerabilityHtml(refId);
       if (StringUtils.isBlank(html)) {
         return "";
       }

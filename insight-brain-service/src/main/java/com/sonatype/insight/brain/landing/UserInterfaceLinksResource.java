@@ -94,8 +94,7 @@ public class UserInterfaceLinksResource
 
   private Response redirect(UriBuilder uriBuilder, Object... parameters) {
     URI uri = uriBuilder.build(parameters);
-    uri = URI.create(uri.toString().replaceAll("%2F", "/"));
-    uri = URI.create(uri.toString().replaceAll("%3F", "?"));
+    uri = URI.create(uri.toString().replaceAll("%2F", "/").replaceAll("%3F", "?"));
     return Response.temporaryRedirect(uri).build();
   }
 

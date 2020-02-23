@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.search.query;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,7 +48,6 @@ import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.search.suggest.Lookup;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.BytesRef;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,26 +153,20 @@ public class SearchService
   }
 
   public SearchSuggestionResultDTO autoCompleteSearchQuery(String searchQuery) throws Exception {
-    List<String> searchSuggestionResultItems = new ArrayList<>();
     SearchSuggestionResultDTO searchResultDTO = new SearchSuggestionResultDTO();
     Analyzer analyzer = new SimpleAnalyzer();
 
     try (FSDirectory suggesterFile = FSDirectory.open(insightWork.getSearchSuggesterDir().toPath());
          AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(suggesterFile, analyzer)) {
-      List<Lookup.LookupResult> results;
-      HashSet<BytesRef> contexts = new HashSet<>();
       // Do the lookup and get up to 10 results
-      results = suggester.lookup(searchQuery, contexts, 10, false, false);
-
+      List<Lookup.LookupResult> results = suggester.lookup(searchQuery, Collections.emptySet(), 10, false, false);
       for (Lookup.LookupResult result : results) {
-        searchSuggestionResultItems.add(result.key.toString());
+        searchResultDTO.searchResultItems.add(result.key.toString());
       }
     }
     catch (IOException e) {
       log.error(e.getMessage(), e);
     }
-
-    searchResultDTO.searchResultItems = searchSuggestionResultItems;
 
     return searchResultDTO;
   }

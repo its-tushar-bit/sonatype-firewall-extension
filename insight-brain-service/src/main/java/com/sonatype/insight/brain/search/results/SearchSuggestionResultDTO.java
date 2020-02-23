@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.search.results;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,5 +13,5 @@ import java.util.List;
  */
 public class SearchSuggestionResultDTO
 {
-  public List<String> searchResultItems;
+  public List<String> searchResultItems = new ArrayList<>();
 }

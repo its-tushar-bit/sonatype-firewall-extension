@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.search.query;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -31,6 +32,7 @@ import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.search.results.SearchSuggestionResultDTO;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.error.exception.ConflictException;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
@@ -64,6 +66,9 @@ public class SearchService
 {
   private static final Logger log = LoggerFactory.getLogger(SearchService.class);
 
+  private static final String NO_INDEX_ERROR_MESSAGE =
+      "Index does not exist or is unreadable, please (re)create your index.";
+
   private final InsightWork insightWork;
 
   private final Set<String> analyzedFields = Stream
@@ -78,7 +83,9 @@ public class SearchService
   }
 
   public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page) throws Exception {
-    try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(insightWork.getSearchIndexDir().toPath()))) {
+    Path searchIndexPath = insightWork.getSearchIndexDir().toPath();
+    validateIndex(searchIndexPath);
+    try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(searchIndexPath))) {
       SearchResultDTO searchResultDTO = new SearchResultDTO();
       searchResultDTO.searchQuery = searchQuery;
       searchResultDTO.page = page;
@@ -154,10 +161,12 @@ public class SearchService
   }
 
   public SearchSuggestionResultDTO autoCompleteSearchQuery(String searchQuery) throws Exception {
+    Path searchSuggesterIndexPath = insightWork.getSearchSuggesterDir().toPath();
+    validateIndex(searchSuggesterIndexPath);
     SearchSuggestionResultDTO searchResultDTO = new SearchSuggestionResultDTO();
     Analyzer analyzer = new SimpleAnalyzer();
 
-    try (FSDirectory suggesterFile = FSDirectory.open(insightWork.getSearchSuggesterDir().toPath());
+    try (FSDirectory suggesterFile = FSDirectory.open(searchSuggesterIndexPath);
          AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(suggesterFile, analyzer)) {
       // Do the lookup and get up to 10 results
       List<Lookup.LookupResult> results = suggester.lookup(searchQuery, Collections.emptySet(), 10, false, false);
@@ -170,6 +179,17 @@ public class SearchService
     }
 
     return searchResultDTO;
+  }
+
+  private void validateIndex(Path indexPath) {
+    try (FSDirectory fsDirectory = FSDirectory.open(indexPath)) {
+      if (!DirectoryReader.indexExists(fsDirectory)) {
+        throw new ConflictException(NO_INDEX_ERROR_MESSAGE);
+      }
+    }
+    catch (IOException e) {
+      throw new ConflictException(NO_INDEX_ERROR_MESSAGE, e);
+    }
   }
 
   private FieldIdentifier getGrouper(String searchQuery) {

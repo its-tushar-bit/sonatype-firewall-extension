@@ -37,7 +37,7 @@ public class ApiSearchIndexResource
 
   private final IndexService indexService;
 
-  private static final String SUGGESTER = "suggester";
+  static final String SUGGESTER = "suggester";
 
   @Inject
   public ApiSearchIndexResource(SearchService searchService, IndexService indexService) {

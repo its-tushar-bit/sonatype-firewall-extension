@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -98,7 +99,7 @@ public class IndexService
 
   private final VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
 
-  private final Analyzer analyzer;
+  private final Provider<Analyzer> analyzerProvider;
 
   class IndexingContext
   {
@@ -139,7 +140,7 @@ public class IndexService
       PolicyDAO policyDAO,
       InsightWork insightWork,
       VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher,
-      Analyzer analyzer)
+      Provider<Analyzer> analyzerProvider)
   {
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
@@ -151,7 +152,7 @@ public class IndexService
     this.policyDAO = policyDAO;
     this.insightWork = insightWork;
     this.vulnerabilityDescriptionFetcher = vulnerabilityDescriptionFetcher;
-    this.analyzer = analyzer;
+    this.analyzerProvider = analyzerProvider;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -163,7 +164,7 @@ public class IndexService
       Files.createDirectories(indexPath);
       Files.createDirectories(suggesterPath);
 
-      IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
+      IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzerProvider.get());
       indexWriterConfig.setOpenMode(OpenMode.CREATE);
       try (Directory directory = FSDirectory.open(indexPath);
           IndexWriter indexWriter = new IndexWriter(directory, indexWriterConfig)) {

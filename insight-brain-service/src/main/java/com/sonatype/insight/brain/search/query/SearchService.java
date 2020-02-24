@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -68,12 +69,12 @@ public class SearchService
   private final Set<String> analyzedFields = Stream
       .of(VULNERABILITY_DESCRIPTION.label, APPLICATION_NAME.label, ORGANIZATION_NAME.label).collect(Collectors.toSet());
 
-  private final Analyzer analyzer;
+  private final Provider<Analyzer> analyzerProvider;
 
   @Inject
-  public SearchService(InsightWork insightWork, Analyzer analyzer) {
+  public SearchService(InsightWork insightWork, Provider<Analyzer> analyzerProvider) {
     this.insightWork = insightWork;
-    this.analyzer = analyzer;
+    this.analyzerProvider = analyzerProvider;
   }
 
   public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page) throws Exception {
@@ -217,7 +218,7 @@ public class SearchService
     if (field.equalsIgnoreCase(COMPONENT_NAME.label)) {
       finalSearchQuery = searchQuery.replace(":", "\\:").replace(" ", "\\ ");
     }
-    return new QueryParser(field, analyzer).parse(finalSearchQuery);
+    return new QueryParser(field, analyzerProvider.get()).parse(finalSearchQuery);
   }
 
   private Query createBasicQuery(String field, String searchQuery) {

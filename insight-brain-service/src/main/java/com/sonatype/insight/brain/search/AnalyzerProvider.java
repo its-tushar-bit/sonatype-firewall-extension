@@ -11,13 +11,11 @@ import java.util.Map;
 import javax.inject.Named;
 import javax.inject.Provider;
 
+import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_NAME;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.ORGANIZATION_NAME;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.VULNERABILITY_DESCRIPTION;
 
 @Named
 public class AnalyzerProvider
@@ -27,9 +25,9 @@ public class AnalyzerProvider
   public Analyzer get() {
     Analyzer standardAnalyzer = new StandardAnalyzer();
     Map<String, Analyzer> fieldAnalyzers = new HashMap<>();
-    fieldAnalyzers.put(VULNERABILITY_DESCRIPTION.label, standardAnalyzer);
-    fieldAnalyzers.put(APPLICATION_NAME.label, standardAnalyzer);
-    fieldAnalyzers.put(ORGANIZATION_NAME.label, standardAnalyzer);
+    fieldAnalyzers.put(FieldIdentifier.VULNERABILITY_DESCRIPTION.label, standardAnalyzer);
+    fieldAnalyzers.put(FieldIdentifier.APPLICATION_NAME.label, standardAnalyzer);
+    fieldAnalyzers.put(FieldIdentifier.ORGANIZATION_NAME.label, standardAnalyzer);
     return new PerFieldAnalyzerWrapper(new LowerCaseKeywordAnalyzer(), fieldAnalyzers);
   }
 }

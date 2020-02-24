@@ -141,4 +141,15 @@ public class RepositoryComponentDAOTest
 
     assertThat(dao.getOldestComponentEvaluationTimeByRepositoryId(repository.getId())).isEqualTo(oldest);
   }
+
+  @Test
+  public void testGetCount() {
+    // Component in another repository
+    tempEntity.newRepositoryComponent(repositoryTwo.getId());
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+
+    assertThat(dao.getCount()).isEqualTo(3);
+  }
 }

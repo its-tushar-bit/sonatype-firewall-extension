@@ -761,4 +761,18 @@ public class PolicyViolationDAOTest
         .containsExactlyInAnyOrder(violation1, violation2);
     assertThat(dao.getById(violation0.getId())).isNotNull();
   }
+
+  @Test
+  public void testGetCount() {
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    Policy policy = tempEntity.newPolicy(application);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
+    tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scan-2");
+    tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    assertThat(dao.getCount()).isEqualTo(2);
+  }
 }

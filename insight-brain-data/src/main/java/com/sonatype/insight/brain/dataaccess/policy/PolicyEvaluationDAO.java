@@ -319,4 +319,9 @@ public class PolicyEvaluationDAO
         " ORDER BY entity.time DESC";
     return createQuery(sQuery, applicationInternalId, commitHash + "%").forceSingleResult().get();
   }
+
+  public long getCount() {
+    String sQuery = "SELECT COUNT(entity) FROM PolicyEvaluation entity";
+    return getSingle(Long.class, sQuery);
+  }
 }

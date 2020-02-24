@@ -106,4 +106,9 @@ public class ApplicationComponentDAO
       return getList(sQuery, applicationIds, stageTypeIds, date);
     }
   }
+
+  public long getCount() {
+    String sQuery = "SELECT COUNT(entity) FROM ApplicationComponent entity";
+    return getSingle(Long.class, sQuery);
+  }
 }

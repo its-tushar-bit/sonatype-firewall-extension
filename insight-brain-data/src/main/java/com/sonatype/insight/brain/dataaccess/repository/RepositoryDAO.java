@@ -241,4 +241,9 @@ public class RepositoryDAO
     }
     return repository;
   }
+
+  public long getCount() {
+    String sQuery = "SELECT COUNT(entity) FROM Repository entity";
+    return getSingle(Long.class, sQuery);
+  }
 }

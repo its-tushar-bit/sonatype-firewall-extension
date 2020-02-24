@@ -248,4 +248,9 @@ public class PolicyViolationDAO
       deletedRows += createQuery("DELETE FROM PolicyViolation entity WHERE entity.id IN (?1)", ids).executeUpdate();
     }
   }
+
+  public long getCount() {
+    String sQuery = "SELECT COUNT(entity) FROM PolicyViolation entity";
+    return getSingle(Long.class, sQuery);
+  }
 }

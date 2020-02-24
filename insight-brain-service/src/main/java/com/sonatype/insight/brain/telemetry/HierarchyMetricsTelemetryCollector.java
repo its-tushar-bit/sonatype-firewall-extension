@@ -15,8 +15,14 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -35,9 +41,33 @@ public class HierarchyMetricsTelemetryCollector
 
   private final OrganizationDAO organizationDAO;
 
+  private final RepositoryDAO repositoryDAO;
+
+  private final RepositoryComponentDAO repositoryComponentDAO;
+
+  private final ApplicationComponentDAO applicationComponentDAO;
+
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  private final PolicyViolationDAO policyViolationDAO;
+
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
   public static final String NUMBER_OF_ORGS = "number_of_orgs";
 
   public static final String NUMBER_OF_APPS = "number_of_apps";
+
+  public static final String NUMBER_OF_APP_COMPONENTS = "number_of_app_components";
+
+  public static final String NUMBER_OF_APP_COMPONENT_VIOLATIONS = "number_of_app_component_violations";
+
+  public static final String NUMBER_OF_APP_EVALUATIONS = "number_of_app_evaluations";
+
+  public static final String NUMBER_OF_REPOS = "number_of_repos";
+
+  public static final String NUMBER_OF_REPO_COMPONENTS = "number_of_repo_components";
+
+  public static final String NUMBER_OF_REPO_COMPONENT_VIOLATIONS = "number_of_repo_component_violations";
 
   public static final String MIN_APPS_PER_ORG = "min_apps_per_org";
 
@@ -46,11 +76,24 @@ public class HierarchyMetricsTelemetryCollector
   public static final String P90_APPS_PER_ORG = "p90_apps_per_org";
 
   @Inject
-  public HierarchyMetricsTelemetryCollector(ApplicationDAO applicationDAO,
-                                            OrganizationDAO organizationDAO)
+  public HierarchyMetricsTelemetryCollector(
+      ApplicationDAO applicationDAO,
+      OrganizationDAO organizationDAO,
+      RepositoryDAO repositoryDAO,
+      RepositoryComponentDAO repositoryComponentDAO,
+      ApplicationComponentDAO applicationComponentDAO,
+      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      PolicyViolationDAO policyViolationDAO,
+      PolicyEvaluationDAO policyEvaluationDAO)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
+    this.repositoryDAO = repositoryDAO;
+    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.applicationComponentDAO = applicationComponentDAO;
+    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.policyViolationDAO = policyViolationDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
   }
 
   @Override
@@ -60,8 +103,24 @@ public class HierarchyMetricsTelemetryCollector
 
     int numberOfOrgsMinusRoot = organizationDAO.getAll().size() - 1;
     attributes.put(NUMBER_OF_ORGS, String.valueOf(numberOfOrgsMinusRoot));
+
     List<Application> applications = applicationDAO.getAll();
     attributes.put(NUMBER_OF_APPS, String.valueOf(applications.size()));
+
+    // Row count of various tables
+    long appComponentsCount = applicationComponentDAO.getCount();
+    long appViolationsCount = policyViolationDAO.getCount();
+    long appEvaluationsCount = policyEvaluationDAO.getCount();
+    long repoCount = repositoryDAO.getCount();
+    long repoComponentsCount = repositoryComponentDAO.getCount();
+    long repoViolationsCount = repositoryPolicyViolationDAO.getCount();
+
+    attributes.put(NUMBER_OF_APP_COMPONENTS, appComponentsCount);
+    attributes.put(NUMBER_OF_APP_COMPONENT_VIOLATIONS, appViolationsCount);
+    attributes.put(NUMBER_OF_APP_EVALUATIONS, appEvaluationsCount);
+    attributes.put(NUMBER_OF_REPOS, repoCount);
+    attributes.put(NUMBER_OF_REPO_COMPONENTS, repoComponentsCount);
+    attributes.put(NUMBER_OF_REPO_COMPONENT_VIOLATIONS, repoViolationsCount);
 
     if (applications.size() > 0) {
       long minAppsPerOrg = Long.MAX_VALUE;

@@ -237,4 +237,14 @@ public class RepositoryDAOTest
     assertThat(repositoryComponent.isQuarantined()).isFalse();
     assertThat(repositoryComponent.getUnquarantineTime()).isAfterOrEqualTo(before).isBeforeOrEqualTo(after);
   }
+
+  @Test
+  public void testGetCount() {
+    // Note: First repo is being created in test setup of base class 
+    tempEntity.newRepository("repo2");
+    assertThat(dao.getCount()).isEqualTo(2);
+
+    tempEntity.newRepository("repo3");
+    assertThat(dao.getCount()).isEqualTo(3);
+  }
 }

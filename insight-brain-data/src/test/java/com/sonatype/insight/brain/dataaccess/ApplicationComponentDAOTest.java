@@ -237,6 +237,21 @@ public class ApplicationComponentDAOTest
         componentId3);
   }
 
+  @Test
+  public void testGetCount() {
+    String appId1 = application.getId();
+    Date date = new Date();
+
+    tempEntity.newApplicationComponent(appId1, BuildStageType.ID, "hash-1", 
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 1000)).getId();
+    tempEntity.newApplicationComponent(appId1, ReleaseStageType.ID, "hash-2",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "2"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 2000)).getId();
+
+    assertThat(dao.getCount()).isEqualTo(2);
+  }
+
   public void assertApplicationComponent(ApplicationComponent expected, ApplicationComponent actual) {
     assertThat(actual).isNotNull();
     assertThat(actual.getApplicationId()).isEqualTo(expected.getApplicationId());

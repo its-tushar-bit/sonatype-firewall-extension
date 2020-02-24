@@ -157,4 +157,9 @@ public class RepositoryPolicyViolationDAO
         " AND entity.pathname=?2";
     return getList(tx, sQuery, repositoryId, pathname);
   }
+
+  public long getCount() {
+    String sQuery = "SELECT COUNT(entity) FROM RepositoryPolicyViolation entity";
+    return getSingle(Long.class, sQuery);
+  }
 }

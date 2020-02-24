@@ -112,4 +112,19 @@ public class RepositoryPolicyViolationDAOTest
     assertThat(violations.get(i++).getThreatLevel()).isEqualTo(2);
     assertThat(violations.get(i).getThreatLevel()).isEqualTo(1);
   }
+
+  @Test
+  public void testGetCount() {
+    final String pathname = "pathname";
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, pathname, null);
+
+    final String policyIdSecond = "policyId2";
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, false, true, policyIdSecond,
+        "policyName2", null);
+
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 2, pathname, null);
+
+    assertThat(dao.getCount()).isEqualTo(4);
+  }
 }

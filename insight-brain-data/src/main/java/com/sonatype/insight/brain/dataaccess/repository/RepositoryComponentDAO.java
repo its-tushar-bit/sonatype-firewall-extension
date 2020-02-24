@@ -114,4 +114,9 @@ public class RepositoryComponentDAO
         " WHERE entity.repositoryId=?1 AND entity.matchStateId=?2";
     return getList(sQuery, repositoryId, matchStateId);
   }
+
+  public long getCount() {
+    String sQuery = "SELECT COUNT(entity) FROM RepositoryComponent entity";
+    return getSingle(Long.class, sQuery);
+  }
 }

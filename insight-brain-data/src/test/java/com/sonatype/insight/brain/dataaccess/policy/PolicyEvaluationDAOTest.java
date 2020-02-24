@@ -649,4 +649,18 @@ public class PolicyEvaluationDAOTest
     assertThat(dao.getLastByApplicationAndAbbreviatedCommitHash(app1.getId(), COMMIT_HASH.substring(0, 7)))
         .isNull();
   }
+  
+  @Test
+  public void testGetCount() {
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    String stageTypeId = ReleaseStageType.ID;
+
+    Date time1 = new Date();
+    tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId1", time1);
+    Date time2 = new Date(time1.getTime() + 1000);
+    tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId2", time2);
+
+    assertThat(dao.getCount()).isEqualTo(2);
+  }
 }

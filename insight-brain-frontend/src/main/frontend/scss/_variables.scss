@@ -1,6 +1,9 @@
 /*
   #Colors
 */
+
+@import '~@sonatype/react-shared-components/scss-shared/nx-colors';
+
 // Sonatype brand colours
 $iq-sonatype-blue: #336699;
 $iq-sonatype-orange: #f89100;
@@ -20,9 +23,10 @@ $iq-grey-3: #dedede;
 $iq-grey-2: #eaeaea;
 $iq-grey-1: #f5f5f5;
 
-$iq-link-color: #2476c3;
-$iq-link-color-active: #0046b1;
-$iq-link-color-disabled: #97cbee;
+$iq-link-color: $nx-link-color;
+$iq-link-color-active: $nx-link-color-active;
+$iq-link-color-hover: $nx-link-color-hover;
+$iq-link-color-disabled: $nx-link-color-disabled;
 
 $iq-dark-blue: #006bbf;
 $iq-light-blue: #97cbee;

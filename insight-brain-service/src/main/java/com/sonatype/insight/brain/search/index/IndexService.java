@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -48,7 +47,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.document.Document;
@@ -61,8 +59,6 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.jsoup.Jsoup;
-import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,6 +96,8 @@ public class IndexService
 
   private final InsightWork insightWork;
 
+  private final VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
+
   private final Analyzer analyzer;
 
   class IndexingContext
@@ -110,16 +108,13 @@ public class IndexService
 
     private final Map<String, Owner> ownersById = new ConcurrentHashMap<>();
 
-    private final Function<String, String> vulnIdToHtml;
+    private final Map<String, String> vulnDescByVulnId = new ConcurrentHashMap<>();
 
-    private final Map<String, String> htmlByVulnId = new ConcurrentHashMap<>();
-
-    public IndexingContext(Function<String, String> vulnIdToHtml) {
+    public IndexingContext() {
       organizations = organizationDAO.getAll();
       organizations.forEach(org -> ownersById.put(org.getId(), org));
       applications = applicationDAO.getAll();
       applications.forEach(app -> ownersById.put(app.getId(), app));
-      this.vulnIdToHtml = vulnIdToHtml;
     }
 
     public Owner getOwner(String id) {
@@ -127,7 +122,8 @@ public class IndexService
     }
 
     public String getVulnerabilityHtml(String vulnerabilityId) {
-      return htmlByVulnId.computeIfAbsent(vulnerabilityId, vulnIdToHtml);
+      return vulnDescByVulnId.computeIfAbsent(vulnerabilityId,
+          vulnerabilityDescriptionFetcher::getVulnerabilityDescription);
     }
   }
 
@@ -142,6 +138,7 @@ public class IndexService
       OwnerDAO ownerDAO,
       PolicyDAO policyDAO,
       InsightWork insightWork,
+      VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher,
       Analyzer analyzer)
   {
     this.organizationDAO = organizationDAO;
@@ -153,11 +150,12 @@ public class IndexService
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
     this.insightWork = insightWork;
+    this.vulnerabilityDescriptionFetcher = vulnerabilityDescriptionFetcher;
     this.analyzer = analyzer;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public void createSearchIndex(Function<String, String> refIdToHtml) throws IOException  {
+  public void createSearchIndex() throws IOException {
     log.info("creating search index...");
     try {
       Path indexPath = insightWork.getSearchIndexDir().toPath();
@@ -171,7 +169,7 @@ public class IndexService
           IndexWriter indexWriter = new IndexWriter(directory, indexWriterConfig)) {
         log.info("begin indexing");
 
-        IndexingContext indexingContext = new IndexingContext(refIdToHtml);
+        IndexingContext indexingContext = new IndexingContext();
 
         CompletableFuture<Void> orgDocs =
             CompletableFuture.supplyAsync(() -> buildOrganizationDocs(indexingContext))
@@ -383,26 +381,9 @@ public class IndexService
     }).collect(toList());
   }
 
-  private String getDescription(
-      IndexingContext indexingContext,
-      String refId)
-  {
+  private String getDescription(IndexingContext indexingContext, String refId) {
     try {
-      String html = indexingContext.getVulnerabilityHtml(refId);
-      if (StringUtils.isBlank(html)) {
-        return "";
-      }
-      org.jsoup.nodes.Document doc = Jsoup.parse(html);
-      Elements elements = doc.select("dt:contains(description)");
-      if (elements.isEmpty()) {
-        elements = doc.select("dt:contains(explanation)");
-      }
-      if (!elements.isEmpty()) {
-        elements = elements.first().siblingElements();
-      }
-      if (!elements.isEmpty()) {
-        return elements.first().text();
-      }
+      return indexingContext.getVulnerabilityHtml(refId);
     }
     catch (NotFoundException notFoundException) {
       log.warn(notFoundException.getMessage());

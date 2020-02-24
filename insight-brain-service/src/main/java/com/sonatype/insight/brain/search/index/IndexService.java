@@ -37,11 +37,13 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.iterator.FieldIterator;
+import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -154,6 +156,7 @@ public class IndexService
     this.analyzer = analyzer;
   }
 
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void createSearchIndex(Function<String, String> refIdToHtml) throws IOException  {
     log.info("creating search index...");
     try {

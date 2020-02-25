@@ -26,8 +26,8 @@ public class AnalyzerProvider
     Analyzer standardAnalyzer = new StandardAnalyzer();
     Map<String, Analyzer> fieldAnalyzers = new HashMap<>();
     fieldAnalyzers.put(FieldIdentifier.VULNERABILITY_DESCRIPTION.label, standardAnalyzer);
-    fieldAnalyzers.put(FieldIdentifier.APPLICATION_NAME.label, standardAnalyzer);
-    fieldAnalyzers.put(FieldIdentifier.ORGANIZATION_NAME.label, standardAnalyzer);
+    fieldAnalyzers.put(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION.label, standardAnalyzer);
+    fieldAnalyzers.put(FieldIdentifier.COMPONENT_LABEL_DESCRIPTION.label, standardAnalyzer);
     return new PerFieldAnalyzerWrapper(new LowerCaseKeywordAnalyzer(), fieldAnalyzers);
   }
 }

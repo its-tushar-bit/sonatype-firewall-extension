@@ -101,7 +101,6 @@ public class SearchService
 
       Query query = createQuery(searchQuery);
 
-      int startIndex = (page - 1) * pageSize;
       TopDocs topDocs = indexSearcher.search(query, indexReader.maxDoc());
       ScoreDoc[] scoreDocs = topDocs.scoreDocs;
 
@@ -120,6 +119,7 @@ public class SearchService
       Comparator<Document> byScore = Comparator.comparing(documentScores::get);
       documents.sort(byLabel.thenComparing(byScore));
 
+      int startIndex = (page - 1) * pageSize;
       int resultIndex = startIndex + 1;
       for (int i = startIndex; i < startIndex + pageSize; i++) {
         if (i >= documents.size()) {
@@ -150,13 +150,9 @@ public class SearchService
         searchResultItemDTO.resultIndex = resultIndex++;
         groupingByDTO.searchResultItemDTOS.add(searchResultItemDTO);
       }
-      searchResultDTO.totalNumberOfHits = Long.valueOf(topDocs.totalHits.value).intValue();
+      searchResultDTO.totalNumberOfHits = (int) topDocs.totalHits.value;
       searchResultDTO.isExactTotalNumberOfHits = topDocs.totalHits.relation == Relation.EQUAL_TO;
       return searchResultDTO;
-    }
-    catch (Exception e) {
-      log.error(e.getMessage(), e);
-      throw e;
     }
   }
 

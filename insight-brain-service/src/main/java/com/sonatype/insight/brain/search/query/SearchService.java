@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.search.results.SearchSuggestionResultDTO;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -40,6 +41,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -82,7 +84,7 @@ public class SearchService
     this.analyzerProvider = analyzerProvider;
   }
 
-  public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page) throws Exception {
+  public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page) throws IOException {
     Path searchIndexPath = insightWork.getSearchIndexDir().toPath();
     validateIndex(searchIndexPath);
     try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(searchIndexPath))) {
@@ -156,7 +158,7 @@ public class SearchService
     }
   }
 
-  public SearchSuggestionResultDTO autoCompleteSearchQuery(String searchQuery) throws Exception {
+  public SearchSuggestionResultDTO autoCompleteSearchQuery(String searchQuery) {
     Path searchSuggesterIndexPath = insightWork.getSearchSuggesterDir().toPath();
     validateIndex(searchSuggesterIndexPath);
     SearchSuggestionResultDTO searchResultDTO = new SearchSuggestionResultDTO();
@@ -202,9 +204,9 @@ public class SearchService
     return VULNERABILITY_ID;
   }
 
-  private Query createQuery(String searchQuery) throws Exception {
+  private Query createQuery(String searchQuery) {
     if (StringUtils.isBlank(searchQuery)) {
-      throw new IllegalArgumentException("Search query is empty");
+      throw new BadRequestException("The search query is empty");
     }
 
     Optional<String> searchField = labelIdentifiers().stream().filter(searchQuery::startsWith).findAny();
@@ -215,7 +217,7 @@ public class SearchService
     return createQuery(searchField.orElse(VULNERABILITY_ID.label), searchQuery);
   }
 
-  private Query createQuery(String field, String searchQuery) throws Exception {
+  private Query createQuery(String field, String searchQuery) {
     if (fieldRequiresAnalysis(field) || field.equalsIgnoreCase(COMPONENT_NAME.label)) {
       return createQueryUsingParser(field, searchQuery);
     }
@@ -228,13 +230,18 @@ public class SearchService
     return analyzedFields.stream().anyMatch(fieldName -> fieldName.equalsIgnoreCase(field));
   }
 
-  private Query createQueryUsingParser(String field, String searchQuery) throws Exception {
+  private Query createQueryUsingParser(String field, String searchQuery) {
     String finalSearchQuery = searchQuery;
     // componentDisplayName in the form of: org.bouncycastle : bcprov-jdk15on : 1.50
     if (field.equalsIgnoreCase(COMPONENT_NAME.label)) {
       finalSearchQuery = searchQuery.replace(":", "\\:").replace(" ", "\\ ");
     }
-    return new QueryParser(field, analyzerProvider.get()).parse(finalSearchQuery);
+    try {
+      return new QueryParser(field, analyzerProvider.get()).parse(finalSearchQuery);
+    }
+    catch (ParseException e) {
+      throw new BadRequestException("The search query is invalid: " + e.getMessage(), e);
+    }
   }
 
   private Query createBasicQuery(String field, String searchQuery) {

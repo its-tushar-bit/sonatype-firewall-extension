@@ -50,7 +50,7 @@ public class ApiSearchIndexResource
   public SearchResultDTO searchIndex(
       @QueryParam("search") String searchQuery,
       @DefaultValue("10") @QueryParam("pageSize") int pageSize,
-      @DefaultValue("1") @QueryParam("page") int page) throws Exception
+      @DefaultValue("1") @QueryParam("page") int page) throws IOException
   {
     return searchService.searchIndex(searchQuery, pageSize, page);
   }
@@ -63,7 +63,7 @@ public class ApiSearchIndexResource
   @GET
   @Path(SUGGESTER)
   @Produces(MediaType.APPLICATION_JSON)
-  public SearchSuggestionResultDTO autoCompleteSearchQuery(@QueryParam("search") String searchQuery) throws Exception {
+  public SearchSuggestionResultDTO autoCompleteSearchQuery(@QueryParam("search") String searchQuery) {
     return searchService.autoCompleteSearchQuery(searchQuery);
   }
 }

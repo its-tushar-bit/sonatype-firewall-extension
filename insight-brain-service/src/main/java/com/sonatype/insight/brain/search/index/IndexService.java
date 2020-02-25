@@ -158,81 +158,77 @@ public class IndexService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void createSearchIndex() throws IOException {
     log.info("creating search index...");
-    try {
-      Path indexPath = insightWork.getSearchIndexDir().toPath();
-      Path suggesterPath = insightWork.getSearchSuggesterDir().toPath();
-      Files.createDirectories(indexPath);
-      Files.createDirectories(suggesterPath);
 
-      IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzerProvider.get());
-      indexWriterConfig.setOpenMode(OpenMode.CREATE);
-      try (Directory directory = FSDirectory.open(indexPath);
-          IndexWriter indexWriter = new IndexWriter(directory, indexWriterConfig)) {
-        log.info("begin indexing");
+    Path indexPath = insightWork.getSearchIndexDir().toPath();
+    Path suggesterPath = insightWork.getSearchSuggesterDir().toPath();
+    Files.createDirectories(indexPath);
+    Files.createDirectories(suggesterPath);
 
-        IndexingContext indexingContext = new IndexingContext();
+    IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzerProvider.get());
+    indexWriterConfig.setOpenMode(OpenMode.CREATE);
+    try (Directory directory = FSDirectory.open(indexPath);
+        IndexWriter indexWriter = new IndexWriter(directory, indexWriterConfig)) {
+      log.info("begin indexing");
 
-        CompletableFuture<Void> orgDocs =
-            CompletableFuture.supplyAsync(() -> buildOrganizationDocs(indexingContext))
-                .thenAccept(docs -> addDocsWithException(indexWriter, docs));
+      IndexingContext indexingContext = new IndexingContext();
 
-        CompletableFuture<Void> appDocs = CompletableFuture.supplyAsync(() -> buildApplicationDocs(indexingContext))
-            .thenAccept(docs -> addDocsWithException(indexWriter, docs));
+      CompletableFuture<Void> orgDocs =
+          CompletableFuture.supplyAsync(() -> buildOrganizationDocs(indexingContext))
+              .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-        List<CompletableFuture<Void>> appSVDocs = indexingContext.applications
-            .parallelStream()
-            .map(application -> CompletableFuture
-                .supplyAsync(() -> buildApplicationSVDocs(indexingContext, application))
-                .thenAccept(docs -> addDocsWithException(indexWriter, docs))).collect(toList());
+      CompletableFuture<Void> appDocs = CompletableFuture.supplyAsync(() -> buildApplicationDocs(indexingContext))
+          .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-        CompletableFuture<Void> tagDocs = CompletableFuture.supplyAsync(() -> buildTagDocs(indexingContext))
-            .thenAccept(docs -> addDocsWithException(indexWriter, docs));
+      List<CompletableFuture<Void>> appSVDocs = indexingContext.applications
+          .parallelStream()
+          .map(application -> CompletableFuture
+              .supplyAsync(() -> buildApplicationSVDocs(indexingContext, application))
+              .thenAccept(docs -> addDocsWithException(indexWriter, docs))).collect(toList());
 
-        CompletableFuture<Void> labelDocs = CompletableFuture.supplyAsync(() -> buildLabelDocs(indexingContext))
-            .thenAccept(docs -> addDocsWithException(indexWriter, docs));
+      CompletableFuture<Void> tagDocs = CompletableFuture.supplyAsync(() -> buildTagDocs(indexingContext))
+          .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-        CompletableFuture<Void> policyDocs = CompletableFuture.supplyAsync(() -> buildPolicyDocs(indexingContext))
-            .thenAccept(docs -> addDocsWithException(indexWriter, docs));
+      CompletableFuture<Void> labelDocs = CompletableFuture.supplyAsync(() -> buildLabelDocs(indexingContext))
+          .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-        log.info("indexing threads started");
-        orgDocs.join();
-        log.info("org indexing complete");
-        appDocs.join();
-        log.info("app indexing complete");
-        appSVDocs.forEach(CompletableFuture::join);
-        log.info("appSV indexing complete");
-        tagDocs.join();
-        log.info("tag indexing complete");
-        labelDocs.join();
-        log.info("label indexing complete");
-        policyDocs.join();
-        log.info("policy indexing complete");
-        log.info("all indexing complete");
-      }
+      CompletableFuture<Void> policyDocs = CompletableFuture.supplyAsync(() -> buildPolicyDocs(indexingContext))
+          .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-      // write to search-suggester dir
-      try (IndexReader sourceIndexReader = DirectoryReader.open(FSDirectory.open(indexPath));
-           FSDirectory suggesterFile = FSDirectory.open(suggesterPath);
-           AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(suggesterFile, new SimpleAnalyzer())) {
-        log.info("started building suggester");
-        IndexSearcher indexSearcher = new IndexSearcher(sourceIndexReader);
-        try (IndexReader indexReader = indexSearcher.getIndexReader()) {
-          long maxId = indexReader.maxDoc();
-          Set<String> searchKeys = new HashSet<>();
-          for (int i = 0; i < maxId; i++) {
-            Document doc = indexSearcher.doc(i);
-            searchKeys.addAll(getDocFieldValues(doc));
-          }
-          suggester.build(new FieldIterator(searchKeys.iterator()));
-          suggester.commit();
-          log.info("completed building suggester");
+      log.info("indexing threads started");
+      orgDocs.join();
+      log.info("org indexing complete");
+      appDocs.join();
+      log.info("app indexing complete");
+      appSVDocs.forEach(CompletableFuture::join);
+      log.info("appSV indexing complete");
+      tagDocs.join();
+      log.info("tag indexing complete");
+      labelDocs.join();
+      log.info("label indexing complete");
+      policyDocs.join();
+      log.info("policy indexing complete");
+      log.info("all indexing complete");
+    }
+
+    // write to search-suggester dir
+    try (IndexReader sourceIndexReader = DirectoryReader.open(FSDirectory.open(indexPath));
+         FSDirectory suggesterFile = FSDirectory.open(suggesterPath);
+         AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(suggesterFile, new SimpleAnalyzer())) {
+      log.info("started building suggester");
+      IndexSearcher indexSearcher = new IndexSearcher(sourceIndexReader);
+      try (IndexReader indexReader = indexSearcher.getIndexReader()) {
+        long maxId = indexReader.maxDoc();
+        Set<String> searchKeys = new HashSet<>();
+        for (int i = 0; i < maxId; i++) {
+          Document doc = indexSearcher.doc(i);
+          searchKeys.addAll(getDocFieldValues(doc));
         }
+        suggester.build(new FieldIterator(searchKeys.iterator()));
+        suggester.commit();
+        log.info("completed building suggester");
       }
     }
-    catch (IOException e) {
-      log.error(e.getMessage(), e);
-      throw e;
-    }
+
     log.info("index creation exit");
   }
 

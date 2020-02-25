@@ -264,13 +264,6 @@ public class SearchService
 
   private SearchResultItemDTO toDto(Document document) {
     SearchResultItemDTO searchResultItemDTO = new SearchResultItemDTO();
-
-    if (document.get(ORGANIZATION_ID.label) == null && document.get(APPLICATION_ID.label) == null) {
-      // This means our index is not up to date
-      log.warn("Document found in index but it is not present in the database. Please rebuild the index.");
-      return null;
-    }
-
     searchResultItemDTO.itemType = document.get(ITEM_TYPE.label);
     searchResultItemDTO.organizationId = document.get(ORGANIZATION_ID.label);
     searchResultItemDTO.organizationName = document.get(ORGANIZATION_NAME.label);

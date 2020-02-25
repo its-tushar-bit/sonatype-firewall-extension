@@ -43,7 +43,6 @@ import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,6 +55,7 @@ import org.mockito.quality.Strictness;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromJsonNode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.util.Lists.emptyList;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -144,15 +144,14 @@ public class ThirdPartyComponentDAOTest
   @Test
   public void testApplyThirdPartyComponentSummary() throws Exception {
     final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
-    List<ThirdPartyBillOfMaterialsRowDTO> componentList = Lists
-        .newArrayList(newThirdPartyBom(hashGlibc, testData.get(hashGlibc)),
-            newThirdPartyBom(hashApt, testData.get(hashApt)));
+    final Map<String, ThirdPartyReportComponentDTO> data = dao.getData(reportZip);
 
-    dao.applyIdentifiedComponentUpdates(componentList, reportZip);
+    dao.applyIdentifiedComponentUpdates(new ArrayList<>(data.values()), reportZip);
 
     assertSummaryCountsUpdated(reportZip, 3);
     assertDataCountsUpdated(reportZip, 3);
     assertUpdatedBom(reportZip);
+    assertSecurityCounts(reportZip, new int[]{2, 0, 2, 1, 0, 0, 0, 0, 0, 0});
   }
 
   @Test
@@ -342,9 +341,7 @@ public class ThirdPartyComponentDAOTest
   @Test
   public void testApplyThirdPartyComponentSummary_NoUpdateForEmptyList() throws Exception {
     final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
-    List<ThirdPartyBillOfMaterialsRowDTO> componentList = new ArrayList<>();
-
-    dao.applyIdentifiedComponentUpdates(componentList, reportZip);
+    dao.applyIdentifiedComponentUpdates(emptyList(), reportZip);
 
     assertSummaryCountsUpdated(reportZip, 1); // non-third party component only
     assertDataCountsUpdated(reportZip, 1);
@@ -413,5 +410,11 @@ public class ThirdPartyComponentDAOTest
     final ReportEntry entry = Report.getEntry(reportZip, "summary.json");
     JsonNode jsonNode = JsonUtils.parse(entry.buf);
     assertThat(jsonNode.path("knownArtifactCount").asInt()).isEqualTo(expected);
+  }
+
+  private void assertSecurityCounts(final File reportZip, final int[] expected) throws IOException {
+    final ReportEntry entry = Report.getEntry(reportZip, "data.json");
+    JsonNode jsonNode = JsonUtils.parse(entry.buf);
+    assertThat(JsonUtils.asPojo(jsonNode.path("securityCounts"), int[].class)).isEqualTo(expected);
   }
 }

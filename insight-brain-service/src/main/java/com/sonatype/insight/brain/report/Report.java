@@ -186,10 +186,8 @@ public final class Report
     for (final JsonNode row : security.get("aaData")) {
       final String status = row.path("status").asText();
       if (!SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE.getName().equals(status)) {
-        final double severity = row.path("score").asDouble();
-        final int threatIndex = 10 - (int) Math.floor(severity);
-
-        securityCounts[threatIndex < 0 ? 0 : threatIndex < 10 ? threatIndex : 9]++;
+        double severity = row.path("score").asDouble();
+        updateSecurityCounts(severity, securityCounts);
 
         ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(row);
         if (components.add(componentIdentifier)) {
@@ -248,6 +246,11 @@ public final class Report
     saveReportEntry(reportFile, DATA_JSON_FILENAME, data);
 
     log.debug("Applied changes to report in {} ms", System.currentTimeMillis() - start);
+  }
+
+  public static void updateSecurityCounts(final double severity, int[] securityCounts) {
+    final int threatIndex = 10 - (int) Math.floor(severity);
+    securityCounts[threatIndex < 0 ? 0 : threatIndex < 10 ? threatIndex : 9]++;
   }
 
   private static void cacheThirdPartyData(final File reportFile) {

@@ -115,14 +115,14 @@ public class ThirdPartyComponentDAO
   }
 
   public void applyIdentifiedComponentUpdates(
-      final List<ThirdPartyBillOfMaterialsRowDTO> thirdPartyIdentifiedComponents,
+      final List<ThirdPartyReportComponentDTO> thirdPartyDTOs,
       final File reportFile)
   {
     try {
-      if (!thirdPartyIdentifiedComponents.isEmpty()) {
-        updateBom(thirdPartyIdentifiedComponents, reportFile);
-        updateSummaryCounts(reportFile, thirdPartyIdentifiedComponents.size());
-        updateDataCounts(reportFile, thirdPartyIdentifiedComponents.size());
+      if (!thirdPartyDTOs.isEmpty()) {
+        updateBom(thirdPartyDTOs, reportFile);
+        updateSummaryCounts(reportFile, thirdPartyDTOs.size());
+        updateDataCounts(reportFile, thirdPartyDTOs);
       }
     }
     catch (IOException e) {
@@ -283,7 +283,9 @@ public class ThirdPartyComponentDAO
     Report.putEntry(reportFile, filename, JsonUtils.generate(summary));
   }
 
-  private void updateDataCounts(final File reportFile, final int thirdPartyComponentCount)
+  private void updateDataCounts(
+      final File reportFile,
+      final List<ThirdPartyReportComponentDTO> thirdPartyDTOs)
       throws IOException
   {
     String filename = "data.json";
@@ -291,15 +293,42 @@ public class ThirdPartyComponentDAO
     long knownArtifactCount = summary.path("knownArtifactCount").asLong(0);
     long exactlyMatchedComponentCount = summary.path("exactlyMatchedComponentCount").asLong(0);
 
-    summary.put("knownArtifactCount", knownArtifactCount + thirdPartyComponentCount);
-    summary.put("exactlyMatchedComponentCount", exactlyMatchedComponentCount + thirdPartyComponentCount);
+    summary.put("knownArtifactCount", knownArtifactCount + thirdPartyDTOs.size());
+    summary.put("exactlyMatchedComponentCount", exactlyMatchedComponentCount + thirdPartyDTOs.size());
+    int[] updatedSecurityCounts = getUpdatedSecurityCounts(thirdPartyDTOs, summary.get("securityCounts"));
+    Report.fill(summary.putArray("securityCounts"), updatedSecurityCounts);
     Report.putEntry(reportFile, filename, JsonUtils.generate(summary));
   }
 
+  private int[] getUpdatedSecurityCounts(
+      final List<ThirdPartyReportComponentDTO> thirdPartyDTOs,
+      JsonNode securityCountsNode)
+  {
+    int[] securityCounts = new int[10];
+    if (securityCountsNode != null && securityCountsNode.size() > 0) {
+      try {
+        securityCounts = JsonUtils.asPojo(securityCountsNode, int[].class);
+      }
+      catch (IOException e) {
+        log.error("Error parsing securityCountsNode from data.json", e);
+      }
+    }
+    for (ThirdPartyReportComponentDTO thirdPartyDTO : thirdPartyDTOs) {
+      for (ThirdPartyHealthCheckReportSecurityRowDTO securityRow : thirdPartyDTO.securityRows) {
+        if (securityRow.score != null) {
+          Report.updateSecurityCounts(securityRow.score.doubleValue(), securityCounts);
+        }
+      }
+    }
+    return securityCounts;
+  }
+
   private void updateBom(
-      final List<ThirdPartyBillOfMaterialsRowDTO> thirdPartyIdentifiedComponents,
+      final List<ThirdPartyReportComponentDTO> thirdPartyDTOs,
       final File reportFile) throws IOException
   {
+    List<ThirdPartyBillOfMaterialsRowDTO> thirdPartyIdentifiedComponents =
+        thirdPartyDTOs.stream().map(thirdPartyDTO -> thirdPartyDTO.bomRow).collect(Collectors.toList());
     final ContainerNode<?> bom = JsonUtils.parse(Report.getEntry(reportFile, "bom.json").buf);
     final ArrayNode bomArray = (ArrayNode) bom.get("aaData");
     final ArrayNode thirdPartyBomArray = MAPPER.valueToTree(thirdPartyIdentifiedComponents);

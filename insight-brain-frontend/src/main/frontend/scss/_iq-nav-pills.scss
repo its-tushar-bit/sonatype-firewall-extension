@@ -7,6 +7,7 @@
   > .iq-nav-pills__pill {
     display: inline-block;
     float: none; // override Bootstrap
+    margin-right: $iq-spacing-md;
 
     > a {
       @include semi-bold();
@@ -25,18 +26,20 @@
       &:hover, &:focus {
         background-color: $iq-blue-light;
         border-color: $iq-blue-light;
+        background-image: none; // removes gradient applied by Bootstrap
         color: $iq-blue;
       }
     }
 
-    &:not(:last-child) {
-      margin-right: $iq-spacing-md;
+    &:last-child {
+      margin-right: 0;
     }
 
     &.active a {
       &, &:hover, &:focus {
         background-color: $iq-blue-light;
         border-color: $iq-blue-light;
+        background-image: none; // removes gradient applied by Bootstrap
         color: $iq-blue;
       }
     }

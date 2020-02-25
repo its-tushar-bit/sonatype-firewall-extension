@@ -14,7 +14,7 @@
     "angular-ui-validate": "=1.2.3",
     "angular-vs-repeat": "=1.1.7",
     "angular-xeditable": "=0.2.0",
-    "axios": "0.18.0",
+    "axios": "0.19.2",
     "babel-runtime": "=6.26.0",
     "bootstrap-datepicker": "=1.7.1",
     "bootstrap-sass": "=2.3.2",

@@ -7,9 +7,13 @@ package com.sonatype.insight.brain.search.results;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * @since GLOBAL_SEARCH
  */
+@JsonInclude(Include.NON_NULL)
 public class SearchResultItemDTO
 {
   public String itemType;
@@ -62,7 +66,7 @@ public class SearchResultItemDTO
 
   public String policyThreatCategory;
 
-  public int policyThreatLevel;
+  public Integer policyThreatLevel;
 
   public int resultIndex;
 }

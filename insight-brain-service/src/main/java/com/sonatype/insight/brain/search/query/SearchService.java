@@ -302,7 +302,7 @@ public class SearchService
     searchResultItemDTO.policyName = document.get(POLICY_NAME.label);
     searchResultItemDTO.policyThreatCategory = document.get(POLICY_THREAT_CATEGORY.label);
     String policyThreatLevel = document.get(POLICY_THREAT_LEVEL.label);
-    searchResultItemDTO.policyThreatLevel = policyThreatLevel == null ? -1 : Integer.valueOf(policyThreatLevel);
+    searchResultItemDTO.policyThreatLevel = policyThreatLevel == null ? null : Integer.valueOf(policyThreatLevel);
     return searchResultItemDTO;
   }
 }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.search;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -30,6 +31,7 @@ public class FullTextSearchService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void setStatus(FullTextSearchStatusDTO fullTextSearchStatusDTO) {
+    AuditData.get().setData("fullTextSearch", fullTextSearchStatusDTO.isEnabled ? "enabled" : "disabled");
     log.info("Opting {} experimental Full Text Search.", fullTextSearchStatusDTO.isEnabled ? "in to" : "out of");
 
     String status = Boolean.toString(fullTextSearchStatusDTO.isEnabled);

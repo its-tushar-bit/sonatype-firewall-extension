@@ -295,7 +295,7 @@ public class IndexService
     return new DocumentBuilder(ItemType.APPLICATION_CATEGORY) //
         .setApplicationCategoryId(tag.getId()) //
         .setApplicationCategoryName(tag.getName()) //
-        .setApplicationCategoryColor(tag.getColor().toValue()) //
+        .setApplicationCategoryColor(tag.getColor()) //
         .setApplicationCategoryDescription(tag.getDescription()) //
         .setOwner(indexingContext.getOwner(tag.getOrganizationId())) //
         .build();
@@ -311,7 +311,7 @@ public class IndexService
     return new DocumentBuilder(ItemType.COMPONENT_LABEL) //
         .setComponentLabelId(label.getId()) //
         .setComponentLabelName(label.getLabel()) //
-        .setComponentLabelColor(label.getColor().toValue()) //
+        .setComponentLabelColor(label.getColor()) //
         .setComponentLabelDescription(label.getDescription()) //
         .setOwner(indexingContext.getOwner(label.getOwnerId())) //
         .build();
@@ -327,7 +327,7 @@ public class IndexService
     return new DocumentBuilder(ItemType.POLICY) //
         .setPolicyId(policy.getId()) //
         .setPolicyName(policy.getName()) //
-        .setPolicyThreatCategory(policy.getThreatCategory().getName()) //
+        .setPolicyThreatCategory(policy.getThreatCategory()) //
         .setPolicyThreatLevel(policy.getThreatLevel()) //
         .setOwner(indexingContext.getOwner(policy.getOwnerId())) //
         .build();

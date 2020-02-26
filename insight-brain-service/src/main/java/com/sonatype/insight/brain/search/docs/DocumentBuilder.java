@@ -11,9 +11,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -240,9 +242,14 @@ public class DocumentBuilder
     return this;
   }
 
-  public DocumentBuilder setApplicationCategoryColor(final String tagColor) {
-    this.applicationCategoryColor = Optional.of(new StringField(APPLICATION_CATEGORY_COLOR.label, tagColor, Store.YES));
+  public DocumentBuilder setApplicationCategoryColor(final Color tagColor) {
+    this.applicationCategoryColor =
+        Optional.of(new StringField(APPLICATION_CATEGORY_COLOR.label, toFieldValue(tagColor), Store.YES));
     return this;
+  }
+
+  private static String toFieldValue(Color color) {
+    return color.toValue();
   }
 
   public DocumentBuilder setApplicationCategoryDescription(final String tagDescription) {
@@ -261,8 +268,9 @@ public class DocumentBuilder
     return this;
   }
 
-  public DocumentBuilder setComponentLabelColor(final String labelColor) {
-    this.componentLabelColor = Optional.of(new StringField(COMPONENT_LABEL_COLOR.label, labelColor, Store.YES));
+  public DocumentBuilder setComponentLabelColor(final Color labelColor) {
+    this.componentLabelColor =
+        Optional.of(new StringField(COMPONENT_LABEL_COLOR.label, toFieldValue(labelColor), Store.YES));
     return this;
   }
 
@@ -282,9 +290,9 @@ public class DocumentBuilder
     return this;
   }
 
-  public DocumentBuilder setPolicyThreatCategory(final String policyThreatCategory) {
+  public DocumentBuilder setPolicyThreatCategory(final PolicyThreatCategory policyThreatCategory) {
     this.policyThreatCategory =
-        Optional.of(new StringField(POLICY_THREAT_CATEGORY.label, policyThreatCategory, Store.YES));
+        Optional.of(new StringField(POLICY_THREAT_CATEGORY.label, policyThreatCategory.getName(), Store.YES));
     return this;
   }
 

@@ -28,6 +28,6 @@ public class OrganizationProprietaryConfigEditorTest
   @Test
   public void testEditProprietaryComponentMatchersRootOrg() {
     OwnerTreeView.RootOrganizationNode.treeViewElement().click();
-    OwnerSummaryPage.policyTile().proprietaryComponentMatchers().shouldHave(text("2 local"));
+    OwnerSummaryPage.proprietaryComponentMatchers().shouldHave(text("2 local"));
   }
 }

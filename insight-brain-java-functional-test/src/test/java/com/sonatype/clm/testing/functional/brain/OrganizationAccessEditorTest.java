@@ -20,12 +20,14 @@ public class OrganizationAccessEditorTest
 
   @Override
   protected void goFromSummaryToAddRole() {
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().click();
     OwnerSummaryPage.accessTile().addRoleButton().click();
   }
 
   @Override
   protected void goFromSummaryToEditRole(Role role) {
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().click();
     OwnerSummaryPage.accessTile().localAccessRole(role.getName()).click();
   }

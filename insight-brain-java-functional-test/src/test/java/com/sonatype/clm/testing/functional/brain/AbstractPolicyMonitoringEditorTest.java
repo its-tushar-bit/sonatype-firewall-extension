@@ -58,7 +58,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
   @Test
   public void testEditMonitoredStage() {
     String inheritOptionText = MonitoredStageEditorPage.inheritFromParentDoNotMonitorText(parentOrg.getName());
-    OwnerSummaryPage.policyTile().monitoredStage().shouldHave(text(inheritOptionText)).click();
+    OwnerSummaryPage.monitoredStage().shouldHave(text(inheritOptionText)).click();
     assertEditMonitoredStageStateIsCorrect(inheritOptionText);
 
     MonitoredStageEditorPage.getStageByName("Develop").click();
@@ -92,7 +92,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
     Condition notLicensedText = MonitoredStageEditorPage.unsupportedLicenseText();
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
     policyTile.shouldBe(visible);
-    policyTile.monitoredStage().shouldBe(visible).shouldHave(notLicensedText).shouldNotHave(CLICKABLE);
+    OwnerSummaryPage.monitoredStage().shouldBe(visible).shouldHave(notLicensedText).shouldNotHave(CLICKABLE);
 
     // if the user gets there manually, show a warning
     refreshOrOpen(MonitoredStageEditorPage.url(currentOwner));

@@ -155,6 +155,7 @@ public class OrganizationSummaryViewTest
     actualLabel.name().shouldBe(visible).shouldHave(text("Test Label"));
 
     // scroll to the ltgs
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
     LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
     ThreatGroupTileSimpleList threatGroupTileSimpleList = ltgTile.ltgList(0);
@@ -260,6 +261,7 @@ public class OrganizationSummaryViewTest
   public void testDataRetentionTile() {
     DataRetentionTile tile = OwnerSummaryPage.dataRetentionTile();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -319,6 +321,7 @@ public class OrganizationSummaryViewTest
     dao.insert(dontPurgeSuccessMetrics);
 
     refresh();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
 
     tile.maxAge(Stage.ID_DEVELOP).shouldBe(visible).shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
@@ -340,6 +343,7 @@ public class OrganizationSummaryViewTest
     DataRetentionTile tile = new DataRetentionTile();
     DataRetentionEditorPage page = new DataRetentionEditorPage();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -351,6 +355,7 @@ public class OrganizationSummaryViewTest
     page.shouldBe(visible);
 
     back();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -365,6 +370,7 @@ public class OrganizationSummaryViewTest
 
     DataRetentionTile tile = OwnerSummaryPage.dataRetentionTile();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -381,6 +387,7 @@ public class OrganizationSummaryViewTest
   public void testSourceControlTile() {
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -398,6 +405,7 @@ public class OrganizationSummaryViewTest
         tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     refresh();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -414,6 +422,7 @@ public class OrganizationSummaryViewTest
     sourceControlDAO.update(rootSourceControl);
     refresh();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -430,6 +439,7 @@ public class OrganizationSummaryViewTest
     tempEntity.newSourceControl(organization.getId(), null, "TEST_TOKEN", null);
     refresh();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -450,6 +460,7 @@ public class OrganizationSummaryViewTest
     refresh();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -471,6 +482,7 @@ public class OrganizationSummaryViewTest
     refresh();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);

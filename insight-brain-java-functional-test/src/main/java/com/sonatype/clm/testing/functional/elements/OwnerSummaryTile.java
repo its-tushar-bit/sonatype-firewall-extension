@@ -69,4 +69,8 @@ public class OwnerSummaryTile
   public PillButton accessButton() {
     return new PillButton(scrollContainer(), "#owner-access-button");
   }
+
+  public SelenideElement dropdownButton() {
+    return child("#nav-pill-dropdown");
+  }
 }

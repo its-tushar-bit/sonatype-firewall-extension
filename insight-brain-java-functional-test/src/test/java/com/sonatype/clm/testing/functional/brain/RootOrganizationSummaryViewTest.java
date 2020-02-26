@@ -53,6 +53,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
   public void testSourceControlTile() {
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -69,6 +70,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, "TEST_TOKEN", SourceControlProvider.GITHUB);
     refresh();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -90,6 +92,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     refresh();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -111,6 +114,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     refresh();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);

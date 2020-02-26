@@ -17,6 +17,10 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 
+import com.codeborne.selenide.SelenideElement;
+
+import static com.codeborne.selenide.Selenide.$;
+
 public class OwnerSummaryPage
 {
   public static String url() {
@@ -48,6 +52,18 @@ public class OwnerSummaryPage
 
   public static PolicyTile policyTile() {
     return new PolicyTile();
+  }
+
+  public static SelenideElement violationGrandfathering() {
+    return $("#violation-grandfathering");
+  }
+
+  public static SelenideElement monitoredStage() {
+    return $("#continuous-monitoring");
+  }
+
+  public static SelenideElement proprietaryComponentMatchers() {
+    return $("#proprietary-component-matchers");
   }
 
   public static LabelTile labelTile() {

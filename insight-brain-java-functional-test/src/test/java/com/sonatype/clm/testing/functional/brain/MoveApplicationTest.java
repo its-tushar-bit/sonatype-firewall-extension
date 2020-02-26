@@ -125,7 +125,7 @@ public class MoveApplicationTest
     modal.shouldBe(hidden);
 
     // check continuous policy monitoring text is updated
-    OwnerSummaryPage.policyTile().monitoredStage()
+    OwnerSummaryPage.monitoredStage()
         .shouldHave(text("Inherit from Some Other Organization (Do not monitor)"));
 
     // test new parent

@@ -160,6 +160,7 @@ public abstract class AbstractSummaryViewTest
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
     // scroll to the access tile
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
@@ -280,6 +281,7 @@ public abstract class AbstractSummaryViewTest
     }
 
     // scroll to the ltgs
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
@@ -320,6 +322,7 @@ public abstract class AbstractSummaryViewTest
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
     // scroll to the access tile
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
@@ -552,6 +555,7 @@ public abstract class AbstractSummaryViewTest
     LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
 
     // scroll to the ltgs
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
 
     final int hierarchyCount = ltgTile.ltgLists().size();
@@ -600,6 +604,7 @@ public abstract class AbstractSummaryViewTest
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
     // scroll to the access tile
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {

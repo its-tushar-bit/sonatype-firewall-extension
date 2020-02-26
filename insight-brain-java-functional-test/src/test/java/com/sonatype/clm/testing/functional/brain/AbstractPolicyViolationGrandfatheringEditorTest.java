@@ -68,7 +68,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
 
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
-    OwnerSummaryPage.policyTile().violationGrandfathering().shouldHave(text(summaryText)).click();
+    OwnerSummaryPage.violationGrandfathering().shouldHave(text(summaryText)).click();
 
     PolicyViolationGrandfatheringEditorPage.statusMessage().shouldHave(text(summaryText));
     PolicyViolationGrandfatheringEditorPage.disabledMessage().shouldNotBe(visible);
@@ -118,7 +118,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
 
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
-    OwnerSummaryPage.policyTile().violationGrandfathering().shouldHave(text(summaryText)).click();
+    OwnerSummaryPage.violationGrandfathering().shouldHave(text(summaryText)).click();
 
     PolicyViolationGrandfatheringEditorPage.statusMessage().shouldHave(text(summaryText));
 
@@ -154,7 +154,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
-    OwnerSummaryPage.policyTile().violationGrandfathering().shouldHave(notLicensedText).click();
+    OwnerSummaryPage.violationGrandfathering().shouldHave(notLicensedText).click();
 
     PolicyViolationGrandfatheringEditorPage.title().shouldNotBe(visible);
 

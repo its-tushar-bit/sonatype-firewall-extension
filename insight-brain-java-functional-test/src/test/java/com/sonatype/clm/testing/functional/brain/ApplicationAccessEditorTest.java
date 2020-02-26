@@ -44,6 +44,7 @@ public class ApplicationAccessEditorTest
 
   @Override
   protected void goFromSummaryToAddRole() {
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().click();
     OwnerSummaryPage.accessTile().addRoleButton().click();
     waitUntilUrl(AccessEditorPage.urlToCreate(currentOwner));
@@ -51,6 +52,7 @@ public class ApplicationAccessEditorTest
 
   @Override
   protected void goFromSummaryToEditRole(Role role) {
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().click();
     OwnerSummaryPage.accessTile().localAccessRole(role.getName()).click();
     waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner, role.getId()));
@@ -88,7 +90,7 @@ public class ApplicationAccessEditorTest
     picker.checkAllLeft().click();
     picker.pickCheckedItemsButton().click();
 
-    AccessEditorPage.saveButton().shouldNotBe(CLM.DISABLED).click();
+    AccessEditorPage.saveButton().scrollIntoView(true).shouldNotBe(CLM.DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     AccessEditorPage.addGroupBox().shouldBe(visible, value(""));
 

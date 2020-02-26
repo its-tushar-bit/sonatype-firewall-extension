@@ -503,6 +503,7 @@ public class ApplicationSummaryViewTest
   public void testSourceControlTile() {
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -520,6 +521,7 @@ public class ApplicationSummaryViewTest
         tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     refresh();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -536,6 +538,7 @@ public class ApplicationSummaryViewTest
     sourceControlDAO.update(rootSourceControl);
     refresh();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -552,6 +555,7 @@ public class ApplicationSummaryViewTest
     tempEntity.newSourceControl(application.getId(), "http://github.com/aaa/bbb", "TEST_TOKEN", null);
     refresh();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -572,6 +576,7 @@ public class ApplicationSummaryViewTest
     refresh();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -593,6 +598,7 @@ public class ApplicationSummaryViewTest
     refresh();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);

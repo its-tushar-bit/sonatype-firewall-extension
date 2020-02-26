@@ -63,12 +63,3 @@ description:apache - S
 format:maven
 extension:jar
 applicationName:App*
-
-
-## Contributors
-- Richard Mealing
-- Steve Baker
-- Anna Damtsa
-- Usman Shaikh
-- Koray Tugay
-

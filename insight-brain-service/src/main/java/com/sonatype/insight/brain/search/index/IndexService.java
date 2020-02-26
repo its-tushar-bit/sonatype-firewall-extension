@@ -34,10 +34,14 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
@@ -258,55 +262,75 @@ public class IndexService
 
   private List<Document> buildOrganizationDocs(IndexingContext indexingContext) {
     return indexingContext.organizations.stream().map(org -> {
-      return new DocumentBuilder(ItemType.ORGANIZATION) //
-          .setOwner(org) //
-          .build();
+      return buildDocument(indexingContext, org);
     }).collect(toList());
+  }
+
+  private Document buildDocument(IndexingContext indexingContext, Organization organization) {
+    return new DocumentBuilder(ItemType.ORGANIZATION) //
+        .setOwner(organization) //
+        .build();
   }
 
   private List<Document> buildApplicationDocs(IndexingContext indexingContext) {
     return indexingContext.applications.stream().map(app -> {
-      return new DocumentBuilder(ItemType.APPLICATION) //
-          .setOwner(app) //
-          .setOwner(indexingContext.getOwner(app.getOrganizationId())) //
-          .build();
+      return buildDocument(indexingContext, app);
     }).collect(toList());
+  }
+
+  private Document buildDocument(IndexingContext indexingContext, Application application) {
+    return new DocumentBuilder(ItemType.APPLICATION) //
+        .setOwner(application) //
+        .setOwner(indexingContext.getOwner(application.getOrganizationId())) //
+        .build();
   }
 
   private List<Document> buildTagDocs(IndexingContext indexingContext) {
     return tagDAO.getAll().stream().map(tag -> {
-      return new DocumentBuilder(ItemType.APPLICATION_CATEGORY) //
-          .setApplicationCategoryId(tag.getId()) //
-          .setApplicationCategoryName(tag.getName()) //
-          .setApplicationCategoryColor(tag.getColor().toValue()) //
-          .setApplicationCategoryDescription(tag.getDescription()) //
-          .setOwner(indexingContext.getOwner(tag.getOrganizationId())) //
-          .build();
+      return buildDocument(indexingContext, tag);
     }).collect(toList());
+  }
+
+  private Document buildDocument(IndexingContext indexingContext, Tag tag) {
+    return new DocumentBuilder(ItemType.APPLICATION_CATEGORY) //
+        .setApplicationCategoryId(tag.getId()) //
+        .setApplicationCategoryName(tag.getName()) //
+        .setApplicationCategoryColor(tag.getColor().toValue()) //
+        .setApplicationCategoryDescription(tag.getDescription()) //
+        .setOwner(indexingContext.getOwner(tag.getOrganizationId())) //
+        .build();
   }
 
   private List<Document> buildLabelDocs(IndexingContext indexingContext) {
     return labelDAO.getAll().stream().map(label -> {
-      return new DocumentBuilder(ItemType.COMPONENT_LABEL) //
-          .setComponentLabelId(label.getId()) //
-          .setComponentLabelName(label.getLabel()) //
-          .setComponentLabelColor(label.getColor().toValue()) //
-          .setComponentLabelDescription(label.getDescription()) //
-          .setOwner(indexingContext.getOwner(label.getOwnerId())) //
-          .build();
+      return buildDocument(indexingContext, label);
     }).collect(toList());
+  }
+
+  private Document buildDocument(IndexingContext indexingContext, Label label) {
+    return new DocumentBuilder(ItemType.COMPONENT_LABEL) //
+        .setComponentLabelId(label.getId()) //
+        .setComponentLabelName(label.getLabel()) //
+        .setComponentLabelColor(label.getColor().toValue()) //
+        .setComponentLabelDescription(label.getDescription()) //
+        .setOwner(indexingContext.getOwner(label.getOwnerId())) //
+        .build();
   }
 
   private List<Document> buildPolicyDocs(IndexingContext indexingContext) {
     return policyDAO.getAll().stream().map(policy -> {
-      return new DocumentBuilder(ItemType.POLICY) //
-          .setPolicyId(policy.getId()) //
-          .setPolicyName(policy.getName()) //
-          .setPolicyThreatCategory(policy.getThreatCategory().getName()) //
-          .setPolicyThreatLevel(policy.getThreatLevel()) //
-          .setOwner(indexingContext.getOwner(policy.getOwnerId())) //
-          .build();
+      return buildDocument(indexingContext, policy);
     }).collect(toList());
+  }
+
+  private Document buildDocument(IndexingContext indexingContext, Policy policy) {
+    return new DocumentBuilder(ItemType.POLICY) //
+        .setPolicyId(policy.getId()) //
+        .setPolicyName(policy.getName()) //
+        .setPolicyThreatCategory(policy.getThreatCategory().getName()) //
+        .setPolicyThreatLevel(policy.getThreatLevel()) //
+        .setOwner(indexingContext.getOwner(policy.getOwnerId())) //
+        .build();
   }
 
   private List<Document> buildApplicationSVDocs(
@@ -342,7 +366,7 @@ public class IndexService
       }
 
       return componentDAO.getAll(application, licenseReportEntry, securityReportEntry, bomReportEntry).parallelStream()
-          .map(component -> buildApplicationComponentSecurityVulnerabilities(
+          .map(component -> buildApplicationComponentVulnerabilityDocuments(
               indexingContext,
               application,
               stageType,
@@ -355,27 +379,38 @@ public class IndexService
     return Collections.emptyList();
   }
 
-  private List<Document> buildApplicationComponentSecurityVulnerabilities(
+  private List<Document> buildApplicationComponentVulnerabilityDocuments(
       IndexingContext indexingContext,
       Application application,
       StageType stageType,
-      String scanId,
+      String reportId,
       Component component)
   {
-    return component.getSecurityVulnerabilities().parallelStream().map(securityVulnerability -> {
-      return new DocumentBuilder(ItemType.SECURITY_VULNERABILITY) //
-          .setOwner(application) //
-          .setPolicyEvaluationStage(stageType.getName()) //
-          .setReportId(scanId) //
-          .setComponentHash(component.getHash()) //
-          .setComponentFormat(component.getComponentIdentifier().getFormat()) //
-          .setComponentCoordinates(component) //
-          .setComponentName(component.getDisplayName()) //
-          .setVulnerabilityId(securityVulnerability.getRefId()) //
-          .setVulnerabilityStatus(securityVulnerability.getStatus().getName()) //
-          .setVulnerabilityDescription(getDescription(indexingContext, securityVulnerability.getRefId())) //
-          .build();
+    return component.getSecurityVulnerabilities().parallelStream().map(vulnerability -> {
+      return buildDocument(indexingContext, application, stageType, reportId, component, vulnerability);
     }).collect(toList());
+  }
+
+  private Document buildDocument(
+      IndexingContext indexingContext,
+      Application application,
+      StageType stageType,
+      String reportId,
+      Component component,
+      SecurityVulnerability vulnerability)
+  {
+    return new DocumentBuilder(ItemType.SECURITY_VULNERABILITY) //
+        .setOwner(application) //
+        .setPolicyEvaluationStage(stageType.getName()) //
+        .setReportId(reportId) //
+        .setComponentHash(component.getHash()) //
+        .setComponentFormat(component.getComponentIdentifier().getFormat()) //
+        .setComponentCoordinates(component) //
+        .setComponentName(component.getDisplayName()) //
+        .setVulnerabilityId(vulnerability.getRefId()) //
+        .setVulnerabilityStatus(vulnerability.getStatus().getName()) //
+        .setVulnerabilityDescription(getDescription(indexingContext, vulnerability.getRefId())) //
+        .build();
   }
 
   private String getDescription(IndexingContext indexingContext, String refId) {

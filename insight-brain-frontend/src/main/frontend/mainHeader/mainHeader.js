@@ -15,6 +15,7 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
   vm.$state = $state;
   vm.isDashboardLicensed = ProductFeatures.isDashboardLicensed;
   vm.isSuccessMetricsEnabled = false;
+  vm.isFullTextSearchEnabled = false;
   vm.permissions = {};
   vm.$onInit = doLoad;
   vm.getReleaseVersion = getReleaseVersion;
@@ -60,6 +61,10 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
         vm.isSuccessMetricsEnabled = data;
       });
 
+      systemConfigurationPropertyService.isFullTextSearchEnabled().then(function(data) {
+        vm.isFullTextSearchEnabled = data;
+      });
+
       ProductFeatures.load().then(function() {
         vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks-for-applications') ||
             ProductFeatures.isAvailable('webhooks-for-repositories');
@@ -69,6 +74,10 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
 
   $scope.$on('successMetricsConfigurationUpdated', function(event, newValue) {
     vm.isSuccessMetricsEnabled = newValue;
+  });
+
+  $scope.$on('fullTextSearchConfigurationUpdated', function(event, newValue) {
+    vm.isFullTextSearchEnabled = newValue;
   });
 
   function isLoggedIn() {

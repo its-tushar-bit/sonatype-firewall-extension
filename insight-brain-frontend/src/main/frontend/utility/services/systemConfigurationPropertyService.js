@@ -5,13 +5,13 @@
  */
 const SUCCESS_METRICS_DISABLED_MESSAGE = 'Success metrics have been disabled by your system administrator.';
 
-export default
-function systemConfigurationPropertyService($http, $rootScope, $q, CLMLocations) {
+export default function systemConfigurationPropertyService($http, $rootScope, $q, CLMLocations) {
   return {
     isSuccessMetricsEnabled: isSuccessMetricsEnabled,
     saveSuccessMetricsEnabled: saveSuccessMetricsEnabled,
     checkSuccessMetricsEnabled: checkSuccessMetricsEnabled,
-    SUCCESS_METRICS_DISABLED_MESSAGE: SUCCESS_METRICS_DISABLED_MESSAGE
+    SUCCESS_METRICS_DISABLED_MESSAGE: SUCCESS_METRICS_DISABLED_MESSAGE,
+    isFullTextSearchEnabled: isFullTextSearchEnabled
   };
 
   function isSuccessMetricsEnabled() {
@@ -48,6 +48,12 @@ function systemConfigurationPropertyService($http, $rootScope, $q, CLMLocations)
   function saveSuccessMetricsConfiguration(successMetricsConfiguration) {
     return $http.put(CLMLocations.getSuccessMetricsConfigUrl(), successMetricsConfiguration).then(function(response) {
       return response.data;
+    });
+  }
+
+  function isFullTextSearchEnabled() {
+    return $http.get(CLMLocations.getFullTextSearchConfigUrl()).then(function(response) {
+      return response.data.isEnabled;
     });
   }
 }

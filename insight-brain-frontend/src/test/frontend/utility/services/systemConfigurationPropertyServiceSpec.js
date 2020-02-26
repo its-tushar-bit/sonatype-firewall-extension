@@ -100,4 +100,26 @@ describe('systemConfigurationPropertyServiceSpec.js', function() {
       expect($rootScope.$broadcast).not.toHaveBeenCalledWith('successMetricsConfigurationUpdated', false);
     });
   });
+
+  describe('getting full text search flag', function() {
+    it('returns enabled when the request succeeds', function() {
+      systemConfigurationPropertyService.isFullTextSearchEnabled().then(successSpy).catch(failSpy);
+      $httpBackend.expectGET(CLMLocations.getFullTextSearchConfigUrl()).respond({isEnabled: true});
+      $httpBackend.flush();
+
+      expect(successSpy).toHaveBeenCalledWith(true);
+      expect(failSpy).not.toHaveBeenCalled();
+    });
+
+    it('throws a failed request', function() {
+      systemConfigurationPropertyService.isFullTextSearchEnabled().then(successSpy).catch(failSpy);
+      $httpBackend.expectGET(CLMLocations.getFullTextSearchConfigUrl()).respond(404, 'not found');
+      $httpBackend.flush();
+
+      expect(successSpy).not.toHaveBeenCalled();
+      expect(failSpy).toHaveBeenCalled();
+      expect(failSpy.calls.mostRecent().args[0].status).toEqual(404);
+      expect(failSpy.calls.mostRecent().args[0].data).toEqual('not found');
+    });
+  });
 });

@@ -383,6 +383,8 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       getAutomaticSourceControlConfigurationUrl:
           () => `${baseUrl.get()}/rest/config/automaticScmConfiguration`,
 
+      getFullTextSearchConfigUrl: () => `${baseUrl.get()}/rest/fullTextSearch/status`,
+
       getShouldDisplayDefaultPasswordWarning: () => `${baseUrl.get()}/rest/user/shouldDisplayDefaultPasswordWarning`,
 
       getIsHdsReachable: () => `${baseUrl.get()}/rest/hdsPing`,

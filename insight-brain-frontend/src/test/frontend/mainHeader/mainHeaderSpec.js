@@ -17,6 +17,7 @@ describe('mainHeaderSpec', function() {
       mockPermissionService,
       mockProductFeatures,
       isSuccessMetricsEnabledDeferred,
+      isFullTextSearchEnabledDeferred,
       loginDeferred,
       productFeaturesDeferred,
       vm,
@@ -27,10 +28,12 @@ describe('mainHeaderSpec', function() {
     $scope = _$rootScope_.$new();
     $rootScope = _$rootScope_;
     isSuccessMetricsEnabledDeferred = $q.defer();
+    isFullTextSearchEnabledDeferred = $q.defer();
     loginDeferred = $q.defer();
     productFeaturesDeferred = $q.defer();
     mockSystemConfigurationPropertyService = {
-      isSuccessMetricsEnabled: jasmine.createSpy().and.returnValue(isSuccessMetricsEnabledDeferred.promise)
+      isSuccessMetricsEnabled: jasmine.createSpy().and.returnValue(isSuccessMetricsEnabledDeferred.promise),
+      isFullTextSearchEnabled: jasmine.createSpy().and.returnValue(isFullTextSearchEnabledDeferred.promise)
     };
 
     mockCurrentUser = {
@@ -75,11 +78,31 @@ describe('mainHeaderSpec', function() {
     expect(vm.isSuccessMetricsEnabled).toBe(false);
   });
 
-  it('does not load success metrics, permissions, or features until after login', function() {
+  it('properly loads on enabled full text search', function() {
+    vm.$onInit();
+    loginDeferred.resolve();
+    isFullTextSearchEnabledDeferred.resolve(true);
+    $scope.$digest();
+
+    expect(vm.isFullTextSearchEnabled).toBe(true);
+  });
+
+  it('properly loads on disabled full text search', function() {
+    vm.$onInit();
+    loginDeferred.resolve();
+    isFullTextSearchEnabledDeferred.resolve(false);
+    $scope.$digest();
+
+    expect(vm.isFullTextSearchEnabled).toBe(false);
+  });
+
+  it('does not load success metrics, full text search, permissions, or features until after login', function() {
     vm.$onInit();
 
     isSuccessMetricsEnabledDeferred.reject('disabled');
+    isFullTextSearchEnabledDeferred.resolve(false);
     expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).not.toHaveBeenCalled();
+    expect(mockSystemConfigurationPropertyService.isFullTextSearchEnabled).not.toHaveBeenCalled();
     expect(mockPermissionService.getValidPermissions).not.toHaveBeenCalled();
     expect(mockProductFeatures.load).not.toHaveBeenCalled();
 
@@ -87,6 +110,7 @@ describe('mainHeaderSpec', function() {
     $scope.$digest();
 
     expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).toHaveBeenCalled();
+    expect(mockSystemConfigurationPropertyService.isFullTextSearchEnabled).toHaveBeenCalled();
     expect(mockPermissionService.getValidPermissions).toHaveBeenCalled();
     expect(mockProductFeatures.load).toHaveBeenCalled();
   });
@@ -104,6 +128,21 @@ describe('mainHeaderSpec', function() {
     $rootScope.$broadcast('successMetricsConfigurationUpdated', false);
 
     expect(vm.isSuccessMetricsEnabled).toBe(false);
+  });
+
+  it('resets isFullTextSearchEnabled on fullTextSearchConfigurationUpdated event', function() {
+    vm.$onInit();
+    isFullTextSearchEnabledDeferred.resolve(false);
+
+    expect(vm.isFullTextSearchEnabled).toBe(false);
+
+    $rootScope.$broadcast('fullTextSearchConfigurationUpdated', true);
+
+    expect(vm.isFullTextSearchEnabled).toBe(true);
+
+    $rootScope.$broadcast('fullTextSearchConfigurationUpdated', false);
+
+    expect(vm.isFullTextSearchEnabled).toBe(false);
   });
 
   it('properly determines the displayed release version number', function() {

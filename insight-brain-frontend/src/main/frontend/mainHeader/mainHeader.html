@@ -75,7 +75,7 @@
            class="iq-navigation__button"
            id="search-navigation-button"
            ng-class="{ 'active' : vm.$state.includes('searchResults') }"
-           ng-if="vm.isLicensed()"
+           ng-if="vm.isLicensed() && vm.isFullTextSearchEnabled"
            tooltip="Global Search"
            tooltip-placement="bottom">
           <nx-font-awesome-icon icon="vm.faAtlas" class="iq-main-nav__button-icon" size="'2x'"></nx-font-awesome-icon>

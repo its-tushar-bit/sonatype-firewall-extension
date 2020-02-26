@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.search;
 
+import java.io.File;
+import java.io.IOException;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -13,7 +16,10 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.service.InsightWork;
 
+import org.apache.lucene.index.SegmentInfos;
+import org.apache.lucene.store.FSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,9 +30,12 @@ public class FullTextSearchService
 
   private final SystemConfigurationPropertyDAO dao;
 
+  private final InsightWork insightWork;
+
   @Inject
-  public FullTextSearchService(SystemConfigurationPropertyDAO systemConfigurationPropertyDAO) {
+  public FullTextSearchService(SystemConfigurationPropertyDAO systemConfigurationPropertyDAO, InsightWork insightWork) {
     this.dao = systemConfigurationPropertyDAO;
+    this.insightWork = insightWork;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -43,6 +52,25 @@ public class FullTextSearchService
     FullTextSearchStatusDTO dto = new FullTextSearchStatusDTO();
     dto.isEnabled =
         Boolean.parseBoolean(dao.getByName(SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED).getValue());
+    dto.lastIndexTime = getLastIndexTime();
     return dto;
+  }
+
+  private Long getLastIndexTime() {
+    File searchIndexDirectory = insightWork.getSearchIndexDir();
+    if (!searchIndexDirectory.exists()) {
+      return null;
+    }
+    try (FSDirectory fsDirectory = FSDirectory.open(searchIndexDirectory.toPath())) {
+      String lastCommitSegmentsFileName = SegmentInfos.getLastCommitSegmentsFileName(fsDirectory);
+      if (lastCommitSegmentsFileName == null) {
+        return null;
+      }
+      return new File(searchIndexDirectory, lastCommitSegmentsFileName).lastModified();
+    }
+    catch (IOException e) {
+      log.error(e.getMessage(), e);
+      return null;
+    }
   }
 }

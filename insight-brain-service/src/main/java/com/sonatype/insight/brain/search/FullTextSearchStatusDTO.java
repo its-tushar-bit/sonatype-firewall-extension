@@ -8,4 +8,6 @@ package com.sonatype.insight.brain.search;
 public class FullTextSearchStatusDTO
 {
   public boolean isEnabled;
+
+  public Long lastIndexTime;
 }

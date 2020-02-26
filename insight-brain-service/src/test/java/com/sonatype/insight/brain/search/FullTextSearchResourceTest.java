@@ -30,7 +30,9 @@ public class FullTextSearchResourceTest
     HttpResponse response = restRequest().path(STATUS_PATH).get();
 
     assertResponseStatus(200, response);
-    assertThat(response.getBody(FullTextSearchStatusDTO.class).isEnabled).isFalse();
+    FullTextSearchStatusDTO fullTextSearchStatusDTO = response.getBody(FullTextSearchStatusDTO.class);
+    assertThat(fullTextSearchStatusDTO.isEnabled).isFalse();
+    assertThat(fullTextSearchStatusDTO.lastIndexTime).isNull();
   }
 
   @Test

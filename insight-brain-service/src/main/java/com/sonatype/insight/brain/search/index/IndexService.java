@@ -262,11 +262,11 @@ public class IndexService
 
   private List<Document> buildOrganizationDocs(IndexingContext indexingContext) {
     return indexingContext.organizations.stream().map(org -> {
-      return buildDocument(indexingContext, org);
+      return buildDocument(org);
     }).collect(toList());
   }
 
-  private Document buildDocument(IndexingContext indexingContext, Organization organization) {
+  private Document buildDocument(Organization organization) {
     return new DocumentBuilder(ItemType.ORGANIZATION) //
         .setOwner(organization) //
         .build();

@@ -262,11 +262,11 @@ public class IndexService
 
   private List<Document> buildOrganizationDocs(IndexingContext indexingContext) {
     return indexingContext.organizations.stream().map(org -> {
-      return buildDocument(org);
+      return buildDocument(indexingContext, org);
     }).collect(toList());
   }
 
-  private Document buildDocument(Organization organization) {
+  Document buildDocument(IndexingContext indexingContext, Organization organization) {
     return new DocumentBuilder(ItemType.ORGANIZATION) //
         .setOwner(organization) //
         .build();
@@ -278,7 +278,7 @@ public class IndexService
     }).collect(toList());
   }
 
-  private Document buildDocument(IndexingContext indexingContext, Application application) {
+  Document buildDocument(IndexingContext indexingContext, Application application) {
     return new DocumentBuilder(ItemType.APPLICATION) //
         .setOwner(application) //
         .setOwner(indexingContext.getOwner(application.getOrganizationId())) //
@@ -291,7 +291,7 @@ public class IndexService
     }).collect(toList());
   }
 
-  private Document buildDocument(IndexingContext indexingContext, Tag tag) {
+  Document buildDocument(IndexingContext indexingContext, Tag tag) {
     return new DocumentBuilder(ItemType.APPLICATION_CATEGORY) //
         .setApplicationCategoryId(tag.getId()) //
         .setApplicationCategoryName(tag.getName()) //
@@ -307,7 +307,7 @@ public class IndexService
     }).collect(toList());
   }
 
-  private Document buildDocument(IndexingContext indexingContext, Label label) {
+  Document buildDocument(IndexingContext indexingContext, Label label) {
     return new DocumentBuilder(ItemType.COMPONENT_LABEL) //
         .setComponentLabelId(label.getId()) //
         .setComponentLabelName(label.getLabel()) //
@@ -323,7 +323,7 @@ public class IndexService
     }).collect(toList());
   }
 
-  private Document buildDocument(IndexingContext indexingContext, Policy policy) {
+  Document buildDocument(IndexingContext indexingContext, Policy policy) {
     return new DocumentBuilder(ItemType.POLICY) //
         .setPolicyId(policy.getId()) //
         .setPolicyName(policy.getName()) //
@@ -391,7 +391,7 @@ public class IndexService
     }).collect(toList());
   }
 
-  private Document buildDocument(
+  Document buildDocument(
       IndexingContext indexingContext,
       Application application,
       StageType stageType,

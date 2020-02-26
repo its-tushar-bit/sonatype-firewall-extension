@@ -254,7 +254,7 @@ public class DocumentBuilder
 
   public DocumentBuilder setApplicationCategoryDescription(final String tagDescription) {
     this.applicationCategoryDescription =
-        Optional.of(new StringField(APPLICATION_CATEGORY_DESCRIPTION.label, tagDescription, Store.YES));
+        Optional.of(new TextField(APPLICATION_CATEGORY_DESCRIPTION.label, tagDescription, Store.YES));
     return this;
   }
 
@@ -275,7 +275,7 @@ public class DocumentBuilder
   }
 
   public DocumentBuilder setComponentLabelDescription(final String labelDescription) {
-    this.componentLabelDescription = Optional.of(new StringField(COMPONENT_LABEL_DESCRIPTION.label,
+    this.componentLabelDescription = Optional.of(new TextField(COMPONENT_LABEL_DESCRIPTION.label,
         Optional.ofNullable(labelDescription).orElse(""), Store.YES));
     return this;
   }

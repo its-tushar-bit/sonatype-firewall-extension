@@ -30,20 +30,27 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.base.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.82.0
  */
 public class ApiReportViolationsDiffService
 {
+  private static final Logger log = LoggerFactory.getLogger(ApiReportViolationsDiffService.class);
+
   private static final String COMMIT_HASH_REGEX = "\\b[0-9a-f]{40}\\b";
 
   private static final String ABBREVIATED_COMMIT_HASH_REGEX = "\\b[0-9a-f]{4,39}\\b";
@@ -60,13 +67,16 @@ public class ApiReportViolationsDiffService
 
   private final PolicyEvaluationDiffService policyEvaluationDiffService;
 
+  private final ProductLicense productLicense;
+
   @Inject
   public ApiReportViolationsDiffService(final ApplicationDAO applicationDAO,
                                         final PolicyEvaluationDAO policyEvaluationDAO,
                                         final ApiApplicationAdapter applicationAdapter,
                                         final ApplicationComponentDAO applicationComponentDAO,
                                         final PolicyViolationAdapter policyViolationAdapter,
-                                        final PolicyEvaluationDiffService policyEvaluationDiffService)
+                                        final PolicyEvaluationDiffService policyEvaluationDiffService,
+                                        final ProductLicense productLicense)
   {
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -74,6 +84,7 @@ public class ApiReportViolationsDiffService
     this.applicationComponentDAO = applicationComponentDAO;
     this.policyViolationAdapter = policyViolationAdapter;
     this.policyEvaluationDiffService = policyEvaluationDiffService;
+    this.productLicense = productLicense;
   }
 
   @Authorize(permission = Permission.READ)
@@ -82,6 +93,7 @@ public class ApiReportViolationsDiffService
       final String fromCommit,
       final String toCommit)
   {
+    checkLicense();
     validateCommits(fromCommit, toCommit);
 
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
@@ -211,5 +223,12 @@ public class ApiReportViolationsDiffService
     apiApplicationEvaluationCommitDTO.scanId = policyEvaluation.getScanId();
     apiApplicationEvaluationCommitDTO.scanTime = policyEvaluation.getTime();
     return apiApplicationEvaluationCommitDTO;
+  }
+
+  private void checkLicense() {
+    if (!productLicense.hasFeature(LicensedFeature.AUTOMATION)) {
+      log.debug("License does not support SourceControl automation features");
+      throw new InvalidLicenseException();
+    }
   }
 }

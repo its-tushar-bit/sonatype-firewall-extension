@@ -27,9 +27,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.git.GitApiService;
 import com.sonatype.insight.brain.git.GitClientFactory;
-import com.sonatype.insight.brain.git.GitRepositoryInfo;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -40,6 +38,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.SourceControlConfig;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.iq.manager.PullRequestCommand;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
@@ -77,7 +77,7 @@ public class PolicyAlertScmNotifierAuditTest
   private GitApiClient gitApiClient;
 
   @Mock
-  private GitApiService gitApiService;
+  private SourceControlUtils sourceControlUtils;
 
   @Mock
   private PullRequestExecutor pullRequestExecutor;
@@ -95,7 +95,8 @@ public class PolicyAlertScmNotifierAuditTest
     binder.bind(PullRequestFeatureCheck.class).toInstance(pullRequestFeatureCheck);
     binder.bind(ApiComponentRemediationService.class).toInstance(remediationService);
     binder.bind(GitClientFactory.class).toInstance(gitClientFactory);
-    binder.bind(GitApiService.class).toInstance(gitApiService);
+    binder.bind(GitApiClient.class).toInstance(gitApiClient);
+    binder.bind(SourceControlUtils.class).toInstance(sourceControlUtils);
     binder.bind(PullRequestExecutor.class).toInstance(pullRequestExecutor);
 
     super.configure(binder);
@@ -108,10 +109,9 @@ public class PolicyAlertScmNotifierAuditTest
     config.setBaseUrl("http://localhost");
 
     givenSourceControlIsEnabled();
-
     givenRemediationIsAvailable();
-
     givenGitServicesAvailable();
+    givenGitRepositoryInfoAvailable();
   }
 
   @Test
@@ -152,6 +152,7 @@ public class PolicyAlertScmNotifierAuditTest
 
     // then we see executor was run to trigger our failure
     verify(pullRequestExecutor, timeout(Duration.ofSeconds(1).toMillis())).execute(any());
+
     // and no audits events were created
     awaitLogEntries(AuditEvent.CREATE_PULL_REQUEST, 0);
   }
@@ -193,13 +194,14 @@ public class PolicyAlertScmNotifierAuditTest
   }
 
   private void givenGitServicesAvailable() throws IOException {
-    when(gitClientFactory.create(any())).thenReturn(gitApiClient);
-
+    when(gitClientFactory.createApiClient(any())).thenReturn(gitApiClient);
     when(gitApiClient.isBranchOnServer(any())).thenReturn(false);
+  }
 
+  private void givenGitRepositoryInfoAvailable() {
     final GitRepositoryInfo gitRepoInfo = new GitRepositoryInfo(
         "url", "token", null, "master", false, false);
-    when(gitApiService.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepoInfo);
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepoInfo);
   }
 
   private void givenRemediationIsAvailable() {

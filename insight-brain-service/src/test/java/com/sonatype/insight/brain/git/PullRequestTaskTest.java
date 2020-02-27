@@ -15,6 +15,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.SourceControlConfig;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.git.utils.api.GitApi;
@@ -68,10 +70,7 @@ public class PullRequestTaskTest
 
   @Rule
   public LogOutput logOutput = new LogOutput(PullRequestTask.class);
-  
-  @Mock
-  private GitApiService gitApiService;
-  
+
   @Mock
   private GitClientFactory gitClientFactory;
 
@@ -104,7 +103,10 @@ public class PullRequestTaskTest
 
   @Mock
   private AuditRecorder auditRecorder;
-  
+
+  @Mock
+  private SourceControlUtils sourceControlUtils;
+
   //Subject
   private PullRequestTask pullRequestTask;
 
@@ -113,15 +115,15 @@ public class PullRequestTaskTest
 
   @Before
   public void setup() {
-    pullRequestTask = new PullRequestTask(gitApiService, gitClientFactory, insightConfig, fileCleaner, metrics,
-        gitApiFactory, auditRecorder);
+    pullRequestTask = new PullRequestTask(gitClientFactory, insightConfig, fileCleaner, metrics,
+        gitApiFactory, auditRecorder, sourceControlUtils);
   }
   
   @Test
   public void test_run_notInited() {
     pullRequestTask.run();
     assertThat(logOutput).atErrorLevel().contains("Missing required PullRequestRemediationDetails");
-    verifyNoInteractions(gitApiService, gitClientFactory, insightConfig, fileCleaner,
+    verifyNoInteractions(sourceControlUtils, gitClientFactory, insightConfig, fileCleaner,
         app, metrics, auditRecorder, pullRequestRemediationDetails);
   }
   
@@ -281,9 +283,9 @@ public class PullRequestTaskTest
     when(pullRequestRemediationDetails.getTitle()).thenReturn(TITLE);
     when(pullRequestRemediationDetails.getStage()).thenReturn(Stage.ID_BUILD);
     when(pullRequestRemediationDetails.getScanId()).thenReturn("scan-id");
-    when(gitApiService.getGitRepositoryInfoForApplication(APP_INTERNAL_ID)).thenReturn(info);
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(APP_INTERNAL_ID)).thenReturn(info);
     when(gitApiFactory.createGitApi(info)).thenReturn(gitApi);
-    when(gitClientFactory.create(info)).thenReturn(gitClient);
+    when(gitClientFactory.createApiClient(info)).thenReturn(gitClient);
     when(app.getId()).thenReturn(APP_INTERNAL_ID);
     when(app.getPublicId()).thenReturn(APP_PUBLIC_ID);
   }

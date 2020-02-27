@@ -1,0 +1,249 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.sourcecontrol;
+
+import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.nexus.scm.SourceControlProvider;
+
+import com.google.inject.Binder;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+public class SourceControlUtilsTest
+    extends AbstractComponentTest
+{
+  private static final String VALID_URL = "https://example.com/organization/project";
+
+  private static final String TOKEN = "token";
+
+  private ApiSourceControlService mockSourceControlService;
+
+  private ApplicationDAO applicationDao = new ApplicationDAO();
+
+  private Application application;
+
+  private Organization org;
+
+  private SourceControlUtils sourceControlUtils;
+
+  @Override
+  public void configure(Binder binder) {
+    mockSourceControlService = mock(ApiSourceControlService.class);
+    binder.bind(ApiSourceControlService.class).toInstance(mockSourceControlService);
+    super.configure(binder);
+  }
+
+  @Before
+  public void setup() {
+    org = tempEntity.newOrganization();
+    application = tempEntity.newApplication(org.getId());
+    sourceControlUtils = new SourceControlUtils(mockSourceControlService, applicationDao);
+  }
+
+  @Test
+  public void testGetGitRepositoryInfo_ProviderAndTokenFromApplication() {
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(application.getParentOwnerId())
+        .setRepositoryUrl(VALID_URL)
+        .setToken(TOKEN)
+        .setProvider(SourceControlProvider.GITHUB)
+        .setBaseBranch("base-branch")
+        .setEnablePullRequests(true)
+        .setEnableStatusChecks(true)
+        .build();
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId()))).thenReturn(sourceControl);
+
+    GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForApplication(application.getId());
+
+    assertThat(value).isNotNull();
+    assertThat(value.token).isEqualTo(TOKEN);
+    assertThat(value.provider).isEqualTo(SourceControlProvider.GITHUB);
+    verify(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getId());
+    verify(mockSourceControlService, never()).getSourceControlByOwnerDecrypted(application.getOrganizationId());
+    verify(mockSourceControlService, never()).getSourceControlByOwnerDecrypted(Organization.ROOT_ORGANIZATION_ID);
+
+    assertThat(sourceControlUtils.isScmEnabled(application.getId())).isTrue();
+  }
+
+  @Test
+  public void testGetGitRepositoryInfo_ProviderAndTokenFromOrganization() {
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(application.getId())
+        .setRepositoryUrl(VALID_URL)
+        .setEnablePullRequests(true)
+        .setEnableStatusChecks(true)
+        .setBaseBranch("base-branch")
+        .build();
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId()))).thenReturn(sourceControl);
+
+    SourceControl orgSourceControl = new SourceControl.Builder()
+        .setOwnerId(org.getId())
+        .setRepositoryUrl(null)
+        .setToken(TOKEN)
+        .setProvider(SourceControlProvider.GITHUB)
+        .build();
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getOrganizationId())))
+        .thenReturn(orgSourceControl);
+
+    GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForApplication(application.getId());
+
+    assertThat(value).isNotNull();
+    assertThat(value.token).isEqualTo(TOKEN);
+    assertThat(value.provider).isEqualTo(SourceControlProvider.GITHUB);
+    verify(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getId());
+    verify(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getOrganizationId());
+    verify(mockSourceControlService, never()).getSourceControlByOwnerDecrypted(org.getParentOrganizationId());
+
+    assertThat(sourceControlUtils.isScmEnabled(application.getId())).isTrue();
+  }
+
+  @Test
+  public void testGetGitRepositoryInfo_ProviderAndTokenFromRootOrganization() {
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(application.getId())
+        .setRepositoryUrl(VALID_URL)
+        .setToken(null)
+        .setProvider(null)
+        .setEnablePullRequests(true)
+        .setEnableStatusChecks(true)
+        .setBaseBranch("base-branch")
+        .build();
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId())))
+        .thenReturn(sourceControl);
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getOrganizationId())))
+        .thenReturn(null);
+
+    SourceControl rootOrgSourceControl = new SourceControl.Builder()
+        .setOwnerId(org.getParentOrganizationId())
+        .setToken(TOKEN)
+            .setProvider(SourceControlProvider.GITHUB)
+        .build();
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(Organization.ROOT_ORGANIZATION_ID)))
+        .thenReturn(rootOrgSourceControl);
+
+    GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForApplication(application.getId());
+
+    assertThat(value.token).isEqualTo(TOKEN);
+    assertThat(value.provider).isEqualTo(SourceControlProvider.GITHUB);
+    verify(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getId());
+    verify(mockSourceControlService).getSourceControlByOwnerDecrypted(org.getParentOrganizationId());
+
+    assertThat(sourceControlUtils.isScmEnabled(application.getId())).isTrue();
+  }
+
+  @Test
+  public void testGetGitRepositoryInfo_defaultBranch() {
+    // given : source control for app and root with null base branch
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(application.getId())
+        .setRepositoryUrl(VALID_URL)
+        .setBaseBranch(null)
+        .setEnablePullRequests(true)
+        .setEnableStatusChecks(true)
+        .build();
+
+    SourceControl rootOrgSourceControl = new SourceControl.Builder()
+        .setOwnerId(org.getParentOrganizationId())
+        .setToken(TOKEN)
+        .setBaseBranch(null)
+        .setProvider(SourceControlProvider.GITHUB)
+        .build();
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId())))
+        .thenReturn(sourceControl);
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getOrganizationId())))
+        .thenReturn(null);
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(Organization.ROOT_ORGANIZATION_ID)))
+        .thenReturn(rootOrgSourceControl);
+
+    // when : get repo info for app
+    GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForApplication(application.getId());
+
+    // then : expect result to have default base branch
+    assertThat(value.baseBranch).isEqualTo(sourceControlUtils.DEFAULT_BASE_BRANCH);
+    verify(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getId());
+    verify(mockSourceControlService).getSourceControlByOwnerDecrypted(eq(application.getOrganizationId()));
+
+    assertThat(sourceControlUtils.isScmEnabled(application.getId())).isTrue();
+  }
+
+  @Test
+  public void testGetGitRepositoryInfo_NoApplicationSourceControl() {
+    GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForApplication("INVALID");
+    assertThat(value).isNull();
+    assertThat(sourceControlUtils.isScmEnabled(application.getId())).isFalse();
+  }
+
+  //    return StringUtils.isNotBlank(gitRepositoryInfo.repositoryUrl)
+  //        && gitRepositoryInfo.provider != null
+  //        && StringUtils.isNotBlank(gitRepositoryInfo.token);
+
+  @Test
+  public void testIsScmEnabled_NoRepositoryUrl() {
+    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(application.getId()).build();
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId()))).thenReturn(sourceControl);
+
+    assertThat(sourceControlUtils.isScmEnabled(application.getId())).isFalse();
+  }
+
+  @Test
+  public void testIsScmEnabled_NoProvider() {
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(application.getId())
+        .setRepositoryUrl(VALID_URL)
+        .build();
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId())))
+        .thenReturn(sourceControl);
+
+    assertThat(sourceControlUtils.isScmEnabled(application.getId())).isFalse();
+  }
+
+  @Test
+  public void testIsScmEnabled_NoToken() {
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(application.getId())
+        .setRepositoryUrl(VALID_URL)
+        .build();
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId())))
+        .thenReturn(sourceControl);
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getOrganizationId())))
+        .thenReturn(null);
+
+    SourceControl rootOrgSourceControl = new SourceControl.Builder()
+        .setOwnerId(org.getParentOrganizationId())
+        .setProvider(SourceControlProvider.GITHUB)
+        .build();
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(Organization.ROOT_ORGANIZATION_ID)))
+        .thenReturn(rootOrgSourceControl);
+
+    assertThat(sourceControlUtils.isScmEnabled(application.getId())).isFalse();
+  }
+}

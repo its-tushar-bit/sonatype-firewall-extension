@@ -19,6 +19,8 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.nexus.iq.manager.PullRequestCommand;
 import com.sonatype.nexus.iq.manager.PullRequestCommandBuilder;
@@ -55,8 +57,6 @@ public class PullRequestTask
 
   private final GitClientFactory gitClientFactory;
 
-  private final GitApiService gitApiService;
-
   private final GitApiFactory gitApiFactory;
 
   private final FileCleaner fileCleaner;
@@ -71,23 +71,25 @@ public class PullRequestTask
 
   private PullRequestExecutor pullRequestExecutor;
 
+  private final SourceControlUtils sourceControlUtils;
+
   @Inject
   public PullRequestTask(
-      final GitApiService gitApiService,
       final GitClientFactory gitClientFactory,
       final InsightConfig insightConfig,
       final FileCleaner fileCleaner,
       final SourceControlPullRequestMetrics metrics,
       final GitApiFactory gitApiFactory,
-      final AuditRecorder auditRecorder)
+      final AuditRecorder auditRecorder,
+      final SourceControlUtils sourceControlUtils)
   {
-    this.gitApiService = gitApiService;
     this.gitClientFactory = gitClientFactory;
     this.insightConfig = insightConfig;
     this.fileCleaner = fileCleaner;
     this.metrics = metrics;
     this.gitApiFactory = gitApiFactory;
     this.auditRecorder = auditRecorder;
+    this.sourceControlUtils = sourceControlUtils;
   }
 
   public void init(
@@ -108,7 +110,7 @@ public class PullRequestTask
     try {
       String applicationId = pullRequestRemediationDetails.getApp().getId();
       log.info("Pull request task initiated for application '{}'", applicationId);
-      GitRepositoryInfo gitInfo = gitApiService.getGitRepositoryInfoForApplication(applicationId);
+      GitRepositoryInfo gitInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
 
       checkoutDir = new File(
           insightConfig.getSourceControl().getCloneDirectory(),
@@ -133,7 +135,7 @@ public class PullRequestTask
           .withPullRequestTitle(pullRequestRemediationDetails.getTitle())
           .withRemediationTarget(pullRequestRemediationDetails.getToBeRemediated())
           .withRemediationVersion(pullRequestRemediationDetails.getRemediatedVersion())
-          .withGitApiClient(gitClientFactory.create(gitInfo))
+          .withGitApiClient(gitClientFactory.createApiClient(gitInfo))
           .withGitApi(gitApiFactory.createGitApi(gitInfo))
           .build();
 

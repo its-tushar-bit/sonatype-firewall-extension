@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.sourcecontrol;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -54,6 +56,9 @@ public class SourceControl
 
   @Column(name = "enable_status_checks")
   private Boolean enableStatusChecks;
+
+  @Column(name = "pull_request_poll_time")
+  private Date pullRequestPollTime;
 
   public SourceControl() {
   }
@@ -141,6 +146,14 @@ public class SourceControl
     this.enableStatusChecks = enableStatusChecks;
   }
 
+  public Date getPullRequestPollTime() {
+    return pullRequestPollTime;
+  }
+
+  public void setPullRequestPollTime(Date date) {
+    this.pullRequestPollTime = date;
+  }
+
   public static class Builder
   {
     private String ownerId;
@@ -156,6 +169,8 @@ public class SourceControl
     private Boolean enableStatusChecks;
 
     private String baseBranch;
+
+    private Date pullRequestPollTime;
 
     public Builder setOwnerId(final String ownerId) {
       this.ownerId = ownerId;
@@ -192,9 +207,16 @@ public class SourceControl
       return this;
     }
 
+    public Builder setPullRequestPollTime(final Date pullRequestPollTime) {
+      this.pullRequestPollTime = pullRequestPollTime;
+      return this;
+    }
+
     public SourceControl build() {
-      return new SourceControl(ownerId, repositoryUrl, token, provider, enablePullRequests, enableStatusChecks,
-          baseBranch);
+      SourceControl sourceControl =  new SourceControl(ownerId, repositoryUrl, token, provider, enablePullRequests,
+          enableStatusChecks, baseBranch);
+      sourceControl.setPullRequestPollTime(pullRequestPollTime);
+      return sourceControl;
     }
   }
 }

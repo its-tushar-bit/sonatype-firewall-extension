@@ -13,8 +13,11 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -23,7 +26,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 
-public class ApiReportViolationsDiffServiceAuthzTest
+public class ApiReportViolationsDiffServiceAuthzAndLicenseTest
     extends AbstractServiceAuthzTest
 {
   private static final String FROM_COMMIT_HASH = "abcdef1234abcdef1234abcdef1234abcdef1234";
@@ -40,6 +43,9 @@ public class ApiReportViolationsDiffServiceAuthzTest
   @Inject
   private ApiReportViolationsDiffService apiReportViolationsDiffService;
 
+  @Inject
+  private TestProductLicense testProductLicense;
+
   @Test(expected = UnauthenticatedException.class)
   public void testGetPolicyViolationDiff_Unauthenticated() {
     apiReportViolationsDiffService.getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH);
@@ -48,6 +54,13 @@ public class ApiReportViolationsDiffServiceAuthzTest
   @Test(expected = UnauthorizedException.class)
   public void testGetPolicyViolationDiff_Unauthorized() {
     login();
+    apiReportViolationsDiffService.getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH);
+  }
+
+  @Test(expected = InvalidLicenseException.class)
+  public void testGetPolicyViolationDiff_InvalidLicense() {
+    testProductLicense.setMissingFeatures(LicensedFeature.AUTOMATION);
+    grantReadPermission(app.getId());
     apiReportViolationsDiffService.getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH);
   }
 

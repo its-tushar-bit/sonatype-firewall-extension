@@ -1,0 +1,256 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.git;
+
+import java.io.IOException;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.test.LogOutput;
+import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.GitApiClient;
+import com.sonatype.nexus.scm.api.GitGraphQlApiClient;
+import com.sonatype.nexus.scm.api.model.ProjectUri;
+import com.sonatype.nexus.scm.api.model.PullRequest;
+import com.sonatype.nexus.scm.github.dto.GithubProjectUri;
+import com.sonatype.nexus.scm.github.dto.GithubPullRequest;
+
+import com.google.common.collect.ImmutableList;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+public class PullRequestPollingServiceTest
+    extends VerifiableLoggingTestBase
+{
+  @Mock
+  AsyncEventBus mockAsyncEventBus;
+
+  @Rule
+  public LogOutput logOutput = new LogOutput(PullRequestPollingService.class);
+
+  public PullRequestPollingServiceTest() {
+    super(PullRequestPollingService.class);
+  }
+
+  @Before
+  @Override
+  public void setup() {
+    MockitoAnnotations.initMocks(this);
+    super.setup();
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_noRepositoriesToPoll() throws IOException {
+    // given:
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .build();
+
+    // when: fetch and send
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: no events emitted
+    verify(mockAsyncEventBus, never()).post(any());
+    assertThatLogMessagesEqual();
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_pullRequestIsForBaseBranch() throws IOException {
+    // given: necessary ingredients to emit a discovered pull request event
+    Date pullRequestCreateDate = new Date(System.currentTimeMillis() - 1000);
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("app1", "org/repo", SourceControlProvider.GITHUB)
+        .withPullRequest(10, pullRequestCreateDate, "master")
+        .withSourcePolicyEvaluation("app1", "spe1")
+        .build();
+
+    // when: fetch and send
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: event emitted
+    verify(mockAsyncEventBus, never()).post(any());
+    assertThatLogMessagesEqual(
+        debug("Fetched 1 pull request(s) for org 'org'"),
+        debug("application 'app1' pull request '10' is for the base branch, skipping commenting for this PR"),
+        debug("Pull request polling time updated for 'org/repo'")
+    );
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_shouldPostEvent() throws IOException {
+    // given: necessary ingredients to emit a discovered pull request event
+    Date pullRequestCreateDate = new Date(System.currentTimeMillis() - 1000);
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("app1", "org/repo", SourceControlProvider.GITHUB)
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch")
+        .withSourcePolicyEvaluation("app1", "spe1")
+        .build();
+
+    // when: fetch and send
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: event emitted
+    verify(mockAsyncEventBus, times(1)).post(any());
+    assertThatLogMessagesEqual(
+        debug("Fetched 1 pull request(s) for org 'org'"),
+        info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
+        debug("Pull request polling time updated for 'org/repo'")
+    );
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_gitLabNotSupported() throws IOException {
+    // given:
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("app1", "org/repo", SourceControlProvider.GITLAB)
+        .build();
+
+    // when: fetch and send
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: no events emitted
+    verify(mockAsyncEventBus, never()).post(any());
+    assertThatLogMessagesEqual(
+        debug("GITLAB is not currently supported for pull request commenting")
+    );
+  }
+
+  private class TestablePullRequestPollingServiceBuilder
+  {
+    @Mock
+    SourceControlDAO mockSourceControlDAO;
+
+    @Mock
+    PolicyEvaluationDAO mockPolicyEvaluationDAO;
+
+    @Mock
+    GitCommitHistoryService mockGitCommitHistoryService;
+
+    @Mock
+    SourceControlUtils mockSourceControlUtils;
+
+    @Mock
+    GitClientFactory mockGitClientFactory;
+
+    @Mock
+    GitApiClient mockGitApiClient;
+
+    @Mock
+    GitGraphQlApiClient mockGitGraphQlApiClient;
+
+    private SourceControl sourceControl;
+
+    private GitRepositoryInfo gitRepositoryInfo;
+
+    private PolicyEvaluation sourcePolicyEvaluation;
+
+    private PolicyEvaluation targetPolicyEvaluation;
+
+    private List<PullRequest> pullRequests = new ArrayList<>();
+
+    private String orgAndRepoName;
+
+    PullRequestPollingService build() throws IOException {
+      MockitoAnnotations.initMocks(this);
+
+      doReturn(mockGitApiClient).when(mockGitClientFactory).createApiClient(gitRepositoryInfo);
+      doReturn(mockGitGraphQlApiClient).when(mockGitClientFactory).createGraphqlApiClient(gitRepositoryInfo);
+
+      doReturn(sourceControl, null).when(mockSourceControlDAO).getNextRepositoryToPoll();
+      doReturn(buildSourceControlList()).when(mockSourceControlDAO).getByRepositoryOwnerAndName(any());
+      doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
+
+      doReturn(false).when(mockSourceControlUtils).isScmEnabled((GitRepositoryInfo) null);
+      doReturn(true).when(mockSourceControlUtils).isScmEnabled(gitRepositoryInfo);
+
+      doReturn(buildSourcePolicyEvaluationList()).when(mockPolicyEvaluationDAO)
+          .getLastByCommitHashPerApplication(any());
+      doReturn(Optional.ofNullable(targetPolicyEvaluation)).when(mockGitCommitHistoryService)
+          .getLatestPolicyEvaluationForApplicationBaseBranch(any());
+
+      if (null != gitRepositoryInfo) {
+        ProjectUri projectUri = new GithubProjectUri(gitRepositoryInfo.repositoryUrl);
+        doReturn(projectUri).when(mockGitApiClient).getProjectUri();
+      }
+
+      doReturn(pullRequests).when(mockGitGraphQlApiClient)
+          .getPullRequestsSince(any(), any(OffsetDateTime.class), anyInt());
+
+      return new PullRequestPollingService(mockSourceControlDAO, mockPolicyEvaluationDAO, mockGitCommitHistoryService,
+          mockSourceControlUtils, mockGitClientFactory, mockAsyncEventBus);
+    }
+
+    private List<SourceControl> buildSourceControlList() {
+      return null != sourceControl ? ImmutableList.of(sourceControl) : new ArrayList<>();
+    }
+
+    private List<PolicyEvaluation> buildSourcePolicyEvaluationList() {
+      return null != sourcePolicyEvaluation ? ImmutableList.of(sourcePolicyEvaluation) : new ArrayList<>();
+    }
+
+    TestablePullRequestPollingServiceBuilder forRepository(
+        String applicationId,
+        String orgAndRepoName,
+        SourceControlProvider provider)
+    {
+      String url = "https://domain.com/" + orgAndRepoName;
+      sourceControl = new SourceControl(applicationId, url, "token", provider, true, true, "master");
+      sourceControl.setPullRequestPollTime(new Date());
+      gitRepositoryInfo = new GitRepositoryInfo(url, "token", provider, "master", true, true);
+      this.orgAndRepoName = orgAndRepoName;
+      return this;
+    }
+
+    TestablePullRequestPollingServiceBuilder withSourcePolicyEvaluation(
+        String applicationId,
+        String policyEvaluationId)
+    {
+      sourcePolicyEvaluation = new PolicyEvaluation();
+      sourcePolicyEvaluation.setApplicationId(applicationId);
+      sourcePolicyEvaluation.setId(policyEvaluationId);
+      return this;
+    }
+
+    TestablePullRequestPollingServiceBuilder withTargetPolicyEvaluation(
+        String applicationId,
+        String policyEvaluationId)
+    {
+      targetPolicyEvaluation = new PolicyEvaluation();
+      targetPolicyEvaluation.setApplicationId(applicationId);
+      targetPolicyEvaluation.setId(policyEvaluationId);
+      return this;
+    }
+
+    TestablePullRequestPollingServiceBuilder withPullRequest(int id, Date created, String headBranch) {
+      PullRequest pullRequest = new GithubPullRequest();
+      pullRequest.setNumber(id);
+      pullRequest.setCreated(created);
+      pullRequest.setHead(headBranch);
+      pullRequest.setRepository(orgAndRepoName);
+      pullRequests.add(pullRequest);
+      return this;
+    }
+  }
+}

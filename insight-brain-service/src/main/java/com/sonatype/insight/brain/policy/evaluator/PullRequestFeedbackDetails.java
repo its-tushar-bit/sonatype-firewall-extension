@@ -52,7 +52,7 @@ public class PullRequestFeedbackDetails
 
   private final String contents;
 
-  PullRequestFeedbackDetails(
+  public PullRequestFeedbackDetails(
       final ReportEntry bomReportEntry,
       final PolicyEvaluation toEvaluation,
       final PolicyViolationDiff<PolicyViolation> diff,

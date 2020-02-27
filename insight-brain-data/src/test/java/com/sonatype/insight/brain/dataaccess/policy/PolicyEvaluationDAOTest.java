@@ -12,13 +12,18 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 
 import com.google.common.collect.Sets;
 import org.junit.Test;
@@ -162,12 +167,13 @@ public class PolicyEvaluationDAOTest
     assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
   }
 
-  private void assertPolicyEvaluation(String applicationId,
-                                      String stageTypeId,
-                                      String scanId,
-                                      boolean reevaluation,
-                                      boolean forMonitoring,
-                                      PolicyEvaluation actual)
+  private void assertPolicyEvaluation(
+      String applicationId,
+      String stageTypeId,
+      String scanId,
+      boolean reevaluation,
+      boolean forMonitoring,
+      PolicyEvaluation actual)
   {
     assertThat(actual.getApplicationId()).isEqualTo(applicationId);
     assertThat(actual.getStageTypeId()).isEqualTo(stageTypeId);
@@ -460,6 +466,87 @@ public class PolicyEvaluationDAOTest
   }
 
   @Test
+  public void testDelete_cascadeToSourceControlDefaultBranchCommitHistory() {
+    // given branch commit history that references a policy evaluation
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan", "commit");
+    SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory =
+        tempEntity.newSourceControlDefaultBranchCommitHistory(
+            applicationId, policyEvaluation.getCommitHash(), new Date(), policyEvaluation.getId()
+        );
+    SourceControlDefaultBranchCommitHistoryDAO defaultBranchCommitHistoryDAO =
+        new SourceControlDefaultBranchCommitHistoryDAO();
+
+    // when : fetch the history
+    SourceControlDefaultBranchCommitHistory fetchedDefaultBranchCommitHistory =
+        defaultBranchCommitHistoryDAO.getByApplicationIdAndPolicyEvaluationId(
+            applicationId,
+            defaultBranchCommitHistory.getPolicyEvaluationId());
+
+    // then : the history exists
+    assertThat(fetchedDefaultBranchCommitHistory).isNotNull();
+
+    // when : deleting the policy evaluation
+    PolicyEvaluationDAO policyEvaluationDao = new PolicyEvaluationDAO();
+    policyEvaluationDao.delete(policyEvaluation);
+
+    // then : the history no longer exists
+    fetchedDefaultBranchCommitHistory = defaultBranchCommitHistoryDAO.getByApplicationIdAndPolicyEvaluationId(
+        applicationId,
+        defaultBranchCommitHistory.getPolicyEvaluationId());
+    assertThat(fetchedDefaultBranchCommitHistory).isNull();
+  }
+
+  @Test
+  public void testDelete_cascadeToSourceControlPullRequestCommentForSourcePolicyEvaluation() {
+    testDelete_cascadeToSourceControlPullRequestComment(
+        (sourcePolicyEvaluation, targetPolicyEvaluation) -> sourcePolicyEvaluation
+    );
+  }
+
+  @Test
+  public void testDelete_cascadeToSourceControlPullRequestCommentForTargetPolicyEvaluation() {
+    testDelete_cascadeToSourceControlPullRequestComment(
+        (sourcePolicyEvaluation, targetPolicyEvaluation) -> targetPolicyEvaluation
+    );
+  }
+
+  private void testDelete_cascadeToSourceControlPullRequestComment(PolicyEvaluationChooser policyEvaluationChooser) {
+    // given a source control comment that references policy evaluations
+    PolicyEvaluation sourcePolicyEvaluation =
+        tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "sourceScan", "sourceCommit");
+    PolicyEvaluation targetPolicyEvaluation =
+        tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "targetScan", "targetCommit");
+
+    SourceControlPullRequestComment pullRequestComment = new SourceControlPullRequestComment(
+        applicationId,
+        1,
+        2,
+        sourcePolicyEvaluation.getId(),
+        targetPolicyEvaluation.getId()
+    );
+    SourceControlPullRequestCommentDAO pullRequestCommentDAO = new SourceControlPullRequestCommentDAO();
+    pullRequestCommentDAO.insert(pullRequestComment);
+
+    // when : fetch the comment
+    SourceControlPullRequestComment fetchedPullRequestComment =
+        pullRequestCommentDAO.getByApplicationIdAndPullRequestId(applicationId, pullRequestComment.getPullRequestId());
+
+    // then : the comment exists
+    assertThat(fetchedPullRequestComment).isNotNull();
+
+    // when : deleting one of the policy evaluations
+    PolicyEvaluationDAO policyEvaluationDao = new PolicyEvaluationDAO();
+    policyEvaluationDao.delete(policyEvaluationChooser.choose(sourcePolicyEvaluation, targetPolicyEvaluation));
+
+    // then : the comment no longer exists
+    fetchedPullRequestComment = pullRequestCommentDAO.getByApplicationIdAndPullRequestId(
+        applicationId,
+        pullRequestComment.getPullRequestId());
+    assertThat(fetchedPullRequestComment).isNull();
+  }
+
+  @Test
   public void testGetBetweenDatesByApplicationIdAndStageIds() {
     PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
 
@@ -568,6 +655,29 @@ public class PolicyEvaluationDAOTest
   }
 
   @Test
+  public void testGetLastByCommitHashPerApplication() {
+    // given: two applications with multiple policy evaluations each
+    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+    final Application app1 = tempEntity.newApplication("app1", organization.getId());
+    final Application app2 = tempEntity.newApplication("app2", organization.getId());
+    Date now = new Date();
+    tempEntity
+        .newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "app1_old", new Date(now.getTime() - 1000), COMMIT_HASH);
+    tempEntity
+        .newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "app1_new", new Date(now.getTime() - 500), COMMIT_HASH);
+    tempEntity
+        .newPolicyEvaluation(app2.getId(), Stage.ID_BUILD, "app2_old", new Date(now.getTime() - 750), COMMIT_HASH);
+    tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_BUILD, "app2_new", now, COMMIT_HASH);
+
+    // when: get latest policy evaluation for each application for the given commit
+    List<PolicyEvaluation> policyEvaluations = dao.getLastByCommitHashPerApplication(COMMIT_HASH);
+
+    // then: we have the latest evals for each app, identified by their scan IDs
+    Set<String> scanIds = policyEvaluations.stream().map(PolicyEvaluation::getScanId).collect(Collectors.toSet());
+    assertThat(scanIds).containsExactlyInAnyOrder("app1_new", "app2_new");
+  }
+
+  @Test
   public void testGetLastByCommitHash_NotFound() {
     final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
 
@@ -649,7 +759,7 @@ public class PolicyEvaluationDAOTest
     assertThat(dao.getLastByApplicationAndAbbreviatedCommitHash(app1.getId(), COMMIT_HASH.substring(0, 7)))
         .isNull();
   }
-  
+
   @Test
   public void testGetCount() {
     PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
@@ -662,5 +772,11 @@ public class PolicyEvaluationDAOTest
     tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId2", time2);
 
     assertThat(dao.getCount()).isEqualTo(2);
+  }
+
+  @FunctionalInterface
+  interface PolicyEvaluationChooser
+  {
+    PolicyEvaluation choose(PolicyEvaluation sourcePolicyEvaluation, PolicyEvaluation targetPolicyEvaluation);
   }
 }

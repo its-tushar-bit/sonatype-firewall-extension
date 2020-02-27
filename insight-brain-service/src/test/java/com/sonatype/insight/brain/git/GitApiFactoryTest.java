@@ -9,6 +9,7 @@ import java.io.File;
 
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.SourceControlConfig;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.JGitApi;
 import com.sonatype.nexus.git.utils.api.NativeGitApi;

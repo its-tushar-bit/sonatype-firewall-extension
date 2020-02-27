@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.scm.api.GitApiClient;
 
 import org.slf4j.Logger;
@@ -77,7 +78,7 @@ class PullRequestUtils
   }
 
   private boolean isPrivateRepository(final GitRepositoryInfo gitRepositoryInfo) throws IOException {
-    GitApiClient client = gitClientFactory.create(gitRepositoryInfo);
+    GitApiClient client = gitClientFactory.createApiClient(gitRepositoryInfo);
     return client.isRepositoryPrivate();
   }
 }

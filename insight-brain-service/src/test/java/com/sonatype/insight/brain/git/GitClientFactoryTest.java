@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.git;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.utils.AbstractHttpClientTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -20,6 +21,6 @@ public class GitClientFactoryTest
   protected void pingUrl(String url) throws Exception {
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo(url + "org/project", "token", SourceControlProvider.GITHUB, "master", false, false);
-    gitClientFactory.create(gitRepositoryInfo).isRepositoryPrivate();
+    gitClientFactory.createApiClient(gitRepositoryInfo).isRepositoryPrivate();
   }
 }

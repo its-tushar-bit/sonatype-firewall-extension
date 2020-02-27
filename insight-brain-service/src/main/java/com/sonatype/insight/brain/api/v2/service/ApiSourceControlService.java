@@ -201,6 +201,7 @@ public class ApiSourceControlService
 
     SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(sourceControlDTO);
     sourceControl.setId(storedSourceControl.getId());
+    sourceControl.setPullRequestPollTime(storedSourceControl.getPullRequestPollTime());
 
     setTokenValueForSave(sourceControl);
     // updates may come with our 'fake' token
@@ -279,7 +280,7 @@ public class ApiSourceControlService
   private void checkLicense() {
     if (!(productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)
         || productLicense.hasFeature(LicensedFeature.AUTOMATION))) {
-      log.debug("License does not support SourceControl notification features");
+      log.debug("License does not support SourceControl notification or automation features");
       throw new InvalidLicenseException();
     }
   }

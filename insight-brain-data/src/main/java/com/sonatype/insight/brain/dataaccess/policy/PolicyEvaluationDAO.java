@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -238,6 +240,15 @@ public class PolicyEvaluationDAO
       lastPolicyEvaluationDAO.delete(tx, lastPolicyEvaluation);
     }
 
+    // Cascade to source control pull request comments
+    SourceControlPullRequestCommentDAO pullRequestCommentDAO = new SourceControlPullRequestCommentDAO();
+    pullRequestCommentDAO.deleteByPolicyEvaluationId(tx, policyEvaluation.getId());
+
+    // Cascade to source control default branch commit history
+    SourceControlDefaultBranchCommitHistoryDAO defaultBranchCommitHistoryDAO =
+        new SourceControlDefaultBranchCommitHistoryDAO();
+    defaultBranchCommitHistoryDAO.deleteByPolicyEvaluationId(tx, policyEvaluation.getId());
+
     // Delete the policy evaluation itself
     super.delete(tx, policyEvaluation);
 
@@ -296,6 +307,19 @@ public class PolicyEvaluationDAO
         " WHERE entity.commitHash=?1" + //
         " ORDER BY entity.time DESC";
     return createQuery(sQuery, commitHash).forceSingleResult().get();
+  }
+
+  public List<PolicyEvaluation> getLastByCommitHashPerApplication(String commitHash) {
+    List<PolicyEvaluation> result = new ArrayList<>();
+
+    String sQuery = "SELECT DISTINCT entity.applicationId FROM PolicyEvaluation entity" + //
+        " WHERE entity.commitHash=?1";
+
+    List<String> applicationIdsForCommit = new Query<String>(sQuery, commitHash).getList();
+
+    applicationIdsForCommit.forEach(id -> result.add(getLastByApplicationAndCommitHash(id, commitHash)));
+
+    return result;
   }
 
   public PolicyEvaluation getLastByApplicationAndCommitHash(

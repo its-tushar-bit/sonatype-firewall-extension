@@ -63,6 +63,8 @@ import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDataDAO;
@@ -130,6 +132,8 @@ import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
@@ -211,6 +215,11 @@ public class TemporaryEntity
 
   private final PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
 
+  private final SourceControlPullRequestCommentDAO pullRequestCommentDAO = new SourceControlPullRequestCommentDAO();
+
+  private final SourceControlDefaultBranchCommitHistoryDAO defaultBranchCommitHistoryDAO =
+      new SourceControlDefaultBranchCommitHistoryDAO();
+
   private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
   private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
@@ -281,6 +290,9 @@ public class TemporaryEntity
 
   private MailConfigurationDAO mailConfigurationDAO = new MailConfigurationDAO();
 
+  private final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO =
+      new SourceControlDefaultBranchCommitHistoryDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -343,6 +355,8 @@ public class TemporaryEntity
 
   private Collection<ComponentLabel> componentLabels;
 
+  private Collection<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories;
+
   @Override
   protected void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -377,6 +391,7 @@ public class TemporaryEntity
     componentLabels = new ArrayList<>();
     savedMailConfiguration = mailConfigurationDAO.get();
     savedProxyServerConfiguration = proxyServerConfigurationDAO.get();
+    sourceControlDefaultBranchCommitHistories = new ArrayList<>();
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
@@ -394,6 +409,8 @@ public class TemporaryEntity
     delete(membershipMappings, membershipMappingDAO);
     delete(dashboardFilters, dashboardFilterDAO);
     delete(policyTags, policyTagDAO);
+    delete(pullRequestCommentDAO.getAll(), pullRequestCommentDAO);
+    delete(defaultBranchCommitHistoryDAO.getAll(), defaultBranchCommitHistoryDAO);
     orgs.forEach(org -> apps.addAll(appDAO.getByOrganizationId(org.getId())));
     delete(apps, appDAO);
     delete(orgs, orgDAO);
@@ -421,6 +438,7 @@ public class TemporaryEntity
         samlConfiguration -> samlConfigurationDAO.delete());
     delete(thirdPartyFileConfigurations, thirdPartyFileDAO);
     delete(componentLabels, componentLabelDAO);
+    delete(sourceControlDefaultBranchCommitHistories, sourceControlDefaultBranchCommitHistoryDAO);
 
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     if (config != null) {
@@ -1090,6 +1108,37 @@ public class TemporaryEntity
     return policyEvaluation;
   }
 
+  public SourceControlPullRequestComment newSourceControlPullRequestComment(
+      String applicationId,
+      int pullRequestId,
+      int pullRequestCommentId,
+      String sourcePolicyEvaluationId,
+      String targetPolicyEvaluationId)
+  {
+    SourceControlPullRequestComment pullRequestComment = new SourceControlPullRequestComment(
+        applicationId,
+        pullRequestId,
+        pullRequestCommentId,
+        sourcePolicyEvaluationId,
+        targetPolicyEvaluationId
+    );
+    pullRequestCommentDAO.insert(pullRequestComment);
+    return pullRequestComment;
+  }
+
+  public SourceControlDefaultBranchCommitHistory newSourceControlDefaultBranchCommitHistory(
+      String applicationId,
+      String commitHash,
+      Date commitTime,
+      String policyEvaluationId)
+  {
+    SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory = new SourceControlDefaultBranchCommitHistory(
+        applicationId, commitHash, commitTime, policyEvaluationId
+    );
+    defaultBranchCommitHistoryDAO.insert(defaultBranchCommitHistory);
+    return defaultBranchCommitHistory;
+  }
+
   public PolicyEvaluation newPolicyEvaluation(
       String applicationId,
       String stageTypeId,
@@ -1104,6 +1153,20 @@ public class TemporaryEntity
 
   public PolicyEvaluation newPolicyEvaluation(String applicationId, String stageTypeId, String scanId) {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId);
+    policyEvaluationDAO.insert(policyEvaluation);
+    return policyEvaluation;
+  }
+
+  public PolicyEvaluation newPolicyEvaluation(
+      String applicationId,
+      String stageTypeId,
+      String scanId,
+      Date time,
+      String commitHash)
+  {
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId);
+    policyEvaluation.setTime(time);
+    policyEvaluation.setCommitHash(commitHash);
     policyEvaluationDAO.insert(policyEvaluation);
     return policyEvaluation;
   }
@@ -2028,6 +2091,10 @@ public class TemporaryEntity
     return organization;
   }
 
+  public SourceControl newSourceControl(String ownerId, String repositoryUrl, Date pullRequestPollTime) {
+    return newSourceControl(ownerId, repositoryUrl, null, null, true, true, "master", pullRequestPollTime);
+  }
+
   public SourceControl newSourceControl(String ownerId,
                                         String repositoryUrl,
                                         String token,
@@ -2044,6 +2111,19 @@ public class TemporaryEntity
                                         Boolean enableStatusChecks,
                                         String baseBranch)
   {
+    return newSourceControl(applicationId, repositoryUrl, token, provider, enablePullRequests, enableStatusChecks,
+        baseBranch, null);
+  }
+
+  public SourceControl newSourceControl(String applicationId,
+                                        String repositoryUrl,
+                                        String token,
+                                        SourceControlProvider provider,
+                                        Boolean enablePullRequests,
+                                        Boolean enableStatusChecks,
+                                        String baseBranch,
+                                        Date pullRequestPollTime)
+  {
     SourceControl sourceControl =
         new SourceControl.Builder()
             .setOwnerId(applicationId)
@@ -2052,7 +2132,9 @@ public class TemporaryEntity
             .setProvider(provider)
             .setEnablePullRequests(enablePullRequests)
             .setEnableStatusChecks(enableStatusChecks)
-            .setBaseBranch(baseBranch).build();
+            .setBaseBranch(baseBranch)
+            .setPullRequestPollTime(pullRequestPollTime)
+            .build();
     sourceControlDAO.insert(sourceControl);
     sourceControls.add(sourceControl);
     return sourceControl;
@@ -2305,5 +2387,18 @@ public class TemporaryEntity
     proxyServerConfiguration.setPassword(password);
     proxyServerConfiguration.setExcludeHosts(String.join(",", Arrays.asList(excludedHosts)));
     proxyServerConfigurationDAO.set(proxyServerConfiguration);
+  }
+
+  public SourceControlDefaultBranchCommitHistory createSourceControlDefaultBranchCommitHistory(
+      final String applicationId,
+      final String commitHash,
+      final Date commitTime,
+      final String policyEvaluationId)
+  {
+    final SourceControlDefaultBranchCommitHistory sourceControlDefaultBranchCommitHistory =
+        new SourceControlDefaultBranchCommitHistory(applicationId, commitHash, commitTime, policyEvaluationId);
+    sourceControlDefaultBranchCommitHistoryDAO.insert(sourceControlDefaultBranchCommitHistory);
+    sourceControlDefaultBranchCommitHistories.add(sourceControlDefaultBranchCommitHistory);
+    return sourceControlDefaultBranchCommitHistory;
   }
 }

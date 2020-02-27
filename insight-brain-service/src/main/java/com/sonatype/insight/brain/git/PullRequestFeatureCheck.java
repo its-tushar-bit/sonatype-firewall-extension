@@ -16,6 +16,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 

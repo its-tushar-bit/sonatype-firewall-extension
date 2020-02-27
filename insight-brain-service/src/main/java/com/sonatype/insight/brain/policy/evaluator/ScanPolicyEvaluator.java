@@ -35,7 +35,6 @@ import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.git.GitApiService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -57,6 +56,7 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEventService;
@@ -115,7 +115,7 @@ public class ScanPolicyEvaluator
 
   private final ComponentResolver componentResolver;
 
-  private final GitApiService gitApiService;
+  private final SourceControlUtils sourceControlUtils;
 
   @Inject
   public ScanPolicyEvaluator(
@@ -131,7 +131,7 @@ public class ScanPolicyEvaluator
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
       final ProductLicense productLicense,
       final ComponentResolver componentResolver,
-      final GitApiService gitApiService)
+      final SourceControlUtils sourceControlUtils)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -145,7 +145,7 @@ public class ScanPolicyEvaluator
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.productLicense = productLicense;
     this.componentResolver = componentResolver;
-    this.gitApiService = gitApiService;
+    this.sourceControlUtils = sourceControlUtils;
   }
 
   public ScanPolicyEvaluatorResults evaluate(final Application application, final String scanId, final Stage stage)
@@ -194,7 +194,7 @@ public class ScanPolicyEvaluator
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, policies, components, forMonitoring);
 
     PolicyViolationTelemetryCollector telemetryCollector
-        = new PolicyViolationTelemetryCollector(gitApiService.isScmEnabled(appId));
+        = new PolicyViolationTelemetryCollector(sourceControlUtils.isScmEnabled(appId));
 
     String commitHash = extractCommitHash(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME));
 

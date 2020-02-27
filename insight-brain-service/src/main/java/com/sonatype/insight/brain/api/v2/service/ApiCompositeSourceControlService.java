@@ -138,12 +138,13 @@ public class ApiCompositeSourceControlService
     return dto;
   }
 
-  private void collateCompositeSourceControl(final ApiCompositeSourceControlDTO dto,
-                                             final SourceControl sourceControl,
-                                             final String parentName,
-                                             final SourceControl parentSourceControl,
-                                             final String grandParentName,
-                                             final SourceControl grandParentSourceControl)
+  private void collateCompositeSourceControl(
+      final ApiCompositeSourceControlDTO dto,
+      final SourceControl sourceControl,
+      final String parentName,
+      final SourceControl parentSourceControl,
+      final String grandParentName,
+      final SourceControl grandParentSourceControl)
   {
 
     //If parent and grandParent are set, this means it is an application.
@@ -186,10 +187,11 @@ public class ApiCompositeSourceControlService
     );
   }
 
-  private void setProviderFromRootSourceControlIfPresent(final ApiCompositeSourceControlDTO dto,
-                                                         final SourceControl sourceControl,
-                                                         final SourceControl parentSourceControl,
-                                                         final SourceControl grandParentSourceControl)
+  private void setProviderFromRootSourceControlIfPresent(
+      final ApiCompositeSourceControlDTO dto,
+      final SourceControl sourceControl,
+      final SourceControl parentSourceControl,
+      final SourceControl grandParentSourceControl)
   {
     Lists.newArrayList(sourceControl, parentSourceControl, grandParentSourceControl)
         .stream()
@@ -235,7 +237,8 @@ public class ApiCompositeSourceControlService
   }
 
   private void checkLicense() {
-    if (!productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)) {
+    if (!(productLicense.hasFeature(LicensedFeature.NOTIFICATIONS) ||
+        productLicense.hasFeature(LicensedFeature.AUTOMATION))) {
       log.debug("License does not support SourceControl notification features");
       throw new InvalidLicenseException();
     }

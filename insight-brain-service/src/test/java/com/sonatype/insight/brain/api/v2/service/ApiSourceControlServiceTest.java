@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -411,6 +412,10 @@ public class ApiSourceControlServiceTest
     );
     assertThat(persistedSourceControlDTO).isNotNull();
 
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+    Date pollTime = new Date(System.currentTimeMillis() - 5000);
+    sourceControlDAO.updatePullRequestPollTime(sourceControl.getId(), pollTime);
+
     persistedSourceControlDTO.token = "newToken";
 
     ApiSourceControlDTO updatedControlDTO = sourceControlService.updateSourceControlByOwner(
@@ -419,7 +424,10 @@ public class ApiSourceControlServiceTest
         persistedSourceControlDTO
     );
 
+    SourceControl sourceControlAfterUpdate = sourceControlDAO.getByOwnerId(app.getId());
+
     assertThat(updatedControlDTO).isNotNull();
+    assertThat(sourceControlAfterUpdate.getPullRequestPollTime()).isEqualTo(pollTime);
   }
 
   @Test

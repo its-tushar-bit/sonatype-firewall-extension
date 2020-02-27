@@ -599,6 +599,7 @@ CREATE TABLE source_control (
   base_branch varchar(243),
   enable_pull_requests boolean,
   enable_status_checks boolean,
+  pull_request_poll_time timestamp NULL,
   CONSTRAINT source_control_pk PRIMARY KEY (source_control_id),
   CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id)
 );
@@ -665,4 +666,39 @@ CREATE TABLE proxy_server_configuration (
   password varchar(255),
   exclude_hosts varchar(500),
   CONSTRAINT proxy_server_configuration_pk PRIMARY KEY (proxy_server_configuration_id)
+);
+
+-- Since 1.86
+CREATE TABLE source_control_pull_request_comment
+(
+  source_control_pull_request_comment_id varchar(50) NOT NULL,
+  application_id varchar(50) NOT NULL,
+  pull_request_id int NOT NULL,
+  pull_request_comment_id int NOT NULL,
+  source_policy_evaluation_id varchar(50) NOT NULL,
+  target_policy_evaluation_id varchar(50) NOT NULL,
+  create_time timestamp NOT NULL,
+  update_time timestamp,
+  CONSTRAINT source_control_pull_request_comment_pk PRIMARY KEY (source_control_pull_request_comment_id),
+  CONSTRAINT source_control_pull_request_application_pull_request_uk UNIQUE (application_id, pull_request_id),
+  CONSTRAINT source_control_pull_request_comment_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id),
+  CONSTRAINT source_control_pull_request_source_policy_eval_fk FOREIGN KEY (source_policy_evaluation_id)
+      REFERENCES policy_evaluation(policy_evaluation_id),
+  CONSTRAINT source_control_pull_request_target_policy_eval_fk FOREIGN KEY (target_policy_evaluation_id)
+      REFERENCES policy_evaluation(policy_evaluation_id)
+);
+
+-- Since 1.86
+CREATE TABLE source_control_default_branch_commit_history (
+  source_control_default_branch_commit_history_id varchar(50) NOT NULL,
+  application_id varchar(50) NOT NULL,
+  commit_hash varchar(128) NOT NULL,
+  commit_time timestamp NOT NULL,
+  policy_evaluation_id varchar(50),
+  create_time timestamp NOT NULL,
+  update_time timestamp,
+  CONSTRAINT source_control_default_branch_commit_history_pk PRIMARY KEY (source_control_default_branch_commit_history_id),
+  CONSTRAINT source_control_default_branch_commit_history_app_commit_uk UNIQUE (application_id, commit_hash),
+  CONSTRAINT source_control_default_branch_commit_history_application_fk FOREIGN KEY (application_id) REFERENCES application (application_id),
+  CONSTRAINT source_control_default_branch_commit_history_policy_eval_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id)
 );

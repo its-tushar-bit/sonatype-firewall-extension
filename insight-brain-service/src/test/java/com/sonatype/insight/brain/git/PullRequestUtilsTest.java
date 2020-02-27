@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 
@@ -83,7 +84,7 @@ public class PullRequestUtilsTest
 
   @Test
   public void isPullRequestAllowed_PrivateGithub() throws IOException {
-    when(gitClientFactory.create(any(GitRepositoryInfo.class))).thenReturn(gitApiClient);
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(gitApiClient);
     String repoName = String.format(TEST_REPO_URL, "https://github.com/");
 
     boolean[] isPrivateValues = {true, false};
@@ -95,7 +96,7 @@ public class PullRequestUtilsTest
 
   @Test
   public void isPullRequestAllowed_ClientError() throws IOException {
-    when(gitClientFactory.create(any(GitRepositoryInfo.class))).thenReturn(gitApiClient);
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(gitApiClient);
     when(gitApiClient.isRepositoryPrivate()).thenThrow(new IOException());
 
     assertThatExceptionOfType(IOException.class).isThrownBy(() ->

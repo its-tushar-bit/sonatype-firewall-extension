@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -14,6 +17,7 @@ import java.util.stream.Stream;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -49,6 +53,208 @@ public class SourceControlDAOTest
   @After
   public void cleanup() {
     sourceControlDAO.getAll().stream().forEach(sourceControlDAO::delete);
+  }
+
+  @Test
+  public void testUpdatePullRequestPollTimes_appWithPolicyEvaluationAndNeedingPollTime() {
+    // given: several policy evaluations at different times and a related source control without a poll time
+    LocalDateTime now = LocalDateTime.now();
+    Date scanTime = toDate(now.minusDays(3));
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId2", false, false, false,
+        toDate(now.minusDays(2)), "commitHash1234");
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId", false, false, false, scanTime,
+        "commitHash123");
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId3", false, false, false,
+        toDate(now.minusDays(1)), "commitHash1235");
+
+    // when: fetch source control
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+
+    // then: poll time is not set
+    assertThat(sourceControl.getPullRequestPollTime()).isNull();
+
+    // when: update poll times and fetch app source control
+    sourceControlDAO.updatePullRequestPollTimes();
+    sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+
+    // then: source control poll time for app was updated to the earliest policy eval time
+    assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(scanTime);
+  }
+
+  @Test
+  public void testUpdatePullRequestPollTimes_appWithPolicyEvaluationAndAlreadyHasPollTime() {
+    // given: policy eval and app source control with poll time
+    Date scanTime = toDate(LocalDateTime.now().minusDays(3));
+    Date startTime = new Date();
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", startTime);
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId", false, false, false, scanTime,
+        "commitHash123");
+
+    // when: fetch source control
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+
+    // then: poll time is set
+    assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(startTime);
+
+    // when: update poll times and fetch app source control
+    sourceControlDAO.updatePullRequestPollTimes();
+    sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+
+    // then: source control poll time for app was not updated
+    assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(startTime);
+  }
+
+  @Test
+  public void testUpdatePullRequestPollTimes_appWithRepoUrlAndNeedsPollTime() {
+    // given: app source control without poll time and no related policy evals
+    Date startTime = new Date();
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
+
+    // when: fetch source control
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+
+    // then: poll time missing
+    assertThat(sourceControl.getPullRequestPollTime()).isNull();
+
+    // when: update poll times and refetch
+    sourceControlDAO.updatePullRequestPollTimes();
+    sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+
+    // then: new poll time was assigned
+    assertThat(sourceControl.getPullRequestPollTime()).isNotNull();
+    assertThat(sourceControl.getPullRequestPollTime()).isAfterOrEqualTo(startTime);
+  }
+
+  @Test
+  public void testUpdatePullRequestPollTimes_sourceControlWithoutRepoUrlAndWithPollTimeSet() {
+    // given: source control with null repo url and with poll time set
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    tempEntity.newSourceControl(org.getId(), null, new Date());
+
+    // when: fetch source control for app
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(org.getId());
+
+    // then: poll time not null
+    assertThat(sourceControl.getPullRequestPollTime()).isNotNull();
+
+    // when: update poll times and re-fetch
+    sourceControlDAO.updatePullRequestPollTimes();
+    sourceControl = sourceControlDAO.getByOwnerId(org.getId());
+
+    // then: source control poll time set to null
+    assertThat(sourceControl.getPullRequestPollTime()).isNull();
+  }
+
+  @Test
+  public void testGetByRepositoryOwnerAndName() {
+    // given: a source control entry with the desired repo owner and name
+    String repoOwnerAndName = "testOrg/repoName";
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    tempEntity.newSourceControl(app.getId(), "http://domain.com/" + repoOwnerAndName, "", null);
+
+    // when: find the source control entry by owner and name string
+    List<SourceControl> sourceControlList = sourceControlDAO.getByRepositoryOwnerAndName(repoOwnerAndName);
+
+    // then: we found it
+    assertThat(sourceControlList).isNotNull();
+    assertThat(sourceControlList.size()).isEqualTo(1);
+    assertThat(sourceControlList.get(0).getOwnerId()).isEqualTo(app.getId());
+
+    // when: add a 2nd source control entry for same repo and search again
+    Application app2 = tempEntity.newApplication(app.getOrganizationId());
+    tempEntity.newSourceControl(app2.getId(), "http://domain.com/" + repoOwnerAndName, null);
+    sourceControlList = sourceControlDAO.getByRepositoryOwnerAndName(repoOwnerAndName);
+
+    // then: we have 2 now
+    assertThat(sourceControlList.size()).isEqualTo(2);
+    assertThat(sourceControlList).extracting(SourceControl::getOwnerId)
+        .containsExactlyInAnyOrder(app.getId(), app2.getId());
+  }
+
+  @Test
+  public void testGetNextRepositoryToPoll() {
+    // given: several source control entries with different pull request poll times
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    LocalDateTime dateTime = LocalDateTime.now();
+    tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo1", toDate(dateTime));
+
+    Application app2 = tempEntity.newApplication("app2", org.getId());
+    SourceControl sourceControl2 = tempEntity.newSourceControl(app2.getId(), "http://a.com/org/repo2",
+        toDate(dateTime.minusDays(1)));
+
+    Application app3 = tempEntity.newApplication("app3", org.getId());
+    SourceControl sourceControl3 = tempEntity.newSourceControl(app3.getId(), "http://a.com/org/repo3",
+        toDate(dateTime.minusDays(2)));
+
+    // when: get source control for next repo to poll
+    SourceControl sourceControl = sourceControlDAO.getNextRepositoryToPoll();
+
+    // then: app3 has oldest poll time
+    assertThat(sourceControl.getOwnerId()).isEqualTo(app3.getId());
+
+    // when: update app3 source control poll time to have current time
+    sourceControl3.setPullRequestPollTime(new Date());
+    sourceControlDAO.update(sourceControl3);
+    sourceControl = sourceControlDAO.getNextRepositoryToPoll();
+
+    // then: app2 source control now has oldest poll time
+    assertThat(sourceControl.getOwnerId()).isEqualTo(app2.getId());
+
+    // when: clear app2 poll time and lookup next repo to poll
+    sourceControl2.setPullRequestPollTime(null);
+    sourceControlDAO.update(sourceControl2);
+    sourceControl = sourceControlDAO.getNextRepositoryToPoll();
+
+    // then: app 1 source control has oldest poll time now
+    assertThat(sourceControl.getOwnerId()).isEqualTo(app.getId());
+  }
+
+  @Test
+  public void testUpdatePullRequestPollTime() {
+    // given: source control entry for application
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
+
+    // when: fetch source control
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+
+    // then: found and poll time is null
+    assertThat(sourceControl).isNotNull();
+    assertThat(sourceControl.getPullRequestPollTime()).isNull();
+
+    // when: update poll time and refetch
+    Date pollTime = new Date();
+    sourceControlDAO.updatePullRequestPollTime(sourceControl.getId(), pollTime);
+    sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+
+    // then: poll time matches
+    assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(pollTime);
+  }
+
+  @Test
+  public void testUpdatePullRequestPollTimeForApplication() {
+    // given: source control entry for application
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
+
+    // when: fetch source control
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+
+    // then: found and poll time is null
+    assertThat(sourceControl).isNotNull();
+    assertThat(sourceControl.getPullRequestPollTime()).isNull();
+
+    // when: update poll time and refetch
+    Date pollTime = new Date();
+    sourceControlDAO.updatePullRequestPollTimeForApplication(app.getId(), pollTime);
+    sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+
+    // then: poll time matches
+    assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(pollTime);
   }
 
   @Test
@@ -467,9 +673,10 @@ public class SourceControlDAOTest
             scDefaultAppDefaultOrg.getId());
   }
 
-  private SourceControl buildAppSourceControlAndApp(Organization organization,
-                                                    int appNumber,
-                                                    Boolean enablePullRequests)
+  private SourceControl buildAppSourceControlAndApp(
+      Organization organization,
+      int appNumber,
+      Boolean enablePullRequests)
   {
     return buildAppSourceControl(tempEntity.newApplication(organization.getId()).getId(), appNumber,
         enablePullRequests);
@@ -478,7 +685,7 @@ public class SourceControlDAOTest
   private SourceControl buildAppSourceControl(String ownerId, int appNumber, Boolean enablePullRequests) {
     return new SourceControl.Builder()
         .setOwnerId(ownerId)
-        .setRepositoryUrl("http://localhost/owner/app"  + appNumber)
+        .setRepositoryUrl("http://localhost/owner/app" + appNumber)
         .setEnablePullRequests(enablePullRequests)
         .build();
   }
@@ -594,5 +801,9 @@ public class SourceControlDAOTest
 
   private SourceControl createRootOrgWithProvider() {
     return tempEntity.newSourceControl(org.getParentOrganizationId(), null, null, SourceControlProvider.GITHUB);
+  }
+
+  private Date toDate(LocalDateTime localDateTime) {
+    return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
   }
 }

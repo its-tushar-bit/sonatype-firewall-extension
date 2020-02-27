@@ -24,9 +24,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
-import com.sonatype.insight.brain.git.GitApiService;
 import com.sonatype.insight.brain.git.GitClientFactory;
-import com.sonatype.insight.brain.git.GitRepositoryInfo;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.PullRequestTask;
 import com.sonatype.insight.brain.model.Application;
@@ -34,6 +32,8 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.VersionRemediationTitleGenerator;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 
@@ -59,8 +59,6 @@ public class PolicyAlertScmNotifier
 
   private final GitClientFactory gitClientFactory;
 
-  private final GitApiService gitApiService;
-
   private final ApiComponentRemediationService remediationService;
 
   private final PolicyAlertSourceCodeOrganizer policyAlertSourceCodeOrganizer;
@@ -80,6 +78,8 @@ public class PolicyAlertScmNotifier
 
   private final PullRequestExecutor pullRequestExecutor;
 
+  private final SourceControlUtils sourceControlUtils;
+
   /**
    * notifier for sending to hosted git source control manager service
    *
@@ -87,7 +87,6 @@ public class PolicyAlertScmNotifier
    * @param remediationService             service to lookup suggested remediations
    * @param policyAlertSourceCodeOrganizer service to aggregate policy alerts
    * @param gitClientFactory               factory to create a connection to git hosting service
-   * @param gitApiService                  service to find git repository info for an application
    * @param baseUrl
    */
   @Inject
@@ -96,21 +95,21 @@ public class PolicyAlertScmNotifier
       final ApiComponentRemediationService remediationService,
       final PolicyAlertSourceCodeOrganizer policyAlertSourceCodeOrganizer,
       final GitClientFactory gitClientFactory,
-      final GitApiService gitApiService,
       final BaseUrl baseUrl,
       final PullRequestExecutor pullRequestExecutor,
-      final Provider<PullRequestTask> pullRequestTaskProvider)
+      final Provider<PullRequestTask> pullRequestTaskProvider,
+      final SourceControlUtils sourceControlUtils)
   {
     this.pullRequestFeatureCheck = pullRequestFeatureCheck;
     this.remediationService = remediationService;
     this.policyAlertSourceCodeOrganizer = policyAlertSourceCodeOrganizer;
     this.gitClientFactory = gitClientFactory;
-    this.gitApiService = gitApiService;
     this.baseUrl = baseUrl;
     this.pullRequestExecutor = pullRequestExecutor;
     this.pullRequestTaskProvider = pullRequestTaskProvider;
     this.executor = new ThreadPoolExecutor(1, 1, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
         new ThreadFactoryBuilder().setDaemon(true).setNameFormat("PullRequestTask-%s").build());
+    this.sourceControlUtils = sourceControlUtils;
   }
 
   /**
@@ -126,8 +125,7 @@ public class PolicyAlertScmNotifier
       final List<PolicyNotification> policyNotifications)
       throws IOException
   {
-    final GitRepositoryInfo gitRepositoryInfo =
-        gitApiService.getGitRepositoryInfoForApplication(app.getId());
+    final GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
 
     if (!pullRequestFeatureCheck.isPullRequestFeatureSupported(app, gitRepositoryInfo)) {
       return;
@@ -196,7 +194,7 @@ public class PolicyAlertScmNotifier
       final String branchName)
       throws IOException
   {
-    return gitClientFactory.create(gitRepositoryInfo).isBranchOnServer(branchName);
+    return gitClientFactory.createApiClient(gitRepositoryInfo).isBranchOnServer(branchName);
   }
 
   private String getBranchName(

@@ -24,9 +24,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentCha
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
-import com.sonatype.insight.brain.git.GitApiService;
 import com.sonatype.insight.brain.git.GitClientFactory;
-import com.sonatype.insight.brain.git.GitRepositoryInfo;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.PullRequestTask;
 import com.sonatype.insight.brain.model.Application;
@@ -37,6 +35,8 @@ import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -74,9 +74,6 @@ public class PolicyAlertScmNotifierTest
   private GitClientFactory gitClientFactory;
 
   @Mock
-  private GitApiService gitApiService;
-
-  @Mock
   private GitRepositoryInfo gitRepositoryInfo;
 
   @Mock
@@ -90,9 +87,12 @@ public class PolicyAlertScmNotifierTest
 
   @Mock
   PullRequestTask pullRequestTask;
-  
+
   @Mock
   PullRequestExecutor pullRequestExecutor;
+
+  @Mock
+  SourceControlUtils sourceControlUtils;
 
   private PolicyAlertScmNotifier scmNotifier;
 
@@ -105,7 +105,7 @@ public class PolicyAlertScmNotifierTest
   public void setup() throws Exception {
     scmNotifier = new PolicyAlertScmNotifier(pullRequestFeatureCheck,
         remediationService, new PolicyAlertSourceCodeOrganizer(), gitClientFactory,
-        gitApiService, baseUrl, pullRequestExecutor, provider);
+        baseUrl, pullRequestExecutor, provider, sourceControlUtils);
     Organization organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(NAME, PUBLIC_ID, organization.getId());
   }
@@ -113,12 +113,11 @@ public class PolicyAlertScmNotifierTest
   @Test
   public void test_featureIsDisabled() throws Exception {
     // given we have repository info for an application
-    when(gitApiService.getGitRepositoryInfoForApplication(application.getId()))
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
         .thenReturn(gitRepositoryInfo);
 
     // and feature is disabled
-    when(pullRequestFeatureCheck.isPullRequestFeatureSupported(
-        application, gitRepositoryInfo)).thenReturn(false);
+    when(pullRequestFeatureCheck.isPullRequestFeatureSupported(application, gitRepositoryInfo)).thenReturn(false);
 
     // when we send notifications
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
@@ -130,7 +129,7 @@ public class PolicyAlertScmNotifierTest
   @Test
   public void test_formatNotSupported() throws Exception {
     // given we have repository info for an application
-    when(gitApiService.getGitRepositoryInfoForApplication(application.getId())).thenReturn(gitRepositoryInfo);
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId())).thenReturn(gitRepositoryInfo);
 
     // and feature is enabled
     when(pullRequestFeatureCheck.isPullRequestFeatureSupported(application, gitRepositoryInfo)).thenReturn(true);
@@ -154,7 +153,7 @@ public class PolicyAlertScmNotifierTest
   @Test
   public void test_noRemediationOptions() throws Exception {
     // given we have repository info for an application
-    when(gitApiService.getGitRepositoryInfoForApplication(application.getId()))
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
         .thenReturn(gitRepositoryInfo);
 
     // and feature is enabled
@@ -168,7 +167,7 @@ public class PolicyAlertScmNotifierTest
         eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(emptyRemediationDTO);
 
     when(pullRequestExecutor.isSupportedFormat(any())).thenReturn(true);
-    
+
     // when we send policy notifications
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
 
@@ -186,7 +185,7 @@ public class PolicyAlertScmNotifierTest
   @Test
   public void test_branchAlreadyExists_Stop() throws Exception {
     // given we have repository info for an application
-    when(gitApiService.getGitRepositoryInfoForApplication(application.getId()))
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
         .thenReturn(gitRepositoryInfo);
 
     // and feature is enabled
@@ -201,7 +200,7 @@ public class PolicyAlertScmNotifierTest
         eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(remediationDTO);
 
     // and the branch already exists on the server
-    when(gitClientFactory.create(gitRepositoryInfo)).thenReturn(gitApiClient);
+    when(gitClientFactory.createApiClient(gitRepositoryInfo)).thenReturn(gitApiClient);
     String truncatedAppId = application.getId().substring(0, APP_ID_BRANCH_TRUNCATE_INDEX);
     when(gitApiClient.isBranchOnServer(truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1")).thenReturn(true);
 
@@ -222,7 +221,7 @@ public class PolicyAlertScmNotifierTest
   @Test
   public void test_invokePREngine() throws Exception {
     // given we have repository info for an application
-    when(gitApiService.getGitRepositoryInfoForApplication(application.getId()))
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
         .thenReturn(gitRepositoryInfo);
 
     // and feature is enabled
@@ -236,9 +235,9 @@ public class PolicyAlertScmNotifierTest
         eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(remediationDTO);
 
     when(pullRequestExecutor.isSupportedFormat(any())).thenReturn(true);
-    
+
     // and the branch doesn't already exist on the server
-    when(gitClientFactory.create(gitRepositoryInfo)).thenReturn(gitApiClient);
+    when(gitClientFactory.createApiClient(gitRepositoryInfo)).thenReturn(gitApiClient);
     String truncatedAppId = application.getId().substring(0, APP_ID_BRANCH_TRUNCATE_INDEX);
     when(gitApiClient.isBranchOnServer(truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1")).thenReturn(false);
 

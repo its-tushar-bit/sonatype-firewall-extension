@@ -5,14 +5,18 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityManager;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -36,6 +40,120 @@ public class SourceControlDAO
   private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   private final GitApiClientFactory gitApiClientFactory = new GitApiClientFactory();
+
+  /**
+   * The purpose of this method is to update the pull request poll time so it is consistent at this particular instant.
+   * This accounts for initial setup of polling as well as manual and automatic source control configuration updates
+   * that affect polling (i.e. new entries, repository URLs assigned and cleared, etc.).
+   *
+   * Consistency means:
+   * 1 - if the source control entry has no repo URL then it's of no interest so we set the poll time to null
+   * 2 - for an 'application' source control entry and if not already set, set the poll time to the time of the
+   * earliest policy evaluation we have for that application that also has a commit associated
+   * 3 - otherwise, set the poll time to the current timestamp where it is not otherwise set and a repo url exists
+   *
+   * Poll time is used to determine for which repos and in what sequence we will query the SCM to determine if there
+   * are any open pull requests that we can possibly comment on.
+   */
+  public void updatePullRequestPollTimes() {
+    updatePullRequestPollTimesPerPolicyEvaluations();
+    setDefaultPollRequestPollTimes();
+    clearExtraneousPullRequestPollTimes();
+  }
+
+  private void updatePullRequestPollTimesPerPolicyEvaluations() {
+    EntityManager em = OperationalDataStoreProvider.getJPAEntityManagerFactory().createEntityManager();
+
+    try (TransactionContext txn = new TransactionContext(em)) {
+      txn.begin();
+
+      // for each application where the poll time is not already set, the poll time is set to the earliest policy
+      // evaluation with an associated commit
+      em.createNativeQuery(
+          "UPDATE insight_brain_ods.source_control sc" +
+              " SET pull_request_poll_time = (" +
+              " SELECT first_commit_time" +
+              " FROM (" +
+              "     SELECT application_id, min(time) AS first_commit_time" +
+              "     FROM insight_brain_ods.policy_evaluation" +
+              "     WHERE commit_hash IS NOT NULL" +
+              "     GROUP BY application_id" +
+              "     ) AS first_policy_eval_commit" +
+              " WHERE sc.owner_id = first_policy_eval_commit.application_id)" +
+              " WHERE sc.pull_request_poll_time IS NULL;"
+      ).executeUpdate();
+      txn.commit();
+    }
+  }
+
+  private void setDefaultPollRequestPollTimes() {
+    EntityManager em = OperationalDataStoreProvider.getJPAEntityManagerFactory().createEntityManager();
+
+    try (TransactionContext txn = new TransactionContext(em)) {
+      txn.begin();
+      // where not set and a repo url exists set the poll time to the current timestamp
+      em.createNativeQuery(
+          "UPDATE insight_brain_ods.source_control SET pull_request_poll_time = CURRENT_TIMESTAMP" +
+              " WHERE pull_request_poll_time IS NULL AND repository_url IS NOT NULL;"
+      ).executeUpdate();
+      txn.commit();
+    }
+  }
+
+  private void clearExtraneousPullRequestPollTimes() {
+    EntityManager em = OperationalDataStoreProvider.getJPAEntityManagerFactory().createEntityManager();
+
+    try (TransactionContext txn = new TransactionContext(em)) {
+      txn.begin();
+
+      // set poll time to null where repo url is null
+      em.createNativeQuery(
+          "UPDATE insight_brain_ods.source_control SET pull_request_poll_time = NULL WHERE repository_url IS NULL;"
+      ).executeUpdate();
+
+      txn.commit();
+    }
+  }
+
+  public SourceControl getNextRepositoryToPoll() {
+    String sQuery =
+        "SELECT entity FROM SourceControl entity" +
+            " WHERE entity.repositoryUrl IS NOT NULL" +
+            " AND entity.pullRequestPollTime IS NOT NULL" +
+            " ORDER BY entity.pullRequestPollTime ASC";
+    return createQuery(sQuery).forceSingleResult().get();
+  }
+
+  public void updatePullRequestPollTime(String sourceControlId, Date pullRequestPollTime) {
+    try (TransactionContext txn = createTransactionContext()) {
+      txn.begin();
+
+      SourceControl sourceControl = getById(sourceControlId);
+      if (null != sourceControl) {
+        sourceControl.setPullRequestPollTime(pullRequestPollTime);
+        update(txn, sourceControl);
+        txn.commit();
+      }
+    }
+  }
+
+  public void updatePullRequestPollTimeForApplication(String applicationId, Date pullRequestPollTime) {
+    try (TransactionContext txn = createTransactionContext()) {
+      txn.begin();
+
+      SourceControl sourceControl = getByOwnerId(applicationId);
+      if (null != sourceControl) {
+        sourceControl.setPullRequestPollTime(pullRequestPollTime);
+        update(txn, sourceControl);
+        txn.commit();
+      }
+    }
+  }
+
+  public List<SourceControl> getByRepositoryOwnerAndName(String repositoryOwnerAndName) {
+    return getList("SELECT entity FROM SourceControl entity WHERE UPPER(entity.repositoryUrl) LIKE ?1",
+        "%/" + repositoryOwnerAndName.toUpperCase() + '%');
+  }
 
   @Override
   public SourceControl getById(final TransactionContext tx, final String id) {
@@ -82,10 +200,11 @@ public class SourceControlDAO
         .collect(ImmutableList.toImmutableList());
   }
 
-  private boolean isPrEnabled(final SourceControl application,
-                              final Map<String, Application> applicationsById,
-                              final Map<String, SourceControl> orgSourceControlsByOrgId,
-                              final SourceControl scRootOrg)
+  private boolean isPrEnabled(
+      final SourceControl application,
+      final Map<String, Application> applicationsById,
+      final Map<String, SourceControl> orgSourceControlsByOrgId,
+      final SourceControl scRootOrg)
   {
     if (application.getEnablePullRequests() != null) {
       return application.getEnablePullRequests();
@@ -228,8 +347,9 @@ public class SourceControlDAO
     return ROOT_ORGANIZATION_ID.equals(sourceControl.getOwnerId());
   }
 
-  private SourceControlProvider getProviderFromOrganization(final TransactionContext tx,
-                                                            final String organizationId)
+  private SourceControlProvider getProviderFromOrganization(
+      final TransactionContext tx,
+      final String organizationId)
   {
     SourceControl orgSourceControl = getByOwnerId(tx, organizationId);
     if (orgSourceControl != null && orgSourceControl.getProvider() != null) {

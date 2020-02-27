@@ -56,8 +56,8 @@ public class ApiSearchIndexResource
   }
 
   @POST
-  public void createSearchIndex() throws IOException {
-    indexService.createSearchIndex();
+  public void createSearchIndexAsync() {
+    indexService.createSearchIndexAsync();
   }
 
   @GET

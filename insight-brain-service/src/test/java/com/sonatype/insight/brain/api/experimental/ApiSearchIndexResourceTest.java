@@ -6,12 +6,14 @@
 package com.sonatype.insight.brain.api.experimental;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -27,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 public class ApiSearchIndexResourceTest
     extends AbstractResourceTest
@@ -42,6 +45,7 @@ public class ApiSearchIndexResourceTest
   @Test
   public void testCreateSearchIndex() throws Exception {
     HttpResponse response = restRequest().post();
+    awaitIndexCompletion();
 
     assertResponseStatus(204, response);
     InsightWork insightWork = getCLMServer().getInstance(InsightWork.class);
@@ -53,6 +57,7 @@ public class ApiSearchIndexResourceTest
   public void testSearchIndex() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     restRequest().post();
+    awaitIndexCompletion();
 
     HttpResponse response =
         restRequest().query("search", FieldIdentifier.APPLICATION_ID.label + ":" + application.getId()).get();
@@ -70,6 +75,7 @@ public class ApiSearchIndexResourceTest
   public void testAutoCompleteSearchQuery() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     restRequest().post();
+    awaitIndexCompletion();
 
     HttpResponse response = restRequest().path(ApiSearchIndexResource.SUGGESTER).query("search", "a").get();
 
@@ -88,5 +94,9 @@ public class ApiSearchIndexResourceTest
     try (FSDirectory fsDirectory = FSDirectory.open(indexFile.toPath())) {
       assertThat(DirectoryReader.indexExists(fsDirectory)).isTrue();
     }
+  }
+
+  private void awaitIndexCompletion() {
+    await().atMost(10, TimeUnit.SECONDS).until(() -> !getCLMServer().getInstance(IndexService.class).isRunning());
   }
 }

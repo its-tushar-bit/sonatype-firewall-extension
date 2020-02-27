@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
@@ -104,6 +105,8 @@ public class IndexService
   private final VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
 
   private final Provider<Analyzer> analyzerProvider;
+
+  private volatile boolean running = false;
 
   class IndexingContext
   {
@@ -160,6 +163,47 @@ public class IndexService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public synchronized void createSearchIndexAsync() {
+    if (!running) {
+      running = true;
+      new IndexThread().start();
+    }
+  }
+
+  private class IndexThread
+      extends Thread
+  {
+    IndexThread() {
+      super("IndexService-0");
+      setDaemon(true);
+    }
+
+    @Override
+    public void run() {
+      try {
+        createSearchIndex();
+      }
+      catch (Exception e) {
+        log.error(e.getMessage(), e);
+      }
+      catch (Throwable t) {
+        // Try to log to stderr before trying the standard logging because the standard logging may not be operational
+        // at this point.
+        t.printStackTrace();
+        log.error(t.getMessage(), t);
+        System.exit(2);
+      }
+      finally {
+        running = false;
+      }
+    }
+  }
+
+  @VisibleForTesting
+  public boolean isRunning() {
+    return running;
+  }
+
   public void createSearchIndex() throws IOException {
     log.info("creating search index...");
 

@@ -20,19 +20,19 @@ public class IndexServiceAuthzTest
   private IndexService indexService;
 
   @Test(expected = UnauthenticatedException.class)
-  public void testCreateSearchIndex__Unauthenticated() throws Exception {
-    indexService.createSearchIndex();
+  public void testCreateSearchIndex__Unauthenticated() {
+    indexService.createSearchIndexAsync();
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testCreateSearchIndex_Unauthorized() throws Exception {
+  public void testCreateSearchIndex_Unauthorized() {
     login();
-    indexService.createSearchIndex();
+    indexService.createSearchIndexAsync();
   }
 
   @Test
-  public void testCreateSearchIndex_Authorized() throws Exception {
+  public void testCreateSearchIndex_Authorized() {
     grantConfigureSystemPermission();
-    indexService.createSearchIndex();
+    indexService.createSearchIndexAsync();
   }
 }

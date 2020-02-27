@@ -22,8 +22,8 @@ public class FullTextSearchResourceAuditTest
 
     restRequest().body(fullTextSearchStatusDTO).put();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_FULL_TEXT_SEARCH, null);
-    assertCustomData(auditDTO, "fullTextSearch", "enabled");
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_ADVANCED_SEARCH, null);
+    assertCustomData(auditDTO, "advancedSearch", "enabled");
   }
 
   @Test
@@ -33,15 +33,15 @@ public class FullTextSearchResourceAuditTest
 
     restRequest().body(fullTextSearchStatusDTO).put();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_FULL_TEXT_SEARCH, null);
-    assertCustomData(auditDTO, "fullTextSearch", "disabled");
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_ADVANCED_SEARCH, null);
+    assertCustomData(auditDTO, "advancedSearch", "disabled");
   }
 
   @Test
   public void testSetStatus_Unauthorized() throws Exception {
     restRequest().with(unauthorizedUser()).body(new FullTextSearchStatusDTO()).put();
 
-    assertAuditLog(AuditEvent.CONFIGURE_FULL_TEXT_SEARCH, "unauthorized");
+    assertAuditLog(AuditEvent.CONFIGURE_ADVANCED_SEARCH, "unauthorized");
   }
 
   @Override

@@ -40,7 +40,7 @@ public class FullTextSearchService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void setStatus(FullTextSearchStatusDTO fullTextSearchStatusDTO) {
-    AuditData.get().setData("fullTextSearch", fullTextSearchStatusDTO.isEnabled ? "enabled" : "disabled");
+    AuditData.get().setData("advancedSearch", fullTextSearchStatusDTO.isEnabled ? "enabled" : "disabled");
     log.info("Opting {} experimental Full Text Search.", fullTextSearchStatusDTO.isEnabled ? "in to" : "out of");
 
     String status = Boolean.toString(fullTextSearchStatusDTO.isEnabled);

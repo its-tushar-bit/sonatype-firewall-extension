@@ -42,7 +42,7 @@ public class FullTextSearchResource
 
   @PUT
   @Path(STATUS_PATH)
-  @Audited(AuditEvent.CONFIGURE_FULL_TEXT_SEARCH)
+  @Audited(AuditEvent.CONFIGURE_ADVANCED_SEARCH)
   public void setStatus(FullTextSearchStatusDTO fullTextSearchStatusDTO) {
     fullTextSearchService.setStatus(fullTextSearchStatusDTO);
   }

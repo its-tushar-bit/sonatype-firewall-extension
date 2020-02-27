@@ -56,8 +56,12 @@
   padding: 4px 11px;
 
   &:hover, &:focus, &:active {
-    border-color: $iq-link-color-active;
     color: $iq-off-white;
+  }
+
+  &:hover, &:focus {
+    background: $iq-link-color-hover;
+    border-color: $iq-link-color-hover;
   }
 
   &:active {
@@ -125,7 +129,7 @@
 
 .iq-btn--text-only {
   background: none;
-  color: #5a90dc;
+  color: $iq-link-color;
   border: none;
 }
 

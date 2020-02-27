@@ -115,6 +115,7 @@ CREATE TABLE policy_waiver (
   CONSTRAINT policy_waiver_pk PRIMARY KEY (policy_waiver_id),
   CONSTRAINT policy_waiver_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
 );
+CREATE INDEX policy_waiver_owner_id_idx ON policy_waiver(owner_id);
 
 CREATE TABLE license_override (
   license_override_id varchar(50) NOT NULL,

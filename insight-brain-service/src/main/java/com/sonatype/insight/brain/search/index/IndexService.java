@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.search.index;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,6 +44,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
@@ -398,19 +400,19 @@ public class IndexService
         return Collections.emptyList();
       }
       String scanId = latestPolicyEvaluation.getScanId();
-      Path reportCachePath = Report.getCacheDir(insightWork.getReportFile(application.getId(), scanId)).toPath();
-      if (!Files.exists(reportCachePath)) {
+      File reportFile = insightWork.getReportFile(application.getId(), scanId);
+      if (!reportFile.exists()) {
         return Collections.emptyList();
       }
-      byte[] licenseReportEntry = Files.readAllBytes(reportCachePath.resolve("licenses.json"));
-      byte[] securityReportEntry = Files.readAllBytes(reportCachePath.resolve("security.json"));
-      byte[] bomReportEntry = Files.readAllBytes(reportCachePath.resolve("bom.json"));
+      ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
+      ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
+      ReportEntry bomReportEntry = Report.getEntry(reportFile, "bom.json");
       if (licenseReportEntry == null || securityReportEntry == null || bomReportEntry == null) {
         return Collections.emptyList();
       }
 
-      return componentDAO.getAll(application, licenseReportEntry, securityReportEntry, bomReportEntry).parallelStream()
-          .map(component -> buildApplicationComponentVulnerabilityDocuments(
+      return componentDAO.getAll(application, licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf)
+          .parallelStream().map(component -> buildApplicationComponentVulnerabilityDocuments(
               indexingContext,
               application,
               stageType,

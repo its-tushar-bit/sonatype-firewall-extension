@@ -56,7 +56,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.SimpleAnalyzer;
+import org.apache.lucene.analysis.standard.ClassicAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -263,7 +263,7 @@ public class IndexService
     // write to search-suggester dir
     try (IndexReader sourceIndexReader = DirectoryReader.open(FSDirectory.open(indexPath));
          FSDirectory suggesterFile = FSDirectory.open(suggesterPath);
-         AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(suggesterFile, new SimpleAnalyzer())) {
+         AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(suggesterFile, new ClassicAnalyzer())) {
       log.info("started building suggester");
       IndexSearcher indexSearcher = new IndexSearcher(sourceIndexReader);
       try (IndexReader indexReader = indexSearcher.getIndexReader()) {

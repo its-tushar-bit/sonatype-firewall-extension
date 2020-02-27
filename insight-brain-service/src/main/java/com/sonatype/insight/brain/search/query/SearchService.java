@@ -36,7 +36,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.SimpleAnalyzer;
+import org.apache.lucene.analysis.CharArraySet;
+import org.apache.lucene.analysis.standard.ClassicAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -162,7 +163,7 @@ public class SearchService
     Path searchSuggesterIndexPath = insightWork.getSearchSuggesterDir().toPath();
     validateIndex(searchSuggesterIndexPath);
     SearchSuggestionResultDTO searchResultDTO = new SearchSuggestionResultDTO();
-    Analyzer analyzer = new SimpleAnalyzer();
+    Analyzer analyzer = new ClassicAnalyzer(CharArraySet.EMPTY_SET);
 
     try (FSDirectory suggesterFile = FSDirectory.open(searchSuggesterIndexPath);
          AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(suggesterFile, analyzer)) {

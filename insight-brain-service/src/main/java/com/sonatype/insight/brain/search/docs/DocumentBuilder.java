@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.search.docs;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.model.Color;
@@ -52,6 +51,7 @@ public class DocumentBuilder
     COMPONENT_HASH("componentHash"),
     COMPONENT_FORMAT("componentFormat"),
     COMPONENT_NAME("componentName"),
+    COMPONENT_COORDINATE("componentCoordinate"),
     VULNERABILITY_ID("vulnerabilityId"),
     VULNERABILITY_STATUS("vulnerabilityStatus"),
     VULNERABILITY_DESCRIPTION("vulnerabilityDescription"),
@@ -74,13 +74,9 @@ public class DocumentBuilder
       this.label = label;
     }
 
-    public static Set<String> labelIdentifiers() {
-      return Arrays.stream(values()).map(f -> f.label).collect(Collectors.toSet());
-    }
-
-    public static FieldIdentifier byLabel(String label) {
-      return Arrays.stream(FieldIdentifier.values()).filter(fieldIdentifier -> fieldIdentifier.label.equals(label))
-          .findAny().get();
+    @Override
+    public String toString() {
+      return label;
     }
   }
 
@@ -209,7 +205,8 @@ public class DocumentBuilder
   }
 
   private static String toFieldName(String coordinateName) {
-    return "componentCoordinate" + Character.toUpperCase(coordinateName.charAt(0)) + coordinateName.substring(1);
+    return FieldIdentifier.COMPONENT_COORDINATE.label + Character.toUpperCase(coordinateName.charAt(0))
+        + coordinateName.substring(1);
   }
 
   public DocumentBuilder setComponentName(final String componentDisplayName) {

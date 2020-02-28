@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.search.query;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -117,8 +118,15 @@ public class SearchService
       }
 
       FieldIdentifier groupIdentifier = getGrouper(searchQuery);
+      String groupFieldName;
+      if (FieldIdentifier.COMPONENT_COORDINATE.equals(groupIdentifier)) {
+        groupFieldName = getSearchField(searchQuery).get();
+      }
+      else {
+        groupFieldName = groupIdentifier.label;
+      }
 
-      Comparator<Document> byLabel = Comparator.comparing(document -> document.get(groupIdentifier.label));
+      Comparator<Document> byLabel = Comparator.comparing(document -> document.get(groupFieldName));
       Comparator<Document> byScore = Comparator.comparing(documentScores::get);
       documents.sort(byLabel.thenComparing(byScore));
 
@@ -134,7 +142,7 @@ public class SearchService
           continue;
         }
 
-        String groupBy = document.get(groupIdentifier.label);
+        String groupBy = document.get(groupFieldName);
 
         if (searchResultDTO.groupingByDTOS.stream().noneMatch(dto -> dto.groupBy.equals(groupBy))) {
           GroupingByDTO groupingByDTO = new GroupingByDTO();
@@ -192,17 +200,30 @@ public class SearchService
   }
 
   private FieldIdentifier getGrouper(String searchQuery) {
-    Optional<String> searchBy = labelIdentifiers().stream().filter(searchQuery::startsWith).findAny();
-    if (searchBy.isPresent()) {
-      FieldIdentifier fieldIdentifier = byLabel(searchQuery.substring(0, searchQuery.indexOf(":")));
-
-      if (fieldIdentifier == VULNERABILITY_DESCRIPTION) {  // Grouping by description does not make sense
-        return VULNERABILITY_ID;
+    FieldIdentifier grouper = VULNERABILITY_ID;
+    Optional<String> searchField = getSearchField(searchQuery);
+    if (searchField.isPresent()) {
+      String fieldName = searchField.get();
+      if (fieldName.startsWith(FieldIdentifier.COMPONENT_COORDINATE.label)) {
+        grouper = FieldIdentifier.COMPONENT_COORDINATE;
       }
-
-      return fieldIdentifier;
+      else {
+        grouper = Arrays.stream(FieldIdentifier.values())
+            .filter(fieldIdentifier -> fieldIdentifier.label.equals(fieldName)).findAny().get();
+        if (grouper == VULNERABILITY_DESCRIPTION) { // Grouping by description does not make sense
+          grouper = VULNERABILITY_ID;
+        }
+      }
     }
-    return VULNERABILITY_ID;
+    return grouper;
+  }
+
+  private Optional<String> getSearchField(String searchQuery) {
+    int colon = searchQuery.indexOf(':');
+    if (colon < 0) {
+      return Optional.empty();
+    }
+    return Optional.of(searchQuery.substring(0, colon));
   }
 
   private Query createQuery(String searchQuery) {
@@ -210,9 +231,9 @@ public class SearchService
       throw new BadRequestException("The search query is empty");
     }
 
-    Optional<String> searchField = labelIdentifiers().stream().filter(searchQuery::startsWith).findAny();
+    Optional<String> searchField = getSearchField(searchQuery);
     if (searchField.isPresent()) {
-      searchQuery = searchQuery.substring(searchQuery.indexOf(":") + 1);
+      searchQuery = searchQuery.substring(searchField.get().length() + 1);
     }
 
     return createQuery(searchField.orElse(VULNERABILITY_ID.label), searchQuery);

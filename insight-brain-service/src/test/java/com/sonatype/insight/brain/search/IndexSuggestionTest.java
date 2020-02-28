@@ -258,7 +258,7 @@ public class IndexSuggestionTest
     index();
     assertThat(autoComplete("autocom")).containsExactlyInAnyOrder(
         field(FieldIdentifier.COMPONENT_NAME, "AutoComplete.Test 1.2.3"),
-        field("componentCoordinatePackageId", "AutoComplete.Test"));
+        field(FieldIdentifier.COMPONENT_COORDINATE + "PackageId", "AutoComplete.Test"));
   }
 
   @Test
@@ -272,7 +272,8 @@ public class IndexSuggestionTest
   public void testField_ComponentCoordinate() throws Exception {
     newAppReport();
     index();
-    assertThat(autoComplete("jar")).containsExactlyInAnyOrder(field("componentCoordinateExtension", "jar"));
+    assertThat(autoComplete("jar"))
+        .containsExactlyInAnyOrder(field(FieldIdentifier.COMPONENT_COORDINATE + "Extension", "jar"));
   }
 
   @Test

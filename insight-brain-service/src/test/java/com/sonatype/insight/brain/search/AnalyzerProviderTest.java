@@ -170,7 +170,7 @@ public class AnalyzerProviderTest
 
   @Test
   public void testTokenStream_ComponentCoordinate() {
-    testTokenStream_SingleTokenField("componentCoordinateArtifactId");
+    testTokenStream_SingleTokenField(FieldIdentifier.COMPONENT_COORDINATE + "ArtifactId");
   }
 
   @Test

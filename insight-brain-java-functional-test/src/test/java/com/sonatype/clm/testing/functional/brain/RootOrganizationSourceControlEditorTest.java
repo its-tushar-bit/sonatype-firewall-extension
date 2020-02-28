@@ -59,8 +59,6 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.deleteButton().shouldNotBe(visible);
 
     assertSourceControlDoesNotExist(ROOT_ORGANIZATION_ID);
-
-    eyesWatcher.eyesCheck("Source Control Editor Provider Selected");
   }
 
   @Test
@@ -80,8 +78,6 @@ public class RootOrganizationSourceControlEditorTest
 
     SourceControlEditorPage.pullRequestsEnableRadio().click();
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
-
-    eyesWatcher.eyesCheck("Source Control Editor Create Provider Selected");
 
     SourceControlEditorPage.saveButton().click();
     FormMask.seeAndWaitForDismissal();
@@ -118,8 +114,6 @@ public class RootOrganizationSourceControlEditorTest
     errorBox.shouldHave(text("SourceControl already exists for organization with id: ROOT_ORGANIZATION_ID"));
     assertSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITLAB);
 
-    eyesWatcher.eyesCheck("Source Control Editor Create Failed");
-
     //Delete the entry to resolve error condition
     deleteRootOrgSourceControl();
 
@@ -140,14 +134,10 @@ public class RootOrganizationSourceControlEditorTest
 
     verifyStartWithSourceControl();
 
-    eyesWatcher.eyesCheck("Source Control Editor Update Default State");
-
     SourceControlEditorPage.provider().chooseOption(new Option(1, "gitlab"));
 
     SourceControlEditorPage.token().shouldBe(enabled);
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
-
-    eyesWatcher.eyesCheck("Source Control Editor Update Provider Changed");
 
     SourceControlEditorPage.saveButton().click();
     FormMask.seeAndWaitForDismissal();
@@ -179,8 +169,6 @@ public class RootOrganizationSourceControlEditorTest
     errorBox.retryButton().shouldBe(visible, enabled);
     errorBox.shouldHave(text("Cannot find SourceControl for organization with id: ROOT_ORGANIZATION_ID"));
     assertSourceControlDoesNotExist(ROOT_ORGANIZATION_ID);
-
-    eyesWatcher.eyesCheck("Source Control Editor update Failed");
 
     //Create the entry to resolve error condition
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB);
@@ -215,8 +203,6 @@ public class RootOrganizationSourceControlEditorTest
     FormMask.seeAndWaitForDismissal();
     DeleteModal.root().shouldBe(hidden);
 
-    eyesWatcher.eyesCheck("Source Control Editor Delete After Delete");
-
     SourceControlEditorPage.provider().shouldBe(visible, enabled);
     SourceControlEditorPage.token().shouldBe(visible, disabled);
     SourceControlEditorPage.saveButton().shouldBe(visible);
@@ -246,8 +232,6 @@ public class RootOrganizationSourceControlEditorTest
 
     DeleteModal.error().shouldHave(text("Cannot find SourceControl for organization with id: ROOT_ORGANIZATION_ID"));
     DeleteModal.retryButton().shouldBe(visible, enabled);
-
-    eyesWatcher.eyesCheck("Source Control Editor Delete Failed");
 
     //Recreate the entry to resolve error condition
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB);
@@ -279,8 +263,6 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("Unable to update: fields with invalid or missing data.");
-
-    eyesWatcher.eyesCheck("Source Control Editor - Missing base branch");
 
     SourceControlEditorPage.baseBranchInput().setValue("develop");
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
@@ -351,8 +333,6 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
 
-    eyesWatcher.eyesCheck("Source Control Editor - Pull requests disabled no licence");
-
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITLAB, true, true, "master");
 
     refresh();
@@ -369,8 +349,6 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.baseBranchInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
-
-    eyesWatcher.eyesCheck("Source Control Editor - Pull requests disabled no licence");
   }
 
   @Test

@@ -140,8 +140,6 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     }
 
     PolicyViolationGrandfatheringEditorPage.updateButton().shouldBe(DISABLED);
-
-    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -152,7 +150,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     Condition notLicensedText = PolicyViolationGrandfatheringEditorPage.unsupportedLicenseText();
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
-    
+
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
     OwnerSummaryPage.violationGrandfathering().shouldHave(notLicensedText).click();
 

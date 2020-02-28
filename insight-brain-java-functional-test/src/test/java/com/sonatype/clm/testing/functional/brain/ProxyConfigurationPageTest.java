@@ -299,7 +299,6 @@ public class ProxyConfigurationPageTest
           .shouldBe(visible)
           .shouldHave(text("Error It appears you do not have permission to access this page. If you believe this to " +
               "be incorrect please contact your administrator."));
-      eyesWatcher.eyesCheck("Proxy Configuration Page - Insufficient Permissions");
     }
     finally {
       logout();

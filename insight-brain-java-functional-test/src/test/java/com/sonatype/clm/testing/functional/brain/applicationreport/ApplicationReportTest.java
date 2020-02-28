@@ -426,8 +426,6 @@ public class ApplicationReportTest
     violations.shouldHaveSize(1);
     violations.shouldHave(texts("No Results"));
 
-    eyesWatcher.eyesCheck("Test Filtering No Results");
-
     headers.policyNameFilterInput().clear();
     violations.shouldHaveSize(3);
     violations.shouldHave(texts("None", "None", "None"));
@@ -451,8 +449,6 @@ public class ApplicationReportTest
     proprietaryFilter.counter().shouldHave(text("1 of 2"));
     proprietaryFilter.proprietary().shouldBe(selected);
     proprietaryFilter.nonProprietary().shouldNotBe(selected);
-
-    eyesWatcher.eyesCheck("Test Proprietary Filter");
 
     violations.shouldHaveSize(1);
     violations.shouldHave(texts("No Results"));
@@ -502,7 +498,6 @@ public class ApplicationReportTest
     matchStateFilter.counter().shouldHave(exactText("2 of 3"));
     violations.shouldHaveSize(2);
     violations.shouldHave(texts("apache-httpclient : commons-httpclient : 3.1", "RegexMatch.dll"));
-    eyesWatcher.eyesCheck("Test Component Match State Filter");
 
     matchStateFilter.exact().click();
     matchStateFilter.exact().shouldBe(selected);
@@ -544,7 +539,6 @@ public class ApplicationReportTest
         "RegexMatch.dll",
         "junit : junit : 4.8.1"
     ));
-    eyesWatcher.eyesCheck("Test Policy Threat Level Filter");
 
     policyTypeFilter.security().click();
     policyTypeFilter.security().shouldBe(selected);
@@ -581,7 +575,6 @@ public class ApplicationReportTest
     dependencyTypeFilter.direct().shouldBe(selected);
     dependencyTypeFilter.counter().shouldHave(exactText("1 of 3"));
     violations.shouldHaveSize(2);
-    eyesWatcher.eyesCheck("Test Dependency Type Filter");
     dependencyTypeFilter.allItems().click();
     dependencyTypeFilter.allItems().shouldBe(selected);
     violations.shouldHaveSize(61);
@@ -597,7 +590,6 @@ public class ApplicationReportTest
     violations.shouldHaveSize(28);
     threatLevelFilter.slider().setValues(1, 9);
     violations.shouldHaveSize(26);
-    eyesWatcher.eyesCheck("Test Policy Threat Level Filter");
     threatLevelFilter.slider().setValues(2, 9);
     violations.shouldHaveSize(25);
     threatLevelFilter.slider().setValues(7, 9);
@@ -688,8 +680,6 @@ public class ApplicationReportTest
     reportPage.showAllViolationsRadio().click();
     violations.shouldHaveSize(66);
     violations.first().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
-
-    eyesWatcher.eyesCheck("Test Violation State Filter");
 
     activateGrandfathering();
 

@@ -98,7 +98,7 @@ public class SuccessMetricsReportListTest
 
     tempEntity.newSuccessMetricsReport("admin", "Test Success Metric",
         JsonUtils.format(new SuccessMetricsReportScopeDTO()));
-    
+
     refresh();
 
     reportList.emptyDescriptor().shouldBe(hidden);

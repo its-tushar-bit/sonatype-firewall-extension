@@ -109,7 +109,7 @@ public abstract class AbstractPolicyEditorTest
   private PolicyDAO policyDAO = new PolicyDAO();
 
   private JiraProject jiraProject;
-  
+
   private HashMap<Class<? extends ConditionType>, Option> conditionTypesOptionMap = conditionsToOptionMap();
 
   @BeforeClass
@@ -1261,10 +1261,8 @@ public abstract class AbstractPolicyEditorTest
 
     assertEditPolicyStateIsCorrect_summarySection(policy, isReadOnly, grandfatheringReadOnly);
     assertEditPolicyStateIsCorrect_inheritanceSection(category1, category2, isReadOnly);
-    eyesWatcher.eyesCheck("Summary, inheritance, and constraints states are correct");
     assertEditPolicyStateIsCorrect_actionsSection(isReadOnly, actionsReadOnly, proxyActionReadOnly);
     assertEditPolicyStateIsCorrect_notificationsSection(isReadOnly, notificationsReadOnly, proxyActionReadOnly);
-    eyesWatcher.eyesCheck("Actions and notifications states are correct");
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     PolicyEditorPage.deleteButton().shouldBe(visible, isReadOnly ? disabled : enabled);
   }
@@ -1353,7 +1351,7 @@ public abstract class AbstractPolicyEditorTest
     NotificationsSection.notificationFor("test@foo.com").build().input().shouldBe(selected, disabledOrEnabled);
     NotificationsSection.notificationFor("test@foo.com").continuousMonitoring().input()
         .shouldBe(selected, disabledOrEnabled);
-    
+
     // check the tooltip on just one of the checkboxes
     NotificationsSection.notificationFor("Developer").build().hover();
     if (notificationsReadOnly) {

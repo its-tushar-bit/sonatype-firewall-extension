@@ -71,8 +71,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, enabled);
     SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
     SourceControlEditorPage.providerWarning().shouldNotBe(visible);
-
-    eyesWatcher.eyesCheck("Source Control Editor Default State With Provider");
   }
 
   @Test
@@ -97,8 +95,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, enabled);
     SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
     SourceControlEditorPage.providerWarning().shouldNotBe(visible);
-
-    eyesWatcher.eyesCheck("Source Control Editor Default State Inherited Token");
   }
 
   @Test
@@ -123,8 +119,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.tokenInheritRadio().shouldNotBe(selected);
     SourceControlEditorPage.tokenOverrideRadio().label().shouldHave(text("Override"));
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, enabled, selected);
-
-    eyesWatcher.eyesCheck("Source Control Editor Default State Override Token");
   }
 
   @Test
@@ -140,7 +134,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.token().shouldBe(enabled);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.saveButton().hover();
-    eyesWatcher.eyesCheck("Source Control Editor Update With Missing Token");
     assertToolTip("Unable to update: fields with invalid or missing data.");
 
     SourceControlEditorPage.token().setValue(TOKEN);
@@ -152,21 +145,18 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.tokenInheritRadio().shouldBe(selected);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.saveButton().hover();
-    eyesWatcher.eyesCheck("Source Control Editor Update With Token Provided - No Changes");
     assertToolTip("There are no changes to update.");
 
     SourceControlEditorPage.tokenOverrideRadio().click();
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(selected);
     SourceControlEditorPage.tokenInheritRadio().shouldNotBe(selected);
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
-    eyesWatcher.eyesCheck("Source Control Editor Update With Token Provided - Changed to Override with value");
 
     SourceControlEditorPage.saveButton().click();
     FormMask.seeAndWaitForDismissal();
 
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.saveButton().hover();
-    eyesWatcher.eyesCheck("Source Control Editor Update - After save with override");
     assertToolTip("There are no changes to update.");
     SourceControlEditorPage.deleteButton().shouldNotBe(visible);
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
@@ -180,8 +170,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
 
-    eyesWatcher.eyesCheck("Source Control Editor Update - Changed to Inherit");
-
     SourceControlEditorPage.saveButton().click();
     FormMask.seeAndWaitForDismissal();
 
@@ -191,7 +179,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.token().shouldHave(value(""));
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.saveButton().hover();
-    eyesWatcher.eyesCheck("Source Control Editor Update - After changed to inherit");
     assertToolTip("There are no changes to update.");
   }
 
@@ -215,8 +202,6 @@ public class OrganizationSourceControlEditorTest
     errorBox.retryButton().shouldBe(visible, enabled);
     errorBox.shouldHave(text("SourceControl already exists for organization with id: " + organization.getId()));
     assertSourceControl(organization.getId(), null, null, null);
-
-    eyesWatcher.eyesCheck("Source Control Editor update Failed");
 
     //Delete the entry to resolve error condition
     deleteSourceControl(organization.getId());
@@ -265,8 +250,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.baseBranchInput().setValue("develop");
     SourceControlEditorPage.baseBranchInput().shouldHave(value("develop"));
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
-
-    eyesWatcher.eyesCheck("Source Control Editor - update enabled");
 
     SourceControlEditorPage.saveButton().click();
     FormMask.seeAndWaitForDismissal();
@@ -322,8 +305,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
 
-    eyesWatcher.eyesCheck("Source Control Editor - Pull requests disabled no licence");
-
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITLAB, true, true, "master");
 
     refresh();
@@ -340,8 +321,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.baseBranchInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
-
-    eyesWatcher.eyesCheck("Source Control Editor - Pull requests disabled no licence");
   }
 
   @Test
@@ -357,7 +336,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.form().shouldNotBe(visible);
     SourceControlEditorPage.notSupported().shouldBe(visible);
     SourceControlEditorPage.notSupported().shouldHave(text("Source Control is not supported by your license"));
-    eyesWatcher.eyesCheck("Source Control Editor - No License");
   }
 
   @Override

@@ -168,8 +168,6 @@ public class ApplicationReportVulnerabilitiesTest
 
     vulnerabilityTable.rows().shouldHaveSize(1);
     vulnerabilityTable.row(1).shouldHave(text("no vulnerabilities"));
-
-    eyesWatcher.eyesCheck();
   }
 
   // NOTE This test does not pass in headless mode (e.g. with -Dselenide.headless=true)

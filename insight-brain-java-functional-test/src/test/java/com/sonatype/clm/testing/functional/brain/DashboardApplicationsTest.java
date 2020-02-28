@@ -340,7 +340,6 @@ public class DashboardApplicationsTest
     Tooltip.get().shouldBe(hidden);
     table.firstApplication().name().hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("A long name to ensure overflow in cell"));
-    eyesWatcher.eyesCheck();
     table.lastApplication().name().hover();
     Tooltip.get().shouldBe(hidden);
   }
@@ -444,7 +443,7 @@ public class DashboardApplicationsTest
     table.firstApplication().lowRisk().shouldHave(text("0"));
     table.application(40).lowRisk().shouldHave(text("0"));
     table.lastApplication().lowRisk().shouldHave(text("0"));
-    
+
     // last but certainly not least
     eyesWatcher.eyesCheck("Scrollbar-present styling");
   }

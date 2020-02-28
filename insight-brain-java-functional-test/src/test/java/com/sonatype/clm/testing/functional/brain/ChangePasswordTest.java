@@ -47,7 +47,6 @@ public class ChangePasswordTest
     modal.newPasswordValidate().setValue("newsecretdoesntmatch");
     popoverViolations(modal.newPasswordValidate()).should(appear).shouldHave(text("Passwords must match!"));
     modal.ok().shouldBe(disabled);
-    eyesWatcher.eyesCheck();
 
     modal.newPasswordValidate().setValue("newsecret");
     popoverViolations(modal.newPasswordValidate()).shouldNot(exist);

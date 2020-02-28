@@ -116,9 +116,6 @@ public class LoginTest
     logout();
     MainHeader.mainHeaderButtons().shouldBe(hidden);
     loginModal.shouldBe(visible);
-    // take focus off the input to prevent blinking cursor
-    loginModal.header().click();
-    eyesWatcher.eyesCheck();
   }
 
   @Test

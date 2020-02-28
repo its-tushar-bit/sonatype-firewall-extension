@@ -87,7 +87,6 @@ public abstract class AbstractLTGEditorTest
     changeThreatLevel(6);
     filterLicenses(picker);
     pickFirstThreeLicenses(picker);
-    eyesWatcher.eyesCheck();
     LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED).click();
 
     LTGEditorPage.title().shouldHave(text("Edit"));
@@ -219,7 +218,7 @@ public abstract class AbstractLTGEditorTest
       item.label().shouldBe(visible).shouldHave(text(filterText));
     }
 
-    // reset filter 
+    // reset filter
     picker.filter().clear();
     DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(picker, initialSize);
   }

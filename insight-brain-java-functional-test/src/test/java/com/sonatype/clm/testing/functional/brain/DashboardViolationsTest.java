@@ -95,25 +95,25 @@ public class DashboardViolationsTest
   private final Date twoMonthsAgo = now().minusMonths(2).minusHours(4).toDate();
 
   private Application app1;
-  
+
   private Application app2;
 
   private Policy securityPolicy;
-  
+
   private Policy licensePolicy;
 
   private PolicyEvaluation buildEvalNow;
-  
+
   private PolicyEvaluation  buildEval2MonthsAgo;
-  
+
   private PolicyEvaluation releaseEval2DaysAgo;
-  
+
   private PolicyEvaluation operateEval1WeekAgo;
 
   private ApplicationComponent buildComponent;
-  
+
   private ApplicationComponent releaseComponent;
-  
+
   private ApplicationComponent operateComponent;
 
   @BeforeClass
@@ -217,7 +217,6 @@ public class DashboardViolationsTest
     ViolationTile secondViolation = table.violation(1);
     secondViolation.componentEllipsis().hover();
     Tooltip.get().shouldHave(text("g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890"));
-    eyesWatcher.eyesCheck();
 
     DashboardFilters.revertButton().hover();
     Tooltip.get().shouldBe(hidden);

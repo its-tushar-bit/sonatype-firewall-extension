@@ -104,8 +104,6 @@ public class ApplicationReportRawDataTest
     resultTable.shouldBe(visible);
     resultTable.resultRows().shouldHaveSize(100);
 
-    eyesWatcher.eyesCheck("Test Raw Data View");
-
     ResultRow springSecurity = resultTable.resultRow(94);
     ScrollUtil.scrollIntoView(springSecurity.getElement());
     checkRawDataRow(springSecurity, "org.springframework.security : spring-security-web : 3.2.4.release", "Apache-2.0",
@@ -329,8 +327,6 @@ public class ApplicationReportRawDataTest
     rawDataPage.headers().licenseFilterInput().setValue("Garbage");
     resultTable.resultRows().shouldHaveSize(1);
     rawDataPage.noResultsRow().shouldHave(exactText("No Results"));
-
-    eyesWatcher.eyesCheck("Test Raw Data No Results");
   }
 
   private void checkRawDataRow(final ResultRow row,

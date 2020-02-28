@@ -213,10 +213,8 @@ public class DashboardFilterTest
     violationsTab().counter().shouldBe(visible).shouldHave(text("3"));
     componentsTab().counter().shouldBe(visible).shouldHave(text("1"));
     applicationsTab().counter().shouldBe(visible).shouldHave(text("2"));
-    eyesWatcher.eyesCheck("90 days selected - before apply");
     DashboardFilters.apply();
     ageFilter.singleSelectList().shouldHaveSize(6);
-    eyesWatcher.eyesCheck("90 days selected - after apply");
 
     refreshOrOpen(DashboardPage.urlToViolations());
     ageFilter.twisty().click();
@@ -238,7 +236,6 @@ public class DashboardFilterTest
     refreshOrOpen(DashboardPage.urlToViolations());
 
     assertFilterDisabled(DashboardFilters.applicationFilter(), "applications");
-    eyesWatcher.eyesCheck();
     assertStageFilterInitialState();
     assertCategoryFilterInitialState();
     assertPolicyTypeFilterInitialState();
@@ -252,7 +249,6 @@ public class DashboardFilterTest
   public void testFilters() throws Exception {
     assertInitialFilterState();
     assertAgeFilterInitialState();
-    eyesWatcher.eyesCheck("Initial State");
 
     // assert no filtering is done
     DashboardPage.violationsView().results().violations().shouldHaveSize(3);
@@ -292,10 +288,8 @@ public class DashboardFilterTest
 
     // make sure changes persist after save + reload
     setSomeFilterValues();
-    eyesWatcher.eyesCheck("Set some filters");
     DashboardFilters.apply();
     DashboardPage.violationsView().results().mask().shouldBe(hidden);
-    eyesWatcher.eyesCheck("Apply filters - violations tab");
 
     refresh();
     assertNewCounterState();
@@ -360,13 +354,11 @@ public class DashboardFilterTest
     // check other tabs
     DashboardPage.componentsTab().click();
     DashboardPage.componentsView().results().components().shouldHaveSize(2);
-    eyesWatcher.eyesCheck("Apply filters - components tab");
     DashboardPage.violationsTab().counter().shouldHave(text("2"));
     DashboardPage.componentsTab().counter().shouldHave(text("2"));
     DashboardPage.applicationsTab().counter().shouldNot(exist);
     DashboardPage.applicationsTab().click();
     DashboardPage.applicationsView().results().applications().shouldHaveSize(2);
-    eyesWatcher.eyesCheck("Apply filters - applications tab");
     DashboardPage.violationsTab().counter().shouldHave(text("2"));
     DashboardPage.componentsTab().counter().shouldHave(text("2"));
     DashboardPage.applicationsTab().counter().shouldHave(text("2"));
@@ -475,7 +467,6 @@ public class DashboardFilterTest
     DashboardFilters.apply();
     DashboardPage.applicationsTab().click();
     DashboardPage.applicationsView().results().applications().shouldHaveSize(1);
-    eyesWatcher.eyesCheck();
     categoryFilter.twisty().click();
   }
 
@@ -497,7 +488,6 @@ public class DashboardFilterTest
     // verify no data message
     DashboardPage.violationsView().results().noDataMessage().shouldBe(visible)
         .shouldHave(text("No data available in the last 30 days given the applied filters and permissions."));
-    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -508,7 +498,6 @@ public class DashboardFilterTest
     manage.openMenuButton().click();
     manage.dropdownMenu().shouldBe(visible);
     manage.emptyListMessage().shouldBe(visible).shouldHave(text("No saved filters."));
-    eyesWatcher.eyesCheck("No saved filters");
     manage.openMenuButton().click();
     DashboardFilters.saveFilterNameLabel().shouldBe(hidden);
     DashboardFilters.saveFilterDirtyAsterisk().shouldBe(hidden);
@@ -545,7 +534,6 @@ public class DashboardFilterTest
     // check that the 'dirty' asterisk remains after reload
     refresh();
     DashboardFilters.saveFilterDirtyAsterisk().shouldBe(visible);
-    eyesWatcher.eyesCheck("'Dirty' asterisk remains");
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = new DashboardFilterDAO()
         .getByUsernameAndRealmId("admin", InternalRealm.ID);
     assertThat(filters).hasSize(2);
@@ -675,8 +663,6 @@ public class DashboardFilterTest
     // check the UI is in a clean state
     DashboardFilters.saveFilterNameLabel().shouldBe(hidden);
     DashboardFilters.saveFilterDirtyAsterisk().shouldBe(hidden);
-    // UI should be in a clean state... no need to check delete modal as it is covered in {@link #testDeleteFilter()}
-    eyesWatcher.eyesCheck();
 
     // verify that applied filter is no longer based on the deleted one
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
@@ -692,7 +678,6 @@ public class DashboardFilterTest
     DashboardFilters.saveFilterNameLabel().shouldBe(hidden);
     DashboardPage.needsAcknowledgementMessage().shouldBe(visible)
         .shouldHave(text(DashboardPage.NEEDS_ACKNOWLEDGEMENT_MESSAGE));
-    eyesWatcher.eyesCheck();
     DashboardPage.violationsView().results().violations().shouldHaveSize(0);
 
     DashboardPage.componentsTab().click();
@@ -772,7 +757,6 @@ public class DashboardFilterTest
     ViolationsResults violationsResults = DashboardPage.violationsView().results();
     violationsResults.violations().shouldHaveSize(0);
     violationsResults.noDataMessage().shouldBe(visible);
-    eyesWatcher.eyesCheck();
 
     refreshOrOpen(DashboardPage.urlToApplications());
     ApplicationsResults applicationsResults = DashboardPage.applicationsView().results();
@@ -792,7 +776,6 @@ public class DashboardFilterTest
     else {
       DashboardFilters.saveFilterNameLabel().shouldBe(hidden);
     }
-    eyesWatcher.eyesCheck();
     DashboardPage.needsAcknowledgementMessage().shouldBe(hidden);
     DashboardPage.violationsView().results().violations().shouldHaveSize(3);
     ViolationTile violation = DashboardPage.violationsView().results().firstViolation();

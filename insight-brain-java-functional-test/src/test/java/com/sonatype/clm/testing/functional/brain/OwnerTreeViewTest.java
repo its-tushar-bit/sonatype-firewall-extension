@@ -97,7 +97,6 @@ public class OwnerTreeViewTest
     organizationElement.shouldNotHave(OrganizationNode.DISABLED_TOOLTIP_ATTRIBUTE);
     organizationElement.shouldBe(visible);
     organizationNode.organizationName().shouldHave(text(organizationName)).hover();
-    eyesWatcher.eyesCheck("Conditional tooltip rendering for organizations");
     checkTooltipRenderedOnlyOnOverflow(organizationName);
 
     twisty.click();
@@ -124,14 +123,10 @@ public class OwnerTreeViewTest
     SelenideElement twisty = organizationNode.twisty();
     SelenideElement treeViewElement = organizationNode.treeViewElement();
 
-    // visual test with applitools - step 1
-    eyesWatcher.eyesCheck();
-
     treeViewElement.click();
     treeViewElement.shouldBe(CLM.SELECTED);
     twisty.shouldBe(CLM.COLLAPSED);
 
-    // visual test with applitools - step 2
     eyesWatcher.eyesCheck();
   }
 

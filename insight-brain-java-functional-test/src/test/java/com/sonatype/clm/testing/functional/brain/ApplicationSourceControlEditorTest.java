@@ -122,8 +122,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
     SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
     SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
-
-    eyesWatcher.eyesCheck("Source Control Editor Default State With Provider and Inherited Token");
   }
 
   @Test
@@ -191,8 +189,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(selected);
     SourceControlEditorPage.providerWarning().shouldNotBe(visible);
     SourceControlEditorPage.repositoryUrl().shouldHave(value(REPOSITORY_URL));
-
-    eyesWatcher.eyesCheck("Source Control Editor Default State Valid Token");
   }
 
   @Test
@@ -207,19 +203,16 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.token().shouldBe(enabled);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.saveButton().hover();
-    eyesWatcher.eyesCheck("Source Control Editor Update With Missing Token");
     assertToolTip("There are no changes to update.");
 
     SourceControlEditorPage.token().click();
     SourceControlEditorPage.token().setValue(TOKEN);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.saveButton().hover();
-    eyesWatcher.eyesCheck("Source Control Editor Update With Missing URL");
     assertToolTip("Unable to update: fields with invalid or missing data.");
 
     SourceControlEditorPage.repositoryUrl().setValue(REPOSITORY_URL);
     SourceControlEditorPage.saveButton().shouldBe(enabled);
-    eyesWatcher.eyesCheck("Source Control Editor Update Valid Data");
     SourceControlEditorPage.saveButton().click();
     FormMask.seeAndWaitForDismissal();
 
@@ -248,14 +241,11 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.saveButton().shouldHave(text("Update"));
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
 
-    eyesWatcher.eyesCheck("Source Control Editor Update - Changed token to inherit");
-
     SourceControlEditorPage.saveButton().click();
     FormMask.seeAndWaitForDismissal();
 
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.saveButton().hover();
-    eyesWatcher.eyesCheck("Source Control Editor Update - After save with inherit");
     assertToolTip("There are no changes to update.");
     SourceControlEditorPage.deleteButton().shouldNotBe(visible);
     SourceControlEditorPage.token().shouldHave(value(""));
@@ -388,7 +378,6 @@ public class ApplicationSourceControlEditorTest
     assertSourceControlDoesNotExist(application.getId());
 
     SourceControlEditorPage.tokenWarning().shouldBe(visible);
-    eyesWatcher.eyesCheck("Source Control Editor - Token warning visible");
     SourceControlEditorPage.token().setValue(TOKEN);
     SourceControlEditorPage.tokenWarning().shouldBe(visible);
 
@@ -396,7 +385,6 @@ public class ApplicationSourceControlEditorTest
     FormMask.seeAndWaitForDismissal();
 
     SourceControlEditorPage.tokenWarning().shouldBe(visible);
-    eyesWatcher.eyesCheck("Source Control Editor - Token warning visible");
 
     tempEntity.newSourceControl(organization.getId(), null, TOKEN, null);
     refresh();
@@ -463,8 +451,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.advancedSettings().shouldNotBe(visible);
     SourceControlEditorPage.advancedElementsTrigger().click();
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
-
-    eyesWatcher.eyesCheck("Source Control Editor - update enabled");
 
     SourceControlEditorPage.saveButton().click();
     FormMask.seeAndWaitForDismissal();
@@ -544,8 +530,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.baseBranchInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
-
-    eyesWatcher.eyesCheck("Source Control Editor - Pull requests disabled no licence");
   }
 
   @Test

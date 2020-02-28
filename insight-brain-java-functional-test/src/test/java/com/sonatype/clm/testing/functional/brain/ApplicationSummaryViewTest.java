@@ -515,8 +515,6 @@ public class ApplicationSummaryViewTest
     tile.itemSubText().shouldBe(visible)
         .shouldHave(Condition.text("Source Control not configured"));
 
-    eyesWatcher.eyesCheck("Source control not configured");
-
     SourceControl rootSourceControl =
         tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     refresh();
@@ -550,8 +548,6 @@ public class ApplicationSummaryViewTest
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
         .format("Inherit access token from %s (GitHub)", rootOrganization.getName())));
 
-    eyesWatcher.eyesCheck("Valid source control configured, token on root");
-
     tempEntity.newSourceControl(application.getId(), "http://github.com/aaa/bbb", "TEST_TOKEN", null);
     refresh();
 
@@ -566,8 +562,6 @@ public class ApplicationSummaryViewTest
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("http://github.com/aaa/bbb"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
         .format("Provides default access token for %s (GitHub)", application.getName())));
-
-    eyesWatcher.eyesCheck("Valid source control configured, token on organization");
   }
 
   @Test
@@ -608,7 +602,5 @@ public class ApplicationSummaryViewTest
     tile.content().shouldBe(visible);
 
     tile.itemSubText().shouldBe(visible);
-
-    eyesWatcher.eyesCheck("Source Control Notifications Only License");
   }
 }

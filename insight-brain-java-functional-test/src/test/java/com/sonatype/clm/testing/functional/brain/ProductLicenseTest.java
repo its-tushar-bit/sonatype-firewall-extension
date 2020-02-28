@@ -80,8 +80,6 @@ public class ProductLicenseTest
     ProductLicensePage.licensedDevelopers().shouldNotBe(visible);
     ProductLicensePage.licensedApplications().shouldBe(visible).shouldHave(text("100"));
     ProductLicensePage.products().shouldHave(texts("Nexus Auditor"));
-
-    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -93,8 +91,6 @@ public class ProductLicenseTest
     ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("45"));
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
     ProductLicensePage.products().shouldHave(texts("Nexus Firewall"));
-
-    eyesWatcher.eyesCheck();
   }
 
   @Test

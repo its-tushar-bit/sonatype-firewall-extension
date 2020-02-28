@@ -154,8 +154,6 @@ public abstract class AbstractVersionGraphMavenTest
     VersionsCIP.securityCount().shouldNotBe(visible);
     VersionsCIP.hygieneRating().shouldNotBe(visible);
 
-    eyesWatcher.eyesCheck("Component Info Screen Remediation Selected");
-
   }
 
   @Test
@@ -194,7 +192,6 @@ public abstract class AbstractVersionGraphMavenTest
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);
-    eyesWatcher.eyesCheck("Component Info Screen");
   }
 
   @Test

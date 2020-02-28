@@ -379,8 +379,6 @@ public class OrganizationSummaryViewTest
     ElementsCollection rowHeaders = tile.rowHeaders();
     rowHeaders.shouldHaveSize(2);
     rowHeaders.last(rowHeaders.size() - 1).shouldHave(exactTexts(Stage.ID_RELEASE));
-
-    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -399,8 +397,6 @@ public class OrganizationSummaryViewTest
     tile.itemSubText().shouldBe(visible)
         .shouldHave(Condition.text("Source Control not configured"));
 
-    eyesWatcher.eyesCheck("Source control not configured");
-
     SourceControl rootSourceControl =
         tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     refresh();
@@ -415,8 +411,6 @@ public class OrganizationSummaryViewTest
 
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text("Inherit access token"));
-
-    eyesWatcher.eyesCheck("Valid source control configured, token on root");
 
     rootSourceControl.setToken("TESK_TOKEN");
     sourceControlDAO.update(rootSourceControl);
@@ -433,8 +427,6 @@ public class OrganizationSummaryViewTest
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
         .format("Inherit access token from %s", rootOrganization.getName())));
-
-    eyesWatcher.eyesCheck("Valid source control configured, token on root");
 
     tempEntity.newSourceControl(organization.getId(), null, "TEST_TOKEN", null);
     refresh();
@@ -492,7 +484,5 @@ public class OrganizationSummaryViewTest
     tile.content().shouldBe(visible);
 
     tile.itemSubText().shouldBe(visible);
-
-    eyesWatcher.eyesCheck("Source Control Notifications Only License");
   }
 }

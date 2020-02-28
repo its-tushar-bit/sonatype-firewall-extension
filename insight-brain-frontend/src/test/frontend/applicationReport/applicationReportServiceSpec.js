@@ -877,7 +877,17 @@ describe('applicationReportService', function() {
                   name: 'foo',
                   version: '1'
                 }
-              }
+              },
+              children: [{
+                componentIdentifier: {
+                  format: 'maven',
+                  coordinates: {
+                    groupId: 'barGroup',
+                    artifactId: 'bar',
+                    version: '2'
+                  }
+                }
+              }]
             }, {
               componentIdentifier: {
                 format: 'maven',
@@ -917,7 +927,16 @@ describe('applicationReportService', function() {
         derivedViolationState: 'notViolating',
         policyName: 'None',
         policyThreatLevel: 0,
-        dependencyInfo: { isDirectDependency: false },
+        dependencyInfo: {
+          isDirectDependency: false,
+          rootAncestors: [{
+            format: 'a-name',
+            coordinates: {
+              name: 'foo',
+              version: '1'
+            }
+          }]
+        },
         derivedDependencyType: 'transitive'
       }));
 

@@ -35,6 +35,13 @@ describe('DependencyInfoGenerator', function() {
   });
 
   describe('getDependencyInfo', function() {
+    // dependencyGraph:
+    //
+    //  logback-access          bar
+    //     |      \              |
+    //     |  org.mortbay.jetty  |
+    //     | /                 \ |
+    //    foo                   baz
     const dependencies = {
       dependencyGraph: [
         {
@@ -50,6 +57,17 @@ describe('DependencyInfoGenerator', function() {
                   version: '0.6'
                 }
               }
+            },
+            {
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  artifactId: 'bar',
+                  extension: 'jar',
+                  groupId: 'test',
+                  version: '1'
+                }
+              }
             }
           ]
         },
@@ -63,7 +81,56 @@ describe('DependencyInfoGenerator', function() {
               groupId: 'ch.qos.logback',
               version: '0.6'
             }
-          }
+          },
+          children: [
+            {
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  artifactId: 'jetty',
+                  classifier: '',
+                  extension: 'jar',
+                  groupId: 'org.mortbay.jetty',
+                  version: '6.1.15'
+                }
+              }
+            },
+            {
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  artifactId: 'foo',
+                  extension: 'jar',
+                  groupId: 'test',
+                  version: '1'
+                }
+              }
+            }
+          ]
+        },
+        {
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              artifactId: 'bar',
+              extension: 'jar',
+              groupId: 'test',
+              version: '1'
+            }
+          },
+          children: [
+            {
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  artifactId: 'baz',
+                  extension: 'jar',
+                  groupId: 'test',
+                  version: '1'
+                }
+              }
+            }
+          ]
         },
         {
           componentIdentifier: {
@@ -74,6 +141,52 @@ describe('DependencyInfoGenerator', function() {
               extension: 'jar',
               groupId: 'org.mortbay.jetty',
               version: '6.1.15'
+            }
+          },
+          children: [
+            {
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  artifactId: 'foo',
+                  extension: 'jar',
+                  groupId: 'test',
+                  version: '1'
+                }
+              }
+            },
+            {
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  artifactId: 'baz',
+                  extension: 'jar',
+                  groupId: 'test',
+                  version: '1'
+                }
+              }
+            }
+          ]
+        },
+        {
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              artifactId: 'foo',
+              extension: 'jar',
+              groupId: 'test',
+              version: '1'
+            }
+          }
+        },
+        {
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              artifactId: 'baz',
+              extension: 'jar',
+              groupId: 'test',
+              version: '1'
             }
           }
         }
@@ -97,7 +210,7 @@ describe('DependencyInfoGenerator', function() {
       expect(dependencyInfoGenerator.getDependencyInfo(reportEntry)).toEqual({isDirectDependency: true});
     });
 
-    it('sets isDirectDependency to false for transitive dependency', function() {
+    it('sets isDirectDependency to false and generates rootAncestors for transitive dependency', function() {
       const reportEntry = {
         componentIdentifier: {
           format: 'maven',
@@ -111,7 +224,86 @@ describe('DependencyInfoGenerator', function() {
         }
       };
       const dependencyInfoGenerator = DependencyInfoGenerator(dependencies);
-      expect(dependencyInfoGenerator.getDependencyInfo(reportEntry)).toEqual({isDirectDependency: false});
+      expect(dependencyInfoGenerator.getDependencyInfo(reportEntry)).toEqual({
+        isDirectDependency: false,
+        rootAncestors: [{
+          format: 'maven',
+          coordinates: {
+            artifactId: 'logback-access',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'ch.qos.logback',
+            version: '0.6'
+          }
+        }]
+      });
+    });
+
+    it('handles multiple rootAncestors', function() {
+      const reportEntry = {
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            artifactId: 'baz',
+            extension: 'jar',
+            groupId: 'test',
+            version: '1'
+          }
+        }
+      };
+
+      const dependencyInfoGenerator = DependencyInfoGenerator(dependencies);
+      expect(dependencyInfoGenerator.getDependencyInfo(reportEntry)).toEqual({
+        isDirectDependency: false,
+        rootAncestors: [{
+          format: 'maven',
+          coordinates: {
+            artifactId: 'logback-access',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'ch.qos.logback',
+            version: '0.6'
+          }
+        },
+        {
+          format: 'maven',
+          coordinates: {
+            artifactId: 'bar',
+            extension: 'jar',
+            groupId: 'test',
+            version: '1'
+          }
+        }]
+      });
+    });
+
+    it('dedupes rootAncestors', function() {
+      const reportEntry = {
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            artifactId: 'foo',
+            extension: 'jar',
+            groupId: 'test',
+            version: '1'
+          }
+        }
+      };
+
+      const dependencyInfoGenerator = DependencyInfoGenerator(dependencies);
+      expect(dependencyInfoGenerator.getDependencyInfo(reportEntry)).toEqual({
+        isDirectDependency: false,
+        rootAncestors: [{
+          format: 'maven',
+          coordinates: {
+            artifactId: 'logback-access',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'ch.qos.logback',
+            version: '0.6'
+          }
+        }]
+      });
     });
 
     it('returns null if no dependency info found for given entry', function() {

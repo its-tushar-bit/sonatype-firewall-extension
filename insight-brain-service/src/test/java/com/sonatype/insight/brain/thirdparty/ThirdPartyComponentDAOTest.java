@@ -226,6 +226,7 @@ public class ThirdPartyComponentDAOTest
     String appId = "appId";
     when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
 
+    @SuppressWarnings("deprecation")
     SecurityVulnerabilityDetails securityDetails =
         dao.getSecurityVulnerabilityDetailsByIdentifier(testData.get(hashGlibc), appId, scanId, referenceId);
 
@@ -235,6 +236,7 @@ public class ThirdPartyComponentDAOTest
     assertThat(securityDetails.getHtmlDetails()).isNotEmpty();
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testGetSecurityVulnerabilityDetailsByIdentifier_inexistingReferenceId() {
     final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");

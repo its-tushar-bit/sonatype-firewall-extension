@@ -188,7 +188,7 @@ public class ThirdPartyComponentDAO
   }
 
   /**
-   * @deprecated Replaced with {@link #getVulnerabilityData}, which is consumed by the API resource
+   * @deprecated Replaced in 1.86 with {@link #getVulnerabilityData}, which is consumed by the API resource
    *             ApiVulnerabilityDetailsResourceV2. This code path must remain until the legacy ("old style")
    *             application report is removed.
    */

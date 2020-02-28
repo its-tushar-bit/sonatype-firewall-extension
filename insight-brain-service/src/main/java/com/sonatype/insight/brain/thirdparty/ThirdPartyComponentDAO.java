@@ -192,6 +192,7 @@ public class ThirdPartyComponentDAO
    *             ApiVulnerabilityDetailsResourceV2. This code path must remain until the legacy ("old style")
    *             application report is removed.
    */
+  @Deprecated
   public SecurityVulnerabilityDetails getSecurityVulnerabilityDetailsByIdentifier(
       final ComponentIdentifier identifier,
       final String appId,

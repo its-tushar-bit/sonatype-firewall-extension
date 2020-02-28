@@ -22,7 +22,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
-import com.sonatype.nexus.scm.api.model.Commit;
 import com.sonatype.nexus.scm.api.model.CommitInformation;
 import com.sonatype.nexus.scm.api.model.PullRequest;
 import com.sonatype.nexus.scm.api.model.PullRequestState;
@@ -651,12 +650,6 @@ public class PullRequestCommentingServiceTest
 
     TestablePullRequestCommentingServiceBuilder expectApplicationId(String applicationId) {
       this.applicationId = applicationId;
-      return this;
-    }
-
-    TestablePullRequestCommentingServiceBuilder withBaseBranchCommit() {
-      Commit commit = new Commit();
-      commitInformation.addCommit(commit);
       return this;
     }
 

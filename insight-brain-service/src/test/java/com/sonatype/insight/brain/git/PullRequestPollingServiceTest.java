@@ -233,16 +233,6 @@ public class PullRequestPollingServiceTest
       return this;
     }
 
-    TestablePullRequestPollingServiceBuilder withTargetPolicyEvaluation(
-        String applicationId,
-        String policyEvaluationId)
-    {
-      targetPolicyEvaluation = new PolicyEvaluation();
-      targetPolicyEvaluation.setApplicationId(applicationId);
-      targetPolicyEvaluation.setId(policyEvaluationId);
-      return this;
-    }
-
     TestablePullRequestPollingServiceBuilder withPullRequest(int id, Date created, String headBranch) {
       PullRequest pullRequest = new GithubPullRequest();
       pullRequest.setNumber(id);

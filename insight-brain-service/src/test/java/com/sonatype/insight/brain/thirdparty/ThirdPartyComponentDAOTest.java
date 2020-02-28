@@ -331,13 +331,6 @@ public class ThirdPartyComponentDAOTest
     return ComponentDisplayNameUtil.fromIdentifier(testData.get(hash)).toString();
   }
 
-  private ThirdPartyBillOfMaterialsRowDTO newThirdPartyBom(
-      final String hash,
-      final ComponentIdentifier componentIdentifier)
-  {
-    return new ThirdPartyBillOfMaterialsRowDTO(componentIdentifier, hash);
-  }
-
   @Test
   public void testApplyThirdPartyComponentSummary_NoUpdateForEmptyList() throws Exception {
     final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");

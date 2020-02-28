@@ -358,7 +358,7 @@ public class TemporaryEntity
   private Collection<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories;
 
   @Override
-  protected void before() {
+  public void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
     apps = new ArrayList<>();
     orgs = new ArrayList<>();

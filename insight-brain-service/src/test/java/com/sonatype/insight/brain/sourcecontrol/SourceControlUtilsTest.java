@@ -183,7 +183,7 @@ public class SourceControlUtilsTest
     GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForApplication(application.getId());
 
     // then : expect result to have default base branch
-    assertThat(value.baseBranch).isEqualTo(sourceControlUtils.DEFAULT_BASE_BRANCH);
+    assertThat(value.baseBranch).isEqualTo(SourceControlUtils.DEFAULT_BASE_BRANCH);
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getId());
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(eq(application.getOrganizationId()));
 

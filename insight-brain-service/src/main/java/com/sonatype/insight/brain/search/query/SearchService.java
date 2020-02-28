@@ -280,10 +280,9 @@ public class SearchService
     Map<String, String> coordinates = new TreeMap<>();
     for (String coordinateName : ComponentIdentifier.getAllCoordinateNames(format)) {
       String coordinateValue = document.get(coordinateName);
-      if (coordinateValue == null) {
-        continue;
+      if (coordinateValue != null) {
+        coordinates.put(coordinateName, coordinateValue);
       }
-      coordinates.put(coordinateName, coordinateValue);
     }
     apiComponentIdentifierDTOV2.setCoordinates(coordinates);
     searchResultItemDTO.componentIdentifier = apiComponentIdentifierDTOV2;

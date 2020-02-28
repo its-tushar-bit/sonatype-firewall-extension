@@ -37,11 +37,11 @@
            id="reporting-navigation-button"
            ng-class="{ 'active' : vm.$state.includes('violations') }"
            ng-if="vm.isLicensed()">
-          <nx-font-awesome-icon icon="vm.faChartBar"
+          <nx-font-awesome-icon icon="vm.faFileAlt"
                                 class="iq-main-nav__button-icon"
                                 size="'2x'">
           </nx-font-awesome-icon>
-          <div class="iq-main-nav__button-label">Reporting</div>
+          <div class="iq-main-nav__button-label">Reports</div>
         </a>
         <a ui-sref="management.view"
            class="iq-navigation__button"
@@ -59,7 +59,7 @@
            id="labs-navigation-button"
            ng-class="{ 'active' : vm.$state.includes('labs') }"
            ng-if="vm.isSuccessMetricsEnabled">
-          <nx-font-awesome-icon icon="vm.faFlask" class="iq-main-nav__button-icon" size="'2x'"></nx-font-awesome-icon>
+          <nx-font-awesome-icon icon="vm.faAnalytics" class="iq-main-nav__button-icon" size="'2x'"></nx-font-awesome-icon>
           <div class="iq-main-nav__button-label">Metrics</div>
         </a>
         <a ui-sref="vulnerabilitySearch"
@@ -68,7 +68,7 @@
            ng-class="{ 'active' : vm.$state.includes('vulnerabilitySearch') ||
            vm.$state.includes('vulnerabilitySearchDetail')}"
            ng-if="vm.isLicensed()">
-          <nx-font-awesome-icon icon="vm.faSearch" class="iq-main-nav__button-icon" size="'2x'"></nx-font-awesome-icon>
+          <nx-font-awesome-icon icon="vm.faBug" class="iq-main-nav__button-icon" size="'2x'"></nx-font-awesome-icon>
           <div class="iq-main-nav__button-label">Vulnerabilities</div>
         </a>
         <a ui-sref="searchResults"
@@ -78,8 +78,8 @@
            ng-if="vm.isLicensed() && vm.isFullTextSearchEnabled"
            tooltip="Global Search"
            tooltip-placement="bottom">
-          <nx-font-awesome-icon icon="vm.faAtlas" class="iq-main-nav__button-icon" size="'2x'"></nx-font-awesome-icon>
-          <div class="iq-main-nav__button-label">Global Search</div>
+          <nx-font-awesome-icon icon="vm.faSearch" class="iq-main-nav__button-icon" size="'2x'"></nx-font-awesome-icon>
+          <div class="iq-main-nav__button-label">Search</div>
         </a>
       </div>
       <div class="iq-nav-bar--system">

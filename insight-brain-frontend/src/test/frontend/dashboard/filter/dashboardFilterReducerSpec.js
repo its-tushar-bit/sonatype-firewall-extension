@@ -129,6 +129,12 @@ describe('dashboardFilterReducer', function() {
               name: 'ApplicationS',
               organizationId: 'noPermissionOrgId',
               organizationName: 'No Permission'
+            }, {
+              id: 'applicationIdS2',
+              publicId: 'applicationPublicIdS2',
+              name: 'ApplicationS2',
+              organizationId: 'noPermissionOrgId',
+              organizationName: 'No Permission'
             }
           ],
           categories: [

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {compose, curry, merge, pick, equals, find, propEq, prop, indexBy, sortBy} from 'ramda';
+import {compose, curry, equals, find, indexBy, map, merge, pick, prop, propEq, sortBy, uniqBy} from 'ramda';
 import {propSet, pathSet, lookup} from '../../util/jsUtil';
 import {
   ages,
@@ -180,7 +180,8 @@ function setAvailable(state, payload) {
 
   // add missing Orgs (no permission to org scenario)
   const appsWithNoOrg = applications.filter(app => findOrgById(app.organizationId) === undefined);
-  const missingOrgs = appsWithNoOrg.map(app => ({id: app.organizationId, name: app.organizationName}));
+  const missingOrgs = uniqBy(prop('id'),
+      map(app => ({id: app.organizationId, name: app.organizationName}), appsWithNoOrg));
 
   // filter out ROOT ORG
   const orgsWithoutRoot = payload.organizations.filter(organization => organization.id !== 'ROOT_ORGANIZATION_ID');

@@ -69,6 +69,8 @@ public class UrlRunner
            String adminUrl,
            String proxy) throws Exception
   {
+    long start = System.currentTimeMillis();
+
     this.adminUrl = adminUrl;
     String usernamePass = username + ":" + password;
     authHeader = new BasicHeader("Authorization",
@@ -89,6 +91,8 @@ public class UrlRunner
         }
       });
     }
+
+    log.info("UrlRunner finished in {} ms", System.currentTimeMillis() - start);
   }
 
   private void makeHttpCalls(CloseableHttpClient http, TestUrl url, String server, Consumer<Stats> callback)

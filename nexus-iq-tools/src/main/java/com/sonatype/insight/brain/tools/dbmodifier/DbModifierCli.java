@@ -164,10 +164,12 @@ public final class DbModifierCli
       printTableInfo(dbmod.getDateInfo());
     }
     else if (shiftDays != null) {
+      log.info("Shifting timestamps by {} days", shiftDays);
       dbmod.shiftDays(shiftDays);
       onSuccess(dbmod);
     }
     else if (maxDate != null) {
+      log.info("Shifting timestamps to {}", maxDate);
       dbmod.shiftToDate(mapDate(maxDate));
       onSuccess(dbmod);
     }

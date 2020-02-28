@@ -23,9 +23,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.codehaus.plexus.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DbModifier
 {
+  private static final Logger log = LoggerFactory.getLogger(DbModifier.class);
+
   private final File databaseFile;
 
   private final String schemaName;
@@ -83,6 +87,7 @@ public class DbModifier
 
   public void shiftToDate(final LocalDate maxDate) {
     Timestamp maxTimestamp = getMaxTimestamp();
+    log.info("Max timestamp in the db: {}", maxTimestamp);
     if (maxTimestamp == null) {
       return;
     }
@@ -94,11 +99,13 @@ public class DbModifier
   }
 
   public void shiftDays(final int numDays) {
+    log.info("Shifting timestamps by {} days", numDays);
     List<TableAndColumns> tablesWithTsColumns = getAllTablesWithTimestampColumns();
     tablesWithTsColumns.forEach(tableAndColumns -> runUpdateQuery(tableAndColumns, numDays));
   }
 
   public List<TableDateMinMax> getDateInfo() {
+    long start = System.currentTimeMillis();
     List<TableDateMinMax> allTableDates = new ArrayList<>();
     List<TableAndColumns> tablesWithTsColumns = getAllTablesWithTimestampColumns();
     tablesWithTsColumns.forEach(tableAndColumns -> {
@@ -108,6 +115,7 @@ public class DbModifier
       tableDates.min = getMinTimestampInTable(tableAndColumns);
       allTableDates.add(tableDates);
     });
+    log.info("Retrieved timestamp info for all tables in {} ms", System.currentTimeMillis() - start);
     return allTableDates;
   }
 
@@ -118,10 +126,15 @@ public class DbModifier
         .map(column -> "\"" + column + "\" = DATEADD('day', " + numDays + ", \"" + column + "\")")
         .collect(Collectors.joining(", "));
     sql += ";";
+
+    log.info("Executing SQL: {}", sql);
+    long start = System.currentTimeMillis();
     try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
-      statement.executeUpdate(sql);
+      int updatedRecordsCount = statement.executeUpdate(sql);
+      log.info("Updated {} records in {} ms", updatedRecordsCount, System.currentTimeMillis() - start);
     }
     catch (Exception e) {
+      log.info("Failed to execute SQL in {} ms", System.currentTimeMillis() - start);
       throw new RuntimeException(e);
     }
   }
@@ -176,8 +189,10 @@ public class DbModifier
   }
 
   private List<Timestamp> retrieveTimestamps(final String maxOrMinSql) {
+    long start = System.currentTimeMillis();
     List<Timestamp> timestamps = new ArrayList<>();
     try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
+      log.info("Executing SQL: {}", maxOrMinSql);
       ResultSet resultSet = statement.executeQuery(maxOrMinSql);
       int numOfColumns = resultSet.getMetaData().getColumnCount();
       while (resultSet.next()) {
@@ -192,6 +207,7 @@ public class DbModifier
     catch (Exception e) {
       throw new RuntimeException(e);
     }
+    log.info("Retrieved timestamp info in {} ms", System.currentTimeMillis() - start);
     return timestamps;
   }
 
@@ -202,6 +218,7 @@ public class DbModifier
 
   // visible for testing
   List<TableAndColumns> getAllTimestampColumns(final List<String> tableNames) {
+    long start = System.currentTimeMillis();
     List<TableAndColumns> tablesList = new ArrayList<>();
     for (String tableName : tableNames) {
       TableAndColumns tableAndColumns = new TableAndColumns();
@@ -220,6 +237,7 @@ public class DbModifier
         tablesList.add(tableAndColumns);
       }
     }
+    log.info("Retrieved all timestamp columns in {} ms", System.currentTimeMillis() - start);
     return tablesList;
   }
 
@@ -243,6 +261,7 @@ public class DbModifier
 
   // visible for testing
   List<String> getAllTables() {
+    long start = System.currentTimeMillis();
     List<String> tableNames = new ArrayList<>();
     String getTablesSql =
         "SELECT TABLE_NAME from \"INFORMATION_SCHEMA\".\"TABLES\" where TABLE_SCHEMA = '" + schemaName + "'";
@@ -251,6 +270,7 @@ public class DbModifier
       while (resultSet.next()) {
         tableNames.add(resultSet.getString(1));
       }
+      log.info("Retrieved all table names in {} ms", System.currentTimeMillis() - start);
       return tableNames;
     }
     catch (Exception e) {

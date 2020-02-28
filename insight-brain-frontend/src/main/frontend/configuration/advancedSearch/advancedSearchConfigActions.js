@@ -1,0 +1,83 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import axios from 'axios';
+
+import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
+import { getCreateIndexUrl, getAdvancedSearchConfigUrl } from '../../util/CLMLocation';
+
+// Actions related to initial loading of the page
+export const ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED = 'ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED';
+export const ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED = 'ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED';
+export const ADVANCED_SEARCH_CONFIG_LOAD_FAILED = 'ADVANCED_SEARCH_CONFIG_LOAD_FAILED';
+
+const loadRequested = noPayloadActionCreator(ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED);
+const loadFulfilled = payloadParamActionCreator(ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED);
+const loadFailed = payloadParamActionCreator(ADVANCED_SEARCH_CONFIG_LOAD_FAILED);
+
+export function load() {
+  return function(dispatch) {
+    dispatch(loadRequested());
+    axios.get(getAdvancedSearchConfigUrl())
+        .then(({data}) => {
+          dispatch(loadFulfilled(data));
+        })
+        .catch(error => {
+          dispatch(loadFailed(error));
+        });
+  };
+}
+
+// Action related to saving the form
+export const ADVANCED_SEARCH_CONFIG_SAVE_REQUESTED = 'ADVANCED_SEARCH_CONFIG_SAVE_REQUESTED';
+export const ADVANCED_SEARCH_CONFIG_SAVE_FULFILLED = 'ADVANCED_SEARCH_CONFIG_SAVE_FULFILLED';
+export const ADVANCED_SEARCH_CONFIG_SAVE_FAILED = 'ADVANCED_SEARCH_CONFIG_SAVE_FAILED';
+
+const saveRequested = noPayloadActionCreator(ADVANCED_SEARCH_CONFIG_SAVE_REQUESTED);
+const saveFulfilled = noPayloadActionCreator(ADVANCED_SEARCH_CONFIG_SAVE_FULFILLED);
+const saveFailed = payloadParamActionCreator(ADVANCED_SEARCH_CONFIG_SAVE_FAILED);
+
+export function save() {
+  return function(dispatch, getState) {
+    dispatch(saveRequested());
+    axios.put(getAdvancedSearchConfigUrl(), getState().advancedSearchConfig.formState)
+        .then(() => {
+          dispatch(saveFulfilled());
+        })
+        .catch(error => {
+          dispatch(saveFailed(error));
+        });
+  };
+}
+
+// Cancel Form
+export const ADVANCED_SEARCH_RESET_FORM = 'RESET_FORM';
+export const resetForm = noPayloadActionCreator(ADVANCED_SEARCH_RESET_FORM);
+
+// Opt-In Checkbox Related Actions
+export const ADVANCED_SEARCH_SET_IS_ENABLED = 'ADVANCED_SEARCH_SET_IS_ENABLED';
+export const setIsEnabled = payloadParamActionCreator(ADVANCED_SEARCH_SET_IS_ENABLED);
+
+// Actions related to re-indexing
+export const ADVANCED_SEARCH_TRIGGER_RE_INDEX = 'ADVANCED_SEARCH_TRIGGER_RE_INDEX';
+const triggerReIndex = noPayloadActionCreator(ADVANCED_SEARCH_TRIGGER_RE_INDEX);
+
+export function reIndex() {
+  return function(dispatch) {
+    return axios.post(getCreateIndexUrl(), {})
+        .then(() => {
+          dispatch(triggerReIndex());
+        })
+        .catch(error => {
+          dispatch(advancedSearchReindexFailed(error));
+        });
+  };
+}
+
+export const ADVANCED_SEARCH_CLOSE_RE_INDEX_MODAL = 'ADVANCED_SEARCH_CLOSE_RE_INDEX_MODAL';
+export const closeReIndexModal = noPayloadActionCreator(ADVANCED_SEARCH_CLOSE_RE_INDEX_MODAL);
+
+export const ADVANCED_SEARCH_RE_INDEX_FAILED = 'ADVANCED_SEARCH_RE_INDEX_FAILED';
+const advancedSearchReindexFailed = payloadParamActionCreator(ADVANCED_SEARCH_RE_INDEX_FAILED);

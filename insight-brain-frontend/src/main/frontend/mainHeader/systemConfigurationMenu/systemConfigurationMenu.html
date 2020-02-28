@@ -78,5 +78,12 @@
         Automatic SCM Configuration
       </a>
     </div>
+    <hr/>
+    <h5>Early Access</h5>
+    <div id="system-configuration-advanced-search"
+         ng-if="vm.permissions.CONFIGURE_SYSTEM"
+         ng-class="{'active': vm.state.includes('advancedSearch')}">
+      <a ui-sref="advancedSearchConfig" class="iq-dropdown-menu__link--main-header">Advanced Search</a>
+    </div>
   </div>
 </div>

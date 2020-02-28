@@ -51,6 +51,13 @@ export function getDashboardStageUrl() {
 
 export function getCliStageUrl() {
   return `${getBaseUrl(window.location.href)}/rest/policy/stages`;
+
+export function getAdvancedSearchConfigUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/fullTextSearch/status`;
+}
+
+export function getCreateIndexUrl() {
+  return `${getBaseUrl(window.location.href)}/api/experimental/search/index`;
 }
 
 export default

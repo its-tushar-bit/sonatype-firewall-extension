@@ -11,3 +11,4 @@ import './app/version.graph.app';
 import './appcheck';
 import './buttons.css';
 import './content.css';
+import 'components-font-awesome/css/font-awesome.min.css';

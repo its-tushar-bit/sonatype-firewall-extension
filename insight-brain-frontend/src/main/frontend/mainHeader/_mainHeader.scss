@@ -9,6 +9,7 @@ $notification-item-border: 1px solid $iq-grey-1;
 $iq-notification-age-qualifier-width: 66px;
 $iq-notification-age-width: 43px;
 $iq-main-header-height: 72px;
+$main-header-nav-breakpoint: 1150px;
 
 /*
   First Row
@@ -46,6 +47,10 @@ $iq-main-header-height: 72px;
 .iq-logo {
   height: 48px;
   margin: 12px 0 0 1px;
+
+  @media (max-width: $iq-page-width-max) {
+    margin-left: 9px; // 1px border + 8px padding
+  }
 }
 
 .iq-logo--print {
@@ -56,6 +61,10 @@ $iq-main-header-height: 72px;
   display: flex;
   flex: 0 1 100%;
   flex-direction: column;
+
+  @media (max-width: $iq-page-width-max) {
+    margin-left: 8px;
+  }
 }
 
 .iq-title__product {
@@ -135,6 +144,10 @@ $iq-main-header-height: 72px;
     border-color: $iq-grey-1;
     color: $main-header-color;
   }
+
+  @media (max-width: $main-header-nav-breakpoint) {
+    flex-basis: 85px;
+  }
 }
 
 .iq-main-nav__button-label {
@@ -143,6 +156,10 @@ $iq-main-header-height: 72px;
   font-size: 11px;
   line-height: 13px;
   margin: 6px 0 0 0;
+
+  @media (max-width: $main-header-nav-breakpoint) {
+    font-size: 10px;
+  }
 }
 
 .iq-main-nav__button-icon {

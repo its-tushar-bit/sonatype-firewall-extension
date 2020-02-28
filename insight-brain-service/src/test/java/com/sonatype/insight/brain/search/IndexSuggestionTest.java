@@ -70,7 +70,11 @@ public class IndexSuggestionTest
   }
 
   private String field(FieldIdentifier fieldName, String value) {
-    return fieldName.label + ':' + value;
+    return field(fieldName.label, value);
+  }
+
+  private String field(String fieldName, String value) {
+    return fieldName + ':' + value;
   }
 
   @Test
@@ -252,8 +256,9 @@ public class IndexSuggestionTest
   public void testField_ComponentName() throws Exception {
     newAppReport();
     index();
-    assertThat(autoComplete("autocom"))
-        .containsExactlyInAnyOrder(field(FieldIdentifier.COMPONENT_NAME, "AutoComplete.Test 1.2.3"));
+    assertThat(autoComplete("autocom")).containsExactlyInAnyOrder(
+        field(FieldIdentifier.COMPONENT_NAME, "AutoComplete.Test 1.2.3"),
+        field("componentCoordinatePackageId", "AutoComplete.Test"));
   }
 
   @Test
@@ -261,6 +266,13 @@ public class IndexSuggestionTest
     newAppReport();
     index();
     assertThat(autoComplete("nug")).containsExactlyInAnyOrder(field(FieldIdentifier.COMPONENT_FORMAT, "nuget"));
+  }
+
+  @Test
+  public void testField_ComponentCoordinate() throws Exception {
+    newAppReport();
+    index();
+    assertThat(autoComplete("jar")).containsExactlyInAnyOrder(field("componentCoordinateExtension", "jar"));
   }
 
   @Test

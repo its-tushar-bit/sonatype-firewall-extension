@@ -62,6 +62,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
@@ -285,11 +286,12 @@ public class IndexService
   private Set<String> getDocFieldValues(Document doc) {
     Set<String> docFieldValues = new HashSet<>();
 
-    for (String identifier : FieldIdentifier.labelIdentifiers()) {
-      if (!SUGGESTER_FIELDS_TO_IGNORE.contains(identifier)) {
-        String value = doc.get(identifier);
+    for (IndexableField field : doc) {
+      String fieldName = field.name();
+      if (!SUGGESTER_FIELDS_TO_IGNORE.contains(fieldName)) {
+        String value = field.stringValue();
         if (value != null) {
-          docFieldValues.add(identifier + ":" + value);
+          docFieldValues.add(fieldName + ":" + value);
         }
       }
     }

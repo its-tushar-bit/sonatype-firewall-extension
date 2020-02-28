@@ -16,7 +16,7 @@ function SearchBarController(searchService, searchSuggesterService, $q, $state, 
 
   Object.assign(vm, {
     error: undefined,
-    query: undefined,
+    query: searchService.query,
     suggestions: [],
 
     search() {

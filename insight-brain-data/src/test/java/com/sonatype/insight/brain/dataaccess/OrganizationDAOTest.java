@@ -5,16 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
-
-import javax.imageio.ImageIO;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -79,21 +73,6 @@ public class OrganizationDAOTest
     organization = dao.getById(organizationId);
     assertThat(organization.getName()).isEqualTo("OrganizationDAOTest");
     assertThat(organization.getParentOrganizationId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
-
-    // Set an icon for the organization
-    BufferedImage image = new BufferedImage(420, 420, BufferedImage.TYPE_INT_ARGB);
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    ImageIO.write(image, "png", byteArrayOutputStream);
-    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-    File iconDir = tmpDir.newFolder();
-    File orgIconDir = new File(iconDir, organizationId);
-    assertThat(orgIconDir).doesNotExist();
-    new IconDAO().setIcon(organizationId, iconDir, byteArrayInputStream);
-    assertThat(orgIconDir).isDirectory();
-
-    // Get the icon
-    byte[] iconBytes = new IconDAO().getIcon(organizationId, iconDir);
-    assertThat(iconBytes).isNotEmpty();
 
     // Update
     organization.setName("OrganizationDAOTest New name");

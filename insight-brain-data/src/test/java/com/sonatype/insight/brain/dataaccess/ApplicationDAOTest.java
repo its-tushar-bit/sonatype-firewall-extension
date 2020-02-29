@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,8 +16,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
-import javax.imageio.ImageIO;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -92,21 +86,6 @@ public class ApplicationDAOTest
     // Create
     Application app = tempEntity.newApplication(organization.getId());
 
-    BufferedImage image = new BufferedImage(420, 420, BufferedImage.TYPE_INT_ARGB);
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    ImageIO.write(image, "png", byteArrayOutputStream);
-    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-
-    File iconDir = tmpDir.newFolder();
-    File appIconDir = new File(iconDir, app.getId());
-    assertThat(appIconDir).doesNotExist();
-    new IconDAO().setIcon(app.getId(), iconDir, byteArrayInputStream);
-    assertThat(appIconDir).isDirectory();
-
-    // Get the icon
-    byte[] iconBytes = new IconDAO().getIcon(app.getId(), iconDir);
-    assertThat(iconBytes).isNotEmpty();
-
     // Update
     app = applicationDAO.getById(app.getId());
     app.setName("ApplicationDAOTest New name");
@@ -115,10 +94,9 @@ public class ApplicationDAOTest
     assertThat(app.getName()).isEqualTo("ApplicationDAOTest New name");
 
     // Delete
-    applicationDAO.deleteWithIcon(app, iconDir);
+    applicationDAO.delete(app);
     app = applicationDAO.getById(app.getId());
     assertThat(app).isNull();
-    assertThat(appIconDir).doesNotExist();
   }
 
   @Test

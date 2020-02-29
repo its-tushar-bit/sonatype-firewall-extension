@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import java.io.File;
 import java.io.IOException;
 
 import javax.inject.Inject;
@@ -16,6 +17,9 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Removes an {@link Application} along with related configuration and data.
  *
@@ -24,6 +28,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 @Named
 public class ApplicationCleaner
 {
+  private static final Logger log = LoggerFactory.getLogger(ApplicationCleaner.class);
+
   private final ApplicationDAO applicationDAO;
 
   private final InsightWork work;
@@ -41,8 +47,15 @@ public class ApplicationCleaner
     fileCleaner.delete(work.getScanDir(application.getId()));
     fileCleaner.delete(work.getAuditDir(application.getId()));
     fileCleaner.delete(work.getReportDir(application.getId()));
+    File applicationIconDirectory = new File(work.getApplicationIconDir(), application.getId());
+    try {
+      fileCleaner.delete(applicationIconDirectory);
+    }
+    catch (IOException e) {
+      log.error("Could not delete application icons: {}", applicationIconDirectory, e);
+    }
 
     // delete application last, this way the operation can be retried later if anything goes wrong
-    applicationDAO.deleteWithIcon(tx, application, work.getApplicationIconDir());
+    applicationDAO.delete(tx, application);
   }
 }

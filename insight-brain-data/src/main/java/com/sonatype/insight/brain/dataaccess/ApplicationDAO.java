@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -14,7 +12,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -262,26 +259,6 @@ public class ApplicationDAO
     }
 
     super.update(tx, application);
-  }
-
-  public void deleteWithIcon(Application application, File iconDirectory) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      deleteWithIcon(tx, application, iconDirectory);
-      tx.commit();
-    }
-  }
-
-  public void deleteWithIcon(TransactionContext tx, Application application, File iconDirectory) {
-    File applicationIconDirectory = new File(iconDirectory, application.getId());
-    try {
-      new FileCleaner().delete(applicationIconDirectory);
-    }
-    catch (IOException e) {
-      log.error("Could not delete application icons: {}" + applicationIconDirectory, e);
-    }
-
-    delete(tx, application);
   }
 
   @Override

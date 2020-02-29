@@ -13,7 +13,6 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -23,12 +22,17 @@ import com.sonatype.insight.db.DatabaseConfig;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DatabaseAccessTest
 {
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
+
   @Before
   public void setup() {
     DataSourceFactory.clear_ForTestsOnly();
@@ -51,8 +55,7 @@ public class DatabaseAccessTest
   @Test
   public void testConcurrentDatabaseAccess() throws Exception {
     // Create a file database (i.e. not in memory)
-    File databaseDir = new File("target/DatabaseTest/testConcurrentDatabaseAccess");
-    new FileCleaner().delete(databaseDir.getParentFile());
+    File databaseDir = tempDir.newFolder("testConcurrentDatabaseAccess");
 
     DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
     odsDatabaseConfig.setDriverClassName("org.h2.Driver");

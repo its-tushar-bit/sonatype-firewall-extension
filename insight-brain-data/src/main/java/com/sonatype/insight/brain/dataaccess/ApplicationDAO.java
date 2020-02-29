@@ -265,6 +265,14 @@ public class ApplicationDAO
   public void delete(TransactionContext tx, Application application) {
     long start = System.currentTimeMillis();
 
+    // Cascade to policy violations (like policy evaluations, deleted outside of transaction for performance)
+    // Since non-transactional, we delete violations first such that no violations without corresponding evaluation
+    // are left behind in case of a failure.
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    for (PolicyViolation policyViolation : policyViolationDAO.getByApplicationId(application.getId())) {
+      policyViolationDAO.delete(policyViolation);
+    }
+
     // Cascade to policy evaluations
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     for (PolicyEvaluation policyEvaluation : policyEvaluationDAO.getByApplicationId(tx, application.getId())) {
@@ -276,12 +284,6 @@ public class ApplicationDAO
       // policy evaluations, the transaction becomes huge and that slows down the delete operation. By doing the policy
       // evaluation deletes outside of the transaction, performance is improved 17 times.
       policyEvaluationDAO.delete(policyEvaluation, false /* updateLastPolicyEvaluation */);
-    }
-
-    // Cascade to policy violations (like policy evaluations, deleted outside of transaction for performance)
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    for (PolicyViolation policyViolation : policyViolationDAO.getByApplicationId(application.getId())) {
-      policyViolationDAO.delete(policyViolation);
     }
 
     // Cascade to license threat groups

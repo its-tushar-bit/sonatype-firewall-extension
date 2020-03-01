@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.google.common.collect.Table;
 import com.google.common.collect.Table.Cell;
 import org.joda.time.DateTime;
+import org.joda.time.Days;
 import org.joda.time.LocalDate;
 import org.junit.Test;
 
@@ -250,6 +251,7 @@ public class PolicyViolationAggregationServiceTest
   public void testGeneratePolicyViolationAggregations_TimePeriodRollovers() {
     Application app = tempEntity.newApplicationWithParent();
     DateTime now = new DateTime().withDayOfMonth(10);
+    int daysInPast12Months = Days.daysBetween(now.minusMonths(12), now).getDays();
 
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1",
         now.minusMonths(12).toDate());
@@ -261,7 +263,8 @@ public class PolicyViolationAggregationServiceTest
 
     // If now starts on monday we will have an extra week since we're able to get a full week's worth of data
     // for the first week (there are 52 complete weeks in a year, leaving one extra day).
-    assertThat(weekAggregations).hasSize(now.getDayOfWeek() == 1 ? 53 : 52);
+    // The same holds if now starts on Tuesday during a leap year (which has 52 weeks plus 2 extra days)
+    assertThat(weekAggregations).hasSize(now.getDayOfWeek() <= (daysInPast12Months % 7) ? 53 : 52);
     assertThat(monthAggregations).hasSize(12);
     DateTime aggregationStart = new LocalDate(now.minusMonths(12).withDayOfWeek(1)).toDateTimeAtStartOfDay();
 
@@ -285,6 +288,7 @@ public class PolicyViolationAggregationServiceTest
   public void testGeneratePolicyViolationAggregations_IncludeLatestData_TimePeriodRollovers() {
     Application app = tempEntity.newApplicationWithParent();
     DateTime now = new DateTime().withDayOfMonth(10);
+    int daysInPast12Months = Days.daysBetween(now.minusMonths(12), now).getDays();
 
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1",
         now.minusMonths(12).toDate());
@@ -296,7 +300,8 @@ public class PolicyViolationAggregationServiceTest
 
     // If now starts on monday we will have an extra week since we're able to get a full week's worth of data
     // for the first week (there are 52 complete weeks in a year, leaving one extra day).
-    assertThat(weekAggregations).hasSize(now.getDayOfWeek() == 1 ? 54 : 53);
+    // The same holds if now starts on Tuesday during a leap year (which has 52 weeks plus 2 extra days)
+    assertThat(weekAggregations).hasSize(now.getDayOfWeek() <= (daysInPast12Months % 7) ? 54 : 53);
     assertThat(monthAggregations).hasSize(13);
 
     DateTime aggregationStart = new LocalDate(now.minusMonths(12).withDayOfWeek(1)).toDateTimeAtStartOfDay();

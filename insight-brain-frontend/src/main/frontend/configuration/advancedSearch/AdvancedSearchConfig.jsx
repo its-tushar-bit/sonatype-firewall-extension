@@ -92,7 +92,7 @@ export default function AdvancedSearchConfig(props) {
             </div>
             <p>
               Here you can enable the early access Advanced Search feature. Please read the documentation.
-              Advanced Search search, once enabled, should be periodically re-indexed.
+              Advanced Search, once enabled, should be periodically re-indexed.
               Re-indexing may impact the performance of IQ Server while it is running, so it is recommended to do this
               during a time of low usage.
             </p>

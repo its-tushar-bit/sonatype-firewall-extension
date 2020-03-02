@@ -1,0 +1,36 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "nuget",
+        "coordinates": {
+          "packageId": "Search.Test",
+          "version": "1.2.3"
+        }
+      },
+      "hash": "12345678901234567890",
+      "filenames": [
+        "test.jar"
+      ],
+      "pathnames": [
+        "some/dir/test.jar"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "relativePopularity": null,
+      "createTime": 1364313072251,
+      "lastModifiedTime": 1481029585000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null
+    }
+  ]
+}

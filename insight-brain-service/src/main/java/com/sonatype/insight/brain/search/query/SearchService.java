@@ -27,6 +27,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.search.docs.DocumentBuilder;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
@@ -300,7 +301,7 @@ public class SearchService
     apiComponentIdentifierDTOV2.setFormat(format);
     Map<String, String> coordinates = new TreeMap<>();
     for (String coordinateName : ComponentIdentifier.getAllCoordinateNames(format)) {
-      String coordinateValue = document.get(coordinateName);
+      String coordinateValue = document.get(DocumentBuilder.getFieldNameForCoordinate(coordinateName));
       if (coordinateValue != null) {
         coordinates.put(coordinateName, coordinateValue);
       }

@@ -1,0 +1,21 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "nuget",
+        "coordinates": {
+          "packageId": "Search.Test",
+          "version": "1.2.3"
+        }
+      },
+      "hash": "12345678901234567890",
+      "reference": "CVE-8765-1234",
+      "source": "cve",
+      "score": 4.3,
+      "cwe": "200",
+      "status": "Acknowledged",
+      "matchState": "exact",
+      "proprietary": false
+    }
+  ]
+}

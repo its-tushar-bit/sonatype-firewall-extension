@@ -198,13 +198,13 @@ public class DocumentBuilder
   }
 
   public DocumentBuilder setComponentCoordinates(final Component component) {
-    this.componentCoordinates = Optional.of(component.getComponentIdentifier().getCoordinates().entrySet().stream()
-        .map(coordinate -> new StringField(toFieldName(coordinate.getKey()), coordinate.getValue(), Store.YES))
+    this.componentCoordinates = Optional.of(component.getComponentIdentifier().getCoordinates().entrySet().stream().map(
+        coordinate -> new StringField(getFieldNameForCoordinate(coordinate.getKey()), coordinate.getValue(), Store.YES))
         .collect(Collectors.toList()));
     return this;
   }
 
-  private static String toFieldName(String coordinateName) {
+  public static String getFieldNameForCoordinate(String coordinateName) {
     return FieldIdentifier.COMPONENT_COORDINATE.label + Character.toUpperCase(coordinateName.charAt(0))
         + coordinateName.substring(1);
   }

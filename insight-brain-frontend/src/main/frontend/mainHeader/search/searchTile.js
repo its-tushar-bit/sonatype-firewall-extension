@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import template from './searchTile.html';
+import { save } from '../../configuration/advancedSearch/advancedSearchConfigActions';
 
 export default {
   template: template,
@@ -11,7 +12,8 @@ export default {
   controller: SearchTileController
 };
 
-function SearchTileController(searchService, $q, $state, Messages) {
+function SearchTileController(searchService, $q, $state, Messages, systemConfigurationPropertyService, $scope,
+                              $ngRedux) {
   const vm = this;
 
   Object.assign(vm, {
@@ -20,6 +22,15 @@ function SearchTileController(searchService, $q, $state, Messages) {
     page: searchService.page ? searchService.page : 1,
     pageSize: searchService.pageSize,
     totalNumberOfHits: searchService.totalNumberOfHits,
+    isEnabled: false,
+
+    $onInit() {
+      systemConfigurationPropertyService.isFullTextSearchEnabled().then(function(data) {
+        vm.isEnabled = data;
+      });
+      const unsubscribe = $ngRedux.connect(mapStateToThis, save)(vm);
+      $scope.$on('$destroy', unsubscribe);
+    },
 
     next() {
       if (!searchService.totalNumberOfHits || searchService.isExactTotalNumberOfHits &&
@@ -83,4 +94,12 @@ function SearchTileController(searchService, $q, $state, Messages) {
   });
 }
 
-SearchTileController.$inject = ['searchService', '$q', '$state', 'Messages'];
+function mapStateToThis(state) {
+  return {
+    isEnabled: state.advancedSearchConfig.serverData !== null && state.advancedSearchConfig.serverData.isEnabled
+  };
+}
+
+SearchTileController.$inject = [
+  'searchService', '$q', '$state', 'Messages', 'systemConfigurationPropertyService', '$scope', '$ngRedux'
+];

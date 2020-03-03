@@ -13,6 +13,9 @@ import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.product.license.ProductLicenseService;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -24,6 +27,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED;
 
 public class MainHeaderTest
     extends AbstractFunctionalTest
@@ -120,5 +124,18 @@ public class MainHeaderTest
 
     logout();
     MainHeader.loginButton().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testAdvancedSearchNavigationButton_HiddenByDefault() {
+    MainHeader.advancedSearchNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testNavigation_ToAdvancedSearch() {
+    new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty(FULL_TEXT_SEARCH_ENABLED, "true"));
+    refresh();
+    MainHeader.advancedSearchNavigationButton().click();
+    waitUntilUrl(BaseUrl.resolvePageUrl("/searchResults"));
   }
 }

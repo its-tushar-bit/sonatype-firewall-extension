@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.AdvancedSearchConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -54,6 +55,7 @@ public class AdvancedSearchConfigurationPageTest
     saveForm();
 
     // Verify page is in expected state after opting in
+    MainHeader.advancedSearchNavigationButton().shouldBe(visible);
     page.isEnabledCheckbox().shouldBe(selected).shouldBe(enabled);
     page.reIndexButton().shouldBe(enabled);
     page.saveButton().shouldBe(disabled);
@@ -81,6 +83,7 @@ public class AdvancedSearchConfigurationPageTest
     saveForm();
 
     // Verify page is in expected state after opting out
+    MainHeader.advancedSearchNavigationButton().shouldBe(hidden);
     page.isEnabledCheckbox().shouldNotBe(selected).shouldBe(enabled);
     page.reIndexButton().shouldBe(disabled);
     page.saveButton().shouldBe(disabled);

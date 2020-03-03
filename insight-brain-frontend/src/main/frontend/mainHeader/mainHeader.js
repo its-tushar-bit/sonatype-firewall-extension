@@ -5,10 +5,11 @@
  */
 import { faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch }
   from '@fortawesome/pro-regular-svg-icons';
+import { save } from '../configuration/advancedSearch/advancedSearchConfigActions';
 
 /* global angular, clmServerVersion, clmBuildTimestamp */
 function MainHeaderController($rootScope, $state, $scope, ProductFeatures, PermissionService, CurrentUser,
-                              systemConfigurationPropertyService, routeStateUtilService) {
+                              systemConfigurationPropertyService, routeStateUtilService, $ngRedux) {
   var vm = this;
 
   Object.assign(vm, { faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch });
@@ -61,6 +62,9 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
         vm.isSuccessMetricsEnabled = data;
       });
 
+      const unsubscribe = $ngRedux.connect(mapStateToThis, save)(vm);
+      $scope.$on('$destroy', unsubscribe);
+
       systemConfigurationPropertyService.isFullTextSearchEnabled().then(function(data) {
         vm.isFullTextSearchEnabled = data;
       });
@@ -97,9 +101,16 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
   }
 }
 
+function mapStateToThis(state) {
+  return {
+    isFullTextSearchEnabled: state.advancedSearchConfig.serverData !== null &&
+        state.advancedSearchConfig.serverData.isEnabled
+  };
+}
+
 MainHeaderController.$inject = [
   '$rootScope', '$state', '$scope', 'ProductFeatures', 'PermissionService', 'CurrentUser',
-  'systemConfigurationPropertyService', 'routeStateUtilService'
+  'systemConfigurationPropertyService', 'routeStateUtilService', '$ngRedux'
 ];
 
 export default {

@@ -39,6 +39,10 @@ public class MainHeader
     return new MainHeaderNavigationButton("#vulnerability-navigation-button");
   }
 
+  public static MainHeaderNavigationButton advancedSearchNavigationButton() {
+    return new MainHeaderNavigationButton("#search-navigation-button");
+  }
+
   public static UserMenu userMenu() {
     return new UserMenu();
   }

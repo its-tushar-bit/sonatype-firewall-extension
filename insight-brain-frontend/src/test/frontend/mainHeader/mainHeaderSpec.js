@@ -8,10 +8,10 @@ import legacyConfigurationModule from '../../../main/frontend/LegacyConfiguratio
 
 describe('mainHeaderSpec', function() {
 
-  beforeEach(angular.mock.module(mainHeaderModule.name, legacyConfigurationModule.name));
-
   var $scope,
       $rootScope,
+      $ngRedux,
+      unsubscribeSpy,
       mockSystemConfigurationPropertyService,
       mockCurrentUser,
       mockPermissionService,
@@ -23,10 +23,15 @@ describe('mainHeaderSpec', function() {
       vm,
       clmServerVersion;
 
-  beforeEach(inject(function(_$rootScope_, $q, $componentController) {
+  beforeEach(angular.mock.module(mainHeaderModule.name, legacyConfigurationModule.name, function($provide) {
+    unsubscribeSpy = SpecUtil.mockNgRedux($provide);
+  }));
+
+  beforeEach(inject(function(_$rootScope_, $q, $componentController, _$ngRedux_) {
     clmServerVersion = window.clmServerVersion;
     $scope = _$rootScope_.$new();
     $rootScope = _$rootScope_;
+    $ngRedux = _$ngRedux_;
     isSuccessMetricsEnabledDeferred = $q.defer();
     isFullTextSearchEnabledDeferred = $q.defer();
     loginDeferred = $q.defer();
@@ -51,7 +56,8 @@ describe('mainHeaderSpec', function() {
       PermissionService: mockPermissionService,
       CurrentUser: mockCurrentUser,
       systemConfigurationPropertyService: mockSystemConfigurationPropertyService,
-      ProductFeatures: mockProductFeatures
+      ProductFeatures: mockProductFeatures,
+      $scope: $scope
     });
   }));
 
@@ -113,6 +119,65 @@ describe('mainHeaderSpec', function() {
     expect(mockSystemConfigurationPropertyService.isFullTextSearchEnabled).toHaveBeenCalled();
     expect(mockPermissionService.getValidPermissions).toHaveBeenCalled();
     expect(mockProductFeatures.load).toHaveBeenCalled();
+  });
+
+  describe('mapStateToThis', function() {
+    let mapStateToThis;
+
+    beforeEach(function() {
+      vm.$onInit();
+      loginDeferred.resolve();
+      isFullTextSearchEnabledDeferred.resolve(false);
+      $scope.$digest();
+      mapStateToThis = $ngRedux.connect.calls.first().args[0];
+    });
+
+    it('returns an object with isFullTextSearchEnabled set to false given a state with no server data', function() {
+      let mockStateNoServerData = {
+        advancedSearchConfig: {
+          serverData: null
+        }
+      };
+
+      expect(mapStateToThis(mockStateNoServerData)).toEqual({isFullTextSearchEnabled: false});
+    });
+
+    it('returns an object with isFullTextSearchEnabled set to true given a state with server data and isEnabled true',
+        function() {
+          let mockStateWithServerDataAndIsEnabledTrue = {
+            advancedSearchConfig: {
+              serverData: {
+                isEnabled: true
+              }
+            }
+          };
+
+          expect(mapStateToThis(mockStateWithServerDataAndIsEnabledTrue)).toEqual({isFullTextSearchEnabled: true});
+        });
+
+    it('returns an object with isFullTextSearchEnabled set to false given a state with server data and isEnabled false',
+        function() {
+          let mockStateWithServerDataAndIsEnabledFalse = {
+            advancedSearchConfig: {
+              serverData: {
+                isEnabled: false
+              }
+            }
+          };
+
+          expect(mapStateToThis(mockStateWithServerDataAndIsEnabledFalse)).toEqual({isFullTextSearchEnabled: false});
+        });
+  });
+
+  it('calls unsubscribe when the $scope is destroyed', function() {
+    vm.$onInit();
+    loginDeferred.resolve();
+    isFullTextSearchEnabledDeferred.resolve(false);
+    $scope.$digest();
+
+    expect(unsubscribeSpy).not.toHaveBeenCalled();
+    $scope.$destroy();
+    expect(unsubscribeSpy).toHaveBeenCalled();
   });
 
   it('resets isSuccessMetricsEnabled on successMetricsConfigurationUpdated event', function() {

@@ -1740,9 +1740,6 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_PolicyViolationTelemetryCollector_ValidTelemetryForConditionTypes() throws Exception {
-    // Create two policies that will cause policy violations and waive one policy.
-    Policy securityPolicy = newSecurityPolicy();
-
     // Setup hygiene conditions and one "invalid" condition.
     Condition packageUrlCondition = new Condition(PackageUrlConditionType.ID, "matches", "pkg:maven/*/*@*");
     Condition componentCategoryCondition = new Condition(ComponentCategoryConditionType.ID, "is not", "113");
@@ -1755,7 +1752,6 @@ public class ScanPolicyEvaluatorTest
 
     tempEntity.newPolicy("policyName", constraint);
 
-    Policy licensePolicy = newPolicy(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
     String scanId = simulateReportIsAvailable("LogPolicyViolationPolicyConditionTriggers");
     ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
     clearInvocations(mockTelemetrySender);

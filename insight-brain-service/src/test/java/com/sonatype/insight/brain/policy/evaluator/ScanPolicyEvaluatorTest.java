@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.ComponentCategory;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -105,6 +106,7 @@ import com.sonatype.insight.test.LogOutput;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.internal.Conditions;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -1736,6 +1738,50 @@ public class ScanPolicyEvaluatorTest
     finally {
       ConditionTypes.disableConditionType(ConditionTypes.HygieneRatingConditionType);
     }
+  }
+
+  @Test
+  public void testEvaluate_PolicyViolationTelemetryCollector_ValidTelemetryForConditionTypes() throws Exception {
+    // Create two policies that will cause policy violations and waive one policy.
+    Policy securityPolicy = newSecurityPolicy();
+
+    // Setup hygiene conditions and one "invalid" condition.
+    Condition packageUrlCondition = new Condition(PackageUrlConditionType.ID, "matches", "pkg:maven/*/*@*");
+    Condition componentCategoryCondition = new Condition(ComponentCategoryConditionType.ID, "is not", "113");
+    Condition hygieneCondition = new Condition(HygieneRatingConditionType.ID, "is not", "1");
+
+    List<Condition> conditions = Arrays.asList(packageUrlCondition, componentCategoryCondition, hygieneCondition);
+
+    Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.OR);
+    constraint.setConditions(conditions);
+
+    tempEntity.newPolicy("policyName", constraint);
+
+    Policy licensePolicy = newPolicy(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
+    String scanId = simulateReportIsAvailable("LogPolicyViolationPolicyConditionTriggers");
+    ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
+    clearInvocations(mockTelemetrySender);
+
+    // When evaluate policies
+    scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+
+    // Then there should be two policy violations, of which one is waived.
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
+    assertThat(telemetryDataList).hasSize(2);
+
+    boolean hasHygieneViolation = telemetryDataList.stream().anyMatch(telemetryData ->
+        telemetryData.getAttributes().get(
+            PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(HygieneRatingConditionType.ID));
+
+    boolean hasComponentCategoryViolation = telemetryDataList.stream().anyMatch(telemetryData ->
+        telemetryData.getAttributes().get(
+            PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(ComponentCategoryConditionType.ID));
+
+    assertThat(hasHygieneViolation).isTrue();
+    assertThat(hasComponentCategoryViolation).isTrue();
+
+    clearInvocations(mockTelemetrySender);
   }
 
   @Test

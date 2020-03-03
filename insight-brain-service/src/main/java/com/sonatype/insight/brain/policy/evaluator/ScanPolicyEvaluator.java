@@ -9,13 +9,17 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -24,6 +28,8 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
@@ -46,6 +52,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.conditions.ComponentCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
 import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
@@ -84,6 +92,12 @@ public class ScanPolicyEvaluator
   public static final String POLICY_ALERTS_FILENAME = "policyalerts.json";
 
   public static final String POLICY_THREATS_FILENAME = "policythreats.json";
+
+  public static final Set<String> TELEMETRY_CONDITION_TYPES = Collections.unmodifiableSet(
+      new HashSet<>(Arrays.asList(
+          HygieneRatingConditionType.ID,
+          ComponentCategoryConditionType.ID
+      )));
 
   private final PolicyViolationPersistenceLocks policyViolationPersistenceLocks;
 
@@ -371,11 +385,15 @@ public class ScanPolicyEvaluator
           // New policy violations.
           List<PolicyViolation> newPolicyViolations = policyViolationDiff.getAppeared();
           logPolicyViolations(newPolicyViolations, "new");
+
           for (PolicyViolation newPolicyViolation : newPolicyViolations) {
             if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
               results.notifiableViolations.add(newPolicyViolation);
             }
+
             policyViolationDAO.insert(tx, newPolicyViolation);
+
+            recordConditionTypeViolationTelemetry(telemetryCollector, newPolicyViolation);
 
             policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
             if (newPolicyViolation.isWaived()) {
@@ -456,6 +474,26 @@ public class ScanPolicyEvaluator
             policyResults.getActiveAlerts().size(), policyResults.getWaivedAlerts().size(), appId,
             stage.getStageTypeId(), System.currentTimeMillis() - start);
         return results;
+      }
+    }
+  }
+
+  /**
+   * Records Condition Type policy violations as telemetry.
+   *
+   * @param telemetryCollector Collector for adding telemetry.
+   * @param newPolicyViolation Policy violation to include in telemetry.
+   */
+  private void recordConditionTypeViolationTelemetry(final PolicyViolationTelemetryCollector telemetryCollector,
+                                                     final PolicyViolation newPolicyViolation)
+  {
+    for (ConstraintFact constraintFact : newPolicyViolation.getConstraintFacts()) {
+      for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
+        String conditionTypeId = conditionFact.getConditionTypeId();
+
+        if (TELEMETRY_CONDITION_TYPES.contains(conditionTypeId)) {
+          telemetryCollector.addTelemetryForConditionTypeViolation(newPolicyViolation, conditionTypeId);
+        }
       }
     }
   }

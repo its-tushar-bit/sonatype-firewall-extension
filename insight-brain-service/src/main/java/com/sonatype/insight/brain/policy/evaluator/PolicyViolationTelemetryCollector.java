@@ -25,6 +25,8 @@ public class PolicyViolationTelemetryCollector
   @VisibleForTesting
   static final String APPLICATION_ID = "application_id";
 
+  static final String CONDITION_TYPE = "condition_type";
+
   static final String COUNT = "count";
 
   static final String FIX_TIME = "fix_time";
@@ -82,6 +84,13 @@ public class PolicyViolationTelemetryCollector
       telemetryDataList.add(createTelemetry(TIME_TO_WAIVE_POLICY_VIOLATION, waivedPolicyViolation)
           .put(WAIVE_TIME, timeOfPolicyEvaluation.getTime())
       );
+    }
+  }
+
+  public void addTelemetryForConditionTypeViolation(PolicyViolation policyViolation, String conditionType) {
+    if (policyViolation != null) {
+      telemetryDataList.add(createTelemetry(TelemetryPurpose.CONDITION_TYPE_VIOLATION, policyViolation)
+          .put(CONDITION_TYPE, conditionType));
     }
   }
 

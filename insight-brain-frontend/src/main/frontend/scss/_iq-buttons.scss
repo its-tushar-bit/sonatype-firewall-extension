@@ -49,28 +49,23 @@
 }
 
 .iq-btn--primary {
-  background-color: $iq-link-color;
+  background-color: $nx-background-color-interactive;
   border-color: transparent;
   border-width: 2px;
   color: $iq-off-white;
   padding: 4px 11px;
 
   &:hover, &:focus, &:active {
+    border-color: $nx-background-color-interactive-active;
     color: $iq-off-white;
   }
 
-  &:hover, &:focus {
-    background: $iq-link-color-hover;
-    border-color: $iq-link-color-hover;
-  }
-
   &:active {
-    background: $iq-link-color-active;
-    border-color: $iq-link-color-active;
+    background: $nx-background-color-interactive-active;
   }
 
   &.disabled, &[disabled] {
-    background-color: $iq-link-color-disabled;
+    background-color: $nx-background-color-interactive-disabled;
     border-color: transparent;
     color: $iq-off-white;
   }

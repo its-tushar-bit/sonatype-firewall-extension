@@ -168,7 +168,7 @@ public class IndexServiceTest
             true),
         field("componentCoordinateVersion", componentId.get(ComponentIdentifier.VERSION), StringField.class, true),
         field(FieldIdentifier.COMPONENT_NAME, component.getDisplayName(), StringField.class, true),
-        field(FieldIdentifier.VULNERABILITY_ID, vuln.getRefId(), StringField.class, true),
+        field(FieldIdentifier.VULNERABILITY_ID, vuln.getRefId(), TextField.class, true),
         field(FieldIdentifier.VULNERABILITY_STATUS, vuln.getStatus().getName(), StringField.class, true),
         field(FieldIdentifier.VULNERABILITY_DESCRIPTION, vulnDescription, TextField.class, true),
         field(FieldIdentifier.POLICY_EVALUATION_STAGE, StageTypes.BUILD.getName(), StringField.class, true),

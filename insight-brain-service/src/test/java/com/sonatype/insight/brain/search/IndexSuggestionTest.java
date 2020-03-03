@@ -74,6 +74,9 @@ public class IndexSuggestionTest
   }
 
   private String field(String fieldName, String value) {
+    if (value.chars().anyMatch(character -> " :".indexOf(character) >= 0)) {
+      value = '"' + value.replace("\\", "\\\\").replace("\"", "\\\"") + '"';
+    }
     return fieldName + ':' + value;
   }
 

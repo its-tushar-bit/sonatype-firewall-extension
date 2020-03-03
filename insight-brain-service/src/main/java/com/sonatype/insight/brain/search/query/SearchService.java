@@ -15,10 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -43,16 +40,13 @@ import org.apache.lucene.analysis.standard.ClassicAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHits.Relation;
-import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.search.suggest.Lookup;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.FSDirectory;
@@ -75,9 +69,6 @@ public class SearchService
       "Index does not exist or is unreadable, please (re)create your index.";
 
   private final InsightWork insightWork;
-
-  private final Set<String> analyzedFields = Stream
-      .of(VULNERABILITY_DESCRIPTION.label, APPLICATION_NAME.label, ORGANIZATION_NAME.label).collect(Collectors.toSet());
 
   private final Provider<Analyzer> analyzerProvider;
 
@@ -231,58 +222,12 @@ public class SearchService
     if (StringUtils.isBlank(searchQuery)) {
       throw new BadRequestException("The search query is empty");
     }
-
-    Optional<String> searchField = getSearchField(searchQuery);
-    if (searchField.isPresent()) {
-      searchQuery = searchQuery.substring(searchField.get().length() + 1);
-    }
-
-    return createQuery(searchField.orElse(VULNERABILITY_ID.label), searchQuery);
-  }
-
-  private Query createQuery(String field, String searchQuery) {
-    if (fieldRequiresAnalysis(field) || field.equalsIgnoreCase(COMPONENT_NAME.label)) {
-      return createQueryUsingParser(field, searchQuery);
-    }
-    else {
-      return createBasicQuery(field, searchQuery);
-    }
-  }
-
-  private boolean fieldRequiresAnalysis(final String field) {
-    return analyzedFields.stream().anyMatch(fieldName -> fieldName.equalsIgnoreCase(field));
-  }
-
-  private Query createQueryUsingParser(String field, String searchQuery) {
-    String finalSearchQuery = searchQuery;
-    // componentDisplayName in the form of: org.bouncycastle : bcprov-jdk15on : 1.50
-    if (field.equalsIgnoreCase(COMPONENT_NAME.label)) {
-      finalSearchQuery = searchQuery.replace(":", "\\:").replace(" ", "\\ ");
-    }
     try {
-      return new QueryParser(field, analyzerProvider.get()).parse(finalSearchQuery);
+      return new QueryParser(VULNERABILITY_ID.label, analyzerProvider.get()).parse(searchQuery);
     }
     catch (ParseException e) {
       throw new BadRequestException("The search query is invalid: " + e.getMessage(), e);
     }
-  }
-
-  private Query createBasicQuery(String field, String searchQuery) {
-    if (containsWildCardCharacter(searchQuery)) {
-      return new WildcardQuery(new Term(field, searchQuery));
-    }
-    else {
-      return new TermQuery(new Term(field, searchQuery));
-    }
-  }
-
-  private boolean containsWildCardCharacter(String searchQuery) {
-    for (char ch : searchQuery.toCharArray()) {
-      if (ch == '*' || ch == '?') {
-        return true;
-      }
-    }
-    return false;
   }
 
   private SearchResultItemDTO toDto(Document document) {

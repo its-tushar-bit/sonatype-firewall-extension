@@ -215,7 +215,7 @@ public class DocumentBuilder
   }
 
   public DocumentBuilder setVulnerabilityId(final String refId) {
-    this.vulnerabilityId = Optional.of(new StringField(VULNERABILITY_ID.label, refId, Store.YES));
+    this.vulnerabilityId = Optional.of(new TextField(VULNERABILITY_ID.label, refId, Store.YES));
     return this;
   }
 

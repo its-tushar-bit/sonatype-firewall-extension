@@ -64,7 +64,10 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -266,13 +269,14 @@ public class IndexService
          FSDirectory suggesterFile = FSDirectory.open(suggesterPath);
          AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(suggesterFile, new ClassicAnalyzer())) {
       log.info("started building suggester");
+      QueryParser queryParser = new QueryParser(FieldIdentifier.VULNERABILITY_ID.label, analyzerProvider.get());
       IndexSearcher indexSearcher = new IndexSearcher(sourceIndexReader);
       try (IndexReader indexReader = indexSearcher.getIndexReader()) {
         long maxId = indexReader.maxDoc();
         Set<String> searchKeys = new HashSet<>();
         for (int i = 0; i < maxId; i++) {
           Document doc = indexSearcher.doc(i);
-          searchKeys.addAll(getDocFieldValues(doc));
+          searchKeys.addAll(getDocFieldValues(doc, queryParser));
         }
         suggester.build(new FieldIterator(searchKeys.iterator()));
         suggester.commit();
@@ -283,7 +287,7 @@ public class IndexService
     log.info("index creation exit");
   }
 
-  private Set<String> getDocFieldValues(Document doc) {
+  private Set<String> getDocFieldValues(Document doc, QueryParser queryParser) {
     Set<String> docFieldValues = new HashSet<>();
 
     for (IndexableField field : doc) {
@@ -291,12 +295,32 @@ public class IndexService
       if (!SUGGESTER_FIELDS_TO_IGNORE.contains(fieldName)) {
         String value = field.stringValue();
         if (value != null) {
-          docFieldValues.add(fieldName + ":" + value);
+          docFieldValues.add(toSuggestion(fieldName, value, queryParser));
         }
       }
     }
 
     return docFieldValues;
+  }
+
+  private String toSuggestion(String fieldName, String fieldValue, QueryParser queryParser) {
+    if (isQuotingRequired(fieldName, fieldValue, queryParser)) {
+      fieldValue = quoteValue(fieldValue);
+    }
+    return fieldName + ':' + fieldValue;
+  }
+
+  private boolean isQuotingRequired(String fieldName, String fieldValue, QueryParser queryParser) {
+    try {
+      return !(queryParser.parse(fieldName + ':' + fieldValue) instanceof TermQuery);
+    }
+    catch (ParseException e) {
+      return true;
+    }
+  }
+
+  private static String quoteValue(String fieldValue) {
+    return '"' + fieldValue.replace("\\", "\\\\").replace("\"", "\\\"") + '"';
   }
 
   private static void addDocsWithException(IndexWriter writer, List<Document> docs) {

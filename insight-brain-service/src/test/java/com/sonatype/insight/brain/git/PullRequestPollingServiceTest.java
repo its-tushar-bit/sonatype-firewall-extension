@@ -37,7 +37,9 @@ import org.mockito.MockitoAnnotations;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -137,6 +139,29 @@ public class PullRequestPollingServiceTest
     );
   }
 
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_RepositoryNotPrivate() throws IOException {
+    // given: necessary ingredients to emit a discovered pull request event with a non-private repo
+    Date pullRequestCreateDate = new Date(System.currentTimeMillis() - 1000);
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("app1", "org/repo", SourceControlProvider.GITHUB)
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch")
+        .withSourcePolicyEvaluation("app1", "spe1")
+        .withGitRepositoryPrivate(false)
+        .build();
+
+    // when: fetch and send
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: no events emitted
+    verify(mockAsyncEventBus, never()).post(any());
+    assertThatLogMessagesEqual(
+        debug("Fetched 1 pull request(s) for org 'org'"),
+        debug("Repository is not private: https://domain.com/org/repo"),
+        debug("Pull request polling time updated for 'org/repo'")
+    );
+  }
+
   private class TestablePullRequestPollingServiceBuilder
   {
     @Mock
@@ -160,6 +185,9 @@ public class PullRequestPollingServiceTest
     @Mock
     GitGraphQlApiClient mockGitGraphQlApiClient;
 
+    @Mock
+    private PullRequestUtils mockPullRequestUtils;
+
     private SourceControl sourceControl;
 
     private GitRepositoryInfo gitRepositoryInfo;
@@ -171,6 +199,10 @@ public class PullRequestPollingServiceTest
     private List<PullRequest> pullRequests = new ArrayList<>();
 
     private String orgAndRepoName;
+
+    private boolean isGitRepositoryPrivate = true;
+
+    private Class thrownException;
 
     PullRequestPollingService build() throws IOException {
       MockitoAnnotations.initMocks(this);
@@ -198,8 +230,17 @@ public class PullRequestPollingServiceTest
       doReturn(pullRequests).when(mockGitGraphQlApiClient)
           .getPullRequestsSince(any(), any(OffsetDateTime.class), anyInt());
 
+      if (thrownException != null) {
+        doThrow(UnsupportedOperationException.class).when(mockPullRequestUtils)
+            .isEffectivelyPrivate(eq(gitRepositoryInfo), eq(isGitRepositoryPrivate));
+      }
+      else {
+        doReturn(isGitRepositoryPrivate).when(mockPullRequestUtils)
+            .isEffectivelyPrivate(eq(gitRepositoryInfo), eq(isGitRepositoryPrivate));
+      }
+
       return new PullRequestPollingService(mockSourceControlDAO, mockPolicyEvaluationDAO, mockGitCommitHistoryService,
-          mockSourceControlUtils, mockGitClientFactory, mockAsyncEventBus);
+          mockSourceControlUtils, mockGitClientFactory, mockAsyncEventBus, mockPullRequestUtils);
     }
 
     private List<SourceControl> buildSourceControlList() {
@@ -239,7 +280,18 @@ public class PullRequestPollingServiceTest
       pullRequest.setCreated(created);
       pullRequest.setHead(headBranch);
       pullRequest.setRepository(orgAndRepoName);
+      pullRequest.setRepositoryPrivate(isGitRepositoryPrivate);
       pullRequests.add(pullRequest);
+      return this;
+    }
+
+    TestablePullRequestPollingServiceBuilder withGitRepositoryPrivate(boolean isGitRepositoryPrivate) {
+      this.isGitRepositoryPrivate = isGitRepositoryPrivate;
+      return this;
+    }
+
+    TestablePullRequestPollingServiceBuilder withEffectivelyPrivateThrows(Class thrownException) {
+      this.thrownException = thrownException;
       return this;
     }
   }

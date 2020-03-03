@@ -42,6 +42,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
@@ -313,6 +314,7 @@ public class PullRequestCommentingServiceTest
     // given : app source control provider = GitLab
     PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
         .withProvider(SourceControlProvider.GITLAB)
+        .withGitRepositoryEffectivelyPrivateThrows(UnsupportedOperationException.class)
         .build();
 
     ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
@@ -327,6 +329,38 @@ public class PullRequestCommentingServiceTest
     // then : GitLab not supported yet
     verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(false));
     assertThatLogMessagesEqual(debug("GitLab not currently supported for pull request commenting"));
+  }
+
+  @Test
+  public void testOnApplicationEvaluation_RepositoryNotPrivate() throws IOException {
+    // given : all the necessary pieces to create a PR comment
+    String commentText = "at least one new policy violation";
+    PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
+        .withDevBranchPullRequest("INT-2493-pr-commenting-immediate-flow", 14, "sourceCommit", "baseCommit")
+        .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
+        .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
+        .withPolicyEvaluationDiffMarkup(commentText)
+        .withCommentResponse(25)
+        .withGitRepositoryPrivate(false)
+        .expectApplicationId("app1")
+        .expectSourceCommit("sourceCommit")
+        .build();
+
+    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
+        .withApplicationId("app1")
+        .withPolicyEvaluationId("sourcePe")
+        .withCommitHash("sourceCommit")
+        .build();
+
+    // when : process event
+    commentingService.onApplicationEvaluation(event);
+
+    // then
+    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(false));
+    assertThatLogMessagesEqual(debug(
+        "obtained CommitInfo from SCM for commit 'sourceCommit' with 1 pull request(s) and 0 base branch commit(s)"),
+        debug("0 base branch commits to process for application 'app1'"),
+        debug("Repository is not private: http://github.com/testOrg/testRepo"));
   }
 
   @Test
@@ -552,6 +586,9 @@ public class PullRequestCommentingServiceTest
     @Mock
     private AsyncEventBus mockAsyncEventBus;
 
+    @Mock
+    private PullRequestUtils mockPullRequestUtils;
+
     private boolean scmEnabled = true;
 
     private String org = "testOrg";
@@ -586,6 +623,12 @@ public class PullRequestCommentingServiceTest
 
     private CommentResponse commentResponse;
 
+    private GitRepositoryInfo gitRepositoryInfo;
+
+    private boolean isGitRepositoryPrivate = true;
+
+    private Class gitRepositoryEffectivelyPrivateThrows;
+
     PullRequestCommentingService build() throws IOException {
       MockitoAnnotations.initMocks(this);
 
@@ -593,7 +636,7 @@ public class PullRequestCommentingServiceTest
       doReturn(scmEnabled).when(mockSourceControlUtils).isScmEnabled(any(GitRepositoryInfo.class));
 
       repositoryUrl = String.format("http://%s.com/%s/%s", provider.toString(), org, repo);
-      GitRepositoryInfo gitRepositoryInfo =
+      gitRepositoryInfo =
           new GitRepositoryInfo(repositoryUrl, token, provider, baseBranch, enablePullRequests, enableStatusChecks);
       doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
 
@@ -624,6 +667,16 @@ public class PullRequestCommentingServiceTest
       doReturn(policyEvaluationDiffMarkup).when(mockPullRequestFeedbackMarkupService)
           .createMarkupIfNewViolationsHaveAppeared(any(), any());
 
+      if (gitRepositoryEffectivelyPrivateThrows != null) {
+        doThrow(UnsupportedOperationException.class).when(mockPullRequestUtils)
+            .isEffectivelyPrivate(eq(gitRepositoryInfo), eq(isGitRepositoryPrivate));
+      }
+      else {
+        doReturn(isGitRepositoryPrivate).when(mockPullRequestUtils)
+            .isEffectivelyPrivate(any(GitRepositoryInfo.class), anyBoolean());
+        commitInformation.setRepositoryPrivate(isGitRepositoryPrivate);
+      }
+
       return new PullRequestCommentingService(
           mockSourceControlUtils,
           mockGitClientFactory,
@@ -634,6 +687,7 @@ public class PullRequestCommentingServiceTest
           mockPullRequestCommentingMetricsService,
           mockAsyncEventBus,
           testProductLicense,
+          mockPullRequestUtils,
           true
       );
     }
@@ -679,6 +733,7 @@ public class PullRequestCommentingServiceTest
       commitInformation.addPullRequest(pullRequest);
       sourceCommitHash = headCommitHash;
       pullRequest.setState(pullRequestState);
+      pullRequest.setRepositoryPrivate(isGitRepositoryPrivate);
       return this;
     }
 
@@ -688,6 +743,7 @@ public class PullRequestCommentingServiceTest
       pullRequest.setNumber(pullRequestNumber);
       commitInformation.addPullRequest(pullRequest);
       pullRequest.setState(PullRequestState.OPEN);
+      pullRequest.setRepositoryPrivate(isGitRepositoryPrivate);
       return this;
     }
 
@@ -733,6 +789,18 @@ public class PullRequestCommentingServiceTest
 
     TestablePullRequestCommentingServiceBuilder withProvider(SourceControlProvider provider) {
       this.provider = provider;
+      return this;
+    }
+
+    TestablePullRequestCommentingServiceBuilder withGitRepositoryPrivate(boolean isGitRepositoryPrivate) {
+      this.isGitRepositoryPrivate = isGitRepositoryPrivate;
+      return this;
+    }
+
+    TestablePullRequestCommentingServiceBuilder withGitRepositoryEffectivelyPrivateThrows(
+        Class gitRepositoryEffectivelyPrivateThrows)
+    {
+      this.gitRepositoryEffectivelyPrivateThrows = gitRepositoryEffectivelyPrivateThrows;
       return this;
     }
   }

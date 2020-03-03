@@ -38,7 +38,6 @@ class PullRequestUtils
 
   /**
    * Check if a pull request is allowed for this repository.
-   *
    */
   boolean isPullRequestAllowed(final GitRepositoryInfo gitRepositoryInfo) throws IOException {
     if (!gitRepositoryInfo.enablePullRequests) {
@@ -50,35 +49,35 @@ class PullRequestUtils
   }
 
   /**
-   * As per legal's requirements, we will only create pull requests for Git repositories which are only
-   * accessible to registered/licensed users.
-   * This may be if the service is on the internet and the repository is private/restricted,
+   * As per legal's requirements, we will only create pull requests for Git repositories which are only accessible to
+   * registered/licensed users. This may be if the service is on the internet and the repository is private/restricted,
    * or if the repository is internal-only.
    */
-  private boolean isEffectivelyPrivate(GitRepositoryInfo gitRepositoryInfo) throws IOException {
-    switch (gitRepositoryInfo.provider) {
-      case GITHUB:
-        // GitHub Enterprise's license prohibits making it accessible to the Internet, so on-prem
-        // means it is only accessible to licensed, internal users
-        return isRepoOnPremises(gitRepositoryInfo) || isPrivateRepository(gitRepositoryInfo);
-      default:
-        throw new UnsupportedOperationException(
-            String.format("'%s' not supported yet", gitRepositoryInfo.provider.name()));
-    }
+  boolean isEffectivelyPrivate(GitRepositoryInfo gitRepositoryInfo) throws IOException {
+    return checkProvider(gitRepositoryInfo) && isRepoOnPremises(gitRepositoryInfo) ||
+        isPrivateRepository(gitRepositoryInfo);
+  }
+
+  boolean isEffectivelyPrivate(GitRepositoryInfo gitRepositoryInfo, boolean isPrivateRepository) {
+    return isPrivateRepository || checkProvider(gitRepositoryInfo) && isRepoOnPremises(gitRepositoryInfo);
   }
 
   private boolean isRepoOnPremises(final GitRepositoryInfo gitRepositoryInfo) {
-    switch (gitRepositoryInfo.provider) {
-      case GITHUB:
-        return !gitRepositoryInfo.repositoryUrl.startsWith(GITHUB_COM);
-      default:
-        throw new UnsupportedOperationException(
-            String.format("'%s' not supported yet", gitRepositoryInfo.provider.name()));
-    }
+    return !gitRepositoryInfo.repositoryUrl.startsWith(GITHUB_COM);
   }
 
   private boolean isPrivateRepository(final GitRepositoryInfo gitRepositoryInfo) throws IOException {
     GitApiClient client = gitClientFactory.createApiClient(gitRepositoryInfo);
     return client.isRepositoryPrivate();
+  }
+
+  private boolean checkProvider(GitRepositoryInfo gitRepositoryInfo) {
+    switch (gitRepositoryInfo.provider) {
+      case GITHUB:
+        return true;
+      default:
+        throw new UnsupportedOperationException(
+            String.format("'%s' not supported yet", gitRepositoryInfo.provider.name()));
+    }
   }
 }

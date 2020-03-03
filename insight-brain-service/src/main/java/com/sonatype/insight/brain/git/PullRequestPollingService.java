@@ -59,6 +59,8 @@ public class PullRequestPollingService
 
   private final AsyncEventBus asyncEventBus;
 
+  private final PullRequestUtils pullRequestUtils;
+
   @Inject
   public PullRequestPollingService(
       SourceControlDAO sourceControlDAO,
@@ -66,7 +68,8 @@ public class PullRequestPollingService
       GitCommitHistoryService gitCommitHistoryService,
       SourceControlUtils sourceControlUtils,
       GitClientFactory gitClientFactory,
-      AsyncEventBus asyncEventBus)
+      AsyncEventBus asyncEventBus,
+      PullRequestUtils pullRequestUtils)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -74,6 +77,7 @@ public class PullRequestPollingService
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
     this.asyncEventBus = asyncEventBus;
+    this.pullRequestUtils = pullRequestUtils;
   }
 
   public void fetchAndSendPullRequestsForCommenting() throws IOException {
@@ -81,7 +85,6 @@ public class PullRequestPollingService
 
     // the pull requests we get back can be for any app that the related org and key have access to
     for (PullRequest pullRequest : getPullRequestsFromScm(pollingTracker)) {
-
       // a given commit could be associated with multiple applications
       List<PolicyEvaluation> sourcePolicyEvaluations =
           policyEvaluationDAO.getLastByCommitHashPerApplication(pullRequest.getHeadCommitHash());
@@ -100,15 +103,20 @@ public class PullRequestPollingService
         GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
 
         if (null != gitRepositoryInfo) {
-          if (!isPullRequestForBaseBranch(pullRequest, gitRepositoryInfo)) {
-            PolicyEvaluation targetPolicyEvaluation = getLatestPolicyEvaluationForBaseBranch(applicationId);
-            createAndSendDiscoveredPullRequestEvent(applicationId, pullRequest.getNumber(), sourcePolicyEvaluation,
-                targetPolicyEvaluation);
+          if (!pullRequestUtils.isEffectivelyPrivate(gitRepositoryInfo, pullRequest.isRepositoryPrivate())) {
+            log.debug("Repository is not private: {}", gitRepositoryInfo.repositoryUrl);
           }
           else {
-            log.debug(
-                "application '{}' pull request '{}' is for the base branch, skipping commenting for this PR",
-                applicationId, pullRequest.getNumber());
+            if (!isPullRequestForBaseBranch(pullRequest, gitRepositoryInfo)) {
+              PolicyEvaluation targetPolicyEvaluation = getLatestPolicyEvaluationForBaseBranch(applicationId);
+              createAndSendDiscoveredPullRequestEvent(applicationId, pullRequest.getNumber(), sourcePolicyEvaluation,
+                  targetPolicyEvaluation);
+            }
+            else {
+              log.debug(
+                  "application '{}' pull request '{}' is for the base branch, skipping commenting for this PR",
+                  applicationId, pullRequest.getNumber());
+            }
           }
         }
         pollingTracker.updateSourceControlPollTimeForApplication(applicationId, pullRequest.getCreated());

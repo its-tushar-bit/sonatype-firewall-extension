@@ -73,6 +73,8 @@ public class PullRequestCommentingService
 
   private final boolean pullRequestImmediateFlowEnabled;
 
+  private final PullRequestUtils pullRequestUtils;
+
   @Inject
   public PullRequestCommentingService(
       final SourceControlUtils sourceControlUtils,
@@ -83,7 +85,8 @@ public class PullRequestCommentingService
       final GitCommitHistoryService gitCommitHistoryService,
       final PullRequestCommentingMetricsService pullRequestCommentingMetricsService,
       final AsyncEventBus asyncEventBus,
-      final ProductLicense productLicense)
+      final ProductLicense productLicense,
+      final PullRequestUtils pullRequestUtils)
   {
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
@@ -94,6 +97,7 @@ public class PullRequestCommentingService
     this.pullRequestCommentingMetricsService = pullRequestCommentingMetricsService;
     this.asyncEventBus = asyncEventBus;
     this.productLicense = productLicense;
+    this.pullRequestUtils = pullRequestUtils;
     pullRequestImmediateFlowEnabled = null != System.getProperty("enable-pr-immediate");
   }
 
@@ -108,6 +112,7 @@ public class PullRequestCommentingService
       final PullRequestCommentingMetricsService pullRequestCommentingMetricsService,
       final AsyncEventBus asyncEventBus,
       final ProductLicense productLicense,
+      final PullRequestUtils pullRequestUtils,
       boolean pullRequestImmediateFlowEnabled)
   {
     this.sourceControlUtils = sourceControlUtils;
@@ -119,6 +124,7 @@ public class PullRequestCommentingService
     this.pullRequestCommentingMetricsService = pullRequestCommentingMetricsService;
     this.asyncEventBus = asyncEventBus;
     this.productLicense = productLicense;
+    this.pullRequestUtils = pullRequestUtils;
     this.pullRequestImmediateFlowEnabled = pullRequestImmediateFlowEnabled;
   }
 
@@ -134,8 +140,8 @@ public class PullRequestCommentingService
 
   /**
    * This method is for the 'immediate flow' for pull request commenting of policy violation diffs between the
-   * development branch commit that triggered the policy evaluation (which then issued this event) and the most
-   * recently available policy evaluation for the source control configured base branch for the associated application.
+   * development branch commit that triggered the policy evaluation (which then issued this event) and the most recently
+   * available policy evaluation for the source control configured base branch for the associated application.
    *
    * @param event ApplicationEvaluation event that triggered this call
    */
@@ -163,17 +169,17 @@ public class PullRequestCommentingService
           PolicyEvaluation sourceCommitPolicyEvaluation = policyEvaluationDAO.getById(event.policyEvaluationId);
           CommitInformation commitInfo = getCommitInfoFromScm(gitRepositoryInfo, event.commitHash);
 
-          // the commit info contains not only the pull requests associated with the commit but also some recent commit
-          // history for the base branch (optimization that uses GraphQL to fetch multiple pieces of data and cut down
-          // on GitHub API load/potential rate limiting);  so, we tuck that info away first so we can make use of it
-          // later in this flow
+          // the commit info contains not only the pull requests associated with the commit but also some recent
+          // commit history for the base branch (optimization that uses GraphQL to fetch multiple pieces of data and
+          // cut down on GitHub API load/potential rate limiting);  so, we tuck that info away first so we can make
+          // use of it later in this flow
           processBaseBranchCommitHistory(sourceCommitPolicyEvaluation, commitInfo.getCommits());
 
           for (PullRequest pullRequest : commitInfo.getPullRequests()) {
             if (shouldCommentOnPullRequest(applicationId, pullRequest, gitRepositoryInfo,
                 sourceCommitPolicyEvaluation)) {
-              // if we've already commented on the PR then we'll skip further processing for now but in the future we'll
-              // enter a new PR comment update flow
+              // if we've already commented on the PR then we'll skip further processing for now but in the future
+              // we'll enter a new PR comment update flow
               SourceControlPullRequestComment existingPullRequestComment =
                   pullRequestCommentDAO.getByApplicationIdAndPullRequestId(applicationId, pullRequest.getNumber());
 
@@ -217,19 +223,23 @@ public class PullRequestCommentingService
     PolicyEvaluation sourceCommitPolicyEvaluation = policyEvaluationDAO.getById(event.policyEvaluationId);
     boolean commentCreated = false;
 
-    Optional<PolicyEvaluation> baseBranchPolicyEvaluation;
+    Optional<PolicyEvaluation> baseBranchPolicyEvaluation = Optional.empty();
 
     if (null == event.targetPolicyEvaluationId) {
       // we need to get and process the base branch commit history
       CommitInformation commitInfo = getCommitInfoFromScm(gitRepositoryInfo, event.commitHash);
+      if (!pullRequestUtils.isEffectivelyPrivate(gitRepositoryInfo, commitInfo.isRepositoryPrivate())) {
+        log.debug("Repository is not private: {}", gitRepositoryInfo.repositoryUrl);
+      }
+      else {
+        // the commit info contains not only the pull requests associated with the commit but also some recent commit
+        // history for the base branch (optimization that uses GraphQL to fetch multiple pieces of data and cut down
+        // on GitHub API load/potential rate limiting);  so, we tuck that info away first so we can make use of it
+        // later in this flow
+        processBaseBranchCommitHistory(sourceCommitPolicyEvaluation, commitInfo.getCommits());
 
-      // the commit info contains not only the pull requests associated with the commit but also some recent commit
-      // history for the base branch (optimization that uses GraphQL to fetch multiple pieces of data and cut down
-      // on GitHub API load/potential rate limiting);  so, we tuck that info away first so we can make use of it
-      // later in this flow
-      processBaseBranchCommitHistory(sourceCommitPolicyEvaluation, commitInfo.getCommits());
-
-      baseBranchPolicyEvaluation = getLatestPolicyEvaluationReportForBaseBranch(applicationId);
+        baseBranchPolicyEvaluation = getLatestPolicyEvaluationReportForBaseBranch(applicationId);
+      }
     }
     else {
       baseBranchPolicyEvaluation = Optional.ofNullable(policyEvaluationDAO.getById(event.targetPolicyEvaluationId));
@@ -421,6 +431,11 @@ public class PullRequestCommentingService
       GitRepositoryInfo gitRepositoryInfo,
       PolicyEvaluation sourceCommitPolicyEvaluation)
   {
+    if (!pullRequestUtils.isEffectivelyPrivate(gitRepositoryInfo, pullRequest.isRepositoryPrivate())) {
+      log.debug("Repository is not private: {}", gitRepositoryInfo.repositoryUrl);
+      return false;
+    }
+
     if (!isPullRequestOpen(pullRequest)) {
       log.debug(
           "application '{}' pull request '{}' state '{}' is not open, skipping commenting for this PR",

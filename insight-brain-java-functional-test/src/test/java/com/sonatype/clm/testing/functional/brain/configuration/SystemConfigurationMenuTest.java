@@ -76,6 +76,8 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.automaticApplications().shouldBe(visible);
     systemConfigMenu.emailConfiguration().shouldBe(visible);
     systemConfigMenu.proxyConfiguration().shouldBe(visible);
+    systemConfigMenu.earlyAccessHeader().shouldBe(visible);
+    systemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
   }
 
   @Test
@@ -99,6 +101,8 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.automaticApplications().shouldBe(hidden);
     systemConfigMenu.emailConfiguration().shouldBe(visible);
     systemConfigMenu.proxyConfiguration().shouldBe(visible);
+    systemConfigMenu.earlyAccessHeader().shouldBe(visible);
+    systemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
     eyesWatcher.eyesCheck();
   }
 
@@ -123,6 +127,8 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.automaticApplications().shouldBe(hidden);
     systemConfigMenu.emailConfiguration().shouldBe(hidden);
     systemConfigMenu.proxyConfiguration().shouldBe(hidden);
+    systemConfigMenu.earlyAccessHeader().shouldBe(hidden);
+    systemConfigMenu.advancedSearchConfiguration().shouldBe(hidden);
   }
 
   @Test
@@ -146,6 +152,8 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.automaticApplications().shouldBe(visible);
     systemConfigMenu.emailConfiguration().shouldBe(hidden);
     systemConfigMenu.proxyConfiguration().shouldBe(hidden);
+    systemConfigMenu.earlyAccessHeader().shouldBe(hidden);
+    systemConfigMenu.advancedSearchConfiguration().shouldBe(hidden);
   }
 
   @Test

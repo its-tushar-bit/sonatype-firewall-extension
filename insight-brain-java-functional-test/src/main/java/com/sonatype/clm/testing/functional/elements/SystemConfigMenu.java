@@ -63,4 +63,12 @@ public class SystemConfigMenu
   public SelenideElement proxyConfiguration() {
     return child("#system-configuration-proxy a");
   }
+
+  public SelenideElement earlyAccessHeader() {
+    return child("#early-access-header");
+  }
+
+  public SelenideElement advancedSearchConfiguration() {
+    return child("#system-configuration-advanced-search a");
+  }
 }

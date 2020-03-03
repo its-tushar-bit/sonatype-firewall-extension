@@ -23,8 +23,6 @@
            class="iq-navigation__button"
            id="dashboard-navigation-button"
            ng-class="{ 'active' : vm.$state.includes('dashboard') }"
-           tooltip="Dashboard"
-           tooltip-placement="bottom"
            ng-if="vm.isDashboardLicensed()">
           <nx-font-awesome-icon icon="vm.faTachometerAltFast"
                                 class="iq-main-nav__button-icon"
@@ -36,8 +34,6 @@
            class="iq-navigation__button"
            id="reporting-navigation-button"
            ng-class="{ 'active' : vm.$state.includes('violations') }"
-           tooltip="Reporting"
-           tooltip-placement="bottom"
            ng-if="vm.isLicensed()">
           <nx-font-awesome-icon icon="vm.faChartBar"
                                 class="iq-main-nav__button-icon"
@@ -49,8 +45,6 @@
            class="iq-navigation__button"
            id="policies-navigation-button"
            ng-class="{ 'active' : vm.$state.includes('management') }"
-           tooltip="Organization & Policies"
-           tooltip-placement="bottom"
            ng-if="vm.isLicensed()">
           <nx-font-awesome-icon icon="vm.faSitemap"
                                 class="iq-main-nav__button-icon"
@@ -62,9 +56,7 @@
            class="iq-navigation__button"
            id="labs-navigation-button"
            ng-class="{ 'active' : vm.$state.includes('labs') }"
-           ng-if="vm.isSuccessMetricsEnabled"
-           tooltip="Success Metrics"
-           tooltip-placement="bottom">
+           ng-if="vm.isSuccessMetricsEnabled">
           <nx-font-awesome-icon icon="vm.faFlask" class="iq-main-nav__button-icon" size="'2x'"></nx-font-awesome-icon>
           <div class="iq-main-nav__button-label">Metrics</div>
         </a>
@@ -74,9 +66,7 @@
            class="iq-navigation-menu__button"
            ng-class="{ 'active' : vm.$state.includes('vulnerabilitySearch') ||
            vm.$state.includes('vulnerabilitySearchDetail')}"
-           ng-if="vm.isLicensed()"
-           tooltip="Vulnerability Lookup"
-           tooltip-placement="bottom">
+           ng-if="vm.isLicensed()">
           <nx-font-awesome-icon icon="vm.faSearch" class="iq-main-nav__button-icon" size="'2x'"></nx-font-awesome-icon>
           <div class="iq-main-nav__button-label">Vulnerabilities</div>
         </a>

@@ -33,7 +33,7 @@ import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MemberAttributeResolver;
 import com.sonatype.insight.brain.security.UserDirectory;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -27,7 +27,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.junit.Rule;
 import org.junit.Test;

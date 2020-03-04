@@ -18,7 +18,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.utils.Xpp3Util;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.pull.XmlPullParser;

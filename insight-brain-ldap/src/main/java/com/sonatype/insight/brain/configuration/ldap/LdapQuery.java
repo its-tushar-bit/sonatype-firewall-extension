@@ -38,7 +38,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.directory.api.ldap.model.password.PasswordUtil;
 import org.apache.directory.api.util.Strings;
 import org.apache.shiro.realm.ldap.LdapUtils;

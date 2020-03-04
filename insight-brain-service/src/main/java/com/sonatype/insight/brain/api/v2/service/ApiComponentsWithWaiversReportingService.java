@@ -53,7 +53,7 @@ import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

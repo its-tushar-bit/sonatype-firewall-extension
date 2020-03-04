@@ -600,6 +600,8 @@ CREATE TABLE source_control (
   enable_pull_requests boolean,
   enable_status_checks boolean,
   pull_request_poll_time timestamp NULL,
+  pull_request_cutoff_time timestamp NULL,
+  pull_request_error_count INT NOT NULL DEFAULT 0,
   CONSTRAINT source_control_pk PRIMARY KEY (source_control_id),
   CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id)
 );

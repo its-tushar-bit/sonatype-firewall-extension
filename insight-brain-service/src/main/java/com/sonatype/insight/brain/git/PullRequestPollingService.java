@@ -29,11 +29,10 @@ import com.sonatype.nexus.scm.api.GitGraphQlApiClient;
 import com.sonatype.nexus.scm.api.model.ProjectUri;
 import com.sonatype.nexus.scm.api.model.PullRequest;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static java.lang.System.currentTimeMillis;
 
 @Named
 @Singleton
@@ -41,11 +40,10 @@ public class PullRequestPollingService
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestPollingService.class);
 
-  private static final int PULL_REQUESTS_PER_MONITOR_CYCLE = 10;
+  @VisibleForTesting
+  static final int PULL_REQUESTS_PER_MONITOR_CYCLE = 10;
 
   private static final int MAX_API_REQUESTS_PER_CYCLE = 10;
-
-  private static final int POLLING_ERROR_RETRY_OFFSET = 1000 * 60 * 5;
 
   private final SourceControlDAO sourceControlDAO;
 
@@ -92,7 +90,7 @@ public class PullRequestPollingService
       if (CollectionUtils.isEmpty(sourcePolicyEvaluations)) {
         log.debug("Policy evaluation not yet available for '{}' pull request '{}'", pullRequest.getRepository(),
             pullRequest.getNumber());
-        if (pollingTracker.updateSourceControlPollTimeFromPullRequest(pullRequest)) {
+        if (pollingTracker.onPullRequestProcessed(pullRequest)) {
           log.debug("Pull request polling time updated for '{}'", pullRequest.getRepository());
         }
       }
@@ -119,7 +117,7 @@ public class PullRequestPollingService
             }
           }
         }
-        pollingTracker.updateSourceControlPollTimeForApplication(applicationId, pullRequest.getCreated());
+        pollingTracker.onPullRequestProcessedForApplication(applicationId, pullRequest.getCreated());
         log.debug("Pull request polling time updated for '{}'", pullRequest.getRepository());
       }
     }
@@ -172,7 +170,7 @@ public class PullRequestPollingService
     // make sure all the pull request poll times are as they should be; prevents us from having to put complicated
     // logic in various places to make sure poll times are updated as necessary whenever source control entries are
     // manipulated
-    pollingTracker.updatePullRequestPollTimes();
+    pollingTracker.initializePullRequestPollTimes();
 
     // cycle thru the repos until we find some new pull requests or run out of repos to check
     while (pullRequests.size() < PULL_REQUESTS_PER_MONITOR_CYCLE && apiCallCount < MAX_API_REQUESTS_PER_CYCLE) {
@@ -194,36 +192,36 @@ public class PullRequestPollingService
 
             List<PullRequest> pullRequestsForOrg = graphqlApiClient.getPullRequestsSince(
                 projectUri.getNamespace(),
-                sourceControl.getPullRequestPollTime().toInstant().atOffset(ZoneOffset.UTC),
+                sourceControl.getPullRequestCutoffTime().toInstant().atOffset(ZoneOffset.UTC),
                 PULL_REQUESTS_PER_MONITOR_CYCLE);
 
             pullRequests.addAll(pullRequestsForOrg);
 
             if (pullRequestsForOrg.isEmpty()) {
-              pollingTracker.updateSourceControlPollTime(sourceControl.getId(), new Date());
+              pollingTracker.onPullRequestProcessed(sourceControl.getId(), new Date());
             }
             else {
               Date maxDate = pullRequestsForOrg.stream().map(PullRequest::getCreated).max(Date::compareTo).get();
-              pollingTracker.updateSourceControlPollTime(sourceControl.getId(), maxDate);
+              pollingTracker.onPullRequestProcessed(sourceControl.getId(), maxDate);
             }
 
             apiCallCount++;
             log.debug("Fetched {} pull request(s) for org '{}'", pullRequests.size(), projectUri.getNamespace());
           }
           catch (Exception e) {
+            String retryDelay = pollingTracker.onErrorProcessingPullRequests(sourceControl.getId());
             log.error(String.format(
-                "Error fetching pull requests for org '%s', will retry in 5 minutes.  Please check that the" +
+                "Error fetching pull requests for org '%s', will retry in %s.  Please check that the" +
                     " configured project url '%s' is correct, that it is for '%s' and that the API token is valid",
                 projectUri.getNamespace(),
+                retryDelay,
                 gitRepositoryInfo.repositoryUrl,
                 gitRepositoryInfo.provider), e);
-            pollingTracker.updateSourceControlPollTime(sourceControl.getId(),
-                new Date(currentTimeMillis() + POLLING_ERROR_RETRY_OFFSET));
           }
         }
       }
       else {
-        pollingTracker.updateSourceControlPollTime(sourceControl.getId(), new Date());
+        pollingTracker.onErrorProcessingPullRequests(sourceControl.getId());
       }
     }
 

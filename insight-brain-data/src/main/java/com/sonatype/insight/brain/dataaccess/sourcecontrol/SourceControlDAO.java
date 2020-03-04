@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -55,7 +54,7 @@ public class SourceControlDAO
    * Poll time is used to determine for which repos and in what sequence we will query the SCM to determine if there
    * are any open pull requests that we can possibly comment on.
    */
-  public void updatePullRequestPollTimes() {
+  public void initializePullRequestPollTimes() {
     updatePullRequestPollTimesPerPolicyEvaluations();
     setDefaultPollRequestPollTimes();
     clearExtraneousPullRequestPollTimes();
@@ -122,32 +121,6 @@ public class SourceControlDAO
             " AND entity.pullRequestPollTime IS NOT NULL" +
             " ORDER BY entity.pullRequestPollTime ASC";
     return createQuery(sQuery).forceSingleResult().get();
-  }
-
-  public void updatePullRequestPollTime(String sourceControlId, Date pullRequestPollTime) {
-    try (TransactionContext txn = createTransactionContext()) {
-      txn.begin();
-
-      SourceControl sourceControl = getById(sourceControlId);
-      if (null != sourceControl) {
-        sourceControl.setPullRequestPollTime(pullRequestPollTime);
-        update(txn, sourceControl);
-        txn.commit();
-      }
-    }
-  }
-
-  public void updatePullRequestPollTimeForApplication(String applicationId, Date pullRequestPollTime) {
-    try (TransactionContext txn = createTransactionContext()) {
-      txn.begin();
-
-      SourceControl sourceControl = getByOwnerId(applicationId);
-      if (null != sourceControl) {
-        sourceControl.setPullRequestPollTime(pullRequestPollTime);
-        update(txn, sourceControl);
-        txn.commit();
-      }
-    }
   }
 
   public List<SourceControl> getByRepositoryOwnerAndName(String repositoryOwnerAndName) {

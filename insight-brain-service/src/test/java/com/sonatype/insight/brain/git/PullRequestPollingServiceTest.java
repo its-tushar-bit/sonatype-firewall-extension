@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
-import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitGraphQlApiClient;
@@ -30,7 +29,6 @@ import com.sonatype.nexus.scm.github.dto.GithubPullRequest;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -50,8 +48,8 @@ public class PullRequestPollingServiceTest
   @Mock
   AsyncEventBus mockAsyncEventBus;
 
-  @Rule
-  public LogOutput logOutput = new LogOutput(PullRequestPollingService.class);
+  @Mock
+  GitGraphQlApiClient mockGitGraphQlApiClient;
 
   public PullRequestPollingServiceTest() {
     super(PullRequestPollingService.class);
@@ -162,6 +160,34 @@ public class PullRequestPollingServiceTest
     );
   }
 
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_errorFetchingPullRequests() throws IOException {
+    // given:
+    Date pullRequestCreateDate = new Date(System.currentTimeMillis() - 1000);
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("app1", "org/repo", SourceControlProvider.GITHUB)
+        .withId("sourceControl1")
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch")
+        .withSourcePolicyEvaluation("app1", "spe1")
+        .build();
+    doThrow(new IOException("scm error"))
+        .when(mockGitGraphQlApiClient)
+        .getPullRequestsSince(any(String.class), any(OffsetDateTime.class),
+            eq(PullRequestPollingService.PULL_REQUESTS_PER_MONITOR_CYCLE));
+
+    // when: fetch and send
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: no events emitted
+    verify(mockAsyncEventBus, never()).post(any());
+    assertThatLogMessagesEqual(
+        error(
+            "Error fetching pull requests for org 'org', will retry in 5 minutes.  Please check that the configured" +
+            " project url 'https://domain.com/org/repo' is correct, that it is for 'github'" +
+            " and that the API token is valid")
+    );
+  }
+
   private class TestablePullRequestPollingServiceBuilder
   {
     @Mock
@@ -181,9 +207,6 @@ public class PullRequestPollingServiceTest
 
     @Mock
     GitApiClient mockGitApiClient;
-
-    @Mock
-    GitGraphQlApiClient mockGitGraphQlApiClient;
 
     @Mock
     private PullRequestUtils mockPullRequestUtils;
@@ -211,6 +234,9 @@ public class PullRequestPollingServiceTest
       doReturn(mockGitGraphQlApiClient).when(mockGitClientFactory).createGraphqlApiClient(gitRepositoryInfo);
 
       doReturn(sourceControl, null).when(mockSourceControlDAO).getNextRepositoryToPoll();
+      if (null != sourceControl) {
+        doReturn(sourceControl).when(mockSourceControlDAO).getById(sourceControl.getId());
+      }
       doReturn(buildSourceControlList()).when(mockSourceControlDAO).getByRepositoryOwnerAndName(any());
       doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
 
@@ -264,6 +290,11 @@ public class PullRequestPollingServiceTest
       return this;
     }
 
+    TestablePullRequestPollingServiceBuilder withId(String id) {
+      sourceControl.setId(id);
+      return this;
+    }
+
     TestablePullRequestPollingServiceBuilder withSourcePolicyEvaluation(
         String applicationId,
         String policyEvaluationId)
@@ -271,6 +302,16 @@ public class PullRequestPollingServiceTest
       sourcePolicyEvaluation = new PolicyEvaluation();
       sourcePolicyEvaluation.setApplicationId(applicationId);
       sourcePolicyEvaluation.setId(policyEvaluationId);
+      return this;
+    }
+
+    TestablePullRequestPollingServiceBuilder withTargetPolicyEvaluation(
+        String applicationId,
+        String policyEvaluationId)
+    {
+      targetPolicyEvaluation = new PolicyEvaluation();
+      targetPolicyEvaluation.setApplicationId(applicationId);
+      targetPolicyEvaluation.setId(policyEvaluationId);
       return this;
     }
 

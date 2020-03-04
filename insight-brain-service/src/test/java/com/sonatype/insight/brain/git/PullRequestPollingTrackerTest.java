@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.git;
 
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -19,14 +20,19 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PullRequestPollingTrackerTest
 {
+  private static final long MS_PER_MINUTE = 60_000;
+
   @Mock
   SourceControlDAO sourceControlDAO;
 
@@ -66,64 +72,119 @@ public class PullRequestPollingTrackerTest
   }
 
   @Test
-  public void testUpdateSourceControlPollTimeFromPullRequest() {
+  public void testOnPullRequestProcessed_forPullRequest() {
     // given: source control entry and DAO setup to return expected values
+    Date oldPollDate = new Date(currentTimeMillis() - 30_000);
     SourceControl sourceControl = createSourceControl("sc1");
+    sourceControl.setPullRequestPollTime(oldPollDate);
+    sourceControl.setPullRequestCutoffTime(oldPollDate);
+    sourceControl.setPullRequestErrorCount(5);
     doReturn(ImmutableList.of(sourceControl)).when(sourceControlDAO).getByRepositoryOwnerAndName("org/yes");
     doReturn(null).when(sourceControlDAO).getByRepositoryOwnerAndName("org/no");
 
-    // when: update entry WITH match
+    // when: update entry WITHOUT matching repo
     PullRequest pullRequest = new GithubPullRequest();
-    pullRequest.setRepository("org/yes");
-    boolean updated = pollingTracker.updateSourceControlPollTimeFromPullRequest(pullRequest);
-
-    // then: should have been updated
-    assertThat(updated).isTrue();
-
-    // when: update entry WITHOUT match
     pullRequest.setRepository("org/no");
-    updated = pollingTracker.updateSourceControlPollTimeFromPullRequest(pullRequest);
+    boolean updated = pollingTracker.onPullRequestProcessed(pullRequest);
 
     // then: should NOT have been updated
+    verify(sourceControlDAO, never()).update(any(SourceControl.class));
     assertThat(updated).isFalse();
+
+    // when: update entry WITH matching repo
+    pullRequest.setRepository("org/yes");
+    Date prCreated = new Date();
+    pullRequest.setCreated(prCreated);
+    updated = pollingTracker.onPullRequestProcessed(pullRequest);
+
+    // then: should have been updated and errors cleared
+    assertThat(updated).isTrue();
+    verify(sourceControlDAO, times(1)).update(sourceControl);
+    assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(prCreated);
+    assertThat(sourceControl.getPullRequestCutoffTime()).isEqualTo(prCreated);
+    assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(0);
   }
 
   @Test
-  public void testUpdatePullRequestPollTime() {
-    // given:
+  public void testOnPullRequestProcessed() {
+    // given: source control entry with initial values
     Date date = new Date();
     String sourceControlId = "sc1";
+    SourceControl sourceControl = createSourceControl(sourceControlId);
+    sourceControl.setPullRequestErrorCount(3);
+    doReturn(sourceControl).when(sourceControlDAO).getById(sourceControlId);
 
     // when: update poll times called
-    pollingTracker.updateSourceControlPollTime(sourceControlId, date);
+    pollingTracker.onPullRequestProcessed(sourceControlId, date);
 
-    // then: verify DAO called;  I know, this seems trivial and whitebox-ish but (a) serves as a placeholder in case
-    //       implementation changes in the future and (b) gives us code coverage
-    verify(sourceControlDAO, times(1)).updatePullRequestPollTime(sourceControlId, date);
+    // then: verify dates and error count
+    verify(sourceControlDAO, times(1)).update(sourceControl);
+    assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(date);
+    assertThat(sourceControl.getPullRequestCutoffTime()).isEqualTo(date);
+    assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(0);
   }
 
   @Test
-  public void testUpdateSourceControlPollTimeForApplication() {
-    // given:
+  public void testOnPullRequestProcessed_forApplication() {
+    // given: source control entry for app with initial values
     Date date = new Date();
     String sourceControlId = "sc1";
+    String appId = "app1";
+    SourceControl sourceControl = createSourceControl(sourceControlId);
+    sourceControl.setOwnerId(appId);
+    sourceControl.setPullRequestErrorCount(3);
+    doReturn(sourceControl).when(sourceControlDAO).getByOwnerId(appId);
 
     // when: update poll times called
-    pollingTracker.updateSourceControlPollTimeForApplication(sourceControlId, date);
+    pollingTracker.onPullRequestProcessedForApplication(appId, date);
 
-    // then: verify DAO called;  I know, this seems trivial and whitebox-ish but (a) serves as a placeholder in case
-    //       implementation changes in the future and (b) gives us code coverage
-    verify(sourceControlDAO, times(1)).updatePullRequestPollTimeForApplication(sourceControlId, date);
+    // then: verify poll dates set correctly as well as error count
+    verify(sourceControlDAO, times(1)).update(sourceControl);
+    assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(date);
+    assertThat(sourceControl.getPullRequestCutoffTime()).isEqualTo(date);
+    assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(0);
   }
 
   @Test
-  public void testUpdatePullRequestPollTimes() {
+  public void testOnErrorProcessingPullRequests() {
+    // given: initialized source control entry
+    final List<Integer> expectedErrorOffsetsInMinutes = ImmutableList.of(5, 10, 15, 30, 60, 360, 720, 60 * 24, 60 * 24);
+    final List<String> expectedErrorOffsetText = ImmutableList.of("5 minutes", "10 minutes", "15 minutes", "30 minutes",
+        "1 hour", "6 hours", "12 hours", "24 hours", "24 hours");
+    Date cutoffTime = new Date();
+    String sourceControlId = "scError";
+    SourceControl sourceControl = createSourceControl(sourceControlId);
+    sourceControl.setPullRequestErrorCount(0);
+    sourceControl.setPullRequestCutoffTime(cutoffTime);
+    sourceControl.setPullRequestPollTime(cutoffTime);
+    doReturn(sourceControl).when(sourceControlDAO).getById(sourceControlId);
+
+    for (int i = 0; i < expectedErrorOffsetsInMinutes.size(); i++) {
+      // when: report error
+      String offsetMessage = pollingTracker.onErrorProcessingPullRequests(sourceControlId);
+
+      // then: error count incremented, cutoff unchanged, poll time updated per sequence
+      long exactOffset = currentTimeMillis() + (MS_PER_MINUTE * expectedErrorOffsetsInMinutes.get(i));
+      // bound the expected poll time by +/- 100ms
+      Date minPollTime = new Date(exactOffset - 100);
+      Date maxPollTime = new Date(exactOffset + 100);
+      assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(i + 1);
+      assertThat(offsetMessage).isEqualTo(expectedErrorOffsetText.get(i));
+      assertThat(sourceControl.getPullRequestCutoffTime()).isEqualTo(cutoffTime);
+      assertThat(sourceControl.getPullRequestPollTime()).isAfter(minPollTime);
+      assertThat(sourceControl.getPullRequestPollTime()).isBefore(maxPollTime);
+      verify(sourceControlDAO, times(i + 1)).update(sourceControl);
+    }
+  }
+
+  @Test
+  public void testInitializePullRequestPollTimes() {
     // when: update poll times called
-    pollingTracker.updatePullRequestPollTimes();
+    pollingTracker.initializePullRequestPollTimes();
 
     // then: verify DAO called;  I know, this seems trivial and whitebox-ish but (a) serves as a placeholder in case
     //       implementation changes in the future and (b) gives us code coverage
-    verify(sourceControlDAO, times(1)).updatePullRequestPollTimes();
+    verify(sourceControlDAO, times(1)).initializePullRequestPollTimes();
   }
 
   @Test

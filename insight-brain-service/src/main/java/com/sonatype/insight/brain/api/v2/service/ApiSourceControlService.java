@@ -202,6 +202,8 @@ public class ApiSourceControlService
     SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(sourceControlDTO);
     sourceControl.setId(storedSourceControl.getId());
     sourceControl.setPullRequestPollTime(storedSourceControl.getPullRequestPollTime());
+    sourceControl.setPullRequestCutoffTime(storedSourceControl.getPullRequestCutoffTime());
+    sourceControl.setPullRequestErrorCount(storedSourceControl.getPullRequestErrorCount());
 
     setTokenValueForSave(sourceControl);
     // updates may come with our 'fake' token

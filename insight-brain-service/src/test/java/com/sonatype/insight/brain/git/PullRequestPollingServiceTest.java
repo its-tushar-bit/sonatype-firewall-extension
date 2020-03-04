@@ -46,10 +46,10 @@ public class PullRequestPollingServiceTest
     extends VerifiableLoggingTestBase
 {
   @Mock
-  AsyncEventBus mockAsyncEventBus;
+  private AsyncEventBus mockAsyncEventBus;
 
   @Mock
-  GitGraphQlApiClient mockGitGraphQlApiClient;
+  private GitGraphQlApiClient mockGitGraphQlApiClient;
 
   public PullRequestPollingServiceTest() {
     super(PullRequestPollingService.class);
@@ -191,22 +191,22 @@ public class PullRequestPollingServiceTest
   private class TestablePullRequestPollingServiceBuilder
   {
     @Mock
-    SourceControlDAO mockSourceControlDAO;
+    private SourceControlDAO mockSourceControlDAO;
 
     @Mock
-    PolicyEvaluationDAO mockPolicyEvaluationDAO;
+    private PolicyEvaluationDAO mockPolicyEvaluationDAO;
 
     @Mock
-    GitCommitHistoryService mockGitCommitHistoryService;
+    private GitCommitHistoryService mockGitCommitHistoryService;
 
     @Mock
-    SourceControlUtils mockSourceControlUtils;
+    private SourceControlUtils mockSourceControlUtils;
 
     @Mock
-    GitClientFactory mockGitClientFactory;
+    private GitClientFactory mockGitClientFactory;
 
     @Mock
-    GitApiClient mockGitApiClient;
+    private GitApiClient mockGitApiClient;
 
     @Mock
     private PullRequestUtils mockPullRequestUtils;
@@ -225,7 +225,7 @@ public class PullRequestPollingServiceTest
 
     private boolean isGitRepositoryPrivate = true;
 
-    private Class thrownException;
+    private Class<? extends Exception> thrownException;
 
     PullRequestPollingService build() throws IOException {
       MockitoAnnotations.initMocks(this);
@@ -305,16 +305,6 @@ public class PullRequestPollingServiceTest
       return this;
     }
 
-    TestablePullRequestPollingServiceBuilder withTargetPolicyEvaluation(
-        String applicationId,
-        String policyEvaluationId)
-    {
-      targetPolicyEvaluation = new PolicyEvaluation();
-      targetPolicyEvaluation.setApplicationId(applicationId);
-      targetPolicyEvaluation.setId(policyEvaluationId);
-      return this;
-    }
-
     TestablePullRequestPollingServiceBuilder withPullRequest(int id, Date created, String headBranch) {
       PullRequest pullRequest = new GithubPullRequest();
       pullRequest.setNumber(id);
@@ -328,11 +318,6 @@ public class PullRequestPollingServiceTest
 
     TestablePullRequestPollingServiceBuilder withGitRepositoryPrivate(boolean isGitRepositoryPrivate) {
       this.isGitRepositoryPrivate = isGitRepositoryPrivate;
-      return this;
-    }
-
-    TestablePullRequestPollingServiceBuilder withEffectivelyPrivateThrows(Class thrownException) {
-      this.thrownException = thrownException;
       return this;
     }
   }

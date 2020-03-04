@@ -52,6 +52,19 @@
     </dependency>
 
     <dependency>
+      <groupId>org.apache.directory.api</groupId>
+      <artifactId>api-ldap-model</artifactId>
+      <exclusions>
+        <exclusion>
+          <!-- unused and avoids CLM-13317 -->
+          <groupId>org.apache.mina</groupId>
+          <artifactId>mina-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+
+    <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-data</artifactId>
     </dependency>
@@ -263,6 +276,11 @@
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-utils</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.plexus</groupId>
+      <artifactId>plexus-cipher</artifactId>
+      <version>1.7</version>
     </dependency>
 
     <dependency>
@@ -510,6 +528,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-test-networking</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-license-util</artifactId>
     </dependency>
@@ -571,15 +593,6 @@
       <artifactId>insight-license-model</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-brain-ldap</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-brain-ldap</artifactId>
-      <classifier>tests</classifier>
-    </dependency>
     <dependency>
       <groupId>org.apache.directory.server</groupId>
       <artifactId>apacheds-core-integ</artifactId>
@@ -835,6 +848,8 @@
                 <include>**/HttpResponse*</include>
                 <include>**/ReportHelper*</include>
                 <include>**/Zipper*</include>
+                <include>**/EmbeddedLdapServer*</include>
+                <include>**/TestLdapServer*</include>
               </includes>
             </configuration>
           </execution>

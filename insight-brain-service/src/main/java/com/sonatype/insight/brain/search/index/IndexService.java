@@ -265,8 +265,7 @@ public class IndexService
     // write to search-suggester dir
     try (IndexReader sourceIndexReader = DirectoryReader.open(FSDirectory.open(indexPath));
         FSDirectory suggesterFile = FSDirectory.open(suggesterPath);
-        AnalyzingInfixSuggester suggester =
-            new AnalyzingInfixSuggester(suggesterFile, luceneComponents.newAnalyzerForAutoCompletion())) {
+        AnalyzingInfixSuggester suggester = luceneComponents.newSuggester(suggesterFile)) {
       log.info("started building suggester");
       Function<String, Query> queryParser = luceneComponents.newQueryParser();
       IndexSearcher indexSearcher = new IndexSearcher(sourceIndexReader);
@@ -309,7 +308,7 @@ public class IndexService
       return null;
     }
     if (field.numericValue() == null && isQuotingRequired(fieldName, fieldValue, queryParser)) {
-      fieldValue = quoteValue(fieldValue.toString());
+      fieldValue = quoteValue(fieldValue);
     }
     return fieldName + ':' + fieldValue;
   }

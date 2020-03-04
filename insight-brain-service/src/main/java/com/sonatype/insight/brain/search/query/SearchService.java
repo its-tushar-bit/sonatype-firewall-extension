@@ -34,7 +34,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -159,10 +158,9 @@ public class SearchService
     Path searchSuggesterIndexPath = insightWork.getSearchSuggesterDir().toPath();
     validateIndex(searchSuggesterIndexPath);
     SearchSuggestionResultDTO searchResultDTO = new SearchSuggestionResultDTO();
-    Analyzer analyzer = luceneComponents.newAnalyzerForAutoCompletion();
 
     try (FSDirectory suggesterFile = FSDirectory.open(searchSuggesterIndexPath);
-         AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(suggesterFile, analyzer)) {
+         AnalyzingInfixSuggester suggester = luceneComponents.newSuggester(suggesterFile)) {
       // Do the lookup and get up to 10 results
       List<Lookup.LookupResult> results = suggester.lookup(searchQuery, Collections.emptySet(), 10, false, false);
       for (Lookup.LookupResult result : results) {

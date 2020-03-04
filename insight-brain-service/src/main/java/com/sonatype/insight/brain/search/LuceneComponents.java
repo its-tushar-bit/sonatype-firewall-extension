@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.search;
 
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
@@ -26,6 +27,8 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
+import org.apache.lucene.store.Directory;
 
 @Named
 @Singleton
@@ -49,7 +52,7 @@ public class LuceneComponents
     return new PerFieldAnalyzerWrapper(new LowerCaseKeywordAnalyzer(), fieldAnalyzers);
   }
 
-  public Analyzer newAnalyzerForAutoCompletion() {
+  Analyzer newAnalyzerForAutoCompletion() {
     return new ClassicAnalyzer(CharArraySet.EMPTY_SET);
   }
 
@@ -64,5 +67,9 @@ public class LuceneComponents
         throw new BadRequestException("The search query is invalid: " + e.getMessage(), e);
       }
     };
+  }
+
+  public AnalyzingInfixSuggester newSuggester(Directory suggesterDirectory) throws IOException {
+    return new AnalyzingInfixSuggester(suggesterDirectory, newAnalyzerForAutoCompletion());
   }
 }

@@ -62,6 +62,7 @@ public class LuceneComponents
   public Function<String, Query> newQueryParser() {
     StandardQueryParser queryParser = new StandardQueryParser(newAnalyzerForSearch());
     queryParser.setPointsConfigMap(pointsConfigsByFieldName);
+    queryParser.setAllowLeadingWildcard(true);
     return searchString -> {
       try {
         return queryParser.parse(searchString, FieldIdentifier.VULNERABILITY_ID.label);

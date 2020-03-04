@@ -580,4 +580,13 @@ public class IndexSearchingTest
         + FieldIdentifier.APPLICATION_ID + ":" + app2.getId() + "^2");
     assertThat(results).extracting(dto -> dto.applicationId).containsExactly(app2.getId(), app1.getId());
   }
+
+  @Test
+  public void testLeadingWildcard() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-id-1", "app name 1");
+    tempEntity.newApplicationWithParent("test-id-2", "app name 2");
+    index();
+    assertThat(search(FieldIdentifier.APPLICATION_NAME, "*1")).extracting(dto -> dto.applicationId)
+        .containsExactlyInAnyOrder(app.getId());
+  }
 }

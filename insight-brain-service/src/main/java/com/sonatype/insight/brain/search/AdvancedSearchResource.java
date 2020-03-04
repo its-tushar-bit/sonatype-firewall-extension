@@ -24,32 +24,32 @@ import com.codahale.metrics.annotation.Timed;
  */
 @Named
 @Timed
-@Path(FullTextSearchResource.RESOURCE_PATH)
+@Path(AdvancedSearchResource.RESOURCE_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class FullTextSearchResource
+public class AdvancedSearchResource
 {
   public static final String RESOURCE_PATH = "rest/fullTextSearch";
 
   public static final String STATUS_PATH = "status";
 
-  private final FullTextSearchService fullTextSearchService;
+  private final AdvancedSearchService advancedSearchService;
 
   @Inject
-  public FullTextSearchResource(FullTextSearchService fullTextSearchService) {
-    this.fullTextSearchService = fullTextSearchService;
+  public AdvancedSearchResource(AdvancedSearchService advancedSearchService) {
+    this.advancedSearchService = advancedSearchService;
   }
 
   @PUT
   @Path(STATUS_PATH)
   @Audited(AuditEvent.CONFIGURE_ADVANCED_SEARCH)
-  public void setStatus(FullTextSearchStatusDTO fullTextSearchStatusDTO) {
-    fullTextSearchService.setStatus(fullTextSearchStatusDTO);
+  public void setStatus(AdvancedSearchStatusDTO statusDTO) {
+    advancedSearchService.setStatus(statusDTO);
   }
 
   @GET
   @Path(STATUS_PATH)
-  public FullTextSearchStatusDTO getStatus() {
-    return fullTextSearchService.getStatus();
+  public AdvancedSearchStatusDTO getStatus() {
+    return advancedSearchService.getStatus();
   }
 }

@@ -13,43 +13,43 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
-public class FullTextSearchServiceAuthzTest
+public class AdvancedSearchServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
-  private FullTextSearchService fullTextSearchService;
+  private AdvancedSearchService advancedSearchService;
 
   @Test
   public void testSetStatus_Authorized() {
     grantConfigureSystemPermission();
-    fullTextSearchService.setStatus(new FullTextSearchStatusDTO());
+    advancedSearchService.setStatus(new AdvancedSearchStatusDTO());
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testSetStatus_Unauthenticated() {
-    fullTextSearchService.setStatus(new FullTextSearchStatusDTO());
+    advancedSearchService.setStatus(new AdvancedSearchStatusDTO());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testSetStatus_Unauthorized() {
     login();
-    fullTextSearchService.setStatus(new FullTextSearchStatusDTO());
+    advancedSearchService.setStatus(new AdvancedSearchStatusDTO());
   }
 
   @Test
   public void testGetStatus_Authorized() {
     grantConfigureSystemPermission();
-    fullTextSearchService.getStatus();
+    advancedSearchService.getStatus();
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetStatus_Unauthenticated() {
-    fullTextSearchService.getStatus();
+    advancedSearchService.getStatus();
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetStatus_Unauthorized() {
     login();
-    fullTextSearchService.getStatus();
+    advancedSearchService.getStatus();
   }
 }

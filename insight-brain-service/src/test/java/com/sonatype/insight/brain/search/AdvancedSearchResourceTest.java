@@ -13,11 +13,11 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.search.FullTextSearchResource.RESOURCE_PATH;
-import static com.sonatype.insight.brain.search.FullTextSearchResource.STATUS_PATH;
+import static com.sonatype.insight.brain.search.AdvancedSearchResource.RESOURCE_PATH;
+import static com.sonatype.insight.brain.search.AdvancedSearchResource.STATUS_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class FullTextSearchResourceTest
+public class AdvancedSearchResourceTest
     extends AbstractResourceTest
 {
   @Override
@@ -30,17 +30,17 @@ public class FullTextSearchResourceTest
     HttpResponse response = restRequest().path(STATUS_PATH).get();
 
     assertResponseStatus(200, response);
-    FullTextSearchStatusDTO fullTextSearchStatusDTO = response.getBody(FullTextSearchStatusDTO.class);
-    assertThat(fullTextSearchStatusDTO.isEnabled).isFalse();
-    assertThat(fullTextSearchStatusDTO.lastIndexTime).isNull();
+    AdvancedSearchStatusDTO statusDTO = response.getBody(AdvancedSearchStatusDTO.class);
+    assertThat(statusDTO.isEnabled).isFalse();
+    assertThat(statusDTO.lastIndexTime).isNull();
   }
 
   @Test
   public void testSetStatus() throws Exception {
-    FullTextSearchStatusDTO fullTextSearchStatusDTO = new FullTextSearchStatusDTO();
-    fullTextSearchStatusDTO.isEnabled = true;
+    AdvancedSearchStatusDTO statusDTO = new AdvancedSearchStatusDTO();
+    statusDTO.isEnabled = true;
 
-    HttpResponse response = restRequest().path(STATUS_PATH).body(fullTextSearchStatusDTO).put();
+    HttpResponse response = restRequest().path(STATUS_PATH).body(statusDTO).put();
 
     assertResponseStatus(204, response);
     assertThat(

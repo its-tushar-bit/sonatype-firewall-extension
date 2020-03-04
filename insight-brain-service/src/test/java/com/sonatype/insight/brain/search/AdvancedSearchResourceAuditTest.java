@@ -12,15 +12,15 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
 
-public class FullTextSearchResourceAuditTest
+public class AdvancedSearchResourceAuditTest
     extends AbstractAuditTest
 {
   @Test
   public void testSetStatus_Enabled() throws Exception {
-    FullTextSearchStatusDTO fullTextSearchStatusDTO = new FullTextSearchStatusDTO();
-    fullTextSearchStatusDTO.isEnabled = true;
+    AdvancedSearchStatusDTO statusDTO = new AdvancedSearchStatusDTO();
+    statusDTO.isEnabled = true;
 
-    restRequest().body(fullTextSearchStatusDTO).put();
+    restRequest().body(statusDTO).put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_ADVANCED_SEARCH, null);
     assertCustomData(auditDTO, "advancedSearch", "enabled");
@@ -28,10 +28,10 @@ public class FullTextSearchResourceAuditTest
 
   @Test
   public void testSetStatus_Disabled() throws Exception {
-    FullTextSearchStatusDTO fullTextSearchStatusDTO = new FullTextSearchStatusDTO();
-    fullTextSearchStatusDTO.isEnabled = false;
+    AdvancedSearchStatusDTO statusDTO = new AdvancedSearchStatusDTO();
+    statusDTO.isEnabled = false;
 
-    restRequest().body(fullTextSearchStatusDTO).put();
+    restRequest().body(statusDTO).put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_ADVANCED_SEARCH, null);
     assertCustomData(auditDTO, "advancedSearch", "disabled");
@@ -39,13 +39,13 @@ public class FullTextSearchResourceAuditTest
 
   @Test
   public void testSetStatus_Unauthorized() throws Exception {
-    restRequest().with(unauthorizedUser()).body(new FullTextSearchStatusDTO()).put();
+    restRequest().with(unauthorizedUser()).body(new AdvancedSearchStatusDTO()).put();
 
     assertAuditLog(AuditEvent.CONFIGURE_ADVANCED_SEARCH, "unauthorized");
   }
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(FullTextSearchResource.RESOURCE_PATH, FullTextSearchResource.STATUS_PATH);
+    return super.restRequest().path(AdvancedSearchResource.RESOURCE_PATH, AdvancedSearchResource.STATUS_PATH);
   }
 }

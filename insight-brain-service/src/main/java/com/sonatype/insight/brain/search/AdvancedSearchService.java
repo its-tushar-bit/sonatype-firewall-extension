@@ -24,32 +24,32 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
-public class FullTextSearchService
+public class AdvancedSearchService
 {
-  private static final Logger log = LoggerFactory.getLogger(FullTextSearchService.class);
+  private static final Logger log = LoggerFactory.getLogger(AdvancedSearchService.class);
 
   private final SystemConfigurationPropertyDAO dao;
 
   private final InsightWork insightWork;
 
   @Inject
-  public FullTextSearchService(SystemConfigurationPropertyDAO systemConfigurationPropertyDAO, InsightWork insightWork) {
+  public AdvancedSearchService(SystemConfigurationPropertyDAO systemConfigurationPropertyDAO, InsightWork insightWork) {
     this.dao = systemConfigurationPropertyDAO;
     this.insightWork = insightWork;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public void setStatus(FullTextSearchStatusDTO fullTextSearchStatusDTO) {
-    AuditData.get().setData("advancedSearch", fullTextSearchStatusDTO.isEnabled ? "enabled" : "disabled");
-    log.info("Opting {} experimental Full Text Search.", fullTextSearchStatusDTO.isEnabled ? "in to" : "out of");
+  public void setStatus(AdvancedSearchStatusDTO statusDTO) {
+    AuditData.get().setData("advancedSearch", statusDTO.isEnabled ? "enabled" : "disabled");
+    log.info("Opting {} experimental Full Text Search.", statusDTO.isEnabled ? "in to" : "out of");
 
-    String status = Boolean.toString(fullTextSearchStatusDTO.isEnabled);
+    String status = Boolean.toString(statusDTO.isEnabled);
     dao.update(new SystemConfigurationProperty(SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED, status));
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public FullTextSearchStatusDTO getStatus() {
-    FullTextSearchStatusDTO dto = new FullTextSearchStatusDTO();
+  public AdvancedSearchStatusDTO getStatus() {
+    AdvancedSearchStatusDTO dto = new AdvancedSearchStatusDTO();
     dto.isEnabled =
         Boolean.parseBoolean(dao.getByName(SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED).getValue());
     dto.lastIndexTime = getLastIndexTime();

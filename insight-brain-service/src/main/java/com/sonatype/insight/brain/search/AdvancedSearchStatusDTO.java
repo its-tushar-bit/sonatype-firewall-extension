@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.search;
 
-public class FullTextSearchStatusDTO
+public class AdvancedSearchStatusDTO
 {
   public boolean isEnabled;
 

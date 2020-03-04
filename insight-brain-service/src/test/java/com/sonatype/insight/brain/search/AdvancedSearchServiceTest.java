@@ -20,13 +20,13 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class FullTextSearchServiceTest
+public class AdvancedSearchServiceTest
     extends AbstractComponentTest
 {
   private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
 
   @Inject
-  private FullTextSearchService fullTextSearchService;
+  private AdvancedSearchService advancedSearchService;
 
   @Inject
   private IndexService indexService;
@@ -36,9 +36,9 @@ public class FullTextSearchServiceTest
 
   @Test
   public void testSetStatus_EnableSearch() {
-    FullTextSearchStatusDTO fullTextSearchStatusDTO = new FullTextSearchStatusDTO();
-    fullTextSearchStatusDTO.isEnabled = true;
-    fullTextSearchService.setStatus(fullTextSearchStatusDTO);
+    AdvancedSearchStatusDTO statusDTO = new AdvancedSearchStatusDTO();
+    statusDTO.isEnabled = true;
+    advancedSearchService.setStatus(statusDTO);
     assertThat(isFullTextSearchEnabled()).isTrue();
   }
 
@@ -47,16 +47,16 @@ public class FullTextSearchServiceTest
     // Given Full Text Search is in enabled state..
     dao.update(new SystemConfigurationProperty(SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED, "true"));
 
-    FullTextSearchStatusDTO fullTextSearchStatusDTO = new FullTextSearchStatusDTO();
-    fullTextSearchStatusDTO.isEnabled = false;
+    AdvancedSearchStatusDTO statusDTO = new AdvancedSearchStatusDTO();
+    statusDTO.isEnabled = false;
 
-    fullTextSearchService.setStatus(fullTextSearchStatusDTO);
+    advancedSearchService.setStatus(statusDTO);
     assertThat(isFullTextSearchEnabled()).isFalse();
   }
 
   @Test
   public void testGetStatus_SearchDisabled() {
-    FullTextSearchStatusDTO status = fullTextSearchService.getStatus();
+    AdvancedSearchStatusDTO status = advancedSearchService.getStatus();
     assertThat(status.isEnabled).isFalse();
   }
 
@@ -64,13 +64,13 @@ public class FullTextSearchServiceTest
   public void testGetStatus_SearchEnabled() {
     // Given Full Text Search is in enabled state..
     dao.update(new SystemConfigurationProperty(SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED, "true"));
-    FullTextSearchStatusDTO status = fullTextSearchService.getStatus();
+    AdvancedSearchStatusDTO status = advancedSearchService.getStatus();
     assertThat(status.isEnabled).isTrue();
   }
 
   @Test
   public void testGetStatus_NoIndex_NullLastIndexTime() {
-    assertThat(fullTextSearchService.getStatus().lastIndexTime).isNull();
+    assertThat(advancedSearchService.getStatus().lastIndexTime).isNull();
     assertThat(insightWork.getSearchIndexDir()).doesNotExist();
   }
 
@@ -80,14 +80,14 @@ public class FullTextSearchServiceTest
     File segmentFile = Arrays.stream(insightWork.getSearchIndexDir().listFiles())
         .filter(file -> file.getName().startsWith("segment")).findFirst().get();
     long firstIndexTime = segmentFile.lastModified();
-    assertThat(fullTextSearchService.getStatus().lastIndexTime).isEqualTo(firstIndexTime);
+    assertThat(advancedSearchService.getStatus().lastIndexTime).isEqualTo(firstIndexTime);
     indexService.createSearchIndex();
     segmentFile = Arrays.stream(insightWork.getSearchIndexDir().listFiles())
         .filter(file -> file.getName().startsWith("segment")).findFirst().get();
     segmentFile.setLastModified(segmentFile.lastModified() + 1000); // Ensure the next index time is different
     long secondIndexTime = segmentFile.lastModified();
     assertThat(secondIndexTime).isGreaterThan(firstIndexTime);
-    assertThat(fullTextSearchService.getStatus().lastIndexTime).isEqualTo(secondIndexTime);
+    assertThat(advancedSearchService.getStatus().lastIndexTime).isEqualTo(secondIndexTime);
   }
 
   private boolean isFullTextSearchEnabled() {

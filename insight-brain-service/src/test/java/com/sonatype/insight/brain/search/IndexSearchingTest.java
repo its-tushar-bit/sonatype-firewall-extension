@@ -557,4 +557,17 @@ public class IndexSearchingTest
     assertThat(search(FieldIdentifier.VULNERABILITY_DESCRIPTION, "\"cross-site scripting\""))
         .extracting(dto -> dto.vulnerabilityId).containsOnly("CVE-8765-1234");
   }
+
+  @Test
+  public void testBoosting() throws Exception {
+    Application app1 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplicationWithParent();
+    index();
+    List<SearchResultItemDTO> results = search(FieldIdentifier.APPLICATION_ID + ":" + app1.getId() + "^2 "
+        + FieldIdentifier.APPLICATION_ID + ":" + app2.getId());
+    assertThat(results).extracting(dto -> dto.applicationId).containsExactly(app1.getId(), app2.getId());
+    results = search(FieldIdentifier.APPLICATION_ID + ":" + app1.getId() + " "
+        + FieldIdentifier.APPLICATION_ID + ":" + app2.getId() + "^2");
+    assertThat(results).extracting(dto -> dto.applicationId).containsExactly(app2.getId(), app1.getId());
+  }
 }

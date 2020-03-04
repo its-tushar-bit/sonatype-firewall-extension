@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -112,10 +111,6 @@ public class SearchService
       else {
         groupFieldName = groupIdentifier.label;
       }
-
-      Comparator<Document> byLabel = Comparator.comparing(document -> document.get(groupFieldName));
-      Comparator<Document> byScore = Comparator.comparing(documentScores::get);
-      documents.sort(byLabel.thenComparing(byScore));
 
       int startIndex = (page - 1) * pageSize;
       int resultIndex = startIndex + 1;

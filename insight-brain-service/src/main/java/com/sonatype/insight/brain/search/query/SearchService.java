@@ -7,25 +7,23 @@ package com.sonatype.insight.brain.search.query;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.search.LuceneComponents;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
@@ -37,13 +35,9 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.CharArraySet;
-import org.apache.lucene.analysis.standard.ClassicAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
-import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -72,12 +66,12 @@ public class SearchService
 
   private final InsightWork insightWork;
 
-  private final Provider<Analyzer> analyzerProvider;
+  private final LuceneComponents luceneComponents;
 
   @Inject
-  public SearchService(InsightWork insightWork, Provider<Analyzer> analyzerProvider) {
+  public SearchService(InsightWork insightWork, LuceneComponents luceneComponents) {
     this.insightWork = insightWork;
-    this.analyzerProvider = analyzerProvider;
+    this.luceneComponents = luceneComponents;
   }
 
   public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page) throws IOException {
@@ -165,7 +159,7 @@ public class SearchService
     Path searchSuggesterIndexPath = insightWork.getSearchSuggesterDir().toPath();
     validateIndex(searchSuggesterIndexPath);
     SearchSuggestionResultDTO searchResultDTO = new SearchSuggestionResultDTO();
-    Analyzer analyzer = new ClassicAnalyzer(CharArraySet.EMPTY_SET);
+    Analyzer analyzer = luceneComponents.newAnalyzerForAutoCompletion();
 
     try (FSDirectory suggesterFile = FSDirectory.open(searchSuggesterIndexPath);
          AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(suggesterFile, analyzer)) {
@@ -224,15 +218,7 @@ public class SearchService
     if (StringUtils.isBlank(searchQuery)) {
       throw new BadRequestException("The search query is empty");
     }
-    try {
-      StandardQueryParser queryParser = new StandardQueryParser(analyzerProvider.get());
-      queryParser.setPointsConfigMap(Collections.singletonMap(POLICY_THREAT_LEVEL.label,
-          new PointsConfig(NumberFormat.getIntegerInstance(Locale.ROOT), Integer.class)));
-      return queryParser.parse(searchQuery, VULNERABILITY_ID.label);
-    }
-    catch (Exception e) {
-      throw new BadRequestException("The search query is invalid: " + e.getMessage(), e);
-    }
+    return luceneComponents.newQueryParser().apply(searchQuery);
   }
 
   private SearchResultItemDTO toDto(Document document) {

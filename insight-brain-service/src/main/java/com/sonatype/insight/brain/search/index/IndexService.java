@@ -17,10 +17,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.search.LuceneComponents;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
@@ -55,8 +56,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.standard.ClassicAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -64,9 +63,8 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.Directory;
@@ -110,7 +108,7 @@ public class IndexService
 
   private final VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
 
-  private final Provider<Analyzer> analyzerProvider;
+  private final LuceneComponents luceneComponents;
 
   private volatile boolean running = false;
 
@@ -153,7 +151,7 @@ public class IndexService
       PolicyDAO policyDAO,
       InsightWork insightWork,
       VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher,
-      Provider<Analyzer> analyzerProvider)
+      LuceneComponents luceneComponents)
   {
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
@@ -165,7 +163,7 @@ public class IndexService
     this.policyDAO = policyDAO;
     this.insightWork = insightWork;
     this.vulnerabilityDescriptionFetcher = vulnerabilityDescriptionFetcher;
-    this.analyzerProvider = analyzerProvider;
+    this.luceneComponents = luceneComponents;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -218,7 +216,7 @@ public class IndexService
     Files.createDirectories(indexPath);
     Files.createDirectories(suggesterPath);
 
-    IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzerProvider.get());
+    IndexWriterConfig indexWriterConfig = new IndexWriterConfig(luceneComponents.newAnalyzerForSearch());
     indexWriterConfig.setOpenMode(OpenMode.CREATE);
     try (Directory directory = FSDirectory.open(indexPath);
         IndexWriter indexWriter = new IndexWriter(directory, indexWriterConfig)) {
@@ -266,10 +264,11 @@ public class IndexService
 
     // write to search-suggester dir
     try (IndexReader sourceIndexReader = DirectoryReader.open(FSDirectory.open(indexPath));
-         FSDirectory suggesterFile = FSDirectory.open(suggesterPath);
-         AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(suggesterFile, new ClassicAnalyzer())) {
+        FSDirectory suggesterFile = FSDirectory.open(suggesterPath);
+        AnalyzingInfixSuggester suggester =
+            new AnalyzingInfixSuggester(suggesterFile, luceneComponents.newAnalyzerForAutoCompletion())) {
       log.info("started building suggester");
-      QueryParser queryParser = new QueryParser(FieldIdentifier.VULNERABILITY_ID.label, analyzerProvider.get());
+      Function<String, Query> queryParser = luceneComponents.newQueryParser();
       IndexSearcher indexSearcher = new IndexSearcher(sourceIndexReader);
       try (IndexReader indexReader = indexSearcher.getIndexReader()) {
         long maxId = indexReader.maxDoc();
@@ -287,7 +286,7 @@ public class IndexService
     log.info("index creation exit");
   }
 
-  private Set<String> getDocFieldValues(Document doc, QueryParser queryParser) {
+  private Set<String> getDocFieldValues(Document doc, Function<String, Query> queryParser) {
     Set<String> docFieldValues = new HashSet<>();
 
     for (IndexableField field : doc) {
@@ -303,18 +302,18 @@ public class IndexService
     return docFieldValues;
   }
 
-  private String toSuggestion(String fieldName, String fieldValue, QueryParser queryParser) {
+  private String toSuggestion(String fieldName, String fieldValue, Function<String, Query> queryParser) {
     if (isQuotingRequired(fieldName, fieldValue, queryParser)) {
       fieldValue = quoteValue(fieldValue);
     }
     return fieldName + ':' + fieldValue;
   }
 
-  private boolean isQuotingRequired(String fieldName, String fieldValue, QueryParser queryParser) {
+  private boolean isQuotingRequired(String fieldName, String fieldValue, Function<String, Query> queryParser) {
     try {
-      return !(queryParser.parse(fieldName + ':' + fieldValue) instanceof TermQuery);
+      return !(queryParser.apply(fieldName + ':' + fieldValue) instanceof TermQuery);
     }
-    catch (ParseException e) {
+    catch (Exception e) {
       return true;
     }
   }

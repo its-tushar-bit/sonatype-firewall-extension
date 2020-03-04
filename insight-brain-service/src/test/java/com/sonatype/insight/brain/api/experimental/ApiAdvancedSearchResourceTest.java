@@ -31,7 +31,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-public class ApiSearchIndexResourceTest
+public class ApiAdvancedSearchResourceTest
     extends AbstractResourceTest
 {
   @Before
@@ -77,7 +77,7 @@ public class ApiSearchIndexResourceTest
     restRequest().post();
     awaitIndexCompletion();
 
-    HttpResponse response = restRequest().path(ApiSearchIndexResource.SUGGESTER).query("search", "a").get();
+    HttpResponse response = restRequest().path(ApiAdvancedSearchResource.SUGGESTER).query("search", "a").get();
 
     assertResponseStatus(200, response);
     SearchSuggestionResultDTO searchSuggestionResultDTO = response.getBody(SearchSuggestionResultDTO.class);

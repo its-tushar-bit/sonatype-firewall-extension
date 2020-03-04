@@ -31,7 +31,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.SEARCH_INDEX_RESOURCE_PATH)
-public class ApiSearchIndexResource
+public class ApiAdvancedSearchResource
 {
   private final SearchService searchService;
 
@@ -40,7 +40,7 @@ public class ApiSearchIndexResource
   static final String SUGGESTER = "suggester";
 
   @Inject
-  public ApiSearchIndexResource(SearchService searchService, IndexService indexService) {
+  public ApiAdvancedSearchResource(SearchService searchService, IndexService indexService) {
     this.searchService = searchService;
     this.indexService = indexService;
   }

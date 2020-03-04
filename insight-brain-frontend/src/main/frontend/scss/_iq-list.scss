@@ -48,7 +48,7 @@
   font-size: 14px;
   line-height: 14px;
   margin: 0;
-  padding: 12px 10px 12px 8px;
+  padding: $iq-spacing-md $iq-spacing-xs $iq-spacing-md $iq-spacing-xs;
 
   &:first-of-type {
     border-top: 1px solid $iq-grey-3;
@@ -60,7 +60,7 @@
   }
 
   .fa {
-    margin-right: 8px;
+    margin-right: $iq-spacing-md;
   }
 }
 
@@ -131,11 +131,16 @@
 
     &:not(.iq-list__item--empty):not(.iq-disabled):not([disabled]) {
       &:hover, &:focus {
+        background-color: $nx-color-blue-96;
         border-top: 1px solid $iq-grey-4;
         border-bottom: 1px solid $iq-grey-4;
         color: $iq-off-black;
         cursor: pointer;
         outline-style: none; // removes :focus outline
+
+        .fa-chevron-right {
+          color: $nx-color-blue-41;
+        }
       }
 
       &:active {

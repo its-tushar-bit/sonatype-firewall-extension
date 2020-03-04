@@ -290,21 +290,26 @@ public class IndexService
     Set<String> docFieldValues = new HashSet<>();
 
     for (IndexableField field : doc) {
-      String fieldName = field.name();
-      if (!SUGGESTER_FIELDS_TO_IGNORE.contains(fieldName)) {
-        String value = field.stringValue();
-        if (value != null) {
-          docFieldValues.add(toSuggestion(fieldName, value, queryParser));
-        }
+      String suggestion = toSuggestion(field, queryParser);
+      if (suggestion != null) {
+        docFieldValues.add(suggestion);
       }
     }
 
     return docFieldValues;
   }
 
-  private String toSuggestion(String fieldName, String fieldValue, Function<String, Query> queryParser) {
-    if (isQuotingRequired(fieldName, fieldValue, queryParser)) {
-      fieldValue = quoteValue(fieldValue);
+  private String toSuggestion(IndexableField field, Function<String, Query> queryParser) {
+    String fieldName = field.name();
+    if (SUGGESTER_FIELDS_TO_IGNORE.contains(fieldName)) {
+      return null;
+    }
+    String fieldValue = field.stringValue();
+    if (fieldValue == null) {
+      return null;
+    }
+    if (field.numericValue() == null && isQuotingRequired(fieldName, fieldValue, queryParser)) {
+      fieldValue = quoteValue(fieldValue.toString());
     }
     return fieldName + ':' + fieldValue;
   }

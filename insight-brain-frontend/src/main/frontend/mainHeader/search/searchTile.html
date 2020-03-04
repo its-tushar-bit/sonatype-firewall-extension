@@ -21,11 +21,17 @@
       <div class="iq-tile">
         <div class="iq-tile-header">
           <div class="iq-tile-header__title">
-            <h1 id="search-title">Results: <span>{{vm.totalNumberOfHits ? vm.totalNumberOfHits : 0}}</span></h1>
+            <h1 id="search-title">Results:
+              <span id="advanced-search-result-count">{{vm.totalNumberOfHits ? vm.totalNumberOfHits : 0}}</span>
+            </h1>
             <div id="search-navigation">
-              <button class="iq-btn iq-btn--primary" ng-click="vm.previous()">Previous</button>
-              <h1>Page {{vm.page}} of {{vm.getMaxPage()}}</h1>
-              <button class="iq-btn iq-btn--primary" ng-click="vm.next()">Next</button>
+              <button id="advanced-search-previous-page-button" class="iq-btn iq-btn--primary" ng-click="vm.previous()">
+                Previous
+              </button>
+              <h1><span id="advanced-search-current-page-info">Page {{vm.page}} of {{vm.getMaxPage()}}</span></h1>
+              <button id="advanced-search-next-page-button" class="iq-btn iq-btn--primary" ng-click="vm.next()">
+                Next
+              </button>
             </div>
           </div>
         </div>
@@ -44,7 +50,7 @@
             </p>
             <div ng-repeat="result in groupingBy.searchResultItemDTOS">
               <span class="result-number">{{result.resultIndex}}</span>
-              <table class="result-table">
+              <table id="advanced-search-results-table" class="result-table">
                 <hr ng-if="$index == 0" style="border-width: 0.5px"/>
                 <tr ng-if="result.organizationId && result.organizationName
             && (result.itemType == 'ORGANIZATION' || groupingBy.groupIdentifier != 'ORGANIZATION_NAME')">

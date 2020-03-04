@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
@@ -52,6 +53,7 @@ public class DocumentBuilder
     COMPONENT_NAME("componentName"),
     COMPONENT_COORDINATE("componentCoordinate"),
     VULNERABILITY_ID("vulnerabilityId"),
+    VULNERABILITY_SEVERITY("vulnerabilitySeverity"),
     VULNERABILITY_STATUS("vulnerabilityStatus"),
     VULNERABILITY_DESCRIPTION("vulnerabilityDescription"),
     APPLICATION_CATEGORY_ID("applicationCategoryId"),
@@ -106,6 +108,8 @@ public class DocumentBuilder
   private Optional<Field> vulnerabilityId = Optional.empty();
 
   private Optional<Field> vulnerabilityStatus = Optional.empty();
+
+  private Optional<List<Field>> vulnerabilitySeverity = Optional.empty();
 
   private Optional<Field> vulnerabilityDescription = Optional.empty();
 
@@ -212,6 +216,15 @@ public class DocumentBuilder
     return this;
   }
 
+  public DocumentBuilder setVulnerabilitySeverity(final Float vulnerabilitySeverity) {
+    if (vulnerabilitySeverity != null) {
+      this.vulnerabilitySeverity =
+          Optional.of(Arrays.asList(new FloatPoint(VULNERABILITY_SEVERITY.label, vulnerabilitySeverity),
+              new StoredField(VULNERABILITY_SEVERITY.label, vulnerabilitySeverity)));
+    }
+    return this;
+  }
+
   public DocumentBuilder setVulnerabilityId(final String refId) {
     this.vulnerabilityId = Optional.of(new TextField(VULNERABILITY_ID.label, refId, Store.YES));
     return this;
@@ -312,6 +325,7 @@ public class DocumentBuilder
     componentCoordinates.ifPresent(coordinates -> coordinates.forEach(document::add));
     componentName.ifPresent(document::add);
     vulnerabilityId.ifPresent(document::add);
+    vulnerabilitySeverity.ifPresent(fields -> fields.forEach(document::add));
     vulnerabilityStatus.ifPresent(document::add);
     vulnerabilityDescription.ifPresent(document::add);
     applicationCategoryId.ifPresent(document::add);

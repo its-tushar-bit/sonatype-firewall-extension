@@ -39,8 +39,11 @@ public class LuceneComponents
   @Inject
   public LuceneComponents() {
     pointsConfigsByFieldName = new HashMap<>();
+    NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.ROOT);
     pointsConfigsByFieldName.put(FieldIdentifier.POLICY_THREAT_LEVEL.label,
-        new PointsConfig(NumberFormat.getIntegerInstance(Locale.ROOT), Integer.class));
+        new PointsConfig(numberFormat, Integer.class));
+    pointsConfigsByFieldName.put(FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        new PointsConfig(numberFormat, Float.class));
   }
 
   public Analyzer newAnalyzerForSearch() {

@@ -287,6 +287,13 @@ public class IndexSuggestionTest
   }
 
   @Test
+  public void testField_VulnerabilitySeverity() throws Exception {
+    newAppReport();
+    index();
+    assertThat(autoComplete("4.5")).containsExactlyInAnyOrder(field(FieldIdentifier.VULNERABILITY_SEVERITY, "4.5"));
+  }
+
+  @Test
   public void testField_VulnerabilityStatus() throws Exception {
     newAppReport();
     index();

@@ -539,6 +539,16 @@ public class IndexSearchingTest
   }
 
   @Test
+  public void testSearchByField_VulnerabilitySeverity() throws Exception {
+    newAppReport(Stage.ID_RELEASE, "report-id");
+    index();
+    assertThat(search(FieldIdentifier.VULNERABILITY_SEVERITY, "4.5")).extracting(dto -> dto.vulnerabilityId)
+        .containsOnly("CVE-8765-1234");
+    assertThat(search(FieldIdentifier.VULNERABILITY_SEVERITY, "[5 TO 10]")).extracting(dto -> dto.vulnerabilityId)
+        .containsOnly("sonatype-8765-1234");
+  }
+
+  @Test
   public void testSearchByField_VulnerabilityStatus() throws Exception {
     newAppReport(Stage.ID_RELEASE, "report-id");
     index();

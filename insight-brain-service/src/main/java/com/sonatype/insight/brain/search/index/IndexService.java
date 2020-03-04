@@ -483,6 +483,7 @@ public class IndexService
         .setComponentCoordinates(component) //
         .setComponentName(component.getDisplayName()) //
         .setVulnerabilityId(vulnerability.getRefId()) //
+        .setVulnerabilitySeverity(vulnerability.getSeverity()) //
         .setVulnerabilityStatus(vulnerability.getStatus().getName()) //
         .setVulnerabilityDescription(getDescription(indexingContext, vulnerability.getRefId())) //
         .build();

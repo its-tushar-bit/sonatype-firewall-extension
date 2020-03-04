@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.inject.Binder;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
@@ -169,6 +170,8 @@ public class IndexServiceTest
             TextField.class, true),
         field(FieldIdentifier.COMPONENT_NAME, component.getDisplayName(), TextField.class, true),
         field(FieldIdentifier.VULNERABILITY_ID, vuln.getRefId(), TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, vuln.getSeverity(), FloatPoint.class, false),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, vuln.getSeverity(), StoredField.class, true),
         field(FieldIdentifier.VULNERABILITY_STATUS, vuln.getStatus().getName(), TextField.class, true),
         field(FieldIdentifier.VULNERABILITY_DESCRIPTION, vulnDescription, TextField.class, true),
         field(FieldIdentifier.POLICY_EVALUATION_STAGE, StageTypes.BUILD.getName(), TextField.class, true),

@@ -25,7 +25,6 @@ import com.google.inject.Binder;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.StoredField;
-import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexableField;
 import org.assertj.core.groups.Tuple;
@@ -87,8 +86,8 @@ public class IndexServiceTest
   public void testBuildDocument_Organization() {
     Organization org = tempEntity.newOrganization();
     assertFields(indexService.buildDocument(newIndexingContext(), org),
-        field(FieldIdentifier.ITEM_TYPE, ItemType.ORGANIZATION.name(), StringField.class, true),
-        field(FieldIdentifier.ORGANIZATION_ID, org.getId(), StringField.class, true),
+        field(FieldIdentifier.ITEM_TYPE, ItemType.ORGANIZATION.name(), TextField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true));
   }
 
@@ -97,11 +96,11 @@ public class IndexServiceTest
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     assertFields(indexService.buildDocument(newIndexingContext(), app),
-        field(FieldIdentifier.ITEM_TYPE, ItemType.APPLICATION.name(), StringField.class, true),
-        field(FieldIdentifier.APPLICATION_ID, app.getId(), StringField.class, true),
-        field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), StringField.class, true),
+        field(FieldIdentifier.ITEM_TYPE, ItemType.APPLICATION.name(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
-        field(FieldIdentifier.ORGANIZATION_ID, org.getId(), StringField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true));
   }
 
@@ -110,14 +109,14 @@ public class IndexServiceTest
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app);
     assertFields(indexService.buildDocument(newIndexingContext(), policy),
-        field(FieldIdentifier.ITEM_TYPE, ItemType.POLICY.name(), StringField.class, true),
-        field(FieldIdentifier.POLICY_ID, policy.getId(), StringField.class, true),
-        field(FieldIdentifier.POLICY_NAME, policy.getName(), StringField.class, true),
-        field(FieldIdentifier.POLICY_THREAT_CATEGORY, policy.getThreatCategory().getName(), StringField.class, true),
+        field(FieldIdentifier.ITEM_TYPE, ItemType.POLICY.name(), TextField.class, true),
+        field(FieldIdentifier.POLICY_ID, policy.getId(), TextField.class, true),
+        field(FieldIdentifier.POLICY_NAME, policy.getName(), TextField.class, true),
+        field(FieldIdentifier.POLICY_THREAT_CATEGORY, policy.getThreatCategory().getName(), TextField.class, true),
         field(FieldIdentifier.POLICY_THREAT_LEVEL, policy.getThreatLevel(), IntPoint.class, false),
         field(FieldIdentifier.POLICY_THREAT_LEVEL, policy.getThreatLevel(), StoredField.class, true),
-        field(FieldIdentifier.APPLICATION_ID, app.getId(), StringField.class, true),
-        field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), StringField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true));
   }
 
@@ -126,12 +125,12 @@ public class IndexServiceTest
     Organization org = tempEntity.newOrganization();
     Tag tag = tempEntity.newTag(org.getId());
     assertFields(indexService.buildDocument(newIndexingContext(), tag),
-        field(FieldIdentifier.ITEM_TYPE, ItemType.APPLICATION_CATEGORY.name(), StringField.class, true),
-        field(FieldIdentifier.APPLICATION_CATEGORY_ID, tag.getId(), StringField.class, true),
-        field(FieldIdentifier.APPLICATION_CATEGORY_NAME, tag.getName(), StringField.class, true),
-        field(FieldIdentifier.APPLICATION_CATEGORY_COLOR, tag.getColor().toValue(), StringField.class, true),
+        field(FieldIdentifier.ITEM_TYPE, ItemType.APPLICATION_CATEGORY.name(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_CATEGORY_ID, tag.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_CATEGORY_NAME, tag.getName(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_CATEGORY_COLOR, tag.getColor().toValue(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION, tag.getDescription(), TextField.class, true),
-        field(FieldIdentifier.ORGANIZATION_ID, org.getId(), StringField.class, true),
+        field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true));
   }
 
@@ -140,13 +139,13 @@ public class IndexServiceTest
     Application app = tempEntity.newApplicationWithParent();
     Label label = tempEntity.newLabel(app.getId());
     assertFields(indexService.buildDocument(newIndexingContext(), label),
-        field(FieldIdentifier.ITEM_TYPE, ItemType.COMPONENT_LABEL.name(), StringField.class, true),
-        field(FieldIdentifier.COMPONENT_LABEL_ID, label.getId(), StringField.class, true),
-        field(FieldIdentifier.COMPONENT_LABEL_NAME, label.getLabel(), StringField.class, true),
-        field(FieldIdentifier.COMPONENT_LABEL_COLOR, label.getColor().toValue(), StringField.class, true),
+        field(FieldIdentifier.ITEM_TYPE, ItemType.COMPONENT_LABEL.name(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_LABEL_ID, label.getId(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_LABEL_NAME, label.getLabel(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_LABEL_COLOR, label.getColor().toValue(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_LABEL_DESCRIPTION, "", TextField.class, true),
-        field(FieldIdentifier.APPLICATION_ID, app.getId(), StringField.class, true),
-        field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), StringField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true));
   }
 
@@ -161,20 +160,21 @@ public class IndexServiceTest
     String vulnDescription = "This is a bad vulnerability, stay clear!";
     when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription(vuln.getRefId())).thenReturn(vulnDescription);
     assertFields(indexService.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component, vuln),
-        field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), StringField.class, true),
-        field(FieldIdentifier.COMPONENT_HASH, component.getHash(), StringField.class, true),
-        field(FieldIdentifier.COMPONENT_FORMAT, componentId.getFormat(), StringField.class, true),
-        field("componentCoordinatePackageId", componentId.get(ComponentIdentifier.NPM_PACKAGE_ID), StringField.class,
-            true),
-        field("componentCoordinateVersion", componentId.get(ComponentIdentifier.VERSION), StringField.class, true),
-        field(FieldIdentifier.COMPONENT_NAME, component.getDisplayName(), StringField.class, true),
+        field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_HASH, component.getHash(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_FORMAT, componentId.getFormat(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "PackageId", componentId.get(ComponentIdentifier.NPM_PACKAGE_ID),
+            TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Version", componentId.get(ComponentIdentifier.VERSION),
+            TextField.class, true),
+        field(FieldIdentifier.COMPONENT_NAME, component.getDisplayName(), TextField.class, true),
         field(FieldIdentifier.VULNERABILITY_ID, vuln.getRefId(), TextField.class, true),
-        field(FieldIdentifier.VULNERABILITY_STATUS, vuln.getStatus().getName(), StringField.class, true),
+        field(FieldIdentifier.VULNERABILITY_STATUS, vuln.getStatus().getName(), TextField.class, true),
         field(FieldIdentifier.VULNERABILITY_DESCRIPTION, vulnDescription, TextField.class, true),
-        field(FieldIdentifier.POLICY_EVALUATION_STAGE, StageTypes.BUILD.getName(), StringField.class, true),
-        field(FieldIdentifier.REPORT_ID, reportId, StringField.class, true),
-        field(FieldIdentifier.APPLICATION_ID, app.getId(), StringField.class, true),
-        field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), StringField.class, true),
+        field(FieldIdentifier.POLICY_EVALUATION_STAGE, StageTypes.BUILD.getName(), TextField.class, true),
+        field(FieldIdentifier.REPORT_ID, reportId, TextField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true));
   }
 }

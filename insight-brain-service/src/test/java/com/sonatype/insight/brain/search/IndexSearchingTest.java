@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.search;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -15,12 +16,17 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
@@ -82,9 +88,9 @@ public class IndexSearchingTest
     return search(fieldIdentifier + ":" + fieldValue);
   }
 
-  private PolicyEvaluation newAppReport() throws Exception {
-    PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(tempEntity.newApplicationWithParent().getId(),
-        Stage.ID_OPERATE, "report1234567890abcdef");
+  private PolicyEvaluation newAppReport(String stageId, String reportId) throws Exception {
+    PolicyEvaluation policyEval =
+        tempEntity.newPolicyEvaluation(tempEntity.newApplicationWithParent().getId(), stageId, reportId);
     ReportTestUtils.createReportFile(policyEval.getApplicationId(), policyEval.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/report", tempDir), insightWork);
     return policyEval;
@@ -256,13 +262,299 @@ public class IndexSearchingTest
   public void testResultFields_Vulnerability() throws Exception {
     String vulnDescription = "Remote Code Execution, you may panic now";
     when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription(anyString())).thenReturn(vulnDescription);
-    PolicyEvaluation evaluation = newAppReport();
+    PolicyEvaluation evaluation = newAppReport(Stage.ID_OPERATE, "report1234567890abcdef");
     index();
     List<SearchResultItemDTO> results = search(FieldIdentifier.VULNERABILITY_ID, "CVE-8765-1234");
     assertThat(results).hasSize(1);
     assertVulnerability(results.get(0),
         new SecurityVulnerability("cve", "CVE-8765-1234", 4.3f, SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED),
-        vulnDescription, "12345678901234567890", ComponentIdentifier.createNugetCoordinates("Search.Test", "1.2.3"),
+        vulnDescription, "1234567890abcdeABCDE", ComponentIdentifier.createNugetCoordinates("Search.Test", "1.2.3"),
         evaluation);
+  }
+
+  @Test
+  public void testSearchByField_DefaultField() throws Exception {
+    String vulnId = "CVE-8765-1234";
+    newAppReport(Stage.ID_OPERATE, "report1234567890abcdef");
+    index();
+    assertThat(search("CvE-8765-1234")).extracting(dto -> dto.vulnerabilityId).containsExactlyInAnyOrder(vulnId);
+  }
+
+  @Test
+  public void testSearchByField_ItemType() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplication(org.getId());
+    Application app2 = tempEntity.newApplication(org.getId());
+    tempEntity.newTag(org.getId());
+    index();
+    assertThat(search(FieldIdentifier.ITEM_TYPE, "APPLication")).extracting(dto -> dto.applicationId)
+        .containsExactlyInAnyOrder(app1.getId(), app2.getId());
+  }
+
+  @Test
+  public void testSearchByField_OrganizationId() throws Exception {
+    // NOTE: the explicit entity id uses both upper and lower case characters to verify normalization
+    Organization org = tempEntity.newOrganizationWithSpecificId("2FAB4462f587401299ac3728ee21addc", "Search Test");
+    tempEntity.newOrganization();
+    index();
+    assertThat(search(FieldIdentifier.ORGANIZATION_ID, org.getId().toLowerCase(Locale.ROOT)))
+        .extracting(dto -> dto.organizationId).containsExactlyInAnyOrder(org.getId());
+    assertThat(search(FieldIdentifier.ORGANIZATION_ID, org.getId().toUpperCase(Locale.ROOT)))
+        .extracting(dto -> dto.organizationId).containsExactlyInAnyOrder(org.getId());
+  }
+
+  @Test
+  public void testSearchByField_OrganizationName() throws Exception {
+    Organization org = tempEntity.newOrganization("Search Test");
+    tempEntity.newOrganization("Search Test 2");
+    index();
+    assertThat(search(FieldIdentifier.ORGANIZATION_NAME, "\"search TEST\"")).extracting(dto -> dto.organizationId)
+        .containsExactlyInAnyOrder(org.getId());
+    assertThat(search(FieldIdentifier.ORGANIZATION_NAME, "seaRCH")).isEmpty();
+  }
+
+  @Test
+  public void testSearchByField_ApplicationId() throws Exception {
+    // NOTE: the explicit entity id uses both upper and lower case characters to verify normalization
+    Application app = tempEntity.newApplicationWithSpecificId("2FAB4462f587401299ac3728ee21addc", "Search Test",
+        "search-test", tempEntity.newApplicationWithParent().getOrganizationId());
+    index();
+    assertThat(search(FieldIdentifier.APPLICATION_ID, app.getId().toLowerCase(Locale.ROOT)))
+        .extracting(dto -> dto.applicationId).containsExactlyInAnyOrder(app.getId());
+    assertThat(search(FieldIdentifier.APPLICATION_ID, app.getId().toUpperCase(Locale.ROOT)))
+        .extracting(dto -> dto.applicationId).containsExactlyInAnyOrder(app.getId());
+  }
+
+  @Test
+  public void testSearchByField_ApplicationName() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-id-1", "Search Test");
+    tempEntity.newApplicationWithParent("test-id-2", "Search Test 2");
+    index();
+    assertThat(search(FieldIdentifier.APPLICATION_NAME, "\"search TEST\"")).extracting(dto -> dto.applicationId)
+        .containsExactlyInAnyOrder(app.getId());
+    assertThat(search(FieldIdentifier.APPLICATION_NAME, "seaRCH")).isEmpty();
+  }
+
+  @Test
+  public void testSearchByField_ApplicationPublicId() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("a_SEARCH-test", "App Name 1");
+    tempEntity.newApplicationWithParent("a_search-test2", "App Name 2");
+    index();
+    assertThat(search(FieldIdentifier.APPLICATION_PUBLIC_ID, "A_search-TEST")).extracting(dto -> dto.applicationId)
+        .containsExactlyInAnyOrder(app.getId());
+    assertThat(search(FieldIdentifier.APPLICATION_PUBLIC_ID, "seaRCH")).isEmpty();
+  }
+
+  @Test
+  public void testSearchByField_ApplicationCategoryId() throws Exception {
+    Tag tag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
+    index();
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_ID, tag.getId().toLowerCase(Locale.ROOT)))
+        .extracting(dto -> dto.applicationCategoryId).containsExactlyInAnyOrder(tag.getId());
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_ID, tag.getId().toUpperCase(Locale.ROOT)))
+        .extracting(dto -> dto.applicationCategoryId).containsExactlyInAnyOrder(tag.getId());
+  }
+
+  @Test
+  public void testSearchByField_ApplicationCategoryName() throws Exception {
+    Tag tag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID, "Search Test");
+    tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID, "Search Test 2");
+    index();
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_NAME, "\"search TEST\""))
+        .extracting(dto -> dto.applicationCategoryId).containsExactlyInAnyOrder(tag.getId());
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_NAME, "seaRCH")).isEmpty();
+  }
+
+  @Test
+  public void testSearchByField_ApplicationCategoryColor() throws Exception {
+    Tag tag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID, "Search Test", Color.dark_red);
+    tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID, "Search Test 2", Color.dark_blue);
+    index();
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_COLOR, "DARK-red"))
+        .extracting(dto -> dto.applicationCategoryId).containsExactlyInAnyOrder(tag.getId());
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_COLOR, "daRK")).isEmpty();
+  }
+
+  @Test
+  public void testSearchByField_ApplicationCategoryDescription() throws Exception {
+    Tag tag1 = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID, "Category 1", "Search Test", Color.dark_red);
+    Tag tag2 = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID, "Category 2", "Search Testing 2", Color.dark_blue);
+    index();
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION, "\"search TEST\""))
+        .extracting(dto -> dto.applicationCategoryId).containsExactlyInAnyOrder(tag1.getId());
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION, "seaRCH"))
+        .extracting(dto -> dto.applicationCategoryId).containsExactlyInAnyOrder(tag1.getId(), tag2.getId());
+  }
+
+  @Test
+  public void testSearchByField_ComponentLabelId() throws Exception {
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    index();
+    assertThat(search(FieldIdentifier.COMPONENT_LABEL_ID, label.getId().toLowerCase(Locale.ROOT)))
+        .extracting(dto -> dto.componentLabelId).containsExactlyInAnyOrder(label.getId());
+    assertThat(search(FieldIdentifier.COMPONENT_LABEL_ID, label.getId().toUpperCase(Locale.ROOT)))
+        .extracting(dto -> dto.componentLabelId).containsExactlyInAnyOrder(label.getId());
+  }
+
+  @Test
+  public void testSearchByField_ComponentLabelName() throws Exception {
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "Search Test");
+    tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "Search Test 2");
+    index();
+    assertThat(search(FieldIdentifier.COMPONENT_LABEL_NAME, "\"search TEST\"")).extracting(dto -> dto.componentLabelId)
+        .containsExactlyInAnyOrder(label.getId());
+    assertThat(search(FieldIdentifier.COMPONENT_LABEL_NAME, "seaRCH")).isEmpty();
+  }
+
+  @Test
+  public void testSearchByField_ComponentLabelColor() throws Exception {
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "Search Test", Color.dark_red);
+    tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "Search Test 2", Color.dark_blue);
+    index();
+    assertThat(search(FieldIdentifier.COMPONENT_LABEL_COLOR, "DARK-red")).extracting(dto -> dto.componentLabelId)
+        .containsExactlyInAnyOrder(label.getId());
+    assertThat(search(FieldIdentifier.COMPONENT_LABEL_COLOR, "daRK")).isEmpty();
+  }
+
+  @Test
+  public void testSearchByField_ComponentLabelDescription() throws Exception {
+    Label label1 = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "Category 1", "Search Test", Color.dark_red);
+    Label label2 =
+        tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "Category 2", "Search Testing 2", Color.dark_blue);
+    index();
+    assertThat(search(FieldIdentifier.COMPONENT_LABEL_DESCRIPTION, "\"search TEST\""))
+        .extracting(dto -> dto.componentLabelId).containsExactlyInAnyOrder(label1.getId());
+    assertThat(search(FieldIdentifier.COMPONENT_LABEL_DESCRIPTION, "seaRCH")).extracting(dto -> dto.componentLabelId)
+        .containsExactlyInAnyOrder(label1.getId(), label2.getId());
+  }
+
+  @Test
+  public void testSearchByField_PolicyId() throws Exception {
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    index();
+    assertThat(search(FieldIdentifier.POLICY_ID, policy.getId().toLowerCase(Locale.ROOT)))
+        .extracting(dto -> dto.policyId).containsExactlyInAnyOrder(policy.getId());
+    assertThat(search(FieldIdentifier.POLICY_ID, policy.getId().toUpperCase(Locale.ROOT)))
+        .extracting(dto -> dto.policyId).containsExactlyInAnyOrder(policy.getId());
+  }
+
+  @Test
+  public void testSearchByField_PolicyName() throws Exception {
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Search Test");
+    tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Search Test 2");
+    index();
+    assertThat(search(FieldIdentifier.POLICY_NAME, "\"search TEST\"")).extracting(dto -> dto.policyId)
+        .containsExactlyInAnyOrder(policy.getId());
+    assertThat(search(FieldIdentifier.POLICY_NAME, "seaRCH")).isEmpty();
+  }
+
+  @Test
+  public void testSearchByField_PolicyThreatCategory() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(org, 5, LogicalOperator.AND,
+        new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    tempEntity.newPolicy(org, 5, LogicalOperator.AND,
+        new Condition(CoordinatesConditionType.ID, "match", "maven:foobar"));
+    index();
+    assertThat(search(FieldIdentifier.POLICY_THREAT_CATEGORY, "SECurity")).extracting(dto -> dto.policyId)
+        .containsExactlyInAnyOrder(policy.getId());
+  }
+
+  @Test
+  public void testSearchByField_PolicyThreatLevel() throws Exception {
+    Policy policy1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 1);
+    Policy policy2 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 2", 10);
+    index();
+    assertThat(search(FieldIdentifier.POLICY_THREAT_LEVEL, "1")).extracting(dto -> dto.policyId)
+        .containsExactlyInAnyOrder(policy1.getId());
+    assertThat(search(FieldIdentifier.POLICY_THREAT_LEVEL, "[9 TO 10]")).extracting(dto -> dto.policyId)
+        .containsExactlyInAnyOrder(policy2.getId());
+  }
+
+  @Test
+  public void testSearchByField_PolicyEvaluationStage() throws Exception {
+    PolicyEvaluation eval1 = newAppReport(Stage.ID_RELEASE, "report-1");
+    PolicyEvaluation eval2 = newAppReport(Stage.ID_STAGE_RELEASE, "report-2");
+    index();
+    assertThat(search(FieldIdentifier.POLICY_EVALUATION_STAGE, "relEASE")).extracting(dto -> dto.reportId)
+        .containsOnly(eval1.getScanId());
+    assertThat(search(FieldIdentifier.POLICY_EVALUATION_STAGE, "\"STAGE release\"")).extracting(dto -> dto.reportId)
+        .containsOnly(eval2.getScanId());
+    assertThat(search(FieldIdentifier.POLICY_EVALUATION_STAGE, "STAGE")).isEmpty();
+  }
+
+  @Test
+  public void testSearchByField_ReportId() throws Exception {
+    PolicyEvaluation eval = newAppReport(Stage.ID_RELEASE, "lower-AND-UPPER-case-id");
+    newAppReport(Stage.ID_STAGE_RELEASE, "report-2");
+    index();
+    assertThat(search(FieldIdentifier.REPORT_ID, "LOWer-and-UPPer-case-ID")).extracting(dto -> dto.reportId)
+        .containsOnly(eval.getScanId());
+  }
+
+  @Test
+  public void testSearchByField_ComponentHash() throws Exception {
+    newAppReport(Stage.ID_RELEASE, "report-id");
+    index();
+    assertThat(search(FieldIdentifier.COMPONENT_HASH, "1234567890aBcDeAbCdE")).extracting(dto -> dto.componentHash)
+        .containsExactlyInAnyOrder("1234567890abcdeABCDE");
+  }
+
+  @Test
+  public void testSearchByField_ComponentFormat() throws Exception {
+    newAppReport(Stage.ID_RELEASE, "report-id");
+    index();
+    assertThat(search(FieldIdentifier.COMPONENT_FORMAT, "nuGET")).extracting(dto -> dto.componentHash)
+        .containsExactlyInAnyOrder("1234567890abcdeABCDE");
+  }
+
+  @Test
+  public void testSearchByField_ComponentName() throws Exception {
+    newAppReport(Stage.ID_RELEASE, "report-id");
+    index();
+    assertThat(search(FieldIdentifier.COMPONENT_NAME, "\"search.TEST 1.2.3\"")).extracting(dto -> dto.componentHash)
+        .containsExactlyInAnyOrder("1234567890abcdeABCDE");
+  }
+
+  @Test
+  public void testSearchByField_ComponentCoordinate() throws Exception {
+    newAppReport(Stage.ID_RELEASE, "report-id");
+    index();
+    assertThat(search(FieldIdentifier.COMPONENT_COORDINATE + "PackageId:search.TEST"))
+        .extracting(dto -> dto.componentHash).containsExactlyInAnyOrder("1234567890abcdeABCDE");
+    assertThat(search(FieldIdentifier.COMPONENT_COORDINATE + "Version:1.2.3")).extracting(dto -> dto.componentHash)
+        .containsExactlyInAnyOrder("1234567890abcdeABCDE");
+  }
+
+  @Test
+  public void testSearchByField_VulnerabilityId() throws Exception {
+    newAppReport(Stage.ID_RELEASE, "report-id");
+    index();
+    assertThat(search(FieldIdentifier.VULNERABILITY_ID, "cvE-8765-1234")).extracting(dto -> dto.vulnerabilityId)
+        .containsOnly("CVE-8765-1234");
+    assertThat(search(FieldIdentifier.VULNERABILITY_ID, "cvE-8765")).isEmpty();
+  }
+
+  @Test
+  public void testSearchByField_VulnerabilityStatus() throws Exception {
+    newAppReport(Stage.ID_RELEASE, "report-id");
+    index();
+    assertThat(search(FieldIdentifier.VULNERABILITY_STATUS, "acKNOWledged")).extracting(dto -> dto.vulnerabilityId)
+        .containsOnly("CVE-8765-1234");
+  }
+
+  @Test
+  public void testSearchByField_VulnerabilityDescription() throws Exception {
+    String vulnDescription = "Cross-Site Scripting (XSS)";
+    when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription("CVE-8765-1234")).thenReturn(vulnDescription);
+    newAppReport(Stage.ID_RELEASE, "report-id");
+    index();
+    assertThat(search(FieldIdentifier.VULNERABILITY_DESCRIPTION, "xSs")).extracting(dto -> dto.vulnerabilityId)
+        .containsOnly("CVE-8765-1234");
+    assertThat(search(FieldIdentifier.VULNERABILITY_DESCRIPTION, "\"cross-site scripting\""))
+        .extracting(dto -> dto.vulnerabilityId).containsOnly("CVE-8765-1234");
   }
 }

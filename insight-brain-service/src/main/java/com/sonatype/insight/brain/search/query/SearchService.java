@@ -7,12 +7,14 @@ package com.sonatype.insight.brain.search.query;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -40,8 +42,8 @@ import org.apache.lucene.analysis.standard.ClassicAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
+import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -223,9 +225,12 @@ public class SearchService
       throw new BadRequestException("The search query is empty");
     }
     try {
-      return new QueryParser(VULNERABILITY_ID.label, analyzerProvider.get()).parse(searchQuery);
+      StandardQueryParser queryParser = new StandardQueryParser(analyzerProvider.get());
+      queryParser.setPointsConfigMap(Collections.singletonMap(POLICY_THREAT_LEVEL.label,
+          new PointsConfig(NumberFormat.getIntegerInstance(Locale.ROOT), Integer.class)));
+      return queryParser.parse(searchQuery, VULNERABILITY_ID.label);
     }
-    catch (ParseException e) {
+    catch (Exception e) {
       throw new BadRequestException("The search query is invalid: " + e.getMessage(), e);
     }
   }

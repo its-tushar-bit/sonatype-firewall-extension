@@ -21,7 +21,7 @@ public class LdapConnectionTest
     LdapAuthenticationMethod authenticationMethod = LdapAuthenticationMethod.DIGESTMD5;
     String saslRealm = "saslRealm";
     String systemUsername = "systemUsername";
-    String systemPassword = "systemPassword";
+    char[] systemPassword = "systemPassword".toCharArray();
     int connectionTimeout = 123;
     int retryDelay = 345;
 

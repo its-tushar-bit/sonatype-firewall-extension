@@ -37,7 +37,7 @@ public class LdapConnectionDAOTest
     LdapAuthenticationMethod authenticationMethod = LdapAuthenticationMethod.DIGESTMD5;
     String saslRealm = "saslRealm";
     String systemUsername = "systemUsername";
-    String systemPassword = "systemPassword";
+    char[] systemPassword = "systemPassword".toCharArray();
     int connectionTimeout = 123;
     int retryDelay = 345;
 
@@ -75,7 +75,7 @@ public class LdapConnectionDAOTest
 
     // update
 
-    String changedPassword = "changed_password";
+    char[] changedPassword = "changed_password".toCharArray();
     conn.setSystemPassword(changedPassword);
     dao.update(conn);
     echo = dao.getById(conn.getId());

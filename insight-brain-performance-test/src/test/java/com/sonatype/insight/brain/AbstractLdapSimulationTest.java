@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.service.InsightBrainService;
+
 import com.excilys.ebi.gatling.core.config.GatlingPropertiesBuilder;
 import com.google.common.io.Resources;
 import io.dropwizard.testing.junit.DropwizardAppRule;
@@ -53,7 +54,7 @@ public class AbstractLdapSimulationTest
     ldapConnection.setSearchBase(prop(properties, "searchBase"));
     ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.valueOf(prop(properties, "authenticationMethod")));
     ldapConnection.setSystemUsername(prop(properties, "systemUsername"));
-    ldapConnection.setSystemPassword(prop(properties, "systemPassword"));
+    ldapConnection.setSystemPassword(prop(properties, "systemPassword").toCharArray());
     ldapConnection.setSaslRealm(prop(properties, "saslRealm"));
     ldapConnection.setConnectionTimeout(Integer.valueOf(prop(properties, "connectionTimeout")));
     ldapConnection.setRetryDelay(Integer.valueOf(prop(properties, "retryDelay")));

@@ -250,7 +250,7 @@ public class LdapResourceAuditTest
     if (!ldapAuthenticationMethod.equals(LdapAuthenticationMethod.NONE)) {
       conn.setSaslRealm("sasl-realm");
       conn.setSystemUsername("system");
-      conn.setSystemPassword("password");
+      conn.setSystemPassword("password".toCharArray());
     }
     conn.setConnectionTimeout(10);
     conn.setRetryDelay(20);

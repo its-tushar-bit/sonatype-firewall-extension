@@ -294,8 +294,8 @@ public class EmbeddedLdapServer
   /**
    * @since 1.7
    */
-  public String getSystemUserPassword() {
-    return "secret";
+  public char[] getSystemUserPassword() {
+    return "secret".toCharArray();
   }
 
   /**

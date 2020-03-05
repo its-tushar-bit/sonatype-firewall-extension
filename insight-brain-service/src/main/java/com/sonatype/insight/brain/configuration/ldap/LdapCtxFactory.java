@@ -97,4 +97,8 @@ class LdapCtxFactory
   private static boolean isSystemContext() {
     return TRUE == systemContext.get();
   }
+
+  void setSystemPassword(char[] password) {
+    setSystemPassword(password == null ? null : String.valueOf(password));
+  }
 }

@@ -184,7 +184,7 @@ public class LdapResourceTest
 
     LdapConnectionDAO dao = new LdapConnectionDAO();
     LdapConnection raw = dao.getById(conn.getId());
-    String oldEncryptedPassword = raw.getSystemPassword();
+    char[] oldEncryptedPassword = raw.getSystemPassword();
 
     assertThat(raw).isNotNull();
     assertThat(raw.getId()).isEqualTo(ldapConnId);
@@ -225,7 +225,7 @@ public class LdapResourceTest
     LdapAuthenticationMethod authenticationMethod = LdapAuthenticationMethod.DIGESTMD5;
     String saslRealm = "saslRealm";
     String systemUsername = "systemUsername";
-    String systemPassword = "systemPassword";
+    char[] systemPassword = "systemPassword".toCharArray();
     int connectionTimeout = 123;
     int retryDelay = 345;
 
@@ -393,7 +393,7 @@ public class LdapResourceTest
     conn.setPort(ldapServer.getPort());
     conn.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
     conn.setSystemUsername(ldapServer.getSystemUserDN());
-    conn.setSystemPassword("garbage.litter");
+    conn.setSystemPassword("garbage.litter".toCharArray());
 
     HttpResponse response = testConnectionRequest(conn).put();
     assertResponseStatus(200, response);
@@ -567,7 +567,7 @@ public class LdapResourceTest
     conn.setPort(389);
     conn.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
     conn.setSystemUsername("system");
-    conn.setSystemPassword("password");
+    conn.setSystemPassword("password".toCharArray());
     return conn;
   }
 

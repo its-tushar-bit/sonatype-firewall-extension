@@ -102,7 +102,7 @@ public class LdapConnection
    * @since 1.7
    */
   @Column(name = "system_password")
-  private String systemPassword;
+  private char[] systemPassword;
 
   /**
    * From nexus ui help: the number of seconds to wait before timeout on connection to LDAP server. The key takeaway,
@@ -216,11 +216,11 @@ public class LdapConnection
     this.systemUsername = systemUsername;
   }
 
-  public String getSystemPassword() {
+  public char[] getSystemPassword() {
     return systemPassword;
   }
 
-  public void setSystemPassword(String systemPassword) {
+  public void setSystemPassword(char[] systemPassword) {
     this.systemPassword = systemPassword;
   }
 

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.configuration.ldap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -25,11 +26,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
-
-import org.sonatype.plexus.components.cipher.PlexusCipher;
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
-
-import org.codehaus.plexus.util.StringUtils;
+import com.sonatype.insight.brain.security.PasswordHandler;
 
 /**
  * Manages LDAP information.
@@ -40,9 +37,7 @@ import org.codehaus.plexus.util.StringUtils;
 @Singleton
 public class LdapService
 {
-  public static final String FAKE_PASSWORD = "#~FAKE~PASSWORD~#";
-
-  private static final String ENC = "CMMDwoV";
+  public static final char[] FAKE_PASSWORD = "#~FAKE~PASSWORD~#".toCharArray();
 
   private final LdapServerDAO serverDao = new LdapServerDAO();
 
@@ -50,11 +45,11 @@ public class LdapService
 
   private final LdapUserMappingDAO userDao = new LdapUserMappingDAO();
 
-  private final PlexusCipher cipher;
+  private final PasswordHandler passwordHandler;
 
   @Inject
-  public LdapService(PlexusCipher cipher) {
-    this.cipher = cipher;
+  public LdapService(PasswordHandler passwordHandler) {
+    this.passwordHandler = passwordHandler;
   }
 
   // LDAP connections
@@ -310,16 +305,7 @@ public class LdapService
       throw new IllegalStateException(
           "LDAP connection is not configured for LDAP server " + ldapServer.getName() + ".");
     }
-    if (StringUtils.isNotBlank(conn.getSystemPassword())) {
-      try {
-        synchronized (cipher) {
-          conn.setSystemPassword(cipher.decryptDecorated(conn.getSystemPassword(), ENC));
-        }
-      }
-      catch (PlexusCipherException e) {
-        throw new IllegalStateException(e);
-      }
-    }
+    conn.setSystemPassword(passwordHandler.decryptPassword(conn.getSystemPassword()));
     return conn;
   }
   
@@ -327,7 +313,7 @@ public class LdapService
    * Returns a copy of the given connection for clients with the password faked-out.
    */
   private static LdapConnection fakeOutPassword(LdapConnection conn) {
-    if (StringUtils.isNotBlank(conn.getSystemPassword())) {
+    if (conn.getSystemPassword() != null && conn.getSystemPassword().length > 0) {
       LdapConnection copy = new LdapConnection(conn);
       copy.setSystemPassword(FAKE_PASSWORD);
       return copy;
@@ -339,18 +325,11 @@ public class LdapService
    * Returns a copy of the given connection for testing with the real password restored.
    */
   private LdapConnection restorePassword(LdapConnection conn) {
-    if (FAKE_PASSWORD.equals(conn.getSystemPassword())) {
-      try {
-        LdapConnection copy = new LdapConnection(conn);
-        String encryptedPassword = connDao.getByIdNotNull(conn.getId()).getSystemPassword();
-        synchronized (cipher) {
-          copy.setSystemPassword(cipher.decryptDecorated(encryptedPassword, ENC));
-        }
-        return copy;
-      }
-      catch (PlexusCipherException e) {
-        throw new IllegalStateException(e);
-      }
+    if (Arrays.equals(FAKE_PASSWORD, conn.getSystemPassword())) {
+      LdapConnection copy = new LdapConnection(conn);
+      char[] encryptedPassword = connDao.getByIdNotNull(conn.getId()).getSystemPassword();
+      copy.setSystemPassword(passwordHandler.decryptPassword(encryptedPassword));
+      return copy;
     }
     return conn;
   }
@@ -359,24 +338,14 @@ public class LdapService
    * Returns a copy of the given connection for storage with the password encrypted.
    */
   private LdapConnection encryptPassword(LdapConnection conn) {
-    if (StringUtils.isNotBlank(conn.getSystemPassword())) {
-      try {
-        LdapConnection copy = new LdapConnection(conn);
-        if (FAKE_PASSWORD.equals(conn.getSystemPassword())) {
-          copy.setSystemPassword(connDao.getByIdNotNull(conn.getId()).getSystemPassword());
-        }
-        else {
-          synchronized (cipher) {
-            copy.setSystemPassword(cipher.encryptAndDecorate(conn.getSystemPassword(), ENC));
-          }
-        }
-        return copy;
-      }
-      catch (PlexusCipherException e) {
-        throw new IllegalStateException(e);
-      }
+    LdapConnection copy = new LdapConnection(conn);
+    if (Arrays.equals(FAKE_PASSWORD, conn.getSystemPassword())) {
+      copy.setSystemPassword(connDao.getByIdNotNull(conn.getId()).getSystemPassword());
     }
-    return conn;
+    else {
+      copy.setSystemPassword(passwordHandler.encryptPassword(conn.getSystemPassword()));
+    }
+    return copy;
   }
 
   // Retry delay support

@@ -582,11 +582,42 @@ public class IndexSearchingTest
   }
 
   @Test
-  public void testLeadingWildcard() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("test-id-1", "app name 1");
-    tempEntity.newApplicationWithParent("test-id-2", "app name 2");
+  public void testLeadingWildcard_SingleCharacter() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-id-1", "appName");
+    tempEntity.newApplicationWithParent("test-id-2", "ppName");
+    index();
+    assertThat(search(FieldIdentifier.APPLICATION_NAME, "?ppName")).extracting(dto -> dto.applicationId)
+        .containsExactlyInAnyOrder(app.getId());
+    assertThat(search(FieldIdentifier.APPLICATION_NAME, "\\?ppName")).isEmpty();
+  }
+
+  @Test
+  public void testTrailingWildcard_SingleCharacter() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-id-1", "appName");
+    tempEntity.newApplicationWithParent("test-id-2", "appNam");
+    index();
+    assertThat(search(FieldIdentifier.APPLICATION_NAME, "appNam?")).extracting(dto -> dto.applicationId)
+        .containsExactlyInAnyOrder(app.getId());
+    assertThat(search(FieldIdentifier.APPLICATION_NAME, "appNam\\?")).isEmpty();
+  }
+
+  @Test
+  public void testLeadingWildcard_MultipleCharacters() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-id-1", "appName1");
+    tempEntity.newApplicationWithParent("test-id-2", "appName2");
     index();
     assertThat(search(FieldIdentifier.APPLICATION_NAME, "*1")).extracting(dto -> dto.applicationId)
         .containsExactlyInAnyOrder(app.getId());
+    assertThat(search(FieldIdentifier.APPLICATION_NAME, "\\*1")).isEmpty();
+  }
+
+  @Test
+  public void testTrailingWildcard_MultipleCharacters() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-id-1", "app1Name");
+    tempEntity.newApplicationWithParent("test-id-2", "app2Name");
+    index();
+    assertThat(search(FieldIdentifier.APPLICATION_NAME, "app1*")).extracting(dto -> dto.applicationId)
+        .containsExactlyInAnyOrder(app.getId());
+    assertThat(search(FieldIdentifier.APPLICATION_NAME, "app1\\*")).isEmpty();
   }
 }

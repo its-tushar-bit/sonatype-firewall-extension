@@ -96,7 +96,7 @@
   </div>
   <div class="dashboard-filter-footer" ng-class="{'iq-apply-error-present': vm.saveError}" submit-wrapper="vm.saveError" retry="vm.applyCurrentFilter()">
     <button id="dashboard-filter-apply"
-            class="btn btn-primary"
+            class="iq-btn iq-btn--primary"
             type="submit"
             submit-validation
             submit-dirty="vm.filtersAreDirty || vm.needsAcknowledgement"
@@ -105,12 +105,17 @@
       Apply
     </button>
     <button id="dashboard-filter-revert"
-            class="btn btn-tertiary"
+            class="iq-btn iq-btn--tertiary"
             ng-class="{disabled: !vm.filtersAreDirty}"
             type="button"
             ng-click="vm.revert()">
       Revert
     </button>
-    <button id="dashboard-filter-clear" class="btn btn-tertiary" type="button" ng-click="vm.clear()">Clear</button>
+    <button id="dashboard-filter-clear"
+            class="iq-btn iq-btn--tertiary"
+            type="button"
+            ng-click="vm.clear()">
+      Clear
+    </button>
   </div>
 </form>

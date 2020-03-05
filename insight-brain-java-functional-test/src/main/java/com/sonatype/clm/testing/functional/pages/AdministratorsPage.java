@@ -156,7 +156,7 @@ public class AdministratorsPage
         }
 
         public SelenideElement confirmButton() {
-          return child("button.btn-primary");
+          return child("button.iq-btn--primary");
         }
       }
     }

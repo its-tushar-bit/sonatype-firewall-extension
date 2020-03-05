@@ -40,7 +40,7 @@
   }
 
   &.btn-primary {
-    background-color: $iq-link-color;
+    background-color: $nx-background-color-interactive;
     border-color: transparent;
     color: $iq-off-white;
 
@@ -49,11 +49,12 @@
     }
 
     &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
-      border-color: $iq-dark-blue;
+      border-color: $nx-background-color-interactive-active;
+      color: $iq-off-white;
     }
 
     &:active:not(.disabled):not([disabled]) {
-      background-color: $iq-dark-blue;
+      background: $nx-background-color-interactive-active;
     }
   }
 

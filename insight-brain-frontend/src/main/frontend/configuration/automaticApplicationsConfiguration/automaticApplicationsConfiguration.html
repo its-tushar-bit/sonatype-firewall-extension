@@ -49,14 +49,14 @@
         </div>
         <div class="iq-tile-footer">
           <button id="automatic-applications-update"
-                  class="btn btn-primary"
+                  class="iq-btn iq-btn--primary"
                   submit-validation
                   submit-dirty="vm.isChanged()"
                   submit-type="'update'">
             Update
-          </button>
-          <button id="automatic-applications-cancel"
-                  class="btn btn-secondary"
+          </button><!--
+       --><button id="automatic-applications-cancel"
+                  class="iq-btn iq-btn--tertiary"
                   ng-disabled="!vm.isChanged()"
                   ng-click="vm.cancel()">
             Cancel

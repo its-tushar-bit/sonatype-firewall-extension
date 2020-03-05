@@ -22,6 +22,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.search.LuceneComponents;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
@@ -73,6 +74,11 @@ public class SearchService
   }
 
   public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page) throws IOException {
+    AuditData.get() //
+        .setData("searchQuery", searchQuery) //
+        .setData("searchPageSize", pageSize) //
+        .setData("searchPageIndex", page - 1);
+
     Path searchIndexPath = insightWork.getSearchIndexDir().toPath();
     validateIndex(searchIndexPath);
     try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(searchIndexPath))) {
@@ -83,15 +89,10 @@ public class SearchService
 
       IndexSearcher indexSearcher = new IndexSearcher(indexReader);
 
-      // Passing 0 to IndexSearcher#search throws IllegalArgumentException with 'numHits must be > 0'
-      if (indexReader.maxDoc() < 1) {
-        searchResultDTO.totalNumberOfHits = 0;
-        return searchResultDTO;
-      }
-
       Query query = createQuery(searchQuery);
 
-      TopDocs topDocs = indexSearcher.search(query, indexReader.maxDoc());
+      // Passing 0 to IndexSearcher#search throws IllegalArgumentException with 'numHits must be > 0'
+      TopDocs topDocs = indexSearcher.search(query, Math.max(1, indexReader.maxDoc()));
       ScoreDoc[] scoreDocs = topDocs.scoreDocs;
 
       List<Document> documents = new ArrayList<>();
@@ -145,6 +146,7 @@ public class SearchService
       }
       searchResultDTO.totalNumberOfHits = (int) topDocs.totalHits.value;
       searchResultDTO.isExactTotalNumberOfHits = topDocs.totalHits.relation == Relation.EQUAL_TO;
+      AuditData.get().setData("resultRecordCount", resultIndex - startIndex - 1);
       return searchResultDTO;
     }
   }

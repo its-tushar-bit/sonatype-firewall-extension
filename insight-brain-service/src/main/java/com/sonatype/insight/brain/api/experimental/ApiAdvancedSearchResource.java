@@ -18,6 +18,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.query.SearchService;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
@@ -47,6 +49,7 @@ public class ApiAdvancedSearchResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.PERFORM_ADVANCED_SEARCH)
   public SearchResultDTO searchIndex(
       @QueryParam("search") String searchQuery,
       @DefaultValue("10") @QueryParam("pageSize") int pageSize,

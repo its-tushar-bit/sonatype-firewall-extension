@@ -1,4 +1,4 @@
--- Since brain-next
+-- Since 1.86
 ALTER TABLE source_control
   ADD COLUMN pull_request_cutoff_time timestamp NULL;
 

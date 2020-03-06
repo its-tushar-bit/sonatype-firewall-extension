@@ -37,7 +37,6 @@ $iq-main-header-height: 72px;
   flex-grow: 0;
   flex-basis: $iq-sidebar-width;
   line-height: 24px;
-  white-space: nowrap;
 }
 
 .iq-title__logo-container {
@@ -74,17 +73,21 @@ $iq-main-header-height: 72px;
 .iq-title__sub-title {
   @include bold();
 
+  display: flex;
   font-size: 11px;
   line-height: 11px;
+}
+
+.iq-title__attribution {
+  white-space: nowrap;
 }
 
 .iq-title__version {
   @include bold();
 
   border-left: 1px solid $iq-off-white;
-  display: inline-block;
-  margin-left: 4px;
-  padding-left: 8px;
+  margin-left: $iq-spacing-xs;
+  padding-left: $iq-spacing-xs;
 
   &.visual-testing-ignore {
     padding-right: 4px; // right padding increases ignore region width

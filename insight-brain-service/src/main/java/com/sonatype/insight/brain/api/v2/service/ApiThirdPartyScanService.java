@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartySbomValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ItemContentType;
 
@@ -161,7 +162,8 @@ public class ApiThirdPartyScanService
     try {
       ProprietaryConfig proprietaryConfig =
           proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION, app.getPublicId());
-      return scanner.scanContent(sbom, work.getScanDir(app.getId()), ItemContentType.SBOM, source, proprietaryConfig);
+      return scanner.scanContent(sbom, work.getScanDir(app.getId()), ItemContentType.SBOM, source, proprietaryConfig,
+          ScannerDriver.THIRD_PARTY_API.getValue());
     }
     catch (IOException ex) {
       log.error("Error processing sbom content", ex);

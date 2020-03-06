@@ -117,7 +117,8 @@ public class Scanner
       File scanDir,
       ItemContentType contentType,
       String source,
-      ProprietaryConfig proprietaryConfig) throws IOException
+      ProprietaryConfig proprietaryConfig,
+      String scannerDriver) throws IOException
   {
     Files.createDirectories(scanDir.toPath());
     File scanFile = File.createTempFile("temp-", ".xml.gz", scanDir);
@@ -131,6 +132,8 @@ public class Scanner
       try (ScanWriter writer = writerFactory.newWriter(scanFile)) {
         writer.openScan(scan);
         writer.writeConfiguration(scan.getConfiguration());
+        scan.getSummary().setScannerDriver(scannerDriver);
+        scan.getSummary().putClientInfo("insight.scannerDriver", scannerDriver);
         scan.getSummary().setStartTime();
 
         ScanItem scanItem = new ScanItem();

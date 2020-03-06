@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.scan.application.AnalyzerFeaturesDTO;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
@@ -303,8 +304,10 @@ public class ThirdPartyComponentDAOTest
     final ReportEntry bomEntry = Report.getEntry(reportZip, "bom.json");
     assertThat(bomEntry).isNotNull();
 
+    JsonNode analyzerFeaturesDTO = JsonUtils.asTree(AnalyzerFeaturesDTO.fromThirdParty("test"));
     JsonNode jsonNode = JsonUtils.parse(bomEntry.buf);
     final JsonNode aaDataNode = jsonNode.path("aaData");
+
     for (JsonNode node : aaDataNode) {
       Stream.of(hashGlibc, hashApt).forEach(hash -> {
         if (hash.equals(node.path("hash").asText())) {
@@ -315,6 +318,7 @@ public class ThirdPartyComponentDAOTest
           assertThat(pathNames).containsExactly("dependency:/clair-scanner-output.json/" + displayNameWithoutSpaces);
           assertThat(fileNames).containsExactly(displayNameWithoutSpaces);
           assertThat(nodeDisplayName(node)).isEqualTo(displayName);
+          assertThat(node.get("analyzerFeatures")).isEqualTo(analyzerFeaturesDTO);
         }
       });
     }

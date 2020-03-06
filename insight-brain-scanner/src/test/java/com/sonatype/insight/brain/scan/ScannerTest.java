@@ -95,12 +95,15 @@ public class ScannerTest extends InjectedTest
         FileUtils.readFileToString(new File("src/test/resources/ScannerTest/iq-scan-sbom.xml"), StandardCharsets.UTF_8)
             .replace("\r\n", "\n");
 
-    ScanResult scanResult =
-        scanner.scanContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, "ABCD", null);
+    String scannerDriver = "thirdPartyApiTest";
+    ScanResult scanResult = scanner.scanContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, "ABCD",
+        null, scannerDriver);
     assertThat(scanResult.getScanFile()).isFile();
     assertThat(scanResult.hasThirdPartyScanContent()).isTrue();
     Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan).isNotNull();
+    assertThat(scan.getSummary().getScannerDriver()).isEqualTo(scannerDriver);
+    assertThat(scan.getSummary().getClientInfo().get("insight.scannerDriver")).isEqualTo(scannerDriver);
     assertThat(scan.getItems()).hasSize(1);
     ScanItem item = scan.getItems().get(0);
     assertThat(item.getPath()).isEqualTo("ABCD-bom.xml");

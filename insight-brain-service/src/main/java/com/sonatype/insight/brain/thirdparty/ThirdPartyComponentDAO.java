@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.scan.application.AnalyzerFeaturesDTO;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -352,6 +353,18 @@ public class ThirdPartyComponentDAO
     final ObjectNode tpObjectNode = (ObjectNode) tpNode;
     tpObjectNode.replace("filenames", bomNode.get("filenames"));
     tpObjectNode.replace("pathnames", bomNode.get("pathnames"));
+
+    String scanClient = null;
+    if (bomNode.has("analyzerFeatures") && bomNode.get("analyzerFeatures").has("scanClient")) {
+      scanClient = bomNode.get("analyzerFeatures").get("scanClient").asText();
+    }
+    tpObjectNode.set("analyzerFeatures", JsonUtils.asTree(AnalyzerFeaturesDTO.fromThirdParty(scanClient)));
+
+    bomNode.fields().forEachRemaining(entry -> {
+      if (!tpObjectNode.has(entry.getKey())) {
+        tpObjectNode.set(entry.getKey(), entry.getValue());
+      }
+    });
     ComponentDisplayNameUtil.injectDisplayName(tpObjectNode);
   }
 

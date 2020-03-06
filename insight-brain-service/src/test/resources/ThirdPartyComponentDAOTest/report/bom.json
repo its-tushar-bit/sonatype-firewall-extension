@@ -24,6 +24,14 @@
     "lastModifiedTime" : 1413131596000,
     "lastModifiedEntryTime" : 1043177940000,
     "website" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "test",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
     "displayName" : {
       "parts" : [ {
         "field" : "Group",
@@ -56,6 +64,14 @@
     "lastModifiedTime" : null,
     "lastModifiedEntryTime" : null,
     "website" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATES",
+      "scanClient" : "test",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
     "displayName" : {
       "parts" : [ {
         "field" : "Filename",
@@ -78,6 +94,14 @@
     "lastModifiedTime" : null,
     "lastModifiedEntryTime" : null,
     "website" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATES",
+      "scanClient" : "test",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
     "displayName" : {
       "parts" : [ {
         "field" : "Filename",

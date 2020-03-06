@@ -83,8 +83,8 @@ public class ThirdPartySbomValidatorTest
     URL resource = getClass().getResource("/ThirdPartySbomValidatorTest/" + fileName);
     String sbom = new String(Files.readAllBytes(Paths.get(resource.toURI())));
 
-    ScanResult scanResult =
-        scanner.scanContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, "ABCD", null);
+    ScanResult scanResult = scanner.scanContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, "ABCD",
+        null, "thirdPartyApiTest");
     return scanResult.getScanFile();
   }
 }

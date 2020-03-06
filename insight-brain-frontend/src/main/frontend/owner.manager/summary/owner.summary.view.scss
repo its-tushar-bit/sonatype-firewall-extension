@@ -32,11 +32,12 @@
 }
 
 .iq-nav-pills--owner {
-  flex-grow: 1;
   margin-top: 0;
 
   > .iq-nav-pills__pill, .iq-nav-pills__pill {
-    margin-right: $iq-spacing-sm;
+    &, &:last-child {
+      margin-right: $iq-spacing-sm;
+    }
   }
 }
 
@@ -67,7 +68,7 @@
   display: inline-block;
   font-size: 14px;
   line-height: 20px;
-  margin: 0 0 $iq-spacing-md $iq-spacing-md;
+  margin: 0 0 $iq-spacing-md 0;
   padding: 5px $iq-spacing-sm;
   text-align: center;
   text-decoration: none;

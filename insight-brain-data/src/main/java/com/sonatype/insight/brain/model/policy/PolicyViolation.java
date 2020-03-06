@@ -195,6 +195,25 @@ public class PolicyViolation
     return !isFixed() && !isWaived() && !isGrandfathered();
   }
 
+  /**
+   * @return the earlier of the fixTime or waiveTime, sorting nulls higher
+   */
+  @Transient
+  public Date getFixOrWaiveTime() {
+    Date actualFixTime = getFixTime();
+    Date waiveTime = getWaiveTime();
+
+    if (actualFixTime == null) {
+      return waiveTime;
+    }
+    else if (waiveTime == null) {
+      return actualFixTime;
+    }
+    else {
+      return actualFixTime.compareTo(waiveTime) > 0 ? waiveTime : actualFixTime;
+    }
+  }
+
   @Override
   public String toString() {
     return "PolicyViolation [id=" + id + ", applicationId=" + getApplicationId() + ", stageTypeId=" + getStageTypeId()

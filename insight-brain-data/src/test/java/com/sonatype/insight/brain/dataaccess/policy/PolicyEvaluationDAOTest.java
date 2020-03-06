@@ -774,6 +774,116 @@ public class PolicyEvaluationDAOTest
     assertThat(dao.getCount()).isEqualTo(2);
   }
 
+  @Test
+  public void testGetLastInTimeRangeByApplicationAndStage() {
+    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    final Date baselineDate = new Date();
+    final Date minDate = new Date(baselineDate.getTime() - 2500);
+    final Date maxDate = new Date(baselineDate.getTime() - 50);
+    final Application app1 = tempEntity.newApplicationWithParent();
+    final Application app2 = tempEntity.newApplicationWithParent();
+
+    // the expected eval
+    PolicyEvaluation expected = tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false,
+            new Date(minDate.getTime() + 1000));
+
+    // later, but different app
+    tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_RELEASE, "scan1", false, false,
+            new Date(minDate.getTime() + 1500));
+
+    // later, but different stage
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan1", false, false,
+            new Date(minDate.getTime() + 1500));
+
+    // after the time window
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false, new Date(maxDate.getTime()));
+
+    // before the expected eval
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false,
+            new Date(minDate.getTime() + 500));
+
+    assertThat(dao.getLastInTimeRangeByApplicationAndStage(app1.getId(), Stage.ID_RELEASE, minDate, maxDate))
+        .extracting(PolicyEvaluation::getId)
+        .isEqualTo(expected.getId());
+  }
+
+  @Test
+  public void testGetLastInTimeRangeByApplicationAndStage_MinDate() {
+    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    final Date baselineDate = new Date();
+    final Date minDate = new Date(baselineDate.getTime() - 2500);
+    final Date maxDate = new Date(baselineDate.getTime() - 50);
+    final Application app1 = tempEntity.newApplicationWithParent();
+
+    // the expected eval
+    PolicyEvaluation expected = tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false,
+            new Date(minDate.getTime()));
+
+    assertThat(dao.getLastInTimeRangeByApplicationAndStage(app1.getId(), Stage.ID_RELEASE, minDate, maxDate))
+        .extracting(PolicyEvaluation::getId)
+        .isEqualTo(expected.getId());
+  }
+
+  @Test
+  public void testGetLastInTimeRangeByApplicationAndStage_NoneMatch() {
+    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    final Date baselineDate = new Date();
+    final Date minDate = new Date(baselineDate.getTime() - 2500);
+    final Date maxDate = new Date(baselineDate.getTime() - 50);
+    final Application app1 = tempEntity.newApplicationWithParent();
+    final Application app2 = tempEntity.newApplicationWithParent();
+
+    // before the minDate
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false,
+        new Date(minDate.getTime() - 1));
+
+    // later, but different app
+    tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_RELEASE, "scan1", false, false,
+        new Date(minDate.getTime() + 1500));
+
+    // later, but different stage
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan1", false, false,
+        new Date(minDate.getTime() + 1500));
+
+    // after the time window
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false, new Date(maxDate.getTime()));
+
+    assertThat(dao.getLastInTimeRangeByApplicationAndStage(app1.getId(), Stage.ID_RELEASE, minDate, maxDate)).isNull();
+  }
+
+  @Test
+  public void testGetLastInTimeRangeByApplicationAndStage_NullMaxDate() {
+    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    final Date baselineDate = new Date();
+    final Date minDate = new Date(baselineDate.getTime() - 2500);
+    final Application app1 = tempEntity.newApplicationWithParent();
+    final Application app2 = tempEntity.newApplicationWithParent();
+
+    // earlier
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false,
+        new Date(minDate.getTime() + 1000));
+
+    // later, but different app
+    tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_RELEASE, "scan1", false, false,
+        new Date(minDate.getTime() + 1500));
+
+    // later, but different stage
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan1", false, false,
+        new Date(minDate.getTime() + 1500));
+
+    // the expected eval
+    PolicyEvaluation expected = tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false,
+        new Date(minDate.getTime() + 1500));
+
+    assertThat(dao.getLastInTimeRangeByApplicationAndStage(app1.getId(), Stage.ID_RELEASE, minDate, null))
+        .extracting(PolicyEvaluation::getId)
+        .isEqualTo(expected.getId());
+  }
+
   @FunctionalInterface
   interface PolicyEvaluationChooser
   {

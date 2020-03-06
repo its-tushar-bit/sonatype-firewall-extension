@@ -344,6 +344,27 @@ public class PolicyEvaluationDAO
     return createQuery(sQuery, applicationInternalId, commitHash + "%").forceSingleResult().get();
   }
 
+  public PolicyEvaluation getLastInTimeRangeByApplicationAndStage(
+      String applicationId,
+      String stageTypeId,
+      Date minDate,
+      Date maxDate)
+  {
+    String sQuery = "SELECT entity FROM PolicyEvaluation entity" +
+        " WHERE entity.applicationId = ?1" +
+        "  AND entity.stageTypeId = ?2" +
+        "  AND entity.time >= ?3" +
+        (maxDate == null ? "" : "  AND entity.time < ?4") +
+        " ORDER BY entity.time DESC";
+
+    if (maxDate != null) {
+      return createQuery(sQuery, applicationId, stageTypeId, minDate, maxDate).forceSingleResult().get();
+    }
+    else {
+      return createQuery(sQuery, applicationId, stageTypeId, minDate).forceSingleResult().get();
+    }
+  }
+
   public long getCount() {
     String sQuery = "SELECT COUNT(entity) FROM PolicyEvaluation entity";
     return getSingle(Long.class, sQuery);

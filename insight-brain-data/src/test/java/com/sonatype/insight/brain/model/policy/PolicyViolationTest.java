@@ -250,4 +250,51 @@ public class PolicyViolationTest
     policyViolation.setGrandfatherTime(new Date());
     assertThat(policyViolation.isActive()).isFalse();
   }
+
+  @Test
+  public void testGetFixOrWaiveTime_BothNull() {
+    PolicyViolation violation = new PolicyViolation();
+
+    assertThat(violation.getFixOrWaiveTime()).isNull();
+  }
+
+  @Test
+  public void testGetFixOrWaiveTime_FixTimeNull() {
+    Date date = new Date();
+    PolicyViolation violation = new PolicyViolation();
+    violation.setWaiveTime(date);
+
+    assertThat(violation.getFixOrWaiveTime()).isEqualTo(date);
+  }
+
+  @Test
+  public void testGetFixOrWaiveTime_WaiveTimeNull() {
+    Date date = new Date();
+    PolicyViolation violation = new PolicyViolation();
+    violation.setFixTime(date);
+
+    assertThat(violation.getFixOrWaiveTime()).isEqualTo(date);
+  }
+
+  @Test
+  public void testGetFixOrWaiveTime_WaiveTimeGreater() {
+    Date fixTime = new Date();
+    Date waiveTime = new Date(fixTime.getTime() + 1);
+    PolicyViolation violation = new PolicyViolation();
+    violation.setFixTime(fixTime);
+    violation.setWaiveTime(waiveTime);
+
+    assertThat(violation.getFixOrWaiveTime()).isEqualTo(fixTime);
+  }
+
+  @Test
+  public void testGetFixOrWaiveTime_FixTimeGreater() {
+    Date fixTime = new Date();
+    Date waiveTime = new Date(fixTime.getTime() - 1);
+    PolicyViolation violation = new PolicyViolation();
+    violation.setFixTime(fixTime);
+    violation.setWaiveTime(waiveTime);
+
+    assertThat(violation.getFixOrWaiveTime()).isEqualTo(waiveTime);
+  }
 }

@@ -5,12 +5,15 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.Date;
+
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -76,5 +79,32 @@ public class ApiPolicyViolationResourceV2Test
     ApiConstraintViolationReasonDTO apiConstraintViolationReasonDTO = apiConstraintViolationDTO.reasons.get(0);
     assertThat(apiConstraintViolationReasonDTO.reason)
         .isEqualTo(pv1App1.getConstraintFacts().get(0).getConditionFacts().get(0).getReason());
+  }
+
+  @Test
+  public void testGetCrossStagePolicyViolatonById() throws Exception {
+    Date date = new Date();
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Policy orgPolicy = tempEntity.newPolicy(org);
+    PolicyEvaluation pe1App1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1", false, 
+        false, date);
+    PolicyViolation pv1App1 = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
+        .path(ApiPolicyViolationResourceV2.CROSS_STAGE_POLICY_VIOLATION_SUBPATH)
+        .parameter(pv1App1.getId())
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiCrossStageViolationDTOV2 resultDTO = response.getBody(ApiCrossStageViolationDTOV2.class);
+    assertThat(resultDTO.policyViolationId).isEqualTo(pv1App1.getId());
+    assertThat(resultDTO.applicationPublicId).isEqualTo(app.getPublicId());
+    assertThat(resultDTO.applicationName).isEqualTo(app.getName());
+    assertThat(resultDTO.stageData).containsOnlyKeys(BuildStageType.ID);
+    assertThat(resultDTO.displayName.toString()).isEqualTo("g1 : a1 : v1");
+    assertThat(resultDTO.stageData.get(BuildStageType.ID)).extracting("mostRecentEvaluationTime", "mostRecentScanId")
+        .containsExactly(date.getTime(), "scanId1App1");
   }
 }

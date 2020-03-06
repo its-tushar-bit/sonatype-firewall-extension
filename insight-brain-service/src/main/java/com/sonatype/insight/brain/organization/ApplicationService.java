@@ -127,6 +127,11 @@ public class ApplicationService
     return applicationDAO.getByPublicId(applicationPublicId);
   }
 
+  @Authorize(permission = Permission.READ)
+  public Application getApplicationByIdForRead(@AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId) {
+    return applicationDAO.getById(applicationId);
+  }
+
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
   public List<Application> getApplicationsByIdsAndOrganizationIdsAndTagIds(@Nullable final Set<String> organizationIds,
                                                                            @Nullable final Set<String> applicationIds,

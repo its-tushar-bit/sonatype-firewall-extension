@@ -45,7 +45,7 @@ public interface AuditTestSupport
   }
 
   default List<AuditDTO> awaitLogEntries(AuditEvent auditEvent, int count) {
-    await("Expect audit event " + auditEvent).atMost(5, TimeUnit.SECONDS)
+    await("Expect audit event " + auditEvent).atMost(10, TimeUnit.SECONDS)
         .untilAsserted(() -> assertThat(getLogEntries(auditEvent)).hasSizeGreaterThanOrEqualTo(count));
     return getLogEntries(auditEvent);
   }

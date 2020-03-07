@@ -123,17 +123,49 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testVerifyOrCreateApplication_Authorized_EVALUATE_APPLICATION() {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-    assertThat(
-        service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "test_client_user_agent"))
-            .isTrue();
+    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "ua/1.0")).isTrue();
   }
 
   @Test
   public void testVerifyOrCreateApplication_Unauthorized_EVALUATE_APPLICATION() {
     login();
-    assertThat(
-        service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "test_client_user_agent"))
-            .isFalse();
+    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "ua/1.0")).isFalse();
+  }
+
+  @Test
+  public void testVerifyOrCreateApplication_Authorized_EVALUATE_COMPONENT() {
+    grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
+    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_COMPONENT, "ua/1.0")).isTrue();
+  }
+
+  @Test
+  public void testVerifyOrCreateApplication_Unauthorized_EVALUATE_COMPONENT() {
+    login();
+    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_COMPONENT, "ua/1.0")).isFalse();
+  }
+
+  @Test
+  public void testVerifyOrCreateApplication_Authorized_VIEW_CIP() {
+    grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
+    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.VIEW_CIP, "ua/1.0")).isTrue();
+  }
+
+  @Test
+  public void testVerifyOrCreateApplication_Unauthorized_VIEW_CIP() {
+    login();
+    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.VIEW_CIP, "ua/1.0")).isFalse();
+  }
+
+  @Test
+  public void testVerifyOrCreateApplication_Authorized_SUMMARIZE_EVALUATION() {
+    grantPermission(app.getId(), Permission.READ);
+    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.SUMMARIZE_EVALUATION, "ua/1.0")).isTrue();
+  }
+
+  @Test
+  public void testVerifyOrCreateApplication_Unauthorized_SUMMARIZE_EVALUATION() {
+    login();
+    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.SUMMARIZE_EVALUATION, "ua/1.0")).isFalse();
   }
 
   @Test

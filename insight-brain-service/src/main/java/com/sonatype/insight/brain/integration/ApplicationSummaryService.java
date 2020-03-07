@@ -188,10 +188,22 @@ public class ApplicationSummaryService
     // Verify the application public ID after (possibly) automatically creating the application in the case
     // the user does not actually have the permissions to access it
     if (application != null) {
-      for (Application app : getApplicationsForGoal(goal)) {
-        if (app.getPublicId().equals(applicationPublicId)) {
-          return true;
+      try {
+        switch (goal) {
+          case EVALUATE_APPLICATION:
+            checkEvaluateApplicationPermission(application);
+            break;
+          case EVALUATE_COMPONENT:
+          case VIEW_CIP:
+            checkEvaluateComponentPermission(application);
+            break;
+          default:
+            checkReadPermission(application);
         }
+        return true;
+      }
+      catch (UnauthorizedException e) {
+        return false;
       }
     }
 
@@ -208,6 +220,28 @@ public class ApplicationSummaryService
   void checkEvaluateApplicationPermissionForOrganization(
       @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
   {
+    // actual work done by AOP interceptor
+  }
+
+  @Authorize(permission = Permission.READ)
+  void checkReadPermission(
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION) Application application)
+  {
+    // actual work done by AOP interceptor
+  }
+
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  void checkEvaluateApplicationPermission(
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION) Application application)
+  {
+    // actual work done by AOP interceptor
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  void checkEvaluateComponentPermission(
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION) Application application)
+  {
+    // actual work done by AOP interceptor
   }
 
   private void sendApplicationCreatedTelemetryData(boolean appCreatedAutomatically, String clientUserAgent) {

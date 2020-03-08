@@ -6,7 +6,7 @@
 import axios from 'axios';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
-import { getCreateIndexUrl, getAdvancedSearchConfigUrl } from '../../util/CLMLocation';
+import { getAdvancedSearchIndexUrl, getAdvancedSearchConfigUrl } from '../../util/CLMLocation';
 
 // Actions related to initial loading of the page
 export const ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED = 'ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED';
@@ -66,7 +66,7 @@ const triggerReIndex = noPayloadActionCreator(ADVANCED_SEARCH_TRIGGER_RE_INDEX);
 
 export function reIndex() {
   return function(dispatch) {
-    return axios.post(getCreateIndexUrl(), {})
+    return axios.post(getAdvancedSearchIndexUrl(), {})
         .then(() => {
           dispatch(triggerReIndex());
         })

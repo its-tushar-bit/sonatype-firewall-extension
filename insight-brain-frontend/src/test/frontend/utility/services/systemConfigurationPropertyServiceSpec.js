@@ -104,7 +104,7 @@ describe('systemConfigurationPropertyServiceSpec.js', function() {
   describe('getting full text search flag', function() {
     it('returns enabled when the request succeeds', function() {
       systemConfigurationPropertyService.isFullTextSearchEnabled().then(successSpy).catch(failSpy);
-      $httpBackend.expectGET(CLMLocations.getFullTextSearchConfigUrl()).respond({isEnabled: true});
+      $httpBackend.expectGET(CLMLocations.getAdvancedSearchConfigUrl()).respond({isEnabled: true});
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalledWith(true);
@@ -113,7 +113,7 @@ describe('systemConfigurationPropertyServiceSpec.js', function() {
 
     it('throws a failed request', function() {
       systemConfigurationPropertyService.isFullTextSearchEnabled().then(successSpy).catch(failSpy);
-      $httpBackend.expectGET(CLMLocations.getFullTextSearchConfigUrl()).respond(404, 'not found');
+      $httpBackend.expectGET(CLMLocations.getAdvancedSearchConfigUrl()).respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();

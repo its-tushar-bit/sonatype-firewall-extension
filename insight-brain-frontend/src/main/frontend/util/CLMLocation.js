@@ -53,11 +53,11 @@ export function getCliStageUrl() {
   return `${getBaseUrl(window.location.href)}/rest/policy/stages`;
 
 export function getAdvancedSearchConfigUrl() {
-  return `${getBaseUrl(window.location.href)}/rest/fullTextSearch/status`;
+  return `${getBaseUrl(window.location.href)}/rest/search/advanced/status`;
 }
 
-export function getCreateIndexUrl() {
-  return `${getBaseUrl(window.location.href)}/api/experimental/search/index`;
+export function getAdvancedSearchIndexUrl() {
+  return `${getBaseUrl(window.location.href)}/api/experimental/search/advanced/index`;
 }
 
 export default
@@ -390,7 +390,11 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       getAutomaticSourceControlConfigurationUrl:
           () => `${baseUrl.get()}/rest/config/automaticScmConfiguration`,
 
-      getFullTextSearchConfigUrl: () => `${baseUrl.get()}/rest/fullTextSearch/status`,
+      getAdvancedSearchConfigUrl: () => `${baseUrl.get()}/rest/search/advanced/status`,
+
+      getAdvancedSearchUrl: () => `${baseUrl.get()}/api/experimental/search/advanced`,
+
+      getAdvancedSearchSuggesterUrl: () => `${baseUrl.get()}/api/experimental/search/advanced/suggester`,
 
       getShouldDisplayDefaultPasswordWarning: () => `${baseUrl.get()}/rest/user/shouldDisplayDefaultPasswordWarning`,
 

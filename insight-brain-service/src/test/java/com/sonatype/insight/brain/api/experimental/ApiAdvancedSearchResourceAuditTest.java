@@ -20,7 +20,7 @@ public class ApiAdvancedSearchResourceAuditTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.SEARCH_INDEX_RESOURCE_PATH);
+    return super.restRequest().path(PublicApiPaths.ADVANCED_SEARCH_RESOURCE_PATH);
   }
 
   @Test

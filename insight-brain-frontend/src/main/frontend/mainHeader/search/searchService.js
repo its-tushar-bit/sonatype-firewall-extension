@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function searchService($http, CLMContextLocations) {
+export default function searchService($http, CLMLocations) {
   return {
     query: undefined,
     results: undefined,
@@ -15,11 +15,11 @@ export default function searchService($http, CLMContextLocations) {
   };
 
   function search() {
-    return $http.get(CLMContextLocations.getSearchIndexUrl(),
+    return $http.get(CLMLocations.getAdvancedSearchUrl(),
         {params: {search: this.query, pageSize: this.pageSize, page: this.page}});
   }
 }
 
 searchService.$inject = [
-  '$http', 'CLMContextLocations'
+  '$http', 'CLMLocations'
 ];

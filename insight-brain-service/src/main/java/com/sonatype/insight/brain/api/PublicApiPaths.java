@@ -87,5 +87,5 @@ public class PublicApiPaths
 
   public static final String CLAIM_PATH_V2 = API_VERSION_PATH_V2 + "claim/components";
 
-  public static final String SEARCH_INDEX_RESOURCE_PATH = EXPERIMENTAL_PATH + "search/index";
+  public static final String ADVANCED_SEARCH_RESOURCE_PATH = EXPERIMENTAL_PATH + "search/advanced";
 }

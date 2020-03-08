@@ -241,14 +241,6 @@ locationModule.factory('CLMContextLocations', [
         return `${baseUrl.get()}/api/v2/config/saml`;
       },
 
-      getSearchIndexUrl: function() {
-        return `${baseUrl.get()}/api/experimental/search/index`;
-      },
-
-      getSearchSuggesterUrl: function() {
-        return `${baseUrl.get()}/api/experimental/search/index/suggester`;
-      },
-
       getNotificationWebhooksUrl: function() {
         return `${baseUrl.get()}/rest/config/webhook/policy/${getServicePathWithId()}`;
       },

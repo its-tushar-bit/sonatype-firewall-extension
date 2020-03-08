@@ -32,14 +32,16 @@ import com.codahale.metrics.annotation.Timed;
  */
 @Named
 @Timed
-@Path(PublicApiPaths.SEARCH_INDEX_RESOURCE_PATH)
+@Path(PublicApiPaths.ADVANCED_SEARCH_RESOURCE_PATH)
 public class ApiAdvancedSearchResource
 {
   private final SearchService searchService;
 
   private final IndexService indexService;
 
-  static final String SUGGESTER = "suggester";
+  static final String INDEX_PATH = "index";
+
+  static final String SUGGESTER_PATH = "suggester";
 
   @Inject
   public ApiAdvancedSearchResource(SearchService searchService, IndexService indexService) {
@@ -59,12 +61,13 @@ public class ApiAdvancedSearchResource
   }
 
   @POST
+  @Path(INDEX_PATH)
   public void createSearchIndexAsync() {
     indexService.createSearchIndexAsync();
   }
 
   @GET
-  @Path(SUGGESTER)
+  @Path(SUGGESTER_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   public SearchSuggestionResultDTO autoCompleteSearchQuery(@QueryParam("search") String searchQuery) {
     return searchService.autoCompleteSearchQuery(searchQuery);

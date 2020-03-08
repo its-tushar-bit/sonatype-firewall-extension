@@ -52,7 +52,7 @@ export default function systemConfigurationPropertyService($http, $rootScope, $q
   }
 
   function isFullTextSearchEnabled() {
-    return $http.get(CLMLocations.getFullTextSearchConfigUrl()).then(function(response) {
+    return $http.get(CLMLocations.getAdvancedSearchConfigUrl()).then(function(response) {
       return response.data.isEnabled;
     });
   }

@@ -44,7 +44,7 @@ public class ApiAdvancedSearchResourceTest
 
   @Test
   public void testCreateSearchIndex() throws Exception {
-    HttpResponse response = restRequest().post();
+    HttpResponse response = restRequest().path(ApiAdvancedSearchResource.INDEX_PATH).post();
     awaitIndexCompletion();
 
     assertResponseStatus(204, response);
@@ -56,7 +56,7 @@ public class ApiAdvancedSearchResourceTest
   @Test
   public void testSearchIndex() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
-    restRequest().post();
+    restRequest().path(ApiAdvancedSearchResource.INDEX_PATH).post();
     awaitIndexCompletion();
 
     HttpResponse response =
@@ -74,10 +74,10 @@ public class ApiAdvancedSearchResourceTest
   @Test
   public void testAutoCompleteSearchQuery() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
-    restRequest().post();
+    restRequest().path(ApiAdvancedSearchResource.INDEX_PATH).post();
     awaitIndexCompletion();
 
-    HttpResponse response = restRequest().path(ApiAdvancedSearchResource.SUGGESTER).query("search", "a").get();
+    HttpResponse response = restRequest().path(ApiAdvancedSearchResource.SUGGESTER_PATH).query("search", "a").get();
 
     assertResponseStatus(200, response);
     SearchSuggestionResultDTO searchSuggestionResultDTO = response.getBody(SearchSuggestionResultDTO.class);
@@ -87,7 +87,7 @@ public class ApiAdvancedSearchResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.SEARCH_INDEX_RESOURCE_PATH);
+    return super.restRequest().path(PublicApiPaths.ADVANCED_SEARCH_RESOURCE_PATH);
   }
 
   private void assertIndexExists(File indexFile) throws Exception {

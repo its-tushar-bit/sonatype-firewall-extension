@@ -29,7 +29,7 @@ import com.codahale.metrics.annotation.Timed;
 @Consumes(MediaType.APPLICATION_JSON)
 public class AdvancedSearchResource
 {
-  public static final String RESOURCE_PATH = "rest/fullTextSearch";
+  public static final String RESOURCE_PATH = "rest/search/advanced";
 
   public static final String STATUS_PATH = "status";
 

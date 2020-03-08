@@ -34,11 +34,13 @@ class PolicyEvaluationThreadPoolExecutor
 
     super.execute(command);
 
-    log.debug("Policy evaluation executor state after submit: queueSize={}, activeThreads={}, totalThreads={}",
-        getQueue().size(), getActiveCount(), getPoolSize());
-
     int queueSize = getQueue().size();
-    if (getActiveCount() == getMaximumPoolSize() && queueSize > 0) {
+    int activeThreadCount = getActiveCount();
+
+    log.debug("Policy evaluation executor state after submit: queueSize={}, activeThreads={}, totalThreads={}",
+        queueSize, activeThreadCount, getPoolSize());
+
+    if (queueSize > 0 && activeThreadCount == getMaximumPoolSize()) {
       log.warn("All policy evaluation threads are busy and there are {} tasks waiting in the queue.", queueSize);
     }
   }

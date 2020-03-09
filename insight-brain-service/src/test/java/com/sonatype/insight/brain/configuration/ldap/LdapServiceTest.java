@@ -17,13 +17,19 @@ import javax.naming.CommunicationException;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
@@ -54,6 +60,9 @@ public class LdapServiceTest
   public TestLdapServer testLdapServer3 = new TestLdapServer();
 
   public TestLdapServer testLdapServer4 = new TestLdapServer();
+
+  @Inject
+  private PasswordHandler passwordHandler;
 
   @Rule
   public RuleChain ruleChain = RuleChain.outerRule(tempDir) //
@@ -160,7 +169,7 @@ public class LdapServiceTest
       ldapConnection.setPort(socket.getLocalPort());
       ldapConnection.setConnectionTimeout(1);
       ldapConnection.setRetryDelay(5);
-      ldapService.saveConnection(ldapConnection);
+      ldapService.upsertLdapConnection(ldapConnection);
 
       createUserMapping(ldapServer);
 
@@ -338,7 +347,7 @@ public class LdapServiceTest
       ldapConnection.setPort(socket.getLocalPort());
       ldapConnection.setConnectionTimeout(1);
       ldapConnection.setRetryDelay(5);
-      ldapService.saveConnection(ldapConnection);
+      ldapService.upsertLdapConnection(ldapConnection);
 
       createUserMapping(ldapServer);
 
@@ -495,7 +504,7 @@ public class LdapServiceTest
 
   private void setSearchBase(LdapConnection ldapConnection, String searchBase) {
     ldapConnection.setSearchBase(searchBase);
-    ldapService.saveConnection(ldapConnection);
+    ldapService.upsertLdapConnection(ldapConnection);
   }
 
   @Test
@@ -608,7 +617,7 @@ public class LdapServiceTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = newInMemoryUserMapping(ldapServer);
+    LdapUserMapping umap = newInMemoryLdapUserMapping(ldapServer);
 
     umap.setUserPasswordAttribute(null); // AUTH-via-BIND
 
@@ -626,12 +635,12 @@ public class LdapServiceTest
     LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server1");
     LdapConnection ldapConnection1 = createLdapConnection(ldapServer1);
     startLdapServer(testLdapServer1, ldapConnection1);
-    LdapUserMapping umap1 = newInMemoryUserMapping(ldapServer1);
+    LdapUserMapping umap1 = newInMemoryLdapUserMapping(ldapServer1);
 
     LdapServer ldapServer2 = tempEntity.newLdapServer("Test Server2");
     LdapConnection ldapConnection2 = createLdapConnection(ldapServer2);
     startLdapServer(testLdapServer2, ldapConnection2);
-    LdapUserMapping umap2 = newInMemoryUserMapping(ldapServer2);
+    LdapUserMapping umap2 = newInMemoryLdapUserMapping(ldapServer2);
 
     assertCanLogin(umap1, "test_user1_1", "far2simple");
     assertCanLogin(umap2, "test_user1_2", "far2simple");
@@ -1242,7 +1251,7 @@ public class LdapServiceTest
 
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     ldapConnection.setHostname("localhost");
-    ldapService.saveConnection(ldapConnection);
+    ldapService.upsertLdapConnection(ldapConnection);
     assertThat(ldapService.isLdapEnabled(ldapServer)).isFalse();
 
     createUserMapping(ldapServer);
@@ -1336,7 +1345,7 @@ public class LdapServiceTest
     return tempEntity.newLdapConnection(ldapServer.getId(), getRandomPort());
   }
 
-  private LdapUserMapping newInMemoryUserMapping(LdapServer ldapServer) {
+  private LdapUserMapping newInMemoryLdapUserMapping(LdapServer ldapServer) {
     LdapUserMapping umap = new LdapUserMapping();
     umap.setServerId(ldapServer.getId());
     umap.setUserBaseDN("ou=users");
@@ -1351,8 +1360,20 @@ public class LdapServiceTest
     return umap;
   }
 
+  private LdapConnection newInMemoryLdapConnection(LdapServer ldapServer) {
+    LdapConnection ldapConnection = new LdapConnection();
+    ldapConnection.setServerId(ldapServer.getId());
+    ldapConnection.setProtocol(LdapProtocol.LDAP);
+    ldapConnection.setHostname("localhost");
+    ldapConnection.setPort(389);
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
+    ldapConnection.setSystemUsername("system");
+    ldapConnection.setSystemPassword("password".toCharArray());
+    return ldapConnection;
+  }
+
   private LdapUserMapping createUserMapping(LdapServer ldapServer) {
-    LdapUserMapping umap = newInMemoryUserMapping(ldapServer);
+    LdapUserMapping umap = newInMemoryLdapUserMapping(ldapServer);
     tempEntity.newLdapUserMapping(umap);
     return umap;
   }
@@ -1381,6 +1402,173 @@ public class LdapServiceTest
     // Group without users
     users = ldapService.getUsersByGroup(ldapServer, "no such group");
     assertThat(users).isEmpty();
+  }
+
+  @Test
+  public void testAddLdapServer() {
+    LdapServer ldapServer = new LdapServer("test");
+
+    ldapServer = ldapService.addLdapServer(ldapServer);
+    assertThat(ldapServer.getId()).isNotNull();
+    tempEntity.register(ldapServer);
+    assertThat(ldapServer.getName()).isEqualTo("test");
+
+    LdapServer persistedLdapServer = new LdapServerDAO().getById(ldapServer.getId());
+    assertThat(persistedLdapServer).isEqualToIgnoringGivenFields(ldapServer, JPA.IGNORE_FIELDS);
+  }
+
+  @Test
+  public void testUpdateLdapServer() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    ldapServer.setName("test updated");
+    LdapServer updatedLdapServer = ldapService.updateLdapServer(ldapServer);
+    assertThat(updatedLdapServer).isEqualToIgnoringGivenFields(ldapServer, JPA.IGNORE_FIELDS);
+
+    LdapServer persistedLdapServer = new LdapServerDAO().getById(ldapServer.getId());
+    assertThat(persistedLdapServer).isEqualToIgnoringGivenFields(ldapServer, JPA.IGNORE_FIELDS);
+  }
+
+  @Test
+  public void testDeleteLdapServer() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+
+    ldapService.deleteLdapServer(ldapServer.getId());
+    assertThat(new LdapServerDAO().getById(ldapServer.getId())).isNull();
+  }
+
+  @Test
+  public void testGetAllLdapServers() {
+    LdapServer ldapServer1 = tempEntity.newLdapServer("test1");
+    LdapServer ldapServer2 = tempEntity.newLdapServer("test2");
+    List<LdapServer> ldapServers = ldapService.getAllLdapServers();
+    assertThat(ldapServers).usingElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
+        .containsExactlyInAnyOrder(ldapServer1, ldapServer2);
+  }
+
+  @Test
+  public void testGetLdapConnection() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection expectedLdapConnection = createLdapConnection(ldapServer);
+    expectedLdapConnection.setSystemPassword("password".toCharArray());
+    new LdapConnectionDAO().update(expectedLdapConnection);
+
+    LdapConnection ldapConnection = ldapService.getLdapConnection(ldapServer.getId());
+    expectedLdapConnection.setSystemPassword(LdapService.FAKE_PASSWORD);
+    assertThat(ldapConnection).isEqualToIgnoringGivenFields(expectedLdapConnection, JPA.IGNORE_FIELDS);
+  }
+
+  @Test
+  public void testGetLdapConnection_NoLdapConnection() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+
+    LdapConnection ldapConnection = ldapService.getLdapConnection(ldapServer.getId());
+    assertThat(ldapConnection).isNotNull();
+    assertThat(ldapConnection.getServerId()).isEqualTo(ldapServer.getId());
+  }
+
+  @Test
+  public void testUpsertLdapConnection_Insert() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+
+    LdapConnection expectedLdapConnection = newInMemoryLdapConnection(ldapServer);
+    char[] expectedSystemPassword = expectedLdapConnection.getSystemPassword();
+    LdapConnection addedLdapConnection = ldapService.upsertLdapConnection(ldapServer.getId(), expectedLdapConnection);
+    assertThat(addedLdapConnection.getId()).isNotNull();
+    expectedLdapConnection.setId(addedLdapConnection.getId());
+    expectedLdapConnection.setSystemPassword(LdapService.FAKE_PASSWORD);
+    assertThat(addedLdapConnection).isEqualToIgnoringGivenFields(expectedLdapConnection, JPA.IGNORE_FIELDS);
+
+    LdapConnection persistedLdapConnection = new LdapConnectionDAO().getById(expectedLdapConnection.getId());
+    assertThat(passwordHandler.decryptPassword(persistedLdapConnection.getSystemPassword()))
+        .isEqualTo(expectedSystemPassword);
+    expectedLdapConnection.setSystemPassword(persistedLdapConnection.getSystemPassword());
+    assertThat(persistedLdapConnection).isEqualToIgnoringGivenFields(expectedLdapConnection, JPA.IGNORE_FIELDS);
+  }
+
+  @Test
+  public void testUpsertLdapConnection_Update() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection expectedLdapConnection = tempEntity.newLdapConnection(ldapServer.getId());
+    expectedLdapConnection.setSystemPassword("password".toCharArray());
+    expectedLdapConnection.setPort(expectedLdapConnection.getPort() + 1);
+
+    char[] expectedSystemPassword = expectedLdapConnection.getSystemPassword();
+    LdapConnection updatedLdapConnection = ldapService.upsertLdapConnection(ldapServer.getId(), expectedLdapConnection);
+    expectedLdapConnection.setSystemPassword(LdapService.FAKE_PASSWORD);
+    assertThat(updatedLdapConnection).isEqualToIgnoringGivenFields(expectedLdapConnection, JPA.IGNORE_FIELDS);
+
+    LdapConnection persistedLdapConnection = new LdapConnectionDAO().getById(expectedLdapConnection.getId());
+    assertThat(passwordHandler.decryptPassword(persistedLdapConnection.getSystemPassword()))
+        .isEqualTo(expectedSystemPassword);
+    expectedLdapConnection.setSystemPassword(persistedLdapConnection.getSystemPassword());
+    assertThat(persistedLdapConnection).isEqualToIgnoringGivenFields(expectedLdapConnection, JPA.IGNORE_FIELDS);
+  }
+
+  @Test
+  public void testUpsertLdapConnection_ValidateLdapServerId() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = tempEntity.newLdapConnection(ldapServer.getId());
+
+    assertThatThrownBy(() -> {
+      ldapService.upsertLdapConnection("fake LDAP server id", ldapConnection);
+    }).isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
+  }
+
+  @Test
+  public void testGetLdapUserMapping() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapUserMapping expectedLdapUserMapping = createUserMapping(ldapServer);
+
+    LdapUserMapping ldapUserMapping = ldapService.getLdapUserMapping(ldapServer.getId());
+    assertThat(ldapUserMapping).isEqualToIgnoringGivenFields(expectedLdapUserMapping, JPA.IGNORE_FIELDS);
+  }
+
+  @Test
+  public void testGetLdapUserMapping_NoLdapUserMapping() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+
+    LdapUserMapping ldapUserMapping = ldapService.getLdapUserMapping(ldapServer.getId());
+    assertThat(ldapUserMapping).isNotNull();
+    assertThat(ldapUserMapping.getServerId()).isEqualTo(ldapServer.getId());
+  }
+
+  @Test
+  public void testUpsertLdapUserMapping_Insert() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+
+    LdapUserMapping expectedLdapUserMapping = newInMemoryLdapUserMapping(ldapServer);
+    LdapUserMapping addedLdapUserMapping =
+        ldapService.upsertLdapUserMapping(ldapServer.getId(), expectedLdapUserMapping);
+    assertThat(addedLdapUserMapping.getId()).isNotNull();
+    expectedLdapUserMapping.setId(addedLdapUserMapping.getId());
+    assertThat(addedLdapUserMapping).isEqualToIgnoringGivenFields(expectedLdapUserMapping, JPA.IGNORE_FIELDS);
+
+    LdapUserMapping persistedLdapUserMapping = new LdapUserMappingDAO().getById(expectedLdapUserMapping.getId());
+    assertThat(persistedLdapUserMapping).isEqualToIgnoringGivenFields(expectedLdapUserMapping, JPA.IGNORE_FIELDS);
+  }
+
+  @Test
+  public void testUpsertLdapUserMapping_Update() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+
+    LdapUserMapping expectedLdapUserMapping = tempEntity.newLdapUserMapping(ldapServer.getId());
+    expectedLdapUserMapping.setUserEmailAttribute(expectedLdapUserMapping.getUserEmailAttribute() + "changed");
+    LdapUserMapping updatedLdapUserMapping =
+        ldapService.upsertLdapUserMapping(ldapServer.getId(), expectedLdapUserMapping);
+    assertThat(updatedLdapUserMapping).isEqualToIgnoringGivenFields(expectedLdapUserMapping, JPA.IGNORE_FIELDS);
+
+    LdapUserMapping persistedLdapUserMapping = new LdapUserMappingDAO().getById(expectedLdapUserMapping.getId());
+    assertThat(persistedLdapUserMapping).isEqualToIgnoringGivenFields(expectedLdapUserMapping, JPA.IGNORE_FIELDS);
+  }
+
+  @Test
+  public void testUpsertLdapUserMapping_ValidateLdapServerId() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapUserMapping ldapUserMapping = tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    assertThatThrownBy(() -> {
+      ldapService.upsertLdapUserMapping("fake LDAP server id", ldapUserMapping);
+    }).isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
   }
 
   private static int getRandomPort() {

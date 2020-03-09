@@ -534,7 +534,7 @@ public class PolicyAlertEmailerTest
     testLdapServer1.start();
     testLdapServer1.loadData("/PolicyAlertEmailerTest/ldap_users1.ldif");
 
-    ldapService.saveConnection(createLdapConnection(ldapServer1, testLdapServer1));
+    ldapService.upsertLdapConnection(createLdapConnection(ldapServer1, testLdapServer1));
 
     new LdapUserMappingDAO().insert(createUserMapping(ldapServer1));
   }
@@ -545,13 +545,13 @@ public class PolicyAlertEmailerTest
     testLdapServer2.start();
     testLdapServer2.loadData("/PolicyAlertEmailerTest/ldap_users2.ldif");
 
-    ldapService.saveConnection(createLdapConnection(ldapServer2, testLdapServer2));
+    ldapService.upsertLdapConnection(createLdapConnection(ldapServer2, testLdapServer2));
 
     new LdapUserMappingDAO().insert(createUserMapping(ldapServer2));
   }
 
   private LdapConnection createLdapConnection(LdapServer ldapServer, TestLdapServer testLdapServer) {
-    LdapConnection conn = ldapService.loadConnection(ldapServer.getId());
+    LdapConnection conn = ldapService.getLdapConnection(ldapServer.getId());
     conn.setServerId(ldapServer.getId());
     conn.setProtocol(LdapProtocol.LDAP);
     conn.setSearchBase("dc=company,dc=com");

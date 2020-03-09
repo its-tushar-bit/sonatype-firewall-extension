@@ -8,10 +8,7 @@ package com.sonatype.insight.brain.configuration.ldap;
 import java.util.Collections;
 
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
-import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
@@ -24,29 +21,6 @@ public class LdapResourceAuthzTest
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(LdapResource.RESOURCE_PATH);
-  }
-
-  @Test
-  public void testGetAll() throws Exception {
-    grantConfigureSystemPermission();
-
-    testAuthzGet(restRequest());
-  }
-
-  @Test
-  public void testGetConnection() throws Exception {
-    grantConfigureSystemPermission();
-
-    LdapServer ldapServer = tempEntity.newLdapServer("testGetConnection");
-    testAuthzGet(restRequest().path("{ldapServerId}/connection").parameter(ldapServer.getId()));
-  }
-
-  @Test
-  public void testGetUserMapping() throws Exception {
-    grantConfigureSystemPermission();
-
-    LdapServer ldapServer = tempEntity.newLdapServer("testGetUserMapping");
-    testAuthzGet(restRequest().path("{ldapServerId}/userMapping").parameter(ldapServer.getId()));
   }
 
   @Test
@@ -89,65 +63,6 @@ public class LdapResourceAuthzTest
     // 400 because we don't need a successful call. We only need to get past authorization.
     testAuthzPut(
         restRequest().path("{ldapServerId}/testUserMapping").parameter(ldapServer.getId()).body(ldapUserMapping), 400);
-  }
-
-  @Test
-  public void testAddLdapServer() throws Exception {
-    grantConfigureSystemPermission();
-
-    HttpResponse response = testAuthzPost(restRequest().body(new LdapServer("testAddLdapServer")));
-    new LdapServerDAO().delete(response.getBody(LdapServer.class));
-  }
-
-  @Test
-  public void testUpdateLdapServer() throws Exception {
-    grantConfigureSystemPermission();
-
-    testAuthzPut(restRequest().body(tempEntity.newLdapServer("testUpdateLdapServer")));
-  }
-
-  @Test
-  public void testDeleteLdapServer() throws Exception {
-    grantConfigureSystemPermission();
-
-    LdapServer ldapServer = tempEntity.newLdapServer("testDeleteLdapServer");
-    testAuthzDelete(restRequest().path("{ldapServerId}").parameter(ldapServer.getId()));
-  }
-
-  @Test
-  public void testUpdateLdapConnection() throws Exception {
-    grantConfigureSystemPermission();
-
-    LdapServer ldapServer = tempEntity.newLdapServer("testUpdateLdapConnection");
-    LdapConnection ldapConnection = tempEntity.newLdapConnection(ldapServer.getId());
-    testAuthzPut(restRequest().path("{ldapServerId}/connection").parameter(ldapServer.getId()).body(ldapConnection));
-  }
-
-  @Test
-  public void testUpdateUserMapping() throws Exception {
-    grantConfigureSystemPermission();
-
-    LdapServer ldapServer = tempEntity.newLdapServer("testUpdateUserMapping");
-    tempEntity.newLdapConnection(ldapServer.getId());
-    LdapUserMapping ldapUserMapping = new LdapUserMapping();
-    ldapUserMapping.setUserBaseDN("userBaseDN");
-    ldapUserMapping.setUserSubtree(true);
-    ldapUserMapping.setUserObjectClass("userObjectClass");
-    ldapUserMapping.setUserFilter("userFilter");
-    ldapUserMapping.setUserIDAttribute("userIDAttribute");
-    ldapUserMapping.setUserRealNameAttribute("realNameAttribute");
-    ldapUserMapping.setUserEmailAttribute("emailAttribute");
-    ldapUserMapping.setUserPasswordAttribute("passwordAttribute");
-    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
-    ldapUserMapping.setGroupBaseDN("groupBaseDN");
-    ldapUserMapping.setGroupSubtree(true);
-    ldapUserMapping.setGroupObjectClass("groupObjectClass");
-    ldapUserMapping.setGroupIDAttribute("groupIDAttribute");
-    ldapUserMapping.setGroupMemberAttribute("groupMemberAttribute");
-    ldapUserMapping.setGroupMemberFormat("groupMemberFormat");
-    ldapUserMapping.setUserMemberOfGroupAttribute("userMemberOfGroupAttribute");
-    ldapUserMapping.setServerId(ldapServer.getId());
-    testAuthzPut(restRequest().path("{ldapServerId}/userMapping").parameter(ldapServer.getId()).body(ldapUserMapping));
   }
 
   @Test

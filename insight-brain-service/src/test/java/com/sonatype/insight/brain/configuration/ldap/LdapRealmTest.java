@@ -300,7 +300,7 @@ public class LdapRealmTest
     testLdapServer.loadData("/" + getClass().getSimpleName() + "/ldap_users1.ldif");
 
     connectionDetails.setPort(testLdapServer.getPort());
-    ldapService.saveConnection(connectionDetails);
+    ldapService.upsertLdapConnection(connectionDetails);
 
     return this;
   }

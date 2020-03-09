@@ -5,9 +5,7 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -28,10 +26,8 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnectionStatus.Status;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.HasLdapServerId;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
-import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -52,23 +48,21 @@ public class LdapResource
 {
   private static final Logger log = LoggerFactory.getLogger(LdapResource.class);
 
-  public static final String RESOURCE_PATH = "rest/config/ldap";
+  static final String RESOURCE_PATH = "rest/config/ldap";
 
-  public static final String CONNECTION_PATH = "{ldapServerId}/connection";
+  static final String CONNECTION_PATH = "{ldapServerId}/connection";
 
-  public static final String USER_MAPPING_PATH = "{ldapServerId}/userMapping";
+  static final String USER_MAPPING_PATH = "{ldapServerId}/userMapping";
 
-  public static final String TEST_CONNECTION_PATH = "{ldapServerId}/testConnection";
+  static final String TEST_CONNECTION_PATH = "{ldapServerId}/testConnection";
 
-  public static final String TEST_USER_MAPPING_PATH = "{ldapServerId}/testUserMapping";
+  static final String TEST_USER_MAPPING_PATH = "{ldapServerId}/testUserMapping";
 
-  public static final String TEST_LOGIN_PATH = "{ldapServerId}/testLogin";
+  static final String TEST_LOGIN_PATH = "{ldapServerId}/testLogin";
 
-  public static final String PRIORITY_PATH = "priority";
+  static final String PRIORITY_PATH = "priority";
 
   private final LdapServerDAO serverDao = new LdapServerDAO();
-
-  private final LdapUserMappingDAO umapDao = new LdapUserMappingDAO();
 
   private final LdapService ldapService;
 
@@ -82,13 +76,8 @@ public class LdapResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public List<LdapServer> getAll() {
-    List<LdapServer> result = new ArrayList<>();
-    for (LdapServer server : serverDao.getAll()) {
-      result.add(server);
-    }
-    return result;
+  public List<LdapServer> getAllLdapServers() {
+    return ldapService.getAllLdapServers();
   }
 
   /**
@@ -97,12 +86,9 @@ public class LdapResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Audited(AuditEvent.CREATE_LDAP_SERVER)
-  public LdapServer addLdapServer(LdapServer server) {
-    serverDao.insert(server);
-    auditLdapServer(server);
-    return server;
+  public LdapServer addLdapServer(LdapServer ldapServer) {
+    return ldapService.addLdapServer(ldapServer);
   }
 
   /**
@@ -111,12 +97,9 @@ public class LdapResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Audited(AuditEvent.UPDATE_LDAP_SERVER)
-  public LdapServer updateLdapServer(LdapServer server) {
-    serverDao.update(server);
-    auditLdapServer(server);
-    return server;
+  public LdapServer updateLdapServer(LdapServer ldapServer) {
+    return ldapService.updateLdapServer(ldapServer);
   }
 
   /**
@@ -124,16 +107,9 @@ public class LdapResource
    */
   @DELETE
   @Path("{ldapServerId}")
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Audited(AuditEvent.DELETE_LDAP_SERVER)
-  public void deleteLdapServer(@PathParam("ldapServerId") final String serverId) {
-    LdapServer server = serverDao.getByIdNotNull(serverId);
-    serverDao.delete(server);
-    auditLdapServer(server);
-  }
-
-  private void auditLdapServer(final LdapServer server) {
-    AuditData.get().setData("ldapServerId", server.getId()).setData("ldapServerName", server.getName());
+  public void deleteLdapServer(@PathParam("ldapServerId") String ldapServerId) {
+    ldapService.deleteLdapServer(ldapServerId);
   }
 
   // connection
@@ -144,9 +120,8 @@ public class LdapResource
   @GET
   @Path(CONNECTION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public LdapConnection getConnection(@PathParam("ldapServerId") String serverId) {
-    return ldapService.loadConnection(serverId);
+  public LdapConnection getLdapConnection(@PathParam("ldapServerId") String ldapServerId) {
+    return ldapService.getLdapConnection(ldapServerId);
   }
 
   /**
@@ -156,28 +131,12 @@ public class LdapResource
   @Path(CONNECTION_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Audited(AuditEvent.CONFIGURE_LDAP_CONNECTION)
-  public LdapConnection updateLdapConnection(@PathParam("ldapServerId") String serverId, LdapConnection conn) {
-    validateServerId(serverId, conn);
-    LdapConnection ldapConnection = ldapService.saveConnection(conn);
-    auditLdapConnection(ldapConnection);
-    return ldapConnection;
-  }
-
-  private void auditLdapConnection(final LdapConnection ldapConnection) {
-    auditLdapServer(serverDao.getByIdNotNull(ldapConnection.getServerId()));
-    AuditData.get()
-        .setData("ldapProtocol", ldapConnection.getProtocol().getProtocol())
-        .setData("ldapHostname", ldapConnection.getHostname())
-        .setData("ldapPort", ldapConnection.getPort())
-        .setData("ldapSearchBaseDn", ldapConnection.getSearchBase())
-        .setData("ldapAuthenticationMethod",
-            ldapConnection.getAuthenticationMethod().getMethod().toLowerCase(Locale.ROOT))
-        .setData("ldapSaslRealm", ldapConnection.getSaslRealm())
-        .setData("ldapUsername", ldapConnection.getSystemUsername())
-        .setData("ldapConnectionTimeoutInSeconds", ldapConnection.getConnectionTimeout())
-        .setData("ldapRetryDelayInSeconds", ldapConnection.getRetryDelay());
+  public LdapConnection upsertLdapConnection(
+      @PathParam("ldapServerId") String ldapServerId,
+      LdapConnection ldapConnection)
+  {
+    return ldapService.upsertLdapConnection(ldapServerId, ldapConnection);
   }
 
   // user mapping
@@ -188,14 +147,8 @@ public class LdapResource
   @GET
   @Path(USER_MAPPING_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public LdapUserMapping getUserMapping(@PathParam("ldapServerId") String serverId) {
-    LdapUserMapping umap = umapDao.getByServerId(serverId);
-    if (umap == null) {
-      umap = new LdapUserMapping();
-      umap.setServerId(serverId);
-    }
-    return umap;
+  public LdapUserMapping getLdapUserMapping(@PathParam("ldapServerId") String ldapServerId) {
+    return ldapService.getLdapUserMapping(ldapServerId);
   }
 
   /**
@@ -205,47 +158,12 @@ public class LdapResource
   @Path(USER_MAPPING_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Audited(AuditEvent.CONFIGURE_LDAP_USER_MAPPING)
-  public LdapUserMapping updateUserMapping(@PathParam("ldapServerId") String serverId, LdapUserMapping umap) {
-    validateServerId(serverId, umap);
-
-    if (umap.getId() != null) {
-      umapDao.update(umap);
-    }
-    else {
-      umapDao.insert(umap);
-    }
-    auditLdapUserMapping(umap);
-    return umap;
-  }
-
-  private void auditLdapUserMapping(final LdapUserMapping umap) {
-    auditLdapServer(serverDao.getByIdNotNull(umap.getServerId()));
-    AuditData.get()
-        .setData("ldapUserBaseDn", umap.getUserBaseDN())
-        .setData("ldapUserSubtree", umap.isUserSubtree() ? "enabled" : "disabled")
-        .setData("ldapUserObjectClass", umap.getUserObjectClass())
-        .setData("ldapUserFilter", umap.getUserFilter())
-        .setData("ldapUserIdAttribute", umap.getUserIDAttribute())
-        .setData("ldapUserRealNameAttribute", umap.getUserRealNameAttribute())
-        .setData("ldapUserEmailAttribute", umap.getUserEmailAttribute())
-        .setData("ldapUserPasswordAttribute", umap.getUserPasswordAttribute())
-        .setEnum("ldapGroupType", umap.getGroupMappingType());
-    if (umap.getGroupMappingType().equals(LdapGroupMappingType.STATIC)) {
-      AuditData.get()
-          .setData("ldapStaticGroupBaseDn", umap.getGroupBaseDN())
-          .setData("ldapStaticGroupSubtree", umap.isGroupSubtree() ? "enabled" : "disabled")
-          .setData("ldapStaticGroupObjectClass", umap.getGroupObjectClass())
-          .setData("ldapStaticGroupIdAttribute", umap.getGroupIDAttribute())
-          .setData("ldapStaticGroupMemberAttribute", umap.getGroupMemberAttribute())
-          .setData("ldapStaticGroupMemberFormat", umap.getGroupMemberFormat());
-    }
-    else if (umap.getGroupMappingType().equals(LdapGroupMappingType.DYNAMIC)) {
-      AuditData.get()
-          .setData("ldapDynamicGroupMemberOfAttribute", umap.getUserMemberOfGroupAttribute())
-          .setData("ldapDynamicGroupSearch", umap.isDynamicGroupSearchEnabled() ? "enabled" : "disabled");
-    }
+  public LdapUserMapping upsertLdapUserMapping(
+      @PathParam("ldapServerId") String ldapServerId,
+      LdapUserMapping ldapUserMapping)
+  {
+    return ldapService.upsertLdapUserMapping(ldapServerId, ldapUserMapping);
   }
 
   /**

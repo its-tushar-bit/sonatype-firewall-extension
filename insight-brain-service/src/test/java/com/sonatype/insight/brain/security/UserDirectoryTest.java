@@ -133,7 +133,7 @@ public class UserDirectoryTest
     LdapUserMapping umap = tempEntity.newLdapUserMapping(ldapServer.getId());
 
     conn.setSearchBase("dc=company,dc=com");
-    ldapService.saveConnection(conn);
+    ldapService.upsertLdapConnection(conn);
 
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);

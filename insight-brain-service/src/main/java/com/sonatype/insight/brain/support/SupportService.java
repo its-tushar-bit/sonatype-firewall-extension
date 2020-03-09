@@ -265,7 +265,7 @@ class SupportService
     final List<LdapConfig> ldapServers = new ArrayList<>();
     final LdapUserMappingDAO userDao = new LdapUserMappingDAO();
     for (final LdapServer ldapServer : new LdapServerDAO().getAll()) {
-      final LdapConnection ldapConnection = ldapService.loadConnection(ldapServer.getId());
+      final LdapConnection ldapConnection = ldapService.getLdapConnection(ldapServer.getId());
       final LdapUserMapping ldapUserMapping = userDao.getByServerId(ldapServer.getId());
       ldapServers.add(new LdapConfig(ldapServer, ldapConnection, ldapUserMapping));
     }

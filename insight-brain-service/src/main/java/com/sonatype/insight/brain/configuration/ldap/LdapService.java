@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.configuration.ldap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -19,14 +20,19 @@ import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 import javax.naming.NamingSecurityException;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+import com.sonatype.insight.brain.model.configuration.ldap.HasLdapServerId;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
  * Manages LDAP information.
@@ -52,16 +58,41 @@ public class LdapService
     this.passwordHandler = passwordHandler;
   }
 
-  // LDAP connections
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  LdapServer addLdapServer(LdapServer ldapServer) {
+    serverDao.insert(ldapServer);
+    auditLdapServer(ldapServer);
+    return ldapServer;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  LdapServer updateLdapServer(LdapServer ldapServer) {
+    serverDao.update(ldapServer);
+    auditLdapServer(ldapServer);
+    return ldapServer;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  void deleteLdapServer(String ldapServerId) {
+    LdapServer ldapServer = serverDao.getByIdNotNull(ldapServerId);
+    serverDao.delete(ldapServer);
+    auditLdapServer(ldapServer);
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  List<LdapServer> getAllLdapServers() {
+    return serverDao.getAll();
+  }
 
   /**
    * Loads the LDAP connection from the datastore, hiding any cached password.
    */
-  public LdapConnection loadConnection(String serverId) {
-    LdapConnection conn = connDao.getByServerId(serverId);
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public LdapConnection getLdapConnection(String ldapServerId) {
+    LdapConnection conn = connDao.getByServerId(ldapServerId);
     if (conn == null) {
       conn = new LdapConnection();
-      conn.setServerId(serverId);
+      conn.setServerId(ldapServerId);
     }
     return fakeOutPassword(conn);
   }
@@ -69,16 +100,48 @@ public class LdapService
   /**
    * Saves the LDAP connection to the datastore, encrypting any new password.
    */
-  public LdapConnection saveConnection(LdapConnection conn) {
-    LdapConnection encrypted = encryptPassword(conn);
+  public LdapConnection upsertLdapConnection(LdapConnection ldapConnection) {
+    LdapConnection encrypted = encryptPassword(ldapConnection);
     if (encrypted.getId() != null) {
       connDao.update(encrypted);
     }
     else {
       connDao.insert(encrypted);
     }
-    resetConnectionFailures(conn);
+    resetConnectionFailures(ldapConnection);
     return fakeOutPassword(encrypted);
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  LdapConnection upsertLdapConnection(String ldapServerId, LdapConnection ldapConnection) {
+    validateServerId(ldapServerId, ldapConnection);
+    ldapConnection = upsertLdapConnection(ldapConnection);
+    auditLdapConnection(ldapConnection);
+    return ldapConnection;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  LdapUserMapping getLdapUserMapping(String ldapServerId) {
+    LdapUserMapping ldapUserMapping = userDao.getByServerId(ldapServerId);
+    if (ldapUserMapping == null) {
+      ldapUserMapping = new LdapUserMapping();
+      ldapUserMapping.setServerId(ldapServerId);
+    }
+    return ldapUserMapping;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  LdapUserMapping upsertLdapUserMapping(String ldapServerId, LdapUserMapping ldapUserMapping) {
+    validateServerId(ldapServerId, ldapUserMapping);
+
+    if (ldapUserMapping.getId() != null) {
+      userDao.update(ldapUserMapping);
+    }
+    else {
+      userDao.insert(ldapUserMapping);
+    }
+    auditLdapUserMapping(ldapUserMapping);
+    return ldapUserMapping;
   }
 
   // LDAP verification
@@ -388,6 +451,55 @@ public class LdapService
     final String connId = conn.getId();
     if (connId != null) {
       failureInfoMap.remove(connId);
+    }
+  }
+
+  private void validateServerId(String serverId, HasLdapServerId entity) {
+    if (serverId == null || entity == null || !serverId.equals(entity.getServerId())) {
+      throw new BadRequestException("Inconsistent LDAP server ID.");
+    }
+  }
+
+  private void auditLdapServer(LdapServer ldapServer) {
+    AuditData.get().setData("ldapServerId", ldapServer.getId()).setData("ldapServerName", ldapServer.getName());
+  }
+
+  private void auditLdapConnection(LdapConnection ldapConnection) {
+    auditLdapServer(serverDao.getByIdNotNull(ldapConnection.getServerId()));
+    AuditData.get().setData("ldapProtocol", ldapConnection.getProtocol().getProtocol()) //
+        .setData("ldapHostname", ldapConnection.getHostname()) //
+        .setData("ldapPort", ldapConnection.getPort()) //
+        .setData("ldapSearchBaseDn", ldapConnection.getSearchBase()) //
+        .setData("ldapAuthenticationMethod",
+            ldapConnection.getAuthenticationMethod().getMethod().toLowerCase(Locale.ROOT)) //
+        .setData("ldapSaslRealm", ldapConnection.getSaslRealm()) //
+        .setData("ldapUsername", ldapConnection.getSystemUsername()) //
+        .setData("ldapConnectionTimeoutInSeconds", ldapConnection.getConnectionTimeout()) //
+        .setData("ldapRetryDelayInSeconds", ldapConnection.getRetryDelay()); //
+  }
+
+  private void auditLdapUserMapping(LdapUserMapping ldapUserMapping) {
+    auditLdapServer(serverDao.getByIdNotNull(ldapUserMapping.getServerId()));
+    AuditData.get().setData("ldapUserBaseDn", ldapUserMapping.getUserBaseDN())
+        .setData("ldapUserSubtree", ldapUserMapping.isUserSubtree() ? "enabled" : "disabled")
+        .setData("ldapUserObjectClass", ldapUserMapping.getUserObjectClass())
+        .setData("ldapUserFilter", ldapUserMapping.getUserFilter())
+        .setData("ldapUserIdAttribute", ldapUserMapping.getUserIDAttribute())
+        .setData("ldapUserRealNameAttribute", ldapUserMapping.getUserRealNameAttribute())
+        .setData("ldapUserEmailAttribute", ldapUserMapping.getUserEmailAttribute())
+        .setData("ldapUserPasswordAttribute", ldapUserMapping.getUserPasswordAttribute())
+        .setEnum("ldapGroupType", ldapUserMapping.getGroupMappingType());
+    if (ldapUserMapping.getGroupMappingType().equals(LdapGroupMappingType.STATIC)) {
+      AuditData.get().setData("ldapStaticGroupBaseDn", ldapUserMapping.getGroupBaseDN())
+          .setData("ldapStaticGroupSubtree", ldapUserMapping.isGroupSubtree() ? "enabled" : "disabled")
+          .setData("ldapStaticGroupObjectClass", ldapUserMapping.getGroupObjectClass())
+          .setData("ldapStaticGroupIdAttribute", ldapUserMapping.getGroupIDAttribute())
+          .setData("ldapStaticGroupMemberAttribute", ldapUserMapping.getGroupMemberAttribute())
+          .setData("ldapStaticGroupMemberFormat", ldapUserMapping.getGroupMemberFormat());
+    }
+    else if (ldapUserMapping.getGroupMappingType().equals(LdapGroupMappingType.DYNAMIC)) {
+      AuditData.get().setData("ldapDynamicGroupMemberOfAttribute", ldapUserMapping.getUserMemberOfGroupAttribute())
+          .setData("ldapDynamicGroupSearch", ldapUserMapping.isDynamicGroupSearchEnabled() ? "enabled" : "disabled");
     }
   }
 }

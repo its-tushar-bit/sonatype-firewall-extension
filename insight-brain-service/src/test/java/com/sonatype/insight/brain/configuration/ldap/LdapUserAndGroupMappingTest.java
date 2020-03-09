@@ -242,7 +242,7 @@ public class LdapUserAndGroupMappingTest
   }
 
   private LdapUserAndGroupMappingTest checkMapping(LdapConnection conn, LdapUserMapping umap) throws Exception {
-    ldapService.saveConnection(conn);
+    ldapService.upsertLdapConnection(conn);
     List<LdapUser> users = ldapService.testUserMapping(umap, -1);
     Collections.sort(users);
 
@@ -299,7 +299,7 @@ public class LdapUserAndGroupMappingTest
   }
 
   private LdapConnection createLdapConnection() {
-    LdapConnection conn = ldapService.loadConnection(serverDetails.getId());
+    LdapConnection conn = ldapService.getLdapConnection(serverDetails.getId());
     conn.setServerId(serverDetails.getId());
 
     conn.setProtocol(LdapProtocol.LDAP);

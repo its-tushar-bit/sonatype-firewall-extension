@@ -187,6 +187,7 @@
             </goals>
             <configuration>
               <includes>
+                <include>**/JPA*</include>
                 <include>**/TemporaryEntity*</include>
                 <include>**/TemporaryEntity/**</include>
                 <include>**/PolicyViolationAggregationDataHelper*</include>

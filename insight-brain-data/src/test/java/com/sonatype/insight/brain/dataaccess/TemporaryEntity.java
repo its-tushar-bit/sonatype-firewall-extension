@@ -618,6 +618,10 @@ public class TemporaryEntity
     Collections.addAll(this.webhooks, webhooks);
   }
 
+  public void register(LdapServer... ldapServers) {
+    Collections.addAll(this.ldapServers, ldapServers);
+  }
+
   public Application newApplicationWithParent() {
     return newApplicationWithParent("DUMMY-PUBLIC-ID-" + uuid(), "DUMMY-NAME-" + uuid(), "ORG-DUMMY-NAME-" + uuid());
   }

@@ -90,17 +90,17 @@ public class LdapResourceAuditTest
   }
 
   @Test
-  public void testUpdateLdapConnection_AuthenticationMethodNONE() throws Exception {
-    testUpdateLdapConnection(LdapAuthenticationMethod.NONE, "none");
+  public void testUpsertLdapConnection_AuthenticationMethodNONE() throws Exception {
+    testUpsertLdapConnection(LdapAuthenticationMethod.NONE, "none");
   }
 
   @Test
-  public void testUpdateLdapConnection_AuthenticationMethodDIGESTMD5() throws Exception {
-    testUpdateLdapConnection(LdapAuthenticationMethod.DIGESTMD5, "digest-md5");
+  public void testUpsertLdapConnection_AuthenticationMethodDIGESTMD5() throws Exception {
+    testUpsertLdapConnection(LdapAuthenticationMethod.DIGESTMD5, "digest-md5");
   }
 
   @Test
-  public void testUpdateLdapConnection_Unauthorized() throws Exception {
+  public void testUpsertLdapConnection_Unauthorized() throws Exception {
     LdapConnection ldapConnection = createLdapConnection(LdapAuthenticationMethod.NONE);
     ldapRequest().path(LdapResource.CONNECTION_PATH).parameter(ldapServer.getId()).with(unauthorizedUser())
         .body(ldapConnection).put();
@@ -109,37 +109,37 @@ public class LdapResourceAuditTest
   }
 
   @Test
-  public void testUpdateUserMapping_GroupMappingTypeNONE_Enabled() throws Exception {
-    testUpdateUserMapping(LdapGroupMappingType.NONE, "none", true);
+  public void testUpsertUserMapping_GroupMappingTypeNONE_Enabled() throws Exception {
+    testUpsertUserMapping(LdapGroupMappingType.NONE, "none", true);
   }
 
   @Test
-  public void testUpdateUserMapping_GroupMappingTypeNONE_Disabled() throws Exception {
-    testUpdateUserMapping(LdapGroupMappingType.NONE, "none", false);
+  public void testUpsertUserMapping_GroupMappingTypeNONE_Disabled() throws Exception {
+    testUpsertUserMapping(LdapGroupMappingType.NONE, "none", false);
   }
 
   @Test
-  public void testUpdateUserMapping_GroupMappingTypeSTATIC_Enabled() throws Exception {
-    testUpdateUserMapping(LdapGroupMappingType.STATIC, "static", true);
+  public void testUpsertUserMapping_GroupMappingTypeSTATIC_Enabled() throws Exception {
+    testUpsertUserMapping(LdapGroupMappingType.STATIC, "static", true);
   }
 
   @Test
-  public void testUpdateUserMapping_GroupMappingTypeSTATIC_Disabled() throws Exception {
-    testUpdateUserMapping(LdapGroupMappingType.STATIC, "static", false);
+  public void testUpsertUserMapping_GroupMappingTypeSTATIC_Disabled() throws Exception {
+    testUpsertUserMapping(LdapGroupMappingType.STATIC, "static", false);
   }
 
   @Test
-  public void testUpdateUserMapping_GroupMappingTypeDYNAMIC_Enabled() throws Exception {
-    testUpdateUserMapping(LdapGroupMappingType.DYNAMIC, "dynamic", true);
+  public void testUpsertUserMapping_GroupMappingTypeDYNAMIC_Enabled() throws Exception {
+    testUpsertUserMapping(LdapGroupMappingType.DYNAMIC, "dynamic", true);
   }
 
   @Test
-  public void testUpdateUserMapping_GroupMappingTypeDYNAMIC_Disabled() throws Exception {
-    testUpdateUserMapping(LdapGroupMappingType.DYNAMIC, "dynamic", false);
+  public void testUpsertUserMapping_GroupMappingTypeDYNAMIC_Disabled() throws Exception {
+    testUpsertUserMapping(LdapGroupMappingType.DYNAMIC, "dynamic", false);
   }
 
   @Test
-  public void testUpdateUserMapping_Unauthorized() throws Exception {
+  public void testUpsertUserMapping_Unauthorized() throws Exception {
     LdapUserMapping userMapping = newUserMapping(LdapGroupMappingType.NONE, false);
     ldapRequest().path(LdapResource.USER_MAPPING_PATH).parameter(ldapServer.getId()).with(unauthorizedUser())
         .body(userMapping).put();
@@ -167,10 +167,10 @@ public class LdapResourceAuditTest
     assertAuditLog(AuditEvent.PRIORITIZE_LDAP, "unauthorized");
   }
 
-  private void testUpdateUserMapping(final LdapGroupMappingType groupMappingType,
-                                     final String expectedGroupMappingType,
-                                     boolean enabledDisabled)
-      throws Exception
+  private void testUpsertUserMapping(
+      final LdapGroupMappingType groupMappingType,
+      final String expectedGroupMappingType,
+      boolean enabledDisabled) throws Exception
   {
     LdapUserMapping userMapping = newUserMapping(groupMappingType, enabledDisabled);
     ldapRequest().path(LdapResource.USER_MAPPING_PATH).parameter(ldapServer.getId()).body(userMapping).put();
@@ -201,8 +201,9 @@ public class LdapResourceAuditTest
     }
   }
 
-  private void testUpdateLdapConnection(final LdapAuthenticationMethod ldapAuthenticationMethod,
-                                        final String expectedAuthMethodOutput) throws Exception
+  private void testUpsertLdapConnection(
+      final LdapAuthenticationMethod ldapAuthenticationMethod,
+      final String expectedAuthMethodOutput) throws Exception
   {
     LdapConnection ldapConnection = createLdapConnection(ldapAuthenticationMethod);
     ldapRequest().path(LdapResource.CONNECTION_PATH).parameter(ldapServer.getId()).body(ldapConnection).put();

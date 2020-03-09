@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
 import com.sonatype.insight.brain.search.query.SearchService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 
 import com.google.inject.Binder;
 import org.junit.Test;
@@ -54,10 +55,14 @@ public class IndexSuggestionTest
   @Mock
   private VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
 
+  @Mock
+  private TelemetrySender telementrySenderMock;
+
   @Override
   public void configure(Binder binder) {
     lenient().when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription(anyString())).thenReturn("");
     binder.bind(VulnerabilityDescriptionFetcher.class).toInstance(vulnerabilityDescriptionFetcher);
+    binder.bind(TelemetrySender.class).toInstance(telementrySenderMock);
     super.configure(binder);
   }
 

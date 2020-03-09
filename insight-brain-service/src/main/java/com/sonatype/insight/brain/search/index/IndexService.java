@@ -52,7 +52,10 @@ import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.iterator.FieldIterator;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
@@ -81,6 +84,10 @@ import static java.util.stream.Collectors.toList;
 @Singleton
 public class IndexService
 {
+  static final String SEARCH_INDEX_DURATION_SECONDS = "search_index_duration_seconds";
+
+  static final String SEARCH_INDEX_SIZE_BYTES = "search_index_size_bytes";
+
   private static final ImmutableSet<String> SUGGESTER_FIELDS_TO_IGNORE = ImmutableSet.of(
           FieldIdentifier.COMPONENT_LABEL_DESCRIPTION.label, 
           FieldIdentifier.VULNERABILITY_DESCRIPTION.label, 
@@ -105,6 +112,8 @@ public class IndexService
   private final PolicyDAO policyDAO;
 
   private final InsightWork insightWork;
+
+  private final TelemetrySender telemetrySender;
 
   private final VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
 
@@ -150,6 +159,7 @@ public class IndexService
       OwnerDAO ownerDAO,
       PolicyDAO policyDAO,
       InsightWork insightWork,
+      TelemetrySender telemetrySender,
       VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher,
       LuceneComponents luceneComponents)
   {
@@ -162,6 +172,7 @@ public class IndexService
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
     this.insightWork = insightWork;
+    this.telemetrySender = telemetrySender;
     this.vulnerabilityDescriptionFetcher = vulnerabilityDescriptionFetcher;
     this.luceneComponents = luceneComponents;
   }
@@ -210,6 +221,8 @@ public class IndexService
 
   public void createSearchIndex() throws IOException {
     log.info("creating search index...");
+    long start = System.currentTimeMillis();
+    long totalIndexSize = 0;
 
     Path indexPath = insightWork.getSearchIndexDir().toPath();
     Path suggesterPath = insightWork.getSearchSuggesterDir().toPath();
@@ -259,7 +272,9 @@ public class IndexService
       log.info("label indexing complete");
       policyDocs.join();
       log.info("policy indexing complete");
+      indexWriter.commit();
       log.info("all indexing complete");
+      totalIndexSize += getDirectorySize(directory);
     }
 
     // write to search-suggester dir
@@ -280,9 +295,23 @@ public class IndexService
         suggester.commit();
         log.info("completed building suggester");
       }
+      totalIndexSize += getDirectorySize(suggesterFile);
     }
 
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.ADVANCED_SEARCH_INDEXING);
+    telemetryData.put(SEARCH_INDEX_DURATION_SECONDS, (System.currentTimeMillis() - start) / 1000);
+    telemetryData.put(SEARCH_INDEX_SIZE_BYTES, totalIndexSize);
+    telemetrySender.send(telemetryData);
+
     log.info("index creation exit");
+  }
+
+  private long getDirectorySize(Directory directory) throws IOException {
+    long bytes = 0;
+    for (String filename : directory.listAll()) {
+      bytes += directory.fileLength(filename);
+    }
+    return bytes;
   }
 
   private Set<String> getDocFieldValues(Document doc, Function<String, Query> queryParser) {

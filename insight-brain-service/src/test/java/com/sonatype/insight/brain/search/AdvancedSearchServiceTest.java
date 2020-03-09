@@ -15,8 +15,11 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 
+import com.google.inject.Binder;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,6 +36,15 @@ public class AdvancedSearchServiceTest
 
   @Inject
   private InsightWork insightWork;
+
+  @Mock
+  private TelemetrySender telementrySenderMock;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(TelemetrySender.class).toInstance(telementrySenderMock);
+    super.configure(binder);
+  }
 
   @Test
   public void testSetStatus_EnableSearch() {

@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.search.index;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.stream.Stream;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -20,6 +24,10 @@ import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.index.IndexService.IndexingContext;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
 import org.apache.lucene.document.Document;
@@ -30,10 +38,12 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexableField;
 import org.assertj.core.groups.Tuple;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class IndexServiceTest
@@ -42,12 +52,19 @@ public class IndexServiceTest
   @Inject
   private IndexService indexService;
 
+  @Inject
+  private InsightWork work;
+
   @Mock
   private VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
+
+  @Mock
+  private TelemetrySender telementrySenderMock;
 
   @Override
   public void configure(Binder binder) {
     binder.bind(VulnerabilityDescriptionFetcher.class).toInstance(vulnerabilityDescriptionFetcher);
+    binder.bind(TelemetrySender.class).toInstance(telementrySenderMock);
     super.configure(binder);
   }
 
@@ -179,5 +196,24 @@ public class IndexServiceTest
         field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true));
+  }
+
+  @Test
+  public void testCreateSearchIndex_Telemetry() throws Exception {
+    long start = System.currentTimeMillis();
+    indexService.createSearchIndex();
+    long duration = (System.currentTimeMillis() - start) / 1000;
+    long size;
+    try (Stream<Path> files = Files.walk(work.getSearchIndexDir().toPath().getParent())) {
+      size = files.filter(Files::isRegularFile).mapToLong(file -> file.toFile().length()).sum();
+    }
+
+    ArgumentCaptor<TelemetryData> telemetryDataCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telementrySenderMock).send(telemetryDataCaptor.capture());
+    TelemetryData telemetryData = telemetryDataCaptor.getValue();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.ADVANCED_SEARCH_INDEXING);
+    assertThat((Long) telemetryData.getAttributes().get(IndexService.SEARCH_INDEX_DURATION_SECONDS))
+        .isGreaterThanOrEqualTo(0).isLessThanOrEqualTo(duration);
+    assertThat((Long) telemetryData.getAttributes().get(IndexService.SEARCH_INDEX_SIZE_BYTES)).isEqualTo(size);
   }
 }

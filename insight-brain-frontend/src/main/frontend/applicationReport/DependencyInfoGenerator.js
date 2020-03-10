@@ -3,44 +3,58 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { always, flatten, indexBy, isNil, groupBy, map, pipe, prop, reduce, reject } from 'ramda';
+import { always, indexBy, groupBy, map, pipe, prop, reduce } from 'ramda';
 
 import { serializeComponentIdentifier } from '../util/componentIdentifierUtils';
-import { isNilOrEmpty, lookup, setToArray } from '../util/jsUtil';
+import { isNilOrEmpty, setToArray } from '../util/jsUtil';
 
-const toComponentIdentifierKey = pipe(prop('componentIdentifier'), serializeComponentIdentifier);
+const getKey = prop('key');
 
 const emptyDependencyInfoGenerator = {
   getDependencyInfo: always(null)
 };
 
-// given componentId, get all its dependencies from indexedDependencyNodes
-const getAllDependenciesFromNodes = indexedDependencyNodes => componentId => {
-  const getNextDependenciesLayer = pipe(
-      map(pipe(serializeComponentIdentifier, lookup(indexedDependencyNodes), prop('children'))),
-      flatten,
-      reject(isNil),
-      map(prop('componentIdentifier'))
-  );
-  let dependencies = [],
-      dependenciesLayer = [componentId];
-  while (!isNilOrEmpty(dependenciesLayer)) {
-    dependenciesLayer = getNextDependenciesLayer(dependenciesLayer);
-    dependencies = [...dependencies, ...dependenciesLayer];
+// given serialized component id of a component, get all its dependencies from indexedDependencyNodes
+function getAllDependenciesFromNodes(indexedDependencyNodes) {
+  // imperative for performance CLM-15122
+  function getNextDependenciesLayer(currentLayer) {
+    const retval = [];
+
+    for (const key of currentLayer) {
+      const childDependencies = indexedDependencyNodes[key].children || [];
+
+      for (const dependency of childDependencies) {
+        if (dependency) {
+          retval.push(getKey(dependency));
+        }
+      }
+    }
+
+    return retval;
   }
-  return dependencies;
-};
+
+  return function(parentKey) {
+    let dependencies = [],
+        dependenciesLayer = [parentKey];
+    while (dependenciesLayer && dependenciesLayer.length) {
+      dependenciesLayer = getNextDependenciesLayer(dependenciesLayer);
+      dependencies.push.apply(dependencies, dependenciesLayer);
+    }
+    return dependencies;
+  };
+}
 
 // creates reducer of children into rootAncestorsByChild map for given rootAncestorId
-const getRootAncestorsByChildReducer = rootAncestorId => (acc, child) => {
-  const childKey = serializeComponentIdentifier(child),
-      rootAncestors = acc[childKey];
+const getRootAncestorsByChildReducer = rootAncestorId => (acc, childKey) => {
+  const rootAncestors = acc[childKey];
+
   if (rootAncestors) {
     rootAncestors.add(rootAncestorId);
   }
   else {
     acc[childKey] = new Set([rootAncestorId]);
   }
+
   return acc;
 };
 
@@ -49,6 +63,12 @@ const getRootAncestorsByChildReducer = rootAncestorId => (acc, child) => {
 const mapRootAncestorsToChildren = reduce((acc, [rootAncestorId, children]) => {
   return reduce(getRootAncestorsByChildReducer(rootAncestorId), acc, children);
 }, {});
+
+const populateDependencyNodeKeys = node => ({
+  ...node,
+  key: node.componentIdentifier && serializeComponentIdentifier(node.componentIdentifier),
+  children: node.children && map(populateDependencyNodeKeys, node.children)
+});
 
 export default function DependencyInfoGenerator(dependencies) {
   if (!dependencies || isNilOrEmpty(dependencies.dependencyGraph)) {
@@ -64,13 +84,14 @@ export default function DependencyInfoGenerator(dependencies) {
     return emptyDependencyInfoGenerator;
   }
 
-  const directDeps = root[0].children,
-      directDepIds = new Set(map(toComponentIdentifierKey, directDeps)),
-      indexedDependencyNodes = indexBy(toComponentIdentifierKey, other),
+  const dependencyNodesWithKeys = map(populateDependencyNodeKeys, other),
+      directDeps = populateDependencyNodeKeys(root[0]).children,
+      directDepIds = new Set(map(getKey, directDeps)),
+      indexedDependencyNodes = indexBy(getKey, dependencyNodesWithKeys),
       getAllDependencies = getAllDependenciesFromNodes(indexedDependencyNodes),
-      // map rootAncestor componentIds to [componentId, children] pairs
+      // map rootAncestors to [componentId, childrenKeyArray] pairs
       pairWithDependencies = map(
-          pipe(prop('componentIdentifier'), componentId => [componentId, getAllDependencies(componentId)])
+          ({ componentIdentifier, key }) => [componentIdentifier, getAllDependencies(key)]
       ),
       rootAncestorsToArray = map(rootAncestorsSet => setToArray(rootAncestorsSet)),
       rootAncestorsByChild = pipe(pairWithDependencies, mapRootAncestorsToChildren, rootAncestorsToArray)(directDeps);

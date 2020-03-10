@@ -37,15 +37,12 @@ function SearchBarController(searchService, searchSuggesterService, $q, $state, 
     },
 
     searchSuggester() {
-      vm.error = undefined;
       const promises = [];
       searchSuggesterService.query = vm.query.replace('*', '');
       promises.push(searchSuggesterService.search());
       return $q.all(promises).then(function(results) {
         vm.suggestions = results[0].data.searchResultItems;
         searchSuggesterService.results = results[0].data.searchResultItems;
-      }, function(error) {
-        vm.error = Messages.getHttpErrorMessage(error);
       });
     }
   });

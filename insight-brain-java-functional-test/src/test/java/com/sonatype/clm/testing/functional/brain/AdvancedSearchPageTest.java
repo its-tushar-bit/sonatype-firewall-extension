@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.search.index.IndexService;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exist;
@@ -57,6 +58,7 @@ public class AdvancedSearchPageTest
     page.searchInput().shouldBe(empty);
     page.resultCount().shouldBe(text("0"));
     page.currentPageInfo().shouldBe(text("Page 1 of 1"));
+    page.errors().shouldBe(hidden);
   }
 
   @Test
@@ -149,6 +151,24 @@ public class AdvancedSearchPageTest
     page.resultCount().shouldBe(text("1"));
     page.currentPageInfo().shouldBe(text("Page 1 of 1"));
     page.searchInput().should(value("itemType:ORGANIZATION"));
+  }
+
+  @Test
+  public void testErrorsShown() throws IOException {
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+    page.searchInput().setValue("foo:bar:baz");
+    // Squeeze in verifying search can be triggered with enter button
+    page.searchInput().sendKeys(Keys.ENTER);
+
+    page.errors().shouldHave(text("The search query is invalid: Syntax Error, cannot parse foo:bar:baz:"));
+
+    // Make sure errors are cleared upon successful search
+    page.searchInput().setValue("itemType:ORGANIZATION");
+    page.searchButton().click();
+    page.errors().shouldBe(hidden);
   }
 
   private void enableAdvancedSearch() {

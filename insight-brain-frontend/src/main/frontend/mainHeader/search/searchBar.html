@@ -11,6 +11,9 @@
       Search
     </button>
   </form>
+  <div id="advanced-search-error" ng-if="vm.error">
+    {{vm.error}}
+  </div>
   <datalist id="global-search-suggestions-list">
     <option ng-repeat="suggestion in vm.suggestions track by $index" value="{{suggestion}}">
   </datalist>

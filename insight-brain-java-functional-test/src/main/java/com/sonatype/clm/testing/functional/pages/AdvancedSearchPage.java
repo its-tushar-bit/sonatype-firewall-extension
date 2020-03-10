@@ -71,4 +71,8 @@ public class AdvancedSearchPage
   public SelenideElement firstSearchResultLink() {
     return $("#advanced-search-results-table > tbody > tr > td:nth-child(3) > a");
   }
+
+  public SelenideElement errors() {
+    return $("#advanced-search-error");
+  }
 }

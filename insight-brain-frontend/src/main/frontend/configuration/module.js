@@ -30,7 +30,7 @@ export default angular.module('configurationModule',
     .component('mailConfig', react2angular(withStoreProvider(MailConfigContainer), ['isAuthorized'], ['$ngRedux']))
     .component('proxyConfig', react2angular(withStoreProvider(ProxyConfigContainer), ['isAuthorized', 'licensed'],
         ['$ngRedux', '$state']))
-    .component('advancedSearchConfig', react2angular(withStoreProvider(AdvancedSearchConfigContainer), [],
+    .component('advancedSearchConfig', react2angular(withStoreProvider(AdvancedSearchConfigContainer), ['isAuthorized'],
         ['$ngRedux']))
     .config(routes);
 
@@ -76,6 +76,13 @@ function routes($stateProvider) {
         url: '/advancedSearchConfig',
         data: {
           title: 'Advanced Search Config'
+        },
+        resolve: {
+          isAuthorized: [
+            'PermissionService', function(PermissionService) {
+              return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+            }
+          ]
         }
       });
 }

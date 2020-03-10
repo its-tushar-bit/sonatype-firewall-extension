@@ -11,6 +11,7 @@ import MaximizedContainer from '../../react/MaximizedContainer';
 import {
   NxButton,
   NxCheckbox,
+  NxErrorAlert,
   NxFontAwesomeIcon,
   NxModal,
   NxStatefulSubmitMask
@@ -36,7 +37,8 @@ export default function AdvancedSearchConfig(props) {
     submitMaskMessage,
     isDirty,
     showReIndexModal,
-    error
+    error,
+    isAuthorized
   } = props;
 
   // Form State
@@ -80,7 +82,7 @@ export default function AdvancedSearchConfig(props) {
   }
 
   return (
-    <LoadWrapper loading={loading} error={error}>
+    isAuthorized ? <LoadWrapper loading={loading} error={error}>
       <MaximizedContainer id="advanced-search-config-page-container"
                           className="iq-body-container iq-body-container--single-pane">
         <div id="advanced-search-config" className="iq-tile iq-tile--sys-prefs">
@@ -173,7 +175,11 @@ export default function AdvancedSearchConfig(props) {
           showReIndexModal && reIndexingModal
         }
       </MaximizedContainer>
-    </LoadWrapper>
+    </LoadWrapper> :
+    <NxErrorAlert>
+      It appears you do not have permission to access this page.
+      If you believe this to be incorrect please contact your administrator.
+    </NxErrorAlert>
   );
 }
 
@@ -191,5 +197,6 @@ AdvancedSearchConfig.propTypes = {
   reIndex: PropTypes.func.isRequired,
   showReIndexModal: PropTypes.bool.isRequired,
   closeReIndexModal: PropTypes.func.isRequired,
-  lastIndexTime: PropTypes.number
+  lastIndexTime: PropTypes.number,
+  isAuthorized: PropTypes.bool.isRequired
 };

@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.product.license.ProductLicenseService;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -135,7 +136,25 @@ public class MainHeaderTest
   public void testNavigation_ToAdvancedSearch() {
     new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty(FULL_TEXT_SEARCH_ENABLED, "true"));
     refresh();
-    MainHeader.advancedSearchNavigationButton().click();
+    MainHeader.advancedSearchNavigationButton().shouldBe(visible).click();
     waitUntilUrl(BaseUrl.resolvePageUrl("/searchResults"));
+  }
+
+  @Test
+  public void testNavigation_ToAdvancedSearch_NonAdminUser() {
+    try {
+      new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty(FULL_TEXT_SEARCH_ENABLED, "true"));
+      User user = tempEntity.newUser();
+      refreshOrOpen(DashboardPage.url());
+      logout();
+      login(user.getUsername(), user.getPassword());
+      MainHeader.advancedSearchNavigationButton().shouldBe(visible).click();
+      waitUntilUrl(BaseUrl.resolvePageUrl("/searchResults"));
+    }
+    finally {
+      logout();
+      refreshOrOpen(DashboardPage.url());
+      loginAsAdmin();
+    }
   }
 }

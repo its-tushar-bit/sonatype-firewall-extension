@@ -38,17 +38,6 @@ public class AdvancedSearchServiceAuthzTest
 
   @Test
   public void testGetStatus_Authorized() {
-    grantConfigureSystemPermission();
-    advancedSearchService.getStatus();
-  }
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testGetStatus_Unauthenticated() {
-    advancedSearchService.getStatus();
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testGetStatus_Unauthorized() {
     login();
     advancedSearchService.getStatus();
   }

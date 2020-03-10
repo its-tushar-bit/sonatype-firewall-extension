@@ -47,7 +47,6 @@ public class AdvancedSearchService
     dao.update(new SystemConfigurationProperty(SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED, status));
   }
 
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public AdvancedSearchStatusDTO getStatus() {
     AdvancedSearchStatusDTO dto = new AdvancedSearchStatusDTO();
     dto.isEnabled =

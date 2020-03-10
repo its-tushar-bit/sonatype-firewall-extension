@@ -66,6 +66,16 @@ public class SourceControlPullRequestCommentDAOTest
     assertThat(fetchedPullRequestComment.getCreateTime()).isEqualTo(pullRequestComment.getCreateTime());
     assertThat(fetchedPullRequestComment.getUpdateTime()).isNull();
 
+    // when: we update the comment
+    pullRequestCommentDAO.update(fetchedPullRequestComment);
+
+    // when : fetch the pr comment entry again
+    SourceControlPullRequestComment fetchedPullRequestCommentAgain =
+        pullRequestCommentDAO.getByApplicationIdAndPullRequestId(applicationId, pullRequestId);
+
+    // then : the update time is set
+    assertThat(fetchedPullRequestCommentAgain.getUpdateTime()).isNotNull();
+
     // when : delete the comment
     pullRequestCommentDAO.deleteByPolicyEvaluationId(fetchedPullRequestComment.getSourcePolicyEvaluationId());
 

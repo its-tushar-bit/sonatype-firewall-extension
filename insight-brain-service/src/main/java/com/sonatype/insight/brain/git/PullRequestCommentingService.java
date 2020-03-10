@@ -156,7 +156,7 @@ public class PullRequestCommentingService
     }
 
     try {
-      boolean commentCreated = false;
+      boolean commentSent = false;
 
       if (eventHasCommitHashAndScmIsEnabled(event)) {
         String applicationId = event.ownerId;
@@ -183,33 +183,26 @@ public class PullRequestCommentingService
               SourceControlPullRequestComment existingPullRequestComment =
                   pullRequestCommentDAO.getByApplicationIdAndPullRequestId(applicationId, pullRequest.getNumber());
 
-              if (null != existingPullRequestComment) {
-                log.debug(
-                    "application '{}' pull request '{}' is already commented, skipping further commenting on this PR",
-                    applicationId, pullRequest.getNumber());
-                // todo - update existing pull request flow - future - INT-2390
+              Optional<PolicyEvaluation> baseBranchPolicyEvaluation =
+                  getLatestPolicyEvaluationReportForBaseBranch(applicationId);
+
+              if (baseBranchPolicyEvaluation.isPresent()) {
+                commentSent =
+                    doCreateOrUpdatePullRequestComment(applicationId, gitRepositoryInfo, pullRequest.getNumber(),
+                        sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation.get(), existingPullRequestComment);
               }
               else {
-                Optional<PolicyEvaluation> baseBranchPolicyEvaluation =
-                    getLatestPolicyEvaluationReportForBaseBranch(applicationId);
-
-                if (baseBranchPolicyEvaluation.isPresent()) {
-                  commentCreated = doPullRequestComment(applicationId, gitRepositoryInfo, pullRequest.getNumber(),
-                      sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation.get());
-                }
-                else {
-                  log.warn(
-                      "no policy evaluation for base branch, skipping PR commenting for application '{}' " +
-                          "pull request '{}'",
-                      applicationId, pullRequest.getNumber());
-                }
+                log.warn(
+                    "no policy evaluation for base branch, skipping PR commenting for application '{}' " +
+                        "pull request '{}'",
+                    applicationId, pullRequest.getNumber());
               }
             }
           }
         }
       }
 
-      reportMetrics(commentCreated);
+      reportMetrics(commentSent);
     }
     catch (Exception e) {
       log.error(e.getMessage(), e);
@@ -221,7 +214,7 @@ public class PullRequestCommentingService
     String applicationId = event.applicationId;
     GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
     PolicyEvaluation sourceCommitPolicyEvaluation = policyEvaluationDAO.getById(event.policyEvaluationId);
-    boolean commentCreated = false;
+    boolean commentSent = false;
 
     Optional<PolicyEvaluation> baseBranchPolicyEvaluation = Optional.empty();
 
@@ -247,15 +240,11 @@ public class PullRequestCommentingService
 
     if (baseBranchPolicyEvaluation.isPresent()) {
       // do we already have a comment for this PR?
-      if (null == pullRequestCommentDAO.getByApplicationIdAndPullRequestId(applicationId, event.pullRequestNumber)) {
-        commentCreated = doPullRequestComment(applicationId, gitRepositoryInfo, event.pullRequestNumber,
-            sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation.get());
-      }
-      else {
-        log.debug("Application '{}' pull request '{}' already has a PR comment, skipping further processing",
-            applicationId, event.pullRequestNumber);
-        // todo - update existing pull request flow - future - INT-2390
-      }
+      SourceControlPullRequestComment existingPullRequestComment =
+          pullRequestCommentDAO.getByApplicationIdAndPullRequestId(applicationId, event.pullRequestNumber);
+
+      commentSent = doCreateOrUpdatePullRequestComment(applicationId, gitRepositoryInfo, event.pullRequestNumber,
+          sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation.get(), existingPullRequestComment);
     }
     else {
       log.warn(
@@ -263,7 +252,7 @@ public class PullRequestCommentingService
           applicationId, event.pullRequestNumber);
     }
 
-    reportMetrics(commentCreated);
+    reportMetrics(commentSent);
   }
 
   private boolean isPullRequestForBaseBranch(PullRequest pullRequest, GitRepositoryInfo gitRepositoryInfo) {
@@ -278,78 +267,107 @@ public class PullRequestCommentingService
    * computes the policy evaluation diff, creates and pushes the comment to the SCM system, records comment metadata in
    * our DB, and pushes metrics
    */
-  private boolean doPullRequestComment(
+  private boolean doCreateOrUpdatePullRequestComment(
       String applicationId,
       GitRepositoryInfo gitRepositoryInfo,
       int pullRequestNumber,
       PolicyEvaluation sourceCommitPolicyEvaluation,
-      PolicyEvaluation baseBranchPolicyEvaluation)
+      PolicyEvaluation baseBranchPolicyEvaluation,
+      SourceControlPullRequestComment existingPullRequestComment)
   {
-    boolean commentCreated = false;
+    boolean commentSent = false;
 
-    try {
-      Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService
-          .createMarkupIfNewViolationsHaveAppeared(sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation);
+    if (existingPullRequestComment == null ||
+        !existingPullRequestComment.getSourcePolicyEvaluationId().equals(sourceCommitPolicyEvaluation.getId()) ||
+        !existingPullRequestComment.getTargetPolicyEvaluationId().equals(baseBranchPolicyEvaluation.getId())) {
 
-      if (policyEvaluationDiffMarkup.isPresent()) {
-        Integer commentId =
-            createCommentInGitSCM(applicationId, gitRepositoryInfo, pullRequestNumber,
-                policyEvaluationDiffMarkup.get());
-        recordCommentInDatabase(applicationId, pullRequestNumber, commentId, sourceCommitPolicyEvaluation.getId(),
-            baseBranchPolicyEvaluation.getId());
-        commentCreated = true;
+      try {
+        Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService
+            .createMarkupIfNewViolationsHaveAppeared(sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation);
+
+        if (policyEvaluationDiffMarkup.isPresent()) {
+          int commentId = createOrUpdateCommentInGitSCM(applicationId, gitRepositoryInfo, pullRequestNumber,
+              policyEvaluationDiffMarkup.get(), existingPullRequestComment);
+          recordCommentInDatabase(applicationId, pullRequestNumber, commentId, sourceCommitPolicyEvaluation.getId(),
+              baseBranchPolicyEvaluation.getId(), existingPullRequestComment);
+          commentSent = true;
+        }
+        else {
+          log.info("nothing meaningful in policy eval diff for application '{}' pull request '{}' to comment on",
+              applicationId, pullRequestNumber);
+        }
       }
-      else {
-        log.info("nothing meaningful in policy eval diff for application '{}' pull request '{}' to comment on",
-            applicationId, pullRequestNumber);
+      catch (Exception e) {
+        log.error(e.getMessage(), e);
       }
     }
-    catch (Exception e) {
-      log.error(e.getMessage(), e);
+    else {
+      log.info("policy evaluations have not changed for '{}' pull request '{}'", applicationId, pullRequestNumber);
     }
 
-    return commentCreated;
+    return commentSent;
   }
 
   /**
-   * creates the pull request comment in GitHub for the given repo and pull request
+   * creates or updates the pull request comment in GitHub for the given repo and pull request
    */
-  private Integer createCommentInGitSCM(
+  private Integer createOrUpdateCommentInGitSCM(
       String applicationId,
       GitRepositoryInfo gitRepositoryInfo,
       int pullRequestNumber,
-      String commentText)
+      String commentText,
+      SourceControlPullRequestComment existingPullRequestComment)
       throws IOException
   {
+    CommentResponse commentResponse = null;
+
     GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
-    CommentResponse commentResponse = gitApiClient.createPullRequestComment(pullRequestNumber, commentText);
-    log.info("pull request comment '{}' created for application '{}' pull request '{}'",
-        commentResponse.getId(), applicationId, pullRequestNumber);
+    if (existingPullRequestComment == null) {
+      commentResponse = gitApiClient.createPullRequestComment(pullRequestNumber, commentText);
+      log.info("pull request comment '{}' created for application '{}' pull request '{}'",
+          commentResponse.getId(), applicationId, pullRequestNumber);
+    }
+    else {
+      int pullRequestCommentId = existingPullRequestComment.getPullRequestCommentId();
+      commentResponse =
+          gitApiClient.updatePullRequestComment(pullRequestCommentId, commentText);
+      log.info("pull request comment '{}' updated for application '{}' pull request '{}'",
+          commentResponse.getId(), applicationId, pullRequestNumber);
+    }
     log.debug("comment text = {}", commentText);
     return commentResponse.getId();
   }
 
   /**
-   * record in the DB that we've created a comment for the given pull request for the given app
+   * record in the DB that we've created or updated a comment for the given pull request for the given app
    */
   private void recordCommentInDatabase(
       String applicationId,
       int pullRequestNumber,
       Integer commentId,
       String sourcePolicyEvaluationId,
-      String basePolicyEvaluationId)
+      String basePolicyEvaluationId,
+      SourceControlPullRequestComment existingPullRequestComment)
   {
-    SourceControlPullRequestComment pullRequestComment =
-        new SourceControlPullRequestComment(applicationId, pullRequestNumber, commentId, sourcePolicyEvaluationId,
-            basePolicyEvaluationId);
-    pullRequestCommentDAO.insert(pullRequestComment);
+    if (existingPullRequestComment == null) {
+      SourceControlPullRequestComment pullRequestComment =
+          new SourceControlPullRequestComment(applicationId, pullRequestNumber, commentId, sourcePolicyEvaluationId,
+              basePolicyEvaluationId);
+      pullRequestCommentDAO.insert(pullRequestComment);
+    }
+    else {
+      existingPullRequestComment.setPullRequestCommentId(commentId);
+      existingPullRequestComment.setSourcePolicyEvaluationId(sourcePolicyEvaluationId);
+      existingPullRequestComment.setTargetPolicyEvaluationId(basePolicyEvaluationId);
+      pullRequestCommentDAO.update(existingPullRequestComment);
+    }
     log.debug("pull request comment '{}' for application '{}' pull request '{}' recorded in database", commentId,
         applicationId, pullRequestNumber);
   }
 
-  private void reportMetrics(boolean commentCreated) {
+  private void reportMetrics(boolean commentSent) {
     // tbd - future work - INT-2490
-    pullRequestCommentingMetricsService.recordEvent(commentCreated);
+    pullRequestCommentingMetricsService.recordEvent(commentSent);
   }
 
   @VisibleForTesting

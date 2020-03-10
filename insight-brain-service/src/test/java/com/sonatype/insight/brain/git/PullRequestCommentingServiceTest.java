@@ -189,9 +189,13 @@ public class PullRequestCommentingServiceTest
   @Test
   public void testOnApplicationEvaluation_commentAlreadyExists() throws IOException {
     // given : a pull request for a dev branch that already has our comment
+    String commentText = "at least one new policy violation";
     PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
         .withSourcePolicyEvaluation("pe1", "commit456", "app1")
+        .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withDevBranchPullRequest("INT-2493-pr-commenting-immediate-flow", 7, "commit456", "baseCommit")
+        .withPolicyEvaluationDiffMarkup(commentText)
+        .withCommentResponse(27)
         .withCommentForPullRequest(7)
         .expectApplicationId("app1")
         .expectSourceCommit("commit456")
@@ -207,11 +211,13 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment not created due to PR already having a comment from us
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(false));
+    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(true));
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'commit456' with 1 pull request(s) and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
-        debug("application 'app1' pull request '7' is already commented, skipping further commenting on this PR")
+        info("pull request comment '27' updated for application 'app1' pull request '7'"),
+        debug("comment text = at least one new policy violation"),
+        debug("pull request comment '27' for application 'app1' pull request '7' recorded in database")
     );
   }
 
@@ -492,6 +498,35 @@ public class PullRequestCommentingServiceTest
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
         .withCommentResponse(25)
+        .withCommentForPullRequest(20, "sourcePe-0", "basePe")
+        .expectApplicationId("app1")
+        .expectSourceCommit("sourceCommit")
+        .build();
+
+    DiscoveredPullRequestEvent event =
+        createDiscoveredPullRequestEvent("app1", "sourcePe", "sourceCommit", 20, "basePe");
+
+    // when : process event
+    commentingService.onDiscoveredPullRequest(event);
+
+    // then : comment should be created
+    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(true));
+    assertThatLogMessagesEqual(
+        info("pull request comment '25' updated for application 'app1' pull request '20'"),
+        debug("comment text = at least one new policy violation"),
+        debug("pull request comment '25' for application 'app1' pull request '20' recorded in database")
+    );
+  }
+
+  @Test
+  public void testOnDiscoveredPullRequest_policyEvaluationIdsUnchanged()
+      throws IOException
+  {
+    // given : all the necessary pieces to create a PR comment, except the comment already exists
+    PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
+        .withDevBranchPullRequest("INT-2493-pr-commenting-immediate-flow", 20, "sourceCommit", "baseCommit")
+        .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
+        .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withCommentForPullRequest(20)
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
@@ -506,7 +541,7 @@ public class PullRequestCommentingServiceTest
     // then : comment should be created
     verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(false));
     assertThatLogMessagesEqual(
-        debug("Application 'app1' pull request '20' already has a PR comment, skipping further processing")
+        info("policy evaluations have not changed for 'app1' pull request '20'")
     );
   }
 
@@ -643,6 +678,7 @@ public class PullRequestCommentingServiceTest
       doReturn(mockGitApiClient).when(mockGitClientFactory).createApiClient(gitRepositoryInfo);
 
       doReturn(commentResponse).when(mockGitApiClient).createPullRequestComment(any(), any());
+      doReturn(commentResponse).when(mockGitApiClient).updatePullRequestComment(any(), any());
 
       doReturn(mockGitHubGraphQlClient).when(mockGitClientFactory).createGraphqlApiClient(gitRepositoryInfo);
 
@@ -748,8 +784,18 @@ public class PullRequestCommentingServiceTest
     }
 
     TestablePullRequestCommentingServiceBuilder withCommentForPullRequest(int pullRequestNumber) {
+      return withCommentForPullRequest(pullRequestNumber, "sourcePe", "basePe");
+    }
+
+    TestablePullRequestCommentingServiceBuilder withCommentForPullRequest(
+        int pullRequestNumber,
+        String sourcePolicyEvaluationId,
+        String targetPolicyEvaluationId)
+    {
       pullRequestComment = new SourceControlPullRequestComment();
       pullRequestComment.setPullRequestId(pullRequestNumber);
+      pullRequestComment.setSourcePolicyEvaluationId(sourcePolicyEvaluationId);
+      pullRequestComment.setTargetPolicyEvaluationId(targetPolicyEvaluationId);
       return this;
     }
 

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
+import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -67,5 +68,11 @@ public class SourceControlPullRequestCommentDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByApplicationId(tx, id);
     }
+  }
+
+  @Override
+  public void update(final TransactionContext tx, final SourceControlPullRequestComment pullRequestComment) {
+    pullRequestComment.setUpdateTime(new Date());
+    super.update(tx, pullRequestComment);
   }
 }

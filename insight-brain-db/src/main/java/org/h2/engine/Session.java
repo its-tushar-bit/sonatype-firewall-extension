@@ -5,6 +5,8 @@
  */
 package org.h2.engine;
 
+// patched version from H2 1.4.196 that fixes CLM-15176
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -956,6 +958,16 @@ public class Session extends SessionWithState {
             }
             locks.clear();
         }
+        // BEGIN PATCH
+        if (database.getLockMode() == Constants.LOCK_MODE_READ_COMMITTED &&
+                !database.isMultiThreaded() && !database.isMultiVersion()) {
+            // under these conditions RegularTable.doLock2() does not employ a lock, i.e. this.locks is empty, but we
+            // still need to awake any threads put to wait for > 100 ms by RegularTable.doLock1()
+            synchronized(database) {
+                database.notifyAll();
+            }
+        }
+        // END PATCH
         savepoints = null;
         sessionStateChanged = true;
     }

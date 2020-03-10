@@ -787,6 +787,8 @@
                   <excludes>
                     <!-- using patched version from insight-brain-db instead, cf. CLM-13616 -->
                     <exclude>org/h2/value/ValueTimestamp.class</exclude>
+                    <!-- using patched version from insight-brain-db instead, cf. CLM-15176 -->
+                    <exclude>org/h2/engine/Session.class</exclude>
                     <!-- Exclude classes vulnerable to CVE-2018-14335.  See CLM-10571 -->
                     <exclude>org/h2/tools/Console*</exclude>
                     <exclude>org/h2/tools/Backup*</exclude>

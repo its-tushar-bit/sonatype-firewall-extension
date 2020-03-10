@@ -52,7 +52,7 @@ public class DatabaseAccessTest
     }
   }
 
-  @Test
+  @Test(timeout = 20000)
   public void testConcurrentDatabaseAccess() throws Exception {
     // Create a file database (i.e. not in memory)
     File databaseDir = tempDir.newFolder("testConcurrentDatabaseAccess");

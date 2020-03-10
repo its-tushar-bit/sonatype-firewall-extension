@@ -227,18 +227,20 @@ public class SearchService
     searchResultItemDTO.policyEvaluationStage = document.get(POLICY_EVALUATION_STAGE.label);
     searchResultItemDTO.reportId = document.get(REPORT_ID.label);
     searchResultItemDTO.componentHash = document.get(COMPONENT_HASH.label);
-    ApiComponentIdentifierDTOV2 apiComponentIdentifierDTOV2 = new ApiComponentIdentifierDTOV2();
     String format = document.get(COMPONENT_FORMAT.label);
-    apiComponentIdentifierDTOV2.setFormat(format);
-    Map<String, String> coordinates = new TreeMap<>();
-    for (String coordinateName : ComponentIdentifier.getAllCoordinateNames(format)) {
-      String coordinateValue = document.get(DocumentBuilder.getFieldNameForCoordinate(coordinateName));
-      if (coordinateValue != null) {
-        coordinates.put(coordinateName, coordinateValue);
+    if (format != null) {
+      ApiComponentIdentifierDTOV2 apiComponentIdentifierDTOV2 = new ApiComponentIdentifierDTOV2();
+      apiComponentIdentifierDTOV2.setFormat(format);
+      Map<String, String> coordinates = new TreeMap<>();
+      for (String coordinateName : ComponentIdentifier.getAllCoordinateNames(format)) {
+        String coordinateValue = document.get(DocumentBuilder.getFieldNameForCoordinate(coordinateName));
+        if (coordinateValue != null) {
+          coordinates.put(coordinateName, coordinateValue);
+        }
       }
+      apiComponentIdentifierDTOV2.setCoordinates(coordinates);
+      searchResultItemDTO.componentIdentifier = apiComponentIdentifierDTOV2;
     }
-    apiComponentIdentifierDTOV2.setCoordinates(coordinates);
-    searchResultItemDTO.componentIdentifier = apiComponentIdentifierDTOV2;
     searchResultItemDTO.componentName = document.get(COMPONENT_NAME.label);
     searchResultItemDTO.vulnerabilityId = document.get(VULNERABILITY_ID.label);
     searchResultItemDTO.vulnerabilityDescription = document.get(VULNERABILITY_DESCRIPTION.label);

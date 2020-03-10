@@ -18,14 +18,14 @@ const emptyDependencyInfoGenerator = {
 function getAllDependenciesFromNodes(indexedDependencyNodes) {
   // imperative for performance CLM-15122
   function getNextDependenciesLayer(currentLayer) {
-    const retval = [];
+    const retval = new Set();
 
     for (const key of currentLayer) {
       const childDependencies = indexedDependencyNodes[key].children || [];
 
       for (const dependency of childDependencies) {
         if (dependency) {
-          retval.push(getKey(dependency));
+          retval.add(getKey(dependency));
         }
       }
     }
@@ -34,11 +34,13 @@ function getAllDependenciesFromNodes(indexedDependencyNodes) {
   }
 
   return function(parentKey) {
-    let dependencies = [],
-        dependenciesLayer = [parentKey];
-    while (dependenciesLayer && dependenciesLayer.length) {
+    let dependencies = new Set(),
+        dependenciesLayer = new Set([parentKey]);
+    while (dependenciesLayer && dependenciesLayer.size) {
       dependenciesLayer = getNextDependenciesLayer(dependenciesLayer);
-      dependencies.push.apply(dependencies, dependenciesLayer);
+      for (const layer of dependenciesLayer) {
+        dependencies.add(layer);
+      }
     }
     return dependencies;
   };

@@ -156,12 +156,18 @@ public class SearchService
     validateIndex(searchSuggesterIndexPath);
     SearchSuggestionResultDTO searchResultDTO = new SearchSuggestionResultDTO();
 
+    // the suggestion index contains only single field queries, to provide suggestions for more complex queries, we cut
+    // off the initial clauses of the query and do auto-completion on the last clause 
+    int lastClauseStart = findStartOfLastClause(searchQuery);
+    String lastClause = searchQuery.substring(lastClauseStart);
+    String searchProlog = searchQuery.substring(0, lastClauseStart);
+
     try (FSDirectory suggesterFile = FSDirectory.open(searchSuggesterIndexPath);
          AnalyzingInfixSuggester suggester = luceneComponents.newSuggester(suggesterFile)) {
       // Do the lookup and get up to 10 results
-      List<Lookup.LookupResult> results = suggester.lookup(searchQuery, Collections.emptySet(), 10, false, false);
+      List<Lookup.LookupResult> results = suggester.lookup(lastClause, Collections.emptySet(), 10, false, false);
       for (Lookup.LookupResult result : results) {
-        searchResultDTO.searchResultItems.add(result.key.toString());
+        searchResultDTO.searchResultItems.add(searchProlog + result.key);
       }
     }
     catch (IOException e) {
@@ -169,6 +175,29 @@ public class SearchService
     }
 
     return searchResultDTO;
+  }
+
+  static int findStartOfLastClause(String searchQuery) {
+    int result = 0;
+    boolean inPhrase = false;
+    for (int i = 0, n = searchQuery.length(); i < n; i++) {
+      char c = searchQuery.charAt(i);
+      if (c == '\\') {
+        i++;
+      }
+      else if (c == '"') {
+        inPhrase = !inPhrase;
+      }
+      else if (!inPhrase) {
+        if (c == ' ') {
+          result = i + 1;
+        }
+        else if (i == result && (c == '+' || c == '-' || c == '!' || c == '(')) {
+          result = i + 1;
+        }
+      }
+    }
+    return result;
   }
 
   private void validateIndex(Path indexPath) {

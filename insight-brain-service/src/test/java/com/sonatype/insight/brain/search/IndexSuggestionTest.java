@@ -322,4 +322,13 @@ public class IndexSuggestionTest
     assertThat(autoComplete("the")) // English stop word
         .containsExactlyInAnyOrder(field(FieldIdentifier.ORGANIZATION_NAME, org.getName()));
   }
+
+  @Test
+  public void testMultiClauseQuery() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("public-id");
+    String prolog = "cve-8765-1234 ";
+    index();
+    assertThat(autoComplete(prolog + "applicationi"))
+        .containsExactlyInAnyOrder(prolog + field(FieldIdentifier.APPLICATION_ID, app.getId()));
+  }
 }

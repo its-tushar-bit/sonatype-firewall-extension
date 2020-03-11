@@ -20,15 +20,17 @@ function getAllDependenciesFromNodes(indexedDependencyNodes) {
   function getNextDependenciesLayer(currentLayer) {
     const retval = new Set();
 
-    for (const key of currentLayer) {
+    currentLayer.forEach(function(key) {
       const childDependencies = indexedDependencyNodes[key].children || [];
 
-      for (const dependency of childDependencies) {
+      for (let i = 0; i < childDependencies.length; i++) {
+        const dependency = childDependencies[i];
+
         if (dependency) {
           retval.add(getKey(dependency));
         }
       }
-    }
+    });
 
     return retval;
   }
@@ -38,9 +40,9 @@ function getAllDependenciesFromNodes(indexedDependencyNodes) {
         dependenciesLayer = new Set([parentKey]);
     while (dependenciesLayer && dependenciesLayer.size) {
       dependenciesLayer = getNextDependenciesLayer(dependenciesLayer);
-      for (const layer of dependenciesLayer) {
+      dependenciesLayer.forEach(function(layer) {
         dependencies.add(layer);
-      }
+      });
     }
     return dependencies;
   };
@@ -63,7 +65,7 @@ const getRootAncestorsByChildReducer = rootAncestorId => (acc, childKey) => {
 // given list of [rootAncestorId, children] pairs, generate rootAncestorsByChild map
 // where key is child iD, and value is a Set of its unique rootAncestorIds
 const mapRootAncestorsToChildren = reduce((acc, [rootAncestorId, children]) => {
-  return reduce(getRootAncestorsByChildReducer(rootAncestorId), acc, children);
+  return reduce(getRootAncestorsByChildReducer(rootAncestorId), acc, setToArray(children));
 }, {});
 
 const populateDependencyNodeKeys = node => ({

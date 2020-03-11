@@ -118,8 +118,8 @@ export default function AdvancedSearchConfig(props) {
             </div>
             <p>
               This feature is in development and functionality can be expected to change.
-              Please provide any feedback you may
-              have <a href='https://links.sonatype.com/products/nxiq/feedback/advanced-search'>here</a>.
+              Please provide any feedback you may have <NxExternalLink
+                href='https://links.sonatype.com/products/nxiq/feedback/advanced-search'>here</NxExternalLink>.
             </p>
             <div>
               {submitMaskState !== null &&

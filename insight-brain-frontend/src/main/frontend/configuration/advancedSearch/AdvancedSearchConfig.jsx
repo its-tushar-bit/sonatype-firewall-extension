@@ -8,6 +8,7 @@ import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from '../../react/LoadWrapper';
 import MaximizedContainer from '../../react/MaximizedContainer';
+import NxExternalLink from '../../react/NxExternalLink';
 import {
   NxButton,
   NxCheckbox,
@@ -93,7 +94,9 @@ export default function AdvancedSearchConfig(props) {
               </div>
             </div>
             <p>
-              Here you can enable the early access Advanced Search feature. Please read the documentation.
+              Here you can enable the early access Advanced Search feature. Please read the <NxExternalLink
+                href="https://links.sonatype.com/products/nxiq/doc/advanced-search">documentation
+              </NxExternalLink>.
               Advanced Search, once enabled, should be periodically re-indexed.
               Re-indexing may impact the performance of IQ Server while it is running, so it is recommended to do this
               during a time of low usage.

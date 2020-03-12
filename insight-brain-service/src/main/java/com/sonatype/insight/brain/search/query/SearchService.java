@@ -66,6 +66,8 @@ public class SearchService
   private static final String NO_INDEX_ERROR_MESSAGE =
       "Index does not exist or is unreadable, please (re)create your index.";
 
+  private static final int MAX_SUGGESTIONS = 10;
+
   private final InsightWork insightWork;
 
   private final LuceneComponents luceneComponents;
@@ -172,8 +174,13 @@ public class SearchService
 
     try (FSDirectory suggesterFile = FSDirectory.open(searchSuggesterIndexPath);
          AnalyzingInfixSuggester suggester = luceneComponents.newSuggester(suggesterFile)) {
-      // Do the lookup and get up to 10 results
-      List<Lookup.LookupResult> results = suggester.lookup(lastClause, Collections.emptySet(), 10, false, false);
+      // try strict lookup first, matching all tokens from search query
+      List<Lookup.LookupResult> results =
+          suggester.lookup(lastClause, Collections.emptySet(), MAX_SUGGESTIONS, true, false);
+      if (results.isEmpty()) {
+        // fallback to more lenient lookup, matching on any token
+        results = suggester.lookup(lastClause, Collections.emptySet(), MAX_SUGGESTIONS, false, false);
+      }
       for (Lookup.LookupResult result : results) {
         searchResultDTO.searchResultItems.add(searchProlog + result.key);
       }

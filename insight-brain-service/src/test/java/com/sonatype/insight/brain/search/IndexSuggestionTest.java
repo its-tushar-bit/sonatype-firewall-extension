@@ -331,4 +331,17 @@ public class IndexSuggestionTest
     assertThat(autoComplete(prolog + "applicationi"))
         .containsExactlyInAnyOrder(prolog + field(FieldIdentifier.APPLICATION_ID, app.getId()));
   }
+
+  @Test
+  public void testFieldNameAlreadyEntered() throws Exception {
+    for (int i = 0; i < 20; i++) {
+      // lots of matches for "applicat" that could saturate the 10 suggestions if not excluded
+      tempEntity.newApplicationWithParent("public-id-" + i);
+    }
+    tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
+    index();
+    assertThat(autoComplete(field(FieldIdentifier.ITEM_TYPE, "applicat"))).containsExactlyInAnyOrder(
+        field(FieldIdentifier.ITEM_TYPE, ItemType.APPLICATION.name()),
+        field(FieldIdentifier.ITEM_TYPE, ItemType.APPLICATION_CATEGORY.name()));
+  }
 }

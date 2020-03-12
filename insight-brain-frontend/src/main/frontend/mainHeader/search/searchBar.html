@@ -1,9 +1,11 @@
 <div id="global-search-outer-wrapper">
-  <form id="advanced-search-query-form" ng-submit="vm.query && vm.search()">
+  <form id="advanced-search-query-form"
+        class="iq-form iq-form--advanced-search iq-form--no-border"
+        ng-submit="vm.query && vm.search()">
     <input id="global-search-input"
            type="text"
            list="global-search-suggestions-list"
-           class="iq-text-input--long"
+           class="iq-text-input iq-text-input--advanced-search"
            ng-model="vm.query"
            placeholder="Start typing your query for suggestions"
            ng-keyup="vm.query && vm.searchSuggester()">

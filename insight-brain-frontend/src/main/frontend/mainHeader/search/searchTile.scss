@@ -29,3 +29,12 @@
     color: orangered;
   }
 }
+
+.iq-form--advanced-search {
+  display: flex;
+}
+
+.iq-text-input--advanced-search {
+  flex-grow: 1;
+  margin-right: 8px;
+}

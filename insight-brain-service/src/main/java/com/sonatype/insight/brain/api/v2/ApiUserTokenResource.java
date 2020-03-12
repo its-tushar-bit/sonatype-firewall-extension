@@ -14,6 +14,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -37,6 +38,8 @@ public class ApiUserTokenResource
   private final UserTokenService userTokenService;
 
   public static final String CURRENT_USER = "currentUser";
+
+  public static final String USER_CODE = "userCode/{userCode}";
 
   public static final String PURGE = "purge";
   
@@ -81,5 +84,15 @@ public class ApiUserTokenResource
   @Audited(AuditEvent.DELETE_USER_TOKEN)
   public void deleteCurrentUserToken() {
     userTokenService.deleteCurrentUserToken();
+  }
+
+  /**
+   * @since 1.87
+   */
+  @DELETE
+  @Path(USER_CODE)
+  @Audited(AuditEvent.DELETE_USER_TOKEN)
+  public void deleteUserTokenByUserCode(@PathParam("userCode") String userCode) {
+    userTokenService.deleteUserTokenByUserCode(userCode);
   }
 }

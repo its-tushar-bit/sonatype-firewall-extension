@@ -244,4 +244,17 @@ public class UserTokenServiceTest
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Could not parse: bar. Expected format is: yyyy-MM-dd.");
   }
+
+  @Test
+  public void testDeleteUserTokenByUserCode() {
+    UserToken userToken = tempEntity.newUserToken("john", InternalRealm.ID);
+    userTokenService.deleteUserTokenByUserCode(userToken.getUserCode());
+    assertThat(userTokenDAO.getById(userToken.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteUserTokenByUserCode_TokenDoesNotExist() {
+    assertThatThrownBy(() -> userTokenService.deleteUserTokenByUserCode("absent")).isInstanceOf(NotFoundException.class)
+        .hasMessage("Cannot find a user token with user code: absent");
+  }
 }

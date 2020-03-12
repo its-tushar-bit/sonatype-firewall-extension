@@ -106,4 +106,17 @@ public class ApiUserTokenResourceTest
     assertThat(responseBody[0].userCode).isEqualTo(userToken.getUserCode());
     assertThat(responseBody[0].passCode).isNull();
   }
+
+  @Test
+  public void testDeleteUserTokenByUserCode() throws Exception {
+    UserToken userToken = tempEntity.newUserToken(getUsername(), InternalRealm.ID);
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2)
+        .path(ApiUserTokenResource.USER_CODE)
+        .parameter(userToken.getUserCode())
+        .delete();
+
+    assertResponseStatus(204, response);
+    assertThat(userTokenDAO.getById(userToken.getId())).isNull();
+  }
 }

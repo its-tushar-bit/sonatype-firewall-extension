@@ -123,6 +123,49 @@ public class ApiUserTokenResourceAuditTest
     assertAuditLog(AuditEvent.PURGE_USER_TOKENS, "unauthorized");
   }
 
+  @Test
+  public void testDeleteUserTokenByUserCode() throws Exception {
+    String username = "FearlessTuring";
+
+    tempEntity.newUser(username);
+    UserToken userToken = tempEntity.newUserToken(username, InternalRealm.ID);
+
+    restRequest()
+        .path(ApiUserTokenResource.USER_CODE)
+        .parameter(userToken.getUserCode())
+        .delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_USER_TOKEN, null, "admin");
+    assertThat(auditDTO.data).containsEntry("username", username);
+    assertThat(auditDTO.data).containsEntry("userCode", userToken.getUserCode());
+  }
+
+  @Test
+  public void testDeleteUserTokenByUserCode_TokenDoesNotExist() throws Exception {
+    restRequest()
+        .path(ApiUserTokenResource.USER_CODE)
+        .parameter("void-code")
+        .delete();
+
+    assertAuditLog(AuditEvent.DELETE_USER_TOKEN, "not-found", "admin");
+  }
+
+  @Test
+  public void testDeleteUserTokenByUserCode_Unauthorized() throws Exception {
+    String username = "FearlessTuring";
+
+    tempEntity.newUser(username);
+    UserToken userToken = tempEntity.newUserToken(username, InternalRealm.ID);
+
+    restRequest()
+        .path(ApiUserTokenResource.USER_CODE)
+        .parameter(userToken.getUserCode())
+        .auth(username, TemporaryEntity.USER_PASSWORD_CLEAR)
+        .delete();
+
+    assertAuditLog(AuditEvent.DELETE_USER_TOKEN, "unauthorized", username);
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2);

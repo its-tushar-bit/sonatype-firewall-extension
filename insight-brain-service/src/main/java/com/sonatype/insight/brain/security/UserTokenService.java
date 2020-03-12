@@ -160,6 +160,17 @@ public class UserTokenService
     deleteAndAuditUserToken(userToken);
   }
 
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void deleteUserTokenByUserCode(String userCode) {
+    UserToken userToken = userTokenDAO.getByUserCode(userCode);
+
+    if (userToken == null) {
+      throw new NotFoundException("Cannot find a user token with user code: " + userCode);
+    }
+
+    deleteAndAuditUserToken(userToken);
+  }
+
   public void deleteAndAuditUserToken(UserToken userToken) {
     audit(userToken);
     userTokenDAO.delete(userToken);

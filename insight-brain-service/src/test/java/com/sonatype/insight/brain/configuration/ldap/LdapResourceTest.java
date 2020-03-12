@@ -25,12 +25,10 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,7 +38,7 @@ public class LdapResourceTest
   private static final LdapServerDAO serverDao = new LdapServerDAO();
 
   @Rule
-  public TestLdapServer ldapServer = new TestLdapServer();
+  public TestLdapServer testLdapServer = new TestLdapServer();
 
   @Override
   protected HttpRequest restRequest() {
@@ -50,9 +48,6 @@ public class LdapResourceTest
   private HttpRequest testConnectionRequest(LdapConnection conn) {
     return restRequest().path(LdapResource.TEST_CONNECTION_PATH).parameter(conn.getServerId()).body(conn);
   }
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Test
   public void testLdapServerCRUD() throws Exception {
@@ -203,164 +198,37 @@ public class LdapResourceTest
   }
 
   @Test
-  public void testTestAnonymousConnection() throws Exception {
-    ldapServer.start();
+  public void testTestLdapConnection() throws Exception {
+    testLdapServer.setAuthenticationSimple();
+    testLdapServer.start();
 
     LdapConnection conn = createLdapConnection();
-    conn.setPort(ldapServer.getPort());
-
-    HttpResponse response = testConnectionRequest(conn).put();
-    assertResponseStatus(200, response);
-    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
-
-    assertThat(status.getStatus()).as(status.getMessage()).isEqualTo(LdapConnectionStatus.Status.OK);
-  }
-
-  @Test
-  public void testTestSimpleConnection() throws Exception {
-    ldapServer.setAuthenticationSimple();
-    ldapServer.start();
-
-    LdapConnection conn = createLdapConnection();
-    conn.setPort(ldapServer.getPort());
+    conn.setPort(testLdapServer.getPort());
     conn.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
-    conn.setSystemUsername(ldapServer.getSystemUserDN());
-    conn.setSystemPassword(ldapServer.getSystemUserPassword());
+    conn.setSystemUsername(testLdapServer.getSystemUserDN());
+    conn.setSystemPassword(testLdapServer.getSystemUserPassword());
 
     HttpResponse response = testConnectionRequest(conn).put();
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
     assertThat(status.getStatus()).as(status.getMessage()).isEqualTo(LdapConnectionStatus.Status.OK);
-  }
-
-  @Test
-  public void testTestDigestConnection() throws Exception {
-    ldapServer.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
-    ldapServer.start();
-
-    LdapConnection conn = createLdapConnection();
-    conn.setPort(ldapServer.getPort());
-    conn.setAuthenticationMethod(LdapAuthenticationMethod.DIGESTMD5);
-    conn.setSystemUsername(ldapServer.getSystemUser());
-    conn.setSystemPassword(ldapServer.getSystemUserPassword());
-
-    HttpResponse response = testConnectionRequest(conn).put();
-    assertResponseStatus(200, response);
-    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
-
-    assertThat(status.getStatus()).as(status.getMessage()).isEqualTo(LdapConnectionStatus.Status.OK);
-  }
-
-  @Test
-  public void testTestCramConnection() throws Exception {
-    ldapServer.setAuthenticationSasl(SupportedSaslMechanisms.CRAM_MD5);
-    ldapServer.start();
-
-    LdapConnection conn = createLdapConnection();
-    conn.setPort(ldapServer.getPort());
-    conn.setAuthenticationMethod(LdapAuthenticationMethod.CRAMMD5);
-    conn.setSystemUsername(ldapServer.getSystemUser());
-    conn.setSystemPassword(ldapServer.getSystemUserPassword());
-
-    HttpResponse response = testConnectionRequest(conn).put();
-    assertResponseStatus(200, response);
-    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
-
-    assertThat(status.getStatus()).as(status.getMessage()).isEqualTo(LdapConnectionStatus.Status.OK);
-  }
-
-  @Test
-  public void testTestConnection_InvalidUser() throws Exception {
-    ldapServer.setAuthenticationSimple();
-    ldapServer.start();
-
-    LdapConnection conn = createLdapConnection();
-    conn.setPort(ldapServer.getPort());
-    conn.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
-    String systemUserDN = "litter." + ldapServer.getSystemUserDN() + ".garbage";
-    conn.setSystemUsername(systemUserDN);
-    conn.setSystemPassword(ldapServer.getSystemUserPassword());
-
-    HttpResponse response = testConnectionRequest(conn).put();
-    assertResponseStatus(200, response);
-    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
-
-    assertThat(status.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
-    assertThat(status.getMessage()).contains("Invalid authentication");
-  }
-
-  @Test
-  public void testTestConnection_InvalidPassword() throws Exception {
-    ldapServer.setAuthenticationSimple();
-    ldapServer.start();
-
-    LdapConnection conn = createLdapConnection();
-    conn.setPort(ldapServer.getPort());
-    conn.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
-    conn.setSystemUsername(ldapServer.getSystemUserDN());
-    conn.setSystemPassword("garbage.litter".toCharArray());
-
-    HttpResponse response = testConnectionRequest(conn).put();
-    assertResponseStatus(200, response);
-    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
-
-    assertThat(status.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
-    assertThat(status.getMessage()).contains("Cannot authenticate user");
-  }
-
-  @Test
-  public void testTestConnection_InvalidHostname() throws Exception {
-    ldapServer.start();
-
-    LdapConnection conn = createLdapConnection();
-    conn.setHostname("garbage.localhost.litter");
-    conn.setPort(ldapServer.getPort());
-    conn.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
-
-    HttpResponse response = testConnectionRequest(conn).put();
-    assertResponseStatus(200, response);
-    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
-
-    assertThat(status.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
-    assertThat(status.getMessage()).contains("garbage.localhost.litter")
-        .containsPattern("(UnknownHost|Communication)Exception");
-  }
-
-  @Test
-  public void testTestConnection_invalidSaslRealm() throws Exception {
-    ldapServer.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
-    ldapServer.start();
-
-    LdapConnection conn = createLdapConnection();
-    conn.setPort(ldapServer.getPort());
-    conn.setAuthenticationMethod(LdapAuthenticationMethod.DIGESTMD5);
-    conn.setSystemUsername(ldapServer.getSystemUser());
-    conn.setSystemPassword(ldapServer.getSystemUserPassword());
-    conn.setSaslRealm("invalidrealm");
-
-    HttpResponse response = testConnectionRequest(conn).put();
-    assertResponseStatus(200, response);
-    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
-
-    assertThat(status.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
-    assertThat(status.getMessage()).contains("Nonexistent realm: invalidrealm");
   }
 
   @Test
   @Ignore("execution-order dependent failures")
-  public void testTestConnection_ldaps() throws Exception {
-    ldapServer.setAuthenticationSimple();
-    ldapServer.enableLdaps(getTestResourceFile("/com/sonatype/insight/test/localhost.jks"), "password");
-    ldapServer.start();
+  public void testTestLdapConnection_ldaps() throws Exception {
+    testLdapServer.setAuthenticationSimple();
+    testLdapServer.enableLdaps(getTestResourceFile("/com/sonatype/insight/test/networking/localhost.jks"), "password");
+    testLdapServer.start();
 
     LdapConnection conn = createLdapConnection();
     conn.setProtocol(LdapProtocol.LDAPS);
     conn.setHostname("localhost");
-    conn.setPort(ldapServer.getPort());
+    conn.setPort(testLdapServer.getPort());
     conn.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
-    conn.setSystemUsername(ldapServer.getSystemUserDN());
-    conn.setSystemPassword(ldapServer.getSystemUserPassword());
+    conn.setSystemUsername(testLdapServer.getSystemUserDN());
+    conn.setSystemPassword(testLdapServer.getSystemUserPassword());
 
     HttpResponse response = testConnectionRequest(conn).put();
     assertResponseStatus(200, response);
@@ -370,22 +238,18 @@ public class LdapResourceTest
   }
 
   @Test
-  public void testTestUserMapping() throws Exception {
-    ldapServer.start();
-    ldapServer.loadData("/LdapResourceTest/ldap_users.ldif");
+  public void testTestLdapUserMapping() throws Exception {
+    testLdapServer.start();
+    testLdapServer.loadData("/" + getClass().getSimpleName() + "/ldap_users.ldif");
 
     LdapServer server = tempEntity.newLdapServer("test");
 
     LdapUserMapping mapping = tempEntity.newLdapUserMapping(server.getId());
+    tempEntity.newLdapConnection(server.getId(), testLdapServer.getPort());
     HttpRequest request = restRequest().path(LdapResource.TEST_USER_MAPPING_PATH).parameter(mapping.getServerId())
         .body(mapping);
 
     HttpResponse response = request.put();
-    assertResponseStatus(400, response);
-
-    tempEntity.newLdapConnection(server.getId(), ldapServer.getPort());
-
-    response = request.put();
     assertResponseStatus(200, response);
     LdapUser[] users = response.getBody(LdapUser[].class);
     Arrays.sort(users);
@@ -396,9 +260,9 @@ public class LdapResourceTest
   }
 
   @Test
-  public void testTestLogin() throws Exception {
-    ldapServer.start();
-    ldapServer.loadData("/LdapResourceTest/ldap_users.ldif");
+  public void testTestUserLogin() throws Exception {
+    testLdapServer.start();
+    testLdapServer.loadData("/" + getClass().getSimpleName() + "/ldap_users.ldif");
 
     LdapServer server = tempEntity.newLdapServer("test");
 
@@ -414,7 +278,7 @@ public class LdapResourceTest
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
     assertThat(status.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
 
-    tempEntity.newLdapConnection(server.getId(), ldapServer.getPort());
+    tempEntity.newLdapConnection(server.getId(), testLdapServer.getPort());
 
     response = request.body(login).put();
     assertResponseStatus(200, response);
@@ -428,37 +292,10 @@ public class LdapResourceTest
     assertThat(status.getStatus()).as(status.getMessage()).isEqualTo(LdapConnectionStatus.Status.OK);
   }
 
-  /**
-   * CLM-9430, sanity check the classpath of the server contains a recent version of commons-codec as needed by our
-   * LDAP client to support passwords hashed using crypt.
-   */
-  @Test
-  public void testTestLogin_UserPasswordAttributeUsingCrypt() throws Exception {
-    ldapServer.start();
-    ldapServer.loadData("/LdapResourceTest/ldap_users.ldif");
-
-    LdapServer server = tempEntity.newLdapServer("test");
-    tempEntity.newLdapConnection(server.getId(), ldapServer.getPort());
-    LdapUserMapping mapping = tempEntity.newLdapUserMapping(server.getId());
-    mapping.setUserPasswordAttribute("userPassword");
-    new LdapUserMappingDAO().update(mapping);
-
-    LdapTestLoginRequest login = new LdapTestLoginRequest();
-    login.setUserMapping(mapping);
-    login.setUsername("cryptuser");
-    login.setPassword("brianf123");
-
-    HttpResponse response = restRequest().path(LdapResource.TEST_LOGIN_PATH).parameter(mapping.getServerId())
-        .body(login).put();
-    assertResponseStatus(200, response);
-    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
-    assertThat(status.getStatus()).isEqualTo(LdapConnectionStatus.Status.OK);
-  }
-
   private File getTestResourceFile(String path) throws IOException {
     URL resource = getClass().getResource(path);
     assertThat(resource).as(path).isNotNull(); // sanity check
-    File tempFile = temporaryFolder.newFile();
+    File tempFile = tempDir.newFile();
     FileUtils.copyURLToFile(resource, tempFile);
     return tempFile;
   }
@@ -470,7 +307,6 @@ public class LdapResourceTest
     conn.setServerId(server.getId());
     conn.setProtocol(LdapProtocol.LDAP);
     conn.setHostname("localhost");
-    conn.setPort(389);
     conn.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
     conn.setSystemUsername("system");
     conn.setSystemPassword("password".toCharArray());

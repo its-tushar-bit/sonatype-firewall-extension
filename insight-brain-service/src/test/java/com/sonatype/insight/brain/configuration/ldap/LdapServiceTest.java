@@ -8,12 +8,12 @@ package com.sonatype.insight.brain.configuration.ldap;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.ServerSocket;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.naming.AuthenticationException;
-import javax.naming.CommunicationException;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 
@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
@@ -50,6 +51,9 @@ public class LdapServiceTest
 {
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
+
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   public TemporaryFolder tempDir = new TemporaryFolder();
 
@@ -81,7 +85,7 @@ public class LdapServiceTest
   private LdapService ldapService;
 
   @Test
-  public void testTestConnection() throws Exception {
+  public void testTestLdapConnection() throws Exception {
     LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server1");
     LdapConnection ldapConnection1 = createLdapConnection(ldapServer1);
     setSearchBase(ldapConnection1, null);
@@ -102,19 +106,31 @@ public class LdapServiceTest
     assertCannotConnect(ldapConnection2);
   }
 
-  private void assertCanConnect(LdapConnection ldapConnection) throws NamingException {
-    ldapService.testConnection(ldapConnection);
+  private void assertCanConnect(LdapConnection ldapConnection) {
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
+    assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.OK);
   }
 
   private void assertCannotConnect(LdapConnection ldapConnection) {
-    assertThatThrownBy(() -> {
-      ldapService.testConnection(ldapConnection);
-    }).isInstanceOf(CommunicationException.class)
-        .satisfies(e -> assertThat(e.getCause()).hasMessageStartingWith("Connection refused"));
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
+    assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
+    assertThat(ldapConnectionStatus.getMessage()).contains("Connection refused");
   }
 
   @Test
-  public void testTestConnection_EscapedUrl() throws Exception {
+  public void testTestLdapConnection_ValidateLdapServerId() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = tempEntity.newLdapConnection(ldapServer.getId());
+
+    assertThatThrownBy(() -> {
+      ldapService.testLdapConnection("fake LDAP server id", ldapConnection);
+    }).isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
+  }
+
+  @Test
+  public void testTestLdapConnection_EscapedUrl() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
@@ -122,40 +138,40 @@ public class LdapServiceTest
     // Search base with space will be escaped with %20.
     ldapConnection.setSearchBase("dc=acme brick,dc=com");
 
-    ldapService.testConnection(ldapConnection);
+    ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
   }
 
   @Test
-  public void testTestConnection_Timeout() throws Exception {
+  public void testTestLdapConnection_Timeout() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+
     try (ServerSocket socket = new ServerSocket(0)) {
       long begin = 0;
       long end = 0;
 
       LdapConnection ldapConnection = new LdapConnection();
+      ldapConnection.setServerId(ldapServer.getId());
       ldapConnection.setHostname("localhost");
       ldapConnection.setPort(socket.getLocalPort());
 
       // test very short timeout
-
       ldapConnection.setConnectionTimeout(1);
       begin = System.currentTimeMillis();
-      assertThatThrownBy(() -> {
-        ldapService.testConnection(ldapConnection);
-      }).isInstanceOf(NamingException.class);
+      LdapConnectionStatus ldapConnectionStatus =
+          ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
       end = System.currentTimeMillis();
-
+      assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
+      assertThat(ldapConnectionStatus.getMessage()).contains("LDAP response read timed out");
       assertThat(Double.valueOf(end - begin)).isCloseTo(1300, offset(500.0));
 
       // test slightly longer timeout
-
-      ldapConnection.setConnectionTimeout(5);
+      ldapConnection.setConnectionTimeout(3);
       begin = System.currentTimeMillis();
-      assertThatThrownBy(() -> {
-        ldapService.testConnection(ldapConnection);
-      }).isInstanceOf(NamingException.class);
+      ldapConnectionStatus = ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
       end = System.currentTimeMillis();
-
-      assertThat(Double.valueOf(end - begin)).isCloseTo(5300, offset(500.0));
+      assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
+      assertThat(ldapConnectionStatus.getMessage()).contains("LDAP response read timed out");
+      assertThat(Double.valueOf(end - begin)).isCloseTo(3300, offset(500.0));
     }
   }
 
@@ -490,16 +506,17 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testTestConnection_BadSearchBase() throws Exception {
+  public void testTestLdapConnection_BadSearchBase() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
     ldapConnection.setSearchBase("!@£$%^&*()");
 
-    assertThatThrownBy(() -> {
-      ldapService.testConnection(ldapConnection);
-    }).isInstanceOf(NamingException.class);
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
+    assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
+    assertThat(ldapConnectionStatus.getMessage()).contains("Invalid name");
   }
 
   private void setSearchBase(LdapConnection ldapConnection, String searchBase) {
@@ -508,7 +525,146 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testTestUserMapping() throws Exception {
+  public void testTestLdapConnection_InvalidHostname() throws Exception {
+    String badHostname = "garbage.localhost.litter";
+
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = newInMemoryLdapConnection(ldapServer);
+    startLdapServer(testLdapServer1, ldapConnection);
+
+    ldapConnection.setHostname(badHostname);
+
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
+
+    assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
+    assertThat(ldapConnectionStatus.getMessage()).contains(badHostname)
+        .containsPattern("(UnknownHost|Communication)Exception");
+  }
+
+  @Test
+  public void testTestLdapConnection_InvalidUser() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = newInMemoryLdapConnection(ldapServer);
+    startLdapServer(testLdapServer1, ldapConnection);
+
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
+    String systemUserDN = "litter." + testLdapServer1.getSystemUserDN() + ".garbage";
+    ldapConnection.setSystemUsername(systemUserDN);
+    ldapConnection.setSystemPassword(testLdapServer1.getSystemUserPassword());
+
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
+
+    assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
+    assertThat(ldapConnectionStatus.getMessage()).contains("Invalid authentication");
+  }
+
+  @Test
+  public void testTestLdapConnection_InvalidPassword() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = newInMemoryLdapConnection(ldapServer);
+    startLdapServer(testLdapServer1, ldapConnection);
+
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
+    ldapConnection.setSystemUsername(testLdapServer1.getSystemUserDN());
+    ldapConnection.setSystemPassword("garbage.litter".toCharArray());
+
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
+
+    assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
+    assertThat(ldapConnectionStatus.getMessage()).contains("Cannot authenticate user");
+  }
+
+  @Test
+  public void testTestLdapConnection_InvalidSaslRealm() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = newInMemoryLdapConnection(ldapServer);
+    testLdapServer1.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
+    startLdapServer(testLdapServer1, ldapConnection);
+
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.DIGESTMD5);
+    ldapConnection.setSystemUsername(testLdapServer1.getSystemUser());
+    ldapConnection.setSystemPassword(testLdapServer1.getSystemUserPassword());
+    ldapConnection.setSaslRealm("invalidrealm");
+
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
+
+    assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
+    assertThat(ldapConnectionStatus.getMessage()).contains("Nonexistent realm: invalidrealm");
+  }
+
+  @Test
+  public void testTestLdapConnection_AuthenticationMethod_CRAM_MD5() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = newInMemoryLdapConnection(ldapServer);
+    testLdapServer1.setAuthenticationSasl(SupportedSaslMechanisms.CRAM_MD5);
+    startLdapServer(testLdapServer1, ldapConnection);
+
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.CRAMMD5);
+    ldapConnection.setSystemUsername(testLdapServer1.getSystemUser());
+    ldapConnection.setSystemPassword(testLdapServer1.getSystemUserPassword());
+
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
+
+    assertThat(ldapConnectionStatus.getStatus()).as(ldapConnectionStatus.getMessage())
+        .isEqualTo(LdapConnectionStatus.Status.OK);
+  }
+
+  @Test
+  public void testTestLdapConnection_AuthenticationMethod_DIGESTMD5() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = newInMemoryLdapConnection(ldapServer);
+    testLdapServer1.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
+    startLdapServer(testLdapServer1, ldapConnection);
+
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.DIGESTMD5);
+    ldapConnection.setSystemUsername(testLdapServer1.getSystemUser());
+    ldapConnection.setSystemPassword(testLdapServer1.getSystemUserPassword());
+
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
+
+    assertThat(ldapConnectionStatus.getStatus()).as(ldapConnectionStatus.getMessage())
+        .isEqualTo(LdapConnectionStatus.Status.OK);
+  }
+
+  @Test
+  public void testTestLdapConnection_AuthenticationMethod_SIMPLE() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = newInMemoryLdapConnection(ldapServer);
+    testLdapServer1.setAuthenticationSimple();
+    startLdapServer(testLdapServer1, ldapConnection);
+
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
+    ldapConnection.setSystemUsername(testLdapServer1.getSystemUserDN());
+    ldapConnection.setSystemPassword(testLdapServer1.getSystemUserPassword());
+
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
+
+    assertThat(ldapConnectionStatus.getStatus()).as(ldapConnectionStatus.getMessage())
+        .isEqualTo(LdapConnectionStatus.Status.OK);
+  }
+
+  @Test
+  public void testTestLdapConnection_AnonymousConnection() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = newInMemoryLdapConnection(ldapServer);
+    startLdapServer(testLdapServer1, ldapConnection);
+
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
+
+    assertThat(ldapConnectionStatus.getStatus()).as(ldapConnectionStatus.getMessage())
+        .isEqualTo(LdapConnectionStatus.Status.OK);
+  }
+
+  @Test
+  public void testTestLdapUserMapping() throws Exception {
     LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server1");
     LdapConnection ldapConnection1 = createLdapConnection(ldapServer1);
     startLdapServer(testLdapServer1, ldapConnection1);
@@ -519,10 +675,29 @@ public class LdapServiceTest
     startLdapServer(testLdapServer2, ldapConnection2);
     LdapUserMapping umap2 = createUserMapping(ldapServer2);
 
-    List<LdapUser> users1 = ldapService.testUserMapping(umap1, -1);
+    List<LdapUser> users1 = ldapService.testLdapUserMapping(ldapServer1.getId(), umap1, -1);
     assertUserMapping(users1, "1");
-    List<LdapUser> users2 = ldapService.testUserMapping(umap2, -1);
+    List<LdapUser> users2 = ldapService.testLdapUserMapping(ldapServer2.getId(), umap2, -1);
     assertUserMapping(users2, "2");
+  }
+
+  @Test
+  public void testTestLdapUserMapping_ValidateLdapServerId() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+
+    assertThatThrownBy(() -> {
+      ldapService.testLdapUserMapping("fake LDAP server id", ldapUserMapping, -1);
+    }).isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
+  }
+
+  @Test
+  public void testUpdatePriority() throws Exception {
+    LdapServer ldapServer1 = tempEntity.newLdapServer("server1");
+    LdapServer ldapServer2 = tempEntity.newLdapServer("server2");
+    ldapService.updatePriority(Arrays.asList(ldapServer2.getId(), ldapServer1.getId()));
+    assertThat(new LdapServerDAO().getById(ldapServer2.getId()).getPriority()).isEqualTo(1);
+    assertThat(new LdapServerDAO().getById(ldapServer1.getId()).getPriority()).isEqualTo(2);
   }
 
   private void assertUserMapping(List<LdapUser> users, String suffix) {
@@ -556,7 +731,7 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testTestUserMapping_DynamicGroupMapping() throws Exception {
+  public void testTestLdapUserMapping_DynamicGroupMapping() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
@@ -565,7 +740,7 @@ public class LdapServiceTest
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
 
-    List<LdapUser> users = ldapService.testUserMapping(umap, -1);
+    List<LdapUser> users = ldapService.testLdapUserMapping(ldapServer.getId(), umap, -1);
     assertThat(users).hasSize(3);
 
     Collections.sort(users); // sorts on username
@@ -576,7 +751,7 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testTestUserMapping_StaticGroupMapping() throws Exception {
+  public void testTestLdapUserMapping_StaticGroupMapping() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
@@ -587,7 +762,7 @@ public class LdapServiceTest
     umap.setGroupMemberAttribute("uniqueMember");
     umap.setGroupMemberFormat("${dn}");
 
-    List<LdapUser> users = ldapService.testUserMapping(umap, -1);
+    List<LdapUser> users = ldapService.testLdapUserMapping(ldapServer.getId(), umap, -1);
     assertThat(users).hasSize(3);
 
     Collections.sort(users); // sorts on username
@@ -601,7 +776,7 @@ public class LdapServiceTest
     umap.setGroupMemberAttribute("member");
     umap.setGroupMemberFormat("uid=${username}");
 
-    users = ldapService.testUserMapping(umap, -1);
+    users = ldapService.testLdapUserMapping(ldapServer.getId(), umap, -1);
     assertThat(users).hasSize(3);
 
     Collections.sort(users); // sorts on username
@@ -609,6 +784,19 @@ public class LdapServiceTest
     assertThat(users.get(0).getMembership()).isEmpty();
     assertThat(users.get(1).getMembership()).containsExactlyInAnyOrder("Gamma", "Theta", "Omega");
     assertThat(users.get(2).getMembership()).containsExactlyInAnyOrder("Theta");
+  }
+
+  @Test
+  public void testTestLdapUserMapping_LdapConnectionNotConfigured() throws Exception {
+    testLdapServer1.setPort(getRandomPort());
+    testLdapServer1.start();
+
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+
+    assertThatThrownBy(() -> {
+      ldapService.testLdapUserMapping(ldapServer.getId(), ldapUserMapping, -1);
+    }).isInstanceOf(BadRequestException.class).hasMessageContaining("LDAP connection is not configured");
   }
 
   @Test
@@ -628,6 +816,19 @@ public class LdapServiceTest
 
     assertCannotLogin(umap, "test_user1_1", "badGuess");
     assertCanLogin(umap, "test_user1_1", "far2simple");
+  }
+
+  @Test
+  public void testTestUserLogin_ValidateLdapServerId() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
+    LdapConnection ldapConnection = createLdapConnection(ldapServer);
+    startLdapServer(testLdapServer1, ldapConnection);
+
+    LdapUserMapping ldapUserMapping = newInMemoryLdapUserMapping(ldapServer);
+
+    assertThatThrownBy(() -> {
+      ldapService.testUserLogin("fake LDAP server id", ldapUserMapping, "user", "pass".toCharArray());
+    }).isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
   }
 
   @Test
@@ -654,21 +855,44 @@ public class LdapServiceTest
     assertCannotLoginWhenServerIsDown(umap2, "test_user1_2", "far2simple");
   }
 
-  private void assertCanLogin(LdapUserMapping umap, String username, String password) throws NamingException {
-    ldapService.testUserLogin(umap, username, password.toCharArray());
+  /**
+   * CLM-9430, sanity check the classpath of the server contains a recent version of commons-codec as needed by our
+   * LDAP client to support passwords hashed using crypt.
+   */
+  @Test
+  public void testTestUserLogin_UserPasswordAttributeUsingCrypt() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = createLdapConnection(ldapServer);
+    testLdapServer1.setLdifResourceName("/" + getClass().getSimpleName() + "/ldap_user_encrypted_password.ldif");
+    startLdapServer(testLdapServer1, ldapConnection);
+
+    LdapUserMapping ldapUserMapping = tempEntity.newLdapUserMapping(ldapServer.getId());
+    ldapUserMapping.setUserPasswordAttribute("userPassword");
+    new LdapUserMappingDAO().update(ldapUserMapping);
+
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testUserLogin(ldapServer.getId(), ldapUserMapping, "cryptuser", "brianf123".toCharArray());
+    assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.OK);
   }
 
-  private void assertCannotLogin(LdapUserMapping umap, String username, String password) {
-    assertThatThrownBy(() -> {
-      ldapService.testUserLogin(umap, username, password.toCharArray());
-    }).isInstanceOf(AuthenticationException.class);
+  private void assertCanLogin(LdapUserMapping ldapUserMapping, String username, String password) {
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testUserLogin(ldapUserMapping.getServerId(), ldapUserMapping, username, password.toCharArray());
+    assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.OK);
   }
 
-  private void assertCannotLoginWhenServerIsDown(LdapUserMapping umap, String username, String password) {
-    assertThatThrownBy(() -> {
-      ldapService.testUserLogin(umap, username, password.toCharArray());
-    }).isInstanceOf(CommunicationException.class)
-        .satisfies(e -> assertThat(e.getCause()).hasMessageStartingWith("Connection refused"));
+  private void assertCannotLogin(LdapUserMapping ldapUserMapping, String username, String password) {
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testUserLogin(ldapUserMapping.getServerId(), ldapUserMapping, username, password.toCharArray());
+    assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
+    assertThat(ldapConnectionStatus.getMessage()).contains("javax.naming.AuthenticationException");
+  }
+
+  private void assertCannotLoginWhenServerIsDown(LdapUserMapping ldapUserMapping, String username, String password) {
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testUserLogin(ldapUserMapping.getServerId(), ldapUserMapping, username, password.toCharArray());
+    assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
+    assertThat(ldapConnectionStatus.getMessage()).contains("Connection refused");
   }
 
   @Test
@@ -688,11 +912,12 @@ public class LdapServiceTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    LdapUserMapping umap = createUserMapping(ldapServer);
+    LdapUserMapping ldapUserMapping  = createUserMapping(ldapServer);
 
-    assertThatThrownBy(() -> {
-      ldapService.testUserLogin(umap, "test_user", "".toCharArray());
-    }).isInstanceOf(AuthenticationException.class);
+    LdapConnectionStatus ldapConnectionStatus =
+        ldapService.testUserLogin(ldapUserMapping.getServerId(), ldapUserMapping, "test_user", "".toCharArray());
+    assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
+    assertThat(ldapConnectionStatus.getMessage()).contains("javax.naming.AuthenticationException");
   }
 
   @Test
@@ -1365,7 +1590,7 @@ public class LdapServiceTest
     ldapConnection.setServerId(ldapServer.getId());
     ldapConnection.setProtocol(LdapProtocol.LDAP);
     ldapConnection.setHostname("localhost");
-    ldapConnection.setPort(389);
+    ldapConnection.setPort(getRandomPort());
     ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
     ldapConnection.setSystemUsername("system");
     ldapConnection.setSystemPassword("password".toCharArray());

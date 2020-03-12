@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -21,6 +22,7 @@ import javax.naming.NamingException;
 import javax.naming.NamingSecurityException;
 
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.configuration.ldap.LdapConnectionStatus.Status;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
@@ -34,6 +36,9 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Manages LDAP information.
  * 
@@ -43,6 +48,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 @Singleton
 public class LdapService
 {
+  private static final Logger log = LoggerFactory.getLogger(LdapService.class);
+
   public static final char[] FAKE_PASSWORD = "#~FAKE~PASSWORD~#".toCharArray();
 
   private final LdapServerDAO serverDao = new LdapServerDAO();
@@ -144,33 +151,67 @@ public class LdapService
     return ldapUserMapping;
   }
 
-  // LDAP verification
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  LdapConnectionStatus testLdapConnection(String ldapServerId, LdapConnection ldapConnection) {
+    validateServerId(ldapServerId, ldapConnection);
 
-  /**
-   * Tests the given connection by querying for the system context.
-   * 
-   * @throws NamingException if there is a problem with the connection
-   */
-  public void testConnection(LdapConnection conn) throws NamingException {
-    newLdapQuery(restorePassword(conn), null).testConnection();
+    try {
+      newLdapQuery(restorePassword(ldapConnection), null).testConnection();
+      return LdapConnectionStatus.SUCCESS;
+    }
+    catch (NamingException e) {
+      // Log the exception at debug level for customer and Sonatype support investigations
+      // (see https://issues.sonatype.org/browse/CLM-13799)
+      log.debug("LDAP connection test failed", e);
+      return new LdapConnectionStatus(Status.FAILURE, e.toString());
+    }
   }
 
   /**
    * Tests the given user mapping by querying for matching users.
-   * 
-   * @throws NamingException if there is a problem with the mapping
    */
-  public List<LdapUser> testUserMapping(LdapUserMapping umap, long maxResults) throws NamingException {
-    return newLdapQuery(umap).getUsers(maxResults);
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  List<LdapUser> testLdapUserMapping(String ldapServerId, LdapUserMapping ldapUserMapping, long maxResults) {
+    validateServerId(ldapServerId, ldapUserMapping);
+
+    try {
+      return newLdapQuery(ldapUserMapping).getUsers(maxResults);
+    }
+    catch (IllegalStateException e) {
+      // happens when ldap server connection is not configured
+      throw new BadRequestException(e);
+    }
+    catch (NamingException e) {
+      throw new BadRequestException(e);
+    }
   }
 
   /**
    * Tests the given user mapping by attempting to authenticate the given credentials.
-   * 
-   * @throws NamingException if there is a problem with the mapping or the credentials
    */
-  public void testUserLogin(LdapUserMapping umap, String username, char[] password) throws NamingException {
-    newLdapQuery(umap).authenticateUser(username, password, false);
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  LdapConnectionStatus testUserLogin(
+      String ldapServerId,
+      LdapUserMapping ldapUserMapping,
+      String username,
+      char[] password)
+  {
+    validateServerId(ldapServerId, ldapUserMapping);
+
+    try {
+      newLdapQuery(ldapUserMapping).authenticateUser(username, password, false);
+      return LdapConnectionStatus.SUCCESS;
+    }
+    catch (IllegalStateException e) {
+      // happens when ldap server connection is not configured
+      return new LdapConnectionStatus(Status.FAILURE, e.toString());
+    }
+    catch (NamingException e) {
+      // Log the exception at debug level for customer and Sonatype support investigations
+      // (see https://issues.sonatype.org/browse/CLM-13799)
+      log.debug("LDAP login test failed", e);
+      return new LdapConnectionStatus(Status.FAILURE, e.toString());
+    }
   }
 
   /**
@@ -501,5 +542,13 @@ public class LdapService
       AuditData.get().setData("ldapDynamicGroupMemberOfAttribute", ldapUserMapping.getUserMemberOfGroupAttribute())
           .setData("ldapDynamicGroupSearch", ldapUserMapping.isDynamicGroupSearchEnabled() ? "enabled" : "disabled");
     }
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  void updatePriority(List<String> ldapServerIds) {
+    List<LdapServerDTO> ldapServerList = ldapServerIds.stream()
+        .map(ldapServerId -> new LdapServerDTO(serverDao.getByIdNotNull(ldapServerId))).collect(Collectors.toList());
+    serverDao.updatePriority(ldapServerIds);
+    AuditData.get().setData("ldapServerOrder", ldapServerList);
   }
 }

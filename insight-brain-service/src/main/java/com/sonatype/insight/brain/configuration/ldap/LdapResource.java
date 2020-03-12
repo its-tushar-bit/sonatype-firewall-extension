@@ -6,11 +6,9 @@
 package com.sonatype.insight.brain.configuration.ldap;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -21,22 +19,13 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.configuration.ldap.LdapConnectionStatus.Status;
-import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
-import com.sonatype.insight.brain.model.configuration.ldap.HasLdapServerId;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.codahale.metrics.annotation.Timed;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.7
@@ -46,8 +35,6 @@ import org.slf4j.LoggerFactory;
 @Path(LdapResource.RESOURCE_PATH)
 public class LdapResource
 {
-  private static final Logger log = LoggerFactory.getLogger(LdapResource.class);
-
   static final String RESOURCE_PATH = "rest/config/ldap";
 
   static final String CONNECTION_PATH = "{ldapServerId}/connection";
@@ -61,8 +48,6 @@ public class LdapResource
   static final String TEST_LOGIN_PATH = "{ldapServerId}/testLogin";
 
   static final String PRIORITY_PATH = "priority";
-
-  private final LdapServerDAO serverDao = new LdapServerDAO();
 
   private final LdapService ldapService;
 
@@ -173,20 +158,11 @@ public class LdapResource
   @Path(TEST_CONNECTION_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public LdapConnectionStatus testConnection(@PathParam("ldapServerId") String serverId, LdapConnection conn) {
-    validateServerId(serverId, conn);
-
-    try {
-      ldapService.testConnection(conn);
-      return LdapConnectionStatus.SUCCESS;
-    }
-    catch (NamingException e) {
-      // Log the exception at debug level for customer and Sonatype support investigations
-      // (see https://issues.sonatype.org/browse/CLM-13799)
-      log.debug("LDAP connection test failed", e);
-      return new LdapConnectionStatus(Status.FAILURE, e.toString());
-    }
+  public LdapConnectionStatus testLdapConnection(
+      @PathParam("ldapServerId") String ldapServerId,
+      LdapConnection ldapConnection)
+  {
+    return ldapService.testLdapConnection(ldapServerId, ldapConnection);
   }
 
   /**
@@ -198,20 +174,11 @@ public class LdapResource
   @Path(TEST_USER_MAPPING_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public List<LdapUser> testUserMapping(@PathParam("ldapServerId") String serverId, LdapUserMapping umap) {
-    validateServerId(serverId, umap);
-
-    try {
-      return ldapService.testUserMapping(umap, 20);
-    }
-    catch (IllegalStateException e) {
-      // happens when ldap server connection is not configured
-      throw new BadRequestException(e);
-    }
-    catch (NamingException e) {
-      throw new BadRequestException(e);
-    }
+  public List<LdapUser> testLdapUserMapping(
+      @PathParam("ldapServerId") String ldapServerId,
+      LdapUserMapping ldapUserMapping)
+  {
+    return ldapService.testLdapUserMapping(ldapServerId, ldapUserMapping, 20 /* maxResults */);
   }
 
   /**
@@ -221,31 +188,12 @@ public class LdapResource
   @Path(TEST_LOGIN_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public LdapConnectionStatus testLogin(@PathParam("ldapServerId") String serverId, LdapTestLoginRequest request) {
-    LdapUserMapping umap = request.getUserMapping();
-    validateServerId(serverId, umap);
-
-    try {
-      ldapService.testUserLogin(umap, request.getUsername(), request.getPassword().toCharArray());
-      return LdapConnectionStatus.SUCCESS;
-    }
-    catch (IllegalStateException e) {
-      // happens when ldap server connection is not configured
-      return new LdapConnectionStatus(Status.FAILURE, e.toString());
-    }
-    catch (NamingException e) {
-      // Log the exception at debug level for customer and Sonatype support investigations
-      // (see https://issues.sonatype.org/browse/CLM-13799)
-      log.debug("LDAP login test failed", e);
-      return new LdapConnectionStatus(Status.FAILURE, e.toString());
-    }
-  }
-
-  private void validateServerId(String serverId, HasLdapServerId entity) {
-    if (serverId == null || entity == null || !serverId.equals(entity.getServerId())) {
-      throw new BadRequestException("Inconsistent LDAP server ID.");
-    }
+  public LdapConnectionStatus testUserLogin(
+      @PathParam("ldapServerId") String ldapServerId,
+      LdapTestLoginRequest request)
+  {
+    return ldapService.testUserLogin(ldapServerId, request.getUserMapping(), request.getUsername(),
+        request.getPassword().toCharArray());
   }
 
   /**
@@ -254,12 +202,8 @@ public class LdapResource
   @PUT
   @Path(PRIORITY_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Audited(AuditEvent.PRIORITIZE_LDAP)
-  public void updatePriority(List<String> serverIds) {
-    List<LdapServerDTO> serverList = serverIds.stream()
-        .map(serverId -> new LdapServerDTO(serverDao.getByIdNotNull(serverId))).collect(Collectors.toList());
-    serverDao.updatePriority(serverIds);
-    AuditData.get().setData("ldapServerOrder", serverList);
+  public void updatePriority(List<String> ldapServerIds) {
+    ldapService.updatePriority(ldapServerIds);
   }
 }

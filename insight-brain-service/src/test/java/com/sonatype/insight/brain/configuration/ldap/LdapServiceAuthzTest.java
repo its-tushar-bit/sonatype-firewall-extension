@@ -5,16 +5,21 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
+import java.util.Collections;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class LdapServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -159,5 +164,79 @@ public class LdapServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testUpsertLdapUserMapping_Unauthenticated() {
     ldapService.upsertLdapUserMapping("fake LDAP server id", new LdapUserMapping());
+  }
+
+  @Test
+  public void testTestLdapConnection_Authorized() {
+    grantConfigureSystemPermission();
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    ldapService.testLdapConnection(ldapServer.getId(), tempEntity.newLdapConnection(ldapServer.getId()));
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testTestLdapConnection_Unauthorized() {
+    login();
+    ldapService.testLdapConnection("fake LDAP server id", new LdapConnection());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testTestLdapConnection_Unauthenticated() {
+    ldapService.testLdapConnection("fake LDAP server id", new LdapConnection());
+  }
+
+  @Test
+  public void testTestUserLogin_Authorized() {
+    grantConfigureSystemPermission();
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    ldapService.testUserLogin(ldapServer.getId(), tempEntity.newLdapUserMapping(ldapServer.getId()), "user",
+        "pass".toCharArray());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testTestUserLogin_Unauthorized() {
+    login();
+    ldapService.testUserLogin("fake LDAP server id", new LdapUserMapping(), "user", "pass".toCharArray());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testTestUserLogin_Unauthenticated() {
+    ldapService.testUserLogin("fake LDAP server id", new LdapUserMapping(), "user", "pass".toCharArray());
+  }
+
+  @Test
+  public void testTestLdapUserMapping_Authorized() {
+    grantConfigureSystemPermission();
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    assertThatThrownBy(() -> {
+      ldapService.testLdapUserMapping(ldapServer.getId(), tempEntity.newLdapUserMapping(ldapServer.getId()), 20);
+    }).isInstanceOf(BadRequestException.class).hasMessageContaining("LDAP connection is not configured");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testTestLdapUserMapping_Unauthorized() {
+    login();
+    ldapService.testLdapUserMapping("fake LDAP server id", new LdapUserMapping(), 0);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testTestLdapUserMapping_Unauthenticated() {
+    ldapService.testLdapUserMapping("fake LDAP server id", new LdapUserMapping(), 0);
+  }
+
+  @Test
+  public void testUpdatePriority_Authorized() {
+    grantConfigureSystemPermission();
+    ldapService.updatePriority(Collections.emptyList());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdatePriority_Unauthorized() {
+    login();
+    ldapService.updatePriority(Collections.emptyList());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdatePriority_Unauthenticated() {
+    ldapService.updatePriority(Collections.emptyList());
   }
 }

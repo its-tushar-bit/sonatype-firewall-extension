@@ -243,7 +243,7 @@ public class LdapUserAndGroupMappingTest
 
   private LdapUserAndGroupMappingTest checkMapping(LdapConnection conn, LdapUserMapping umap) throws Exception {
     ldapService.upsertLdapConnection(conn);
-    List<LdapUser> users = ldapService.testUserMapping(umap, -1);
+    List<LdapUser> users = ldapService.testLdapUserMapping(umap.getServerId(), umap, -1);
     Collections.sort(users);
 
     LdapUser user;
@@ -254,7 +254,7 @@ public class LdapUserAndGroupMappingTest
     assertThat(user.getEmail()).isEqualTo("brianf@sonatype.com");
     assertThat(user.getMembership()).containsExactlyInAnyOrder("public", "releases");
 
-    ldapService.testUserLogin(umap, "brianf", "brianf123".toCharArray());
+    ldapService.testUserLogin(umap.getServerId(), umap, "brianf", "brianf123".toCharArray());
 
     user = users.get(1);
     assertThat(user.getUsername()).isEqualTo("cstamas");
@@ -262,7 +262,7 @@ public class LdapUserAndGroupMappingTest
     assertThat(user.getEmail()).isEqualTo("cstamas@sonatype.com");
     assertThat(user.getMembership()).containsExactlyInAnyOrder("public", "snapshots");
 
-    ldapService.testUserLogin(umap, "cstamas", "cstamas123".toCharArray());
+    ldapService.testUserLogin(umap.getServerId(), umap, "cstamas", "cstamas123".toCharArray());
 
     user = users.get(2);
     assertThat(user.getUsername()).isEqualTo("jvanzyl");
@@ -270,7 +270,7 @@ public class LdapUserAndGroupMappingTest
     assertThat(user.getEmail()).isEqualTo("jvanzyl@sonatype.com");
     assertThat(user.getMembership()).containsExactlyInAnyOrder("public", "releases", "snapshots");
 
-    ldapService.testUserLogin(umap, "jvanzyl", "jvanzyl123".toCharArray());
+    ldapService.testUserLogin(umap.getServerId(), umap, "jvanzyl", "jvanzyl123".toCharArray());
 
     return this;
   }

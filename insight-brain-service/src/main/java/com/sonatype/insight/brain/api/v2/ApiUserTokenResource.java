@@ -5,13 +5,17 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.naming.NamingException;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -39,6 +43,22 @@ public class ApiUserTokenResource
   @Inject
   public ApiUserTokenResource(UserTokenService userTokenService) {
     this.userTokenService = userTokenService;
+  }
+
+  /**
+   * Only returns ApiUserTokenDTO#userCode populated - passCode is not returned.
+   *
+   * @param createdAfter  Expected format: yyyy-MM-dd (For example: 2019-09-03)
+   * @param createdBefore Expected format: yyyy-MM-dd (For example: 2019-09-03)
+   * @since 1.87
+   */
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<ApiUserTokenDTO> getUserTokensCreatedBetween(
+      @QueryParam("afterDate") String createdAfter,
+      @QueryParam("beforeDate") String createdBefore)
+  {
+    return userTokenService.getUserTokensCreatedBetween(createdAfter, createdBefore);
   }
 
   @POST

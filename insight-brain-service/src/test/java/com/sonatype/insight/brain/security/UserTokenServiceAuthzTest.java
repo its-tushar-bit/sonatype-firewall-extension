@@ -35,4 +35,21 @@ public class UserTokenServiceAuthzTest
   public void testPurgeUserTokens_Unauthenticated() throws Exception {
     userTokenService.purgeUserTokens();
   }
+
+  @Test
+  public void testGetUserTokensCreatedBetween_Authorized() throws Exception {
+    grantConfigureSystemPermission();
+    userTokenService.getUserTokensCreatedBetween(null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetUserTokensCreatedBetween_Unauthorized() throws Exception {
+    login();
+    userTokenService.getUserTokensCreatedBetween(null, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetUserTokensCreatedBetween_Unauthenticated() throws Exception {
+    userTokenService.getUserTokensCreatedBetween(null, null);
+  }
 }

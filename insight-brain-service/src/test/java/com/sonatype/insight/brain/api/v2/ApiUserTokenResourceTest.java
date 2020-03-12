@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -77,5 +81,29 @@ public class ApiUserTokenResourceTest
 
     assertResponseStatus(204, response);
     assertThat(userTokenDAO.getById(userToken.getId())).isNull();
+  }
+
+  @Test
+  public void testGetUserTokensCreatedBetween() throws Exception {
+    Date december01 = new GregorianCalendar(2019, Calendar.DECEMBER, 1).getTime();
+    Date december15 = new GregorianCalendar(2019, Calendar.DECEMBER, 15).getTime();
+    Date december31 = new GregorianCalendar(2019, Calendar.DECEMBER, 31).getTime();
+
+    tempEntity.newUserToken("victor.wooten", december01);
+    UserToken userToken = tempEntity.newUserToken("marcus.miller", december15);
+    tempEntity.newUserToken("stanley.clarke", december31);
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2)
+        .query("afterDate", "2019-12-10")
+        .query("beforeDate", "2019-12-20")
+        .get();
+
+    assertResponseStatus(200, response);
+
+    ApiUserTokenDTO[] responseBody = response.getBody(ApiUserTokenDTO[].class);
+    assertThat(responseBody.length).isEqualTo(1);
+    assertThat(responseBody[0].userCode).isEqualTo(userToken.getUserCode());
+    assertThat(responseBody[0].passCode).isNull();
   }
 }

@@ -5,8 +5,19 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+@JsonInclude(Include.NON_NULL)
 public class ApiUserTokenDTO
 {
+  public ApiUserTokenDTO() {
+  }
+
+  public ApiUserTokenDTO(String userCode) {
+    this.userCode = userCode;
+  }
+
   public String userCode;
 
   public String passCode;

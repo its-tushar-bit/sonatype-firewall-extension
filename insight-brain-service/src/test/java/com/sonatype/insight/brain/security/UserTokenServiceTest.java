@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
@@ -29,6 +33,14 @@ import static org.mockito.Mockito.when;
 public class UserTokenServiceTest
     extends AbstractComponentTest
 {
+  private final Date december30 = new GregorianCalendar(2019, Calendar.DECEMBER, 30).getTime();
+
+  private final Date december29 = new GregorianCalendar(2019, Calendar.DECEMBER, 29).getTime();
+
+  private final Date december28 = new GregorianCalendar(2019, Calendar.DECEMBER, 28).getTime();
+
+  private final Date december27 = new GregorianCalendar(2019, Calendar.DECEMBER, 27).getTime();
+
   @Rule
   public TestLdapServer embeddedTestLdapServer = new TestLdapServer();
 
@@ -178,5 +190,58 @@ public class UserTokenServiceTest
 
     assertThatThrownBy(() -> userTokenService.deleteCurrentUserToken()).isInstanceOf(NotFoundException.class)
         .hasMessage("No user token found for user: " + username);
+  }
+
+  @Test
+  public void testGetUserTokensCreatedBetween() {
+    tempEntity.newUserToken("foo", december27);
+    UserToken bar = tempEntity.newUserToken("bar", december28);
+    tempEntity.newUserToken("baz", december29);
+    tempEntity.newUserToken("qux", december30);
+
+    List<ApiUserTokenDTO> userTokenDTOs = userTokenService.getUserTokensCreatedBetween("2019-12-28", "2019-12-28");
+    assertThat(userTokenDTOs)
+        .extracting(apiUserTokenDTO -> apiUserTokenDTO.userCode)
+        .containsExactlyInAnyOrder(bar.getUserCode());
+
+    // Assert passcode are not returned
+    assertThat(userTokenDTOs)
+        .extracting(apiUserTokenDTO -> apiUserTokenDTO.passCode)
+        .filteredOn(Objects::nonNull)
+        .isEmpty();
+  }
+
+  @Test
+  public void testGetUserTokensCreatedBetween_MustHandleNullArguments() {
+    UserToken foo = tempEntity.newUserToken("foo", december27);
+    UserToken bar = tempEntity.newUserToken("bar", december28);
+    UserToken baz = tempEntity.newUserToken("baz", december29);
+    UserToken qux = tempEntity.newUserToken("qux", december30);
+
+    // Assert all user tokens are returned with user code
+    List<ApiUserTokenDTO> userTokenDTOs = userTokenService.getUserTokensCreatedBetween(null, null);
+    assertThat(userTokenDTOs)
+        .extracting(apiUserTokenDTO -> apiUserTokenDTO.userCode)
+        .containsExactlyInAnyOrder(foo.getUserCode(), bar.getUserCode(), baz.getUserCode(), qux.getUserCode());
+
+    // Assert passcode are not returned
+    assertThat(userTokenDTOs)
+        .extracting(apiUserTokenDTO -> apiUserTokenDTO.passCode)
+        .filteredOn(Objects::nonNull)
+        .isEmpty();
+  }
+
+  @Test
+  public void testGetUserTokensCreatedBetween_CanNotParseCreatedAfter() {
+    assertThatThrownBy(() -> userTokenService.getUserTokensCreatedBetween("foo", null))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Could not parse: foo. Expected format is: yyyy-MM-dd.");
+  }
+
+  @Test
+  public void testGetUserTokensCreatedBetween_CanNotParseCreatedBefore() {
+    assertThatThrownBy(() -> userTokenService.getUserTokensCreatedBetween(null, "bar"))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Could not parse: bar. Expected format is: yyyy-MM-dd.");
   }
 }

@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -116,6 +120,16 @@ public class UserTokenService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public List<ApiUserTokenDTO> getUserTokensCreatedBetween(String createdAfter, String createdBefore) {
+    log.debug("Querying user tokens with createTime between {} and {}.", createdAfter, createdBefore);
+    return userTokenDAO
+        .getByCreateDateBetween(parse(createdAfter), parse(createdBefore))
+        .stream()
+        .map(userToken -> new ApiUserTokenDTO(userToken.getUserCode()))
+        .collect(Collectors.toList());
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void purgeUserTokens() throws NamingException {
     Map<String, LdapServer> ldapServersById =
         new LdapServerDAO().getAll().stream().collect(Collectors.toMap(LdapServer::getId, Function.identity()));
@@ -155,5 +169,17 @@ public class UserTokenService
     AuditData.get()
         .setData("username", userToken.getUsername())
         .setData("userCode", userToken.getUserCode());
+  }
+
+  private Date parse(String dateString) {
+    if (dateString == null) {
+      return null;
+    }
+    try {
+      return new SimpleDateFormat("yyyy-MM-dd").parse(dateString);
+    }
+    catch (ParseException e) {
+      throw new BadRequestException(String.format("Could not parse: %s. Expected format is: yyyy-MM-dd.", dateString));
+    }
   }
 }

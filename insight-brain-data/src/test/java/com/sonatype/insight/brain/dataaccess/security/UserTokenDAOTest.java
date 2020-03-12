@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.security.UserToken;
@@ -20,6 +22,14 @@ public class UserTokenDAOTest
     extends AbstractDbDAOTest
 {
   private UserTokenDAO userTokenDAO = new UserTokenDAO();
+
+  private final Date december30 = new GregorianCalendar(2019, Calendar.DECEMBER, 30).getTime();
+
+  private final Date december29 = new GregorianCalendar(2019, Calendar.DECEMBER, 29).getTime();
+
+  private final Date december28 = new GregorianCalendar(2019, Calendar.DECEMBER, 28).getTime();
+
+  private final Date december27 = new GregorianCalendar(2019, Calendar.DECEMBER, 27).getTime();
 
   @Test
   public void testCrud() {
@@ -63,5 +73,53 @@ public class UserTokenDAOTest
     String realmId = "testRealmId";
     tempEntity.newUserToken(username, "testUserCode", "testPassCode", realmId);
     assertThatThrownBy(() -> tempEntity.newUserToken(username, "testUserCode1", "testPassCode1", realmId));
+  }
+
+  @Test
+  public void testGetByCreateDateBetween() {
+    tempEntity.newUserToken("foo", december27);
+    tempEntity.newUserToken("bar", december28);
+    tempEntity.newUserToken("baz", december29);
+    tempEntity.newUserToken("qux", december30);
+
+    assertThat(userTokenDAO.getByCreateDateBetween(null, null))
+        .extracting(UserToken::getCreateTime)
+        .containsExactlyInAnyOrder(december27, december28, december29, december30);
+  }
+
+  @Test
+  public void testGetByCreateDateBetween_CreatedAfter() {
+    tempEntity.newUserToken("foo", december27);
+    tempEntity.newUserToken("bar", december28);
+    tempEntity.newUserToken("baz", december29);
+    tempEntity.newUserToken("qux", december30);
+
+    assertThat(userTokenDAO.getByCreateDateBetween(december28, null))
+        .extracting(UserToken::getCreateTime)
+        .containsExactlyInAnyOrder(december28, december29, december30);
+  }
+
+  @Test
+  public void testGetByCreateDateBetween_CreatedBefore() {
+    tempEntity.newUserToken("foo", december27);
+    tempEntity.newUserToken("bar", december28);
+    tempEntity.newUserToken("baz", december29);
+    tempEntity.newUserToken("qux", december30);
+
+    assertThat(userTokenDAO.getByCreateDateBetween(null, december28))
+        .extracting(UserToken::getCreateTime)
+        .containsExactlyInAnyOrder(december27, december28);
+  }
+
+  @Test
+  public void testGetByCreateDateBetween_CreatedAfterAndBefore() {
+    tempEntity.newUserToken("foo", december27);
+    tempEntity.newUserToken("bar", december28);
+    tempEntity.newUserToken("baz", december29);
+    tempEntity.newUserToken("qux", december30);
+
+    assertThat(userTokenDAO.getByCreateDateBetween(december27, december28))
+        .extracting(UserToken::getCreateTime)
+        .containsExactlyInAnyOrder(december27, december28);
   }
 }

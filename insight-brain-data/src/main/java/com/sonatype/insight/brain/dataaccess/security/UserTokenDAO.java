@@ -71,4 +71,32 @@ public class UserTokenDAO
   public void deleteByRealmId(TransactionContext tx, String realmId) {
     getByRealmId(tx, realmId).forEach(userToken -> delete(tx, userToken));
   }
+
+  /**
+   * Both createdAfter and createdBefore can be null.
+   *
+   * @param createdAfter  :inclusive
+   * @param createdBefore :inclusive
+   */
+  public List<UserToken> getByCreateDateBetween(Date createdAfter, Date createdBefore) {
+    String sQuery = "SELECT userToken FROM UserToken userToken";
+
+    if (createdAfter == null && createdBefore == null) {
+      // Get all
+      return getList(sQuery);
+    }
+
+    if (createdAfter != null && createdBefore != null) {
+      sQuery += " WHERE userToken.createTime >= ?1 AND userToken.createTime <= ?2";
+      return getList(sQuery, createdAfter, createdBefore);
+    }
+
+    if (createdBefore != null) {
+      sQuery += " WHERE userToken.createTime <= ?1";
+      return getList(sQuery, createdBefore);
+    }
+
+    sQuery += " WHERE userToken.createTime >= ?1";
+    return getList(sQuery, createdAfter);
+  }
 }

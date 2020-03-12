@@ -2344,14 +2344,29 @@ public class TemporaryEntity
       String passCode,
       String realmId)
   {
+    return newUserToken(username, userCode, passCode, realmId, null);
+  }
+
+  public UserToken newUserToken(
+      String username,
+      String userCode,
+      String passCode,
+      String realmId,
+      Date createTime)
+  {
     UserToken userToken = new UserToken();
     userToken.setUsername(username);
     userToken.setUserCode(userCode);
     userToken.setPassCode(passCode);
     userToken.setRealmId(realmId);
+    userToken.setCreateTime(createTime);
     userTokenDAO.insert(userToken);
     userTokens.add(userToken);
     return userToken;
+  }
+
+  public UserToken newUserToken(String username, Date createTime) {
+    return newUserToken(username, username + "-code", "a-pass-code", User.INTERNAL_REALM_ID, createTime);
   }
 
   public MailConfiguration newMailConfigurationWithNoAuthentication() {

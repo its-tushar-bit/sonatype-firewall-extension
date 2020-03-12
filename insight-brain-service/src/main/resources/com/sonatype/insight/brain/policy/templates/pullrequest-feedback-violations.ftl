@@ -30,4 +30,5 @@ ${policy.threatLevel} | ${policy.name} | <#list policy.constraints as constraint
 **Date**: ${date}
 **Stage**: ${stage}
 
-**[Review full report](${detailedReportUrl})**
+**[Review full feature branch report](${detailedFeatureBranchReportUrl})**
+**[Review full default branch report](${detailedDefaultBranchReportUrl})**

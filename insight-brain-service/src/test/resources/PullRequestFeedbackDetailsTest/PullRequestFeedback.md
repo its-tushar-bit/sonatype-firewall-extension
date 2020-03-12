@@ -59,4 +59,5 @@ Threat (of 10) | Policy | Violation Details
 
 **Stage**: release
 
-**[Review full report](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/toScanId)**
+**[Review full feature branch report](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/toScanId)**
+**[Review full default branch report](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/fromScanId)**

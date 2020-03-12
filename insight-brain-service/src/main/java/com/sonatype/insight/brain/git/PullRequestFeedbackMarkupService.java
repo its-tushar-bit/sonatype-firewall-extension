@@ -49,8 +49,8 @@ public class PullRequestFeedbackMarkupService
   }
 
   /**
-   * computes the policy evaluation diff between the two given policy evaluations and creates the SCM markup text
-   * iff new violations have appeared
+   * computes the policy evaluation diff between the two given policy evaluations and creates the SCM markup text iff
+   * new violations have appeared
    */
   public Optional<String> createMarkupIfNewViolationsHaveAppeared(
       PolicyEvaluation sourceCommitPolicyEvaluation,
@@ -62,8 +62,9 @@ public class PullRequestFeedbackMarkupService
     if (policyViolationDiff.isPresent() && policyViolationDiff.get().hasAppeared()) {
       ReportEntry reportEntry = reportService.getBomForPolicyEvaluation(sourceCommitPolicyEvaluation);
       Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getApplicationId());
-      PullRequestFeedbackDetails details = new PullRequestFeedbackDetails(
-          reportEntry, baseBranchPolicyEvaluation, policyViolationDiff.get(), application, baseUrl.getConfigured());
+      PullRequestFeedbackDetails details =
+          new PullRequestFeedbackDetails(reportEntry, sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation,
+              policyViolationDiff.get(), application, baseUrl.getConfigured());
       result = details.getContents();
     }
     return result;

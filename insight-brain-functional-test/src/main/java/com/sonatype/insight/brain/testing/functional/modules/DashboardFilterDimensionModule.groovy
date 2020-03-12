@@ -17,6 +17,7 @@ public class DashboardFilterDimensionModule
     counter { $('.iq-counter') }
     trigger { $('.iq-tree-view__trigger')}
     multiSelectList(required: false) { $('.iq-tree-view__child .iq-checkbox__label').moduleList(FilterCheckboxRow) }
+    nxMultiSelectList(required: false) { $('.nx-tree-view__child .nx-checkbox').module(NxFilterCheckboxRow) }
     tooltip { module TooltipModule }
   }
 
@@ -31,5 +32,14 @@ class FilterCheckboxRow
   static content = {
     checkbox(required: true) { $('input', type: 'checkbox') }
     name(required: true) { $('span') }
+  }
+}
+
+class NxFilterCheckboxRow
+    extends Module
+{
+  static content = {
+    checkbox(required: true) { $('.nx-checkbox__box') }
+    name(required: true) { $('.nx-checkbox__content') }
   }
 }

@@ -28,12 +28,9 @@
     position: relative; // needed for box-shadow to render
     width: calc(100% - #{2 * $footer-side-margin});
 
-    .btn {
+    .nx-btn {
+      margin-left: 0;
       min-width: auto;
-
-      &:not(:last-child) {
-        margin-right: 4px;
-      }
     }
 
     .iq-apply-error-present {
@@ -78,11 +75,6 @@
     color: $iq-off-black;
     font-size: 16px;
   }
-}
-
-.iq-threat-level-filter {
-  display: block;
-  margin-bottom: 40px;
 }
 
 .tooltip.top-left {

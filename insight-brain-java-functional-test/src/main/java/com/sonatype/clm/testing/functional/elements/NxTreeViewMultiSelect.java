@@ -27,8 +27,16 @@ public class NxTreeViewMultiSelect
     return children(".nx-tree-view__child");
   }
 
+  public ElementsCollection singleSelectList() {
+    return children(".nx-tree-view__child .nx-radio");
+  }
+
   public NxCheckbox checkboxItem(int index) {
     return new NxCheckbox(child(".nx-tree-view__children .nx-tree-view__child", nthChild(index), ".nx-checkbox"));
+  }
+
+  public NxRadio radioItem(int index) {
+    return new NxRadio(child(".nx-tree-view__children .nx-tree-view__child", nthChild(index), ".nx-radio"));
   }
 
   public NxCheckbox allItems() {

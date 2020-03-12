@@ -27,6 +27,35 @@
   margin: 0 0 $iq-spacing-md $iq-spacing-sm;
 }
 
+.nx-tree-view--collapsed {
+  .nx-tree-view__child {
+    visibility: hidden;
+  }
+}
+
+.nx-tree-view--threat-slider {
+  .nx-tree-view__child {
+    line-height: 18px;
+  }
+}
+.dashboard-filter {
+  .nx-tree-view {
+    margin-right: $iq-spacing-xs;
+  }
+
+  .nx-counter {
+    background-color: $iq-off-white;
+    border: 1px solid $iq-grey-3;
+    color: $iq-slate;
+
+    &.nx-counter--active {
+      background-color: $iq-blue-light;
+      border-color: $iq-blue-light;
+      color: $iq-blue;
+    }
+  }
+}
+
 #application-report-vulnerabilities-table {
   .nx-cell {
     box-sizing: content-box;

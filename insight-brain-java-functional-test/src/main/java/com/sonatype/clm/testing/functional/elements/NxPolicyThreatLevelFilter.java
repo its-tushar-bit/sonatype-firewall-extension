@@ -5,11 +5,14 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.sonatype.clm.testing.functional.BasicElement;
-
-public class Button extends BasicElement<Button>
+public class NxPolicyThreatLevelFilter
+    extends NxTreeViewMultiSelect
 {
-  public Button(String rootSelector) {
-    super(rootSelector);
+  public NxPolicyThreatLevelFilter(final String selector) {
+    super(selector);
+  }
+
+  public NxThreatLevelSlider slider() {
+    return new NxThreatLevelSlider(childSelector(".nx-policy-threat-slider"));
   }
 }

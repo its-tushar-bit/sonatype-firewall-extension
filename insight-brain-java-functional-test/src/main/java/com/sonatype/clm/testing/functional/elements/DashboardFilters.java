@@ -21,7 +21,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class DashboardFilters
     extends BasicElement<DashboardFilters>
 {
-  public static final Condition ACTIVE = cssClass("iq-counter--active");
+  public static final Condition ACTIVE = cssClass("nx-counter--active");
 
   public static final Condition NO_CHANGES_MESSAGE = text("There are no changes to update.");
 
@@ -49,7 +49,11 @@ public class DashboardFilters
     return new AgeFilter("#age-filter");
   }
 
-  public static PolicyThreatLevelFilter policyThreatLevelFilter() {
+  public static NxPolicyThreatLevelFilter policyThreatLevelFilter() {
+    return new NxPolicyThreatLevelFilter("#threat-level-filter");
+  }
+
+  public static PolicyThreatLevelFilter iqPolicyThreatLevelFilter() {
     return new PolicyThreatLevelFilter("#threat-level-filter");
   }
 
@@ -216,97 +220,97 @@ public class DashboardFilters
   }
 
   public static class CategoryFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public CategoryFilter(final String selector) {
       super(selector);
     }
 
-    public IqCheckbox noCategory() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(2)));
+    public NxCheckbox noCategory() {
+      return new NxCheckbox(child(".nx-tree-view__children .nx-tree-view__child", nthChild(2)));
     }
   }
 
   public static class PolicyTypeFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public PolicyTypeFilter(final String selector) {
       super(selector);
     }
 
-    public IqCheckbox security() {
+    public NxCheckbox security() {
       return super.checkboxItem(2);
     }
 
-    public IqCheckbox license() {
+    public NxCheckbox license() {
       return super.checkboxItem(3);
     }
 
-    public IqCheckbox quality() {
+    public NxCheckbox quality() {
       return super.checkboxItem(4);
     }
 
-    public IqCheckbox other() {
+    public NxCheckbox other() {
       return super.checkboxItem(5);
     }
   }
 
   public static class AgeFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public AgeFilter(final String selector) {
       super(selector);
     }
 
-    public IqRadio past30days() {
+    public NxRadio past30days() {
       return super.radioItem(3);
     }
 
-    public IqRadio past90days() {
+    public NxRadio past90days() {
       return super.radioItem(4);
     }
   }
 
   public static class StageFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public StageFilter(final String selector) {
       super(selector);
     }
 
-    public IqCheckbox build() {
+    public NxCheckbox build() {
       return checkboxItem(2);
     }
 
-    public IqCheckbox stageRelase() {
+    public NxCheckbox stageRelase() {
       return checkboxItem(3);
     }
 
-    public IqCheckbox release() {
+    public NxCheckbox release() {
       return checkboxItem(4);
     }
 
-    public IqCheckbox operate() {
+    public NxCheckbox operate() {
       return checkboxItem(5);
     }
   }
 
   public static class PolicyViolationStateFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public PolicyViolationStateFilter() {
       super("#policy-violation-state-filter");
     }
 
-    public IqCheckbox open() {
+    public NxCheckbox open() {
       return checkboxItem(2);
     }
 
-    public IqCheckbox waived() {
+    public NxCheckbox waived() {
       return checkboxItem(3);
     }
 
-    public IqCheckbox grandfathered() {
+    public NxCheckbox grandfathered() {
       return checkboxItem(4);
     }
   }

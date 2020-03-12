@@ -43,7 +43,7 @@ const initSelected = Object.freeze({
 });
 
 const initState = Object.freeze({
-  loading: false,
+  loading: true,
   loadError: null,
   saveError: null,
   loadErrorFilterName: null,
@@ -93,7 +93,7 @@ export default function dashboardFilterReducer(state = initState, {type, payload
       return compose(
           applyFilter(payload),
           propSet('needsAcknowledgement', payload.needsAcknowledgement),
-          resetProps(['loading'])
+          propSet('loading', false)
       )(state);
 
     case APPLY_FILTER_REQUESTED:

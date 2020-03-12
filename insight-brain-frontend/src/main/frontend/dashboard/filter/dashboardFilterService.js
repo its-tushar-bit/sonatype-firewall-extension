@@ -3,7 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {setToArray} from '../../util/jsUtil';
+import { setToArray } from '../../util/jsUtil';
+
+export function filterToJson(filter) {
+  return {
+    organizationFilters: setToArray(filter.organizations),
+    applicationFilters: setToArray(filter.applications),
+    policyThreatCategoryFilters: setToArray(filter.policyTypes),
+    stageTypeFilters: setToArray(filter.stages),
+    tagFilters: setToArray(filter.categories),
+    policyViolationStates: setToArray(filter.policyViolationStates),
+    maxDaysOld: filter.maxDaysOld,
+    minPolicyThreatLevel: filter.policyThreatLevels[0],
+    maxPolicyThreatLevel: filter.policyThreatLevels[1]
+  };
+}
 
 export default
 function dashboardFilterService($http, $q, CLMLocations, Messages) {
@@ -22,23 +36,9 @@ function dashboardFilterService($http, $q, CLMLocations, Messages) {
     });
   }
 
-  function filterToJson(filter) {
-    return {
-      organizationFilters: setToArray(filter.organizations),
-      applicationFilters: setToArray(filter.applications),
-      policyThreatCategoryFilters: setToArray(filter.policyTypes),
-      stageTypeFilters: setToArray(filter.stages),
-      tagFilters: setToArray(filter.categories),
-      policyViolationStates: setToArray(filter.policyViolationStates),
-      maxDaysOld: filter.maxDaysOld,
-      minPolicyThreatLevel: filter.policyThreatLevels[0],
-      maxPolicyThreatLevel: filter.policyThreatLevels[1]
-    };
-  }
-
   return {
-    deleteSavedFilters: deleteSavedFilters,
-    filterToJson: filterToJson
+    deleteSavedFilters,
+    filterToJson
   };
 }
 

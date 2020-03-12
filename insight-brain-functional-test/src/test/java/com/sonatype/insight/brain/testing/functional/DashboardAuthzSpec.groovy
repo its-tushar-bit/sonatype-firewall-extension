@@ -82,12 +82,12 @@ extends BaseSpec {
 
     when: 'looking at available application category filters'
     waitFor { filters.applicationCategoryFilter.displayed }
-    filters.applicationCategoryFilter.twisty.click()
+    filters.applicationCategoryFilter.nxTwisty.click()
 
     then: '"uncategorized applications" option and the "All" option should be the only options'
-    filters.applicationCategoryFilter.multiSelectList.size() == 2
-    filters.applicationCategoryFilter.counter.text() == '1'
-    filters.applicationCategoryFilter.multiSelectList.get(0).text() == 'all/none'
-    filters.applicationCategoryFilter.multiSelectList.get(1).text() == 'uncategorized applications'
+    filters.applicationCategoryFilter.nxMultiSelectList.size() == 2
+    filters.applicationCategoryFilter.nxCounter.text() == '1'
+    filters.applicationCategoryFilter.nxMultiSelectList.getAt(0).text() == ' all/none'
+    filters.applicationCategoryFilter.nxMultiSelectList.getAt(1).text() == ' uncategorized applications'
   }
 }

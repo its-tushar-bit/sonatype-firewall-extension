@@ -3,9 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import { shallow } from 'enzyme';
-
 import * as enzymeUtils from '../../enzymeUtils';
 import ApplicationReportVulnerabilitiesHeader from
   '../../../../main/frontend/applicationReport/vulnerabilities/ApplicationReportVulnerabilitiesHeader';
@@ -27,10 +24,6 @@ describe('ApplicationReportVulnerabilitiesPage', function() {
     reportTime: 0,
     application: { name: 'foo app' }
   };
-
-  function getLoadWrapperChildren(pageShallowWrapper) {
-    return shallow(React.createElement(pageShallowWrapper.find(LoadWrapper).prop('children')));
-  }
 
   beforeEach(function() {
     loadReportAllDataSpy = jasmine.createSpy('loadReportAllData');
@@ -59,7 +52,7 @@ describe('ApplicationReportVulnerabilitiesPage', function() {
     expect(getShallowComponent()).toContainMatchingElement(LoadWrapper);
     expect(getShallowComponent().find(LoadWrapper).prop('children')).toEqual(jasmine.any(Function));
 
-    const loadWrapperChildren = getLoadWrapperChildren(getShallowComponent({ metadata: minimalMetadata })),
+    const loadWrapperChildren = enzymeUtils.getLoadWrapperChildren(getShallowComponent({ metadata: minimalMetadata })),
         tile = loadWrapperChildren.find('.nx-tile');
 
     expect(tile.childAt(0)).toMatchSelector(ApplicationReportVulnerabilitiesHeader);
@@ -97,8 +90,8 @@ describe('ApplicationReportVulnerabilitiesPage', function() {
   });
 
   it('passes the metadata prop on to the header', function() {
-    const getHeader = additionalProps =>
-      getLoadWrapperChildren(getShallowComponent(additionalProps)).find(ApplicationReportVulnerabilitiesHeader);
+    const getHeader = additionalProps => enzymeUtils
+        .getLoadWrapperChildren(getShallowComponent(additionalProps)).find(ApplicationReportVulnerabilitiesHeader);
 
     expect(getHeader({ metadata: minimalMetadata })).toHaveProp('metadata', minimalMetadata);
   });
@@ -113,8 +106,8 @@ describe('ApplicationReportVulnerabilitiesPage', function() {
           securityCode: 'CVE-12345',
           cvssScore: 8.0
         }],
-        getTable = additionalProps =>
-          getLoadWrapperChildren(getShallowComponent(additionalProps)).find(ApplicationReportVulnerabilitiesTable);
+        getTable = additionalProps => enzymeUtils
+            .getLoadWrapperChildren(getShallowComponent(additionalProps)).find(ApplicationReportVulnerabilitiesTable);
 
     expect(getTable({ metadata: minimalMetadata })).toHaveProp('vulnerabilities', []);
     expect(getTable({ metadata: minimalMetadata, vulnerabilities })).toHaveProp('vulnerabilities', vulnerabilities);

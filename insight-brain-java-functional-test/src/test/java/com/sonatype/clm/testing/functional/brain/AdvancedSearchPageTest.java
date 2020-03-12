@@ -12,7 +12,6 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.search.index.IndexService;
@@ -22,7 +21,6 @@ import org.junit.Test;
 import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.empty;
-import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
@@ -101,19 +99,12 @@ public class AdvancedSearchPageTest
 
     page.resultCount().shouldBe(text("15"));
     page.currentPageInfo().shouldBe(text("Page 1 of 2"));
-    page.firstResultResultNumber().shouldBe(text("1"));
-
-    // While we are at it lets scroll to bottom to verify we can see all search results
-    ScrollUtil.awaitEndOfScrolling(page.lastResultResultNumber().should(exist).scrollIntoView(true));
-    page.lastResultResultNumber().shouldBe(visible).shouldBe(text("10"));
 
     page.nextPageButton().click();
     page.currentPageInfo().shouldBe(text("Page 2 of 2"));
-    page.firstResultResultNumber().shouldBe(text("11"));
 
     page.previousPageButton().click();
     page.currentPageInfo().shouldBe(text("Page 1 of 2"));
-    page.firstResultResultNumber().shouldBe(text("1"));
   }
 
   @Test

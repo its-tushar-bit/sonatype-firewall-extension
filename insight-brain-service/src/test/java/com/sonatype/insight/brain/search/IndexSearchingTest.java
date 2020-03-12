@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.inject.Binder;
 import org.junit.Test;
@@ -47,6 +48,7 @@ import org.mockito.Mock;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
@@ -275,6 +277,14 @@ public class IndexSearchingTest
         new SecurityVulnerability("cve", "CVE-8765-1234", 4.3f, SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED),
         vulnDescription, "1234567890abcdeABCDE", ComponentIdentifier.createNugetCoordinates("Search.Test", "1.2.3"),
         evaluation);
+  }
+
+  @Test
+  public void testSearchByField_UnknownField() throws Exception {
+    index();
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      search("unknownField:foobar");
+    }).withMessage("The search query contains invalid field names: [unknownField]");
   }
 
   @Test
@@ -624,5 +634,14 @@ public class IndexSearchingTest
     assertThat(search(FieldIdentifier.APPLICATION_NAME, "app1*")).extracting(dto -> dto.applicationId)
         .containsExactlyInAnyOrder(app.getId());
     assertThat(search(FieldIdentifier.APPLICATION_NAME, "app1\\*")).isEmpty();
+  }
+
+  @Test
+  public void testSearchByDefaultFieldAndOther() throws Exception {
+    String appId = newAppReport(Stage.ID_BUILD, "report-0").getApplicationId();
+    newAppReport(Stage.ID_BUILD, "report-1");
+    index();
+    assertThat(search("CVE-8765-1234 AND " + FieldIdentifier.APPLICATION_ID + ":" + appId))
+        .extracting(dto -> dto.reportId).containsExactlyInAnyOrder("report-0");
   }
 }

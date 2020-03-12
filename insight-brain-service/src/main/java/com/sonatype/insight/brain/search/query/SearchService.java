@@ -11,10 +11,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -39,6 +41,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHits.Relation;
@@ -91,6 +94,17 @@ public class SearchService
 
       Query query = createQuery(searchQuery);
 
+      Set<String> fieldNames = getFieldNames(query);
+      Set<String> invalidFieldNames = new TreeSet<>();
+      for (String fieldName : fieldNames) {
+        if (getFieldIdentifier(fieldName) == null) {
+          invalidFieldNames.add(fieldName);
+        }
+      }
+      if (!invalidFieldNames.isEmpty()) {
+        throw new BadRequestException("The search query contains invalid field names: " + invalidFieldNames);
+      }
+
       // Passing 0 to IndexSearcher#search throws IllegalArgumentException with 'numHits must be > 0'
       TopDocs topDocs = indexSearcher.search(query, Math.max(1, indexReader.maxDoc()));
       ScoreDoc[] scoreDocs = topDocs.scoreDocs;
@@ -104,14 +118,8 @@ public class SearchService
         documentScores.put(document, scoreDoc.shardIndex);
       }
 
-      FieldIdentifier groupIdentifier = getGrouper(searchQuery);
-      String groupFieldName;
-      if (FieldIdentifier.COMPONENT_COORDINATE.equals(groupIdentifier)) {
-        groupFieldName = getSearchField(searchQuery).get();
-      }
-      else {
-        groupFieldName = groupIdentifier.label;
-      }
+      String groupFieldName = getGroupFieldName(fieldNames);
+      FieldIdentifier groupIdentifier = getFieldIdentifier(groupFieldName);
 
       int startIndex = (page - 1) * pageSize;
       int resultIndex = startIndex + 1;
@@ -222,31 +230,38 @@ public class SearchService
     }
   }
 
-  private FieldIdentifier getGrouper(String searchQuery) {
-    FieldIdentifier grouper = VULNERABILITY_ID;
-    Optional<String> searchField = getSearchField(searchQuery);
-    if (searchField.isPresent()) {
-      String fieldName = searchField.get();
-      if (fieldName.startsWith(FieldIdentifier.COMPONENT_COORDINATE.label)) {
-        grouper = FieldIdentifier.COMPONENT_COORDINATE;
+  private Set<String> getFieldNames(Query query) {
+    Set<String> fieldNames = new HashSet<>();
+    query.visit(new QueryVisitor()
+    {
+      @Override
+      public boolean acceptField(String field) {
+        fieldNames.add(field);
+        return false;
       }
-      else {
-        grouper = Arrays.stream(FieldIdentifier.values())
-            .filter(fieldIdentifier -> fieldIdentifier.label.equals(fieldName)).findAny().get();
-        if (grouper == VULNERABILITY_DESCRIPTION) { // Grouping by description does not make sense
-          grouper = VULNERABILITY_ID;
-        }
-      }
-    }
-    return grouper;
+    });
+    return fieldNames;
   }
 
-  private Optional<String> getSearchField(String searchQuery) {
-    int colon = searchQuery.indexOf(':');
-    if (colon < 0) {
-      return Optional.empty();
+  private String getGroupFieldName(Set<String> fieldNames) {
+    String groupFieldName = new TreeSet<>(fieldNames).first();
+    if (VULNERABILITY_DESCRIPTION.label.equals(groupFieldName)) {
+      // Grouping by description does not make sense
+      groupFieldName = VULNERABILITY_ID.label;
     }
-    return Optional.of(searchQuery.substring(0, colon));
+    return groupFieldName;
+  }
+
+  private FieldIdentifier getFieldIdentifier(String fieldName) {
+    FieldIdentifier identifier;
+    if (fieldName.startsWith(COMPONENT_COORDINATE.label)) {
+      identifier = COMPONENT_COORDINATE;
+    }
+    else {
+      identifier = Arrays.stream(FieldIdentifier.values())
+          .filter(fieldIdentifier -> fieldIdentifier.label.equals(fieldName)).findAny().orElse(null);
+    }
+    return identifier;
   }
 
   private Query createQuery(String searchQuery) {

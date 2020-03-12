@@ -94,9 +94,9 @@ public class ApiUserTokenResourceTest
     tempEntity.newUserToken("stanley.clarke", december31);
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2)
-        .query("afterDate", "2019-12-10")
-        .query("beforeDate", "2019-12-20")
+        .path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2) //
+        .query("createdAfter", "2019-12-10") //
+        .query("createdBefore", "2019-12-20") //
         .get();
 
     assertResponseStatus(200, response);

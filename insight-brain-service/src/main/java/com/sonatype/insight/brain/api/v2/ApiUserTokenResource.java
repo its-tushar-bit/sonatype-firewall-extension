@@ -58,8 +58,8 @@ public class ApiUserTokenResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApiUserTokenDTO> getUserTokensCreatedBetween(
-      @QueryParam("afterDate") String createdAfter,
-      @QueryParam("beforeDate") String createdBefore)
+      @QueryParam("createdAfter") String createdAfter,
+      @QueryParam("createdBefore") String createdBefore)
   {
     return userTokenService.getUserTokensCreatedBetween(createdAfter, createdBefore);
   }

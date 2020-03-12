@@ -38,7 +38,7 @@ function SearchBarController(searchService, searchSuggesterService, $q, $state, 
 
     searchSuggester() {
       const promises = [];
-      searchSuggesterService.query = vm.query.replace('*', '');
+      searchSuggesterService.query = vm.query;
       promises.push(searchSuggesterService.search());
       return $q.all(promises).then(function(results) {
         vm.suggestions = results[0].data.searchResultItems;

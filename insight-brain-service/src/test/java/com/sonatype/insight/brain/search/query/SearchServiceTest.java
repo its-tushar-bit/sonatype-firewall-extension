@@ -61,6 +61,17 @@ public class SearchServiceTest
     assertThat(SearchService.findStartOfLastClause("foo:bar ")).isEqualTo(8);
     assertThat(SearchService.findStartOfLastClause("foo:\"bar ")).isEqualTo(0);
     assertThat(SearchService.findStartOfLastClause("foo:\\\"bar ")).isEqualTo(10);
+    assertThat(SearchService.findStartOfLastClause("foo:[bar ")).isEqualTo(0);
+    assertThat(SearchService.findStartOfLastClause("foo:[bar] ")).isEqualTo(10);
+    assertThat(SearchService.findStartOfLastClause("foo:[bar} ")).isEqualTo(10);
+    assertThat(SearchService.findStartOfLastClause("foo:\\[bar ")).isEqualTo(10);
+    assertThat(SearchService.findStartOfLastClause("foo:{bar ")).isEqualTo(0);
+    assertThat(SearchService.findStartOfLastClause("foo:{bar} ")).isEqualTo(10);
+    assertThat(SearchService.findStartOfLastClause("foo:{bar] ")).isEqualTo(10);
+    assertThat(SearchService.findStartOfLastClause("foo:\\{bar ")).isEqualTo(10);
+    assertThat(SearchService.findStartOfLastClause("foo:/bar ")).isEqualTo(0);
+    assertThat(SearchService.findStartOfLastClause("foo:/bar/ ")).isEqualTo(10);
+    assertThat(SearchService.findStartOfLastClause("foo:\\/bar ")).isEqualTo(10);
     assertThat(SearchService.findStartOfLastClause("foo bar")).isEqualTo(4);
     assertThat(SearchService.findStartOfLastClause("+b")).isEqualTo(1);
     assertThat(SearchService.findStartOfLastClause("foo +b")).isEqualTo(5);

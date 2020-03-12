@@ -180,6 +180,8 @@ public class SearchService
   static int findStartOfLastClause(String searchQuery) {
     int result = 0;
     boolean inPhrase = false;
+    boolean inRange = false;
+    boolean inRegex = false;
     for (int i = 0, n = searchQuery.length(); i < n; i++) {
       char c = searchQuery.charAt(i);
       if (c == '\\') {
@@ -188,7 +190,16 @@ public class SearchService
       else if (c == '"') {
         inPhrase = !inPhrase;
       }
-      else if (!inPhrase) {
+      else if (c == '[' || c == '{') {
+        inRange = true;
+      }
+      else if (c == ']' || c == '}') {
+        inRange = false;
+      }
+      else if (c == '/') {
+        inRegex = !inRegex;
+      }
+      else if (!inPhrase && !inRange && !inRegex) {
         if (c == ' ') {
           result = i + 1;
         }

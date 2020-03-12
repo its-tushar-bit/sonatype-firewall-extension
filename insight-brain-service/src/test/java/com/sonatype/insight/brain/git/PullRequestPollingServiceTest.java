@@ -233,7 +233,7 @@ public class PullRequestPollingServiceTest
       doReturn(mockGitApiClient).when(mockGitClientFactory).createApiClient(gitRepositoryInfo);
       doReturn(mockGitGraphQlApiClient).when(mockGitClientFactory).createGraphqlApiClient(gitRepositoryInfo);
 
-      doReturn(sourceControl, null).when(mockSourceControlDAO).getNextRepositoryToPoll();
+      doReturn(sourceControl, (SourceControl) null).when(mockSourceControlDAO).getNextRepositoryToPoll();
       if (null != sourceControl) {
         doReturn(sourceControl).when(mockSourceControlDAO).getById(sourceControl.getId());
       }

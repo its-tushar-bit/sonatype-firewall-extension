@@ -44,7 +44,7 @@
             <p ng-if="groupingBy.additionalInfo">
               {{groupingBy.additionalInfo}}
               <span ng-if="groupingBy.groupIdentifier == 'VULNERABILITY_ID' || groupingBy.groupIdentifier == 'VULNERABILITY_DESCRIPTION'">
-            Click <a ng-href="/assets/#/vulnerabilities/{{groupingBy.groupBy}}">here</a> for detailed information.
+            Click <a ui-sref="vulnerabilitySearchDetail({id: groupingBy.groupBy})">here</a> for detailed information.
           </span>
               <br/>
             </p>
@@ -88,7 +88,7 @@
                 <tr ng-if="result.vulnerabilityId && groupingBy.groupIdentifier != 'VULNERABILITY_ID'">
                   <td><i class="fa fa-exclamation-triangle iq-owner-tree-view__icon--12px inverse"></i></td>
                   <td>Security Issue:</td>
-                  <td><a ng-href="/assets/#/vulnerabilities/{{result.vulnerabilityId}}">{{result.vulnerabilityId}}</a></td>
+                  <td><a ui-sref="vulnerabilitySearchDetail({id: result.vulnerabilityId})">{{result.vulnerabilityId}}</a></td>
                 </tr>
                 <tr ng-if="result.vulnerabilityDescription && groupingBy.groupIdentifier != 'VULNERABILITY_ID'">
                   <td><i class="fa fa-file-text iq-owner-tree-view__icon--12px inverse"></i></td>
@@ -101,7 +101,7 @@
                   </td>
                   <td>Application Category:</td>
                   <td>
-                    <a href="#/management/edit/organization/{{result.organizationId}}/category/{{result.applicationCategoryId}}">{{result.applicationCategoryName}}</a>
+                    <a ui-sref="management.edit.organization.category({organizationId: result.organizationId, categoryId: result.applicationCategoryId})">{{result.applicationCategoryName}}</a>
                     <span ng-if="result.applicationCategoryDescription">- {{result.applicationCategoryDescription}}</span>
                   </td>
                 </tr>
@@ -110,9 +110,9 @@
                   <td>Component Label:</td>
                   <td>
                     <a ng-if="result.organizationId"
-                       href="#/management/edit/organization/{{result.organizationId}}/label/{{result.componentLabelId}}">{{result.componentLabelName}}</a>
+                       ui-sref="management.edit.organization.label({organizationId: result.organizationId, labelId: result.componentLabelId})">{{result.componentLabelName}}</a>
                     <a ng-if="result.applicationPublicId"
-                       href="#/management/edit/application/{{result.applicationPublicId}}/label/{{result.componentLabelId}}">{{result.componentLabelName}}</a>
+                       ui-sref="management.edit.application.label({applicationPublicId: result.applicationPublicId, labelId: result.componentLabelId})">{{result.componentLabelName}}</a>
                     <span ng-if="result.componentLabelDescription">- {{result.componentLabelDescription}}</span>
                   </td>
                 </tr>
@@ -123,9 +123,9 @@
                     <span class="iq-threat-indicator {{vm.threatIndicator(result.policyThreatLevel)}}">{{result.policyThreatLevel}}</span>
                     <span>{{result.policyThreatCategory}} -</span>
                     <a ng-if="result.organizationId"
-                       href="#/management/edit/organization/{{result.organizationId}}/policy/{{result.policyId}}">{{result.policyName}}</a>
+                       ui-sref="management.edit.organization.policy({organizationId: result.organizationId, policyId: result.policyId})">{{result.policyName}}</a>
                     <a ng-if="result.applicationPublicId"
-                       href="#/management/edit/application/{{result.applicationPublicId}}/policy/{{result.policyId}}">{{result.policyName}}</a>
+                       ui-sref="management.edit.application.policy({applicationPublicId: result.applicationPublicId, policyId: result.policyId})">{{result.policyName}}</a>
                   </td>
                 </tr>
               </table>

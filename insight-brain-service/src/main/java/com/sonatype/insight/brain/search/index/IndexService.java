@@ -89,6 +89,8 @@ public class IndexService
   static final String SEARCH_INDEX_SIZE_BYTES = "search_index_size_bytes";
 
   private static final ImmutableSet<String> SUGGESTER_FIELDS_TO_IGNORE = ImmutableSet.of(
+          FieldIdentifier.POLICY_THREAT_LEVEL.label,
+          FieldIdentifier.VULNERABILITY_SEVERITY.label,
           FieldIdentifier.COMPONENT_LABEL_DESCRIPTION.label, 
           FieldIdentifier.VULNERABILITY_DESCRIPTION.label, 
           FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION.label);
@@ -287,6 +289,15 @@ public class IndexService
       try (IndexReader indexReader = indexSearcher.getIndexReader()) {
         long maxId = indexReader.maxDoc();
         Set<String> searchKeys = new HashSet<>();
+        searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[0 TO 4}");
+        searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[4 TO 7}");
+        searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[7 TO 9}");
+        searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[9 TO 10]");
+        searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":0");
+        searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":1");
+        searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":[2 TO 3]");
+        searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":[4 TO 7]");
+        searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":[8 TO 10]");
         for (int i = 0; i < maxId; i++) {
           Document doc = indexSearcher.doc(i);
           searchKeys.addAll(getDocFieldValues(doc, queryParser));

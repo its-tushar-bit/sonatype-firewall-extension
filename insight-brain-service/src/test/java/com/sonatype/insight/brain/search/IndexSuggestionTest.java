@@ -79,7 +79,7 @@ public class IndexSuggestionTest
   }
 
   private String field(String fieldName, String value) {
-    if (value.chars().anyMatch(character -> " :".indexOf(character) >= 0)) {
+    if (value.chars().anyMatch(character -> " :".indexOf(character) >= 0) && !value.startsWith("[")) {
       value = '"' + value.replace("\\", "\\\\").replace("\"", "\\\"") + '"';
     }
     return fieldName + ':' + value;
@@ -158,10 +158,11 @@ public class IndexSuggestionTest
 
   @Test
   public void testField_PolicyThreatLevel() throws Exception {
-    tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Test Policy", 10);
     index();
-    // "10" could also be a prefix of some entity id, hence not asserting only one suggestion
-    assertThat(autoComplete("10")).contains(field(FieldIdentifier.POLICY_THREAT_LEVEL, "10"));
+    assertThat(autoComplete("policythreatlev")).containsExactlyInAnyOrder(
+        field(FieldIdentifier.POLICY_THREAT_LEVEL, "0"), field(FieldIdentifier.POLICY_THREAT_LEVEL, "1"),
+        field(FieldIdentifier.POLICY_THREAT_LEVEL, "[2 TO 3]"), field(FieldIdentifier.POLICY_THREAT_LEVEL, "[4 TO 7]"),
+        field(FieldIdentifier.POLICY_THREAT_LEVEL, "[8 TO 10]"));
   }
 
   @Test
@@ -293,9 +294,12 @@ public class IndexSuggestionTest
 
   @Test
   public void testField_VulnerabilitySeverity() throws Exception {
-    newAppReport();
     index();
-    assertThat(autoComplete("4.5")).containsExactlyInAnyOrder(field(FieldIdentifier.VULNERABILITY_SEVERITY, "4.5"));
+    assertThat(autoComplete("vulnerabilitysev")).containsExactlyInAnyOrder(
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, "[0 TO 4}"),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, "[4 TO 7}"),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, "[7 TO 9}"),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, "[9 TO 10]"));
   }
 
   @Test

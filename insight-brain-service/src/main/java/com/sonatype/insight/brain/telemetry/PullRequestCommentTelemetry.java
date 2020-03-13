@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.telemetry;
 
 /**
- * @since 1.87
+ * @since 1.88
  */
 public class PullRequestCommentTelemetry
 {

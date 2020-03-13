@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -172,21 +173,31 @@ public class SearchService
     String lastClause = searchQuery.substring(lastClauseStart);
     String searchProlog = searchQuery.substring(0, lastClauseStart);
 
-    try (FSDirectory suggesterFile = FSDirectory.open(searchSuggesterIndexPath);
-         AnalyzingInfixSuggester suggester = luceneComponents.newSuggester(suggesterFile)) {
-      // try strict lookup first, matching all tokens from search query
-      List<Lookup.LookupResult> results =
-          suggester.lookup(lastClause, Collections.emptySet(), MAX_SUGGESTIONS, true, false);
-      if (results.isEmpty()) {
-        // fallback to more lenient lookup, matching on any token
-        results = suggester.lookup(lastClause, Collections.emptySet(), MAX_SUGGESTIONS, false, false);
-      }
-      for (Lookup.LookupResult result : results) {
-        searchResultDTO.searchResultItems.add(searchProlog + result.key);
-      }
+    if (lastClause.isEmpty()) {
+      Stream.of(FieldIdentifier.values()) //
+          .filter(field -> !FieldIdentifier.COMPONENT_COORDINATE.equals(field)) //
+          .map(field -> field.label) //
+          .sorted() //
+          .forEach(field -> searchResultDTO.searchResultItems.add(searchProlog + field + ':'));
     }
-    catch (IOException e) {
-      log.error(e.getMessage(), e);
+    else {
+      try (FSDirectory suggesterFile = FSDirectory.open(searchSuggesterIndexPath);
+          AnalyzingInfixSuggester suggester = luceneComponents.newSuggester(suggesterFile)) {
+        // try strict lookup first, matching all tokens from search query
+        List<Lookup.LookupResult> results =
+            suggester.lookup(lastClause, Collections.emptySet(), MAX_SUGGESTIONS, true, false);
+        if (results.isEmpty()) {
+          // fallback to more lenient lookup, matching on any token
+          results = suggester.lookup(lastClause, Collections.emptySet(), MAX_SUGGESTIONS, false, false);
+        }
+        for (Lookup.LookupResult result : results) {
+          searchResultDTO.searchResultItems.add(searchProlog + result.key);
+        }
+        searchResultDTO.searchResultItems.remove(searchQuery);
+      }
+      catch (IOException e) {
+        log.error(e.getMessage(), e);
+      }
     }
 
     return searchResultDTO;

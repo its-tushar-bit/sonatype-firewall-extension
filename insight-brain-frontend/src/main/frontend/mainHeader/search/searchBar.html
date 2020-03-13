@@ -7,8 +7,9 @@
            list="advanced-search-suggestions-list"
            class="iq-text-input iq-text-input--advanced-search"
            ng-model="vm.query"
+           ng-trim="false"
            placeholder="Start typing your query for suggestions"
-           ng-keyup="vm.query && vm.searchSuggester()">
+           ng-keyup="vm.searchSuggester()">
     <button id="advanced-search-button" class="iq-btn iq-btn--primary" type="submit">
       Search
     </button>

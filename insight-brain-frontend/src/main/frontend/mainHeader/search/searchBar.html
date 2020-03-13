@@ -1,22 +1,22 @@
-<div id="global-search-outer-wrapper">
+<div id="advanced-search-outer-wrapper">
   <form id="advanced-search-query-form"
         class="iq-form iq-form--advanced-search iq-form--no-border"
         ng-submit="vm.query && vm.search()">
-    <input id="global-search-input"
+    <input id="advanced-search-input"
            type="text"
-           list="global-search-suggestions-list"
+           list="advanced-search-suggestions-list"
            class="iq-text-input iq-text-input--advanced-search"
            ng-model="vm.query"
            placeholder="Start typing your query for suggestions"
            ng-keyup="vm.query && vm.searchSuggester()">
-    <button id="global-search-button" class="iq-btn iq-btn--primary" type="submit">
+    <button id="advanced-search-button" class="iq-btn iq-btn--primary" type="submit">
       Search
     </button>
   </form>
   <div id="advanced-search-error" ng-if="vm.error">
     {{vm.error}}
   </div>
-  <datalist id="global-search-suggestions-list">
+  <datalist id="advanced-search-suggestions-list">
     <option ng-repeat="suggestion in vm.suggestions track by $index" value="{{suggestion}}">
   </datalist>
 </div>

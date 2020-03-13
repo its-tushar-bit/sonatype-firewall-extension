@@ -34,11 +34,11 @@ public class AdvancedSearchPage
   }
 
   public SelenideElement searchInput() {
-    return child("#global-search-input");
+    return child("#advanced-search-input");
   }
 
   public SelenideElement searchButton() {
-    return child("#global-search-button");
+    return child("#advanced-search-button");
   }
 
   public SelenideElement resultCount() {

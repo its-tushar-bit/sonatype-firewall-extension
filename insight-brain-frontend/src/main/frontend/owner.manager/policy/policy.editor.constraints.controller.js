@@ -101,14 +101,15 @@ export default function PolicyEditorConstraintsController(ConstraintStore) {
   function doLoad() {
     ConstraintStore.get().then(function(constraintStore) {
       var typeValues = {};
-      vm.conditionTypes = constraintStore[0];
+      var allConditionTypes = constraintStore[0];
+      vm.conditionTypes = allConditionTypes.filter(type => type.enabled);
       vm.conditionTypesMap = {};
 
       constraintStore[1].forEach(function(typeValue) {
         typeValues[typeValue.id] = typeValue;
       });
 
-      vm.conditionTypes.forEach(function(type) {
+      allConditionTypes.forEach(function(type) {
         type.valueType = type.valueTypeId ? typeValues[type.valueTypeId] : null;
         vm.conditionTypesMap[type.id] = type;
       });

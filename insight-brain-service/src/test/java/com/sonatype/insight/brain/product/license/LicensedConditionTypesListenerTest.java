@@ -28,10 +28,10 @@ public class LicensedConditionTypesListenerTest
   public void test_HygieneConditionType() {
     testProductLicense.setFeatures(LicensedFeature.HYGIENE);
     licensedConditionTypesListener.productLicenseChanged();
-    assertThat(ConditionTypes.getAll()).contains(ConditionTypes.HygieneRatingConditionType);
+    assertThat(ConditionTypes.getById(ConditionTypes.HygieneRatingConditionType.ID).isEnabled()).isTrue();
 
     testProductLicense.setMissingFeatures(LicensedFeature.HYGIENE);
     licensedConditionTypesListener.productLicenseChanged();
-    assertThat(ConditionTypes.getAll()).doesNotContain(ConditionTypes.HygieneRatingConditionType);
+    assertThat(ConditionTypes.getById(ConditionTypes.HygieneRatingConditionType.ID).isEnabled()).isFalse();
   }
 }

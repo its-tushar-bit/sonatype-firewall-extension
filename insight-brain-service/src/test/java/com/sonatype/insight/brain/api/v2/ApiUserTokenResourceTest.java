@@ -94,9 +94,9 @@ public class ApiUserTokenResourceTest
     tempEntity.newUserToken("stanley.clarke", december31);
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2)
-        .query("afterDate", "2019-12-10")
-        .query("beforeDate", "2019-12-20")
+        .path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2) //
+        .query("createdAfter", "2019-12-10") //
+        .query("createdBefore", "2019-12-20") //
         .get();
 
     assertResponseStatus(200, response);
@@ -105,5 +105,18 @@ public class ApiUserTokenResourceTest
     assertThat(responseBody.length).isEqualTo(1);
     assertThat(responseBody[0].userCode).isEqualTo(userToken.getUserCode());
     assertThat(responseBody[0].passCode).isNull();
+  }
+
+  @Test
+  public void testDeleteUserTokenByUserCode() throws Exception {
+    UserToken userToken = tempEntity.newUserToken(getUsername(), InternalRealm.ID);
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2)
+        .path(ApiUserTokenResource.USER_CODE)
+        .parameter(userToken.getUserCode())
+        .delete();
+
+    assertResponseStatus(204, response);
+    assertThat(userTokenDAO.getById(userToken.getId())).isNull();
   }
 }

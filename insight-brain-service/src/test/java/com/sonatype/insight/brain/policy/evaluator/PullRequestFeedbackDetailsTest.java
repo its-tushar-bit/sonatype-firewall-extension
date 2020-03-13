@@ -59,7 +59,9 @@ public class PullRequestFeedbackDetailsTest
 
   private static final String APP_PUBLIC_ID = "TEST_APP_PUBLIC_ID";
 
-  private PolicyEvaluation toPolicyEvaluation;
+  private PolicyEvaluation featureBranchPolicyEvaluation;
+
+  private PolicyEvaluation defaultBranchPolicyEvaluation;
 
   private PolicyViolationDiff<PolicyViolation> diff;
 
@@ -93,8 +95,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, toPolicyEvaluation, diff, app,
-            lookup(BaseUrl.class).getConfigured());
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            app, lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
     final Path path =
@@ -115,11 +117,12 @@ public class PullRequestFeedbackDetailsTest
     diff.getAppeared().add(first);
 
     //setup bom report entry
-    final ReportEntry bomEntry = reportService.getBomForPolicyEvaluation(toPolicyEvaluation);
+    final ReportEntry bomEntry = reportService.getBomForPolicyEvaluation(featureBranchPolicyEvaluation);
 
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, toPolicyEvaluation, diff, app, lookup(BaseUrl.class).getConfigured());
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            app, lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents has singular violation in heading
     final Optional<String> contents = details.getContents();
@@ -134,8 +137,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, toPolicyEvaluation, diff, app,
-            lookup(BaseUrl.class).getConfigured());
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            app, lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents is not available
     final Optional<String> contents = details.getContents();
@@ -149,7 +152,7 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestFeedbackDetails(null, toPolicyEvaluation, diff, app,
+        new PullRequestFeedbackDetails(null, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff, app,
             lookup(BaseUrl.class).getConfigured()));
   }
 
@@ -161,8 +164,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, toPolicyEvaluation, diff, app,
-            lookup(BaseUrl.class).getConfigured());
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            app, lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents is not available
     final Optional<String> contents = details.getContents();
@@ -176,8 +179,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestFeedbackDetails(bomEntry, toPolicyEvaluation, null, app,
-            lookup(BaseUrl.class).getConfigured()));
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, null,
+            app, lookup(BaseUrl.class).getConfigured()));
   }
 
   @Test
@@ -187,8 +190,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestFeedbackDetails(bomEntry, toPolicyEvaluation, diff, null,
-            lookup(BaseUrl.class).getConfigured()));
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            null, lookup(BaseUrl.class).getConfigured()));
   }
 
   @Test
@@ -199,18 +202,29 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
-        new PullRequestFeedbackDetails(bomEntry, toPolicyEvaluation, diff, app,
-            lookup(BaseUrl.class).getConfigured()));
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            app, lookup(BaseUrl.class).getConfigured()));
   }
 
   @Test
-  public void testPullRequestFeedback_nullEvaluation() throws IOException, URISyntaxException {
+  public void testPullRequestFeedback_nullFeatureBranchEvaluation() throws IOException, URISyntaxException {
     //setup test data
     setupTestData();
 
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestFeedbackDetails(bomEntry, null, diff, app,
+        new PullRequestFeedbackDetails(bomEntry, null, defaultBranchPolicyEvaluation, diff, app,
+            lookup(BaseUrl.class).getConfigured()));
+  }
+
+  @Test
+  public void testPullRequestFeedback_nullDefaultBranchEvaluation() throws IOException, URISyntaxException {
+    //setup test data
+    setupTestData();
+
+    //when
+    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, null, diff, app,
             lookup(BaseUrl.class).getConfigured()));
   }
 
@@ -349,24 +363,24 @@ public class PullRequestFeedbackDetailsTest
     setupTestData("/PullRequestFeedbackDetailsTest/from-report", "/PullRequestFeedbackDetailsTest/to-report");
   }
 
-  private void setupTestData(final String fromReportLocation, final String toReportLocation)
+  private void setupTestData(final String defaultBranchReportLocation, final String featureBranchReportLocation)
       throws IOException, URISyntaxException
   {
     //setup reports
-    createReportFile(app.getId(), FROM_SCAN_ID, zipReportDir(fromReportLocation, tempDir),
+    createReportFile(app.getId(), FROM_SCAN_ID, zipReportDir(defaultBranchReportLocation, tempDir),
         insightWork);
-    createReportFile(app.getId(), TO_SCAN_ID, zipReportDir(toReportLocation, tempDir),
+    createReportFile(app.getId(), TO_SCAN_ID, zipReportDir(featureBranchReportLocation, tempDir),
         insightWork);
 
     //setup evaluations
-    final PolicyEvaluation fromPolicyEvaluation =
-        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID);
-    toPolicyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID);
+    defaultBranchPolicyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID);
+    featureBranchPolicyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID);
 
     //setup diff
-    diff = policyEvaluationDiffService.createPolicyViolationDiff(fromPolicyEvaluation, toPolicyEvaluation).get();
+    diff = policyEvaluationDiffService.createPolicyViolationDiff(defaultBranchPolicyEvaluation,
+        featureBranchPolicyEvaluation).get();
 
     //setup bom report entry
-    bomEntry = reportService.getBomForPolicyEvaluation(toPolicyEvaluation);
+    bomEntry = reportService.getBomForPolicyEvaluation(featureBranchPolicyEvaluation);
   }
 }

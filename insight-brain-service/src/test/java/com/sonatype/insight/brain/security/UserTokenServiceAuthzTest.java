@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -51,5 +52,23 @@ public class UserTokenServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetUserTokensCreatedBetween_Unauthenticated() throws Exception {
     userTokenService.getUserTokensCreatedBetween(null, null);
+  }
+
+  @Test
+  public void testDeleteUserTokenByUserCode_Authorized() throws Exception {
+    UserToken userToken = tempEntity.newUserToken("john.doe", InternalRealm.ID);
+    grantConfigureSystemPermission();
+    userTokenService.deleteUserTokenByUserCode(userToken.getUserCode());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeleteUserTokenByUserCode_Unauthorized() throws Exception {
+    login();
+    userTokenService.deleteUserTokenByUserCode("a-user-code");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteUserTokenByUserCode_Unauthenticated() throws Exception {
+    userTokenService.deleteUserTokenByUserCode("a-user-code");
   }
 }

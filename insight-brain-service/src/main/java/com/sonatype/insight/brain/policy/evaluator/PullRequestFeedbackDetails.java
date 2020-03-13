@@ -46,7 +46,9 @@ public class PullRequestFeedbackDetails
 
   private final ReportEntry bomReportEntry;
 
-  private final PolicyEvaluation toEvaluation;
+  private final PolicyEvaluation featureBranchEvaluation;
+
+  private final PolicyEvaluation defaultBranchEvaluation;
 
   private final PolicyViolationDiff<PolicyViolation> diff;
 
@@ -54,15 +56,18 @@ public class PullRequestFeedbackDetails
 
   public PullRequestFeedbackDetails(
       final ReportEntry bomReportEntry,
-      final PolicyEvaluation toEvaluation,
+      final PolicyEvaluation featureBranchEvaluation,
+      final PolicyEvaluation defaultBranchEvaluation,
       final PolicyViolationDiff<PolicyViolation> diff,
       final Application app,
       final String baseUrl) throws IOException
   {
     Preconditions.checkNotNull(bomReportEntry, "bomReportEntry is required and cannot be null");
     this.bomReportEntry = bomReportEntry;
-    Preconditions.checkNotNull(toEvaluation, "toEvaluation is required and cannot be null");
-    this.toEvaluation = toEvaluation;
+    Preconditions.checkNotNull(featureBranchEvaluation, "featureBranchEvaluation is required and cannot be null");
+    this.featureBranchEvaluation = featureBranchEvaluation;
+    Preconditions.checkNotNull(defaultBranchEvaluation, "defaultBranchEvaluation is required and cannot be null");
+    this.defaultBranchEvaluation = defaultBranchEvaluation;
     Preconditions.checkNotNull(diff, "diff is required and cannot be null");
     this.diff = diff;
     Preconditions.checkNotNull(app, "app is required and cannot be null");
@@ -261,10 +266,12 @@ public class PullRequestFeedbackDetails
         .put("applicationName", app.getName())
         .put("organizationName", getOrganizationName(app))
         .put("componentList", componentFeedbackList)
-        .put("date", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(toEvaluation.getTime()))
-        .put("stage", toEvaluation.getStageTypeId())
-        .put("detailedReportUrl", baseUrl +
-            UserInterfaceLinksResource.getReportUrl(app.getPublicId(), toEvaluation.getScanId()))
+        .put("date", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(featureBranchEvaluation.getTime()))
+        .put("stage", featureBranchEvaluation.getStageTypeId())
+        .put("detailedFeatureBranchReportUrl", baseUrl +
+            UserInterfaceLinksResource.getReportUrl(app.getPublicId(), featureBranchEvaluation.getScanId()))
+        .put("detailedDefaultBranchReportUrl", baseUrl +
+            UserInterfaceLinksResource.getReportUrl(app.getPublicId(), defaultBranchEvaluation.getScanId()))
         .put("baseIqUrl", baseUrl)
         .put("policiesViolatedCount",
             componentPolicyViolationsMap.entrySet()

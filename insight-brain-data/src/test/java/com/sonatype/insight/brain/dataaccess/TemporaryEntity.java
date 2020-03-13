@@ -957,22 +957,22 @@ public class TemporaryEntity
   }
 
   public LdapUserMapping newLdapUserMapping(String ldapServerId) {
-    LdapUserMapping umap = new LdapUserMapping();
-    umap.setServerId(ldapServerId);
-    umap.setUserBaseDN("ou=users");
-    umap.setUserObjectClass("person");
-    umap.setUserIDAttribute("uid");
-    umap.setUserRealNameAttribute("givenName");
-    umap.setUserEmailAttribute("mail");
-    umap.setUserSubtree(true);
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    umap.setGroupBaseDN("ou=groups");
-    umap.setGroupIDAttribute("cn");
-    umap.setGroupSubtree(true);
-    umap.setGroupObjectClass("groupOfNames");
-    umap.setGroupMemberAttribute("member");
-    umap.setGroupMemberFormat("uid=${username}");
-    return newLdapUserMapping(umap);
+    LdapUserMapping ldapUserMapping = new LdapUserMapping();
+    ldapUserMapping.setServerId(ldapServerId);
+    ldapUserMapping.setUserBaseDN("ou=users");
+    ldapUserMapping.setUserObjectClass("person");
+    ldapUserMapping.setUserIDAttribute("uid");
+    ldapUserMapping.setUserRealNameAttribute("givenName");
+    ldapUserMapping.setUserEmailAttribute("mail");
+    ldapUserMapping.setUserSubtree(true);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupBaseDN("ou=groups");
+    ldapUserMapping.setGroupIDAttribute("cn");
+    ldapUserMapping.setGroupSubtree(true);
+    ldapUserMapping.setGroupObjectClass("groupOfNames");
+    ldapUserMapping.setGroupMemberAttribute("member");
+    ldapUserMapping.setGroupMemberFormat("uid=${username}");
+    return newLdapUserMapping(ldapUserMapping);
   }
 
   public LdapUserMapping newLdapUserMapping(LdapUserMapping ldapUserMapping) {

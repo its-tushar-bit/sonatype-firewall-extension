@@ -37,7 +37,7 @@ public class ReverseProxyAuthcTest
     extends AbstractBrainServiceTest
 {
   @Rule
-  public TestLdapServer ldapServer = new TestLdapServer();
+  public TestLdapServer testLdapServer = new TestLdapServer();
 
   @Rule
   public LogOutput logOutput = new LogOutput(ReverseProxyAuthenticationFilter.class);
@@ -77,12 +77,12 @@ public class ReverseProxyAuthcTest
   @Before
   public void init() throws Exception {
     if (setupLdap) {
-      ldapServer.start();
+      testLdapServer.start();
       if (ldapUser) {
-        ldapServer.loadData("/ReverseProxyAuthcTest/ldap_users.ldif");
+        testLdapServer.loadData("/ReverseProxyAuthcTest/ldap_users.ldif");
       }
       LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-      tempEntity.newLdapConnection(ldapServer.getId(), this.ldapServer.getPort());
+      tempEntity.newLdapConnection(ldapServer.getId(), this.testLdapServer.getPort());
       tempEntity.newLdapUserMapping(ldapServer.getId());
     }
     if (localUser) {

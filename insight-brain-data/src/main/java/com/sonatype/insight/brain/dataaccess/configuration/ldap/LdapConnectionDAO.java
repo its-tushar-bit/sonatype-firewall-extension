@@ -24,11 +24,11 @@ public class LdapConnectionDAO
   }
 
   public LdapConnection getByIdNotNull(String id) {
-    LdapConnection conn = getById(id);
-    if (conn == null) {
+    LdapConnection ldapConnection = getById(id);
+    if (ldapConnection == null) {
       throw new NotFoundException("Cannot find LdapConnection with ID " + id + ".");
     }
-    return conn;
+    return ldapConnection;
   }
 
   public LdapConnection getByServerId(String serverId) {
@@ -44,9 +44,9 @@ public class LdapConnectionDAO
   }
 
   public void deleteByServerId(TransactionContext tx, String id) {
-    LdapConnection conn = getByServerId(tx, id);
-    if (conn != null) {
-      delete(tx, conn);
+    LdapConnection ldapConnection = getByServerId(tx, id);
+    if (ldapConnection != null) {
+      delete(tx, ldapConnection);
     }
   }
 }

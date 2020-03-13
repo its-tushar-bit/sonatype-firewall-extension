@@ -35,10 +35,10 @@ public class UserTokenAuthcTest
     extends AbstractBrainServiceTest
 {
   @Rule
-  public TestLdapServer ldapServer1 = new TestLdapServer();
+  public TestLdapServer testLdapServer1 = new TestLdapServer();
 
   @Rule
-  public TestLdapServer ldapServer2 = new TestLdapServer();
+  public TestLdapServer testLdapServer2 = new TestLdapServer();
 
   // Must match the username defined in the LDAP config for these tests.
   private static final String USERNAME = "testuser";
@@ -75,19 +75,19 @@ public class UserTokenAuthcTest
   @Before
   public void init() throws Exception {
     if (setupLdap) {
-      ldapServer1.start();
+      testLdapServer1.start();
       LdapServer ldapServer1 = tempEntity.newLdapServer("LDAP1");
-      tempEntity.newLdapConnection(ldapServer1.getId(), this.ldapServer1.getPort());
+      tempEntity.newLdapConnection(ldapServer1.getId(), this.testLdapServer1.getPort());
       tempEntity.newLdapUserMapping(ldapServer1.getId());
 
-      ldapServer2.start();
+      testLdapServer2.start();
       LdapServer ldapServer2 = tempEntity.newLdapServer("LDAP2");
-      tempEntity.newLdapConnection(ldapServer2.getId(), this.ldapServer2.getPort());
+      tempEntity.newLdapConnection(ldapServer2.getId(), this.testLdapServer2.getPort());
       tempEntity.newLdapUserMapping(ldapServer2.getId());
 
       if (isLdapUser) {
-        this.ldapServer1.loadData("/" + getClass().getSimpleName() + "/ldap_users1.ldif");
-        this.ldapServer2.loadData("/" + getClass().getSimpleName() + "/ldap_users2.ldif");
+        this.testLdapServer1.loadData("/" + getClass().getSimpleName() + "/ldap_users1.ldif");
+        this.testLdapServer2.loadData("/" + getClass().getSimpleName() + "/ldap_users2.ldif");
 
         // The user exists in both LDAP servers, but it has different group memberships.
         // We create the UserToken for the second LDAP server,

@@ -63,10 +63,10 @@ public class ApplicationAccessEditorTest
     serverId = tempEntity.newLdapServer("LDAP").getId();
     tempEntity.newLdapConnection(serverId);
 
-    LdapUserMapping userMapping = tempEntity.newLdapUserMapping(serverId);
-    userMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    userMapping.setDynamicGroupSearchEnabled(false);
-    new LdapUserMappingDAO().update(userMapping);
+    LdapUserMapping ldapUserMapping = tempEntity.newLdapUserMapping(serverId);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setDynamicGroupSearchEnabled(false);
+    new LdapUserMappingDAO().update(ldapUserMapping);
 
     refresh(); // reload because UI data is cached
     goFromSummaryToAddRole();

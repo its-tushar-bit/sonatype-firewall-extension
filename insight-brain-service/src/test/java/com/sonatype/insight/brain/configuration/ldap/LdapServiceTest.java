@@ -736,11 +736,11 @@ public class LdapServiceTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    umap.setUserMemberOfGroupAttribute("departmentNumber");
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
 
-    List<LdapUser> users = ldapService.testLdapUserMapping(ldapServer.getId(), umap, -1);
+    List<LdapUser> users = ldapService.testLdapUserMapping(ldapServer.getId(), ldapUserMapping, -1);
     assertThat(users).hasSize(3);
 
     Collections.sort(users); // sorts on username
@@ -756,13 +756,13 @@ public class LdapServiceTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    umap.setGroupObjectClass("groupOfUniqueNames");
-    umap.setGroupMemberAttribute("uniqueMember");
-    umap.setGroupMemberFormat("${dn}");
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupObjectClass("groupOfUniqueNames");
+    ldapUserMapping.setGroupMemberAttribute("uniqueMember");
+    ldapUserMapping.setGroupMemberFormat("${dn}");
 
-    List<LdapUser> users = ldapService.testLdapUserMapping(ldapServer.getId(), umap, -1);
+    List<LdapUser> users = ldapService.testLdapUserMapping(ldapServer.getId(), ldapUserMapping, -1);
     assertThat(users).hasSize(3);
 
     Collections.sort(users); // sorts on username
@@ -771,12 +771,12 @@ public class LdapServiceTest
     assertThat(users.get(1).getMembership()).containsExactlyInAnyOrder("Alpha");
     assertThat(users.get(2).getMembership()).containsExactlyInAnyOrder("Beta");
 
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    umap.setGroupObjectClass("groupOfNames");
-    umap.setGroupMemberAttribute("member");
-    umap.setGroupMemberFormat("uid=${username}");
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupObjectClass("groupOfNames");
+    ldapUserMapping.setGroupMemberAttribute("member");
+    ldapUserMapping.setGroupMemberFormat("uid=${username}");
 
-    users = ldapService.testLdapUserMapping(ldapServer.getId(), umap, -1);
+    users = ldapService.testLdapUserMapping(ldapServer.getId(), ldapUserMapping, -1);
     assertThat(users).hasSize(3);
 
     Collections.sort(users); // sorts on username
@@ -805,17 +805,17 @@ public class LdapServiceTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = newInMemoryLdapUserMapping(ldapServer);
+    LdapUserMapping ldapUserMapping = newInMemoryLdapUserMapping(ldapServer);
 
-    umap.setUserPasswordAttribute(null); // AUTH-via-BIND
+    ldapUserMapping.setUserPasswordAttribute(null); // AUTH-via-BIND
 
-    assertCannotLogin(umap, "test_user1_1", "badGuess");
-    assertCanLogin(umap, "test_user1_1", "far2simple");
+    assertCannotLogin(ldapUserMapping, "test_user1_1", "badGuess");
+    assertCanLogin(ldapUserMapping, "test_user1_1", "far2simple");
 
-    umap.setUserPasswordAttribute("userPassword"); // AUTH-via-ATTRIBUTE
+    ldapUserMapping.setUserPasswordAttribute("userPassword"); // AUTH-via-ATTRIBUTE
 
-    assertCannotLogin(umap, "test_user1_1", "badGuess");
-    assertCanLogin(umap, "test_user1_1", "far2simple");
+    assertCannotLogin(ldapUserMapping, "test_user1_1", "badGuess");
+    assertCanLogin(ldapUserMapping, "test_user1_1", "far2simple");
   }
 
   @Test
@@ -1038,13 +1038,12 @@ public class LdapServiceTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    umap.setGroupObjectClass("groupOfNames");
-    umap.setGroupMemberAttribute("member");
-    umap.setGroupMemberFormat("uid=${username}");
-    userMappingDAO.update(umap);
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupObjectClass("groupOfNames");
+    ldapUserMapping.setGroupMemberAttribute("member");
+    ldapUserMapping.setGroupMemberFormat("uid=${username}");
+    new LdapUserMappingDAO().update(ldapUserMapping);
 
     List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "Gamma", "Theta" });
     assertThat(groups).hasSize(2);
@@ -1059,13 +1058,12 @@ public class LdapServiceTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    umap.setGroupObjectClass("groupOfNames");
-    umap.setGroupMemberAttribute("member");
-    umap.setGroupMemberFormat("uid=${username}");
-    userMappingDAO.update(umap);
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupObjectClass("groupOfNames");
+    ldapUserMapping.setGroupMemberAttribute("member");
+    ldapUserMapping.setGroupMemberFormat("uid=${username}");
+    new LdapUserMappingDAO().update(ldapUserMapping);
 
     List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "*ta" });
     assertThat(groups).isEmpty();
@@ -1077,11 +1075,10 @@ public class LdapServiceTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    umap.setUserMemberOfGroupAttribute("departmentNumber");
-    userMappingDAO.update(umap);
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
+    new LdapUserMappingDAO().update(ldapUserMapping);
 
     List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "ab", "abc", "bc" });
     assertThat(groups).hasSize(3);
@@ -1096,11 +1093,10 @@ public class LdapServiceTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    umap.setUserMemberOfGroupAttribute("departmentNumber");
-    userMappingDAO.update(umap);
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
+    new LdapUserMappingDAO().update(ldapUserMapping);
 
     List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "ab*" });
     assertThat(groups).isEmpty();
@@ -1280,13 +1276,12 @@ public class LdapServiceTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer4, ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    umap.setGroupObjectClass("groupOfNames");
-    umap.setGroupMemberAttribute("member");
-    umap.setGroupMemberFormat("${dn}");
-    userMappingDAO.update(umap);
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupObjectClass("groupOfNames");
+    ldapUserMapping.setGroupMemberAttribute("member");
+    ldapUserMapping.setGroupMemberFormat("${dn}");
+    new LdapUserMappingDAO().update(ldapUserMapping);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Epsilon");
     assertThat(users).extracting(LdapUser::getUsername).containsExactlyInAnyOrder("test_user1", "test_user2");
@@ -1298,13 +1293,12 @@ public class LdapServiceTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    umap.setGroupObjectClass("groupOfNames");
-    umap.setGroupMemberAttribute("member");
-    umap.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
-    userMappingDAO.update(umap);
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupObjectClass("groupOfNames");
+    ldapUserMapping.setGroupMemberAttribute("member");
+    ldapUserMapping.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
+    new LdapUserMappingDAO().update(ldapUserMapping);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Delta");
     assertThat(users).hasSize(2);
@@ -1316,13 +1310,12 @@ public class LdapServiceTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    umap.setGroupObjectClass("groupOfNames");
-    umap.setGroupMemberAttribute("member");
-    umap.setGroupMemberFormat("dc=company,${dn},dc=com,${dn}");
-    userMappingDAO.update(umap);
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupObjectClass("groupOfNames");
+    ldapUserMapping.setGroupMemberAttribute("member");
+    ldapUserMapping.setGroupMemberFormat("dc=company,${dn},dc=com,${dn}");
+    new LdapUserMappingDAO().update(ldapUserMapping);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Lambda");
     assertThat(users).hasSize(2);
@@ -1334,13 +1327,12 @@ public class LdapServiceTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    umap.setGroupObjectClass("groupOfNames");
-    umap.setGroupMemberAttribute("member");
-    umap.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
-    userMappingDAO.update(umap);
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupObjectClass("groupOfNames");
+    ldapUserMapping.setGroupMemberAttribute("member");
+    ldapUserMapping.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
+    new LdapUserMappingDAO().update(ldapUserMapping);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Delt*");
     assertThat(users).isEmpty();
@@ -1352,31 +1344,29 @@ public class LdapServiceTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    umap.setUserMemberOfGroupAttribute("departmentNumber");
-    new LdapUserMappingDAO().update(umap);
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
+    new LdapUserMappingDAO().update(ldapUserMapping);
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "a*");
     assertThat(users).isEmpty();
   }
 
   private void createStaticGroupMapping(LdapServer ldapServer) {
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    umap.setGroupObjectClass("groupOfNames");
-    umap.setGroupMemberAttribute("member");
-    umap.setGroupMemberFormat("uid=${username}");
-    userMappingDAO.update(umap);
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupObjectClass("groupOfNames");
+    ldapUserMapping.setGroupMemberAttribute("member");
+    ldapUserMapping.setGroupMemberFormat("uid=${username}");
+    new LdapUserMappingDAO().update(ldapUserMapping);
   }
 
   private void createDynamicGroupMapping(LdapServer ldapServer) {
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    umap.setUserMemberOfGroupAttribute("departmentNumber");
-    userMappingDAO.update(umap);
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
+    new LdapUserMappingDAO().update(ldapUserMapping);
   }
 
   @Test
@@ -1491,27 +1481,27 @@ public class LdapServiceTest
 
     assertThat(ldapService.isGroupSearchEnabled(ldapServer)).isFalse();
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    umap.setGroupMappingType(LdapGroupMappingType.NONE);
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.NONE);
 
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    userMappingDAO.update(umap);
+    LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     assertThat(ldapService.isGroupSearchEnabled(ldapServer)).isFalse();
 
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    userMappingDAO.update(umap);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     assertThat(ldapService.isGroupSearchEnabled(ldapServer)).isTrue();
 
-    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    umap.setDynamicGroupSearchEnabled(true);
-    userMappingDAO.update(umap);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setDynamicGroupSearchEnabled(true);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     assertThat(ldapService.isGroupSearchEnabled(ldapServer)).isTrue();
 
-    umap.setDynamicGroupSearchEnabled(false);
-    userMappingDAO.update(umap);
+    ldapUserMapping.setDynamicGroupSearchEnabled(false);
+    ldapUserMappingDAO.update(ldapUserMapping);
 
     assertThat(ldapService.isGroupSearchEnabled(ldapServer)).isFalse();
   }
@@ -1544,21 +1534,21 @@ public class LdapServiceTest
   private void setupLdapWithNonDynamicGroupType(String serverName, LdapGroupMappingType groupMappingType) {
     LdapServer ldapServer = tempEntity.newLdapServer(serverName);
     createLdapConnection(ldapServer);
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    umap.setGroupMappingType(groupMappingType);
-    umap.setDynamicGroupSearchEnabled(false);
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(groupMappingType);
+    ldapUserMapping.setDynamicGroupSearchEnabled(false);
 
-    new LdapUserMappingDAO().update(umap);
+    new LdapUserMappingDAO().update(ldapUserMapping);
   }
 
   private void setupLdapWithDynamicGroupType(String serverName, boolean isDynamicGroupSearchEnabled) {
     LdapServer ldapServer = tempEntity.newLdapServer(serverName);
     createLdapConnection(ldapServer);
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    umap.setDynamicGroupSearchEnabled(isDynamicGroupSearchEnabled);
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setDynamicGroupSearchEnabled(isDynamicGroupSearchEnabled);
 
-    new LdapUserMappingDAO().update(umap);
+    new LdapUserMappingDAO().update(ldapUserMapping);
   }
   
   private void startLdapServer(TestLdapServer testLdapServer, LdapConnection ldapConnection) throws Exception {
@@ -1571,18 +1561,18 @@ public class LdapServiceTest
   }
 
   private LdapUserMapping newInMemoryLdapUserMapping(LdapServer ldapServer) {
-    LdapUserMapping umap = new LdapUserMapping();
-    umap.setServerId(ldapServer.getId());
-    umap.setUserBaseDN("ou=users");
-    umap.setUserObjectClass("person");
-    umap.setUserIDAttribute("uid");
-    umap.setUserRealNameAttribute("cn");
-    umap.setUserEmailAttribute("mail");
-    umap.setUserSubtree(true);
-    umap.setGroupBaseDN("ou=groups");
-    umap.setGroupIDAttribute("cn");
-    umap.setGroupSubtree(true);
-    return umap;
+    LdapUserMapping ldapUserMapping = new LdapUserMapping();
+    ldapUserMapping.setServerId(ldapServer.getId());
+    ldapUserMapping.setUserBaseDN("ou=users");
+    ldapUserMapping.setUserObjectClass("person");
+    ldapUserMapping.setUserIDAttribute("uid");
+    ldapUserMapping.setUserRealNameAttribute("cn");
+    ldapUserMapping.setUserEmailAttribute("mail");
+    ldapUserMapping.setUserSubtree(true);
+    ldapUserMapping.setGroupBaseDN("ou=groups");
+    ldapUserMapping.setGroupIDAttribute("cn");
+    ldapUserMapping.setGroupSubtree(true);
+    return ldapUserMapping;
   }
 
   private LdapConnection newInMemoryLdapConnection(LdapServer ldapServer) {
@@ -1598,9 +1588,9 @@ public class LdapServiceTest
   }
 
   private LdapUserMapping createUserMapping(LdapServer ldapServer) {
-    LdapUserMapping umap = newInMemoryLdapUserMapping(ldapServer);
-    tempEntity.newLdapUserMapping(umap);
-    return umap;
+    LdapUserMapping ldapUserMapping = newInMemoryLdapUserMapping(ldapServer);
+    tempEntity.newLdapUserMapping(ldapUserMapping);
+    return ldapUserMapping;
   }
 
   @Test

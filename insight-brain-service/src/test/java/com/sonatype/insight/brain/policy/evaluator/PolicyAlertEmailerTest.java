@@ -551,32 +551,32 @@ public class PolicyAlertEmailerTest
   }
 
   private LdapConnection createLdapConnection(LdapServer ldapServer, TestLdapServer testLdapServer) {
-    LdapConnection conn = ldapService.getLdapConnection(ldapServer.getId());
-    conn.setServerId(ldapServer.getId());
-    conn.setProtocol(LdapProtocol.LDAP);
-    conn.setSearchBase("dc=company,dc=com");
+    LdapConnection ldapConnection = ldapService.getLdapConnection(ldapServer.getId());
+    ldapConnection.setServerId(ldapServer.getId());
+    ldapConnection.setProtocol(LdapProtocol.LDAP);
+    ldapConnection.setSearchBase("dc=company,dc=com");
     if (testLdapServer != null) {
-      conn.setHostname(testLdapServer.getHostname());
-      conn.setPort(testLdapServer.getPort());
+      ldapConnection.setHostname(testLdapServer.getHostname());
+      ldapConnection.setPort(testLdapServer.getPort());
     }
-    return conn;
+    return ldapConnection;
   }
 
   private LdapUserMapping createUserMapping(LdapServer ldapServer) {
-    LdapUserMapping umap = new LdapUserMapping();
-    umap.setServerId(ldapServer.getId());
-    umap.setUserBaseDN("ou=users");
-    umap.setUserObjectClass("person");
-    umap.setUserIDAttribute("uid");
-    umap.setUserRealNameAttribute("cn");
-    umap.setUserEmailAttribute("mail");
-    umap.setUserSubtree(true);
-    umap.setGroupBaseDN("ou=groups");
-    umap.setGroupIDAttribute("cn");
-    umap.setGroupSubtree(true);
-    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    umap.setUserMemberOfGroupAttribute("departmentNumber");
-    return umap;
+    LdapUserMapping ldapUserMapping = new LdapUserMapping();
+    ldapUserMapping.setServerId(ldapServer.getId());
+    ldapUserMapping.setUserBaseDN("ou=users");
+    ldapUserMapping.setUserObjectClass("person");
+    ldapUserMapping.setUserIDAttribute("uid");
+    ldapUserMapping.setUserRealNameAttribute("cn");
+    ldapUserMapping.setUserEmailAttribute("mail");
+    ldapUserMapping.setUserSubtree(true);
+    ldapUserMapping.setGroupBaseDN("ou=groups");
+    ldapUserMapping.setGroupIDAttribute("cn");
+    ldapUserMapping.setGroupSubtree(true);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
+    return ldapUserMapping;
   }
 
   @Test

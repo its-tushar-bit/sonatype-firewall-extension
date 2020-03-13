@@ -34,19 +34,19 @@ public class EmbeddedLdapServerTest
 
   private static final String AUTH_NONE = "none";
 
-  private EmbeddedLdapServer server = new EmbeddedLdapServer();
+  private EmbeddedLdapServer testLdapServer = new EmbeddedLdapServer();
 
   @After
   public void stopServer() throws Exception {
-    if (server != null) {
-      server.stop();
-      server = null;
+    if (testLdapServer != null) {
+      testLdapServer.stop();
+      testLdapServer = null;
     }
   }
 
   @Test
   public void testAnonymous() throws Exception {
-    server.start();
+    testLdapServer.start();
 
     assertLogin(AUTH_NONE, AUTH_SIMPLE);
     assertLoginFailure(AUTH_DIGESTMD5, AUTH_CRAMMD5);
@@ -54,8 +54,8 @@ public class EmbeddedLdapServerTest
 
   @Test
   public void testSimple() throws Exception {
-    server.setAuthenticationSimple();
-    server.start();
+    testLdapServer.setAuthenticationSimple();
+    testLdapServer.start();
 
     assertLogin(AUTH_SIMPLE);
     assertLoginFailure(AUTH_NONE, AUTH_DIGESTMD5, AUTH_CRAMMD5);
@@ -63,8 +63,8 @@ public class EmbeddedLdapServerTest
 
   @Test
   public void testDigest() throws Exception {
-    server.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
-    server.start();
+    testLdapServer.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
+    testLdapServer.start();
 
     assertLogin(AUTH_DIGESTMD5);
     assertLoginFailure(AUTH_NONE, AUTH_SIMPLE, AUTH_CRAMMD5);
@@ -72,8 +72,8 @@ public class EmbeddedLdapServerTest
 
   @Test
   public void testCram() throws Exception {
-    server.setAuthenticationSasl(SupportedSaslMechanisms.CRAM_MD5);
-    server.start();
+    testLdapServer.setAuthenticationSasl(SupportedSaslMechanisms.CRAM_MD5);
+    testLdapServer.start();
 
     assertLogin(AUTH_CRAMMD5);
     assertLoginFailure(AUTH_NONE, AUTH_SIMPLE, AUTH_DIGESTMD5);
@@ -81,8 +81,8 @@ public class EmbeddedLdapServerTest
 
   @Test
   public void testInvalidSaslRealm() throws Exception {
-    server.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
-    server.start();
+    testLdapServer.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
+    testLdapServer.start();
 
     Hashtable<String, Object> env = getEnv(AUTH_DIGESTMD5);
     env.put("java.naming.security.sasl.realm", "wrongrealm");
@@ -93,8 +93,8 @@ public class EmbeddedLdapServerTest
 
   @Test
   public void testNoSaslRealm() throws Exception {
-    server.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
-    server.start();
+    testLdapServer.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
+    testLdapServer.start();
 
     Hashtable<String, Object> env = getEnv(AUTH_DIGESTMD5);
     env.remove("java.naming.security.sasl.realm");
@@ -106,8 +106,8 @@ public class EmbeddedLdapServerTest
 
   @Test
   public void testLdaps() throws Exception {
-    server.enableLdaps(SslProperties.SERVER_STORE_FILE, SslProperties.KEY_STORE_PASSWORD);
-    server.start();
+    testLdapServer.enableLdaps(SslProperties.SERVER_STORE_FILE, SslProperties.KEY_STORE_PASSWORD);
+    testLdapServer.start();
 
     assertLogin(AUTH_NONE);
   }
@@ -134,16 +134,16 @@ public class EmbeddedLdapServerTest
   private Hashtable<String, Object> getEnv(String mechanism) {
     Hashtable<String, Object> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
-    env.put(Context.PROVIDER_URL, server.getUrl());
+    env.put(Context.PROVIDER_URL, testLdapServer.getUrl());
     env.put(Context.SECURITY_AUTHENTICATION, mechanism);
     if (AUTH_SIMPLE.equals(mechanism)) {
-      env.put(Context.SECURITY_PRINCIPAL, server.getSystemUserDN());
-      env.put(Context.SECURITY_CREDENTIALS, server.getSystemUserPassword());
+      env.put(Context.SECURITY_PRINCIPAL, testLdapServer.getSystemUserDN());
+      env.put(Context.SECURITY_CREDENTIALS, testLdapServer.getSystemUserPassword());
     }
     else if (AUTH_CRAMMD5.equals(mechanism) || AUTH_DIGESTMD5.equals(mechanism)) {
-      env.put(Context.SECURITY_PRINCIPAL, server.getSystemUser());
-      env.put(Context.SECURITY_CREDENTIALS, server.getSystemUserPassword());
-      env.put("java.naming.security.sasl.realm", server.getSaslRealm());
+      env.put(Context.SECURITY_PRINCIPAL, testLdapServer.getSystemUser());
+      env.put(Context.SECURITY_CREDENTIALS, testLdapServer.getSystemUserPassword());
+      env.put("java.naming.security.sasl.realm", testLdapServer.getSaslRealm());
     }
     return env;
   }

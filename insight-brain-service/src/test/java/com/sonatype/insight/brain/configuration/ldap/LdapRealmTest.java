@@ -242,65 +242,65 @@ public class LdapRealmTest
   private LdapRealmTest startLdapServer() throws Exception {
     ldapServer = tempEntity.newLdapServer("Test Server");
 
-    LdapUserMapping userMappingDetails = new LdapUserMapping();
-    userMappingDetails.setServerId(ldapServer.getId());
-    userMappingDetails.setUserBaseDN("ou=users");
-    userMappingDetails.setUserObjectClass("person");
-    userMappingDetails.setUserIDAttribute("uid");
-    userMappingDetails.setUserRealNameAttribute("givenName");
-    userMappingDetails.setUserEmailAttribute("mail");
-    userMappingDetails.setUserSubtree(true);
+    LdapUserMapping ldapUserMapping = new LdapUserMapping();
+    ldapUserMapping.setServerId(ldapServer.getId());
+    ldapUserMapping.setUserBaseDN("ou=users");
+    ldapUserMapping.setUserObjectClass("person");
+    ldapUserMapping.setUserIDAttribute("uid");
+    ldapUserMapping.setUserRealNameAttribute("givenName");
+    ldapUserMapping.setUserEmailAttribute("mail");
+    ldapUserMapping.setUserSubtree(true);
 
-    userMappingDetails.setGroupBaseDN("ou=groups");
-    userMappingDetails.setGroupIDAttribute("cn");
-    userMappingDetails.setGroupSubtree(true);
-    userMappingDetails.setGroupMappingType(LdapGroupMappingType.STATIC);
-    userMappingDetails.setGroupObjectClass("groupOfNames");
-    userMappingDetails.setGroupMemberAttribute("member");
-    userMappingDetails.setGroupMemberFormat("uid=${username}");
+    ldapUserMapping.setGroupBaseDN("ou=groups");
+    ldapUserMapping.setGroupIDAttribute("cn");
+    ldapUserMapping.setGroupSubtree(true);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupObjectClass("groupOfNames");
+    ldapUserMapping.setGroupMemberAttribute("member");
+    ldapUserMapping.setGroupMemberFormat("uid=${username}");
 
     if (!authenticateWithBind) {
-      userMappingDetails.setUserPasswordAttribute("userPassword");
+      ldapUserMapping.setUserPasswordAttribute("userPassword");
     }
 
-    LdapConnection connectionDetails = new LdapConnection();
-    connectionDetails.setServerId(ldapServer.getId());
-    connectionDetails.setProtocol(protocol);
-    connectionDetails.setHostname(testLdapServer.getHostname());
-    connectionDetails.setSearchBase("dc=company,dc=com");
-    connectionDetails.setSystemUsername(testLdapServer.getSystemUserDN());
-    connectionDetails.setSystemPassword(testLdapServer.getSystemUserPassword());
-    connectionDetails.setAuthenticationMethod(authentication);
+    LdapConnection ldapConnection = new LdapConnection();
+    ldapConnection.setServerId(ldapServer.getId());
+    ldapConnection.setProtocol(protocol);
+    ldapConnection.setHostname(testLdapServer.getHostname());
+    ldapConnection.setSearchBase("dc=company,dc=com");
+    ldapConnection.setSystemUsername(testLdapServer.getSystemUserDN());
+    ldapConnection.setSystemPassword(testLdapServer.getSystemUserPassword());
+    ldapConnection.setAuthenticationMethod(authentication);
 
     if (authentication == LdapAuthenticationMethod.SIMPLE) {
       testLdapServer.setAuthenticationSimple();
     }
     else if (authentication == LdapAuthenticationMethod.DIGESTMD5) {
       testLdapServer.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
-      connectionDetails.setSearchBase("ou=system"); // match embedded server base settings when using strong auth
-      connectionDetails.setSystemUsername(testLdapServer.getSystemUser()); // SASL-based auth expects username not DN
-      connectionDetails.setSaslRealm(testLdapServer.getSaslRealm());
-      userMappingDetails.setUserBaseDN("");
+      ldapConnection.setSearchBase("ou=system"); // match embedded server base settings when using strong auth
+      ldapConnection.setSystemUsername(testLdapServer.getSystemUser()); // SASL-based auth expects username not DN
+      ldapConnection.setSaslRealm(testLdapServer.getSaslRealm());
+      ldapUserMapping.setUserBaseDN("");
     }
     else if (authentication == LdapAuthenticationMethod.CRAMMD5) {
       testLdapServer.setAuthenticationSasl(SupportedSaslMechanisms.CRAM_MD5);
-      connectionDetails.setSearchBase("ou=system"); // match embedded server base settings when using strong auth
-      connectionDetails.setSystemUsername(testLdapServer.getSystemUser()); // SASL-based auth expects username not DN
-      connectionDetails.setSaslRealm(testLdapServer.getSaslRealm());
-      userMappingDetails.setUserBaseDN("");
+      ldapConnection.setSearchBase("ou=system"); // match embedded server base settings when using strong auth
+      ldapConnection.setSystemUsername(testLdapServer.getSystemUser()); // SASL-based auth expects username not DN
+      ldapConnection.setSaslRealm(testLdapServer.getSaslRealm());
+      ldapUserMapping.setUserBaseDN("");
     }
 
     if (protocol == LdapProtocol.LDAPS) {
       testLdapServer.enableLdaps(SslProperties.SERVER_STORE_FILE, SslProperties.KEY_STORE_PASSWORD);
     }
 
-    new LdapUserMappingDAO().insert(userMappingDetails);
+    new LdapUserMappingDAO().insert(ldapUserMapping);
 
     testLdapServer.start();
     testLdapServer.loadData("/" + getClass().getSimpleName() + "/ldap_users1.ldif");
 
-    connectionDetails.setPort(testLdapServer.getPort());
-    ldapService.upsertLdapConnection(connectionDetails);
+    ldapConnection.setPort(testLdapServer.getPort());
+    ldapService.upsertLdapConnection(ldapConnection);
 
     return this;
   }

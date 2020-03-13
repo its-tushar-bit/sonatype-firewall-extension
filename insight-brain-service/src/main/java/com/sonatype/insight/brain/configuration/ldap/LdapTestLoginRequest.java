@@ -9,18 +9,18 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 
 public class LdapTestLoginRequest
 {
-  private LdapUserMapping userMapping;
+  private LdapUserMapping ldapUserMapping;
 
   private String username;
 
   private String password;
 
   public LdapUserMapping getUserMapping() {
-    return userMapping;
+    return ldapUserMapping;
   }
 
-  public void setUserMapping(LdapUserMapping userMapping) {
-    this.userMapping = userMapping;
+  public void setUserMapping(LdapUserMapping ldapUserMapping) {
+    this.ldapUserMapping = ldapUserMapping;
   }
 
   public String getUsername() {

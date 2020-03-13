@@ -38,22 +38,22 @@ public class LdapResourceAuditTest
 
   @Test
   public void testAddLdapServer() throws Exception {
-    LdapServer server = new LdapServer(tempEntity.uuid());
-    LdapServer persistedServer = ldapRequest().body(server).post().getBody(LdapServer.class);
+    LdapServer ldapServer = new LdapServer(tempEntity.uuid());
+    LdapServer persistedLdapServer = ldapRequest().body(ldapServer).post().getBody(LdapServer.class);
     try {
       AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_LDAP_SERVER, null);
-      assertThat(persistedServer).isNotNull();
-      assertLdapServerData(auditDTO, persistedServer);
+      assertThat(persistedLdapServer).isNotNull();
+      assertLdapServerData(auditDTO, persistedLdapServer);
     }
     finally {
-      cleanUp(persistedServer);
+      cleanUp(persistedLdapServer);
     }
   }
 
   @Test
   public void testAddLdapServer_Unauthorized() throws Exception {
-    LdapServer server = new LdapServer(tempEntity.uuid());
-    ldapRequest().with(unauthorizedUser()).body(server).post();
+    LdapServer ldapServer = new LdapServer(tempEntity.uuid());
+    ldapRequest().with(unauthorizedUser()).body(ldapServer).post();
 
     assertAuditLog(AuditEvent.CREATE_LDAP_SERVER, "unauthorized");
   }
@@ -140,9 +140,9 @@ public class LdapResourceAuditTest
 
   @Test
   public void testUpsertUserMapping_Unauthorized() throws Exception {
-    LdapUserMapping userMapping = newUserMapping(LdapGroupMappingType.NONE, false);
+    LdapUserMapping ldapUserMapping = newUserMapping(LdapGroupMappingType.NONE, false);
     ldapRequest().path(LdapResource.USER_MAPPING_PATH).parameter(ldapServer.getId()).with(unauthorizedUser())
-        .body(userMapping).put();
+        .body(ldapUserMapping).put();
 
     assertAuditLog(AuditEvent.CONFIGURE_LDAP_USER_MAPPING, "unauthorized");
   }
@@ -172,30 +172,30 @@ public class LdapResourceAuditTest
       final String expectedGroupMappingType,
       boolean enabledDisabled) throws Exception
   {
-    LdapUserMapping userMapping = newUserMapping(groupMappingType, enabledDisabled);
-    ldapRequest().path(LdapResource.USER_MAPPING_PATH).parameter(ldapServer.getId()).body(userMapping).put();
+    LdapUserMapping ldapUserMapping = newUserMapping(groupMappingType, enabledDisabled);
+    ldapRequest().path(LdapResource.USER_MAPPING_PATH).parameter(ldapServer.getId()).body(ldapUserMapping).put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_LDAP_USER_MAPPING, null);
     assertLdapServerData(auditDTO, ldapServer);
-    assertCustomData(auditDTO, "ldapUserBaseDn", userMapping.getUserBaseDN());
+    assertCustomData(auditDTO, "ldapUserBaseDn", ldapUserMapping.getUserBaseDN());
     assertCustomData(auditDTO, "ldapUserSubtree", enabledDisabled ? "enabled" : "disabled");
-    assertCustomData(auditDTO, "ldapUserObjectClass", userMapping.getUserObjectClass());
-    assertCustomData(auditDTO, "ldapUserFilter", userMapping.getUserFilter());
-    assertCustomData(auditDTO, "ldapUserIdAttribute", userMapping.getUserIDAttribute());
-    assertCustomData(auditDTO, "ldapUserRealNameAttribute", userMapping.getUserRealNameAttribute());
-    assertCustomData(auditDTO, "ldapUserEmailAttribute", userMapping.getUserEmailAttribute());
-    assertCustomData(auditDTO, "ldapUserPasswordAttribute", userMapping.getUserPasswordAttribute());
+    assertCustomData(auditDTO, "ldapUserObjectClass", ldapUserMapping.getUserObjectClass());
+    assertCustomData(auditDTO, "ldapUserFilter", ldapUserMapping.getUserFilter());
+    assertCustomData(auditDTO, "ldapUserIdAttribute", ldapUserMapping.getUserIDAttribute());
+    assertCustomData(auditDTO, "ldapUserRealNameAttribute", ldapUserMapping.getUserRealNameAttribute());
+    assertCustomData(auditDTO, "ldapUserEmailAttribute", ldapUserMapping.getUserEmailAttribute());
+    assertCustomData(auditDTO, "ldapUserPasswordAttribute", ldapUserMapping.getUserPasswordAttribute());
     assertCustomData(auditDTO, "ldapGroupType", expectedGroupMappingType);
     if (groupMappingType.equals(LdapGroupMappingType.STATIC)) {
-      assertCustomData(auditDTO, "ldapStaticGroupBaseDn", userMapping.getGroupBaseDN());
+      assertCustomData(auditDTO, "ldapStaticGroupBaseDn", ldapUserMapping.getGroupBaseDN());
       assertCustomData(auditDTO, "ldapStaticGroupSubtree", enabledDisabled ? "enabled" : "disabled");
-      assertCustomData(auditDTO, "ldapStaticGroupObjectClass", userMapping.getGroupObjectClass());
-      assertCustomData(auditDTO, "ldapStaticGroupIdAttribute", userMapping.getGroupIDAttribute());
-      assertCustomData(auditDTO, "ldapStaticGroupMemberAttribute", userMapping.getGroupMemberAttribute());
-      assertCustomData(auditDTO, "ldapStaticGroupMemberFormat", userMapping.getGroupMemberFormat());
+      assertCustomData(auditDTO, "ldapStaticGroupObjectClass", ldapUserMapping.getGroupObjectClass());
+      assertCustomData(auditDTO, "ldapStaticGroupIdAttribute", ldapUserMapping.getGroupIDAttribute());
+      assertCustomData(auditDTO, "ldapStaticGroupMemberAttribute", ldapUserMapping.getGroupMemberAttribute());
+      assertCustomData(auditDTO, "ldapStaticGroupMemberFormat", ldapUserMapping.getGroupMemberFormat());
     }
     if (groupMappingType.equals(LdapGroupMappingType.DYNAMIC)) {
-      assertCustomData(auditDTO, "ldapDynamicGroupMemberOfAttribute", userMapping.getUserMemberOfGroupAttribute());
+      assertCustomData(auditDTO, "ldapDynamicGroupMemberOfAttribute", ldapUserMapping.getUserMemberOfGroupAttribute());
       assertCustomData(auditDTO, "ldapDynamicGroupSearch",
           enabledDisabled ? "enabled" : "disabled");
     }
@@ -228,9 +228,9 @@ public class LdapResourceAuditTest
     assertCustomData(auditDTO, "ldapRetryDelayInSeconds", ldapConnection.getRetryDelay());
   }
 
-  private void assertLdapServerData(final AuditDTO auditDTO, final LdapServer server) {
-    assertCustomData(auditDTO, "ldapServerId", server.getId());
-    assertCustomData(auditDTO, "ldapServerName", server.getName());
+  private void assertLdapServerData(final AuditDTO auditDTO, final LdapServer ldapServer) {
+    assertCustomData(auditDTO, "ldapServerId", ldapServer.getId());
+    assertCustomData(auditDTO, "ldapServerName", ldapServer.getName());
   }
 
   private HttpRequest ldapRequest() {
@@ -242,46 +242,46 @@ public class LdapResourceAuditTest
   }
 
   private LdapConnection createLdapConnection(LdapAuthenticationMethod ldapAuthenticationMethod) {
-    LdapConnection conn = new LdapConnection();
-    conn.setServerId(ldapServer.getId());
-    conn.setProtocol(LdapProtocol.LDAP);
-    conn.setHostname("localhost");
-    conn.setPort(389);
-    conn.setAuthenticationMethod(ldapAuthenticationMethod);
+    LdapConnection ldapConnection = new LdapConnection();
+    ldapConnection.setServerId(ldapServer.getId());
+    ldapConnection.setProtocol(LdapProtocol.LDAP);
+    ldapConnection.setHostname("localhost");
+    ldapConnection.setPort(389);
+    ldapConnection.setAuthenticationMethod(ldapAuthenticationMethod);
     if (!ldapAuthenticationMethod.equals(LdapAuthenticationMethod.NONE)) {
-      conn.setSaslRealm("sasl-realm");
-      conn.setSystemUsername("system");
-      conn.setSystemPassword("password".toCharArray());
+      ldapConnection.setSaslRealm("sasl-realm");
+      ldapConnection.setSystemUsername("system");
+      ldapConnection.setSystemPassword("password".toCharArray());
     }
-    conn.setConnectionTimeout(10);
-    conn.setRetryDelay(20);
-    return conn;
+    ldapConnection.setConnectionTimeout(10);
+    ldapConnection.setRetryDelay(20);
+    return ldapConnection;
   }
 
   private LdapUserMapping newUserMapping(LdapGroupMappingType groupMappingType, boolean enabledDisabled) {
-    LdapUserMapping umap = new LdapUserMapping();
-    umap.setServerId(ldapServer.getId());
-    umap.setUserBaseDN("userBaseDN");
-    umap.setUserSubtree(enabledDisabled);
-    umap.setUserObjectClass("userObjectClass");
-    umap.setUserFilter("userFilter");
-    umap.setUserIDAttribute("userIDAttribute");
-    umap.setUserRealNameAttribute("realNameAttribute");
-    umap.setUserEmailAttribute("emailAttribute");
-    umap.setUserPasswordAttribute("passwordAttribute");
-    umap.setGroupMappingType(groupMappingType);
+    LdapUserMapping ldapUserMapping = new LdapUserMapping();
+    ldapUserMapping.setServerId(ldapServer.getId());
+    ldapUserMapping.setUserBaseDN("userBaseDN");
+    ldapUserMapping.setUserSubtree(enabledDisabled);
+    ldapUserMapping.setUserObjectClass("userObjectClass");
+    ldapUserMapping.setUserFilter("userFilter");
+    ldapUserMapping.setUserIDAttribute("userIDAttribute");
+    ldapUserMapping.setUserRealNameAttribute("realNameAttribute");
+    ldapUserMapping.setUserEmailAttribute("emailAttribute");
+    ldapUserMapping.setUserPasswordAttribute("passwordAttribute");
+    ldapUserMapping.setGroupMappingType(groupMappingType);
     if (groupMappingType.equals(LdapGroupMappingType.STATIC)) {
-      umap.setGroupBaseDN("groupBaseDN");
-      umap.setGroupSubtree(enabledDisabled);
-      umap.setGroupObjectClass("groupObjectClass");
-      umap.setGroupIDAttribute("groupIDAttribute");
-      umap.setGroupMemberAttribute("groupMemberAttribute");
-      umap.setGroupMemberFormat("groupMemberFormat");
+      ldapUserMapping.setGroupBaseDN("groupBaseDN");
+      ldapUserMapping.setGroupSubtree(enabledDisabled);
+      ldapUserMapping.setGroupObjectClass("groupObjectClass");
+      ldapUserMapping.setGroupIDAttribute("groupIDAttribute");
+      ldapUserMapping.setGroupMemberAttribute("groupMemberAttribute");
+      ldapUserMapping.setGroupMemberFormat("groupMemberFormat");
     }
     if (groupMappingType.equals(LdapGroupMappingType.DYNAMIC)) {
-      umap.setUserMemberOfGroupAttribute("userMemberOfGroupAttribute");
-      umap.setDynamicGroupSearchEnabled(enabledDisabled);
+      ldapUserMapping.setUserMemberOfGroupAttribute("userMemberOfGroupAttribute");
+      ldapUserMapping.setDynamicGroupSearchEnabled(enabledDisabled);
     }
-    return umap;
+    return ldapUserMapping;
   }
 }

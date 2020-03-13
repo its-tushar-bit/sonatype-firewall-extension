@@ -210,21 +210,21 @@ public abstract class AbstractAccessEditorTest
   @Test
   public void testDisabledGroupSearchWarning() {
     // start with two LDAP servers, both with dynamic group search disabled
-    String ldap1 = tempEntity.newLdapServer("LDAP_1").getId();
-    tempEntity.newLdapConnection(ldap1);
+    String ldapServerId1 = tempEntity.newLdapServer("LDAP_1").getId();
+    tempEntity.newLdapConnection(ldapServerId1);
 
-    LdapUserMapping userMapping1 = tempEntity.newLdapUserMapping(ldap1);
-    userMapping1.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    userMapping1.setDynamicGroupSearchEnabled(false);
-    new LdapUserMappingDAO().update(userMapping1);
+    LdapUserMapping ldapUserMapping1 = tempEntity.newLdapUserMapping(ldapServerId1);
+    ldapUserMapping1.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping1.setDynamicGroupSearchEnabled(false);
+    new LdapUserMappingDAO().update(ldapUserMapping1);
 
-    String ldap2 = tempEntity.newLdapServer("LDAP_2").getId();
-    tempEntity.newLdapConnection(ldap2);
+    String ldapServerId2 = tempEntity.newLdapServer("LDAP_2").getId();
+    tempEntity.newLdapConnection(ldapServerId2);
 
-    LdapUserMapping userMapping2 = tempEntity.newLdapUserMapping(ldap2);
-    userMapping2.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    userMapping2.setDynamicGroupSearchEnabled(false);
-    new LdapUserMappingDAO().update(userMapping2);
+    LdapUserMapping ldapUserMapping2 = tempEntity.newLdapUserMapping(ldapServerId2);
+    ldapUserMapping2.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping2.setDynamicGroupSearchEnabled(false);
+    new LdapUserMappingDAO().update(ldapUserMapping2);
 
     refresh(); // reload because UI data is cached
     goFromSummaryToAddRole();
@@ -234,15 +234,15 @@ public abstract class AbstractAccessEditorTest
     eyesWatcher.eyesCheck();
 
     // enable group search for one
-    userMapping1.setDynamicGroupSearchEnabled(true);
-    new LdapUserMappingDAO().update(userMapping1);
+    ldapUserMapping1.setDynamicGroupSearchEnabled(true);
+    new LdapUserMappingDAO().update(ldapUserMapping1);
     refresh();
 
     AccessEditorPage.disabledGroupSearchWarning().shouldBe(visible).shouldHave(text(DISABLED_GROUP_SEARCH_WARNING));
 
     // ... and then the other one, too
-    userMapping2.setDynamicGroupSearchEnabled(true);
-    new LdapUserMappingDAO().update(userMapping2);
+    ldapUserMapping2.setDynamicGroupSearchEnabled(true);
+    new LdapUserMappingDAO().update(ldapUserMapping2);
     refresh();
 
     AccessEditorPage.disabledGroupSearchWarning().shouldNot(exist);

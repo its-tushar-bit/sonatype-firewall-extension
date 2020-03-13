@@ -119,30 +119,30 @@ public class LdapServerDAO
     }
   }
 
-  private void updatePriority(TransactionContext tx, List<String> serverIds) {
-    if (new HashSet<>(serverIds).size() != serverIds.size()) {
+  private void updatePriority(TransactionContext tx, List<String> ldapServerIds) {
+    if (new HashSet<>(ldapServerIds).size() != ldapServerIds.size()) {
       throw new DataAccessException("Unable to update priority of Ldap servers due to duplicate server IDs.");
     }
 
-    if (serverIds.size() != getAll().size()) {
+    if (ldapServerIds.size() != getAll().size()) {
       throw new DataAccessException("Unable to update priority of Ldap servers due to server list mismatch.");
     }
 
     // shifting priorities temporarily due to unique key constraint
-    List<LdapServer> servers = new ArrayList<>();
+    List<LdapServer> ldapServers = new ArrayList<>();
     int maxPriority = getNextPriority(tx) - 1;
-    for (String serverId : serverIds) {
-      LdapServer server = getByIdNotNull(tx, serverId);
-      server.setPriority(server.getPriority() + maxPriority);
-      update(tx, server);
-      servers.add(server);
+    for (String ldapServerId : ldapServerIds) {
+      LdapServer ldapServer = getByIdNotNull(tx, ldapServerId);
+      ldapServer.setPriority(ldapServer.getPriority() + maxPriority);
+      update(tx, ldapServer);
+      ldapServers.add(ldapServer);
     }
 
     // re-ordering of priorities
     int i = 1;
-    for (LdapServer server : servers) {
-      server.setPriority(i);
-      update(tx, server);
+    for (LdapServer ldapServer : ldapServers) {
+      ldapServer.setPriority(i);
+      update(tx, ldapServer);
       i++;
     }
   }

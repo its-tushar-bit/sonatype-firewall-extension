@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LdapResourceTest
     extends AbstractResourceTest
 {
-  private static final LdapServerDAO serverDao = new LdapServerDAO();
+  private static final LdapServerDAO ldapServerDAO = new LdapServerDAO();
 
   @Rule
   public TestLdapServer testLdapServer = new TestLdapServer();
@@ -45,8 +45,9 @@ public class LdapResourceTest
     return super.restRequest().path(LdapResource.RESOURCE_PATH);
   }
 
-  private HttpRequest testConnectionRequest(LdapConnection conn) {
-    return restRequest().path(LdapResource.TEST_CONNECTION_PATH).parameter(conn.getServerId()).body(conn);
+  private HttpRequest testConnectionRequest(LdapConnection ldapConnection) {
+    return restRequest().path(LdapResource.TEST_CONNECTION_PATH).parameter(ldapConnection.getServerId())
+        .body(ldapConnection);
   }
 
   @Test
@@ -60,7 +61,7 @@ public class LdapResourceTest
     tempEntity.register(ldapServer);
     ldapServer.setId(addedLdapServer.getId());
     assertThat(addedLdapServer).isEqualToIgnoringGivenFields(ldapServer, JPA.IGNORE_FIELDS);
-    LdapServer persistedLdapServer = serverDao.getById(ldapServer.getId());
+    LdapServer persistedLdapServer = ldapServerDAO.getById(ldapServer.getId());
     assertThat(persistedLdapServer).isEqualToIgnoringGivenFields(ldapServer, JPA.IGNORE_FIELDS);
 
     // Get all
@@ -76,23 +77,23 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapServer updatedLdapServer = response.getBody(LdapServer.class);
     assertThat(updatedLdapServer).isEqualToIgnoringGivenFields(ldapServer, JPA.IGNORE_FIELDS);
-    persistedLdapServer = serverDao.getById(ldapServer.getId());
+    persistedLdapServer = ldapServerDAO.getById(ldapServer.getId());
     assertThat(persistedLdapServer).isEqualToIgnoringGivenFields(ldapServer, JPA.IGNORE_FIELDS);
 
     // Delete
     response = restRequest().path(ldapServer.getId()).delete();
     assertResponseStatus(204, response);
-    assertThat(serverDao.getById(ldapServer.getId())).isNull();
+    assertThat(ldapServerDAO.getById(ldapServer.getId())).isNull();
   }
 
   @Test
   public void testUpdatePriority() throws Exception {
-    LdapServer server1 = tempEntity.newLdapServer("server1");
-    LdapServer server2 = tempEntity.newLdapServer("server2");
+    LdapServer ldapServer1 = tempEntity.newLdapServer("server1");
+    LdapServer ldapServer2 = tempEntity.newLdapServer("server2");
     HttpResponse response = restRequest().path(LdapResource.PRIORITY_PATH)
-        .body(Arrays.asList(server2.getId(), server1.getId())).put();
-    assertThat(serverDao.getById(server2.getId()).getPriority()).isEqualTo(1);
-    assertThat(serverDao.getById(server1.getId()).getPriority()).isEqualTo(2);
+        .body(Arrays.asList(ldapServer2.getId(), ldapServer1.getId())).put();
+    assertThat(ldapServerDAO.getById(ldapServer2.getId()).getPriority()).isEqualTo(1);
+    assertThat(ldapServerDAO.getById(ldapServer1.getId()).getPriority()).isEqualTo(2);
     assertResponseStatus(204, response);
   }
 
@@ -175,18 +176,18 @@ public class LdapResourceTest
   @Test
   public void testAddLdapServer_Unlicensed() throws Exception {
     uninstallLicense();
-    LdapServer server = new LdapServer("test server");
+    LdapServer ldapServer = new LdapServer("test server");
 
-    HttpResponse response = restRequest().body(server).post();
+    HttpResponse response = restRequest().body(ldapServer).post();
     assertResponseStatus(402, response);
   }
 
   @Test
   public void testUpdateLdapServer_Unlicensed() throws Exception {
-    LdapServer server = tempEntity.newLdapServer("test server");
+    LdapServer ldapServer = tempEntity.newLdapServer("test server");
 
     uninstallLicense();
-    HttpResponse response = restRequest().body(server).put();
+    HttpResponse response = restRequest().body(ldapServer).put();
     assertResponseStatus(402, response);
   }
 
@@ -202,13 +203,13 @@ public class LdapResourceTest
     testLdapServer.setAuthenticationSimple();
     testLdapServer.start();
 
-    LdapConnection conn = createLdapConnection();
-    conn.setPort(testLdapServer.getPort());
-    conn.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
-    conn.setSystemUsername(testLdapServer.getSystemUserDN());
-    conn.setSystemPassword(testLdapServer.getSystemUserPassword());
+    LdapConnection ldapConnection = createLdapConnection();
+    ldapConnection.setPort(testLdapServer.getPort());
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
+    ldapConnection.setSystemUsername(testLdapServer.getSystemUserDN());
+    ldapConnection.setSystemPassword(testLdapServer.getSystemUserPassword());
 
-    HttpResponse response = testConnectionRequest(conn).put();
+    HttpResponse response = testConnectionRequest(ldapConnection).put();
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
@@ -222,15 +223,15 @@ public class LdapResourceTest
     testLdapServer.enableLdaps(getTestResourceFile("/com/sonatype/insight/test/networking/localhost.jks"), "password");
     testLdapServer.start();
 
-    LdapConnection conn = createLdapConnection();
-    conn.setProtocol(LdapProtocol.LDAPS);
-    conn.setHostname("localhost");
-    conn.setPort(testLdapServer.getPort());
-    conn.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
-    conn.setSystemUsername(testLdapServer.getSystemUserDN());
-    conn.setSystemPassword(testLdapServer.getSystemUserPassword());
+    LdapConnection ldapConnection = createLdapConnection();
+    ldapConnection.setProtocol(LdapProtocol.LDAPS);
+    ldapConnection.setHostname("localhost");
+    ldapConnection.setPort(testLdapServer.getPort());
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
+    ldapConnection.setSystemUsername(testLdapServer.getSystemUserDN());
+    ldapConnection.setSystemPassword(testLdapServer.getSystemUserPassword());
 
-    HttpResponse response = testConnectionRequest(conn).put();
+    HttpResponse response = testConnectionRequest(ldapConnection).put();
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
@@ -242,10 +243,10 @@ public class LdapResourceTest
     testLdapServer.start();
     testLdapServer.loadData("/" + getClass().getSimpleName() + "/ldap_users.ldif");
 
-    LdapServer server = tempEntity.newLdapServer("test");
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
 
-    LdapUserMapping mapping = tempEntity.newLdapUserMapping(server.getId());
-    tempEntity.newLdapConnection(server.getId(), testLdapServer.getPort());
+    LdapUserMapping mapping = tempEntity.newLdapUserMapping(ldapServer.getId());
+    tempEntity.newLdapConnection(ldapServer.getId(), testLdapServer.getPort());
     HttpRequest request = restRequest().path(LdapResource.TEST_USER_MAPPING_PATH).parameter(mapping.getServerId())
         .body(mapping);
 
@@ -264,9 +265,9 @@ public class LdapResourceTest
     testLdapServer.start();
     testLdapServer.loadData("/" + getClass().getSimpleName() + "/ldap_users.ldif");
 
-    LdapServer server = tempEntity.newLdapServer("test");
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
 
-    LdapUserMapping mapping = tempEntity.newLdapUserMapping(server.getId());
+    LdapUserMapping mapping = tempEntity.newLdapUserMapping(ldapServer.getId());
     LdapTestLoginRequest login = new LdapTestLoginRequest();
     login.setUserMapping(mapping);
     login.setUsername("testuser");
@@ -278,7 +279,7 @@ public class LdapResourceTest
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
     assertThat(status.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
 
-    tempEntity.newLdapConnection(server.getId(), testLdapServer.getPort());
+    tempEntity.newLdapConnection(ldapServer.getId(), testLdapServer.getPort());
 
     response = request.body(login).put();
     assertResponseStatus(200, response);
@@ -301,42 +302,42 @@ public class LdapResourceTest
   }
 
   private LdapConnection createLdapConnection() {
-    LdapServer server = tempEntity.newLdapServer("test");
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
 
-    LdapConnection conn = new LdapConnection();
-    conn.setServerId(server.getId());
-    conn.setProtocol(LdapProtocol.LDAP);
-    conn.setHostname("localhost");
-    conn.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
-    conn.setSystemUsername("system");
-    conn.setSystemPassword("password".toCharArray());
-    return conn;
+    LdapConnection ldapConnection = new LdapConnection();
+    ldapConnection.setServerId(ldapServer.getId());
+    ldapConnection.setProtocol(LdapProtocol.LDAP);
+    ldapConnection.setHostname("localhost");
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
+    ldapConnection.setSystemUsername("system");
+    ldapConnection.setSystemPassword("password".toCharArray());
+    return ldapConnection;
   }
 
   private LdapUserMapping createLdapUserMapping() {
-    LdapServer server = tempEntity.newLdapServer("test");
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
 
-    LdapUserMapping umap = new LdapUserMapping();
+    LdapUserMapping ldapUserMapping = new LdapUserMapping();
 
-    umap.setServerId(server.getId());
-    umap.setUserBaseDN("userBaseDN");
-    umap.setUserSubtree(true);
-    umap.setUserObjectClass("userObjectClass");
-    umap.setUserFilter("userFilter");
-    umap.setUserIDAttribute("userIDAttribute");
-    umap.setUserRealNameAttribute("realNameAttribute");
-    umap.setUserEmailAttribute("emailAttribute");
-    umap.setUserPasswordAttribute("passwordAttribute");
+    ldapUserMapping.setServerId(ldapServer.getId());
+    ldapUserMapping.setUserBaseDN("userBaseDN");
+    ldapUserMapping.setUserSubtree(true);
+    ldapUserMapping.setUserObjectClass("userObjectClass");
+    ldapUserMapping.setUserFilter("userFilter");
+    ldapUserMapping.setUserIDAttribute("userIDAttribute");
+    ldapUserMapping.setUserRealNameAttribute("realNameAttribute");
+    ldapUserMapping.setUserEmailAttribute("emailAttribute");
+    ldapUserMapping.setUserPasswordAttribute("passwordAttribute");
 
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    umap.setGroupBaseDN("groupBaseDN");
-    umap.setGroupSubtree(true);
-    umap.setGroupObjectClass("groupObjectClass");
-    umap.setGroupIDAttribute("groupIDAttribute");
-    umap.setGroupMemberAttribute("groupMemberAttribute");
-    umap.setGroupMemberFormat("groupMemberFormat");
-    umap.setUserMemberOfGroupAttribute("userMemberOfGroupAttribute");
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupBaseDN("groupBaseDN");
+    ldapUserMapping.setGroupSubtree(true);
+    ldapUserMapping.setGroupObjectClass("groupObjectClass");
+    ldapUserMapping.setGroupIDAttribute("groupIDAttribute");
+    ldapUserMapping.setGroupMemberAttribute("groupMemberAttribute");
+    ldapUserMapping.setGroupMemberFormat("groupMemberFormat");
+    ldapUserMapping.setUserMemberOfGroupAttribute("userMemberOfGroupAttribute");
 
-    return umap;
+    return ldapUserMapping;
   }
 }

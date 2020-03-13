@@ -52,75 +52,75 @@ public class LdapUserMappingDAOTest
 
   private LdapUserMappingDAO dao = new LdapUserMappingDAO();
 
-  private LdapServer server;
+  private LdapServer ldapServer;
 
   @Before
   public void createTestServer() {
-    server = tempEntity.newLdapServer("testServer");
+    ldapServer = tempEntity.newLdapServer("testServer");
   }
 
   @Test
   public void testCRUD() {
     // insert
-    LdapUserMapping umap = newLdapUserMapping();
-    tempEntity.newLdapUserMapping(umap);
-    assertThat(umap.getId()).isNotNull();
+    LdapUserMapping ldapUserMapping = newLdapUserMapping();
+    tempEntity.newLdapUserMapping(ldapUserMapping);
+    assertThat(ldapUserMapping.getId()).isNotNull();
 
     // select by id
-    umap = dao.getById(umap.getId());
+    ldapUserMapping = dao.getById(ldapUserMapping.getId());
 
-    assertThat(umap.getServerId()).isEqualTo(server.getId());
-    assertThat(umap.getUserBaseDN()).isEqualTo(userBaseDN);
-    assertThat(umap.isUserSubtree()).isEqualTo(userSubtree);
-    assertThat(umap.getUserObjectClass()).isEqualTo(userObjectClass);
-    assertThat(umap.getUserFilter()).isEqualTo(userFilter);
-    assertThat(umap.getUserIDAttribute()).isEqualTo(userIDAttribute);
-    assertThat(umap.getUserRealNameAttribute()).isEqualTo(realNameAttribute);
-    assertThat(umap.getUserEmailAttribute()).isEqualTo(emailAttribute);
-    assertThat(umap.getUserPasswordAttribute()).isEqualTo(passwordAttribute);
+    assertThat(ldapUserMapping.getServerId()).isEqualTo(ldapServer.getId());
+    assertThat(ldapUserMapping.getUserBaseDN()).isEqualTo(userBaseDN);
+    assertThat(ldapUserMapping.isUserSubtree()).isEqualTo(userSubtree);
+    assertThat(ldapUserMapping.getUserObjectClass()).isEqualTo(userObjectClass);
+    assertThat(ldapUserMapping.getUserFilter()).isEqualTo(userFilter);
+    assertThat(ldapUserMapping.getUserIDAttribute()).isEqualTo(userIDAttribute);
+    assertThat(ldapUserMapping.getUserRealNameAttribute()).isEqualTo(realNameAttribute);
+    assertThat(ldapUserMapping.getUserEmailAttribute()).isEqualTo(emailAttribute);
+    assertThat(ldapUserMapping.getUserPasswordAttribute()).isEqualTo(passwordAttribute);
 
-    assertThat(umap.getGroupMappingType()).isEqualTo(groupMappingType);
-    assertThat(umap.getGroupBaseDN()).isEqualTo(groupBaseDN);
-    assertThat(umap.getGroupObjectClass()).isEqualTo(groupObjectClass);
-    assertThat(umap.getGroupIDAttribute()).isEqualTo(groupIDAttribute);
-    assertThat(umap.getGroupMemberAttribute()).isEqualTo(groupMemberAttribute);
-    assertThat(umap.getGroupMemberFormat()).isEqualTo(groupMemberFormat);
-    assertThat(umap.getUserMemberOfGroupAttribute()).isEqualTo(userMemberOfGroupAttribute);
+    assertThat(ldapUserMapping.getGroupMappingType()).isEqualTo(groupMappingType);
+    assertThat(ldapUserMapping.getGroupBaseDN()).isEqualTo(groupBaseDN);
+    assertThat(ldapUserMapping.getGroupObjectClass()).isEqualTo(groupObjectClass);
+    assertThat(ldapUserMapping.getGroupIDAttribute()).isEqualTo(groupIDAttribute);
+    assertThat(ldapUserMapping.getGroupMemberAttribute()).isEqualTo(groupMemberAttribute);
+    assertThat(ldapUserMapping.getGroupMemberFormat()).isEqualTo(groupMemberFormat);
+    assertThat(ldapUserMapping.getUserMemberOfGroupAttribute()).isEqualTo(userMemberOfGroupAttribute);
 
     // server by server id
-    assertThat(dao.getByServerId(server.getId())).isNotNull();
+    assertThat(dao.getByServerId(ldapServer.getId())).isNotNull();
 
     // update
     String userBaseDnChanged = userBaseDN + "-changed";
-    umap.setUserBaseDN(userBaseDnChanged);
-    dao.update(umap);
-    umap = dao.getById(umap.getId());
-    assertThat(umap.getUserBaseDN()).isEqualTo(userBaseDnChanged);
+    ldapUserMapping.setUserBaseDN(userBaseDnChanged);
+    dao.update(ldapUserMapping);
+    ldapUserMapping = dao.getById(ldapUserMapping.getId());
+    assertThat(ldapUserMapping.getUserBaseDN()).isEqualTo(userBaseDnChanged);
 
     // delete
-    dao.delete(umap);
-    assertThat(dao.getById(umap.getId())).isNull();
+    dao.delete(ldapUserMapping);
+    assertThat(dao.getById(ldapUserMapping.getId())).isNull();
   }
 
   private LdapUserMapping newLdapUserMapping() {
-    LdapUserMapping umap = new LdapUserMapping();
-    umap.setServerId(server.getId());
-    umap.setUserBaseDN(userBaseDN);
-    umap.setUserSubtree(userSubtree);
-    umap.setUserObjectClass(userObjectClass);
-    umap.setUserFilter(userFilter);
-    umap.setUserIDAttribute(userIDAttribute);
-    umap.setUserRealNameAttribute(realNameAttribute);
-    umap.setUserEmailAttribute(emailAttribute);
-    umap.setUserPasswordAttribute(passwordAttribute);
-    umap.setGroupMappingType(groupMappingType);
-    umap.setGroupBaseDN(groupBaseDN);
-    umap.setGroupSubtree(groupSubtree);
-    umap.setGroupObjectClass(groupObjectClass);
-    umap.setGroupIDAttribute(groupIDAttribute);
-    umap.setGroupMemberAttribute(groupMemberAttribute);
-    umap.setGroupMemberFormat(groupMemberFormat);
-    umap.setUserMemberOfGroupAttribute(userMemberOfGroupAttribute);
-    return umap;
+    LdapUserMapping ldapUserMapping = new LdapUserMapping();
+    ldapUserMapping.setServerId(ldapServer.getId());
+    ldapUserMapping.setUserBaseDN(userBaseDN);
+    ldapUserMapping.setUserSubtree(userSubtree);
+    ldapUserMapping.setUserObjectClass(userObjectClass);
+    ldapUserMapping.setUserFilter(userFilter);
+    ldapUserMapping.setUserIDAttribute(userIDAttribute);
+    ldapUserMapping.setUserRealNameAttribute(realNameAttribute);
+    ldapUserMapping.setUserEmailAttribute(emailAttribute);
+    ldapUserMapping.setUserPasswordAttribute(passwordAttribute);
+    ldapUserMapping.setGroupMappingType(groupMappingType);
+    ldapUserMapping.setGroupBaseDN(groupBaseDN);
+    ldapUserMapping.setGroupSubtree(groupSubtree);
+    ldapUserMapping.setGroupObjectClass(groupObjectClass);
+    ldapUserMapping.setGroupIDAttribute(groupIDAttribute);
+    ldapUserMapping.setGroupMemberAttribute(groupMemberAttribute);
+    ldapUserMapping.setGroupMemberFormat(groupMemberFormat);
+    ldapUserMapping.setUserMemberOfGroupAttribute(userMemberOfGroupAttribute);
+    return ldapUserMapping;
   }
 }

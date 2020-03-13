@@ -334,8 +334,8 @@ public class EmbeddedLdapServer
   public static void main(String[] args) throws Exception {
     File workingDirectory = new File("target/apacheds");
     new FileCleaner().delete(workingDirectory);
-    EmbeddedLdapServer server = new EmbeddedLdapServer().setWorkingDirectory(workingDirectory);
-    server.enableLdaps(SslProperties.SERVER_STORE_FILE, SslProperties.KEY_STORE_PASSWORD);
-    server.start();
+    EmbeddedLdapServer testLdapServer = new EmbeddedLdapServer().setWorkingDirectory(workingDirectory);
+    testLdapServer.enableLdaps(SslProperties.SERVER_STORE_FILE, SslProperties.KEY_STORE_PASSWORD);
+    testLdapServer.start();
   }
 }

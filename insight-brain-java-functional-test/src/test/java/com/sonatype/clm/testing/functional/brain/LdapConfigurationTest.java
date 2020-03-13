@@ -47,7 +47,7 @@ public class LdapConfigurationTest
   @Rule
   public TestLdapServer testLdapServer = new TestLdapServer();
 
-  private LdapServer server;
+  private LdapServer ldapServer;
 
   @BeforeClass
   public static void startup() {
@@ -57,15 +57,15 @@ public class LdapConfigurationTest
 
   @Before
   public void before() {
-    server = tempEntity.newLdapServer("Test Ldap Server");
+    ldapServer = tempEntity.newLdapServer("Test Ldap Server");
     refresh();
   }
 
   @After
   public void end() {
     LdapServerDAO ldapServerDAO = new LdapServerDAO();
-    for (LdapServer server : ldapServerDAO.getAll()) {
-      ldapServerDAO.delete(server);
+    for (LdapServer ldapServer : ldapServerDAO.getAll()) {
+      ldapServerDAO.delete(ldapServer);
     }
   }
 
@@ -100,8 +100,8 @@ public class LdapConfigurationTest
     eyesWatcher.eyesCheck();
     LdapConfigurationPage.backButton().shouldHave(text("Back to LDAP Servers"));
 
-    server = ldapServerDAO.getByName("Another Ldap Server");
-    assertThat(server).isNotNull();
+    ldapServer = ldapServerDAO.getByName("Another Ldap Server");
+    assertThat(ldapServer).isNotNull();
 
     testFormValidation();
 
@@ -138,7 +138,7 @@ public class LdapConfigurationTest
 
   @Test
   public void testResetForm() {
-    refreshOrOpen(LdapConfigurationPage.urlToEdit(server.getId()));
+    refreshOrOpen(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
     LdapConfigurationPage.root().should(appear);
     LdapConnectionForm ldapConnectionForm = LdapConfigurationPage.ldapConnectionForm();
 
@@ -167,7 +167,7 @@ public class LdapConfigurationTest
     LdapServerListPage serverListPage = new LdapServerListPage();
     serverListPage.ldapServerList().elements().shouldHaveSize(1).get(0).shouldBe(visible).click();
 
-    waitUntilUrl(LdapConfigurationPage.urlToEdit(server.getId()));
+    waitUntilUrl(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
     LdapConfigurationPage.root().should(appear);
     LdapConfigurationPage.deleteButton().shouldBe(visible).click();
     LdapConfigurationPage.deleteConfirmationButton().shouldBe(visible).click();
@@ -175,7 +175,7 @@ public class LdapConfigurationTest
     waitUntilUrl(LdapServerListPage.url());
     serverListPage.ldapServerList().elements().shouldHaveSize(0);
     serverListPage.ldapServerList().emptyDescriptor().shouldBe(visible);
-    assertThat(new LdapServerDAO().getById(server.getId())).isNull();
+    assertThat(new LdapServerDAO().getById(ldapServer.getId())).isNull();
   }
 
   private void testFormValidation() {
@@ -273,19 +273,19 @@ public class LdapConfigurationTest
     connectionForm.saveButton().shouldBe(disabled);
 
     // Ensure persisted Connection matches
-    LdapConnection persistedConnection = new LdapConnectionDAO().getByServerId(server.getId());
+    LdapConnection persistedLdapConnection = new LdapConnectionDAO().getByServerId(ldapServer.getId());
 
-    assertThat(persistedConnection).isNotNull();
-    assertThat(persistedConnection.getProtocol()).isEqualTo(LdapProtocol.LDAP);
-    assertThat(persistedConnection.getHostname()).isEqualTo(testLdapServer.getHostname());
-    assertThat(persistedConnection.getPort()).isEqualTo(testLdapServer.getPort());
-    assertThat(persistedConnection.getSearchBase()).isEqualTo("ou=users,dc=company,dc=com");
-    assertThat(persistedConnection.getAuthenticationMethod()).isEqualTo(LdapAuthenticationMethod.SIMPLE);
-    assertThat(persistedConnection.getSaslRealm()).isEqualTo("just checking if persisted");
-    assertThat(persistedConnection.getSystemUsername()).isEqualTo("just checking if persisted");
-    assertThat(persistedConnection.getSystemPassword()).isNotEqualTo("just checking if persisted");
-    assertThat(persistedConnection.getConnectionTimeout()).isEqualTo(31);
-    assertThat(persistedConnection.getRetryDelay()).isEqualTo(31);
+    assertThat(persistedLdapConnection).isNotNull();
+    assertThat(persistedLdapConnection.getProtocol()).isEqualTo(LdapProtocol.LDAP);
+    assertThat(persistedLdapConnection.getHostname()).isEqualTo(testLdapServer.getHostname());
+    assertThat(persistedLdapConnection.getPort()).isEqualTo(testLdapServer.getPort());
+    assertThat(persistedLdapConnection.getSearchBase()).isEqualTo("ou=users,dc=company,dc=com");
+    assertThat(persistedLdapConnection.getAuthenticationMethod()).isEqualTo(LdapAuthenticationMethod.SIMPLE);
+    assertThat(persistedLdapConnection.getSaslRealm()).isEqualTo("just checking if persisted");
+    assertThat(persistedLdapConnection.getSystemUsername()).isEqualTo("just checking if persisted");
+    assertThat(persistedLdapConnection.getSystemPassword()).isNotEqualTo("just checking if persisted");
+    assertThat(persistedLdapConnection.getConnectionTimeout()).isEqualTo(31);
+    assertThat(persistedLdapConnection.getRetryDelay()).isEqualTo(31);
 
     // Revert back to no authentication
     connectionForm.authenticationMethod().selectedItem().shouldHave(text("SIMPLE"));
@@ -364,25 +364,25 @@ public class LdapConfigurationTest
     userAndGroupSettingsForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
     userAndGroupSettingsForm.saveButton().shouldBe(disabled);
 
-    LdapUserMapping persistedUserMapping = new LdapUserMappingDAO().getByServerId(server.getId());
+    LdapUserMapping persistedLdapUserMapping = new LdapUserMappingDAO().getByServerId(ldapServer.getId());
 
-    assertThat(persistedUserMapping).isNotNull();
-    assertThat(persistedUserMapping.getUserBaseDN()).isEqualTo("just checking if persisted");
-    assertThat(persistedUserMapping.getUserObjectClass()).isEqualTo("person");
-    assertThat(persistedUserMapping.getUserFilter()).isEqualTo("just checking if persisted");
-    assertThat(persistedUserMapping.getUserIDAttribute()).isEqualTo("uid");
-    assertThat(persistedUserMapping.getUserRealNameAttribute()).isEqualTo("cn");
-    assertThat(persistedUserMapping.getUserEmailAttribute()).isEqualTo("mail");
-    assertThat(persistedUserMapping.isUserSubtree()).isTrue();
-    assertThat(persistedUserMapping.getGroupMappingType()).isEqualTo(LdapGroupMappingType.DYNAMIC);
-    assertThat(persistedUserMapping.getUserMemberOfGroupAttribute()).isEqualTo("departmentNumber");
+    assertThat(persistedLdapUserMapping).isNotNull();
+    assertThat(persistedLdapUserMapping.getUserBaseDN()).isEqualTo("just checking if persisted");
+    assertThat(persistedLdapUserMapping.getUserObjectClass()).isEqualTo("person");
+    assertThat(persistedLdapUserMapping.getUserFilter()).isEqualTo("just checking if persisted");
+    assertThat(persistedLdapUserMapping.getUserIDAttribute()).isEqualTo("uid");
+    assertThat(persistedLdapUserMapping.getUserRealNameAttribute()).isEqualTo("cn");
+    assertThat(persistedLdapUserMapping.getUserEmailAttribute()).isEqualTo("mail");
+    assertThat(persistedLdapUserMapping.isUserSubtree()).isTrue();
+    assertThat(persistedLdapUserMapping.getGroupMappingType()).isEqualTo(LdapGroupMappingType.DYNAMIC);
+    assertThat(persistedLdapUserMapping.getUserMemberOfGroupAttribute()).isEqualTo("departmentNumber");
   }
 
   private void testLdapFormDataMatchesPersistedData() {
     refresh();
 
-    LdapConnection persistedConnection = new LdapConnectionDAO().getByServerId(server.getId());
-    LdapUserMapping persistedUserMapping = new LdapUserMappingDAO().getByServerId(server.getId());
+    LdapConnection persistedConnection = new LdapConnectionDAO().getByServerId(ldapServer.getId());
+    LdapUserMapping persistedUserMapping = new LdapUserMappingDAO().getByServerId(ldapServer.getId());
 
     // Test Connection
     LdapConnectionForm connectionForm = LdapConfigurationPage.ldapConnectionForm();

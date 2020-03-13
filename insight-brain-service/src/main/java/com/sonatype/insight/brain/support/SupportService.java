@@ -263,10 +263,10 @@ class SupportService
         true);
 
     final List<LdapConfig> ldapServers = new ArrayList<>();
-    final LdapUserMappingDAO userDao = new LdapUserMappingDAO();
+    final LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
     for (final LdapServer ldapServer : new LdapServerDAO().getAll()) {
       final LdapConnection ldapConnection = ldapService.getLdapConnection(ldapServer.getId());
-      final LdapUserMapping ldapUserMapping = userDao.getByServerId(ldapServer.getId());
+      final LdapUserMapping ldapUserMapping = ldapUserMappingDAO.getByServerId(ldapServer.getId());
       ldapServers.add(new LdapConfig(ldapServer, ldapConnection, ldapUserMapping));
     }
     addFileIfExists(filesToZip,

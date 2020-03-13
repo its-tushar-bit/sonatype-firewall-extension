@@ -37,9 +37,9 @@ public class LdapUserMappingDAO
   }
 
   public void deleteByServerId(TransactionContext tx, String id) {
-    LdapUserMapping umap = getByServerId(tx, id);
-    if (umap != null) {
-      delete(tx, umap);
+    LdapUserMapping ldapUserMapping = getByServerId(tx, id);
+    if (ldapUserMapping != null) {
+      delete(tx, ldapUserMapping);
     }
   }
 

@@ -382,22 +382,22 @@ public class MembershipMappingServiceTest
     LdapServer ldapServer = tempEntity.newLdapServer(serverName);
     tempEntity.newLdapConnection(ldapServer.getId(), 389);
 
-    LdapUserMapping umap = tempEntity.newLdapUserMapping(ldapServer.getId());
-    umap.setGroupMappingType(groupMappingType);
-    umap.setDynamicGroupSearchEnabled(false);
+    LdapUserMapping ldapUserMapping = tempEntity.newLdapUserMapping(ldapServer.getId());
+    ldapUserMapping.setGroupMappingType(groupMappingType);
+    ldapUserMapping.setDynamicGroupSearchEnabled(false);
 
-    new LdapUserMappingDAO().update(umap);
+    new LdapUserMappingDAO().update(ldapUserMapping);
   }
 
   private void setupLdapWithDynamicGroupType(String serverName, boolean isDynamicGroupSearchEnabled) {
     LdapServer ldapServer = tempEntity.newLdapServer(serverName);
     tempEntity.newLdapConnection(ldapServer.getId(), 389);
 
-    LdapUserMapping umap = tempEntity.newLdapUserMapping(ldapServer.getId());
-    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    umap.setDynamicGroupSearchEnabled(isDynamicGroupSearchEnabled);
+    LdapUserMapping ldapUserMapping = tempEntity.newLdapUserMapping(ldapServer.getId());
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setDynamicGroupSearchEnabled(isDynamicGroupSearchEnabled);
 
-    new LdapUserMappingDAO().update(umap);
+    new LdapUserMappingDAO().update(ldapUserMapping);
   }
 
   private void assertApiMemberDTO(

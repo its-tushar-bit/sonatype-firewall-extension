@@ -10,7 +10,9 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightWork;
 
+import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.search.AdvancedSearchResource.RESOURCE_PATH;
@@ -27,6 +29,8 @@ public class AdvancedSearchResourceTest
 
   @Test
   public void testGetStatus() throws Exception {
+    FileUtils.deleteDirectory(getCLMServer().getInstance(InsightWork.class).getSearchIndexDir());
+
     HttpResponse response = restRequest().path(STATUS_PATH).get();
 
     assertResponseStatus(200, response);

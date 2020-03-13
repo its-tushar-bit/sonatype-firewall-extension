@@ -40,8 +40,14 @@ function getAllDependenciesFromNodes(indexedDependencyNodes) {
         dependenciesLayer = new Set([parentKey]);
     while (dependenciesLayer && dependenciesLayer.size) {
       dependenciesLayer = getNextDependenciesLayer(dependenciesLayer);
-      dependenciesLayer.forEach(function(layer) {
-        dependencies.add(layer);
+      dependenciesLayer.forEach(function(layerElement) {
+        // remove already-seen dependencies from the layer to prevent infinite loops from circular deps
+        if (dependencies.has(layerElement) || layerElement === parentKey) {
+          dependenciesLayer.delete(layerElement);
+        }
+        else {
+          dependencies.add(layerElement);
+        }
       });
     }
     return dependencies;
@@ -61,12 +67,6 @@ const getRootAncestorsByChildReducer = rootAncestorId => (acc, childKey) => {
 
   return acc;
 };
-
-// given list of [rootAncestorId, children] pairs, generate rootAncestorsByChild map
-// where key is child iD, and value is a Set of its unique rootAncestorIds
-const mapRootAncestorsToChildren = reduce((acc, [rootAncestorId, children]) => {
-  return reduce(getRootAncestorsByChildReducer(rootAncestorId), acc, setToArray(children));
-}, {});
 
 const populateDependencyNodeKeys = node => ({
   ...node,
@@ -97,6 +97,11 @@ export default function DependencyInfoGenerator(dependencies) {
       pairWithDependencies = map(
           ({ componentIdentifier, key }) => [componentIdentifier, getAllDependencies(key)]
       ),
+      // given list of [rootAncestorId, children] pairs, generate rootAncestorsByChild map
+      // where key is child iD, and value is a Set of its unique rootAncestorIds
+      mapRootAncestorsToChildren = reduce((acc, [rootAncestorId, children]) => {
+        return reduce(getRootAncestorsByChildReducer(rootAncestorId), acc, setToArray(children));
+      }, {}),
       rootAncestorsToArray = map(rootAncestorsSet => setToArray(rootAncestorsSet)),
       rootAncestorsByChild = pipe(pairWithDependencies, mapRootAncestorsToChildren, rootAncestorsToArray)(directDeps);
 

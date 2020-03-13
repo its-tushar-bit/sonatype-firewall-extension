@@ -5,14 +5,6 @@
  */
 package com.sonatype.insight.brain.git;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-
-@Named
-@Singleton
-public class PullRequestCommentingMetricsService
+public class PullRequestMonitoringSchedulerTest
 {
-  public void recordEvent(boolean commentCreated) {
-    // todo - INT-2490 will implement this
-  }
 }

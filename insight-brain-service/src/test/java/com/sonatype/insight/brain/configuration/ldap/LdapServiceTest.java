@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,6 +28,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.test.networking.PortAllocator;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.eclipse.sisu.launch.InjectedTest;
@@ -788,7 +787,7 @@ public class LdapServiceTest
 
   @Test
   public void testTestLdapUserMapping_LdapConnectionNotConfigured() throws Exception {
-    testLdapServer1.setPort(getRandomPort());
+    testLdapServer1.setPort(PortAllocator.nextFreePort());
     testLdapServer1.start();
 
     LdapServer ldapServer = tempEntity.newLdapServer("test");
@@ -1557,7 +1556,7 @@ public class LdapServiceTest
   }
 
   private LdapConnection createLdapConnection(LdapServer ldapServer) {
-    return tempEntity.newLdapConnection(ldapServer.getId(), getRandomPort());
+    return tempEntity.newLdapConnection(ldapServer.getId(), PortAllocator.nextFreePort());
   }
 
   private LdapUserMapping newInMemoryLdapUserMapping(LdapServer ldapServer) {
@@ -1580,7 +1579,7 @@ public class LdapServiceTest
     ldapConnection.setServerId(ldapServer.getId());
     ldapConnection.setProtocol(LdapProtocol.LDAP);
     ldapConnection.setHostname("localhost");
-    ldapConnection.setPort(getRandomPort());
+    ldapConnection.setPort(PortAllocator.nextFreePort());
     ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
     ldapConnection.setSystemUsername("system");
     ldapConnection.setSystemPassword("password".toCharArray());
@@ -1784,14 +1783,5 @@ public class LdapServiceTest
     assertThatThrownBy(() -> {
       ldapService.upsertLdapUserMapping("fake LDAP server id", ldapUserMapping);
     }).isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
-  }
-
-  private static int getRandomPort() {
-    try (ServerSocket socket = new ServerSocket(0)) {
-      return socket.getLocalPort();
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
   }
 }

@@ -5,14 +5,12 @@
  */
 export default function searchSuggesterService($http, CLMLocations) {
   return {
-    query: undefined,
-    results: undefined,
-    search
+    suggest
   };
 
-  function search() {
+  function suggest(query) {
     return $http.get(CLMLocations.getAdvancedSearchSuggesterUrl(),
-        {params: {search: this.query}});
+        {params: {search: query}});
   }
 }
 

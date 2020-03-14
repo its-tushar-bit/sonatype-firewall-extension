@@ -13,5 +13,7 @@ import java.util.List;
  */
 public class SearchSuggestionResultDTO
 {
+  public String searchQuery;
+
   public List<String> searchResultItems = new ArrayList<>();
 }

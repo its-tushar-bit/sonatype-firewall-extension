@@ -11,25 +11,23 @@ export default {
   controller: SearchBarController
 };
 
-function SearchBarController(searchService, searchSuggesterService, $q, $state, Messages) {
+function SearchBarController(searchService, searchSuggesterService, $state, Messages) {
   const vm = this;
 
   Object.assign(vm, {
     error: undefined,
-    query: searchService.query,
+    query: searchService.query || '',
     suggestions: [],
 
     search() {
       vm.error = undefined;
-      const promises = [];
       searchService.query = vm.query;
       searchService.pageSize = 10;
       searchService.page = 1;
-      promises.push(searchService.search());
-      return $q.all(promises).then(function(results) {
-        searchService.results = results[0].data.groupingByDTOS;
-        searchService.totalNumberOfHits = results[0].data.totalNumberOfHits;
-        searchService.isExactTotalNumberOfHits = results[0].data.isExactTotalNumberOfHits;
+      return searchService.search().then(function(response) {
+        searchService.results = response.data.groupingByDTOS;
+        searchService.totalNumberOfHits = response.data.totalNumberOfHits;
+        searchService.isExactTotalNumberOfHits = response.data.isExactTotalNumberOfHits;
         $state.go('searchResults', {}, {reload: true});
       }, function(error) {
         vm.error = Messages.getHttpErrorMessage(error);
@@ -37,17 +35,16 @@ function SearchBarController(searchService, searchSuggesterService, $q, $state, 
     },
 
     searchSuggester() {
-      const promises = [];
-      searchSuggesterService.query = vm.query;
-      promises.push(searchSuggesterService.search());
-      return $q.all(promises).then(function(results) {
-        vm.suggestions = results[0].data.searchResultItems;
-        searchSuggesterService.results = results[0].data.searchResultItems;
+      return searchSuggesterService.suggest(vm.query).then(function(response) {
+        // ignore delayed suggestions for previous query values
+        if (vm.query === response.data.searchQuery) {
+          vm.suggestions = response.data.searchResultItems;
+        }
       });
     }
   });
 }
 
 SearchBarController.$inject = [
-  'searchService', 'searchSuggesterService', '$q', '$state', 'Messages'
+  'searchService', 'searchSuggesterService', '$state', 'Messages'
 ];

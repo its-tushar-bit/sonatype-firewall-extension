@@ -165,7 +165,13 @@ public class SearchService
   public SearchSuggestionResultDTO autoCompleteSearchQuery(String searchQuery) {
     Path searchSuggesterIndexPath = insightWork.getSearchSuggesterDir().toPath();
     validateIndex(searchSuggesterIndexPath);
+
+    if (searchQuery == null) {
+      searchQuery = "";
+    }
+
     SearchSuggestionResultDTO searchResultDTO = new SearchSuggestionResultDTO();
+    searchResultDTO.searchQuery = searchQuery;
 
     // the suggestion index contains only single field queries, to provide suggestions for more complex queries, we cut
     // off the initial clauses of the query and do auto-completion on the last clause 

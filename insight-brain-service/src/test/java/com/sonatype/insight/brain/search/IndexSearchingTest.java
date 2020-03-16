@@ -644,4 +644,14 @@ public class IndexSearchingTest
     assertThat(search("CVE-8765-1234 AND " + FieldIdentifier.APPLICATION_ID + ":" + appId))
         .extracting(dto -> dto.reportId).containsExactlyInAnyOrder("report-0");
   }
+
+  @Test
+  public void testSearchByFieldsFromDifferentDocumentTypes() throws Exception {
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    Tag tag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
+    index();
+    assertThat(search(FieldIdentifier.POLICY_ID + ":" + policy.getId() + " " + FieldIdentifier.APPLICATION_CATEGORY_ID
+        + ":" + tag.getId())).extracting(dto -> dto.itemType).containsExactlyInAnyOrder(ItemType.POLICY.name(),
+            ItemType.APPLICATION_CATEGORY.name());
+  }
 }

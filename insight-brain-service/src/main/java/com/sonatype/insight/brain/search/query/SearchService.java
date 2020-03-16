@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.search.LuceneComponents;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
+import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -121,8 +122,7 @@ public class SearchService
         documentScores.put(document, scoreDoc.shardIndex);
       }
 
-      String groupFieldName = getGroupFieldName(fieldNames);
-      FieldIdentifier groupIdentifier = getFieldIdentifier(groupFieldName);
+      Map<String, String> groupFieldNamesByItemType = getGroupFieldNamesByItemType(fieldNames);
 
       int startIndex = (page - 1) * pageSize;
       int resultIndex = startIndex + 1;
@@ -136,6 +136,8 @@ public class SearchService
           continue;
         }
 
+        String groupFieldName = groupFieldNamesByItemType.get(searchResultItemDTO.itemType);
+        FieldIdentifier groupIdentifier = getFieldIdentifier(groupFieldName);
         String groupBy = document.get(groupFieldName);
 
         if (searchResultDTO.groupingByDTOS.stream().noneMatch(dto -> dto.groupBy.equals(groupBy))) {
@@ -267,13 +269,41 @@ public class SearchService
     return fieldNames;
   }
 
-  private String getGroupFieldName(Set<String> fieldNames) {
-    String groupFieldName = new TreeSet<>(fieldNames).first();
-    if (VULNERABILITY_DESCRIPTION.label.equals(groupFieldName)) {
-      // Grouping by description does not make sense
-      groupFieldName = VULNERABILITY_ID.label;
+  private Map<String, String> getGroupFieldNamesByItemType(Set<String> fieldNames) {
+    Map<String, String> groupFieldNamesByItemType = new HashMap<>();
+    for (ItemType itemType : ItemType.values()) {
+      groupFieldNamesByItemType.put(itemType.name(), getGroupFieldName(itemType, fieldNames).label);
     }
-    return groupFieldName;
+    return groupFieldNamesByItemType;
+  }
+
+  private FieldIdentifier getGroupFieldName(ItemType itemType, Set<String> fieldNames) {
+    // pick a field that is available for the item type, potentially driven by the fields searched on
+    switch (itemType) {
+      case APPLICATION:
+        return APPLICATION_NAME;
+      case APPLICATION_CATEGORY:
+        return APPLICATION_CATEGORY_NAME;
+      case COMPONENT_LABEL:
+        return COMPONENT_LABEL_NAME;
+      case ORGANIZATION:
+        return ORGANIZATION_NAME;
+      case POLICY:
+        return POLICY_NAME;
+      case SECURITY_VULNERABILITY:
+        if (Stream.of(VULNERABILITY_ID, VULNERABILITY_DESCRIPTION, VULNERABILITY_SEVERITY, VULNERABILITY_STATUS)
+            .anyMatch(field -> fieldNames.contains(field.label))) {
+          return VULNERABILITY_ID;
+        }
+        if (Stream.of(COMPONENT_FORMAT, COMPONENT_HASH, COMPONENT_NAME)
+            .anyMatch(field -> fieldNames.contains(field.label))
+            || fieldNames.stream().anyMatch(fieldName -> fieldName.startsWith(COMPONENT_COORDINATE.label))) {
+          return COMPONENT_NAME;
+        }
+        return APPLICATION_NAME;
+      default:
+        throw new IllegalArgumentException("Unsupported item type " + itemType);
+    }
   }
 
   private FieldIdentifier getFieldIdentifier(String fieldName) {

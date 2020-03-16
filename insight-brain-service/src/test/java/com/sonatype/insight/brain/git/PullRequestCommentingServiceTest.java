@@ -755,8 +755,7 @@ public class PullRequestCommentingServiceTest
           mockAsyncEventBus,
           testProductLicense,
           mockPullRequestUtils,
-          mockPolicyEvaluationDiffService,
-          true
+          mockPolicyEvaluationDiffService
       );
     }
 

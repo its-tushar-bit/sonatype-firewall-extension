@@ -74,8 +74,6 @@ public class PullRequestCommentingService
 
   private final ProductLicense productLicense;
 
-  private final boolean pullRequestImmediateFlowEnabled;
-
   private final PullRequestUtils pullRequestUtils;
 
   private final PolicyEvaluationDiffService policyEvaluationDiffService;
@@ -105,36 +103,6 @@ public class PullRequestCommentingService
     this.productLicense = productLicense;
     this.pullRequestUtils = pullRequestUtils;
     this.policyEvaluationDiffService = policyEvaluationDiffService;
-    pullRequestImmediateFlowEnabled = null != System.getProperty("enable-pr-immediate");
-  }
-
-  @VisibleForTesting
-  PullRequestCommentingService(
-      final SourceControlUtils sourceControlUtils,
-      final GitClientFactory gitClientFactory,
-      final SourceControlPullRequestCommentDAO pullRequestCommentDAO,
-      final PolicyEvaluationDAO policyEvaluationDAO,
-      final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService,
-      final GitCommitHistoryService gitCommitHistoryService,
-      final PullRequestCommentingMetricsService pullRequestCommentingMetricsService,
-      final AsyncEventBus asyncEventBus,
-      final ProductLicense productLicense,
-      final PullRequestUtils pullRequestUtils,
-      final PolicyEvaluationDiffService policyEvaluationDiffService,
-      boolean pullRequestImmediateFlowEnabled)
-  {
-    this.sourceControlUtils = sourceControlUtils;
-    this.gitClientFactory = gitClientFactory;
-    this.pullRequestCommentDAO = pullRequestCommentDAO;
-    this.policyEvaluationDAO = policyEvaluationDAO;
-    this.pullRequestFeedbackMarkupService = pullRequestFeedbackMarkupService;
-    this.gitCommitHistoryService = gitCommitHistoryService;
-    this.pullRequestCommentingMetricsService = pullRequestCommentingMetricsService;
-    this.asyncEventBus = asyncEventBus;
-    this.productLicense = productLicense;
-    this.pullRequestUtils = pullRequestUtils;
-    this.policyEvaluationDiffService = policyEvaluationDiffService;
-    this.pullRequestImmediateFlowEnabled = pullRequestImmediateFlowEnabled;
   }
 
   @Override
@@ -156,9 +124,6 @@ public class PullRequestCommentingService
    */
   @Subscribe
   public void onApplicationEvaluation(ApplicationEvaluationEvent event) {
-    if (!pullRequestImmediateFlowEnabled) {
-      return;
-    }
     if (!checkLicense()) {
       log.debug("License does not support SourceControl automation features");
       return;

@@ -46,8 +46,6 @@ public class PullRequestPollingScheduler
 
   private final int pullRequestMonitoringDelaySeconds;
 
-  private final boolean pullRequestPollingEnabled;
-
   @Inject
   public PullRequestPollingScheduler(
       PullRequestPollingService pullRequestPollingService,
@@ -57,7 +55,6 @@ public class PullRequestPollingScheduler
     this.productLicense = productLicense;
     pullRequestMonitoringDelaySeconds = PULL_REQUEST_MONITORING_DELAY_SECONDS;
     pullRequestMonitoringIntervalSeconds = PULL_REQUEST_MONITORING_INTERVAL_SECONDS;
-    pullRequestPollingEnabled = null != System.getProperty("enable-pr-polling");
   }
 
   @VisibleForTesting
@@ -65,21 +62,17 @@ public class PullRequestPollingScheduler
       PullRequestPollingService pullRequestPollingService,
       ProductLicense productLicense,
       int pullRequestMonitoringDelaySeconds,
-      int pullRequestMonitoringIntervalSeconds,
-      boolean pullRequestPollingEnabled)
+      int pullRequestMonitoringIntervalSeconds)
   {
     this.pullRequestPollingService = pullRequestPollingService;
     this.productLicense = productLicense;
     this.pullRequestMonitoringDelaySeconds = pullRequestMonitoringDelaySeconds;
     this.pullRequestMonitoringIntervalSeconds = pullRequestMonitoringIntervalSeconds;
-    this.pullRequestPollingEnabled = pullRequestPollingEnabled;
   }
 
   @Override
   public void start() throws Exception {
-    if (pullRequestPollingEnabled) {
-      startPullRequestMonitoring();
-    }
+    startPullRequestMonitoring();
   }
 
   @Override

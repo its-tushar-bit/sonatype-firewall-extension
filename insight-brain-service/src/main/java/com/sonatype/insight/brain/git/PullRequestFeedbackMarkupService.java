@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestFeedbackDetails;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -29,8 +28,6 @@ public class PullRequestFeedbackMarkupService
 {
   private final ApplicationDAO applicationDAO;
 
-  private final PolicyEvaluationDiffService policyEvaluationDiffService;
-
   private final ReportService reportService;
 
   private final BaseUrl baseUrl;
@@ -38,35 +35,29 @@ public class PullRequestFeedbackMarkupService
   @Inject
   public PullRequestFeedbackMarkupService(
       final ApplicationDAO applicationDAO,
-      final PolicyEvaluationDiffService policyEvaluationDiffService,
       final ReportService reportService,
       final BaseUrl baseUrl)
   {
     this.applicationDAO = applicationDAO;
-    this.policyEvaluationDiffService = policyEvaluationDiffService;
     this.reportService = reportService;
     this.baseUrl = baseUrl;
   }
 
   /**
-   * computes the policy evaluation diff between the two given policy evaluations and creates the SCM markup text iff
-   * new violations have appeared
+   * Creates the SCM markup text based on the supplied diff and policy evaluations
    */
-  public Optional<String> createMarkupIfNewViolationsHaveAppeared(
+  public Optional<String> createMarkup(
+      PolicyViolationDiff<PolicyViolation> policyViolationDiff,
       PolicyEvaluation sourceCommitPolicyEvaluation,
       PolicyEvaluation baseBranchPolicyEvaluation) throws IOException
   {
-    Optional<String> result = Optional.empty();
-    Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff = policyEvaluationDiffService
-        .createPolicyViolationDiff(baseBranchPolicyEvaluation, sourceCommitPolicyEvaluation);
-    if (policyViolationDiff.isPresent() && policyViolationDiff.get().hasAppeared()) {
-      ReportEntry reportEntry = reportService.getBomForPolicyEvaluation(sourceCommitPolicyEvaluation);
-      Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getApplicationId());
-      PullRequestFeedbackDetails details =
-          new PullRequestFeedbackDetails(reportEntry, sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation,
-              policyViolationDiff.get(), application, baseUrl.getConfigured());
-      result = details.getContents();
-    }
+    ReportEntry reportEntry = reportService.getBomForPolicyEvaluation(sourceCommitPolicyEvaluation);
+    Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getApplicationId());
+    PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(reportEntry, sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation,
+            policyViolationDiff, application, baseUrl.getConfigured());
+    Optional<String> result = details.getContents();
+
     return result;
   }
 }

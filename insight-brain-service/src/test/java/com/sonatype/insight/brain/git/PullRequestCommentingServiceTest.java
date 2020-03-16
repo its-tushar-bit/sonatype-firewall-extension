@@ -16,7 +16,10 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
+import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
@@ -282,7 +285,8 @@ public class PullRequestCommentingServiceTest
         debug("obtained CommitInfo from SCM for commit 'sourceCommit' with 1 pull request(s) " +
             "and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
-        info("nothing meaningful in policy eval diff for application 'app1' pull request '11' to comment on")
+        info("no added violations in policy eval diff, and no previous PR comments for application " +
+            "'app1' pull request '11'.")
     );
   }
 
@@ -296,6 +300,7 @@ public class PullRequestCommentingServiceTest
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
         .withCommentResponseForPR(14, 27)
+        .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
         .build();
@@ -390,7 +395,8 @@ public class PullRequestCommentingServiceTest
         .withPolicyEvaluationDiffMarkup(commentText)
         .withCommentResponseForPR(14, 28)
         .withCommentResponseForPR(16, 32)
-        .expectApplicationId(applicationId)
+        .withAddedViolation(new PolicyViolation())
+        .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
         .build();
 
@@ -440,7 +446,8 @@ public class PullRequestCommentingServiceTest
         .withPolicyEvaluationDiffMarkup(commentText)
         .withCommentResponseForPR(14, 42)
         .withCommentResponseForPR(16, 48)
-        .expectApplicationId(applicationId)
+        .withAddedViolation(new PolicyViolation())
+        .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
         .build();
 
@@ -571,7 +578,8 @@ public class PullRequestCommentingServiceTest
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
         .withCommentResponseForPR(20, 25)
-        .expectApplicationId(applicationId)
+        .withAddedViolation(new PolicyViolation())
+        .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
         .build();
 
@@ -638,6 +646,9 @@ public class PullRequestCommentingServiceTest
     @Mock
     private PullRequestUtils mockPullRequestUtils;
 
+    @Mock
+    private PolicyEvaluationDiffService mockPolicyEvaluationDiffService;
+
     private boolean scmEnabled = true;
 
     private String org = "testOrg";
@@ -675,6 +686,9 @@ public class PullRequestCommentingServiceTest
     private final Map<Integer, CommentResponse> pullRequestCommentResponseMap = new HashMap<>();
 
     private Class<? extends Exception> gitRepositoryEffectivelyPrivateThrows;
+
+    private Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff =
+        Optional.of(new PolicyViolationDiff<>());
 
     PullRequestCommentingService build() throws IOException {
       MockitoAnnotations.initMocks(this);
@@ -714,8 +728,11 @@ public class PullRequestCommentingServiceTest
 
       doReturn(sourcePolicyEvaluation).when(mockPolicyEvaluationDAO).getById(eq(sourcePolicyEvaluation.getId()));
 
+      doReturn(policyViolationDiff).when(mockPolicyEvaluationDiffService)
+          .createPolicyViolationDiff(basePolicyEvaluation, sourcePolicyEvaluation);
+
       doReturn(policyEvaluationDiffMarkup).when(mockPullRequestFeedbackMarkupService)
-          .createMarkupIfNewViolationsHaveAppeared(any(), any());
+          .createMarkup(any(), any(), any());
 
       if (gitRepositoryEffectivelyPrivateThrows != null) {
         doThrow(UnsupportedOperationException.class).when(mockPullRequestUtils)
@@ -738,6 +755,7 @@ public class PullRequestCommentingServiceTest
           mockAsyncEventBus,
           testProductLicense,
           mockPullRequestUtils,
+          mockPolicyEvaluationDiffService,
           true
       );
     }
@@ -865,6 +883,11 @@ public class PullRequestCommentingServiceTest
         Class<? extends Exception> gitRepositoryEffectivelyPrivateThrows)
     {
       this.gitRepositoryEffectivelyPrivateThrows = gitRepositoryEffectivelyPrivateThrows;
+      return this;
+    }
+
+    TestablePullRequestCommentingServiceBuilder withAddedViolation(PolicyViolation policyViolation) {
+      policyViolationDiff.get().addAppeared(new PolicyViolation());
       return this;
     }
   }

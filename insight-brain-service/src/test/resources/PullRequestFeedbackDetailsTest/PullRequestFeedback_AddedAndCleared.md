@@ -1,9 +1,9 @@
-## New Nexus IQ Policy Violations found
+###  🤔 Nexus IQ found multiple policy violations
 
-  ### com.h2database : h2 : 1.4.190
-  - **10 of 10** Threat Level
+  #### com.h2database : h2 : 1.4.190
+  *10 of 10* Threat Level
   <details>
-<summary>See violations</summary>
+    <summary>Details</summary>
 <p>
 
 Threat (of 10) | Policy | Violation Details
@@ -13,10 +13,10 @@ Threat (of 10) | Policy | Violation Details
 </p>
 </details>
 
-  ### org.springframework.security : spring-security-web : 4.2.3.RELEASE
-  - **10 of 10** Threat Level
+  #### org.springframework.security : spring-security-web : 4.2.3.RELEASE
+  *10 of 10* Threat Level
   <details>
-<summary>See violations</summary>
+    <summary>Details</summary>
 <p>
 
 Threat (of 10) | Policy | Violation Details
@@ -28,10 +28,10 @@ Threat (of 10) | Policy | Violation Details
 </p>
 </details>
 
-  ### webgoat-server-8.0.0.M1.jar
-  - **2 of 10** Threat Level
+  #### webgoat-server-8.0.0.M1.jar
+  *2 of 10* Threat Level
   <details>
-<summary>See violations</summary>
+    <summary>Details</summary>
 <p>
 
 Threat (of 10) | Policy | Violation Details
@@ -40,10 +40,10 @@ Threat (of 10) | Policy | Violation Details
 </p>
 </details>
 
-  ### html-tampering-8.0.0.M1.jar
-  - **2 of 10** Threat Level
+  #### html-tampering-8.0.0.M1.jar
+  *2 of 10* Threat Level
   <details>
-<summary>See violations</summary>
+    <summary>Details</summary>
 <p>
 
 Threat (of 10) | Policy | Violation Details
@@ -52,12 +52,14 @@ Threat (of 10) | Policy | Violation Details
 </p>
 </details>
 
+#### 😃🏆 Nice work! You fixed multiple outstanding Nexus IQ policy violations
 
-### Nexus IQ Scan Detail
+----
+### Nexus IQ Report Detail
 **Application**: TEST APP
 **Organization**: TEST ORG
 
 **Stage**: release
 
-**[Review full feature branch report](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/toScanId)**
-**[Review full default branch report](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/fromScanId)**
+**[See full feature branch report](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/toScanId)**
+**[See full default branch report](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/fromScanId)**

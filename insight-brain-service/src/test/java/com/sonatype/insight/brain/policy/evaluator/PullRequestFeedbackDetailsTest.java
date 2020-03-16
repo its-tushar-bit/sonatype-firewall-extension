@@ -89,7 +89,7 @@ public class PullRequestFeedbackDetailsTest
   }
 
   @Test
-  public void testPullRequestFeedback() throws Exception {
+  public void testPullRequestFeedback_addedOnly() throws Exception {
     //setup test data
     setupTestData();
 
@@ -100,7 +100,71 @@ public class PullRequestFeedbackDetailsTest
 
     //then assert that created contents match expected
     final Path path =
-        Paths.get(getClass().getResource("/PullRequestFeedbackDetailsTest/PullRequestFeedback.md").toURI());
+        Paths.get(getClass().getResource("/PullRequestFeedbackDetailsTest/PullRequestFeedback_Added.md").toURI());
+    final String expectedContent = new String(Files.readAllBytes(path));
+    final Optional<String> contents = details.getContents();
+    assertThat(contents).isNotEmpty();
+    assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
+  }
+
+  @Test
+  public void testPullRequestFeedback_clearedOnly() throws Exception {
+    //setup test data
+    setupTestData("/PullRequestFeedbackDetailsTest/to-report", "/PullRequestFeedbackDetailsTest/from-report");
+
+    //when
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            app,
+            lookup(BaseUrl.class).getConfigured());
+
+    //then assert that created contents match expected
+    final Path path =
+        Paths.get(getClass().getResource("/PullRequestFeedbackDetailsTest/PullRequestFeedback_Cleared.md").toURI());
+    final String expectedContent = new String(Files.readAllBytes(path));
+    final Optional<String> contents = details.getContents();
+    assertThat(contents).isNotEmpty();
+    assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
+  }
+
+  @Test
+  public void testPullRequestFeedback_addedAndCleared() throws Exception {
+    //setup test data
+    setupTestData();
+    diff.getCleared().addAll(diff.getAppeared());
+
+    //when
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            app,
+            lookup(BaseUrl.class).getConfigured());
+
+    //then assert that created contents match expected
+    final Path path =
+        Paths.get(
+            getClass().getResource("/PullRequestFeedbackDetailsTest/PullRequestFeedback_AddedAndCleared.md").toURI());
+    final String expectedContent = new String(Files.readAllBytes(path));
+    final Optional<String> contents = details.getContents();
+    assertThat(contents).isNotEmpty();
+    assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
+  }
+
+  @Test
+  public void testPullRequestFeedback_noAddedOrCleared() throws Exception {
+    //setup test data
+    setupTestData();
+    diff.getCleared().addAll(diff.getAppeared());
+
+    //when
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            app,
+            lookup(BaseUrl.class).getConfigured());
+
+    //then assert that created contents match expected
+    final Path path =
+        Paths.get(
+            getClass().getResource("/PullRequestFeedbackDetailsTest/PullRequestFeedback_AddedAndCleared.md").toURI());
     final String expectedContent = new String(Files.readAllBytes(path));
     final Optional<String> contents = details.getContents();
     assertThat(contents).isNotEmpty();
@@ -127,7 +191,31 @@ public class PullRequestFeedbackDetailsTest
     //then assert that created contents has singular violation in heading
     final Optional<String> contents = details.getContents();
     assertThat(contents).isNotEmpty();
-    assertThat(contents.get()).startsWith("## New Nexus IQ Policy Violation found");
+    assertThat(contents.get()).startsWith("###  \uD83E\uDD14 Nexus IQ found a policy violation");
+  }
+
+  @Test
+  public void testPullRequestFeedback_singleClearedViolationPlurality() throws IOException, URISyntaxException {
+    //setup test data
+    setupTestData();
+
+    final PolicyViolation first = diff.getAppeared().get(0);
+    diff.getAppeared().clear();
+    diff.getCleared().add(first);
+
+    //setup bom report entry
+    final ReportEntry bomEntry = reportService.getBomForPolicyEvaluation(featureBranchPolicyEvaluation);
+
+    //when
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            app, lookup(BaseUrl.class).getConfigured());
+
+    //then assert that created contents has singular violation in heading
+    final Optional<String> contents = details.getContents();
+    assertThat(contents).isNotEmpty();
+    assertThat(contents.get())
+        .contains("#### \uD83D\uDE03\uD83C\uDFC6 Nice work! You fixed an outstanding Nexus IQ policy violation");
   }
 
   @Test
@@ -154,22 +242,6 @@ public class PullRequestFeedbackDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(null, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff, app,
             lookup(BaseUrl.class).getConfigured()));
-  }
-
-  @Test
-  public void testPullRequestFeedback_emptyAddedViolations() throws IOException, URISyntaxException {
-    //setup test data
-    setupTestData();
-    diff.getAppeared().clear();
-
-    //when
-    final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            app, lookup(BaseUrl.class).getConfigured());
-
-    //then assert that created contents is not available
-    final Optional<String> contents = details.getContents();
-    assertThat(contents).isEmpty();
   }
 
   @Test

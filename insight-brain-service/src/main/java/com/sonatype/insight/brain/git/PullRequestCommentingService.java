@@ -17,7 +17,10 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
+import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
@@ -75,6 +78,8 @@ public class PullRequestCommentingService
 
   private final PullRequestUtils pullRequestUtils;
 
+  private final PolicyEvaluationDiffService policyEvaluationDiffService;
+
   @Inject
   public PullRequestCommentingService(
       final SourceControlUtils sourceControlUtils,
@@ -86,7 +91,8 @@ public class PullRequestCommentingService
       final PullRequestCommentingMetricsService pullRequestCommentingMetricsService,
       final AsyncEventBus asyncEventBus,
       final ProductLicense productLicense,
-      final PullRequestUtils pullRequestUtils)
+      final PullRequestUtils pullRequestUtils,
+      final PolicyEvaluationDiffService policyEvaluationDiffService)
   {
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
@@ -98,6 +104,7 @@ public class PullRequestCommentingService
     this.asyncEventBus = asyncEventBus;
     this.productLicense = productLicense;
     this.pullRequestUtils = pullRequestUtils;
+    this.policyEvaluationDiffService = policyEvaluationDiffService;
     pullRequestImmediateFlowEnabled = null != System.getProperty("enable-pr-immediate");
   }
 
@@ -113,6 +120,7 @@ public class PullRequestCommentingService
       final AsyncEventBus asyncEventBus,
       final ProductLicense productLicense,
       final PullRequestUtils pullRequestUtils,
+      final PolicyEvaluationDiffService policyEvaluationDiffService,
       boolean pullRequestImmediateFlowEnabled)
   {
     this.sourceControlUtils = sourceControlUtils;
@@ -125,6 +133,7 @@ public class PullRequestCommentingService
     this.asyncEventBus = asyncEventBus;
     this.productLicense = productLicense;
     this.pullRequestUtils = pullRequestUtils;
+    this.policyEvaluationDiffService = policyEvaluationDiffService;
     this.pullRequestImmediateFlowEnabled = pullRequestImmediateFlowEnabled;
   }
 
@@ -272,18 +281,28 @@ public class PullRequestCommentingService
         !existingPullRequestComment.getTargetPolicyEvaluationId().equals(baseBranchPolicyEvaluation.getId())) {
 
       try {
-        Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService
-            .createMarkupIfNewViolationsHaveAppeared(sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation);
+        Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff = policyEvaluationDiffService
+            .createPolicyViolationDiff(baseBranchPolicyEvaluation, sourceCommitPolicyEvaluation);
+        if (policyViolationDiff.isPresent() &&
+            (existingPullRequestComment != null || policyViolationDiff.get().hasAppeared())) {
+          Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService
+              .createMarkup(policyViolationDiff.get(), sourceCommitPolicyEvaluation,
+                  baseBranchPolicyEvaluation);
 
-        if (policyEvaluationDiffMarkup.isPresent()) {
-          int commentId = createOrUpdateCommentInGitSCM(applicationId, gitRepositoryInfo, pullRequestNumber,
-              policyEvaluationDiffMarkup.get(), existingPullRequestComment);
-          recordCommentInDatabase(applicationId, pullRequestNumber, commentId, sourceCommitPolicyEvaluation.getId(),
-              baseBranchPolicyEvaluation.getId(), existingPullRequestComment);
+          if (policyEvaluationDiffMarkup.isPresent()) {
+            int commentId = createOrUpdateCommentInGitSCM(applicationId, gitRepositoryInfo, pullRequestNumber,
+                policyEvaluationDiffMarkup.get(), existingPullRequestComment);
+            recordCommentInDatabase(applicationId, pullRequestNumber, commentId, sourceCommitPolicyEvaluation.getId(),
+                baseBranchPolicyEvaluation.getId(), existingPullRequestComment);
+          }
+          else {
+            log.info("generated feedback markup was empty for application '{}' pull request '{}'",
+                applicationId, pullRequestNumber);
+          }
         }
         else {
-          log.info("nothing meaningful in policy eval diff for application '{}' pull request '{}' to comment on",
-              applicationId, pullRequestNumber);
+          log.info("no added violations in policy eval diff, and no previous PR comments for application " +
+              "'{}' pull request '{}'.", applicationId, pullRequestNumber);
         }
       }
       catch (Exception e) {

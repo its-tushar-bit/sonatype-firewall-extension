@@ -82,7 +82,7 @@ public class ApiPolicyViolationResourceV2Test
   }
 
   @Test
-  public void testGetCrossStagePolicyViolatonById() throws Exception {
+  public void testGetCrossStagePolicyViolationById() throws Exception {
     Date date = new Date();
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());

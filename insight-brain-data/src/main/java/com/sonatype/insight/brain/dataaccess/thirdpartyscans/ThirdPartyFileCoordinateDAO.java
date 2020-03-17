@@ -51,6 +51,13 @@ public class ThirdPartyFileCoordinateDAO
     return getList(sQuery, hash, scanId);
   }
 
+  public List<ThirdPartyFileCoordinate> getByScanId(String scanId) {
+    String sQuery = "SELECT TPF FROM ThirdPartyScan TPS," + //
+        " ThirdPartyFileCoordinate TPF" + //
+        " WHERE TPS.thirdPartyFileId=TPF.thirdPartyFileId AND TPS.scanId=?1";
+    return getList(sQuery, scanId);
+  }
+
   public List<ThirdPartyFileCoordinate> getByThirdPartyFileId(TransactionContext tx, String thirdPartyFileId) {
     String sQuery = "SELECT entity FROM ThirdPartyFileCoordinate entity" + //
         " WHERE entity.thirdPartyFileId=?1";

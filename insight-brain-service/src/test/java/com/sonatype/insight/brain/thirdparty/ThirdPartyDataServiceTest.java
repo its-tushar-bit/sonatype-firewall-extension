@@ -186,6 +186,34 @@ public class ThirdPartyDataServiceTest
     assertThat(handler.getScanData(scanId)).isNull();
   }
 
+  @Test
+  public void testGetSecurityVulnerabilitiesForScanId() {
+    String scanId = tempEntity.uuid();
+    String anotherScanId = tempEntity.uuid();
+    ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile();
+    ThirdPartyFile anotherThirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(tempEntity.uuid(), scanId, thirdPartyFile1);
+    tempEntity.newThirdPartyScan(tempEntity.uuid(), anotherScanId, anotherThirdPartyFile);
+    ThirdPartyFileCoordinate coord1 =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile1, "f1", "CLAIR", "n1", "v1", "hash1", "pkg:CLAIR/n1@v1");
+    ThirdPartyFileCoordinate coord2 =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile1, "f2", "SBOM", "n2", "v2", "hash2", "pkg:SBOM/n1@v1");
+
+    tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, "Medium", null);
+    tempEntity.newThirdPartyCoordinateSecurity(coord2, "r2", "desc2", "l2", 7f, "High", null);
+
+    //mismatching records, expect not to get filtered
+    ThirdPartyFileCoordinate coord3 = tempEntity
+        .newThirdPartyFileCoordinate(anotherThirdPartyFile, "f3", "CLAIR", "n3", "v3", "hash3", "pkg:CLAIR/n3@v3");
+    tempEntity.newThirdPartyCoordinateSecurity(coord3, "r3", "desc3", "l3", 1f, "Low", null);
+
+    List<ThirdPartyCoordinateSecurity> coordinateSecurities = handler.getSecurityVulnerabilitiesForScanId(scanId);
+
+    assertThat(coordinateSecurities).hasSize(2);
+    assertThat(coordinateSecurities.stream().map(ThirdPartyCoordinateSecurity::getRefId))
+        .containsExactlyInAnyOrder("r1", "r2");
+  }
+
   private void assertSecurityRowsForComponent(
       final List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows,
       final ThirdPartyFileCoordinate coordinate,

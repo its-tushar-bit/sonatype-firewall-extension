@@ -46,6 +46,8 @@ public class PullRequestPollingScheduler
 
   private final int pullRequestMonitoringDelaySeconds;
 
+  public boolean disableForTesting;
+
   @Inject
   public PullRequestPollingScheduler(
       PullRequestPollingService pullRequestPollingService,
@@ -87,9 +89,10 @@ public class PullRequestPollingScheduler
   }
 
   private void startPullRequestMonitoring() {
-    if (null == scheduledExecutorService) {
-      scheduledExecutorService = newExecutor();
+    if (scheduledExecutorService != null || disableForTesting) {
+      return;
     }
+    scheduledExecutorService = newExecutor();
     Duration initialDelay = Duration.ofSeconds(pullRequestMonitoringDelaySeconds);
     Duration period = Duration.ofSeconds(pullRequestMonitoringIntervalSeconds);
     Runnable pullRequestMonitoringTask = new SystemRunnable(() -> {

@@ -99,6 +99,7 @@ public class ApiCrossStageViolationServiceTest
     assertThat(result.openTime).isEqualTo(baseDate.getTime());
     assertThat(result.fixTime).isNull();
     assertThat(result.hash).isEqualTo(violation1.getHash());
+    assertThat(result.policyThreatCategory).isEqualTo("security");
     assertThat(result.displayName.toString()).isEqualTo("foo : 1.0.0");
     assertThat(result.stageData).hasSize(3);
     assertThat(result.stageData.get(Stage.ID_BUILD)).extracting("mostRecentEvaluationTime", "mostRecentScanId")

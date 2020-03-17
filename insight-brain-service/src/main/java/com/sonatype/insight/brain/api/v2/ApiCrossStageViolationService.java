@@ -142,6 +142,7 @@ public class ApiCrossStageViolationService
     dto.policyId = firstViolation.getPolicyId();
     dto.policyName = firstViolation.getPolicyName();
     dto.hash = firstViolation.getHash();
+    dto.policyThreatCategory = firstViolation.getThreatCategory().getName();
     dto.displayName = ComponentDisplayNameUtil.fromPolicyViolation(firstViolation);
 
     dto.openTime = policyViolations.stream()

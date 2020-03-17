@@ -13,6 +13,8 @@ public class ApiEnhancedPolicyViolationDTOV2
 {
   public String stageId;
 
+  public String reportId;
+
   public String reportUrl;
 
   public ApiComponentDTOV2 component;

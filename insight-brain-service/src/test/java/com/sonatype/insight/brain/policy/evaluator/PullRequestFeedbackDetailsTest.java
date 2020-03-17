@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -88,6 +89,11 @@ public class PullRequestFeedbackDetailsTest
     app = tempEntity.newApplicationWithSpecificId(APP_INTERNAL_ID, APP_NAME, APP_PUBLIC_ID, ORG_ID);
   }
 
+  private String readResource(String resourceName) throws Exception {
+    final Path path = Paths.get(getClass().getResource("/PullRequestFeedbackDetailsTest/" + resourceName).toURI());
+    return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+  }
+
   @Test
   public void testPullRequestFeedback_addedOnly() throws Exception {
     //setup test data
@@ -99,9 +105,7 @@ public class PullRequestFeedbackDetailsTest
             app, lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
-    final Path path =
-        Paths.get(getClass().getResource("/PullRequestFeedbackDetailsTest/PullRequestFeedback_Added.md").toURI());
-    final String expectedContent = new String(Files.readAllBytes(path));
+    final String expectedContent = readResource("PullRequestFeedback_Added.md");
     final Optional<String> contents = details.getContents();
     assertThat(contents).isNotEmpty();
     assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
@@ -119,9 +123,7 @@ public class PullRequestFeedbackDetailsTest
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
-    final Path path =
-        Paths.get(getClass().getResource("/PullRequestFeedbackDetailsTest/PullRequestFeedback_Cleared.md").toURI());
-    final String expectedContent = new String(Files.readAllBytes(path));
+    final String expectedContent = readResource("PullRequestFeedback_Cleared.md");
     final Optional<String> contents = details.getContents();
     assertThat(contents).isNotEmpty();
     assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
@@ -140,10 +142,7 @@ public class PullRequestFeedbackDetailsTest
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
-    final Path path =
-        Paths.get(
-            getClass().getResource("/PullRequestFeedbackDetailsTest/PullRequestFeedback_AddedAndCleared.md").toURI());
-    final String expectedContent = new String(Files.readAllBytes(path));
+    final String expectedContent = readResource("PullRequestFeedback_AddedAndCleared.md");
     final Optional<String> contents = details.getContents();
     assertThat(contents).isNotEmpty();
     assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
@@ -162,10 +161,7 @@ public class PullRequestFeedbackDetailsTest
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
-    final Path path =
-        Paths.get(
-            getClass().getResource("/PullRequestFeedbackDetailsTest/PullRequestFeedback_AddedAndCleared.md").toURI());
-    final String expectedContent = new String(Files.readAllBytes(path));
+    final String expectedContent = readResource("PullRequestFeedback_AddedAndCleared.md");
     final Optional<String> contents = details.getContents();
     assertThat(contents).isNotEmpty();
     assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));

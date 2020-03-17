@@ -90,9 +90,8 @@ public class ApiCrossStageViolationService
     // Ordered list of violations opened after or simultaneously with baseViolation.
     // Note that this list will include the baseViolation again, so no need to add that to the output separately
     List<PolicyViolation> allLaterViolations = allViolationsForApp.stream()
-        .flatMap(v ->
-            DATE_COMPARATOR.compare(v.getOpenTime(), baseViolation.getOpenTime()) < 0 ? Stream.empty() : Stream.of(v)
-        )
+        .filter(v -> DATE_COMPARATOR.compare(v.getOpenTime(), baseViolation.getOpenTime()) >= 0)
+        .sorted(Comparator.comparing(PolicyViolation::getOpenTime))
         .collect(Collectors.toList());
 
     for (PolicyViolation laterViolation : allLaterViolations) {

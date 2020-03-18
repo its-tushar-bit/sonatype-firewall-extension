@@ -211,7 +211,8 @@ public class PullRequestFeedbackDetailsTest
     final Optional<String> contents = details.getContents();
     assertThat(contents).isNotEmpty();
     assertThat(contents.get())
-        .contains("#### \uD83D\uDE03\uD83C\uDFC6 Nice work! Nexus IQ determined that you fixed an outstanding policy violation");
+        .contains("#### \uD83D\uDE03\uD83C\uDFC6 Nice work! Nexus IQ determined that you fixed an outstanding" +
+            " policy violation");
   }
 
   @Test

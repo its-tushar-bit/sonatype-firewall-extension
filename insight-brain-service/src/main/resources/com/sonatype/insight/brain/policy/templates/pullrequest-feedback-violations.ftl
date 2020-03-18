@@ -1,5 +1,5 @@
 <#if ( policiesViolatedCount > 0 )>
-  ###  🤔 Nexus IQ found <#if ( policiesViolatedCount > 1 )>multiple policy violations<#else>a policy violation</#if><#lt>
+  ###  🤔 Nexus IQ found <#if ( policiesViolatedCount > 1 )>multiple policy violations<#else>a policy violation</#if> introduced by this PR<#lt>
 
 <#list componentList as component>
   #### ${component.componentNameAndVersion}
@@ -25,12 +25,12 @@ ${policy.threatLevel} | ${policy.name} | <#list policy.constraints as constraint
 
 </#list>
 <#else>
-  ### 😃✨All Clear! Nexus IQ didn't find any new policy violations.<#lt>
+  ### 😃✨All Clear! Nexus IQ didn't find any policy violations introduced by this PR<#lt>
   Well done. The committed code does not violate any of your organization's Nexus IQ policies.<#lt>
 
 </#if>
 <#if ( fixedPolicyViolationsCount > 0 )>
-  #### 😃🏆 Nice work! You fixed <#if ( fixedPolicyViolationsCount > 1 )>multiple outstanding Nexus IQ policy violations<#else>an outstanding Nexus IQ policy violation</#if><#lt>
+  #### 😃🏆 Nice work! Nexus IQ determined that you fixed <#if ( fixedPolicyViolationsCount > 1 )>multiple outstanding policy violations<#else>an outstanding policy violation</#if><#lt>
 
 </#if>
 ----

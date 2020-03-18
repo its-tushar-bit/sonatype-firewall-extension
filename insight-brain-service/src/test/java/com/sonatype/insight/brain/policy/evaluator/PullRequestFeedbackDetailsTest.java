@@ -152,7 +152,7 @@ public class PullRequestFeedbackDetailsTest
   public void testPullRequestFeedback_noAddedOrCleared() throws Exception {
     //setup test data
     setupTestData();
-    diff.getCleared().addAll(diff.getAppeared());
+    diff.getAppeared().clear();
 
     //when
     final PullRequestFeedbackDetails details =
@@ -161,7 +161,7 @@ public class PullRequestFeedbackDetailsTest
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
-    final String expectedContent = readResource("PullRequestFeedback_AddedAndCleared.md");
+    final String expectedContent = readResource("PullRequestFeedback_NoAddedOrCleared.md");
     final Optional<String> contents = details.getContents();
     assertThat(contents).isNotEmpty();
     assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
@@ -211,7 +211,7 @@ public class PullRequestFeedbackDetailsTest
     final Optional<String> contents = details.getContents();
     assertThat(contents).isNotEmpty();
     assertThat(contents.get())
-        .contains("#### \uD83D\uDE03\uD83C\uDFC6 Nice work! You fixed an outstanding Nexus IQ policy violation");
+        .contains("#### \uD83D\uDE03\uD83C\uDFC6 Nice work! Nexus IQ determined that you fixed an outstanding policy violation");
   }
 
   @Test

@@ -1,4 +1,4 @@
-###  🤔 Nexus IQ found multiple policy violations
+###  🤔 Nexus IQ found multiple policy violations introduced by this PR
 
   #### com.h2database : h2 : 1.4.190
   *10 of 10* Threat Level
@@ -52,7 +52,7 @@ Threat (of 10) | Policy | Violation Details
 </p>
 </details>
 
-#### 😃🏆 Nice work! You fixed multiple outstanding Nexus IQ policy violations
+#### 😃🏆 Nice work! Nexus IQ determined that you fixed multiple outstanding policy violations
 
 ----
 ### Nexus IQ Report Detail

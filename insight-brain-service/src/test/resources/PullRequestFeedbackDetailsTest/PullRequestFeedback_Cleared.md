@@ -1,7 +1,7 @@
-### 😃✨All Clear! Nexus IQ didn't find any new policy violations.
+### 😃✨All Clear! Nexus IQ didn't find any policy violations introduced by this PR
 Well done. The committed code does not violate any of your organization's Nexus IQ policies.
 
-#### 😃🏆 Nice work! You fixed multiple outstanding Nexus IQ policy violations
+#### 😃🏆 Nice work! Nexus IQ determined that you fixed multiple outstanding policy violations
 
 ----
 ### Nexus IQ Report Detail

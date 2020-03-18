@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.application.AnalyzerFeaturesDTO;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -188,7 +189,9 @@ public class ThirdPartyComponentDAO
   }
 
   /**
-   * @deprecated This code path must remain until the legacy ("old style") application report is removed.
+   * @deprecated Replaced in 1.86 with {@link #getVulnerabilityData}, which is consumed by the API resource
+   *             ApiVulnerabilityDetailsResourceV2. This code path must remain until the legacy ("old style")
+   *             application report is removed.
    */
   @Deprecated
   public SecurityVulnerabilityDetails getSecurityVulnerabilityDetailsByIdentifier(
@@ -200,6 +203,17 @@ public class ThirdPartyComponentDAO
     ThirdPartyHealthCheckReportSecurityRowDTO dto =
         findThirdPartyHealthCheckReportSecurityRowDTO(identifier, appId, scanId, refId);
     return new SecurityVulnerabilityDetails(dto.source, refId, ThirdPartySecurityVulnerabilityRenderer.renderHtml(dto));
+  }
+
+  public SecurityVulnerabilityData getVulnerabilityData(
+      final ComponentIdentifier identifier,
+      final String appId,
+      final String scanId,
+      final String refId)
+  {
+    ThirdPartyHealthCheckReportSecurityRowDTO dto =
+        findThirdPartyHealthCheckReportSecurityRowDTO(identifier, appId, scanId, refId);
+    return ThirdPartyVulnerabilityDataAdapter.map(dto);
   }
 
   private ThirdPartyReportComponentDTO findComponent(

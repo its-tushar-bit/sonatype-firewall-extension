@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.thirdparty;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.application.AnalyzerFeaturesDTO;
 import com.sonatype.insight.test.LogOutput;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -246,6 +248,37 @@ public class ThirdPartyComponentDAOTest
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       dao.getSecurityVulnerabilityDetailsByIdentifier(testData.get(hashGlibc), appId, scanId, referenceId);
+    }).withMessageContaining("Vulnerability with refid: " + referenceId + " not found.");
+  }
+
+  @Test
+  public void testGetVulnerabilityData() throws Exception {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
+    String referenceId = "CVE-2018-1000001";
+    String scanId = "scanId";
+    String appId = "appId";
+    when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
+
+    SecurityVulnerabilityData vulnerabilityDetails =
+        dao.getVulnerabilityData(testData.get(hashGlibc), appId, scanId, referenceId);
+
+    assertThat(vulnerabilityDetails).isNotNull();
+    assertThat(vulnerabilityDetails.identifier).isEqualTo(referenceId);
+    assertThat(vulnerabilityDetails.vulnerabilityLink)
+        .isEqualTo(new URI("https://security-tracker.debian.org/tracker/CVE-2018-1000001"));
+    assertThat(vulnerabilityDetails.explanationMarkdown).isEqualTo("description CVE-2018-1000001");
+  }
+
+  @Test
+  public void testGetVulnerabilityData_referenceIdDoesNotExist() {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
+    String referenceId = "fake-id";
+    String scanId = "scanId";
+    String appId = "appId";
+    when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      dao.getVulnerabilityData(testData.get(hashGlibc), appId, scanId, referenceId);
     }).withMessageContaining("Vulnerability with refid: " + referenceId + " not found.");
   }
 

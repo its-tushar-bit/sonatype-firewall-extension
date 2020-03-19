@@ -10,7 +10,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
@@ -78,15 +77,11 @@ public class ThirdPartySbomValidator
           if ("component".equals(elementName)) {
             Xpp3Dom component = Xpp3Util.loadElement("component", contentParser);
             Xpp3Dom vulnerabilities = component.getChild("vulnerabilities");
-            Xpp3Dom licenses = component.getChild("licenses");
             String componentName = component.getChild("name").getValue();
             componentName = StringUtils.isBlank(componentName) ? "[Not Provided]" : componentName;
 
             if (vulnerabilities != null) {
               validateVulnerabilities(vulnerabilities, componentName, errors);
-            }
-            if (licenses != null) {
-              validateLicenses(errors, licenses, componentName);
             }
           }
         }
@@ -96,12 +91,6 @@ public class ThirdPartySbomValidator
     catch (XmlPullParserException | IOException e) {
       throw new IllegalArgumentException("Error processing SBOM component", e);
     }
-  }
-
-  private void validateLicenses(final List<String> errors, final Xpp3Dom licenses, final String componentName) {
-    Arrays.stream(licenses.getChildren())
-        .filter(license -> isEmptyElement(license.getChild("id")))
-        .forEach(l -> errors.add(formatErrorMessage(componentName, "An element <id> of a license is null or empty")));
   }
 
   private void validateVulnerabilities(

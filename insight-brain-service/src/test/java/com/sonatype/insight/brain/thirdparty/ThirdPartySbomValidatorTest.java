@@ -48,27 +48,25 @@ public class ThirdPartySbomValidatorTest
   public void testValidateBom_invalid_bom() throws Exception {
     List<String> errors = thirdPartySbomValidator
         .validateSbomContent(getScanFile("invalid_bom.xml"));
-    assertThat(errors).hasSize(4).containsExactly(
+    assertThat(errors).hasSize(3).containsExactly(
         "Error in component jackson-databind: An element <id> of vulnerability with ref " +
             "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9 is null or empty",
         "Error in component jackson-databind: An element <base> of a vulnerability score with ref " +
             "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9 is null or empty",
         "Error in component jackson-databind: An element <base> of a vulnerability score with ref " +
-            "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9 is null or empty",
-        "Error in component jackson-databind: An element <id> of a license is null or empty");
+            "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9 is null or empty");
   }
 
   @Test
   public void testValidateBom_invalid_bom_not_component_name() throws Exception {
     List<String> errors = thirdPartySbomValidator
         .validateSbomContent(getScanFile("invalid_bom_not_component_name.xml"));
-    assertThat(errors).isNotEmpty().hasSize(3)
+    assertThat(errors).isNotEmpty().hasSize(2)
         .containsExactly(
             "Error in component [Not Provided]: An element <id> of vulnerability with ref " +
                 "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9 is null or empty",
             "Error in component [Not Provided]: An element <base> of a vulnerability score with ref " +
-                "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9 is null or empty",
-            "Error in component [Not Provided]: An element <id> of a license is null or empty");
+                "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9 is null or empty");
   }
 
   @Test

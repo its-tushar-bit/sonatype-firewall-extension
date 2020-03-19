@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.service.BaseUrl;
 
 @Named
 public class PdfGeneratorService
@@ -34,6 +35,8 @@ public class PdfGeneratorService
   private final ApplicationDAO applicationDAO;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
+
+  private final BaseUrl baseUrl;
 
   private final ReportService reportService;
 
@@ -43,11 +46,13 @@ public class PdfGeneratorService
   public PdfGeneratorService(
       ApplicationDAO applicationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
+      BaseUrl baseUrl,
       ReportService reportService,
       ApiReportDataServiceV2 apiReportDataServiceV2)
   {
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
+    this.baseUrl = baseUrl;
     this.reportService = reportService;
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
   }
@@ -77,8 +82,18 @@ public class PdfGeneratorService
 
   public File generateReport(Application app, String scanId) throws IOException {
     File pdfFile = PdfGenerator.getPdfFile(reportService.getReport(app.getId(), scanId));
-    PdfGenerator.generate(pdfFile, apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId),
+    PdfGenerator.generate(pdfFile, getBaseUrl(),
+        apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId),
         apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId));
     return pdfFile;
+  }
+
+  private String getBaseUrl() {
+    try {
+      return baseUrl.getConfigured();
+    }
+    catch (IllegalStateException e) {
+      return null;
+    }
   }
 }

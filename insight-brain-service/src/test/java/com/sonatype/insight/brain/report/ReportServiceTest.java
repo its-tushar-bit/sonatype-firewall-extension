@@ -198,6 +198,18 @@ public class ReportServiceTest
   }
 
   @Test
+  public void testGetReportMetadata_ScanLabelForNVS() throws Exception {
+    createReportFile(app.getId(), scanId, zipReportDir("/" + getClass().getSimpleName() + "/report-scan_label"));
+    ReportService reportService = createReportService();
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+
+    ReportMetadataDTO metadata = reportService.getReportMetadata(app.getPublicId(), scanId);
+    assertThat(metadata).isNotNull();
+    assertThat(metadata.getApplication().getName()).isEqualTo("My Awesome Artifact");
+    assertThat(metadata.getReportTitle()).isEqualTo("Report");
+  }
+
+  @Test
   public void testPrepareExpandedCoverageReport() throws Exception {
     HdsClient hdsClient = mock(HdsClient.class);
     Map<String, String> queryParams = null;

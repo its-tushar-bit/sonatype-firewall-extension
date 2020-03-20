@@ -59,12 +59,12 @@ public class IndexServiceTest
   private VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
 
   @Mock
-  private TelemetrySender telementrySenderMock;
+  private TelemetrySender telemetrySenderMock;
 
   @Override
   public void configure(Binder binder) {
     binder.bind(VulnerabilityDescriptionFetcher.class).toInstance(vulnerabilityDescriptionFetcher);
-    binder.bind(TelemetrySender.class).toInstance(telementrySenderMock);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     super.configure(binder);
   }
 
@@ -209,7 +209,7 @@ public class IndexServiceTest
     }
 
     ArgumentCaptor<TelemetryData> telemetryDataCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telementrySenderMock).send(telemetryDataCaptor.capture());
+    verify(telemetrySenderMock).send(telemetryDataCaptor.capture());
     TelemetryData telemetryData = telemetryDataCaptor.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.ADVANCED_SEARCH_INDEXING);
     assertThat((Long) telemetryData.getAttributes().get(IndexService.SEARCH_INDEX_DURATION_SECONDS))

@@ -72,13 +72,13 @@ public class IndexSearchingTest
   private VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
 
   @Mock
-  private TelemetrySender telementrySenderMock;
+  private TelemetrySender telemetrySenderMock;
 
   @Override
   public void configure(Binder binder) {
     lenient().when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription(anyString())).thenReturn("");
     binder.bind(VulnerabilityDescriptionFetcher.class).toInstance(vulnerabilityDescriptionFetcher);
-    binder.bind(TelemetrySender.class).toInstance(telementrySenderMock);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     super.configure(binder);
   }
 

@@ -38,11 +38,11 @@ public class AdvancedSearchServiceTest
   private InsightWork insightWork;
 
   @Mock
-  private TelemetrySender telementrySenderMock;
+  private TelemetrySender telemetrySenderMock;
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(telementrySenderMock);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     super.configure(binder);
   }
 

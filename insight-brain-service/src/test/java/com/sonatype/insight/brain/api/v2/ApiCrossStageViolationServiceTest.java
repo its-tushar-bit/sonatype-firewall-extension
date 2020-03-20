@@ -35,6 +35,8 @@ public class ApiCrossStageViolationServiceTest
 
   private Organization org;
 
+  private Organization policyOwnerOrg;
+
   private Application app;
 
   private Application app2;
@@ -52,9 +54,10 @@ public class ApiCrossStageViolationServiceTest
   public void setup() {
     baseDate = new Date();
     org = tempEntity.newOrganization();
+    policyOwnerOrg = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
     app2 = tempEntity.newApplication(org.getId());
-    policy = tempEntity.newPolicy(org.getId(), "p1", 7);
+    policy = tempEntity.newPolicy(policyOwnerOrg.getId(), "p1", 7);
     policyViolationDAO = new PolicyViolationDAO();
   }
 
@@ -115,6 +118,11 @@ public class ApiCrossStageViolationServiceTest
 
     assertThat(result.constraintViolations.get(0).reasons).hasSize(1);
     assertThat(result.constraintViolations.get(0).reasons.get(0).reason).isEqualTo("vuln1");
+
+    assertThat(result.policyOwner.ownerId).isEqualTo(policyOwnerOrg.getId());
+    assertThat(result.policyOwner.ownerPublicId).isNull();
+    assertThat(result.policyOwner.ownerName).isEqualTo(policyOwnerOrg.getName());
+    assertThat(result.policyOwner.ownerType).isEqualTo("organization");
   }
 
   @Test
@@ -224,5 +232,19 @@ public class ApiCrossStageViolationServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       service.getCrossStageViolationById(violation2.getId());
     });
+  }
+
+  @Test
+  public void testGetCrossStageViolationById_ApplicationPolicyOwner() {
+    Application policyOwnerApp = tempEntity.newApplication("public-foo", org.getId());
+    Policy policy = tempEntity.newPolicy(policyOwnerApp.getId(), "p1", 7);
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+
+    ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationById(violation1.getId());
+    assertThat(result.policyOwner.ownerId).isEqualTo(policyOwnerApp.getId());
+    assertThat(result.policyOwner.ownerPublicId).isEqualTo("public-foo");
+    assertThat(result.policyOwner.ownerName).isEqualTo(policyOwnerApp.getName());
+    assertThat(result.policyOwner.ownerType).isEqualTo("application");
   }
 }

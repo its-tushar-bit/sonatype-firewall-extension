@@ -20,10 +20,14 @@ import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationAdapter;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
@@ -45,6 +49,10 @@ public class ApiCrossStageViolationService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
+  private final PolicyDAO policyDAO;
+
+  private final OwnerDAO ownerDAO;
+
   private final PolicyViolationAdapter policyViolationAdapter;
 
   private final Comparator<PolicyViolationComparable> policyViolationComparator = new PolicyViolationComparator();
@@ -57,12 +65,16 @@ public class ApiCrossStageViolationService
       ApplicationService applicationService,
       OrganizationDAO organizationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
+      PolicyDAO policyDAO,
+      OwnerDAO ownerDAO,
       PolicyViolationAdapter policyViolationAdapter)
   {
     this.policyViolationDAO = policyViolationDAO;
     this.applicationService = applicationService;
     this.organizationDAO = organizationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
+    this.policyDAO = policyDAO;
+    this.ownerDAO = ownerDAO;
     this.policyViolationAdapter = policyViolationAdapter;
   }
 
@@ -75,6 +87,8 @@ public class ApiCrossStageViolationService
 
     Application app = applicationService.getApplicationByIdForRead(baseViolation.getApplicationId());
     Organization org = organizationDAO.getById(app.getOrganizationId());
+    Policy policy = policyDAO.getById(baseViolation.getPolicyId());
+    Owner policyOwner = ownerDAO.getById(policy.getOwnerId());
     List<PolicyViolation> allViolationsForApp = policyViolationDAO.getByApplicationId(app.getId());
 
     ensureNoEquivalentOpenPriorTo(baseViolation, allViolationsForApp);
@@ -84,7 +98,7 @@ public class ApiCrossStageViolationService
         .map(this::getLatestEvaluationForViolation)
         .collect(Collectors.toList());
 
-    return createDto(violationId, app, org, violationsToMerge, evaluationsForViolationsToMerge);
+    return createDto(violationId, app, org, policyOwner, violationsToMerge, evaluationsForViolationsToMerge);
   }
 
   private Collection<PolicyViolation> getViolationsToMerge(
@@ -138,6 +152,7 @@ public class ApiCrossStageViolationService
       String violationId,
       Application app,
       Organization org,
+      Owner policyOwner,
       Collection<PolicyViolation> policyViolations,
       Collection<PolicyEvaluation> policyEvaluations)
   {
@@ -155,6 +170,17 @@ public class ApiCrossStageViolationService
     dto.hash = firstViolation.getHash();
     dto.policyThreatCategory = firstViolation.getThreatCategory().getName();
     dto.displayName = ComponentDisplayNameUtil.fromPolicyViolation(firstViolation);
+
+    dto.policyOwner = new ApiCrossStageViolationDTOV2.PolicyOwner();
+    dto.policyOwner.ownerId = policyOwner.getId();
+    dto.policyOwner.ownerName = policyOwner.getName();
+    dto.policyOwner.ownerType = policyOwner.getType().toString();
+
+    // even though the Organization model is willing to return its internal id as a public id, we don't want
+    // to give external consumers the impression that Organizations have a public id
+    if (policyOwner instanceof Application) {
+      dto.policyOwner.ownerPublicId = policyOwner.getPublicId();
+    }
 
     dto.openTime = policyViolations.stream()
         .map(PolicyViolation::getOpenTime)

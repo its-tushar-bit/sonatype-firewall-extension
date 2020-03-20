@@ -42,11 +42,11 @@ public class LdapServerDAOTest
 
     // insert
 
-    LdapServer server = tempEntity.newLdapServer(name);
+    LdapServer ldapServer = tempEntity.newLdapServer(name);
 
     // select by id
 
-    LdapServer echo = dao.getById(server.getId());
+    LdapServer echo = dao.getById(ldapServer.getId());
     assertThat(echo).isNotNull();
     assertThat(echo.getName()).isEqualTo(name);
     assertThat(echo.getNameLowercaseNoWhitespace()).isEqualTo(NameHelper.normalize(name));
@@ -59,14 +59,14 @@ public class LdapServerDAOTest
     // update
 
     String changedName = "changedName";
-    server.setName(changedName);
-    dao.update(server);
-    echo = dao.getById(server.getId());
+    ldapServer.setName(changedName);
+    dao.update(ldapServer);
+    echo = dao.getById(ldapServer.getId());
     assertThat(echo.getName()).isEqualTo(changedName);
 
     // delete
-    dao.delete(server);
-    assertThat(dao.getById(server.getId())).isNull();
+    dao.delete(ldapServer);
+    assertThat(dao.getById(ldapServer.getId())).isNull();
   }
 
   @Test

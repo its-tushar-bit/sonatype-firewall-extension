@@ -167,6 +167,7 @@ public class ReportService
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = thirdPartyDataService.getScanData(scanId);
     if (thirdPartyApplicationReportDTO != null) {
       includeThirdPartyData(tempFile, thirdPartyApplicationReportDTO);
+      thirdPartyDataService.indexVulnerabilities(scanId);
       thirdPartyDataService.deleteByScanId(scanId);
     }
   }

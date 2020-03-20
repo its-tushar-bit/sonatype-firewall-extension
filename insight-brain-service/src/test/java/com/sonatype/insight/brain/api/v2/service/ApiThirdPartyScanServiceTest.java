@@ -266,15 +266,6 @@ public class ApiThirdPartyScanServiceTest
   }
 
   @Test
-  public void testScanComponents_invalid_license_id() throws Exception {
-    String bom = getBomFile("invalid_bom_id_license.xml");
-
-    assertThatThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("Error in component jackson-databind: An element <id> of a license is null or empty");
-  }
-
-  @Test
   public void testScanComponents_StageNotLicensed() {
     productLicenseManager.setStageTypes(StageTypes.RELEASE);
 

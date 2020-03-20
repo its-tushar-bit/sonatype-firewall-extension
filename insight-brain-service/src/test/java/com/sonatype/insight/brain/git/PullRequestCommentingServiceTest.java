@@ -6,6 +6,9 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
@@ -13,7 +16,10 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
+import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
@@ -40,11 +46,14 @@ import static com.sonatype.insight.brain.git.PullRequestCommentingService.COMMIT
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class PullRequestCommentingServiceTest
@@ -93,7 +102,7 @@ public class PullRequestCommentingServiceTest
         debug("License does not support SourceControl automation features"));
 
     // and : processing stops there
-    verify(mockPullRequestCommentingMetricsService, never()).recordEvent(anyBoolean());
+    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
   }
 
   @Test
@@ -112,7 +121,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment was not created
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(false));
+    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
     assertThatLogMessagesEqual(
         debug("no commit hash : skipping PR commenting for application 'app1' with policy evaluation 'pe1'"));
   }
@@ -134,7 +143,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment was not created
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(false));
+    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
     assertThatLogMessagesEqual(
         debug("scm disabled : skipping PR commenting for application 'app1' with policy evaluation 'pe1'"));
   }
@@ -178,7 +187,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment not created due to PR being for base branch
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(false));
+    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'commit456' with 1 pull request(s) and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
@@ -195,9 +204,9 @@ public class PullRequestCommentingServiceTest
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withDevBranchPullRequest("INT-2493-pr-commenting-immediate-flow", 7, "commit456", "baseCommit")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponse(27)
-        .withCommentForPullRequest(7)
         .expectApplicationId("app1")
+        .withCommentForPullRequest(7, 27)
+        .withCommentResponseForPR(7, 27)
         .expectSourceCommit("commit456")
         .build();
 
@@ -211,7 +220,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment not created due to PR already having a comment from us
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(true));
+    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'commit456' with 1 pull request(s) and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
@@ -241,7 +250,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment not created due to no base branch policy eval to compare to
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(false));
+    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'commit456' with 1 pull request(s) and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
@@ -271,12 +280,13 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment not created due to no meaningful policy eval diff
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(false));
+    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'sourceCommit' with 1 pull request(s) " +
             "and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
-        info("nothing meaningful in policy eval diff for application 'app1' pull request '11' to comment on")
+        info("no added violations in policy eval diff, and no previous PR comments for application " +
+            "'app1' pull request '11'.")
     );
   }
 
@@ -289,7 +299,8 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponse(25)
+        .withCommentResponseForPR(14, 27)
+        .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
         .build();
@@ -304,14 +315,14 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment should be created
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(true));
+    verify(mockPullRequestCommentingMetricsService, only()).onCommentCreated(eq("app1"), eq(14), eq(27));
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'sourceCommit' with 1 pull request(s) " +
             "and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
-        info("pull request comment '25' created for application 'app1' pull request '14'"),
+        info("pull request comment '27' created for application 'app1' pull request '14'"),
         debug("comment text = " + commentText),
-        debug("pull request comment '25' for application 'app1' pull request '14' recorded in database")
+        debug("pull request comment '27' for application 'app1' pull request '14' recorded in database")
     );
   }
 
@@ -333,7 +344,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : GitLab not supported yet
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(false));
+    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
     assertThatLogMessagesEqual(debug("GitLab not currently supported for pull request commenting"));
   }
 
@@ -346,7 +357,7 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponse(25)
+        .withCommentResponseForPR(14, 25)
         .withGitRepositoryPrivate(false)
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
@@ -362,7 +373,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(false));
+    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
     assertThatLogMessagesEqual(debug(
         "obtained CommitInfo from SCM for commit 'sourceCommit' with 1 pull request(s) and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
@@ -373,6 +384,7 @@ public class PullRequestCommentingServiceTest
   public void testOnApplicationEvaluation_processMultiplePrsAndRecordCommentForMatchingHeadCommit() throws IOException {
     // given : multiple associated PR's, two with matching head commit, and two with other head commits
     String commentText = "at least one new policy violation";
+    String applicationId = "app1";
     PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
         .withDevBranchPullRequest("Associated_PR_With_Other_Head_Commit", 13, "otherCommit", "baseCommit")
         .withDevBranchPullRequest("First_PR_With_Head_Commit", 14, "sourceCommit", "baseCommit")
@@ -381,13 +393,15 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponse(25)
+        .withCommentResponseForPR(14, 28)
+        .withCommentResponseForPR(16, 32)
+        .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
         .build();
 
     ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
-        .withApplicationId("app1")
+        .withApplicationId(applicationId)
         .withPolicyEvaluationId("sourcePe")
         .withCommitHash("sourceCommit")
         .build();
@@ -396,7 +410,8 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comments should be created for those PR's with matching head commits
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(true));
+    verify(mockPullRequestCommentingMetricsService, times(1)).onCommentCreated(eq(applicationId), eq(14), eq(28));
+    verify(mockPullRequestCommentingMetricsService, times(1)).onCommentCreated(eq(applicationId), eq(16), eq(32));
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'sourceCommit' with 4 pull request(s) " +
             "and 0 base branch commit(s)"),
@@ -404,15 +419,15 @@ public class PullRequestCommentingServiceTest
         debug(
             "The head commit hash 'otherCommit', for application 'app1', PR '13' does not match the commit on " +
                 "the policy evaluation 'sourceCommit'"),
-        info("pull request comment '25' created for application 'app1' pull request '14'"),
+        info("pull request comment '28' created for application 'app1' pull request '14'"),
         debug("comment text = " + commentText),
-        debug("pull request comment '25' for application 'app1' pull request '14' recorded in database"),
+        debug("pull request comment '28' for application 'app1' pull request '14' recorded in database"),
         debug(
             "The head commit hash 'anotherCommit', for application 'app1', PR '15' does not match the commit on " +
                 "the policy evaluation 'sourceCommit'"),
-        info("pull request comment '25' created for application 'app1' pull request '16'"),
+        info("pull request comment '32' created for application 'app1' pull request '16'"),
         debug("comment text = " + commentText),
-        debug("pull request comment '25' for application 'app1' pull request '16' recorded in database")
+        debug("pull request comment '32' for application 'app1' pull request '16' recorded in database")
     );
   }
 
@@ -420,6 +435,7 @@ public class PullRequestCommentingServiceTest
   public void testOnApplicationEvaluation_processOnlyOpenPrs() throws IOException {
     // given : multiple associated PR's, two with matching head commit, and two with other head commits
     String commentText = "at least one new policy violation";
+    String applicationId = "app1";
     PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
         .withDevBranchPullRequest("Closed_PR", 13, "sourceCommit", "baseCommit", PullRequestState.CLOSED)
         .withDevBranchPullRequest("First_PR_With_Head_Commit", 14, "sourceCommit", "baseCommit")
@@ -428,13 +444,15 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponse(25)
+        .withCommentResponseForPR(14, 42)
+        .withCommentResponseForPR(16, 48)
+        .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
         .build();
 
     ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
-        .withApplicationId("app1")
+        .withApplicationId(applicationId)
         .withPolicyEvaluationId("sourcePe")
         .withCommitHash("sourceCommit")
         .build();
@@ -443,19 +461,20 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comments should be created for those PR's with matching head commits
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(true));
+    verify(mockPullRequestCommentingMetricsService, times(1)).onCommentCreated(eq(applicationId), eq(14), eq(42));
+    verify(mockPullRequestCommentingMetricsService, times(1)).onCommentCreated(eq(applicationId), eq(16), eq(48));
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'sourceCommit' with 4 pull request(s) " +
             "and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
         debug("application 'app1' pull request '13' state 'CLOSED' is not open, skipping commenting for this PR"),
-        info("pull request comment '25' created for application 'app1' pull request '14'"),
+        info("pull request comment '42' created for application 'app1' pull request '14'"),
         debug("comment text = " + commentText),
-        debug("pull request comment '25' for application 'app1' pull request '14' recorded in database"),
+        debug("pull request comment '42' for application 'app1' pull request '14' recorded in database"),
         debug("application 'app1' pull request '15' state 'MERGED' is not open, skipping commenting for this PR"),
-        info("pull request comment '25' created for application 'app1' pull request '16'"),
+        info("pull request comment '48' created for application 'app1' pull request '16'"),
         debug("comment text = " + commentText),
-        debug("pull request comment '25' for application 'app1' pull request '16' recorded in database")
+        debug("pull request comment '48' for application 'app1' pull request '16' recorded in database")
     );
   }
 
@@ -476,7 +495,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onDiscoveredPullRequest(event);
 
     // then : comment should be created
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(false));
+    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
     assertThatLogMessagesEqual(
         debug(
             "obtained CommitInfo from SCM for commit 'sourceCommit' with 1 pull request(s) and 0 base branch commit(s)"
@@ -492,25 +511,26 @@ public class PullRequestCommentingServiceTest
   {
     // given : all the necessary pieces to create a PR comment, except the comment already exists
     String commentText = "at least one new policy violation";
+    String applicationId = "app1";
     PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
         .withDevBranchPullRequest("INT-2493-pr-commenting-immediate-flow", 20, "sourceCommit", "baseCommit")
-        .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
-        .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
+        .withSourcePolicyEvaluation("sourcePe", "sourceCommit", applicationId)
+        .withBasePolicyEvaluation("basePe", "baseCommit", applicationId)
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponse(25)
-        .withCommentForPullRequest(20, "sourcePe-0", "basePe")
-        .expectApplicationId("app1")
+        .expectApplicationId(applicationId)
+        .withCommentResponseForPR(20, 25)
+        .withCommentForPullRequest(20, 25, "sourcePe-0", "basePe")
         .expectSourceCommit("sourceCommit")
         .build();
 
     DiscoveredPullRequestEvent event =
-        createDiscoveredPullRequestEvent("app1", "sourcePe", "sourceCommit", 20, "basePe");
+        createDiscoveredPullRequestEvent(applicationId, "sourcePe", "sourceCommit", 20, "basePe");
 
     // when : process event
     commentingService.onDiscoveredPullRequest(event);
 
     // then : comment should be created
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(true));
+    verify(mockPullRequestCommentingMetricsService, only()).onCommentUpdated(eq(applicationId), eq(20), eq(25));
     assertThatLogMessagesEqual(
         info("pull request comment '25' updated for application 'app1' pull request '20'"),
         debug("comment text = at least one new policy violation"),
@@ -527,8 +547,8 @@ public class PullRequestCommentingServiceTest
         .withDevBranchPullRequest("INT-2493-pr-commenting-immediate-flow", 20, "sourceCommit", "baseCommit")
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
-        .withCommentForPullRequest(20)
         .expectApplicationId("app1")
+        .withCommentForPullRequest(20, 10)
         .expectSourceCommit("sourceCommit")
         .build();
 
@@ -539,7 +559,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onDiscoveredPullRequest(event);
 
     // then : comment should be created
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(false));
+    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
     assertThatLogMessagesEqual(
         info("policy evaluations have not changed for 'app1' pull request '20'")
     );
@@ -551,24 +571,26 @@ public class PullRequestCommentingServiceTest
   {
     // given : all the necessary pieces to create a PR comment
     String commentText = "at least one new policy violation";
+    String applicationId = "app1";
     PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
         .withDevBranchPullRequest("INT-2493-pr-commenting-immediate-flow", 20, "sourceCommit", "baseCommit")
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponse(25)
+        .withCommentResponseForPR(20, 25)
+        .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
         .build();
 
     DiscoveredPullRequestEvent event =
-        createDiscoveredPullRequestEvent("app1", "sourcePe", "sourceCommit", 20, "basePe");
+        createDiscoveredPullRequestEvent(applicationId, "sourcePe", "sourceCommit", 20, "basePe");
 
     // when : process event
     commentingService.onDiscoveredPullRequest(event);
 
     // then : comment should be created
-    verify(mockPullRequestCommentingMetricsService, only()).recordEvent(eq(true));
+    verify(mockPullRequestCommentingMetricsService, only()).onCommentCreated(eq(applicationId), eq(20), eq(25));
     assertThatLogMessagesEqual(
         info("pull request comment '25' created for application 'app1' pull request '20'"),
         debug("comment text = " + commentText),
@@ -624,13 +646,14 @@ public class PullRequestCommentingServiceTest
     @Mock
     private PullRequestUtils mockPullRequestUtils;
 
+    @Mock
+    private PolicyEvaluationDiffService mockPolicyEvaluationDiffService;
+
     private boolean scmEnabled = true;
 
     private String org = "testOrg";
 
     private String repo = "testRepo";
-
-    private String repositoryUrl;
 
     private String token = "testToken";
 
@@ -656,13 +679,16 @@ public class PullRequestCommentingServiceTest
 
     private Optional<String> policyEvaluationDiffMarkup;
 
-    private CommentResponse commentResponse;
-
     private GitRepositoryInfo gitRepositoryInfo;
 
     private boolean isGitRepositoryPrivate = true;
 
+    private final Map<Integer, CommentResponse> pullRequestCommentResponseMap = new HashMap<>();
+
     private Class<? extends Exception> gitRepositoryEffectivelyPrivateThrows;
+
+    private Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff =
+        Optional.of(new PolicyViolationDiff<>());
 
     PullRequestCommentingService build() throws IOException {
       MockitoAnnotations.initMocks(this);
@@ -670,15 +696,17 @@ public class PullRequestCommentingServiceTest
       doReturn(scmEnabled).when(mockSourceControlUtils).isScmEnabled(any(String.class));
       doReturn(scmEnabled).when(mockSourceControlUtils).isScmEnabled(any(GitRepositoryInfo.class));
 
-      repositoryUrl = String.format("http://%s.com/%s/%s", provider.toString(), org, repo);
+      String repositoryUrl = String.format("http://%s.com/%s/%s", provider.toString(), org, repo);
       gitRepositoryInfo =
           new GitRepositoryInfo(repositoryUrl, token, provider, baseBranch, enablePullRequests, enableStatusChecks);
       doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
 
       doReturn(mockGitApiClient).when(mockGitClientFactory).createApiClient(gitRepositoryInfo);
 
-      doReturn(commentResponse).when(mockGitApiClient).createPullRequestComment(any(), any());
-      doReturn(commentResponse).when(mockGitApiClient).updatePullRequestComment(any(), any());
+      for (Entry<Integer, CommentResponse> entry : pullRequestCommentResponseMap.entrySet()) {
+        doReturn(entry.getValue()).when(mockGitApiClient).createPullRequestComment(eq(entry.getKey()), any());
+        doReturn(entry.getValue()).when(mockGitApiClient).updatePullRequestComment(eq(entry.getValue().getId()), any());
+      }
 
       doReturn(mockGitHubGraphQlClient).when(mockGitClientFactory).createGraphqlApiClient(gitRepositoryInfo);
 
@@ -700,8 +728,11 @@ public class PullRequestCommentingServiceTest
 
       doReturn(sourcePolicyEvaluation).when(mockPolicyEvaluationDAO).getById(eq(sourcePolicyEvaluation.getId()));
 
+      doReturn(policyViolationDiff).when(mockPolicyEvaluationDiffService)
+          .createPolicyViolationDiff(basePolicyEvaluation, sourcePolicyEvaluation);
+
       doReturn(policyEvaluationDiffMarkup).when(mockPullRequestFeedbackMarkupService)
-          .createMarkupIfNewViolationsHaveAppeared(any(), any());
+          .createMarkup(any(), any(), any());
 
       if (gitRepositoryEffectivelyPrivateThrows != null) {
         doThrow(UnsupportedOperationException.class).when(mockPullRequestUtils)
@@ -724,7 +755,7 @@ public class PullRequestCommentingServiceTest
           mockAsyncEventBus,
           testProductLicense,
           mockPullRequestUtils,
-          true
+          mockPolicyEvaluationDiffService
       );
     }
 
@@ -783,17 +814,20 @@ public class PullRequestCommentingServiceTest
       return this;
     }
 
-    TestablePullRequestCommentingServiceBuilder withCommentForPullRequest(int pullRequestNumber) {
-      return withCommentForPullRequest(pullRequestNumber, "sourcePe", "basePe");
+    TestablePullRequestCommentingServiceBuilder withCommentForPullRequest(int pullRequestNumber, int commentId) {
+      return withCommentForPullRequest(pullRequestNumber, commentId, "sourcePe", "basePe");
     }
 
     TestablePullRequestCommentingServiceBuilder withCommentForPullRequest(
         int pullRequestNumber,
+        int commentId,
         String sourcePolicyEvaluationId,
         String targetPolicyEvaluationId)
     {
       pullRequestComment = new SourceControlPullRequestComment();
+      pullRequestComment.setApplicationId(applicationId);
       pullRequestComment.setPullRequestId(pullRequestNumber);
+      pullRequestComment.setPullRequestCommentId(commentId);
       pullRequestComment.setSourcePolicyEvaluationId(sourcePolicyEvaluationId);
       pullRequestComment.setTargetPolicyEvaluationId(targetPolicyEvaluationId);
       return this;
@@ -827,9 +861,10 @@ public class PullRequestCommentingServiceTest
       return this;
     }
 
-    TestablePullRequestCommentingServiceBuilder withCommentResponse(int commentId) {
-      commentResponse = new GithubCommentResponse();
+    TestablePullRequestCommentingServiceBuilder withCommentResponseForPR(int pullRequestId, int commentId) {
+      CommentResponse commentResponse = new GithubCommentResponse();
       commentResponse.setId(commentId);
+      pullRequestCommentResponseMap.put(pullRequestId, commentResponse);
       return this;
     }
 
@@ -847,6 +882,11 @@ public class PullRequestCommentingServiceTest
         Class<? extends Exception> gitRepositoryEffectivelyPrivateThrows)
     {
       this.gitRepositoryEffectivelyPrivateThrows = gitRepositoryEffectivelyPrivateThrows;
+      return this;
+    }
+
+    TestablePullRequestCommentingServiceBuilder withAddedViolation(PolicyViolation policyViolation) {
+      policyViolationDiff.get().addAppeared(new PolicyViolation());
       return this;
     }
   }

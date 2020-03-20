@@ -6,19 +6,15 @@
 package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.model.policy.ConditionType;
 
 public class ConditionTypes
 {
   private static final Map<String, ConditionType> allConditionTypes = new LinkedHashMap<>();
-
-  private static final Set<String> enabledConditionTypeIds = new HashSet<>();
 
   // The instances below support the Drools code produced by AbstractConditionType.generateDroolsCode()
 
@@ -86,9 +82,7 @@ public class ConditionTypes
   }
 
   public static Collection<ConditionType> getAll() {
-    return allConditionTypes.values().stream()
-        .filter(conditionType -> enabledConditionTypeIds.contains(conditionType.getId()))
-        .collect(Collectors.toList());
+    return Collections.unmodifiableCollection(allConditionTypes.values());
   }
 
   public static ConditionType getById(final String conditionTypeId) {
@@ -104,25 +98,27 @@ public class ConditionTypes
   }
 
   private static void add(final ConditionType conditionType) {
-    addDisabledConditionType(conditionType);
-    enableConditionType(conditionType);
-  }
-
-  private static void addDisabledConditionType(final ConditionType conditionType) {
     if (allConditionTypes.keySet().contains(conditionType.getId())) {
       throw new IllegalStateException("Duplicate condition type id: " + conditionType.getId());
     }
     allConditionTypes.put(conditionType.getId(), conditionType);
   }
 
+  private static void addDisabledConditionType(final ConditionType conditionType) {
+    conditionType.setEnabled(false);
+    add(conditionType);
+  }
+
   public static synchronized void enableConditionType(final ConditionType conditionType) {
     if (!allConditionTypes.keySet().contains(conditionType.getId())) {
       throw new IllegalStateException("Condition type not found with type id: " + conditionType.getId());
     }
-    enabledConditionTypeIds.add(conditionType.getId());
+    allConditionTypes.get(conditionType.getId()).setEnabled(true);
   }
 
   public static synchronized void disableConditionType(final ConditionType conditionType) {
-    enabledConditionTypeIds.remove(conditionType.getId());
+    if (allConditionTypes.containsKey(conditionType.getId())) {
+      allConditionTypes.get(conditionType.getId()).setEnabled(false);
+    }
   }
 }

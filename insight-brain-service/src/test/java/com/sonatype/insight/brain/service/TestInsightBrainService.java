@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.git.PullRequestPollingScheduler;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
@@ -279,6 +280,7 @@ public class TestInsightBrainService
     super.run(config, env);
 
     getInstance(PolicyMonitorScheduler.class).disableForTesting = true;
+    getInstance(PullRequestPollingScheduler.class).disableForTesting = true;
     getInstance(ScanFileCleaner.class).disableForTesting = true;
     getInstance(PolicyEvaluateService.class).disablePollingIntervalForTesting = true;
     getInstance(HdsProductNotificationService.class).disableCacheForTesting = true;

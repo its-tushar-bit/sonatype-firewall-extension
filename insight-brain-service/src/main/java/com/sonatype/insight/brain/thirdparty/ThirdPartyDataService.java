@@ -5,10 +5,12 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -23,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
@@ -30,8 +33,9 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
-import com.sonatype.insight.purl.InvalidPackageURLException;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.purl.InvalidPackageURLException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -54,6 +58,8 @@ public class ThirdPartyDataService
   
   private final LicenseDAO licenseDAO;
 
+  private final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO;
+
   @Inject
   public ThirdPartyDataService(
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
@@ -61,7 +67,8 @@ public class ThirdPartyDataService
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyScanDAO thirdPartyScanDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
-      final LicenseDAO licenseDAO)
+      final LicenseDAO licenseDAO,
+      final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO)
   {
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
@@ -69,6 +76,7 @@ public class ThirdPartyDataService
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
     this.licenseDAO = licenseDAO;
+    this.thirdPartyVulnerabilityDAO = thirdPartyVulnerabilityDAO;
   }
 
   public ThirdPartyApplicationReportDTO getScanData(final String scanId) {
@@ -78,6 +86,15 @@ public class ThirdPartyDataService
       return loadThirdPartyDataForScan(scanId, scanData.get(0).getCreateTime());
     }
     return null;
+  }
+
+  public List<ThirdPartyCoordinateSecurity> getSecurityVulnerabilitiesForScanId(final String scanId) {
+    List<ThirdPartyFileCoordinate> coordsByScanId = thirdPartyFileCoordinateDAO.getByScanId(scanId);
+    if (coordsByScanId.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return thirdPartyCoordinateSecurityDAO.getByFileCoordinateIds(
+        coordsByScanId.stream().map(ThirdPartyFileCoordinate::getId).collect(Collectors.toList()));
   }
 
   public void deleteByScanId(String scanId) {
@@ -212,5 +229,12 @@ public class ThirdPartyDataService
     licenseThirdParty.id = licenseNotProvided.getId();
     licenseThirdParty.name = licenseNotProvided.getShortDisplayName();
     dto.declaredLicenses.add(licenseThirdParty);
+  }
+
+  public void indexVulnerabilities(final String scanId) {
+    List<ThirdPartyCoordinateSecurity> secVulnerabilities = getSecurityVulnerabilitiesForScanId(scanId);
+    Set<ThirdPartyVulnerability> vulnerabilityList =
+        secVulnerabilities.stream().map(ThirdPartyVulnerability::new).collect(Collectors.toSet());
+    thirdPartyVulnerabilityDAO.saveOrUpdate(vulnerabilityList);
   }
 }

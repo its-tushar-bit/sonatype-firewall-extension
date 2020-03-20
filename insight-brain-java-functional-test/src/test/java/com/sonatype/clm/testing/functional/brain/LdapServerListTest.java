@@ -47,8 +47,8 @@ public class LdapServerListTest
   @After
   public void end() {
     LdapServerDAO ldapServerDAO = new LdapServerDAO();
-    for (LdapServer server : ldapServerDAO.getAll()) {
-      ldapServerDAO.delete(server);
+    for (LdapServer ldapServer : ldapServerDAO.getAll()) {
+      ldapServerDAO.delete(ldapServer);
     }
   }
 
@@ -124,12 +124,12 @@ public class LdapServerListTest
     new LdapServerListPage().shouldBe(visible).ldapServerList().elements()
         .shouldHave(texts("First Server", "Second Server", "Third Server", "Fourth Server"));
 
-    List<LdapServer> actualServers = new LdapServerDAO().getAll();
-    String[] serverNames = new String[] { "First Server", "Second Server", "Third Server", "Fourth Server" };
-    for (int i = 0; i < serverNames.length; i++) {
-      LdapServer server = actualServers.get(i);
-      assertThat(server.getName()).isEqualTo(serverNames[i]);
-      assertThat(server.getPriority()).isEqualTo(i + 1);
+    List<LdapServer> actualLdapServers = new LdapServerDAO().getAll();
+    String[] ldapServerNames = new String[]{"First Server", "Second Server", "Third Server", "Fourth Server"};
+    for (int i = 0; i < ldapServerNames.length; i++) {
+      LdapServer ldapServer = actualLdapServers.get(i);
+      assertThat(ldapServer.getName()).isEqualTo(ldapServerNames[i]);
+      assertThat(ldapServer.getPriority()).isEqualTo(i + 1);
     }
   }
 }

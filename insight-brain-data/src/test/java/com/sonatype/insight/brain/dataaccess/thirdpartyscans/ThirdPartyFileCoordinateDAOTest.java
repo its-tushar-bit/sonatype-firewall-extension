@@ -133,6 +133,19 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(securityDAO.getById(sec2.getId())).isNull();
   }
 
+  @Test
+  public void testGetByScanId() {
+    String scanId = tempEntity.uuid();
+    String hash = tempEntity.newRandomHash();
+    createThirdPartyScans(scanId, hash);
+
+    List<ThirdPartyFileCoordinate> fileCoordinates = thirdPartyFileCoordinateDAO.getByScanId(scanId);
+
+    assertThat(fileCoordinates).hasSize(3);
+    assertThat(fileCoordinates.stream().map(ThirdPartyFileCoordinate::getSource))
+        .containsExactlyInAnyOrder("s1", "s2", "s3");
+  }
+
   private void assertThirdPartyCoordinateFile(
       final String hash,
       final String source,

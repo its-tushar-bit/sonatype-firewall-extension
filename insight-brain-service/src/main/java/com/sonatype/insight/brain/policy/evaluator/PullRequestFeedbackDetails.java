@@ -100,10 +100,6 @@ public class PullRequestFeedbackDetails
    * @throws IOException
    */
   private String constructContents(final String baseUrl) throws IOException {
-    if (diff.getAppeared().isEmpty()) {
-      return "";
-    }
-
     //Create a map from component hash to display name
     final Map<String, String> componentDisplayNamesMap = getDisplayNamesMapFromBom();
     if (componentDisplayNamesMap.isEmpty()) {
@@ -124,7 +120,8 @@ public class PullRequestFeedbackDetails
     final List<Map<String, Object>> componentFeedbackList = getComponentFeedbackList(componentPolicyViolationsMap,
         baseUrl);
     //Get a map containing all model values to be used in the template
-    final Map<String, Object> modelMap = getModelMap(componentPolicyViolationsMap, componentFeedbackList, baseUrl);
+    final Map<String, Object> modelMap =
+        getModelMap(componentPolicyViolationsMap, componentFeedbackList, baseUrl, diff.getCleared());
 
     return TemplateUtils.render(getPolicyViolationDiffTemplate(), modelMap);
   }
@@ -260,7 +257,8 @@ public class PullRequestFeedbackDetails
   private Map<String, Object> getModelMap(
       final Map<String, List<PolicyViolation>> componentPolicyViolationsMap,
       final List<Map<String, Object>> componentFeedbackList,
-      final String baseUrl)
+      final String baseUrl,
+      final List<PolicyViolation> cleared)
   {
     return ImmutableMap.<String, Object>builder()
         .put("applicationName", app.getName())
@@ -281,6 +279,7 @@ public class PullRequestFeedbackDetails
                     .stream()
                         .map(policyViolation -> String.format("%s|%s", entry.getKey(), policyViolation.getId())))
                 .collect(Collectors.toSet()).size())
+        .put("fixedPolicyViolationsCount", cleared == null ? 0 : cleared.size())
         .build();
   }
 }

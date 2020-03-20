@@ -25,31 +25,31 @@ public class LdapConnectionTest
     int connectionTimeout = 123;
     int retryDelay = 345;
 
-    LdapConnection orig = new LdapConnection();
-    orig.setId(id);
-    orig.setProtocol(protocol);
-    orig.setHostname(hostname);
-    orig.setPort(port);
-    orig.setSearchBase(searchBase);
-    orig.setAuthenticationMethod(authenticationMethod);
-    orig.setSaslRealm(saslRealm);
-    orig.setSystemUsername(systemUsername);
-    orig.setSystemPassword(systemPassword);
-    orig.setConnectionTimeout(connectionTimeout);
-    orig.setRetryDelay(retryDelay);
+    LdapConnection originalLdapConnection = new LdapConnection();
+    originalLdapConnection.setId(id);
+    originalLdapConnection.setProtocol(protocol);
+    originalLdapConnection.setHostname(hostname);
+    originalLdapConnection.setPort(port);
+    originalLdapConnection.setSearchBase(searchBase);
+    originalLdapConnection.setAuthenticationMethod(authenticationMethod);
+    originalLdapConnection.setSaslRealm(saslRealm);
+    originalLdapConnection.setSystemUsername(systemUsername);
+    originalLdapConnection.setSystemPassword(systemPassword);
+    originalLdapConnection.setConnectionTimeout(connectionTimeout);
+    originalLdapConnection.setRetryDelay(retryDelay);
 
-    LdapConnection copy = new LdapConnection(orig);
+    LdapConnection copyLdapConnection = new LdapConnection(originalLdapConnection);
 
-    assertThat(copy.getId()).isEqualTo(id);
-    assertThat(copy.getProtocol()).isEqualTo(protocol);
-    assertThat(copy.getHostname()).isEqualTo(hostname);
-    assertThat(copy.getPort()).isEqualTo(port);
-    assertThat(copy.getSearchBase()).isEqualTo(searchBase);
-    assertThat(copy.getAuthenticationMethod()).isEqualTo(authenticationMethod);
-    assertThat(copy.getSaslRealm()).isEqualTo(saslRealm);
-    assertThat(copy.getSystemUsername()).isEqualTo(systemUsername);
-    assertThat(copy.getSystemPassword()).isEqualTo(systemPassword);
-    assertThat(copy.getConnectionTimeout()).isEqualTo(connectionTimeout);
-    assertThat(copy.getRetryDelay()).isEqualTo(retryDelay);
+    assertThat(copyLdapConnection.getId()).isEqualTo(id);
+    assertThat(copyLdapConnection.getProtocol()).isEqualTo(protocol);
+    assertThat(copyLdapConnection.getHostname()).isEqualTo(hostname);
+    assertThat(copyLdapConnection.getPort()).isEqualTo(port);
+    assertThat(copyLdapConnection.getSearchBase()).isEqualTo(searchBase);
+    assertThat(copyLdapConnection.getAuthenticationMethod()).isEqualTo(authenticationMethod);
+    assertThat(copyLdapConnection.getSaslRealm()).isEqualTo(saslRealm);
+    assertThat(copyLdapConnection.getSystemUsername()).isEqualTo(systemUsername);
+    assertThat(copyLdapConnection.getSystemPassword()).isEqualTo(systemPassword);
+    assertThat(copyLdapConnection.getConnectionTimeout()).isEqualTo(connectionTimeout);
+    assertThat(copyLdapConnection.getRetryDelay()).isEqualTo(retryDelay);
   }
 }

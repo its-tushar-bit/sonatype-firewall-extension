@@ -1429,8 +1429,10 @@ public abstract class AbstractPolicyEditorTest
 
     int i = 0;
     for (ConditionType conditionType : ConditionTypes.getAll()) {
-      map.put(conditionType.getClass(), new Option(i, conditionType.getName()));
-      i++;
+      if (conditionType.isEnabled()) {
+        map.put(conditionType.getClass(), new Option(i, conditionType.getName()));
+        i++;
+      }
     }
 
     return map;

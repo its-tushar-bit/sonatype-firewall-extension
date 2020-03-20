@@ -40,9 +40,9 @@ public class LdapUserAndGroupMappingTest
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @Rule
-  public TestLdapServer ldapServer = new TestLdapServer();
+  public TestLdapServer testLdapServer = new TestLdapServer();
 
-  private LdapServer serverDetails;
+  private LdapServer ldapServer;
 
   @Inject
   private LdapService ldapService;
@@ -56,179 +56,179 @@ public class LdapUserAndGroupMappingTest
   public void testSimpleLdapSchema() throws Exception {
     startLdapServer().loadData("SimpleLdapSchema.ldif");
 
-    LdapConnection conn = createLdapConnection();
-    LdapUserMapping umap = createUserMapping();
+    LdapConnection ldapConnection = createLdapConnection();
+    LdapUserMapping ldapUserMapping = createUserMapping();
 
-    checkMapping(conn, umap);
+    checkMapping(ldapConnection, ldapUserMapping);
   }
 
   @Test
   public void testCramMd5AuthLdapSchema() throws Exception {
     withCramAuth().startLdapServer().loadData("CramMd5AuthLdapSchema.ldif");
 
-    LdapConnection conn = createLdapConnection();
-    LdapUserMapping umap = createUserMapping();
+    LdapConnection ldapConnection = createLdapConnection();
+    LdapUserMapping ldapUserMapping = createUserMapping();
 
-    conn.setAuthenticationMethod(LdapAuthenticationMethod.CRAMMD5);
-    conn.setSystemUsername(ldapServer.getSystemUser());
-    conn.setSaslRealm("localhost");
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.CRAMMD5);
+    ldapConnection.setSystemUsername(testLdapServer.getSystemUser());
+    ldapConnection.setSaslRealm("localhost");
 
-    checkMapping(conn, umap);
+    checkMapping(ldapConnection, ldapUserMapping);
   }
 
   @Test
   public void testDigestMd5AuthLdapSchema() throws Exception {
     withDigestAuth().startLdapServer().loadData("DigestMd5AuthLdapSchema.ldif");
 
-    LdapConnection conn = createLdapConnection();
-    LdapUserMapping umap = createUserMapping();
+    LdapConnection ldapConnection = createLdapConnection();
+    LdapUserMapping ldapUserMapping = createUserMapping();
 
-    conn.setAuthenticationMethod(LdapAuthenticationMethod.DIGESTMD5);
-    conn.setSystemUsername(ldapServer.getSystemUser());
-    conn.setSaslRealm("localhost");
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.DIGESTMD5);
+    ldapConnection.setSystemUsername(testLdapServer.getSystemUser());
+    ldapConnection.setSaslRealm("localhost");
 
-    checkMapping(conn, umap);
+    checkMapping(ldapConnection, ldapUserMapping);
   }
 
   @Test
   public void testDigestMd5NoRealmLdapSchema() throws Exception {
     withDigestAuth().startLdapServer().loadData("DigestMd5NoRealmLdapSchema.ldif");
 
-    LdapConnection conn = createLdapConnection();
-    LdapUserMapping umap = createUserMapping();
+    LdapConnection ldapConnection = createLdapConnection();
+    LdapUserMapping ldapUserMapping = createUserMapping();
 
-    conn.setAuthenticationMethod(LdapAuthenticationMethod.DIGESTMD5);
-    conn.setSystemUsername(ldapServer.getSystemUser());
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.DIGESTMD5);
+    ldapConnection.setSystemUsername(testLdapServer.getSystemUser());
 
-    checkMapping(conn, umap);
+    checkMapping(ldapConnection, ldapUserMapping);
   }
 
   @Test
   public void testEncryptedPassSchema() throws Exception {
     startLdapServer().loadData("EncryptedPassSchema.ldif");
 
-    LdapConnection conn = createLdapConnection();
-    LdapUserMapping umap = createUserMapping();
+    LdapConnection ldapConnection = createLdapConnection();
+    LdapUserMapping ldapUserMapping = createUserMapping();
 
-    umap.setUserPasswordAttribute(null);
+    ldapUserMapping.setUserPasswordAttribute(null);
 
-    checkMapping(conn, umap);
+    checkMapping(ldapConnection, ldapUserMapping);
   }
 
   @Test
   public void testUserHasGroupLdapSchema() throws Exception {
     startLdapServer().loadData("UserHasGroupLdapSchema.ldif");
 
-    LdapConnection conn = createLdapConnection();
-    LdapUserMapping umap = createUserMapping();
+    LdapConnection ldapConnection = createLdapConnection();
+    LdapUserMapping ldapUserMapping = createUserMapping();
 
-    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    umap.setUserMemberOfGroupAttribute("businesscategory");
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setUserMemberOfGroupAttribute("businesscategory");
 
     // reset unused static mappings...
-    umap.setGroupObjectClass(null);
-    umap.setGroupBaseDN(null);
-    umap.setGroupIDAttribute(null);
-    umap.setGroupMemberAttribute(null);
-    umap.setGroupMemberFormat(null);
+    ldapUserMapping.setGroupObjectClass(null);
+    ldapUserMapping.setGroupBaseDN(null);
+    ldapUserMapping.setGroupIDAttribute(null);
+    ldapUserMapping.setGroupMemberAttribute(null);
+    ldapUserMapping.setGroupMemberFormat(null);
 
-    checkMapping(conn, umap);
+    checkMapping(ldapConnection, ldapUserMapping);
   }
 
   @Test
   public void testDynaGroupMissingSchema() throws Exception {
     startLdapServer().loadData("DynaGroupMissingSchema.ldif");
 
-    LdapConnection conn = createLdapConnection();
-    LdapUserMapping umap = createUserMapping();
+    LdapConnection ldapConnection = createLdapConnection();
+    LdapUserMapping ldapUserMapping = createUserMapping();
 
-    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    umap.setUserMemberOfGroupAttribute("businesscategory");
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setUserMemberOfGroupAttribute("businesscategory");
 
     // reset unused static mappings...
-    umap.setGroupObjectClass(null);
-    umap.setGroupBaseDN(null);
-    umap.setGroupIDAttribute(null);
-    umap.setGroupMemberAttribute(null);
-    umap.setGroupMemberFormat(null);
+    ldapUserMapping.setGroupObjectClass(null);
+    ldapUserMapping.setGroupBaseDN(null);
+    ldapUserMapping.setGroupIDAttribute(null);
+    ldapUserMapping.setGroupMemberAttribute(null);
+    ldapUserMapping.setGroupMemberFormat(null);
 
-    checkMapping(conn, umap);
+    checkMapping(ldapConnection, ldapUserMapping);
   }
 
   @Test
   public void testDynamicNoUserBaseDnLdapSchema() throws Exception {
     startLdapServer().loadData("DynamicNoUserBaseDnLdapSchema.ldif");
 
-    LdapConnection conn = createLdapConnection();
-    LdapUserMapping umap = createUserMapping();
+    LdapConnection ldapConnection = createLdapConnection();
+    LdapUserMapping ldapUserMapping = createUserMapping();
 
-    umap.setUserBaseDN(null);
-    umap.setUserSubtree(true);
+    ldapUserMapping.setUserBaseDN(null);
+    ldapUserMapping.setUserSubtree(true);
 
-    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    umap.setUserMemberOfGroupAttribute("businesscategory");
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setUserMemberOfGroupAttribute("businesscategory");
 
     // reset unused static mappings...
-    umap.setGroupObjectClass(null);
-    umap.setGroupBaseDN(null);
-    umap.setGroupIDAttribute(null);
-    umap.setGroupMemberAttribute(null);
-    umap.setGroupMemberFormat(null);
+    ldapUserMapping.setGroupObjectClass(null);
+    ldapUserMapping.setGroupBaseDN(null);
+    ldapUserMapping.setGroupIDAttribute(null);
+    ldapUserMapping.setGroupMemberAttribute(null);
+    ldapUserMapping.setGroupMemberFormat(null);
 
-    checkMapping(conn, umap);
+    checkMapping(ldapConnection, ldapUserMapping);
   }
 
   @Test
   public void testNestedGroupsLdapSchema() throws Exception {
     startLdapServer().loadData("NestedGroupsLdapSchema.ldif");
 
-    LdapConnection conn = createLdapConnection();
-    LdapUserMapping umap = createUserMapping();
+    LdapConnection ldapConnection = createLdapConnection();
+    LdapUserMapping ldapUserMapping = createUserMapping();
 
-    umap.setGroupSubtree(true);
+    ldapUserMapping.setGroupSubtree(true);
 
-    checkMapping(conn, umap);
+    checkMapping(ldapConnection, ldapUserMapping);
   }
 
   @Test
   public void testNestedGroupsNoGroupDNLdapSchema() throws Exception {
     startLdapServer().loadData("NestedGroupsNoGroupDNLdapSchema.ldif");
 
-    LdapConnection conn = createLdapConnection();
-    LdapUserMapping umap = createUserMapping();
+    LdapConnection ldapConnection = createLdapConnection();
+    LdapUserMapping ldapUserMapping = createUserMapping();
 
-    umap.setGroupBaseDN(null);
-    umap.setGroupSubtree(true);
+    ldapUserMapping.setGroupBaseDN(null);
+    ldapUserMapping.setGroupSubtree(true);
 
-    checkMapping(conn, umap);
+    checkMapping(ldapConnection, ldapUserMapping);
   }
 
   @Test
   public void testNestedUsersDnGroupLdapSchema() throws Exception {
     startLdapServer().loadData("NestedUsersDnGroupLdapSchema.ldif");
 
-    LdapConnection conn = createLdapConnection();
-    LdapUserMapping umap = createUserMapping();
+    LdapConnection ldapConnection = createLdapConnection();
+    LdapUserMapping ldapUserMapping = createUserMapping();
 
-    umap.setUserSubtree(true);
-    umap.setGroupMemberFormat("cn=${username}*");
+    ldapUserMapping.setUserSubtree(true);
+    ldapUserMapping.setGroupMemberFormat("cn=${username}*");
 
-    checkMapping(conn, umap);
+    checkMapping(ldapConnection, ldapUserMapping);
   }
 
   @Test
   public void testNestedUsersLdapSchema() throws Exception {
     startLdapServer().loadData("NestedUsersLdapSchema.ldif");
 
-    LdapConnection conn = createLdapConnection();
-    LdapUserMapping umap = createUserMapping();
+    LdapConnection ldapConnection = createLdapConnection();
+    LdapUserMapping ldapUserMapping = createUserMapping();
 
-    umap.setUserSubtree(true);
-    umap.setGroupObjectClass("posixGroup");
-    umap.setGroupMemberAttribute("memberUid");
-    umap.setGroupMemberFormat("${username}");
+    ldapUserMapping.setUserSubtree(true);
+    ldapUserMapping.setGroupObjectClass("posixGroup");
+    ldapUserMapping.setGroupMemberAttribute("memberUid");
+    ldapUserMapping.setGroupMemberFormat("${username}");
 
-    checkMapping(conn, umap);
+    checkMapping(ldapConnection, ldapUserMapping);
   }
 
   private LdapUserAndGroupMappingTest withDigestAuth() {
@@ -241,9 +241,12 @@ public class LdapUserAndGroupMappingTest
     return this;
   }
 
-  private LdapUserAndGroupMappingTest checkMapping(LdapConnection conn, LdapUserMapping umap) throws Exception {
-    ldapService.upsertLdapConnection(conn);
-    List<LdapUser> users = ldapService.testLdapUserMapping(umap.getServerId(), umap, -1);
+  private LdapUserAndGroupMappingTest checkMapping(
+      LdapConnection ldapConnection,
+      LdapUserMapping ldapUserMapping) throws Exception
+  {
+    ldapService.upsertLdapConnection(ldapConnection);
+    List<LdapUser> users = ldapService.testLdapUserMapping(ldapUserMapping.getServerId(), ldapUserMapping, -1);
     Collections.sort(users);
 
     LdapUser user;
@@ -254,7 +257,7 @@ public class LdapUserAndGroupMappingTest
     assertThat(user.getEmail()).isEqualTo("brianf@sonatype.com");
     assertThat(user.getMembership()).containsExactlyInAnyOrder("public", "releases");
 
-    ldapService.testUserLogin(umap.getServerId(), umap, "brianf", "brianf123".toCharArray());
+    ldapService.testUserLogin(ldapUserMapping.getServerId(), ldapUserMapping, "brianf", "brianf123".toCharArray());
 
     user = users.get(1);
     assertThat(user.getUsername()).isEqualTo("cstamas");
@@ -262,7 +265,7 @@ public class LdapUserAndGroupMappingTest
     assertThat(user.getEmail()).isEqualTo("cstamas@sonatype.com");
     assertThat(user.getMembership()).containsExactlyInAnyOrder("public", "snapshots");
 
-    ldapService.testUserLogin(umap.getServerId(), umap, "cstamas", "cstamas123".toCharArray());
+    ldapService.testUserLogin(ldapUserMapping.getServerId(), ldapUserMapping, "cstamas", "cstamas123".toCharArray());
 
     user = users.get(2);
     assertThat(user.getUsername()).isEqualTo("jvanzyl");
@@ -270,73 +273,73 @@ public class LdapUserAndGroupMappingTest
     assertThat(user.getEmail()).isEqualTo("jvanzyl@sonatype.com");
     assertThat(user.getMembership()).containsExactlyInAnyOrder("public", "releases", "snapshots");
 
-    ldapService.testUserLogin(umap.getServerId(), umap, "jvanzyl", "jvanzyl123".toCharArray());
+    ldapService.testUserLogin(ldapUserMapping.getServerId(), ldapUserMapping, "jvanzyl", "jvanzyl123".toCharArray());
 
     return this;
   }
 
   private LdapUserAndGroupMappingTest startLdapServer() throws Exception {
-    serverDetails = tempEntity.newLdapServer("Test Server");
+    ldapServer = tempEntity.newLdapServer("Test Server");
 
     if (authentication == LdapAuthenticationMethod.SIMPLE) {
-      ldapServer.setAuthenticationSimple();
+      testLdapServer.setAuthenticationSimple();
     }
     else if (authentication == LdapAuthenticationMethod.DIGESTMD5) {
-      ldapServer.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
+      testLdapServer.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
     }
     else if (authentication == LdapAuthenticationMethod.CRAMMD5) {
-      ldapServer.setAuthenticationSasl(SupportedSaslMechanisms.CRAM_MD5);
+      testLdapServer.setAuthenticationSasl(SupportedSaslMechanisms.CRAM_MD5);
     }
-    ldapServer.start();
+    testLdapServer.start();
 
     return this;
   }
 
   private LdapUserAndGroupMappingTest loadData(String resource) throws Exception {
-    ldapServer.loadData("/" + getClass().getSimpleName() + "/" + resource);
+    testLdapServer.loadData("/" + getClass().getSimpleName() + "/" + resource);
 
     return this;
   }
 
   private LdapConnection createLdapConnection() {
-    LdapConnection conn = ldapService.getLdapConnection(serverDetails.getId());
-    conn.setServerId(serverDetails.getId());
+    LdapConnection ldapConnection = ldapService.getLdapConnection(ldapServer.getId());
+    ldapConnection.setServerId(ldapServer.getId());
 
-    conn.setProtocol(LdapProtocol.LDAP);
-    conn.setHostname(ldapServer.getHostname());
-    conn.setPort(ldapServer.getPort());
-    conn.setSearchBase("o=sonatype");
+    ldapConnection.setProtocol(LdapProtocol.LDAP);
+    ldapConnection.setHostname(testLdapServer.getHostname());
+    ldapConnection.setPort(testLdapServer.getPort());
+    ldapConnection.setSearchBase("o=sonatype");
 
-    conn.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
-    conn.setSystemUsername(ldapServer.getSystemUserDN());
-    conn.setSystemPassword(ldapServer.getSystemUserPassword());
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
+    ldapConnection.setSystemUsername(testLdapServer.getSystemUserDN());
+    ldapConnection.setSystemPassword(testLdapServer.getSystemUserPassword());
 
-    return conn;
+    return ldapConnection;
   }
 
   private LdapUserMapping createUserMapping() {
-    LdapUserMapping umap = new LdapUserMapping();
-    umap.setServerId(serverDetails.getId());
+    LdapUserMapping ldapUserMapping = new LdapUserMapping();
+    ldapUserMapping.setServerId(ldapServer.getId());
 
-    umap.setUserBaseDN("ou=people");
-    umap.setUserObjectClass("inetOrgPerson");
-    umap.setUserSubtree(false);
-    umap.setUserIDAttribute("uid");
-    umap.setUserRealNameAttribute("sn");
-    umap.setUserEmailAttribute("mail");
-    umap.setUserPasswordAttribute("userPassword");
-    umap.setUserMemberOfGroupAttribute(null);
-    umap.setUserFilter(null);
+    ldapUserMapping.setUserBaseDN("ou=people");
+    ldapUserMapping.setUserObjectClass("inetOrgPerson");
+    ldapUserMapping.setUserSubtree(false);
+    ldapUserMapping.setUserIDAttribute("uid");
+    ldapUserMapping.setUserRealNameAttribute("sn");
+    ldapUserMapping.setUserEmailAttribute("mail");
+    ldapUserMapping.setUserPasswordAttribute("userPassword");
+    ldapUserMapping.setUserMemberOfGroupAttribute(null);
+    ldapUserMapping.setUserFilter(null);
 
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
 
-    umap.setGroupBaseDN("ou=groups");
-    umap.setGroupObjectClass("groupOfUniqueNames");
-    umap.setGroupSubtree(false);
-    umap.setGroupIDAttribute("cn");
-    umap.setGroupMemberAttribute("uniqueMember");
-    umap.setGroupMemberFormat("uid=${username},ou=people,o=sonatype");
+    ldapUserMapping.setGroupBaseDN("ou=groups");
+    ldapUserMapping.setGroupObjectClass("groupOfUniqueNames");
+    ldapUserMapping.setGroupSubtree(false);
+    ldapUserMapping.setGroupIDAttribute("cn");
+    ldapUserMapping.setGroupMemberAttribute("uniqueMember");
+    ldapUserMapping.setGroupMemberFormat("uid=${username},ou=people,o=sonatype");
 
-    return umap;
+    return ldapUserMapping;
   }
 }

@@ -16,6 +16,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public abstract class AbstractConditionType
     implements ConditionType
 {
+  private boolean enabled = true;
+
   @Override
   public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
       throws InvalidConditionException
@@ -86,5 +88,21 @@ public abstract class AbstractConditionType
   @Override
   public TriggerReference getTriggerReference(Condition condition, MatchFact matchFact) {
     return null;
+  }
+
+  /**
+   * @since 1.87
+   */
+  @Override
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  /**
+   * @since 1.87
+   */
+  @Override
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
   }
 }

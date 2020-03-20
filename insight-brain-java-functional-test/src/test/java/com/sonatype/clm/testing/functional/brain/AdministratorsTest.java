@@ -188,18 +188,18 @@ public class AdministratorsTest
     String ldap1 = tempEntity.newLdapServer("LDAP1").getId();
     tempEntity.newLdapConnection(ldap1);
 
-    LdapUserMapping userMapping1 = tempEntity.newLdapUserMapping(ldap1);
-    userMapping1.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    userMapping1.setDynamicGroupSearchEnabled(false);
-    ldapUserMappingDAO.update(userMapping1);
+    LdapUserMapping ldapUserMapping1 = tempEntity.newLdapUserMapping(ldap1);
+    ldapUserMapping1.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping1.setDynamicGroupSearchEnabled(false);
+    ldapUserMappingDAO.update(ldapUserMapping1);
 
     String ldap2 = tempEntity.newLdapServer("LDAP2").getId();
     tempEntity.newLdapConnection(ldap2);
 
-    LdapUserMapping userMapping2 = tempEntity.newLdapUserMapping(ldap2);
-    userMapping2.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    userMapping2.setDynamicGroupSearchEnabled(false);
-    ldapUserMappingDAO.update(userMapping2);
+    LdapUserMapping ldapUserMapping2 = tempEntity.newLdapUserMapping(ldap2);
+    ldapUserMapping2.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping2.setDynamicGroupSearchEnabled(false);
+    ldapUserMappingDAO.update(ldapUserMapping2);
 
     refreshOrOpen(AdministratorsPage.url());
 
@@ -209,8 +209,8 @@ public class AdministratorsTest
         Content.DISABLED_GROUP_SEARCH_WARNING));
 
     // mix servers have group search disabled and disabled
-    userMapping2.setDynamicGroupSearchEnabled(true);
-    ldapUserMappingDAO.update(userMapping2);
+    ldapUserMapping2.setDynamicGroupSearchEnabled(true);
+    ldapUserMappingDAO.update(ldapUserMapping2);
 
     prepareToLeavePage();
     refreshOrOpen(AdministratorsPage.url());
@@ -221,8 +221,8 @@ public class AdministratorsTest
         Content.DISABLED_GROUP_SEARCH_WARNING));
 
     // all servers have group search enabled
-    userMapping1.setDynamicGroupSearchEnabled(true);
-    ldapUserMappingDAO.update(userMapping1);
+    ldapUserMapping1.setDynamicGroupSearchEnabled(true);
+    ldapUserMappingDAO.update(ldapUserMapping1);
 
     prepareToLeavePage();
     refreshOrOpen(AdministratorsPage.url());

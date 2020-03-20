@@ -21,11 +21,11 @@ public class LdapConnectionDAOTest
 {
   private LdapConnectionDAO dao = new LdapConnectionDAO();
 
-  private LdapServer server;
+  private LdapServer ldapServer;
 
   @Before
   public void createTestServer() {
-    server = tempEntity.newLdapServer("testServer");
+    ldapServer = tempEntity.newLdapServer("testServer");
   }
 
   @Test
@@ -43,24 +43,24 @@ public class LdapConnectionDAOTest
 
     // insert
 
-    LdapConnection conn = new LdapConnection();
-    conn.setServerId(server.getId());
-    conn.setProtocol(protocol);
-    conn.setHostname(hostname);
-    conn.setPort(port);
-    conn.setSearchBase(searchBase);
-    conn.setAuthenticationMethod(authenticationMethod);
-    conn.setSaslRealm(saslRealm);
-    conn.setSystemUsername(systemUsername);
-    conn.setSystemPassword(systemPassword);
-    conn.setConnectionTimeout(connectionTimeout);
-    conn.setRetryDelay(retryDelay);
-    assertThat(conn.getId()).isNull(); // sanity check
-    dao.insert(conn);
+    LdapConnection ldapConnection = new LdapConnection();
+    ldapConnection.setServerId(ldapServer.getId());
+    ldapConnection.setProtocol(protocol);
+    ldapConnection.setHostname(hostname);
+    ldapConnection.setPort(port);
+    ldapConnection.setSearchBase(searchBase);
+    ldapConnection.setAuthenticationMethod(authenticationMethod);
+    ldapConnection.setSaslRealm(saslRealm);
+    ldapConnection.setSystemUsername(systemUsername);
+    ldapConnection.setSystemPassword(systemPassword);
+    ldapConnection.setConnectionTimeout(connectionTimeout);
+    ldapConnection.setRetryDelay(retryDelay);
+    assertThat(ldapConnection.getId()).isNull(); // sanity check
+    dao.insert(ldapConnection);
 
     // select by id
 
-    LdapConnection echo = dao.getById(conn.getId());
+    LdapConnection echo = dao.getById(ldapConnection.getId());
     assertThat(echo).isNotNull();
     assertThat(echo.getProtocol()).isEqualTo(protocol);
     assertThat(echo.getHostname()).isEqualTo(hostname);
@@ -76,31 +76,31 @@ public class LdapConnectionDAOTest
     // update
 
     char[] changedPassword = "changed_password".toCharArray();
-    conn.setSystemPassword(changedPassword);
-    dao.update(conn);
-    echo = dao.getById(conn.getId());
+    ldapConnection.setSystemPassword(changedPassword);
+    dao.update(ldapConnection);
+    echo = dao.getById(ldapConnection.getId());
     assertThat(echo.getSystemPassword()).isEqualTo(changedPassword);
 
     // delete
-    dao.delete(conn);
-    assertThat(dao.getById(conn.getId())).isNull();
+    dao.delete(ldapConnection);
+    assertThat(dao.getById(ldapConnection.getId())).isNull();
   }
 
   @Test
   public void testHighPortNumbers() {
-    LdapConnection conn = createLdapConnection();
-    conn.setPort(65535);
-    dao.insert(conn);
-    assertThat(conn.getId()).isNotNull();
+    LdapConnection ldapConnection = createLdapConnection();
+    ldapConnection.setPort(65535);
+    dao.insert(ldapConnection);
+    assertThat(ldapConnection.getId()).isNotNull();
   }
 
   private LdapConnection createLdapConnection() {
-    LdapConnection conn = new LdapConnection();
-    conn.setServerId(server.getId());
-    conn.setHostname("localhost");
-    conn.setPort(389);
-    conn.setProtocol(LdapProtocol.LDAP);
-    conn.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
-    return conn;
+    LdapConnection ldapConnection = new LdapConnection();
+    ldapConnection.setServerId(ldapServer.getId());
+    ldapConnection.setHostname("localhost");
+    ldapConnection.setPort(389);
+    ldapConnection.setProtocol(LdapProtocol.LDAP);
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
+    return ldapConnection;
   }
 }

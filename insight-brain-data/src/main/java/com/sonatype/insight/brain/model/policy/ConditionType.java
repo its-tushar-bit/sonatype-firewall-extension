@@ -64,4 +64,14 @@ public interface ConditionType
    * @since 1.32.0
    */
   String convertIfNeeded(String value);
+
+  /**
+   * @since 1.87
+   */
+  void setEnabled(boolean enabled);
+
+  /**
+   * @since 1.87
+   */
+  boolean isEnabled();
 }

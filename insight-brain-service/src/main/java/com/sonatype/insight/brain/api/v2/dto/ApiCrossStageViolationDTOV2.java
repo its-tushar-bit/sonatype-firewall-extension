@@ -24,6 +24,8 @@ public class ApiCrossStageViolationDTOV2
 
   public String hash;
 
+  public String policyThreatCategory;
+
   public ComponentDisplayName displayName;
 
   // keyed by stageTypeId

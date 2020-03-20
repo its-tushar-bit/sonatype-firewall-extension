@@ -99,6 +99,7 @@ public class ApiCrossStageViolationServiceTest
     assertThat(result.openTime).isEqualTo(baseDate.getTime());
     assertThat(result.fixTime).isNull();
     assertThat(result.hash).isEqualTo(violation1.getHash());
+    assertThat(result.policyThreatCategory).isEqualTo("security");
     assertThat(result.displayName.toString()).isEqualTo("foo : 1.0.0");
     assertThat(result.stageData).hasSize(3);
     assertThat(result.stageData.get(Stage.ID_BUILD)).extracting("mostRecentEvaluationTime", "mostRecentScanId")
@@ -123,7 +124,13 @@ public class ApiCrossStageViolationServiceTest
     violation1.setFixTime(new Date(baseDate.getTime() + 3));
     policyViolationDAO.update(violation1);
 
-    // equivalent, different stage
+    // equivalent, but opened after all relevant violations were closed.  Inserted into db before eval2 to test
+    // that eval2 is still correctly picked up
+    PolicyEvaluation eval6 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_OPERATE, "scan6",
+        new Date(baseDate.getTime() + 6));
+    tempEntity.newPolicyViolation(eval6, policy, componentIdentifier, "1234", "vuln1");
+
+    // equivalent, different stage, opened before violation1 is fixed
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan2",
         new Date(baseDate.getTime() + 2));
     PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, componentIdentifier, "1234", "vuln1");
@@ -146,11 +153,6 @@ public class ApiCrossStageViolationServiceTest
     PolicyEvaluation eval5 = tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_OPERATE, "scan5",
         new Date(baseDate.getTime() + 4));
     tempEntity.newPolicyViolation(eval5, policy, componentIdentifier, "1234", "vuln2");
-
-    // equivalent, but opened after all relevant violations were closed
-    PolicyEvaluation eval6 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_OPERATE, "scan6",
-        new Date(baseDate.getTime() + 6));
-    tempEntity.newPolicyViolation(eval6, policy, componentIdentifier, "1234", "vuln1");
 
     ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationById(violation1.getId());
     assertThat(result.fixTime).isEqualTo(baseDate.getTime() + 5);

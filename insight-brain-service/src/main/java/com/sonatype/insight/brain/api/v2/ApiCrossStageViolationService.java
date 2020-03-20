@@ -74,26 +74,30 @@ public class ApiCrossStageViolationService
     }
 
     Application app = applicationService.getApplicationByIdForRead(baseViolation.getApplicationId());
-
     Organization org = organizationDAO.getById(app.getOrganizationId());
-
-    Collection<PolicyViolation> violationsToMerge = new ArrayList<>();
-    Collection<PolicyEvaluation> evaluationsForViolationsToMerge = new ArrayList<>();
-
     List<PolicyViolation> allViolationsForApp = policyViolationDAO.getByApplicationId(app.getId());
 
     ensureNoEquivalentOpenPriorTo(baseViolation, allViolationsForApp);
 
-    // the latest fix time of any violation in violationsToMerge
+    Collection<PolicyViolation> violationsToMerge = getViolationsToMerge(baseViolation, allViolationsForApp);
+    Collection<PolicyEvaluation> evaluationsForViolationsToMerge = violationsToMerge.stream()
+        .map(this::getLatestEvaluationForViolation)
+        .collect(Collectors.toList());
+
+    return createDto(violationId, app, org, violationsToMerge, evaluationsForViolationsToMerge);
+  }
+
+  private Collection<PolicyViolation> getViolationsToMerge(
+      PolicyViolation baseViolation,
+      List<PolicyViolation> allViolationsForApp)
+  {
     Date overallFixTime = baseViolation.getFixOrWaiveTime();
+    Collection<PolicyViolation> retval = new ArrayList<>();
 
     // Ordered list of violations opened after or simultaneously with baseViolation.
     // Note that this list will include the baseViolation again, so no need to add that to the output separately
-    List<PolicyViolation> allLaterViolations = allViolationsForApp.stream()
-        .flatMap(v ->
-            DATE_COMPARATOR.compare(v.getOpenTime(), baseViolation.getOpenTime()) < 0 ? Stream.empty() : Stream.of(v)
-        )
-        .collect(Collectors.toList());
+    List<PolicyViolation> allLaterViolations =
+        getOrderedListOfViolationsAfter(baseViolation.getOpenTime(), allViolationsForApp);
 
     for (PolicyViolation laterViolation : allLaterViolations) {
       if (overallFixTime != null && DATE_COMPARATOR.compare(overallFixTime, laterViolation.getOpenTime()) < 0) {
@@ -102,8 +106,7 @@ public class ApiCrossStageViolationService
       }
       else if (policyViolationComparator.compare(baseViolation, laterViolation) == 0) {
         // found an equivalent violation with overlapping time span; add it to the lists
-        violationsToMerge.add(laterViolation);
-        evaluationsForViolationsToMerge.add(getLatestEvaluationForViolation(laterViolation));
+        retval.add(laterViolation);
 
         Date laterViolationFixTime = laterViolation.getFixOrWaiveTime();
         if (DATE_COMPARATOR.compare(laterViolationFixTime, overallFixTime) > 0) {
@@ -113,7 +116,14 @@ public class ApiCrossStageViolationService
       // else unrelated violation; ignore
     }
 
-    return createDto(violationId, app, org, violationsToMerge, evaluationsForViolationsToMerge);
+    return retval;
+  }
+
+  private List<PolicyViolation> getOrderedListOfViolationsAfter(Date date, Collection<PolicyViolation> violations) {
+    return violations.stream()
+        .filter(v -> DATE_COMPARATOR.compare(v.getOpenTime(), date) >= 0)
+        .sorted(Comparator.comparing(PolicyViolation::getOpenTime))
+        .collect(Collectors.toList());
   }
 
   private PolicyEvaluation getLatestEvaluationForViolation(PolicyViolation violation) {
@@ -143,6 +153,7 @@ public class ApiCrossStageViolationService
     dto.policyId = firstViolation.getPolicyId();
     dto.policyName = firstViolation.getPolicyName();
     dto.hash = firstViolation.getHash();
+    dto.policyThreatCategory = firstViolation.getThreatCategory().getName();
     dto.displayName = ComponentDisplayNameUtil.fromPolicyViolation(firstViolation);
 
     dto.openTime = policyViolations.stream()

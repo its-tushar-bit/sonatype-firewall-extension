@@ -105,6 +105,7 @@ public class ApiPolicyViolationServiceV2
         apiPolicyViolationDTO.reportUrl = UserInterfaceLinksResource.getReportUrl(application.getPublicId(),
             policyEvaluation.getScanId());
         apiPolicyViolationDTO.stageId = policyEvaluation.getStageTypeId();
+        apiPolicyViolationDTO.reportId = policyEvaluation.getScanId();
         ApplicationComponent applicationComponent = applicationComponentDAO.getByApplicationIdAndStageTypeIdAndHash(
             application.getId(), policyEvaluation.getStageTypeId(), policyViolation.getHash());
         apiPolicyViolationDTO.component = new ApiComponentDTOV2();

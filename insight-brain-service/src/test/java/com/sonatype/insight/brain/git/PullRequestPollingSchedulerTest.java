@@ -42,7 +42,7 @@ public class PullRequestPollingSchedulerTest
     final int delaySeconds = 2;
     final int intervalSeconds = 1;
     PullRequestPollingScheduler scheduler =
-        new PullRequestPollingScheduler(pullRequestPollingService, productLicense, delaySeconds, intervalSeconds, true);
+        new PullRequestPollingScheduler(pullRequestPollingService, productLicense, delaySeconds, intervalSeconds);
     when(productLicense.hasFeature(any())).thenReturn(true);
 
     // when: start scheduler and wait (less than full initial delay)
@@ -94,7 +94,7 @@ public class PullRequestPollingSchedulerTest
     final int delaySeconds = 1;
     final int intervalSeconds = 1;
     PullRequestPollingScheduler scheduler =
-        new PullRequestPollingScheduler(pullRequestPollingService, productLicense, delaySeconds, intervalSeconds, true);
+        new PullRequestPollingScheduler(pullRequestPollingService, productLicense, delaySeconds, intervalSeconds);
     doThrow(new IOException("some IO exception")).when(pullRequestPollingService)
         .fetchAndSendPullRequestsForCommenting();
     when(productLicense.hasFeature(any())).thenReturn(true);

@@ -52,11 +52,11 @@ public class LdapService
 
   public static final char[] FAKE_PASSWORD = "#~FAKE~PASSWORD~#".toCharArray();
 
-  private final LdapServerDAO serverDao = new LdapServerDAO();
+  private final LdapServerDAO ldapServerDAO = new LdapServerDAO();
 
-  private final LdapConnectionDAO connDao = new LdapConnectionDAO();
+  private final LdapConnectionDAO ldapConnectionDAO = new LdapConnectionDAO();
 
-  private final LdapUserMappingDAO userDao = new LdapUserMappingDAO();
+  private final LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
 
   private final PasswordHandler passwordHandler;
 
@@ -67,28 +67,28 @@ public class LdapService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   LdapServer addLdapServer(LdapServer ldapServer) {
-    serverDao.insert(ldapServer);
+    ldapServerDAO.insert(ldapServer);
     auditLdapServer(ldapServer);
     return ldapServer;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   LdapServer updateLdapServer(LdapServer ldapServer) {
-    serverDao.update(ldapServer);
+    ldapServerDAO.update(ldapServer);
     auditLdapServer(ldapServer);
     return ldapServer;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   void deleteLdapServer(String ldapServerId) {
-    LdapServer ldapServer = serverDao.getByIdNotNull(ldapServerId);
-    serverDao.delete(ldapServer);
+    LdapServer ldapServer = ldapServerDAO.getByIdNotNull(ldapServerId);
+    ldapServerDAO.delete(ldapServer);
     auditLdapServer(ldapServer);
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   List<LdapServer> getAllLdapServers() {
-    return serverDao.getAll();
+    return ldapServerDAO.getAll();
   }
 
   /**
@@ -96,12 +96,12 @@ public class LdapService
    */
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public LdapConnection getLdapConnection(String ldapServerId) {
-    LdapConnection conn = connDao.getByServerId(ldapServerId);
-    if (conn == null) {
-      conn = new LdapConnection();
-      conn.setServerId(ldapServerId);
+    LdapConnection ldapConnection = ldapConnectionDAO.getByServerId(ldapServerId);
+    if (ldapConnection == null) {
+      ldapConnection = new LdapConnection();
+      ldapConnection.setServerId(ldapServerId);
     }
-    return fakeOutPassword(conn);
+    return fakeOutPassword(ldapConnection);
   }
 
   /**
@@ -110,10 +110,10 @@ public class LdapService
   public LdapConnection upsertLdapConnection(LdapConnection ldapConnection) {
     LdapConnection encrypted = encryptPassword(ldapConnection);
     if (encrypted.getId() != null) {
-      connDao.update(encrypted);
+      ldapConnectionDAO.update(encrypted);
     }
     else {
-      connDao.insert(encrypted);
+      ldapConnectionDAO.insert(encrypted);
     }
     resetConnectionFailures(ldapConnection);
     return fakeOutPassword(encrypted);
@@ -129,7 +129,7 @@ public class LdapService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   LdapUserMapping getLdapUserMapping(String ldapServerId) {
-    LdapUserMapping ldapUserMapping = userDao.getByServerId(ldapServerId);
+    LdapUserMapping ldapUserMapping = ldapUserMappingDAO.getByServerId(ldapServerId);
     if (ldapUserMapping == null) {
       ldapUserMapping = new LdapUserMapping();
       ldapUserMapping.setServerId(ldapServerId);
@@ -142,10 +142,10 @@ public class LdapService
     validateServerId(ldapServerId, ldapUserMapping);
 
     if (ldapUserMapping.getId() != null) {
-      userDao.update(ldapUserMapping);
+      ldapUserMappingDAO.update(ldapUserMapping);
     }
     else {
-      userDao.insert(ldapUserMapping);
+      ldapUserMappingDAO.insert(ldapUserMapping);
     }
     auditLdapUserMapping(ldapUserMapping);
     return ldapUserMapping;
@@ -268,7 +268,8 @@ public class LdapService
    * Determines if the ldapServer is enabled by checking whether it has LdapConnection and LdapUserMapping setup
    */
   public boolean isLdapEnabled(LdapServer ldapServer) {
-    return connDao.getByServerId(ldapServer.getId()) != null && userDao.getByServerId(ldapServer.getId()) != null;
+    return ldapConnectionDAO.getByServerId(ldapServer.getId()) != null
+        && ldapUserMappingDAO.getByServerId(ldapServer.getId()) != null;
   }
   
   /**
@@ -276,7 +277,7 @@ public class LdapService
    */
   public boolean isGroupSearchEnabled(LdapServer ldapServer) {
     if (isLdapEnabled(ldapServer)) {
-      LdapUserMapping mapping = userDao.getByServerId(ldapServer.getId());
+      LdapUserMapping mapping = ldapUserMappingDAO.getByServerId(ldapServer.getId());
       if (mapping != null && mapping.getGroupMappingType() != LdapGroupMappingType.NONE) {
         return mapping.getGroupMappingType() != LdapGroupMappingType.DYNAMIC || mapping.isDynamicGroupSearchEnabled();
       }
@@ -289,9 +290,9 @@ public class LdapService
    * determine whether it should allow manually adding groups)
    */
   public boolean isDynamicGroupSearchDisabled() {
-    for (final LdapServer ldapServer : serverDao.getAll()) {
+    for (final LdapServer ldapServer : ldapServerDAO.getAll()) {
       if (isLdapEnabled(ldapServer)) {
-        LdapUserMapping mapping = userDao.getByServerId(ldapServer.getId());
+        LdapUserMapping mapping = ldapUserMappingDAO.getByServerId(ldapServer.getId());
         if (mapping.getGroupMappingType() == LdapGroupMappingType.DYNAMIC && !mapping.isDynamicGroupSearchEnabled()) {
           return true;
         }
@@ -300,12 +301,12 @@ public class LdapService
     return false;
   }
 
-  private LdapUserMapping getUserMapping(LdapConnection connection) {
-    LdapUserMapping umap = userDao.getByServerId(connection.getServerId());
-    if (umap == null) {
+  private LdapUserMapping getUserMapping(LdapConnection ldapConnection) {
+    LdapUserMapping ldapUserMapping = ldapUserMappingDAO.getByServerId(ldapConnection.getServerId());
+    if (ldapUserMapping == null) {
       throw new IllegalStateException("LDAP user mapping is not configured");
     }
-    return umap;
+    return ldapUserMapping;
   }
 
   /**
@@ -314,25 +315,25 @@ public class LdapService
    * @see LdapRealm#queryForAuthenticationInfo
    */
   public LdapUser authenticateUser(String username, char[] password) throws NamingException {
-    final List<LdapServer> servers = serverDao.getAll();
+    final List<LdapServer> ldapServers = ldapServerDAO.getAll();
 
     final List<LdapServerExceptionWrapper> ldapServerExceptionWrappers = new ArrayList<>();
 
-    for (final LdapServer server : servers) {
-      final LdapConnection conn = getDecryptedConnection(server);
-      checkValidConnection(conn);
+    for (final LdapServer ldapServer : ldapServers) {
+      final LdapConnection ldapConnection = getDecryptedConnection(ldapServer);
+      checkValidConnection(ldapConnection);
       try {
-        LdapUser user = newLdapQuery(conn).authenticateUser(username, password, true);
-        resetConnectionFailures(conn);
+        LdapUser user = newLdapQuery(ldapConnection).authenticateUser(username, password, true);
+        resetConnectionFailures(ldapConnection);
         return user;
       }
       // NameNotFoundException means unknown user, NamingSecurityException means bad password.
       catch (NameNotFoundException | NamingSecurityException e) {
-        ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(server, e));
+        ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(ldapServer, e));
       }
       catch (NamingException e) {
-        recordConnectionFailure(conn);
-        ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(server, e));
+        recordConnectionFailure(ldapConnection);
+        ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(ldapServer, e));
       }
     }
 
@@ -344,18 +345,18 @@ public class LdapService
    * with 3rd-party SSO frontends that handle authentication and then forward the validated username (and only that).
    */
   public LdapUser getUserByName(String username) throws NamingException {
-    final List<LdapServer> servers = serverDao.getAll();
+    final List<LdapServer> ldapServers = ldapServerDAO.getAll();
     final List<LdapServerExceptionWrapper> ldapServerExceptionWrappers = new ArrayList<>();
 
-    for (final LdapServer server : servers) {
+    for (final LdapServer ldapServer : ldapServers) {
       try {
-        LdapUser ldapUser = getUserByName(server, username);
+        LdapUser ldapUser = getUserByName(ldapServer, username);
         if (ldapUser != null) {
           return ldapUser;
         }
       }
       catch (NamingException e) {
-        ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(server, e));
+        ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(ldapServer, e));
       }
     }
 
@@ -367,87 +368,87 @@ public class LdapService
       return null;
     }
 
-    final LdapConnection conn = getDecryptedConnection(ldapServer);
-    checkValidConnection(conn);
+    final LdapConnection ldapConnection = getDecryptedConnection(ldapServer);
+    checkValidConnection(ldapConnection);
     try {
-      LdapUser user = newLdapQuery(conn).getUser(username, true);
-      resetConnectionFailures(conn);
+      LdapUser user = newLdapQuery(ldapConnection).getUser(username, true);
+      resetConnectionFailures(ldapConnection);
       return user;
     }
     catch (NameNotFoundException e) {
       throw e;
     }
     catch (NamingException e) {
-      recordConnectionFailure(conn);
+      recordConnectionFailure(ldapConnection);
       throw e;
     }
   }
 
-  private LdapQuery newLdapQuery(LdapServer server) {
-    return newLdapQuery(getDecryptedConnection(server));
+  private LdapQuery newLdapQuery(LdapServer ldapServer) {
+    return newLdapQuery(getDecryptedConnection(ldapServer));
   }
 
-  private LdapQuery newLdapQuery(LdapConnection connection) {
-    return newLdapQuery(connection, getUserMapping(connection));
+  private LdapQuery newLdapQuery(LdapConnection ldapConnection) {
+    return newLdapQuery(ldapConnection, getUserMapping(ldapConnection));
   }
 
-  private LdapQuery newLdapQuery(LdapUserMapping userMapping) {
-    LdapServer ldapServer = serverDao.getByIdNotNull(userMapping.getServerId());
-    return newLdapQuery(getDecryptedConnection(ldapServer), userMapping);
+  private LdapQuery newLdapQuery(LdapUserMapping ldapUserMapping) {
+    LdapServer ldapServer = ldapServerDAO.getByIdNotNull(ldapUserMapping.getServerId());
+    return newLdapQuery(getDecryptedConnection(ldapServer), ldapUserMapping);
   }
 
-  private LdapQuery newLdapQuery(LdapConnection connection, LdapUserMapping userMapping) {
-    return new LdapQuery(connection, userMapping);
+  private LdapQuery newLdapQuery(LdapConnection ldapConnection, LdapUserMapping ldapUserMapping) {
+    return new LdapQuery(ldapConnection, ldapUserMapping);
   }
 
   /**
    * Returns the current stored connection details with the password decrypted for the specified LDAP server.
    */
   private LdapConnection getDecryptedConnection(LdapServer ldapServer) {
-    LdapConnection conn = connDao.getByServerId(ldapServer.getId());
-    if (conn == null) {
+    LdapConnection ldapConnection = ldapConnectionDAO.getByServerId(ldapServer.getId());
+    if (ldapConnection == null) {
       throw new IllegalStateException(
           "LDAP connection is not configured for LDAP server " + ldapServer.getName() + ".");
     }
-    conn.setSystemPassword(passwordHandler.decryptPassword(conn.getSystemPassword()));
-    return conn;
+    ldapConnection.setSystemPassword(passwordHandler.decryptPassword(ldapConnection.getSystemPassword()));
+    return ldapConnection;
   }
   
   /**
    * Returns a copy of the given connection for clients with the password faked-out.
    */
-  private static LdapConnection fakeOutPassword(LdapConnection conn) {
-    if (conn.getSystemPassword() != null && conn.getSystemPassword().length > 0) {
-      LdapConnection copy = new LdapConnection(conn);
+  private static LdapConnection fakeOutPassword(LdapConnection ldapConnection) {
+    if (ldapConnection.getSystemPassword() != null && ldapConnection.getSystemPassword().length > 0) {
+      LdapConnection copy = new LdapConnection(ldapConnection);
       copy.setSystemPassword(FAKE_PASSWORD);
       return copy;
     }
-    return conn;
+    return ldapConnection;
   }
 
   /**
    * Returns a copy of the given connection for testing with the real password restored.
    */
-  private LdapConnection restorePassword(LdapConnection conn) {
-    if (Arrays.equals(FAKE_PASSWORD, conn.getSystemPassword())) {
-      LdapConnection copy = new LdapConnection(conn);
-      char[] encryptedPassword = connDao.getByIdNotNull(conn.getId()).getSystemPassword();
+  private LdapConnection restorePassword(LdapConnection ldapConnection) {
+    if (Arrays.equals(FAKE_PASSWORD, ldapConnection.getSystemPassword())) {
+      LdapConnection copy = new LdapConnection(ldapConnection);
+      char[] encryptedPassword = ldapConnectionDAO.getByIdNotNull(ldapConnection.getId()).getSystemPassword();
       copy.setSystemPassword(passwordHandler.decryptPassword(encryptedPassword));
       return copy;
     }
-    return conn;
+    return ldapConnection;
   }
 
   /**
    * Returns a copy of the given connection for storage with the password encrypted.
    */
-  private LdapConnection encryptPassword(LdapConnection conn) {
-    LdapConnection copy = new LdapConnection(conn);
-    if (Arrays.equals(FAKE_PASSWORD, conn.getSystemPassword())) {
-      copy.setSystemPassword(connDao.getByIdNotNull(conn.getId()).getSystemPassword());
+  private LdapConnection encryptPassword(LdapConnection ldapConnection) {
+    LdapConnection copy = new LdapConnection(ldapConnection);
+    if (Arrays.equals(FAKE_PASSWORD, ldapConnection.getSystemPassword())) {
+      copy.setSystemPassword(ldapConnectionDAO.getByIdNotNull(ldapConnection.getId()).getSystemPassword());
     }
     else {
-      copy.setSystemPassword(passwordHandler.encryptPassword(conn.getSystemPassword()));
+      copy.setSystemPassword(passwordHandler.encryptPassword(ldapConnection.getSystemPassword()));
     }
     return copy;
   }
@@ -466,12 +467,12 @@ public class LdapService
   /**
    * Checks failure rate of LDAP connection; throws exception while retry delay is in effect.
    */
-  private void checkValidConnection(LdapConnection conn) throws NamingException {
-    final FailureInfo failureInfo = failureInfoMap.get(conn.getId());
+  private void checkValidConnection(LdapConnection ldapConnection) throws NamingException {
+    final FailureInfo failureInfo = failureInfoMap.get(ldapConnection.getId());
     if (failureInfo != null) {
       if (failureInfo.lastFailureMillis > 0) {
-        if (failureInfo.lastFailureMillis + (conn.getRetryDelay() * 1000) < System.currentTimeMillis()) {
-          resetConnectionFailures(conn); // retry delay has elapsed
+        if (failureInfo.lastFailureMillis + (ldapConnection.getRetryDelay() * 1000) < System.currentTimeMillis()) {
+          resetConnectionFailures(ldapConnection); // retry delay has elapsed
         }
         else if (failureInfo.connectionFailures >= 3) {
           throw new CommunicationException("Delaying retry of failing LDAP connection.");
@@ -480,16 +481,16 @@ public class LdapService
     }
   }
 
-  private synchronized void recordConnectionFailure(final LdapConnection conn) {
-    final String connId = conn.getId();
+  private synchronized void recordConnectionFailure(final LdapConnection ldapConnection) {
+    final String connId = ldapConnection.getId();
     failureInfoMap.putIfAbsent(connId, new FailureInfo());
     final FailureInfo failureInfo = failureInfoMap.get(connId);
     failureInfo.lastFailureMillis = System.currentTimeMillis();
     failureInfo.connectionFailures++;
   }
 
-  private void resetConnectionFailures(final LdapConnection conn) {
-    final String connId = conn.getId();
+  private void resetConnectionFailures(final LdapConnection ldapConnection) {
+    final String connId = ldapConnection.getId();
     if (connId != null) {
       failureInfoMap.remove(connId);
     }
@@ -506,7 +507,7 @@ public class LdapService
   }
 
   private void auditLdapConnection(LdapConnection ldapConnection) {
-    auditLdapServer(serverDao.getByIdNotNull(ldapConnection.getServerId()));
+    auditLdapServer(ldapServerDAO.getByIdNotNull(ldapConnection.getServerId()));
     AuditData.get().setData("ldapProtocol", ldapConnection.getProtocol().getProtocol()) //
         .setData("ldapHostname", ldapConnection.getHostname()) //
         .setData("ldapPort", ldapConnection.getPort()) //
@@ -520,7 +521,7 @@ public class LdapService
   }
 
   private void auditLdapUserMapping(LdapUserMapping ldapUserMapping) {
-    auditLdapServer(serverDao.getByIdNotNull(ldapUserMapping.getServerId()));
+    auditLdapServer(ldapServerDAO.getByIdNotNull(ldapUserMapping.getServerId()));
     AuditData.get().setData("ldapUserBaseDn", ldapUserMapping.getUserBaseDN())
         .setData("ldapUserSubtree", ldapUserMapping.isUserSubtree() ? "enabled" : "disabled")
         .setData("ldapUserObjectClass", ldapUserMapping.getUserObjectClass())
@@ -547,8 +548,9 @@ public class LdapService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   void updatePriority(List<String> ldapServerIds) {
     List<LdapServerDTO> ldapServerList = ldapServerIds.stream()
-        .map(ldapServerId -> new LdapServerDTO(serverDao.getByIdNotNull(ldapServerId))).collect(Collectors.toList());
-    serverDao.updatePriority(ldapServerIds);
+        .map(ldapServerId -> new LdapServerDTO(ldapServerDAO.getByIdNotNull(ldapServerId)))
+        .collect(Collectors.toList());
+    ldapServerDAO.updatePriority(ldapServerIds);
     AuditData.get().setData("ldapServerOrder", ldapServerList);
   }
 }

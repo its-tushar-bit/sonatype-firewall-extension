@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.product.license;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -28,10 +29,10 @@ public class LicensedConditionTypesListenerTest
   public void test_HygieneConditionType() {
     testProductLicense.setFeatures(LicensedFeature.HYGIENE);
     licensedConditionTypesListener.productLicenseChanged();
-    assertThat(ConditionTypes.getAll()).contains(ConditionTypes.HygieneRatingConditionType);
+    assertThat(ConditionTypes.getById(HygieneRatingConditionType.ID).isEnabled()).isTrue();
 
     testProductLicense.setMissingFeatures(LicensedFeature.HYGIENE);
     licensedConditionTypesListener.productLicenseChanged();
-    assertThat(ConditionTypes.getAll()).doesNotContain(ConditionTypes.HygieneRatingConditionType);
+    assertThat(ConditionTypes.getById(HygieneRatingConditionType.ID).isEnabled()).isFalse();
   }
 }

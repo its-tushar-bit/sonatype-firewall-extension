@@ -11,6 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -76,6 +78,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
@@ -146,6 +149,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.utils.ThreatLevel;
@@ -286,6 +290,8 @@ public class TemporaryEntity
 
   private final ThirdPartyFileDAO thirdPartyFileDAO = new ThirdPartyFileDAO();
 
+  private final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO = new ThirdPartyVulnerabilityDAO();
+
   private final UserTokenDAO userTokenDAO = new UserTokenDAO();
 
   private MailConfigurationDAO mailConfigurationDAO = new MailConfigurationDAO();
@@ -351,6 +357,8 @@ public class TemporaryEntity
 
   private Collection<ThirdPartyFile> thirdPartyFileConfigurations;
 
+  private Collection<ThirdPartyVulnerability> thirdPartyVulnerabilities;
+
   private Collection<UserToken> userTokens;
 
   private Collection<ComponentLabel> componentLabels;
@@ -387,6 +395,7 @@ public class TemporaryEntity
     systemConfigurationProperties = new ArrayList<>();
     samlConfigurations = new ArrayList<>();
     thirdPartyFileConfigurations = new ArrayList<>();
+    thirdPartyVulnerabilities = new ArrayList<>();
     userTokens = new ArrayList<>();
     componentLabels = new ArrayList<>();
     savedMailConfiguration = mailConfigurationDAO.get();
@@ -437,6 +446,7 @@ public class TemporaryEntity
     delete(samlConfigurations, entity -> samlConfigurationDAO.getById(entity.getId()),
         samlConfiguration -> samlConfigurationDAO.delete());
     delete(thirdPartyFileConfigurations, thirdPartyFileDAO);
+    delete(thirdPartyVulnerabilities, thirdPartyVulnerabilityDAO);
     delete(componentLabels, componentLabelDAO);
     delete(sourceControlDefaultBranchCommitHistories, sourceControlDefaultBranchCommitHistoryDAO);
 
@@ -957,22 +967,22 @@ public class TemporaryEntity
   }
 
   public LdapUserMapping newLdapUserMapping(String ldapServerId) {
-    LdapUserMapping umap = new LdapUserMapping();
-    umap.setServerId(ldapServerId);
-    umap.setUserBaseDN("ou=users");
-    umap.setUserObjectClass("person");
-    umap.setUserIDAttribute("uid");
-    umap.setUserRealNameAttribute("givenName");
-    umap.setUserEmailAttribute("mail");
-    umap.setUserSubtree(true);
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    umap.setGroupBaseDN("ou=groups");
-    umap.setGroupIDAttribute("cn");
-    umap.setGroupSubtree(true);
-    umap.setGroupObjectClass("groupOfNames");
-    umap.setGroupMemberAttribute("member");
-    umap.setGroupMemberFormat("uid=${username}");
-    return newLdapUserMapping(umap);
+    LdapUserMapping ldapUserMapping = new LdapUserMapping();
+    ldapUserMapping.setServerId(ldapServerId);
+    ldapUserMapping.setUserBaseDN("ou=users");
+    ldapUserMapping.setUserObjectClass("person");
+    ldapUserMapping.setUserIDAttribute("uid");
+    ldapUserMapping.setUserRealNameAttribute("givenName");
+    ldapUserMapping.setUserEmailAttribute("mail");
+    ldapUserMapping.setUserSubtree(true);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupBaseDN("ou=groups");
+    ldapUserMapping.setGroupIDAttribute("cn");
+    ldapUserMapping.setGroupSubtree(true);
+    ldapUserMapping.setGroupObjectClass("groupOfNames");
+    ldapUserMapping.setGroupMemberAttribute("member");
+    ldapUserMapping.setGroupMemberFormat("uid=${username}");
+    return newLdapUserMapping(ldapUserMapping);
   }
 
   public LdapUserMapping newLdapUserMapping(LdapUserMapping ldapUserMapping) {
@@ -2419,5 +2429,19 @@ public class TemporaryEntity
     sourceControlDefaultBranchCommitHistoryDAO.insert(sourceControlDefaultBranchCommitHistory);
     sourceControlDefaultBranchCommitHistories.add(sourceControlDefaultBranchCommitHistory);
     return sourceControlDefaultBranchCommitHistory;
+  }
+
+  public ThirdPartyVulnerability newThirdPartyVulnerability(String referenceId, float severity, String source) {
+    ThirdPartyVulnerability vulnerability = new ThirdPartyVulnerability();
+    vulnerability.setRefId(referenceId);
+    vulnerability.setDescription(referenceId + " description");
+    vulnerability.setSeverity(severity);
+    vulnerability.setLink("https://security-tracker.debian.org/tracker/" + referenceId);
+    vulnerability.setVulnerabilitySource(source);
+    vulnerability.setAttackVector(referenceId + " vector");
+    vulnerability.setUpdateTime(Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
+    thirdPartyVulnerabilityDAO.insert(vulnerability);
+    thirdPartyVulnerabilities.add(vulnerability);
+    return vulnerability;
   }
 }

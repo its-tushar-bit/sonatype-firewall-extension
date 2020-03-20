@@ -129,17 +129,16 @@ public class UserDirectoryTest
     testLdapServer1.start();
 
     LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    LdapConnection conn = tempEntity.newLdapConnection(ldapServer.getId(), testLdapServer1.getPort());
-    LdapUserMapping umap = tempEntity.newLdapUserMapping(ldapServer.getId());
+    LdapConnection ldapConnection = tempEntity.newLdapConnection(ldapServer.getId(), testLdapServer1.getPort());
+    LdapUserMapping ldapUserMapping = tempEntity.newLdapUserMapping(ldapServer.getId());
 
-    conn.setSearchBase("dc=company,dc=com");
-    ldapService.upsertLdapConnection(conn);
+    ldapConnection.setSearchBase("dc=company,dc=com");
+    ldapService.upsertLdapConnection(ldapConnection);
 
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    umap.setDynamicGroupSearchEnabled(false);
-    umap.setUserMemberOfGroupAttribute("departmentNumber");
-    userMappingDAO.update(umap);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setDynamicGroupSearchEnabled(false);
+    ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
+    new LdapUserMappingDAO().update(ldapUserMapping);
     
     assertThat(ldapService.isGroupSearchEnabled(ldapServer)).isFalse();
 

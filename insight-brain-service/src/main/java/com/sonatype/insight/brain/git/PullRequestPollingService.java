@@ -185,28 +185,41 @@ public class PullRequestPollingService
       if (canPoll(gitRepositoryInfo)) {
         GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
         ProjectUri projectUri = gitApiClient.getProjectUri();
+        String org = projectUri.getNamespace();
+        String token = gitRepositoryInfo.token;
 
-        if (!pollingTracker.visitAndCheckOrganizationWithToken(projectUri.getNamespace(), gitRepositoryInfo.token)) {
+        Date currentCutoffTime = pollingTracker.getCachedCutoffTime(org, gitRepositoryInfo.token,
+            sourceControl.getPullRequestPollTime());
+
+        if (pollingTracker.visitAndCheckOrganizationWithToken(org, token)) {
+          // we've already used this org and token and any results for the given repo would have already come back;
+          // so, we just need to advance the polling times for this repo
+          pollingTracker.onPullRequestProcessed(sourceControl.getId(), org, token, currentCutoffTime);
+        }
+        else {
           try {
             GitGraphQlApiClient graphqlApiClient = gitClientFactory.createGraphqlApiClient(gitRepositoryInfo);
 
+            Date now = new Date();
+
             List<PullRequest> pullRequestsForOrg = graphqlApiClient.getPullRequestsSince(
-                projectUri.getNamespace(),
-                sourceControl.getPullRequestCutoffTime().toInstant().atOffset(ZoneOffset.UTC),
+                org,
+                currentCutoffTime.toInstant().atOffset(ZoneOffset.UTC),
                 PULL_REQUESTS_PER_MONITOR_CYCLE);
 
             pullRequests.addAll(pullRequestsForOrg);
 
             if (pullRequestsForOrg.isEmpty()) {
-              pollingTracker.onPullRequestProcessed(sourceControl.getId(), new Date());
+              pollingTracker.onPullRequestProcessed(sourceControl.getId(), org, token, now);
             }
             else {
-              Date maxDate = pullRequestsForOrg.stream().map(PullRequest::getCreated).max(Date::compareTo).get();
-              pollingTracker.onPullRequestProcessed(sourceControl.getId(), maxDate);
+              currentCutoffTime = pullRequestsForOrg.stream().map(PullRequest::getCreated).max(Date::compareTo).get();
+              pollingTracker.onPullRequestProcessed(sourceControl.getId(), org, token, currentCutoffTime);
             }
 
             apiCallCount++;
-            log.debug("Fetched {} pull request(s) for org '{}'", pullRequests.size(), projectUri.getNamespace());
+            log.debug("Fetched {} pull request(s) for org '{}' since {}", pullRequests.size(),
+                projectUri.getNamespace(), currentCutoffTime);
           }
           catch (Exception e) {
             String retryDelay = pollingTracker.onErrorProcessingPullRequests(sourceControl.getId());

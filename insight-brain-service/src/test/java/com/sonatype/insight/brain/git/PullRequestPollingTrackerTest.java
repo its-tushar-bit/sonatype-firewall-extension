@@ -77,7 +77,6 @@ public class PullRequestPollingTrackerTest
     Date oldPollDate = new Date(currentTimeMillis() - 30_000);
     SourceControl sourceControl = createSourceControl("sc1");
     sourceControl.setPullRequestPollTime(oldPollDate);
-    sourceControl.setPullRequestCutoffTime(oldPollDate);
     sourceControl.setPullRequestErrorCount(5);
     doReturn(ImmutableList.of(sourceControl)).when(sourceControlDAO).getByRepositoryOwnerAndName("org/yes");
     doReturn(null).when(sourceControlDAO).getByRepositoryOwnerAndName("org/no");
@@ -101,7 +100,6 @@ public class PullRequestPollingTrackerTest
     assertThat(updated).isTrue();
     verify(sourceControlDAO, times(1)).update(sourceControl);
     assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(prCreated);
-    assertThat(sourceControl.getPullRequestCutoffTime()).isEqualTo(prCreated);
     assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(0);
   }
 
@@ -115,13 +113,17 @@ public class PullRequestPollingTrackerTest
     doReturn(sourceControl).when(sourceControlDAO).getById(sourceControlId);
 
     // when: update poll times called
-    pollingTracker.onPullRequestProcessed(sourceControlId, date);
+    pollingTracker.onPullRequestProcessed(sourceControlId, "org", "token", date);
 
     // then: verify dates and error count
     verify(sourceControlDAO, times(1)).update(sourceControl);
     assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(date);
-    assertThat(sourceControl.getPullRequestCutoffTime()).isEqualTo(date);
     assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(0);
+
+    // and: cutoff time is correct
+    Date cutoff = new Date(System.currentTimeMillis() - (1000 * 60 * 60 * 24));
+    assertThat(pollingTracker.getCachedCutoffTime("org", "token", cutoff)).isAfter(cutoff);
+    assertThat(pollingTracker.getCachedCutoffTime("org2", "token2", cutoff)).isEqualTo(cutoff);
   }
 
   @Test
@@ -141,7 +143,6 @@ public class PullRequestPollingTrackerTest
     // then: verify poll dates set correctly as well as error count
     verify(sourceControlDAO, times(1)).update(sourceControl);
     assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(date);
-    assertThat(sourceControl.getPullRequestCutoffTime()).isEqualTo(date);
     assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(0);
   }
 
@@ -155,7 +156,6 @@ public class PullRequestPollingTrackerTest
     String sourceControlId = "scError";
     SourceControl sourceControl = createSourceControl(sourceControlId);
     sourceControl.setPullRequestErrorCount(0);
-    sourceControl.setPullRequestCutoffTime(cutoffTime);
     sourceControl.setPullRequestPollTime(cutoffTime);
     doReturn(sourceControl).when(sourceControlDAO).getById(sourceControlId);
 
@@ -170,7 +170,6 @@ public class PullRequestPollingTrackerTest
       Date maxPollTime = new Date(exactOffset + 100);
       assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(i + 1);
       assertThat(offsetMessage).isEqualTo(expectedErrorOffsetText.get(i));
-      assertThat(sourceControl.getPullRequestCutoffTime()).isEqualTo(cutoffTime);
       assertThat(sourceControl.getPullRequestPollTime()).isAfter(minPollTime);
       assertThat(sourceControl.getPullRequestPollTime()).isBefore(maxPollTime);
       verify(sourceControlDAO, times(i + 1)).update(sourceControl);

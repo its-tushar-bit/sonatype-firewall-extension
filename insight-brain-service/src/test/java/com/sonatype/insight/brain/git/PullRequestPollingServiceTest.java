@@ -77,6 +77,27 @@ public class PullRequestPollingServiceTest
   }
 
   @Test
+  public void testFetchAndSendPullRequestsForCommenting_noSourcePolicyEvals() throws IOException {
+    // given: missing source policy eval
+    Date pullRequestCreateDate = new Date(System.currentTimeMillis() - 1000);
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("app1", "org/repo", SourceControlProvider.GITHUB)
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch")
+        .build();
+
+    // when: fetch and send
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: event emitted
+    verify(mockAsyncEventBus, never()).post(any());
+    assertThatLogMessagesEqual(
+        debug("Fetched 1 pull request(s) for org 'org' since " + pullRequestCreateDate),
+        debug("Policy evaluation not yet available for 'org/repo' pull request '10'"),
+        debug("Pull request polling time updated for 'org/repo'")
+    );
+  }
+
+  @Test
   public void testFetchAndSendPullRequestsForCommenting_pullRequestIsForBaseBranch() throws IOException {
     // given: necessary ingredients to emit a discovered pull request event
     Date pullRequestCreateDate = new Date(System.currentTimeMillis() - 1000);
@@ -92,7 +113,7 @@ public class PullRequestPollingServiceTest
     // then: event emitted
     verify(mockAsyncEventBus, never()).post(any());
     assertThatLogMessagesEqual(
-        debug("Fetched 1 pull request(s) for org 'org'"),
+        debug("Fetched 1 pull request(s) for org 'org' since " + pullRequestCreateDate),
         debug("application 'app1' pull request '10' is for the base branch, skipping commenting for this PR"),
         debug("Pull request polling time updated for 'org/repo'")
     );
@@ -114,7 +135,7 @@ public class PullRequestPollingServiceTest
     // then: event emitted
     verify(mockAsyncEventBus, times(1)).post(any());
     assertThatLogMessagesEqual(
-        debug("Fetched 1 pull request(s) for org 'org'"),
+        debug("Fetched 1 pull request(s) for org 'org' since " + pullRequestCreateDate),
         info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
         debug("Pull request polling time updated for 'org/repo'")
     );
@@ -154,7 +175,7 @@ public class PullRequestPollingServiceTest
     // then: no events emitted
     verify(mockAsyncEventBus, never()).post(any());
     assertThatLogMessagesEqual(
-        debug("Fetched 1 pull request(s) for org 'org'"),
+        debug("Fetched 1 pull request(s) for org 'org' since " + pullRequestCreateDate),
         debug("Repository is not private: https://domain.com/org/repo"),
         debug("Pull request polling time updated for 'org/repo'")
     );

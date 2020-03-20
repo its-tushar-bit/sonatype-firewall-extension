@@ -415,8 +415,6 @@ public class ApiSourceControlServiceTest
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(app.getId());
     final Date pollTime = new Date(System.currentTimeMillis() - 5_000);
     sourceControl.setPullRequestPollTime(pollTime);
-    final Date cutoffTime = new Date(System.currentTimeMillis() - 10_000);
-    sourceControl.setPullRequestCutoffTime(cutoffTime);
     final int errorCount = 2;
     sourceControl.setPullRequestErrorCount(errorCount);
     sourceControlDAO.update(sourceControl);
@@ -433,7 +431,6 @@ public class ApiSourceControlServiceTest
 
     assertThat(updatedControlDTO).isNotNull();
     assertThat(sourceControlAfterUpdate.getPullRequestPollTime()).isEqualTo(pollTime);
-    assertThat(sourceControlAfterUpdate.getPullRequestCutoffTime()).isEqualTo(cutoffTime);
     assertThat(sourceControlAfterUpdate.getPullRequestErrorCount()).isEqualTo(errorCount);
   }
 

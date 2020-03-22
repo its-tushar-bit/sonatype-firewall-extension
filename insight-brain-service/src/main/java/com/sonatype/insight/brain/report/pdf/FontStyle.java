@@ -36,8 +36,16 @@ public class FontStyle
     return fontColor;
   }
 
+  public float getFontAscent() {
+    return font.getFontDescriptor().getAscent() / 1000 * fontSize;
+  }
+
+  public float getFontDescent() {
+    return -1 * font.getFontDescriptor().getDescent() / 1000 * fontSize;
+  }
+
   public float getFontHeight() {
-    return font.getFontDescriptor().getCapHeight() / 1000 * fontSize;
+    return getFontAscent() + getFontDescent();
   }
 
   public float getStringWidth(String string) throws IOException {

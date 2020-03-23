@@ -7,9 +7,30 @@
 -->
 # Nexus IQ Server #
 
-The on-premises server that customers run to evaluate policy against applications and review the results.
+## Contents ##
 
-See https://docs.sonatype.com/display/INSIGHT/Insight+Brain for more information.
+* [ About Nexus IQ Server ](#about-nexus-iq-server)
+* [ Related Projects ](#related-projects)
+* [ Contributing ](#contributing)
+* [ Working with `insight-brain` ](#working-with-insight-brain)
+    * [ Requirements ](#requirements)
+    * [ Building ](#building)
+    * [ Deployment ](#deployment)
+    * [ Running Tests ](#running-tests)
+
+## About Nexus IQ Server ##
+
+**Nexus IQ Server** is the on-premises server that customers run to evaluate their applications against a set of policies and review the results. It is part of the [**Nexus Lifecycle**](https://www.sonatype.com/product-nexus-lifecycle) product umbrella (historically, this product umbrella was previously known as **Component Lifecycle Management (CLM)**).
+
+`insight-brain` contains the server, front-end, and component scanner for Nexus IQ Server. It **scans** projects (i.e. it generates hashes that represent components in an application - see also: [`insight-scanner`](https://github.com/sonatype/insight-scanner)), and evaluates known component vulnerabilities and component license information against user-configured **policies**. It then uses these data to generate an **application scan report**.
+
+## Related Projects ##
+
+* In order to evaluate components against policies, IQ Server must access vulnerability and license data for each component. It requests identity, vulnerability, and license information for these components (represented as hashes) from [`hosted-data-services`](https://github.com/sonatype/hosted-data-services), also known as "HDS".
+* Some data objects are shared by both `insight-brain` and `hosted-data-services`. These data objects are defined in [`insight-dto-model`](https://github.com/sonatype/insight-dto-model).
+* [`insight-scanner`](https://github.com/sonatype/insight-scanner) is the source of the scanner code. `insight-brain` is one consumer of the scanner library.
+* [`nexus-vulnerability-scanner`](https://github.com/sonatype/nexus-vulnerability-scanner) is essentially a "free sample" of IQ Server functionality; we offer it [on our marketing website](https://www.sonatype.com/appscan) as a way to demonstrate the information contained on an application scan report.
+* The front-end of IQ Server consumes [`react-shared-components`](https://github.com/sonatype/react-shared-components), a component library built in React that is shared across various Sonatype projects.
 
 # Contributing #
 
@@ -25,14 +46,41 @@ This week's rotating reviewers are:
 * [@Koray Tugay](https://github.com/koraytugay)
 * [@Guillermo Varela](https://github.com/guillermo-varela)
 <!-- rotating-reviewers-end -->
-# Building #
 
-Standard Maven build, i.e. `mvn clean install`.
+# Working with insight-brain #
 
-Be sure to have both Maven and npm set up to use repository.sonatype.org.  See
-https://docs.sonatype.com/display/CDI/Setting+up+npm+to+use+repository.sonatype.org for npm instructions
+## Requirements ##
 
-## Functional Tests ##
+This project requires the following local installs:
+1. Java 8
+2. Maven 3.3.9 (note: newer versions may not work)
+
+Be sure to configure both Maven and npm to use RSO (https://repository.sonatype.org) as the source for packages. You will need to use your own personal user credentials for RSO (instructions for how to do this are included in the following Maven RSO instructions):
+
+* [**Maven** instructions](https://docs.sonatype.com/display/INSIGHT/Development+environment#Developmentenvironment-Maven)
+* [**npm** instructions](https://docs.sonatype.com/display/CDI/Setting+up+npm+to+use+repository.sonatype.org)
+
+## Building ##
+
+For a full build, including all tests (WARNING: this takes a long time!):
+
+`mvn clean install`
+
+If you just want to build the project in order to get up and running quickly, you can skip all tests and JS obfuscation as follows (run from the root dir):
+
+`mvn clean install -DskipTests -Dskip-obfuscate`
+
+### Building for front-end development ###
+
+The front-end build is included in the main Maven build, and it is also compiled into the backend server in a [typical deployment](#deployment). That being said, if you are doing front-end development, you will also want to be familiar with how to build and deploy the front-end assets separately. See [`insight-brain-frontend/README.md`](insight-brain-frontend/README.md) for details.
+
+## Deployment ##
+
+The server is deployed from the `insight-brain-service` directory - see the [`README`](insight-brain-service/README.md) there for details.
+
+## Running Tests ##
+
+**Prerequisite**: some tests use Docker to connect to an external service (e.g. a PostgreSQL database). To run all tests successfully, you will need to [install Docker Engine](https://docs.docker.com/install/). Alternatively, you can skip the Docker tests by setting the property `docker.optional` to `true` in your Maven `settings.xml`.
 
 Add `-D skip-functional-test` to the `mvn` invocation to skip just the expensive functional tests but still run other
 unit/integration tests.
@@ -46,7 +94,3 @@ specified number of milliseconds on the server. This mode can help to expose bad
 about timing of (asynchronous) operations. A delay of 500 ms doesn't delay tests too much that timeouts occur and is
 typically sufficient to trigger errors where tests are badly coded and fail to wait on page changes. PhantomJS is known
 to not support this slow motion mode properly so other browsers should be used.
-
-## Connecting to a different HDS #
-
-There is development option to connect to a different HDS.  Use the config `hdsUrl` and point to the desired location.

@@ -55,7 +55,7 @@ public class ApiAdvancedSearchResource
   public SearchResultDTO searchIndex(
       @QueryParam("search") String searchQuery,
       @DefaultValue("10") @QueryParam("pageSize") int pageSize,
-      @DefaultValue("1") @QueryParam("page") int page) throws IOException
+      @QueryParam("page") int page) throws IOException
   {
     return searchService.searchIndex(searchQuery, pageSize, page);
   }

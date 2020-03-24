@@ -81,6 +81,12 @@ public class SearchService
   }
 
   public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page) throws IOException {
+    if (page == 0) {
+      // when actually paging through the results, a positive page index is used
+      // 0 denotes first page of new search
+      page = 1;
+    }
+
     AuditData.get() //
         .setData("searchQuery", searchQuery) //
         .setData("searchPageSize", pageSize) //

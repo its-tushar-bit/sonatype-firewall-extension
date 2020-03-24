@@ -23,7 +23,7 @@ function SearchBarController(searchService, searchSuggesterService, $state, Mess
       vm.error = undefined;
       searchService.query = vm.query;
       searchService.pageSize = 10;
-      searchService.page = 1;
+      searchService.page = null; // no page index to signal new search
       return searchService.search().then(function(response) {
         searchService.results = response.data.groupingByDTOS;
         searchService.totalNumberOfHits = response.data.totalNumberOfHits;

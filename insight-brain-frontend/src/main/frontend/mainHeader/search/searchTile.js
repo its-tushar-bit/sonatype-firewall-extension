@@ -40,17 +40,17 @@ function SearchTileController(searchService, $q, $state, Messages, systemConfigu
           searchService.totalNumberOfHits <= vm.page * searchService.pageSize) {
         return;
       }
-      searchService.page++;
-      vm.page = searchService.page;
+      vm.page++;
+      searchService.page = vm.page;
       vm.search();
     },
 
     previous() {
-      if (!searchService.page || searchService.page === 1) {
+      if (vm.page <= 1) {
         return;
       }
-      searchService.page--;
-      vm.page = searchService.page;
+      vm.page--;
+      searchService.page = vm.page;
       vm.search();
     },
 

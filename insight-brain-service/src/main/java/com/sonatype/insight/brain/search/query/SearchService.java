@@ -89,10 +89,12 @@ public class SearchService
   }
 
   public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page) throws IOException {
+    boolean initialSearch = false;
     if (page == 0) {
       // when actually paging through the results, a positive page index is used
       // 0 denotes first page of new search
       page = 1;
+      initialSearch = true;
     }
 
     AuditData.get() //
@@ -115,9 +117,9 @@ public class SearchService
       Set<String> fieldNames = getFieldNames(query);
       Set<String> invalidFieldNames = new TreeSet<>();
 
-      // We only add telemetry when in the first page of results in order to
+      // We only add telemetry for the initial search request in order to
       // avoid adding the same data when the user navigates search results.
-      if (page == 1) {
+      if (initialSearch) {
         advancedSearchTelemetryMetrics.addSearch(fieldNames);
       }
 

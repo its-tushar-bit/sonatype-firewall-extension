@@ -59,8 +59,8 @@ public class SearchServiceTest
   @Test
   public void testSearchIndex_Telemetry() throws Exception {
     indexService.createSearchIndex();
-    searchService.searchIndex("organizationName:org1 itemType:it2", 1, 1);
-    searchService.searchIndex("itemType:it1", 1, 1);
+    searchService.searchIndex("organizationName:org1 itemType:it2", 1, 0);
+    searchService.searchIndex("itemType:it1", 1, 0);
     TelemetryData telemetryData = advancedSearchTelemetryCollector.collectData();
 
     @SuppressWarnings("unchecked")
@@ -76,9 +76,9 @@ public class SearchServiceTest
   }
 
   @Test
-  public void testSearchIndex_TelemetryOnlyAddedForFirstPageOfResults() throws Exception {
+  public void testSearchIndex_TelemetryNotAddedWhenPagingThroughResults() throws Exception {
     indexService.createSearchIndex();
-    searchService.searchIndex("itemType:it1", 10, 2);
+    searchService.searchIndex("itemType:it1", 10, 1);
     TelemetryData telemetryData = advancedSearchTelemetryCollector.collectData();
 
     assertThat(telemetryData).isNull();
@@ -89,7 +89,7 @@ public class SearchServiceTest
     indexService.createSearchIndex();
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      searchService.searchIndex("invalidFieldName:value", 1, 1);
+      searchService.searchIndex("invalidFieldName:value", 1, 0);
     });
 
     TelemetryData telemetryData = advancedSearchTelemetryCollector.collectData();
@@ -109,7 +109,7 @@ public class SearchServiceTest
   @Test
   public void testSearchIndex_TelemetryDuplicateFieldNamesInQueryAreIgnored() throws Exception {
     indexService.createSearchIndex();
-    searchService.searchIndex("itemType:it1 itemType:it2", 1, 1);
+    searchService.searchIndex("itemType:it1 itemType:it2", 1, 0);
     TelemetryData telemetryData = advancedSearchTelemetryCollector.collectData();
 
     @SuppressWarnings("unchecked")

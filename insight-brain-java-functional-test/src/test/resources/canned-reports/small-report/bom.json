@@ -115,5 +115,80 @@
     "lastModifiedTime" : 1539139670000,
     "lastModifiedEntryTime" : 1539139634000,
     "website" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tiles-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tiles",
+        "version" : "2.2.2"
+      }
+    },
+    "groupId" : "org.apache.tiles",
+    "artifactId" : "tiles-core",
+    "version" : "2.2.2",
+    "filenames" : [ "tiles-core-2.2.2.jar" ],
+    "pathnames" : [ "full.jar/WebGoat-6.0.1/WEB-INF/lib/tiles-core-2.2.2.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : true,
+    "hash" : "01db730fbe26c148e3d0",
+    "relativePopularity" : 0.84,
+    "createTime" : 1276613337000,
+    "lastModifiedTime" : 1413088398000,
+    "lastModifiedEntryTime" : 1276595330000,
+    "website" : "http://tiles.apache.org/framework/tiles-core/"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "aopalliance",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "aopalliance",
+        "version" : "1.0"
+      }
+    },
+    "groupId" : "aopalliance",
+    "artifactId" : "aopalliance",
+    "version" : "1.0",
+    "filenames" : [ "aopalliance-1.0.jar" ],
+    "pathnames" : [ "full.jar/WebGoat-6.0.1/WEB-INF/lib/aopalliance-1.0.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0235ba8b489512805ac1",
+    "relativePopularity" : 1.0,
+    "createTime" : 1122870234000,
+    "lastModifiedTime" : 1413088396000,
+    "lastModifiedEntryTime" : 1079661424000,
+    "website" : "http://aopalliance.sourceforge.net"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "j2h",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "java2html",
+        "version" : "1.3.1"
+      }
+    },
+    "groupId" : "java2html",
+    "artifactId" : "j2h",
+    "version" : "1.3.1",
+    "filenames" : [ "j2h-1.3.1.jar" ],
+    "pathnames" : [ "full.jar/WebGoat-6.0.1/WEB-INF/lib/j2h-1.3.1.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "18d393ad345b03b49c62",
+    "relativePopularity" : 1.0,
+    "createTime" : 1138653346000,
+    "lastModifiedTime" : 1413088396000,
+    "lastModifiedEntryTime" : 1054324540000,
+    "website" : null
   }]
 }

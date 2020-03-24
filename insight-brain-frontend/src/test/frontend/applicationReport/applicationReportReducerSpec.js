@@ -51,6 +51,7 @@ describe('applicationReportReducer', function() {
       expect(newState.policyTypeFilterEnabled).toBe(true);
       expect(newState.vulnerabilities).toBe(null);
       expect(newState.vulnerabilitiesPageEnabled).toBe(true);
+      expect(newState.selectedRootAncestor).toBeNull();
     });
 
     it('is immutable', function() {
@@ -134,6 +135,7 @@ describe('applicationReportReducer', function() {
         rawDataNumericFilters: {},
         selectedReport: null,
         selectedComponentIndex: null,
+        selectedRootAncestor: null,
         policyTypeFilterEnabled: true,
         isUnknownJs: false,
         vulnerabilities: null,
@@ -713,14 +715,46 @@ describe('applicationReportReducer', function() {
   });
 
   describe('SELECT_COMPONENT action', function() {
-    it('sets selectedComponentIndex to payload', function() {
+    it('sets selectedComponentIndex to payload and unsets selectedRootAncestor', function() {
       const state = Object.freeze({
         selectedComponentIndex: null,
+        selectedRootAncestor: {},
         other: otherObject
       });
       const newState = reduce(state, {type: 'SELECT_COMPONENT', payload: 42});
       expect(newState).toEqual({
         selectedComponentIndex: 42,
+        selectedRootAncestor: null,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('SELECT_ROOT_ANCESTOR action', function() {
+    it('sets selectedRootAncestor to payload', function() {
+      const state = Object.freeze({
+        selectedRootAncestor: null,
+        other: otherObject
+      });
+      const newState = reduce(state, {type: 'SELECT_ROOT_ANCESTOR', payload: {foo: 'bar'}});
+      expect(newState).toEqual({
+        selectedRootAncestor: {foo: 'bar'},
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('UNSELECT_ROOT_ANCESTOR action', function() {
+    it('unsets selectedRootAncestor', function() {
+      const state = Object.freeze({
+        selectedRootAncestor: {},
+        other: otherObject
+      });
+      const newState = reduce(state, {type: 'UNSELECT_ROOT_ANCESTOR'});
+      expect(newState).toEqual({
+        selectedRootAncestor: null,
         other: otherObject
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified

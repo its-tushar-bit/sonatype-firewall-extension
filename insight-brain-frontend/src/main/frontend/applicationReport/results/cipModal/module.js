@@ -40,6 +40,7 @@ import cipSimilar from './cipSimilar/cipSimilar';
 import cipAudit from './cipAudit/cipAudit';
 import cipTabPanel from './cipTabPanel/cipTabPanel';
 import cipClaimComponent from './cipClaimComponent/cipClaimComponent';
+import rootAncestors from './rootAncestors/rootAncestors';
 
 export default angular.module('cipModal',
     [
@@ -53,6 +54,7 @@ export default angular.module('cipModal',
     .component('cipAudit', cipAudit)
     .component('cipTabPanel', cipTabPanel)
     .component('cipClaimComponent', cipClaimComponent)
+    .component('rootAncestors', rootAncestors)
     .service('OwnerContext', OwnerContext);
 
 // context service needed for CIP

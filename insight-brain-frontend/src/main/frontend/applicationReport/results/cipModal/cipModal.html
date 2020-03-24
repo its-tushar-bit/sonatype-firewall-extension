@@ -22,6 +22,7 @@
       Close
     </button>
     <button id="cip-modal-previous-button"
+            ng-if="!vm.selectedRootAncestor"
             type="button"
             class="iq-btn iq-btn--tertiary"
             ng-click="vm.previous()"
@@ -29,11 +30,19 @@
       <i class="fa fa-arrow-up"></i>Previous
     </button>
     <button id="cip-modal-next-button"
+            ng-if="!vm.selectedRootAncestor"
             type="button"
             class="iq-btn iq-btn--tertiary"
             ng-click="vm.next()"
             ng-disabled="vm.isNextDisabled()">
       <i class="fa fa-arrow-down"></i>Next
+    </button>
+    <button id="cip-modal-back-button"
+            ng-if="vm.selectedRootAncestor"
+            type="button"
+            class="iq-btn iq-btn--tertiary iq-btn--cip-modal-back-button truncate-ellipsis"
+            ng-click="vm.unselectRootAncestor()">
+      <i class="fa fa-arrow-left"></i>Back to <component-display component="vm.previousComponent"></component-display>
     </button>
   </footer>
 </section>

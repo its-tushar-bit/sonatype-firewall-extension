@@ -351,6 +351,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
         derivedComponentName: 'foo : 1',
         derivedViolationState: 'open',
         policyName: 'Security-High',
@@ -368,6 +369,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
         derivedComponentName: 'foo : 1',
         derivedViolationState: 'waived+grandfathered',
         policyName: 'License-High',
@@ -386,6 +388,7 @@ describe('applicationReportService', function() {
             version: '2'
           }
         },
+        serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
         derivedComponentName: 'bargroup : bar : 2',
         derivedViolationState: 'grandfathered',
         policyName: 'Security-High',
@@ -406,6 +409,9 @@ describe('applicationReportService', function() {
         grandfathered: false
       }));
 
+      const bazHashEntry = result.find(propEq('hash', 'bazHash'));
+      expect(bazHashEntry.serializedComponentIdentifier).toBeUndefined();
+
       expect(result2).toContain(jasmine.objectContaining({
         hash: 'fooHash',
         componentIdentifier: {
@@ -415,6 +421,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
         derivedComponentName: 'foo : 1',
         derivedViolationState: 'open',
         policyName: 'Security-High',
@@ -433,6 +440,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
         derivedComponentName: 'foo : 1',
         derivedViolationState: 'waived+grandfathered',
         policyName: 'License-High',
@@ -452,6 +460,7 @@ describe('applicationReportService', function() {
             version: '2'
           }
         },
+        serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
         derivedComponentName: 'bargroup : bar : 2',
         derivedViolationState: 'grandfathered',
         policyName: 'Security-High',
@@ -472,6 +481,9 @@ describe('applicationReportService', function() {
         waived: false,
         grandfathered: false
       }));
+
+      const bazHashEntry2 = result2.find(propEq('hash', 'bazHash'));
+      expect(bazHashEntry2.serializedComponentIdentifier).toBeUndefined();
 
       expectNoExtraMatchData(result);
       expectNoExtraMatchData(result2);
@@ -540,6 +552,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
         derivedComponentName: 'foo : 1',
         derivedViolationState: 'open',
         policyName: 'Security-High',
@@ -557,6 +570,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
         derivedComponentName: 'foo : 1',
         derivedViolationState: 'waived',
         policyName: 'License-High',
@@ -575,6 +589,7 @@ describe('applicationReportService', function() {
             version: '2'
           }
         },
+        serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
         derivedComponentName: 'bargroup : bar : 2',
         derivedViolationState: 'open',
         policyName: 'Security-High',
@@ -594,6 +609,9 @@ describe('applicationReportService', function() {
         waived: false,
         grandfathered: false
       }));
+
+      const bazHashEntry = result.find(propEq('hash', 'bazHash'));
+      expect(bazHashEntry.serializedComponentIdentifier).toBeUndefined();
 
       expect(result2).toEqual(result);
 
@@ -655,6 +673,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
         derivedComponentName: 'foo : 1',
         derivedViolationState: 'open',
         policyName: 'Security-High',
@@ -672,6 +691,7 @@ describe('applicationReportService', function() {
             version: '1'
           }
         },
+        serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
         derivedComponentName: 'foo : 1',
         derivedViolationState: 'open',
         policyName: 'License-High',
@@ -690,6 +710,7 @@ describe('applicationReportService', function() {
             version: '2'
           }
         },
+        serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
         derivedComponentName: 'bargroup : bar : 2',
         derivedViolationState: 'open',
         policyName: 'Security-High',
@@ -709,6 +730,9 @@ describe('applicationReportService', function() {
         waived: false,
         grandfathered: false
       }));
+
+      const bazHashEntry = result.find(propEq('hash', 'bazHash'));
+      expect(bazHashEntry.serializedComponentIdentifier).toBeUndefined();
 
       expectNoExtraMatchData(result);
     });

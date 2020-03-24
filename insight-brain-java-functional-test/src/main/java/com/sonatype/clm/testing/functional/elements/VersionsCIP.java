@@ -152,4 +152,20 @@ public class VersionsCIP
   public static SelenideElement noVersionsAvailable() {
     return root().find("#no-versions-available");
   }
+
+  public static SelenideElement rootAncestorsHeader() {
+    return root().find("#cip-root-ancestors-header");
+  }
+
+  public static SelenideElement showMoreRootAncestorsToggle() {
+    return root().find("#cip-root-ancestors-toggle-show-more");
+  }
+
+  public static ElementsCollection rootAncestorLinks() {
+    return root().findAll("#cip-root-ancestors-links .cip-root-ancestors__link a");
+  }
+
+  public static SelenideElement rootAncestorLink(int i) {
+    return $(createSelector("#cip-root-ancestors-links", ".cip-root-ancestors__link", "a", nthChild(i)));
+  }
 }

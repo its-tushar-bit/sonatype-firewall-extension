@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.search.results.SearchSuggestionResultDTO;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 
@@ -74,10 +75,17 @@ public class SearchService
 
   private final LuceneComponents luceneComponents;
 
+  private final AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics;
+
   @Inject
-  public SearchService(InsightWork insightWork, LuceneComponents luceneComponents) {
+  public SearchService(
+      InsightWork insightWork,
+      LuceneComponents luceneComponents,
+      AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics)
+  {
     this.insightWork = insightWork;
     this.luceneComponents = luceneComponents;
+    this.advancedSearchTelemetryMetrics = advancedSearchTelemetryMetrics;
   }
 
   public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page) throws IOException {
@@ -106,6 +114,13 @@ public class SearchService
 
       Set<String> fieldNames = getFieldNames(query);
       Set<String> invalidFieldNames = new TreeSet<>();
+
+      // We only add telemetry when in the first page of results in order to
+      // avoid adding the same data when the user navigates search results.
+      if (page == 1) {
+        advancedSearchTelemetryMetrics.addSearch(fieldNames);
+      }
+
       for (String fieldName : fieldNames) {
         if (getFieldIdentifier(fieldName) == null) {
           invalidFieldNames.add(fieldName);
@@ -196,7 +211,7 @@ public class SearchService
     }
     else {
       try (FSDirectory suggesterFile = FSDirectory.open(searchSuggesterIndexPath);
-          AnalyzingInfixSuggester suggester = luceneComponents.newSuggester(suggesterFile)) {
+            AnalyzingInfixSuggester suggester = luceneComponents.newSuggester(suggesterFile)) {
         // try strict lookup first, matching all tokens from search query
         List<Lookup.LookupResult> results =
             suggester.lookup(lastClause, Collections.emptySet(), MAX_SUGGESTIONS, true, false);

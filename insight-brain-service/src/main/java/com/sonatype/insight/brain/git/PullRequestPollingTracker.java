@@ -111,18 +111,21 @@ class PullRequestPollingTracker
           result = "24 hours";
           break;
       }
-      updateSourceControl(sourceControl, pollTime, errorCount);
+      updateSourceControl(sourceControl.getId(), pollTime, errorCount);
     }
     return result;
   }
 
   void onPullRequestProcessed(String sourceControlId, String org, String token, Date time) {
-    updateSourceControl(sourceControlDAO.getById(sourceControlId), time, 0);
+    updateSourceControl(sourceControlId, time, 0);
     setCachedCutoffTime(org, token, time);
   }
 
   void onPullRequestProcessedForApplication(String applicationId, Date time) {
-    updateSourceControl(sourceControlDAO.getByOwnerId(applicationId), time, 0);
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(applicationId);
+    if (sourceControl != null) {
+      updateSourceControl(sourceControl.getId(), time, 0);
+    }
   }
 
   /**
@@ -136,18 +139,14 @@ class PullRequestPollingTracker
     List<SourceControl> sourceControlList = sourceControlDAO.getByRepositoryOwnerAndName(pullRequest.getRepository());
     if (CollectionUtils.isNotEmpty(sourceControlList)) {
       Date created = pullRequest.getCreated();
-      sourceControlList.forEach(sourceControl -> updateSourceControl(sourceControl, created, 0));
+      sourceControlList.forEach(sourceControl -> updateSourceControl(sourceControl.getId(), created, 0));
       return true;
     }
     return false;
   }
 
-  private void updateSourceControl(SourceControl sourceControl, Date pollTime, int errors) {
-    if (null != sourceControl) {
-      sourceControl.setPullRequestPollTime(pollTime);
-      sourceControl.setPullRequestErrorCount(errors);
-      sourceControlDAO.update(sourceControl);
-    }
+  private void updateSourceControl(String sourceControlId, Date pollTime, int errors) {
+    sourceControlDAO.updatePollTimeAndErrorCounts(sourceControlId, pollTime, errors);
   }
 
   void initializePullRequestPollTimes() {

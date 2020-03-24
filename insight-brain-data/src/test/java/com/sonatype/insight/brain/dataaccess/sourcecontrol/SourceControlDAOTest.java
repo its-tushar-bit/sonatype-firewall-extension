@@ -755,6 +755,20 @@ public class SourceControlDAOTest
         .hasMessageContaining("SourceControl provider can only be specified on the root organization");
   }
 
+  @Test
+  public void testUpdatePollTimeAndErrorCounts() {
+    createRootOrgWithProvider();
+    SourceControl scApp1 = buildAppSourceControl(app.getId(), 1, true);
+    sourceControlDAO.insert(scApp1);
+
+    Date now = new Date();
+    sourceControlDAO.updatePollTimeAndErrorCounts(scApp1.getId(), now, 5);
+
+    scApp1 = sourceControlDAO.getByOwnerId(app.getId());
+    assertThat(scApp1.getPullRequestPollTime()).isEqualTo(now);
+    assertThat(scApp1.getPullRequestErrorCount()).isEqualTo(5);
+  }
+
   private SourceControl createRootOrgWithProvider() {
     return tempEntity.newSourceControl(org.getParentOrganizationId(), null, null, SourceControlProvider.GITHUB);
   }

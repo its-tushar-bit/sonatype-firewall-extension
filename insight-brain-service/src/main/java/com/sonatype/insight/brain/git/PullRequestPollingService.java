@@ -242,7 +242,7 @@ public class PullRequestPollingService
   }
 
   private boolean canPoll(GitRepositoryInfo gitRepositoryInfo) {
-    if (null == gitRepositoryInfo) {
+    if (null == gitRepositoryInfo || null == gitRepositoryInfo.provider) {
       return false;
     }
     if (SourceControlProvider.GITHUB != gitRepositoryInfo.provider) {

@@ -23,6 +23,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -98,9 +102,7 @@ public class PullRequestPollingTrackerTest
 
     // then: should have been updated and errors cleared
     assertThat(updated).isTrue();
-    verify(sourceControlDAO, times(1)).update(sourceControl);
-    assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(prCreated);
-    assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(0);
+    verify(sourceControlDAO, times(1)).updatePollTimeAndErrorCounts(sourceControl.getId(), prCreated, 0);
   }
 
   @Test
@@ -110,15 +112,12 @@ public class PullRequestPollingTrackerTest
     String sourceControlId = "sc1";
     SourceControl sourceControl = createSourceControl(sourceControlId);
     sourceControl.setPullRequestErrorCount(3);
-    doReturn(sourceControl).when(sourceControlDAO).getById(sourceControlId);
 
     // when: update poll times called
     pollingTracker.onPullRequestProcessed(sourceControlId, "org", "token", date);
 
     // then: verify dates and error count
-    verify(sourceControlDAO, times(1)).update(sourceControl);
-    assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(date);
-    assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(0);
+    verify(sourceControlDAO, times(1)).updatePollTimeAndErrorCounts(sourceControl.getId(), date, 0);
 
     // and: cutoff time is correct
     Date cutoff = new Date(System.currentTimeMillis() - (1000 * 60 * 60 * 24));
@@ -141,9 +140,7 @@ public class PullRequestPollingTrackerTest
     pollingTracker.onPullRequestProcessedForApplication(appId, date);
 
     // then: verify poll dates set correctly as well as error count
-    verify(sourceControlDAO, times(1)).update(sourceControl);
-    assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(date);
-    assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(0);
+    verify(sourceControlDAO, times(1)).updatePollTimeAndErrorCounts(sourceControl.getId(), date, 0);
   }
 
   @Test
@@ -158,6 +155,11 @@ public class PullRequestPollingTrackerTest
     sourceControl.setPullRequestErrorCount(0);
     sourceControl.setPullRequestPollTime(cutoffTime);
     doReturn(sourceControl).when(sourceControlDAO).getById(sourceControlId);
+    doAnswer(invocationOnMock -> {
+      sourceControl.setPullRequestPollTime(invocationOnMock.getArgument(1));
+      sourceControl.setPullRequestErrorCount(invocationOnMock.getArgument(2));
+      return null;
+    }).when(sourceControlDAO).updatePollTimeAndErrorCounts(eq(sourceControlId), any(), anyInt());
 
     for (int i = 0; i < expectedErrorOffsetsInMinutes.size(); i++) {
       // when: report error
@@ -168,11 +170,9 @@ public class PullRequestPollingTrackerTest
       // bound the expected poll time by +/- 100ms
       Date minPollTime = new Date(exactOffset - 100);
       Date maxPollTime = new Date(exactOffset + 100);
-      assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(i + 1);
       assertThat(offsetMessage).isEqualTo(expectedErrorOffsetText.get(i));
-      assertThat(sourceControl.getPullRequestPollTime()).isAfter(minPollTime);
-      assertThat(sourceControl.getPullRequestPollTime()).isBefore(maxPollTime);
-      verify(sourceControlDAO, times(i + 1)).update(sourceControl);
+      verify(sourceControlDAO, times(1)).updatePollTimeAndErrorCounts(eq(sourceControl.getId()),
+          argThat(date -> date.after(minPollTime) && date.before(maxPollTime)), eq(i + 1));
     }
   }
 

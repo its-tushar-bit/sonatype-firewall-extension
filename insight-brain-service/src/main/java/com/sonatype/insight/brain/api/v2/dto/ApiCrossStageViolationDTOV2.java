@@ -41,6 +41,8 @@ public class ApiCrossStageViolationDTOV2
     public long mostRecentEvaluationTime;
 
     public String mostRecentScanId;
+
+    public String actionTypeId;
   }
 
   public static class PolicyOwner

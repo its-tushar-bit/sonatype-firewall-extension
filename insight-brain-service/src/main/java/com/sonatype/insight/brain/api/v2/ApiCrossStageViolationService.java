@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -160,6 +161,9 @@ public class ApiCrossStageViolationService
 
     PolicyViolation firstViolation = policyViolations.iterator().next();
 
+    Map<String, PolicyViolation> violationsByStageTypeId = policyViolations.stream()
+        .collect(Collectors.toMap(PolicyViolation::getStageTypeId, v -> v));
+
     dto.policyViolationId = violationId;
     dto.applicationPublicId = app.getPublicId();
     dto.applicationName = app.getName();
@@ -196,18 +200,25 @@ public class ApiCrossStageViolationService
     dto.fixTime = maxFixTime == null ? null : maxFixTime.getTime();
 
     dto.stageData = policyEvaluations.stream()
-        .collect(Collectors.toMap(PolicyEvaluation::getStageTypeId, this::createStageData));
+        .collect(Collectors.toMap(
+            PolicyEvaluation::getStageTypeId,
+            eval -> createStageData(eval, violationsByStageTypeId.get(eval.getStageTypeId()))
+        ));
 
     dto.constraintViolations = policyViolationAdapter.convert(firstViolation);
 
     return dto;
   }
 
-  private ApiCrossStageViolationDTOV2.StageData createStageData(PolicyEvaluation policyEvaluation) {
+  private ApiCrossStageViolationDTOV2.StageData createStageData(
+      PolicyEvaluation policyEvaluation,
+      PolicyViolation policyViolation)
+  {
     ApiCrossStageViolationDTOV2.StageData stageData = new ApiCrossStageViolationDTOV2.StageData();
 
     stageData.mostRecentEvaluationTime = policyEvaluation.getTime().getTime();
     stageData.mostRecentScanId = policyEvaluation.getScanId();
+    stageData.actionTypeId = policyViolation.getActionTypeId();
 
     return stageData;
   }

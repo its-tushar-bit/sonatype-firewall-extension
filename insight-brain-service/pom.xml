@@ -547,7 +547,7 @@
           <reuseForks>true</reuseForks>
           <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
           <forkCount>${test.forkCount}</forkCount>
-          <argLine>-Xmx768M</argLine>
+          <argLine>@{argLine} -Xmx768M</argLine>
           <systemPropertyVariables>
             <test.forkId>#${surefire.forkNumber}</test.forkId>
           </systemPropertyVariables>

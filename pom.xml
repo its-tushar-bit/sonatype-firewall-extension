@@ -10,7 +10,7 @@
   <parent>
     <groupId>com.sonatype.buildsupport</groupId>
     <artifactId>private-parent</artifactId>
-    <version>17</version>
+    <version>18</version>
     <relativePath />
   </parent>
 
@@ -23,6 +23,9 @@
 
   <properties>
     <clm.skip>false</clm.skip>
+
+    <!-- Avoid missing property exception for plugins that append to argLine. -->
+    <argLine/>
 
     <phantomjs-maven-plugin.version>0.7</phantomjs-maven-plugin.version>
     <phantomjs.version>2.1.1</phantomjs.version>

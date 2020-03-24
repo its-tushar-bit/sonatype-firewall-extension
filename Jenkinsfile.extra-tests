@@ -38,7 +38,7 @@ def functionalTests(String browser, String testRegex) {
 }
 
 def unitTests() {
-  def testConfig = testConfig('-Dskip-functional-test')
+  def testConfig = testConfig('-Dskip-functional-test -Pbuildsupport-sonar-coverage')
   mvn testConfig, 'clean install'
 }
 
@@ -103,6 +103,7 @@ pipeline {
           }
           post {
             always {
+              sonarAnalyze(env: env, sonarAnalysisPullRequestsOnly: currentBuild.projectName != 'master-snapshot')
               captureResultsAndCleanup()
             }
           }

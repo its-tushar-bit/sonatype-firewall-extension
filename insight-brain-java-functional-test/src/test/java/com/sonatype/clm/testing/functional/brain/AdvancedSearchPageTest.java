@@ -20,6 +20,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
@@ -46,7 +47,7 @@ public class AdvancedSearchPageTest
   public void testOptedOut_ShowsDisabledError() {
     refreshOrOpen(AdvancedSearchPage.url());
     page.advancedSearchDisabledError().shouldBe(visible);
-    page.advancedSearchEnabledContent().shouldBe(hidden);
+    page.advancedSearchPageTitle().shouldBe(hidden);
   }
 
   @Test
@@ -55,8 +56,8 @@ public class AdvancedSearchPageTest
     refreshOrOpen(AdvancedSearchPage.url());
     page.searchInput().shouldBe(empty);
     page.resultCount().shouldBe(text("0"));
-    page.currentPageInfo().shouldBe(text("Page 1 of 1"));
-    page.errors().shouldBe(hidden);
+    page.currentPageInfo().shouldBe(hidden);
+    page.advancedSearchDisabledError().shouldBe(hidden);
   }
 
   @Test
@@ -64,7 +65,7 @@ public class AdvancedSearchPageTest
     enableAdvancedSearch();
     refreshOrOpen(AdvancedSearchPage.url());
     page.advancedSearchDisabledError().shouldBe(hidden);
-    page.advancedSearchEnabledContent().shouldBe(visible);
+    page.advancedSearchPageTitle().shouldBe(visible);
   }
 
   @Test
@@ -118,10 +119,8 @@ public class AdvancedSearchPageTest
     FormMask.seeAndWaitForDismissal();
 
     page.resultCount().shouldBe(text("0"));
-    page.currentPageInfo().shouldBe(text("Page 1 of 1"));
-
-    page.nextPageButton().click();
-    page.currentPageInfo().shouldBe(text("Page 1 of 1"));
+    page.currentPageInfo().shouldBe(hidden);
+    page.nextPageButton().shouldBe(disabled);
   }
 
   @Test
@@ -154,15 +153,48 @@ public class AdvancedSearchPageTest
     // Squeeze in verifying search can be triggered with enter button
     page.searchInput().sendKeys(Keys.ENTER);
 
-    page.errors().shouldHave(text("The search query is invalid: Syntax Error, cannot parse foo:bar:baz:"));
+    page.queryError().shouldHave(text("The search query is invalid: Syntax Error, cannot parse foo:bar:baz:"));
 
     // Make sure errors are cleared upon successful search
     page.searchInput().setValue("itemType:ORGANIZATION");
     page.searchButton().click();
-    page.errors().shouldBe(hidden);
+    page.queryError().shouldBe(hidden);
   }
 
   private void enableAdvancedSearch() {
     dao.update(new SystemConfigurationProperty(FULL_TEXT_SEARCH_ENABLED, "true"));
+  }
+
+  @Test
+  public void testQueryResetWhenNextAndPrevious() throws IOException {
+    // When a user searches with foo:bar and there are multiple pages in the result
+    // If the user modifies the search bar and clicks either next or previous
+    // we must set the input field back to foo:bar and navigate in pages for this search
+
+    // Create 15 policies
+    IntStream.range(0, 15).forEach(i -> tempEntity.newPolicy());
+
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+    page.searchInput().setValue("itemType:POLICY");
+    page.searchButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    page.resultCount().shouldBe(text("15"));
+    page.currentPageInfo().shouldBe(text("Page 1 of 2"));
+
+    page.searchInput().clear();
+
+    page.nextPageButton().click();
+    page.currentPageInfo().shouldBe(text("Page 2 of 2"));
+    page.searchInput().shouldBe(value("itemType:POLICY"));
+
+    page.searchInput().setValue("itemType:ORGANIZATION");
+
+    page.previousPageButton().click();
+    page.searchInput().shouldBe(value("itemType:POLICY"));
+    page.currentPageInfo().shouldBe(text("Page 1 of 2"));
   }
 }

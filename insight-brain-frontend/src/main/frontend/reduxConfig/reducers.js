@@ -17,6 +17,7 @@ import violationPageReducer from '../violation/violationPageReducer';
 import proxyConfigReducer from '../configuration/proxy/proxyConfigReducer';
 import stagesReducer from '../stages/stagesReducer';
 import advancedSearchConfigReducer from '../configuration/advancedSearch/advancedSearchConfigReducer';
+import advancedSearchReducer from '../advancedSearch/advancedSearchReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -31,5 +32,6 @@ export default combineReducers({
   mailConfig: mailConfigReducer,
   violationPage: violationPageReducer,
   proxyConfig: proxyConfigReducer,
-  advancedSearchConfig: advancedSearchConfigReducer
+  advancedSearchConfig: advancedSearchConfigReducer,
+  advancedSearch: advancedSearchReducer
 });

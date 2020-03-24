@@ -1,0 +1,15 @@
+.nx-table--advanced-search > tbody > tr > td:nth-child(1) {
+  width: 2%;
+}
+
+.nx-table--advanced-search > tbody > tr > td:nth-child(2) {
+  width: 18%;
+}
+
+.nx-form--advanced-search {
+  display: flex
+}
+
+.nx-text-input--advanced-search {
+  flex-grow: 1
+}

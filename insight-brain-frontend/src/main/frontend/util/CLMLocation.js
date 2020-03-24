@@ -60,6 +60,14 @@ export function getAdvancedSearchIndexUrl() {
   return `${getBaseUrl(window.location.href)}/api/experimental/search/advanced/index`;
 }
 
+export function getAdvancedSearchUrl(query, page) {
+  return `${getBaseUrl(window.location.href)}/api/experimental/search/advanced?search=${query}&page=${page}`;
+}
+
+export function getAdvancedSearchQuerySuggesterUrl(query) {
+  return `${getBaseUrl(window.location.href)}/api/experimental/search/advanced/suggester?search=${query}`;
+}
+
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {
@@ -391,10 +399,6 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
           () => `${baseUrl.get()}/rest/config/automaticScmConfiguration`,
 
       getAdvancedSearchConfigUrl: () => `${baseUrl.get()}/rest/search/advanced/status`,
-
-      getAdvancedSearchUrl: () => `${baseUrl.get()}/api/experimental/search/advanced`,
-
-      getAdvancedSearchSuggesterUrl: () => `${baseUrl.get()}/api/experimental/search/advanced/suggester`,
 
       getShouldDisplayDefaultPasswordWarning: () => `${baseUrl.get()}/rest/user/shouldDisplayDefaultPasswordWarning`,
 

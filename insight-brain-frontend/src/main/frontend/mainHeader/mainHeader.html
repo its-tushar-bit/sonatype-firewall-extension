@@ -71,10 +71,10 @@
           <nx-font-awesome-icon icon="vm.faBug" class="iq-main-nav__button-icon" size="'2x'"></nx-font-awesome-icon>
           <div class="iq-main-nav__button-label">Vulnerabilities</div>
         </a>
-        <a ui-sref="searchResults"
+        <a ui-sref="advancedSearch"
            class="iq-navigation__button"
            id="search-navigation-button"
-           ng-class="{ 'active' : vm.$state.includes('searchResults') }"
+           ng-class="{ 'active' : vm.$state.includes('advancedSearch') }"
            ng-if="vm.isLicensed() && vm.isFullTextSearchEnabled">
           <nx-font-awesome-icon icon="vm.faSearch" class="iq-main-nav__button-icon" size="'2x'"></nx-font-awesome-icon>
           <div class="iq-main-nav__button-label">Search</div>

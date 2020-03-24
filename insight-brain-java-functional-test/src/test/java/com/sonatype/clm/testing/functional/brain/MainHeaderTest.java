@@ -8,12 +8,12 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
-import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.User;
@@ -137,7 +137,7 @@ public class MainHeaderTest
     new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty(FULL_TEXT_SEARCH_ENABLED, "true"));
     refresh();
     MainHeader.advancedSearchNavigationButton().shouldBe(visible).click();
-    waitUntilUrl(BaseUrl.resolvePageUrl("/searchResults"));
+    waitUntilUrl(AdvancedSearchPage.url());
   }
 
   @Test
@@ -149,7 +149,7 @@ public class MainHeaderTest
       logout();
       login(user.getUsername(), user.getPassword());
       MainHeader.advancedSearchNavigationButton().shouldBe(visible).click();
-      waitUntilUrl(BaseUrl.resolvePageUrl("/searchResults"));
+      waitUntilUrl(AdvancedSearchPage.url());
     }
     finally {
       logout();

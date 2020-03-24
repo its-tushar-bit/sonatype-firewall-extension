@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.ReactTextInput;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
@@ -22,19 +23,19 @@ public class AdvancedSearchPage
   }
 
   public static String url() {
-    return BaseUrl.resolvePageUrl("/searchResults");
+    return BaseUrl.resolvePageUrl("/advancedSearch");
   }
 
-  public SelenideElement advancedSearchEnabledContent() {
-    return child("#advanced-search-enabled-content");
+  public SelenideElement advancedSearchPageTitle() {
+    return child("#advanced-search-page-title");
   }
 
   public SelenideElement advancedSearchDisabledError() {
     return child("#advanced-search-disabled-error");
   }
 
-  public SelenideElement searchInput() {
-    return child("#advanced-search-input");
+  public ReactTextInput searchInput() {
+    return new ReactTextInput(child("#advanced-search-input"));
   }
 
   public SelenideElement searchButton() {
@@ -58,13 +59,11 @@ public class AdvancedSearchPage
   }
 
   // Search results table child 1 is some icon representing what the document is
-  // Second item is the text, such as Organization or Application
-  // 3rd is the actual result (and there is an > a if it is a link to an entity)
   public SelenideElement firstSearchResultLink() {
-    return $("#advanced-search-results-table > tbody > tr > td:nth-child(3) > a");
+    return $("#advanced-search-page > div:nth-child(5) > table > tbody > tr > td:nth-child(3) > a");
   }
 
-  public SelenideElement errors() {
-    return $("#advanced-search-error");
+  public SelenideElement queryError() {
+    return $("#advanced-search-query-error");
   }
 }

@@ -26,6 +26,7 @@ describe('violationsTableRow.spec', function() {
     mockState = {href: angular.noop};
     $provide.value('$window', mockWindow);
     $provide.value('$state', mockState);
+    SpecUtil.mockNgRedux($provide);
   }));
 
   afterEach(inject(function($httpBackend) {
@@ -35,11 +36,12 @@ describe('violationsTableRow.spec', function() {
   }));
 
   beforeEach(inject([
-    '$q', '$rootScope', '$compile', '$httpBackend', 'CLMLocations', '$templateCache',
-    function($q, $rootScope, $compile, $httpBackend, CLMLocations, $templateCache) {
+    '$q', '$rootScope', '$compile', 'CLMLocations', '$templateCache', 'StageTypeStore',
+    function($q, $rootScope, $compile, CLMLocations, $templateCache, StageTypeStore) {
       scope = $rootScope.$new();
-      $httpBackend.expectGET(CLMLocations.getDashboardStageUrl()).respond(MockData.getDashboardStageData());
       $templateCache.put('violations-table-row', '<td/>');
+
+      spyOn(StageTypeStore, 'getDashboardStages').and.returnValue($q.resolve(MockData.getDashboardStageData()));
 
       getVm = function() {
         scope.risk = riskData;
@@ -54,9 +56,8 @@ describe('violationsTableRow.spec', function() {
 
   describe('ViolationsTableRowComponent', function() {
     beforeEach(inject([
-      '$httpBackend', function($httpBackend) {
+      '$httpBackend', function() {
         violationsTableRow = getVm();
-        $httpBackend.flush();
       }
     ]));
 

@@ -13,6 +13,7 @@ describe('owner.summary.controller.js', function() {
     $provide.value('$cookies', {
       get: angular.noop
     });
+    SpecUtil.mockNgRedux($provide);
   }));
 
   function createTests(type, storeName, owner) {

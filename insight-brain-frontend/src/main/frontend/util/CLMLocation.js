@@ -41,6 +41,18 @@ export function getProxyConfigUrl() {
   return `${getBaseUrl(window.location.href)}/api/v2/config/httpProxyServer`;
 }
 
+export function getActionStageUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/policy/stages?context=all`;
+}
+
+export function getDashboardStageUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/policy/stages?context=dashboard`;
+}
+
+export function getCliStageUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/policy/stages`;
+}
+
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {
@@ -68,17 +80,9 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
         return baseUrl.get() + '/rest/policy/conditionType';
       },
 
-      getActionStageUrl: function() {
-        return baseUrl.get() + '/rest/policy/stages?context=all';
-      },
-
-      getDashboardStageUrl: function() {
-        return baseUrl.get() + '/rest/policy/stages?context=dashboard';
-      },
-
-      getCliStageUrl: function() {
-        return baseUrl.get() + '/rest/policy/stages';
-      },
+      getActionStageUrl,
+      getDashboardStageUrl,
+      getCliStageUrl,
 
       getApplicationsUrl: function() {
         return baseUrl.get() + '/rest/application';

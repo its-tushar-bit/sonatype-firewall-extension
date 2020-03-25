@@ -11,6 +11,7 @@ describe('policy.tile.controller.spec.js', function() {
     $provide.value('$cookies', {
       get: angular.noop
     });
+    SpecUtil.mockNgRedux($provide);
   }));
 
   var vm,

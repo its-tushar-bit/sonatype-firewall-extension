@@ -7,7 +7,9 @@ import ownerManagerModule from '../../../../../main/frontend/owner.manager/owner
 
 describe('policy.editor.notifications.controller.spec.js', function() {
 
-  beforeEach(angular.mock.module(ownerManagerModule.name));
+  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
+    SpecUtil.mockNgRedux($provide);
+  }));
 
   var membershipMapping = {
     membersByRole: [
@@ -84,7 +86,8 @@ describe('policy.editor.notifications.controller.spec.js', function() {
 
   var jiraServiceResolver = createJiraServiceResolver();
 
-  beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMContextLocations, _CLMLocations_) {
+  beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMContextLocations, _CLMLocations_,
+                             StageTypeStore) {
     scope = $rootScope.$new();
     CLMLocations = _CLMLocations_;
 
@@ -102,10 +105,11 @@ describe('policy.editor.notifications.controller.spec.js', function() {
       return vm;
     };
 
+    spyOn(StageTypeStore, 'getActionStages').and.returnValue([]);
+
     $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring',
       'webhooks-for-applications']);
 
-    $httpBackend.whenGET('/rest/policy/stages?context=all').respond([]);
     $httpBackend.whenGET(CLMContextLocations.getRoleMappingUrl()).respond(membershipMapping);
     getWebhooks = $httpBackend.whenGET(CLMContextLocations.getNotificationWebhooksUrl());
     getWebhooks.respond(webhooks);

@@ -6,7 +6,9 @@
 import componentModule from '../../../main/frontend/dashboard/ComponentController';
 
 describe('ComponentController tests', function() {
-  beforeEach(angular.mock.module(componentModule.name));
+  beforeEach(angular.mock.module(componentModule.name, function($provide) {
+    SpecUtil.mockNgRedux($provide);
+  }));
 
   var applicationComponents = [
     {

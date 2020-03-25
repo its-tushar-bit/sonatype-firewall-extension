@@ -60,7 +60,7 @@ public class AdvancedSearchPage
 
   // Search results table child 1 is some icon representing what the document is
   public SelenideElement firstSearchResultLink() {
-    return $("#advanced-search-page > div:nth-child(5) > table > tbody > tr > td:nth-child(3) > a");
+    return $("#advanced-search-page > div > div:nth-child(5) > table > tbody > tr > td:nth-child(3) > a");
   }
 
   public SelenideElement queryError() {

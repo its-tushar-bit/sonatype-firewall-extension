@@ -45,31 +45,35 @@ export default function AdvancedSearch(props) {
 
   return (
     <LoadWrapper loading={loading} error={error}>
-      <MaximizedContainer id="advanced-search-page"
-                          className="iq-body-container iq-body-container--single-pane">
-        {
-          !isEnabled && <NxInfoAlert id="advanced-search-disabled-error">Advanced Search is not turned on!</NxInfoAlert>
-        }
-        {
-          isEnabled &&
-            <Fragment>
-              <h2 id="advanced-search-page-title">Advanced Search</h2>
-              <AdvancedSearchForm {...props} />
-              {
-                queryError &&
-                  <NxErrorAlert id="advanced-search-query-error">
-                    {Messages.getHttpErrorMessage(queryError)}
-                  </NxErrorAlert>
-              }
-              {
-                <LoadWrapper loading={waitingSearchResponse}>
-                  {
-                    searchResult.groupingByDTOS.map(groupingByDTO => advancedSearchResultsGroupedBy(groupingByDTO))
-                  }
-                </LoadWrapper>
-              }
-            </Fragment>
-        }
+      <MaximizedContainer id="advanced-search-page" className="nx-root-container">
+        <div className="nx-page-main">
+          {
+            !isEnabled &&
+              <NxInfoAlert id="advanced-search-disabled-error">Advanced Search is not turned on!</NxInfoAlert>
+          }
+          {
+            isEnabled &&
+              <Fragment>
+                <div className="nx-page-title">
+                  <h1 className="nx-h1" id="advanced-search-page-title">Advanced Search</h1>
+                </div>
+                <AdvancedSearchForm {...props} />
+                {
+                  queryError &&
+                    <NxErrorAlert id="advanced-search-query-error">
+                      {Messages.getHttpErrorMessage(queryError)}
+                    </NxErrorAlert>
+                }
+                {
+                  <LoadWrapper loading={waitingSearchResponse}>
+                    {
+                      searchResult.groupingByDTOS.map(groupingByDTO => advancedSearchResultsGroupedBy(groupingByDTO))
+                    }
+                  </LoadWrapper>
+                }
+              </Fragment>
+          }
+        </div>
       </MaximizedContainer>
     </LoadWrapper>
   );

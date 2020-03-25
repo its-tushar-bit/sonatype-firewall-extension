@@ -1,0 +1,261 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@Library(['jenkins-shared', 'iq-pipeline-library']) _
+
+pipeline {
+  agent {
+    label InsightConstants.AGENT_LABEL
+  }
+
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '10'))
+    timestamps()
+  }
+
+  environment {
+    TF_VAR_build_key = "${env.BUILD_TAG}"
+    TF_VAR_owner = "feature-snapshot-builds"
+    LICENSE_FILE_PATH = credentials('2019-sonatype-internal-nxrm-firewall-lifecycle-1000-users')
+  }
+
+  tools {
+    jdk 'Java 8'
+  }
+
+  stages {
+
+    stage('Build') {
+      steps {
+        withMaven(jdk: 'Java 8', maven: 'M3', mavenSettingsConfig: 'private-settings.xml',
+            options: [ artifactsPublisher(disabled: true), junitPublisher(disabled: true) ]) {
+          sh '''
+              mvn clean install -T 1C -DskipTests -Dpmd.skip -Dskip-obfuscate \
+                  -pl -insight-brain-frontend,-nexus-iq-cli,-nexus-iq-integrator-scanner,-nexus-iq-server,-insight-rm-common
+             '''
+        }
+      }
+    }
+
+    stage ('Create environment for small profile') {
+      steps {
+        dir('nexus-iq-tools/testsuite') {
+          sh '''
+              python3 configure_test.py \
+                  -p performance-test-profile-small.json \
+                  -iq $WORKSPACE/insight-brain-service/target/insight-brain-service-*-server.jar \
+                  -tools $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
+                  -auto $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*-automation.zip \
+                  -lic $LICENSE_FILE_PATH \
+                  -u target_urls.json \
+                  -l logback.xml
+              ln -s $(ls -t | grep awsPerfRun | head -1) smallAWSPerfRun
+             '''
+          withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+            sh '''
+               terraform init
+               terraform apply -auto-approve
+               '''
+          }
+        }
+      }
+      post {
+        failure {
+          dir('nexus-iq-tools/testsuite') {
+            withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+              retry(3) {
+                sh 'terraform destroy --force'
+              }
+            }
+          }
+        }
+      }
+    }
+
+    stage ('Run performance test for small profile') {
+      steps {
+        dir('nexus-iq-tools/testsuite') {
+          sh './run_aws_test.sh'
+        }
+      }
+      post {
+        always {
+          dir('nexus-iq-tools/testsuite') {
+            withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+              retry(3) {
+                sh 'terraform destroy --force'
+              }
+            }
+          }
+        }
+      }
+    }
+
+    stage ('Create environment for medium profile') {
+      steps {
+        dir('nexus-iq-tools/testsuite') {
+          sh '''
+              python3 configure_test.py \
+                  -p performance-test-profile-medium.json \
+                  -iq $WORKSPACE/insight-brain-service/target/insight-brain-service-*-server.jar \
+                  -tools $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
+                  -auto $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*-automation.zip \
+                  -lic $LICENSE_FILE_PATH \
+                  -u target_urls.json \
+                  -l logback.xml
+              ln -s $(ls -t | grep awsPerfRun | head -1) mediumAWSPerfRun
+             '''
+          withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+            sh '''
+               terraform init
+               terraform apply -auto-approve
+               '''
+          }
+        }
+      }
+      post {
+        failure {
+          dir('nexus-iq-tools/testsuite') {
+            withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+              retry(3) {
+                sh 'terraform destroy --force'
+              }
+            }
+          }
+        }
+      }
+    }
+
+    stage ('Run performance test for medium profile') {
+      steps {
+        dir('nexus-iq-tools/testsuite') {
+          sh './run_aws_test.sh'
+        }
+      }
+      post {
+        always {
+          dir('nexus-iq-tools/testsuite') {
+            withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+              retry(3) {
+                sh 'terraform destroy --force'
+              }
+            }
+          }
+        }
+      }
+    }
+
+    stage ('Create environment for large profile') {
+      steps {
+        dir('nexus-iq-tools/testsuite') {
+          sh '''
+              python3 configure_test.py \
+                  -p performance-test-profile-large.json \
+                  -iq $WORKSPACE/insight-brain-service/target/insight-brain-service-*-server.jar \
+                  -tools $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
+                  -auto $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*-automation.zip \
+                  -lic $LICENSE_FILE_PATH \
+                  -u target_urls.json \
+                  -l logback.xml
+              ln -s $(ls -t | grep awsPerfRun | head -1) largeAWSPerfRun
+             '''
+          withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+            sh '''
+               terraform init
+               terraform apply -auto-approve
+               '''
+          }
+        }
+      }
+      post {
+        failure {
+          dir('nexus-iq-tools/testsuite') {
+            withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+              retry(3) {
+                sh 'terraform destroy --force'
+              }
+            }
+          }
+        }
+      }
+    }
+
+    stage ('Run performance test for large profile') {
+      steps {
+        dir('nexus-iq-tools/testsuite') {
+          sh './run_aws_test.sh'
+        }
+      }
+      post {
+        always {
+          dir('nexus-iq-tools/testsuite') {
+            withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+              retry(3) {
+                sh 'terraform destroy --force'
+              }
+            }
+          }
+        }
+      }
+    }
+
+    stage ('Compare with previous release') {
+      steps {
+        dir('nexus-iq-tools/testsuite') {
+          sh '''
+              aws sts assume-role --role-arn arn:aws:iam::960315589060:role/ZionJenkins \
+                  --role-session-name perf_session --external-id perf_id > temp_role.json
+              set +x # do not print credentials on screen
+              export AWS_ACCESS_KEY_ID=`jq -r .Credentials.AccessKeyId temp_role.json`
+              export AWS_SECRET_ACCESS_KEY=`jq -r .Credentials.SecretAccessKey temp_role.json`
+              export AWS_SESSION_TOKEN=`jq -r .Credentials.SessionToken temp_role.json`
+              set -x
+              CURRENT_COMMIT_HASH=$(git rev-parse HEAD)
+              PREVIOUS_RELEASE_TAG=$(git describe --tags --abbrev=0 --match 'release*' $CURRENT_COMMIT_HASH)
+              aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$PREVIOUS_RELEASE_TAG-small.out" "$PREVIOUS_RELEASE_TAG-small.out"
+              aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$PREVIOUS_RELEASE_TAG-medium.out" "$PREVIOUS_RELEASE_TAG-medium.out"
+              aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$PREVIOUS_RELEASE_TAG-large.out" "$PREVIOUS_RELEASE_TAG-large.out"
+
+              cp smallAWSPerfRun/perf_results* "feature-small.out"
+              java -jar -Dlogback.configurationFile="$(pwd)/logback.xml" \
+                  $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
+                  resultdiff "$PREVIOUS_RELEASE_TAG-small.out" "feature-small.out" | tee temp.out
+              python3 resultdiff_validator.py -f temp.out
+
+              cp mediumAWSPerfRun/perf_results* "feature-medium.out"
+              java -jar -Dlogback.configurationFile="$(pwd)/logback.xml" \
+                  $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
+                  resultdiff "$PREVIOUS_RELEASE_TAG-medium.out" "feature-medium.out" | tee temp.out
+              python3 resultdiff_validator.py -f temp.out
+
+              cp largeAWSPerfRun/perf_results* "feature-large.out"
+              java -jar -Dlogback.configurationFile="$(pwd)/logback.xml" \
+                  $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
+                  resultdiff "$PREVIOUS_RELEASE_TAG-large.out" "feature-large.out" | tee temp.out
+              python3 resultdiff_validator.py -f temp.out
+             '''
+        }
+      }
+    }
+
+  }
+
+  post {
+    failure {
+      sh 'echo dummy-step'
+      // TODO: enable this once this pipeline is finished
+      /*notifyChat(currentBuild: currentBuild, env: env, room: 'skyfall')
+      script {
+        def recipientProviders = [[$class: 'RequesterRecipientProvider']]
+        sendEmailNotification(currentBuild, env, recipientProviders, 'sbaker@sonatype.com, amunoz@sonatype.com')
+      }*/
+    }
+    cleanup {
+      deleteDir()
+    }
+  }
+
+}

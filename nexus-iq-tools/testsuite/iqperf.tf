@@ -3,16 +3,22 @@
 # "Sonatype" is a trademark of Sonatype, Inc.
 
 provider "aws" {
-  region = "${var.aws_region}"
-
-  access_key = "${var.access_key}"
-  secret_key = "${var.secret_key}"
-
-  assume_role = {
-    role_arn     = "${var.assume_role_arn}"
+  region = var.aws_region
+  assume_role {
+    role_arn     = var.assume_role_arn
     session_name = "perf_session"
     external_id  = "perf_id"
   }
+}
+
+data "aws_availability_zones" "available" {
+  state             = "available"
+  blacklisted_names = ["us-east-1e"] # this zone doesn't support "m5d.2xlarge" at the moment of writing this comment
+}
+
+resource "random_integer" "az_index" {
+  min = 0
+  max = length(data.aws_availability_zones.available.names) - 1
 }
 
 resource "tls_private_key" "ssh_key" {
@@ -21,35 +27,37 @@ resource "tls_private_key" "ssh_key" {
 
 resource "aws_key_pair" "auth" {
   key_name_prefix = "iqpertest"
-  public_key      = "${tls_private_key.ssh_key.public_key_openssh}"
+  public_key      = tls_private_key.ssh_key.public_key_openssh
 }
 
 resource "aws_instance" "perftest" {
-  iam_instance_profile = "${aws_iam_instance_profile.ec2_instance_profile.id}"
+  iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.id
 
   connection {
+    host        = coalesce(self.public_ip, self.private_ip)
+    type        = "ssh"
     user        = "ec2-user"
-    private_key = "${tls_private_key.ssh_key.private_key_pem}"
+    private_key = tls_private_key.ssh_key.private_key_pem
   }
 
-  ami      = "ami-074e79ff43d863acb"
-  key_name = "${aws_key_pair.auth.id}"
-  subnet_id = "${aws_subnet.default.id}"
+  ami       = "ami-074e79ff43d863acb"
+  key_name  = aws_key_pair.auth.id
+  subnet_id = aws_subnet.default.id
 
   vpc_security_group_ids = [
-    "${aws_security_group.ec2.id}",
+    aws_security_group.ec2.id,
   ]
 
   instance_type = "m5d.2xlarge"
 
-  tags {
+  tags = {
     Name           = "perf-eng-lifecycle-test"
-    Platform       = "${var.platform}"
-    BuildKey       = "${var.build_key}"
-    sonatype-group = "${var.sonatype_group}"
-    owner          = "${var.owner}"
-    environment    = "${var.environment}"
-    ttl            = "${var.duration}"
+    Platform       = var.platform
+    BuildKey       = var.build_key
+    sonatype-group = var.sonatype_group
+    owner          = var.owner
+    environment    = var.environment
+    ttl            = var.duration
   }
 
   provisioner "remote-exec" {
@@ -63,9 +71,10 @@ resource "aws_instance" "perftest" {
 
   provisioner "remote-exec" {
     inline = [
+      "export NVMEDRIVE=$(sudo fdisk -l | grep dev | egrep \"GB|GiB\" | awk '{ print $3 \" \" $2 }' | sort -nr | head -n 1 | awk '{ print $2 }' | sed 's/://')",
       "sudo mkdir -p /iqperf_eval/{files,data}",
-      "sudo mkfs.ext4 -E nodiscard /dev/nvme1n1",
-      "sudo mount /dev/nvme1n1 /iqperf_eval/data/",
+      "sudo mkfs.ext4 -E nodiscard $NVMEDRIVE",
+      "sudo mount $NVMEDRIVE /iqperf_eval/data/",
       "sudo chown -R ec2-user:ec2-user /iqperf_eval/",
     ]
   }
@@ -93,67 +102,75 @@ resource "aws_instance" "perftest" {
       "sleep 2",
     ]
   }
+
+  depends_on = [aws_internet_gateway.default]
+
+  timeouts {
+    create = "10m"
+    update = "10m"
+    delete = "20m"
+  }
 }
 
 ### Network
 
 resource "aws_vpc" "default" {
-  cidr_block = "10.0.0.0/16"
-  enable_dns_support = true
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
   enable_dns_hostnames = true
 
-  tags {
+  tags = {
     Name           = "perf-eng-lifecycle-test"
-    Platform       = "${var.platform}"
-    BuildKey       = "${var.build_key}"
-    sonatype-group = "${var.sonatype_group}"
-    owner          = "${var.owner}"
-    environment    = "${var.environment}"
-    ttl            = "${var.duration}"
+    Platform       = var.platform
+    BuildKey       = var.build_key
+    sonatype-group = var.sonatype_group
+    owner          = var.owner
+    environment    = var.environment
+    ttl            = var.duration
   }
 }
 
 resource "aws_internet_gateway" "default" {
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = aws_vpc.default.id
 
-  tags {
+  tags = {
     Name           = "perf-eng-lifecycle-test"
-    Platform       = "${var.platform}"
-    BuildKey       = "${var.build_key}"
-    sonatype-group = "${var.sonatype_group}"
-    owner          = "${var.owner}"
-    environment    = "${var.environment}"
-    ttl            = "${var.duration}"
+    Platform       = var.platform
+    BuildKey       = var.build_key
+    sonatype-group = var.sonatype_group
+    owner          = var.owner
+    environment    = var.environment
+    ttl            = var.duration
   }
 }
 
 resource "aws_route" "internet_access" {
-  route_table_id         = "${aws_vpc.default.main_route_table_id}"
+  route_table_id         = aws_vpc.default.main_route_table_id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = "${aws_internet_gateway.default.id}"
-
+  gateway_id             = aws_internet_gateway.default.id
 }
 
 resource "aws_subnet" "default" {
-  vpc_id                  = "${aws_vpc.default.id}"
+  vpc_id                  = aws_vpc.default.id
   cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true
+  availability_zone       = data.aws_availability_zones.available.names[random_integer.az_index.result]
 
-  tags {
+  tags = {
     Name           = "perf-eng-lifecycle-test"
-    Platform       = "${var.platform}"
-    BuildKey       = "${var.build_key}"
-    sonatype-group = "${var.sonatype_group}"
-    owner          = "${var.owner}"
-    environment    = "${var.environment}"
-    ttl            = "${var.duration}"
+    Platform       = var.platform
+    BuildKey       = var.build_key
+    sonatype-group = var.sonatype_group
+    owner          = var.owner
+    environment    = var.environment
+    ttl            = var.duration
   }
 }
 
 resource "aws_security_group" "ec2" {
   name        = "iq-perf-ec2-security-group"
   description = "IQ Perf Security Group"
-  vpc_id      = "${aws_vpc.default.id}"
+  vpc_id      = aws_vpc.default.id
 
   ## externally accessible ports
   # ssh
@@ -177,18 +194,18 @@ resource "aws_security_group" "ec2" {
     ]
   }
 
-  tags {
-    Platform       = "${var.platform}"
-    BuildKey       = "${var.build_key}"
-    sonatype-group = "${var.sonatype_group}"
-    owner          = "${var.owner}"
-    environment    = "${var.environment}"
-    ttl            = "${var.duration}"
+  tags = {
+    Platform       = var.platform
+    BuildKey       = var.build_key
+    sonatype-group = var.sonatype_group
+    owner          = var.owner
+    environment    = var.environment
+    ttl            = var.duration
   }
 }
 
 resource "local_file" "pemfile" {
-  content  = "${tls_private_key.ssh_key.private_key_pem}"
+  content  = tls_private_key.ssh_key.private_key_pem
   filename = "./iqperf-ssh.pem"
 
   provisioner "local-exec" {
@@ -224,7 +241,7 @@ resource "local_file" "runremote" {
 }
 
 resource "local_file" "fetchresults" {
-  content  = "scp -i ./iqperf-ssh.pem -o \"StrictHostKeyChecking no\" ec2-user@${aws_instance.perftest.public_ip}:/iqperf_eval/data/$1/results.tar ./$1/"
+  content  = "scp -i ./iqperf-ssh.pem -o \"StrictHostKeyChecking no\" ec2-user@${aws_instance.perftest.public_ip}:/iqperf_eval/data/$1/results.tar.xz ./$1/"
   filename = "./scripts/fetch_results.sh"
 
   provisioner "local-exec" {
@@ -252,7 +269,7 @@ data "aws_iam_policy_document" "assume_role_policy" {
 
 resource "aws_iam_role" "ec2_role" {
   name_prefix        = "ec2_role"
-  assume_role_policy = "${data.aws_iam_policy_document.assume_role_policy.json}"
+  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 }
 
 data "aws_iam_policy_document" "iqperf_iam_policy" {
@@ -267,15 +284,16 @@ data "aws_iam_policy_document" "iqperf_iam_policy" {
 
 resource "aws_iam_policy" "iqperf_policy" {
   name_prefix = "iqperf_policy"
-  policy      = "${data.aws_iam_policy_document.iqperf_iam_policy.json}"
+  policy      = data.aws_iam_policy_document.iqperf_iam_policy.json
 }
 
 resource "aws_iam_role_policy_attachment" "iqperf_policy_attachment" {
-  role       = "${aws_iam_role.ec2_role.name}"
-  policy_arn = "${aws_iam_policy.iqperf_policy.arn}"
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.iqperf_policy.arn
 }
 
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
   name_prefix = "ec2_instance_profile"
   role        = "perf_lifecycle_ec2_admin"
 }
+

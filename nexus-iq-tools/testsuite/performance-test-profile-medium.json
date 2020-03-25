@@ -6,21 +6,21 @@
     "iq_server": {
         "run_server" : {
             "params" : [],
-            "java_opts" : []
+            "java_opts" : ["-Xms16g", "-Xmx16g", "-XX:+UseG1GC", "-Ddw.dbCacheSizePercent=50"]
         }
     },
     "iq_tools": {
         "shift_db" : {
             "params" : [],
-            "java_opts" : []
+            "java_opts" : ["-Xms16g", "-Xmx16g"]
         },
         "generate_urls" : {
-            "params" : [],
-            "java_opts" : []
+            "params" : ["-u", "../../target_urls.json"],
+            "java_opts" : ["-Xms16g", "-Xmx16g"]
         },
         "run_test" : {
             "params" : [],
-            "java_opts" : []
+            "java_opts" : ["-Xms1024m", "-Xmx2048m", "-Dlogback.configurationFile=../../logback.xml"]
         }
-  }
+    }
 }

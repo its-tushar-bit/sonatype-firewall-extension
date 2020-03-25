@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/usr/bin/env python3
 
 # Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
 # Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
@@ -35,7 +35,7 @@ def copyIqTools(iqToolsBin, workingDir):
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Execute automated performance test.")
-    parser.add_argument("-p", "--profile", default='./default-performance-test-profile.json',
+    parser.add_argument("-p", "--profile", default='./performance-test-profile-medium.json',
                         help="automated testing profile", required=False)
     parser.add_argument("-iq", "--iq-server", default=None,
                         help="Path to IQ Server jar", required=True)
@@ -43,11 +43,12 @@ def parse_args():
                         help="Path to IQ Tools jar", required=True)
     parser.add_argument("-lic", "--license", dest="iq_license", default=None,
                         help="Path to IQ Server license", required=True)
-    # parser.add_argument("-a", "--all-logs", default=False,
-    #                     help="Retrieve all logs for the test run in addition to the results.",
-    #                     action='store_true', required=False)
     parser.add_argument("-auto", "--automation", default=None,
                         help="Path to IQ automation zip.", required=True)
+    parser.add_argument("-u", "--urls", default=None,
+                        help="Path to target URLs JSON.", required=True)
+    parser.add_argument("-l", "--logback", default=None,
+                        help="Path to custom Logback file.", required=False)
 
     parsed = parser.parse_args()
     log.debug(parsed)
@@ -66,11 +67,9 @@ def main():
     shutil.copy(parsed.iq_tools, os.path.join(workingDir))
     shutil.copy(parsed.iq_license, os.path.join(workingDir))
     shutil.copy(parsed.automation, os.path.join(workingDir))
-
-    # shutil.copy(parsed.profile,  os.path.join(workingDir, 'profile.json'))
-    # shutil.copy(parsed.iq_server, os.path.join(workingDir, 'iq_server.jar'))
-    # shutil.copy(parsed.iq_tools, os.path.join(workingDir, 'iq_tools.jar'))
-    # shutil.copy(parsed.iq_license, os.path.join(workingDir, 'iq_license.lic'))
+    shutil.copy(parsed.urls, os.path.join(workingDir))
+    if parsed.logback:
+        shutil.copy(parsed.logback, os.path.join(workingDir))
 
     sys.exit(0)
 

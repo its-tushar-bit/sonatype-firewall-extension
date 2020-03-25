@@ -78,7 +78,7 @@ import org.slf4j.LoggerFactory;
 import static java.util.stream.Collectors.toList;
 
 /**
- * @since GLOBAL_SEARCH
+ * @since 1.88
  */
 @Named
 @Singleton

@@ -16,7 +16,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 /**
- * @since GLOBAL_SEARCH
+ * @since 1.88
  */
 @Named
 @Singleton

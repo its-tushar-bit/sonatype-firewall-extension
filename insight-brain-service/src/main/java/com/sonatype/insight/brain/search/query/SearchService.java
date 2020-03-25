@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
 import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.*;
 
 /**
- * @since GLOBAL_SEARCH
+ * @since 1.88
  */
 @Named
 @Singleton

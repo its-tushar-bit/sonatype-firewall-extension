@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.codahale.metrics.annotation.Timed;
 
 /**
- * @since GLOBAL_SEARCH
+ * @since 1.88
  */
 @Named
 @Timed

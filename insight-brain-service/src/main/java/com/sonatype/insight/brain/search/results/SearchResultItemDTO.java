@@ -11,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
- * @since GLOBAL_SEARCH
+ * @since 1.88
  */
 @JsonInclude(Include.NON_NULL)
 public class SearchResultItemDTO

@@ -15,7 +15,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 /**
- * @since GLOBAL_SEARCH
+ * @since 1.88
  */
 @Named
 @Singleton

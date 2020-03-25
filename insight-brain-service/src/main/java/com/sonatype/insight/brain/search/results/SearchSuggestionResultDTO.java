@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @since GLOBAL_SEARCH
+ * @since 1.88
  */
 public class SearchSuggestionResultDTO
 {

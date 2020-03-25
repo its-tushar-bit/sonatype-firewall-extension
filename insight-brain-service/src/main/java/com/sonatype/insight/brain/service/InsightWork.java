@@ -100,21 +100,21 @@ public class InsightWork
   }
 
   /**
-   * @since GLOBAL_SEARCH
+   * @since 1.88
    */
   private File getSearchDir() {
     return new File(insightConfig.getSonatypeWork(), "search");
   }
 
   /**
-   * @since GLOBAL_SEARCH
+   * @since 1.88
    */
   public File getSearchIndexDir() {
     return new File(getSearchDir(), "index");
   }
 
   /**
-   * @since GLOBAL_SEARCH
+   * @since 1.88
    */
   public File getSearchSuggesterDir() {
     return new File(getSearchDir(), "suggester");

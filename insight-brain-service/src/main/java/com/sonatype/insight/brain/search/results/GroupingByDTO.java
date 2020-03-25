@@ -11,7 +11,7 @@ import java.util.List;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 
 /**
- * @since GLOBAL_SEARCH
+ * @since 1.88
  */
 public class GroupingByDTO
 {

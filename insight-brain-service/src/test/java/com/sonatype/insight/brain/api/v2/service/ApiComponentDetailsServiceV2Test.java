@@ -6,10 +6,9 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -88,9 +87,8 @@ public class ApiComponentDetailsServiceV2Test
 
   @Test
   public void testGetComponentDetails_chunked() throws Exception {
-    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("Apache-2.0",
-        "Apache-2.0")));
-    LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
+    Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
+    Set<License> observedLicenseSet = Collections.singleton(new License("ATT", "ATT"));
     List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
@@ -124,8 +122,7 @@ public class ApiComponentDetailsServiceV2Test
     int i = 0;
     for (ApiComponentDetailsDTOV2 componentDetailsDTOV2 : result.componentDetails) {
       assertComponentDetails(componentDetailsDTOV2, request.components.get(i), MatchState.EXACT.getId(),
-          new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet), securityVulnerabilities, i
-              /* popularity */);
+          declaredLicenseSet, observedLicenseSet, securityVulnerabilities, i /* popularity */);
       i++;
     }
   }
@@ -367,13 +364,14 @@ public class ApiComponentDetailsServiceV2Test
     assertThat(resultComponentDTO.component.packageUrl).isEqualTo(expectedPackageUrl);
   }
 
-  public void assertComponentDetails(ApiComponentDetailsDTOV2 resultComponentDTO,
-                                     ApiComponentDTOV2 requestComponentDTO,
-                                     String matchState,
-                                     List<License> declaredLicenses,
-                                     List<License> observedLicenses,
-                                     List<SecurityVulnerability> securityVulnerabilities,
-                                     Integer relativePopularity)
+  private void assertComponentDetails(
+      ApiComponentDetailsDTOV2 resultComponentDTO,
+      ApiComponentDTOV2 requestComponentDTO,
+      String matchState,
+      Set<License> declaredLicenses,
+      Set<License> observedLicenses,
+      List<SecurityVulnerability> securityVulnerabilities,
+      Integer relativePopularity)
   {
     ApiComponentIdentifierDTOV2 expectedComponentIdentifier = requestComponentDTO.componentIdentifier;
     String expectedHash = requestComponentDTO.hash;

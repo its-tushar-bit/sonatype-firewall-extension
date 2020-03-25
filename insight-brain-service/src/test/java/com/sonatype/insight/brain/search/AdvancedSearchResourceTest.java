@@ -48,7 +48,7 @@ public class AdvancedSearchResourceTest
 
     assertResponseStatus(204, response);
     assertThat(
-        new SystemConfigurationPropertyDAO().getByName(SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED).getValue())
+        new SystemConfigurationPropertyDAO().getByName(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED).getValue())
         .isEqualTo("true");
   }
 }

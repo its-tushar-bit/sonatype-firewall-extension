@@ -17,7 +17,7 @@ describe('mainHeaderSpec', function() {
       mockPermissionService,
       mockProductFeatures,
       isSuccessMetricsEnabledDeferred,
-      isFullTextSearchEnabledDeferred,
+      isAdvancedSearchEnabledDeferred,
       loginDeferred,
       productFeaturesDeferred,
       vm,
@@ -33,12 +33,12 @@ describe('mainHeaderSpec', function() {
     $rootScope = _$rootScope_;
     $ngRedux = _$ngRedux_;
     isSuccessMetricsEnabledDeferred = $q.defer();
-    isFullTextSearchEnabledDeferred = $q.defer();
+    isAdvancedSearchEnabledDeferred = $q.defer();
     loginDeferred = $q.defer();
     productFeaturesDeferred = $q.defer();
     mockSystemConfigurationPropertyService = {
       isSuccessMetricsEnabled: jasmine.createSpy().and.returnValue(isSuccessMetricsEnabledDeferred.promise),
-      isFullTextSearchEnabled: jasmine.createSpy().and.returnValue(isFullTextSearchEnabledDeferred.promise)
+      isAdvancedSearchEnabled: jasmine.createSpy().and.returnValue(isAdvancedSearchEnabledDeferred.promise)
     };
 
     mockCurrentUser = {
@@ -87,28 +87,28 @@ describe('mainHeaderSpec', function() {
   it('properly loads on enabled full text search', function() {
     vm.$onInit();
     loginDeferred.resolve();
-    isFullTextSearchEnabledDeferred.resolve(true);
+    isAdvancedSearchEnabledDeferred.resolve(true);
     $scope.$digest();
 
-    expect(vm.isFullTextSearchEnabled).toBe(true);
+    expect(vm.isAdvancedSearchEnabled).toBe(true);
   });
 
   it('properly loads on disabled full text search', function() {
     vm.$onInit();
     loginDeferred.resolve();
-    isFullTextSearchEnabledDeferred.resolve(false);
+    isAdvancedSearchEnabledDeferred.resolve(false);
     $scope.$digest();
 
-    expect(vm.isFullTextSearchEnabled).toBe(false);
+    expect(vm.isAdvancedSearchEnabled).toBe(false);
   });
 
   it('does not load success metrics, full text search, permissions, or features until after login', function() {
     vm.$onInit();
 
     isSuccessMetricsEnabledDeferred.reject('disabled');
-    isFullTextSearchEnabledDeferred.resolve(false);
+    isAdvancedSearchEnabledDeferred.resolve(false);
     expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).not.toHaveBeenCalled();
-    expect(mockSystemConfigurationPropertyService.isFullTextSearchEnabled).not.toHaveBeenCalled();
+    expect(mockSystemConfigurationPropertyService.isAdvancedSearchEnabled).not.toHaveBeenCalled();
     expect(mockPermissionService.getValidPermissions).not.toHaveBeenCalled();
     expect(mockProductFeatures.load).not.toHaveBeenCalled();
 
@@ -116,7 +116,7 @@ describe('mainHeaderSpec', function() {
     $scope.$digest();
 
     expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).toHaveBeenCalled();
-    expect(mockSystemConfigurationPropertyService.isFullTextSearchEnabled).toHaveBeenCalled();
+    expect(mockSystemConfigurationPropertyService.isAdvancedSearchEnabled).toHaveBeenCalled();
     expect(mockPermissionService.getValidPermissions).toHaveBeenCalled();
     expect(mockProductFeatures.load).toHaveBeenCalled();
   });
@@ -127,22 +127,22 @@ describe('mainHeaderSpec', function() {
     beforeEach(function() {
       vm.$onInit();
       loginDeferred.resolve();
-      isFullTextSearchEnabledDeferred.resolve(false);
+      isAdvancedSearchEnabledDeferred.resolve(false);
       $scope.$digest();
       mapStateToThis = $ngRedux.connect.calls.first().args[0];
     });
 
-    it('returns an object with isFullTextSearchEnabled set to false given a state with no server data', function() {
+    it('returns an object with isAdvancedSearchEnabled set to false given a state with no server data', function() {
       let mockStateNoServerData = {
         advancedSearchConfig: {
           serverData: null
         }
       };
 
-      expect(mapStateToThis(mockStateNoServerData)).toEqual({isFullTextSearchEnabled: false});
+      expect(mapStateToThis(mockStateNoServerData)).toEqual({isAdvancedSearchEnabled: false});
     });
 
-    it('returns an object with isFullTextSearchEnabled set to true given a state with server data and isEnabled true',
+    it('returns an object with isAdvancedSearchEnabled set to true given a state with server data and isEnabled true',
         function() {
           let mockStateWithServerDataAndIsEnabledTrue = {
             advancedSearchConfig: {
@@ -152,10 +152,10 @@ describe('mainHeaderSpec', function() {
             }
           };
 
-          expect(mapStateToThis(mockStateWithServerDataAndIsEnabledTrue)).toEqual({isFullTextSearchEnabled: true});
+          expect(mapStateToThis(mockStateWithServerDataAndIsEnabledTrue)).toEqual({isAdvancedSearchEnabled: true});
         });
 
-    it('returns an object with isFullTextSearchEnabled set to false given a state with server data and isEnabled false',
+    it('returns an object with isAdvancedSearchEnabled set to false given a state with server data and isEnabled false',
         function() {
           let mockStateWithServerDataAndIsEnabledFalse = {
             advancedSearchConfig: {
@@ -165,14 +165,14 @@ describe('mainHeaderSpec', function() {
             }
           };
 
-          expect(mapStateToThis(mockStateWithServerDataAndIsEnabledFalse)).toEqual({isFullTextSearchEnabled: false});
+          expect(mapStateToThis(mockStateWithServerDataAndIsEnabledFalse)).toEqual({isAdvancedSearchEnabled: false});
         });
   });
 
   it('calls unsubscribe when the $scope is destroyed', function() {
     vm.$onInit();
     loginDeferred.resolve();
-    isFullTextSearchEnabledDeferred.resolve(false);
+    isAdvancedSearchEnabledDeferred.resolve(false);
     $scope.$digest();
 
     expect(unsubscribeSpy).not.toHaveBeenCalled();
@@ -193,21 +193,6 @@ describe('mainHeaderSpec', function() {
     $rootScope.$broadcast('successMetricsConfigurationUpdated', false);
 
     expect(vm.isSuccessMetricsEnabled).toBe(false);
-  });
-
-  it('resets isFullTextSearchEnabled on fullTextSearchConfigurationUpdated event', function() {
-    vm.$onInit();
-    isFullTextSearchEnabledDeferred.resolve(false);
-
-    expect(vm.isFullTextSearchEnabled).toBe(false);
-
-    $rootScope.$broadcast('fullTextSearchConfigurationUpdated', true);
-
-    expect(vm.isFullTextSearchEnabled).toBe(true);
-
-    $rootScope.$broadcast('fullTextSearchConfigurationUpdated', false);
-
-    expect(vm.isFullTextSearchEnabled).toBe(false);
   });
 
   it('properly determines the displayed release version number', function() {

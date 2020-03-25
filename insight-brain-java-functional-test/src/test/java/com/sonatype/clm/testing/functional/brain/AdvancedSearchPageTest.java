@@ -26,7 +26,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 
 public class AdvancedSearchPageTest
     extends AbstractFunctionalTest
@@ -162,7 +162,7 @@ public class AdvancedSearchPageTest
   }
 
   private void enableAdvancedSearch() {
-    dao.update(new SystemConfigurationProperty(FULL_TEXT_SEARCH_ENABLED, "true"));
+    dao.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "true"));
   }
 
   @Test

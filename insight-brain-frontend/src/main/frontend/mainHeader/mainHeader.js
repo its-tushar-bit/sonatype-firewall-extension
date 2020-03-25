@@ -16,7 +16,7 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
   vm.$state = $state;
   vm.isDashboardLicensed = ProductFeatures.isDashboardLicensed;
   vm.isSuccessMetricsEnabled = false;
-  vm.isFullTextSearchEnabled = false;
+  vm.isAdvancedSearchEnabled = false;
   vm.permissions = {};
   vm.$onInit = doLoad;
   vm.getReleaseVersion = getReleaseVersion;
@@ -65,8 +65,8 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
       const unsubscribe = $ngRedux.connect(mapStateToThis, save)(vm);
       $scope.$on('$destroy', unsubscribe);
 
-      systemConfigurationPropertyService.isFullTextSearchEnabled().then(function(data) {
-        vm.isFullTextSearchEnabled = data;
+      systemConfigurationPropertyService.isAdvancedSearchEnabled().then(function(data) {
+        vm.isAdvancedSearchEnabled = data;
       });
 
       ProductFeatures.load().then(function() {
@@ -78,10 +78,6 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
 
   $scope.$on('successMetricsConfigurationUpdated', function(event, newValue) {
     vm.isSuccessMetricsEnabled = newValue;
-  });
-
-  $scope.$on('fullTextSearchConfigurationUpdated', function(event, newValue) {
-    vm.isFullTextSearchEnabled = newValue;
   });
 
   function isLoggedIn() {
@@ -103,7 +99,7 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
 
 function mapStateToThis(state) {
   return {
-    isFullTextSearchEnabled: state.advancedSearchConfig.serverData !== null &&
+    isAdvancedSearchEnabled: state.advancedSearchConfig.serverData !== null &&
         state.advancedSearchConfig.serverData.isEnabled
   };
 }

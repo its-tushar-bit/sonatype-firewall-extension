@@ -44,13 +44,13 @@ public class AdvancedSearchService
     log.info("Opting {} experimental Full Text Search.", statusDTO.isEnabled ? "in to" : "out of");
 
     String status = Boolean.toString(statusDTO.isEnabled);
-    dao.update(new SystemConfigurationProperty(SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED, status));
+    dao.update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, status));
   }
 
   public AdvancedSearchStatusDTO getStatus() {
     AdvancedSearchStatusDTO dto = new AdvancedSearchStatusDTO();
     dto.isEnabled =
-        Boolean.parseBoolean(dao.getByName(SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED).getValue());
+        Boolean.parseBoolean(dao.getByName(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED).getValue());
     dto.lastIndexTime = getLastIndexTime();
     return dto;
   }

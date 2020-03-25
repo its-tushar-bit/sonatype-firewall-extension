@@ -570,8 +570,8 @@ INSERT INTO system_configuration_property (system_configuration_property_id, nam
 -- Add default values for automatic source control configuration settings
 INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('f488d35a40d24ba589ba14280c40fe04', 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED', 'false');
 -- Since GLOBAL_SEARCH
--- FULL_TEXT_SEARCH is turned off by default until it becomes a default feature.
-INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('917095b878f8cc8ab116d2647df4d597', 'FULL_TEXT_SEARCH_ENABLED', 'false');
+-- advanced search is turned off by default until it becomes a default feature.
+INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('917095b878f8cc8ab116d2647df4d597', 'ADVANCED_SEARCH_ENABLED', 'false');
 
 CREATE TABLE data_retention_policy (
   data_retention_policy_id varchar(50) NOT NULL,

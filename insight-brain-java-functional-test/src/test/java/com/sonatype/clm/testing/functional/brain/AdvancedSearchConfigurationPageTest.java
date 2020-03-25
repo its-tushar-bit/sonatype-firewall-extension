@@ -22,7 +22,7 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static java.lang.Boolean.parseBoolean;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -68,7 +68,7 @@ public class AdvancedSearchConfigurationPageTest
 
   @Test
   public void testOptOut() {
-    dao.update(new SystemConfigurationProperty(FULL_TEXT_SEARCH_ENABLED, "true"));
+    dao.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "true"));
     refreshOrOpen(AdvancedSearchConfigurationPage.url());
 
     // Verify page is in expected state
@@ -96,7 +96,7 @@ public class AdvancedSearchConfigurationPageTest
 
   @Test
   public void testReindex() {
-    dao.update(new SystemConfigurationProperty(FULL_TEXT_SEARCH_ENABLED, "true"));
+    dao.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "true"));
     refreshOrOpen(AdvancedSearchConfigurationPage.url());
 
     page.reIndexButton().shouldBe(enabled).click();
@@ -134,7 +134,7 @@ public class AdvancedSearchConfigurationPageTest
 
   @Test
   public void testCanOnlyReIndexWhenOptInIsChecked_OptedInState() {
-    dao.update(new SystemConfigurationProperty(FULL_TEXT_SEARCH_ENABLED, "true"));
+    dao.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "true"));
     refreshOrOpen(AdvancedSearchConfigurationPage.url());
 
     // By default I should be able to trigger indexing.
@@ -169,7 +169,7 @@ public class AdvancedSearchConfigurationPageTest
   }
 
   private boolean isAdvancedSearchEnabled() {
-    return parseBoolean(dao.getByName(FULL_TEXT_SEARCH_ENABLED).getValue());
+    return parseBoolean(dao.getByName(ADVANCED_SEARCH_ENABLED).getValue());
   }
 
   private void saveForm() {

@@ -57,7 +57,7 @@ public class AdvancedSearchServiceTest
   @Test
   public void testSetStatus_DisabledSearch() {
     // Given Full Text Search is in enabled state..
-    dao.update(new SystemConfigurationProperty(SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED, "true"));
+    dao.update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
 
     AdvancedSearchStatusDTO statusDTO = new AdvancedSearchStatusDTO();
     statusDTO.isEnabled = false;
@@ -75,7 +75,7 @@ public class AdvancedSearchServiceTest
   @Test
   public void testGetStatus_SearchEnabled() {
     // Given Full Text Search is in enabled state..
-    dao.update(new SystemConfigurationProperty(SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED, "true"));
+    dao.update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
     AdvancedSearchStatusDTO status = advancedSearchService.getStatus();
     assertThat(status.isEnabled).isTrue();
   }
@@ -103,6 +103,6 @@ public class AdvancedSearchServiceTest
   }
 
   private boolean isFullTextSearchEnabled() {
-    return Boolean.parseBoolean(dao.getByName(SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED).getValue());
+    return Boolean.parseBoolean(dao.getByName(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED).getValue());
   }
 }

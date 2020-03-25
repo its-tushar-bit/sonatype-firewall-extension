@@ -11,7 +11,7 @@ export default function systemConfigurationPropertyService($http, $rootScope, $q
     saveSuccessMetricsEnabled: saveSuccessMetricsEnabled,
     checkSuccessMetricsEnabled: checkSuccessMetricsEnabled,
     SUCCESS_METRICS_DISABLED_MESSAGE: SUCCESS_METRICS_DISABLED_MESSAGE,
-    isFullTextSearchEnabled: isFullTextSearchEnabled
+    isAdvancedSearchEnabled: isAdvancedSearchEnabled
   };
 
   function isSuccessMetricsEnabled() {
@@ -51,7 +51,7 @@ export default function systemConfigurationPropertyService($http, $rootScope, $q
     });
   }
 
-  function isFullTextSearchEnabled() {
+  function isAdvancedSearchEnabled() {
     return $http.get(CLMLocations.getAdvancedSearchConfigUrl()).then(function(response) {
       return response.data.isEnabled;
     });

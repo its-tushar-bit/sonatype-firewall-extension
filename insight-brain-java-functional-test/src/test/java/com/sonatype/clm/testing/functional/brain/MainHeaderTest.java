@@ -28,7 +28,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 
 public class MainHeaderTest
     extends AbstractFunctionalTest
@@ -134,7 +134,7 @@ public class MainHeaderTest
 
   @Test
   public void testNavigation_ToAdvancedSearch() {
-    new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty(FULL_TEXT_SEARCH_ENABLED, "true"));
+    new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "true"));
     refresh();
     MainHeader.advancedSearchNavigationButton().shouldBe(visible).click();
     waitUntilUrl(AdvancedSearchPage.url());
@@ -143,7 +143,7 @@ public class MainHeaderTest
   @Test
   public void testNavigation_ToAdvancedSearch_NonAdminUser() {
     try {
-      new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty(FULL_TEXT_SEARCH_ENABLED, "true"));
+      new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "true"));
       User user = tempEntity.newUser();
       refreshOrOpen(DashboardPage.url());
       logout();

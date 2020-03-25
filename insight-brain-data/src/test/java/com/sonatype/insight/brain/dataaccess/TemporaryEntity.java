@@ -165,7 +165,7 @@ import org.codehaus.plexus.util.StringUtils;
 import org.joda.time.LocalDate;
 import org.junit.rules.ExternalResource;
 
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.FULL_TEXT_SEARCH_ENABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
@@ -475,7 +475,7 @@ public class TemporaryEntity
     }
 
     // Disable search
-    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(FULL_TEXT_SEARCH_ENABLED, "false"));
+    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
   }
 
   private <T extends HasStringId> void delete(Collection<T> entities, AbstractDAO<T> dao) {

@@ -28,7 +28,7 @@ public class SystemConfigurationProperty
   public static final String AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED =
       "AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED";
 
-  public static final String FULL_TEXT_SEARCH_ENABLED = "FULL_TEXT_SEARCH_ENABLED";
+  public static final String ADVANCED_SEARCH_ENABLED = "ADVANCED_SEARCH_ENABLED";
 
   @Id
   @Column(name = "system_configuration_property_id")

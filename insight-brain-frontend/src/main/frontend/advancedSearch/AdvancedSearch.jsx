@@ -82,26 +82,30 @@ export default function AdvancedSearch(props) {
     return (
       <Fragment key={groupingByDTO.groupBy}>
         <div className="nx-tile">
-          <h3>{groupingByDTO.groupBy}</h3>
-          <p>{groupingByDTO.additionalInfo}</p>
-          {
-            (groupingByDTO.groupIdentifier === 'VULNERABILITY_ID' ||
-            groupingByDTO.groupIdentifier === 'VULNERABILITY_DESCRIPTION') &&
-            <p>
-              Click <a href={$state.href($state.get('vulnerabilitySearchDetail'), {id: groupingByDTO.groupBy})}>
-              here</a> for detailed information.
-            </p>
-          }
-        </div>
-        {groupingByDTO.searchResultItemDTOS.map(searchResultItem => {
-          return (
-            <div className="nx-tile" key={searchResultItem.resultIndex}>
-              <AdvancedSearchResultCard searchResultItem={searchResultItem}
-                                        groupIdentifier={groupingByDTO.groupIdentifier}
-                                        $state={$state}/>
+          <div className="nx-tile-header">
+            <div className="nx-tile-header__title">
+              <h2 className="nx-h2">{groupingByDTO.groupBy}</h2>
             </div>
-          );
-        })}
+            <div className="nx-tile-header__subtitle">{groupingByDTO.additionalInfo}</div>
+            {
+              (groupingByDTO.groupIdentifier === 'VULNERABILITY_ID' ||
+              groupingByDTO.groupIdentifier === 'VULNERABILITY_DESCRIPTION') &&
+              <div className="nx-tile-header__subtitle">
+                Click <a href={$state.href($state.get('vulnerabilitySearchDetail'), {id: groupingByDTO.groupBy})}>
+                here</a> for detailed information.
+              </div>
+            }
+          </div>
+          {groupingByDTO.searchResultItemDTOS.map(searchResultItem => {
+            return (
+              <div className="nx-tile-content nx-tile-content--adv-search-results" key={searchResultItem.resultIndex}>
+                <AdvancedSearchResultCard searchResultItem={searchResultItem}
+                                          groupIdentifier={groupingByDTO.groupIdentifier}
+                                          $state={$state}/>
+              </div>
+            );
+          })}
+        </div>
       </Fragment>
     );
   }

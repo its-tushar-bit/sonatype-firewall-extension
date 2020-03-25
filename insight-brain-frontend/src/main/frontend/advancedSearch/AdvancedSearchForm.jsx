@@ -47,7 +47,7 @@ export default function AdvancedSearchForm(props) {
 
   return (
     <Fragment>
-      <form className="nx-form nx-form--advanced-search"
+      <form className="nx-form nx-form--simple nx-form--advanced-search"
             id="advanced-search-form"
             onSubmit={formOnSubmitHandler}>
         <NxTextInput id="advanced-search-input"

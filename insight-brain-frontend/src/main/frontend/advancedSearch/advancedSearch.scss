@@ -1,3 +1,10 @@
+.nx-tile-content--adv-search-results {
+  // we don't want the extra border on the first group
+  &:not(:nth-child(2)) {
+    border-top: 1px solid $nx-grey-2;
+  }
+}
+
 .nx-table--advanced-search > tbody > tr > td:nth-child(1) {
   width: 2%;
 }
@@ -6,8 +13,9 @@
   width: 18%;
 }
 
-.nx-form--advanced-search {
-  display: flex
+.nx-form.nx-form--advanced-search {
+  display: flex;
+  margin-bottom: $nx-spacing-md;
 }
 
 .nx-text-input--advanced-search {

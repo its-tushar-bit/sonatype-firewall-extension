@@ -10,13 +10,15 @@ import {
   faCogs,
   faExclamationTriangle,
   faFile,
-  faHexagon,
   faSitemap,
-  faTag,
   faTerminal,
   faText,
   faUniversity
 } from '@fortawesome/pro-regular-svg-icons';
+import {
+  faHexagon,
+  faTag
+} from '@fortawesome/pro-solid-svg-icons';
 import {NxFontAwesomeIcon, NxThreatBar} from '@sonatype/react-shared-components';
 
 export default function AdvancedSearchResultCard({searchResultItem, groupIdentifier, $state}) {
@@ -76,7 +78,9 @@ export default function AdvancedSearchResultCard({searchResultItem, groupIdentif
           {
             applicationCategory &&
               <tr className="nx-table-row">
-                <td className="nx-cell"><NxFontAwesomeIcon icon={faHexagon}/></td>
+                <td className="nx-cell">
+                  <NxFontAwesomeIcon icon={faHexagon} className={searchResultItem.applicationCategoryColor}/>
+                </td>
                 <td className="nx-cell">Application Category</td>
                 <td className="nx-cell">
                   {<a href={$state.href($state.get('management.edit.organization.category'),
@@ -103,7 +107,9 @@ export default function AdvancedSearchResultCard({searchResultItem, groupIdentif
           {
             componentLabel &&
               <tr className="nx-table-row">
-                <td className="nx-cell"><NxFontAwesomeIcon icon={faTag}/></td>
+                <td className="nx-cell">
+                  <NxFontAwesomeIcon icon={faTag} className={searchResultItem.componentLabelColor}/>
+                </td>
                 <td className="nx-cell">Component Label</td>
                 <td className="nx-cell">
                   {searchResultItem.organizationId &&

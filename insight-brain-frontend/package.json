@@ -3,6 +3,7 @@
   "version": "1.16.0-SNAPSHOT",
   "dependencies": {
     "@fortawesome/pro-regular-svg-icons": "5.11.2",
+    "@fortawesome/pro-solid-svg-icons": "5.11.2",
     "@sonatype/react-shared-components": "0.41.0",
     "@uirouter/angularjs": "=1.0.5",
     "angular": "=1.6.10",

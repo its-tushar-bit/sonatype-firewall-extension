@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch }
+import { faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch, faUserAlt }
   from '@fortawesome/pro-regular-svg-icons';
 import { save } from '../configuration/advancedSearch/advancedSearchConfigActions';
 
@@ -12,7 +12,7 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
                               systemConfigurationPropertyService, routeStateUtilService, $ngRedux) {
   var vm = this;
 
-  Object.assign(vm, { faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch });
+  Object.assign(vm, { faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch, faUserAlt });
   vm.$state = $state;
   vm.isDashboardLicensed = ProductFeatures.isDashboardLicensed;
   vm.isSuccessMetricsEnabled = false;

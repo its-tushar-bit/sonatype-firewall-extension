@@ -51,6 +51,7 @@ export function getDashboardStageUrl() {
 
 export function getCliStageUrl() {
   return `${getBaseUrl(window.location.href)}/rest/policy/stages`;
+}
 
 export function getAdvancedSearchConfigUrl() {
   return `${getBaseUrl(window.location.href)}/rest/search/advanced/status`;

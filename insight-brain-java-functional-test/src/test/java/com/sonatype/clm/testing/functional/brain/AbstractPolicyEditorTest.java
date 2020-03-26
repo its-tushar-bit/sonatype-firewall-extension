@@ -22,6 +22,7 @@ import com.sonatype.clm.testing.functional.elements.ConstraintSection.Constraint
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection.CoordinatesCondition;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection.DropdownConditionEditSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection.InputConditionEditSection;
+import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintSummary;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
@@ -46,6 +47,7 @@ import com.sonatype.insight.brain.jira.JiraIssueType;
 import com.sonatype.insight.brain.jira.JiraProject;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.HygieneRating;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
@@ -60,6 +62,7 @@ import com.sonatype.insight.brain.model.policy.conditions.AbstractConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
@@ -79,6 +82,7 @@ import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -110,8 +114,6 @@ public abstract class AbstractPolicyEditorTest
 
   private JiraProject jiraProject;
 
-  private HashMap<Class<? extends ConditionType>, Option> conditionTypesOptionMap = conditionsToOptionMap();
-
   @BeforeClass
   public static void boot() {
     refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
@@ -139,6 +141,9 @@ public abstract class AbstractPolicyEditorTest
 
   @Test
   public void testCreatePolicy() {
+    setFeatures(LicensedFeature.HYGIENE, LicensedFeature.POLICY_MONITORING, LicensedFeature.ENFORCEMENT,
+        LicensedFeature.NOTIFICATIONS, LicensedFeature.WEBHOOKS_FOR_APPLICATIONS, LicensedFeature.DASHBOARD);
+
     if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
       tempEntity.newTag(currentOwner.getId(), "PolicyEditorTest category");
     }
@@ -170,7 +175,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraint.getName()).isEqualTo("New Constraint");
     assertThat(constraint.getOperator()).isEqualTo(LogicalOperator.OR);
 
-    assertThat(constraint.getConditions()).hasSize(22);
+    assertThat(constraint.getConditions()).hasSize(23);
     assertCondition(constraint.getConditions().get(0), AgeInDaysConditionType.ID, "older than",
         Integer.toString(3 * 365));
     assertCondition(constraint.getConditions().get(1), CoordinatesConditionType.ID, "match",
@@ -205,6 +210,9 @@ public abstract class AbstractPolicyEditorTest
         "pkg:pypi/*/*/a@*?extension=*&qualifier=*");
     assertCondition(constraint.getConditions().get(19), PackageUrlConditionType.ID, "matches", "pkg:golang/*/*/a@*");
     assertCondition(constraint.getConditions().get(20), PackageUrlConditionType.ID, "matches", "pkg:conan/*/*/a@*");
+    assertCondition(constraint.getConditions().get(21), PackageUrlConditionType.ID, "matches", "pkg:golang/*/*/*@*");
+    assertCondition(constraint.getConditions().get(22), HygieneRatingConditionType.ID, "is not",
+        HygieneRating.getById("4").getId());
 
     assertThat(newPolicy.getActions().get(Stage.ID_BUILD)).isEqualTo("warn");
 
@@ -376,6 +384,8 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private void testCreatePolicy_navigatingAwayWithUnsavedData() {
+    HashMap<Class<? extends ConditionType>, Option> conditionTypesOptionMap = conditionsToOptionMap();
+
     String editorUrl = WebDriverRunner.getWebDriver().getCurrentUrl();
     UnsavedModal unsavedModal = new UnsavedModal();
 
@@ -519,6 +529,7 @@ public abstract class AbstractPolicyEditorTest
     constraintSummary1.editConstraintButton().shouldBe(visible, enabled);
 
     constraintSummary1.condition(0).shouldHave(text("Age older than 2 Years"));
+    constraintSummary1.conditionUnsupportedMessages().shouldHaveSize(0);
 
     ConstraintSection.ConstraintSummary constraintSummary2 = constraintSection.constraintSummary(1);
     constraintSummary2.name().shouldHave(text(constraints.get(1).getName()));
@@ -533,6 +544,7 @@ public abstract class AbstractPolicyEditorTest
 
     constraintSummary2.condition(0).shouldHave(text("License Threat Group is my LTG"));
     constraintSummary2.condition(1).shouldHave(text("Label is my Label"));
+    constraintSummary2.conditionUnsupportedMessages().shouldHaveSize(0);
 
     ConstraintSection.ConstraintSummary constraintSummary3 = constraintSection.constraintSummary(2);
     constraintSummary3.name().shouldHave(text(constraints.get(2).getName()));
@@ -547,9 +559,12 @@ public abstract class AbstractPolicyEditorTest
 
     constraintSummary3.condition(0).shouldHave(text("Relative Popularity (Percentage) less than 50"));
     constraintSummary3.condition(1).shouldHave(text("Coordinates do not match maven:blah:blah:blah"));
+    constraintSummary3.conditionUnsupportedMessages().shouldHaveSize(0);
   }
 
   private void testEditPolicy_constraintSection_editors(Policy policy) {
+    HashMap<Class<? extends ConditionType>, Option> conditionTypesOptionMap = conditionsToOptionMap();
+
     List<Constraint> constraints = policy.getConstraints();
     ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
 
@@ -558,6 +573,7 @@ public abstract class AbstractPolicyEditorTest
     constraintSection.constraintEditors().shouldHaveSize(1);
 
     ConstraintEditSection constraintEdit = constraintSection.constraintEditor(0);
+    constraintEdit.conditionUnsupportedMessages().shouldHaveSize(0);
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     constraintEdit.operator().selectedItem().shouldHave(text("all"));
@@ -646,6 +662,8 @@ public abstract class AbstractPolicyEditorTest
     assertThat(securityVulnerabilityCondition.getValue()).isEqualTo("1");
     assertThat(securityVulnerabilityCondition.getOperator()).isEqualTo(">=");
 
+    constraintEdit.conditionUnsupportedMessages().shouldHaveSize(0);
+
     // Check that severity can be set to 0 as well
     constraintEdit.inputCondition(2).value().val("0");
     PolicyEditorPage.savePolicy();
@@ -666,6 +684,130 @@ public abstract class AbstractPolicyEditorTest
 
     constraints = policyDAO.getById(policy.getId()).getConstraints();
     assertThat(constraints.get(0).getConditions()).hasSize(1);
+  }
+
+  @Test
+  public void testDisabledPolicyConditions() {
+    setMissingFeature(LicensedFeature.HYGIENE);
+    String ownerId = currentOwner.getId();
+    Policy policy = createDisabledPolicyConditions(ownerId);
+    refresh();
+
+    OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
+    waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
+
+    testDisabledPolicy_constraintSectionConditions_summaries(policy);
+    testDisabledPolicy_constraintSectionConditions_editors(policy);
+  }
+
+  private Policy createDisabledPolicyConditions(String ownerId) {
+    Policy policy = tempEntity.newPolicy(ownerId, "original name", 1);
+    Constraint constraint1 = new Constraint(policy.getId() + "1", "First Constraint with One Condition", null);
+    constraint1.addCondition(new Condition(HygieneRatingConditionType.ID, "is", "1"));
+    Constraint constraint2 = new Constraint(policy.getId() + "2", "Second Constraint with Two Conditions",
+        LogicalOperator.AND);
+    constraint2.addCondition(new Condition(HygieneRatingConditionType.ID, "is", "1"));
+    constraint2.addCondition(new Condition(HygieneRatingConditionType.ID, "is", "4"));
+
+    policy.setConstraints(Arrays.asList(constraint1, constraint2));
+
+    policyDAO.update(policy);
+    return policy;
+  }
+
+  private void testDisabledPolicy_constraintSectionConditions_summaries(Policy policy) {
+    List<Constraint> constraints = policy.getConstraints();
+    ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
+    constraintSection.addConstraintButton().shouldBe(visible, enabled);
+    constraintSection.constraintSummaries().shouldHaveSize(constraints.size());
+
+    ConstraintSection.ConstraintSummary constraintSummary1 = constraintSection.constraintSummary(0);
+    constraintSummary1.name().shouldHave(text(constraints.get(0).getName()));
+
+    List<Condition> conditions = constraints.get(0).getConditions();
+    constraintSummary1.subheader()
+        .shouldHave(ConstraintSection.ConstraintSummary
+            .subheaderText(conditions.size(), constraints.get(0).getOperator().toString()));
+    constraintSummary1.conditions().shouldHaveSize(conditions.size());
+    constraintSummary1.deleteConstraintButton().shouldBe(visible, enabled);
+    constraintSummary1.editConstraintButton().shouldBe(visible, enabled);
+
+    constraintSummary1.conditionUnsupportedMessages().shouldHaveSize(1);
+    assertPolicySummary_constraintSectionDisabled(constraintSummary1, 0, "Hygiene Rating is Exemplar",
+        "Hygiene Rating condition is not supported by your license. Please delete the condition.");
+
+    ConstraintSection.ConstraintSummary constraintSummary2 = constraintSection.constraintSummary(1);
+    constraintSummary2.name().shouldHave(text(constraints.get(1).getName()));
+
+    conditions = constraints.get(1).getConditions();
+    constraintSummary2.subheader()
+        .shouldHave(ConstraintSection.ConstraintSummary
+            .subheaderText(conditions.size(), constraints.get(1).getOperator().toString()));
+    constraintSummary2.conditions().shouldHaveSize(conditions.size());
+    constraintSummary2.deleteConstraintButton().shouldBe(visible, enabled);
+    constraintSummary2.editConstraintButton().shouldBe(visible, enabled);
+
+    constraintSummary2.conditionUnsupportedMessages().shouldHaveSize(2);
+    assertPolicySummary_constraintSectionDisabled(constraintSummary2, 0, "Hygiene Rating is Exemplar",
+        "Hygiene Rating condition is not supported by your license. Please delete the condition.");
+    assertPolicySummary_constraintSectionDisabled(constraintSummary2, 1, "Hygiene Rating is Laggard",
+        "Hygiene Rating condition is not supported by your license. Please delete the condition.");
+  }
+
+  private void assertPolicySummary_constraintSectionDisabled(
+      final ConstraintSummary constraintSummary,
+      final int conditionIndex,
+      final String expectedSummaryText,
+      final String expectedWarningMessage)
+  {
+    constraintSummary.conditionUnsupportedMessage(conditionIndex).shouldHave(text(expectedWarningMessage));
+    constraintSummary.condition(conditionIndex).shouldHave(text(expectedSummaryText));
+  }
+
+  private void testDisabledPolicy_constraintSectionConditions_editors(Policy policy) {
+    ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
+
+    constraintSection.constraintEditors().shouldHaveSize(0);
+    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
+    constraintSection.constraintEditors().shouldHaveSize(1);
+
+    ConstraintEditSection constraintEdit = constraintSection.constraintEditor(0);
+
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
+    constraintEdit.operator().selectedItem().shouldHave(text("all"));
+
+    policy = policyDAO.getById(policy.getId());
+    assertThat(policy.getConstraints().get(0).getName()).isEqualTo("First Constraint with One Condition");
+
+    constraintEdit.conditions().shouldHaveSize(1);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
+    constraintEdit.conditionUnsupportedMessages().shouldHaveSize(1);
+    assertPolicyEditor_constraintSectionDisabled(constraintEdit, 0, "Hygiene Rating",
+        "Hygiene Rating condition is not supported by your license. Please delete the condition.");
+    constraintEdit.dropdownCondition(0).deleteConditionButton().shouldBe(visible, disabled);
+    constraintEdit.dropdownCondition(0).type().selectedItem().shouldBe(text("Hygiene Rating"));
+    constraintEdit.dropdownCondition(0).operator().selectedItem().shouldBe(text("is"));
+    constraintEdit.dropdownCondition(0).value().selectedItem().shouldBe(text("Exemplar"));
+
+    constraintSection.constraintSummary(1).editConstraintButton().shouldBe(visible, enabled).click();
+    constraintSection.constraintEditors().shouldHaveSize(2);
+
+    constraintEdit = constraintSection.constraintEditor(1);
+    constraintEdit.conditionUnsupportedMessages().shouldHaveSize(2);
+    assertPolicyEditor_constraintSectionDisabled(constraintEdit, 0, "Hygiene Rating",
+        "Hygiene Rating condition is not supported by your license. Please delete the condition.");
+    assertPolicyEditor_constraintSectionDisabled(constraintEdit, 1, "Hygiene Rating",
+        "Hygiene Rating condition is not supported by your license. Please delete the condition.");
+  }
+
+  private void assertPolicyEditor_constraintSectionDisabled(
+      final ConstraintEditSection constraintEditSection,
+      final int conditionIndex,
+      final String expectedConditionText,
+      final String expectedWarningMessage)
+  {
+    constraintEditSection.conditionUnsupportedMessage(conditionIndex).shouldHave(text(expectedWarningMessage));
+    constraintEditSection.condition(conditionIndex).type().selectedItem().shouldBe(text(expectedConditionText));
   }
 
   private void testEditPolicy_notificationsSection(Policy policy) {
@@ -824,12 +966,15 @@ public abstract class AbstractPolicyEditorTest
   }
 
   public void testCreatePolicy_constraintSection() {
+    HashMap<Class<? extends ConditionType>, Option> conditionTypesOptionMap = conditionsToOptionMap();
+
     ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
     constraintSection.addConstraintButton().shouldBe(visible, enabled);
 
     constraintSection.constraintEditors().shouldHaveSize(1);
 
     ConstraintEditSection newConstraint = constraintSection.constraintEditor(0);
+    newConstraint.conditionUnsupportedMessages().shouldHaveSize(0);
     newConstraint.name().shouldBe(empty).val("New Constraint");
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     newConstraint.operator().selectedItem().shouldHave(text("any"));
@@ -970,48 +1115,50 @@ public abstract class AbstractPolicyEditorTest
     coordsCondition.qualifier().val("cp37");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
-    DropdownConditionEditSection labelCondition = addDropdownCondition(newConstraint, LabelConditionType.class, 4);
+    DropdownConditionEditSection labelCondition =
+        addDropdownCondition(newConstraint, LabelConditionType.class, 4, conditionTypesOptionMap);
     labelCondition.operator().selectedItem().shouldHave(text("is"));
     labelCondition.value().shouldBe(text("Sample Label"));
 
-    DropdownConditionEditSection licenseCondition = addDropdownCondition(newConstraint, LicenseConditionType.class, 5);
+    DropdownConditionEditSection licenseCondition =
+        addDropdownCondition(newConstraint, LicenseConditionType.class, 5, conditionTypesOptionMap);
     licenseCondition.operator().selectedItem().shouldHave(text("is"));
     licenseCondition.value().selectedItem().shouldHave(text("0BSD")).click();
     licenseCondition.value().listItem(5).shouldHave(text("AdaptiveLINQ-EULA")).click();
 
     DropdownConditionEditSection licenseStatus =
-        addDropdownCondition(newConstraint, LicenseStatusConditionType.class, 6);
+        addDropdownCondition(newConstraint, LicenseStatusConditionType.class, 6, conditionTypesOptionMap);
     licenseStatus.operator().selectedItem().shouldHave(text("is")).click();
     licenseStatus.operator().listItem(1).shouldHave(text("is not")).click();
     licenseStatus.value().selectedItem().shouldHave(text("Open")).click();
     licenseStatus.value().listItem(4).shouldHave(text("Confirmed")).click();
 
     DropdownConditionEditSection licenseThreatGroup =
-        addDropdownCondition(newConstraint, LicenseThreatGroupConditionType.class, 7);
+        addDropdownCondition(newConstraint, LicenseThreatGroupConditionType.class, 7, conditionTypesOptionMap);
     licenseThreatGroup.operator().selectedItem().shouldHave(text("is"));
     licenseThreatGroup.value().selectedItem().shouldHave(text("Banned")).click();
     licenseThreatGroup.value().listItem(2).shouldHave(text("Liberal")).click();
 
-    InputConditionEditSection licenseThreatGroupLevel = addInputCondition(newConstraint,
-        LicenseThreatGroupLevelConditionType.class, 8);
+    InputConditionEditSection licenseThreatGroupLevel =
+        addInputCondition(newConstraint, LicenseThreatGroupLevelConditionType.class, 8, conditionTypesOptionMap);
     licenseThreatGroupLevel.operator().selectedItem().shouldHave(text("<=")).click();
     licenseThreatGroupLevel.operator().listItem(1).shouldHave(text(">=")).click();
     licenseThreatGroupLevel.value().val("5");
 
-    InputConditionEditSection securityVulnerabilitySeverity = addInputCondition(newConstraint,
-        SecurityVulnerabilitySeverityConditionType.class, 9);
+    InputConditionEditSection securityVulnerabilitySeverity =
+        addInputCondition(newConstraint, SecurityVulnerabilitySeverityConditionType.class, 9, conditionTypesOptionMap);
     securityVulnerabilitySeverity.operator().selectedItem().shouldHave(text("=")).click();
     securityVulnerabilitySeverity.operator().listItem(3).shouldHave(text(">")).click();
     securityVulnerabilitySeverity.value().val("1");
 
     DropdownConditionEditSection securityVulnerabilityStatus = addDropdownCondition(newConstraint,
-        SecurityVulnerabilityStatusConditionType.class, 10);
+        SecurityVulnerabilityStatusConditionType.class, 10, conditionTypesOptionMap);
     securityVulnerabilityStatus.operator().selectedItem().shouldHave(text("is"));
     securityVulnerabilityStatus.value().selectedItem().shouldHave(text("Open")).click();
     securityVulnerabilityStatus.value().listItem(2).shouldHave(text("Not Applicable")).click();
 
-    InputConditionEditSection relativePopularity = addInputCondition(newConstraint,
-        RelativePopularityConditionType.class, 11);
+    InputConditionEditSection relativePopularity =
+        addInputCondition(newConstraint, RelativePopularityConditionType.class, 11, conditionTypesOptionMap);
     relativePopularity.operator().selectedItem().shouldHave(text("="));
     relativePopularity.value().val("50");
 
@@ -1090,6 +1237,17 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     packageUrlCondition.deleteConditionButton().click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    newConstraint.addConditionButton().click();
+    DropdownConditionEditSection hygieneRating = newConstraint.dropdownCondition(22);
+    hygieneRating.type().chooseOption(conditionTypesOptionMap.get(HygieneRatingConditionType.class));
+    hygieneRating.operator().selectedItem().shouldHave(text("is")).click();
+    hygieneRating.operator().listItem(1).shouldHave(text("is not")).click();
+    hygieneRating.value().selectedItem().shouldHave(text("Exemplar")).click();
+    hygieneRating.value().listItem(1).shouldHave(text("Laggard")).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    newConstraint.conditionUnsupportedMessages().shouldHaveSize(0);
   }
 
   private void toggleAndCheckSave(final SelenideElement element) {
@@ -1395,9 +1553,11 @@ public abstract class AbstractPolicyEditorTest
     ThreatLevelSelector.selectedThreatLevel().shouldHave(text(String.valueOf(threatLevel)));
   }
 
-  private DropdownConditionEditSection addDropdownCondition(ConstraintEditSection constraint,
-                                                            Class<? extends AbstractConditionType> conditionType,
-                                                            int row)
+  private DropdownConditionEditSection addDropdownCondition(
+      ConstraintEditSection constraint,
+      Class<? extends AbstractConditionType> conditionType,
+      int row,
+      HashMap<Class<? extends ConditionType>, Option> conditionTypesOptionMap)
   {
     constraint.addConditionButton().click();
     DropdownConditionEditSection condition = constraint.dropdownCondition(row);
@@ -1405,9 +1565,11 @@ public abstract class AbstractPolicyEditorTest
     return condition;
   }
 
-  private InputConditionEditSection addInputCondition(ConstraintEditSection constraint,
-                                                      Class<? extends AbstractConditionType> conditionType,
-                                                      int row)
+  private InputConditionEditSection addInputCondition(
+      ConstraintEditSection constraint,
+      Class<? extends AbstractConditionType> conditionType,
+      int row,
+      HashMap<Class<? extends ConditionType>, Option> conditionTypesOptionMap)
   {
     constraint.addConditionButton().click();
     InputConditionEditSection condition = constraint.inputCondition(row);

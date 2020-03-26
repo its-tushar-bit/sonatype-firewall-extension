@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
 # Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
@@ -15,7 +15,7 @@ if ./configure_test.py -iq ../../insight-brain-service/target/insight-brain-serv
    ./run_aws_test.sh;
    terraform destroy -auto-approve;
    CURRENT_TEST=$(ls -t | grep awsPerfRun | head -1)
-   RESULT_FILE=$(tar tf $CURRENT_TEST/results.tar | grep perf_results)
+   RESULT_FILE=$(tar tJf $CURRENT_TEST/results.tar.xz | grep perf_results)
    end=$(date +%s)
    runtime=$((end-start))
    echo -e "runtime: $runtime seconds\nresults:\n$(pwd)/$CURRENT_TEST/$RESULT_FILE";

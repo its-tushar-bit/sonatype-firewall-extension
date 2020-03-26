@@ -257,6 +257,10 @@ public class ApplicationReportPage
       return child("#cip-modal-close-button");
     }
 
+    public SelenideElement backButton() {
+      return child("#cip-modal-back-button");
+    }
+
     public CipOccurrencesTab getOccurrencesTab() {
       return new CipOccurrencesTab(".tab-content > cip-occurrences");
     }

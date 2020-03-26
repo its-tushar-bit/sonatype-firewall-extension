@@ -176,6 +176,15 @@ const addPartialMatchData = curry(function(partialMatchesByKey, entry) {
   return partialMatches ? { ...entry, matchDetails: partialMatches.matchDetails } : entry;
 });
 
+function addSerializedComponentIdentifier(entry) {
+  const { componentIdentifier } = entry;
+  if (!componentIdentifier) {
+    return entry;
+  }
+
+  return { ...entry, serializedComponentIdentifier: serializeComponentIdentifier(componentIdentifier) };
+}
+
 const defaultParamValue = { aaData: [] };
 
 export function createReportEntries(policyResult = defaultParamValue, bomResult = defaultParamValue,
@@ -192,10 +201,13 @@ export function createReportEntries(policyResult = defaultParamValue, bomResult 
 
       // make entries for all violations
       violationEntries = makeViolationEntries(policyResult, bomDataByKey),
-      addPartialMatchAndDependencyData = compose(map(addPartialMatchData(partialMatchesByKey)), map(addDependencyInfo)),
-      violationEntriesWithPartialMatchesAndDependencyInfo = into([], addPartialMatchAndDependencyData,
-          violationEntries),
-      violatingEntriesByKey = groupBy(toKey, violationEntriesWithPartialMatchesAndDependencyInfo);
+      augmentViolationEntries = compose(
+          map(addPartialMatchData(partialMatchesByKey)),
+          map(addDependencyInfo),
+          map(addSerializedComponentIdentifier)
+      ),
+      augmentedViolationEntries = into([], augmentViolationEntries, violationEntries),
+      violatingEntriesByKey = groupBy(toKey, augmentedViolationEntries);
 
   function isKeyInactive([key]) {
     const violations = violatingEntriesByKey[key];
@@ -223,10 +235,14 @@ export function createReportEntries(policyResult = defaultParamValue, bomResult 
   }
 
   const nonViolatingBomData = map(prop(1), filter(isKeyInactive, toPairs(bomDataByKey))),
-      nonViolatingEntriesTransducer = compose(map(makeNonViolatingComponentEntry), map(addDependencyInfo)),
+      nonViolatingEntriesTransducer = compose(
+          map(makeNonViolatingComponentEntry),
+          map(addDependencyInfo),
+          map(addSerializedComponentIdentifier)
+      ),
       nonViolatingComponentEntries = into([], nonViolatingEntriesTransducer, nonViolatingBomData);
 
-  return concat(violationEntriesWithPartialMatchesAndDependencyInfo, nonViolatingComponentEntries);
+  return concat(augmentedViolationEntries, nonViolatingComponentEntries);
 }
 
 export function createRawDataEntries(securityResult = defaultParamValue, licensesResult = defaultParamValue,

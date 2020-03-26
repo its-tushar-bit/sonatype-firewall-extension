@@ -77,11 +77,21 @@ public class ConstraintSection
     }
 
     public ElementsCollection conditions() {
-      return $$(rootSelector + " .test-constraint-summary-condition");
+      return $$(rootSelector + " .test-constraint-summary-condition .test-constraint-summary-condition-text");
     }
 
     public SelenideElement condition(int i) {
-      return $(rootSelector + " .test-constraint-summary-condition:nth-child(" + (i + 1) + ")");
+      return $(rootSelector + " .test-constraint-summary-condition:nth-child(" + (i + 1) + ")" +
+          " .test-constraint-summary-condition-text");
+    }
+
+    public ElementsCollection conditionUnsupportedMessages() {
+      return $$(rootSelector + " .test-summary-condition-type-unsupported-message");
+    }
+
+    public SelenideElement conditionUnsupportedMessage(int i) {
+      return $(rootSelector + " .test-constraint-summary-condition:nth-child(" + (i + 1) + ")" +
+          " .test-summary-condition-type-unsupported-message");
     }
   }
 
@@ -135,6 +145,15 @@ public class ConstraintSection
     public CoordinatesCondition coordinatesCondition(int i) {
       return new CoordinatesCondition(rootSelector, ".iq-policy-conditions .iq-policy-condition",
           nthChild(i + 1));
+    }
+
+    public ElementsCollection conditionUnsupportedMessages() {
+      return $$(rootSelector + " .iq-policy-conditions .test-editor-condition-type-unsupported");
+    }
+
+    public SelenideElement conditionUnsupportedMessage(int i) {
+      return $(rootSelector + " .iq-policy-conditions .iq-policy-condition:nth-child(" + (i + 1) + ")" +
+          " .test-editor-condition-type-unsupported");
     }
 
     public static class ConditionEditSection<T>

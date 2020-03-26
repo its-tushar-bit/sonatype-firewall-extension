@@ -7,36 +7,46 @@ window.MockData = {
   getActionStageData: function() {
     return [{
       'stageName': 'Proxy',
+      'shortName': 'Proxy',
       'stageTypeId': 'proxy'
     }, {
       'stageName': 'Develop',
+      'shortName': 'Develop',
       'stageTypeId': 'develop'
     }, {
       'stageName': 'Build',
+      'shortName': 'Build',
       'stageTypeId': 'build'
     }, {
       'stageName': 'Stage Release',
+      'shortName': 'Stage',
       'stageTypeId': 'stage-release'
     }, {
       'stageName': 'Release',
+      'shortName': 'Release',
       'stageTypeId': 'release'
     }, {
       'stageName': 'Operate',
+      'shortName': 'Operate',
       'stageTypeId': 'operate'
     }];
   },
   getDashboardStageData: function() {
     return [{
       'stageName': 'Build',
+      'shortName': 'Build',
       'stageTypeId': 'build'
     }, {
       'stageName': 'Stage Release',
+      'shortName': 'Stage',
       'stageTypeId': 'stage-release'
     }, {
       'stageName': 'Release',
+      'shortName': 'Release',
       'stageTypeId': 'release'
     }, {
       'stageName': 'Operate',
+      'shortName': 'Operate',
       'stageTypeId': 'operate'
     }];
   },

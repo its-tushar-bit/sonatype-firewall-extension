@@ -88,7 +88,7 @@ public class PolicyCentricReportWaiverTest
     AddWaiverDialog.root().should(disappear);
 
     List<PolicyViolation> policyViolations = new PolicyViolationDAO().getByApplicationId(app.getId());
-    assertThat(policyViolations).hasSize(4);
+    assertThat(policyViolations).hasSize(7);
 
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(app.getId());
     assertThat(policyWaivers).hasSize(1);
@@ -108,7 +108,7 @@ public class PolicyCentricReportWaiverTest
 
     reportPage.showAllViolationsRadio().click();
 
-    reportPage.resultRow(1).shouldHave(text("ch.qos.logback : logback-access : 0.6"));
+    reportPage.resultRow(2).shouldHave(text("ch.qos.logback : logback-access : 0.6"));
   }
 
   @Test
@@ -212,7 +212,8 @@ public class PolicyCentricReportWaiverTest
 
     refreshOrOpen(ApplicationReportPage.url(app, scanId));
 
-    reportPage.resultRows().shouldHave(texts("All Components", "All Components", "All Components", "None", "None"));
+    reportPage.resultRows().shouldHave(texts("All Components", "All Components", "All Components", "All Components",
+        "All Components", "All Components", "None", "None"));
   }
 
   @Test
@@ -233,7 +234,8 @@ public class PolicyCentricReportWaiverTest
 
     refreshOrOpen(ApplicationReportPage.url(app, scanId));
 
-    reportPage.resultRows().shouldHave(texts("Waived", "Waived", "Waived", "Waived", "None"));
+    reportPage.resultRows()
+        .shouldHave(texts("Waived", "Waived", "Waived", "Waived", "Waived", "Waived", "Waived", "None"));
   }
 
   private void assertWaiver(ExistingWaiver waiver, String comment) {
@@ -250,8 +252,8 @@ public class PolicyCentricReportWaiverTest
 
     CipModal cipModal = reportPage.cipModal();
 
-    reportPage.resultRows().shouldHaveSize(5);
-    reportPage.resultRow(1).click();
+    reportPage.resultRows().shouldHaveSize(8);
+    reportPage.resultRow(2).click();
     cipModal.tabLink(2).click();
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();
     AddWaiverDialog.root().should(appear);

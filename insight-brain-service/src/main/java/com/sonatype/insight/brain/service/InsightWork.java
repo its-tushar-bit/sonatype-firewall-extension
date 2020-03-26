@@ -98,4 +98,25 @@ public class InsightWork
   public File getTrashDir() {
     return new File(insightConfig.getSonatypeWork(), "trash");
   }
+
+  /**
+   * @since 1.88
+   */
+  private File getSearchDir() {
+    return new File(insightConfig.getSonatypeWork(), "search");
+  }
+
+  /**
+   * @since 1.88
+   */
+  public File getSearchIndexDir() {
+    return new File(getSearchDir(), "index");
+  }
+
+  /**
+   * @since 1.88
+   */
+  public File getSearchSuggesterDir() {
+    return new File(getSearchDir(), "suggester");
+  }
 }

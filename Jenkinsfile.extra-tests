@@ -7,8 +7,8 @@
 
 String agentLabel = InsightConstants.AGENT_LABEL
 
-def testConfig(String mavenOptions, String pomFile = null) {
-  return mavenCommon(javaVersion: 'Java 8', mavenVersion: 'Maven 3.2.x', useEventSpy: false,
+def testConfig(String mavenOptions, String pomFile = null, String javaVersion = 'Java 8') {
+  return mavenCommon(javaVersion: javaVersion, mavenVersion: 'Maven 3.2.x', useEventSpy: false,
       pomFile: pomFile, mavenOptions: mavenOptions)
 }
 
@@ -37,8 +37,8 @@ def functionalTests(String browser, String testRegex) {
   }
 }
 
-def unitTests() {
-  def testConfig = testConfig('-Dskip-functional-test')
+def unitTests(String javaVersion = 'Java 8') {
+  def testConfig = testConfig('-Dskip-functional-test -Pbuildsupport-sonar-coverage', null, javaVersion)
   mvn testConfig, 'clean install'
 }
 
@@ -96,10 +96,22 @@ pipeline {
             }
           }
         }
-        stage('Unit and Integration Tests') {
+        stage('Unit and Integration Tests - Java8') {
           agent { label agentLabel }
           steps {
             unitTests()
+          }
+          post {
+            always {
+              sonarAnalyze(env: env, sonarAnalysisPullRequestsOnly: currentBuild.projectName != 'master')
+              captureResultsAndCleanup()
+            }
+          }
+        }
+        stage('Unit and Integration Tests - Java11') {
+          agent { label agentLabel }
+          steps {
+            unitTests('OpenJDK 11')
           }
           post {
             always {

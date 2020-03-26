@@ -23,6 +23,8 @@ export const LOAD_REPORT_ALL_DATA_REQUESTED = 'LOAD_REPORT_ALL_DATA_REQUESTED';
 export const SET_AGGREGATE_REPORT_ENTRIES = 'SET_AGGREGATE_REPORT_ENTRIES';
 export const SET_REPORT_PARAMETERS = 'SET_REPORT_PARAMETERS';
 export const SELECT_COMPONENT = 'SELECT_COMPONENT';
+export const SELECT_ROOT_ANCESTOR = 'SELECT_ROOT_ANCESTOR';
+export const UNSELECT_ROOT_ANCESTOR = 'UNSELECT_ROOT_ANCESTOR';
 export const REEVALUATE_REPORT_REQUESTED = 'REEVALUATE_REPORT_REQUESTED';
 export const REEVALUATE_REPORT_FULFILLED = 'REEVALUATE_REPORT_FULFILLED';
 export const REEVALUATE_REPORT_FAILED = 'REEVALUATE_REPORT_FAILED';
@@ -253,6 +255,8 @@ export default function applicationReportActions($http, $q, $state, $window, CLM
   }
 
   const selectComponent = payloadParamActionCreator(SELECT_COMPONENT);
+  const selectRootAncestor = payloadParamActionCreator(SELECT_ROOT_ANCESTOR);
+  const unselectRootAncestor = noPayloadActionCreator(UNSELECT_ROOT_ANCESTOR);
 
   function reevaluateReport() {
     return (dispatch, getState) => {
@@ -293,7 +297,9 @@ export default function applicationReportActions($http, $q, $state, $window, CLM
     setRawDataNumericMinFilter,
     setSorting,
     setSortingRawData,
-    selectComponent
+    selectComponent,
+    selectRootAncestor,
+    unselectRootAncestor
   };
 }
 

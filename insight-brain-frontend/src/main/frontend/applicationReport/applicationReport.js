@@ -10,6 +10,7 @@ import { lookup, setToArray, union } from '../util/jsUtil';
 import template from './applicationReport.html';
 import reevaluationErrorModalWrapperTemplate from './reevaluationErrorModal/reevaluationErrorModalWrapper.html';
 import { policyTypes } from '../dashboard/filter/staticFilterEntries';
+import { fetchStageTypes } from '../stages/stagesActions';
 
 export default {
   template: template,
@@ -62,13 +63,17 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
     policyThreatLevelFilterSelectedRange: undefined,
 
     $onInit() {
-      const actions = pick(
-          ['setAggregateReportEntries', 'setExactValueFilter', 'reevaluateReport',
-            'reevaluateReportCancelled', 'loadReport'],
-          applicationReportActions);
+      const actions = {
+        ...pick(
+            ['setAggregateReportEntries', 'setExactValueFilter', 'reevaluateReport',
+              'reevaluateReportCancelled', 'loadReport'],
+            applicationReportActions),
+        fetchStageTypes
+      };
 
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
       vm.loadReport();
+      vm.fetchStageTypes('action');
 
       $scope.$watch('vm.reevaluating', function(reevaluating) {
         if (reevaluating) {

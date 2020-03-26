@@ -17,6 +17,7 @@ describe('evaluate.application.modal.controller.spec.js', function() {
     $provide.value('$cookies', {
       get: angular.noop
     });
+    SpecUtil.mockNgRedux($provide);
   }));
 
   beforeEach(inject(function($rootScope, $q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, StageTypeStore) {

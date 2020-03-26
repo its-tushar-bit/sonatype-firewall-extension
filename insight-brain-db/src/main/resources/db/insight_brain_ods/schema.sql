@@ -569,6 +569,9 @@ INSERT INTO system_configuration_property (system_configuration_property_id, nam
 INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('3ba8d0f1601946efb376fd841a149bb0', 'AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID', '');
 -- Add default values for automatic source control configuration settings
 INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('f488d35a40d24ba589ba14280c40fe04', 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED', 'false');
+-- Since 1.88
+-- advanced search is turned off by default until it becomes a default feature.
+INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('917095b878f8cc8ab116d2647df4d597', 'ADVANCED_SEARCH_ENABLED', 'false');
 
 CREATE TABLE data_retention_policy (
   data_retention_policy_id varchar(50) NOT NULL,
@@ -600,7 +603,6 @@ CREATE TABLE source_control (
   enable_pull_requests boolean,
   enable_status_checks boolean,
   pull_request_poll_time timestamp NULL,
-  pull_request_cutoff_time timestamp NULL,
   pull_request_error_count INT NOT NULL DEFAULT 0,
   CONSTRAINT source_control_pk PRIMARY KEY (source_control_id),
   CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id)

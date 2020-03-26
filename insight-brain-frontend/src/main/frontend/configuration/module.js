@@ -20,6 +20,7 @@ import MailConfigContainer from './mail/MailConfigContainer';
 import ProxyConfigContainer from './proxy/ProxyConfigContainer';
 import withStoreProvider from '../reactAdapter/StoreProvider';
 import { always } from 'ramda';
+import AdvancedSearchConfigContainer from './advancedSearch/AdvancedSearchConfigContainer';
 
 export default angular.module('configurationModule',
     [
@@ -29,6 +30,8 @@ export default angular.module('configurationModule',
     .component('mailConfig', react2angular(withStoreProvider(MailConfigContainer), ['isAuthorized'], ['$ngRedux']))
     .component('proxyConfig', react2angular(withStoreProvider(ProxyConfigContainer), ['isAuthorized', 'licensed'],
         ['$ngRedux', '$state']))
+    .component('advancedSearchConfig', react2angular(withStoreProvider(AdvancedSearchConfigContainer), ['isAuthorized'],
+        ['$ngRedux']))
     .config(routes);
 
 function routes($stateProvider) {
@@ -64,6 +67,20 @@ function routes($stateProvider) {
               return ProductLicense.load()
                   .then(always(true))
                   .catch(always(false));
+            }
+          ]
+        }
+      })
+      .state('advancedSearchConfig', {
+        component: 'advancedSearchConfig',
+        url: '/advancedSearchConfig',
+        data: {
+          title: 'Advanced Search Config'
+        },
+        resolve: {
+          isAuthorized: [
+            'PermissionService', function(PermissionService) {
+              return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
             }
           ]
         }

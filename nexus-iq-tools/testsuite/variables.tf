@@ -2,22 +2,19 @@
 # Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
 # "Sonatype" is a trademark of Sonatype, Inc.
 
-variable "access_key" {}
-
-variable "secret_key" {}
-
 variable "assume_role_arn" {
-  default = "arn:aws:iam::960315589060:role/admin"
+  default = "arn:aws:iam::960315589060:role/ZionJenkins"
 }
 
 variable "aws_region" {
   default = "us-east-1"
 }
 
-variable "owner" {}
+variable "owner" {
+}
 
 variable "sonatype_group" {
-  default = "nxiq"
+  default = "iq"
 }
 
 variable "environment" {
@@ -36,3 +33,4 @@ variable "build_key" {
 variable "duration" {
   default = "60"
 }
+

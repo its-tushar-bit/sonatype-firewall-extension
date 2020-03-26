@@ -195,7 +195,8 @@ def buildUrlTemplate(testProfile, tools_util):
 @statsdec
 def executeTest(testProfile, tools_util, iq_running=True):
     "start iq in one thread, execute url runner in another"
-    return tools_util.run_test()
+    params, opts = get_params_and_opts(testProfile, 'iq_tools', 'run_test')
+    return tools_util.run_test(params, opts)
 
 
 def write_result(outfile, method, res):

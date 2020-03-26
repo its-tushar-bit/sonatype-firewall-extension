@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import applicationReportModule from '../../../main/frontend/applicationReport/module';
+import { serializeComponentIdentifier } from '../../../main/frontend/util/componentIdentifierUtils';
 
 const createMockState = (isUnknownJs, bomData, unknownJsData, metadata, embeddable) => ({
   applicationReport: {
@@ -326,19 +327,20 @@ describe('applicationReportActions', function() {
     });
 
     it('fires LOAD_REPORT_FULFILLED action if report request succeeds', function() {
+      const componentIdentifier = {
+        format: 'maven',
+        coordinates: {
+          artifactId: 'logback-access',
+          classifier: '',
+          extension: 'jar',
+          groupId: 'ch.qos.logback',
+          version: '0.6'
+        }
+      };
       const bomData = {
         aaData: [{
           foo: 'bar',
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              artifactId: 'logback-access',
-              classifier: '',
-              extension: 'jar',
-              groupId: 'ch.qos.logback',
-              version: '0.6'
-            }
-          }
+          componentIdentifier
         }]
       };
       const store = SpecUtil.mockReduxStore(createMockState(false, bomData, undefined, mockMetadata));
@@ -373,6 +375,7 @@ describe('applicationReportActions', function() {
                   version: '0.6'
                 }
               },
+              serializedComponentIdentifier: serializeComponentIdentifier(componentIdentifier),
               policyThreatLevel: 0,
               policyName: 'None',
               waived: false,
@@ -756,6 +759,26 @@ describe('applicationReportActions', function() {
 
       expect(store.getActions().length).toBe(5);
       expect(store.getActions()[4]).toEqual({ type: 'GENERATE_VULNERABILITY_ENTRIES' });
+    });
+  });
+
+  describe('selectRootAncestor', function() {
+    it('returns a SELECT_ROOT_ANCESTOR action with the specified payload value', function() {
+      const payload = {},
+          action = applicationReportActions.selectRootAncestor(payload);
+
+      expect(action.type).toBe('SELECT_ROOT_ANCESTOR');
+      expect(action.payload).toBe(payload);
+    });
+  });
+
+  describe('unselectRootAncestor', function() {
+    it('returns a UNSELECT_ROOT_ANCESTOR action with no payload', function() {
+      const action = applicationReportActions.unselectRootAncestor();
+
+      expect(action).toEqual({
+        type: 'UNSELECT_ROOT_ANCESTOR'
+      });
     });
   });
 

@@ -41,6 +41,34 @@ export function getProxyConfigUrl() {
   return `${getBaseUrl(window.location.href)}/api/v2/config/httpProxyServer`;
 }
 
+export function getActionStageUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/policy/stages?context=all`;
+}
+
+export function getDashboardStageUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/policy/stages?context=dashboard`;
+}
+
+export function getCliStageUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/policy/stages`;
+}
+
+export function getAdvancedSearchConfigUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/search/advanced/status`;
+}
+
+export function getAdvancedSearchIndexUrl() {
+  return `${getBaseUrl(window.location.href)}/api/experimental/search/advanced/index`;
+}
+
+export function getAdvancedSearchUrl(query, page) {
+  return `${getBaseUrl(window.location.href)}/api/experimental/search/advanced?search=${query}&page=${page}`;
+}
+
+export function getAdvancedSearchQuerySuggesterUrl(query) {
+  return `${getBaseUrl(window.location.href)}/api/experimental/search/advanced/suggester?search=${query}`;
+}
+
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {
@@ -68,17 +96,9 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
         return baseUrl.get() + '/rest/policy/conditionType';
       },
 
-      getActionStageUrl: function() {
-        return baseUrl.get() + '/rest/policy/stages?context=all';
-      },
-
-      getDashboardStageUrl: function() {
-        return baseUrl.get() + '/rest/policy/stages?context=dashboard';
-      },
-
-      getCliStageUrl: function() {
-        return baseUrl.get() + '/rest/policy/stages';
-      },
+      getActionStageUrl,
+      getDashboardStageUrl,
+      getCliStageUrl,
 
       getApplicationsUrl: function() {
         return baseUrl.get() + '/rest/application';
@@ -378,6 +398,8 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
 
       getAutomaticSourceControlConfigurationUrl:
           () => `${baseUrl.get()}/rest/config/automaticScmConfiguration`,
+
+      getAdvancedSearchConfigUrl: () => `${baseUrl.get()}/rest/search/advanced/status`,
 
       getShouldDisplayDefaultPasswordWarning: () => `${baseUrl.get()}/rest/user/shouldDisplayDefaultPasswordWarning`,
 

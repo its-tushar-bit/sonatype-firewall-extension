@@ -28,11 +28,19 @@
           is in violation if the following is true:
         </span>
         <div class="iq-list iq-list--bulleted">
-          <ul>
-            <li class="iq-list__item test-constraint-summary-condition" ng-repeat="condition in constraint.conditions">
-              {{:: vm.conditionString(condition)}}
-            </li>
-          </ul>
+          <div class="test-constraint-summary-condition" ng-repeat="condition in constraint.conditions">
+            <ul>
+              <li ng-if="!vm.conditionTypesMap[condition.conditionTypeId].enabled">
+                <div class="test-summary-condition-type-unsupported-message iq-alert">
+                  <i class="fa fa-warning"></i>{{:: vm.conditionTypesMap[condition.conditionTypeId].name}} condition
+                  is not supported by your license. Please delete the condition.
+                </div>
+              </li>
+              <li class="iq-list__item test-constraint-summary-condition-text">
+                {{:: vm.conditionString(condition)}}
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -80,24 +88,30 @@
 
         <div class="iq-policy-conditions">
           <div class="iq-policy-condition" ng-repeat="condition in constraint.conditions">
-              <button class="iq-btn iq-btn--tertiary iq-btn--icon-only iq-btn--delete-condition-button"
-                      type="button"
-                      ng-click="vm.deleteCondition(constraint, $index)"
-                      ng-disabled="constraint.conditions.length < 2"><!--
+            <div class="test-editor-condition-type-unsupported iq-alert iq-alert--form-item"
+                 ng-if="!vm.conditionTypesMap[condition.conditionTypeId].enabled">
+              <i class="fa fa-warning"></i>{{:: vm.conditionTypesMap[condition.conditionTypeId].name}} condition
+              is not supported by your license. Please delete the condition.
+            </div>
+            <button class="iq-btn iq-btn--tertiary iq-btn--icon-only iq-btn--delete-condition-button"
+                    type="button"
+                    ng-click="vm.deleteCondition(constraint, $index)"
+                    ng-disabled="constraint.conditions.length < 2"><!--
               --><i class="fa fa-trash"></i>
-              </button>
-              <div class="iq-policy-editor-condition iq-policy-editor-condition--type">
-                <dropdown-selector class="editor-condition-type"
-                                   ng-model="condition.conditionTypeId"
-                                   name="condition-type-{{::constraintIndex}}-{{::$index}}"
-                                   option-value-param="id"
-                                   options="vm.conditionTypes"
-                                   option-name-param="name"
-                                   class-name-param="id"
-                                   item-as-class="true"
-                                   ng-change="vm.updateConditionType(condition)"
-                                   clm-input
-                                   required>
+            </button>
+            <div class="iq-policy-editor-condition iq-policy-editor-condition--type">
+              <dropdown-selector class="editor-condition-type"
+                                 ng-model="condition.conditionTypeId"
+                                 name="condition-type-{{::constraintIndex}}-{{::$index}}"
+                                 option-value-param="id"
+                                 options="vm.conditionTypes"
+                                 option-name-param="name"
+                                 class-name-param="id"
+                                 item-as-class="true"
+                                 ng-change="vm.updateConditionType(condition)"
+                                 empty-option-string="{{::vm.getEmptyOptionCondition(condition)}}"
+                                 clm-input
+                                 required>
                 </dropdown-selector>
               </div>
               <div class="iq-policy-editor-condition iq-policy-editor-condition--operator">

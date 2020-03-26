@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -237,6 +238,19 @@ public class SourceControlDAO
 
   public SourceControl getByOwnerId(final TransactionContext tx, final String ownerId) {
     return get(tx, "SELECT entity FROM SourceControl entity WHERE entity.ownerId=?1", ownerId);
+  }
+
+  public void updatePollTimeAndErrorCounts(String sourceControlId, Date pollTime, int errorCount) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      SourceControl sourceControl = getById(tx, sourceControlId);
+      if (null != sourceControl) {
+        sourceControl.setPullRequestErrorCount(errorCount);
+        sourceControl.setPullRequestPollTime(pollTime);
+        super.update(tx, sourceControl);
+      }
+      tx.commit();
+    }
   }
 
   private void setDefaultsAsNecessary(SourceControl sourceControl) {

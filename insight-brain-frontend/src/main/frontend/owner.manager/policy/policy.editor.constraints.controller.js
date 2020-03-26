@@ -25,6 +25,7 @@ export default function PolicyEditorConstraintsController(ConstraintStore) {
     }
   ];
   vm.updateConditionType = updateConditionType;
+  vm.getEmptyOptionCondition = getEmptyOptionCondition;
   vm.loadError = undefined;
 
   vm.doLoad();
@@ -133,6 +134,13 @@ export default function PolicyEditorConstraintsController(ConstraintStore) {
       var availableValues = conditionType.valueType.availableValues;
       condition.value = (availableValues && availableValues.length > 0) ? availableValues[0].id : null;
     }
+  }
+
+  function getEmptyOptionCondition(condition) {
+    if (!vm.conditionTypesMap[condition.conditionTypeId].enabled) {
+      return vm.conditionTypesMap[condition.conditionTypeId].name;
+    }
+    return 'None Selected';
   }
 
   function deleteCondition(constraint, conditionIndex) {

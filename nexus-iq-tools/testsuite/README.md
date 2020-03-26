@@ -17,7 +17,7 @@ back to the local machine
 
 To provision an ec2 instance and execute a performance evaluation for IQ, you'll need:
 
-1. [Terraform](https://www.terraform.io/)
+1. [Terraform](https://www.terraform.io/) (version v0.12)
 2. AWS CLI (available via brew)
 3. python
 4. bash shell
@@ -28,12 +28,14 @@ Talk with @ops to get AWS credentials. You need access to the `perf-lifecycle-ad
 
 `arn:aws:iam::960315589060:role/admin`
 
-added to `~/.aws/config`:
+After run `aws configure`
+
+and add the following to `~/.aws/config`:
 ```
 [profile perf-lifecycle]
-   region = us-east-1
-   role_arn = arn:aws:iam::960315589060:role/admin
-   source_profile = default
+region = us-east-1
+role_arn = arn:aws:iam::960315589060:role/admin
+source_profile = default
 ```
 
 Confirm you have access with:
@@ -54,32 +56,31 @@ export TF_VAR_build_key=`whoami`
 # owner allows ops to contact the creator of the environment
 # set this to your own email address
 export TF_VAR_owner=`git config user.email`
-# set this to how many hours the environment must live for tracking purposes; if omitted, it will default to 1 hour
-export TF_VAR_duration=1
-```
-
-You might also need to provide aws credentials:
-```bash
-# aws secret key
-export TF_VAR_secret_key=$AWS_SECRET_ACCESS_KEY
-# aws access key
-export TF_VAR_access_key=$AWS_ACCESS_KEY_ID
+# set this to how many minutes the environment must live for tracking purposes; if omitted, it will default to 60 minutes
+export TF_VAR_duration=60
+# set the role assumed for the development environment
+export TF_VAR_assume_role_arn='arn:aws:iam::960315589060:role/admin'
 ```
 
 Note: these values can also be populated in a `terraform.tfvars` file.
 
+The Terraform AWS provider will try to find the credentials with different methods:
+- Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+- Shared credentials file ($HOME/.aws/credentials)
+- EC2 Role
+
+So make sure one of them works. More details here: https://www.terraform.io/docs/providers/aws/index.html
 
 ## Running Performance Test
 
 1. Configure test inputs:
-   * `./configure_test.py \-iq ../../insight-brain-service/target/insight-brain-service-*-server.jar -tools ../target/nexus-iq-tools-*-SNAPSHOT.jar -auto ../target/nexus-iq-tools-*-automation.zip -lic /path/to/*lifecycle*.lic`
+   * `./configure_test.py -iq ../../insight-brain-service/target/insight-brain-service-*-server.jar -tools ../target/nexus-iq-tools-*-SNAPSHOT.jar -auto ../target/nexus-iq-tools-*-automation.zip -lic /path/to/*lifecycle*.lic`
    * confirm creation of a folder starting with `awsPerfRun_`
 2. Initialize terraform with `terraform init`
    * note: this only needs to be done for first run or to update terraform
 3. Bootstrap your node with `terraform apply`
    * This takes under 2 minutes to complete.
-4. Execute test with: `./run_aws_test.sh`
- * this will:
+4. Execute test with: `./run_aws_test.sh`. This will:
    * push your test directory to the remote node
    * execute the test on the remote node
    * pull the results down to the local machine

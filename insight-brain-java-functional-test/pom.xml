@@ -212,7 +212,7 @@
           <plugin>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-              <argLine>-Duser.timezone=UTC</argLine>
+              <argLine>@{argLine} -Duser.timezone=UTC</argLine>
               <systemPropertyVariables>
                 <remote>http://${host}:${port}/wd/hub</remote>
               </systemPropertyVariables>

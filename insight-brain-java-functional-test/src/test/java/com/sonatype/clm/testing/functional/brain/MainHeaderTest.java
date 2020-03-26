@@ -8,11 +8,15 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.product.license.ProductLicenseService;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -24,6 +28,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 
 public class MainHeaderTest
     extends AbstractFunctionalTest
@@ -120,5 +125,36 @@ public class MainHeaderTest
 
     logout();
     MainHeader.loginButton().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testAdvancedSearchNavigationButton_HiddenByDefault() {
+    MainHeader.advancedSearchNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testNavigation_ToAdvancedSearch() {
+    new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "true"));
+    refresh();
+    MainHeader.advancedSearchNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(AdvancedSearchPage.url());
+  }
+
+  @Test
+  public void testNavigation_ToAdvancedSearch_NonAdminUser() {
+    try {
+      new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "true"));
+      User user = tempEntity.newUser();
+      refreshOrOpen(DashboardPage.url());
+      logout();
+      login(user.getUsername(), user.getPassword());
+      MainHeader.advancedSearchNavigationButton().shouldBe(visible).click();
+      waitUntilUrl(AdvancedSearchPage.url());
+    }
+    finally {
+      logout();
+      refreshOrOpen(DashboardPage.url());
+      loginAsAdmin();
+    }
   }
 }

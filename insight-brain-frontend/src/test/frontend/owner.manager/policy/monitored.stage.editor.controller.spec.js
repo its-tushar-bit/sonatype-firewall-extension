@@ -9,6 +9,7 @@ describe('monitored.stage.editor.controller.spec.js', function() {
 
   beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {});
+    SpecUtil.mockNgRedux($provide);
   }));
 
   var vm,

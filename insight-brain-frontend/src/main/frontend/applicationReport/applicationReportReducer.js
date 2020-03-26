@@ -46,6 +46,8 @@ import {
   SET_SORTING,
   SET_SORTING_RAW_DATA,
   SELECT_COMPONENT,
+  SELECT_ROOT_ANCESTOR,
+  UNSELECT_ROOT_ANCESTOR,
   GENERATE_VULNERABILITY_ENTRIES
 } from './applicationReportActions';
 
@@ -81,6 +83,7 @@ const initState = Object.freeze({
 
   selectedReport: null,
   selectedComponentIndex: null,
+  selectedRootAncestor: null,
   policyTypeFilterEnabled: true,
   isUnknownJs: false,
 
@@ -178,7 +181,13 @@ export default function(state = initState, {type, payload}) {
       return updateRawDataDisplayedEntries({...state, rawDataSortFields: payload});
 
     case SELECT_COMPONENT:
-      return {...state, selectedComponentIndex: payload};
+      return {...state, selectedComponentIndex: payload, selectedRootAncestor: null};
+
+    case SELECT_ROOT_ANCESTOR:
+      return {...state, selectedRootAncestor: payload};
+
+    case UNSELECT_ROOT_ANCESTOR:
+      return {...state, selectedRootAncestor: null};
 
     case GENERATE_VULNERABILITY_ENTRIES:
       return generateVulnerabilityEntries(state);

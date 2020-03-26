@@ -8,29 +8,37 @@ import legacyConfigurationModule from '../../../main/frontend/LegacyConfiguratio
 
 describe('mainHeaderSpec', function() {
 
-  beforeEach(angular.mock.module(mainHeaderModule.name, legacyConfigurationModule.name));
-
   var $scope,
       $rootScope,
+      $ngRedux,
+      unsubscribeSpy,
       mockSystemConfigurationPropertyService,
       mockCurrentUser,
       mockPermissionService,
       mockProductFeatures,
       isSuccessMetricsEnabledDeferred,
+      isAdvancedSearchEnabledDeferred,
       loginDeferred,
       productFeaturesDeferred,
       vm,
       clmServerVersion;
 
-  beforeEach(inject(function(_$rootScope_, $q, $componentController) {
+  beforeEach(angular.mock.module(mainHeaderModule.name, legacyConfigurationModule.name, function($provide) {
+    unsubscribeSpy = SpecUtil.mockNgRedux($provide);
+  }));
+
+  beforeEach(inject(function(_$rootScope_, $q, $componentController, _$ngRedux_) {
     clmServerVersion = window.clmServerVersion;
     $scope = _$rootScope_.$new();
     $rootScope = _$rootScope_;
+    $ngRedux = _$ngRedux_;
     isSuccessMetricsEnabledDeferred = $q.defer();
+    isAdvancedSearchEnabledDeferred = $q.defer();
     loginDeferred = $q.defer();
     productFeaturesDeferred = $q.defer();
     mockSystemConfigurationPropertyService = {
-      isSuccessMetricsEnabled: jasmine.createSpy().and.returnValue(isSuccessMetricsEnabledDeferred.promise)
+      isSuccessMetricsEnabled: jasmine.createSpy().and.returnValue(isSuccessMetricsEnabledDeferred.promise),
+      isAdvancedSearchEnabled: jasmine.createSpy().and.returnValue(isAdvancedSearchEnabledDeferred.promise)
     };
 
     mockCurrentUser = {
@@ -48,7 +56,8 @@ describe('mainHeaderSpec', function() {
       PermissionService: mockPermissionService,
       CurrentUser: mockCurrentUser,
       systemConfigurationPropertyService: mockSystemConfigurationPropertyService,
-      ProductFeatures: mockProductFeatures
+      ProductFeatures: mockProductFeatures,
+      $scope: $scope
     });
   }));
 
@@ -75,11 +84,31 @@ describe('mainHeaderSpec', function() {
     expect(vm.isSuccessMetricsEnabled).toBe(false);
   });
 
-  it('does not load success metrics, permissions, or features until after login', function() {
+  it('properly loads on enabled full text search', function() {
+    vm.$onInit();
+    loginDeferred.resolve();
+    isAdvancedSearchEnabledDeferred.resolve(true);
+    $scope.$digest();
+
+    expect(vm.isAdvancedSearchEnabled).toBe(true);
+  });
+
+  it('properly loads on disabled full text search', function() {
+    vm.$onInit();
+    loginDeferred.resolve();
+    isAdvancedSearchEnabledDeferred.resolve(false);
+    $scope.$digest();
+
+    expect(vm.isAdvancedSearchEnabled).toBe(false);
+  });
+
+  it('does not load success metrics, full text search, permissions, or features until after login', function() {
     vm.$onInit();
 
     isSuccessMetricsEnabledDeferred.reject('disabled');
+    isAdvancedSearchEnabledDeferred.resolve(false);
     expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).not.toHaveBeenCalled();
+    expect(mockSystemConfigurationPropertyService.isAdvancedSearchEnabled).not.toHaveBeenCalled();
     expect(mockPermissionService.getValidPermissions).not.toHaveBeenCalled();
     expect(mockProductFeatures.load).not.toHaveBeenCalled();
 
@@ -87,8 +116,68 @@ describe('mainHeaderSpec', function() {
     $scope.$digest();
 
     expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).toHaveBeenCalled();
+    expect(mockSystemConfigurationPropertyService.isAdvancedSearchEnabled).toHaveBeenCalled();
     expect(mockPermissionService.getValidPermissions).toHaveBeenCalled();
     expect(mockProductFeatures.load).toHaveBeenCalled();
+  });
+
+  describe('mapStateToThis', function() {
+    let mapStateToThis;
+
+    beforeEach(function() {
+      vm.$onInit();
+      loginDeferred.resolve();
+      isAdvancedSearchEnabledDeferred.resolve(false);
+      $scope.$digest();
+      mapStateToThis = $ngRedux.connect.calls.first().args[0];
+    });
+
+    it('returns an object with isAdvancedSearchEnabled set to false given a state with no server data', function() {
+      let mockStateNoServerData = {
+        advancedSearchConfig: {
+          serverData: null
+        }
+      };
+
+      expect(mapStateToThis(mockStateNoServerData)).toEqual({isAdvancedSearchEnabled: false});
+    });
+
+    it('returns an object with isAdvancedSearchEnabled set to true given a state with server data and isEnabled true',
+        function() {
+          let mockStateWithServerDataAndIsEnabledTrue = {
+            advancedSearchConfig: {
+              serverData: {
+                isEnabled: true
+              }
+            }
+          };
+
+          expect(mapStateToThis(mockStateWithServerDataAndIsEnabledTrue)).toEqual({isAdvancedSearchEnabled: true});
+        });
+
+    it('returns an object with isAdvancedSearchEnabled set to false given a state with server data and isEnabled false',
+        function() {
+          let mockStateWithServerDataAndIsEnabledFalse = {
+            advancedSearchConfig: {
+              serverData: {
+                isEnabled: false
+              }
+            }
+          };
+
+          expect(mapStateToThis(mockStateWithServerDataAndIsEnabledFalse)).toEqual({isAdvancedSearchEnabled: false});
+        });
+  });
+
+  it('calls unsubscribe when the $scope is destroyed', function() {
+    vm.$onInit();
+    loginDeferred.resolve();
+    isAdvancedSearchEnabledDeferred.resolve(false);
+    $scope.$digest();
+
+    expect(unsubscribeSpy).not.toHaveBeenCalled();
+    $scope.$destroy();
+    expect(unsubscribeSpy).toHaveBeenCalled();
   });
 
   it('resets isSuccessMetricsEnabled on successMetricsConfigurationUpdated event', function() {

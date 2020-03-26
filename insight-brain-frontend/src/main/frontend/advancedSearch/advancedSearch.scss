@@ -1,0 +1,67 @@
+.nx-tile-content--adv-search-results {
+  // we don't want the extra border on the first group
+  &:not(:nth-child(2)) {
+    border-top: 1px solid $nx-grey-2;
+  }
+}
+
+.nx-table--advanced-search > tbody > tr > td:nth-child(1) {
+  width: 2%;
+}
+
+.nx-table--advanced-search > tbody > tr > td:nth-child(2) {
+  width: 18%;
+}
+
+.nx-form.nx-form--advanced-search {
+  display: flex;
+  margin-bottom: $nx-spacing-md;
+}
+
+.nx-text-input--advanced-search {
+  flex-grow: 1
+}
+
+.nx-table--advanced-search {
+  svg {
+    &.yellow {
+      color: $nx-yellow;
+    }
+
+    &.orange {
+      color: $nx-orange;
+    }
+
+    &.light-red {
+      color: $nx-light-red;
+    }
+
+    &.dark-red {
+      color: $nx-dark-red;
+    }
+
+    &.light-green {
+      color: $nx-light-green;
+    }
+
+    &.dark-green {
+      color: $nx-dark-green;
+    }
+
+    &.light-purple {
+      color: $nx-light-purple;
+    }
+
+    &.dark-purple {
+      color: $nx-dark-purple;
+    }
+
+    &.light-blue {
+      color: $nx-light-blue;
+    }
+
+    &.dark-blue {
+      color: $nx-dark-blue;
+    }
+  }
+}

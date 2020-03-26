@@ -14,6 +14,8 @@ public class PublicApiPaths
 
   private static final String API_VERSION_PATH_V2 = BASE_PATH + "/v2/";
 
+  private static final String EXPERIMENTAL_PATH = BASE_PATH + "/experimental/";
+
   public static final String APP_RESOURCE_PATH = API_VERSION_PATH_V2 + "applications";
 
   public static final String ORG_RESOURCE_PATH = API_VERSION_PATH_V2 + "organizations";
@@ -84,4 +86,6 @@ public class PublicApiPaths
   public static final String COMPOSITE_SOURCE_CONTROL_PATH_V2 = API_VERSION_PATH_V2 + "compositeSourceControl";
 
   public static final String CLAIM_PATH_V2 = API_VERSION_PATH_V2 + "claim/components";
+
+  public static final String ADVANCED_SEARCH_RESOURCE_PATH = EXPERIMENTAL_PATH + "search/advanced";
 }

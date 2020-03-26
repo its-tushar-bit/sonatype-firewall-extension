@@ -6,8 +6,10 @@
 package com.sonatype.insight.brain.git;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -25,6 +27,10 @@ class PullRequestPollingTracker
   private static final long MS_PER_HOUR = MS_PER_MINUTE * 60;
 
   private final SourceControlDAO sourceControlDAO;
+
+  // keep track of cutoff times at the org-token level as multiple repos can share a token and we need to make sure
+  // the cutoff time keeps advancing
+  private static final Map<String, Date> orgTokenCutoffTimes = new HashMap<>();
 
   // keep track of which repositories we've polled and which ones we haven't
   private final Set<String> repositoriesPolled = new HashSet<>();
@@ -105,17 +111,21 @@ class PullRequestPollingTracker
           result = "24 hours";
           break;
       }
-      updateSourceControl(sourceControl, pollTime, errorCount);
+      updateSourceControl(sourceControl.getId(), pollTime, errorCount);
     }
     return result;
   }
 
-  void onPullRequestProcessed(String sourceControlId, Date time) {
-    updateSourceControl(sourceControlDAO.getById(sourceControlId), time, time, 0);
+  void onPullRequestProcessed(String sourceControlId, String org, String token, Date time) {
+    updateSourceControl(sourceControlId, time, 0);
+    setCachedCutoffTime(org, token, time);
   }
 
   void onPullRequestProcessedForApplication(String applicationId, Date time) {
-    updateSourceControl(sourceControlDAO.getByOwnerId(applicationId), time, time, 0);
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(applicationId);
+    if (sourceControl != null) {
+      updateSourceControl(sourceControl.getId(), time, 0);
+    }
   }
 
   /**
@@ -129,30 +139,28 @@ class PullRequestPollingTracker
     List<SourceControl> sourceControlList = sourceControlDAO.getByRepositoryOwnerAndName(pullRequest.getRepository());
     if (CollectionUtils.isNotEmpty(sourceControlList)) {
       Date created = pullRequest.getCreated();
-      sourceControlList.forEach(sourceControl -> updateSourceControl(sourceControl, created, created, 0));
+      sourceControlList.forEach(sourceControl -> updateSourceControl(sourceControl.getId(), created, 0));
       return true;
     }
     return false;
   }
 
-  private void updateSourceControl(SourceControl sourceControl, Date pollTime, int errors) {
-    updateSourceControl(sourceControl, pollTime, null, errors);
-  }
-
-  // cutoffTime is optional and is only updated if provided
-  private void updateSourceControl(SourceControl sourceControl, Date pollTime, Date cutoffTime, int errors) {
-    if (null != sourceControl) {
-      sourceControl.setPullRequestPollTime(pollTime);
-      if (null != cutoffTime) {
-        sourceControl.setPullRequestCutoffTime(cutoffTime);
-      }
-      sourceControl.setPullRequestErrorCount(errors);
-      sourceControlDAO.update(sourceControl);
-    }
+  private void updateSourceControl(String sourceControlId, Date pollTime, int errors) {
+    sourceControlDAO.updatePollTimeAndErrorCounts(sourceControlId, pollTime, errors);
   }
 
   void initializePullRequestPollTimes() {
     sourceControlDAO.initializePullRequestPollTimes();
+  }
+
+  Date getCachedCutoffTime(String org, String token, Date defaultCutoffTime) {
+    String orgAndToken = makeKey(org, token);
+    return orgTokenCutoffTimes.computeIfAbsent(orgAndToken, k -> defaultCutoffTime);
+  }
+
+  private void setCachedCutoffTime(String org, String token, Date cutoffTime) {
+    String orgAndToken = makeKey(org, token);
+    orgTokenCutoffTimes.put(orgAndToken, cutoffTime);
   }
 
   /**
@@ -161,12 +169,16 @@ class PullRequestPollingTracker
    * @return true if this org/token pair has already been used; false otherwise
    */
   boolean visitAndCheckOrganizationWithToken(String org, String token) {
-    String orgAndToken = String.format("%s::%s", org, token);
+    String orgAndToken = makeKey(org, token);
     if (orgTokensChecked.contains(orgAndToken)) {
       return true;
     }
 
     orgTokensChecked.add(orgAndToken);
     return false;
+  }
+
+  private String makeKey(String org, String token) {
+    return String.format("%s::%s", org, token);
   }
 }

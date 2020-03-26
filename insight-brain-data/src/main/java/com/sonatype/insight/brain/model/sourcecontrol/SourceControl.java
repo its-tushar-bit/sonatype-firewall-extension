@@ -60,9 +60,6 @@ public class SourceControl
   @Column(name = "pull_request_poll_time")
   private Date pullRequestPollTime;
 
-  @Column(name = "pull_request_cutoff_time")
-  private Date pullRequestCutoffTime;
-
   @Column(name = "pull_request_error_count")
   private int pullRequestErrorCount;
 
@@ -158,15 +155,6 @@ public class SourceControl
 
   public void setPullRequestPollTime(Date date) {
     this.pullRequestPollTime = date;
-  }
-
-  // coalesce to return the poll time if the cutoff time hasn't been set yet
-  public Date getPullRequestCutoffTime() {
-    return null != pullRequestCutoffTime ? pullRequestCutoffTime : pullRequestPollTime;
-  }
-
-  public void setPullRequestCutoffTime(Date date) {
-    this.pullRequestCutoffTime = date;
   }
 
   public int getPullRequestErrorCount() {

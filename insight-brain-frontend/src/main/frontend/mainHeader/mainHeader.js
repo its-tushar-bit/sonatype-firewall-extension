@@ -3,18 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { faFlask, faSearch, faSitemap, faTachometerAltFast, faChartBar, faUserAlt }
+import { faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch, faUserAlt }
   from '@fortawesome/pro-regular-svg-icons';
+import { save } from '../configuration/advancedSearch/advancedSearchConfigActions';
 
 /* global angular, clmServerVersion, clmBuildTimestamp */
 function MainHeaderController($rootScope, $state, $scope, ProductFeatures, PermissionService, CurrentUser,
-                              systemConfigurationPropertyService, routeStateUtilService) {
+                              systemConfigurationPropertyService, routeStateUtilService, $ngRedux) {
   var vm = this;
 
-  Object.assign(vm, { faFlask, faSearch, faSitemap, faTachometerAltFast, faChartBar, faUserAlt });
+  Object.assign(vm, { faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch, faUserAlt });
   vm.$state = $state;
   vm.isDashboardLicensed = ProductFeatures.isDashboardLicensed;
   vm.isSuccessMetricsEnabled = false;
+  vm.isAdvancedSearchEnabled = false;
   vm.permissions = {};
   vm.$onInit = doLoad;
   vm.getReleaseVersion = getReleaseVersion;
@@ -60,6 +62,13 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
         vm.isSuccessMetricsEnabled = data;
       });
 
+      const unsubscribe = $ngRedux.connect(mapStateToThis, save)(vm);
+      $scope.$on('$destroy', unsubscribe);
+
+      systemConfigurationPropertyService.isAdvancedSearchEnabled().then(function(data) {
+        vm.isAdvancedSearchEnabled = data;
+      });
+
       ProductFeatures.load().then(function() {
         vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks-for-applications') ||
             ProductFeatures.isAvailable('webhooks-for-repositories');
@@ -88,9 +97,16 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
   }
 }
 
+function mapStateToThis(state) {
+  return {
+    isAdvancedSearchEnabled: state.advancedSearchConfig.serverData !== null &&
+        state.advancedSearchConfig.serverData.isEnabled
+  };
+}
+
 MainHeaderController.$inject = [
   '$rootScope', '$state', '$scope', 'ProductFeatures', 'PermissionService', 'CurrentUser',
-  'systemConfigurationPropertyService', 'routeStateUtilService'
+  'systemConfigurationPropertyService', 'routeStateUtilService', '$ngRedux'
 ];
 
 export default {

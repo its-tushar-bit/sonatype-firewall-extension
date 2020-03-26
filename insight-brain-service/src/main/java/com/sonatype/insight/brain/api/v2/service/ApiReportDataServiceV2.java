@@ -104,6 +104,12 @@ public class ApiReportDataServiceV2
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
       String scanId) throws IOException
   {
+    return getPolicyViolationsDataNoAuth(applicationPublicId, scanId);
+  }
+
+  public ApiReportPolicyDataDTOV2 getPolicyViolationsDataNoAuth(String applicationPublicId, String scanId)
+      throws IOException
+  {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     File reportFile = reportService.getReport(app.getId(), scanId);
 
@@ -118,7 +124,7 @@ public class ApiReportDataServiceV2
 
     ApiReportPolicyDataDTOV2 data = new ApiReportPolicyDataDTOV2();
 
-    ReportMetadataDTO metadata = reportService.getReportMetadata(applicationPublicId, scanId);
+    ReportMetadataDTO metadata = reportService.getReportMetadataNoAuth(applicationPublicId, scanId);
     data.reportTime = metadata.getReportTime();
     data.reportTitle = metadata.getReportTitle();
     data.application = getApplicationMetadata(metadata.getApplication());

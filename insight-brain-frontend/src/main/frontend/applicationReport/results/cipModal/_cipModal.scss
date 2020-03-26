@@ -10,6 +10,7 @@
 @import '../../../cip/cip.vulnerability.editor/cip.vulnerability.editor';
 @import '../../../audit-report/lib/slickgrid/slick.grid';
 @import '../../../audit-report/slickgrid/slick.grid.custom';
+@import './rootAncestors/rootAncestors';
 
 $iq-cip-tab-content-padding-top: 5px;
 
@@ -98,6 +99,10 @@ $iq-cip-tab-content-padding-top: 5px;
       // apply here, so set it back to what it usually is
       margin: $iq-alert-margin;
     }
+  }
+
+  .iq-modal-footer {
+    display: flex;
   }
 }
 
@@ -201,5 +206,12 @@ cip-similar {
   .iq-dependency-indicator {
     margin-left: auto;
     white-space: nowrap;
+  }
+}
+
+.iq-btn--cip-modal-back-button {
+  .iq-component-display {
+    @include regular();
+    display: inline;
   }
 }

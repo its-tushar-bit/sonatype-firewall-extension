@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
 # Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
@@ -13,9 +13,9 @@ CURRENT_TEST=$(ls -t | grep awsPerfRun | head -1)
 
 cd $CURRENT_TEST;
 
-tar xf results.tar;
+tar xJf results.tar.xz;
 
-RESULT_FILE=$(tar tf results.tar | grep perf_results)
+RESULT_FILE=$(tar tJf results.tar.xz | grep perf_results)
 
 cd ..;
 

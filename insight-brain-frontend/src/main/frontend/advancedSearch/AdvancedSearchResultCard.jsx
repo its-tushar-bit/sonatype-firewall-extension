@@ -1,0 +1,194 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+import * as PropTypes from 'prop-types';
+import React, {Fragment} from 'react';
+import {
+  faCogs,
+  faExclamationTriangle,
+  faFile,
+  faSitemap,
+  faTerminal,
+  faText,
+  faUniversity
+} from '@fortawesome/pro-regular-svg-icons';
+import {
+  faHexagon,
+  faTag
+} from '@fortawesome/pro-solid-svg-icons';
+import {NxFontAwesomeIcon, NxThreatBar} from '@sonatype/react-shared-components';
+
+export default function AdvancedSearchResultCard({searchResultItem, groupIdentifier, $state}) {
+
+  // The following constants are conditions whether this particular row should be presented in result card or not
+  const
+      organizationName = searchResultItem.organizationName
+        && (searchResultItem.itemType === 'ORGANIZATION' || groupIdentifier !== 'ORGANIZATION_NAME'),
+
+      applicationName = searchResultItem.applicationName
+        && (searchResultItem.itemType === 'APPLICATION' || groupIdentifier !== 'APPLICATION_NAME'),
+
+      applicationCategory = searchResultItem.applicationCategoryName,
+
+      componentName = searchResultItem.componentName && groupIdentifier !== 'COMPONENT_NAME',
+
+      componentLabel = searchResultItem.componentLabelId,
+
+      report = searchResultItem.policyEvaluationStage,
+
+      securityIssue = searchResultItem.vulnerabilityId && groupIdentifier !== 'VULNERABILITY_ID',
+
+      vulnerabilityDescription = searchResultItem.vulnerabilityId && groupIdentifier !== 'VULNERABILITY_ID',
+
+      policy = searchResultItem.policyId &&
+        searchResultItem.policyName && searchResultItem.policyThreatLevel && searchResultItem.policyThreatCategory;
+
+  return (
+    <Fragment>
+      <table className="nx-table nx-table--advanced-search">
+        <tbody>
+          {
+            organizationName &&
+              <tr className="nx-table-row">
+                <td className="nx-cell"><NxFontAwesomeIcon icon={faSitemap}/></td>
+                <td className="nx-cell">Organization</td>
+                <td className="nx-cell">
+                  <a href={$state.href($state.get('management.view.organization'),
+                      {organizationId: searchResultItem.organizationId})}>{searchResultItem.organizationName}</a>
+                </td>
+              </tr>
+          }
+
+          {
+            applicationName &&
+              <tr className="nx-table-row">
+                <td className="nx-cell"><NxFontAwesomeIcon icon={faTerminal}/></td>
+                <td className="nx-cell">Application</td>
+                <td className="nx-cell">
+                  <a href={$state.href($state.get('management.view.application'),
+                      {applicationPublicId: searchResultItem.applicationPublicId})}>{searchResultItem.applicationName}
+                  </a>
+                </td>
+              </tr>
+          }
+
+          {
+            applicationCategory &&
+              <tr className="nx-table-row">
+                <td className="nx-cell">
+                  <NxFontAwesomeIcon icon={faHexagon} className={searchResultItem.applicationCategoryColor}/>
+                </td>
+                <td className="nx-cell">Application Category</td>
+                <td className="nx-cell">
+                  {<a href={$state.href($state.get('management.edit.organization.category'),
+                      {organizationId: searchResultItem.organizationId,
+                        categoryId: searchResultItem.applicationCategoryId})}>
+                    {searchResultItem.applicationCategoryName}</a>}
+                  {
+                    searchResultItem.applicationCategoryDescription
+                    && ' - '.concat(searchResultItem.applicationCategoryDescription)
+                  }
+                </td>
+              </tr>
+          }
+
+          {
+            componentName &&
+              <tr className="nx-table-row">
+                <td className="nx-cell"><NxFontAwesomeIcon icon={faCogs}/></td>
+                <td className="nx-cell">Component Name</td>
+                <td className="nx-cell">{searchResultItem.componentName}</td>
+              </tr>
+          }
+
+          {
+            componentLabel &&
+              <tr className="nx-table-row">
+                <td className="nx-cell">
+                  <NxFontAwesomeIcon icon={faTag} className={searchResultItem.componentLabelColor}/>
+                </td>
+                <td className="nx-cell">Component Label</td>
+                <td className="nx-cell">
+                  {searchResultItem.organizationId &&
+                  <a href={$state.href($state.get('management.edit.organization.label'),
+                      {organizationId: searchResultItem.organizationId,
+                        labelId: searchResultItem.componentLabelId})}>{searchResultItem.componentLabelName}</a>}
+                  {searchResultItem.applicationPublicId &&
+                  <a href={$state.href($state.get('management.edit.application.label'),
+                      {applicationPublicId: searchResultItem.applicationPublicId,
+                        labelId: searchResultItem.componentLabelId})}>{searchResultItem.componentLabelName}</a>}
+                  {
+                    searchResultItem.componentLabelDescription
+                    && ' - '.concat(searchResultItem.componentLabelDescription)
+                  }
+                </td>
+              </tr>
+          }
+
+          {
+            report &&
+              <tr className="nx-table-row">
+                <td className="nx-cell"><NxFontAwesomeIcon icon={faFile}/></td>
+                <td className="nx-cell">Report</td>
+                <td className="nx-cell">
+                  <a href={$state.href($state.get('applicationReport.policy'),
+                      {publicId: searchResultItem.applicationPublicId, scanId: searchResultItem.reportId})}>
+                    {searchResultItem.policyEvaluationStage}</a>
+                </td>
+              </tr>
+          }
+
+          {
+            securityIssue &&
+              <tr className="nx-table-row">
+                <td className="nx-cell"><NxFontAwesomeIcon icon={faExclamationTriangle}/></td>
+                <td className="nx-cell">Security Issue</td>
+                <td className="nx-cell">
+                  <a href={$state.href($state.get('vulnerabilitySearchDetail'),
+                      {id: searchResultItem.vulnerabilityId})}>{searchResultItem.vulnerabilityId}</a>
+                </td>
+              </tr>
+          }
+
+          {
+            vulnerabilityDescription &&
+              <tr className="nx-table-row">
+                <td className="nx-cell"><NxFontAwesomeIcon icon={faText}/></td>
+                <td className="nx-cell">Vulnerability Description</td>
+                <td className="nx-cell">{searchResultItem.vulnerabilityDescription}</td>
+              </tr>
+          }
+
+          {
+            policy &&
+              <tr className="nx-table-row">
+                <td className="nx-cell"><NxFontAwesomeIcon icon={faUniversity}/></td>
+                <td className="nx-cell">Policy</td>
+                <td className="nx-cell">
+                  <NxThreatBar policyThreatLevel={searchResultItem.policyThreatLevel} />
+                  &nbsp;{searchResultItem.policyThreatLevel} - {searchResultItem.policyThreatCategory} -&nbsp;
+                  {searchResultItem.organizationId &&
+                  <a href={$state.href($state.get('management.edit.organization.policy'),
+                      {organizationId: searchResultItem.organizationId,
+                        policyId: searchResultItem.policyId})}>{searchResultItem.policyName}</a>}
+                  {searchResultItem.applicationPublicId &&
+                  <a href={$state.href($state.get('management.edit.application.policy'),
+                      {applicationPublicId: searchResultItem.applicationPublicId,
+                        policyId: searchResultItem.policyId})}>{searchResultItem.policyName}</a>}
+                </td>
+              </tr>
+          }
+        </tbody>
+      </table>
+    </Fragment>
+  );
+}
+
+AdvancedSearchResultCard.propTypes = {
+  searchResultItem: PropTypes.object,
+  groupIdentifier: PropTypes.string,
+  $state: PropTypes.object.isRequired
+};

@@ -5,56 +5,53 @@
     "Sonatype" is a trademark of Sonatype, Inc.
 
 -->
-Insight Brain Service
-=============
+# Insight Brain Service
 
-A Dropwizard web application used by Clients to manage risk in their own software.
- 
-## Development
+`insight-brain-service` is the module containing the back-end of [Nexus IQ Server](https://github.com/sonatype/insight-brain).
 
-The server can be run for development by running the from the insight-brain-service directory and the InsightBrainService class with the following arguments:
+## Contents
 
-    server src/test/resources/config-dev.yml
-    
-Reload of CSS/JS resources is supplied by wro4j and the m2e plugin in Eclipse, and by grunt tooling for IDEA users. This is automatic in Eclipse,
-but for IDEA installing Node.js and the grunt-cli package is required (example uses brew):
+* [ Deploying IQ Server Locally ](#deploying-iq-server-locally)
+    * [ Configuration ](#configuration)
+    * [ Ports ](#ports)
+    * [ Using the application ](#using-the-application)
+* [ Mail Assets ](#mail-assets)
 
-    brew install node
-    npm install -g grunt-cli
+## Deploying IQ Server Locally
 
-and you will have to execute the following commands in the insight-brain-service folder:
+Before deploying, ensure your project has been [built](https://github.com/sonatype/insight-brain#building) successfully.
 
-    npm install
-    grunt develop
+From the `insight-brain-service` directory, you can start the server as follows:
 
-In both of these cases changes to asset files will be detected and any required massaging will take place automatically. In addition the grunt server
-works as a proxy for the running web application and will automatically reload any pages it is serving when changes are ready.
+`mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainService -Dexec.args='server src/test/resources/config-dev.yml'`
 
-### Eclipse UI development
+Alternatively, you can also launch the server using the compiled jar (NOTE: replace `*` with the appropriate version):
 
-Add the m2e-ui-dev profile to the insight-brain-service project and add a Node.JS launch configuration:
+`java -jar target/insight-brain-service-*-SNAPSHOT-server.jar server src/test/resources/config-dev.yml`
 
-Main file: ${workspace_loc:/insight-brain-service/node_modules/webpack/bin/webpack.js}
-Application Arguments: -w --config webpack.config.js
+### Configuration
 
-## Testing
+Note that the above deploy command includes a reference to a configuration file: [`insight-brain-service/src/test/resources/config-dev.yml`](./src/test/resources/config-dev.yml).
 
-In addition to the standard maven test abilities, jasmine tests can be executed like so:
+This file is checked into the project and does not need to be modified for use in a typical development environment. Sometimes, depending on the work you’re doing, you may need to change this config. For example, the default config has the `hdsUrl` config set to the common HDS staging environment, but you might want to use a local deploy of HDS instead.
 
-     #runs jasmine tests for a specific profile in a browser, handy for writing tests
-     mvn phantomjs:install jasmine:bdd -P(test-cip|test-brain|test-version-graph) 
-     
-     #run jasmine tests as a suite
-     mvn phantomjs:install jasmine:test -P(test-cip|test-brain|test-version-graph)
-     
-Each profile represents a logical unit of javascript in a particular execution environment, where different scripts are expected to be delivered to a client. 
-Failure to specify a profile will result in fairly ambiguous error messages about missing objects.          
+When you need a custom config, we suggest creating a local copy of this file, allowing you to easily maintain a separate config (or set of configs) that suits your own needs. When deploying, simply update the path in the above deploy command to point to your new locally-maintained config file.
 
-## Additional tools
+### Ports
 
-The grunt tooling provides a variety of other tasks to allow for testing and profiling the application, which can be queried by:
+The server runs on port `8070` by default. You can override the default port by specifying the system property `dw.server.applicationConnectors[0].port` using Maven's `-D` command line parameter.
 
-    grunt --help
+For example, to deploy to port 8072:
+
+`mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainService -Dexec.args='server src/test/resources/config-dev.yml' -Ddw.server.applicationConnectors[0].port=8072`
+
+### Using the application
+
+You can log on to the server with these default credentials:
+* username: **admin**
+* password: **admin123**
+
+The **first time** you launch the application, you will need to add a license file. Download and use `[year]-sonatype-internal-nxrm-firewall-lifecycle.lic` from [the product licensing page](https://docs.sonatype.com/display/ProdMgmt/Product+Licensing).
 
 ## Mail Assets
 

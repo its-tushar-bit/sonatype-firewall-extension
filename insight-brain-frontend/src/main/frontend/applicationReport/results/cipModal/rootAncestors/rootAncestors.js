@@ -17,7 +17,7 @@ import {
 } from 'ramda';
 
 import { lookup, isNilOrEmpty } from '../../../../util/jsUtil';
-import { getDependencyInfoComponentId } from '../../../../util/componentIdentifierUtils';
+import { serializeComponentIdentifier } from '../../../../util/componentIdentifierUtils';
 
 import template from './rootAncestors.html';
 
@@ -82,13 +82,13 @@ function findRootAncestors(dependencyInfo, allEntries) {
     return [];
   }
 
-  const allEntriesByDependencyInfoComponentId = into({}, compose(
-      reject(pipe(prop('dependencyInfoComponentId'), isNil)),
-      indexBy(prop('dependencyInfoComponentId'))
+  const allEntriesBySerializedComponentId = into({}, compose(
+      reject(pipe(prop('serializedComponentIdentifier'), isNil)),
+      indexBy(prop('serializedComponentIdentifier'))
   ), allEntries);
 
   const getRootAncestorsFromAllEntries = pipe(
-      map(pipe(getDependencyInfoComponentId, lookup(allEntriesByDependencyInfoComponentId))),
+      map(pipe(serializeComponentIdentifier, lookup(allEntriesBySerializedComponentId))),
       reject(isNil)
   );
 

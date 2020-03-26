@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import applicationReportModule from '../../../main/frontend/applicationReport/module';
-import { getDependencyInfoComponentId } from '../../../main/frontend/util/componentIdentifierUtils';
+import { serializeComponentIdentifier } from '../../../main/frontend/util/componentIdentifierUtils';
 
 const createMockState = (isUnknownJs, bomData, unknownJsData, metadata, embeddable) => ({
   applicationReport: {
@@ -375,7 +375,7 @@ describe('applicationReportActions', function() {
                   version: '0.6'
                 }
               },
-              dependencyInfoComponentId: getDependencyInfoComponentId(componentIdentifier),
+              serializedComponentIdentifier: serializeComponentIdentifier(componentIdentifier),
               policyThreatLevel: 0,
               policyName: 'None',
               waived: false,

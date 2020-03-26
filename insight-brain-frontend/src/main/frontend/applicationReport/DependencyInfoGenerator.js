@@ -5,7 +5,7 @@
  */
 import { always, indexBy, groupBy, map, pipe, prop, reduce } from 'ramda';
 
-import { getDependencyInfoComponentId } from '../util/componentIdentifierUtils';
+import { serializeComponentIdentifier } from '../util/componentIdentifierUtils';
 import { isNilOrEmpty, setToArray } from '../util/jsUtil';
 
 const getKey = prop('key');
@@ -70,7 +70,7 @@ const getRootAncestorsByChildReducer = rootAncestorId => (acc, childKey) => {
 
 const populateDependencyNodeKeys = node => ({
   ...node,
-  key: node.componentIdentifier && getDependencyInfoComponentId(node.componentIdentifier),
+  key: node.componentIdentifier && serializeComponentIdentifier(node.componentIdentifier),
   children: node.children && map(populateDependencyNodeKeys, node.children)
 });
 
@@ -111,7 +111,7 @@ export default function DependencyInfoGenerator(dependencies) {
         return null;
       }
 
-      const key = getDependencyInfoComponentId(componentIdentifier);
+      const key = serializeComponentIdentifier(componentIdentifier);
       const rootAncestors = rootAncestorsByChild[key];
 
       return directDepIds.has(key) ? { isDirectDependency: true } :

@@ -120,7 +120,7 @@
       "format" : "maven",
       "coordinates" : {
         "artifactId" : "tiles-core",
-        "classifier" : "test",
+        "classifier" : "",
         "extension" : "jar",
         "groupId" : "org.apache.tiles",
         "version" : "2.2.2"
@@ -145,7 +145,7 @@
       "format" : "maven",
       "coordinates" : {
         "artifactId" : "aopalliance",
-        "classifier" : "test",
+        "classifier" : "",
         "extension" : "jar",
         "groupId" : "aopalliance",
         "version" : "1.0"
@@ -170,7 +170,7 @@
       "format" : "maven",
       "coordinates" : {
         "artifactId" : "j2h",
-        "classifier" : "test",
+        "classifier" : "",
         "extension" : "jar",
         "groupId" : "java2html",
         "version" : "1.3.1"

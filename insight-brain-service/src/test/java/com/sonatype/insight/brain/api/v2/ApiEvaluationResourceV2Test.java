@@ -246,10 +246,10 @@ public class ApiEvaluationResourceV2Test
     assertThat(details.submittedDate).isNotNull();
     assertThat(details.results).hasSize(2);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0), request.components.get(0),
-        MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
+        MatchState.EXACT.getId(), declaredLicenseSet, observedLicenseSet,
         securityVulnerabilities, 1, policies);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
-        MatchState.UNKNOWN.getId(), Collections.emptyList(), Collections.emptyList(),
+        MatchState.UNKNOWN.getId(), Collections.emptySet(), Collections.emptySet(),
         Collections.emptyList(), 2, Collections.emptyMap());
   }
 
@@ -305,7 +305,7 @@ public class ApiEvaluationResourceV2Test
     String expectedPackageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier), null, expectedPackageUrl,
-        MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
+        MatchState.EXACT.getId(), declaredLicenseSet, observedLicenseSet,
         securityVulnerabilities, 10, policies);
   }
 
@@ -353,11 +353,11 @@ public class ApiEvaluationResourceV2Test
     assertThat(details.results).hasSize(2);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
         componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1", packageUrl1), MatchState.EXACT.getId(),
-        new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet), securityVulnerabilities, 11,
+        declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 11,
         policies);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1),
         componentEvaluationV2Helper.createComponent(componentIdentifier2, "h1", packageUrl2), MatchState.EXACT.getId(),
-        new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet), securityVulnerabilities, 22,
+        declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 22,
         policies);
   }
 
@@ -408,10 +408,10 @@ public class ApiEvaluationResourceV2Test
     assertThat(details.submittedDate).isNotNull();
     assertThat(details.results).hasSize(2);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0), request.components.get(0),
-        MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
+        MatchState.EXACT.getId(), declaredLicenseSet, observedLicenseSet,
         securityVulnerabilities, 21, policies);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
-        MatchState.EXACT.getId(), Collections.emptyList(), Collections.emptyList(),
+        MatchState.EXACT.getId(), Collections.emptySet(), Collections.emptySet(),
         Collections.emptyList(), null, Collections.emptyMap());
   }
 
@@ -466,11 +466,11 @@ public class ApiEvaluationResourceV2Test
     String expectedPackageUrl2 = PackageUrlIdentifier.toPackageUrl(expectedComponentIdentifier2);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier1), "h1", expectedPackageUrl1,
-        MatchState.EXACT.getId(), Collections.emptyList(), Collections.emptyList(),
+        MatchState.EXACT.getId(), Collections.emptySet(), Collections.emptySet(),
         Collections.emptyList(), null, Collections.emptyMap());
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier2), "h2", expectedPackageUrl2,
-        MatchState.EXACT.getId(), Collections.emptyList(), Collections.emptyList(),
+        MatchState.EXACT.getId(), Collections.emptySet(), Collections.emptySet(),
         Collections.emptyList(), null, Collections.emptyMap());
   }
 

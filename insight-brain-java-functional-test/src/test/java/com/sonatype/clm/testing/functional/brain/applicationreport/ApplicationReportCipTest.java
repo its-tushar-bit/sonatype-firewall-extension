@@ -157,7 +157,7 @@ public class ApplicationReportCipTest
     cipModal.dependencyIndicator().shouldNot(exist);
     cipModal.previousButton().shouldBe(enabled).click();
 
-    cipModal.header().shouldHave(text("org.apache.tiles : tiles-core : 2.2.2"));
+    cipModal.header().shouldHave(text("org.apache.tiles : tiles-core : jar : test : 2.2.2"));
     cipModal.nextButton().shouldBe(enabled);
     cipModal.previousButton().shouldBe(enabled);
     cipModal.dependencyIndicator().shouldBe(visible).shouldHave(cssClass("direct"))
@@ -824,7 +824,7 @@ public class ApplicationReportCipTest
     cipModal = reportPage.cipModal();
 
     // the new name pushes the component up in the results page
-    reportPage.resultRow(8).shouldHave(text("org.apache.tiles : tiles-core : 2.2.2"));
+    reportPage.resultRow(8).shouldHave(text("org.apache.tiles : tiles-core : jar : test : 2.2.2"));
     reportPage.resultRow(5).shouldHave(text("groupId : artifactId : extension : classifier : version")).click();
     cipModal.tabLink(7).shouldHave(exactText("CLAIM")).click(); // a few extra tabs have been added
     cipModal.header().shouldHave(text("groupId : artifactId : extension : classifier : version"));

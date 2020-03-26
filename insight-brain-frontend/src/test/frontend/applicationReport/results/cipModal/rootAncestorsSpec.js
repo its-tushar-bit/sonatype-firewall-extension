@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import applicationReportModule from '../../../../../main/frontend/applicationReport/module';
-import { serializeComponentIdentifier } from '../../../../../main/frontend/util/componentIdentifierUtils';
+import { getDependencyInfoComponentId } from '../../../../../main/frontend/util/componentIdentifierUtils';
 
 import {
   mapStateToThis
@@ -33,10 +33,11 @@ describe('rootAncestorsComponent', function() {
     vm.selectedReport = {
       allEntries: [
         {
-          serializedComponentIdentifier: serializeComponentIdentifier({
+          dependencyInfoComponentId: getDependencyInfoComponentId({
             format: 'maven',
             coordinates: {
               artifactId: 'foo',
+              classifier: 'foo',
               extension: 'jar',
               groupId: 'test',
               version: 1
@@ -44,10 +45,11 @@ describe('rootAncestorsComponent', function() {
           })
         },
         {
-          serializedComponentIdentifier: serializeComponentIdentifier({
+          dependencyInfoComponentId: getDependencyInfoComponentId({
             format: 'maven',
             coordinates: {
               artifactId: 'bar',
+              classifier: 'foo',
               extension: 'jar',
               groupId: 'test',
               version: 2
@@ -55,10 +57,11 @@ describe('rootAncestorsComponent', function() {
           })
         },
         {
-          serializedComponentIdentifier: serializeComponentIdentifier({
+          dependencyInfoComponentId: getDependencyInfoComponentId({
             format: 'maven',
             coordinates: {
               artifactId: 'baz',
+              classifier: 'foo',
               extension: 'jar',
               groupId: 'test',
               version: 3
@@ -66,10 +69,11 @@ describe('rootAncestorsComponent', function() {
           })
         },
         {
-          serializedComponentIdentifier: serializeComponentIdentifier({
+          dependencyInfoComponentId: getDependencyInfoComponentId({
             format: 'maven',
             coordinates: {
               artifactId: 'bla',
+              classifier: 'foo',
               extension: 'jar',
               groupId: 'test',
               version: 4
@@ -111,6 +115,7 @@ describe('rootAncestorsComponent', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'foo',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: 1
@@ -120,6 +125,7 @@ describe('rootAncestorsComponent', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'baz',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: 3
@@ -144,6 +150,7 @@ describe('rootAncestorsComponent', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'foo',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: 1
@@ -153,6 +160,7 @@ describe('rootAncestorsComponent', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'baz',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: 3
@@ -174,6 +182,7 @@ describe('rootAncestorsComponent', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'foo',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: 5
@@ -183,6 +192,7 @@ describe('rootAncestorsComponent', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'baz',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: 6
@@ -206,6 +216,7 @@ describe('rootAncestorsComponent', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'foo',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: 5
@@ -227,6 +238,7 @@ describe('rootAncestorsComponent', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'foo',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: 1
@@ -236,6 +248,7 @@ describe('rootAncestorsComponent', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'bar',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: 2
@@ -245,6 +258,7 @@ describe('rootAncestorsComponent', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'baz',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: 3
@@ -267,6 +281,7 @@ describe('rootAncestorsComponent', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'foo',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: 1
@@ -276,6 +291,7 @@ describe('rootAncestorsComponent', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'bar',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: 2
@@ -285,6 +301,7 @@ describe('rootAncestorsComponent', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'baz',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: 3
@@ -294,6 +311,7 @@ describe('rootAncestorsComponent', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'bla',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: 4
@@ -338,6 +356,7 @@ describe('rootAncestorsComponent', function() {
               format: 'maven',
               coordinates: {
                 artifactId: 'foo',
+                classifier: '',
                 extension: 'jar',
                 groupId: 'test',
                 version: 1
@@ -347,6 +366,7 @@ describe('rootAncestorsComponent', function() {
               format: 'maven',
               coordinates: {
                 artifactId: 'bar',
+                classifier: '',
                 extension: 'jar',
                 groupId: 'test',
                 version: 2
@@ -356,6 +376,7 @@ describe('rootAncestorsComponent', function() {
               format: 'maven',
               coordinates: {
                 artifactId: 'baz',
+                classifier: '',
                 extension: 'jar',
                 groupId: 'test',
                 version: 3
@@ -365,6 +386,7 @@ describe('rootAncestorsComponent', function() {
               format: 'maven',
               coordinates: {
                 artifactId: 'bla',
+                classifier: '',
                 extension: 'jar',
                 groupId: 'test',
                 version: 4

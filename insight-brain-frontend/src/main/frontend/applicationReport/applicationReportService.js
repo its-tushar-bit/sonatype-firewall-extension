@@ -46,7 +46,7 @@ import {
 } from 'ramda';
 
 import { isNilOrEmpty, multiGroupBy, setToArray } from '../util/jsUtil';
-import { serializeComponentIdentifier } from '../util/componentIdentifierUtils';
+import { serializeComponentIdentifier, getDependencyInfoComponentId } from '../util/componentIdentifierUtils';
 import { getComponentName } from '../util/componentNameUtils';
 import { getDeclaredLicensesDisplay, getObservedLicensesDisplay } from './licenseDisplayUtils';
 import DependencyInfoGenerator from './DependencyInfoGenerator';
@@ -176,13 +176,13 @@ const addPartialMatchData = curry(function(partialMatchesByKey, entry) {
   return partialMatches ? { ...entry, matchDetails: partialMatches.matchDetails } : entry;
 });
 
-function addSerializedComponentIdentifier(entry) {
+function addDependencyInfoComponentId(entry) {
   const { componentIdentifier } = entry;
-  if (!componentIdentifier) {
-    return entry;
+  if (componentIdentifier) {
+    return { ...entry, dependencyInfoComponentId: getDependencyInfoComponentId(componentIdentifier) };
   }
 
-  return { ...entry, serializedComponentIdentifier: serializeComponentIdentifier(componentIdentifier) };
+  return entry;
 }
 
 const defaultParamValue = { aaData: [] };
@@ -204,7 +204,7 @@ export function createReportEntries(policyResult = defaultParamValue, bomResult 
       augmentViolationEntries = compose(
           map(addPartialMatchData(partialMatchesByKey)),
           map(addDependencyInfo),
-          map(addSerializedComponentIdentifier)
+          map(addDependencyInfoComponentId)
       ),
       augmentedViolationEntries = into([], augmentViolationEntries, violationEntries),
       violatingEntriesByKey = groupBy(toKey, augmentedViolationEntries);
@@ -238,7 +238,7 @@ export function createReportEntries(policyResult = defaultParamValue, bomResult 
       nonViolatingEntriesTransducer = compose(
           map(makeNonViolatingComponentEntry),
           map(addDependencyInfo),
-          map(addSerializedComponentIdentifier)
+          map(addDependencyInfoComponentId)
       ),
       nonViolatingComponentEntries = into([], nonViolatingEntriesTransducer, nonViolatingBomData);
 

@@ -63,6 +63,7 @@ describe('DependencyInfoGenerator', function() {
                 format: 'maven',
                 coordinates: {
                   artifactId: 'bar',
+                  classifier: '',
                   extension: 'jar',
                   groupId: 'test',
                   version: '1'
@@ -100,6 +101,7 @@ describe('DependencyInfoGenerator', function() {
                 format: 'maven',
                 coordinates: {
                   artifactId: 'foo',
+                  classifier: '',
                   extension: 'jar',
                   groupId: 'test',
                   version: '1'
@@ -113,6 +115,7 @@ describe('DependencyInfoGenerator', function() {
             format: 'maven',
             coordinates: {
               artifactId: 'bar',
+              classifier: '',
               extension: 'jar',
               groupId: 'test',
               version: '1'
@@ -124,6 +127,7 @@ describe('DependencyInfoGenerator', function() {
                 format: 'maven',
                 coordinates: {
                   artifactId: 'baz',
+                  classifier: '',
                   extension: 'jar',
                   groupId: 'test',
                   version: '1'
@@ -149,6 +153,7 @@ describe('DependencyInfoGenerator', function() {
                 format: 'maven',
                 coordinates: {
                   artifactId: 'foo',
+                  classifier: '',
                   extension: 'jar',
                   groupId: 'test',
                   version: '1'
@@ -160,6 +165,7 @@ describe('DependencyInfoGenerator', function() {
                 format: 'maven',
                 coordinates: {
                   artifactId: 'baz',
+                  classifier: '',
                   extension: 'jar',
                   groupId: 'test',
                   version: '1'
@@ -173,6 +179,7 @@ describe('DependencyInfoGenerator', function() {
             format: 'maven',
             coordinates: {
               artifactId: 'foo',
+              classifier: '',
               extension: 'jar',
               groupId: 'test',
               version: '1'
@@ -184,6 +191,7 @@ describe('DependencyInfoGenerator', function() {
             format: 'maven',
             coordinates: {
               artifactId: 'baz',
+              classifier: '',
               extension: 'jar',
               groupId: 'test',
               version: '1'
@@ -199,7 +207,7 @@ describe('DependencyInfoGenerator', function() {
           format: 'maven',
           coordinates: {
             artifactId: 'logback-access',
-            classifier: '',
+            classifier: 'foo',
             extension: 'jar',
             groupId: 'ch.qos.logback',
             version: '0.6'
@@ -216,7 +224,7 @@ describe('DependencyInfoGenerator', function() {
           format: 'maven',
           coordinates: {
             artifactId: 'jetty',
-            classifier: '',
+            classifier: 'foo',
             extension: 'jar',
             groupId: 'org.mortbay.jetty',
             version: '6.1.15'
@@ -245,6 +253,7 @@ describe('DependencyInfoGenerator', function() {
           format: 'maven',
           coordinates: {
             artifactId: 'baz',
+            classifier: 'foo',
             extension: 'jar',
             groupId: 'test',
             version: '1'
@@ -269,6 +278,7 @@ describe('DependencyInfoGenerator', function() {
           format: 'maven',
           coordinates: {
             artifactId: 'bar',
+            classifier: '',
             extension: 'jar',
             groupId: 'test',
             version: '1'
@@ -283,6 +293,7 @@ describe('DependencyInfoGenerator', function() {
           format: 'maven',
           coordinates: {
             artifactId: 'foo',
+            classifier: 'foo',
             extension: 'jar',
             groupId: 'test',
             version: '1'
@@ -370,6 +381,7 @@ describe('DependencyInfoGenerator', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'foo',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: '1'
@@ -383,6 +395,7 @@ describe('DependencyInfoGenerator', function() {
               format: 'maven',
               coordinates: {
                 artifactId: 'foo',
+                classifier: '',
                 extension: 'jar',
                 groupId: 'test',
                 version: '1'
@@ -411,7 +424,7 @@ describe('DependencyInfoGenerator', function() {
           format: 'maven',
           coordinates: {
             artifactId: 'logback-access',
-            classifier: '',
+            classifier: 'foo',
             extension: 'jar',
             groupId: 'ch.qos.logback',
             version: '0.6'
@@ -424,6 +437,7 @@ describe('DependencyInfoGenerator', function() {
           format: 'maven',
           coordinates: {
             artifactId: 'foo',
+            classifier: 'foo',
             extension: 'jar',
             groupId: 'test',
             version: '1'
@@ -485,6 +499,7 @@ describe('DependencyInfoGenerator', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'foo',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: '1'
@@ -498,6 +513,7 @@ describe('DependencyInfoGenerator', function() {
               format: 'maven',
               coordinates: {
                 artifactId: 'foo',
+                classifier: '',
                 extension: 'jar',
                 groupId: 'test',
                 version: '1'
@@ -509,6 +525,7 @@ describe('DependencyInfoGenerator', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'bar',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: '1'
@@ -522,6 +539,7 @@ describe('DependencyInfoGenerator', function() {
               format: 'maven',
               coordinates: {
                 artifactId: 'bar',
+                classifier: '',
                 extension: 'jar',
                 groupId: 'test',
                 version: '1'
@@ -533,6 +551,7 @@ describe('DependencyInfoGenerator', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'foo',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: '1'
@@ -549,7 +568,7 @@ describe('DependencyInfoGenerator', function() {
           format: 'maven',
           coordinates: {
             artifactId: 'logback-access',
-            classifier: '',
+            classifier: 'foo',
             extension: 'jar',
             groupId: 'ch.qos.logback',
             version: '0.6'
@@ -562,6 +581,7 @@ describe('DependencyInfoGenerator', function() {
           format: 'maven',
           coordinates: {
             artifactId: 'foo',
+            classifier: 'foo',
             extension: 'jar',
             groupId: 'test',
             version: '1'
@@ -574,6 +594,7 @@ describe('DependencyInfoGenerator', function() {
           format: 'maven',
           coordinates: {
             artifactId: 'bar',
+            classifier: 'foo',
             extension: 'jar',
             groupId: 'test',
             version: '1'
@@ -664,7 +685,7 @@ describe('DependencyInfoGenerator', function() {
           format: 'maven',
           coordinates: {
             artifactId: 'logback-access',
-            classifier: '',
+            classifier: 'foo',
             extension: 'jar',
             groupId: 'ch.qos.logback',
             version: '0.6'
@@ -712,6 +733,7 @@ describe('DependencyInfoGenerator', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'foo',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: '1'
@@ -725,6 +747,7 @@ describe('DependencyInfoGenerator', function() {
               format: 'maven',
               coordinates: {
                 artifactId: 'foo',
+                classifier: '',
                 extension: 'jar',
                 groupId: 'test',
                 version: '1'
@@ -736,6 +759,7 @@ describe('DependencyInfoGenerator', function() {
                   format: 'maven',
                   coordinates: {
                     artifactId: 'foo',
+                    classifier: '',
                     extension: 'jar',
                     groupId: 'test',
                     version: '1'
@@ -752,7 +776,7 @@ describe('DependencyInfoGenerator', function() {
           format: 'maven',
           coordinates: {
             artifactId: 'logback-access',
-            classifier: '',
+            classifier: 'foo',
             extension: 'jar',
             groupId: 'ch.qos.logback',
             version: '0.6'
@@ -765,6 +789,7 @@ describe('DependencyInfoGenerator', function() {
           format: 'maven',
           coordinates: {
             artifactId: 'foo',
+            classifier: 'foo',
             extension: 'jar',
             groupId: 'test',
             version: '1'

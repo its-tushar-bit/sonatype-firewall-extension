@@ -133,16 +133,8 @@ public class ComponentDetailsLoader
     }
 
     // Calculate the effective licenses
-    Set<License> overriddenLicenses = componentDetails.getOverriddenLicenses();
-    if (overriddenLicenses.isEmpty()) {
-      Set<License> effectiveLicenses = new LinkedHashSet<>();
-      effectiveLicenses.addAll(componentDetails.getDeclaredLicenses());
-      effectiveLicenses.addAll(componentDetails.getObservedLicenses());
-      effectiveLicenses = removeNonLicensesUnlessNoOtherLicensesExist(effectiveLicenses);
-      componentDetails.getEffectiveLicenses().addAll(effectiveLicenses);
-    }
-    else {
-      componentDetails.getEffectiveLicenses().addAll(componentDetails.getOverriddenLicenses());
+    componentDetails.getEffectiveLicenses().addAll(calculateEffectiveLicenses(componentDetails));
+    if (!componentDetails.getOverriddenLicenses().isEmpty()) {
       if (LicenseOverrideStatus.OVERRIDDEN.equals(component.getLicenseOverrideStatus())) {
         componentDetails.setEffectiveLicenseStatus(com.sonatype.clm.dto.model.ide.LicenseStatus.Overridden);
       }
@@ -192,11 +184,35 @@ public class ComponentDetailsLoader
     return issueSource.equals(svSource);
   }
 
+  private static Set<License> calculateEffectiveLicenses(ComponentDetails componentDetails) {
+    return calculateEffectiveLicenses(componentDetails.getDeclaredLicenses(), componentDetails.getObservedLicenses(),
+        componentDetails.getOverriddenLicenses());
+  }
+
+  public static Set<License> calculateEffectiveLicenses(
+      Set<License> declaredLicenses,
+      Set<License> observedLicenses,
+      Set<License> overriddenLicenses)
+  {
+    if (overriddenLicenses != null && !overriddenLicenses.isEmpty()) {
+      return overriddenLicenses;
+    }
+
+    return calculateEffectiveLicenses(declaredLicenses, observedLicenses);
+  }
+
+  public static Set<License> calculateEffectiveLicenses(Set<License> declaredLicenses, Set<License> observedLicenses) {
+    Set<License> effectiveLicenses = new LinkedHashSet<>();
+    effectiveLicenses.addAll(declaredLicenses);
+    effectiveLicenses.addAll(observedLicenses);
+    return removeNonLicensesUnlessNoOtherLicensesExist(effectiveLicenses);
+  }
+
   /**
    * Return a set containing the licenses other than (No-Source-License, No-Sources, Not-Declared, Not-Supported)
    * unless these are the only licenses in the given set, then return the given set.
    */
-  private Set<License> removeNonLicensesUnlessNoOtherLicensesExist(Set<License> licenses) {
+  private static Set<License> removeNonLicensesUnlessNoOtherLicensesExist(Set<License> licenses) {
     Set<License> filtered = new LinkedHashSet<>();
     for (License license : licenses) {
       if (!com.sonatype.insight.brain.model.license.License.isEffectivelyUnspecified(license.getLicenseId())) {

@@ -18,6 +18,8 @@ public class ApiLicenseDataDTO
 
   public List<ApiLicenseDTO> observedLicenses = new ArrayList<>();
 
+  public List<ApiLicenseDTO> effectiveLicenses = new ArrayList<>();
+
   @JsonInclude(Include.NON_NULL)
   public List<ApiLicenseDTO> overriddenLicenses = new ArrayList<>();
 

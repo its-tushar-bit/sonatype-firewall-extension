@@ -28,8 +28,8 @@ const initialState = {
     isEnabled: true
   },
   formState: {
-    currentQuery: null,
-    searchedQuery: null,
+    currentQuery: '',
+    searchedQuery: '',
     querySuggestions: [],
     searchResult: {
       page: 0,
@@ -84,8 +84,6 @@ function advancedSearchQuerySuggestionsFulfilled(payload, state) {
     }
   };
 }
-
-const setCurrentQuery = pathSet(['formState', 'currentQuery']);
 
 function queryRequested(payload, state) {
   return {
@@ -142,7 +140,7 @@ const reducerActionMap = {
   [ADVANCED_SEARCH_LOAD_FULFILLED]: loadFulfilled,
   [ADVANCED_SEARCH_LOAD_FAILED]: loadFailed,
   [ADVANCED_SEARCH_QUERY_SUGGESTIONS_FULFILLED]: advancedSearchQuerySuggestionsFulfilled,
-  [ADVANCED_SEARCH_SET_CURRENT_QUERY]: setCurrentQuery,
+  [ADVANCED_SEARCH_SET_CURRENT_QUERY]: pathSet(['formState', 'currentQuery']),
   [ADVANCED_SEARCH_QUERY_REQUESTED]: queryRequested,
   [ADVANCED_SEARCH_QUERY_FULFILLED]: queryFulfilled,
   [ADVANCED_SEARCH_QUERY_FAILED]: queryFailed,

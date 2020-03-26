@@ -28,7 +28,9 @@ export default function AdvancedSearch(props) {
 
   // formState
   const {
-    searchResult,
+    searchResult: {
+      groupingByDTOS
+    },
     queryError
   } = props;
 
@@ -64,13 +66,11 @@ export default function AdvancedSearch(props) {
                       {Messages.getHttpErrorMessage(queryError)}
                     </NxErrorAlert>
                 }
-                {
-                  <LoadWrapper loading={waitingSearchResponse}>
-                    {
-                      searchResult.groupingByDTOS.map(groupingByDTO => advancedSearchResultsGroupedBy(groupingByDTO))
-                    }
-                  </LoadWrapper>
-                }
+                <LoadWrapper loading={waitingSearchResponse}>
+                  {
+                    groupingByDTOS.map(advancedSearchResultsGroupedBy)
+                  }
+                </LoadWrapper>
               </Fragment>
           }
         </div>
@@ -78,35 +78,37 @@ export default function AdvancedSearch(props) {
     </LoadWrapper>
   );
 
-  function advancedSearchResultsGroupedBy(groupingByDTO) {
+  function advancedSearchResultsGroupedBy(groupingByDto) {
+    const {
+      groupBy,
+      additionalInfo,
+      groupIdentifier,
+      searchResultItemDTOS
+    } = groupingByDto;
+
     return (
-      <Fragment key={groupingByDTO.groupBy}>
-        <div className="nx-tile">
-          <div className="nx-tile-header">
-            <div className="nx-tile-header__title">
-              <h2 className="nx-h2">{groupingByDTO.groupBy}</h2>
-            </div>
-            <div className="nx-tile-header__subtitle">{groupingByDTO.additionalInfo}</div>
-            {
-              (groupingByDTO.groupIdentifier === 'VULNERABILITY_ID' ||
-              groupingByDTO.groupIdentifier === 'VULNERABILITY_DESCRIPTION') &&
-              <div className="nx-tile-header__subtitle">
-                Click <a href={$state.href($state.get('vulnerabilitySearchDetail'), {id: groupingByDTO.groupBy})}>
-                here</a> for detailed information.
-              </div>
-            }
+      <div key={groupBy} className="nx-tile">
+        <div className="nx-tile-header">
+          <div className="nx-tile-header__title">
+            <h2 className="nx-h2">{groupBy}</h2>
           </div>
-          {groupingByDTO.searchResultItemDTOS.map(searchResultItem => {
-            return (
-              <div className="nx-tile-content nx-tile-content--adv-search-results" key={searchResultItem.resultIndex}>
-                <AdvancedSearchResultCard searchResultItem={searchResultItem}
-                                          groupIdentifier={groupingByDTO.groupIdentifier}
-                                          $state={$state}/>
-              </div>
-            );
-          })}
+          <div className="nx-tile-header__subtitle">{additionalInfo}</div>
+          {
+            (groupIdentifier === 'VULNERABILITY_ID' || groupIdentifier === 'VULNERABILITY_DESCRIPTION') &&
+            <div className="nx-tile-header__subtitle">
+              Click <a href={$state.href($state.get('vulnerabilitySearchDetail'), {id: groupBy})}>
+              here</a> for detailed information.
+            </div>
+          }
         </div>
-      </Fragment>
+        {searchResultItemDTOS.map(searchResultItem => {
+          return (
+            <div className="nx-tile-content nx-tile-content--adv-search-results" key={searchResultItem.resultIndex}>
+              <AdvancedSearchResultCard { ...({ searchResultItem, groupIdentifier, $state }) } />
+            </div>
+          );
+        })}
+      </div>
     );
   }
 }

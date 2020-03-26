@@ -79,15 +79,12 @@ export function searchFormSubmit(pageIncrement) {
       dispatch(resetSearchQuery());
     }
 
-    dispatch(queryRequested());
-
-    const advancedSearchState = getState().advancedSearch;
-    const query = advancedSearchState.formState.currentQuery;
-
+    const formState = getState().advancedSearch.formState;
     // If next or previous is not requested, request page 0. Requesting page 0 means, firing initial search.
-    const page = !pageIncrement ? 0 : advancedSearchState.formState.searchResult.page + pageIncrement;
+    const page = pageIncrement ? formState.searchResult.page + pageIncrement : 0;
 
-    axios.get(getAdvancedSearchUrl(query, page))
+    dispatch(queryRequested());
+    axios.get(getAdvancedSearchUrl(formState.currentQuery, page))
         .then(({data}) => {
           dispatch(queryFulfilled(data));
         })

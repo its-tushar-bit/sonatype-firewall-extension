@@ -18,6 +18,9 @@ public class ApiLicenseDataDTO
 
   public List<ApiLicenseDTO> observedLicenses = new ArrayList<>();
 
+  /**
+   * @since 1.88
+   */
   public List<ApiLicenseDTO> effectiveLicenses = new ArrayList<>();
 
   @JsonInclude(Include.NON_NULL)

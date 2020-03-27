@@ -612,9 +612,9 @@ public class PdfGeneratorTest
     PdfGenerator pdfGenerator =
         new PdfGenerator(null, null, new ApiReportPolicyDataDTOV2(), new ApiReportRawDataDTOV2());
     pdfGenerator.initFontStyles(new PDDocument());
-    ParagraphCell paragraphCell = pdfGenerator.buildLicensesCell(
+    ParagraphCell paragraphCell = pdfGenerator.licensesCellBuilder(
         PdfGenerator.licensesToString(licenseData.declaredLicenses),
-        PdfGenerator.licensesToString(licenseData.observedLicenses));
+        PdfGenerator.licensesToString(licenseData.observedLicenses)).build();
     paragraphCell.setWidth(1000);
     StringBuilder stringBuilder = new StringBuilder();
     Paragraph paragraph = paragraphCell.getParagraph().getWrappedParagraph();

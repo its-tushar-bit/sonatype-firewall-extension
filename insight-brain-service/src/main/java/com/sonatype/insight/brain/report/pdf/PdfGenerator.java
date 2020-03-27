@@ -490,33 +490,11 @@ public class PdfGenerator
     licensesTableRows.sort(null);
     for (LicensesTableRow licensesTableRow : licensesTableRows) {
       tableBuilder.addRow(Row.builder()
-          .add(buildLicensesCell(licensesTableRow.declaredLicenses, licensesTableRow.observedLicenses))
+          .add(licensesCellBuilder(licensesTableRow.declaredLicenses, licensesTableRow.observedLicenses).build())
           .add(cellBuilder(licensesTableRow.componentName).build())
           .build());
     }
     return tableBuilder.build();
-  }
-
-  // Visible for testing
-  ParagraphCell buildLicensesCell(String declaredLicenses, String observedLicenses) {
-    ParagraphBuilder paragraphBuilder = Paragraph.builder();
-    if (!declaredLicenses.isEmpty()) {
-      paragraphBuilder.append(StyledText.builder()
-          .font(declaredLicensesFontStyle.getFont())
-          .fontSize(declaredLicensesFontStyle.getFontSize())
-          .color(declaredLicensesFontStyle.getFontColor())
-          .text(declaredLicenses)
-          .build());
-    }
-    if (!observedLicenses.isEmpty()) {
-      paragraphBuilder.append(StyledText.builder()
-          .font(observedLicensesFontStyle.getFont())
-          .fontSize(observedLicensesFontStyle.getFontSize())
-          .color(observedLicensesFontStyle.getFontColor())
-          .text((declaredLicenses.isEmpty() ? "" : ", ") + observedLicenses)
-          .build());
-    }
-    return paragraphCellBuilder().paragraph(paragraphBuilder.build()).build();
   }
 
   private List<LicensesTableRow> createLicensesTableData() {
@@ -713,6 +691,28 @@ public class PdfGenerator
         .horizontalAlignment(HorizontalAlignment.LEFT)
         .verticalAlignment(VerticalAlignment.TOP)
         .borderColor(CELL_BORDER_COLOR);
+  }
+
+  // Visible for testing
+  ParagraphCellBuilder<?, ?> licensesCellBuilder(String declaredLicenses, String observedLicenses) {
+    ParagraphBuilder paragraphBuilder = Paragraph.builder();
+    if (!declaredLicenses.isEmpty()) {
+      paragraphBuilder.append(StyledText.builder()
+          .font(declaredLicensesFontStyle.getFont())
+          .fontSize(declaredLicensesFontStyle.getFontSize())
+          .color(declaredLicensesFontStyle.getFontColor())
+          .text(declaredLicenses)
+          .build());
+    }
+    if (!observedLicenses.isEmpty()) {
+      paragraphBuilder.append(StyledText.builder()
+          .font(observedLicensesFontStyle.getFont())
+          .fontSize(observedLicensesFontStyle.getFontSize())
+          .color(observedLicensesFontStyle.getFontColor())
+          .text((declaredLicenses.isEmpty() ? "" : ", ") + observedLicenses)
+          .build());
+    }
+    return paragraphCellBuilder().paragraph(paragraphBuilder.build());
   }
 
   // Visible for testing

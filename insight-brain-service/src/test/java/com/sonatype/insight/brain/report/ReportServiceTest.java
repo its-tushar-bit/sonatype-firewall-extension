@@ -10,13 +10,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
+import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -26,6 +29,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -72,6 +76,9 @@ public class ReportServiceTest
   private InsightConfig insightConfig;
 
   @Inject
+  private ApplicationAdapter applicationAdapter;
+
+  @Inject
   private ThirdPartyDataService thirdPartyDataService;
 
   // No default constructor, can't use @Spy
@@ -90,7 +97,7 @@ public class ReportServiceTest
 
   private ReportService createReportService() {
     return new ReportService(insightWork, reportDownloader, new PolicyEvaluationDAO(), insightConfig,
-        new ApplicationDAO(), thirdPartyDataServiceSpy);
+        new ApplicationDAO(), applicationAdapter, thirdPartyDataServiceSpy);
   }
 
   @Test
@@ -198,18 +205,6 @@ public class ReportServiceTest
   }
 
   @Test
-  public void testGetReportMetadata_ScanLabelForNVS() throws Exception {
-    createReportFile(app.getId(), scanId, zipReportDir("/" + getClass().getSimpleName() + "/report-scan_label"));
-    ReportService reportService = createReportService();
-    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
-
-    ReportMetadataDTO metadata = reportService.getReportMetadata(app.getPublicId(), scanId);
-    assertThat(metadata).isNotNull();
-    assertThat(metadata.getApplication().getName()).isEqualTo("My Awesome Artifact");
-    assertThat(metadata.getReportTitle()).isEqualTo("Report");
-  }
-
-  @Test
   public void testPrepareExpandedCoverageReport() throws Exception {
     HdsClient hdsClient = mock(HdsClient.class);
     Map<String, String> queryParams = null;
@@ -226,8 +221,88 @@ public class ReportServiceTest
     assertThat(reportFile).doesNotExist();
 
     reportService.prepareExpandedCoverageReport(app.getPublicId(), scanId);
-
+    
     assertThat(reportFile).isFile();
+  }
+
+  @Test
+  public void testPrintReport() throws Exception {
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+
+    createReportFile();
+    File pdfFile = Pdf.getPdfFile(insightWork.getReportFile(app.getId(), scanId));
+
+    ReportService reportService = createReportService();
+
+    Response response;
+    try {
+      response = reportService.printReport(app.getPublicId(), scanId);
+    }
+    finally {
+      Pdf.destroy();
+    }
+
+    // Validate content type and check the actual content is really a PDF.
+    assertThat(response.getHeaderString("Content-Disposition"))
+        .containsSubsequence("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"");
+    assertThat(response.getMediaType()).hasToString("application/pdf");
+    assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(pdfFile.length()));
+    assertThat(response.getEntity()).isEqualTo(pdfFile);
+    assertThat(new String(Files.readAllBytes(pdfFile.toPath()), 0, 1024, "US-ASCII")).contains("%PDF-");
+  }
+
+  @Test
+  public void testPrintReport_AfterPreviousGenerationFailure() throws Exception {
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+
+    createReportFile();
+
+    // Pretend the print attempt crashed with OOME, which usually leaves an empty PDF file around.
+    File pdfFile = Pdf.getPdfFile(insightWork.getReportFile(app.getId(), scanId));
+    pdfFile.createNewFile();
+    assertThat(pdfFile).isFile();
+
+    ReportService reportService = createReportService();
+
+    Response response;
+    try {
+      // Printing again after fixing the mem setting should produce a proper PDF.
+      response = reportService.printReport(app.getPublicId(), scanId);
+    }
+    finally {
+      Pdf.destroy();
+    }
+
+    // Validate content type and check the actual content is really a PDF.
+    assertThat(response.getHeaderString("Content-Disposition"))
+        .containsSubsequence("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"");
+    assertThat(response.getMediaType()).hasToString("application/pdf");
+    assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(pdfFile.length()));
+    assertThat(response.getEntity()).isEqualTo(pdfFile);
+    // Check the PDF file (to ensure we simulated the failed PDF correctly).
+    assertThat(new String(Files.readAllBytes(pdfFile.toPath()), 0, 1024, "US-ASCII")).contains("%PDF-");
+  }
+
+  @Test
+  public void testPrintReport_BirtRenderingErrorsLeaveNoInvalidPdfBehind() throws Exception {
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+
+    // This report is missing the policyalerts.json file, which should cause the PDF generation to fail.
+    createReportFile(app.getId(), scanId, zipReportDir("/ReportServiceTest/report-missing-policyalerts-json"));
+    File reportFile = insightWork.getReportFile(app.getId(), scanId);
+    File pdfFile = Pdf.getPdfFile(reportFile);
+
+    ReportService reportService = createReportService();
+
+    try {
+      assertThatExceptionOfType(IOException.class).isThrownBy(() -> {
+        reportService.printReport(app.getPublicId(), scanId);
+      });
+      assertThat(pdfFile).doesNotExist();
+    }
+    finally {
+      Pdf.destroy();
+    }
   }
 
   @Test

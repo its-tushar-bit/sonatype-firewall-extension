@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -92,6 +93,8 @@ public class ApiLicenseDataAdapter
     licenseDataDTO.status = LicenseOverrideStatus.OPEN.getName();
     convertLicenses(licenseDataDTO.declaredLicenses, componentDetailsFromHds.declaredLicenses);
     convertLicenses(licenseDataDTO.observedLicenses, componentDetailsFromHds.observedLicenses);
+    convertLicenses(licenseDataDTO.effectiveLicenses, ComponentDetailsLoader.calculateEffectiveLicenses(
+        componentDetailsFromHds.declaredLicenses, componentDetailsFromHds.observedLicenses));
   }
 
   private void convertLicenses(final List<ApiLicenseDTO> licenses, final Collection<String> licenseIds) {

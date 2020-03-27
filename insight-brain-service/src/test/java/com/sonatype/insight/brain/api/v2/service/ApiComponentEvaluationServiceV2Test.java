@@ -128,7 +128,7 @@ public class ApiComponentEvaluationServiceV2Test
     int i = 0;
     for (ApiComponentDetailsDTOV2 componentDetailsDTOV2 : details.results) {
       componentEvaluationV2Helper.assertComponentDetails(componentDetailsDTOV2, request.components.get(i),
-          MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
+          MatchState.EXACT.getId(), declaredLicenseSet, observedLicenseSet,
           securityVulnerabilities, i /* popularity */, policies);
       i++;
     }

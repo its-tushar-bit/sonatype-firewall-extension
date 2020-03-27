@@ -89,8 +89,6 @@ public class GitApiServiceTest
     User creator = new GithubUser();
     creator.setUsername("foo");
     status = new GithubStatus();
-    status.setTargetUrl("http://example.com");
-    status.setUser(creator);
   }
 
   @Test

@@ -64,10 +64,11 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.organization.ApplicationAdapter;
+import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphService;
-import com.sonatype.insight.brain.report.pdf.PdfGeneratorService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -118,6 +119,8 @@ public class ReportResource
 
   private PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
 
+  private ApplicationAdapter applicationAdapter;
+
   private final ReportService reportService;
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
@@ -129,8 +132,6 @@ public class ReportResource
   private final ComponentDetailsLoader componentDetailsLoader;
 
   private final VersionService versionService;
-  
-  private final PdfGeneratorService pdfGeneratorService;
 
   static {
     Set<Character> invalid = new HashSet<>(
@@ -147,21 +148,21 @@ public class ReportResource
                         final ScanPolicyEvaluator scanPolicyEvaluator,
                         InsightWork work,
                         BaseUrl baseUrl,
+                        ApplicationAdapter applicationAdapter,
                         ApiReportDataServiceV2 reportDataService,
                         ReleaseGraphService releaseGraphService,
                         ComponentDetailsLoader componentDetailsLoader,
-                        VersionService versionService,
-                        PdfGeneratorService pdfGeneratorService)
+                        VersionService versionService)
   {
     this.reportService = reportService;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.work = work;
     this.baseUrl = baseUrl;
+    this.applicationAdapter = applicationAdapter;
     this.reportDataService = reportDataService;
     this.releaseGraphService = releaseGraphService;
     this.componentDetailsLoader = componentDetailsLoader;
     this.versionService = versionService;
-    this.pdfGeneratorService = pdfGeneratorService;
   }
 
   /**
@@ -341,7 +342,7 @@ public class ReportResource
       @PathParam("applicationPublicId") final String appPublicId,
       @PathParam("scanId") final String scanId) throws IOException
   {
-    return pdfGeneratorService.printReport(appPublicId, scanId);
+    return reportService.printReport(appPublicId, scanId);
   }
 
   /**
@@ -370,7 +371,8 @@ public class ReportResource
     int dataVersion = Integer.parseInt(templateProps.getProperty("data.version", "0"));
     String dataPath = "data/";
 
-    File pdfFile = pdfGeneratorService.generateReport(app, scanId);
+    ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
+    File pdfFile = Report.printPdf(reportFile, "", "", contact);
 
     ApiReportRawDataDTOV2 reportData = reportDataService.getDataNoAuth(appPublicId, scanId);
     List<PolicyAlert> alerts = Arrays.asList(JsonUtils

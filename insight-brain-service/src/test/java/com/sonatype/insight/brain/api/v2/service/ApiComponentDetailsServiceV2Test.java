@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -121,8 +122,11 @@ public class ApiComponentDetailsServiceV2Test
     assertThat(result.componentDetails).hasSize(numComponents);
     int i = 0;
     for (ApiComponentDetailsDTOV2 componentDetailsDTOV2 : result.componentDetails) {
+      Set<License> effectiveLicenseSet = new HashSet<>();
+      effectiveLicenseSet.addAll(declaredLicenseSet);
+      effectiveLicenseSet.addAll(observedLicenseSet);
       assertComponentDetails(componentDetailsDTOV2, request.components.get(i), MatchState.EXACT.getId(),
-          declaredLicenseSet, observedLicenseSet, securityVulnerabilities, i /* popularity */);
+          declaredLicenseSet, observedLicenseSet, effectiveLicenseSet, securityVulnerabilities, i /* popularity */);
       i++;
     }
   }
@@ -370,6 +374,7 @@ public class ApiComponentDetailsServiceV2Test
       String matchState,
       Set<License> declaredLicenses,
       Set<License> observedLicenses,
+      Set<License> effectiveLicenses,
       List<SecurityVulnerability> securityVulnerabilities,
       Integer relativePopularity)
   {
@@ -394,6 +399,11 @@ public class ApiComponentDetailsServiceV2Test
     assertThat(resultComponentDTO.licenseData.observedLicenses).extracting(dto -> dto.licenseId, dto -> dto.licenseName)
         .containsExactly(observedLicenses.stream()
             .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
+
+    assertThat(resultComponentDTO.licenseData.effectiveLicenses)
+        .extracting(dto -> dto.licenseId, dto -> dto.licenseName).containsExactlyInAnyOrder(effectiveLicenses.stream()
+            .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
+
     assertThat(resultComponentDTO.licenseData.overriddenLicenses).isNull();
 
     assertThat(resultComponentDTO.securityData).isNotNull();

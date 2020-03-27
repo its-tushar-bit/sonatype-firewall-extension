@@ -24,7 +24,7 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitGraphQlApiClient;
 import com.sonatype.nexus.scm.api.model.ProjectUri;
 import com.sonatype.nexus.scm.api.model.PullRequest;
-import com.sonatype.nexus.scm.github.dto.GithubProjectUri;
+import com.sonatype.nexus.scm.common.SimpleProjectUri;
 import com.sonatype.nexus.scm.github.dto.GithubPullRequest;
 
 import com.google.common.collect.ImmutableList;
@@ -270,7 +270,7 @@ public class PullRequestPollingServiceTest
           .getLatestPolicyEvaluationForApplicationBaseBranch(any());
 
       if (null != gitRepositoryInfo) {
-        ProjectUri projectUri = new GithubProjectUri(gitRepositoryInfo.repositoryUrl);
+        ProjectUri projectUri = new SimpleProjectUri(gitRepositoryInfo.repositoryUrl);
         doReturn(projectUri).when(mockGitApiClient).getProjectUri();
       }
 

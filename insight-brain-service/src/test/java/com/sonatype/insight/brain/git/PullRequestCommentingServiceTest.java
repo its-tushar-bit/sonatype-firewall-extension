@@ -886,7 +886,7 @@ public class PullRequestCommentingServiceTest
     }
 
     TestablePullRequestCommentingServiceBuilder withAddedViolation(PolicyViolation policyViolation) {
-      policyViolationDiff.get().addAppeared(new PolicyViolation());
+      policyViolationDiff.get().addAppeared(policyViolation);
       return this;
     }
   }

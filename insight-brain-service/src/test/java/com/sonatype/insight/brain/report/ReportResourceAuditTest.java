@@ -145,7 +145,12 @@ public class ReportResourceAuditTest
     createReportFile(app.getId(), SCAN_ID);
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
 
-    restRequest(app.getPublicId(), SCAN_ID).path(PRINT_PATH).get();
+    try {
+      restRequest(app.getPublicId(), SCAN_ID).path(PRINT_PATH).get();
+    }
+    finally {
+      Pdf.destroy();
+    }
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.PRINT_APPLICATION_COMPOSITION_REPORT, null);
     assertApplicationData(auditDTO, app);

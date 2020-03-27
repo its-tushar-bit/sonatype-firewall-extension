@@ -14,7 +14,11 @@ export default function AdvancedSearchForm(props) {
     setCurrentQuery,
     getQuerySuggestions,
     currentQuery,
-    querySuggestions
+    querySuggestions,
+    searchResult: {
+      page,
+      totalNumberOfHits
+    }
   } = props;
 
   function queryInputOnChangeHandler(e) {
@@ -78,23 +82,23 @@ export default function AdvancedSearchForm(props) {
           {
             numberOfPages() !== 0 &&
               <span id="advanced-search-current-page-info">
-                Page {props.searchResult.page} of {numberOfPages()}
+                Page {page} of {numberOfPages()}
               </span>
           }
           <NxButton id="advanced-search-previous-page-button"
-                    disabled={props.searchResult.page <= 1}
+                    disabled={page <= 1}
                     onClick={previousPageHandler}>
             Previous
           </NxButton>
           <NxButton id="advanced-search-next-page-button"
-                    disabled={props.searchResult.page >= numberOfPages() }
+                    disabled={page >= numberOfPages() }
                     onClick={nextPageHandler}>
             Next
           </NxButton>
         </div>
         <div className="nx-tile-header">
           <div className="nx-tile-header__title">
-            <h2 id="advanced-search-result-count" className="nx-h2">Results: {props.searchResult.totalNumberOfHits}</h2>
+            <h2 id="advanced-search-result-count" className="nx-h2">Results: {totalNumberOfHits}</h2>
           </div>
         </div>
       </div>

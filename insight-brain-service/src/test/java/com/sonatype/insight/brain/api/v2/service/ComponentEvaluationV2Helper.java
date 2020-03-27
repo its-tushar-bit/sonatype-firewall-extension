@@ -134,30 +134,32 @@ public class ComponentEvaluationV2Helper
     return policies;
   }
 
-  public void assertComponentDetails(final ApiComponentDetailsDTOV2 resultComponentDTO,
-                                     final ApiComponentDTOV2 requestComponentDTO,
-                                     final String matchState,
-                                     final List<License> declaredLicenses,
-                                     final List<License> observedLicenses,
-                                     final List<SecurityVulnerability> securityVulnerabilities,
-                                     final Integer relativePopularity,
-                                     final Map<String, Policy> policies)
+  public void assertComponentDetails(
+      final ApiComponentDetailsDTOV2 resultComponentDTO,
+      final ApiComponentDTOV2 requestComponentDTO,
+      final String matchState,
+      final Set<License> declaredLicenses,
+      final Set<License> observedLicenses,
+      final List<SecurityVulnerability> securityVulnerabilities,
+      final Integer relativePopularity,
+      final Map<String, Policy> policies)
   {
     assertComponentDetails(resultComponentDTO, requestComponentDTO.componentIdentifier, requestComponentDTO.hash,
         requestComponentDTO.packageUrl, matchState, declaredLicenses, observedLicenses, securityVulnerabilities,
         relativePopularity, policies);
   }
 
-  public void assertComponentDetails(final ApiComponentDetailsDTOV2 resultComponentDTO,
-                                     final ApiComponentIdentifierDTOV2 expectedComponentIdentifier,
-                                     final String expectedHash,
-                                     final String expectedPackageUrl,
-                                     final String matchState,
-                                     final List<License> declaredLicenses,
-                                     final List<License> observedLicenses,
-                                     final List<SecurityVulnerability> securityVulnerabilities,
-                                     final Integer relativePopularity,
-                                     final Map<String, Policy> policies)
+  public void assertComponentDetails(
+      final ApiComponentDetailsDTOV2 resultComponentDTO,
+      final ApiComponentIdentifierDTOV2 expectedComponentIdentifier,
+      final String expectedHash,
+      final String expectedPackageUrl,
+      final String matchState,
+      final Set<License> declaredLicenses,
+      final Set<License> observedLicenses,
+      final List<SecurityVulnerability> securityVulnerabilities,
+      final Integer relativePopularity,
+      final Map<String, Policy> policies)
   {
     assertThat(resultComponentDTO).isNotNull();
     assertThat(resultComponentDTO.component).isNotNull();
@@ -170,10 +172,10 @@ public class ComponentEvaluationV2Helper
 
     assertThat(resultComponentDTO.licenseData).isNotNull();
     assertThat(resultComponentDTO.licenseData.declaredLicenses).extracting(dto -> dto.licenseId, dto -> dto.licenseName)
-        .containsExactly(declaredLicenses.stream()
+        .containsExactlyInAnyOrder(declaredLicenses.stream()
             .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
     assertThat(resultComponentDTO.licenseData.observedLicenses).extracting(dto -> dto.licenseId, dto -> dto.licenseName)
-        .containsExactly(observedLicenses.stream()
+        .containsExactlyInAnyOrder(observedLicenses.stream()
             .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
     assertThat(resultComponentDTO.licenseData.overriddenLicenses).isEmpty();
 

@@ -15,6 +15,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -25,13 +26,19 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.organization.ApplicationAdapter;
+import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -39,10 +46,10 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.cache.CacheBuilder;
 import org.codehaus.plexus.util.FileUtils;
@@ -67,6 +74,8 @@ public class ReportService
 
   private final ApplicationDAO applicationDAO;
 
+  private final ApplicationAdapter applicationAdapter;
+
   private final ThirdPartyDataService thirdPartyDataService;
 
   @Inject
@@ -76,6 +85,7 @@ public class ReportService
       PolicyEvaluationDAO policyEvaluationDAO,
       InsightConfig insightConfig,
       ApplicationDAO applicationDAO,
+      ApplicationAdapter applicationAdapter,
       ThirdPartyDataService thirdPartyDataService)
   {
     this.work = work;
@@ -83,6 +93,7 @@ public class ReportService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.insightConfig = insightConfig;
     this.applicationDAO = applicationDAO;
+    this.applicationAdapter = applicationAdapter;
     this.thirdPartyDataService = thirdPartyDataService;
   }
 
@@ -180,13 +191,6 @@ public class ReportService
       final @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
       final String scanId) throws IOException
   {
-    return getReportMetadataNoAuth(applicationPublicId, scanId);
-  }
-
-  public ReportMetadataDTO getReportMetadataNoAuth(
-      final String applicationPublicId,
-      final String scanId) throws IOException
-  {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     ReportMetadataDTO metadata = new ReportMetadataDTO();
     metadata.setApplication(application);
@@ -205,16 +209,6 @@ public class ReportService
       metadata.setReportTime(evaluation.getTime());
       metadata.setReportTitle(StageTypes.getById(evaluation.getStageTypeId()).getName() + " Report");
     }
-
-    // For NVS where a scanLabel is set for the application name and the stage name doesn't matter
-    if (Report.getEntry(reportFile, "template.properties") != null) {
-      JsonNode scanLabelNode = data.path("scanLabel");
-      if (scanLabelNode.isTextual()) {
-        metadata.getApplication().setName(scanLabelNode.asText());
-        metadata.setReportTitle("Report");
-      }
-    }
-
     return metadata;
   }
 
@@ -232,6 +226,39 @@ public class ReportService
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     fetchReport(application, scanId);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public Response printReport(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
+      String scanId) throws IOException
+  {
+    AuditData.get().setReportId(scanId);
+    Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
+    String appId = application.getId();
+
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
+    if (policyEvaluation == null) {
+      throw new BadRequestException("Unable to locate scan " + scanId + " for application " + appId + ".");
+    }
+
+    File reportFile = getReport(appId, scanId);
+
+    ContactDTO contact = applicationAdapter.getContact(application.getContactInternalName());
+    String stageName = StageTypes.getById(policyEvaluation.getStageTypeId()).getName();
+    File pdfFile = Report.printPdf(reportFile, application.getName(), stageName, contact);
+
+    Date now = new Date();
+    String filename =
+        application.getName() + "-" + stageName + "-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(now) + ".pdf";
+
+    ResponseBuilder responseBuilder = Response.ok();
+    responseBuilder.lastModified(now).expires(now);
+    responseBuilder.type("application/pdf");
+    responseBuilder.header(HttpHeaders.CONTENT_LENGTH, pdfFile.length());
+    responseBuilder.header("Content-Disposition", "attachment; filename=\"" + filename + '"');
+    responseBuilder.entity(pdfFile);
+    return responseBuilder.build();
   }
 
   public ReportEntry getBomForPolicyEvaluation(PolicyEvaluation policyEvaluation) throws IOException {

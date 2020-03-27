@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -176,6 +177,12 @@ public class ComponentEvaluationV2Helper
             .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
     assertThat(resultComponentDTO.licenseData.observedLicenses).extracting(dto -> dto.licenseId, dto -> dto.licenseName)
         .containsExactlyInAnyOrder(observedLicenses.stream()
+            .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
+    Set<License> effectiveLicenses = new HashSet<>();
+    effectiveLicenses.addAll(declaredLicenses);
+    effectiveLicenses.addAll(observedLicenses);
+    assertThat(resultComponentDTO.licenseData.effectiveLicenses)
+        .extracting(dto -> dto.licenseId, dto -> dto.licenseName).containsExactlyInAnyOrder(effectiveLicenses.stream()
             .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
     assertThat(resultComponentDTO.licenseData.overriddenLicenses).isEmpty();
 

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -87,6 +88,8 @@ public class ApiLicenseDataAdapter
     convertLicenses(licenseDataDTO.declaredLicenses, component.getDeclaredLicenseIds());
     convertLicenses(licenseDataDTO.observedLicenses, component.getObservedLicenseIds());
     convertLicenses(licenseDataDTO.overriddenLicenses, component.getLicenseOverrideIds());
+    convertLicenses(licenseDataDTO.effectiveLicenses, ComponentDetailsLoader.calculateEffectiveLicenses(
+        component.getDeclaredLicenseIds(), component.getObservedLicenseIds(), component.getLicenseOverrideIds()));
   }
 
   private void convert(ComponentEvaluationData componentDetailsFromHds, ApiLicenseDataDTO licenseDataDTO) {
@@ -94,7 +97,8 @@ public class ApiLicenseDataAdapter
     convertLicenses(licenseDataDTO.declaredLicenses, componentDetailsFromHds.declaredLicenses);
     convertLicenses(licenseDataDTO.observedLicenses, componentDetailsFromHds.observedLicenses);
     convertLicenses(licenseDataDTO.effectiveLicenses, ComponentDetailsLoader.calculateEffectiveLicenses(
-        componentDetailsFromHds.declaredLicenses, componentDetailsFromHds.observedLicenses));
+        getLicenseIds(componentDetailsFromHds.declaredLicenses),
+        getLicenseIds(componentDetailsFromHds.observedLicenses)));
   }
 
   private void convertLicenses(final List<ApiLicenseDTO> licenses, final Collection<String> licenseIds) {
@@ -113,5 +117,9 @@ public class ApiLicenseDataAdapter
       licenseDTO.licenseName = multiLicenseDAO.getByIdNotNull(licenseDTO.licenseId).getShortDisplayName();
       licenseDTOs.add(licenseDTO);
     }
+  }
+
+  private static Set<String> getLicenseIds(Set<License> licenses) {
+    return licenses.stream().map(License::getLicenseId).collect(Collectors.toSet());
   }
 }

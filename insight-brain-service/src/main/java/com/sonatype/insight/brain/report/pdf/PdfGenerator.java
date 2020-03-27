@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.component.MatchState;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -52,10 +51,8 @@ import org.vandeseer.easytable.settings.VerticalAlignment;
 import org.vandeseer.easytable.structure.Row;
 import org.vandeseer.easytable.structure.Table;
 import org.vandeseer.easytable.structure.Table.TableBuilder;
-import org.vandeseer.easytable.structure.cell.AbstractCell;
 import org.vandeseer.easytable.structure.cell.TextCell;
 import org.vandeseer.easytable.structure.cell.TextCell.TextCellBuilder;
-import org.vandeseer.easytable.structure.cell.paragraph.Hyperlink;
 import org.vandeseer.easytable.structure.cell.paragraph.ParagraphCell;
 import org.vandeseer.easytable.structure.cell.paragraph.ParagraphCell.Paragraph;
 import org.vandeseer.easytable.structure.cell.paragraph.ParagraphCell.Paragraph.ParagraphBuilder;
@@ -102,8 +99,6 @@ public class PdfGenerator
 
   private static final float CELL_BORDER_WIDTH = 1;
 
-  private static final float CELL_PADDING = 4;
-
   private static final int DONUT_CHART_SIZE = 20;
 
   private static final float SUMMARY_IMAGE_SIZE = 20;
@@ -129,8 +124,6 @@ public class PdfGenerator
   private static final Color CELL_BORDER_COLOR = new Color(224, 224, 224);
 
   private static final char GRANDFATHERED_SYMBOL = '\uf1da';
-
-  private final String baseUrl;
 
   private ApiReportPolicyDataDTOV2 policyData;
 
@@ -177,9 +170,8 @@ public class PdfGenerator
   }
 
   // Visible for testing
-  PdfGenerator(File pdfFile, String baseUrl, ApiReportPolicyDataDTOV2 policyData, ApiReportRawDataDTOV2 rawData) {
+  PdfGenerator(File pdfFile, ApiReportPolicyDataDTOV2 policyData, ApiReportRawDataDTOV2 rawData) {
     this.pdfFile = pdfFile;
-    this.baseUrl = baseUrl;
     this.policyData = policyData;
     this.rawData = rawData;
   }
@@ -393,12 +385,17 @@ public class PdfGenerator
   }
 
   // Visible for testing
-  Table createSecurityIssuesTable(PDPage page) throws IOException {
-    float vulnIdWidth = tableRowFontStyle.getStringWidth("sonatype-0000-000000") + 2 * CELL_PADDING;
-    float vulnScoreWidth = tableRowHeaderFontStyle.getStringWidth("CVSS SCORE") + 2 * CELL_PADDING;
-    float componentWidth = page.getMediaBox().getWidth() - 2 * MARGIN - vulnIdWidth - vulnScoreWidth;
+  Table createSecurityIssuesTable(PDPage page) {
+    float vulnerabilityWidthPercent = 20;
+    float cvssScoreWidthPercent = 15;
+    float componentWidthPercent = 65;
+
+    float tableWidthOnePercent = (page.getMediaBox().getWidth() - 2 * MARGIN) / 100;
     TableBuilder tableBuilder = Table.builder()
-        .addColumnsOfWidth(vulnIdWidth, vulnScoreWidth, componentWidth);
+        .addColumnsOfWidth(
+            tableWidthOnePercent * vulnerabilityWidthPercent,
+            tableWidthOnePercent * cvssScoreWidthPercent,
+            tableWidthOnePercent * componentWidthPercent);
 
     // Add security issues table headers
     tableBuilder.addRow(Row.builder()
@@ -412,7 +409,7 @@ public class PdfGenerator
     securityIssuesTableRows.sort(null);
     for (SecurityIssuesTableRow securityIssuesTableRow : securityIssuesTableRows) {
       tableBuilder.addRow(Row.builder()
-          .add(buildVulnerabilityIdCell(securityIssuesTableRow.reference))
+          .add(cellBuilder(securityIssuesTableRow.reference).build())
           .add(cellBuilder(securityIssuesTableRow.severity == null ? "" : securityIssuesTableRow.severity.toString())
               .build())
           .add(cellBuilder(securityIssuesTableRow.componentName).build())
@@ -420,16 +417,6 @@ public class PdfGenerator
     }
 
     return tableBuilder.build();
-  }
-
-  private AbstractCell buildVulnerabilityIdCell(String vulnerabilityId) {
-    if (baseUrl == null) {
-      return cellBuilder(vulnerabilityId).build();
-    }
-    return paragraphCellBuilder().paragraph(Paragraph.builder()
-        .append(Hyperlink.builder().text(vulnerabilityId)
-            .url(baseUrl + UserInterfaceLinksResource.getVulnerabilityDetailsUrl(vulnerabilityId)).build())
-        .build()).build();
   }
 
   private List<SecurityIssuesTableRow> createSecurityIssuesTableData() {
@@ -681,18 +668,6 @@ public class PdfGenerator
         .borderColor(CELL_BORDER_COLOR);
   }
 
-  private ParagraphCellBuilder<?, ?> paragraphCellBuilder() {
-    return ParagraphCell.builder()
-        .settings(Settings.builder()
-            .font(tableRowFontStyle.getFont())
-            .fontSize((int) tableRowFontStyle.getFontSize())
-            .textColor(tableRowFontStyle.getFontColor()).build())
-        .borderWidthBottom(CELL_BORDER_WIDTH)
-        .horizontalAlignment(HorizontalAlignment.LEFT)
-        .verticalAlignment(VerticalAlignment.TOP)
-        .borderColor(CELL_BORDER_COLOR);
-  }
-
   // Visible for testing
   ParagraphCellBuilder<?, ?> licensesCellBuilder(String declaredLicenses, String observedLicenses) {
     ParagraphBuilder paragraphBuilder = Paragraph.builder();
@@ -712,7 +687,12 @@ public class PdfGenerator
           .text((declaredLicenses.isEmpty() ? "" : ", ") + observedLicenses)
           .build());
     }
-    return paragraphCellBuilder().paragraph(paragraphBuilder.build());
+    return ParagraphCell.builder().settings(Settings.builder().build())
+        .paragraph(paragraphBuilder.build())
+        .borderWidthBottom(CELL_BORDER_WIDTH)
+        .horizontalAlignment(HorizontalAlignment.LEFT)
+        .verticalAlignment(VerticalAlignment.TOP)
+        .borderColor(CELL_BORDER_COLOR);
   }
 
   // Visible for testing
@@ -795,23 +775,12 @@ public class PdfGenerator
 
   public static void generate(
       File pdfFile,
-      String baseUrl,
       ApiReportPolicyDataDTOV2 apiReportPolicyDataDTOV2,
       ApiReportRawDataDTOV2 apiReportRawDataDTOV2) throws IOException
   {
     if (!pdfFile.isFile() || pdfFile.length() == 0) {
       try {
-        log.debug("Generating report PDF {}", pdfFile);
-        long millis = System.currentTimeMillis();
-
-        new PdfGenerator(pdfFile, baseUrl, apiReportPolicyDataDTOV2, apiReportRawDataDTOV2).generate();
-
-        if (pdfFile.length() <= 0) {
-          throw new IOException("Could not generate report " + pdfFile);
-        }
-
-        millis = System.currentTimeMillis() - millis;
-        log.debug("Generated report PDF {} in {} ms", pdfFile, millis);
+        generatePdfFile(pdfFile, apiReportPolicyDataDTOV2, apiReportRawDataDTOV2);
       }
       catch (Exception e) {
         boolean deleted = false;
@@ -827,5 +796,24 @@ public class PdfGenerator
         throw e;
       }
     }
+  }
+
+  private static void generatePdfFile(
+      File pdfFile,
+      ApiReportPolicyDataDTOV2 policyData,
+      ApiReportRawDataDTOV2 rawData)
+      throws IOException
+  {
+    log.debug("Generating report PDF {}", pdfFile);
+    long millis = System.currentTimeMillis();
+
+    new PdfGenerator(pdfFile, policyData, rawData).generate();
+
+    if (pdfFile.length() <= 0) {
+      throw new IOException("Could not generate report " + pdfFile);
+    }
+
+    millis = System.currentTimeMillis() - millis;
+    log.debug("Generated report PDF {} in {} ms", pdfFile, millis);
   }
 }

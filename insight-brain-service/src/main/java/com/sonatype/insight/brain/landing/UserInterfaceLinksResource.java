@@ -199,10 +199,6 @@ public class UserInterfaceLinksResource
     return UriBuilder.fromPath(UserInterfaceLinksResource.RESOURCE_PATH).path(path).build(parameters).toString();
   }
 
-  public static String getVulnerabilityDetailsUrl(String vulnerabilityId) {
-    return buildStableUrl(VULNERABILITY_DETAILS_PATH, vulnerabilityId);
-  }
-
   public static String getLatestReportUrl(String applicationPublicId, String stageId) {
     return buildStableUrl(UserInterfaceLinksResource.LATEST_REPORT_PATH, applicationPublicId, stageId);
   }

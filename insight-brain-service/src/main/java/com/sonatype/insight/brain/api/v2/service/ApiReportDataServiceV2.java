@@ -104,12 +104,6 @@ public class ApiReportDataServiceV2
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
       String scanId) throws IOException
   {
-    return getPolicyViolationsDataNoAuth(applicationPublicId, scanId);
-  }
-
-  public ApiReportPolicyDataDTOV2 getPolicyViolationsDataNoAuth(String applicationPublicId, String scanId)
-      throws IOException
-  {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     File reportFile = reportService.getReport(app.getId(), scanId);
 

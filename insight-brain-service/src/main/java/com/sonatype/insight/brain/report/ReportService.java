@@ -42,7 +42,6 @@ import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.cache.CacheBuilder;
 import org.codehaus.plexus.util.FileUtils;
@@ -205,16 +204,6 @@ public class ReportService
       metadata.setReportTime(evaluation.getTime());
       metadata.setReportTitle(StageTypes.getById(evaluation.getStageTypeId()).getName() + " Report");
     }
-
-    // For NVS where a scanLabel is set for the application name and the stage name doesn't matter
-    if (Report.getEntry(reportFile, "template.properties") != null) {
-      JsonNode scanLabelNode = data.path("scanLabel");
-      if (scanLabelNode.isTextual()) {
-        metadata.getApplication().setName(scanLabelNode.asText());
-        metadata.setReportTitle("Report");
-      }
-    }
-
     return metadata;
   }
 

@@ -281,7 +281,7 @@ public class ReportResourceTest
       }
     }
 
-    assertThat(verifiedFileCount).isEqualTo(109);
+    assertThat(verifiedFileCount).isEqualTo(110);
     assertResponseStatus(200, request.subpath("/").get());
   }
 

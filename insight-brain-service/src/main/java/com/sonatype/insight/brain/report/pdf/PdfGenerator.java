@@ -40,7 +40,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +70,7 @@ import rst.pdfbox.layout.util.WordBreakers;
 import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.addText;
 import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.drawChart;
 import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.drawRectangleWithText;
-import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.loadPDType0Font;
+import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.loadFont;
 
 public class PdfGenerator
 {
@@ -79,48 +79,44 @@ public class PdfGenerator
   private static final String REPORT_FILE_NAME = "report.pdf";
 
   // User space units per inch from org.apache.pdfbox.pdmodel.common.PDRectangle
+  private static final int POINTS_PER_INCH = 72;
+
+  private static final float MARGIN = 10;
+
   // Visible for testing
-  static final int USER_SPACE_UNITS_PER_INCH = 72;
+  static final float SPACE_FOR_PRINTERS = POINTS_PER_INCH;
 
-  private static final int MARGIN = 10;
-
-  // Note the MediaBox defines, in user space units, the physical medium boundaries to display/print the page on
   // Use minimum of A4 and Letter dimensions to ensure the pdf can fit on both when printing without needing scaling
+  // Also ensure we take off at least 0.5 inches from all sides as a safe bet for printer margins
   // Visible for testing
-  static final PDRectangle MEDIA_BOX_SIZE = new PDRectangle(
-      Math.min(PDRectangle.A4.getWidth(), PDRectangle.LETTER.getWidth()),
-      Math.min(PDRectangle.A4.getHeight(), PDRectangle.LETTER.getHeight())
-  );
-
-  // Note the CropBox defines, in user space units, the visible region the page should be cropped to for display/print
-  // Take off at least 1/2 an inch from all sides as a safe bet for printer margins
-  // Visible for testing
-  static final PDRectangle CROP_BOX_SIZE = new PDRectangle(
-      MEDIA_BOX_SIZE.getWidth() - USER_SPACE_UNITS_PER_INCH,
-      MEDIA_BOX_SIZE.getHeight() - USER_SPACE_UNITS_PER_INCH
+  static final PDRectangle PAGE_SIZE = new PDRectangle(
+      Math.min(PDRectangle.A4.getWidth(), PDRectangle.LETTER.getWidth()) - SPACE_FOR_PRINTERS,
+      Math.min(PDRectangle.A4.getHeight(), PDRectangle.LETTER.getHeight()) - SPACE_FOR_PRINTERS
   );
 
   private static final String DATE_FORMAT_STRING = "EEE MMM dd yyyy 'at' HH:mm:ss";
 
-  private static final int PADDING = 3;
+  private static final float PADDING = 3;
 
-  private static final int CELL_BORDER_WIDTH = 1;
+  private static final float SUMMARY_SPACING = 4 * PADDING;
 
-  private static final int CELL_PADDING = 4;
+  private static final float CELL_BORDER_WIDTH = 1;
+
+  private static final float CELL_PADDING = 4;
 
   private static final int DONUT_CHART_SIZE = 20;
 
-  private static final int SUMMARY_IMAGE_SIZE = 20;
+  private static final float SUMMARY_IMAGE_SIZE = 20;
 
-  private static final int DEFAULT_FONT_SIZE = 10;
+  private static final float DEFAULT_FONT_SIZE = 10;
 
-  private static final int HEADER_FONT_SIZE = 20;
+  private static final float HEADER_FONT_SIZE = 20;
 
-  private static final int TITLE_FONT_SIZE = 16;
+  private static final float TITLE_FONT_SIZE = 16;
 
-  private static final int GRANDFATHERED_SYMBOL_FONT_SIZE = 25;
+  private static final float GRANDFATHERED_SYMBOL_FONT_SIZE = 25;
 
-  private static final int THREAT_LEVEL_FONT_SIZE = 12;
+  private static final float THREAT_LEVEL_FONT_SIZE = 12;
 
   private static final Color DEFAULT_FONT_COLOR = Color.BLACK;
 
@@ -207,10 +203,10 @@ public class PdfGenerator
 
   // Visible for testing
   void initFontStyles(PDDocument pdf) {
-    PDType0Font proximanova = loadPDType0Font(pdf, "proximanova-reg-webfont.ttf");
-    PDType0Font proximanovaSemibold = loadPDType0Font(pdf, "proximanova-sbold-webfont.ttf");
-    PDType0Font proximanovaBold = loadPDType0Font(pdf, "proximanova-bold-webfont.ttf");
-    PDType0Font fontawesome = loadPDType0Font(pdf, "fontawesome-webfont.ttf");
+    PDFont proximanova = loadFont(pdf, "proximanova-reg-webfont.ttf");
+    PDFont proximanovaSemibold = loadFont(pdf, "proximanova-sbold-webfont.ttf");
+    PDFont proximanovaBold = loadFont(pdf, "proximanova-bold-webfont.ttf");
+    PDFont fontawesome = loadFont(pdf, "fontawesome-webfont.ttf");
 
     sonatypeFontStyle = new FontStyle(proximanova, HEADER_FONT_SIZE, DEFAULT_FONT_COLOR);
     applicationCompositionReportFontStyle = new FontStyle(proximanova, HEADER_FONT_SIZE,
@@ -241,11 +237,11 @@ public class PdfGenerator
   private void addPolicyViolationsSection() throws IOException {
     // Start policy violations section
     PDPage page = newPage();
-    PDRectangle pageRec = page.getCropBox();
+    PDRectangle pageRec = page.getMediaBox();
     try (PDPageContentStream contentStream = new PDPageContentStream(pdf, page)) {
       // Add header
       float headerLeftStartX = MARGIN;
-      float headerLeftStartY = pageRec.getHeight() - MARGIN - sonatypeFontStyle.getFontAscent();
+      float headerLeftStartY = pageRec.getHeight() - MARGIN - sonatypeFontStyle.getFontHeight();
       addText(contentStream, headerLeftStartX, headerLeftStartY, sonatypeFontStyle, "Sonatype");
       String applicationCompositionReport = "Application Composition Report";
       float headerRightStartX = pageRec.getWidth() - MARGIN -
@@ -256,7 +252,7 @@ public class PdfGenerator
 
       // Add title and dates
       float titleAndDatesStartY = addTitleAndDates(contentStream, "Policy Violations", MARGIN,
-          headerLeftStartY - sonatypeFontStyle.getFontDescent() - titleFontStyle.getFontAscent());
+          headerLeftStartY - 2 * titleFontStyle.getFontHeight());
 
       // Add violations summary
       long critical = countPolicyViolations(8, 10);
@@ -264,7 +260,7 @@ public class PdfGenerator
       long moderate = countPolicyViolations(2, 3);
       long total = critical + severe + moderate;
       float criticalStartX = MARGIN;
-      float criticalStartY = titleAndDatesStartY - dateDescriptorFontStyle.getFontDescent() - SUMMARY_IMAGE_SIZE;
+      float criticalStartY = titleAndDatesStartY - dateDescriptorFontStyle.getFontHeight() - SUMMARY_IMAGE_SIZE;
       float criticalWidth = drawRectangleWithText(contentStream, criticalStartX, criticalStartY, SUMMARY_IMAGE_SIZE,
           SUMMARY_IMAGE_SIZE, ThreatLevelColor.get(8), rectangleFontStyle, String.valueOf(critical));
       float severeStartX = criticalStartX + criticalWidth + PADDING;
@@ -290,7 +286,7 @@ public class PdfGenerator
       float maxViolationsAffectedWidth =
           Math.max(summaryHeaderFontStyle.getStringWidth(violationsText),
               summaryFontStyle.getStringWidth(affectingText));
-      float grandfatheredSymbolStartX = affectedComponentsStartX + maxViolationsAffectedWidth + 4 * PADDING;
+      float grandfatheredSymbolStartX = affectedComponentsStartX + maxViolationsAffectedWidth + SUMMARY_SPACING;
       float grandfatheredSymbolStartY = affectedComponentsStartY;
       addText(contentStream, grandfatheredSymbolStartX, grandfatheredSymbolStartY, grandfatheredFontStyle,
           String.valueOf(GRANDFATHERED_SYMBOL));
@@ -308,8 +304,7 @@ public class PdfGenerator
 
       // Add policy violations table
       Table table = createPolicyViolationsTable(page);
-      TableDrawer tableDrawer =
-          createTableDrawer(contentStream, criticalStartY - summaryFontStyle.getFontDescent(), table);
+      TableDrawer tableDrawer = createTableDrawer(contentStream, criticalStartY - MARGIN, table);
 
       // End policy violations section
       pdf.addPage(page);
@@ -325,7 +320,7 @@ public class PdfGenerator
     float policyTypeWidthPercent = 15;
     float componentWidthPercent = 55;
 
-    float tableWidthOnePercent = (page.getCropBox().getWidth() - 2 * MARGIN) / 100;
+    float tableWidthOnePercent = (page.getMediaBox().getWidth() - 2 * MARGIN) / 100;
     TableBuilder tableBuilder = Table.builder()
         .addColumnsOfWidth(
             tableWidthOnePercent * threatLevelColorWidthPercent,
@@ -381,7 +376,7 @@ public class PdfGenerator
   private void addVulnerabilitiesSection() throws IOException {
     // Start security issues section
     PDPage page = newPage();
-    PDRectangle pageRec = page.getCropBox();
+    PDRectangle pageRec = page.getMediaBox();
     try (PDPageContentStream contentStream = new PDPageContentStream(pdf, page)) {
       // Add title and dates
       float titleAndDatesStartY = addTitleAndDates(contentStream, "Vulnerabilities", MARGIN,
@@ -389,8 +384,7 @@ public class PdfGenerator
 
       // Add security issues table
       Table table = createSecurityIssuesTable(page);
-      TableDrawer tableDrawer =
-          createTableDrawer(contentStream, titleAndDatesStartY - dateDescriptorFontStyle.getFontDescent(), table);
+      TableDrawer tableDrawer = createTableDrawer(contentStream, titleAndDatesStartY - MARGIN, table);
 
       // End security issues section
       pdf.addPage(page);
@@ -402,7 +396,7 @@ public class PdfGenerator
   Table createSecurityIssuesTable(PDPage page) throws IOException {
     float vulnIdWidth = tableRowFontStyle.getStringWidth("sonatype-0000-000000") + 2 * CELL_PADDING;
     float vulnScoreWidth = tableRowHeaderFontStyle.getStringWidth("CVSS SCORE") + 2 * CELL_PADDING;
-    float componentWidth = page.getCropBox().getWidth() - 2 * MARGIN - vulnIdWidth - vulnScoreWidth;
+    float componentWidth = page.getMediaBox().getWidth() - 2 * MARGIN - vulnIdWidth - vulnScoreWidth;
     TableBuilder tableBuilder = Table.builder()
         .addColumnsOfWidth(vulnIdWidth, vulnScoreWidth, componentWidth);
 
@@ -458,7 +452,7 @@ public class PdfGenerator
   private void addLicensesSection() throws IOException {
     // Start license section
     PDPage page = newPage();
-    PDRectangle pageRec = page.getCropBox();
+    PDRectangle pageRec = page.getMediaBox();
     try (PDPageContentStream contentStream = new PDPageContentStream(pdf, page)) {
       // Add title and dates
       float titleAndDatesStartY = addTitleAndDates(contentStream, "Licenses", MARGIN,
@@ -466,8 +460,7 @@ public class PdfGenerator
 
       // Add licenses table
       Table table = createLicensesTable(page);
-      TableDrawer tableDrawer =
-          createTableDrawer(contentStream, titleAndDatesStartY - dateDescriptorFontStyle.getFontDescent(), table);
+      TableDrawer tableDrawer = createTableDrawer(contentStream, titleAndDatesStartY - MARGIN, table);
 
       // End licenses section
       pdf.addPage(page);
@@ -480,7 +473,7 @@ public class PdfGenerator
     float licenseWidthPercent = 20;
     float componentWidthPercent = 80;
 
-    float tableWidthOnePercent = (page.getCropBox().getWidth() - 2 * MARGIN) / 100;
+    float tableWidthOnePercent = (page.getMediaBox().getWidth() - 2 * MARGIN) / 100;
     TableBuilder tableBuilder =
         Table.builder().addColumnsOfWidth(
             tableWidthOnePercent * licenseWidthPercent,
@@ -544,7 +537,7 @@ public class PdfGenerator
   private void addBomSection() throws IOException {
     // Start bill-of-materials section
     PDPage page = newPage();
-    PDRectangle pageRec = page.getCropBox();
+    PDRectangle pageRec = page.getMediaBox();
     try (PDPageContentStream contentStream = new PDPageContentStream(pdf, page)) {
       // Add title and dates
       float titleAndDatesStartY = addTitleAndDates(contentStream, "Component BOM", MARGIN,
@@ -557,7 +550,7 @@ public class PdfGenerator
               MatchState.SIMILAR.getName().equalsIgnoreCase(component.matchState)).count();
       long componentPercentIdentified = Math.round(100.0d * totalMatched / totalComponents);
       float donutChartStartX = MARGIN;
-      float donutChartStartY = titleAndDatesStartY - DONUT_CHART_SIZE - dateDescriptorFontStyle.getFontDescent();
+      float donutChartStartY = titleAndDatesStartY - DONUT_CHART_SIZE - dateDescriptorFontStyle.getFontHeight();
       IdentifiedPercentDonutChart identifiedPercentDonutChart =
           new IdentifiedPercentDonutChart(componentPercentIdentified);
       drawChart(pdf, contentStream, donutChartStartX, donutChartStartY, DONUT_CHART_SIZE, DONUT_CHART_SIZE,
@@ -573,8 +566,7 @@ public class PdfGenerator
 
       // Add bom table
       Table table = createBomTable(page);
-      TableDrawer tableDrawer =
-          createTableDrawer(contentStream, donutChartStartY - summaryFontStyle.getFontDescent(), table);
+      TableDrawer tableDrawer = createTableDrawer(contentStream, donutChartStartY - MARGIN, table);
 
       // End bom section
       pdf.addPage(page);
@@ -586,7 +578,7 @@ public class PdfGenerator
   Table createBomTable(PDPage page) {
     float componentWidthPercent = 100;
 
-    float tableWidthOnePercent = (page.getCropBox().getWidth() - 2 * MARGIN) / 100;
+    float tableWidthOnePercent = (page.getMediaBox().getWidth() - 2 * MARGIN) / 100;
     TableBuilder tableBuilder = Table.builder().addColumnsOfWidth(tableWidthOnePercent * componentWidthPercent);
 
     // Add bom table headers
@@ -625,21 +617,17 @@ public class PdfGenerator
 
     // Add dates
     String createdOn = "Created on:";
-    String analyzedOn = "Analyzed on: ";
-
     float createdOnDescriptorStartX = MARGIN;
-    float createdOnDescriptorStartY =
-        startY - titleFontStyle.getFontDescent() - dateDescriptorFontStyle.getFontAscent();
+    float createdOnDescriptorStartY = startY - 2 * dateDescriptorFontStyle.getFontHeight();
     addText(contentStream, createdOnDescriptorStartX, createdOnDescriptorStartY, dateDescriptorFontStyle, createdOn);
-    float createdOnDateStartX = createdOnDescriptorStartX + dateDescriptorFontStyle.getStringWidth(analyzedOn);
+    float createdOnDateStartX = 2 * createdOnDescriptorStartX + dateDescriptorFontStyle.getStringWidth(createdOn);
     float createdOnDateStartY = createdOnDescriptorStartY;
     addText(contentStream, createdOnDateStartX, createdOnDateStartY, dateFontStyle, createdOnDateTime);
-
+    String analyzedOn = "Analyzed on:";
     float analyzedOnDescriptorStartX = createdOnDescriptorStartX;
-    float analyzedOnDescriptorStartY =
-        createdOnDescriptorStartY - dateDescriptorFontStyle.getFontHeight();
+    float analyzedOnDescriptorStartY = createdOnDescriptorStartY - 2 * dateDescriptorFontStyle.getFontHeight();
     addText(contentStream, analyzedOnDescriptorStartX, analyzedOnDescriptorStartY, dateDescriptorFontStyle, analyzedOn);
-    float analyzedOnDateStartX = analyzedOnDescriptorStartX + dateDescriptorFontStyle.getStringWidth(analyzedOn);
+    float analyzedOnDateStartX = createdOnDateStartX;
     float analyzedOnDateStartY = analyzedOnDescriptorStartY;
     addText(contentStream, analyzedOnDateStartX, analyzedOnDateStartY, dateFontStyle, analyzedOnDateTime);
     return analyzedOnDateStartY;
@@ -651,12 +639,8 @@ public class PdfGenerator
     for (PDPage page : pdPageTree) {
       String pageText = "Page " + pageNumber + " of " + pdPageTree.getCount();
       try (PDPageContentStream contentStream = new PDPageContentStream(pdf, page, AppendMode.APPEND, true, true)) {
-        addText(contentStream,
-            page.getCropBox().getLowerLeftX() + page.getCropBox().getWidth() - MARGIN
-                - summaryFontStyle.getStringWidth(pageText),
-            summaryFontStyle.getFontDescent() + MARGIN,
-            summaryFontStyle,
-            pageText);
+        addText(contentStream, page.getMediaBox().getLowerLeftX() + page.getMediaBox().getWidth() - MARGIN -
+            summaryFontStyle.getStringWidth(pageText), MARGIN, summaryFontStyle, pageText);
       }
       pageNumber++;
     }
@@ -831,17 +815,12 @@ public class PdfGenerator
     }
   }
 
-  // Visible for testing
-  static PDPage newPage() {
-    PDPage page = new PDPage();
-    page.setMediaBox(MEDIA_BOX_SIZE);
-    page.setCropBox(CROP_BOX_SIZE);
-    return page;
+  private PDPage newPage() {
+    return new PDPage(PAGE_SIZE);
   }
 
   private void draw(TableDrawer tableDrawer) throws IOException {
-    tableDrawer
-        .draw(() -> pdf, PdfGenerator::newPage, MEDIA_BOX_SIZE.getHeight() - CROP_BOX_SIZE.getHeight() + MARGIN);
+    tableDrawer.draw(() -> pdf, this::newPage, MARGIN);
   }
 
   public static void generate(

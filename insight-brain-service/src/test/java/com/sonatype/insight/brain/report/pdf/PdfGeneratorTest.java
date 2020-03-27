@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.codehaus.plexus.util.FileUtils;
@@ -431,7 +432,7 @@ public class PdfGeneratorTest
     PdfGenerator pdfGenerator = new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2());
     pdfGenerator.initFontStyles(new PDDocument());
 
-    Table policyViolationsTable = pdfGenerator.createPolicyViolationsTable(PdfGenerator.newPage());
+    Table policyViolationsTable = pdfGenerator.createPolicyViolationsTable(mockPage());
 
     assertThat(policyViolationsTable).isNotNull();
     List<Row> rows = policyViolationsTable.getRows();
@@ -461,7 +462,7 @@ public class PdfGeneratorTest
     PdfGenerator pdfGenerator = new PdfGenerator(null, null, new ApiReportPolicyDataDTOV2(), rawData);
     pdfGenerator.initFontStyles(new PDDocument());
 
-    Table securityIssuesTable = pdfGenerator.createSecurityIssuesTable(PdfGenerator.newPage());
+    Table securityIssuesTable = pdfGenerator.createSecurityIssuesTable(mockPage());
 
     assertThat(securityIssuesTable).isNotNull();
     List<Row> rows = securityIssuesTable.getRows();
@@ -484,7 +485,7 @@ public class PdfGeneratorTest
     PdfGenerator pdfGenerator = new PdfGenerator(null, null, new ApiReportPolicyDataDTOV2(), rawData);
     pdfGenerator.initFontStyles(new PDDocument());
 
-    Table licensesTable = pdfGenerator.createLicensesTable(PdfGenerator.newPage());
+    Table licensesTable = pdfGenerator.createLicensesTable(mockPage());
 
     assertThat(licensesTable).isNotNull();
     List<Row> rows = licensesTable.getRows();
@@ -502,7 +503,7 @@ public class PdfGeneratorTest
     PdfGenerator pdfGenerator = new PdfGenerator(null, null, new ApiReportPolicyDataDTOV2(), rawData);
     pdfGenerator.initFontStyles(new PDDocument());
 
-    Table bomTable = pdfGenerator.createBomTable(PdfGenerator.newPage());
+    Table bomTable = pdfGenerator.createBomTable(mockPage());
 
     assertThat(bomTable).isNotNull();
     List<Row> rows = bomTable.getRows();
@@ -511,25 +512,17 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testMediaBoxSize() {
-    assertThat(PdfGenerator.MEDIA_BOX_SIZE.getWidth())
-        .isEqualTo(Math.min(PDRectangle.A4.getWidth(), PDRectangle.LETTER.getWidth()));
-    assertThat(PdfGenerator.MEDIA_BOX_SIZE.getHeight())
-        .isEqualTo(Math.min(PDRectangle.A4.getHeight(), PDRectangle.LETTER.getHeight()));
-  }
-
-  @Test
-  public void testCropBoxSize() {
-    assertThat(PdfGenerator.CROP_BOX_SIZE.getWidth())
-        .isEqualTo(PdfGenerator.MEDIA_BOX_SIZE.getWidth() - PdfGenerator.USER_SPACE_UNITS_PER_INCH);
-    assertThat(PdfGenerator.CROP_BOX_SIZE.getHeight())
-        .isEqualTo(PdfGenerator.MEDIA_BOX_SIZE.getHeight() - PdfGenerator.USER_SPACE_UNITS_PER_INCH);
+  public void testPageSize() {
+    assertThat(PdfGenerator.PAGE_SIZE.getWidth()).isEqualTo(
+        Math.min(PDRectangle.A4.getWidth(), PDRectangle.LETTER.getWidth()) - PdfGenerator.SPACE_FOR_PRINTERS);
+    assertThat(PdfGenerator.PAGE_SIZE.getHeight()).isEqualTo(
+        Math.min(PDRectangle.A4.getHeight(), PDRectangle.LETTER.getHeight() - PdfGenerator.SPACE_FOR_PRINTERS));
   }
 
   @Test
   public void testBreakWordHard_IncludesAllLetters() throws Exception {
     WordBreaker wordBreaker = new WordBreaker();
-    PDFont proximanova = PdfGeneratorUtils.loadPDType0Font(new PDDocument(), "proximanova-reg-webfont.ttf");
+    PDFont proximanova = PdfGeneratorUtils.loadFont(new PDDocument(), "proximanova-reg-webfont.ttf");
     FontDescriptor fontDescriptor = new FontDescriptor(proximanova, 10);
 
     Pair<String> result = wordBreaker.breakWordHard("sonatype-2015-0002", fontDescriptor, 92.65513f);
@@ -540,7 +533,7 @@ public class PdfGeneratorTest
   @Test
   public void testBreakWordHard_IncludesNoLetters() throws Exception {
     WordBreaker wordBreaker = new WordBreaker();
-    PDFont proximanova = PdfGeneratorUtils.loadPDType0Font(new PDDocument(), "proximanova-reg-webfont.ttf");
+    PDFont proximanova = PdfGeneratorUtils.loadFont(new PDDocument(), "proximanova-reg-webfont.ttf");
     FontDescriptor fontDescriptor = new FontDescriptor(proximanova, 10);
 
     Pair<String> result = wordBreaker.breakWordHard("sonatype-2015-0002", fontDescriptor, 0f);
@@ -591,6 +584,10 @@ public class PdfGeneratorTest
     ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
     component.pathnames.add(componentName);
     return component;
+  }
+
+  private PDPage mockPage() {
+    return new PDPage(PdfGenerator.PAGE_SIZE);
   }
 
   private File generateReportFile() {

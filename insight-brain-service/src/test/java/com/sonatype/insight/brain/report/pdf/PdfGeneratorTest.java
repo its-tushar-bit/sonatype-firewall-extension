@@ -572,12 +572,7 @@ public class PdfGeneratorTest
 
   private ApiReportPolicyDataDTOV2 generateMinimalPolicyData() {
     ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
-    policyData.application = new ApiApplicationBaseDTO();
-    policyData.application.id = "appId";
-    policyData.application.publicId = "appPublicId";
-    policyData.application.name = "appName";
     policyData.reportTime = new Date();
-    policyData.reportTitle = "Build Report";
     return policyData;
   }
 

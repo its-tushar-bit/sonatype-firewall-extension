@@ -12,7 +12,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -33,7 +32,6 @@ import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.model.component.MatchState;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
@@ -173,7 +171,6 @@ public class PdfGenerator
     try (PDDocument pdf = new PDDocument()) {
       this.pdf = pdf;
       initFontStyles(pdf);
-      setDocumentMetadata();
       DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_STRING);
       createdOnDateTime = dateFormat.format(new Date());
       analyzedOnDateTime = dateFormat.format(policyData.reportTime);
@@ -208,15 +205,6 @@ public class PdfGenerator
     threatLevelFontStyle = new FontStyle(proximanovaSemibold, THREAT_LEVEL_FONT_SIZE, DEFAULT_FONT_COLOR);
     declaredLicensesFontStyle = new FontStyle(proximanovaBold, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
     observedLicensesFontStyle = new FontStyle(proximanova, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
-  }
-
-  private void setDocumentMetadata() {
-    PDDocumentInformation docInfo = new PDDocumentInformation();
-    docInfo.setTitle(policyData.application.name + " " + policyData.reportTitle);
-    docInfo.setCreator("Nexus IQ Server");
-    docInfo.setProducer(docInfo.getCreator());
-    docInfo.setCreationDate(new GregorianCalendar());
-    pdf.setDocumentInformation(docInfo);
   }
 
   private void addPolicyViolationsSection() throws IOException {

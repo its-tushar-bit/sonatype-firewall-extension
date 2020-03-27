@@ -64,6 +64,8 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.organization.ApplicationAdapter;
+import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphService;
@@ -118,6 +120,8 @@ public class ReportResource
 
   private PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
 
+  private ApplicationAdapter applicationAdapter;
+
   private final ReportService reportService;
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
@@ -147,6 +151,7 @@ public class ReportResource
                         final ScanPolicyEvaluator scanPolicyEvaluator,
                         InsightWork work,
                         BaseUrl baseUrl,
+                        ApplicationAdapter applicationAdapter,
                         ApiReportDataServiceV2 reportDataService,
                         ReleaseGraphService releaseGraphService,
                         ComponentDetailsLoader componentDetailsLoader,
@@ -157,6 +162,7 @@ public class ReportResource
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.work = work;
     this.baseUrl = baseUrl;
+    this.applicationAdapter = applicationAdapter;
     this.reportDataService = reportDataService;
     this.releaseGraphService = releaseGraphService;
     this.componentDetailsLoader = componentDetailsLoader;
@@ -370,7 +376,8 @@ public class ReportResource
     int dataVersion = Integer.parseInt(templateProps.getProperty("data.version", "0"));
     String dataPath = "data/";
 
-    File pdfFile = pdfGeneratorService.generateReport(app, scanId);
+    ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
+    File pdfFile = Report.printPdf(reportFile, "", "", contact);
 
     ApiReportRawDataDTOV2 reportData = reportDataService.getDataNoAuth(appPublicId, scanId);
     List<PolicyAlert> alerts = Arrays.asList(JsonUtils

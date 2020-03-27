@@ -58,12 +58,16 @@ public class PdfGeneratorService
       String scanId) throws IOException
   {
     AuditData.get().setReportId(scanId);
-    Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
-    File pdfFile = generateReport(app, scanId);
+    Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
+    String appId = application.getId();
 
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    File pdfFile = PdfGenerator.getPdfFile(reportService.getReport(appId, scanId));
+    PdfGenerator.generate(pdfFile, apiReportDataServiceV2.getPolicyViolationsDataNoAuth(appPublicId, scanId),
+        apiReportDataServiceV2.getDataNoAuth(appPublicId, scanId));
+
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
     String stageName = StageTypes.getById(policyEvaluation.getStageTypeId()).getName();
-    String filename = app.getName() + "-" + stageName + "-" +
+    String filename = application.getName() + "-" + stageName + "-" +
         new SimpleDateFormat("yyyyMMdd-HHmmss").format(policyEvaluation.getTime()) + ".pdf";
     ResponseBuilder responseBuilder = Response.ok()
         .lastModified(policyEvaluation.getTime()).expires(new Date())
@@ -73,12 +77,5 @@ public class PdfGeneratorService
         .entity(pdfFile);
 
     return responseBuilder.build();
-  }
-
-  public File generateReport(Application app, String scanId) throws IOException {
-    File pdfFile = PdfGenerator.getPdfFile(reportService.getReport(app.getId(), scanId));
-    PdfGenerator.generate(pdfFile, apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId),
-        apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId));
-    return pdfFile;
   }
 }

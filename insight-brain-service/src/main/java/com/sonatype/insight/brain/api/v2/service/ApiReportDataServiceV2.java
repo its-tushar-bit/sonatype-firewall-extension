@@ -124,7 +124,7 @@ public class ApiReportDataServiceV2
 
     ApiReportPolicyDataDTOV2 data = new ApiReportPolicyDataDTOV2();
 
-    ReportMetadataDTO metadata = reportService.getReportMetadataNoAuth(applicationPublicId, scanId);
+    ReportMetadataDTO metadata = reportService.getReportMetadata(applicationPublicId, scanId);
     data.reportTime = metadata.getReportTime();
     data.reportTitle = metadata.getReportTitle();
     data.application = getApplicationMetadata(metadata.getApplication());

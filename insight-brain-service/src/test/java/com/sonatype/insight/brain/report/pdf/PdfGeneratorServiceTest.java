@@ -77,33 +77,4 @@ public class PdfGeneratorServiceTest
     assertThat(response.getEntity()).isEqualTo(pdfFile);
     assertThat(new String(Files.readAllBytes(pdfFile.toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains("%PDF-");
   }
-
-  @Test
-  public void testPrintReport_AfterPreviousGenerationFailure() throws Exception {
-    Application application = tempEntity.newApplicationWithParent();
-    String scanId = "scanId";
-    PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
-    File reportFile = insightWork.getReportFile(application.getId(), scanId);
-    FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorServiceTest/report", tempDir), reportFile);
-
-    // Pretend the print attempt crashed with OOME, which usually leaves an empty PDF file around.
-    File pdfFile = PdfGenerator.getPdfFile(insightWork.getReportFile(application.getId(), scanId));
-    pdfFile.createNewFile();
-    assertThat(pdfFile).isFile();
-
-    Response response = pdfGeneratorService.printReport(application.getPublicId(), scanId);
-
-    // Validate content type and check the actual content is really a PDF.
-    assertThat(response.getHeaderString("Content-Disposition")).containsSubsequence("attachment; " +
-        "filename=\"" + application.getName() +
-        "-Build-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(policyEvaluation.getTime()), ".pdf\"");
-    assertThat(response.getMediaType()).hasToString("application/pdf");
-    assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(pdfFile.length()));
-    assertThat(
-        DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
-        .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
-    assertThat(response.getEntity()).isEqualTo(pdfFile);
-    assertThat(new String(Files.readAllBytes(pdfFile.toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains("%PDF-");
-  }
 }

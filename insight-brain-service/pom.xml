@@ -152,7 +152,7 @@
       <artifactId>insight-vulnerability-model</artifactId>
       <exclusions>
         <exclusion>
-          <!-- unneeded cruft -->
+          <!-- cruft which among others clashes with the batik libs needed for BIRT -->
           <groupId>com.sonatype.data.commons</groupId>
           <artifactId>vulnerability-renderer</artifactId>
         </exclusion>
@@ -312,6 +312,198 @@
       <groupId>org.apache.lucene</groupId>
       <artifactId>lucene-suggest</artifactId>
       <version>${lucene.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.birt.runtime</groupId>
+      <artifactId>org.eclipse.birt.runtime</artifactId>
+      <version>3.7.2.v20120214-1408</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-cli</groupId>
+          <artifactId>commons-cli</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.milyn</groupId>
+          <artifactId>flute</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+          <artifactId>org.apache.xerces</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+          <artifactId>org.apache.batik.pdf</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+          <artifactId>org.apache.commons.codec</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+          <artifactId>derby</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+          <artifactId>javax.wsdl</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+          <artifactId>org.apache.batik.util.gui</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+          <artifactId>org.eclipse.osgi.services</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+          <artifactId>org.eclipse.update.configurator</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+          <artifactId>org.eclipse.core.expressions</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+          <artifactId>org.eclipse.core.filesystem</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.core.resources</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.emf</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.emf.ecore.change</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.connectivity</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.connectivity.apache.derby</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.connectivity.apache.derby.dbdefinition</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.connectivity.oda.consumer</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.connectivity.oda.design</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.connectivity.oda.flatfile</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.connectivity.oda.profile</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.connectivity.dbdefinition.genericJDBC</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.connectivity.db.generic</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.connectivity.sqm.core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.connectivity.console.profile</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.enablement.hsqldb</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.enablement.hsqldb.dbdefinition</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.enablement.ibm.informix</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.enablement.ibm.informix.dbdefinition</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.enablement.ibm.db2.luw</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.enablement.ibm.db2.luw.dbdefinition</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.enablement.oda.ws</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.enablement.oda.xml</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.enablement.msft.sqlserver</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.enablement.msft.sqlserver.dbdefinition</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+          <artifactId>org.eclipse.datatools.enablement.mysql</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.enablement.mysql.dbdefinition</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.enablement.oracle</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.enablement.oracle.dbdefinition</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.enablement.postgresql</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.enablement.postgresql.dbdefinition</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.modelbase.dbdefinition</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.modelbase.derby</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.modelbase.sql</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime</groupId>
+          <artifactId>org.eclipse.datatools.modelbase.sql.query</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -636,6 +828,18 @@
                 </filter>
                 <filter>
                   <artifact>*:org.eclipse.sisu.inject</artifact>
+                  <excludes>
+                    <!-- avoid conflict with same resource from BIRT -->
+                    <exclude>plugin.xml</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>*:org.eclipse.birt.runtime</artifact>
+                  <includes>
+                    <include>*.xml</include>
+                    <include>org/eclipse/**</include>
+                    <include>javax/**</include>
+                  </includes>
                 </filter>
                 <filter>
                   <artifact>*:h2</artifact>
@@ -654,6 +858,10 @@
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>com.sonatype.insight.brain.service.InsightBrainService</mainClass>
+                  <manifestEntries>
+                    <!-- Required by BIRT to discover the extensions we have shaded in -->
+                    <Bundle-SymbolicName>${project.groupId}.server</Bundle-SymbolicName>
+                  </manifestEntries>
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                   <resource>META-INF/NOTICE</resource>

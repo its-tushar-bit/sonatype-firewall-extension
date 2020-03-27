@@ -740,16 +740,12 @@ public class PdfGenerator
   /**
    * This is a slight modification of rst.pdfbox.layout.util.WordBreakers.DefaultWordBreaker to not break a word if a
    * dash or period is found after a non-digit letter unless it has no other choice i.e.
-   *
    * Breaks a word if one of the following characters is found after a
    * non-digit letter:
    * <ul>
    * <li>,</li>
    * <li>/</li>
    * </ul>
-   *
-   * This also provides a fix for rst.pdfbox.layout.util.WordBreakers.AbstractWordBreaker.breakWordHard potentially
-   * causing a StringIndexOutOfBoundsException, see CLM-15256
    */
   protected static class WordBreaker
       extends WordBreakers.AbstractWordBreaker
@@ -786,32 +782,6 @@ public class PdfGenerator
         return null;
       }
       return new Pair<>(word.substring(0, breakIndex), word.substring(breakIndex));
-    }
-
-    @Override
-    protected Pair<String> breakWordHard(String word, FontDescriptor fontDescriptor, float maxWidth)
-        throws IOException
-    {
-      int cutIndex = (int) (maxWidth / TextSequenceUtil.getEmWidth(fontDescriptor));
-      float currentWidth = TextSequenceUtil.getStringWidth(word.substring(0, cutIndex), fontDescriptor);
-      if (currentWidth > maxWidth) {
-        while (currentWidth > maxWidth) {
-          --cutIndex;
-          currentWidth = TextSequenceUtil.getStringWidth(word.substring(0, cutIndex), fontDescriptor);
-        }
-        ++cutIndex;
-      }
-      else if (currentWidth < maxWidth) {
-        while (currentWidth < maxWidth) {
-          ++cutIndex;
-          if (cutIndex > word.length()) {
-            break;
-          }
-          currentWidth = TextSequenceUtil.getStringWidth(word.substring(0, cutIndex), fontDescriptor);
-        }
-        --cutIndex;
-      }
-      return new Pair<>(word.substring(0, cutIndex), word.substring(cutIndex));
     }
   }
 

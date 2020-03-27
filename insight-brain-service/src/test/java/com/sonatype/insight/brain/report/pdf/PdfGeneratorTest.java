@@ -29,7 +29,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.report.pdf.PdfGenerator.WordBreaker;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -37,7 +36,6 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 import org.vandeseer.easytable.structure.Row;
@@ -45,8 +43,6 @@ import org.vandeseer.easytable.structure.Table;
 import org.vandeseer.easytable.structure.cell.TextCell;
 import org.vandeseer.easytable.structure.cell.paragraph.ParagraphCell;
 import rst.pdfbox.layout.elements.Paragraph;
-import rst.pdfbox.layout.text.FontDescriptor;
-import rst.pdfbox.layout.util.Pair;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -517,28 +513,6 @@ public class PdfGeneratorTest
         Math.min(PDRectangle.A4.getWidth(), PDRectangle.LETTER.getWidth()) - PdfGenerator.SPACE_FOR_PRINTERS);
     assertThat(PdfGenerator.PAGE_SIZE.getHeight()).isEqualTo(
         Math.min(PDRectangle.A4.getHeight(), PDRectangle.LETTER.getHeight() - PdfGenerator.SPACE_FOR_PRINTERS));
-  }
-
-  @Test
-  public void testBreakWordHard_IncludesAllLetters() throws Exception {
-    WordBreaker wordBreaker = new WordBreaker();
-    PDFont proximanova = PdfGeneratorUtils.loadFont(new PDDocument(), "proximanova-reg-webfont.ttf");
-    FontDescriptor fontDescriptor = new FontDescriptor(proximanova, 10);
-
-    Pair<String> result = wordBreaker.breakWordHard("sonatype-2015-0002", fontDescriptor, 92.65513f);
-
-    assertThat(result).isEqualTo(new Pair<>("sonatype-2015-0002", ""));
-  }
-
-  @Test
-  public void testBreakWordHard_IncludesNoLetters() throws Exception {
-    WordBreaker wordBreaker = new WordBreaker();
-    PDFont proximanova = PdfGeneratorUtils.loadFont(new PDDocument(), "proximanova-reg-webfont.ttf");
-    FontDescriptor fontDescriptor = new FontDescriptor(proximanova, 10);
-
-    Pair<String> result = wordBreaker.breakWordHard("sonatype-2015-0002", fontDescriptor, 0f);
-
-    assertThat(result).isEqualTo(new Pair<>("", "sonatype-2015-0002"));
   }
 
   private ApiReportComponentPolicyViolationsDTOV2 generateComponentWithPolicyThreat(

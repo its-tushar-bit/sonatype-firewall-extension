@@ -508,10 +508,10 @@ public class PdfGeneratorTest
 
   @Test
   public void testPageSize() {
-    assertThat(PdfGenerator.PAGE_SIZE.getWidth()).isEqualTo(
-        Math.min(PDRectangle.A4.getWidth(), PDRectangle.LETTER.getWidth()) - PdfGenerator.SPACE_FOR_PRINTERS);
-    assertThat(PdfGenerator.PAGE_SIZE.getHeight()).isEqualTo(
-        Math.min(PDRectangle.A4.getHeight(), PDRectangle.LETTER.getHeight() - PdfGenerator.SPACE_FOR_PRINTERS));
+    assertThat(PdfGenerator.PAGE_SIZE.getWidth())
+        .isEqualTo(Math.min(PDRectangle.A4.getWidth(), PDRectangle.LETTER.getWidth()));
+    assertThat(PdfGenerator.PAGE_SIZE.getHeight())
+        .isEqualTo(Math.min(PDRectangle.A4.getHeight(), PDRectangle.LETTER.getHeight()));
   }
 
   private ApiReportComponentPolicyViolationsDTOV2 generateComponentWithPolicyThreat(

@@ -69,6 +69,7 @@ import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphService;
+import com.sonatype.insight.brain.report.pdf.PdfGeneratorService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -132,6 +133,8 @@ public class ReportResource
   private final ComponentDetailsLoader componentDetailsLoader;
 
   private final VersionService versionService;
+  
+  private final PdfGeneratorService pdfGeneratorService;
 
   static {
     Set<Character> invalid = new HashSet<>(
@@ -152,7 +155,8 @@ public class ReportResource
                         ApiReportDataServiceV2 reportDataService,
                         ReleaseGraphService releaseGraphService,
                         ComponentDetailsLoader componentDetailsLoader,
-                        VersionService versionService)
+                        VersionService versionService,
+                        PdfGeneratorService pdfGeneratorService)
   {
     this.reportService = reportService;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
@@ -163,6 +167,7 @@ public class ReportResource
     this.releaseGraphService = releaseGraphService;
     this.componentDetailsLoader = componentDetailsLoader;
     this.versionService = versionService;
+    this.pdfGeneratorService = pdfGeneratorService;
   }
 
   /**
@@ -342,7 +347,7 @@ public class ReportResource
       @PathParam("applicationPublicId") final String appPublicId,
       @PathParam("scanId") final String scanId) throws IOException
   {
-    return reportService.printReport(appPublicId, scanId);
+    return pdfGeneratorService.printReport(appPublicId, scanId);
   }
 
   /**

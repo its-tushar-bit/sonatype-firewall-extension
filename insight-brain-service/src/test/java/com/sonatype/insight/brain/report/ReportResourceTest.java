@@ -330,19 +330,14 @@ public class ReportResourceTest
 
   @Test
   public void testPrintReport() throws Exception {
-    final String scanId = "ReportResourceTest_ScanId";
+    String scanId = "ReportResourceTest_ScanId";
     createReportFile(app.getId(), scanId, "/ReportResourceTest/sample-report");
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
-    final HttpResponse response;
-    try {
-      response = restRequest(app.getPublicId(), scanId).path("printReport").get();
-      assertResponseStatus(200, response);
-      assertThat(response.getHeader("Content-Disposition"))
-          .containsSubsequence("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"");
-    }
-    finally {
-      Pdf.destroy();
-    }
+
+    HttpResponse response = restRequest(app.getPublicId(), scanId).path("printReport").get();
+    assertResponseStatus(200, response);
+    assertThat(response.getHeader("Content-Disposition"))
+        .containsSubsequence("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"");
 
     // validate content type and check the actual content is really a PDF
     assertThat(response.getContentType()).isEqualTo("application/pdf");

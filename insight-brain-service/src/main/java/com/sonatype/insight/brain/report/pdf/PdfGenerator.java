@@ -75,16 +75,23 @@ public class PdfGenerator
 
   private static final String REPORT_FILE_NAME = "report.pdf";
 
+  // User space units per inch from org.apache.pdfbox.pdmodel.common.PDRectangle
+  private static final int POINTS_PER_INCH = 72;
+
+  private static final float MARGIN = 10;
+
+  // Visible for testing
+  static final float SPACE_FOR_PRINTERS = POINTS_PER_INCH;
+
   // Use minimum of A4 and Letter dimensions to ensure the pdf can fit on both when printing without needing scaling
+  // Also ensure we take off at least 0.5 inches from all sides as a safe bet for printer margins
   // Visible for testing
   static final PDRectangle PAGE_SIZE = new PDRectangle(
-      Math.min(PDRectangle.A4.getWidth(), PDRectangle.LETTER.getWidth()),
-      Math.min(PDRectangle.A4.getHeight(), PDRectangle.LETTER.getHeight())
+      Math.min(PDRectangle.A4.getWidth(), PDRectangle.LETTER.getWidth()) - SPACE_FOR_PRINTERS,
+      Math.min(PDRectangle.A4.getHeight(), PDRectangle.LETTER.getHeight()) - SPACE_FOR_PRINTERS
   );
 
   private static final String DATE_FORMAT_STRING = "EEE MMM dd yyyy 'at' HH:mm:ss";
-
-  private static final float MARGIN = 10;
 
   private static final float PADDING = 3;
 

@@ -15,9 +15,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class FontStyleTest
 {
   @Test
+  public void testGetFontAscent() {
+    FontStyle fontStyle = new FontStyle(PDType1Font.HELVETICA, 12, Color.BLACK);
+    assertThat(fontStyle.getFontAscent()).isEqualTo(8.616f);
+  }
+
+  @Test
+  public void testGetFontDescent() {
+    FontStyle fontStyle = new FontStyle(PDType1Font.HELVETICA, 12, Color.BLACK);
+    assertThat(fontStyle.getFontDescent()).isEqualTo(2.484f);
+  }
+
+  @Test
   public void testGetFontHeight() {
     FontStyle fontStyle = new FontStyle(PDType1Font.HELVETICA, 12, Color.BLACK);
-    assertThat(fontStyle.getFontHeight()).isEqualTo(8.616f);
+    assertThat(fontStyle.getFontHeight()).isEqualTo(11.1f);
   }
 
   @Test

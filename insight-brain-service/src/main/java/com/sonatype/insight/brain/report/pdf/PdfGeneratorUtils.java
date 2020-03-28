@@ -13,18 +13,17 @@ import java.io.InputStream;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.knowm.xchart.internal.chartpart.Chart;
 
-public final class PdfGeneratorUtils
+final class PdfGeneratorUtils
 {
   private PdfGeneratorUtils() {
     throw new UnsupportedOperationException();
   }
 
-  public static PDFont loadFont(PDDocument pdDocument, String fontFileName) {
+  static PDType0Font loadPDType0Font(PDDocument pdDocument, String fontFileName) {
     try (InputStream inputStream = PdfGeneratorUtils.class.getClassLoader()
         .getResourceAsStream("assets/fonts/" + fontFileName)) {
       return PDType0Font.load(pdDocument, inputStream);
@@ -76,7 +75,7 @@ public final class PdfGeneratorUtils
     if (textWidth > rectangleWidth) {
       rectangleWidth = textWidth;
     }
-    float textHeight = fontStyle.getFontHeight();
+    float textHeight = fontStyle.getFontAscent();
     if (textHeight > rectangleHeight) {
       rectangleHeight = textHeight;
     }

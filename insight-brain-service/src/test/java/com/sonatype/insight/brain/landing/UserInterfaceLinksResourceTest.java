@@ -171,6 +171,14 @@ public class UserInterfaceLinksResourceTest
     assertRedirect(response, "assets/index.html#/repository/repo%20id/result");
   }
 
+  @Test
+  public void testLinkToVulnerabililtyDetails() throws Exception {
+    String url = UserInterfaceLinksResource.getVulnerabilityDetailsUrl("CVE-8765-4321");
+    assertThat(url).isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/vln/CVE-8765-4321");
+    HttpResponse response = get(UserInterfaceLinksResource.VULNERABILITY_DETAILS_PATH, "CVE-8765-4321");
+    assertRedirect(response, "assets/index.html#/vulnerabilities/CVE-8765-4321");
+  }
+
   private Map<TelemetryPurpose, List<TelemetryItem>> getTelemetryItemsByPurpose(
       final Map<ByteArrayDataSource, Integer> responses)
       throws MessagingException, IOException

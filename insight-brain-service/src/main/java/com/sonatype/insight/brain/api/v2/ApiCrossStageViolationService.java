@@ -174,6 +174,7 @@ public class ApiCrossStageViolationService
     dto.hash = firstViolation.getHash();
     dto.policyThreatCategory = firstViolation.getThreatCategory().getName();
     dto.displayName = ComponentDisplayNameUtil.fromPolicyViolation(firstViolation);
+    dto.filename = firstViolation.getFilename();
 
     dto.policyOwner = new ApiCrossStageViolationDTOV2.PolicyOwner();
     dto.policyOwner.ownerId = policyOwner.getId();

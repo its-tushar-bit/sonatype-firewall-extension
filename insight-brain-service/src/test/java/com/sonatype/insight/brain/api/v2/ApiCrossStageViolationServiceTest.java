@@ -67,6 +67,7 @@ public class ApiCrossStageViolationServiceTest
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
     violation1.setFixTime(new Date(baseDate.getTime() + 3));
     violation1.setActionTypeId("fail");
+    violation1.setFilename("foo.js");
     ConstraintFact constraintFact = violation1.getConstraintFacts().get(0);
     policyViolationDAO.update(violation1);
 
@@ -76,12 +77,15 @@ public class ApiCrossStageViolationServiceTest
     PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, componentIdentifier, "1234", "vuln1");
     violation2.setFixTime(new Date(baseDate.getTime() + 5));
     violation2.setActionTypeId("warn");
+    violation2.setFilename("foo.js");
     policyViolationDAO.update(violation2);
 
     // equivalent, different stage, opened after violation1 is fixed but before violation2 is fixed
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_STAGE_RELEASE, "scan3",
         new Date(baseDate.getTime() + 4));
-    tempEntity.newPolicyViolation(eval3, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, componentIdentifier, "1234", "vuln1");
+    violation3.setFilename("foo.js");
+    policyViolationDAO.update(violation3);
 
     // equivalent, different app
     PolicyEvaluation eval4 = tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_OPERATE, "scan4",
@@ -106,6 +110,7 @@ public class ApiCrossStageViolationServiceTest
     assertThat(result.hash).isEqualTo(violation1.getHash());
     assertThat(result.policyThreatCategory).isEqualTo("security");
     assertThat(result.displayName.toString()).isEqualTo("foo : 1.0.0");
+    assertThat(result.filename).isEqualTo("foo.js");
     assertThat(result.stageData).hasSize(3);
     assertThat(result.stageData.get(Stage.ID_BUILD))
         .extracting("mostRecentEvaluationTime", "mostRecentScanId", "actionTypeId")

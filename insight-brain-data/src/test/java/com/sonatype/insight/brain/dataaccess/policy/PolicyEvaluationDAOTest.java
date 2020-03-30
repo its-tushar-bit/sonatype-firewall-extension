@@ -512,7 +512,7 @@ public class PolicyEvaluationDAOTest
   }
 
   private void testDelete_cascadeToSourceControlPullRequestComment(PolicyEvaluationChooser policyEvaluationChooser) {
-    // given a source control comment that references policy evaluations
+    // given an overall source control comment and a line comment that reference policy evaluations
     PolicyEvaluation sourcePolicyEvaluation =
         tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "sourceScan", "sourceCommit");
     PolicyEvaluation targetPolicyEvaluation =
@@ -528,22 +528,44 @@ public class PolicyEvaluationDAOTest
     SourceControlPullRequestCommentDAO pullRequestCommentDAO = new SourceControlPullRequestCommentDAO();
     pullRequestCommentDAO.insert(pullRequestComment);
 
-    // when : fetch the comment
-    SourceControlPullRequestComment fetchedPullRequestComment =
-        pullRequestCommentDAO.getByApplicationIdAndPullRequestId(applicationId, pullRequestComment.getPullRequestId());
+    final String componentHash = "componentHash1";
 
-    // then : the comment exists
+    SourceControlPullRequestComment lineComment = new SourceControlPullRequestComment(
+        applicationId,
+        componentHash,
+        2,
+        3,
+        sourcePolicyEvaluation.getId(),
+        targetPolicyEvaluation.getId()
+    );
+    pullRequestCommentDAO.insert(lineComment);
+
+    // when : fetch the comments
+    SourceControlPullRequestComment fetchedPullRequestComment = pullRequestCommentDAO
+        .getByApplicationIdAndPullRequestIdWithoutComponent(applicationId, pullRequestComment.getPullRequestId());
+
+    SourceControlPullRequestComment fetchedLineComment = pullRequestCommentDAO
+        .getByApplicationIdAndComponentAndPullRequestId(applicationId, componentHash,
+            lineComment.getPullRequestId());
+
+    // then : the comments exist
     assertThat(fetchedPullRequestComment).isNotNull();
+    assertThat(fetchedLineComment).isNotNull();
 
     // when : deleting one of the policy evaluations
     PolicyEvaluationDAO policyEvaluationDao = new PolicyEvaluationDAO();
     policyEvaluationDao.delete(policyEvaluationChooser.choose(sourcePolicyEvaluation, targetPolicyEvaluation));
 
     // then : the comment no longer exists
-    fetchedPullRequestComment = pullRequestCommentDAO.getByApplicationIdAndPullRequestId(
+    fetchedPullRequestComment = pullRequestCommentDAO.getByApplicationIdAndPullRequestIdWithoutComponent(
         applicationId,
         pullRequestComment.getPullRequestId());
     assertThat(fetchedPullRequestComment).isNull();
+
+    fetchedLineComment = pullRequestCommentDAO
+        .getByApplicationIdAndComponentAndPullRequestId(applicationId, componentHash,
+            pullRequestComment.getPullRequestId());
+    assertThat(fetchedLineComment).isNull();
   }
 
   @Test
@@ -786,22 +808,22 @@ public class PolicyEvaluationDAOTest
 
     // the expected eval
     PolicyEvaluation expected = tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false,
-            new Date(minDate.getTime() + 1000));
+        new Date(minDate.getTime() + 1000));
 
     // later, but different app
     tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_RELEASE, "scan1", false, false,
-            new Date(minDate.getTime() + 1500));
+        new Date(minDate.getTime() + 1500));
 
     // later, but different stage
     tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan1", false, false,
-            new Date(minDate.getTime() + 1500));
+        new Date(minDate.getTime() + 1500));
 
     // after the time window
     tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false, new Date(maxDate.getTime()));
 
     // before the expected eval
     tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false,
-            new Date(minDate.getTime() + 500));
+        new Date(minDate.getTime() + 500));
 
     assertThat(dao.getLastInTimeRangeByApplicationAndStage(app1.getId(), Stage.ID_RELEASE, minDate, maxDate))
         .extracting(PolicyEvaluation::getId)
@@ -819,7 +841,7 @@ public class PolicyEvaluationDAOTest
 
     // the expected eval
     PolicyEvaluation expected = tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false,
-            new Date(minDate.getTime()));
+        new Date(minDate.getTime()));
 
     assertThat(dao.getLastInTimeRangeByApplicationAndStage(app1.getId(), Stage.ID_RELEASE, minDate, maxDate))
         .extracting(PolicyEvaluation::getId)

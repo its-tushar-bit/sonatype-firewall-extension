@@ -59,7 +59,7 @@ public class PolicyViolationLoader
   public Collection<ApplicationView> getViolations(Collection<Application> applications,
                                                    Collection<StageType> stageTypes,
                                                    boolean activeViolationsOnly,
-                                                   Predicate<PolicyViolation> violationFilter)
+                                                   Predicate<? super PolicyViolation> violationFilter)
   {
     return getViolations(applications, stageTypes, activeViolationsOnly, violationFilter, null);
   }
@@ -67,7 +67,7 @@ public class PolicyViolationLoader
   public Collection<ApplicationView> getViolations(Collection<Application> applications,
                                                    Collection<StageType> stageTypes,
                                                    boolean activeViolationsOnly,
-                                                   Predicate<PolicyViolation> violationFilter,
+                                                   Predicate<? super PolicyViolation> violationFilter,
                                                    Date minDate)
   {
     long start = System.currentTimeMillis();
@@ -213,7 +213,7 @@ public class PolicyViolationLoader
   }
 
   private void filterViolations(Collection<PolicyViolation> violations,
-                                Predicate<PolicyViolation> violationFilter,
+                                Predicate<? super PolicyViolation> violationFilter,
                                 Map<String, ApplicationView> appViewsByAppId)
   {
     long start = System.currentTimeMillis();

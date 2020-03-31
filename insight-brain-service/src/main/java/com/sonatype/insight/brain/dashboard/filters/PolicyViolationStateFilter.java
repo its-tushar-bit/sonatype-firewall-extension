@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import com.sonatype.insight.brain.dashboard.PolicyViolationState;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
@@ -51,15 +51,15 @@ public class PolicyViolationStateFilter
   /**
    * Transforms this predicate into one that applies the same filtering to policy violations.
    */
-  public Predicate<PolicyViolation> asPolicyViolationPredicate() {
-    return new Predicate<PolicyViolation>()
+  public Predicate<AbstractPolicyViolation> asPolicyViolationPredicate() {
+    return new Predicate<AbstractPolicyViolation>()
     {
       @Override
-      public boolean test(PolicyViolation policyViolation) {
+      public boolean test(AbstractPolicyViolation policyViolation) {
         return PolicyViolationStateFilter.this.test(getPolicyViolationStates(policyViolation));
       }
 
-      private Set<PolicyViolationState> getPolicyViolationStates(PolicyViolation policyViolation) {
+      private Set<PolicyViolationState> getPolicyViolationStates(AbstractPolicyViolation policyViolation) {
         Set<PolicyViolationState> states = EnumSet.noneOf(PolicyViolationState.class);
         if (policyViolation.isWaived()) {
           states.add(PolicyViolationState.WAIVED);

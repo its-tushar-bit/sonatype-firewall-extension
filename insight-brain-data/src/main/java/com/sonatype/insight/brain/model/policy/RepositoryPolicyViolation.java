@@ -125,6 +125,7 @@ public class RepositoryPolicyViolation
     this.time = time;
   }
 
+  @Override
   public boolean isWaived() {
     return isWaived;
   }

@@ -11,6 +11,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -44,7 +45,7 @@ public class ApiComponentsWithWaiversReportingResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENTS_WITH_WAIVERS)
-  public ApiComponentWaiversDTO getComponentsWithWaivers() {
-    return componentsWithWaiversReportingService.getComponentsWithWaivers();
+  public ApiComponentWaiversDTO getComponentsWithWaivers(@QueryParam("format") String format) {
+    return componentsWithWaiversReportingService.getComponentsWithWaivers(format);
   }
 }

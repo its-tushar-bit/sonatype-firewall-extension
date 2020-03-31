@@ -20,7 +20,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.StageTypeService;
@@ -83,14 +83,15 @@ public class DashboardUtils
     return stageTypeIds;
   }
 
-  Predicate<PolicyViolation> buildViolationFilter(PolicyThreatCategoryFilter threatCategoryFilter,
-                                                  PolicyThreatLevelFilter threatLevelFilter,
-                                                  PolicyViolationStateFilter violationStatusFilter)
+  Predicate<AbstractPolicyViolation> buildViolationFilter(
+      PolicyThreatCategoryFilter threatCategoryFilter,
+      PolicyThreatLevelFilter threatLevelFilter,
+      PolicyViolationStateFilter violationStatusFilter)
   {
     if (threatCategoryFilter == null && threatLevelFilter == null && violationStatusFilter == null) {
       return null;
     }
-    List<Predicate<PolicyViolation>> predicates = new ArrayList<>();
+    List<Predicate<AbstractPolicyViolation>> predicates = new ArrayList<>();
     if (threatCategoryFilter != null) {
       predicates.add(threatCategoryFilter.asPolicyViolationPredicate());
     }

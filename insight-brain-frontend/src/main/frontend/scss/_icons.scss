@@ -1,3 +1,5 @@
+@import "~@sonatype/react-shared-components/scss-shared/nx-container-helpers";
+
 /*
   Global icon variables
 */
@@ -432,3 +434,16 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
   width: 14px;
 }
 // End CSS from insight.css
+
+.iq-inverse-icon-wrapper {
+  @include container-horizontal;
+
+  background-color: currentColor;
+
+  margin: 0 8px;
+  padding: 0 2px;
+
+  + .nx-icon, + .iq-inverse-icon-wrapper {
+    margin-left: 0;
+  }
+}

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {isNilOrEmpty, multiGroupBy, union} from '../../../main/frontend/util/jsUtil';
+import {capitalize, isNilOrEmpty, multiGroupBy, union} from '../../../main/frontend/util/jsUtil';
 
 describe('jsUtil', function() {
 
@@ -108,6 +108,23 @@ describe('jsUtil', function() {
           results = multiGroupBy(keyFn, data);
 
       expect(results).toEqual({});
+    });
+  });
+
+  describe('capitalize', function() {
+    it('returns falsey values as-is', function() {
+      expect(capitalize(null)).toBe(null);
+      expect(capitalize(undefined)).toBe(undefined);
+      expect(capitalize('')).toBe('');
+    });
+
+    it('uppercases the first letter of the string', function() {
+      expect(capitalize('foo')).toBe('Foo');
+    });
+
+    it('leaves already-capital letters alone', function() {
+      expect(capitalize('Foo')).toBe('Foo');
+      expect(capitalize('FOO')).toBe('FOO');
     });
   });
 });

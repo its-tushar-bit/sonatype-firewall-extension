@@ -1,0 +1,38 @@
+@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
+@import '~@sonatype/react-shared-components/scss-shared/nx-colors';
+
+.iq-violation-exclamation {
+  $padding: 0.2em;
+
+  color: $nx-white;
+
+  padding: $padding 0;
+
+  // account for padding in addition to fontawesome's usual valign adjustment
+  vertical-align: #{-0.125em - $padding};
+}
+
+.iq-violation-exclamation--unspecified {
+  background-color: $nx-threat-color-unspecified;
+}
+
+.iq-violation-exclamation--none {
+  background-color: $nx-threat-color-none;
+}
+
+.iq-violation-exclamation--low {
+  background-color: $nx-threat-color-low;
+}
+
+.iq-violation-exclamation--moderate {
+  background-color: $nx-threat-color-moderate;
+}
+
+.iq-violation-exclamation--severe {
+  background-color: $nx-threat-color-severe;
+}
+
+.iq-violation-exclamation--critical {
+  background-color: $nx-threat-color-critical;
+}
+

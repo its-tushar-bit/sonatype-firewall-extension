@@ -106,34 +106,32 @@ services.filter('terseTimeSpan', function() {
   return new ElapsedTimeFilterFactory(rules);
 });
 
+export const terseAgo = new ElapsedTimeFilterFactory({
+  ...timeAbbreviations,
+  diffFunction: date => new Date().getTime() - date
+});
+
 /**
  * English language abbreviations for elapsed time.
  */
-services.filter('terseAgo', function() {
-  var rules = angular.extend({
-    diffFunction: function(date) { return new Date().getTime() - date; }
-  }, timeAbbreviations);
-  return new ElapsedTimeFilterFactory(rules);
+services.filter('terseAgo', () => terseAgo);
+
+export const timeAgo = new ElapsedTimeFunctionFactory({
+  seconds: 'Just now',
+  diffFunction: date => new Date().getTime() - date,
+  year: 'year',
+  month: 'month',
+  day: 'day',
+  hour: 'hour',
+  minute: 'minute',
+  highlightMultiples: true,
+  separator: ' ',
+  suffix: ' ago'
 });
 
 services.service('timeAgoService', function() {
-  var rules = angular.extend({
-    seconds: 'Just now',
-    diffFunction: function(date) { return new Date().getTime() - date; }
-  }, {
-    year: 'year',
-    month: 'month',
-    day: 'day',
-    hour: 'hour',
-    minute: 'minute',
-    seconds: 'Just now',
-    highlightMultiples: true,
-    separator: ' ',
-    suffix: ' ago'
-  });
-
   return {
-    renderDate: new ElapsedTimeFunctionFactory(rules)
+    renderDate: timeAgo
   };
 });
 

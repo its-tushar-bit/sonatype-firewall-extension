@@ -8,11 +8,19 @@ import { contains, split } from 'ramda';
 /* global window, angular */
 import commonServicesModule from '../util/CommonServices';
 import CLMLocationModule from '../util/CLMLocation';
+import { getBaseUrl } from './urlUtil';
 
 var locationModule = angular.module('CLMContextLocation',
     [commonServicesModule.name, 'ui.router', CLMLocationModule.name]);
 
 export default locationModule;
+
+export function getOwnerImageUrl(owner) {
+  const servicePath = owner.publicId ? 'application' : 'organization',
+      id = window.encodeURIComponent(owner.publicId || owner.id);
+
+  return `${getBaseUrl(window.location.href)}/rest/${servicePath}/icon/${id}`;
+}
 
 locationModule.factory('CLMContextLocations', [
   'ApplicationId', 'OrganizationId', '$state', 'BaseUrl', '$window', 'CLMLocations',
@@ -128,12 +136,7 @@ locationModule.factory('CLMContextLocations', [
         return isApplication() ? appId.raw() : isOrganization() ? orgId.raw() : 'global';
       },
 
-      getOwnerImageUrl: function (owner) {
-        var servicePath = owner.publicId ? 'application' : 'organization',
-            id = window.encodeURIComponent(owner.publicId || owner.id);
-
-        return baseUrl.get() + '/rest/' + servicePath + '/icon/' + id;
-      },
+      getOwnerImageUrl,
 
       getApplicablePolicies: function() {
         return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/applicable';

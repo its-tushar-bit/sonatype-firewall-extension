@@ -33,8 +33,7 @@ export function getTestMailUrl(mailRecipient) {
 }
 
 export function getViolationDetailsUrl(violationId) {
-  // TODO when Violation Page backend is implemented
-  return `${getBaseUrl(window.location.href)}/foo/${violationId}`;
+  return `${getBaseUrl(window.location.href)}/api/v2/policyViolations/crossStage/${encodeURIComponent(violationId)}`;
 }
 
 export function getProxyConfigUrl() {

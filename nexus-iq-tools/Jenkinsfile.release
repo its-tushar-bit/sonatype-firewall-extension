@@ -281,22 +281,22 @@ pipeline {
               aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$PREVIOUS_RELEASE_TAG-medium.out" "$PREVIOUS_RELEASE_TAG-medium.out"
               aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$PREVIOUS_RELEASE_TAG-large.out" "$PREVIOUS_RELEASE_TAG-large.out"
 
-              cp smallAWSPerfRun/perf_results* "$RELEASE_TAG-small.out"
+              cp smallAWSPerfRun/perf_results* "zzz-$RELEASE_TAG-small.out"
               java -jar -Dlogback.configurationFile="$(pwd)/logback.xml" \
                   $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
-                  resultdiff "$PREVIOUS_RELEASE_TAG-small.out" "$RELEASE_TAG-small.out" | tee temp.out
+                  resultdiff "$PREVIOUS_RELEASE_TAG-small.out" "zzz-$RELEASE_TAG-small.out" | tee temp.out
               python3 resultdiff_validator.py -f temp.out
 
-              cp mediumAWSPerfRun/perf_results* "$RELEASE_TAG-medium.out"
+              cp mediumAWSPerfRun/perf_results* "zzz-$RELEASE_TAG-medium.out"
               java -jar -Dlogback.configurationFile="$(pwd)/logback.xml" \
                   $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
-                  resultdiff "$PREVIOUS_RELEASE_TAG-medium.out" "$RELEASE_TAG-medium.out" | tee temp.out
+                  resultdiff "$PREVIOUS_RELEASE_TAG-medium.out" "zzz-$RELEASE_TAG-medium.out" | tee temp.out
               python3 resultdiff_validator.py -f temp.out
 
-              cp largeAWSPerfRun/perf_results* "$RELEASE_TAG-large.out"
+              cp largeAWSPerfRun/perf_results* "zzz-$RELEASE_TAG-large.out"
               java -jar -Dlogback.configurationFile="$(pwd)/logback.xml" \
                   $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
-                  resultdiff "$PREVIOUS_RELEASE_TAG-large.out" "$RELEASE_TAG-large.out" | tee temp.out
+                  resultdiff "$PREVIOUS_RELEASE_TAG-large.out" "zzz-$RELEASE_TAG-large.out" | tee temp.out
               python3 resultdiff_validator.py -f temp.out
              '''
         }

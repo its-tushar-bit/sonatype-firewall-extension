@@ -219,22 +219,22 @@ pipeline {
               aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$PREVIOUS_RELEASE_TAG-medium.out" "$PREVIOUS_RELEASE_TAG-medium.out"
               aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$PREVIOUS_RELEASE_TAG-large.out" "$PREVIOUS_RELEASE_TAG-large.out"
 
-              cp smallAWSPerfRun/perf_results* "feature-small.out"
+              cp smallAWSPerfRun/perf_results* "zzz-feature-small.out"
               java -jar -Dlogback.configurationFile="$(pwd)/logback.xml" \
                   $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
-                  resultdiff "$PREVIOUS_RELEASE_TAG-small.out" "feature-small.out" | tee temp.out
+                  resultdiff "$PREVIOUS_RELEASE_TAG-small.out" "zzz-feature-small.out" | tee temp.out
               python3 resultdiff_validator.py -f temp.out
 
-              cp mediumAWSPerfRun/perf_results* "feature-medium.out"
+              cp mediumAWSPerfRun/perf_results* "zzz-feature-medium.out"
               java -jar -Dlogback.configurationFile="$(pwd)/logback.xml" \
                   $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
-                  resultdiff "$PREVIOUS_RELEASE_TAG-medium.out" "feature-medium.out" | tee temp.out
+                  resultdiff "$PREVIOUS_RELEASE_TAG-medium.out" "zzz-feature-medium.out" | tee temp.out
               python3 resultdiff_validator.py -f temp.out
 
-              cp largeAWSPerfRun/perf_results* "feature-large.out"
+              cp largeAWSPerfRun/perf_results* "zzz-feature-large.out"
               java -jar -Dlogback.configurationFile="$(pwd)/logback.xml" \
                   $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
-                  resultdiff "$PREVIOUS_RELEASE_TAG-large.out" "feature-large.out" | tee temp.out
+                  resultdiff "$PREVIOUS_RELEASE_TAG-large.out" "zzz-feature-large.out" | tee temp.out
               python3 resultdiff_validator.py -f temp.out
              '''
         }

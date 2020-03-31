@@ -150,17 +150,15 @@ public class PullRequestCommentingService
           for (PullRequest pullRequest : commitInfo.getPullRequests()) {
             if (shouldCommentOnPullRequest(applicationId, pullRequest, gitRepositoryInfo,
                 sourceCommitPolicyEvaluation)) {
-              // if we've already commented on the PR then we'll skip further processing for now but in the future
-              // we'll enter a new PR comment update flow
-              SourceControlPullRequestComment existingPullRequestComment =
-                  pullRequestCommentDAO.getByApplicationIdAndPullRequestId(applicationId, pullRequest.getNumber());
+              SourceControlPullRequestComment existingPullRequestComment = pullRequestCommentDAO
+                  .getByApplicationIdAndPullRequestIdWithoutComponent(applicationId, pullRequest.getNumber());
 
               Optional<PolicyEvaluation> baseBranchPolicyEvaluation =
                   getLatestPolicyEvaluationReportForBaseBranch(applicationId);
 
               if (baseBranchPolicyEvaluation.isPresent()) {
                 doCreateOrUpdatePullRequestComment(applicationId, gitRepositoryInfo, pullRequest.getNumber(),
-                        sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation.get(), existingPullRequestComment);
+                    sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation.get(), existingPullRequestComment);
               }
               else {
                 log.warn(
@@ -209,7 +207,8 @@ public class PullRequestCommentingService
     if (baseBranchPolicyEvaluation.isPresent()) {
       // do we already have a comment for this PR?
       SourceControlPullRequestComment existingPullRequestComment =
-          pullRequestCommentDAO.getByApplicationIdAndPullRequestId(applicationId, event.pullRequestNumber);
+          pullRequestCommentDAO
+              .getByApplicationIdAndPullRequestIdWithoutComponent(applicationId, event.pullRequestNumber);
 
       doCreateOrUpdatePullRequestComment(applicationId, gitRepositoryInfo, event.pullRequestNumber,
           sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation.get(), existingPullRequestComment);

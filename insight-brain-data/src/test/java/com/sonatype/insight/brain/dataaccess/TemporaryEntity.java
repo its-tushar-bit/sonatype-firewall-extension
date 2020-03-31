@@ -1144,6 +1144,26 @@ public class TemporaryEntity
     return pullRequestComment;
   }
 
+  public SourceControlPullRequestComment newSourceControlPullRequestCommentForLine(
+      String applicationId,
+      String componentHash,
+      int pullRequestId,
+      int pullRequestCommentId,
+      String sourcePolicyEvaluationId,
+      String targetPolicyEvaluationId)
+  {
+    SourceControlPullRequestComment pullRequestComment = new SourceControlPullRequestComment(
+        applicationId,
+        componentHash,
+        pullRequestId,
+        pullRequestCommentId,
+        sourcePolicyEvaluationId,
+        targetPolicyEvaluationId
+    );
+    pullRequestCommentDAO.insert(pullRequestComment);
+    return pullRequestComment;
+  }
+
   public SourceControlDefaultBranchCommitHistory newSourceControlDefaultBranchCommitHistory(
       String applicationId,
       String commitHash,

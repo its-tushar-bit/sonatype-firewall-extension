@@ -30,7 +30,7 @@
 * Some data objects are shared by both `insight-brain` and `hosted-data-services`. These data objects are defined in [`insight-dto-model`](https://github.com/sonatype/insight-dto-model).
 * [`insight-scanner`](https://github.com/sonatype/insight-scanner) is the source of the scanner code. `insight-brain` is one consumer of the scanner library.
 * [`nexus-vulnerability-scanner`](https://github.com/sonatype/nexus-vulnerability-scanner) is essentially a "free sample" of IQ Server functionality; we offer it [on our marketing website](https://www.sonatype.com/appscan) as a way to demonstrate the information contained on an application scan report.
-* The front-end of IQ Server consumes [`react-shared-components`](https://github.com/sonatype/react-shared-components), a component library built in React that is shared across various Sonatype projects.
+* The front-end of IQ Server consumes [`react-shared-components`](https://github.com/sonatype/sonatype-react-shared-components), a component library built in React that is shared across various Sonatype projects.
 
 # Contributing #
 
@@ -43,8 +43,8 @@ Please read our [contribution rules and guidelines](contributing.md).
 This week's rotating reviewers are:
 
 <!-- rotating-reviewers-begin -->
-* [@Koray Tugay](https://github.com/koraytugay)
-* [@Guillermo Varela](https://github.com/guillermo-varela)
+* [@Ross Pokorny](https://github.com/rpokorny)
+* [@Kasun Ranawaka](https://github.com/kakumara)
 <!-- rotating-reviewers-end -->
 
 # Working with insight-brain #

@@ -29,6 +29,9 @@ public class SourceControlPullRequestComment
   @Column(name = "application_id")
   private String applicationId;
 
+  @Column(name = "component_hash")
+  private String componentHash;
+
   @Column(name = "pull_request_id")
   private int pullRequestId;
 
@@ -51,6 +54,9 @@ public class SourceControlPullRequestComment
 
   }
 
+  /**
+   * This constructor is intended for creating an overall PR comment
+   */
   public SourceControlPullRequestComment(
       String applicationId,
       int pullRequestId,
@@ -64,6 +70,22 @@ public class SourceControlPullRequestComment
     this.sourcePolicyEvaluationId = sourcePolicyEvaluationId;
     this.targetPolicyEvaluationId = targetPolicyEvaluationId;
     this.createTime = new Date();
+  }
+
+  /**
+   * This constructor is intended for creating a line-level PR comment as it includes the component hash to which
+   * the line comment pertains
+   */
+  public SourceControlPullRequestComment(
+      String applicationId,
+      String componentHash,
+      int pullRequestId,
+      int pullRequestCommentId,
+      String sourcePolicyEvaluationId,
+      String targetPolicyEvaluationId)
+  {
+    this(applicationId, pullRequestId, pullRequestCommentId, sourcePolicyEvaluationId, targetPolicyEvaluationId);
+    this.componentHash = componentHash;
   }
 
   @Override
@@ -82,6 +104,15 @@ public class SourceControlPullRequestComment
 
   public SourceControlPullRequestComment setApplicationId(final String applicationId) {
     this.applicationId = applicationId;
+    return this;
+  }
+
+  public String getComponentHash() {
+    return componentHash;
+  }
+
+  public SourceControlPullRequestComment setComponentHash(final String componentHash) {
+    this.componentHash = componentHash;
     return this;
   }
 

@@ -716,7 +716,8 @@ public class PullRequestCommentingServiceTest
 
       if (null != pullRequestComment) {
         doReturn(pullRequestComment).when(mockPullRequestCommentDAO)
-            .getByApplicationIdAndPullRequestId(eq(applicationId), eq(pullRequestComment.getPullRequestId()));
+            .getByApplicationIdAndPullRequestIdWithoutComponent(eq(applicationId),
+                eq(pullRequestComment.getPullRequestId()));
       }
 
       doReturn(null != basePolicyEvaluation ? Optional.of(basePolicyEvaluation) : Optional.empty())

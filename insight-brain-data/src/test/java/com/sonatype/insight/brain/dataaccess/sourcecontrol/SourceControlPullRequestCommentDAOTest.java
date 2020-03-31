@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
@@ -25,7 +27,7 @@ public class SourceControlPullRequestCommentDAOTest
 
   @Test
   public void testGetCommentForPullRequest_commentDoesNotExist() {
-    assertThat(pullRequestCommentDAO.getByApplicationIdAndPullRequestId(applicationId, 1)).isNull();
+    assertThat(pullRequestCommentDAO.getByApplicationIdAndPullRequestIdWithoutComponent(applicationId, 1)).isNull();
   }
 
   @Test
@@ -54,7 +56,7 @@ public class SourceControlPullRequestCommentDAOTest
 
     // when : fetch the pr comment entry
     SourceControlPullRequestComment fetchedPullRequestComment =
-        pullRequestCommentDAO.getByApplicationIdAndPullRequestId(applicationId, pullRequestId);
+        pullRequestCommentDAO.getByApplicationIdAndPullRequestIdWithoutComponent(applicationId, pullRequestId);
 
     // then : fetched comment matches what we supplied
     assertThat(fetchedPullRequestComment).isNotNull();
@@ -71,7 +73,7 @@ public class SourceControlPullRequestCommentDAOTest
 
     // when : fetch the pr comment entry again
     SourceControlPullRequestComment fetchedPullRequestCommentAgain =
-        pullRequestCommentDAO.getByApplicationIdAndPullRequestId(applicationId, pullRequestId);
+        pullRequestCommentDAO.getByApplicationIdAndPullRequestIdWithoutComponent(applicationId, pullRequestId);
 
     // then : the update time is set
     assertThat(fetchedPullRequestCommentAgain.getUpdateTime()).isNotNull();
@@ -80,8 +82,104 @@ public class SourceControlPullRequestCommentDAOTest
     pullRequestCommentDAO.deleteByPolicyEvaluationId(fetchedPullRequestComment.getSourcePolicyEvaluationId());
 
     // then : the comment no longer exists
-    fetchedPullRequestComment = pullRequestCommentDAO.getByApplicationIdAndPullRequestId(applicationId, pullRequestId);
+    fetchedPullRequestComment =
+        pullRequestCommentDAO.getByApplicationIdAndPullRequestIdWithoutComponent(applicationId, pullRequestId);
     assertThat(fetchedPullRequestComment).isNull();
+  }
+
+  @Test
+  public void testCrud_forLineComments() {
+    // given: valid line comment entries persisted with references to policy evaluations
+    PolicyEvaluation sourcePolicyEvaluation = tempEntity.newPolicyEvaluation(
+        applicationId, BuildStageType.ID, "sourceScan", "sourceCommit");
+    PolicyEvaluation targetPolicyEvaluation = tempEntity.newPolicyEvaluation(
+        applicationId, BuildStageType.ID, "targetScan", "targetCommit");
+
+    final int subjectPullRequestId = 1;
+    final int lineCommentCount = 10;
+
+    for (int commentId = 1; commentId <= lineCommentCount; commentId++) {
+      tempEntity.newSourceControlPullRequestCommentForLine(
+          applicationId,
+          "hash" + commentId,
+          subjectPullRequestId,
+          commentId,
+          sourcePolicyEvaluation.getId(),
+          targetPolicyEvaluation.getId()
+      );
+    }
+
+    // and given: an overall comment for the same app and PR
+    tempEntity.newSourceControlPullRequestComment(
+        applicationId,
+        subjectPullRequestId,
+        0,
+        sourcePolicyEvaluation.getId(),
+        targetPolicyEvaluation.getId()
+    );
+
+    // and given: line comments for a different app and PR
+    final int additionalPullRequestId = 2;
+    Application app2 = tempEntity.newApplication(organization.getId());
+
+    for (int commentId = 1; commentId <= lineCommentCount; commentId++) {
+      tempEntity.newSourceControlPullRequestCommentForLine(
+          app2.getId(),
+          "hash" + commentId,
+          additionalPullRequestId,
+          commentId,
+          sourcePolicyEvaluation.getId(),
+          targetPolicyEvaluation.getId()
+      );
+    }
+
+    // when: fetch ALL the line comments for the subject PR
+    List<SourceControlPullRequestComment> subjectComments = pullRequestCommentDAO
+        .getByApplicationIdAndPullRequestIdWithComponents(applicationId, subjectPullRequestId);
+
+    // then: all are retrieved and there are none we don't expect
+    assertThat(subjectComments.size()).isEqualTo(lineCommentCount);
+    Set<Integer> commentIdSet = new HashSet<>();
+    subjectComments.forEach(comment -> {
+      assertThat(comment.getApplicationId()).isEqualTo(applicationId);
+      assertThat(comment.getPullRequestId()).isEqualTo(subjectPullRequestId);
+      assertThat(comment.getComponentHash()).isEqualTo("hash" + comment.getPullRequestCommentId());
+      assertThat(commentIdSet).doesNotContain(comment.getPullRequestCommentId());
+      commentIdSet.add(comment.getPullRequestCommentId());
+    });
+
+    // when: fetch a specific line comment for the subject PR
+    SourceControlPullRequestComment lineComment = pullRequestCommentDAO.getByApplicationIdAndComponentAndPullRequestId(
+        applicationId, "hash3", subjectPullRequestId);
+
+    // then: only the specified line comment is returned
+    assertThat(lineComment).isNotNull();
+    assertThat(lineComment.getApplicationId()).isEqualTo(applicationId);
+    assertThat(lineComment.getPullRequestId()).isEqualTo(subjectPullRequestId);
+    assertThat(lineComment.getComponentHash()).isEqualTo("hash3");
+
+    // when: delete the line comments for the subject PR
+    pullRequestCommentDAO.deleteByApplicationIdAndPullRequestIdWithComponents(applicationId, subjectPullRequestId);
+
+    // then: there are no line comments for the subject PR
+    subjectComments = pullRequestCommentDAO
+        .getByApplicationIdAndPullRequestIdWithComponents(applicationId, subjectPullRequestId);
+    assertThat(subjectComments).isEmpty();
+
+    // and when: fetch the line comments for the second PR
+    List<SourceControlPullRequestComment> additionalComments =
+        pullRequestCommentDAO.getByApplicationIdAndPullRequestIdWithComponents(app2.getId(), additionalPullRequestId);
+
+    // and then: the line comments for the second PR exist
+    assertThat(additionalComments.size()).isEqualTo(lineCommentCount);
+
+    // and when: fetch the overall comment for the subject PR
+    SourceControlPullRequestComment overallComment =
+        pullRequestCommentDAO.getByApplicationIdAndPullRequestIdWithoutComponent(applicationId, subjectPullRequestId);
+
+    // and then: the overall comment for the subject PR exists
+    assertThat(overallComment).isNotNull();
+    assertThat(overallComment.getComponentHash()).isNull();
   }
 
   @Test
@@ -127,7 +225,7 @@ public class SourceControlPullRequestCommentDAOTest
   @Test
   public void testInsert_applicationDoesNotExist() {
     // given : a pr comment entry that doesn't reference a valid application
-    PolicyEvaluation sourcePolicyEvaluation  =
+    PolicyEvaluation sourcePolicyEvaluation =
         tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "sourceScan", "sourceCommit");
     PolicyEvaluation targetPolicyEvaluation =
         tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "targetScan", "targetCommit");

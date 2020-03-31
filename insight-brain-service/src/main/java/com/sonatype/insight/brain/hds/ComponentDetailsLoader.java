@@ -7,9 +7,11 @@ package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -23,6 +25,7 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
@@ -185,26 +188,30 @@ public class ComponentDetailsLoader
   }
 
   private static Set<License> calculateEffectiveLicenses(ComponentDetails componentDetails) {
-    return calculateEffectiveLicenses(componentDetails.getDeclaredLicenses(), componentDetails.getObservedLicenses(),
-        componentDetails.getOverriddenLicenses());
+    Set<String> effectiveLicenseIds = calculateEffectiveLicenses( //
+        getLicenseIds(componentDetails.getDeclaredLicenses()), //
+        getLicenseIds(componentDetails.getObservedLicenses()), //
+        getLicenseIds(componentDetails.getOverriddenLicenses()));
+    
+    return loadLicenses(effectiveLicenseIds);
   }
 
-  public static Set<License> calculateEffectiveLicenses(
-      Set<License> declaredLicenses,
-      Set<License> observedLicenses,
-      Set<License> overriddenLicenses)
+  public static Set<String> calculateEffectiveLicenses(
+      Set<String> declaredLicenseIds,
+      Set<String> observedLicenseIds,
+      Set<String> overriddenLicenseIds)
   {
-    if (overriddenLicenses != null && !overriddenLicenses.isEmpty()) {
-      return overriddenLicenses;
+    if (overriddenLicenseIds != null && !overriddenLicenseIds.isEmpty()) {
+      return overriddenLicenseIds;
     }
 
-    return calculateEffectiveLicenses(declaredLicenses, observedLicenses);
+    return calculateEffectiveLicenses(declaredLicenseIds, observedLicenseIds);
   }
 
-  public static Set<License> calculateEffectiveLicenses(Set<License> declaredLicenses, Set<License> observedLicenses) {
-    Set<License> effectiveLicenses = new LinkedHashSet<>();
-    effectiveLicenses.addAll(declaredLicenses);
-    effectiveLicenses.addAll(observedLicenses);
+  public static Set<String> calculateEffectiveLicenses(Set<String> declaredLicenseIds, Set<String> observedLicenseIds) {
+    Set<String> effectiveLicenses = new LinkedHashSet<>();
+    effectiveLicenses.addAll(declaredLicenseIds);
+    effectiveLicenses.addAll(observedLicenseIds);
     return removeNonLicensesUnlessNoOtherLicensesExist(effectiveLicenses);
   }
 
@@ -212,18 +219,32 @@ public class ComponentDetailsLoader
    * Return a set containing the licenses other than (No-Source-License, No-Sources, Not-Declared, Not-Supported)
    * unless these are the only licenses in the given set, then return the given set.
    */
-  private static Set<License> removeNonLicensesUnlessNoOtherLicensesExist(Set<License> licenses) {
-    Set<License> filtered = new LinkedHashSet<>();
-    for (License license : licenses) {
-      if (!com.sonatype.insight.brain.model.license.License.isEffectivelyUnspecified(license.getLicenseId())) {
-        filtered.add(license);
+  private static Set<String> removeNonLicensesUnlessNoOtherLicensesExist(Set<String> licenseIds) {
+    Set<String> filtered = new LinkedHashSet<>();
+    for (String licenseId : licenseIds) {
+      if (!com.sonatype.insight.brain.model.license.License.isEffectivelyUnspecified(licenseId)) {
+        filtered.add(licenseId);
       }
     }
 
     if (filtered.isEmpty()) {
-      return licenses;
+      return licenseIds;
     }
 
     return filtered;
+  }
+
+  private static Set<License> loadLicenses(Set<String> licenseIds) {
+    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+    Set<License> licenses = new HashSet<>();
+    for (String licenseId : licenseIds) {
+      License license = new License(licenseId, multiLicenseDAO.getByIdNotNull(licenseId).getShortDisplayName());
+      licenses.add(license);
+    }
+    return licenses;
+  }
+
+  private static Set<String> getLicenseIds(Set<License> licenses) {
+    return licenses.stream().map(License::getLicenseId).collect(Collectors.toSet());
   }
 }

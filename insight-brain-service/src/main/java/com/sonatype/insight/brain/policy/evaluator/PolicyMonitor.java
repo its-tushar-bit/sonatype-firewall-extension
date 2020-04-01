@@ -157,7 +157,7 @@ public class PolicyMonitor
     String newScanId = null;
     try {
       cloneScanFile(tempScanFile, app, lastPrimaryPolicyEvaluation);
-      newScanId = uploadScan(tempScanFile, app);
+      newScanId = uploadScan(tempScanFile, app, policyMonitoring.getStageTypeId());
     }
     catch (Exception e) {
       try {
@@ -208,8 +208,10 @@ public class PolicyMonitor
     while (true);
   }
 
-  private String uploadScan(File tempScanFile, Application app) throws IOException, InterruptedException {
-    ScanReceipt scanReceipt = uploader.upload(tempScanFile, app);
+  private String uploadScan(File tempScanFile, Application app, String stageTypeId)
+      throws IOException, InterruptedException
+  {
+    ScanReceipt scanReceipt = uploader.upload(tempScanFile, app, stageTypeId);
     scanReceipt.waitForReport();
     String scanId = scanReceipt.getScanId();
     Files.move(tempScanFile.toPath(), work.getScanFile(app.getId(), scanId).toPath());

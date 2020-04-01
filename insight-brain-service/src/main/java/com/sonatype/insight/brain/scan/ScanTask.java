@@ -222,7 +222,8 @@ class ScanTask
       }
       // upload the scan
       state = State.UPLOADING_SCAN;
-      ScanReceipt scanReceipt = uploader.upload(scanResult.getScanFile(), app);
+
+      ScanReceipt scanReceipt = uploader.upload(scanResult.getScanFile(), app, stage.getStageTypeId());
       if (StringUtils.isNotBlank(scanReceipt.getScanId())) {
         if (thirdPartyScanRequestId != null) {
           thirdPartyScanResultsProcessor.postHandle(scanReceipt.getScanId(), thirdPartyScanRequestId);

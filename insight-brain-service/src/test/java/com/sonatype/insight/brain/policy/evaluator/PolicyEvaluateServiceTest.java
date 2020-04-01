@@ -427,7 +427,8 @@ public class PolicyEvaluateServiceTest
     when(mockScanHandler.createTempScanFile(eq(null), any(Application.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(mock(File.class));
     when(mockScanHandler
-        .handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class)))
+        .handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
+            anyString()))
         .thenReturn(scanReceipt);
 
     // evaluate policy
@@ -459,7 +460,7 @@ public class PolicyEvaluateServiceTest
     when(mockScanHandler.createTempScanFile(any(HttpServletRequest.class), any(Application.class),
         eq(ClientScanType.SONATYPE_THIRD_PARTY))).thenReturn(mock(File.class));
     when(mockScanHandler.handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE_THIRD_PARTY),
-        telemetryDataArgumentCaptor.capture()))
+        telemetryDataArgumentCaptor.capture(), anyString()))
         .thenReturn(scanReceipt);
 
     HttpServletRequest req = mock(HttpServletRequest.class);
@@ -502,7 +503,8 @@ public class PolicyEvaluateServiceTest
         .thenReturn(mock(File.class));
 
     when(mockScanHandler
-        .handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class)))
+        .handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
+            anyString()))
         .thenReturn(scanReceipt);
 
     // using the spy to put a delay into the real service so we make sure the Polling Result does not
@@ -585,7 +587,8 @@ public class PolicyEvaluateServiceTest
 
     doThrow(new IOException("HDS Upload Scan Failure!!!"))
         .when(mockScanHandler)
-        .handle(any(File.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class));
+        .handle(any(File.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
+            anyString());
 
     PolicyEvaluationReceipt receipt = policyEvaluateService
         .evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
@@ -616,7 +619,8 @@ public class PolicyEvaluateServiceTest
     when(mockScanHandler.createTempScanFile(eq(null), any(Application.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(mock(File.class));
     when(mockScanHandler
-        .handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class)))
+        .handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
+            anyString()))
         .thenReturn(scanReceipt);
 
     PolicyEvaluationReceipt receipt = policyEvaluateService

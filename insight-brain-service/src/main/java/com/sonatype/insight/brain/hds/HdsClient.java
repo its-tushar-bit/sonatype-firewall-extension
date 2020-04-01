@@ -417,13 +417,14 @@ public class HdsClient
   /**
    * @since 1.8
    */
-  public <T> T put(HdsClientAnalytics analytics, Class<T> clazz, String path, File uploadFile, String... uriParams)
-      throws IOException
+  public <T> T put(HdsClientAnalytics analytics, Class<T> clazz, String path, File uploadFile,
+                   Map<String, String> queryParams, String... uriParams) throws IOException
   {
     if (!uploadFile.exists()) {
       throw new FileNotFoundException(uploadFile.getAbsolutePath());
     }
-    HttpPut cloudReq = createPutRequest(buildUri(path, uriParams), analytics, null);
+
+    HttpPut cloudReq = createPutRequest(buildUri(null, path, queryParams, uriParams), analytics, null);
     cloudReq.setEntity(new FileEntity(uploadFile, ContentType.DEFAULT_BINARY));
     return execute(cloudReq, clazz);
   }

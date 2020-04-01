@@ -98,14 +98,15 @@ public class ScanHandler
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     File tempScanFile = createTempScanFile(httpRequest, app, clientScanType);
-    return handle(tempScanFile, app, clientScanType, null);
+    return handle(tempScanFile, app, clientScanType, null, null);
   }
 
   public ScanReceipt handle(
       File tempScanFile,
       Application app,
       ClientScanType clientScanType,
-      TelemetryData telemetryData)
+      TelemetryData telemetryData,
+      String stageTypeId)
       throws IOException
   {
     long start = System.currentTimeMillis();
@@ -121,7 +122,7 @@ public class ScanHandler
         thirdPartyScanRequestId = thirdPartyScanResultsProcessor.handle(tempScanFile, telemetryData);
       }
 
-      ScanReceipt scanReceipt = scanUploader.upload(tempScanFile, app);
+      ScanReceipt scanReceipt = scanUploader.upload(tempScanFile, app, stageTypeId);
       if (ClientScanType.EXPANDED_COVERAGE.equals(clientScanType)) {
         Files.delete(tempScanFile.toPath());
       }

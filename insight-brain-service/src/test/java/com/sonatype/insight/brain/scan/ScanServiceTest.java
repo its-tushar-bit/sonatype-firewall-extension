@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
@@ -71,7 +72,7 @@ public class ScanServiceTest
     app = tempEntity.newApplication(tempEntity.newOrganization().getId());
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan-id");
-    lenient().when(scanUploader.upload((File) any(), any(Application.class))).thenReturn(receipt);
+    lenient().when(scanUploader.upload((File) any(), any(Application.class), anyString())).thenReturn(receipt);
     lenient().when(reportDownloader.downloadReport(eq(receipt.getScanId()), (File) any(), anyInt(), anyInt())).then(
         new Answer<Boolean>()
         {

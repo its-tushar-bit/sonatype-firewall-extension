@@ -112,7 +112,8 @@ public class HdsClientTest
     assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClmClientUserAgent);
     // Method does not pass an original request, hence the null header.
     client.put(null, InputStream.class, testPath,
-        new File(HdsClientTest.class.getResource("/config-test.yml").toURI()), new String[] {});
+        new File(HdsClientTest.class.getResource("/config-test.yml").toURI()), Collections.emptyMap(),
+        new String[] {});
     assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
 
     when(request.getHeader(eq(HttpHeaders.USER_AGENT))).thenReturn("ua-we-cannot-control");
@@ -182,7 +183,8 @@ public class HdsClientTest
     client.relay(request, null, InputStream.class, testPath, null, new String[] {});
     assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
     client.put(null, InputStream.class, testPath,
-        new File(HdsClientTest.class.getResource("/config-test.yml").toURI()), new String[] {});
+        new File(HdsClientTest.class.getResource("/config-test.yml").toURI()), Collections.emptyMap(),
+        new String[] {});
     assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
   }
 
@@ -428,7 +430,7 @@ public class HdsClientTest
     assertThat(headers).containsEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
         .containsEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
 
-    client.put(analytics, String.class, testPath, tempDir.newFile(), new String[]{});
+    client.put(analytics, String.class, testPath, tempDir.newFile(), Collections.emptyMap(), new String[]{});
     assertThat(headers).containsEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
         .containsEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
 
@@ -612,6 +614,7 @@ public class HdsClientTest
   @Test
   public void testTelemetryId() throws Exception {
     final Map<String, String> headers = new HashMap<>();
+
     String testPath = "/rest/test";
     handler = new AbstractHandler()
     {
@@ -636,7 +639,7 @@ public class HdsClientTest
     client.post(testPath, MultipartEntityBuilder.create().build(), "test_client_user_agent");
     assertThat(headers).containsEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
 
-    client.put(null, String.class, testPath, tempDir.newFile(), new String[] {});
+    client.put(null, String.class, testPath, tempDir.newFile(), Collections.emptyMap(), new String[] {});
     assertThat(headers).containsEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
   }
 
@@ -679,5 +682,38 @@ public class HdsClientTest
     assertThat(statusCode[0]).isEqualTo(HttpStatus.NO_CONTENT_204);
     assertThat(fileBodyReceived[0].getFileName()).isEqualTo(fileBodySent.getFilename());
     assertThat(IOUtils.toString(fileBodyReceived[0].getInputStream(), "UTF-8")).isEqualTo("Test");
+  }
+
+  @Test
+  public void testPut_QueryParams() throws Exception {
+    final String[] queryString = {""};
+    final String queryParam = "stageTypeId";
+    final String queryParamValue = "testvalue";
+
+    String testPath = "/rest/test";
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+        queryString[0] = request.getQueryString();
+        baseRequest.setHandled(true);
+      }
+    };
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
+    when(request.getMethod()).thenReturn("GET");
+
+    Map<String, String> testQueryParams = new HashMap<>();
+    testQueryParams.put(queryParam, queryParamValue);
+
+    client.put(null, String.class, testPath, tempDir.newFile(), null);
+    assertThat(queryString[0]).isNull();
+
+    client.put(null, String.class, testPath, tempDir.newFile(), testQueryParams);
+    assertThat(queryString[0]).contains(queryParam + "=" + queryParamValue);
+
+    client.put(null, String.class, testPath, tempDir.newFile(), Collections.emptyMap());
+    assertThat(queryString[0]).isNull();
   }
 }

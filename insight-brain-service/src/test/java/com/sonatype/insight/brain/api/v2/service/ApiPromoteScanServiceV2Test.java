@@ -42,6 +42,7 @@ import org.mockito.stubbing.Answer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -107,7 +108,7 @@ public class ApiPromoteScanServiceV2Test
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(NEW_SCAN_ID);
-    when(scanUploader.upload(any(File.class), any(Application.class))).thenReturn(scanReceipt);
+    when(scanUploader.upload(any(File.class), any(Application.class), anyString())).thenReturn(scanReceipt);
     ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
     when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class)))
         .thenReturn(evaluatorResults);
@@ -181,7 +182,7 @@ public class ApiPromoteScanServiceV2Test
     lenient().doAnswer((Answer<ScanReceipt>) invocationOnMock -> {
       countDownLatch.await(1, TimeUnit.MINUTES);
       return null;
-    }).when(scanUploader).upload(any(File.class), any(Application.class));
+    }).when(scanUploader).upload(any(File.class), any(Application.class), anyString());
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = service
         .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE));
@@ -202,7 +203,8 @@ public class ApiPromoteScanServiceV2Test
   @Test
   public void testGetScanStatus_Failure() throws Exception {
     createScanFile();
-    when(scanUploader.upload(any(File.class), any(Application.class))).thenThrow(new RuntimeException("ruh-roh"));
+    when(scanUploader.upload(any(File.class), any(Application.class), anyString()))
+        .thenThrow(new RuntimeException("ruh-roh"));
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = service
         .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE));
@@ -230,7 +232,7 @@ public class ApiPromoteScanServiceV2Test
     createScanFile();
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(NEW_SCAN_ID);
-    when(scanUploader.upload(any(File.class), any(Application.class))).thenReturn(scanReceipt);
+    when(scanUploader.upload(any(File.class), any(Application.class), anyString())).thenReturn(scanReceipt);
     when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class)))
         .thenReturn(new ScanPolicyEvaluatorResults());
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);

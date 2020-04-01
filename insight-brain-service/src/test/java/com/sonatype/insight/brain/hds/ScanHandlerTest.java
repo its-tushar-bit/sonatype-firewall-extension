@@ -42,6 +42,7 @@ import org.mockito.Mock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -83,7 +84,8 @@ public class ScanHandlerTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class)))
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
+        anyMap()))
         .thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.EXPANDED_COVERAGE);
@@ -102,7 +104,8 @@ public class ScanHandlerTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class)))
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
+        anyMap()))
         .thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE);
@@ -122,7 +125,8 @@ public class ScanHandlerTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class)))
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
+        anyMap()))
         .thenReturn(scanReceipt);
     when(thirdPartyScanResultsProcessor.handle(any(File.class), eq(null))).thenReturn(scanRequestId);
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY);
@@ -147,7 +151,8 @@ public class ScanHandlerTest
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream())
         .thenReturn(new ServletInputStreamImpl(FileUtils.readFileToByteArray(inputScanFile)));
-    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class)))
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
+        anyMap()))
         .thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.TWISTLOCK);
@@ -199,7 +204,8 @@ public class ScanHandlerTest
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream())
         .thenReturn(new ServletInputStreamImpl(FileUtils.readFileToByteArray(inputScanFile)));
-    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class)))
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
+        anyMap()))
         .thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.TWISTLOCK);
@@ -257,7 +263,7 @@ public class ScanHandlerTest
     when(servletRequest.getInputStream()).thenReturn(stream);
 
     ArgumentCaptor<HdsClientAnalytics> analyticsArg = ArgumentCaptor.forClass(HdsClientAnalytics.class);
-    when(hdsClient.put(analyticsArg.capture(), eq(ScanReceipt.class), any(String.class), any(File.class)))
+    when(hdsClient.put(analyticsArg.capture(), eq(ScanReceipt.class), any(String.class), any(File.class), anyMap()))
         .thenReturn(scanReceipt);
 
     scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE);
@@ -294,7 +300,8 @@ public class ScanHandlerTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class)))
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
+        anyMap()))
         .thenThrow(new RuntimeException("test"));
 
     assertThatExceptionOfType(RuntimeException.class)

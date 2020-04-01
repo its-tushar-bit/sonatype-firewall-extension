@@ -12,7 +12,23 @@
     "relativePopularity" : 1.0,
     "createTime" : 1201589122000,
     "lastModifiedTime" : 1201148356000,
-    "lastModifiedEntryTime" : 1173079498000
+    "lastModifiedEntryTime" : 1173079498000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "tomcat-util"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "5.5.23"
+      } ]
+    }
   }, {
     "filenames" : [ "sample-application.zip" ],
     "pathnames" : [ "sample-application.zip" ],
@@ -26,6 +42,12 @@
     "relativePopularity" : 0.0,
     "createTime" : null,
     "lastModifiedTime" : 1392070212000,
-    "lastModifiedEntryTime" : 1373976956000
+    "lastModifiedEntryTime" : 1373976956000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "sample-application.zip"
+      } ]
+    }
   } ]
 }

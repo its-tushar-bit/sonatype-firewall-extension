@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.component;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.ComponentInfo;
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -108,6 +110,7 @@ public class ComponentDAO
           for (JsonNode path : componentJson.path("pathnames")) {
             component.addPathname(path.asText());
           }
+          component.setDisplayName(getDisplayName(componentJson));
           if (!matchState.equals(MatchState.UNKNOWN)) {
             component.setComponentIdentifier(ComponentIdentifierAdapter.getComponentIdentifier(componentJson));
 
@@ -148,6 +151,15 @@ public class ComponentDAO
     }
 
     return components;
+  }
+
+  public static String getDisplayName(JsonNode componentNode) {
+    try {
+      return JsonUtils.asPojo(componentNode.path("displayName"), ComponentDisplayName.class).toString();
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e.getMessage(), e);
+    }
   }
 
   /**

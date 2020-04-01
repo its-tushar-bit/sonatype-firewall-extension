@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.component.ComponentResolver;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
@@ -158,6 +159,7 @@ public class ApiReportDataServiceV2
           component.packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
           component.proprietary = componentJson.get("proprietary").booleanValue();
           component.pathnames = getPathnames(componentJson);
+          component.displayName = ComponentDAO.getDisplayName(componentJson);
           component.violations = violationsByHash.getOrDefault(component.hash, Collections.emptyList());
           components.add(component);
         }
@@ -276,6 +278,7 @@ public class ApiReportDataServiceV2
           component.pathnames.add(pathname);
         }
       }
+      component.displayName = comp.getDisplayName();
       if (!MatchState.UNKNOWN.equals(comp.getMatchState())) {
         component.securityData = securityDataAdapter.convertToDTO(comp);
         component.licenseData = licenseDataAdapter.convertToDTOV2(comp);

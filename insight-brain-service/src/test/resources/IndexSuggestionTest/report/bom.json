@@ -15,6 +15,13 @@
       "pathnames": [
         "some/dir/test.jar"
       ],
+      "displayName": {
+        "parts": [
+          {
+            "value": "displayName"
+          }
+        ]
+      },
       "matchState": "exact",
       "scanError": false,
       "proprietary": false,
@@ -50,6 +57,13 @@
       "pathnames": [
         "some/dir/test.jar"
       ],
+      "displayName": {
+        "parts": [
+          {
+            "value": "displayName"
+          }
+        ]
+      },
       "matchState": "exact",
       "scanError": false,
       "proprietary": false,

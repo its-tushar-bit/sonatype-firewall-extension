@@ -20,9 +20,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
-import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
@@ -30,7 +27,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
-import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.component.MatchState;
 
@@ -372,7 +368,7 @@ public class PdfGenerator
         policyViolationsTableRow.policyName = violation.policyName;
         policyViolationsTableRow.policyType = violation.policyThreatCategory == null ? "" : StringUtils
             .capitalise(violation.policyThreatCategory.toLowerCase(Locale.ROOT));
-        policyViolationsTableRow.componentName = getComponentName(component.componentIdentifier, component.pathnames);
+        policyViolationsTableRow.componentName = component.displayName;
         policyViolationsTableRows.add(policyViolationsTableRow);
       }
     }
@@ -449,7 +445,7 @@ public class PdfGenerator
         SecurityIssuesTableRow securityIssuesTableRow = new SecurityIssuesTableRow();
         securityIssuesTableRow.reference = securityIssue.reference;
         securityIssuesTableRow.severity = securityIssue.severity;
-        securityIssuesTableRow.componentName = getComponentName(component.componentIdentifier, component.pathnames);
+        securityIssuesTableRow.componentName = component.displayName;
         securityIssuesTableRows.add(securityIssuesTableRow);
       }
     }
@@ -536,7 +532,7 @@ public class PdfGenerator
       LicensesTableRow licensesTableRow = new LicensesTableRow();
       licensesTableRow.declaredLicenses = licensesToString(component.licenseData.declaredLicenses);
       licensesTableRow.observedLicenses = licensesToString(component.licenseData.observedLicenses);
-      licensesTableRow.componentName = getComponentName(component.componentIdentifier, component.pathnames);
+      licensesTableRow.componentName = component.displayName;
       licensesTableRows.add(licensesTableRow);
     }
     return licensesTableRows;
@@ -609,7 +605,7 @@ public class PdfGenerator
     List<BomTableRow> bomTableRows = new ArrayList<>();
     for (ApiReportComponentDTOV2 component : rawData.components) {
       BomTableRow bomTableRow = new BomTableRow();
-      bomTableRow.componentName = getComponentName(component.componentIdentifier, component.pathnames);
+      bomTableRow.componentName = component.displayName;
       bomTableRows.add(bomTableRow);
     }
     return bomTableRows;
@@ -735,19 +731,6 @@ public class PdfGenerator
   // Visible for testing
   static String licensesToString(List<ApiLicenseDTO> licenses) {
     return licenses.stream().map(license -> license.licenseName).collect(Collectors.joining(", "));
-  }
-
-  // Visible for testing
-  static String getComponentName(ApiComponentIdentifierDTOV2 componentIdentifier, List<String> pathnames) {
-    if (componentIdentifier != null) {
-      try {
-        return ComponentDisplayNameUtil.fromIdentifier(componentIdentifier.toComponentIdentifier()).toString();
-      }
-      catch (InvalidComponentIdentifierException e) {
-        log.error(e.getMessage(), e);
-      }
-    }
-    return new ComponentDisplayFilename().addPathnames(pathnames).getFilename().orElse(null);
   }
 
   public static File getPdfFile(File reportFile) {

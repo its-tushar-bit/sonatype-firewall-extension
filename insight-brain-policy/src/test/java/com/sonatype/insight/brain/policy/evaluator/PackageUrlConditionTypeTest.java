@@ -137,7 +137,7 @@ public class PackageUrlConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
     assertThat(actualReason)
-        .isEqualTo("Coordinates were " + component2.getDisplayName() + " " + expectedConditionMessage);
+        .isEqualTo("Coordinates were " + component2.getDisplayNameFromIdentifier() + " " + expectedConditionMessage);
   }
 
   @Test
@@ -455,7 +455,7 @@ public class PackageUrlConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
     assertThat(actualReason)
-        .isEqualTo("Coordinates were " + component2.getDisplayName() + " " + expectedConditionMessage);
+        .isEqualTo("Coordinates were " + component2.getDisplayNameFromIdentifier() + " " + expectedConditionMessage);
   }
 
   @Test
@@ -553,7 +553,7 @@ public class PackageUrlConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
     assertThat(actualReason)
-        .isEqualTo("Coordinates were " + component1.getDisplayName() + " " + expectedConditionMessage);
+        .isEqualTo("Coordinates were " + component1.getDisplayNameFromIdentifier() + " " + expectedConditionMessage);
   }
 
   @Test
@@ -652,7 +652,7 @@ public class PackageUrlConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
     assertThat(actualReason)
-        .isEqualTo("Coordinates were " + component1.getDisplayName() + " " + expectedConditionMessage);
+        .isEqualTo("Coordinates were " + component1.getDisplayNameFromIdentifier() + " " + expectedConditionMessage);
   }
 
   @Test

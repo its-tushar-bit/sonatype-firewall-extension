@@ -6,17 +6,12 @@
 package com.sonatype.insight.brain.report.pdf;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationBaseDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
@@ -267,71 +262,6 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testGetComponentName_Null() {
-    assertThat(PdfGenerator.getComponentName(null, null)).isNull();
-  }
-
-  @Test
-  public void testGetComponentName_EmptyComponentIdentifier() {
-    assertThat(PdfGenerator.getComponentName(new ApiComponentIdentifierDTOV2(), null)).isNull();
-  }
-
-  @Test
-  public void testGetComponentName_ComponentIdentifierWithFormat() {
-    ApiComponentIdentifierDTOV2 componentIdentifier = new ApiComponentIdentifierDTOV2();
-    componentIdentifier.setFormat("format");
-
-    assertThat(PdfGenerator.getComponentName(componentIdentifier, null)).isNull();
-  }
-
-  @Test
-  public void testGetComponentName_ComponentIdentifierWithFormatAndOneCoordinate() {
-    ApiComponentIdentifierDTOV2 componentIdentifier = new ApiComponentIdentifierDTOV2();
-    componentIdentifier.setFormat("format");
-    Map<String, String> coordinates = new HashMap<>();
-    coordinates.put("coordinateName", "coordinateValue");
-    componentIdentifier.setCoordinates(coordinates);
-
-    assertThat(PdfGenerator.getComponentName(componentIdentifier, null)).isEqualTo("coordinateValue");
-  }
-
-  @Test
-  public void testGetComponentName_EmptyPathnames() {
-    assertThat(PdfGenerator.getComponentName(null, Collections.emptyList())).isNull();
-  }
-
-  @Test
-  public void testGetComponentName_PathnameWithOnePart() {
-    String pathname = "part";
-    assertThat(PdfGenerator.getComponentName(null, Collections.singletonList(pathname))).isEqualTo(pathname);
-  }
-
-  @Test
-  public void testGetComponentName_PathnameWithMultipleParts() {
-    String pathname = "part1/part2/part3";
-    assertThat(PdfGenerator.getComponentName(null, Collections.singletonList(pathname)))
-        .isEqualTo(pathname.split("/")[2]);
-  }
-
-  @Test
-  public void testGetComponentName_MultiplePathnames() {
-    List<String> pathnames = Arrays.asList("pathname1", "pathname2", "pathname3");
-    assertThat(PdfGenerator.getComponentName(null, pathnames)).isEqualTo(pathnames.get(0));
-  }
-
-  @Test
-  public void testGetComponentName_ComponentIdentifierAndPathname() {
-    ApiComponentIdentifierDTOV2 componentIdentifier = new ApiComponentIdentifierDTOV2();
-    componentIdentifier.setFormat("format");
-    Map<String, String> coordinates = new HashMap<>();
-    coordinates.put("coordinateName", "coordinateValue");
-    componentIdentifier.setCoordinates(coordinates);
-
-    assertThat(PdfGenerator.getComponentName(componentIdentifier, Collections.singletonList("pathname")))
-        .isEqualTo("coordinateValue");
-  }
-
-  @Test
   public void testGetLicensesString_Empty() {
     assertThat(getLicenseText(new ApiLicenseDataDTOV2())).isEmpty();
   }
@@ -558,7 +488,7 @@ public class PdfGeneratorTest
     violation.policyThreatLevel = threatLevel;
     violation.policyName = policyName;
     component.violations.add(violation);
-    component.pathnames.add(componentName);
+    component.displayName = componentName;
     return component;
   }
 
@@ -568,7 +498,7 @@ public class PdfGeneratorTest
       String componentName)
   {
     ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
-    component.pathnames.add(componentName);
+    component.displayName = componentName;
     component.securityData = new ApiSecurityDataDTO();
     ApiSecurityIssueDTO securityIssue = new ApiSecurityIssueDTO();
     securityIssue.reference = reference;
@@ -579,7 +509,7 @@ public class PdfGeneratorTest
 
   private ApiReportComponentDTOV2 generateComponentWithLicense(String licenseName, String componentName) {
     ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
-    component.pathnames.add(componentName);
+    component.displayName = componentName;
     component.licenseData = new ApiLicenseDataDTOV2();
     ApiLicenseDTO license = new ApiLicenseDTO();
     license.licenseName = licenseName;
@@ -589,7 +519,7 @@ public class PdfGeneratorTest
 
   private ApiReportComponentDTOV2 generateComponent(String componentName) {
     ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
-    component.pathnames.add(componentName);
+    component.displayName = componentName;
     return component;
   }
 

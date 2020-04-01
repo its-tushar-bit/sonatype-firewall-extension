@@ -157,6 +157,7 @@ public class ApiReportDataServiceV2Test
     assertThat(component.packageUrl).isEqualTo("pkg:maven/tomcat/tomcat-util@5.5.23");
     assertThat(component.pathnames).containsExactlyInAnyOrder("sample-application.zip/tomcat-util-5.5.23.jar",
         "sample-application.zip/dupe.jar");
+    assertThat(component.displayName).isEqualTo("tomcat : tomcat-util : 5.5.23");
     assertThat(component.licenseData).isNotNull();
     assertThat(component.licenseData.status).isEqualTo("Overridden");
     assertLicenses(component.licenseData.declaredLicenses, "Not-Declared");
@@ -176,6 +177,7 @@ public class ApiReportDataServiceV2Test
     assertThat(component.componentIdentifier).isNull();
     assertThat(component.pathnames).isNotNull();
     assertThat(component.pathnames).containsExactlyInAnyOrder("sample-application.zip");
+    assertThat(component.displayName).isEqualTo("sample-application.zip");
     assertThat(component.licenseData).isNull();
     assertThat(component.securityData).isNull();
   }
@@ -216,6 +218,7 @@ public class ApiReportDataServiceV2Test
     assertThat(component.proprietary).isTrue();
     assertThat(component.pathnames).containsExactlyInAnyOrder("sample-application.zip/tomcat-util-5.5.23.jar",
         "sample-application.zip/dupe.jar");
+    assertThat(component.displayName).isEqualTo("tomcat : tomcat-util : 5.5.23");
     // component identifier should be derived from bom.json
     assertThat(component.componentIdentifier.getFormat()).isEqualTo("maven");
     assertThat(component.componentIdentifier.getCoordinates().get(ComponentIdentifier.MAVEN_ARTIFACT_ID))
@@ -265,6 +268,7 @@ public class ApiReportDataServiceV2Test
     assertThat(component.proprietary).isFalse();
     assertThat(component.violations).isEmpty();
     assertThat(component.pathnames).containsExactlyInAnyOrder("sample-application.zip");
+    assertThat(component.displayName).isEqualTo("sample-application.zip");
   }
 
   @Test

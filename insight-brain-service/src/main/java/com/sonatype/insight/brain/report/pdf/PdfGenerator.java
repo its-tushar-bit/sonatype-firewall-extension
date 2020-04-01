@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.report.pdf;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -189,8 +190,8 @@ public class PdfGenerator
   }
 
   private void generate() throws IOException {
-    try (PDDocument pdf = new PDDocument()) {
-      this.pdf = pdf;
+    try (PDDocument pdDocument = new PDDocument()) {
+      this.pdf = pdDocument;
       initFontStyles(pdf);
       setDocumentMetadata();
       DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_STRING);
@@ -276,7 +277,7 @@ public class PdfGenerator
       float moderateWidth = drawRectangleWithText(contentStream, moderateStartX, moderateStartY, SUMMARY_IMAGE_SIZE,
           SUMMARY_IMAGE_SIZE, ThreatLevelColor.get(2), rectangleFontStyle, String.valueOf(moderate));
       float violationsTextStartX = moderateStartX + moderateWidth + PADDING;
-      float violationsTextStartY = criticalStartY + SUMMARY_IMAGE_SIZE / 2;
+      float violationsTextStartY = criticalStartY + SUMMARY_IMAGE_SIZE / 2f;
       String violationsText = total + " VIOLATIONS";
       addText(contentStream, violationsTextStartX, violationsTextStartY, summaryHeaderFontStyle, violationsText);
       float affectedComponentsStartX = violationsTextStartX;
@@ -563,7 +564,7 @@ public class PdfGenerator
       drawChart(pdf, contentStream, donutChartStartX, donutChartStartY, DONUT_CHART_SIZE, DONUT_CHART_SIZE,
           identifiedPercentDonutChart);
       float totalComponentsStartX = donutChartStartX + DONUT_CHART_SIZE + PADDING;
-      float totalComponentsStartY = donutChartStartY + SUMMARY_IMAGE_SIZE / 2;
+      float totalComponentsStartY = donutChartStartY + SUMMARY_IMAGE_SIZE / 2f;
       addText(contentStream, totalComponentsStartX, totalComponentsStartY, summaryHeaderFontStyle,
           totalComponents + " COMPONENTS");
       float componentPercentIdentifiedStartX = totalComponentsStartX;
@@ -767,16 +768,13 @@ public class PdfGenerator
    * This also provides a fix for rst.pdfbox.layout.util.WordBreakers.AbstractWordBreaker.breakWordHard potentially
    * causing a StringIndexOutOfBoundsException, see CLM-15256
    */
-  protected static class WordBreaker
+  public static class WordBreaker
       extends WordBreakers.AbstractWordBreaker
   {
     /**
      * A letter followed by either <code>,</code> or <code>/</code>.
      */
     private final Pattern breakPattern = Pattern.compile("[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF]([\\,/])");
-
-    public WordBreaker() {
-    }
 
     @Override
     protected Pair<String> breakWordSoft(String word, FontDescriptor fontDescriptor, float maxWidth)
@@ -865,14 +863,13 @@ public class PdfGenerator
         log.debug("Generated report PDF {} in {} ms", pdfFile, millis);
       }
       catch (Exception e) {
-        boolean deleted = false;
         try {
-          deleted = pdfFile.delete() && !pdfFile.exists();
+          Files.delete(pdfFile.toPath());
         }
         catch (Exception suppressed) {
           e.addSuppressed(suppressed);
         }
-        if (!deleted) {
+        if (pdfFile.exists()) {
           log.error("Could not delete broken PDF {}", pdfFile);
         }
         throw e;

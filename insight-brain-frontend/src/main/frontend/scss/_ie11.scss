@@ -1,0 +1,42 @@
+.iq-violation-details {
+  .nx-grid-col {
+    display: -ms-grid;
+
+      // NOTE: IE doesn't have an equivalent of `gap` but it looks alright without it
+  }
+}
+
+.iq-violation-details__left-details {
+  -ms-grid-columns: 1fr 1fr;
+  -ms-grid-rows: 1fr 1fr;
+}
+
+.iq-violation-details__threat-level {
+  -ms-grid-column: 1;
+  -ms-grid-row: 1;
+}
+
+.iq-violation-details__policy-type {
+  -ms-grid-column: 1;
+  -ms-grid-row: 2;
+}
+
+.iq-violation-details__first-reported {
+  -ms-grid-column: 2;
+  -ms-grid-row: 1;
+}
+
+.iq-violation-details__last-reported {
+  -ms-grid-column: 2;
+  -ms-grid-row: 2;
+}
+
+.iq-violation-details__stages {
+  -ms-grid-column: 1;
+  -ms-grid-row: 1;
+}
+
+.iq-violation-details__policy-owner {
+  -ms-grid-column: 1;
+  -ms-grid-row: 2;
+}

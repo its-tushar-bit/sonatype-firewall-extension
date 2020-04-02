@@ -63,6 +63,8 @@ public class Component
 
   private List<String> pathnames = new ArrayList<>();
 
+  private String displayName;
+
   private List<ComponentCategory> componentCategories = new ArrayList<>();
 
   private HygieneRating hygieneRating;
@@ -107,9 +109,17 @@ public class Component
   }
 
   @JsonIgnore
-  public String getDisplayName() {
+  public String getDisplayNameFromIdentifier() {
     ComponentDisplayName componentDisplayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier);
     return componentDisplayName != null ? componentDisplayName.toString() : null;
+  }
+
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
   }
 
   public Set<String> getDeclaredLicenseIds() {

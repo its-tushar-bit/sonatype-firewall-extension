@@ -7,13 +7,20 @@ import {connect} from 'react-redux';
 import {pick} from 'ramda';
 
 import { loadViolation } from './violationPageActions';
+import { fetchStageTypes } from '../stages/stagesActions';
 import ViolationPage from './ViolationPage';
 
-function mapStateToProps({ violationPage }) {
-  return pick(['loading', 'error'], violationPage);
+function mapStateToProps({ stages, violationPage }) {
+  const stageData = stages.dashboard;
+
+  return {
+    ...pick(['loading', 'error', 'violationDetails'], violationPage),
+    stageTypes: stageData.stageTypes,
+    stageTypesError: stageData.error
+  };
 }
 
-const mapDispatchToProps = { loadViolation };
+const mapDispatchToProps = { loadViolation, fetchStageTypes };
 
 const ViolationPageContainer = connect(mapStateToProps, mapDispatchToProps)(ViolationPage);
 export default ViolationPageContainer;

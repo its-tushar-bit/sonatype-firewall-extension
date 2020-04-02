@@ -287,7 +287,8 @@ public class PolicyEvaluateService
       String policyEvaluationKey = getPolicyEvaluationKey(app.getPublicId(), statusId);
 
       try {
-        ScanReceipt scanReceipt = scanHandler.handle(tempScanFile, app, clientScanType, telemetryData);
+        ScanReceipt scanReceipt = scanHandler.handle(tempScanFile, app, clientScanType, telemetryData,
+            stage.getStageTypeId());
         scanId = scanReceipt.getScanId();
 
         policyEvaluationPollingResult.setScanReceipt(scanReceipt);

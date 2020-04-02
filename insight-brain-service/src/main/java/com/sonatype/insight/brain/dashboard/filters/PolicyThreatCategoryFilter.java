@@ -12,8 +12,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.codehaus.plexus.util.StringUtils;
@@ -65,11 +65,11 @@ public class PolicyThreatCategoryFilter
   /**
    * Transforms this predicate into one that applies the same filtering to policy violations.
    */
-  public Predicate<PolicyViolation> asPolicyViolationPredicate() {
-    return new Predicate<PolicyViolation>()
+  public Predicate<AbstractPolicyViolation> asPolicyViolationPredicate() {
+    return new Predicate<AbstractPolicyViolation>()
     {
       @Override
-      public boolean test(PolicyViolation policyViolation) {
+      public boolean test(AbstractPolicyViolation policyViolation) {
         return PolicyThreatCategoryFilter.this.test(policyViolation.getThreatCategory());
       }
     };

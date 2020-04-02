@@ -31,6 +31,7 @@
 @import "../mainHeader/mainHeader";
 @import "../mainHeader/userMenu/userDetailsModal";
 @import "../utility/services/loginModal";
+@import "../react/iqViolationExclamation";
 
 // Directives
 @import "../directives/directives";
@@ -67,6 +68,7 @@
 @import "../advancedSearch/advancedSearch.scss";
 @import "../owner.manager/source.control/source.control.editor.scss";
 @import "../report/report/_report.scss";
+@import "../violation/violationPage";
 
 // CIP
 @import "../version-graph/icons.css";
@@ -75,3 +77,4 @@
 @import "responsive";
 @import "print";
 @import "ie9";
+@import "ie11";

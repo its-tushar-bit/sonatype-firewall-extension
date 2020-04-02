@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -109,19 +110,30 @@ public class ApiComponentsWithWaiversReportingService
     this.ownerDAO = ownerDAO;
   }
 
-  public ApiComponentWaiversDTO getComponentsWithWaivers() {
+  public ApiComponentWaiversDTO getComponentsWithWaivers(String format) {
     final AtomicInteger componentsWithWaiversCount = new AtomicInteger(0);
+
+    Predicate<AbstractPolicyViolation> statePredicate =
+        new PolicyViolationStateFilter(PolicyViolationState.WAIVED).asPolicyViolationPredicate();
+
+    Predicate<AbstractPolicyViolation> formatPredicate = violation -> {
+      ComponentIdentifier componentId = violation.getComponentIdentifier();
+      return componentId != null && componentId.getFormat().equals(format);
+    };
+
+    Predicate<AbstractPolicyViolation> overallPredicate =
+        format == null ? statePredicate : statePredicate.and(formatPredicate);
 
     List<Application> applications = applicationService.getApplications();
     Collection<ApplicationView> appViews =
-        policyViolationLoader.getViolations(applications, null, false,
-            new PolicyViolationStateFilter(PolicyViolationState.WAIVED).asPolicyViolationPredicate());
+        policyViolationLoader.getViolations(applications, null, false, overallPredicate);
 
     List<RepositoryDTO> repositoryDTOs = repositoryService.getRepositories().repositories;
 
     ApiComponentWaiversDTO componentWaiversDTO = new ApiComponentWaiversDTO();
     componentWaiversDTO.applicationWaivers = buildApplicationWaiverDTOs(appViews, componentsWithWaiversCount);
-    componentWaiversDTO.repositoryWaivers = buildRepositoryWaiverDTOs(repositoryDTOs, componentsWithWaiversCount);
+    componentWaiversDTO.repositoryWaivers =
+        buildRepositoryWaiverDTOs(repositoryDTOs, overallPredicate, componentsWithWaiversCount);
 
     log.debug("getComponentsWithWaivers: Processed {} components with waived policy violations.",
         componentsWithWaiversCount);
@@ -213,6 +225,7 @@ public class ApiComponentsWithWaiversReportingService
 
   private List<ApiRepositoryWaiverDTO> buildRepositoryWaiverDTOs(
       List<RepositoryDTO> repositoryDTOs,
+      Predicate<? super RepositoryPolicyViolation> violationFilterPredicate,
       final AtomicInteger componentsWithWaiversCount)
   {
     List<ApiRepositoryWaiverDTO> repositoryWaiverDTOs = new ArrayList<>();
@@ -227,6 +240,7 @@ public class ApiComponentsWithWaiversReportingService
           repositoryPolicyViolationDao.getActiveWaivedRepositoryPolicyViolations(idToRepositoryMap.keySet());
 
       repositoryPolicyViolations.stream()
+          .filter(violationFilterPredicate)
           .collect(Collectors.groupingBy(RepositoryPolicyViolation::getRepositoryId))
           .forEach((repositoryId, policyViolations) -> {
             ApiRepositoryDTO repositoryDTO =

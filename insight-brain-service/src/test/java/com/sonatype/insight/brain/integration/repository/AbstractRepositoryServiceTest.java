@@ -89,18 +89,18 @@ import static org.mockito.Mockito.when;
 public abstract class AbstractRepositoryServiceTest
     extends AbstractComponentTest
 {
-  private static final String MANUAL_REPO_MAN_INSTANCE_ID = "manualDeleteRepoManagerInstanceId";
+  protected static final String MANUAL_REPO_MAN_INSTANCE_ID = "manualDeleteRepoManagerInstanceId";
 
-  private static final String REPO_MAN_INSTANCE_ID = "repoManagerInstanceId";
+  protected static final String REPO_MAN_INSTANCE_ID = "repoManagerInstanceId";
 
-  private static final String REPO_PUBLIC_ID = "repoPublicId";
+  protected static final String REPO_PUBLIC_ID = "repoPublicId";
 
   @Rule
   public LogOutput policyViolationLoggerOutput = new LogOutput(
       AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
   @Inject
-  private TestProductLicense testProductLicense;
+  protected TestProductLicense testProductLicense;
 
   @Inject
   private PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications;
@@ -1542,7 +1542,7 @@ public abstract class AbstractRepositoryServiceTest
     }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
-  private void mockHdsRequest(
+  protected void mockHdsRequest(
       RepositoryComponentEvaluationDataRequestList serviceRequest,
       ComponentEvaluationDataList hdsResult,
       boolean quarantine)
@@ -1562,7 +1562,7 @@ public abstract class AbstractRepositoryServiceTest
             isNull(), eq(hdsRequest))).thenReturn(hdsResult);
   }
 
-  private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier,
+  protected ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier,
                                                                 String hash,
                                                                 MatchState matchState,
                                                                 int index,
@@ -1585,7 +1585,7 @@ public abstract class AbstractRepositoryServiceTest
     return componentEvaluationData;
   }
 
-  private List<SecurityVulnerability> createSecurityVulnerabilities() {
+  protected List<SecurityVulnerability> createSecurityVulnerabilities() {
     List<SecurityVulnerability> securityVulnerabilities = new ArrayList<>();
     SecurityVulnerability securityVulnerability = new SecurityVulnerability();
     securityVulnerability.setRefId("refId");

@@ -5,9 +5,9 @@
  */
 import { createReducerFromActionMap, propSetConst } from '../util/reduxUtil';
 import { LOAD_VIOLATION_REQUESTED, LOAD_VIOLATION_FULFILLED, LOAD_VIOLATION_FAILED } from './violationPageActions';
-import { Messages } from '../util/CommonServices';
 
 const initialState = Object.freeze({
+  violationDetails: null,
   loading: false,
   error: null
 });
@@ -19,11 +19,16 @@ const reducerActionMap = {
 };
 
 function loadFulfilled(payload, state) {
-  return { ...state, loading: false, error: null };
+  return {
+    ...state,
+    loading: false,
+    error: null,
+    violationDetails: payload
+  };
 }
 
 function loadFailed(payload, state) {
-  return { ...state, loading: false, error: Messages.getHttpErrorMessage(payload) };
+  return { ...state, loading: false, error: payload };
 }
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

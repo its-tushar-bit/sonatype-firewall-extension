@@ -14,7 +14,16 @@
 
 $iq-cip-tab-content-padding-top: 5px;
 
+$cip-modal-header-height: 37px;
+$cip-modal-tab-bar-height: 42px;
+$cip-modal-footer-height: 60px;
+$cip-modal-vertical-margins: 100px;
+$cip-modal-height: calc(100vh - #{$cip-modal-vertical-margins});
+$cip-modal-max-height: 540px;
+
 .iq-modal__cip {
+  height: $cip-modal-height;
+  max-height: $cip-modal-max-height;
   left: calc(50% - 450px);
   width: 901px;
 
@@ -23,7 +32,8 @@ $iq-cip-tab-content-padding-top: 5px;
     padding: 0;
 
     #informationPanel {
-      height: 325px;
+      height: calc(#{$cip-modal-height} - #{$cip-modal-header-height} - #{$cip-modal-footer-height});
+      max-height: $cip-modal-max-height - $cip-modal-header-height - $cip-modal-footer-height;
 
       .tab-content {
         height: 100%;
@@ -109,6 +119,44 @@ $iq-cip-tab-content-padding-top: 5px;
 #cip-occurrences {
   list-style: none;
   margin: 0;
+}
+
+// In most tabs the contents have a hard coded height, this overrides that value
+// if possible refactor the unique selectors below to use .cip-info-wrapper as part of each tab's sub-task
+.cip-info-wrapper,
+#cip-policy-violations,
+cip-similar,
+cip-occurrences,
+#license-editor,
+#vulnerability-editor-table-wrapper,
+.labelEditor.iq-load-wrapper,
+cip-audit,
+#claim-component-editor {
+  height: calc(#{$cip-modal-height}
+                 - #{$cip-modal-header-height}
+                 - #{$cip-modal-tab-bar-height}
+                 - #{$cip-modal-footer-height}
+                 - #{$iq-cip-tab-content-padding-top});
+  max-height: $cip-modal-max-height
+              - $cip-modal-header-height
+              - $cip-modal-tab-bar-height
+              - $cip-modal-footer-height
+              - $iq-cip-tab-content-padding-top;
+}
+
+.cip-policy-wrapper {
+  height: calc(#{$cip-modal-height}
+                 - #{$cip-modal-header-height}
+                 - #{$cip-modal-tab-bar-height}
+                 - #{$cip-modal-footer-height}
+                 - #{$iq-spacing-xs}
+                 - 42px); // button bar & margins
+  max-height: $cip-modal-max-height
+              - $cip-modal-header-height
+              - $cip-modal-tab-bar-height
+              - $cip-modal-footer-height
+              - $iq-spacing-xs
+              - 42px; // button bar & margins
 }
 
 cip-audit {

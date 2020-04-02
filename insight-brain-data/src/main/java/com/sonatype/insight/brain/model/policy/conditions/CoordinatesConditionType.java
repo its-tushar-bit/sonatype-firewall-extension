@@ -70,8 +70,8 @@ public class CoordinatesConditionType
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
     String conditionComponent =
         ComponentDisplayNameUtil.fromIdentifier(getComponentIdentifier(condition.getValue())).toString();
-    return "Coordinates were " + matchFact.getComponent().getDisplayName() + " (" + condition.getOperator() + " " +
-        conditionComponent + ")";
+    return "Coordinates were " + matchFact.getComponent().getDisplayNameFromIdentifier() + " (" +
+        condition.getOperator() + " " + conditionComponent + ")";
   }
 
   @Override

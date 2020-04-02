@@ -230,7 +230,7 @@ public class ApiPromoteScanServiceV2
           }
         }
 
-        final ScanReceipt scanReceipt = uploader.upload(tempScanFile, application);
+        final ScanReceipt scanReceipt = uploader.upload(tempScanFile, application, targetStageId);
         scanReceipt.waitForReport();
         Files.move(tempScanFile.toPath(), work.getScanFile(application.getId(), scanReceipt.getScanId()).toPath());
         ScanPolicyEvaluatorResults results = scanPolicyEvaluator

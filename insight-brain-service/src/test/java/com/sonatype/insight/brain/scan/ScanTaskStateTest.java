@@ -28,6 +28,7 @@ import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -88,7 +89,7 @@ public class ScanTaskStateTest
 
   @Test
   public void uploading() throws IOException {
-    when(uploader.upload((File) any(), any(Application.class))).then(captureState);
+    when(uploader.upload(any(), any(Application.class), anyString())).then(captureState);
 
     task.run();
 
@@ -98,7 +99,7 @@ public class ScanTaskStateTest
   @Test
   public void waitingForReport() throws IOException, InterruptedException {
     ScanReceipt scanReciept = mock(ScanReceipt.class);
-    when(uploader.upload((File) any(), any(Application.class))).thenReturn(scanReciept);
+    when(uploader.upload(any(), any(Application.class), anyString())).thenReturn(scanReciept);
 
     doAnswer(captureState).when(scanReciept).waitForReport();
 
@@ -110,7 +111,7 @@ public class ScanTaskStateTest
   @Test
   public void evaluating() throws IOException {
     ScanReceipt scanReciept = mock(ScanReceipt.class);
-    when(uploader.upload((File) any(), any(Application.class))).thenReturn(scanReciept);
+    when(uploader.upload((File) any(), any(Application.class), anyString())).thenReturn(scanReciept);
 
     when(scanPolicyEvaluator.evaluate(any(), (String) any(), (Stage) any())).then(captureState);
 

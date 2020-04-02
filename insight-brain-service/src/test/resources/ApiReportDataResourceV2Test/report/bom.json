@@ -2,6 +2,13 @@
   "aaData" : [ {
     "filenames" : [ "tomcat-util-5.5.23.jar" ],
     "pathnames" : [ "sample-application.zip/tomcat-util-5.5.23.jar", "sample-application.zip/dupe.jar", "dependency:/test:my-app:ear:1.2/tomcat:tomcat-util:5.5.23" ],
+    "displayName": {
+      "parts": [
+        {
+          "value": "displayName"
+        }
+      ]
+    },
     "groupId" : "tomcat",
     "artifactId" : "tomcat-util",
     "version" : "5.5.23",
@@ -16,6 +23,13 @@
   }, {
     "filenames" : [ "sample-application.zip" ],
     "pathnames" : [ "sample-application.zip" ],
+    "displayName": {
+      "parts": [
+        {
+          "value": "displayName"
+        }
+      ]
+    },
     "groupId" : null,
     "artifactId" : null,
     "version" : null,

@@ -154,7 +154,7 @@ public abstract class AbstractRepositoryService
   }
 
   // synchronized to avoid race between enable requests from different repos of the same instance
-  private synchronized RepositoryManager getOrCreateRepositoryManager(String repositoryManagerInstanceId) {
+  protected synchronized RepositoryManager getOrCreateRepositoryManager(String repositoryManagerInstanceId) {
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(repositoryManagerInstanceId);
     if (repositoryManager == null) {
       repositoryManager = new RepositoryManager(repositoryManagerInstanceId);
@@ -209,10 +209,10 @@ public abstract class AbstractRepositoryService
         repositoryPublicId, repository.getId(), withQuarantine);
 
     return evaluateComponents(repository, repositoryManagerInstanceId, componentEvaluationDataRequestList,
-        withQuarantine, clientUserAgent);
+        withQuarantine, true, clientUserAgent);
   }
 
-  private void auditRepoComponentEvalList(RepositoryComponentEvaluationDataRequestList repoComponentEvalList) {
+  protected void auditRepoComponentEvalList(RepositoryComponentEvaluationDataRequestList repoComponentEvalList) {
     if (repoComponentEvalList != null) {
       AuditData.get().setData("componentCount",
           repoComponentEvalList.components == null ? 0 : repoComponentEvalList.components.size());
@@ -260,13 +260,14 @@ public abstract class AbstractRepositoryService
       String repositoryManagerInstanceId,
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
       final boolean withQuarantine,
+      final boolean persistEvaluationResults,
       final String clientUserAgent)
   {
     long start = System.currentTimeMillis();
 
     if (!repository.isEnabled() || (withQuarantine && !repository.isQuarantineEnabled())
         || repository.getFormat() == null) {
-      if (!repository.isEnabled()) {
+      if (!repository.isEnabled() && persistEvaluationResults) {
         log.info("Enabled audit for repository {}:{} ({})", repository.getRepositoryManagerId(),
             repository.getPublicId(), repository.getId());
         repository.setEnabled(true);
@@ -274,7 +275,7 @@ public abstract class AbstractRepositoryService
           AuditData.get().setRepository(repository).setData("repositoryManagerInstanceId", repositoryManagerInstanceId);
         }
       }
-      if (withQuarantine) {
+      if (withQuarantine && persistEvaluationResults) {
         if (!repository.isQuarantineEnabled()) {
           log.info("Enabled quarantine for repository {}:{} ({})", repository.getRepositoryManagerId(),
               repository.getPublicId(), repository.getId());
@@ -300,7 +301,7 @@ public abstract class AbstractRepositoryService
     normalizeComponents(componentEvaluationDataRequestList);
 
     RepositoryComponentEvaluationDataList result = repositoryPolicyEvaluator.evaluate(repository,
-        componentEvaluationDataRequestList, withQuarantine, clientUserAgent);
+        componentEvaluationDataRequestList, withQuarantine, persistEvaluationResults, clientUserAgent);
 
     log.debug("Evaluated {} components with quarantine {} for repository {}:{} ({}) because of {} in {} ms.",
         componentEvaluationDataRequestList.components.size(), withQuarantine, repository.getRepositoryManagerId(),

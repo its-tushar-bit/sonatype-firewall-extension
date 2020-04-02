@@ -9,15 +9,18 @@ import * as PropTypes from 'prop-types';
 import LoadWrapper from '../react/LoadWrapper';
 import MaximizedContainer from '../react/MaximizedContainer';
 import BackButton from '../react/BackButton';
+import ViolationDetailsTile from './ViolationDetailsTile';
 
-// TODO after backend call is implemented: uncomment error handling
-export default function ViolationPage({ $state, loadViolation, loading/*, error */ }) {
-  const { id } = $state.params;
+export default function ViolationPage(props) {
+  const { $state, loadViolation, fetchStageTypes, loading, violationDetails, stageTypes } = props,
+      { id } = $state.params,
+      error = props.error || props.stageTypesError;
 
   useEffect(() => { load(); }, [id]);
 
   function load() {
     loadViolation(id);
+    fetchStageTypes('dashboard');
   }
 
   return (
@@ -26,16 +29,8 @@ export default function ViolationPage({ $state, loadViolation, loading/*, error 
         <BackButton $state={$state} stateName="dashboard.overview.violations"/>
       </aside>
       <div className="nx-page-main">
-        <LoadWrapper { ...({ loading/*, error*/ }) }>
-          <div className="nx-tile">
-            <div className="nx-tile-header">
-              <div className="nx-tile-header__title">
-                <h2 className="nx-h2">
-                  Violation {id}
-                </h2>
-              </div>
-            </div>
-          </div>
+        <LoadWrapper error={error} loading={loading || !(violationDetails && stageTypes)}>
+          <ViolationDetailsTile { ...({ $state, stageTypes, violationDetails }) } />
         </LoadWrapper>
       </div>
     </MaximizedContainer>
@@ -46,9 +41,15 @@ ViolationPage.propTypes = {
   $state: PropTypes.shape({
     params: PropTypes.shape({
       id: PropTypes.string.isRequired
-    }).isRequired
+    }).isRequired,
+    get: PropTypes.func.isRequired,
+    href: PropTypes.func.isRequired
   }).isRequired,
   loadViolation: PropTypes.func.isRequired,
+  fetchStageTypes: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
-  error: LoadWrapper.propTypes.error
+  error: LoadWrapper.propTypes.error,
+  stageTypesError: LoadWrapper.propTypes.error,
+  violationDetails: ViolationDetailsTile.propTypes.violationDetails,
+  stageTypes: ViolationDetailsTile.propTypes.stageTypes
 };

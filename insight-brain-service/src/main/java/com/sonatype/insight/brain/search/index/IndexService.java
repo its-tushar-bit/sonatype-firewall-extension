@@ -521,7 +521,7 @@ public class IndexService
         .setComponentHash(component.getHash()) //
         .setComponentFormat(component.getComponentIdentifier().getFormat()) //
         .setComponentCoordinates(component) //
-        .setComponentName(component.getDisplayName()) //
+        .setComponentName(component.getDisplayNameFromIdentifier()) //
         .setVulnerabilityId(vulnerability.getRefId()) //
         .setVulnerabilitySeverity(vulnerability.getSeverity()) //
         .setVulnerabilityStatus(vulnerability.getStatus().getName()) //

@@ -35,6 +35,7 @@ import org.mockito.ArgumentCaptor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
@@ -97,7 +98,8 @@ public class ScanTaskTest
     tmpScanFile.createNewFile();
     when(work.getScanDir(eq(app.getId()))).thenReturn(scanDir);
     when(work.getScanFile(eq(app.getId()), eq(scanReceipt.getScanId()))).thenReturn(scanFile);
-    when(uploader.upload(eq(tmpScanFile), eq(app))).thenReturn(scanReceipt);
+
+    when(uploader.upload(eq(tmpScanFile), eq(app), anyString())).thenReturn(scanReceipt);
     ScanResult scanResult = new ScanResult(tmpScanFile, false);
     when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq(null))).thenReturn(scanResult);
     when(thirdPartyScanResultsProcessor.handle(any(File.class), any(TelemetryData.class)))
@@ -223,7 +225,8 @@ public class ScanTaskTest
     task.init(app, scanBinary, bundleFilename, stage, false, "agent", "ui");
     when(scanner.scan(any(File.class), any(String.class), any(File.class), eq(null)))
         .thenReturn(new ScanResult(scanBinary, true));
-    when(uploader.upload(any(File.class), eq(app))).thenReturn(scanReceipt);
+
+    when(uploader.upload(any(File.class), eq(app), anyString())).thenReturn(scanReceipt);
     task.run();
     ArgumentCaptor<TelemetryData> arg = ArgumentCaptor.forClass(TelemetryData.class);
     verify(thirdPartyScanResultsProcessor).handle(eq(scanBinary), arg.capture());

@@ -185,7 +185,7 @@ public class IndexServiceTest
             TextField.class, true),
         field(FieldIdentifier.COMPONENT_COORDINATE + "Version", componentId.get(ComponentIdentifier.VERSION),
             TextField.class, true),
-        field(FieldIdentifier.COMPONENT_NAME, component.getDisplayName(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_NAME, component.getDisplayNameFromIdentifier(), TextField.class, true),
         field(FieldIdentifier.VULNERABILITY_ID, vuln.getRefId(), TextField.class, true),
         field(FieldIdentifier.VULNERABILITY_SEVERITY, vuln.getSeverity(), FloatPoint.class, false),
         field(FieldIdentifier.VULNERABILITY_SEVERITY, vuln.getSeverity(), StoredField.class, true),

@@ -42,7 +42,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
-import com.sonatype.insight.brain.organization.ContactDTO;
+import com.sonatype.insight.brain.report.pdf.PdfGenerator;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -268,7 +268,7 @@ public final class Report
   }
 
   private static void deletePdfReport(File reportFile) {
-    File pdfReportFile = Pdf.getPdfFile(reportFile);
+    File pdfReportFile = PdfGenerator.getPdfFile(reportFile);
     try {
       if (Files.deleteIfExists(pdfReportFile.toPath())) {
         log.debug("Deleted obsolete PDF report file: {}.", pdfReportFile.getAbsolutePath());
@@ -677,14 +677,6 @@ public final class Report
     }
     licenseThreatsJson.set("aaData", licenseTable);
     saveReportEntry(reportFile, "licensethreats.json", licenseThreatsJson);
-  }
-
-  public static File printPdf(final File reportFile,
-                              final String projectName,
-                              final String stageName,
-                              final ContactDTO contact) throws IOException
-  {
-    return Pdf.generate(reportFile, getCacheDir(reportFile), projectName, stageName, contact);
   }
 
   private static ReportEntry extractEntry(final File reportFile, final String name) throws IOException {

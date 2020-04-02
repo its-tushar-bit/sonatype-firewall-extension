@@ -1,0 +1,2795 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2014-0015",
+    "source" : "sonatype",
+    "score" : 5.4,
+    "cwe" : "",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2014-0016",
+    "source" : "sonatype",
+    "score" : 5.4,
+    "cwe" : "",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2014-0017",
+    "source" : "sonatype",
+    "score" : 6.5,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2014-0043",
+    "source" : "sonatype",
+    "score" : 7.5,
+    "cwe" : "78",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2014-0058",
+    "source" : "sonatype",
+    "score" : 3.6,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:P/AC:H/PR:H/UI:N/S:U/C:L/I:L/A:L",
+    "cvssVectorSource" : "SONATYPE",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2014-0059",
+    "source" : "sonatype",
+    "score" : 3.6,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.0/AV:P/AC:H/PR:H/UI:N/S:U/C:L/I:L/A:L",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2014-0060",
+    "source" : "sonatype",
+    "score" : 4.4,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:L/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "SONATYPE",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2014-0068",
+    "source" : "sonatype",
+    "score" : 6.5,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2014-0069",
+    "source" : "sonatype",
+    "score" : 5.4,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:L/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2015-0057",
+    "source" : "sonatype",
+    "score" : 6.5,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N",
+    "cvssVectorSource" : "SONATYPE",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2015-0059",
+    "source" : "sonatype",
+    "score" : 6.5,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2015-0078",
+    "source" : "sonatype",
+    "score" : 4.8,
+    "cwe" : "346",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:H/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "SONATYPE",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2015-0080",
+    "source" : "sonatype",
+    "score" : 5.4,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:L/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2016-0272",
+    "source" : "sonatype",
+    "score" : 4.7,
+    "cwe" : "693",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "SONATYPE",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2016-0282",
+    "source" : "sonatype",
+    "score" : 6.5,
+    "cwe" : "95",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:C/C:L/I:L/A:L",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2017-0023",
+    "source" : "sonatype",
+    "score" : 4.7,
+    "cwe" : "269",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angularjs",
+        "qualifier" : "",
+        "version" : "1.2.16"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "16e2da53f9d2c1744211",
+    "url" : null,
+    "reference" : "sonatype-2017-0486",
+    "source" : "sonatype",
+    "score" : 4.3,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angularjs"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.16"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework.security",
+    "artifactId" : "spring-security-web",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "197d803ab63dd3523d9d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-9879",
+    "reference" : "CVE-2016-9879",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "417",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework.security"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-security-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework.security",
+    "artifactId" : "spring-security-web",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "197d803ab63dd3523d9d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-1199",
+    "reference" : "CVE-2018-1199",
+    "source" : "cve",
+    "score" : 5.3,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+    "cvssVectorSource" : "NVD",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework.security"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-security-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework.security",
+    "artifactId" : "spring-security-web",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "197d803ab63dd3523d9d",
+    "url" : null,
+    "reference" : "sonatype-2017-0507",
+    "source" : "sonatype",
+    "score" : 5.0,
+    "cwe" : "352",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:L",
+    "cvssVectorSource" : "SONATYPE",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework.security"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-security-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework.security",
+    "artifactId" : "spring-security-web",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "197d803ab63dd3523d9d",
+    "url" : null,
+    "reference" : "sonatype-2017-0641",
+    "source" : "sonatype",
+    "score" : 7.1,
+    "cwe" : "264",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:H/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework.security"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-security-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework.security",
+    "artifactId" : "spring-security-web",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "197d803ab63dd3523d9d",
+    "url" : null,
+    "reference" : "sonatype-2019-0341",
+    "source" : "sonatype",
+    "score" : 3.7,
+    "cwe" : "208",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework.security"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-security-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework.security",
+    "artifactId" : "spring-security-web",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "197d803ab63dd3523d9d",
+    "url" : null,
+    "reference" : "sonatype-2019-0469",
+    "source" : "sonatype",
+    "score" : 5.4,
+    "cwe" : "352",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework.security"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-security-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-fileupload",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-fileupload",
+        "version" : "1.2.2"
+      }
+    },
+    "groupId" : "commons-fileupload",
+    "artifactId" : "commons-fileupload",
+    "version" : "1.2.2",
+    "hash" : "1e48256a2341047e7d72",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-0248",
+    "reference" : "CVE-2013-0248",
+    "source" : "cve",
+    "score" : 3.3,
+    "cwe" : "264",
+    "cvssVectorString" : "AV:L/AC:M/Au:N/C:N/I:P/A:P",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-fileupload"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-fileupload"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-fileupload",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-fileupload",
+        "version" : "1.2.2"
+      }
+    },
+    "groupId" : "commons-fileupload",
+    "artifactId" : "commons-fileupload",
+    "version" : "1.2.2",
+    "hash" : "1e48256a2341047e7d72",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-2186",
+    "reference" : "CVE-2013-2186",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "20",
+    "cvssVectorString" : "AV:N/AC:L/Au:N/C:P/I:P/A:P",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-fileupload"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-fileupload"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-fileupload",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-fileupload",
+        "version" : "1.2.2"
+      }
+    },
+    "groupId" : "commons-fileupload",
+    "artifactId" : "commons-fileupload",
+    "version" : "1.2.2",
+    "hash" : "1e48256a2341047e7d72",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-0050",
+    "reference" : "CVE-2014-0050",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "264",
+    "cvssVectorString" : "AV:N/AC:L/Au:N/C:P/I:P/A:P",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-fileupload"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-fileupload"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-fileupload",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-fileupload",
+        "version" : "1.2.2"
+      }
+    },
+    "groupId" : "commons-fileupload",
+    "artifactId" : "commons-fileupload",
+    "version" : "1.2.2",
+    "hash" : "1e48256a2341047e7d72",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-1000031",
+    "reference" : "CVE-2016-1000031",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "284",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "NVD",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-fileupload"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-fileupload"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-fileupload",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-fileupload",
+        "version" : "1.2.2"
+      }
+    },
+    "groupId" : "commons-fileupload",
+    "artifactId" : "commons-fileupload",
+    "version" : "1.2.2",
+    "hash" : "1e48256a2341047e7d72",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-3092",
+    "reference" : "CVE-2016-3092",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-fileupload"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-fileupload"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-fileupload",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-fileupload",
+        "version" : "1.2.2"
+      }
+    },
+    "groupId" : "commons-fileupload",
+    "artifactId" : "commons-fileupload",
+    "version" : "1.2.2",
+    "hash" : "1e48256a2341047e7d72",
+    "url" : null,
+    "reference" : "sonatype-2014-0173",
+    "source" : "sonatype",
+    "score" : 5.3,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-fileupload"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-fileupload"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "hsqldb",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "hsqldb",
+        "version" : "1.8.0.7"
+      }
+    },
+    "groupId" : "hsqldb",
+    "artifactId" : "hsqldb",
+    "version" : "1.8.0.7",
+    "hash" : "20554954120b3cc9f088",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-4575",
+    "reference" : "CVE-2007-4575",
+    "source" : "cve",
+    "score" : 9.3,
+    "cwe" : "94",
+    "cvssVectorString" : "AV:N/AC:M/Au:N/C:C/I:C/A:C",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "hsqldb"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "hsqldb"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.8.0.7"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars jquery",
+        "qualifier" : "",
+        "version" : "1.10.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "37081687a930b9a4a29c",
+    "url" : null,
+    "reference" : "sonatype-2014-0026",
+    "source" : "sonatype",
+    "score" : 6.5,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:H/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars jquery"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.10.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars jquery",
+        "qualifier" : "",
+        "version" : "1.10.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "37081687a930b9a4a29c",
+    "url" : null,
+    "reference" : "sonatype-2019-0115",
+    "source" : "sonatype",
+    "score" : 9.8,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "SONATYPE",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars jquery"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.10.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-collections",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "apache-collections",
+        "version" : "3.1"
+      }
+    },
+    "groupId" : "apache-collections",
+    "artifactId" : "commons-collections",
+    "version" : "3.1",
+    "hash" : "40fb048097caeacdb11d",
+    "url" : null,
+    "reference" : "sonatype-2015-0002",
+    "source" : "sonatype",
+    "score" : 9.0,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "apache-collections"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-collections"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.1"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework.security",
+    "artifactId" : "spring-security-core",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "493bc57396a821e8ffa7",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-11272",
+    "reference" : "CVE-2019-11272",
+    "source" : "cve",
+    "score" : 7.3,
+    "cwe" : "255",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
+    "cvssVectorSource" : "NVD",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework.security"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-security-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework.security",
+    "artifactId" : "spring-security-core",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "493bc57396a821e8ffa7",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-3795",
+    "reference" : "CVE-2019-3795",
+    "source" : "cve",
+    "score" : 5.3,
+    "cwe" : "332",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+    "cvssVectorSource" : "NVD",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework.security"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-security-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "Log4j",
+        "version" : "1.2.17"
+      }
+    },
+    "groupId" : "Log4j",
+    "artifactId" : "log4j",
+    "version" : "1.2.17",
+    "hash" : "5af35056b4d257e4b64b",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-17571",
+    "reference" : "CVE-2019-17571",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "Log4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "log4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.2.17"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "mail",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "javax.mail",
+        "version" : "1.4.2"
+      }
+    },
+    "groupId" : "javax.mail",
+    "artifactId" : "mail",
+    "version" : "1.4.2",
+    "hash" : "6a1d836b6a4c77ec11ac",
+    "url" : null,
+    "reference" : "sonatype-2017-0492",
+    "source" : "sonatype",
+    "score" : 4.3,
+    "cwe" : "200",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N",
+    "cvssVectorSource" : "SONATYPE",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "javax.mail"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "mail"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jstl",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "javax.servlet",
+        "version" : "1.2"
+      }
+    },
+    "groupId" : "javax.servlet",
+    "artifactId" : "jstl",
+    "version" : "1.2",
+    "hash" : "74aca283cd4f4b4f3e42",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2015-0254",
+    "reference" : "CVE-2015-0254",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "611",
+    "cvssVectorString" : "AV:N/AC:L/Au:N/C:P/I:P/A:P",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "javax.servlet"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jstl"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars angular-ui-bootstrap",
+        "qualifier" : "",
+        "version" : "0.11.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "7ed83d6b9c78bf0880d4",
+    "url" : null,
+    "reference" : "sonatype-2015-0115",
+    "source" : "sonatype",
+    "score" : 6.5,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N",
+    "cvssVectorSource" : "SONATYPE",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars angular-ui-bootstrap"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "0.11.0"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "axis",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "axis",
+        "version" : "1.2"
+      }
+    },
+    "groupId" : "axis",
+    "artifactId" : "axis",
+    "version" : "1.2",
+    "hash" : "892c772f7c486b3c09d2",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-2353",
+    "reference" : "CVE-2007-2353",
+    "source" : "cve",
+    "score" : 5.0,
+    "cwe" : "200",
+    "cvssVectorString" : "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "axis"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "axis"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "axis",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "axis",
+        "version" : "1.2"
+      }
+    },
+    "groupId" : "axis",
+    "artifactId" : "axis",
+    "version" : "1.2",
+    "hash" : "892c772f7c486b3c09d2",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-5784",
+    "reference" : "CVE-2012-5784",
+    "source" : "cve",
+    "score" : 5.8,
+    "cwe" : "20",
+    "cvssVectorString" : "AV:N/AC:M/Au:N/C:P/I:P/A:N",
+    "cvssVectorSource" : "NVD",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "axis"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "axis"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "axis",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "axis",
+        "version" : "1.2"
+      }
+    },
+    "groupId" : "axis",
+    "artifactId" : "axis",
+    "version" : "1.2",
+    "hash" : "892c772f7c486b3c09d2",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-3596",
+    "reference" : "CVE-2014-3596",
+    "source" : "cve",
+    "score" : 5.8,
+    "cwe" : "",
+    "cvssVectorString" : "AV:N/AC:M/Au:N/C:P/I:P/A:N",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "axis"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "axis"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "axis",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "axis",
+        "version" : "1.2"
+      }
+    },
+    "groupId" : "axis",
+    "artifactId" : "axis",
+    "version" : "1.2",
+    "hash" : "892c772f7c486b3c09d2",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-0227",
+    "reference" : "CVE-2019-0227",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "918",
+    "cvssVectorString" : "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "axis"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "axis"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-web",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "8daf0bd1172cb253d936",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-6429",
+    "reference" : "CVE-2013-6429",
+    "source" : "cve",
+    "score" : 6.8,
+    "cwe" : "352,611",
+    "cvssVectorString" : "AV:N/AC:M/Au:N/C:P/I:P/A:P",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-web",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "8daf0bd1172cb253d936",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-0054",
+    "reference" : "CVE-2014-0054",
+    "source" : "cve",
+    "score" : 6.8,
+    "cwe" : "352",
+    "cvssVectorString" : "AV:N/AC:M/Au:N/C:P/I:P/A:P",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-web",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "8daf0bd1172cb253d936",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-0225",
+    "reference" : "CVE-2014-0225",
+    "source" : "cve",
+    "score" : 8.8,
+    "cwe" : "611",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "NVD",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-web",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "8daf0bd1172cb253d936",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2015-3192",
+    "reference" : "CVE-2015-3192",
+    "source" : "cve",
+    "score" : 5.5,
+    "cwe" : "119",
+    "cvssVectorString" : "CVSS:3.0/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-web",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "8daf0bd1172cb253d936",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-1000027",
+    "reference" : "CVE-2016-1000027",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-web",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "8daf0bd1172cb253d936",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-11039",
+    "reference" : "CVE-2018-11039",
+    "source" : "cve",
+    "score" : 5.9,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-web",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "8daf0bd1172cb253d936",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-1272",
+    "reference" : "CVE-2018-1272",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "264",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "NVD",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-web",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "8daf0bd1172cb253d936",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-5398",
+    "reference" : "CVE-2020-5398",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "494",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-config",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework.security",
+    "artifactId" : "spring-security-config",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "952da051fc959b215c8e",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-5007",
+    "reference" : "CVE-2016-5007",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "264",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework.security"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-security-config"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-security-config",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.security",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework.security",
+    "artifactId" : "spring-security-config",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "952da051fc959b215c8e",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-1199",
+    "reference" : "CVE-2018-1199",
+    "source" : "cve",
+    "score" : 5.3,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework.security"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-security-config"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-webmvc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-webmvc",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "99c0303b36c421b3c43d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-1904",
+    "reference" : "CVE-2014-1904",
+    "source" : "cve",
+    "score" : 4.3,
+    "cwe" : "79",
+    "cvssVectorString" : "AV:N/AC:M/Au:N/C:N/I:P/A:N",
+    "cvssVectorSource" : "NVD",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-webmvc"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-webmvc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-webmvc",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "99c0303b36c421b3c43d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-3625",
+    "reference" : "CVE-2014-3625",
+    "source" : "cve",
+    "score" : 5.0,
+    "cwe" : "22",
+    "cvssVectorString" : "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+    "cvssVectorSource" : "NVD",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-webmvc"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-webmvc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-webmvc",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "99c0303b36c421b3c43d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2015-5211",
+    "reference" : "CVE-2015-5211",
+    "source" : "cve",
+    "score" : 8.6,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.0/AV:L/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-webmvc"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-webmvc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-webmvc",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "99c0303b36c421b3c43d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-9878",
+    "reference" : "CVE-2016-9878",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "22",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-webmvc"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-webmvc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-webmvc",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "99c0303b36c421b3c43d",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-1271",
+    "reference" : "CVE-2018-1271",
+    "source" : "cve",
+    "score" : 5.9,
+    "cwe" : "22",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "NVD",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-webmvc"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-webmvc",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-webmvc",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "99c0303b36c421b3c43d",
+    "url" : null,
+    "reference" : "sonatype-2017-0651",
+    "source" : "sonatype",
+    "score" : 5.0,
+    "cwe" : "35",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:C/C:L/I:N/A:N",
+    "cvssVectorSource" : "SONATYPE",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-webmvc"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "standard",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "apache-taglibs",
+        "version" : "1.1.2"
+      }
+    },
+    "groupId" : "apache-taglibs",
+    "artifactId" : "standard",
+    "version" : "1.1.2",
+    "hash" : "a17e8a4d9a1f7fcc5eed",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2015-0254",
+    "reference" : "CVE-2015-0254",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "611",
+    "cvssVectorString" : "AV:N/AC:L/Au:N/C:P/I:P/A:P",
+    "cvssVectorSource" : "NVD",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "apache-taglibs"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "standard"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.1.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars bootstrap",
+        "qualifier" : "",
+        "version" : "3.1.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "b72e6b076e32fb3a87f6",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-14042",
+    "reference" : "CVE-2018-14042",
+    "source" : "cve",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars bootstrap"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.1.1"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars bootstrap",
+        "qualifier" : "",
+        "version" : "3.1.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "b72e6b076e32fb3a87f6",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-8331",
+    "reference" : "CVE-2019-8331",
+    "source" : "cve",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars bootstrap"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.1.1"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars bootstrap",
+        "qualifier" : "",
+        "version" : "3.1.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "b72e6b076e32fb3a87f6",
+    "url" : null,
+    "reference" : "sonatype-2016-0129",
+    "source" : "sonatype",
+    "score" : 5.4,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
+    "cvssVectorSource" : "SONATYPE",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars bootstrap"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.1.1"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars bootstrap",
+        "qualifier" : "",
+        "version" : "3.1.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "b72e6b076e32fb3a87f6",
+    "url" : null,
+    "reference" : "sonatype-2018-0607",
+    "source" : "sonatype",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "SONATYPE",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars bootstrap"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.1.1"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.0.4"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.0.4",
+    "hash" : "cf05e1449bccc5dae87b",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-7525",
+    "reference" : "CVE-2017-7525",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "NVD",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-databind"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.0.4"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.0.4"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.0.4",
+    "hash" : "cf05e1449bccc5dae87b",
+    "url" : null,
+    "reference" : "sonatype-2016-0593",
+    "source" : "sonatype",
+    "score" : 6.3,
+    "cwe" : "611",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
+    "cvssVectorSource" : "SONATYPE",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-databind"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.0.4"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-core",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "d36bed1dbca3f725bb5a",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-3578",
+    "reference" : "CVE-2014-3578",
+    "source" : "cve",
+    "score" : 5.0,
+    "cwe" : "22",
+    "cvssVectorString" : "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-core",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "d36bed1dbca3f725bb5a",
+    "url" : null,
+    "reference" : "sonatype-2015-0327",
+    "source" : "sonatype",
+    "score" : 3.7,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:L",
+    "cvssVectorSource" : "SONATYPE",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-beanutils",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-beanutils",
+        "version" : "1.6"
+      }
+    },
+    "groupId" : "commons-beanutils",
+    "artifactId" : "commons-beanutils",
+    "version" : "1.6",
+    "hash" : "ed3c2b07d1b16ec11440",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-0114",
+    "reference" : "CVE-2014-0114",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "20",
+    "cvssVectorString" : "AV:N/AC:L/Au:N/C:P/I:P/A:P",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-beanutils"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-beanutils"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.6"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-expression",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-expression",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "edde2efe828f5890f57a",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-1257",
+    "reference" : "CVE-2018-1257",
+    "source" : "cve",
+    "score" : 6.5,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-expression"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-expression",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "3.2.4.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-expression",
+    "version" : "3.2.4.RELEASE",
+    "hash" : "edde2efe828f5890f57a",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-1270",
+    "reference" : "CVE-2018-1270",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "358",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-expression"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.2.4.RELEASE"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "mailapi",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "javax.mail",
+        "version" : "1.4.2"
+      }
+    },
+    "groupId" : "javax.mail",
+    "artifactId" : "mailapi",
+    "version" : "1.4.2",
+    "hash" : "f5149f0aaf01daf4bb2f",
+    "url" : null,
+    "reference" : "sonatype-2017-0492",
+    "source" : "sonatype",
+    "score" : 4.3,
+    "cwe" : "200",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "javax.mail"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "mailapi"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.2"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.0.4"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-core",
+    "version" : "2.0.4",
+    "hash" : "fda2057c7eafd65915de",
+    "url" : null,
+    "reference" : "sonatype-2016-0397",
+    "source" : "sonatype",
+    "score" : 5.9,
+    "cwe" : null,
+    "cvssVectorString" : null,
+    "cvssVectorSource" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.0.4"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.0.4"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-core",
+    "version" : "2.0.4",
+    "hash" : "fda2057c7eafd65915de",
+    "url" : null,
+    "reference" : "sonatype-2017-0355",
+    "source" : "sonatype",
+    "score" : 7.5,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.0.4"
+      } ]
+    }
+  } ]
+}

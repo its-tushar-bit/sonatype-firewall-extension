@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.hds;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -51,11 +53,15 @@ public class ScanUploader
    *
    * @since 1.8
    */
-  public ScanReceipt upload(File scanFile, Application application) throws IOException {
-    return upload(scanFile, application, BAD_GATEWAY_RETRY_WAIT);
+  public ScanReceipt upload(File scanFile, Application application, String stageTypeId)
+      throws IOException
+  {
+    return upload(scanFile, application, BAD_GATEWAY_RETRY_WAIT, stageTypeId);
   }
 
-  ScanReceipt upload(File scanFile, Application application, Duration retryWait) throws IOException {
+  ScanReceipt upload(File scanFile, Application application, Duration retryWait, String stageTypeId)
+      throws IOException
+  {
     HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(application);
 
     ScanReceipt receipt = null;
@@ -63,7 +69,15 @@ public class ScanUploader
 
     while (receipt == null) {
       try {
-        receipt = client.put(analytics, ScanReceipt.class, HDS_PATH, scanFile);
+        Map<String, String> uploadMetadata = new HashMap<>();
+
+        // Third party scan uploads which have no stage and our own scan
+        // uploads which do have a stage both use this function.
+        if (stageTypeId != null && !stageTypeId.isEmpty()) {
+          uploadMetadata.put("stageTypeId", stageTypeId);
+        }
+
+        receipt = client.put(analytics, ScanReceipt.class, HDS_PATH, scanFile, uploadMetadata);
       }
       catch (BadGatewayException e) {
         if (++retryCount >= BAD_GATEWAY_ATTEMPT_LIMIT) {

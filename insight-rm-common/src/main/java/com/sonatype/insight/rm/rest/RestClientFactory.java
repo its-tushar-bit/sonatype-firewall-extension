@@ -210,6 +210,14 @@ public class RestClientFactory
     }
 
     @Override
+    public RepositoryComponentEvaluationDataList evaluateComponentsAdhoc(
+        RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList) throws IOException
+    {
+      return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
+          .evaluateComponentsAdhoc(componentEvaluationDataRequestList);
+    }
+
+    @Override
     public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
         RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList) throws IOException
     {

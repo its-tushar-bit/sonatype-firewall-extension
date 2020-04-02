@@ -116,7 +116,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
 
   @Test
   public void testGetComponentsWithWaivers_NoWaivers() {
-    ApiComponentWaiversDTO result = service.getComponentsWithWaivers();
+    ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
     assertThat(result.applicationWaivers).hasSize(0);
     assertThat(result.repositoryWaivers).hasSize(0);
   }
@@ -174,7 +174,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     tempEntity.newRepositoryPolicyViolation(repo1.getId(), 2, "pathName5", "hash5", constraintFacts1,
         false, true, "actionId5", policy1.getId(), policy1.getName(), componentIdentifier1, date, null, null, null);
 
-    ApiComponentWaiversDTO result = service.getComponentsWithWaivers();
+    ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
     assertThat(result.applicationWaivers).hasSize(0);
     assertThat(result.repositoryWaivers).hasSize(2);
 
@@ -254,7 +254,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
             true, true, "actionId1", policy1.getId(), policy1.getName(), componentIdentifier1, date,
             "deletedPolicyWaiverId", "test waive", date);
 
-    ApiComponentWaiversDTO result = service.getComponentsWithWaivers();
+    ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
     assertThat(result.applicationWaivers).hasSize(0);
     assertThat(result.repositoryWaivers).hasSize(1);
 
@@ -301,7 +301,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
             "hash1", constraintFacts1, true, true, "actionId1", policy1.getId(), policy1.getName(),
             null, date, policyWaiver.getId(), "test waive", date);
 
-    ApiComponentWaiversDTO result = service.getComponentsWithWaivers();
+    ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
     assertThat(result.applicationWaivers).hasSize(0);
     assertThat(result.repositoryWaivers).hasSize(1);
 
@@ -353,7 +353,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     tempEntity.newPolicyViolation(app2PolicyEvaluationOperate, policy1,
         ComponentIdentifier.createMavenCoordinates("g5", "a5", "v5"), "h5");
 
-    ApiComponentWaiversDTO result = service.getComponentsWithWaivers();
+    ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
     assertThat(result.applicationWaivers).hasSize(2); // note applications are ordered by public id
     assertThat(result.repositoryWaivers).hasSize(0);
     ApiApplicationWaiverDTO applicationWaiverDTO = result.applicationWaivers.get(0);
@@ -433,7 +433,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
 
     policyWaiverDAO.delete(policyWaiver1);
 
-    ApiComponentWaiversDTO result = service.getComponentsWithWaivers();
+    ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
     assertThat(result.applicationWaivers).hasSize(1); // note applications are ordered by public id
     assertThat(result.repositoryWaivers).hasSize(0);
     ApiApplicationWaiverDTO applicationWaiverDTO = result.applicationWaivers.get(0);
@@ -465,7 +465,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     PolicyViolation waivedViolation1 = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluationBuild, policy1,
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), "h1", policyWaiver1);
 
-    ApiComponentWaiversDTO result = service.getComponentsWithWaivers();
+    ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
     assertThat(result.applicationWaivers).hasSize(1); // note applications are ordered by public id
     assertThat(result.repositoryWaivers).hasSize(0);
     ApiApplicationWaiverDTO applicationWaiverDTO = result.applicationWaivers.get(0);
@@ -494,7 +494,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     PolicyWaiver policyWaiver1 = tempEntity.newWaiver("h1", policy1.getId(), app1.getId(), "Some comments here");
     PolicyViolation waivedViolation1 = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluationBuild, policy1,
         null, "h1", policyWaiver1);
-    ApiComponentWaiversDTO result = service.getComponentsWithWaivers();
+    ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
     assertThat(result.applicationWaivers).hasSize(1);
     assertThat(result.repositoryWaivers).hasSize(0);
     ApiApplicationWaiverDTO applicationWaiverDTO = result.applicationWaivers.get(0);
@@ -514,6 +514,59 @@ public class ApiComponentsWithWaiversReportingServiceTest
 
     ApiWaivedPolicyViolationDTO waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
     assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation1);
+    assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver1, OwnerType.APPLICATION.toString(),
+        app1.getName());
+    assertApplicationWaiverDTO(applicationWaiverDTO, app1);
+  }
+
+  @Test
+  public void testGetComponentsWithWaivers_FormatFilter() {
+    Date date = new Date();
+    ConstraintFact constraintFact1 = new ConstraintFact("constraintFact1", "aa c", "OR");
+    constraintFact1.addConditionFact(
+        new ConditionFact("MatchState", 0, "Match State is exact", "Match State was exact"));
+
+    List<ConstraintFact> constraintFacts1 = Arrays.asList(constraintFact1);
+
+    PolicyWaiver policyWaiver1 = tempEntity.newWaiver("h1", policy1.getId(), app1.getId(), "Some comments here");
+    PolicyWaiver policyWaiver2 = tempEntity.newWaiver("h2", policy1.getId(), app2.getId(), "Some more comments here");
+    PolicyWaiver policyWaiver3 = tempEntity.newWaiver("h3", policy1.getId(), app1.getId(), "Some mooore comments here");
+    PolicyWaiver policyWaiver4 = tempEntity.newWaiver("h2", policy1.getId(), repo1.getId(), "Repo Waiver");
+
+    ComponentIdentifier mavenComponentId = ComponentIdentifier.createMavenCoordinates("g1", "a1", "1");
+    ComponentIdentifier anameComponentId = ComponentIdentifier.createAnameCoordinates("foo", "", "1.0");
+
+    PolicyViolation anameViolation = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluationBuild, policy1,
+        anameComponentId, "h1", policyWaiver1);
+
+    tempEntity.newWaivedPolicyViolation(app2PolicyEvaluationOperate, policy1, null, "h2", policyWaiver2);
+    tempEntity.newWaivedPolicyViolation(app1PolicyEvaluationBuild, policy1, mavenComponentId, "h3", policyWaiver3);
+    tempEntity.newRepositoryPolicyViolation(repo1.getId(), 6, "tomcat/catalina/5.5.15/catalina-5.5.15.jar",
+        "h4", constraintFacts1, true, true, "actionId1", policy1.getId(), policy1.getName(),
+        mavenComponentId, date, policyWaiver4.getId(), "repo waive", date);
+
+    ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
+    assertThat(result.applicationWaivers).hasSize(2);
+    assertThat(result.repositoryWaivers).hasSize(1);
+
+    result = service.getComponentsWithWaivers("a-name");
+    assertThat(result.applicationWaivers).hasSize(1);
+    assertThat(result.repositoryWaivers).isEmpty();
+
+    ApiApplicationWaiverDTO applicationWaiverDTO = result.applicationWaivers.get(0);
+    assertThat(applicationWaiverDTO.stages).hasSize(1);
+    // first waived violation app 1 build stage
+    ApiPolicyViolationStageDTO policyViolationStageDTO = applicationWaiverDTO.stages.get(0);
+    assertThat(policyViolationStageDTO.stageId).isEqualTo(BuildStageType.ID);
+    assertThat(policyViolationStageDTO.componentPolicyViolations).hasSize(1);
+    ApiComponentPolicyViolationDTO componentPolicyViolationDTO =
+        policyViolationStageDTO.componentPolicyViolations.get(0);
+
+    assertComponentDTOV2(componentPolicyViolationDTO.component, anameViolation);
+    assertThat(componentPolicyViolationDTO.waivedPolicyViolations).hasSize(1);
+
+    ApiWaivedPolicyViolationDTO waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, anameViolation);
     assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver1, OwnerType.APPLICATION.toString(),
         app1.getName());
     assertApplicationWaiverDTO(applicationWaiverDTO, app1);

@@ -93,7 +93,7 @@ public class ApplicationRiskService
         .setData("inspectedApplicationCount", appsToSearch.size());
 
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
-    Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
+    Predicate<? super PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
         policyThreatLevelFilter, policyViolationStateFilter);
 
     Collection<ApplicationView> appViews = policyViolationLoader.getViolations(appsToSearch, stageTypes, false, filter);

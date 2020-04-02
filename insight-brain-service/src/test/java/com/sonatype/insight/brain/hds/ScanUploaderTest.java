@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -65,9 +66,9 @@ public class ScanUploaderTest
     ArgumentCaptor<HdsClientAnalytics> analyticsArg = ArgumentCaptor.forClass(HdsClientAnalytics.class);
     when(
         hdsClient.put(analyticsArg.capture(), eq(ScanReceipt.class), any(String.class), any(File.class),
-            any(String[].class))).thenReturn(receipt);
+            anyMap(), any(String[].class))).thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app);
+    scanUploader.upload(tempDir.newFile(), app, null);
     HdsClientAnalytics analytics = analyticsArg.getValue();
     assertThat(analytics).isEqualTo(expectedAnalyticsData);
   }
@@ -80,14 +81,14 @@ public class ScanUploaderTest
 
     when(
         hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
-            any(String[].class)))
+            anyMap(), any(String[].class)))
         .thenThrow(new BadGatewayException("oops"))
         .thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, Duration.ZERO);
+    scanUploader.upload(tempDir.newFile(), app, Duration.ZERO, null);
     verify(hdsClient, times(2))
         .put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
-            any(String[].class));
+            anyMap(), any(String[].class));
   }
 
   @Test
@@ -98,13 +99,13 @@ public class ScanUploaderTest
 
     when(
         hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
-            any(String[].class)))
+            anyMap(), any(String[].class)))
         .thenThrow(new BadGatewayException("oops"));
 
-    assertThatThrownBy(() -> scanUploader.upload(tempDir.newFile(), app, Duration.ZERO))
+    assertThatThrownBy(() -> scanUploader.upload(tempDir.newFile(), app, Duration.ZERO, null))
         .isInstanceOf(BadGatewayException.class);
     verify(hdsClient, times(ScanUploader.BAD_GATEWAY_ATTEMPT_LIMIT))
         .put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
-            any(String[].class));
+            anyMap(), any(String[].class));
   }
 }

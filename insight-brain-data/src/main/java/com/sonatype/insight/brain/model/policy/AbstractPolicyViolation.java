@@ -220,4 +220,13 @@ public abstract class AbstractPolicyViolation
     }
     this.waiveTime = waiveTime;
   }
+
+  public boolean isWaived() {
+    return getWaiveTime() != null;
+  }
+
+  // to be overridden in subclasses which support grandfathering
+  public boolean isGrandfathered() {
+    return false;
+  }
 }

@@ -143,10 +143,7 @@ public class PolicyViolation
     this.openTime = openTime;
   }
 
-  public boolean isWaived() {
-    return getWaiveTime() != null;
-  }
-
+  @Override
   public boolean isGrandfathered() {
     return grandfatherTime != null;
   }

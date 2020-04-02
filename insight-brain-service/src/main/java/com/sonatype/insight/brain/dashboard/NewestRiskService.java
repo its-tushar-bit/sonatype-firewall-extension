@@ -143,7 +143,7 @@ public class NewestRiskService
                                                           Integer maxDaysOld)
   {
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
-    Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
+    Predicate<? super PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
         policyThreatLevelFilter, policyViolationStateFilter);
 
     Date minDate = (maxDaysOld == null) ? null

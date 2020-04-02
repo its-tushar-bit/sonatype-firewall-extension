@@ -91,6 +91,19 @@ public class TestProductLicense
   }
 
   @Override
+  public Set<String> getProducts() {
+    Set<String> products = testProductLicenseManager.getProducts();
+    if (products != null) {
+      return products;
+    }
+    return super.getProducts();
+  }
+
+  public void setProducts(String products) {
+    testProductLicenseManager.setProducts(products);
+  }
+
+  @Override
   public Set<StageType> getStageTypes() {
     // stage types are normally derived based on the products
     // for precise testing, we allow them to be manually overridden to a specific set

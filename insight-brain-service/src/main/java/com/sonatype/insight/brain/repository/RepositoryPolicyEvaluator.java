@@ -133,6 +133,16 @@ public class RepositoryPolicyEvaluator
       final boolean withQuarantine,
       final String clientUserAgent)
   {
+    return evaluate(repository, componentEvaluationDataRequestList, withQuarantine, true, clientUserAgent);
+  }
+
+  public RepositoryComponentEvaluationDataList evaluate(
+      Repository repository,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      boolean withQuarantine,
+      boolean persistEvaluationResults,
+      String clientUserAgent)
+  {
     RepositoryComponentEvaluationDataList componentEvaluationResultList = new RepositoryComponentEvaluationDataList();
 
     Date now = new Date();
@@ -186,9 +196,14 @@ public class RepositoryPolicyEvaluator
       repositoryComponentEvaluationResult.requestIndex = requestIndex;
       Component component = components.get(requestIndex);
       if (component != null) {
-        RepositoryComponent repositoryComponent = persistEvaluationResults(repository, now, component,
-            policyResults, withQuarantine);
-        repositoryComponentEvaluationResult.quarantine = repositoryComponent.isQuarantined();
+        if (persistEvaluationResults) {
+          RepositoryComponent repositoryComponent = persistEvaluationResults(repository, now, component,
+              policyResults, withQuarantine);
+          repositoryComponentEvaluationResult.quarantine = repositoryComponent.isQuarantined();
+        }
+        else {
+          repositoryComponentEvaluationResult.policyAlerts = getPolicyAlerts(policyResults, component);
+        }
       }
       componentEvaluationResultList.componentEvalResults.add(repositoryComponentEvaluationResult);
     }
@@ -201,6 +216,12 @@ public class RepositoryPolicyEvaluator
     }
 
     return componentEvaluationResultList;
+  }
+
+  private List<PolicyAlert> getPolicyAlerts(final PolicyResults policyResults, final Component component) {
+    return policyResults.getActiveAlerts().stream()
+        .filter(policyAlert -> getComponentFact(policyAlert, component) != null)
+        .collect(Collectors.toList());
   }
 
   private RepositoryComponent persistEvaluationResults(Repository repository,

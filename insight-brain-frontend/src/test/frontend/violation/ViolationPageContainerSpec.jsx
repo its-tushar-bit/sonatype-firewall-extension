@@ -11,6 +11,7 @@ describe('ViolationPageContainer', function() {
 
   let ViolationPageContainer,
       loadViolationActionMock,
+      fetchStageTypesMock,
       state,
       store,
       vdom,
@@ -18,12 +19,16 @@ describe('ViolationPageContainer', function() {
 
   beforeEach(function() {
 
-    loadViolationActionMock = jasmine.createSpy('load').and.returnValue({ type: 'LOAD_VIOLATION' });
+    loadViolationActionMock = jasmine.createSpy('loadViolation').and.returnValue({ type: 'LOAD_VIOLATION' });
+    fetchStageTypesMock = jasmine.createSpy('fetchStageTypes').and.returnValue({ type: 'FETCH_STAGE_TYPES' });
 
     ViolationPageContainer =
         require('inject-loader!../../../main/frontend/violation/ViolationPageContainer')({
           './violationPageActions': {
             loadViolation: loadViolationActionMock
+          },
+          '../stages/stagesActions': {
+            fetchStageTypes: fetchStageTypesMock
           }
         }).default;
 
@@ -31,6 +36,12 @@ describe('ViolationPageContainer', function() {
       violationPage: {
         loading: false,
         error: null
+      },
+      stages: {
+        dashboard: {
+          stageTypes: null,
+          error: null
+        }
       }
     };
 
@@ -47,6 +58,7 @@ describe('ViolationPageContainer', function() {
     expect(wrapper).toHaveProp('error', null);
 
     state = {
+      ...state,
       violationPage: {
         loading: true,
         error: 'foo'
@@ -61,14 +73,45 @@ describe('ViolationPageContainer', function() {
     expect(wrapper).toHaveProp('error', 'foo');
   });
 
-  it('maps action creators to ViolationPageContainer props', function() {
-    const wrapper = shallow(vdom).dive();
+  it('maps the stageTypes and error props from the dashboard stages to `stageTypes` and `stageTypesError`', () => {
+    let wrapper = shallow(vdom).dive();
 
-    const loadViolationActionCreator = wrapper.prop('loadViolation');
+    expect(wrapper).toHaveProp('stageTypes', null);
+    expect(wrapper).toHaveProp('stageTypesError', null);
+
+    state = {
+      ...state,
+      stages: {
+        dashboard: {
+          stageTypes: [],
+          error: 'foo'
+        }
+      }
+    };
+
+    // force state update
+    store.dispatch({ type: 'BLAH' });
+    wrapper = shallow(vdom).dive();
+
+    expect(wrapper).toHaveProp('stageTypes', []);
+    expect(wrapper).toHaveProp('stageTypesError', 'foo');
+  });
+
+  it('maps action creators to ViolationPageContainer props', function() {
+    const wrapper = shallow(vdom).dive(),
+        loadViolationActionCreator = wrapper.prop('loadViolation'),
+        fetchStageTypesActionCreator = wrapper.prop('fetchStageTypes');
+
     expect(loadViolationActionCreator).toEqual(jasmine.any(Function));
+    expect(fetchStageTypesActionCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
+
     loadViolationActionCreator();
     expect(store.getActions()).toEqual([{ type: 'LOAD_VIOLATION' }]);
+
+    fetchStageTypesActionCreator();
+
+    expect(store.getActions()).toEqual([{ type: 'LOAD_VIOLATION' }, { type: 'FETCH_STAGE_TYPES' }]);
   });
 });

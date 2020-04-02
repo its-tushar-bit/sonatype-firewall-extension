@@ -83,3 +83,13 @@ export function multiGroupBy(keyFn, items) {
 
   return transduce(chain(pairsForItem), pairIterator, {}, items);
 }
+
+// Return a string equivalent to the input but with the first letter uppercase
+export function capitalize(str) {
+  if (!str) {
+    return str;
+  }
+  else {
+    return str.charAt(0).toUpperCase() + str.substring(1);
+  }
+}

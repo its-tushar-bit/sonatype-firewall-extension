@@ -83,10 +83,10 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.MockReportDownloader;
-import com.sonatype.insight.brain.report.Pdf;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.report.pdf.PdfGenerator;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -557,7 +557,7 @@ public class ScanPolicyEvaluatorTest
 
     // Create a fake PDF report.
     File reportFile = insightWork.getReportFile(application.getId(), scanId);
-    File pdfReportFile = Pdf.getPdfFile(reportFile);
+    File pdfReportFile = PdfGenerator.getPdfFile(reportFile);
     pdfReportFile.createNewFile();
     assertThat(pdfReportFile).isFile();
 

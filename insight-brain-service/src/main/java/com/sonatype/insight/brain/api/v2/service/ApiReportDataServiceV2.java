@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.component.ComponentResolver;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
@@ -104,6 +105,12 @@ public class ApiReportDataServiceV2
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
       String scanId) throws IOException
   {
+    return getPolicyViolationsDataNoAuth(applicationPublicId, scanId);
+  }
+
+  public ApiReportPolicyDataDTOV2 getPolicyViolationsDataNoAuth(String applicationPublicId, String scanId)
+      throws IOException
+  {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     File reportFile = reportService.getReport(app.getId(), scanId);
 
@@ -118,7 +125,7 @@ public class ApiReportDataServiceV2
 
     ApiReportPolicyDataDTOV2 data = new ApiReportPolicyDataDTOV2();
 
-    ReportMetadataDTO metadata = reportService.getReportMetadata(applicationPublicId, scanId);
+    ReportMetadataDTO metadata = reportService.getReportMetadataNoAuth(applicationPublicId, scanId);
     data.reportTime = metadata.getReportTime();
     data.reportTitle = metadata.getReportTitle();
     data.application = getApplicationMetadata(metadata.getApplication());
@@ -152,6 +159,7 @@ public class ApiReportDataServiceV2
           component.packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
           component.proprietary = componentJson.get("proprietary").booleanValue();
           component.pathnames = getPathnames(componentJson);
+          component.displayName = ComponentDAO.getDisplayName(componentJson);
           component.violations = violationsByHash.getOrDefault(component.hash, Collections.emptyList());
           components.add(component);
         }
@@ -270,6 +278,7 @@ public class ApiReportDataServiceV2
           component.pathnames.add(pathname);
         }
       }
+      component.displayName = comp.getDisplayName();
       if (!MatchState.UNKNOWN.equals(comp.getMatchState())) {
         component.securityData = securityDataAdapter.convertToDTO(comp);
         component.licenseData = licenseDataAdapter.convertToDTOV2(comp);

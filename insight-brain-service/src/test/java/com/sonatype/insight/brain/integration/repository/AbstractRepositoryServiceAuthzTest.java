@@ -22,9 +22,9 @@ import org.mockito.Mock;
 public abstract class AbstractRepositoryServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
-  private static final String MANUAL_REPO_MAN_INSTANCE_ID = "manualDeleteRepoManagerInstanceId";
+  protected static final String MANUAL_REPO_MAN_INSTANCE_ID = "manualDeleteRepoManagerInstanceId";
 
-  private static final String REPOSITORY_PUBLIC_ID = "publicId";
+  protected static final String REPOSITORY_PUBLIC_ID = "publicId";
 
   private RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
@@ -81,7 +81,7 @@ public abstract class AbstractRepositoryServiceAuthzTest
     getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), true);
   }
 
-  private Repository createRepository() {
+  protected Repository createRepository() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(MANUAL_REPO_MAN_INSTANCE_ID);
     return tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
   }

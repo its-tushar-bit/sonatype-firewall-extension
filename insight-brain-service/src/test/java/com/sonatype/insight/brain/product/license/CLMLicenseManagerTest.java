@@ -867,7 +867,8 @@ public class CLMLicenseManagerTest
     installLicense();
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
-    assertThat(info.products).containsExactly("Nexus Firewall", "Nexus Auditor", "Nexus Lifecycle", "Nexus Pro+");
+    assertThat(info.products).containsExactlyInAnyOrder("Nexus Firewall", "Nexus Auditor", "Nexus Lifecycle",
+        "Nexus Pro+");
   }
 
   @Test

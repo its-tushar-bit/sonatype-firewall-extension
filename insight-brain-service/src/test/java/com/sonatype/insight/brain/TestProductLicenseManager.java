@@ -7,10 +7,12 @@ package com.sonatype.insight.brain;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -142,6 +144,13 @@ public class TestProductLicenseManager
     mockProductLicenseManager.setForceVerificationFailure(forceVerificationFailure);
   }
 
+  public Set<String> getProducts() {
+    if (mockProductLicenseManager.products == null) {
+      return null;
+    }
+    return new HashSet<>(Arrays.asList(mockProductLicenseManager.products));
+  }
+
   public void setProducts(String... products) {
     wasChanged = true;
     mockProductLicenseManager.setProducts(products);
@@ -219,7 +228,9 @@ public class TestProductLicenseManager
       featureMap.put(CLMFeature.ID, new CLMFeature());
       Properties properties = new Properties();
       properties.put(ProductLicenseDetails.PROPERTY_VERSION, Integer.toString(version));
-      properties.put(ProductLicenseDetails.PROPERTY_PRODUCTS, StringUtils.join(products, ","));
+      if (products != null) {
+        properties.put(ProductLicenseDetails.PROPERTY_PRODUCTS, StringUtils.join(products, ","));
+      }
       properties.put(ProductLicenseDetails.PROPERTY_MAX_USERS, Integer.toString(50));
 
       if (applicationLimit != null) {
@@ -253,6 +264,7 @@ public class TestProductLicenseManager
     public void uninstallLicense() {
       valid = false;
       key = null;
+      products = null;
     }
 
     @Override

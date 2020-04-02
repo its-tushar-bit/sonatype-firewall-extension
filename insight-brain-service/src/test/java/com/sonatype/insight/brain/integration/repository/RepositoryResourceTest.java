@@ -5,15 +5,30 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
+import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 
 import org.junit.Test;
 
+import static com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.ADHOC;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryResourceTest
@@ -51,5 +66,56 @@ public class RepositoryResourceTest
     assertResponseStatus(200, response);
     assertThat(response.getBody(FirewallIgnorePatterns.class).regexpsByRepositoryFormat)
         .isEqualTo(hdsResult.regexpsByRepositoryFormat);
+  }
+
+  @Test
+  public void testEvaluateComponentsAdhoc() throws Exception {
+    // Setup the mocked hds return
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
+    componentEvaluationData.hash = "hash";
+    componentEvaluationData.matchState = MatchState.EXACT.getId();
+    componentEvaluationData.declaredLicenses = new HashSet<>();
+    componentEvaluationData.observedLicenses = new HashSet<>();
+    componentEvaluationData.securityVulnerabilities = createSecurityVulnerabilities();
+    hdsResult.components.add(componentEvaluationData);
+    hdsRespondWith(hdsResult).atUri(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH);
+    tempEntity.newPolicy(ROOT_ORGANIZATION_ID);
+
+    // prepare request
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest();
+    repositoryComponentEvaluationDataRequest.format = "npm";
+    repositoryComponentEvaluationDataRequest.pathname = "foobar";
+    repositoryComponentEvaluationDataRequest.hash = "hash";
+    componentEvaluationDataRequestList.cause = ADHOC;
+    componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "repoPublicId", false, false);
+
+    HttpResponse response = restRequest()
+        .path(RepositoryResource.EVALUATE_COMPONENTS_ADHOC_PATH)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+        .body(componentEvaluationDataRequestList)
+        .post();
+
+    assertResponseStatus(200, response);
+    RepositoryComponentEvaluationDataList responseBody = response.getBody(RepositoryComponentEvaluationDataList.class);
+    assertThat(responseBody.componentEvalResults).hasSize(1);
+    assertThat(responseBody.componentEvalResults.get(0).policyAlerts).hasSize(1);
+  }
+
+  private List<SecurityVulnerability> createSecurityVulnerabilities() {
+    List<SecurityVulnerability> securityVulnerabilities = new ArrayList<>();
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability();
+    securityVulnerability.setRefId("refId");
+    securityVulnerability.setSeverity(5.0F);
+    securityVulnerability.setSource("source");
+    securityVulnerability.setUrl("test-url");
+    securityVulnerabilities.add(securityVulnerability);
+    return securityVulnerabilities;
   }
 }

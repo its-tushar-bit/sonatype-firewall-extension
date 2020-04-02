@@ -27,6 +27,8 @@ public class FirewallClient
 
   private static final String EVALUATE_PATH = "evaluate/audit";
 
+  private static final String EVALUATE_COMPONENTS_ADHOC_PATH = "evaluate/adhoc";
+
   private static final String SUMMARY_PATH = "summary";
 
   private static final String ENABLE_PATH = "enable";
@@ -86,6 +88,22 @@ public class FirewallClient
     final Result result =
         path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_PATH).post(entity);
     verifyStatusCode(result);
+  }
+
+  public RepositoryComponentEvaluationDataList evaluateComponentsAdhoc(
+      RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList)
+      throws IOException
+  {
+    ByteArrayEntity entity = new ByteArrayEntity(
+        JsonUtils.generate(repositoryComponentEvaluationDataRequestList),
+        ContentType.APPLICATION_JSON);
+
+    Result result = path(
+        resourcePath, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_COMPONENTS_ADHOC_PATH)
+        .post(entity);
+    verifyStatusCode(result);
+
+    return parseResult(result, RepositoryComponentEvaluationDataList.class);
   }
 
   public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(

@@ -166,6 +166,26 @@ public class RestClientFactoryTest
   }
 
   @Test
+  public void testRestClientRepository_EvaluateComponentsAdhoc() throws Exception {
+    FirewallClient firewallClient = mock(FirewallClient.class);
+
+    String repositoryManagerInstanceId = "repositoryManagerInstanceId";
+    String repositoryPublicId = "repositoryPublicId";
+
+    RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
+        eq(repositoryPublicId), eq(RepositoryManagerType.NEXUS));
+
+    RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    Repository repository =
+        client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
+    repository.evaluateComponentsAdhoc(null);
+
+    verify(firewallClient).evaluateComponentsAdhoc(null);
+    verifyNoMoreInteractions(firewallClient);
+  }
+
+  @Test
   public void testRestClientRepository_EvaluateComponentWithQuarantine() throws Exception {
     final FirewallClient firewallClient = mock(FirewallClient.class);
 

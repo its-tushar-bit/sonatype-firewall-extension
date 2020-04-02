@@ -39,9 +39,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public abstract class AbstractRepositoryResourceAuditTest
     extends AbstractAuditTest
 {
-  private static final String REPOSITORY_MANAGER_INSTANCE_ID = "repoManInsId";
+  protected static final String REPOSITORY_MANAGER_INSTANCE_ID = "repoManInsId";
 
-  private static final String REPOSITORY_PUBLIC_ID = "repoPubId";
+  protected static final String REPOSITORY_PUBLIC_ID = "repoPubId";
 
   protected abstract String getEnablePath();
 
@@ -381,12 +381,12 @@ public abstract class AbstractRepositoryResourceAuditTest
         .parameter(repositoryManagerInstanceId, repositoryPublicId, pathname);
   }
 
-  private void assertRepositoryEvaluationData(AuditDTO auditDTO, int componentCount, String evaluationCause) {
+  protected void assertRepositoryEvaluationData(AuditDTO auditDTO, int componentCount, String evaluationCause) {
     assertCustomData(auditDTO, "componentCount", componentCount);
     assertCustomData(auditDTO, "evaluationCause", evaluationCause);
   }
 
-  private RepositoryComponentEvaluationDataRequestList repoComponentEvalList(int componentCount) {
+  protected RepositoryComponentEvaluationDataRequestList repoComponentEvalList(int componentCount) {
     RepositoryComponentEvaluationDataRequestList evalList = new RepositoryComponentEvaluationDataRequestList();
     for (int i = 0; i < componentCount; i++) {
       RepositoryComponentEvaluationDataRequest evalRequest = new RepositoryComponentEvaluationDataRequest();

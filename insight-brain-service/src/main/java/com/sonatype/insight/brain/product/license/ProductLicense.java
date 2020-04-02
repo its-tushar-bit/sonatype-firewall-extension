@@ -157,6 +157,10 @@ public class ProductLicense
     return getFeatures().contains(feature);
   }
 
+  public boolean hasProduct(String product) {
+    return getProducts().contains(product);
+  }
+
   public void validateFeature(LicensedFeature feature) {
     if (!hasFeature(feature)) {
       throw new InvalidLicenseException();

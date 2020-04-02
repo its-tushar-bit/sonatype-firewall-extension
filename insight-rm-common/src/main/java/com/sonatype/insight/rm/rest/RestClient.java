@@ -74,6 +74,9 @@ public interface RestClient
     void evaluateComponents(final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
         throws IOException;
 
+    RepositoryComponentEvaluationDataList evaluateComponentsAdhoc(
+        RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList) throws IOException;
+
     RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
         final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequest) throws IOException;
 

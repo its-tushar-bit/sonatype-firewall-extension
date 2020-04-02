@@ -51,6 +51,8 @@ public class RepositoryResource
 
   public static final String EVALUATE_COMPONENTS_PATH = REPOSITORY_PATH + "evaluate/audit";
 
+  public static final String EVALUATE_COMPONENTS_ADHOC_PATH = REPOSITORY_PATH + "evaluate/adhoc";
+
   static final String COMPONENTS_PATH = REPOSITORY_PATH + "components/{pathname: .+}";
 
   public static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = REPOSITORY_PATH + "evaluate/quarantine";
@@ -108,6 +110,21 @@ public class RepositoryResource
   {
     repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
         componentEvaluationDataRequestList, false, HdsClient.getClientUserAgent(request));
+  }
+
+  @POST
+  @Path(EVALUATE_COMPONENTS_ADHOC_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.EVALUATE_AD_HOC)
+  public RepositoryComponentEvaluationDataList evaluateComponentsAdhoc(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      @Context HttpServletRequest request)
+  {
+    return repositoryService.evaluateComponentsAdhoc(repositoryManagerInstanceId, repositoryPublicId,
+        componentEvaluationDataRequestList, HdsClient.getClientUserAgent(request));
   }
 
   @POST

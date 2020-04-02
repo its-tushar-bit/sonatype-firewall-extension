@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
+import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -22,14 +23,16 @@ import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
-import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
@@ -39,6 +42,7 @@ import org.junit.runners.Parameterized;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 @RunWith(Parameterized.class)
 public class FirewallClientTest
@@ -213,6 +217,44 @@ public class FirewallClientTest
       client.evaluateComponents(componentEvaluationDataRequestList);
     }).withMessage(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID))
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
+  }
+
+  @Test
+  public void testEvaluateComponentsAdhoc() throws Exception {
+    assumeThat(resourcePath).as("evaluateComponentsAdhoc is not available for Artifactory")
+        .isEqualTo(FirewallClient.NEXUS_RESOURCE_PATH);
+
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID,
+        FirewallClient.NEXUS_RESOURCE_PATH);
+
+    tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+
+    // Setup the mocked hds return
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
+    componentEvaluationData.hash = "hash";
+    componentEvaluationData.matchState = MatchState.EXACT.getId();
+    componentEvaluationData.declaredLicenses = new HashSet<>();
+    componentEvaluationData.observedLicenses = new HashSet<>();
+    componentEvaluationData.securityVulnerabilities = new ArrayList<>();
+    componentEvaluationData.securityVulnerabilities.add(new SecurityVulnerability("refid", "source", 10F));
+    hdsResult.components.add(componentEvaluationData);
+    hdsRespondWith(hdsResult).atUri(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH);
+
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest();
+    repositoryComponentEvaluationDataRequest.format = "npm";
+    repositoryComponentEvaluationDataRequest.pathname = "foobar";
+    repositoryComponentEvaluationDataRequest.hash = componentEvaluationData.hash;
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.cause = RepositoryComponentEvaluationDataRequestList.ADHOC;
+    componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
+
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResult = client
+        .evaluateComponentsAdhoc(componentEvaluationDataRequestList);
+    assertThat(repositoryComponentEvaluationResult.componentEvalResults).hasSize(1);
+    assertThat(repositoryComponentEvaluationResult.componentEvalResults.get(0).policyAlerts).hasSize(1);
   }
 
   @Test

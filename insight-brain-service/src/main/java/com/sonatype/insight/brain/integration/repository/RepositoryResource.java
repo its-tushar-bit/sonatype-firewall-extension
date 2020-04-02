@@ -112,6 +112,9 @@ public class RepositoryResource
         componentEvaluationDataRequestList, false, HdsClient.getClientUserAgent(request));
   }
 
+  /**
+   * @since 1.89
+   */
   @POST
   @Path(EVALUATE_COMPONENTS_ADHOC_PATH)
   @Consumes(MediaType.APPLICATION_JSON)

@@ -46,6 +46,9 @@ public class RepositoryService extends AbstractRepositoryService
     super(repositoryPolicyEvaluator, productLicense, hdsClient, policyViolationLoggerFactory, LicensedFeature.FIREWALL);
   }
 
+  /**
+   * @since 1.89
+   */
   RepositoryComponentEvaluationDataList evaluateComponentsAdhoc(
       String repositoryManagerInstanceId,
       String repositoryPublicId,

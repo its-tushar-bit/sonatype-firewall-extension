@@ -6,6 +6,8 @@
 import { pick } from 'ramda';
 
 import template from './manageFilterMenu.html';
+import * as manageFiltersActions from '../manageFiltersActions';
+import { applySavedFilter, setDisplaySaveFilterModal } from '../dashboardFilterActions';
 
 var manageFilterMenu = {
   template: template,
@@ -26,14 +28,15 @@ function mapStateToThis({ manageFilters, dashboardFilter }) {
   return {...manageFiltersProps, ...dashboardFilterProps};
 }
 
-function ManageFilterMenuController($ngRedux, DeleteFiltersModal, manageFiltersActions, dashboardFilterActions) {
+function ManageFilterMenuController($ngRedux, DeleteFiltersModal) {
   const vm = this;
 
   Object.assign(vm, {
     $onInit() {
       const actions = {
-        ...manageFiltersActions,
-        ...pick(['applySavedFilter', 'setDisplaySaveFilterModal'], dashboardFilterActions)
+        applySavedFilter,
+        setDisplaySaveFilterModal,
+        ...manageFiltersActions
       };
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
     },
@@ -69,6 +72,4 @@ function ManageFilterMenuController($ngRedux, DeleteFiltersModal, manageFiltersA
   });
 }
 
-ManageFilterMenuController.$inject = [
-  '$ngRedux', 'deleteFiltersModal', 'manageFiltersActions', 'dashboardFilterActions'
-];
+ManageFilterMenuController.$inject = ['$ngRedux', 'deleteFiltersModal'];

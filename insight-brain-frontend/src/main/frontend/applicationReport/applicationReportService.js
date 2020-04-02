@@ -19,7 +19,6 @@ import {
   either,
   filter,
   flatten,
-  flip,
   identity,
   groupBy,
   gte,
@@ -39,7 +38,6 @@ import {
   reduceBy,
   reject,
   toLower,
-  sortWith,
   toPairs,
   uniqBy,
   values
@@ -414,45 +412,6 @@ const filterBySubstring = makeFilterTransducer(filterString => {
 
 const filterBetweenValues = makeFilterTransducer(([min, max]) => {
   return (!min && !max) ? always(true) : both(gte(__, min || 0), lte(__, max || 10));
-});
-
-/**
- * Return a list of the specified entries sorted by the specified property, optionally in reverse
- */
-export const sortReportEntries = curry(function sortReportEntries(sortFields, entries) {
-  if (!isNilOrEmpty(sortFields)) {
-    const sorters = sortFields.map(f => {
-      const reverse = f.indexOf('-') === 0,
-          sortProperty = f.match(/\w+/)[0],
-          propGetter = prop(sortProperty),
-          sortFn = (a, b) => {
-            const aProp = propGetter(a),
-                bProp = propGetter(b);
-
-            if (aProp === bProp) {
-              return 0;
-            }
-            if (aProp === undefined) {
-              return -1;
-            }
-            if (bProp === undefined) {
-              return 1;
-            }
-            if (aProp < bProp) {
-              return -1;
-            }
-            if (aProp > bProp) {
-              return 1;
-            }
-            return 0;
-          };
-      return reverse ? flip(sortFn) : sortFn;
-    });
-    return sortWith(sorters, entries);
-  }
-  else {
-    return entries;
-  }
 });
 
 /**

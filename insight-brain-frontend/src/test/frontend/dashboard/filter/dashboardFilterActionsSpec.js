@@ -3,517 +3,516 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import dashboardFilterModule from '../../../../main/frontend/dashboard/filter/module';
+import axios from 'axios';
+import {
+  loadFilter,
+  applyFilter,
+  applySavedFilter
+} from '../../../../main/frontend/dashboard/filter/dashboardFilterActions';
+import {
+  getApplicationsUrl,
+  getOrganizationsUrl,
+  getApplicationTagsUrl,
+  getDashboardFilters,
+  getDashboardSavedFilters,
+  getNewestRisksUrl
+} from '../../../../main/frontend/util/CLMLocation';
 
-describe('dashboardFilterActions', function() {
-  var dashboardFilterActions, initialState, dashboardDataServiceMock, $q, $rootScope, CLMLocations, $httpBackend,
-      OrganizationStoreMock, ApplicationStoreMock, StageTypeStoreMock;
+describe('dashboardFilterActions: non-angular', function() {
+  let store;
 
-  beforeEach(angular.mock.module(dashboardFilterModule.name, function ($provide) {
+  const filterJson = {
+    name: '',
+    basedOnFilterName: 'Test1',
+    filter: 'filter data',
+    needsAcknowledgement: false
+  };
 
-    dashboardDataServiceMock = jasmine.createSpyObj('dashboardDataServiceMock', ['getNewestRisks']);
-    OrganizationStoreMock = jasmine.createSpyObj('OrganizationStoreMock', ['get']);
-    ApplicationStoreMock = jasmine.createSpyObj('ApplicationStoreMock', ['get']);
-    StageTypeStoreMock = jasmine.createSpyObj('StageTypeStoreMock', ['getDashboardStages']);
+  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  const mockGetData = {
+    [getApplicationsUrl()]: Promise.resolve({data: 'applications data'}),
+    [getOrganizationsUrl()]: Promise.resolve({data: 'organizations data'}),
+    [getApplicationTagsUrl()]: Promise.resolve({data: 'tag data'}),
+    [getDashboardFilters()]: Promise.resolve({data: filterJson}),
+    [getDashboardSavedFilters()]: Promise.resolve({data: 'saved filters data'})
+  };
 
-    $provide.service('dashboard.data.service', function() {
-      return dashboardDataServiceMock;
-    });
-    $provide.service('OrganizationStore', function() {
-      return OrganizationStoreMock;
-    });
-    $provide.service('ApplicationStore', function() {
-      return ApplicationStoreMock;
-    });
-    $provide.service('StageTypeStore', function() {
-      return StageTypeStoreMock;
-    });
-  }));
-
-  beforeEach(inject(function($injector, _$q_, _$rootScope_) {
-    $q = _$q_;
-    $rootScope = _$rootScope_;
-    dashboardFilterActions = $injector.get('dashboardFilterActions');
-    CLMLocations = $injector.get('CLMLocations');
-    $httpBackend = $injector.get('$httpBackend');
-
-    initialState = {
-      dashboardFilter: {
-        appliedFilter: 'current filters'
-      },
+  const initialState = {
+    stages: {
       dashboard: {
-        currentTab: 'violations',
-        violations: {sortFields: ['-time', '-threatLevel']},
-        components: {sortFields: ['-score']},
-        applications: {sortFields: ['-totalApplicationRisk.totalRisk']}
+        stageTypes: [{stageTypeId: 1, stageName: 'stage'}]
       }
-    };
-  }));
+    },
+    dashboardFilter: {
+      appliedFilter: 'current filters'
+    },
+    dashboard: {
+      currentTab: 'violations',
+      violations: {sortFields: ['-time', '-threatLevel']},
+      components: {sortFields: ['-score']},
+      applications: {sortFields: ['-totalApplicationRisk.totalRisk']}
+    }
+  };
+
+  const expectedRisksPayload = {
+    orderBy: '-undefined,-THREAT_LEVEL',
+    maxResults: 101,
+    organizationIds: undefined,
+    applicationIds: undefined,
+    stageIds: undefined,
+    tagIds: undefined,
+    policyViolationStates: undefined,
+    maxDaysOld: undefined,
+    policyThreatLevelRange: undefined
+  };
 
   describe('loadFilter', function() {
-    var filterJson, deferredOrganizations, deferredApplications, deferredStages;
-
-    function mockHttpCalls() {
-      $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond('tag data');
-      $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(filterJson);
-      $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond('saved filters data');
-    }
-
-    beforeEach(function() {
-      filterJson = {
-        name: '',
-        basedOnFilterName: 'Test1',
-        filter: 'filter data',
-        needsAcknowledgement: false
-      };
-
-      deferredOrganizations = $q.defer();
-      deferredApplications = $q.defer();
-      deferredStages = $q.defer();
-      OrganizationStoreMock.get.and.returnValue(deferredOrganizations.promise);
-      ApplicationStoreMock.get.and.returnValue(deferredApplications.promise);
-      StageTypeStoreMock.getDashboardStages.and.returnValue(deferredStages.promise);
-    });
-
-    afterEach(function() {
-      $httpBackend.verifyNoOutstandingExpectation();
-      $httpBackend.verifyNoOutstandingRequest();
-    });
-
     describe('when failed fetching filter data', function() {
-      it('fires loadFiltersFailed action', function() {
-        mockHttpCalls();
+      it('fires loadFiltersFailed action', function(done) {
+        mockAxiosCalls({
+          get: {
+            ...mockGetData,
+            [getApplicationsUrl()]: Promise.reject('failed to get applications data')
+          }
+        });
 
-        var store = SpecUtil.mockReduxStore(initialState);
-        var errorSpy = jasmine.createSpy('errorSpy');
-        store.dispatch(dashboardFilterActions.loadFilter()).catch(errorSpy);
+        store = SpecUtil.mockReduxStore(initialState);
 
-        expect(store.getActions().length).toBe(1);
+        store.dispatch(loadFilter())
+            .catch(() => {
+              expect(axios.get).toHaveBeenCalledWith(getApplicationsUrl());
+              expect(axios.get).toHaveBeenCalledWith(getOrganizationsUrl());
+              expect(axios.get).toHaveBeenCalledWith(getApplicationTagsUrl());
+              expect(axios.get).toHaveBeenCalledWith(getDashboardFilters());
+              expect(axios.get).toHaveBeenCalledWith(getDashboardSavedFilters());
+              expect(axios.get).not.toHaveBeenCalledWith(getNewestRisksUrl());
+
+              expect(store.getActions().length).toBe(3);
+
+              expect(store.getActions()[1]).toEqual({
+                type: 'FETCH_SAVED_FILTERS_FULFILLED',
+                payload: 'saved filters data'
+              });
+
+              expect(store.getActions()[2]).toEqual({
+                type: 'LOAD_FILTER_FAILED',
+                payload: 'failed to get applications data'
+              });
+              done();
+            });
+
         expect(store.getActions()[0]).toEqual({
           type: 'LOAD_FILTER_REQUESTED'
         });
-
-        expect(OrganizationStoreMock.get).toHaveBeenCalled();
-        expect(ApplicationStoreMock.get).toHaveBeenCalled();
-        expect(StageTypeStoreMock.getDashboardStages).toHaveBeenCalled();
-
-        deferredOrganizations.resolve('organizations data');
-        deferredApplications.resolve('applications data');
-        deferredStages.reject('failed to get stages data');
-        $httpBackend.flush();
-
-        expect(errorSpy).toHaveBeenCalled();
-        expect(store.getActions().length).toBe(3);
-        expect(store.getActions()[1]).toEqual({
-          type: 'LOAD_FILTER_FAILED',
-          payload: 'failed to get stages data'
-        });
-        expect(store.getActions()[2]).toEqual({
-          type: 'FETCH_SAVED_FILTERS_FULFILLED',
-          payload: 'saved filters data'
-        });
-
-        expect(dashboardDataServiceMock.getNewestRisks).not.toHaveBeenCalled();
       });
     });
 
     describe('when needsAcknowledgement is true', function() {
-      beforeEach(function() {
+      it('fires the action, fetchAvailableFilterOptionsFulfilled and fetchCurrentFilterFulfilled', function(done) {
         filterJson.needsAcknowledgement = true;
-        mockHttpCalls();
-      });
+        mockAxiosCalls({
+          get: {
+            ...mockGetData,
+            [getDashboardFilters()]: Promise.resolve({data: filterJson})
+          }
+        });
 
-      it('fires the action, fires fetchAvailableFilterOptionsFulfilled and fetchCurrentFilterFulfilled', function() {
-        var store = SpecUtil.mockReduxStore(initialState);
-        var successSpy = jasmine.createSpy('successSpy');
-        store.dispatch(dashboardFilterActions.loadFilter()).then(successSpy);
+        store = SpecUtil.mockReduxStore(initialState);
+
+        store.dispatch(loadFilter()).then(() => {
+          expect(axios.get).toHaveBeenCalledWith(getApplicationsUrl());
+          expect(axios.get).toHaveBeenCalledWith(getOrganizationsUrl());
+          expect(axios.get).toHaveBeenCalledWith(getApplicationTagsUrl());
+          expect(axios.get).toHaveBeenCalledWith(getDashboardFilters());
+          expect(axios.get).toHaveBeenCalledWith(getDashboardSavedFilters());
+          expect(axios.get).not.toHaveBeenCalledWith(getNewestRisksUrl());
+
+          expect(store.getActions().length).toBe(4);
+
+          expect(store.getActions()[1]).toEqual({
+            type: 'FETCH_SAVED_FILTERS_FULFILLED',
+            payload: 'saved filters data'
+          });
+
+          expect(store.getActions()[2]).toEqual({
+            type: 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED',
+            payload: {
+              organizations: 'organizations data',
+              applications: 'applications data',
+              stages: initialState.stages.dashboard.stageTypes,
+              categories: 'tag data'
+            }
+          });
+
+          expect(store.getActions()[3]).toEqual({
+            type: 'FETCH_CURRENT_FILTER_FULFILLED',
+            payload: {
+              name: '',
+              basedOnFilterName: 'Test1',
+              filter: 'filter data',
+              needsAcknowledgement: true
+            }
+          });
+          done();
+        });
 
         expect(store.getActions().length).toBe(1);
         expect(store.getActions()[0]).toEqual({
           type: 'LOAD_FILTER_REQUESTED'
         });
-
-        expect(OrganizationStoreMock.get).toHaveBeenCalled();
-        expect(ApplicationStoreMock.get).toHaveBeenCalled();
-        expect(StageTypeStoreMock.getDashboardStages).toHaveBeenCalled();
-
-        deferredOrganizations.resolve('organizations data');
-        deferredApplications.resolve('applications data');
-        deferredStages.resolve('stages data');
-        $httpBackend.flush();
-
-        expect(successSpy).toHaveBeenCalled();
-        expect(store.getActions().length).toBe(4);
-
-        expect(store.getActions()[1]).toEqual({
-          type: 'FETCH_SAVED_FILTERS_FULFILLED',
-          payload: 'saved filters data'
-        });
-        expect(store.getActions()[2]).toEqual({
-          type: 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED',
-          payload: {
-            organizations: 'organizations data',
-            applications: 'applications data',
-            stages: 'stages data',
-            categories: 'tag data'
-          }
-        });
-
-        expect(store.getActions()[3]).toEqual({
-          type: 'FETCH_CURRENT_FILTER_FULFILLED',
-          payload: {
-            name: '',
-            basedOnFilterName: 'Test1',
-            filter: 'filter data',
-            needsAcknowledgement: true
-          }
-        });
-
-        expect(dashboardDataServiceMock.getNewestRisks).not.toHaveBeenCalled();
       });
     });
 
     describe('when needsAcknowledgement is false', function() {
-      var deferredViolationResults;
-      beforeEach(function() {
-        deferredViolationResults = $q.defer();
-        dashboardDataServiceMock.getNewestRisks.and.returnValue(deferredViolationResults.promise);
+      it('fires filter actions and also loads results', function(done) {
         filterJson.needsAcknowledgement = false;
-        mockHttpCalls();
-      });
+        mockAxiosCalls({
+          get: {
+            ...mockGetData,
+            [getDashboardFilters()]: Promise.resolve({data: filterJson})
+          },
+          post: {
+            [getNewestRisksUrl()]: Promise.resolve({
+              data: {
+                dashboardResults: 'results',
+                numResults: 3
+              }
+            })
+          }
+        });
 
-      it('fires filter actions and also loads results', function() {
-        var store = SpecUtil.mockReduxStore(initialState);
-        var successSpy = jasmine.createSpy('successSpy');
-        store.dispatch(dashboardFilterActions.loadFilter()).then(successSpy);
+        store = SpecUtil.mockReduxStore(initialState);
+
+        store.dispatch(loadFilter()).then(() => {
+          expect(axios.get).toHaveBeenCalledWith(getApplicationsUrl());
+          expect(axios.get).toHaveBeenCalledWith(getOrganizationsUrl());
+          expect(axios.get).toHaveBeenCalledWith(getApplicationTagsUrl());
+          expect(axios.get).toHaveBeenCalledWith(getDashboardFilters());
+          expect(axios.get).toHaveBeenCalledWith(getDashboardSavedFilters());
+          expect(axios.post).toHaveBeenCalledWith(getNewestRisksUrl(), expectedRisksPayload);
+
+          expect(store.getActions().length).toBe(6);
+
+          expect(store.getActions()[1]).toEqual({
+            type: 'FETCH_SAVED_FILTERS_FULFILLED',
+            payload: 'saved filters data'
+          });
+
+          expect(store.getActions()[2]).toEqual({
+            type: 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED',
+            payload: {
+              organizations: 'organizations data',
+              applications: 'applications data',
+              stages: initialState.stages.dashboard.stageTypes,
+              categories: 'tag data'
+            }
+          });
+
+          expect(store.getActions()[3]).toEqual({
+            type: 'FETCH_CURRENT_FILTER_FULFILLED',
+            payload: {
+              name: '',
+              basedOnFilterName: 'Test1',
+              filter: 'filter data',
+              needsAcknowledgement: false
+            }
+          });
+
+          expect(store.getActions()[4]).toEqual({
+            type: 'LOAD_RESULTS_REQUESTED',
+            payload: 'violations'
+          });
+
+          expect(store.getActions()[5]).toEqual({
+            type: 'LOAD_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'violations',
+              results: 'results',
+              numResults: 3,
+              classyBrew: undefined
+            }
+          });
+          done();
+        });
 
         expect(store.getActions().length).toBe(1);
         expect(store.getActions()[0]).toEqual({
           type: 'LOAD_FILTER_REQUESTED'
-        });
-
-        expect(OrganizationStoreMock.get).toHaveBeenCalled();
-        expect(ApplicationStoreMock.get).toHaveBeenCalled();
-        expect(StageTypeStoreMock.getDashboardStages).toHaveBeenCalled();
-
-        deferredOrganizations.resolve('organizations data');
-        deferredApplications.resolve('applications data');
-        deferredStages.resolve('stages data');
-        $httpBackend.flush();
-
-        expect(store.getActions().length).toBe(5);
-
-        expect(store.getActions()[1]).toEqual({
-          type: 'FETCH_SAVED_FILTERS_FULFILLED',
-          payload: 'saved filters data'
-        });
-
-        expect(store.getActions()[2]).toEqual({
-          type: 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED',
-          payload: {
-            organizations: 'organizations data',
-            applications: 'applications data',
-            stages: 'stages data',
-            categories: 'tag data'
-          }
-        });
-
-        expect(store.getActions()[3]).toEqual({
-          type: 'FETCH_CURRENT_FILTER_FULFILLED',
-          payload: {
-            name: '',
-            basedOnFilterName: 'Test1',
-            filter: 'filter data',
-            needsAcknowledgement: false
-          }
-        });
-
-        expect(store.getActions()[4]).toEqual({
-          type: 'LOAD_RESULTS_REQUESTED',
-          payload: 'violations'
-        });
-
-        expect(dashboardDataServiceMock.getNewestRisks).toHaveBeenCalledWith('current filters',
-            initialState.dashboard.violations.sortFields);
-
-        deferredViolationResults.resolve({results: 'results', numResults: 3, classyBrew: 'classyBrew'});
-        $rootScope.$apply();
-        expect(successSpy).toHaveBeenCalled();
-        expect(store.getActions().length).toBe(6);
-        expect(store.getActions()[5]).toEqual({
-          type: 'LOAD_RESULTS_FULFILLED',
-          payload: {
-            resultsType: 'violations',
-            results: 'results',
-            numResults: 3,
-            classyBrew: 'classyBrew'
-          }
         });
       });
     });
   });
 
   describe('applyFilter', function() {
-    afterEach(function() {
-      $httpBackend.verifyNoOutstandingExpectation();
-      $httpBackend.verifyNoOutstandingRequest();
-    });
+    it('updates filters and loads results', function(done) {
+      mockAxiosCalls({
+        put: {
+          [getDashboardFilters()]: Promise.resolve({ data: 'update filters response' })
+        },
+        post: {
+          [getNewestRisksUrl()]: Promise.resolve({ data: {
+            dashboardResults: 'results', numResults: 3, classyBrew: 'classyBrew'
+          }})
+        }
+      });
 
-    it('updates filters and loads results', function() {
-      // mock update filters
-      $httpBackend.expectPUT(CLMLocations.getDashboardFilters()).respond('update filters response');
+      store = SpecUtil.mockReduxStore(initialState);
 
-      // mock load results
-      var expectedSortFields = initialState.dashboard.violations.sortFields;
-      var deferred = $q.defer();
-      dashboardDataServiceMock.getNewestRisks.and.returnValue(deferred.promise);
+      store.dispatch(applyFilter('test filters', 'test filter name'))
+          .then(() => {
+            expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
+              filter: 'test filters',
+              basedOnFilterName: 'test filter name'
+            });
 
-      var successSpy = jasmine.createSpy('successSpy');
-      var store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(dashboardFilterActions.applyFilter('test filters', 'test filter name')).then(successSpy);
+            expect(axios.post).toHaveBeenCalledWith(getNewestRisksUrl(), expectedRisksPayload);
+
+            expect(store.getActions().length).toBe(4);
+
+            expect(store.getActions()[1]).toEqual({
+              type: 'APPLY_FILTER_FULFILLED',
+              payload: {
+                filter: 'update filters response',
+                basedOnFilterName: 'test filter name'
+              }
+            });
+
+            expect(store.getActions()[2]).toEqual({
+              type: 'LOAD_RESULTS_REQUESTED',
+              payload: 'violations'
+            });
+
+            expect(store.getActions()[3]).toEqual({
+              type: 'LOAD_RESULTS_FULFILLED',
+              payload: {
+                resultsType: 'violations',
+                results: 'results',
+                numResults: 3,
+                classyBrew: undefined
+              }
+            });
+            done();
+          });
 
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0]).toEqual({type: 'APPLY_FILTER_REQUESTED'});
-
-      $httpBackend.flush();
-      expect(dashboardDataServiceMock.getNewestRisks).toHaveBeenCalledWith('current filters', expectedSortFields);
-      expect(store.getActions().length).toBe(3);
-      expect(store.getActions()[1]).toEqual({
-        type: 'APPLY_FILTER_FULFILLED',
-        payload: {
-          filter: 'update filters response',
-          basedOnFilterName: 'test filter name'
-        }
-      });
-      expect(store.getActions()[2]).toEqual({
-        type: 'LOAD_RESULTS_REQUESTED',
-        payload: 'violations'
-      });
-
-      deferred.resolve({results: 'results', numResults: 3, classyBrew: 'classyBrew'});
-      $rootScope.$apply();
-      expect(successSpy).toHaveBeenCalled();
-      expect(store.getActions().length).toBe(4);
-      expect(store.getActions()[3]).toEqual({
-        type: 'LOAD_RESULTS_FULFILLED',
-        payload: {
-          resultsType: 'violations',
-          results: 'results',
-          numResults: 3,
-          classyBrew: 'classyBrew'
-        }
-      });
     });
 
-    it('dispatches APPLY_FILTER_FAILED if failed to update filters', function() {
-      // mock update filters
-      $httpBackend.expectPUT(CLMLocations.getDashboardFilters()).respond(403);
+    it('dispatches APPLY_FILTER_FAILED if failed to update filters', function(done) {
+      mockAxiosCalls({
+        put: {
+          [getDashboardFilters()]: Promise.reject({ status: 403 })
+        },
+        post: {}
+      });
 
-      var errorSpy = jasmine.createSpy('errorSpy');
-      var store = SpecUtil.mockReduxStore(initialState);
-      var actions = store.getActions();
-      store.dispatch(dashboardFilterActions.applyFilter('test filters', 'test filter name')).catch(errorSpy);
+      store = SpecUtil.mockReduxStore(initialState);
 
-      expect(actions.length).toBe(1);
-      expect(actions[0]).toEqual({type: 'APPLY_FILTER_REQUESTED'});
+      store.dispatch(applyFilter('test filters', 'test filter name'))
+          .catch(() => {
+            expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
+              filter: 'test filters',
+              basedOnFilterName: 'test filter name'
+            });
 
-      $httpBackend.flush();
-      expect(dashboardDataServiceMock.getNewestRisks).not.toHaveBeenCalled();
-      expect(actions.length).toBe(2);
-      expect(actions[1].type).toBe('APPLY_FILTER_FAILED');
-      expect(actions[1].payload.status).toEqual(403);
-      expect(errorSpy).toHaveBeenCalledWith(jasmine.objectContaining({ status: 403 }));
+            expect(store.getActions().length).toBe(2);
+            expect(store.getActions()[1].type).toBe('APPLY_FILTER_FAILED');
+            expect(store.getActions()[1].payload.status).toEqual(403);
+
+            expect(axios.post).not.toHaveBeenCalledWith(getNewestRisksUrl());
+            done();
+          });
+
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0]).toEqual({type: 'APPLY_FILTER_REQUESTED'});
     });
 
-    it('returns rejected promise and does not dispatch APPLY_FILTER_FAILED if failed to load results', function() {
-      // mock update filters
-      $httpBackend.expectPUT(CLMLocations.getDashboardFilters()).respond('update filters response');
+    it('returns rejected promise and does not dispatch APPLY_FILTER_FAILED if failed to load results',
+        function(done) {
+          mockAxiosCalls({
+            put: {
+              [getDashboardFilters()]: Promise.resolve({data: 'update filters response'})
+            },
+            post: {
+              [getNewestRisksUrl()]: Promise.reject('load results error')
+            }
+          });
 
-      // mock load results
-      var deferred = $q.defer();
-      dashboardDataServiceMock.getNewestRisks.and.returnValue(deferred.promise);
+          store = SpecUtil.mockReduxStore(initialState);
 
-      var errorSpy = jasmine.createSpy('errorSpy');
-      var store = SpecUtil.mockReduxStore(initialState);
-      var actions = store.getActions();
+          store.dispatch(applyFilter('test filters', 'test filter name'))
+              .catch(() => {
+                expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
+                  filter: 'test filters',
+                  basedOnFilterName: 'test filter name'
+                });
+                expect(axios.post).toHaveBeenCalledWith(getNewestRisksUrl(), expectedRisksPayload);
 
-      store.dispatch(dashboardFilterActions.applyFilter('test filters', 'test filter name')).catch(errorSpy);
-      $httpBackend.flush();
-      deferred.reject('load results error');
-      $rootScope.$apply();
-      expect(errorSpy).toHaveBeenCalledWith('load results error');
-      expect(actions.length).toBe(4);
-      expect(actions[3].type).toBe('LOAD_RESULTS_FAILED');
-    });
+                expect(store.getActions().length).toBe(4);
+
+                expect(store.getActions()[1]).toEqual({
+                  type: 'APPLY_FILTER_FULFILLED',
+                  payload: {
+                    filter: 'update filters response',
+                    basedOnFilterName: 'test filter name'
+                  }
+                });
+
+                expect(store.getActions()[2]).toEqual({
+                  type: 'LOAD_RESULTS_REQUESTED',
+                  payload: 'violations'
+                });
+
+                expect(store.getActions()[3].type).toBe('LOAD_RESULTS_FAILED');
+
+                done();
+              });
+
+          expect(store.getActions().length).toBe(1);
+          expect(store.getActions()[0]).toEqual({type: 'APPLY_FILTER_REQUESTED'});
+        });
   });
 
   describe('applySavedFilter', function() {
-    var savedFilter = {
+    const savedFilter = {
       filter: 'test filters',
       name: 'test filter name'
     };
 
-    afterEach(function() {
-      $httpBackend.verifyNoOutstandingExpectation();
-      $httpBackend.verifyNoOutstandingRequest();
-    });
+    it('updates filters and loads results', function(done) {
+      mockAxiosCalls({
+        put: {
+          [getDashboardFilters()]: Promise.resolve({data: 'update filters response'})
+        },
+        post: {
+          [getNewestRisksUrl()]: Promise.resolve({
+            data: { dashboardResults: 'results', numResults: 3, classyBrew: 'classyBrew' }
+          })
+        }
+      });
 
-    it('updates filters and loads results', function() {
-      // mock update filters
-      $httpBackend.expectPUT(CLMLocations.getDashboardFilters()).respond('update filters response');
+      store = SpecUtil.mockReduxStore(initialState);
 
-      // mock load results
-      var expectedSortFields = initialState.dashboard.violations.sortFields;
-      var deferred = $q.defer();
-      dashboardDataServiceMock.getNewestRisks.and.returnValue(deferred.promise);
+      store.dispatch(applySavedFilter(savedFilter))
+          .then(() => {
+            expect(axios.post).toHaveBeenCalledWith(getNewestRisksUrl(), expectedRisksPayload);
+            expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
+              filter: 'test filters',
+              basedOnFilterName: 'test filter name'
+            });
 
-      var successSpy = jasmine.createSpy('successSpy');
-      var store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(dashboardFilterActions.applySavedFilter(savedFilter)).then(successSpy);
+            expect(store.getActions().length).toBe(4);
+
+            expect(store.getActions()[1]).toEqual({
+              type: 'APPLY_FILTER_FULFILLED',
+              payload: {
+                filter: 'update filters response',
+                basedOnFilterName: 'test filter name'
+              }
+            });
+            expect(store.getActions()[2]).toEqual({
+              type: 'LOAD_RESULTS_REQUESTED',
+              payload: 'violations'
+            });
+
+            expect(store.getActions()[3]).toEqual({
+              type: 'LOAD_RESULTS_FULFILLED',
+              payload: {
+                resultsType: 'violations',
+                results: 'results',
+                numResults: 3,
+                classyBrew: undefined
+              }
+            });
+
+            done();
+          });
 
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0]).toEqual({type: 'APPLY_FILTER_REQUESTED'});
-
-      $httpBackend.flush();
-      expect(dashboardDataServiceMock.getNewestRisks).toHaveBeenCalledWith('current filters', expectedSortFields);
-      expect(store.getActions().length).toBe(3);
-      expect(store.getActions()[1]).toEqual({
-        type: 'APPLY_FILTER_FULFILLED',
-        payload: {
-          filter: 'update filters response',
-          basedOnFilterName: 'test filter name'
-        }
-      });
-      expect(store.getActions()[2]).toEqual({
-        type: 'LOAD_RESULTS_REQUESTED',
-        payload: 'violations'
-      });
-
-      deferred.resolve({results: 'results', numResults: 3, classyBrew: 'classyBrew'});
-      $rootScope.$apply();
-      expect(successSpy).toHaveBeenCalled();
-      expect(store.getActions().length).toBe(4);
-      expect(store.getActions()[3]).toEqual({
-        type: 'LOAD_RESULTS_FULFILLED',
-        payload: {
-          resultsType: 'violations',
-          results: 'results',
-          numResults: 3,
-          classyBrew: 'classyBrew'
-        }
-      });
     });
 
-    it('dispatches APPLY_SAVED_FILTER_FAILED if failed to update filters', function() {
-      // mock update filters
-      $httpBackend.expectPUT(CLMLocations.getDashboardFilters()).respond(403);
-
-      var errorSpy = jasmine.createSpy('errorSpy');
-      var store = SpecUtil.mockReduxStore(initialState);
-      var actions = store.getActions();
-      store.dispatch(dashboardFilterActions.applySavedFilter(savedFilter)).catch(errorSpy);
-
-      expect(actions.length).toBe(1);
-      expect(actions[0]).toEqual({type: 'APPLY_FILTER_REQUESTED'});
-
-      $httpBackend.flush();
-      expect(dashboardDataServiceMock.getNewestRisks).not.toHaveBeenCalled();
-      expect(actions.length).toBe(2);
-      expect(actions[1]).toEqual({
-        type: 'APPLY_SAVED_FILTER_FAILED',
-        payload: 'test filter name'
+    it('dispatches APPLY_SAVED_FILTER_FAILED if failed to update filters', function(done) {
+      mockAxiosCalls({
+        put: {
+          [getDashboardFilters()]: Promise.reject({ status: 403 })
+        },
+        post: {}
       });
-      expect(errorSpy).toHaveBeenCalledWith(jasmine.objectContaining({ status: 403 }));
-    });
 
-    it('returns rejected promise and does not dispatch APPLY_SAVED_FILTER_FAILED if failed to load results', () => {
-      // mock update filters
-      $httpBackend.expectPUT(CLMLocations.getDashboardFilters()).respond('update filters response');
+      store = SpecUtil.mockReduxStore(initialState);
 
-      // mock load results
-      var deferred = $q.defer();
-      dashboardDataServiceMock.getNewestRisks.and.returnValue(deferred.promise);
+      store.dispatch(applySavedFilter(savedFilter))
+          .catch(() => {
+            expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
+              filter: 'test filters',
+              basedOnFilterName: 'test filter name'
+            });
+            expect(axios.post).not.toHaveBeenCalledWith(getNewestRisksUrl());
 
-      var errorSpy = jasmine.createSpy('errorSpy');
-      var store = SpecUtil.mockReduxStore(initialState);
-      var actions = store.getActions();
+            expect(store.getActions().length).toBe(2);
 
-      store.dispatch(dashboardFilterActions.applySavedFilter(savedFilter)).catch(errorSpy);
-      $httpBackend.flush();
-      deferred.reject('load results error');
-      $rootScope.$apply();
-      expect(errorSpy).toHaveBeenCalledWith('load results error');
-      expect(actions.length).toBe(4);
-      expect(actions[3].type).toBe('LOAD_RESULTS_FAILED');
-    });
-  });
+            expect(store.getActions()[1]).toEqual({
+              type: 'APPLY_SAVED_FILTER_FAILED',
+              payload: 'test filter name'
+            });
 
-  describe('refreshViolationsDetails', function() {
-    afterEach(function() {
-      $httpBackend.verifyNoOutstandingExpectation(false);
-      $httpBackend.verifyNoOutstandingRequest();
-    });
+            done();
+          });
 
-    it('loads dashboard filters, loads results and dispatches REFRESH_VIOLATION_DETAILS action', function() {
-      var expectedSortFields = initialState.dashboard.violations.sortFields;
-      var deferred = $q.defer();
-      var successSpy = jasmine.createSpy('successSpy');
-      var store = SpecUtil.mockReduxStore(initialState);
-
-      $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond({
-        filter: 'new filters',
-        basedOnFilterName: 'test name'
-      });
-      dashboardDataServiceMock.getNewestRisks.and.returnValue(deferred.promise);
-
-      store.dispatch(dashboardFilterActions.refreshViolationsDetails()).then(successSpy);
-      expect(store.getActions().length).toBe(0);
-
-      $httpBackend.flush();
-
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[0]).toEqual({
-        type: 'APPLY_FILTER_FULFILLED',
-        payload: {
-          filter: 'new filters',
-          basedOnFilterName: 'test name'
-        }
-      });
-      expect(store.getActions()[1]).toEqual({
-        type: 'LOAD_RESULTS_REQUESTED',
-        payload: 'violations'
-      });
-      expect(dashboardDataServiceMock.getNewestRisks).toHaveBeenCalledWith('current filters', expectedSortFields);
-
-      deferred.resolve({results: 'new results', numResults: 3});
-      $rootScope.$apply();
-
-      expect(successSpy).toHaveBeenCalled();
-      expect(store.getActions().length).toBe(4);
-      expect(store.getActions()[2]).toEqual({
-        type: 'LOAD_RESULTS_FULFILLED',
-        payload: {
-          resultsType: 'violations',
-          results: 'new results',
-          numResults: 3,
-          classyBrew: undefined
-        }
-      });
-      expect(store.getActions()[3]).toEqual({type: 'REFRESH_VIOLATION_DETAILS'});
-    });
-
-    it('in case of failure dispatches REFRESH_VIOLATION_DETAILS_FAILED and returns rejected promise', function() {
-      var errorSpy = jasmine.createSpy('errorSpy');
-      var store = SpecUtil.mockReduxStore(initialState);
-      $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(403);
-
-      store.dispatch(dashboardFilterActions.refreshViolationsDetails()).catch(errorSpy);
-      $httpBackend.flush();
-
-      expect(errorSpy).toHaveBeenCalledWith(jasmine.objectContaining({status: 403}));
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toBe('REFRESH_VIOLATION_DETAILS_FAILED');
-      expect(store.getActions()[0].payload.status).toBe(403);
+      expect(store.getActions()[0]).toEqual({type: 'APPLY_FILTER_REQUESTED'});
     });
+
+    it('returns rejected promise and does not dispatch APPLY_SAVED_FILTER_FAILED if failed to load results',
+        function(done) {
+          mockAxiosCalls({
+            put: {
+              [getDashboardFilters()]: Promise.resolve({data: 'update filters response'})
+            },
+            post: {
+              [getNewestRisksUrl()]: Promise.reject('load results error')
+            }
+          });
+
+          store = SpecUtil.mockReduxStore(initialState);
+
+          store.dispatch(applySavedFilter(savedFilter))
+              .catch(() => {
+                expect(axios.post).toHaveBeenCalledWith(getNewestRisksUrl(), expectedRisksPayload);
+                expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
+                  filter: 'test filters',
+                  basedOnFilterName: 'test filter name'
+                });
+
+                expect(store.getActions().length).toBe(4);
+
+                expect(store.getActions()[1]).toEqual({
+                  type: 'APPLY_FILTER_FULFILLED',
+                  payload: {
+                    filter: 'update filters response',
+                    basedOnFilterName: 'test filter name'
+                  }
+                });
+
+                expect(store.getActions()[2]).toEqual({
+                  type: 'LOAD_RESULTS_REQUESTED',
+                  payload: 'violations'
+                });
+
+                expect(store.getActions()[3]).toEqual({
+                  type: 'LOAD_RESULTS_FAILED',
+                  payload: {
+                    error: 'load results error',
+                    resultsType: 'violations'
+                  }
+                });
+
+                done();
+              });
+
+          expect(store.getActions().length).toBe(1);
+          expect(store.getActions()[0]).toEqual({type: 'APPLY_FILTER_REQUESTED'});
+        });
   });
 });

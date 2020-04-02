@@ -3,6 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import axios from 'axios';
+
+import { getDashboardDeleteFiltersUrl } from '../../util/CLMLocation';
+import { Messages } from '../../util/CommonServices';
 import { setToArray } from '../../util/jsUtil';
 
 export function filterToJson(filter) {
@@ -19,27 +23,16 @@ export function filterToJson(filter) {
   };
 }
 
-export default
-function dashboardFilterService($http, $q, CLMLocations, Messages) {
-
-  function deleteSavedFilters(filters) {
-    return $http.post(CLMLocations.getDashboardDeleteFiltersUrl(), filters).catch(function(error) {
-      error = Messages.getHttpErrorMessage(error);
-      if (angular.isArray(error)) {
-        return $q.reject(error.map(function(err) {
-          return 'Filter ' + err.name + ', ' + err.errorMessage;
-        }));
-      }
-      else {
-        return $q.reject([error]);
-      }
-    });
-  }
-
-  return {
-    deleteSavedFilters,
-    filterToJson
-  };
+export function deleteSavedFilters(filters) {
+  return axios.post(getDashboardDeleteFiltersUrl(), filters)
+      .catch(error => {
+        error = Messages.getHttpErrorMessage(error);
+        if (Array.isArray(error)) {
+          const errors = error.map((err) => `Filter ${err.name}, ${err.errorMessage}`);
+          return Promise.reject(errors);
+        }
+        else {
+          return Promise.reject([error]);
+        }
+      });
 }
-
-dashboardFilterService.$inject = ['$http', '$q', 'CLMLocations', 'Messages'];

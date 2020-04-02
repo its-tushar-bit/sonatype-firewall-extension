@@ -3,83 +3,91 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global angular */
+import axios from 'axios';
+
 import {
   translateViolationsSortFields,
   translateComponentsSortFields,
   translateApplicationsSortFields
 } from './sortFieldsUtils';
 
-const MAX_RESULTS = 100;
+import {
+  getNewestRisksUrl,
+  getApplicationRisksUrl,
+  getComponentRisksUrl
+} from '../../util/CLMLocation';
 
-export default
-function dashboardDataService($http, $filter, CLMLocations, createRequest, ClassyBrew) {
+import { createDashboardDataRequestPayload } from '../utils/dashboard.utils.module';
+import { createClassyBrew } from '../utils/classybrew.factory';
 
-  function getNewestRisks(filters, sortFields) {
-    const request = createRequest(filters, MAX_RESULTS, translateViolationsSortFields(sortFields));
-    return getData(CLMLocations.getNewestRisksUrl(), request).then(function({dashboardResults, numResults}) {
-      return {results: dashboardResults, numResults};
-    });
-  }
+export const MAX_RESULTS = 100;
 
-  function getApplicationRisks(filters, sortFields) {
-    const request = createRequest(filters, MAX_RESULTS, translateApplicationsSortFields(sortFields));
-    return getData(CLMLocations.getApplicationRisksUrl(), request).then(function({dashboardResults, numResults}) {
-      const series = generateApplicationsSeries(dashboardResults);
-      return {results: dashboardResults, numResults, classyBrew: ClassyBrew.create(series)};
-    });
-  }
-
-  function generateApplicationsSeries(applications) {
-    const scoreFields = ['totalRisk', 'criticalRisk', 'severeRisk', 'moderateRisk', 'lowRisk'];
-    const series = {};
-    applications.forEach(function(application) {
-      scoreFields.forEach(function(scoreField) {
-        if (application.totalApplicationRisk[scoreField]) {
-          series[application.totalApplicationRisk[scoreField]] = true;
-        }
+export function getNewestRisks(filters, sortFields) {
+  const request = createDashboardDataRequestPayload(filters, MAX_RESULTS, translateViolationsSortFields(sortFields));
+  return axios.post(getNewestRisksUrl(), request)
+      .then(({ data }) => {
+        const { dashboardResults, numResults } = data;
+        return {
+          results: dashboardResults,
+          numResults
+        };
       });
-    });
-
-    return Object.keys(series).map(function(x) {
-      return parseInt(x, 10);
-    });
-  }
-
-  function getComponentRisks(filters, sortFields) {
-    const request = createRequest(filters, MAX_RESULTS, translateComponentsSortFields(sortFields));
-    return getData(CLMLocations.getComponentRisksUrl(), request).then(function({dashboardResults, numResults}) {
-      const series = generateComponentsSeries(dashboardResults);
-      return {results: dashboardResults, numResults, classyBrew: ClassyBrew.create(series)};
-    });
-  }
-
-  function generateComponentsSeries(components) {
-    const series = [];
-    components.forEach(function(component) {
-      ['score', 'scoreCritical', 'scoreSevere', 'scoreModerate', 'scoreLow'].forEach(function(scoreField) {
-        if (component[scoreField] && series.lastIndexOf(component[scoreField]) === -1) {
-          series.push(component[scoreField]);
-        }
-      });
-    });
-    return series;
-  }
-
-  function getData(url, filter) {
-    return $http.post(url, filter).then(function(response) {
-      return response.data;
-    });
-  }
-
-  return {
-    getNewestRisks: getNewestRisks,
-    getApplicationRisks: getApplicationRisks,
-    getComponentRisks: getComponentRisks,
-    MAX_RESULTS
-  };
 }
 
-dashboardDataService.$inject = [
-  '$http', '$filter', 'CLMLocations', 'createDashboardDataRequestPayload', 'ClassyBrew'
-];
+export function getApplicationRisks(filters, sortFields) {
+  const request = createDashboardDataRequestPayload(filters, MAX_RESULTS, translateApplicationsSortFields(sortFields));
+  return axios.post(getApplicationRisksUrl(), request)
+      .then(({ data }) => {
+        const { dashboardResults, numResults } = data;
+        const series = generateApplicationsSeries(dashboardResults);
+        return {
+          results: dashboardResults,
+          classyBrew: createClassyBrew(series),
+          numResults
+        };
+      });
+}
+
+const scoreFields = ['totalRisk', 'criticalRisk', 'severeRisk', 'moderateRisk', 'lowRisk'];
+
+function generateApplicationsSeries(applications) {
+  const series = {};
+  applications.forEach(function(application) {
+    scoreFields.forEach(function(scoreField) {
+      if (application.totalApplicationRisk[scoreField]) {
+        series[application.totalApplicationRisk[scoreField]] = true;
+      }
+    });
+  });
+
+  return Object.keys(series).map(function(x) {
+    return parseInt(x, 10);
+  });
+}
+
+export function getComponentRisks(filters, sortFields) {
+  const request = createDashboardDataRequestPayload(filters, MAX_RESULTS, translateComponentsSortFields(sortFields));
+  return axios.post(getComponentRisksUrl(), request)
+      .then(({ data }) => {
+        const { dashboardResults, numResults } = data;
+        const series = generateComponentsSeries(dashboardResults);
+        return {
+          results: dashboardResults,
+          classyBrew: createClassyBrew(series),
+          numResults
+        };
+      });
+}
+
+function generateComponentsSeries(components) {
+  const series = [];
+  const scoreFields = ['score', 'scoreCritical', 'scoreSevere', 'scoreModerate', 'scoreLow'];
+  components.forEach(function(component) {
+    scoreFields.forEach(function(scoreField) {
+      if (component[scoreField] && series.lastIndexOf(component[scoreField]) === -1) {
+        series.push(component[scoreField]);
+      }
+    });
+  });
+  return series;
+}

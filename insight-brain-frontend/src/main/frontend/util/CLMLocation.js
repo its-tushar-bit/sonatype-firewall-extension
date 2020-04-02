@@ -40,12 +40,52 @@ export function getProxyConfigUrl() {
   return `${getBaseUrl(window.location.href)}/api/v2/config/httpProxyServer`;
 }
 
-export function getActionStageUrl() {
-  return `${getBaseUrl(window.location.href)}/rest/policy/stages?context=all`;
+export function getDashboardSavedFilters() {
+  return `${getBaseUrl(window.location.href)}/rest/dashboard/filters/named`;
+}
+
+export function getNewestRisksUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/dashboard/policy/newestRisks`;
+}
+
+/**
+ * Retrieve the list of application risk in the most recent stage.  Supports filters
+ * @since 1.11
+ */
+export function getApplicationRisksUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/dashboard/policy/applicationRisks`;
+}
+
+/**
+ * Retrieve the list of components with violations in the most recent stage.  Supports filters
+ * @since 1.11
+ */
+export function getComponentRisksUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/dashboard/policy/componentRisks`;
+}
+
+export function getApplicationsUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/application`;
 }
 
 export function getDashboardStageUrl() {
   return `${getBaseUrl(window.location.href)}/rest/policy/stages?context=dashboard`;
+}
+
+export function getOrganizationsUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/organization`;
+}
+
+export function getApplicationTagsUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/tag/application`;
+}
+
+export function getDashboardFilters() {
+  return `${getBaseUrl(window.location.href)}/rest/dashboard/filters/active`;
+}
+
+export function getActionStageUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/policy/stages?context=all`;
 }
 
 export function getCliStageUrl() {
@@ -66,6 +106,10 @@ export function getAdvancedSearchUrl(query, page) {
 
 export function getAdvancedSearchQuerySuggesterUrl(query) {
   return `${getBaseUrl(window.location.href)}/api/experimental/search/advanced/suggester?search=${query}`;
+}
+
+export function getDashboardDeleteFiltersUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/dashboard/filters/named/delete`;
 }
 
 export default
@@ -98,10 +142,7 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       getActionStageUrl,
       getDashboardStageUrl,
       getCliStageUrl,
-
-      getApplicationsUrl: function() {
-        return baseUrl.get() + '/rest/application';
-      },
+      getApplicationsUrl,
 
       getApplicationUrl: function(applicationPublicId) {
         return baseUrl.get() + '/rest/application/' + encodeURIComponent(applicationPublicId);
@@ -115,9 +156,7 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
         return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationPublicId);
       },
 
-      getOrganizationsUrl: function() {
-        return baseUrl.get() + '/rest/organization';
-      },
+      getOrganizationsUrl,
 
       getValidateLicenseUrl: function() {
         return baseUrl.get() + '/rest/product/license/validate';
@@ -221,53 +260,31 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
         return baseUrl.get() + '/rest/product/features';
       },
 
-      /**
-       * Retrieve the list of components with violations in the most recent stage.  Supports filters
-       * @since 1.11
-       */
-      getComponentRisksUrl: function() {
-        return baseUrl.get() + '/rest/dashboard/policy/componentRisks';
-      },
+      getComponentRisksUrl,
 
       getComponentRisksExportUrl: function() {
         return baseUrl.get() + '/rest/dashboard/export/componentRisks';
       },
 
-      /**
-       * Retrieve the list of application risk in the most recent stage.  Supports filters
-       * @since 1.11
-       */
-      getApplicationRisksUrl: function() {
-        return baseUrl.get() + '/rest/dashboard/policy/applicationRisks';
-      },
+      getApplicationRisksUrl,
 
       getApplicationRisksExportUrl: function() {
         return baseUrl.get() + '/rest/dashboard/export/applicationRisks';
       },
 
-      getNewestRisksUrl: function() {
-        return baseUrl.get() + '/rest/dashboard/policy/newestRisks';
-      },
+      getNewestRisksUrl,
 
       getNewestRisksExportUrl: function() {
         return baseUrl.get() + '/rest/dashboard/export/newestRisks';
       },
 
-      getApplicationTagsUrl: function() {
-        return baseUrl.get() + '/rest/tag/application';
-      },
+      getApplicationTagsUrl,
 
-      getDashboardFilters: function() {
-        return baseUrl.get() + '/rest/dashboard/filters/active';
-      },
+      getDashboardFilters,
 
-      getDashboardSavedFilters: function() {
-        return baseUrl.get() + '/rest/dashboard/filters/named';
-      },
+      getDashboardSavedFilters,
 
-      getDashboardDeleteFiltersUrl: function() {
-        return baseUrl.get() + '/rest/dashboard/filters/named/delete';
-      },
+      getDashboardDeleteFiltersUrl,
 
       getDashboardComponentMatchSummaryUrl: function() {
         return baseUrl.get() + '/rest/dashboard/components/summary';

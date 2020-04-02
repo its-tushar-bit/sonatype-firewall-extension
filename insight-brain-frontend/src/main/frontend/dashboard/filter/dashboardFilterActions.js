@@ -3,7 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import axios from 'axios';
+
+import { fetchStageTypes } from '../../stages/stagesActions';
+import { fetchSavedFilters } from './manageFiltersActions';
+import { loadResults } from '../results/dashboardResultsActions';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
+import {
+  getApplicationsUrl,
+  getOrganizationsUrl,
+  getApplicationTagsUrl,
+  getDashboardFilters
+} from '../../util/CLMLocation';
 
 export const LOAD_FILTER_REQUESTED = 'LOAD_FILTER_REQUESTED';
 export const FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED = 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED';
@@ -22,162 +33,123 @@ export const CLEAR_FILTER = 'CLEAR_FILTER';
 export const REVERT_FILTER = 'REVERT_FILTER';
 export const SET_DISPLAY_SAVE_FILTER_MODAL = 'SET_DISPLAY_SAVE_FILTER_MODAL';
 
-export default function dashboardFilterActions(dashboardResultsActions, manageFiltersActions, $http, CLMLocations, $q,
-                                               ApplicationStore, StageTypeStore, OrganizationStore) {
+export function loadFilter() {
+  return (dispatch, getState) => {
+    dispatch({ type: LOAD_FILTER_REQUESTED });
 
-  function loadFilter() {
-    return dispatch => {
-      dispatch({
-        type: LOAD_FILTER_REQUESTED
-      });
+    const promises = [
+      axios.get(getApplicationsUrl()),
+      axios.get(getOrganizationsUrl()),
+      axios.get(getApplicationTagsUrl()),
+      axios.get(getDashboardFilters()),
+      dispatch(fetchStageTypes('dashboard')),
+      dispatch(fetchSavedFilters())
+    ];
 
-      const promises = [
-        ApplicationStore.get(), StageTypeStore.getDashboardStages(), OrganizationStore.get(),
-        $http.get(CLMLocations.getApplicationTagsUrl()), $http.get(CLMLocations.getDashboardFilters()),
-        // make sure that saved filters are loaded before we load dashboard filter so we can handle showDirtyAsterisk
-        dispatch(manageFiltersActions.fetchSavedFilters())
-      ];
+    return axios.all(promises)
+        .then(data => {
+          const [applications, organizations, categoriesData, filterData] = data;
+          // Get dashboard-stages from general state
+          const { dashboard } = getState().stages;
 
-      return $q.all(promises)
-          .then(data => {
-            const [applications, stages, organizations, categoriesData, filterData] = data;
-            dispatch(fetchAvailableFilterOptionsFulfilled(applications, stages, organizations, categoriesData.data));
-            return dispatch(fetchCurrentFilterFulfilled(filterData.data));
-          })
-          .catch(error => {
-            dispatch(loadFilterFailed(error));
-            return $q.reject(error);
-          });
-    };
-  }
-
-  function fetchAvailableFilterOptionsFulfilled(applications, stages, organizations, categories) {
-    return {
-      type: FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED,
-      payload: {
-        applications,
-        stages,
-        organizations,
-        categories
-      }
-    };
-  }
-
-  function fetchCurrentFilterFulfilled(filter) {
-    return (dispatch, getState) => {
-      dispatch({
-        type: FETCH_CURRENT_FILTER_FULFILLED,
-        payload: filter
-      });
-      if (!filter.needsAcknowledgement) {
-        return dispatch(dashboardResultsActions.loadResults(getState().dashboard.currentTab));
-      }
-      return $q.resolve();
-    };
-  }
-
-  const loadFilterFailed = payloadParamActionCreator(LOAD_FILTER_FAILED);
-
-  function applyFilter(filter, basedOnFilterName) {
-    return dispatch => {
-      dispatch({
-        type: APPLY_FILTER_REQUESTED
-      });
-
-      return $http.put(CLMLocations.getDashboardFilters(), {filter, basedOnFilterName})
-          .catch(error => {
-            dispatch(applyFilterFailed(error));
-            return $q.reject(error);
-          })
-          .then(({data}) => dispatch(updateFiltersFulfilled(data, basedOnFilterName)));
-    };
-  }
-
-  function applySavedFilter(savedFilter) {
-    const {filter, name} = savedFilter;
-    return dispatch => {
-      dispatch({
-        type: APPLY_FILTER_REQUESTED
-      });
-
-      return $http.put(CLMLocations.getDashboardFilters(), {filter, basedOnFilterName: name})
-          .catch(error => {
-            dispatch(applySavedFilterFailed(name));
-            return $q.reject(error);
-          })
-          .then(({data}) => dispatch(updateFiltersFulfilled(data, name)));
-    };
-  }
-
-  const applyFilterFailed = payloadParamActionCreator(APPLY_FILTER_FAILED);
-  const applySavedFilterFailed = payloadParamActionCreator(APPLY_SAVED_FILTER_FAILED);
-
-  function updateFiltersFulfilled(filter, basedOnFilterName) {
-    return (dispatch, getState) => {
-      dispatch({
-        type: APPLY_FILTER_FULFILLED,
-        payload: {filter, basedOnFilterName}
-      });
-      return dispatch(dashboardResultsActions.loadResults(getState().dashboard.currentTab));
-    };
-  }
-
-  function refreshViolationsDetails() {
-    return dispatch => {
-      return $http.get(CLMLocations.getDashboardFilters())
-          .then(response => response.data)
-          .then(({filter, basedOnFilterName}) => dispatch(updateFiltersFulfilled(filter, basedOnFilterName)))
-          .then(() => dispatch({type: REFRESH_VIOLATION_DETAILS}))
-          .catch(error => {
-            dispatch(refreshViolationDetailsFailed(error));
-            return $q.reject(error);
-          });
-    };
-  }
-
-  function refreshViolationDetailsFailed(error) {
-    return {
-      type: REFRESH_VIOLATION_DETAILS_FAILED,
-      payload: error
-    };
-  }
-
-  function toggleFilter(filterName, selectedIds) {
-    return {
-      type: TOGGLE_FILTER,
-      payload: {filterName, selectedIds}
-    };
-  }
-
-  const selectAge = payloadParamActionCreator(SELECT_AGE);
-
-  const setDisplaySaveFilterModal = payloadParamActionCreator(SET_DISPLAY_SAVE_FILTER_MODAL);
-
-  function toggleAppsAndOrgs(selectedOrganizations, selectedApplications) {
-    return {
-      type: TOGGLE_APPS_AND_ORGS,
-      payload: {selectedOrganizations, selectedApplications}
-    };
-  }
-
-  const clear = noPayloadActionCreator(CLEAR_FILTER);
-  const revert = noPayloadActionCreator(REVERT_FILTER);
-
-  return {
-    clear,
-    revert,
-    selectAge,
-    setDisplaySaveFilterModal,
-    toggleAppsAndOrgs,
-    toggleFilter,
-    loadFilter,
-    applyFilter,
-    applySavedFilter,
-    refreshViolationsDetails
+          dispatch(fetchAvailableFilterOptionsFulfilled(
+              applications.data, organizations.data, categoriesData.data, dashboard.stageTypes));
+          return dispatch(fetchCurrentFilterFulfilled(filterData.data));
+        })
+        .catch(error => {
+          dispatch(loadFilterFailed(error));
+          return Promise.reject(error);
+        });
   };
 }
 
-dashboardFilterActions.$inject = [
-  'dashboardResultsActions', 'manageFiltersActions', '$http', 'CLMLocations', '$q', 'ApplicationStore',
-  'StageTypeStore', 'OrganizationStore'
-];
+function fetchAvailableFilterOptionsFulfilled(applications, organizations, categories, stages) {
+  return {
+    type: FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED,
+    payload: {
+      applications,
+      organizations,
+      categories,
+      stages
+    }
+  };
+}
+
+function fetchCurrentFilterFulfilled(filter) {
+  return (dispatch, getState) => {
+    dispatch({
+      type: FETCH_CURRENT_FILTER_FULFILLED,
+      payload: filter
+    });
+    if (!filter.needsAcknowledgement) {
+      return dispatch(loadResults(getState().dashboard.currentTab));
+    }
+    return Promise.resolve();
+  };
+}
+
+const loadFilterFailed = payloadParamActionCreator(LOAD_FILTER_FAILED);
+
+export function applyFilter(filter, basedOnFilterName) {
+  return dispatch => {
+    dispatch({ type: APPLY_FILTER_REQUESTED });
+
+    return axios.put(getDashboardFilters(), { filter, basedOnFilterName })
+        .catch(error => {
+          dispatch(applyFilterFailed(error));
+          return Promise.reject(error);
+        })
+        .then(({data}) => dispatch(updateFiltersFulfilled(data, basedOnFilterName)));
+  };
+}
+
+export function applySavedFilter({ filter, name }) {
+  return dispatch => {
+    dispatch({
+      type: APPLY_FILTER_REQUESTED
+    });
+
+    return axios.put(getDashboardFilters(), { filter, basedOnFilterName: name })
+        .catch(error => {
+          dispatch(applySavedFilterFailed(name));
+          return Promise.reject(error);
+        })
+        .then(({ data }) => dispatch(updateFiltersFulfilled(data, name)));
+  };
+}
+
+const applyFilterFailed = payloadParamActionCreator(APPLY_FILTER_FAILED);
+
+const applySavedFilterFailed = payloadParamActionCreator(APPLY_SAVED_FILTER_FAILED);
+
+function updateFiltersFulfilled(filter, basedOnFilterName) {
+  return (dispatch, getState) => {
+    dispatch({
+      type: APPLY_FILTER_FULFILLED,
+      payload: { filter, basedOnFilterName }
+    });
+    return dispatch(loadResults(getState().dashboard.currentTab));
+  };
+}
+
+export function toggleFilter(filterName, selectedIds) {
+  return {
+    type: TOGGLE_FILTER,
+    payload: { filterName, selectedIds }
+  };
+}
+
+export const selectAge = payloadParamActionCreator(SELECT_AGE);
+
+export const setDisplaySaveFilterModal = payloadParamActionCreator(SET_DISPLAY_SAVE_FILTER_MODAL);
+
+export function toggleAppsAndOrgs(selectedOrganizations, selectedApplications) {
+  return {
+    type: TOGGLE_APPS_AND_ORGS,
+    payload: { selectedOrganizations, selectedApplications }
+  };
+}
+
+export const clear = noPayloadActionCreator(CLEAR_FILTER);
+
+export const revert = noPayloadActionCreator(REVERT_FILTER);

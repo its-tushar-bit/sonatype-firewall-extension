@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as applicationReportService from '../../../main/frontend/applicationReport/applicationReportService';
-import {ascend, isNil, map, prop, propEq, props, reject, sortWith} from 'ramda';
+import {ascend, isNil, map, prop, propEq, reject, sortWith} from 'ramda';
 
 describe('applicationReportService', function() {
 
@@ -1246,112 +1246,6 @@ describe('applicationReportService', function() {
         expect(hash4Result[0].waived).toBe(false);
         expect(hash4Result[0].grandfathered).toBe(false);
         expect(hash4Result[0].componentIdentifier).toBe('apache');
-      });
-    });
-
-    describe('sortReportEntries', function() {
-      it('sorts by supplied properties (in descending order if prefixed with a \'-\')', function() {
-        const result = applicationReportService.sortReportEntries(
-            ['-policyThreatLevel', 'policyName', 'derivedComponentName'], input);
-        expect(map(props(['policyThreatLevel', 'policyName', 'derivedComponentName']))(result)).toEqual([
-          [9, 'Policy 4', 'junit.junit.4.12'],
-          [9, 'Policy 9', 'junit.junit.4.12'],
-          [8, 'Policy 6', 'junit.junit.4.12'],
-          [6, 'Policy 14', 'org.postgresql.postgresql.42.2.3'],
-          [5, 'Policy 12', 'ognl.ognl.3.0.8'],
-          [5, 'Policy 12', 'org.postgresql.postgresql.42.2.2'],
-          [5, 'Policy 13', 'org.postgresql.postgresql.42.2.3'],
-          [5, 'Policy 7', 'xpp.xpp3_min.1.1.4c'],
-          [4, 'Policy 1', 'junit.junit.4.12'],
-          [4, 'Policy 2', 'junit.junit.4.8'],
-          [4, 'Policy 5', 'junit.junit.4.12'],
-          [4, 'Policy 8', 'org.springframework.spring-webmvc.4.3.16.RELEASE'],
-          [3, 'Policy 11', 'com.fasterxml.jackson.core.jackson-annotations.2.8.11.1'],
-          [3, 'Policy 3', 'ant.ant.1.62'],
-          [2, 'Policy 10', 'com.fasterxml.jackson.core.jackson-databind.2.8.11.1'],
-          [0, 'None', 'org.apache.tomcat.embed.tomcat-embed-core.8.5.29']
-        ]);
-      });
-
-      it('sorts null values to the end when sorting descending', () => {
-        const nullSortInput = [
-          { foo: '3' },
-          { foo: '2' },
-          { foo: null },
-          { foo: '4' },
-          { foo: '1' }
-        ];
-        const result = applicationReportService.sortReportEntries(
-            ['-foo'], nullSortInput);
-        expect(result).toEqual([
-          { foo: '4' },
-          { foo: '3' },
-          { foo: '2' },
-          { foo: '1' },
-          { foo: null }
-        ]);
-      });
-
-      it('sorts undefined values to the end when sorting descending', () => {
-        const nullSortInput = [
-          { foo: '3' },
-          { foo: '2' },
-          { foo: undefined },
-          { foo: '4' },
-          { foo: '1' }
-        ];
-        const result = applicationReportService.sortReportEntries(
-            ['-foo'], nullSortInput);
-        expect(result).toEqual([
-          { foo: '4' },
-          { foo: '3' },
-          { foo: '2' },
-          { foo: '1' },
-          { foo: undefined }
-        ]);
-      });
-
-      it('sorts null values to the beginning when sorting ascending', () => {
-        const nullSortInput = [
-          { foo: '3' },
-          { foo: '2' },
-          { foo: null },
-          { foo: '4' },
-          { foo: '1' }
-        ];
-        const result = applicationReportService.sortReportEntries(
-            ['foo'], nullSortInput);
-        expect(result).toEqual([
-          { foo: null },
-          { foo: '1' },
-          { foo: '2' },
-          { foo: '3' },
-          { foo: '4' }
-        ]);
-      });
-
-      it('sorts undefined values to the beginning when sorting ascending', () => {
-        const nullSortInput = [
-          { foo: '3' },
-          { foo: '2' },
-          { foo: undefined },
-          { foo: '4' },
-          { foo: '1' }
-        ];
-        const result = applicationReportService.sortReportEntries(
-            ['foo'], nullSortInput);
-        expect(result).toEqual([
-          { foo: undefined },
-          { foo: '1' },
-          { foo: '2' },
-          { foo: '3' },
-          { foo: '4' }
-        ]);
-      });
-
-      it('returns the list unchanged if no properties to sort by are supplied', function() {
-        const result = applicationReportService.sortReportEntries([], input);
-        expect(result).toBe(input);
       });
     });
 

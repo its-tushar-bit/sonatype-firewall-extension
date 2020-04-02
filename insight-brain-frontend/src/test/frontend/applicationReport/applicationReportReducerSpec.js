@@ -3,17 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import applicationReportModule from '../../../main/frontend/applicationReport/module';
+
+import reduce from '../../../main/frontend/applicationReport/applicationReportReducer';
 
 describe('applicationReportReducer', function() {
-  let reduce;
   const otherObject = {value: 'test value'};
-
-  beforeEach(angular.mock.module(applicationReportModule.name));
-
-  beforeEach(inject(function($injector) {
-    reduce = $injector.get('applicationReportReducer');
-  }));
 
   describe('unknown action', function() {
     it('returns original state', function() {

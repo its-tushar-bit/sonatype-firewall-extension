@@ -3,58 +3,70 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import dashboardFilterModule from '../../../../main/frontend/dashboard/filter/module';
+import axios from 'axios';
+
+import { getDashboardDeleteFiltersUrl } from '../../../../main/frontend/util/CLMLocation';
 
 describe('dashboardFilterService', function() {
-  var $httpBackend, dashboardFilterService, CLMLocations;
+  let deleteSavedFilters, filterToJson;
 
-  beforeEach(angular.mock.module(dashboardFilterModule.name));
+  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
 
-  beforeEach(inject(function($injector) {
-    $httpBackend = $injector.get('$httpBackend');
-    dashboardFilterService = $injector.get('dashboardFilterService');
-    CLMLocations = $injector.get('CLMLocations');
-  }));
-
-  afterEach(function() {
-    $httpBackend.verifyNoOutstandingExpectation(false);
-    $httpBackend.verifyNoOutstandingRequest();
+  beforeEach(function() {
+    const module = require('inject-loader!../../../../main/frontend/dashboard/filter/dashboardFilterService')();
+    deleteSavedFilters = module.deleteSavedFilters;
+    filterToJson = module.filterToJson;
   });
 
-  describe('deleteFilterNames()', function() {
-    it('properly parses multiple errors', function() {
-      $httpBackend.expectPOST(CLMLocations.getDashboardDeleteFiltersUrl()).respond(500, [
-        {
-          'name': 'Test1',
-          'errorMessage': 'foo',
-          'status': 404
-        },
-        {
-          'name': 'Test2',
-          'errorMessage': 'bar',
-          'status': 500
-        }
-      ]);
+  describe('deleteSavedFilters()', function() {
+    it('properly parses multiple errors', function(done) {
+      const deleteFiltersUrl = getDashboardDeleteFiltersUrl(),
+          mockRejection = [
+            {
+              'name': 'Test1',
+              'errorMessage': 'foo',
+              'status': 404
+            },
+            {
+              'name': 'Test2',
+              'errorMessage': 'bar',
+              'status': 500
+            }
+          ];
 
-      dashboardFilterService.deleteSavedFilters(['Test1', 'Test2']).then(function() {
-        throw 'promise should have been rejected';
-      }).catch(function(error) {
-        expect(error).toEqual(['Filter Test1, foo', 'Filter Test2, bar']);
+      mockAxiosCalls({
+        post: {
+          [deleteFiltersUrl]: Promise.reject({ data: mockRejection })
+        }
       });
 
-      $httpBackend.flush();
+      deleteSavedFilters(['Test1', 'Test2'])
+          .then(function() {
+            throw 'promise should have been rejected';
+          }).catch(function(error) {
+            expect(axios.post).toHaveBeenCalledWith(deleteFiltersUrl, ['Test1', 'Test2']);
+            expect(error).toEqual(['Filter Test1, foo', 'Filter Test2, bar']);
+            done();
+          });
     });
 
-    it('properly parses single error', function() {
-      $httpBackend.expectPOST(CLMLocations.getDashboardDeleteFiltersUrl()).respond(404, 'not found');
+    it('properly parses single error', function(done) {
+      const deleteFiltersUrl = getDashboardDeleteFiltersUrl();
 
-      dashboardFilterService.deleteSavedFilters(['Test1']).then(function() {
-        throw 'promise should have been rejected';
-      }).catch(function(error) {
-        expect(error).toEqual(['not found']);
+      mockAxiosCalls({
+        post: {
+          [deleteFiltersUrl]: Promise.reject('not found')
+        }
       });
 
-      $httpBackend.flush();
+      deleteSavedFilters(['Test1'])
+          .then(function() {
+            throw 'promise should have been rejected';
+          }).catch(function(error) {
+            expect(axios.post).toHaveBeenCalledWith(deleteFiltersUrl, ['Test1']);
+            expect(error).toEqual(['not found']);
+            done();
+          });
     });
   });
 
@@ -71,7 +83,7 @@ describe('dashboardFilterService', function() {
     };
 
     it('creates proper filter json representation', function() {
-      var filterJson = dashboardFilterService.filterToJson(filter);
+      var filterJson = filterToJson(filter);
       expect(filterJson.organizationFilters).toEqual(['orgId1', 'orgId2']);
       expect(filterJson.policyThreatCategoryFilters).toEqual(['QUALITY', 'OTHER', 'SECURITY']);
       expect(filterJson.stageTypeFilters).toEqual(['release', 'stage-release', 'build']);

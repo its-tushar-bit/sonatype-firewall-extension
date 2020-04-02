@@ -196,6 +196,70 @@ window.SpecUtil = {
       dispatch: dispatch,
       getActions: getActions
     };
+  },
+
+  /**
+   * Returns a function that can be used to mock axios calls to the different http verbs.
+   *
+   * The returned function takes in an object of the form { httpVerb: callDefinitions },
+   * where _httpVerb_ is either `post`, `put`, `get`, or `del`
+   * —note that `delete` is a javascript reserved keyword, so we have to use `del` instead)—
+   * and _callDefinitions_ is an object of the form {urlString: response},
+   * where _urlString_ is a string representing the expected url,
+   * and _response_ is any value that should be returned when the given url is requested with the given verb.
+   *
+   * Example usage:
+   *    const mockAxiosCalls = axiosMockerGenerator(axios);
+   *    mockAxiosCalls({
+   *      get: {
+   *        '/url/1': { data: 1 },
+   *        '/url/2': Promise.resolve({ data: 2 })
+   *      },
+   *      post: {
+   *        '/another/url': Promise.reject({ status: 404 })
+   *      },
+   *      put: {}, // passing an empty object to one of the verbs would result in a simple spy on it.
+   *      del: {
+   *        '/url/4': Promise.resolve({ data: 'success' }),
+   *        '/url/5': Promise.reject({ status: 500 })
+   *      }
+   *    });
+   * @param  axios
+   * @returns Function
+   */
+  axiosMockerGenerator: function(axios) {
+    return function(responses) {
+      responses = responses || {};
+
+      var get = responses.get;
+      var post = responses.post;
+      var put = responses.put;
+      var del = responses.del;
+
+      if (get) {
+        spyOn(axios, 'get').and.callFake(function(url) {
+          return get[url];
+        });
+      }
+
+      if (post) {
+        spyOn(axios, 'post').and.callFake(function(url) {
+          return post[url];
+        });
+      }
+
+      if (put) {
+        spyOn(axios, 'put').and.callFake(function(url) {
+          return put[url];
+        });
+      }
+
+      if (del) {
+        spyOn(axios, 'delete').and.callFake(function(url) {
+          return del[url];
+        });
+      }
+    };
   }
 };
 

@@ -3,116 +3,109 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import dashboardResultsModule from '../../../../main/frontend/dashboard/results/module';
 
 describe('dashboardResultsActions', function() {
-  var dashboardResultsActions, initialState, dashboardDataServiceMock, $q, $rootScope;
+  let loadResults, sortResults;
 
-  var tabs = [
-    {
-      resultsType: 'violations',
-      serviceMethod: 'getNewestRisks'
-    },
-    {
-      resultsType: 'components',
-      serviceMethod: 'getComponentRisks'
-    },
-    {
-      resultsType: 'applications',
-      serviceMethod: 'getApplicationRisks'
-    }
-  ];
+  const newRisksSpy = jasmine.createSpy('getNewestRisks'),
+      applicationsRiskSpy = jasmine.createSpy('getApplicationRisks'),
+      componentRisksSpy = jasmine.createSpy('getComponentRisks');
 
-  beforeEach(angular.mock.module(dashboardResultsModule.name, function ($provide) {
+  const tabs = [{
+    resultsType: 'violations',
+    serviceMethod: newRisksSpy
+  }, {
+    resultsType: 'components',
+    serviceMethod: componentRisksSpy
+  }, {
+    resultsType: 'applications',
+    serviceMethod: applicationsRiskSpy
+  }];
 
-    dashboardDataServiceMock = jasmine.createSpyObj('dashboardDataServiceMock',
-        ['getNewestRisks', 'getApplicationRisks', 'getComponentRisks']);
-    dashboardDataServiceMock.MAX_RESULTS = 100;
-
-    $provide.service('dashboard.data.service', function() {
-      return dashboardDataServiceMock;
-    });
-  }));
-
-  beforeEach(inject(function($injector, _$q_, _$rootScope_) {
-    $q = _$q_;
-    $rootScope = _$rootScope_;
-    dashboardResultsActions = $injector.get('dashboardResultsActions');
-
-    initialState = {
-      dashboardFilter: {
-        appliedFilter: 'current filters'
-      },
-      dashboard: {
-        violations: {sortFields: ['-time', '-threatLevel']},
-        components: {sortFields: ['-score']},
-        applications: {sortFields: ['-totalApplicationRisk.totalRisk']}
+  beforeEach(function() {
+    const module = require('inject-loader!../../../../main/frontend/dashboard/results/dashboardResultsActions')({
+      '../services/dashboard.data.service': {
+        getNewestRisks: newRisksSpy,
+        getApplicationRisks: applicationsRiskSpy,
+        getComponentRisks: componentRisksSpy,
+        MAX_RESULTS: 100
       }
-    };
-  }));
+    });
+    loadResults = module.loadResults;
+    sortResults = module.sortResults;
+  });
 
-  angular.forEach(tabs, testLoadResultsAction);
+  const initialState = {
+    dashboardFilter: {
+      appliedFilter: 'current filters'
+    },
+    dashboard: {
+      violations: {sortFields: ['-time', '-threatLevel']},
+      components: {sortFields: ['-score']},
+      applications: {sortFields: ['-totalApplicationRisk.totalRisk']}
+    }
+  };
 
   function testLoadResultsAction(tab) {
     describe('loadResults for ' + tab.resultsType, function() {
-      var deferred, store, expectedSortFields;
+      it('loads results', function(done) {
+        const store = SpecUtil.mockReduxStore(initialState);
+        const mockResults = Promise.resolve({ results: 'results', numResults: 3, classyBrew: 'classyBrew' });
+        tab.serviceMethod.and.returnValue(mockResults);
 
-      beforeEach(function() {
-        deferred = $q.defer();
-        dashboardDataServiceMock[tab.serviceMethod].and.returnValue(deferred.promise);
-        store = SpecUtil.mockReduxStore(initialState);
-        expectedSortFields = initialState.dashboard[tab.resultsType].sortFields;
-      });
+        store.dispatch(loadResults(tab.resultsType))
+            .then(() => {
+              expect(tab.serviceMethod).toHaveBeenCalledWith(initialState.dashboardFilter.appliedFilter,
+                  initialState.dashboard[tab.resultsType].sortFields);
 
-      it('loads results', function() {
-        var successSpy = jasmine.createSpy('successSpy');
-        store.dispatch(dashboardResultsActions.loadResults(tab.resultsType)).then(successSpy);
+              expect(store.getActions().length).toBe(2);
+              expect(store.getActions()[1]).toEqual({
+                type: 'LOAD_RESULTS_FULFILLED',
+                payload: {
+                  resultsType: tab.resultsType,
+                  results: 'results',
+                  numResults: 3,
+                  classyBrew: 'classyBrew'
+                }
+              });
+              done();
+            });
+
         expect(store.getActions().length).toBe(1);
         expect(store.getActions()[0]).toEqual({
           type: 'LOAD_RESULTS_REQUESTED',
           payload: tab.resultsType
         });
-        expect(dashboardDataServiceMock[tab.serviceMethod]).toHaveBeenCalledWith('current filters', expectedSortFields);
-
-        deferred.resolve({results: 'results', numResults: 3, classyBrew: 'classyBrew'});
-        $rootScope.$apply();
-        expect(successSpy).toHaveBeenCalled();
-        expect(store.getActions().length).toBe(2);
-        expect(store.getActions()[1]).toEqual({
-          type: 'LOAD_RESULTS_FULFILLED',
-          payload: {
-            resultsType: tab.resultsType,
-            results: 'results',
-            numResults: 3,
-            classyBrew: 'classyBrew'
-          }
-        });
       });
 
-      it('handles failure to load results', function() {
-        var errorSpy = jasmine.createSpy('errorSpy');
-        store.dispatch(dashboardResultsActions.loadResults(tab.resultsType)).catch(errorSpy);
+      it('handles failure to load results', function(done) {
+        const store = SpecUtil.mockReduxStore(initialState);
+        const mockRejection = Promise.reject('load results error');
+        tab.serviceMethod.and.returnValue(mockRejection);
+
+        store.dispatch(loadResults(tab.resultsType))
+            .catch(() => {
+              expect(store.getActions().length).toBe(2);
+              expect(store.getActions()[1]).toEqual({
+                type: 'LOAD_RESULTS_FAILED',
+                payload: {
+                  resultsType: tab.resultsType,
+                  error: 'load results error'
+                }
+              });
+              done();
+            });
+
         expect(store.getActions().length).toBe(1);
         expect(store.getActions()[0]).toEqual({
           type: 'LOAD_RESULTS_REQUESTED',
           payload: tab.resultsType
-        });
-        expect(dashboardDataServiceMock[tab.serviceMethod]).toHaveBeenCalledWith('current filters', expectedSortFields);
-
-        deferred.reject('load results error');
-        $rootScope.$apply();
-        expect(errorSpy).toHaveBeenCalledWith('load results error');
-        expect(store.getActions().length).toBe(2);
-        expect(store.getActions()[1]).toEqual({
-          type: 'LOAD_RESULTS_FAILED',
-          payload: {
-            resultsType: tab.resultsType,
-            error: 'load results error'
-          }
         });
       });
     });
   }
+
+  tabs.forEach(testLoadResultsAction);
 
   describe('sortResults', function() {
     it('updates sortFields and sorts on front end if results < 100', function() {
@@ -122,7 +115,7 @@ describe('dashboardResultsActions', function() {
         {foo: 3, bar: 3}
       ];
       var store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(dashboardResultsActions.sortResults('applications', ['-foo', 'bar']));
+      store.dispatch(sortResults('applications', ['-foo', 'bar']));
 
       expect(store.getActions().length).toBe(2);
 
@@ -157,7 +150,7 @@ describe('dashboardResultsActions', function() {
       expect(initialState.dashboard.applications.results.length).toBe(100);
 
       var store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(dashboardResultsActions.sortResults('applications', ['-foo', 'bar']));
+      store.dispatch(sortResults('applications', ['-foo', 'bar']));
 
       expect(store.getActions().length).toBe(2);
 
@@ -177,20 +170,32 @@ describe('dashboardResultsActions', function() {
       expect(store.getActions()[1].payload.results[99]).toEqual({foo: 0, bar: 0});
     });
 
-    it('updates sortFields and sorts on back end if results > 100', function() {
+    it('updates sortFields and sorts on back end if results > 100', function(done) {
       initialState.dashboard.components.results = [];
       for (var i = 0; i < 101; i++) {
-        initialState.dashboard.components.results.push({ foo: i, bar: i});
+        initialState.dashboard.components.results.push({ foo: i, bar: i });
       }
-      var expectedSortFields = initialState.dashboard.components.sortFields;
-      var deferred = $q.defer();
-      dashboardDataServiceMock.getComponentRisks.and.returnValue(deferred.promise);
+      const expectedSortFields = initialState.dashboard.components.sortFields;
 
-      var store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(dashboardResultsActions.sortResults('components', ['-foo', 'bar']));
-      expect(dashboardDataServiceMock.getComponentRisks).toHaveBeenCalledWith('current filters', expectedSortFields);
+      componentRisksSpy.and.returnValue(
+          Promise.resolve({ results: 'sorted results', numResults: 3, classyBrew: 'classyBrew' }));
 
-      expect(store.getActions().length).toBe(2);
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(sortResults('components', ['-foo', 'bar']))
+          .then(() => {
+            expect(componentRisksSpy).toHaveBeenCalledWith('current filters', expectedSortFields);
+            expect(store.getActions().length).toBe(3);
+            expect(store.getActions()[2]).toEqual({
+              type: 'LOAD_RESULTS_FULFILLED',
+              payload: {
+                resultsType: 'components',
+                results: 'sorted results',
+                numResults: 3,
+                classyBrew: 'classyBrew'
+              }
+            });
+            done();
+          });
 
       // this action will update sortFields in the state
       expect(store.getActions()[0]).toEqual({
@@ -204,34 +209,32 @@ describe('dashboardResultsActions', function() {
       expect(store.getActions()[1]).toEqual({
         type: 'LOAD_RESULTS_REQUESTED',
         payload: 'components'
-      });
-
-      deferred.resolve({results: 'sorted results', numResults: 3, classyBrew: 'classyBrew'});
-      $rootScope.$apply();
-      expect(store.getActions().length).toBe(3);
-      expect(store.getActions()[2]).toEqual({
-        type: 'LOAD_RESULTS_FULFILLED',
-        payload: {
-          resultsType: 'components',
-          results: 'sorted results',
-          numResults: 3,
-          classyBrew: 'classyBrew'
-        }
       });
     });
 
-    it('updates sortFields and sorts on back end if results is not defined', function() {
+    it('updates sortFields and sorts on back end if results is not defined', function(done) {
       initialState.dashboard.components.results = null;
+      const expectedSortFields = initialState.dashboard.components.sortFields;
 
-      var expectedSortFields = initialState.dashboard.components.sortFields;
-      var deferred = $q.defer();
-      dashboardDataServiceMock.getComponentRisks.and.returnValue(deferred.promise);
+      componentRisksSpy.and.returnValue(
+          Promise.resolve({ results: 'sorted results', numResults: 3, classyBrew: 'classyBrew' }));
 
-      var store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(dashboardResultsActions.sortResults('components', ['-foo', 'bar']));
-      expect(dashboardDataServiceMock.getComponentRisks).toHaveBeenCalledWith('current filters', expectedSortFields);
-
-      expect(store.getActions().length).toBe(2);
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(sortResults('components', ['-foo', 'bar']))
+          .then(() => {
+            expect(componentRisksSpy).toHaveBeenCalledWith('current filters', expectedSortFields);
+            expect(store.getActions().length).toBe(3);
+            expect(store.getActions()[2]).toEqual({
+              type: 'LOAD_RESULTS_FULFILLED',
+              payload: {
+                resultsType: 'components',
+                results: 'sorted results',
+                numResults: 3,
+                classyBrew: 'classyBrew'
+              }
+            });
+            done();
+          });
 
       // this action will update sortFields in the state
       expect(store.getActions()[0]).toEqual({
@@ -245,19 +248,6 @@ describe('dashboardResultsActions', function() {
       expect(store.getActions()[1]).toEqual({
         type: 'LOAD_RESULTS_REQUESTED',
         payload: 'components'
-      });
-
-      deferred.resolve({results: 'sorted results', numResults: 3, classyBrew: 'classyBrew'});
-      $rootScope.$apply();
-      expect(store.getActions().length).toBe(3);
-      expect(store.getActions()[2]).toEqual({
-        type: 'LOAD_RESULTS_FULFILLED',
-        payload: {
-          resultsType: 'components',
-          results: 'sorted results',
-          numResults: 3,
-          classyBrew: 'classyBrew'
-        }
       });
     });
   });

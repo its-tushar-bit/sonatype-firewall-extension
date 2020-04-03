@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,8 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 
@@ -159,6 +162,71 @@ public class PullRequestDetailsBase
     }
     matcher.appendTail(stringBuffer);
     return stringBuffer.toString();
+  }
+
+  /**
+   * Gets the highest threat level from a list of policy violations.
+   *
+   * @param policyViolations The list of policy violations for which the highest threat level needs to be found
+   * @return The highest threat level from the given policy violations, or 0 if there are none.
+   */
+  @VisibleForTesting
+  static int getHighestThreatLevel(final List<PolicyViolation> policyViolations) {
+    return policyViolations
+        .stream()
+        .map(PolicyViolation::getThreatLevel)
+        .max(Comparator.comparingInt(Integer::intValue))
+        .orElse(0);
+  }
+
+  /**
+   * Gets the details for each of the violated policies
+   *
+   * @param policyViolations A list of all policy violations, the list can contain multiple violations for the same
+   *                         policy
+   * @param baseUrl          The baseUrl of the IQ server
+   * @return A list of maps, each map in the list contains the details for violations on a specific policy
+   */
+  @VisibleForTesting
+  static List<Map<String, Object>> getPoliciesViolatedMap(
+      final List<PolicyViolation> policyViolations,
+      final String baseUrl)
+  {
+    return policyViolations
+        .stream()
+        .collect(groupingBy(
+            AbstractPolicyViolation::getPolicyId
+        ))
+        .values()
+        .stream()
+        .sorted((o1, o2) -> Integer.compare(o2.get(0).getThreatLevel(), o1.get(0).getThreatLevel()))
+        .map(groupedPolicyViolations -> ImmutableMap.<String, Object>builder()
+            .put("threatLevel", groupedPolicyViolations.get(0).getThreatLevel())
+            .put("name", groupedPolicyViolations.get(0).getPolicyName())
+            .put("constraints", PullRequestDetailsBase
+                .getConstraintsForPolicyViolationsPerPolicy(groupedPolicyViolations, baseUrl))
+            .build())
+        .collect(toList());
+  }
+
+  /**
+   * Gets the constraint details for each of the specified policy violations
+   *
+   * @param policyViolations A list of policy violations, these should all be for the same policy id
+   * @param baseUrl          The baseUrl of the IQ server
+   * @return A list of maps, each map in the list contains the details for a specific constraint
+   */
+  @VisibleForTesting
+  static List<Map<String, Object>> getConstraintsForPolicyViolationsPerPolicy(
+      final List<PolicyViolation> policyViolations,
+      final String baseUrl)
+  {
+    return getConstraintDetailsForConstraints(policyViolations
+        .stream()
+        .sorted((o1, o2) -> Integer.compare(o2.getThreatLevel(), o1.getThreatLevel()))
+        .map(PolicyViolation::getConstraintFacts)
+        .flatMap(Collection::stream)
+        .collect(toList()), baseUrl);
   }
 
   protected Object getOrganizationName(final Application app) {

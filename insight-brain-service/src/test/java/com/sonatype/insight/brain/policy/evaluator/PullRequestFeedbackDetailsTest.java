@@ -106,7 +106,7 @@ public class PullRequestFeedbackDetailsTest
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_Added.md");
-    final Optional<String> contents = details.getContents();
+    final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
     assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
   }
@@ -124,7 +124,7 @@ public class PullRequestFeedbackDetailsTest
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_Cleared.md");
-    final Optional<String> contents = details.getContents();
+    final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
     assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
   }
@@ -143,7 +143,7 @@ public class PullRequestFeedbackDetailsTest
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_AddedAndCleared.md");
-    final Optional<String> contents = details.getContents();
+    final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
     assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
   }
@@ -162,7 +162,7 @@ public class PullRequestFeedbackDetailsTest
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_NoAddedOrCleared.md");
-    final Optional<String> contents = details.getContents();
+    final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
     assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
   }
@@ -185,7 +185,7 @@ public class PullRequestFeedbackDetailsTest
             app, lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents has singular violation in heading
-    final Optional<String> contents = details.getContents();
+    final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
     assertThat(contents.get()).startsWith("###  \uD83E\uDD14 Nexus IQ found a policy violation");
   }
@@ -208,7 +208,7 @@ public class PullRequestFeedbackDetailsTest
             app, lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents has singular violation in heading
-    final Optional<String> contents = details.getContents();
+    final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
     assertThat(contents.get())
         .contains("#### \uD83D\uDE03\uD83C\uDFC6 Nice work! Nexus IQ determined that you fixed an outstanding" +
@@ -226,7 +226,7 @@ public class PullRequestFeedbackDetailsTest
             app, lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents is not available
-    final Optional<String> contents = details.getContents();
+    final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isEmpty();
   }
 
@@ -272,7 +272,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            app, lookup(BaseUrl.class).getConfigured()));
+            app, lookup(BaseUrl.class).getConfigured()).renderTemplateAndGetContents());
   }
 
   @Test

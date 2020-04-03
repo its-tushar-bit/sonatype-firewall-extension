@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +17,6 @@ import java.util.stream.Collectors;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -52,7 +49,7 @@ public class PullRequestFeedbackDetails
 
   private final PolicyViolationDiff<PolicyViolation> diff;
 
-  private final String contents;
+  private final String baseUrl;
 
   public PullRequestFeedbackDetails(
       final ReportEntry bomReportEntry,
@@ -60,7 +57,7 @@ public class PullRequestFeedbackDetails
       final PolicyEvaluation defaultBranchEvaluation,
       final PolicyViolationDiff<PolicyViolation> diff,
       final Application app,
-      final String baseUrl) throws IOException
+      final String baseUrl)
   {
     Preconditions.checkNotNull(bomReportEntry, "bomReportEntry is required and cannot be null");
     this.bomReportEntry = bomReportEntry;
@@ -72,7 +69,7 @@ public class PullRequestFeedbackDetails
     this.diff = diff;
     Preconditions.checkNotNull(app, "app is required and cannot be null");
     this.app = app;
-    contents = constructContents(baseUrl);
+    this.baseUrl = baseUrl;
   }
 
   private static synchronized Template getPolicyViolationDiffTemplate() throws IOException {
@@ -84,10 +81,14 @@ public class PullRequestFeedbackDetails
   }
 
   /**
-   * The Markdown-formatted contents of the Pull Request Comment, will be empty if no new violations or no components
-   * available
+   * Renders the template and returns the content
+   *
+   * @return An optional variable containing the Markdown-formatted contents of the Pull Request Comment, will be empty
+   * if no new violations or no components available
+   * @throws IOException
    */
-  public Optional<String> getContents() {
+  public Optional<String> renderTemplateAndGetContents() throws IOException {
+    final String contents = constructContents();
     return contents.equals("") ? Optional.empty() : Optional.of(contents);
   }
 
@@ -95,11 +96,10 @@ public class PullRequestFeedbackDetails
    * Constructs the contents for the PR feedback, if no new violation are available or no components in the bom, it will
    * be an empty string
    *
-   * @param baseUrl The baseUrl of the IQ server
    * @return An optional variable containing the PR feedback contents
    * @throws IOException
    */
-  private String constructContents(final String baseUrl) throws IOException {
+  private String constructContents() throws IOException {
     //Create a map from component hash to display name
     final Map<String, String> componentDisplayNamesMap = getDisplayNamesMapFromBom();
     if (componentDisplayNamesMap.isEmpty()) {
@@ -185,70 +185,6 @@ public class PullRequestFeedbackDetails
   }
 
   /**
-   * Gets the highest threat level from a list of policy violations.
-   *
-   * @param policyViolations The list of policy violations for which the highest threat level needs to be found
-   * @return The highest threat level from the given policy violations, or 0 if there are none.
-   */
-  @VisibleForTesting
-  static int getHighestThreatLevel(final List<PolicyViolation> policyViolations) {
-    return policyViolations
-        .stream()
-        .map(PolicyViolation::getThreatLevel)
-        .max(Comparator.comparingInt(Integer::intValue))
-        .orElse(0);
-  }
-
-  /**
-   * Gets the details for each of the violated policies
-   *
-   * @param policyViolations A list of all policy violations, the list can contain multiple violations for the same
-   *                         policy
-   * @param baseUrl          The baseUrl of the IQ server
-   * @return A list of maps, each map in the list contains the details for violations on a specific policy
-   */
-  @VisibleForTesting
-  static List<Map<String, Object>> getPoliciesViolatedMap(
-      final List<PolicyViolation> policyViolations,
-      final String baseUrl)
-  {
-    return policyViolations
-        .stream()
-        .collect(Collectors.groupingBy(
-            AbstractPolicyViolation::getPolicyId
-        ))
-        .values()
-        .stream()
-        .sorted((o1, o2) -> Integer.compare(o2.get(0).getThreatLevel(), o1.get(0).getThreatLevel()))
-        .map(groupedPolicyViolations -> ImmutableMap.<String, Object>builder()
-            .put("threatLevel", groupedPolicyViolations.get(0).getThreatLevel())
-            .put("name", groupedPolicyViolations.get(0).getPolicyName())
-            .put("constraints", getConstraintsForPolicyViolationsPerPolicy(groupedPolicyViolations, baseUrl))
-            .build())
-        .collect(Collectors.toList());
-  }
-
-  /**
-   * Gets the constraint details for each of the specified policy violations
-   *
-   * @param policyViolations A list of policy violations, these should all be for the same policy id
-   * @param baseUrl          The baseUrl of the IQ server
-   * @return A list of maps, each map in the list contains the details for a specific constraint
-   */
-  @VisibleForTesting
-  static List<Map<String, Object>> getConstraintsForPolicyViolationsPerPolicy(
-      final List<PolicyViolation> policyViolations,
-      final String baseUrl)
-  {
-    return getConstraintDetailsForConstraints(policyViolations
-        .stream()
-        .sorted((o1, o2) -> Integer.compare(o2.getThreatLevel(), o1.getThreatLevel()))
-        .map(PolicyViolation::getConstraintFacts)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList()), baseUrl);
-  }
-
-  /**
    * Gets the main model map needed to render the template
    * @param componentPolicyViolationsMap The mapping of components to policy violations
    * @param componentFeedbackList        The list containing mappings of feedback for each component
@@ -276,7 +212,7 @@ public class PullRequestFeedbackDetails
                 .stream()
                 .flatMap(entry ->
                     entry.getValue()
-                    .stream()
+                        .stream()
                         .map(policyViolation -> String.format("%s|%s", entry.getKey(), policyViolation.getId())))
                 .collect(Collectors.toSet()).size())
         .put("fixedPolicyViolationsCount", cleared == null ? 0 : cleared.size())

@@ -56,7 +56,7 @@ public class PullRequestFeedbackMarkupService
     PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(reportEntry, sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation,
             policyViolationDiff, application, baseUrl.getConfigured());
-    Optional<String> result = details.getContents();
+    Optional<String> result = details.renderTemplateAndGetContents();
 
     return result;
   }

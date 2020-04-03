@@ -13,7 +13,6 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataLis
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
@@ -40,10 +39,9 @@ public class RepositoryService extends AbstractRepositoryService
   @Inject
   public RepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator,
                            ProductLicense productLicense,
-                           HdsClient hdsClient,
                            PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
-    super(repositoryPolicyEvaluator, productLicense, hdsClient, policyViolationLoggerFactory, LicensedFeature.FIREWALL);
+    super(repositoryPolicyEvaluator, productLicense, policyViolationLoggerFactory, LicensedFeature.FIREWALL);
   }
 
   /**

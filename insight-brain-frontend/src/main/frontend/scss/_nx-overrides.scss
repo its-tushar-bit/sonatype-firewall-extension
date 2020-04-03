@@ -1,7 +1,8 @@
+@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 // Tweaks necessary to get RSC nx-* classes to work within iq-* containers
 .iq-body-container {
   .nx-loading-spinner {
-    padding: 8px;
+    padding: $nx-spacing-xs;
   }
 }
 
@@ -16,7 +17,7 @@
 }
 
 .nx-cell > .iq-text-indicator:first-child {
-  margin-left: 12px;
+  margin-left: $nx-spacing-sm;
 }
 
 .nx-vulnerability-details dt {
@@ -24,7 +25,7 @@
 }
 
 .nx-page-title.iq-page-title {
-  margin: 0 0 $iq-spacing-md $iq-spacing-sm;
+  margin: 0 0 $nx-spacing-md $nx-spacing-sm;
 }
 
 .nx-tree-view--collapsed {
@@ -36,11 +37,12 @@
 .nx-tree-view--threat-slider {
   .nx-tree-view__child {
     line-height: 18px;
+    margin-left: $nx-spacing-xs;
   }
 }
 .dashboard-filter {
   .nx-tree-view {
-    margin-right: $iq-spacing-xs;
+    margin-right: $nx-spacing-xs;
   }
 
   .nx-counter {

@@ -53,6 +53,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import org.apache.commons.lang3.StringUtils;
 
 import static java.util.stream.Collectors.toList;
 
@@ -64,6 +65,8 @@ import static java.util.stream.Collectors.toList;
 @Named
 public class ApiReportDataServiceV2
 {
+  private static final String DEPENDENCY_PREFIX = "dependency:";
+
   private final ApplicationDAO appDAO;
 
   private final ReportService reportService;
@@ -192,10 +195,7 @@ public class ApiReportDataServiceV2
     List<String> pathnames = new ArrayList<>();
     ArrayNode pathnamesArray = (ArrayNode) componentNode.get("pathnames");
     for (int i = 0; i < pathnamesArray.size(); i++) {
-      String pathname = pathnamesArray.get(i).asText();
-      if (!pathname.startsWith("dependency:")) {
-        pathnames.add(pathname);
-      }
+      pathnames.add(getPathname(pathnamesArray.get(i).asText()));
     }
     return pathnames;
   }
@@ -273,11 +273,7 @@ public class ApiReportDataServiceV2
 
       component.matchState = comp.getMatchState().getId();
       component.proprietary = comp.isProprietary();
-      for (String pathname : comp.getPathnames()) {
-        if (!pathname.startsWith("dependency:")) {
-          component.pathnames.add(pathname);
-        }
-      }
+      setPathnames(comp, component);
       component.displayName = comp.getDisplayName();
       if (!MatchState.UNKNOWN.equals(comp.getMatchState())) {
         component.securityData = securityDataAdapter.convertToDTO(comp);
@@ -292,5 +288,20 @@ public class ApiReportDataServiceV2
     data.matchSummary.totalComponentCount = dataJson.get("totalArtifactCount").intValue();
 
     return data;
+  }
+
+  private void setPathnames(Component comp, ApiReportComponentDTOV2 component) {
+    for (String pathname : comp.getPathnames()) {
+      component.pathnames.add(getPathname(pathname));
+    }
+  }
+
+  private String getPathname(String pathname) {
+    if (!pathname.startsWith(DEPENDENCY_PREFIX)) {
+      return pathname;
+    }
+    else {
+      return StringUtils.removeStart(pathname, DEPENDENCY_PREFIX + "/");
+    }
   }
 }

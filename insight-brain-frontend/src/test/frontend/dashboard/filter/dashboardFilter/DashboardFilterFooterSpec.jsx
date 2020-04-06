@@ -25,13 +25,13 @@ describe('DashboardFilter footer', function() {
         footer = fullFilter.find('.dashboard-filter-footer'),
         applyBtn = footer.find('#dashboard-filter-apply').dive(),
         revertBtn = footer.find('#dashboard-filter-revert').dive(),
-        clearBtn = footer.find('#dashboard-filter-clear').dive();
+        saveBtn = footer.find('#dashboard-filter-save').dive();
 
     expect(applyBtn).toHaveClassName('nx-btn--primary', 'nx-btn');
 
     expect(revertBtn).toHaveClassName('nx-btn--tertiary', 'nx-btn');
 
-    expect(clearBtn).toHaveClassName('nx-btn--tertiary', 'nx-btn');
+    expect(saveBtn).toHaveClassName('nx-btn--tertiary', 'nx-btn');
   });
 
   it('changes disabled class in apply button depending on filtersAreDirty and needsAcknowledgement', function () {
@@ -76,11 +76,11 @@ describe('DashboardFilter footer', function() {
 
   it('adds a tooltip to the apply btn if it is disabled', function () {
     const fullFilter = getShallowComponent({ filtersAreDirty: false }),
-        footer = fullFilter.find('.dashboard-filter-footer'),
-        tooltip = footer.find(NxTooltip),
-        applyBtn = tooltip.find(NxButton);
+        applyBtnTooltip = fullFilter.find('#dashboard-filter-apply-tooltip'),
+        applyBtn = applyBtnTooltip.find(NxButton);
 
-    expect(tooltip).toHaveProp('title', 'There are no changes to update.');
+    expect(applyBtnTooltip).toHaveTagName('NxTooltip');
+    expect(applyBtnTooltip).toHaveProp('title', 'There are no changes to update.');
     expect(applyBtn).toHaveClassName('disabled');
   });
 
@@ -96,5 +96,104 @@ describe('DashboardFilter footer', function() {
     footer = fullFilter.find('.dashboard-filter-footer');
     revertBtn = footer.find('#dashboard-filter-revert');
     expect(revertBtn).not.toHaveClassName('disabled');
+  });
+
+  describe('Apply button onClick handler', function() {
+    let onApplyCurrentFilter;
+    beforeEach(function() {
+      onApplyCurrentFilter = jasmine.createSpy('onApplyCurrentFilter')
+    });
+
+    it('calls onApplyCurrentFilter callback if filters are dirty', function() {
+      const shallowRender = getShallowComponent({
+        filtersAreDirty: true,
+        needsAcknowledgement: false,
+        onApplyCurrentFilter
+      });
+
+      shallowRender.find('#dashboard-filter-apply').simulate('click');
+      expect(onApplyCurrentFilter).toHaveBeenCalled();
+    });
+
+    it('calls onApplyCurrentFilter if filters are not dirty but needs acknowledgement', function() {
+      const shallowRender = getShallowComponent({
+        filtersAreDirty: false,
+        needsAcknowledgement: true,
+        onApplyCurrentFilter
+      });
+
+      shallowRender.find('#dashboard-filter-apply').simulate('click');
+      expect(onApplyCurrentFilter).toHaveBeenCalled();
+    });
+
+    it('doesn\'t call onApplyCurrentFilter if filters are not dirty and doesn\'t need acknowledgement', function() {
+      const shallowRender = getShallowComponent({
+        filtersAreDirty: false,
+        needsAcknowledgement: false,
+        onApplyCurrentFilter
+      });
+
+      shallowRender.find('#dashboard-filter-apply').simulate('click');
+      expect(onApplyCurrentFilter).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Revert button onClick handler', function() {
+    it('calls revert callback', function() {
+      const revert = jasmine.createSpy('revert'),
+          shallowRender = getShallowComponent({ revert });
+
+      shallowRender.find('#dashboard-filter-revert').simulate('click');
+      expect(revert).toHaveBeenCalled();
+    });
+  });
+
+  describe('Save button onClick handler', function() {
+    let setDisplaySaveFilterModal;
+    beforeEach(function() {
+      setDisplaySaveFilterModal = jasmine.createSpy('setDisplaySaveFilterModal')
+    });
+
+    it('calls setDisplaySaveFilterModal callback if filters are not dirty', function() {
+      const shallowRender = getShallowComponent({
+        filtersAreDirty: false,
+        setDisplaySaveFilterModal
+      });
+
+      shallowRender.find('#dashboard-filter-save').simulate('click');
+      expect(setDisplaySaveFilterModal).toHaveBeenCalledWith(true);
+    });
+
+    it('doesn\'t call setDisplaySaveFilterModal if filters are dirty', function() {
+      const shallowRender = getShallowComponent({
+        filtersAreDirty: true,
+        setDisplaySaveFilterModal
+      });
+
+      shallowRender.find('#dashboard-filter-save').simulate('click');
+      expect(setDisplaySaveFilterModal).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Save button', function() {
+    it('is disabled with tooltip when filters are dirty', function() {
+      const shallowRender = getShallowComponent({ filtersAreDirty: true }),
+          saveBtnTooltip = shallowRender.find('#dashboard-filter-save-tooltip'),
+          saveBtn = saveBtnTooltip.find(NxButton);
+
+      expect(saveBtnTooltip).toHaveTagName('NxTooltip');
+      expect(saveBtnTooltip).toHaveProp('title', 'Please apply filter before saving');
+      expect(saveBtn).toHaveClassName('disabled');
+    });
+
+    it('is enabled with no tooltip when filters are not dirty', function() {
+      const shallowRender = getShallowComponent({ filtersAreDirty: false }),
+          saveBtnTooltip = shallowRender.find('#dashboard-filter-save-tooltip'),
+          saveBtn = saveBtnTooltip.find(NxButton);
+
+      expect(saveBtnTooltip).toHaveTagName('NxTooltip');
+      expect(saveBtnTooltip).toHaveProp('title', '');
+      expect(saveBtn).not.toHaveClassName('disabled');
+    });
   });
 });

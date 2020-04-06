@@ -6,8 +6,6 @@
 import React from 'react';
 import { mount } from 'enzyme';
 
-import DashboardFilter from
-  '../../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilter';
 import DashboardFilterHeader from
   '../../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilterHeader';
 import DashboardFilterFooter from
@@ -23,7 +21,7 @@ import * as enzymeUtils from '../../../enzymeUtils';
 import LoadWrapper from '../../../../../main/frontend/react/LoadWrapper';
 
 describe('DashboardFilter', function() {
-  let getShallowComponent, loadFilterSpy, minimalProps;
+  let getShallowComponent, loadFilterSpy, minimalProps, SaveFilterModalContainerMock, DashboardFilter;
 
   const filterData = {
     organizations: [
@@ -70,10 +68,17 @@ describe('DashboardFilter', function() {
     minimalProps = {
       ...filterData,
       loadFilter: loadFilterSpy,
-      loading: false,
-      clear: jasmine.createSpy(),
-      revert: jasmine.createSpy()
+      loading: false
     };
+    SaveFilterModalContainerMock = jasmine.createSpy('SaveFilterModalContainer')
+        .and.returnValue(<div>Save Filter Modal</div>);
+
+    DashboardFilter = require(
+        'inject-loader!../../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilter'
+    )({
+      '../manageFilterMenu/saveFilterModal/SaveFilterModalContainer': SaveFilterModalContainerMock
+    }).default;
+
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardFilter, minimalProps);
   });
 
@@ -107,7 +112,7 @@ describe('DashboardFilter', function() {
           saveError: 'err',
           filtersAreDirty: true,
           needsAcknowledgement: true,
-          clear: jasmine.createSpy('clear'),
+          setDisplaySaveFilterModal: jasmine.createSpy('setDisplaySaveFilterModal'),
           revert: jasmine.createSpy('revert')
         },
         fullFilter = getShallowComponent(props),
@@ -117,8 +122,9 @@ describe('DashboardFilter', function() {
     expect(filterFooter).toHaveProp('saveError', props.saveError);
     expect(filterFooter).toHaveProp('filtersAreDirty', props.filtersAreDirty);
     expect(filterFooter).toHaveProp('needsAcknowledgement', props.needsAcknowledgement);
-    expect(filterFooter).toHaveProp('clear', props.clear);
     expect(filterFooter).toHaveProp('revert', props.revert);
+    expect(filterFooter).toHaveProp('setDisplaySaveFilterModal', props.setDisplaySaveFilterModal);
+    expect(filterFooter).toHaveProp('onApplyCurrentFilter', jasmine.any(Function));
   });
 
   describe('DashboardFilter filter contents', function() {
@@ -218,7 +224,7 @@ describe('DashboardFilter', function() {
     });
   });
 
-  describe('applyCurrentFilter', function() {
+  describe('applyCurrentFilter callback', function() {
     const selectedItems = {
       organizations: new Set(['666hell666']),
       applications: new Set(['777heaven777']),
@@ -241,54 +247,34 @@ describe('DashboardFilter', function() {
       maxPolicyThreatLevel: 6
     };
 
-    it('calls applyFilter action if filtersAreDirty', function() {
+    it('calls applyFilter action', function() {
       const applySpy = jasmine.createSpy('applyFilter'),
-          preventDefault = jasmine.createSpy('preventDefault'),
-          fullFilter = getShallowComponent({
-            ...minimalProps,
-            filtersAreDirty: true,
+          shallowRender = getShallowComponent({
             applyFilter: applySpy,
-            selected: selectedItems
-          }),
-          form = fullFilter.find('.dashboard-filter-container');
+            selected: selectedItems,
+            appliedFilterName: 'foo filter'
+          });
 
-      form.simulate('submit', { preventDefault });
-      expect(preventDefault).toHaveBeenCalled();
-      expect(applySpy).toHaveBeenCalledWith(expectedJsonFilter, undefined);
+      shallowRender.find(DashboardFilterFooter).simulate('applyCurrentFilter');
+      expect(applySpy).toHaveBeenCalledWith(expectedJsonFilter, 'foo filter');
+    });
+  });
+
+  describe('SaveFilterModal', function() {
+    it('is rendered when showSaveFilterModal is true', function() {
+      const shallowRender = getShallowComponent({
+        showSaveFilterModal: true
+      });
+
+      expect(shallowRender).toContainReact(<SaveFilterModalContainerMock/>);
     });
 
-    it('calls applyFilter action if filtersAreDirty is false but needsAcknowledgement', function() {
-      const applySpy = jasmine.createSpy('applyFilter'),
-          preventDefault = jasmine.createSpy('preventDefault'),
-          fullFilter = getShallowComponent({
-            ...minimalProps,
-            filtersAreDirty: false,
-            needsAcknowledgement: true,
-            applyFilter: applySpy,
-            selected: selectedItems
-          }),
-          form = fullFilter.find('.dashboard-filter-container');
+    it('is not rendered when showSaveFilterModal is false', function() {
+      const shallowRender = getShallowComponent({
+        showSaveFilterModal: false
+      });
 
-      form.simulate('submit', { preventDefault });
-      expect(preventDefault).toHaveBeenCalled();
-      expect(applySpy).toHaveBeenCalledWith(expectedJsonFilter, undefined);
-    });
-
-    it('does not call applyFilter action if filters are not dirty and needsAcknowledgement is false', function() {
-      const applySpy = jasmine.createSpy('applyFilter'),
-          preventDefault = jasmine.createSpy('preventDefault'),
-          fullFilter = getShallowComponent({
-            ...minimalProps,
-            filtersAreDirty: false,
-            needsAcknowledgement: false,
-            applyFilter: applySpy,
-            selected: selectedItems
-          }),
-          form = fullFilter.find('.dashboard-filter-container');
-
-      form.simulate('submit', { preventDefault });
-      expect(preventDefault).toHaveBeenCalled();
-      expect(applySpy).not.toHaveBeenCalled();
+      expect(shallowRender).not.toContainReact(<SaveFilterModalContainerMock/>);
     });
   });
 });

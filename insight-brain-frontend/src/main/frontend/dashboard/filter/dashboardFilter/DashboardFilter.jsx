@@ -20,6 +20,7 @@ import { filterToJson } from '../dashboardFilterService';
 
 import DashboardFilterHeader from './DashboardFilterHeader';
 import DashboardFilterFooter from './DashboardFilterFooter';
+import SaveFilterModalContainer from '../manageFilterMenu/saveFilterModal/SaveFilterModalContainer';
 
 export default function DashboardFilter(props) {
   const {
@@ -31,6 +32,7 @@ export default function DashboardFilter(props) {
     filtersAreDirty,
     needsAcknowledgement,
     showAgeFilter,
+    showSaveFilterModal,
 
     // filter items
     organizations,
@@ -47,7 +49,7 @@ export default function DashboardFilter(props) {
 
     // actions
     applyFilter,
-    clear,
+    setDisplaySaveFilterModal,
     loadFilter,
     revert,
     selectAge,
@@ -56,15 +58,6 @@ export default function DashboardFilter(props) {
   } = props;
 
   useEffect(() => { loadFilter(); }, []);
-
-  function applyCurrentFilter(evt) {
-    evt.preventDefault();
-
-    if (!filtersAreDirty && !needsAcknowledgement) {
-      return;
-    }
-    applyFilter(filterToJson(selected), appliedFilterName);
-  }
 
   const curriedToggleFilter = curryN(2, toggleFilter),
       onCategoriesChange = curriedToggleFilter('categories'),
@@ -90,7 +83,8 @@ export default function DashboardFilter(props) {
   const filterContentClassnames = classnames('dashboard-filter', { 'iq-apply-error-present': saveError });
 
   return (
-    <form className="dashboard-filter-container" onSubmit={applyCurrentFilter}>
+    <div className="dashboard-filter-container">
+      { showSaveFilterModal && <SaveFilterModalContainer/> }
       <DashboardFilterHeader { ...({ appliedFilterName, showDirtyAsterisk, loadErrorFilterName }) } />
 
       <div className={filterContentClassnames}>
@@ -162,8 +156,15 @@ export default function DashboardFilter(props) {
         </LoadWrapper>
       </div>
 
-      <DashboardFilterFooter { ...({ saveError, filtersAreDirty, needsAcknowledgement, clear, revert }) } />
-    </form>
+      <DashboardFilterFooter {...({
+        saveError,
+        filtersAreDirty,
+        needsAcknowledgement,
+        setDisplaySaveFilterModal,
+        revert,
+        onApplyCurrentFilter: () => applyFilter(filterToJson(selected), appliedFilterName)
+      })} />
+    </div>
   );
 }
 
@@ -176,6 +177,7 @@ DashboardFilter.propTypes = {
   filtersAreDirty: PropTypes.bool,
   needsAcknowledgement: PropTypes.bool,
   showAgeFilter: PropTypes.bool,
+  showSaveFilterModal: PropTypes.bool,
   organizations: PropTypes.array,
   applications: PropTypes.array,
   categories: PropTypes.array,
@@ -194,8 +196,8 @@ DashboardFilter.propTypes = {
     maxDaysOld: PropTypes.number,
     policyThreatLevels: PropTypes.arrayOf(PropTypes.number).isRequired
   }),
-  applyFilter: PropTypes.func,
-  clear: PropTypes.func.isRequired,
+  applyFilter: PropTypes.func.isRequired,
+  setDisplaySaveFilterModal: PropTypes.func.isRequired,
   loadFilter: PropTypes.func.isRequired,
   revert: PropTypes.func.isRequired,
   selectAge: PropTypes.func,

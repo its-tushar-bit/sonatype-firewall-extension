@@ -13,24 +13,40 @@ export default function DashboardFilterFooter(props) {
     saveError,
     filtersAreDirty,
     needsAcknowledgement,
-    clear,
-    revert
+    setDisplaySaveFilterModal,
+    revert,
+    onApplyCurrentFilter
   } = props;
 
   const filterFooterClassnames = classnames('dashboard-filter-footer', { 'iq-apply-error-present': saveError }),
+      applyBtnDisabled = !filtersAreDirty && !needsAcknowledgement,
       revertBtnClassnames = classnames({'disabled': !filtersAreDirty}),
-      applyBtnClassnames = classnames({'disabled': !filtersAreDirty && !needsAcknowledgement});
+      applyBtnClassnames = classnames({'disabled': applyBtnDisabled}),
+      saveBtnClassnames = classnames({'disabled': filtersAreDirty}),
+      handleSaveBtnClick = () => {
+        if (filtersAreDirty) {
+          return;
+        }
+        setDisplaySaveFilterModal(true);
+      },
+      handleApplyBtnClick = () => {
+        if (applyBtnDisabled) {
+          return;
+        }
+        onApplyCurrentFilter();
+      };
 
   const applyButton = (
     <NxButton id="dashboard-filter-apply"
               variant="primary"
-              className={applyBtnClassnames}>
+              className={applyBtnClassnames}
+              onClick={handleApplyBtnClick}>
       Apply
     </NxButton>
   );
 
   const tooltipApplyBtn = (
-    <NxTooltip title="There are no changes to update.">
+    <NxTooltip id="dashboard-filter-apply-tooltip" title="There are no changes to update.">
       {applyButton}
     </NxTooltip>
   );
@@ -46,12 +62,14 @@ export default function DashboardFilterFooter(props) {
                 onClick={revert}>
         Revert
       </NxButton>
-
-      <NxButton id="dashboard-filter-clear"
-                variant="tertiary"
-                onClick={clear}>
-        Clear
-      </NxButton>
+      <NxTooltip id="dashboard-filter-save-tooltip" title={filtersAreDirty ? 'Please apply filter before saving' : ''}>
+        <NxButton id="dashboard-filter-save"
+                  variant="tertiary"
+                  className={saveBtnClassnames}
+                  onClick={handleSaveBtnClick}>
+          Save
+        </NxButton>
+      </NxTooltip>
     </div>
   );
 }
@@ -59,6 +77,7 @@ DashboardFilterFooter.propTypes = {
   saveError: PropTypes.string,
   filtersAreDirty: PropTypes.bool,
   needsAcknowledgement: PropTypes.bool,
-  clear: PropTypes.func.isRequired,
-  revert: PropTypes.func.isRequired
+  setDisplaySaveFilterModal: PropTypes.func.isRequired,
+  revert: PropTypes.func.isRequired,
+  onApplyCurrentFilter: PropTypes.func.isRequired
 };

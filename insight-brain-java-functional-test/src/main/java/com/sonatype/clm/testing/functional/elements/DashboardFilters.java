@@ -69,8 +69,12 @@ public class DashboardFilters
     return $("#dashboard-filter-revert");
   }
 
-  public static SelenideElement clearButton() {
-    return $("#dashboard-filter-clear");
+  public static SelenideElement saveButton() {
+    return $("#dashboard-filter-save");
+  }
+
+  public static Tooltip saveButtonTooltip() {
+    return new Tooltip("#dashboard-filter-save-tooltip");
   }
 
   public static SelenideElement saveFilterNameLabel() {
@@ -85,6 +89,10 @@ public class DashboardFilters
     applyButton().shouldNotBe(DISABLED).click();
     // wait for changes to be processed
     applyButton().shouldBe(DISABLED);
+  }
+
+  public static SaveFilterDialog saveFilterDialog() {
+    return new SaveFilterDialog();
   }
 
   public static ManageFilters manage() {
@@ -120,10 +128,6 @@ public class DashboardFilters
 
     public SelenideElement emptyListMessage() {
       return child(".iq-list__item--empty");
-    }
-
-    public SaveFilterDialog saveFilterDialog() {
-      return new SaveFilterDialog();
     }
 
     public DeleteFiltersDialog deleteFiltersDialog() {

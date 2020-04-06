@@ -34,7 +34,7 @@ public class PolicyAlertUtil
       PolicyFact policyFact = new PolicyFact(policyId, policyViolation.getPolicyName(),
           policyViolation.getThreatLevel(), policyViolation.getId());
       Policy policy = policyDAO.getById(policyId);
-      List<? extends Action> actions;
+      List<Action> actions;
       if (policy == null || !enableActions) {
         actions = Collections.emptyList();
       }

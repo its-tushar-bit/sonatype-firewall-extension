@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
-import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
@@ -64,22 +63,19 @@ public abstract class AbstractRepositoryService
 
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
-  protected final HdsClient hdsClient;
-
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  // Visible for tests
   final LicensedFeature requiredFeature;
 
   @Inject
   public AbstractRepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator,
                                    ProductLicense productLicense,
-                                   HdsClient hdsClient,
                                    PolicyViolationLoggerFactory policyViolationLoggerFactory,
                                    LicensedFeature requiredFeature)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.productLicense = productLicense;
-    this.hdsClient = hdsClient;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.requiredFeature = requiredFeature;
   }
@@ -92,8 +88,9 @@ public abstract class AbstractRepositoryService
     AuditData.get().setData("componentPathname", pathname);
   }
 
-  public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(final String repositoryManagerInstanceId,
-                                                                      final String repositoryPublicId)
+  RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(
+      final String repositoryManagerInstanceId,
+      final String repositoryPublicId)
   {
     checkLicenseFeature();
 
@@ -114,7 +111,7 @@ public abstract class AbstractRepositoryService
     return getPolicyEvaluationSummaryInternal(repository);
   }
 
-  public void setEnabled(String repositoryManagerInstanceId, String repositoryPublicId, boolean enable) {
+  void setEnabled(String repositoryManagerInstanceId, String repositoryPublicId, boolean enable) {
     AuditData.get().setData("repositoryManagerInstanceId", repositoryManagerInstanceId)
         .setRepositoryPublicId(repositoryPublicId);
     checkLicenseFeature();
@@ -163,10 +160,7 @@ public abstract class AbstractRepositoryService
     return repositoryManager;
   }
 
-  public void setQuarantine(final String repositoryManagerInstanceId,
-                            final String repositoryPublicId,
-                            final boolean enabled)
-  {
+  void setQuarantine(final String repositoryManagerInstanceId, final String repositoryPublicId, final boolean enabled) {
     AuditData.get().setData("quarantine", enabled ? "enabled" : "disabled");
     checkLicenseFeature();
 
@@ -192,7 +186,7 @@ public abstract class AbstractRepositoryService
     repositoryDAO.update(repository);
   }
 
-  public RepositoryComponentEvaluationDataList evaluateComponents(
+  RepositoryComponentEvaluationDataList evaluateComponents(
       String repositoryManagerInstanceId,
       String repositoryPublicId,
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
@@ -395,7 +389,7 @@ public abstract class AbstractRepositoryService
     }
   }
 
-  static String normalizePathname(String pathname) {
+  private static String normalizePathname(String pathname) {
     if (pathname != null && pathname.startsWith("/")) {
       return pathname.substring(1);
     }

@@ -41,21 +41,21 @@ public class RepositoryResource
 {
   public static final String RESOURCE_PATH = "rest/integration/repositories";
 
-  static final String REPOSITORY_PATH = "{repositoryManagerInstanceId}/{repositoryPublicId}/";
+  private static final String REPOSITORY_PATH = "{repositoryManagerInstanceId}/{repositoryPublicId}/";
 
-  public static final String SUMMARY_PATH = REPOSITORY_PATH + "summary";
+  static final String SUMMARY_PATH = REPOSITORY_PATH + "summary";
 
   public static final String ENABLE_PATH = REPOSITORY_PATH + "enable/{enabled}";
 
   static final String QUARANTINE_PATH = REPOSITORY_PATH + "quarantine/{enabled}";
 
-  public static final String EVALUATE_COMPONENTS_PATH = REPOSITORY_PATH + "evaluate/audit";
+  static final String EVALUATE_COMPONENTS_PATH = REPOSITORY_PATH + "evaluate/audit";
 
-  public static final String EVALUATE_COMPONENTS_ADHOC_PATH = REPOSITORY_PATH + "evaluate/adhoc";
+  static final String EVALUATE_COMPONENTS_ADHOC_PATH = REPOSITORY_PATH + "evaluate/adhoc";
 
   static final String COMPONENTS_PATH = REPOSITORY_PATH + "components/{pathname: .+}";
 
-  public static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = REPOSITORY_PATH + "evaluate/quarantine";
+  static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = REPOSITORY_PATH + "evaluate/quarantine";
 
   static final String UNQUARANTINED_COMPONENTS_PATH = REPOSITORY_PATH + "components/unquarantined";
 

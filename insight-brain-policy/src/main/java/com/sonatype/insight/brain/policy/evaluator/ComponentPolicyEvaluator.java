@@ -134,7 +134,7 @@ public class ComponentPolicyEvaluator
 
       Notifications notifications = policy.getNotifications().getApplicable(stage.getStageTypeId(), forMonitoring);
       PolicyNotification policyNotification = new PolicyNotification(policyFact, notifications);
-      List<? extends Action> actions = policy.toActions(stage.getStageTypeId(), forMonitoring);
+      List<Action> actions = policy.toActions(stage.getStageTypeId(), forMonitoring);
       PolicyAlert policyAlert = new PolicyAlert(policyFact, actions);
 
       PolicyWaiver policyWaiver = getApplicablePolicyWaiver(policyWaivers, policyFact);

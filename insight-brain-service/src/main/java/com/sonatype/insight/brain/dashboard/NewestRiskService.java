@@ -264,6 +264,7 @@ public class NewestRiskService
     newestRiskDTO.firstOccurrenceTime = policyViolation.getOpenTime().getTime();
     newestRiskDTO.policyId = policyViolation.getPolicyId();
     newestRiskDTO.policyName = policyViolation.getPolicyName();
+    newestRiskDTO.policyViolationId = policyViolation.getId();
     newestRiskDTO.hash = policyViolation.getHash();
     addToNewestRiskDTO(newestRiskDTO, policyEvaluation, policyViolation);
 
@@ -290,6 +291,9 @@ public class NewestRiskService
     long firstOccurrenceTime = policyViolation.getOpenTime().getTime();
     if (newestRiskDTO.firstOccurrenceTime > firstOccurrenceTime) {
       newestRiskDTO.firstOccurrenceTime = firstOccurrenceTime;
+      // return the policy violation id of the earliest violation to match how cross-stage violations work
+      // See also ApiCrossStageViolationService::getCrossStageViolationById
+      newestRiskDTO.policyViolationId = policyViolation.getId();
     }
   }
 }

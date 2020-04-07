@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -132,6 +133,9 @@ public class PdfGenerator
   private static final char GRANDFATHERED_SYMBOL = '\uf1da';
 
   private final String baseUrl;
+
+  private final Predicate<ApiReportPolicyViolationDTOV2> isActiveViolation =
+      violation -> !violation.waived && !violation.grandfathered;
 
   private ApiReportPolicyDataDTOV2 policyData;
 
@@ -278,8 +282,7 @@ public class PdfGenerator
       addText(contentStream, violationsTextStartX, violationsTextStartY, summaryHeaderFontStyle, violationsText);
       float affectedComponentsStartX = violationsTextStartX;
       float affectedComponentsStartY = criticalStartY;
-      long affectedComponents = policyData.components.stream().filter(component -> component.violations.stream()
-          .anyMatch(violation -> violation.policyThreatLevel >= 2)).count();
+      long affectedComponents = countAffectedComponents();
       String affectingText = "Affecting " + affectedComponents + " components";
       addText(contentStream, affectedComponentsStartX, affectedComponentsStartY, summaryFontStyle, affectingText);
 
@@ -364,7 +367,7 @@ public class PdfGenerator
     List<PolicyViolationsTableRow> policyViolationsTableRows = new ArrayList<>();
     for (ApiReportComponentPolicyViolationsDTOV2 component : policyData.components) {
       for (ApiReportPolicyViolationDTOV2 violation : component.violations) {
-        if (violation.waived || violation.grandfathered) {
+        if (!isActiveViolation.test(violation)) {
           continue;
         }
         PolicyViolationsTableRow policyViolationsTableRow = new PolicyViolationsTableRow();
@@ -679,9 +682,17 @@ public class PdfGenerator
 
   // Visible for testing
   long countPolicyViolations(int minThreatLevel, int maxThreatLevel) {
-    return policyData.components.stream().flatMap(component -> component.violations.stream()).filter(
-        violation -> violation.policyThreatLevel >= minThreatLevel && violation.policyThreatLevel <= maxThreatLevel)
+    return policyData.components.stream().flatMap(component -> component.violations.stream())
+        .filter(isActiveViolation)
+        .filter(violation -> violation.policyThreatLevel >= minThreatLevel
+            && violation.policyThreatLevel <= maxThreatLevel)
         .count();
+  }
+
+  // Visible for testing
+  long countAffectedComponents() {
+    return policyData.components.stream().filter(component -> component.violations.stream()
+        .anyMatch(violation -> isActiveViolation.test(violation) && violation.policyThreatLevel >= 2)).count();
   }
 
   private TableDrawer createTableDrawer(PDPageContentStream contentStream, float tableStartY, Table table) {

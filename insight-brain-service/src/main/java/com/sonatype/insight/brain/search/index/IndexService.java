@@ -475,7 +475,7 @@ public class IndexService
       }
       ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
       ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
-      ReportEntry bomReportEntry = Report.getEntry(reportFile, "bom.json");
+      ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
       if (licenseReportEntry == null || securityReportEntry == null || bomReportEntry == null) {
         return Collections.emptyList();
       }

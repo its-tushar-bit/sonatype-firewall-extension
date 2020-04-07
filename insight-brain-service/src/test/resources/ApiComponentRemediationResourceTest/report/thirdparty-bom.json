@@ -1,7 +1,7 @@
 {
   "aaData" : [ {
     "componentIdentifier" : {
-      "format" : "debian",
+      "format" : "debian-9",
       "coordinates" : {
         "name" : "glibc",
         "version" : "2.24-11+deb9u3"
@@ -24,7 +24,7 @@
     "identificationSource" : "Clair"
   }, {
     "componentIdentifier" : {
-      "format" : "debian",
+      "format" : "debian-9",
       "coordinates" : {
         "name" : "apt",
         "version" : "1.4.8"

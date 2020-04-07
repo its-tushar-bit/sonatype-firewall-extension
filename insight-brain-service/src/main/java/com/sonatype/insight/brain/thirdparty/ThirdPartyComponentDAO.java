@@ -9,10 +9,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -27,12 +30,19 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.application.AnalyzerFeaturesDTO;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
@@ -48,6 +58,7 @@ import com.google.common.cache.Weigher;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +81,8 @@ public class ThirdPartyComponentDAO
   private final InsightWork work;
 
   private final Cache<String, Table<String, ComponentIdentifier, ThirdPartyReportComponentDTO>> componentCache;
+
+  private static final Comparator<ComparableVersion> comparator = (v1, v2) -> v1.compareTo(v2);
 
   @Inject
   public ThirdPartyComponentDAO(final InsightWork work) {
@@ -417,5 +430,41 @@ public class ThirdPartyComponentDAO
         new SecurityVulnerability(secRow.reference, secRow.source, secRow.score, secRow.description);
     securityVulnerability.setUrl(secRow.url);
     return securityVulnerability;
+  }
+
+  public ApiComponentRemediationValueDTO getSuggestedRemmediation(
+      String appId,
+      ComponentIdentifier componentIdentifier,
+      String scanId)
+  {
+    ApiComponentRemediationValueDTO componentRemediationDto = new ApiComponentRemediationValueDTO();
+    ThirdPartyReportComponentDTO component = findComponent(appId, componentIdentifier, scanId);
+
+    if (component != null) {
+      boolean emptyVersions =
+          component.securityRows.stream().anyMatch(securityRow -> StringUtils.isBlank(securityRow.fixedVersion));
+
+      if (!emptyVersions) {
+        Set<ComparableVersion> fixedVersions = component.securityRows.stream()
+            .map(securityRow -> new ComparableVersion(securityRow.fixedVersion)).collect(Collectors.toSet());
+
+        Optional<ComparableVersion> fixedVersion = fixedVersions.stream().max(comparator::compare);
+
+        if (fixedVersion.isPresent()) {
+          ComponentIdentifier suggestedComponent =
+              componentIdentifier.createAlternativeVersion(fixedVersion.get().toString());
+
+          ApiComponentDTOV2 componentDTOV2 = new ApiComponentDTOV2();
+          componentDTOV2.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(suggestedComponent);
+          componentDTOV2.packageUrl = PackageUrlIdentifier.toPackageUrl(suggestedComponent);
+          componentDTOV2.proprietary = null; // not applicable
+          ApiVersionChangeOptionDTO changeOptionType = new ApiVersionChangeOptionDTO(
+              ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, new ApiComponentChangeActionDTO(componentDTOV2));
+          componentRemediationDto.versionChanges.add(changeOptionType);
+          return componentRemediationDto;
+        }
+      }
+    }
+    return componentRemediationDto;
   }
 }

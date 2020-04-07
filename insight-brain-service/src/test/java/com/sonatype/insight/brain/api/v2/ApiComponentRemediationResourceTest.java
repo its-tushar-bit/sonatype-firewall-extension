@@ -78,8 +78,7 @@ public class ApiComponentRemediationResourceTest
   @Test
   public void testSuggestedRemediation_Application_ThirdParty_WithViolation() throws Exception {
     createPolicyWithSecurityVulnerabilityConstraint(org.getId());
-    // for third party data we have no way of knowing the any remediation versions, so this will return 0 elements
-    testSuggestedRemediation_Application_ThirdParty(0);
+    testSuggestedRemediation_Application_ThirdParty(1);
   }
 
   private void testSuggestedRemediation_Application_ThirdParty(final int expectedRemediationVersionsCount)
@@ -87,7 +86,7 @@ public class ApiComponentRemediationResourceTest
   {
     final String scanId = "ScanId";
     createReportFile(app.getId(), scanId, "/ApiComponentRemediationResourceTest/report");
-    final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian", "glibc", "2.24-11+deb9u3");
+    final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian-9", "glibc", "2.24-11+deb9u3");
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(tpComponentIdentifier, null);
 
     String identificationSource = IdentificationSource.CLAIR.getId();
@@ -105,6 +104,10 @@ public class ApiComponentRemediationResourceTest
     assertThat(result).isNotNull();
     assertThat(result.remediation.versionChanges)
         .hasSize(expectedRemediationVersionsCount);
+
+    ApiVersionChangeOptionDTO versionChangeDTO = result.remediation.versionChanges.get(0);
+    assertThat(versionChangeDTO.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    assertThat(versionChangeDTO.getData().getComponent().packageUrl).isEqualTo("pkg:debian-9/glibc@3.47-32%2Bdeb9u1");
   }
 
   @Test

@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentRemediationService;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -32,6 +33,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
+import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -129,8 +131,15 @@ public class ApiComponentRemediationService
         .getComponentDetailsForAllVersionsNoAuth(ownerType, publicOwnerId, componentIdentifier, stageId,
             identificationSource, scanId);
 
-    ApiComponentRemediationValueDTO remediationValueDto =
-        componentRemediationService.getSuggestedRemediation(componentIdentifier, dtos, ownerType, ownerId, stageId);
+    ApiComponentRemediationValueDTO remediationValueDto;
+    if (isThirdPartySource) {
+      Owner owner = IdUtils.getOwnerNotNull(ownerType, publicOwnerId);
+      remediationValueDto = thirdPartyComponentDAO.getSuggestedRemmediation(owner.getId(), componentIdentifier, scanId);
+    }
+    else {
+      remediationValueDto = componentRemediationService.getSuggestedRemediation(componentIdentifier, dtos, ownerType,
+          ownerId, stageId);
+    }
 
     return remediationValueDto == null ? null : new ApiComponentRemediationDTO(remediationValueDto);
   }

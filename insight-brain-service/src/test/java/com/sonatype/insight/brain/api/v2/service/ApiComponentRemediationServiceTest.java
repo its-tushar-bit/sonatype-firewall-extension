@@ -348,6 +348,8 @@ public class ApiComponentRemediationServiceTest
     componentDetailsDTO.policyAlerts = asList(failAlert);
     doReturn(ComponentSummary.create(true)).when(thirdPartyComponentDAO)
         .getComponentSummary(componentIdentifier, app.getId(), scanId);
+    doReturn(new ApiComponentRemediationValueDTO()).when(thirdPartyComponentDAO).getSuggestedRemmediation(app.getId(),
+        componentIdentifier, scanId);
     doReturn(Collections.singletonList(componentDetailsDTO)).when(componentInfoServiceMock)
         .getComponentDetailsForAllVersionsNoAuth(OwnerType.APPLICATION, app.getPublicId(), componentIdentifier,
             DevelopStageType.ID, identificationSource, scanId);
@@ -355,7 +357,6 @@ public class ApiComponentRemediationServiceTest
         .getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID,
             identificationSource, scanId);
     assertRemediationZeroCounts(retVal.remediation);
-    assertTelemetry("application", app.getId(), componentDetailsDTO.componentIdentifier);
   }
 
   private void assertAllVersionsWithViolations(final ApiComponentDTOV2 dto) {

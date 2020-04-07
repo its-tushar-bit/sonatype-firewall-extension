@@ -43,7 +43,7 @@
     "cvssVectorSource" : null,
     "matchState" : "exact",
     "proprietary" : false,
-    "fixedVersion" : "",
+    "fixedVersion" : "2.24-11+deb9u4",
     "description" : "description CVE-2018-1000001"
   }, {
     "componentIdentifier" : {

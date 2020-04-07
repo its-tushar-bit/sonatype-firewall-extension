@@ -26,6 +26,7 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -1000,6 +1001,8 @@ public class ComponentInfoServiceTest
 
     when(thirdPartyComponentDAO.getAllVersions(application.getId(), MAVEN_COORDINATES, scanId))
         .thenReturn(thirdPartyComponentDetailsList);
+    when(thirdPartyComponentDAO.getSuggestedRemmediation(application.getId(), MAVEN_COORDINATES, scanId))
+        .thenReturn(new ApiComponentRemediationValueDTO());
 
     ComponentVersionInfoDTO dto = componentInfoService
         .getComponentVersionInfo_ReadPermission(application.getType(), application.getPublicId(),

@@ -331,9 +331,15 @@ public class ComponentInfoService
     List<ComponentDetailsDTO> componentDetailsDTOs = getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId,
         componentIdentifier, stageId, identificationSource, scanId);
 
-    ApiComponentRemediationValueDTO remediationDto = componentRemediationService.getSuggestedRemediation(
-        componentIdentifier, componentDetailsDTOs, ownerType, ownerId, null);
-
+    ApiComponentRemediationValueDTO remediationDto;
+    if (IdentificationSource.isThirdPartyIdentificationSource(identificationSource)) {
+      Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+      remediationDto = thirdPartyComponentDAO.getSuggestedRemmediation(owner.getId(), componentIdentifier, scanId);
+    }
+    else {
+      remediationDto = componentRemediationService.getSuggestedRemediation(componentIdentifier, componentDetailsDTOs,
+          ownerType, ownerId, null);
+    }
     return new ComponentVersionInfoDTO(componentDetailsDTOs, remediationDto);
   }
 

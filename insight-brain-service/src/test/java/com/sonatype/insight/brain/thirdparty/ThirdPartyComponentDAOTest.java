@@ -30,6 +30,7 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -82,8 +83,8 @@ public class ThirdPartyComponentDAOTest
   private final String hashApt = "683620ac905c1d32b58c";
 
   private final Map<String, ComponentIdentifier> testData = ImmutableMap.of(
-      hashGlibc, componentIdentifierFrom("debian:9", "glibc", "2.24-11+deb9u3"),
-      hashApt, componentIdentifierFrom("debian:9", "apt", "1.4.8"));
+      hashGlibc, componentIdentifierFrom("debian-9", "glibc", "2.24-11+deb9u3"), 
+      hashApt, componentIdentifierFrom("debian-9", "apt", "1.4.8"));
 
   @Before
   public void before() {
@@ -103,7 +104,7 @@ public class ThirdPartyComponentDAOTest
     assertThat(data.get(hashGlibc).bomRow.matchState).isEqualTo(MatchState.EXACT.toString());
 
     assertThat(data.get(hashGlibc).securityRows).hasSize(2);
-    assertThat(data.get(hashApt).securityRows).hasSize(1);
+    assertThat(data.get(hashApt).securityRows).hasSize(6);
 
     assertThat(data.get(hashGlibc).licensesRow).isNotNull();
     assertThat(data.get(hashGlibc).licensesRow.declaredLicenses).hasSize(1);
@@ -112,7 +113,8 @@ public class ThirdPartyComponentDAOTest
 
     assertThat(data.get(hashGlibc).securityRows.stream().map(s -> s.reference))
         .containsExactlyInAnyOrder("CVE-2017-16997", "CVE-2018-1000001");
-    assertThat(data.get(hashApt).securityRows.stream().map(s -> s.reference)).containsOnly("CVE-2019-3462");
+    assertThat(data.get(hashApt).securityRows.stream().map(s -> s.reference)).containsOnly("CVE-2019-3462",
+        "CVE-2017-1000409", "CVE-2017-1000410", "CVE-2018-6485", "CVE-2019-9169", "CVE-2017-16997");
 
     assertThat(data.get(hashGlibc).licensesRow.declaredLicenses.equals(new TreeSet<>(Arrays.asList("Apache-2.0"))));
     assertThat(
@@ -152,7 +154,7 @@ public class ThirdPartyComponentDAOTest
     assertSummaryCountsUpdated(reportZip, 3);
     assertDataCountsUpdated(reportZip, 3);
     assertUpdatedBom(reportZip);
-    assertSecurityCounts(reportZip, new int[]{2, 0, 2, 1, 0, 0, 0, 0, 0, 0});
+    assertSecurityCounts(reportZip, new int[]{3, 0, 6, 1, 0, 0, 0, 0, 0, 0});
   }
 
   @Test
@@ -344,6 +346,67 @@ public class ThirdPartyComponentDAOTest
 
     assertSummaryCountsUpdated(reportZip, 1); // non-third party component only
     assertDataCountsUpdated(reportZip, 1);
+  }
+
+  @Test
+  public void testGetSuggestedRemmediation() {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
+    String scanId = "scanId";
+    String appId = "appId";
+    when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
+
+    Map<String, String> coordinates = new HashMap<>();
+    coordinates.put(ComponentIdentifier.VERSION, "2.24-11+deb9u3");
+    coordinates.put("name", "glibc");
+
+    ComponentIdentifier current = new ComponentIdentifier("debian-9", coordinates);
+
+    final ApiComponentRemediationValueDTO suggestedRemediation = dao.getSuggestedRemmediation(appId, current, scanId);
+
+    assertThat(suggestedRemediation).isNotNull();
+
+    List<String> fixedVersionPackageUrls = suggestedRemediation.versionChanges.stream().map(change -> change
+        .getData()).map(data -> data.getComponent().packageUrl).collect(Collectors.toList());
+
+    assertThat(fixedVersionPackageUrls).containsExactly("pkg:debian-9/glibc@2.24-12%2Bdeb9u4");
+  }
+
+  @Test
+  public void testgetSuggestedRemmediation_notFoundComponent() {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
+    String scanId = "scanId";
+    String appId = "appId";
+    when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
+
+    Map<String, String> coordinates = new HashMap<>();
+    coordinates.put(ComponentIdentifier.VERSION, "1.4.7");
+    coordinates.put("name", "apt");
+
+    ComponentIdentifier current = new ComponentIdentifier("debian-9", coordinates);
+
+    final ApiComponentRemediationValueDTO suggestedRemediation = dao.getSuggestedRemmediation(appId, current, scanId);
+
+    assertThat(suggestedRemediation).isNotNull();
+    assertThat(suggestedRemediation.versionChanges).isEmpty();
+  }
+
+  @Test
+  public void testgetSuggestedRemmediation_emptyFixedVersion() {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
+    String scanId = "scanId";
+    String appId = "appId";
+    when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
+
+    Map<String, String> coordinates = new HashMap<>();
+    coordinates.put(ComponentIdentifier.VERSION, "1.4.8");
+    coordinates.put("name", "apt");
+
+    ComponentIdentifier current = new ComponentIdentifier("debian-9", coordinates);
+
+    final ApiComponentRemediationValueDTO suggestedRemediation = dao.getSuggestedRemmediation(appId, current, scanId);
+
+    assertThat(suggestedRemediation).isNotNull();
+    assertThat(suggestedRemediation.versionChanges).isEmpty();
   }
 
   private void assertThirdPartyComponentResult(final ComponentDetails component) {

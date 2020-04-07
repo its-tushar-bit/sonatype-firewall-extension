@@ -42,3 +42,5 @@ ${policy.threatLevel} | ${policy.name} | <#list policy.constraints as constraint
 
 **[See full feature branch report](${detailedFeatureBranchReportUrl})**
 **[See full default branch report](${detailedDefaultBranchReportUrl})**
+
+[Give feedback](https://community.sonatype.com/t/user-feedback-github-pr-reviews/3811)

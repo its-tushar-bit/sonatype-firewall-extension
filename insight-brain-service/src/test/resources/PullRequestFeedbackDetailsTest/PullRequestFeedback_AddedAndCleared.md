@@ -63,3 +63,5 @@ Threat (of 10) | Policy | Violation Details
 
 **[See full feature branch report](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/toScanId)**
 **[See full default branch report](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/fromScanId)**
+
+[Give feedback](https://community.sonatype.com/t/user-feedback-github-pr-reviews/3811)

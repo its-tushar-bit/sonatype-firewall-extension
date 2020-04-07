@@ -359,10 +359,14 @@ public class PdfGenerator
     return tableBuilder.build();
   }
 
-  private List<PolicyViolationsTableRow> createPolicyViolationsTableData() {
+  // Visible for testing
+  List<PolicyViolationsTableRow> createPolicyViolationsTableData() {
     List<PolicyViolationsTableRow> policyViolationsTableRows = new ArrayList<>();
     for (ApiReportComponentPolicyViolationsDTOV2 component : policyData.components) {
       for (ApiReportPolicyViolationDTOV2 violation : component.violations) {
+        if (violation.waived || violation.grandfathered) {
+          continue;
+        }
         PolicyViolationsTableRow policyViolationsTableRow = new PolicyViolationsTableRow();
         policyViolationsTableRow.threatLevel = violation.policyThreatLevel;
         policyViolationsTableRow.policyName = violation.policyName;

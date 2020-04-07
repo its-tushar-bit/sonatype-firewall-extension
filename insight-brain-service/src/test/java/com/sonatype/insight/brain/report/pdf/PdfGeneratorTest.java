@@ -370,6 +370,29 @@ public class PdfGeneratorTest
   }
 
   @Test
+  public void testCreatePolicyViolationsTableData_ExcludesWaivedAndGrandfathered() {
+    ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
+    ApiReportComponentPolicyViolationsDTOV2 component = new ApiReportComponentPolicyViolationsDTOV2();
+    ApiReportPolicyViolationDTOV2 violation = new ApiReportPolicyViolationDTOV2();
+    violation.policyName = "policyName1";
+    component.violations.add(violation);
+    ApiReportPolicyViolationDTOV2 waivedViolation = new ApiReportPolicyViolationDTOV2();
+    waivedViolation.policyName = "policyName2";
+    waivedViolation.waived = true;
+    component.violations.add(waivedViolation);
+    ApiReportPolicyViolationDTOV2 grandfatheredViolation = new ApiReportPolicyViolationDTOV2();
+    grandfatheredViolation.policyName = "policyName3";
+    grandfatheredViolation.grandfathered = true;
+    component.violations.add(grandfatheredViolation);
+    policyData.components.add(component);
+
+    PdfGenerator pdfGenerator = new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2());
+
+    assertThat(pdfGenerator.createPolicyViolationsTableData()).extracting(row -> row.policyName)
+        .containsExactly(violation.policyName);
+  }
+
+  @Test
   public void testCreateSecurityIssuesTable_RowOrdering() throws Exception {
     ApiReportRawDataDTOV2 rawData = new ApiReportRawDataDTOV2();
     ApiReportComponentDTOV2 component111 = generateComponentWithSecurityIssue("securityIssue1", 2, "component111");

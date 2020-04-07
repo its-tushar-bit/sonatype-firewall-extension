@@ -29,6 +29,10 @@ $iq-application-report-vulnerability-threat-level-width: 62px;
     padding: 8px;
   }
 
+  .iq-form-group legend {
+    border-bottom: 1px solid $iq-grey-4;
+  }
+
   .iq-back-button {
     margin-bottom: $iq-spacing-sm;
   }

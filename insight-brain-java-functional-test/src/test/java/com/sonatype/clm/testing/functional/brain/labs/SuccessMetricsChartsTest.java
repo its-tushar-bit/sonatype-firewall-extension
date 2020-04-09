@@ -435,7 +435,7 @@ public class SuccessMetricsChartsTest
     ViolationsByCategoryTile.description().shouldHave(text("Open violations over the past 12 weeks by policy type."));
 
     ViolationsByCategoryTile.chart().shouldBe(visible);
-    eyesWatcher.eyesCheck();
+    eyesWatcher.eyesCheck(true);
 
     ElementsCollection points = ViolationsByCategoryTile.points();
     points.shouldHaveSize(12 * 5); // 8 weeks times four categories plus totals

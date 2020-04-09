@@ -66,7 +66,6 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
@@ -280,32 +279,28 @@ public class IndexService
     }
 
     // write to search-suggester dir
-    try (IndexReader sourceIndexReader = DirectoryReader.open(FSDirectory.open(indexPath));
+    try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(indexPath));
         FSDirectory suggesterFile = FSDirectory.open(suggesterPath);
         AnalyzingInfixSuggester suggester = luceneComponents.newSuggester(suggesterFile)) {
       log.info("started building suggester");
       Function<String, Query> queryParser = luceneComponents.newQueryParser();
-      IndexSearcher indexSearcher = new IndexSearcher(sourceIndexReader);
-      try (IndexReader indexReader = indexSearcher.getIndexReader()) {
-        long maxId = indexReader.maxDoc();
-        Set<String> searchKeys = new HashSet<>();
-        searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[0 TO 4}");
-        searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[4 TO 7}");
-        searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[7 TO 9}");
-        searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[9 TO 10]");
-        searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":0");
-        searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":1");
-        searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":[2 TO 3]");
-        searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":[4 TO 7]");
-        searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":[8 TO 10]");
-        for (int i = 0; i < maxId; i++) {
-          Document doc = indexSearcher.doc(i);
-          searchKeys.addAll(getDocFieldValues(doc, queryParser));
-        }
-        suggester.build(new FieldIterator(searchKeys.iterator()));
-        suggester.commit();
-        log.info("completed building suggester");
+      Set<String> searchKeys = new HashSet<>();
+      searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[0 TO 4}");
+      searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[4 TO 7}");
+      searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[7 TO 9}");
+      searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[9 TO 10]");
+      searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":0");
+      searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":1");
+      searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":[2 TO 3]");
+      searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":[4 TO 7]");
+      searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":[8 TO 10]");
+      for (int i = 0, maxId = indexReader.maxDoc(); i < maxId; i++) {
+        Document doc = indexReader.document(i);
+        searchKeys.addAll(getDocFieldValues(doc, queryParser));
       }
+      suggester.build(new FieldIterator(searchKeys.iterator()));
+      suggester.commit();
+      log.info("completed building suggester");
       totalIndexSize += getDirectorySize(suggesterFile);
     }
 

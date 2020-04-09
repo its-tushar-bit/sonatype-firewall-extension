@@ -34,16 +34,11 @@ import org.apache.lucene.store.Directory;
 @Singleton
 public class LuceneComponents
 {
-  private final Map<String, PointsConfig> pointsConfigsByFieldName;
+  private final NumberFormat numberFormat;
 
   @Inject
   public LuceneComponents() {
-    pointsConfigsByFieldName = new HashMap<>();
-    NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.ROOT);
-    pointsConfigsByFieldName.put(FieldIdentifier.POLICY_THREAT_LEVEL.label,
-        new PointsConfig(numberFormat, Integer.class));
-    pointsConfigsByFieldName.put(FieldIdentifier.VULNERABILITY_SEVERITY.label,
-        new PointsConfig(numberFormat, Float.class));
+    numberFormat = NumberFormat.getNumberInstance(Locale.ROOT);
   }
 
   public Analyzer newAnalyzerForSearch() {
@@ -60,6 +55,11 @@ public class LuceneComponents
   }
 
   public Function<String, Query> newQueryParser() {
+    Map<String, PointsConfig> pointsConfigsByFieldName = new HashMap<>();
+    pointsConfigsByFieldName.put(FieldIdentifier.POLICY_THREAT_LEVEL.label,
+        new PointsConfig(numberFormat, Integer.class));
+    pointsConfigsByFieldName.put(FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        new PointsConfig(numberFormat, Float.class));
     StandardQueryParser queryParser = new StandardQueryParser(newAnalyzerForSearch());
     queryParser.setPointsConfigMap(pointsConfigsByFieldName);
     queryParser.setAllowLeadingWildcard(true);

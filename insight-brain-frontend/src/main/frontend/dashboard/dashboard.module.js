@@ -46,19 +46,22 @@ dashboardModule.config(['$stateProvider', '$urlRouterProvider', function($stateP
     url: '/violations',
     component: 'violations',
     data: {
-      title: 'Violations'
+      title: 'Dashboard - Violations',
+      exportTitle: 'Violations'
     }
   }).state('dashboard.overview.components', {
     url: '/components',
     component: 'components',
     data: {
-      title: 'Components'
+      title: 'Dashboard - Components',
+      exportTitle: 'Components'
     }
   }).state('dashboard.overview.applications', {
     url: '/applications',
     component: 'applications',
     data: {
-      title: 'Applications'
+      title: 'Dashboard - Applications',
+      exportTitle: 'Applications'
     }
   }).state('dashboard.component', {
     url: '/component/{hash}',

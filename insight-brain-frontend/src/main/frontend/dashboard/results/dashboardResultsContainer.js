@@ -74,6 +74,7 @@ function mapStateToThis(state) {
   return {
     filters: state.dashboardFilter.appliedFilter,
     title: state.router.currentState.data.title,
+    exportTitle: state.router.currentState.data.exportTitle,
     routeStateName: state.router.currentState.name,
     applicationsSortFields: state.dashboard.applications.sortFields,
     componentsSortFields: state.dashboard.components.sortFields,

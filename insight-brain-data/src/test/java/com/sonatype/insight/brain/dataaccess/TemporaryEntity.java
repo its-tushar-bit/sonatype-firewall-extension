@@ -30,6 +30,8 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
@@ -1273,8 +1275,15 @@ public class TemporaryEntity
     Condition condition = constraint.getConditions().get(0);
     ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(), constraint
         .getOperator().name());
-    ConditionFact conditionFact = new ConditionFact(condition.getConditionTypeId(), 0 /* conditionIndex */, "summary",
+    String conditionTypeId = condition.getConditionTypeId();
+    ConditionFact conditionFact = new ConditionFact(conditionTypeId, 0 /* conditionIndex */, "summary",
         reason);
+
+    if (conditionTypeId.equals("SecurityVulnerabilitySeverity")) {
+      TriggerReference triggerReference = new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, reason);
+      conditionFact.setReference(triggerReference);
+    }
+
     constraintFact.addConditionFact(conditionFact);
 
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy, hash, componentIdentifier,

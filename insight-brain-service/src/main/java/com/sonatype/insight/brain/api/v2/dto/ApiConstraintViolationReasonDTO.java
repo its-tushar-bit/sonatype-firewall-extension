@@ -11,4 +11,13 @@ package com.sonatype.insight.brain.api.v2.dto;
 public class ApiConstraintViolationReasonDTO
 {
   public String reason;
+
+  public TriggerReference reference;
+
+  public static class TriggerReference
+  {
+    public String type;
+
+    public String value;
+  }
 }

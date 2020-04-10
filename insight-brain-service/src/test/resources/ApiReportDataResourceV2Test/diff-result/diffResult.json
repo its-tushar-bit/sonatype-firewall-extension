@@ -32,13 +32,25 @@
           "constraintName": "High risk CVSS score",
           "reasons": [
             {
-              "reason": "Found security vulnerability CVE-2018-12023 with severity >= 7 (severity = 7.5)."
+              "reason": "Found security vulnerability CVE-2018-12023 with severity >= 7 (severity = 7.5).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2018-12023"
+              }
             },
             {
-              "reason": "Found security vulnerability CVE-2018-12023 with severity < 10 (severity = 7.5)."
+              "reason": "Found security vulnerability CVE-2018-12023 with severity < 10 (severity = 7.5).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2018-12023"
+              }
             },
             {
-              "reason": "Found security vulnerability CVE-2018-12023 with status 'Open', not 'Not Applicable'."
+              "reason": "Found security vulnerability CVE-2018-12023 with status 'Open', not 'Not Applicable'.",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2018-12023"
+              }
             }
           ]
         }
@@ -70,10 +82,12 @@
           "constraintName": "Unknown 3rd party component",
           "reasons": [
             {
-              "reason": "Match state was 'Unknown'"
+              "reason": "Match state was 'Unknown'",
+              "reference": null
             },
             {
-              "reason": "Component does not contain proprietary packages"
+              "reason": "Component does not contain proprietary packages",
+              "reference": null
             }
           ]
         }
@@ -96,13 +110,25 @@
           "constraintName": "Low risk CVSS score",
           "reasons": [
             {
-              "reason": "Found security vulnerability CVE-2015-6644 with severity >= 0 (severity = 3.3)."
+              "reason": "Found security vulnerability CVE-2015-6644 with severity >= 0 (severity = 3.3).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2015-6644"
+              }
             },
             {
-              "reason": "Found security vulnerability CVE-2015-6644 with severity < 4 (severity = 3.3)."
+              "reason": "Found security vulnerability CVE-2015-6644 with severity < 4 (severity = 3.3).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2015-6644"
+              }
             },
             {
-              "reason": "Found security vulnerability CVE-2015-6644 with status 'Open', not 'Not Applicable'."
+              "reason": "Found security vulnerability CVE-2015-6644 with status 'Open', not 'Not Applicable'.",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2015-6644"
+              }
             }
           ]
         }
@@ -134,13 +160,25 @@
           "constraintName": "High risk CVSS score",
           "reasons": [
             {
-              "reason": "Found security vulnerability CVE-2018-12022 with severity >= 7 (severity = 7.5)."
+              "reason": "Found security vulnerability CVE-2018-12022 with severity >= 7 (severity = 7.5).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2018-12022"
+              }
             },
             {
-              "reason": "Found security vulnerability CVE-2018-12022 with severity < 10 (severity = 7.5)."
+              "reason": "Found security vulnerability CVE-2018-12022 with severity < 10 (severity = 7.5).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2018-12022"
+              }
             },
             {
-              "reason": "Found security vulnerability CVE-2018-12022 with status 'Open', not 'Not Applicable'."
+              "reason": "Found security vulnerability CVE-2018-12022 with status 'Open', not 'Not Applicable'.",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2018-12022"
+              }
             }
           ]
         }
@@ -174,13 +212,25 @@
           "constraintName": "High risk CVSS score",
           "reasons": [
             {
-              "reason": "Found security vulnerability sonatype-2019-0115 with severity >= 7 (severity = 9.8)."
+              "reason": "Found security vulnerability sonatype-2019-0115 with severity >= 7 (severity = 9.8).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "sonatype-2019-0115"
+              }
             },
             {
-              "reason": "Found security vulnerability sonatype-2019-0115 with severity < 10 (severity = 9.8)."
+              "reason": "Found security vulnerability sonatype-2019-0115 with severity < 10 (severity = 9.8).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "sonatype-2019-0115"
+              }
             },
             {
-              "reason": "Found security vulnerability sonatype-2019-0115 with status 'Open', not 'Not Applicable'."
+              "reason": "Found security vulnerability sonatype-2019-0115 with status 'Open', not 'Not Applicable'.",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "sonatype-2019-0115"
+              }
             }
           ]
         }
@@ -212,13 +262,25 @@
           "constraintName": "High risk CVSS score",
           "reasons": [
             {
-              "reason": "Found security vulnerability CVE-2018-11307 with severity >= 7 (severity = 9.8)."
+              "reason": "Found security vulnerability CVE-2018-11307 with severity >= 7 (severity = 9.8).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2018-11307"
+              }
             },
             {
-              "reason": "Found security vulnerability CVE-2018-11307 with severity < 10 (severity = 9.8)."
+              "reason": "Found security vulnerability CVE-2018-11307 with severity < 10 (severity = 9.8).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2018-11307"
+              }
             },
             {
-              "reason": "Found security vulnerability CVE-2018-11307 with status 'Open', not 'Not Applicable'."
+              "reason": "Found security vulnerability CVE-2018-11307 with status 'Open', not 'Not Applicable'.",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2018-11307"
+              }
             }
           ]
         }
@@ -250,13 +312,25 @@
           "constraintName": "Low risk CVSS score",
           "reasons": [
             {
-              "reason": "Found security vulnerability sonatype-2019-0341 with severity >= 0 (severity = 3.7)."
+              "reason": "Found security vulnerability sonatype-2019-0341 with severity >= 0 (severity = 3.7).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "sonatype-2019-0341"
+              }
             },
             {
-              "reason": "Found security vulnerability sonatype-2019-0341 with severity < 4 (severity = 3.7)."
+              "reason": "Found security vulnerability sonatype-2019-0341 with severity < 4 (severity = 3.7).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "sonatype-2019-0341"
+              }
             },
             {
-              "reason": "Found security vulnerability sonatype-2019-0341 with status 'Open', not 'Not Applicable'."
+              "reason": "Found security vulnerability sonatype-2019-0341 with status 'Open', not 'Not Applicable'.",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "sonatype-2019-0341"
+              }
             }
           ]
         }
@@ -290,10 +364,12 @@
           "constraintName": "Unknown 3rd party component",
           "reasons": [
             {
-              "reason": "Match state was 'Unknown'"
+              "reason": "Match state was 'Unknown'",
+              "reference": null
             },
             {
-              "reason": "Component does not contain proprietary packages"
+              "reason": "Component does not contain proprietary packages",
+              "reference": null
             }
           ]
         }
@@ -316,13 +392,25 @@
           "constraintName": "Low risk CVSS score",
           "reasons": [
             {
-              "reason": "Found security vulnerability CVE-2015-6644 with severity >= 0 (severity = 3.3)."
+              "reason": "Found security vulnerability CVE-2015-6644 with severity >= 0 (severity = 3.3).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2015-6644"
+              }
             },
             {
-              "reason": "Found security vulnerability CVE-2015-6644 with severity < 4 (severity = 3.3)."
+              "reason": "Found security vulnerability CVE-2015-6644 with severity < 4 (severity = 3.3).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2015-6644"
+              }
             },
             {
-              "reason": "Found security vulnerability CVE-2015-6644 with status 'Open', not 'Not Applicable'."
+              "reason": "Found security vulnerability CVE-2015-6644 with status 'Open', not 'Not Applicable'.",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2015-6644"
+              }
             }
           ]
         }
@@ -354,13 +442,25 @@
           "constraintName": "High risk CVSS score",
           "reasons": [
             {
-              "reason": "Found security vulnerability sonatype-2019-0115 with severity >= 7 (severity = 9.8)."
+              "reason": "Found security vulnerability sonatype-2019-0115 with severity >= 7 (severity = 9.8).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "sonatype-2019-0115"
+              }
             },
             {
-              "reason": "Found security vulnerability sonatype-2019-0115 with severity < 10 (severity = 9.8)."
+              "reason": "Found security vulnerability sonatype-2019-0115 with severity < 10 (severity = 9.8).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "sonatype-2019-0115"
+              }
             },
             {
-              "reason": "Found security vulnerability sonatype-2019-0115 with status 'Open', not 'Not Applicable'."
+              "reason": "Found security vulnerability sonatype-2019-0115 with status 'Open', not 'Not Applicable'.",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "sonatype-2019-0115"
+              }
             }
           ]
         }
@@ -390,13 +490,25 @@
           "constraintName": "High risk CVSS score",
           "reasons": [
             {
-              "reason": "Found security vulnerability CVE-2018-8034 with severity >= 7 (severity = 7.5)."
+              "reason": "Found security vulnerability CVE-2018-8034 with severity >= 7 (severity = 7.5).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2018-8034"
+              }
             },
             {
-              "reason": "Found security vulnerability CVE-2018-8034 with severity < 10 (severity = 7.5)."
+              "reason": "Found security vulnerability CVE-2018-8034 with severity < 10 (severity = 7.5).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2018-8034"
+              }
             },
             {
-              "reason": "Found security vulnerability CVE-2018-8034 with status 'Open', not 'Not Applicable'."
+              "reason": "Found security vulnerability CVE-2018-8034 with status 'Open', not 'Not Applicable'.",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2018-8034"
+              }
             }
           ]
         }

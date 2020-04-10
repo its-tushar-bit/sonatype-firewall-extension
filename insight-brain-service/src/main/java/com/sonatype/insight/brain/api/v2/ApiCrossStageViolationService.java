@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationAdapter;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
@@ -175,6 +176,8 @@ public class ApiCrossStageViolationService
     dto.policyThreatCategory = firstViolation.getThreatCategory().getName();
     dto.displayName = ComponentDisplayNameUtil.fromPolicyViolation(firstViolation);
     dto.filename = firstViolation.getFilename();
+    dto.componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(firstViolation.getComponentIdentifier());
 
     dto.policyOwner = new ApiCrossStageViolationDTOV2.PolicyOwner();
     dto.policyOwner.ownerId = policyOwner.getId();

@@ -6,12 +6,14 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -123,16 +125,26 @@ public class ApiCrossStageViolationServiceTest
         .containsExactly(baseDate.getTime() + 4, "scan3", null);
 
     assertThat(result.constraintViolations).hasSize(1);
-    assertThat(result.constraintViolations.get(0)).extracting("constraintId", "constraintName")
+    assertThat(result.constraintViolations.get(0))
+        .extracting("constraintId", "constraintName")
         .containsExactly(constraintFact.getConstraintId(), constraintFact.getConstraintName());
 
-    assertThat(result.constraintViolations.get(0).reasons).hasSize(1);
-    assertThat(result.constraintViolations.get(0).reasons.get(0).reason).isEqualTo("vuln1");
+    List<ApiConstraintViolationReasonDTO> violationReasons = result.constraintViolations.get(0).reasons;
+    assertThat(violationReasons).hasSize(1);
+    assertThat(violationReasons.get(0).reference.value).isEqualTo("vuln1");
+    assertThat(violationReasons.get(0).reference.type).isEqualTo("SECURITY_VULNERABILITY_REFID");
+    assertThat(violationReasons.get(0).reason).isEqualTo("vuln1");
 
     assertThat(result.policyOwner.ownerId).isEqualTo(policyOwnerOrg.getId());
     assertThat(result.policyOwner.ownerPublicId).isNull();
     assertThat(result.policyOwner.ownerName).isEqualTo(policyOwnerOrg.getName());
     assertThat(result.policyOwner.ownerType).isEqualTo("organization");
+
+    assertThat(result.componentIdentifier.getFormat()).isEqualTo(componentIdentifier.getFormat());
+    assertThat(result.componentIdentifier.getCoordinates().keySet().toArray())
+        .containsExactly(componentIdentifier.getCoordinates().keySet().toArray());
+    assertThat(result.componentIdentifier.getCoordinates().values().toArray())
+        .containsExactly(componentIdentifier.getCoordinates().values().toArray());
   }
 
   @Test

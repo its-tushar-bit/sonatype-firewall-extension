@@ -12,6 +12,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
@@ -33,6 +34,12 @@ public class PolicyViolationAdapter
       for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
         ApiConstraintViolationReasonDTO apiConstraintReasonDTO = new ApiConstraintViolationReasonDTO();
         apiConstraintReasonDTO.reason = conditionFact.getReason();
+        TriggerReference triggerReference = conditionFact.getReference();
+        if (triggerReference != null) {
+          apiConstraintReasonDTO.reference = new ApiConstraintViolationReasonDTO.TriggerReference();
+          apiConstraintReasonDTO.reference.value = triggerReference.getValue();
+          apiConstraintReasonDTO.reference.type = triggerReference.getType().toString();
+        }
         apiConstraintViolationDTO.reasons.add(apiConstraintReasonDTO);
       }
     }

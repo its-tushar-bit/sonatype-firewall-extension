@@ -24,13 +24,17 @@ public final class DbModifierCli
 
   private static final String H2_DATABASE_SUFFIX = ".h2.db";
 
-  @Parameter(names = {"-db", "--database"}, description = "Path to h2 db file. ex: ~/test/ods.h2.db", required = true)
-  private File targetDatabase;
+  @Parameter(names = {"--postgres"}, description = "Flag whose existence determines if the database engine is Postgres")
+  private boolean isPostgres;
 
-  @Parameter(names = {"-user", "--db-user"}, description = "db username", hidden = true)
+  @Parameter(names = {"-db", "--database"},
+      description = "Path to h2 db file: e.g. ~/test/ods.h2.db, or name of the Postgres database", required = true)
+  private String database;
+
+  @Parameter(names = {"-user", "--db-user"}, description = "db username")
   private String dbUser = "sa";
 
-  @Parameter(names = {"-pass", "--db-password"}, description = "db password", hidden = true)
+  @Parameter(names = {"-pass", "--db-password"}, description = "db password")
   private String dbPassword = "";
 
   @Parameter(names = {"-schema", "--db-schema"}, description = "db schema")
@@ -67,6 +71,12 @@ public final class DbModifierCli
 
   @Parameter(names = {"-dbv", "-db-version"}, description = "Print db version info and exit.")
   private boolean dbVersion;
+
+  @Parameter(names = {"-h", "--hostname"}, description = "Hostname of Postgres server")
+  private String hostname;
+
+  @Parameter(names = {"-p", "--port"}, description = "Port of Postgres server")
+  private int port;
 
   private static void noArgsCheck(int argCount) {
     if (argCount == 0) {
@@ -115,7 +125,9 @@ public final class DbModifierCli
           .addObject(dbmcli) //
           .build() //
           .parse(args);
-      dbmcli.validateDb();
+      if (!dbmcli.isPostgres) {
+        dbmcli.validateH2Db();
+      }
       dbmcli.run();
     }
     catch (Exception e) {
@@ -131,15 +143,15 @@ public final class DbModifierCli
         .usage();
   }
 
-  private void validateDb() {
-    String dbPath = targetDatabase.getAbsolutePath();
+  private void validateH2Db() {
+    String dbPath = new File(database).getAbsolutePath();
     String fullDbPath = dbPath.endsWith(H2_DATABASE_SUFFIX) ? dbPath : dbPath + H2_DATABASE_SUFFIX;
 
     if (!new File(fullDbPath).exists()) {
       throw new ParameterException("Invalid Db File: " + fullDbPath);
     }
 
-    this.targetDatabase = new File(fullDbPath.substring(0, fullDbPath.length() - H2_DATABASE_SUFFIX.length()));
+    this.database = fullDbPath.substring(0, fullDbPath.length() - H2_DATABASE_SUFFIX.length());
   }
 
   private LocalDate mapDate(Date date) {
@@ -148,7 +160,12 @@ public final class DbModifierCli
 
   private void printTableInfo(List<DbModifier.TableDateMinMax> tablesMinMax) {
     log.info("--------------------------------------------------------------------------------");
-    log.info("DB: {}", targetDatabase.getAbsolutePath() + H2_DATABASE_SUFFIX);
+    if (isPostgres) {
+      log.info("DB: {}", database);
+    }
+    else {
+      log.info("DB: {}", new File(database).getAbsolutePath() + H2_DATABASE_SUFFIX);
+    }
     log.info("schema: {}", dbSchema);
     log.info("--------------------------------------------------------------------------------");
     log.info("{} {} {}", StringUtils.center(":table:", 30), StringUtils.center(":min date:", 25),
@@ -159,7 +176,13 @@ public final class DbModifierCli
   }
 
   private void run() {
-    DbModifier dbmod = new DbModifier(targetDatabase, dbUser, dbPassword, dbSchema);
+    DbModifier dbmod;
+    if ( isPostgres ) {
+      dbmod = new PostgresDbModifier(dbUser, dbPassword, hostname, port, database, dbSchema);
+    }
+    else {
+      dbmod = new H2DbModifier(dbUser, dbPassword, new File(database), dbSchema);
+    }
     if (dateInfo) {
       printTableInfo(dbmod.getDateInfo());
     }

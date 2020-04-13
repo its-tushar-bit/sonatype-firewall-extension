@@ -38,7 +38,7 @@ class IqUtil(object):
         log.info("finished run_iq_jar")
 
     def start_iq(self, profile_params=[], profile_opts=[], outputToFile=True):
-        startupString = "org.eclipse.jetty.server.Server: Started @"
+        startupString = ".+org.eclipse.jetty.server.Server.+Started.+"
         work_dir_opt = "-Ddw.sonatypeWork=" + self.sonatype_work_dir
         profile_opts.append(work_dir_opt)
 

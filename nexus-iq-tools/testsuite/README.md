@@ -74,7 +74,7 @@ So make sure one of them works. More details here: https://www.terraform.io/docs
 ## Running Performance Test
 
 1. Configure test inputs:
-   * `./configure_test.py -iq ../../insight-brain-service/target/insight-brain-service-*-server.jar -tools ../target/nexus-iq-tools-*-SNAPSHOT.jar -auto ../target/nexus-iq-tools-*-automation.zip -lic /path/to/*lifecycle*.lic`
+   * `./configure_test.py -iq ../../insight-brain-service/target/insight-brain-service-*-server.jar -tools ../target/nexus-iq-tools-*-SNAPSHOT.jar -auto ../target/nexus-iq-tools-*-automation.zip -lic /path/to/*lifecycle*.lic -u /path/to/target_urls.json`
    * confirm creation of a folder starting with `awsPerfRun_`
 2. Initialize terraform with `terraform init`
    * note: this only needs to be done for first run or to update terraform

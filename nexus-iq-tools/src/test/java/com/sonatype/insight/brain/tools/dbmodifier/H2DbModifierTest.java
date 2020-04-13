@@ -28,7 +28,7 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DbModifierTest
+public class H2DbModifierTest
 {
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
@@ -64,7 +64,7 @@ public class DbModifierTest
   public void init() throws Exception {
     dbConnection = createTestDbConnection();
     createTestDb(dbConnection);
-    dbModifier = new DbModifier(null, TEST_DB_CONNECTION_STRING, USER_NAME, PASSWORD, TEST_SCHEMA);
+    dbModifier = new H2DbModifier(USER_NAME, PASSWORD, TEST_DB_CONNECTION_STRING, TEST_SCHEMA);
   }
 
   @After
@@ -234,7 +234,7 @@ public class DbModifierTest
     File databaseDir = tempDir.newFolder("db");
     FileUtils.copyFileToDirectory(new File("target/test-classes/DbModifierTest/testDbVersion_FromDatabase/test.h2.db"),
         databaseDir);
-    DbModifier dbModifier = new DbModifier(new File(databaseDir, "test"), "sa", PASSWORD, "test");
+    DbModifier dbModifier = new H2DbModifier("sa", PASSWORD, new File(databaseDir, "test"), "test");
 
     assertThat(dbModifier.dbVersion()).isEqualTo("1");
   }
@@ -244,7 +244,7 @@ public class DbModifierTest
     File databaseDir = tempDir.newFolder("db");
     FileUtils.copyFileToDirectory(new File("target/test-classes/DbModifierTest/testDbVersion_FromFile/test.h2.db"),
         databaseDir);
-    DbModifier dbModifier = new DbModifier(new File(databaseDir, "test"), "sa", PASSWORD, "test");
+    DbModifier dbModifier = new H2DbModifier("sa", PASSWORD, new File(databaseDir, "test"), "test");
     
     assertThat(dbModifier.dbVersion()).isEqualTo("-1");
     

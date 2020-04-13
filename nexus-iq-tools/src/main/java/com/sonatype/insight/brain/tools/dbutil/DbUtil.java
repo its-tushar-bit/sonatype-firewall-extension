@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.tools.dbutil;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.ArrayList;
@@ -80,10 +81,17 @@ public class DbUtil
   }
 
   private Connection getConnection() throws Exception {
-    String dbUrl = "jdbc:h2:" + parameters.getTargetDatabase().getAbsolutePath()
-        + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;SCHEMA=insight_brain_ods;MV_STORE=FALSE";
-    String dbUsername = "sa";
-    String dbPassword = "";
+    String dbUrl;
+    if (parameters.isPostgres()) {
+      dbUrl = "jdbc:postgresql://" + parameters.getHostname() + ":" + parameters.getPort() + "/"
+          + parameters.getDatabase() + "?currentSchema=insight_brain_ods";
+    }
+    else {
+      dbUrl = "jdbc:h2:" + new File(parameters.getDatabase()).getAbsolutePath()
+          + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;SCHEMA=insight_brain_ods;MV_STORE=FALSE";
+    }
+    String dbUsername = parameters.getDbUser();
+    String dbPassword = parameters.getDbPassword();
     return DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
   }
 

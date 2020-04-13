@@ -9,6 +9,7 @@ import os
 import subprocess
 import sys
 import threading
+import re
 
 
 log = logging.getLogger(__name__)
@@ -25,7 +26,8 @@ def output_reader(proc, callback, outFile, callbackTrigger=None):
             log.info('{0}'.format(logline))
 
         if callbackTrigger:
-            if logline.find(callbackTrigger) >= 0:
+            pattern = re.compile(callbackTrigger)
+            if pattern.fullmatch(logline):
                 callback.append("triggered")
     return proc.wait()
 

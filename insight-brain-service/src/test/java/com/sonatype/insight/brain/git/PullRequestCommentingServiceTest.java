@@ -21,6 +21,8 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestCo
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
@@ -598,6 +600,26 @@ public class PullRequestCommentingServiceTest
     );
   }
 
+  @Test
+  public void testOnApplicationEvaluation_featureFlagOff() throws IOException {
+    // given : all the necessary pieces to create a PR comment
+    PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
+        .withFeatureFlagEnabled(false)
+        .build();
+
+    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
+        .withApplicationId("app1")
+        .withPolicyEvaluationId("sourcePe")
+        .withCommitHash("sourceCommit")
+        .build();
+
+    // when : process event
+    commentingService.onApplicationEvaluation(event);
+
+    // then : no comment should be created
+    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
+  }
+
   private DiscoveredPullRequestEvent createDiscoveredPullRequestEvent(
       String applicationId,
       String sourcePolicyEvaluationId,
@@ -690,6 +712,8 @@ public class PullRequestCommentingServiceTest
     private Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff =
         Optional.of(new PolicyViolationDiff<>());
 
+    private boolean featureFlagEnabled = true;
+
     PullRequestCommentingService build() throws IOException {
       MockitoAnnotations.initMocks(this);
 
@@ -756,8 +780,14 @@ public class PullRequestCommentingServiceTest
           mockAsyncEventBus,
           testProductLicense,
           mockPullRequestUtils,
-          mockPolicyEvaluationDiffService
+          mockPolicyEvaluationDiffService,
+          getInsightConfig(featureFlagEnabled)
       );
+    }
+
+    TestablePullRequestCommentingServiceBuilder withFeatureFlagEnabled(boolean featureFlagEnabled) {
+      this.featureFlagEnabled = featureFlagEnabled;
+      return this;
     }
 
     TestablePullRequestCommentingServiceBuilder withScmEnabled(boolean scmEnabled) {
@@ -889,6 +919,14 @@ public class PullRequestCommentingServiceTest
     TestablePullRequestCommentingServiceBuilder withAddedViolation(PolicyViolation policyViolation) {
       policyViolationDiff.get().addAppeared(policyViolation);
       return this;
+    }
+
+    private InsightConfig getInsightConfig(boolean enableFeatureFlag) {
+      InsightConfig config = new InsightConfig();
+      Map<String, Boolean> features = new HashMap<>();
+      features.put(Feature.PR_COMMENTING.getFlag(), enableFeatureFlag);
+      config.setFeatures(features);
+      return config;
     }
   }
 

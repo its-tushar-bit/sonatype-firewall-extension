@@ -22,6 +22,8 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestCo
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
@@ -78,6 +80,8 @@ public class PullRequestCommentingService
 
   private final PolicyEvaluationDiffService policyEvaluationDiffService;
 
+  private final InsightConfig insightConfig;
+
   @Inject
   public PullRequestCommentingService(
       final SourceControlUtils sourceControlUtils,
@@ -90,7 +94,8 @@ public class PullRequestCommentingService
       final AsyncEventBus asyncEventBus,
       final ProductLicense productLicense,
       final PullRequestUtils pullRequestUtils,
-      final PolicyEvaluationDiffService policyEvaluationDiffService)
+      final PolicyEvaluationDiffService policyEvaluationDiffService,
+      final InsightConfig insightConfig)
   {
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
@@ -103,6 +108,7 @@ public class PullRequestCommentingService
     this.productLicense = productLicense;
     this.pullRequestUtils = pullRequestUtils;
     this.policyEvaluationDiffService = policyEvaluationDiffService;
+    this.insightConfig = insightConfig;
   }
 
   @Override
@@ -124,6 +130,9 @@ public class PullRequestCommentingService
    */
   @Subscribe
   public void onApplicationEvaluation(ApplicationEvaluationEvent event) {
+    if (!insightConfig.isFeatureEnabled(Feature.PR_COMMENTING)) {
+      return;
+    }
     if (!checkLicense()) {
       log.debug("License does not support SourceControl automation features");
       return;

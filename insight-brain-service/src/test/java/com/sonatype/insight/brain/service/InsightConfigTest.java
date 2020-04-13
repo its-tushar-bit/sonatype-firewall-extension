@@ -6,8 +6,11 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.test.LogOutput;
 
 import io.dropwizard.jersey.validation.Validators;
@@ -118,6 +121,48 @@ public class InsightConfigTest
 
     config.getSupportConfig().setReadLimitBytes(-1);
     assertThat(config.getSupportConfig().getReadLimitBytes()).isEqualTo(-1);
+  }
+
+  @Test
+  public void testFeatures() {
+    InsightConfig config = new InsightConfig();
+
+    // test unspecified feature is enabled
+    assertThat(config.getFeatures()).isNull();
+    assertThat(config.isFeatureEnabled(Feature.PR_COMMENTING)).isTrue();
+
+    // test feature is enabled, when feature flag is set to true
+    Map<String, Boolean> features = new HashMap<>();
+    features.put("featureOne", true);
+    config.setFeatures(features);
+    assertThat(config.getFeatures()).isNotNull();
+    assertThat(config.isFeatureEnabled("featureOne")).isTrue();
+
+    // test feature is disabled, when feature flag is set to false
+    features.put("featureOne", false);
+    assertThat(config.getFeatures()).isNotNull();
+    assertThat(config.isFeatureEnabled("featureOne")).isFalse();
+  }
+
+  @Test
+  public void testExperimentalFeatures() {
+    InsightConfig config = new InsightConfig();
+
+    // test unspecified experimental feature is disabled
+    assertThat(config.getExperimentalFeatures()).isNull();
+    assertThat(config.isExperimentalFeatureEnabled("unspecifiedFeature")).isFalse();
+
+    // test experimental feature is enabled, when feature flag is set to true
+    Map<String, Boolean> features = new HashMap<>();
+    features.put("featureTwo", true);
+    config.setExperimentalFeatures(features);
+    assertThat(config.getExperimentalFeatures()).isNotNull();
+    assertThat(config.isExperimentalFeatureEnabled("featureTwo")).isTrue();
+
+    // test experimental feature is disabled, when feature flag is set to false
+    features.put("featureTwo", false);
+    assertThat(config.getExperimentalFeatures()).isNotNull();
+    assertThat(config.isExperimentalFeatureEnabled("featureTwo")).isFalse();
   }
 
   /**

@@ -6,8 +6,12 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,7 +46,8 @@ public class PullRequestPollingSchedulerTest
     final int delaySeconds = 2;
     final int intervalSeconds = 1;
     PullRequestPollingScheduler scheduler =
-        new PullRequestPollingScheduler(pullRequestPollingService, productLicense, delaySeconds, intervalSeconds);
+        new PullRequestPollingScheduler(pullRequestPollingService, productLicense, getInsightConfig(true),
+            delaySeconds, intervalSeconds);
     when(productLicense.hasFeature(any())).thenReturn(true);
 
     // when: start scheduler and wait (less than full initial delay)
@@ -94,7 +99,8 @@ public class PullRequestPollingSchedulerTest
     final int delaySeconds = 1;
     final int intervalSeconds = 1;
     PullRequestPollingScheduler scheduler =
-        new PullRequestPollingScheduler(pullRequestPollingService, productLicense, delaySeconds, intervalSeconds);
+        new PullRequestPollingScheduler(pullRequestPollingService, productLicense, getInsightConfig(true),
+            delaySeconds, intervalSeconds);
     doThrow(new IOException("some IO exception")).when(pullRequestPollingService)
         .fetchAndSendPullRequestsForCommenting();
     when(productLicense.hasFeature(any())).thenReturn(true);
@@ -149,5 +155,32 @@ public class PullRequestPollingSchedulerTest
 
     // cleanup: stop the scheduler so as not to interfere with other tests
     scheduler.stop();
+  }
+
+  @Test
+  public void testPullRequestPollingScheduler_featureFlagOff() throws Exception {
+    // given: valid scheduler instance but the feature flag is off
+    PullRequestPollingScheduler scheduler =
+        new PullRequestPollingScheduler(pullRequestPollingService, productLicense, getInsightConfig(false),
+            2, 1);
+
+    // when: start scheduler and wait (less than full initial delay)
+    scheduler.start();
+
+    // then: PR polling scheduler is not started
+    assertThatLogMessagesEqual(
+        info("Pull request commenting feature is disabled; Pull request polling scheduler is not started.")
+    );
+    verify(pullRequestPollingService, never()).fetchAndSendPullRequestsForCommenting();
+
+    scheduler.stop();
+  }
+
+  private InsightConfig getInsightConfig(boolean enableFeatureFlag) {
+    InsightConfig config = new InsightConfig();
+    Map<String, Boolean> features = new HashMap<>();
+    features.put(Feature.PR_COMMENTING.getFlag(), enableFeatureFlag);
+    config.setFeatures(features);
+    return config;
   }
 }

@@ -393,4 +393,28 @@ public class InsightBrainServiceTest
       }
     });
   }
+
+  @Test
+  @ManualServerInit
+  public void testFeatures() throws Exception {
+    initServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+      }
+
+      @Override
+      public String getConfigFilePath() {
+        return InsightBrainService.class
+            .getResource("/InsightBrainServiceTest/config-with-feature-flags.yml").getFile();
+      }
+    });
+    InsightConfig config = getCLMServer().getConfiguration();
+    assertThat(config.isFeatureEnabled("unspecifiedFeature")).isTrue();
+    assertThat(config.isFeatureEnabled("enabledFeature")).isTrue();
+    assertThat(config.isFeatureEnabled("disabledFeature")).isFalse();
+    assertThat(config.isExperimentalFeatureEnabled("unspecifiedExperimentalFeature")).isFalse();
+    assertThat(config.isExperimentalFeatureEnabled("enabledExperimentalFeature")).isTrue();
+    assertThat(config.isExperimentalFeatureEnabled("disabledExperimentalFeature")).isFalse();
+  }
 }

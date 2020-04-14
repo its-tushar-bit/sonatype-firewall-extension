@@ -20,6 +20,11 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LabelEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -373,5 +378,87 @@ public class LabelServiceTest
 
     labelService.deleteLabel(APPLICATION, application.getPublicId(), label.getId());
     assertThat(labelDAO.getById(label.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteLabel_LabelDoesNotExist() {
+    Application app = tempEntity.newApplicationWithParent();
+
+    assertThatThrownBy(() -> {
+      labelService.deleteLabel(APPLICATION, app.getId(), "YettiId");
+    }).isInstanceOf(NotFoundException.class).hasMessage("Cannot find a label with ID YettiId.");
+  }
+
+  @Test
+  public void testDeleteLabel_WithOwnerIdMismatch() {
+    String appId = tempEntity.newApplicationWithParent().getId();
+    Label label = tempEntity.newLabel(appId);
+    String otherAppId = tempEntity.newApplicationWithParent().getId();
+
+    assertThatThrownBy(() -> {
+      labelService.deleteLabel(OwnerType.APPLICATION, otherAppId, label.getId());
+    }).isInstanceOf(NotFoundException.class)
+        .hasMessage("Cannot find a label with ID " + label.getId() + " for application ID " + otherAppId);
+  }
+
+  @Test
+  public void testDeleteLabel_AppLabelUsedInPolicyCondition() {
+    Application app = tempEntity.newApplicationWithParent();
+    testDeleteLabel_InUseByPolicy(OwnerType.APPLICATION, app.getId(), app.getId(), null);
+  }
+
+  @Test
+  public void testDeleteLabel_OrgLabelUsedInAppPolicyCondition() {
+    Application app = tempEntity.newApplicationWithParent("appPublicId", "appName");
+    testDeleteLabel_InUseByPolicy(OwnerType.ORGANIZATION, app.getOrganizationId(), app.getId(),
+        "in application 'appName'");
+  }
+
+  @Test
+  public void testDeleteLabel_OrgLabelUsedInGrandChildAppPolicyCondition() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("appName", "appPublicId", org.getId());
+    testDeleteLabel_InUseByPolicy(OwnerType.ORGANIZATION, org.getParentOrganizationId(), app.getId(),
+        "in application 'appName'");
+  }
+
+  @Test
+  public void testDeleteLabel_OrgLabelUsedInPolicyCondition() {
+    Organization org = tempEntity.newOrganization();
+    testDeleteLabel_InUseByPolicy(OwnerType.ORGANIZATION, org.getId(), org.getId(), null);
+  }
+
+  @Test
+  public void testDeleteLabel_OrgLabelUsedInChildOrgPolicyCondition() {
+    Organization org = tempEntity.newOrganization("orgName");
+    testDeleteLabel_InUseByPolicy(OwnerType.ORGANIZATION, org.getParentOrganizationId(), org.getId(),
+        "in organization 'orgName'");
+  }
+
+  private void testDeleteLabel_InUseByPolicy(
+      OwnerType ownerType,
+      String ownerId,
+      String policyOwnerId,
+      String policyLocation)
+  {
+    Label label = tempEntity.newLabel(ownerId);
+
+    Policy policy = new Policy(null, "policyName");
+    policy.setOwnerId(policyOwnerId);
+    Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.AND);
+    constraint.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
+    policy.addConstraint(constraint);
+    tempEntity.newPolicy(policy);
+
+    String expectedErrorMessage =
+        "Cannot delete the label because it is used in a condition for the 'policyName' policy";
+    if (policyLocation != null) {
+      expectedErrorMessage += " " + policyLocation;
+    }
+    assertThatThrownBy(() -> {
+      labelService.deleteLabel(ownerType, ownerId, label.getId());
+    }).isInstanceOf(BadRequestException.class).hasMessage(expectedErrorMessage);
+
+    assertThat(labelDAO.getById(label.getId())).isNotNull();
   }
 }

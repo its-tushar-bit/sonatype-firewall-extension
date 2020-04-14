@@ -10,9 +10,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiLabelDTO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
-import com.sonatype.insight.brain.label.LabelService;
 import com.sonatype.insight.brain.label.LabelService.ApplicableLabels;
 import com.sonatype.insight.brain.label.LabelService.LabelsByOwner;
 import com.sonatype.insight.brain.model.Application;
@@ -21,11 +19,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.LogicalOperator;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -103,42 +96,6 @@ public class ApiLabelResourceTest
   }
 
   @Test
-  public void testDeleteAppLabel_UsedInPolicyCondition() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("appPublicId");
-    testDelete_InUseByPolicy(OwnerType.APPLICATION, app.getPublicId(), app.getId(), app.getId(), null);
-  }
-
-  @Test
-  public void testDeleteAppLabel_Nonexistent() throws Exception {
-    String appPublicId = "LabelResourceTest_AppId";
-    tempEntity.newApplicationWithParent(appPublicId);
-
-    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).path("YettiId").delete();
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Cannot find a label with ID YettiId.");
-  }
-
-  @Test
-  public void testDeleteAppLabel_OwnerIdMismatch() throws Exception {
-    String appPublicId1 = "LabelResourceTest_AppId1";
-    Application application1 = tempEntity.newApplicationWithParent(appPublicId1);
-    String appPublicId2 = "LabelResourceTest_AppId2";
-    Application application2 = tempEntity.newApplicationWithParent(appPublicId2);
-    Label label = tempEntity.newLabel(application1.getId(), "MyLabel", Color.dark_blue);
-
-    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId2).path(label.getId()).delete();
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText())
-        .isEqualTo("Cannot find a label with ID " + label.getId() + " for application ID " + application2.getId());
-    // Verify that the label was not deleted
-    response = restRequest(OwnerType.APPLICATION, appPublicId1).get();
-    assertResponseStatus(200, response);
-    ApiLabelDTO[] labels = response.getBody(ApiLabelDTO[].class);
-    assertThat(labels).hasSize(1);
-    assertLabel(application1.getId(), OwnerType.APPLICATION, "MyLabel", null, Color.dark_blue, labels[0]);
-  }
-
-  @Test
   public void testOrganizationCRUD() throws Exception {
     // Create an organization
     String orgName = "LabelResourceTestOrgName";
@@ -196,93 +153,6 @@ public class ApiLabelResourceTest
     assertResponseStatus(200, response);
     labels = response.getBody(ApiLabelDTO[].class);
     assertThat(labels).isEmpty();
-  }
-
-  @Test
-  public void testDeleteOrgLabel_UsedInPolicyCondition() throws Exception {
-    Organization org = tempEntity.newOrganization();
-    testDelete_InUseByPolicy(OwnerType.ORGANIZATION, org.getId(), org.getId(), org.getId(), null);
-  }
-
-  @Test
-  public void testDeleteOrgLabel_UsedInAppPolicyCondition() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("appPublicId", "appName");
-    testDelete_InUseByPolicy(OwnerType.ORGANIZATION, app.getOrganizationId(), app.getOrganizationId(), app.getId(),
-        "in application 'appName'");
-  }
-
-  @Test
-  public void testDeleteOrgLabel_UsedInGrandChildAppPolicyCondition() throws Exception {
-    Organization org = tempEntity.newOrganization();
-    Application app = tempEntity.newApplication("appName", "appPublicId", org.getId());
-    testDelete_InUseByPolicy(OwnerType.ORGANIZATION, org.getParentOrganizationId(), org.getParentOrganizationId(),
-        app.getId(), "in application 'appName'");
-  }
-
-  @Test
-  public void testDeleteOrgLabel_UsedInChildOrgPolicyCondition() throws Exception {
-    Organization org = tempEntity.newOrganization("orgName");
-    testDelete_InUseByPolicy(OwnerType.ORGANIZATION, org.getParentOrganizationId(), org.getParentOrganizationId(),
-        org.getId(), "in organization 'orgName'");
-  }
-
-  private void testDelete_InUseByPolicy(
-      OwnerType ownerType,
-      String ownerPublicId,
-      String ownerId,
-      String policyOwnerId,
-      String policyLocation) throws Exception
-  {
-    Label label = tempEntity.newLabel(ownerId);
-
-    Policy policy = new Policy(null, "policyName");
-    policy.setOwnerId(policyOwnerId);
-    Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.AND);
-    constraint.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
-    policy.addConstraint(constraint);
-    tempEntity.newPolicy(policy);
-
-    HttpResponse response = restRequest(ownerType, ownerPublicId).path(label.getId()).delete();
-    assertResponseStatus(400, response);
-
-    String error = "Cannot delete the label because it is used in a condition for the 'policyName' policy";
-    if (null != policyLocation) {
-      error = error + " " + policyLocation;
-    }
-    assertThat(response.getBodyText()).isEqualTo(error);
-
-    assertThat(new LabelDAO().getById(label.getId())).isNotNull();
-  }
-
-  @Test
-  public void testDeleteOrgLabel_Nonexistent() throws Exception {
-    String orgName = "LabelResourceTestOrgName";
-    Organization organization = tempEntity.newOrganization(orgName);
-
-    HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).path("YettiId").delete();
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Cannot find a label with ID YettiId.");
-  }
-
-  @Test
-  public void testDeleteOrgLabel_OwnerIdMismatch() throws Exception {
-    String orgName1 = "LabelResourceTestOrgName1";
-    Organization organization1 = tempEntity.newOrganization(orgName1);
-    String orgName2 = "LabelResourceTestOrgName2";
-    Organization organization2 = tempEntity.newOrganization(orgName2);
-
-    Label label = tempEntity.newLabel(organization1.getId(), "MyLabel", Color.dark_blue);
-
-    HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization2.getId()).path(label.getId()).delete();
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText())
-        .isEqualTo("Cannot find a label with ID " + label.getId() + " for organization ID " + organization2.getId());
-    // Verify that the label was not deleted
-    response = restRequest(OwnerType.ORGANIZATION, organization1.getId()).get();
-    assertResponseStatus(200, response);
-    ApiLabelDTO[] labels = response.getBody(ApiLabelDTO[].class);
-    assertThat(labels).hasSize(1);
-    assertLabel(organization1.getId(), OwnerType.ORGANIZATION, "MyLabel", null, Color.dark_blue, labels[0]);
   }
 
   @Test
@@ -513,23 +383,6 @@ public class ApiLabelResourceTest
     assertThat(context.getName()).isEqualTo(app.getName());
     assertThat(context.getType()).isEqualTo(OwnerType.APPLICATION);
     assertThat(context.getChildren()).isNull();
-  }
-
-  @Test
-  public void testUpdateLabel_DifferentOwnerId() throws Exception {
-    Organization ownerOrg = tempEntity.newOrganization();
-    Label label = tempEntity.newLabel(ownerOrg.getId());
-
-    Organization otherOrg = tempEntity.newOrganization();
-
-    ApiLabelDTO apiLabelDTO = LabelService.toDTO(label, OwnerType.ORGANIZATION);
-    apiLabelDTO.ownerId = otherOrg.getId();
-
-    HttpResponse response = restRequest(OwnerType.ORGANIZATION, otherOrg.getId()).body(apiLabelDTO).put();
-
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText())
-        .isEqualTo("Cannot find a label with id " + label.getId() + " for owner id " + otherOrg.getId());
   }
 
   private void assertLabel(

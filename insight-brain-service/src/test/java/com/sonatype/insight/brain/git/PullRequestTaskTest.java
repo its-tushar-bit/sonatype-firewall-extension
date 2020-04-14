@@ -69,7 +69,7 @@ public class PullRequestTaskTest
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Rule
-  public LogOutput logOutput = new LogOutput(PullRequestTask.class);
+  public LogOutput logOutput = new LogOutput(PullRequestTask.class, GitRepositoryTask.class);
 
   @Mock
   private GitClientFactory gitClientFactory;
@@ -245,7 +245,7 @@ public class PullRequestTaskTest
     verify(gitApi).push(targetDirectory);
     verify(metrics).addResult(anyString(), any(PullRequestResult.class));
 
-    assertThat(logOutput).atDebugLevel().contains("Using existing directory for pull request");
+    assertThat(logOutput).atDebugLevel().contains("Using existing directory for pull request task");
     assertThat(logOutput).atInfoLevel().contains("Pull request task initiated for application");
     assertThat(logOutput).atInfoLevel().contains("Pull request task completed for application");
     assertThat(logOutput).atInfoLevel().contains("successful=true");

@@ -9,13 +9,9 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -26,18 +22,15 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
-import com.sonatype.insight.brain.git.PullRequestTask;
+import com.sonatype.insight.brain.git.SourceControlTaskRunner;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
-import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.VersionRemediationTitleGenerator;
-import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,13 +65,9 @@ public class PolicyAlertScmNotifier
 
   private static final OwnerType OWNER_TYPE = OwnerType.APPLICATION;
 
-  private final ThreadPoolExecutor executor;
-
-  private final Provider<PullRequestTask> pullRequestTaskProvider;
-
-  private final PullRequestExecutor pullRequestExecutor;
-
   private final SourceControlUtils sourceControlUtils;
+
+  private final SourceControlTaskRunner sourceControlTaskRunner;
 
   /**
    * notifier for sending to hosted git source control manager service
@@ -87,7 +76,6 @@ public class PolicyAlertScmNotifier
    * @param remediationService             service to lookup suggested remediations
    * @param policyAlertSourceCodeOrganizer service to aggregate policy alerts
    * @param gitClientFactory               factory to create a connection to git hosting service
-   * @param baseUrl
    */
   @Inject
   public PolicyAlertScmNotifier(
@@ -96,20 +84,16 @@ public class PolicyAlertScmNotifier
       final PolicyAlertSourceCodeOrganizer policyAlertSourceCodeOrganizer,
       final GitClientFactory gitClientFactory,
       final BaseUrl baseUrl,
-      final PullRequestExecutor pullRequestExecutor,
-      final Provider<PullRequestTask> pullRequestTaskProvider,
-      final SourceControlUtils sourceControlUtils)
+      final SourceControlUtils sourceControlUtils,
+      final SourceControlTaskRunner sourceControlTaskRunner)
   {
     this.pullRequestFeatureCheck = pullRequestFeatureCheck;
     this.remediationService = remediationService;
     this.policyAlertSourceCodeOrganizer = policyAlertSourceCodeOrganizer;
     this.gitClientFactory = gitClientFactory;
     this.baseUrl = baseUrl;
-    this.pullRequestExecutor = pullRequestExecutor;
-    this.pullRequestTaskProvider = pullRequestTaskProvider;
-    this.executor = new ThreadPoolExecutor(1, 1, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
-        new ThreadFactoryBuilder().setDaemon(true).setNameFormat("PullRequestTask-%s").build());
     this.sourceControlUtils = sourceControlUtils;
+    this.sourceControlTaskRunner = sourceControlTaskRunner;
   }
 
   /**
@@ -179,13 +163,7 @@ public class PolicyAlertScmNotifier
           new PullRequestRemediationDetails(entry.getKey(), nextVersion, branchName, entry.getValue(), app, scanId,
               stage.getStageTypeId(), baseUrl.getConfigured());
 
-      PullRequestTask pullRequestTask = pullRequestTaskProvider.get();
-      pullRequestTask.init(pullRequestRemediationDetails, pullRequestExecutor);
-      executor.execute(new SystemRunnable(pullRequestTask));
-      log.info("Executing pull request task for [{}] on application with id [{}]. {} tasks in the queue" +
-              " and {} total tasks since startup", entry.getKey(), app.getId(), executor.getQueue().size(),
-          executor.getTaskCount()
-      );
+      sourceControlTaskRunner.doPullRequestRemediation(pullRequestRemediationDetails);
     }
   }
 
@@ -213,7 +191,7 @@ public class PolicyAlertScmNotifier
   }
 
   private boolean isFormatSupported(final ComponentIdentifier componentIdentifier) {
-    return pullRequestExecutor.isSupportedFormat(componentIdentifier.getFormat());
+    return sourceControlTaskRunner.isFormatSupportedForPullRequestRemediation(componentIdentifier);
   }
 
   private List<ApiVersionChangeOptionDTO> getRemediationList(

@@ -6,9 +6,7 @@
 package com.sonatype.insight.brain.search.docs;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Owner;
@@ -81,7 +79,7 @@ public class DocumentBuilder
     }
   }
 
-  private final Field itemType;
+  private Document document;
 
   private Optional<Field> organizationId = Optional.empty();
 
@@ -101,7 +99,7 @@ public class DocumentBuilder
 
   private Optional<Field> componentFormat = Optional.empty();
 
-  private Optional<List<Field>> componentCoordinates = Optional.empty();
+  private Optional<Field[]> componentCoordinates = Optional.empty();
 
   private Optional<Field> componentName = Optional.empty();
 
@@ -109,7 +107,7 @@ public class DocumentBuilder
 
   private Optional<Field> vulnerabilityStatus = Optional.empty();
 
-  private Optional<List<Field>> vulnerabilitySeverity = Optional.empty();
+  private Optional<Field[]> vulnerabilitySeverity = Optional.empty();
 
   private Optional<Field> vulnerabilityDescription = Optional.empty();
 
@@ -135,10 +133,11 @@ public class DocumentBuilder
 
   private Optional<Field> policyThreatCategory = Optional.empty();
 
-  private Optional<List<Field>> policyThreatLevel = Optional.empty();
+  private Optional<Field[]> policyThreatLevel = Optional.empty();
 
   public DocumentBuilder(ItemType itemType) {
-    this.itemType = new TextField(ITEM_TYPE.label, itemType.name(), Store.YES);
+    document = new Document();
+    document.add(new TextField(ITEM_TYPE.label, itemType.name(), Store.YES));
   }
 
   public DocumentBuilder setOwner(Owner owner) {
@@ -202,7 +201,7 @@ public class DocumentBuilder
   public DocumentBuilder setComponentCoordinates(final Component component) {
     this.componentCoordinates = Optional.of(component.getComponentIdentifier().getCoordinates().entrySet().stream().map(
         coordinate -> new TextField(getFieldNameForCoordinate(coordinate.getKey()), coordinate.getValue(), Store.YES))
-        .collect(Collectors.toList()));
+        .toArray(Field[]::new));
     return this;
   }
 
@@ -219,8 +218,8 @@ public class DocumentBuilder
   public DocumentBuilder setVulnerabilitySeverity(final Float vulnerabilitySeverity) {
     if (vulnerabilitySeverity != null) {
       this.vulnerabilitySeverity =
-          Optional.of(Arrays.asList(new FloatPoint(VULNERABILITY_SEVERITY.label, vulnerabilitySeverity),
-              new StoredField(VULNERABILITY_SEVERITY.label, vulnerabilitySeverity)));
+          Optional.of(new Field[]{new FloatPoint(VULNERABILITY_SEVERITY.label, vulnerabilitySeverity),
+              new StoredField(VULNERABILITY_SEVERITY.label, vulnerabilitySeverity)});
     }
     return this;
   }
@@ -305,41 +304,43 @@ public class DocumentBuilder
   }
 
   public DocumentBuilder setPolicyThreatLevel(final int policyThreatLevel) {
-    this.policyThreatLevel = Optional.of(Arrays.asList(new IntPoint(POLICY_THREAT_LEVEL.label, policyThreatLevel),
-        new StoredField(POLICY_THREAT_LEVEL.label, policyThreatLevel)));
+    this.policyThreatLevel = Optional.of(new Field[]{new IntPoint(POLICY_THREAT_LEVEL.label, policyThreatLevel),
+        new StoredField(POLICY_THREAT_LEVEL.label, policyThreatLevel)});
     return this;
   }
 
   public Document build() {
-    Document document = new Document();
-    document.add(itemType);
-    organizationId.ifPresent(document::add);
-    organizationName.ifPresent(document::add);
-    applicationId.ifPresent(document::add);
-    applicationPublicId.ifPresent(document::add);
-    applicationName.ifPresent(document::add);
-    policyEvaluationStage.ifPresent(document::add);
-    reportId.ifPresent(document::add);
-    componentHash.ifPresent(document::add);
-    componentFormat.ifPresent(document::add);
-    componentCoordinates.ifPresent(coordinates -> coordinates.forEach(document::add));
-    componentName.ifPresent(document::add);
-    vulnerabilityId.ifPresent(document::add);
-    vulnerabilitySeverity.ifPresent(fields -> fields.forEach(document::add));
-    vulnerabilityStatus.ifPresent(document::add);
-    vulnerabilityDescription.ifPresent(document::add);
-    applicationCategoryId.ifPresent(document::add);
-    applicationCategoryName.ifPresent(document::add);
-    applicationCategoryColor.ifPresent(document::add);
-    applicationCategoryDescription.ifPresent(document::add);
-    componentLabelId.ifPresent(document::add);
-    componentLabelName.ifPresent(document::add);
-    componentLabelColor.ifPresent(document::add);
-    componentLabelDescription.ifPresent(document::add);
-    policyId.ifPresent(document::add);
-    policyName.ifPresent(document::add);
-    policyThreatCategory.ifPresent(document::add);
-    policyThreatLevel.ifPresent(policyThreatLevel -> policyThreatLevel.forEach(document::add));
+    organizationId.ifPresent(this::setFields);
+    organizationName.ifPresent(this::setFields);
+    applicationId.ifPresent(this::setFields);
+    applicationPublicId.ifPresent(this::setFields);
+    applicationName.ifPresent(this::setFields);
+    policyEvaluationStage.ifPresent(this::setFields);
+    reportId.ifPresent(this::setFields);
+    componentHash.ifPresent(this::setFields);
+    componentFormat.ifPresent(this::setFields);
+    componentCoordinates.ifPresent(this::setFields);
+    componentName.ifPresent(this::setFields);
+    vulnerabilityId.ifPresent(this::setFields);
+    vulnerabilitySeverity.ifPresent(this::setFields);
+    vulnerabilityStatus.ifPresent(this::setFields);
+    vulnerabilityDescription.ifPresent(this::setFields);
+    applicationCategoryId.ifPresent(this::setFields);
+    applicationCategoryName.ifPresent(this::setFields);
+    applicationCategoryColor.ifPresent(this::setFields);
+    applicationCategoryDescription.ifPresent(this::setFields);
+    componentLabelId.ifPresent(this::setFields);
+    componentLabelName.ifPresent(this::setFields);
+    componentLabelColor.ifPresent(this::setFields);
+    componentLabelDescription.ifPresent(this::setFields);
+    policyId.ifPresent(this::setFields);
+    policyName.ifPresent(this::setFields);
+    policyThreatCategory.ifPresent(this::setFields);
+    policyThreatLevel.ifPresent(this::setFields);
     return document;
+  }
+
+  private void setFields(Field... fields) {
+    Arrays.stream(fields).forEach(document::add);
   }
 }

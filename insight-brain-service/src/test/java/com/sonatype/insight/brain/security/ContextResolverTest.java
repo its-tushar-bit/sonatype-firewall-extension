@@ -150,6 +150,16 @@ public class ContextResolverTest
   }
 
   @Test
+  public void testResolveContextIds_TypedContext_Repository_InternalId() {
+    Repository repository = tempEntity.newRepository();
+    Map<AuthzContext.Key, Object> parameters = new HashMap<>();
+    parameters.put(AuthzContext.Key.INTERNAL_ID, repository.getId());
+    parameters.put(AuthzContext.Key.TYPE, OwnerType.REPOSITORY);
+    assertThat(resolver.resolveContextIds(parameters)).containsExactly(repository.getId(),
+        repository.getParentOwnerId(), Organization.ROOT_ORGANIZATION_ID, MembershipMapping.GLOBAL_CONTEXT_ID);
+  }
+
+  @Test
   public void testResolveContextIds_RepositoryId() {
     Repository repository = tempEntity.newRepository();
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();

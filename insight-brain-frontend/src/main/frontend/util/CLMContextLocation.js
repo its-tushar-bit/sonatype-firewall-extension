@@ -81,15 +81,15 @@ locationModule.factory('CLMContextLocations', [
 
     return {
       getLabelsUrl: function() {
-        return baseUrl.get() + '/rest/label/' + getServicePathWithId();
+        return baseUrl.get() + '/api/v2/labels/' + getServicePathWithId();
       },
 
       getApplicableLabelsUrl: function() {
-        return baseUrl.get() + '/rest/label/' + getServicePathWithId() + '/applicable';
+        return baseUrl.get() + '/api/v2/labels/' + getServicePathWithId() + '/applicable';
       },
 
       getDeleteLabelsUrl: function(label) {
-        return baseUrl.get() + '/rest/label/' + getServicePathWithId() + '/' + encodeURIComponent(label.id);
+        return baseUrl.get() + '/api/v2/labels/' + getServicePathWithId() + '/' + encodeURIComponent(label.id);
       },
 
       getLicenseGroupsUrl: function(ownerId, ownerType) {

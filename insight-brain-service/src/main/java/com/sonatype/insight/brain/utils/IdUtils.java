@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.utils;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -41,7 +42,12 @@ public class IdUtils
   public static String getInternalOwnerId(OwnerType ownerType, String ownerId) {
     switch (ownerType) {
       case APPLICATION:
-        return new ApplicationDAO().getByPublicIdNotNull(ownerId).getId();
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        Application application = applicationDAO.getByPublicId(ownerId);
+        if (application != null) {
+          return application.getId();
+        }
+        return applicationDAO.getByIdNotNull(ownerId).getId();
       case ORGANIZATION:
         return new OrganizationDAO().getByIdNotNull(ownerId).getId();
       case REPOSITORY:

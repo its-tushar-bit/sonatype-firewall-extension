@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.label;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiLabelDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
@@ -19,20 +21,22 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import org.junit.Before;
 import org.junit.Test;
 
-public class LabelResourceAuditTest
+import static com.sonatype.insight.brain.model.Color.fromValue;
+
+public class ApiLabelResourceAuditTest
     extends AbstractAuditTest
 {
   private static final String LABEL_NAME = "babababa";
 
   private static final String LABEL_DESCRIPTION = "dadadada";
 
-  private static final Color LABEL_COLOR = Color.dark_blue;
+  private static final String LABEL_COLOR = Color.dark_blue.toValue();
 
   private static final String NEW_LABEL_NAME = "hohohoho";
 
   private static final String NEW_LABEL_DESCRIPTION = "hehehehe";
 
-  private static final Color NEW_LABEL_COLOR = Color.dark_red;
+  private static final String NEW_LABEL_COLOR = Color.dark_red.toValue();
 
   private Application application;
 
@@ -44,8 +48,8 @@ public class LabelResourceAuditTest
     organization = tempEntity.newOrganization();
   }
 
-  private HttpRequest restRequest(OwnerType ownerType, String ownerId, Label label) {
-    return restRequest().path(LabelResource.RESOURCE_PATH).parameter(ownerType, ownerId).body(label);
+  private HttpRequest restRequest(OwnerType ownerType, String ownerId, ApiLabelDTO apiLabelDTO) {
+    return restRequest().path(PublicApiPaths.LABEL_RESOURCE_PATH).parameter(ownerType, ownerId).body(apiLabelDTO);
   }
 
   private void assertLabelData(final AuditDTO auditDTO, final Label label) {
@@ -55,11 +59,19 @@ public class LabelResourceAuditTest
     assertCustomData(auditDTO, "labelColor", label.getColor().toValue());
   }
 
+  private void assertLabelData(AuditDTO auditDTO, ApiLabelDTO labelDTO) {
+    assertCustomData(auditDTO, "labelId", labelDTO.id);
+    assertCustomData(auditDTO, "labelName", labelDTO.label);
+    assertCustomData(auditDTO, "labelDescription", labelDTO.description);
+    assertCustomData(auditDTO, "labelColor", labelDTO.color);
+  }
+
   @Test
   public void testCreateLabel_AppLevel() throws Exception {
-    final Label label = new Label(application.getId(), LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
-    final Label addedLabel = restRequest(OwnerType.APPLICATION, application.getPublicId(), label).post()
-        .getBody(Label.class);
+    ApiLabelDTO apiLabelDTO = new ApiLabelDTO(LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
+
+    final ApiLabelDTO addedLabel = restRequest(OwnerType.APPLICATION, application.getPublicId(), apiLabelDTO).post()
+        .getBody(ApiLabelDTO.class);
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_LABEL, null);
     assertApplicationData(auditDTO, application);
@@ -68,9 +80,10 @@ public class LabelResourceAuditTest
 
   @Test
   public void testCreateLabel_OrgLevel() throws Exception {
-    final Label label = new Label(organization.getId(), LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
-    final Label addedLabel = restRequest(OwnerType.ORGANIZATION, organization.getPublicId(), label).post()
-        .getBody(Label.class);
+    ApiLabelDTO apiLabelDTO = new ApiLabelDTO(LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
+
+    final ApiLabelDTO addedLabel = restRequest(OwnerType.ORGANIZATION, organization.getPublicId(), apiLabelDTO).post()
+        .getBody(ApiLabelDTO.class);
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_LABEL, null);
     assertOrganizationData(auditDTO, organization);
@@ -80,8 +93,9 @@ public class LabelResourceAuditTest
   @Test
   public void testCreateLabel_RepoLevel() throws Exception {
     final Repository repository = tempEntity.newRepository();
-    final Label label = new Label(repository.getId(), LABEL_NAME, LABEL_DESCRIPTION, Color.dark_blue);
-    restRequest(OwnerType.REPOSITORY, repository.getId(), label).post();
+    ApiLabelDTO apiLabelDTO = new ApiLabelDTO(LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
+
+    restRequest(OwnerType.REPOSITORY, repository.getId(), apiLabelDTO).post();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_LABEL, "not-found");
     assertRepositoryData(auditDTO, repository);
@@ -89,8 +103,9 @@ public class LabelResourceAuditTest
 
   @Test
   public void testCreateLabel_Unauthorized() throws Exception {
-    final Label label = new Label(application.getId(), LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
-    restRequest(OwnerType.APPLICATION, application.getPublicId(), label).with(unauthorizedUser()).post();
+    ApiLabelDTO apiLabelDTO = new ApiLabelDTO(LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
+
+    restRequest(OwnerType.APPLICATION, application.getPublicId(), apiLabelDTO).with(unauthorizedUser()).post();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_LABEL, "unauthorized");
     assertApplicationData(auditDTO, application);
@@ -98,35 +113,38 @@ public class LabelResourceAuditTest
 
   @Test
   public void testUpdateLabel_AppLevel() throws Exception {
-    final Label label = tempEntity.newLabel(application.getId(), LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
-    label.setLabel(NEW_LABEL_NAME);
-    label.setDescription(NEW_LABEL_DESCRIPTION);
-    label.setColor(NEW_LABEL_COLOR);
-    restRequest(OwnerType.APPLICATION, application.getPublicId(), label).put();
+    final Label label = tempEntity.newLabel(application.getId(), LABEL_NAME, LABEL_DESCRIPTION, fromValue(LABEL_COLOR));
+
+    ApiLabelDTO apiLabelDTO = new ApiLabelDTO(NEW_LABEL_NAME, NEW_LABEL_DESCRIPTION, NEW_LABEL_COLOR);
+    apiLabelDTO.id = label.getId();
+
+    restRequest(OwnerType.APPLICATION, application.getPublicId(), apiLabelDTO).put();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_LABEL, null);
     assertApplicationData(auditDTO, application);
-    assertLabelData(auditDTO, label);
+    assertLabelData(auditDTO, apiLabelDTO);
   }
 
   @Test
   public void testUpdateLabel_OrgLevel() throws Exception {
-    final Label label = tempEntity.newLabel(organization.getId(), LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
-    label.setLabel(NEW_LABEL_NAME);
-    label.setDescription(NEW_LABEL_DESCRIPTION);
-    label.setColor(NEW_LABEL_COLOR);
-    restRequest(OwnerType.ORGANIZATION, organization.getPublicId(), label).put();
+    String organizationId = organization.getId();
+    final Label label = tempEntity.newLabel(organizationId, LABEL_NAME, LABEL_DESCRIPTION, fromValue(LABEL_COLOR));
+
+    ApiLabelDTO apiLabelDTO = new ApiLabelDTO(NEW_LABEL_NAME, NEW_LABEL_DESCRIPTION, NEW_LABEL_COLOR);
+    apiLabelDTO.id = label.getId();
+
+    restRequest(OwnerType.ORGANIZATION, organization.getPublicId(), apiLabelDTO).put();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_LABEL, null);
     assertOrganizationData(auditDTO, organization);
-    assertLabelData(auditDTO, label);
+    assertLabelData(auditDTO, apiLabelDTO);
   }
 
   @Test
   public void testDeleteLabel_AppLevel() throws Exception {
-    Label toBeDeleted = tempEntity.newLabel(application.getId(), LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
+    Label toBeDeleted = tempEntity.newLabel(application.getId(), LABEL_NAME, LABEL_DESCRIPTION, fromValue(LABEL_COLOR));
 
-    restRequest().path(LabelResource.RESOURCE_PATH).parameter(OwnerType.APPLICATION, application.getPublicId())
+    restRequest().path(PublicApiPaths.LABEL_RESOURCE_PATH).parameter(OwnerType.APPLICATION, application.getPublicId())
         .subpath(toBeDeleted.getId()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_LABEL, null);
@@ -138,7 +156,7 @@ public class LabelResourceAuditTest
   public void testDeleteLabel_OrgLevel() throws Exception {
     Label toBeDeleted = tempEntity.newLabel(organization.getId());
 
-    restRequest().path(LabelResource.RESOURCE_PATH).parameter(OwnerType.ORGANIZATION, organization.getPublicId())
+    restRequest().path(PublicApiPaths.LABEL_RESOURCE_PATH).parameter(OwnerType.ORGANIZATION, organization.getPublicId())
         .subpath(toBeDeleted.getId()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_LABEL, null);
@@ -148,7 +166,7 @@ public class LabelResourceAuditTest
 
   @Test
   public void testDeleteLabel_Unauthorized() throws Exception {
-    restRequest().path(LabelResource.RESOURCE_PATH).parameter(OwnerType.APPLICATION, application.getPublicId())
+    restRequest().path(PublicApiPaths.LABEL_RESOURCE_PATH).parameter(OwnerType.APPLICATION, application.getPublicId())
         .path("labelId").with(unauthorizedUser()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_LABEL, "unauthorized");
@@ -157,8 +175,11 @@ public class LabelResourceAuditTest
 
   @Test
   public void testUpdateLabel_Unauthorized() throws Exception {
-    final Label label = tempEntity.newLabel(application.getId(), LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
-    restRequest(OwnerType.APPLICATION, application.getPublicId(), label).with(unauthorizedUser()).put();
+    tempEntity.newLabel(application.getId(), LABEL_NAME, LABEL_DESCRIPTION, fromValue(LABEL_COLOR));
+
+    ApiLabelDTO apiLabelDTO = new ApiLabelDTO(LABEL_NAME, LABEL_DESCRIPTION, LABEL_COLOR);
+
+    restRequest(OwnerType.APPLICATION, application.getPublicId(), apiLabelDTO).with(unauthorizedUser()).put();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_LABEL, "unauthorized");
     assertApplicationData(auditDTO, application);

@@ -8,18 +8,20 @@ package com.sonatype.insight.brain.label;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiLabelDTO;
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
@@ -32,6 +34,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -83,28 +86,50 @@ public class LabelService
    * @param inherit boolean if {@code true} the returned list will include labels inherited from organization
    *          hierarchy, default is {@code false}
    */
-  @Authorize(permission = Permission.READ)
-  public List<Label> getLabels(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                               @AuthzContext(AuthzContext.Key.ID) String ownerId,
-                               final boolean inherit)
+  public List<ApiLabelDTO> getLabels(
+      OwnerType ownerType,
+      String ownerId,
+      boolean inherit)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    return getLabelsWithAuthzCheck(ownerType, ownerId, inherit);
+  }
 
-    return labelDAO.getByOwnerId(ownerId, inherit);
+  @Authorize(permission = Permission.READ)
+  List<ApiLabelDTO> getLabelsWithAuthzCheck(
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId,
+      boolean inherit)
+  {
+    List<Label> labels = labelDAO.getByOwnerId(ownerId, inherit);
+    List<ApiLabelDTO> labelDTOs = labels.stream().map(label -> toDTO(label, ownerType)).collect(Collectors.toList());
+
+    if (inherit) {
+      for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+        labelDTOs.stream()
+            .filter(dto -> dto.ownerId.equals(owner.getId()))
+            .forEach(apiLabelDTO -> apiLabelDTO.ownerType = owner.getType().name());
+      }
+    }
+
+    return labelDTOs;
   }
 
   /**
    * Returns all the labels associated with an ownerId. The labels are grouped by ownerId and the owner name and type
    * are returned.
    */
-  @Authorize(permission = Permission.READ)
-  public ApplicableLabels getApplicableLabels(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                              @AuthzContext(AuthzContext.Key.ID) String ownerId)
-  {
+  public ApplicableLabels getApplicableLabels(OwnerType ownerType, String ownerId) {
     log.debug("Received request to get all applicable labels for {} id {}", ownerType, ownerId);
-
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    return getApplicableLabelsWithAuthzCheck(ownerType, ownerId);
+  }
 
+  @Authorize(permission = Permission.READ)
+  ApplicableLabels getApplicableLabelsWithAuthzCheck(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId)
+  {
     ApplicableLabels result = new ApplicableLabels();
 
     result.labelsByOwner = new ArrayList<>();
@@ -113,7 +138,10 @@ public class LabelService
       labelsByOwner.ownerId = owner.getId();
       labelsByOwner.ownerName = owner.getName();
       labelsByOwner.ownerType = owner.getType();
-      labelsByOwner.labels = labelDAO.getByOwnerId(owner.getId());
+      labelsByOwner.labels = labelDAO.getByOwnerId(owner.getId())
+          .stream()
+          .map(label -> toDTO(label, ownerType))
+          .collect(Collectors.toList());
       result.labelsByOwner.add(labelsByOwner);
     }
 
@@ -123,14 +151,18 @@ public class LabelService
   /**
    * Enumerates the contexts (org/app) in which the given label could be applied.
    */
+  public ApplicableContext getApplicableContexts(OwnerType ownerType, String ownerId, String labelId) {
+    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    return getApplicableContextsWithAuthzCheck(ownerType, ownerId, labelId);
+  }
+
   @Authorize(permission = Permission.WRITE)
-  public ApplicableContext getApplicableContexts(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                                 @AuthzContext(AuthzContext.Key.ID) final String ownerIdPrivateOrPublic,
-                                                 final String labelId)
+  ApplicableContext getApplicableContextsWithAuthzCheck(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId,
+      String labelId)
   {
     Label label = labelDAO.getByIdNotNull(labelId);
-
-    final String ownerId = IdUtils.getInternalOwnerId(ownerType, ownerIdPrivateOrPublic);
 
     if (OwnerType.APPLICATION.equals(ownerType)) {
       Application application = applicationDAO.getById(label.getOwnerId());
@@ -167,58 +199,75 @@ public class LabelService
     return context;
   }
 
-  @Authorize(permission = Permission.WRITE)
-  public Label addLabel(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                        @AuthzContext(AuthzContext.Key.ID) String ownerId,
-                        final Label label)
-  {
+  public ApiLabelDTO addLabel(OwnerType ownerType, String ownerId, ApiLabelDTO apiLabelDTO) {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
-    label.setId(null);
-    label.setOwnerId(ownerId);
-    label.fixLabelLowercase();
-    labelDAO.insert(label);
-
-    managementEventService.postEvent(CREATED, label);
-    setAuditLogLabelData(label);
-
-    return label;
+    return addLabelWithAuthzCheck(ownerType, ownerId, apiLabelDTO);
   }
 
   @Authorize(permission = Permission.WRITE)
-  public Label updateLabel(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                           @AuthzContext(AuthzContext.Key.ID) String ownerId,
-                           final Label label)
+  ApiLabelDTO addLabelWithAuthzCheck(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId,
+      ApiLabelDTO apiLabelDTO)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    if (apiLabelDTO.id != null) {
+      throw new BadRequestException("ID must be null when creating a Label.");
+    }
 
-    if (!internalOwnerId.equals(labelDAO.getByIdNotNull(label.getId()).getOwnerId())) {
+    validateOwnerIdAndOwnerType(ownerType, ownerId, apiLabelDTO);
+
+    Label label = fromDTO(ownerId, apiLabelDTO);
+    labelDAO.insert(label);
+    managementEventService.postEvent(CREATED, label);
+    setAuditLogLabelData(label);
+    return toDTO(label, ownerType);
+  }
+
+  public ApiLabelDTO updateLabel(OwnerType ownerType, String ownerId, ApiLabelDTO apiLabelDTO) {
+    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    return updateLabelWithAuthzCheck(ownerType, ownerId, apiLabelDTO);
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  ApiLabelDTO updateLabelWithAuthzCheck(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId,
+      ApiLabelDTO apiLabelDTO)
+  {
+    validateOwnerIdAndOwnerType(ownerType, ownerId, apiLabelDTO);
+
+    Label label = labelDAO.getByIdNotNull(apiLabelDTO.id);
+    if (!ownerId.equals(label.getOwnerId())) {
       throw new NotFoundException("Cannot find a label with id " + label.getId() + " for owner id " + ownerId);
     }
 
-    label.setOwnerId(internalOwnerId);
-    label.fixLabelLowercase();
+    label = fromDTO(ownerId, apiLabelDTO);
+
     labelDAO.update(label);
 
     managementEventService.postEvent(UPDATED, label);
     setAuditLogLabelData(label);
 
-    return label;
+    return toDTO(label, ownerType);
+  }
+
+  public void deleteLabel(OwnerType ownerType, String ownerId, String labelId) {
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    deleteLabelWithAuthzCheck(ownerType, internalOwnerId ,labelId);
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void deleteLabel(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                          @AuthzContext(AuthzContext.Key.ID) final String ownerId,
-                          final String labelId)
+  void deleteLabelWithAuthzCheck(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId,
+      String labelId)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
     Label label = labelDAO.getByIdNotNull(labelId);
-    if (!internalOwnerId.equals(label.getOwnerId())) {
+    if (!ownerId.equals(label.getOwnerId())) {
       throw new NotFoundException("Cannot find a label with ID " + labelId + " for " + ownerType + " ID " + ownerId);
     }
 
-    validateLabelNotUsedInAnyPolicy(ownerDAO.getById(internalOwnerId), label);
+    validateLabelNotUsedInAnyPolicy(ownerDAO.getById(ownerId), label);
 
     labelDAO.delete(label);
 
@@ -240,7 +289,7 @@ public class LabelService
 
     public OwnerType ownerType;
 
-    public List<Label> labels;
+    public List<ApiLabelDTO> labels;
   }
 
   private void validateLabelNotUsedInAnyPolicy(Owner owner, Label label) {
@@ -256,6 +305,15 @@ public class LabelService
     }
     for (Owner childOwner : ownerDAO.getChildOwners(owner)) {
       validateLabelNotUsedInAnyPolicy(childOwner, label);
+    }
+  }
+
+  private void validateOwnerIdAndOwnerType(OwnerType ownerType, String ownerId, ApiLabelDTO apiLabelDTO) {
+    if (apiLabelDTO.ownerId != null && !apiLabelDTO.ownerId.equals(ownerId)) {
+      throw new BadRequestException("Owner ID mismatch.");
+    }
+    if (apiLabelDTO.ownerType != null && !apiLabelDTO.ownerType.equals(ownerType.name())) {
+      throw new BadRequestException("Owner Type mismatch.");
     }
   }
 
@@ -276,5 +334,35 @@ public class LabelService
   private void setAuditLogLabelData(Label label) {
     AuditData.get().setLabel(label).setData("labelDescription", label.getDescription())
         .setEnum("labelColor", label.getColor());
+  }
+
+  public static ApiLabelDTO toDTO(Label label, OwnerType ownerType) {
+    ApiLabelDTO dto = new ApiLabelDTO(label.getLabel(), label.getDescription(), label.getColor().toValue());
+    dto.id = label.getId();
+    dto.ownerType = ownerType.name();
+    dto.ownerId = label.getOwnerId();
+    return dto;
+  }
+
+  private Label fromDTO(String ownerId, ApiLabelDTO apiLabelDTO) {
+    Label label = new Label();
+    label.setId(apiLabelDTO.id);
+    label.setLabel(apiLabelDTO.label);
+    label.setDescription(apiLabelDTO.description);
+    label.setColor(convertColorStringToEnum(apiLabelDTO.color));
+    label.setOwnerId(ownerId);
+    return label;
+  }
+
+  private Color convertColorStringToEnum(String color) {
+    if (color == null) {
+      return null;
+    }
+    try {
+      return Color.fromValue(color);
+    }
+    catch (IllegalArgumentException e) {
+      throw new BadRequestException("Unsupported color: " + color);
+    }
   }
 }

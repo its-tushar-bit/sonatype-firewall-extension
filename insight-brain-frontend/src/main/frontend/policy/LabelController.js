@@ -7,7 +7,7 @@
 import CLMContextLocationModule from '../util/CLMContextLocation';
 import storesModule from '../util/Stores';
 
-var labelTemplate = {id: null, ownerId: null, label: null, labelLowercase: null, color: null, description: ''};
+var labelTemplate = {id: null, label: null, color: null, description: ''};
 
 var labelModule = angular.module('Labels', [CLMContextLocationModule.name, storesModule.name]);
 

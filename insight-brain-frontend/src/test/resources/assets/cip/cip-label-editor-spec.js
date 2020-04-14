@@ -22,16 +22,16 @@ describe('cip.label.editor tests', function() {
       $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00')).
           respond({"labelsByOwner": [
             {"ownerId": "orgOwnerId", "ownerName": "orgName", "ownerType": "organization", "labels": [
-              {"id": "one", "ownerId": "orgOwnerId", "label": "one", "labelLowercase": "one", "description": "one", "color": "red"}
+              {"id": "one", "ownerId": "orgOwnerId", "label": "one", "description": "one", "color": "red"}
             ]}
           ]});
-      $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/label/application/bom1-12345678/applicable')).
+      $httpBackend.expectGET(SpecUtil.toRegExp('../brain/api/v2/labels/application/bom1-12345678/applicable')).
           respond({"labelsByOwner": [
             {"ownerId": "orgOwnerId", "ownerName": "orgName", "ownerType": "organization", "labels": [
-              {"id": "one", "ownerId": "orgOwnerId", "label": "one", "labelLowercase": "one", "description": "one", "color": "red"}
+              {"id": "one", "ownerId": "orgOwnerId", "label": "one", "description": "one", "color": "red"}
             ]},
             {"ownerId": "appOwnerId", "ownerName": "appName", "ownerType": "application", "labels": [
-              {"id": "two", "ownerId": "appOwnerId", "label": "two", "labelLowercase": "two", "description": "two", "color": "blue"}
+              {"id": "two", "ownerId": "appOwnerId", "label": "two", "description": "two", "color": "blue"}
             ]}
           ]});
       $controller('LabelsController', {$scope: scope, global: {}});
@@ -42,7 +42,7 @@ describe('cip.label.editor tests', function() {
     it('reloads both applied and applicable labels upon refresh', inject(function($httpBackend) {
       $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00')).
           respond({"labelsByOwner": []});
-      $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/label/application/bom1-12345678/applicable')).
+      $httpBackend.expectGET(SpecUtil.toRegExp('../brain/api/v2/labels/application/bom1-12345678/applicable')).
           respond({"labelsByOwner": []});
       scope.doLoad();
       $httpBackend.flush();
@@ -61,28 +61,28 @@ describe('cip.label.editor tests', function() {
 
     it('Test Add Application scoped Label', inject(function($httpBackend) {
       $httpBackend.expectPOST(SpecUtil.toRegExp('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00'),
-              {"id": "two", "ownerId": "appId", "label": "two", "labelLowercase": "two", "description": "two", "color": "blue"}).respond(
+              {"id": "two", "ownerId": "appId", "label": "two", "description": "two", "color": "blue"}).respond(
                       []);
       $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00')).
           respond({"labelsByOwner": [
             {"ownerId": "orgOwnerId", "ownerName": "orgName", "ownerType": "organization", "labels": [
-              {"id": "one", "ownerId": "orgOwnerId", "label": "one", "labelLowercase": "one", "description": "one", "color": "red"}
+              {"id": "one", "ownerId": "orgOwnerId", "label": "one", "description": "one", "color": "red"}
             ]},
             {"ownerId": "appOwnerId", "ownerName": "appName", "ownerType": "application", "labels": [
-              {"id": "two", "ownerId": "appOwnerId", "label": "two", "labelLowercase": "two", "description": "two", "color": "blue"}
+              {"id": "two", "ownerId": "appOwnerId", "label": "two", "description": "two", "color": "blue"}
             ]}
           ]});
-      $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/label/application/bom1-12345678/applicable')).
+      $httpBackend.expectGET(SpecUtil.toRegExp('../brain/api/v2/labels/application/bom1-12345678/applicable')).
           respond({"labelsByOwner": [
             {"ownerId": "orgOwnerId", "ownerName": "orgName", "ownerType": "organization", "labels": [
-              {"id": "one", "ownerId": "orgOwnerId", "label": "one", "labelLowercase": "one", "description": "one", "color": "red"}
+              {"id": "one", "ownerId": "orgOwnerId", "label": "one", "description": "one", "color": "red"}
             ]},
             {"ownerId": "appOwnerId", "ownerName": "appName", "ownerType": "application", "labels": [
-              {"id": "two", "ownerId": "appOwnerId", "label": "two", "labelLowercase": "two", "description": "two", "color": "blue"}
+              {"id": "two", "ownerId": "appOwnerId", "label": "two", "description": "two", "color": "blue"}
             ]}
           ]});
 
-      scope.addLabel({"id": "two", "ownerId": "appId", "label": "two", "labelLowercase": "two", "description": "two", "color": "blue", "ownerType": "application", "ownerName": "test"});
+      scope.addLabel({"id": "two", "ownerId": "appId", "label": "two", "description": "two", "color": "blue", "ownerType": "application", "ownerName": "test"});
       $httpBackend.flush();
       expect(scope.itemLabels.length).toEqual(2);
     }));
@@ -101,7 +101,6 @@ describe('cip.label.editor tests', function() {
           "id": "one",
           "ownerId": "orgOwnerId",
           "label": "one",
-          "labelLowercase": "one",
           "description": "one",
           "color": "red",
           "ownerType": "organization",
@@ -112,7 +111,7 @@ describe('cip.label.editor tests', function() {
 
     it('Test Add Organization scoped Label', inject(function($httpBackend) {
       expect(scope.labelLoading).toBeTruthy();
-      $httpBackend.expectGET(SpecUtil.toRegExp('rest/label/application/bom1-12345678/applicable/context/one')).respond({
+      $httpBackend.expectGET(SpecUtil.toRegExp('api/v2/labels/application/bom1-12345678/applicable/context/one')).respond({
         id: 'orgOwnerId',
         name: 'orgName',
         type: 'organization',
@@ -137,7 +136,6 @@ describe('cip.label.editor tests', function() {
                 "id": "one",
                 "ownerId": "orgOwnerId",
                 "label": "one",
-                "labelLowercase": "one",
                 "description": "one",
                 "color": "red"
               }).respond([]);
@@ -162,7 +160,6 @@ describe('cip.label.editor tests', function() {
           "id": "one",
           "ownerId": "orgOwnerId",
           "label": "one",
-          "labelLowercase": "one",
           "description": "one",
           "color": "red",
           "ownerName": "orgName",

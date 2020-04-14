@@ -47,6 +47,10 @@ public enum Color
 
   dark_purple;
 
+  public static Color fromValue(String color) {
+    return Color.valueOf(color.replace('-', '_'));
+  }
+
   @JsonValue
   public String toValue() {
     return this.name().replace('_', '-');

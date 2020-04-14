@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -74,5 +75,26 @@ public class IdUtilsTest
     Repository repository = tempEntity.newRepository();
     String id = IdUtils.getInternalOwnerId(OwnerType.REPOSITORY, repository.getId());
     assertThat(id).isEqualTo(repository.getId());
+  }
+
+  @Test
+  public void testGetInternalOwnerId_ApplicationInternalId() {
+    Application application = tempEntity.newApplicationWithParent();
+    String internalOwnerId = IdUtils.getInternalOwnerId(application.getType(), application.getId());
+    assertThat(internalOwnerId).isEqualTo(application.getId());
+  }
+
+  @Test
+  public void testGetInternalOwnerId_ApplicationPublicId() {
+    Application application = tempEntity.newApplicationWithParent();
+    String internalOwnerId = IdUtils.getInternalOwnerId(application.getType(), application.getPublicId());
+    assertThat(internalOwnerId).isEqualTo(application.getId());
+  }
+
+  @Test
+  public void testGetInternalOwnerId_Application_NotFound() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      IdUtils.getInternalOwnerId(OwnerType.APPLICATION, "no-such-app-id");
+    }).withMessage("Could not find an application with ID no-such-app-id.");
   }
 }

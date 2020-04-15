@@ -712,6 +712,7 @@
                 <include>**/Zipper*</include>
                 <include>**/EmbeddedLdapServer*</include>
                 <include>**/TestLdapServer*</include>
+                <include>**/NetworkingHelper*</include>
               </includes>
             </configuration>
           </execution>

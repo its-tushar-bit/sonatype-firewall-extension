@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -15,6 +18,7 @@ import org.apache.shiro.util.ThreadContext;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -25,8 +29,21 @@ public class CurrentUserTest
   @Inject
   private CurrentUser currentUser;
 
+  private boolean isDnsResolutionNormal() {
+    try {
+      // if an unknown host name resolves to an IP (e.g. to a site selling domains), some tests can't pass
+      InetAddress.getByName("{unknown}");
+      return false;
+    }
+    catch (final UnknownHostException e) {
+      return true;
+    }
+  }
+
   @Test
   public void testGetIP() {
+    assumeThat(isDnsResolutionNormal()).isTrue();
+
     HttpServletRequest request = mock(HttpServletRequest.class);
 
     when(request.getHeader(eq(CurrentUser.XFF_HEADER))).thenReturn(null);
@@ -55,6 +72,8 @@ public class CurrentUserTest
 
   @Test
   public void testResolveIP() {
+    assumeThat(isDnsResolutionNormal()).isTrue();
+
     assertThat(CurrentUser.resolveIP((String[]) null)).isNull();
     assertThat(CurrentUser.resolveIP((String) null)).isNull();
     assertThat(CurrentUser.resolveIP(new String[0])).isNull();

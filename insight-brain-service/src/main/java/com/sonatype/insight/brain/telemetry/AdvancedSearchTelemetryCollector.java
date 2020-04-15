@@ -5,12 +5,14 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics.AggregatedSearchStats;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -29,23 +31,31 @@ public class AdvancedSearchTelemetryCollector
 
   private final AdvancedSearchTelemetryMetrics metrics;
 
+  private final IndexService indexService;
+
   @Inject
-  public AdvancedSearchTelemetryCollector(AdvancedSearchTelemetryMetrics metrics) {
+  public AdvancedSearchTelemetryCollector(AdvancedSearchTelemetryMetrics metrics, IndexService indexService) {
     this.metrics = metrics;
+    this.indexService = indexService;
   }
 
   @Override
-  public TelemetryData collectData() {
+  public List<TelemetryData> collectAllData() {
+    List<TelemetryData> allTelemetryData = new ArrayList<>();
     AggregatedSearchStats aggregatedSearchStats = metrics.computeStatsAndReset();
-    if (aggregatedSearchStats.getTotalSearches() == 0) {
-      return null;
-    }
-    else {
+    if (aggregatedSearchStats.getTotalSearches() > 0) {
       TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.ADVANCED_SEARCH);
-      Map<String, Object> attributes = telemetryData.getAttributes();
-      attributes.put(TOTAL_SEARCHES_BY_FIELD_NAME, aggregatedSearchStats.getSearchCounts());
-      attributes.put(TOTAL_SEARCHES, aggregatedSearchStats.getTotalSearches());
-      return telemetryData;
+      telemetryData.put(TOTAL_SEARCHES_BY_FIELD_NAME, aggregatedSearchStats.getSearchCounts());
+      telemetryData.put(TOTAL_SEARCHES, aggregatedSearchStats.getTotalSearches());
+      allTelemetryData.add(telemetryData);
     }
+    long indexSize = indexService.getIndexSize();
+    if (indexSize > 0) {
+      TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.ADVANCED_SEARCH_INDEXING);
+      telemetryData.put(IndexService.SEARCH_INDEX_SIZE_BYTES, indexSize);
+      telemetryData.put(IndexService.SEARCH_INDEX_REINDEX, false);
+      allTelemetryData.add(telemetryData);
+    }
+    return allTelemetryData;
   }
 }

@@ -56,12 +56,18 @@ public class SearchServiceTest
         .withMessageContaining("Index does not exist or is unreadable, please (re)create your index.");
   }
 
+  private TelemetryData collectSearchTelemetry() {
+    return advancedSearchTelemetryCollector.collectAllData().stream()
+        .filter(telemetryData -> TelemetryPurpose.ADVANCED_SEARCH.equals(telemetryData.getPurpose())).findAny()
+        .orElse(null);
+  }
+
   @Test
   public void testSearchIndex_Telemetry() throws Exception {
     indexService.createSearchIndex();
     searchService.searchIndex("organizationName:org1 itemType:it2", 1, 0);
     searchService.searchIndex("itemType:it1", 1, 0);
-    TelemetryData telemetryData = advancedSearchTelemetryCollector.collectData();
+    TelemetryData telemetryData = collectSearchTelemetry();
 
     @SuppressWarnings("unchecked")
     List<SearchCount> actualSearchCounts =
@@ -79,7 +85,7 @@ public class SearchServiceTest
   public void testSearchIndex_TelemetryNotAddedWhenPagingThroughResults() throws Exception {
     indexService.createSearchIndex();
     searchService.searchIndex("itemType:it1", 10, 1);
-    TelemetryData telemetryData = advancedSearchTelemetryCollector.collectData();
+    TelemetryData telemetryData = collectSearchTelemetry();
 
     assertThat(telemetryData).isNull();
   }
@@ -92,7 +98,7 @@ public class SearchServiceTest
       searchService.searchIndex("invalidFieldName:value", 1, 0);
     });
 
-    TelemetryData telemetryData = advancedSearchTelemetryCollector.collectData();
+    TelemetryData telemetryData = collectSearchTelemetry();
 
     @SuppressWarnings("unchecked")
     List<SearchCount> actualSearchCounts =
@@ -110,7 +116,7 @@ public class SearchServiceTest
   public void testSearchIndex_TelemetryDuplicateFieldNamesInQueryAreIgnored() throws Exception {
     indexService.createSearchIndex();
     searchService.searchIndex("itemType:it1 itemType:it2", 1, 0);
-    TelemetryData telemetryData = advancedSearchTelemetryCollector.collectData();
+    TelemetryData telemetryData = collectSearchTelemetry();
 
     @SuppressWarnings("unchecked")
     List<SearchCount> actualSearchCounts =

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.search.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -85,7 +86,9 @@ public class IndexService
 {
   static final String SEARCH_INDEX_DURATION_SECONDS = "search_index_duration_seconds";
 
-  static final String SEARCH_INDEX_SIZE_BYTES = "search_index_size_bytes";
+  public static final String SEARCH_INDEX_SIZE_BYTES = "search_index_size_bytes";
+
+  public static final String SEARCH_INDEX_REINDEX = "search_index_reindex";
 
   private static final ImmutableSet<String> SUGGESTER_FIELDS_TO_IGNORE = ImmutableSet.of(
           FieldIdentifier.POLICY_THREAT_LEVEL.label,
@@ -223,7 +226,6 @@ public class IndexService
   public void createSearchIndex() throws IOException {
     log.info("creating search index...");
     long start = System.currentTimeMillis();
-    long totalIndexSize = 0;
 
     Path indexPath = insightWork.getSearchIndexDir().toPath();
     Path suggesterPath = insightWork.getSearchSuggesterDir().toPath();
@@ -275,7 +277,6 @@ public class IndexService
       log.info("policy indexing complete");
       indexWriter.commit();
       log.info("all indexing complete");
-      totalIndexSize += getDirectorySize(directory);
     }
 
     // write to search-suggester dir
@@ -301,15 +302,25 @@ public class IndexService
       suggester.build(new FieldIterator(searchKeys.iterator()));
       suggester.commit();
       log.info("completed building suggester");
-      totalIndexSize += getDirectorySize(suggesterFile);
     }
 
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.ADVANCED_SEARCH_INDEXING);
     telemetryData.put(SEARCH_INDEX_DURATION_SECONDS, (System.currentTimeMillis() - start) / 1000);
-    telemetryData.put(SEARCH_INDEX_SIZE_BYTES, totalIndexSize);
+    telemetryData.put(SEARCH_INDEX_SIZE_BYTES, getIndexSize());
+    telemetryData.put(SEARCH_INDEX_REINDEX, true);
     telemetrySender.send(telemetryData);
 
     log.info("index creation exit");
+  }
+
+  public long getIndexSize() {
+    try (Directory indexDir = FSDirectory.open(insightWork.getSearchIndexDir().toPath());
+        Directory suggesterDir = FSDirectory.open(insightWork.getSearchSuggesterDir().toPath())) {
+      return getDirectorySize(indexDir) + getDirectorySize(suggesterDir);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   private long getDirectorySize(Directory directory) throws IOException {

@@ -5,12 +5,10 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
+import com.sonatype.insight.brain.NetworkingHelper;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -18,7 +16,6 @@ import org.apache.shiro.util.ThreadContext;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -28,17 +25,6 @@ public class CurrentUserTest
 {
   @Inject
   private CurrentUser currentUser;
-
-  private boolean isDnsResolutionNormal() {
-    try {
-      // if an unknown host name resolves to an IP (e.g. to a site selling domains), some tests can't pass
-      InetAddress.getByName("{unknown}");
-      return false;
-    }
-    catch (final UnknownHostException e) {
-      return true;
-    }
-  }
 
   @Test
   public void testGetIP() {
@@ -54,7 +40,7 @@ public class CurrentUserTest
     when(request.getRemoteAddr()).thenReturn("127.0.0.1");
     assertThat(currentUser.getIP(request)).isEqualTo("127.0.0.1");
 
-    assumeThat(isDnsResolutionNormal()).isTrue();
+    NetworkingHelper.assumeDnsResolutionIsNormal();
 
     when(request.getHeader(eq(CurrentUser.XFF_HEADER))).thenReturn("{unknown}");
     assertThat(currentUser.getIP(request)).isEqualTo("127.0.0.1");
@@ -76,7 +62,7 @@ public class CurrentUserTest
     assertThat(CurrentUser.resolveIP((String) null)).isNull();
     assertThat(CurrentUser.resolveIP(new String[0])).isNull();
 
-    assumeThat(isDnsResolutionNormal()).isTrue();
+    NetworkingHelper.assumeDnsResolutionIsNormal();
 
     assertThat(CurrentUser.resolveIP("{unknown}", "127.0.0.1", "{unknown1}")).isEqualTo("127.0.0.1");
     // IPs that start with "[" are considered IPv6, so this is a special case

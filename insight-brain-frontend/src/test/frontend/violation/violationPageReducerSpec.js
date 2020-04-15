@@ -79,7 +79,7 @@ describe('violationPageReducer', function() {
       const initialState = {
         violationDetails: {},
         error: 'baz',
-        loading: false,
+        loading: true,
         otherProp: 'asdf'
       };
 

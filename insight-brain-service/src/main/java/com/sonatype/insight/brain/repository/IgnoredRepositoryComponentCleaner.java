@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.repository;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -25,6 +27,8 @@ import org.slf4j.LoggerFactory;
  *
  * @since 1.80
  */
+@Named
+@Singleton
 public class IgnoredRepositoryComponentCleaner
     implements Managed
 {

@@ -1634,30 +1634,29 @@ public class TemporaryEntity
                                                                 boolean waived,
                                                                 ComponentIdentifier componentIdentifier)
   {
-    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, waived, true, "policyId", "policyName",
+    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, waived, "policyId", "policyName",
         componentIdentifier);
   }
 
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, String pathname) {
-    return newRepositoryPolicyViolation(repositoryId, 5 /* threatLevel */, pathname, false, true, "policyId",
+    return newRepositoryPolicyViolation(repositoryId, 5 /* threatLevel */, pathname, false, "policyId",
         "policyName", null /* componentIdentifier */);
   }
 
   public RepositoryPolicyViolation newRepositoryPolicyViolation(RepositoryComponent component, String policyId) {
     return newRepositoryPolicyViolation(component.getRepositoryId(), 5 /* threatLevel */, component.getPathname(),
-        false, true, policyId, "policyName", null /* componentIdentifier */);
+        false, policyId, "policyName", null /* componentIdentifier */);
   }
 
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId,
                                                                 int threatLevel,
                                                                 String pathname,
                                                                 boolean isWaived,
-                                                                boolean isActive,
                                                                 String policyId,
                                                                 String policyName,
                                                                 ComponentIdentifier componentIdentifier)
   {
-    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, isWaived, isActive, null, policyId,
+    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, isWaived, null, policyId,
         policyName, componentIdentifier);
   }
 
@@ -1665,13 +1664,12 @@ public class TemporaryEntity
                                                                 int threatLevel,
                                                                 String pathname,
                                                                 boolean isWaived,
-                                                                boolean isActive,
                                                                 String actionId,
                                                                 String policyId,
                                                                 String policyName,
                                                                 ComponentIdentifier componentIdentifier)
   {
-    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, isWaived, isActive, actionId, policyId,
+    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, isWaived, actionId, policyId,
         policyName, componentIdentifier, new Date());
   }
 
@@ -1679,7 +1677,6 @@ public class TemporaryEntity
                                                                 int threatLevel,
                                                                 String pathname,
                                                                 boolean isWaived,
-                                                                boolean isActive,
                                                                 String actionId,
                                                                 String policyId,
                                                                 String policyName,
@@ -1692,7 +1689,6 @@ public class TemporaryEntity
             + "\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"summary\":\"Match State is exact\","
             + "\"reason\":\"Match State was exact\"}]}]" /* constraintFacts */);
     policyViolation.setWaived(isWaived);
-    policyViolation.setActive(isActive);
     policyViolation.setActionTypeId(actionId);
     repositoryPolicyViolationDAO.insert(policyViolation);
     return policyViolation;
@@ -1705,7 +1701,6 @@ public class TemporaryEntity
       String hash,
       List<ConstraintFact> constraintFacts,
       boolean isWaived,
-      boolean isActive,
       String actionId,
       String policyId,
       String policyName,
@@ -1718,7 +1713,6 @@ public class TemporaryEntity
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, time, policyId,
         policyName, threatLevel, PolicyThreatCategory.LICENSE, hash, componentIdentifier, constraintFacts);
     policyViolation.setWaived(isWaived);
-    policyViolation.setActive(isActive);
     policyViolation.setActionTypeId(actionId);
     policyViolation.setPolicyWaiverId(policyWaiverId);
     policyViolation.setPolicyWaiverComment(policyWaiverComment);
@@ -1734,7 +1728,7 @@ public class TemporaryEntity
                                                                 String actionId)
   {
     return newRepositoryPolicyViolation(component.getRepositoryId(), threatLevel, component.getPathname(), isWaived,
-        true, actionId, uuid(), policyName, component.getComponentIdentifier());
+        actionId, uuid(), policyName, component.getComponentIdentifier());
   }
 
   public RepositoryPolicyViolation newRepositoryPolicyViolation(RepositoryPolicyViolation repositoryPolicyViolation) {

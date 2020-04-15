@@ -210,7 +210,7 @@ public class RepositoryReportTest
 
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, CRITICAL_IDENTIFIER);
 
-    tempEntity.newRepositoryPolicyViolation(component.getRepositoryId(), 10, component.getPathname(), false, true,
+    tempEntity.newRepositoryPolicyViolation(component.getRepositoryId(), 10, component.getPathname(), false,
         extremelyBadPolicy.getId(), extremelyBadPolicy.getName(), component.getComponentIdentifier());
     criticalComponentHash = component.getHash();
 
@@ -522,7 +522,7 @@ public class RepositoryReportTest
     // Verify repository policy violation and policy waiver both contain the correct content
     List<RepositoryPolicyViolation> repositoryPolicyViolations = new RepositoryPolicyViolationDAO()
         .getByRepositoryId(repo.getId());
-    assertThat(repositoryPolicyViolations).hasSize(4);
+    assertThat(repositoryPolicyViolations).hasSize(2);
 
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(repo.getId());
     assertThat(policyWaivers).hasSize(1);
@@ -795,7 +795,7 @@ public class RepositoryReportTest
             policy.getId(), policy.getConstraints().get(0).getId(), Collections.emptyList() /* conditionTriggers */)));
 
     RepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(component.getRepositoryId(),
-        policy.getThreatLevel(), component.getPathname(), false, true, policy.getId(), policy.getName(),
+        policy.getThreatLevel(), component.getPathname(), false, policy.getId(), policy.getName(),
         component.getComponentIdentifier());
 
     violation.setConstraintFacts(Collections.singletonList(constraintFact));

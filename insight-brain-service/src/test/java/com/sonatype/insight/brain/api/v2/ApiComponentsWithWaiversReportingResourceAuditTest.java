@@ -66,7 +66,7 @@ public class ApiComponentsWithWaiversReportingResourceAuditTest
 
     Repository repo = tempEntity.newRepository();
 
-    tempEntity.newRepositoryPolicyViolation(repo.getId(), 6, "pathName1", true, true, "actionId1", policy.getId(),
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 6, "pathName1", true, "actionId1", policy.getId(),
         policy.getName(), componentIdentifier, new Date());
 
     restRequest().get();

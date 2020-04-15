@@ -91,7 +91,7 @@ public class ApiStaleWaiverServiceAuthzTest
     PolicyWaiver repo2PolicyWaiver = tempEntity.newWaiver("hash1", policy.getId(), Organization.ROOT_ORGANIZATION_ID,
         null, "Some comments here");
     tempEntity.newRepositoryPolicyViolation(
-        repo2.getId(), 6, "pathName1", "hash1", Collections.singletonList(constraintFact), true, true,
+        repo2.getId(), 6, "pathName1", "hash1", Collections.singletonList(constraintFact), true,
         "actionId1", policy.getId(), policy.getName(), componentIdentifier, date,
         repo2PolicyWaiver.getId(), repo2PolicyWaiver.getComment(), date);
 

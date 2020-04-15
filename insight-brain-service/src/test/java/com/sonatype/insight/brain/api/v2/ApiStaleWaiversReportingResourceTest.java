@@ -62,7 +62,7 @@ public class ApiStaleWaiversReportingResourceTest
     tempEntity.newWaiver("h2", policy.getId(), RepositoryContainer.REPOSITORY_CONTAINER_ID, "repo waiver");
 
     tempEntity.newRepositoryPolicyViolation(
-        repo.getId(), 6, "pathName1", "hash1", constraintFacts1, true, true,
+        repo.getId(), 6, "pathName1", "hash1", constraintFacts1, true,
         "actionId1", policy.getId(), policy.getName(), null, date,
         legacyWaiverId, legacyWaiverComment, legacyWaiverDate);
 

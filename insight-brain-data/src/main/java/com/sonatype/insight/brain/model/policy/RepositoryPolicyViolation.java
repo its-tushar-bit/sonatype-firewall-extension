@@ -101,10 +101,22 @@ public class RepositoryPolicyViolation
     this.repositoryId = repositoryId;
   }
 
+  /**
+   * @deprecated by CLM-14555
+   *
+   * All records in RepositoryPolicyViolation will be active=true. active=false records will not be
+   * kept anymore. There should be no reason to check if a RepositoryPolicyViolation is active or not.
+   */
   public boolean isActive() {
     return active;
   }
 
+  /**
+   * @deprecated by CLM-14555
+   *
+   * All records in RepositoryPolicyViolation will be active=true. active=false records will not be
+   * kept anymore. Do not set RepositoryPolicyViolation entities to active = false.
+   */
   public void setActive(boolean active) {
     this.active = active;
   }

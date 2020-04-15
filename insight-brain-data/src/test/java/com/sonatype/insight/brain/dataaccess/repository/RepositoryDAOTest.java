@@ -214,7 +214,7 @@ public class RepositoryDAOTest
     List<RepositoryComponent> repositoryComponents = new RepositoryComponentDAO().getByRepositoryId(repository.getId());
     assertThat(repositoryComponents).isEmpty();
     policyViolation = new RepositoryPolicyViolationDAO().getById(policyViolation.getId());
-    assertThat(policyViolation.isActive()).isFalse();
+    assertThat(policyViolation).isNull();
   }
 
   @Test

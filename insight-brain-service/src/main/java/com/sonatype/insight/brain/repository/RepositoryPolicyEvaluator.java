@@ -307,12 +307,11 @@ public class RepositoryPolicyEvaluator
                                        RepositoryPolicyViolationLogger policyViolationLogger)
   {
     String pathname = component.getPathnames().get(0);
-    // Update the current RepositoryPolicyViolations for this component
+    // Delete the current RepositoryPolicyViolations for this component
     List<RepositoryPolicyViolation> oldPolicyViolations =
         repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(tx, repository.getId(), pathname);
     for (RepositoryPolicyViolation policyViolation : oldPolicyViolations) {
-      policyViolation.setActive(false);
-      repositoryPolicyViolationDAO.update(tx, policyViolation);
+      repositoryPolicyViolationDAO.delete(tx, policyViolation);
     }
     // Insert new RepositoryPolicyViolations for this component
     List<RepositoryPolicyViolation> newPolicyViolations = new ArrayList<>();

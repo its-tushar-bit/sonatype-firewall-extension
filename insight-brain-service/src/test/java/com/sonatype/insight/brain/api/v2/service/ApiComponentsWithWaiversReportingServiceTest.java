@@ -151,28 +151,28 @@ public class ApiComponentsWithWaiversReportingServiceTest
         constraintFacts1, "Some comments here4");
 
     RepositoryPolicyViolation waivedViolation1 = tempEntity.newRepositoryPolicyViolation(
-        repo1.getId(), 6, "pathName1", "hash1", constraintFacts1, true, true,
+        repo1.getId(), 6, "pathName1", "hash1", constraintFacts1, true,
         "actionId1", policy1.getId(), policy1.getName(), componentIdentifier1, date,
         policyWaiver1.getId(), policyWaiver1.getComment(), date);
 
     RepositoryPolicyViolation waivedViolation2 = tempEntity.newRepositoryPolicyViolation(
-        repo1.getId(), 7, "pathName2", "hash1", constraintFacts2, true, true,
+        repo1.getId(), 7, "pathName2", "hash1", constraintFacts2, true,
         "actionId2", policy1.getId(), policy1.getName(), componentIdentifier1, date,
         policyWaiver2.getId(), policyWaiver2.getComment(), date);
 
     RepositoryPolicyViolation waivedViolation3 = tempEntity.newRepositoryPolicyViolation(
-        repo2.getId(), 8, "pathName3", "hash3", constraintFacts1, true, true,
+        repo2.getId(), 8, "pathName3", "hash3", constraintFacts1, true,
         "actionId3", policy2.getId(), policy2.getName(), componentIdentifier1, date,
         policyWaiver3.getId(), policyWaiver3.getComment(), date);
 
     RepositoryPolicyViolation waivedViolation4 = tempEntity.newRepositoryPolicyViolation(
-        repo1.getId(), 9, "pathName4", "hash4", constraintFacts1, true, true,
+        repo1.getId(), 9, "pathName4", "hash4", constraintFacts1, true,
         "actionId4", policy1.getId(), policy1.getName(), componentIdentifier2, date,
         policyWaiver4.getId(), policyWaiver4.getComment(), date);
 
     // Non-waived active violation - should not be returned
     tempEntity.newRepositoryPolicyViolation(repo1.getId(), 2, "pathName5", "hash5", constraintFacts1,
-        false, true, "actionId5", policy1.getId(), policy1.getName(), componentIdentifier1, date, null, null, null);
+        false, "actionId5", policy1.getId(), policy1.getName(), componentIdentifier1, date, null, null, null);
 
     ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
     assertThat(result.applicationWaivers).hasSize(0);
@@ -251,7 +251,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     // Waived active policy violations and their corresponding waivers
     RepositoryPolicyViolation waivedViolation1 =
         tempEntity.newRepositoryPolicyViolation(repo1.getId(), 6, "pathName1", "hash1", constraintFacts1,
-            true, true, "actionId1", policy1.getId(), policy1.getName(), componentIdentifier1, date,
+            true, "actionId1", policy1.getId(), policy1.getName(), componentIdentifier1, date,
             "deletedPolicyWaiverId", "test waive", date);
 
     ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
@@ -298,7 +298,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
         constraintFacts1, "Some comments here");
     RepositoryPolicyViolation waivedViolation =
         tempEntity.newRepositoryPolicyViolation(repo1.getId(), 6, "tomcat/catalina/5.5.15/catalina-5.5.15.jar",
-            "hash1", constraintFacts1, true, true, "actionId1", policy1.getId(), policy1.getName(),
+            "hash1", constraintFacts1, true, "actionId1", policy1.getId(), policy1.getName(),
             null, date, policyWaiver.getId(), "test waive", date);
 
     ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
@@ -542,7 +542,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     tempEntity.newWaivedPolicyViolation(app2PolicyEvaluationOperate, policy1, null, "h2", policyWaiver2);
     tempEntity.newWaivedPolicyViolation(app1PolicyEvaluationBuild, policy1, mavenComponentId, "h3", policyWaiver3);
     tempEntity.newRepositoryPolicyViolation(repo1.getId(), 6, "tomcat/catalina/5.5.15/catalina-5.5.15.jar",
-        "h4", constraintFacts1, true, true, "actionId1", policy1.getId(), policy1.getName(),
+        "h4", constraintFacts1, true, "actionId1", policy1.getId(), policy1.getName(),
         mavenComponentId, date, policyWaiver4.getId(), "repo waive", date);
 
     ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);

@@ -436,7 +436,7 @@ public class RepositoryPolicyEvaluatorTest
 
     RepositoryPolicyViolation existingPolicyViolation = tempEntity
         .newRepositoryPolicyViolation(repositoryComponent.getRepositoryId(), policy.getThreatLevel(),
-            repositoryComponent.getPathname(), "hash", Collections.singletonList(constraintFact), true, true, null,
+            repositoryComponent.getPathname(), "hash", Collections.singletonList(constraintFact), true, null,
             policy.getId(), policy.getName(), repositoryComponent.getComponentIdentifier(), 
             repositoryComponent.getTime(), null, null, null);
 

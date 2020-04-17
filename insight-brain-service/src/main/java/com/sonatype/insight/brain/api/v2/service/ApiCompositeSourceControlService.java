@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -15,11 +13,9 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeValueDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.METHOD;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
-import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -30,10 +26,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.telemetry.model.TelemetryData;
-import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -55,8 +48,6 @@ public class ApiCompositeSourceControlService
 
   private final ProductLicense productLicense;
 
-  private final TelemetrySender telemetrySender;
-
   private final OrganizationDAO organizationDAO;
 
   @Inject
@@ -64,13 +55,11 @@ public class ApiCompositeSourceControlService
       final SourceControlDAO sourceControlDAO,
       final ApplicationDAO applicationDAO,
       final ProductLicense productLicense,
-      final TelemetrySender telemetrySender,
       final OrganizationDAO organizationDAO)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.applicationDAO = applicationDAO;
     this.productLicense = productLicense;
-    this.telemetrySender = telemetrySender;
     this.organizationDAO = organizationDAO;
   }
 
@@ -94,11 +83,7 @@ public class ApiCompositeSourceControlService
       parentId = organization.getParentOrganizationId();
       grandParentId = null;
     }
-
-    ApiCompositeSourceControlDTO dto = getCompositeSourceControlFromHierarchyIds(ownerId, parentId, grandParentId);
-
-    sendSourceControlTelemetryData(METHOD.GET_BY_OWNER_ID_WITH_INHERITANCE, ownerId);
-    return dto;
+    return getCompositeSourceControlFromHierarchyIds(ownerId, parentId, grandParentId);
   }
 
   private ApiCompositeSourceControlDTO getCompositeSourceControlFromHierarchyIds(
@@ -230,18 +215,6 @@ public class ApiCompositeSourceControlService
 
   private void setTokenValueForReturn(final SourceControl sourceControl) {
     sourceControl.setToken(Strings.isNullOrEmpty(sourceControl.getToken()) ? null : FAKE_SECRET_KEY);
-  }
-
-  private void sendSourceControlTelemetryData(
-      final METHOD method,
-      final String ownerId)
-  {
-    Map<String, Object> attributes = new HashMap<>();
-    attributes.put("method", method);
-    attributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
-    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL);
-    telemetryData.setAttributes(attributes);
-    telemetrySender.send(telemetryData);
   }
 
   private void checkLicense() {

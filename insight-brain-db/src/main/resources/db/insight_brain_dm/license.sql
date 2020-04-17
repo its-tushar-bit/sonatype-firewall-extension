@@ -303,6 +303,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ECL-2
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ECL-UNSPECIFIED','ECL','ECL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('EDIFabric-EULA','EDIFabric-EULA','EDIFabric End User License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('EDL-1.0','EDL-1.0','Eclipse Distribution License - v 1.0');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('EDL-UNSPECIFIED','EDL','EDL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('EF6-Runtime-Alpha-License','EF6-Runtime-Alpha-License','EF6 Runtime Alpha License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('EF6-Runtime-Beta-RC-License','EF6-Runtime-Beta-RC-License','EF6 Runtime Beta RC License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('EFL-1.0','EFL-1.0','Eiffel Forum License v1.0');

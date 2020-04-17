@@ -144,6 +144,8 @@ public class ApplicationSourceControlEditorTest
 
     refresh();
 
+    eyesWatcher.eyesCheck("Source Control Editor Bitbucket Default State");
+
     assertSourceControlDoesNotExist(organization.getId());
     assertSourceControlDoesNotExist(application.getId());
 
@@ -235,6 +237,8 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.credentialsOverrideRadio().shouldBe(visible, enabled);
     SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(selected);
     SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
+
+    eyesWatcher.eyesCheck("Source Control Editor Default State With Bitbucket and Inherited Credentials");
   }
 
   @Test
@@ -407,6 +411,8 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(selected);
     SourceControlEditorPage.credentialsInheritRadio().shouldBe(selected, enabled);
     SourceControlEditorPage.credentialsToken().shouldBe(disabled);
+
+    eyesWatcher.eyesCheck("Source Control Editor Save State With Bitbucket and Overridden Credentials");
   }
 
   @Test

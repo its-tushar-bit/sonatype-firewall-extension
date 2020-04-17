@@ -200,6 +200,8 @@ public class OrganizationSourceControlEditorTest
 
     refresh();
 
+    eyesWatcher.eyesCheck("Source Control Editor Bitbucket Default State");
+
     verifyStartWithSourceControl();
     SourceControlEditorPage.credentialsToken().shouldBe(visible, disabled);
     SourceControlEditorPage.credentialsInheritRadio().label()

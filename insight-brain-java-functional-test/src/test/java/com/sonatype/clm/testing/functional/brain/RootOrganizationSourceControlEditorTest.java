@@ -322,6 +322,8 @@ public class RootOrganizationSourceControlEditorTest
     verifyStartWithSourceControl();
     SourceControlEditorPage.provider().chooseOption(new Option(2, "Bitbucket"));
 
+    eyesWatcher.eyesCheck("Source Control Editor Bitbucket Default State");
+
     SourceControlEditorPage.pullRequestsDisableRadio().shouldBe(visible);
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.credentialsUsername().shouldBe(visible);

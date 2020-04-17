@@ -74,8 +74,8 @@
       </div>
       <div id="source-control-advanced-section" ng-show="vm.showAdvanced">
         <hr class="iq-hr" ng-if="vm.isApp" />
-        <div class="iq-form-row">
-          <div class="iq-form-group" ng-if="vm.isRootOrg">
+        <div class="iq-form-row" ng-if="vm.isRootOrg">
+          <div class="iq-form-group">
             <label for="source-control-provider" class="iq-label">Access Token Provider</label>
             <dropdown-selector id="source-control-provider"
                                ng-model="vm.dirtySourceControl.provider"

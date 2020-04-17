@@ -874,6 +874,33 @@ var clmEndpointTemplate = {
               }));
             })
           });
+          
+          describe('When coordinates belong to Clair component', function (){
+              var coords = {coordinates:{version:'1'}};
+             
+              var properties = {
+                matchState: 'exact"',
+                proprietary: 'false',
+                filename: 'filename',
+                hash: 'hash',
+                appId: 'myFirstApp',
+                identificationSource: 'Clair'
+              };
+            	
+              beforeEach(function() {
+                scope.suggestedRemediations = new Map();
+                scope.suggestedRemediations.set('next-no-violations', {coordinates:{version:'4'}});
+                Insight.setCoordinates('debian', coords, properties);
+              });
+                 
+              describe('For next-no-violations', function(){
+                it('returns the correct version (4)', inject(function() {
+                  expect(scope.suggestedRemediations.size).toEqual(1);
+                  expect(scope.suggestedRemediations.has('next-no-violations'));
+                  expect(scope.getNoViolationVersion()).toEqual("4");
+                }));
+              })
+            });
         });
       });
     });

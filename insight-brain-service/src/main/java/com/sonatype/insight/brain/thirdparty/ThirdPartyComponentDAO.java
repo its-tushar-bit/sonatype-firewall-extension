@@ -458,6 +458,7 @@ public class ThirdPartyComponentDAO
           componentDTOV2.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(suggestedComponent);
           componentDTOV2.packageUrl = PackageUrlIdentifier.toPackageUrl(suggestedComponent);
           componentDTOV2.proprietary = null; // not applicable
+          componentDTOV2.thirdParty = true;
           ApiVersionChangeOptionDTO changeOptionType = new ApiVersionChangeOptionDTO(
               ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, new ApiComponentChangeActionDTO(componentDTOV2));
           componentRemediationDto.versionChanges.add(changeOptionType);

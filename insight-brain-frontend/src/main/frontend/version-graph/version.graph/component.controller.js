@@ -46,6 +46,11 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
       $.each(remediation.versionChanges, function(index, item) {
         $scope.suggestedRemediations.set(item.type,
             item.data.component.componentIdentifier);
+        
+        if(item.data.component.thirdParty){
+          $scope.suggestedRemediations.set(item.data.component.componentIdentifier.coordinates.version,
+                  item.data.component.thirdParty);
+        }
       });
     }
   }
@@ -162,6 +167,23 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
     }
     return $scope.suggestedRemediations.get(type).coordinates.version;
   }
+  
+  $scope.isThirdPartyRemediation = function() {  
+    if (!$scope.suggestedRemediations || $scope.suggestedRemediations.size == 0) {
+      return false;
+    }
+
+    let remediation = $scope.suggestedRemediations.get(NEXT_NO_VIOLATIONS);
+    if(!remediation){
+      return false;
+    }
+
+    let version = remediation.coordinates.version;
+    if(!version){
+      return false;
+    }
+    return $scope.suggestedRemediations.get(version); 
+  };
 }
 
 function isNotDependency(pathName) {

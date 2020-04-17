@@ -100,7 +100,7 @@
               <h5 id="recommended-versions-header">Recommended Version(s)</h5>
               <ul class="version-graph-list">
                 <li id="next-no-violation-version-link"
-                    ng-show="nextNoViolationAvailableAndNotCurrent()"
+                    ng-show="nextNoViolationAvailableAndNotCurrent() && !isThirdPartyRemediation()"
                     class="version-graph-container-text">
                   <a class="version-graph-link" id="select-no-violation" ng-click="markNextNoViolation()"><!--
                  -->Select {{getNoViolationVersion()}}<!--
@@ -108,7 +108,7 @@
                -->: Next version with no policy violation
                 </li>
                 <li id="next-no-fail-version-link"
-                    ng-show="nextNoFailAvailableAndNotCurrent()"
+                    ng-show="nextNoFailAvailableAndNotCurrent() && !isThirdPartyRemediation()"
                     class="version-graph-container-text">
                   <a class="version-graph-link" id="select-no-fail" ng-click="markNextNoFail()"><!--
                  -->Select {{getNoFailVersion()}}<!--
@@ -119,6 +119,11 @@
                     ng-hide="nextNoFailAvailableAndNotCurrent() || nextNoViolationAvailableAndNotCurrent()"
                     class="version-graph-container-text">
                   No recommended versions are available for the current component
+                </li>
+                <li id="remediation-clair"
+                    ng-show="isThirdPartyRemediation()"
+                    class="version-graph-container-text">
+                  Next version: {{getNoViolationVersion()}}
                 </li>
               </ul>
             </div>

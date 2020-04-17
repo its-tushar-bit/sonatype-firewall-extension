@@ -30,6 +30,7 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.report.Report;
@@ -365,10 +366,11 @@ public class ThirdPartyComponentDAOTest
 
     assertThat(suggestedRemediation).isNotNull();
 
-    List<String> fixedVersionPackageUrls = suggestedRemediation.versionChanges.stream().map(change -> change
-        .getData()).map(data -> data.getComponent().packageUrl).collect(Collectors.toList());
+    ApiComponentDTOV2 remediation =
+        suggestedRemediation.versionChanges.stream().map(change -> change.getData().getComponent()).findFirst().get();
 
-    assertThat(fixedVersionPackageUrls).containsExactly("pkg:debian-9/glibc@2.24-12%2Bdeb9u4");
+    assertThat(remediation.packageUrl).isEqualTo("pkg:debian-9/glibc@2.24-12%2Bdeb9u4");
+    assertThat(remediation.thirdParty).isTrue();
   }
 
   @Test

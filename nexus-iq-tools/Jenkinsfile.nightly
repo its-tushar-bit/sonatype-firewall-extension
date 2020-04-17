@@ -228,6 +228,7 @@ pipeline {
     stage ('Compare with previous release') {
       steps {
         dir('nexus-iq-tools/testsuite') {
+          // TODO: the S3 sorted order can break in the future when it reaches more digits
           sh '''
               aws sts assume-role --role-arn arn:aws:iam::960315589060:role/ZionJenkins \
                   --role-session-name perf_session --external-id perf_id > temp_role.json
@@ -236,7 +237,6 @@ pipeline {
               export AWS_SECRET_ACCESS_KEY=`jq -r .Credentials.SecretAccessKey temp_role.json`
               export AWS_SESSION_TOKEN=`jq -r .Credentials.SessionToken temp_role.json`
               ALL_RELEASE_TAGS=$(aws s3 ls s3://iq-perf-results/releases/ | grep release | sed 's/.*\\(release.*\\)\\//\\1/')
-              # TODO: the S3 sorted order can break in the future when it reaches more digits
               for line in $ALL_RELEASE_TAGS; do
                 if [ "$line" = "$RELEASE_TAG" ]; then
                   break

@@ -183,6 +183,49 @@ public class OrganizationSourceControlEditorTest
   }
 
   @Test
+  public void testSourceControlEditor_bitbucketOverrideCredentials() {
+    final String rootUsername = "rootusername";
+
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartNoSourceControl();
+
+    assertSourceControlDoesNotExist(rootOrganization.getId());
+    assertSourceControlDoesNotExist(organization.getId());
+
+    tempEntity
+        .newSourceControl(rootOrganization.getId(), null, rootUsername, TOKEN, SourceControlProvider.BITBUCKET, true,
+            false, "master", null);
+    tempEntity.newSourceControl(organization.getId(), null, null, null);
+
+    refresh();
+
+    verifyStartWithSourceControl();
+    SourceControlEditorPage.credentialsToken().shouldBe(visible, disabled);
+    SourceControlEditorPage.credentialsInheritRadio().label()
+        .shouldHave(text("Inherit from Root Organization (" + rootUsername + ")"));
+    SourceControlEditorPage.credentialsInheritRadio().shouldBe(visible, enabled);
+    SourceControlEditorPage.credentialsOverrideRadio().label().shouldHave(text("Override"));
+    SourceControlEditorPage.credentialsOverrideRadio().shouldBe(visible, enabled);
+    SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(selected);
+    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
+
+    SourceControlEditorPage.token().shouldNotBe(visible);
+    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+    SourceControlEditorPage.credentialsOverrideRadio().click();
+    SourceControlEditorPage.credentialsUsername().setValue("orgusername");
+    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+    SourceControlEditorPage.credentialsToken().setValue("orgsecrettoken");
+    SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.credentialsToken().shouldHave(value(FAKE_SECRET_KEY));
+  }
+
+  @Test
   public void testSourceControlEditor_updateFailure() {
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
     verifyStartNoSourceControl();

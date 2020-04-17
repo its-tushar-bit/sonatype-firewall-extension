@@ -58,6 +58,22 @@ public class SourceControlEditorPage
     return $("#editor-source-control-token");
   }
 
+  public static SelenideElement credentialsUsername() {
+    return $("#editor-source-control-credentials-username");
+  }
+
+  public static SelenideElement credentialsToken() {
+    return $("#editor-source-control-credentials-token");
+  }
+
+  public static IqRadio credentialsInheritRadio() {
+    return new IqRadio($("#editor-source-control-credentials-inherit"));
+  }
+
+  public static IqRadio credentialsOverrideRadio() {
+    return new IqRadio($("#editor-source-control-credentials-override"));
+  }
+
   public static SelenideElement saveButton() {
     return root().$("button[type^=submit]");
   }

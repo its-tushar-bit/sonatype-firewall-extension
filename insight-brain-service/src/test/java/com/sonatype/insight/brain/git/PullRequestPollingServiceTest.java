@@ -176,7 +176,7 @@ public class PullRequestPollingServiceTest
     verify(mockAsyncEventBus, never()).post(any());
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'org' since " + pullRequestCreateDate),
-        debug("Repository is not private: https://domain.com/org/repo"),
+        debug("Repository is not valid for pull requests, check that it is private: https://domain.com/org/repo"),
         debug("Pull request polling time updated for 'org/repo'")
     );
   }
@@ -230,7 +230,7 @@ public class PullRequestPollingServiceTest
     private GitApiClient mockGitApiClient;
 
     @Mock
-    private PullRequestUtils mockPullRequestUtils;
+    private PullRequestRepositoryValidator mockPullRequestRepositoryValidator;
 
     private SourceControl sourceControl;
 
@@ -278,16 +278,16 @@ public class PullRequestPollingServiceTest
           .getPullRequestsSince(any(), any(OffsetDateTime.class), anyInt());
 
       if (thrownException != null) {
-        doThrow(UnsupportedOperationException.class).when(mockPullRequestUtils)
-            .isEffectivelyPrivate(eq(gitRepositoryInfo), eq(isGitRepositoryPrivate));
+        doThrow(UnsupportedOperationException.class).when(mockPullRequestRepositoryValidator)
+            .isRepoValidForPRs(eq(gitRepositoryInfo));
       }
       else {
-        doReturn(isGitRepositoryPrivate).when(mockPullRequestUtils)
-            .isEffectivelyPrivate(eq(gitRepositoryInfo), eq(isGitRepositoryPrivate));
+        doReturn(isGitRepositoryPrivate).when(mockPullRequestRepositoryValidator)
+            .isRepoValidForPRs(eq(gitRepositoryInfo));
       }
 
       return new PullRequestPollingService(mockSourceControlDAO, mockPolicyEvaluationDAO, mockGitCommitHistoryService,
-          mockSourceControlUtils, mockGitClientFactory, mockAsyncEventBus, mockPullRequestUtils);
+          mockSourceControlUtils, mockGitClientFactory, mockAsyncEventBus, mockPullRequestRepositoryValidator);
     }
 
     private List<SourceControl> buildSourceControlList() {
@@ -304,9 +304,10 @@ public class PullRequestPollingServiceTest
         SourceControlProvider provider)
     {
       String url = "https://domain.com/" + orgAndRepoName;
-      sourceControl = new SourceControl(applicationId, url, "token", provider, true, true, "master");
+      String username = provider.requiresUsername() ? "username" : null;
+      sourceControl = new SourceControl(applicationId, url, username, "token", provider, true, true, "master");
       sourceControl.setPullRequestPollTime(new Date());
-      gitRepositoryInfo = new GitRepositoryInfo(url, "token", provider, "master", true, true);
+      gitRepositoryInfo = new GitRepositoryInfo(url, username, "token", provider, "master", true, true);
       this.orgAndRepoName = orgAndRepoName;
       return this;
     }

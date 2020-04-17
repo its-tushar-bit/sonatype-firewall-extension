@@ -364,8 +364,8 @@ public class ApplicationCloneServiceTest
     // that is not copied to the cloned application.
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB, true, true, "master");
     SourceControl sourceSourceControl =
-        tempEntity.newSourceControl(sourceApp.getId(), "https://example.com/organization/project", "token",
-            null, true /* enablePullRequests */, true /* enableStatusChecks */, "baseBranch");
+        tempEntity.newSourceControl(sourceApp.getId(), "https://example.com/organization/project", null, "token",
+            null, true /* enablePullRequests */, true /* enableStatusChecks */, "baseBranch", null);
 
     ApiApplicationDTO clonedAppDTO =
         appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
@@ -373,6 +373,7 @@ public class ApplicationCloneServiceTest
     SourceControl clonedSourceControl = new SourceControlDAO().getByOwnerId(clonedAppDTO.id);
     assertThat(clonedSourceControl.getId()).isNotEqualTo(sourceSourceControl.getId());
     assertThat(clonedSourceControl.getRepositoryUrl()).isEqualTo(sourceSourceControl.getRepositoryUrl());
+    assertThat(clonedSourceControl.getUsername()).isEqualTo(sourceSourceControl.getUsername());
     assertThat(clonedSourceControl.getToken()).isEqualTo(sourceSourceControl.getToken());
     assertThat(clonedSourceControl.getProvider()).isEqualTo(sourceSourceControl.getProvider());
     assertThat(clonedSourceControl.getBaseBranch()).isEqualTo(sourceSourceControl.getBaseBranch());

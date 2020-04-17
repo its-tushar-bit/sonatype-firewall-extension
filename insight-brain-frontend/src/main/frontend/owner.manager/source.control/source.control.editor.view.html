@@ -90,6 +90,64 @@
                                focus-input="true">
             </dropdown-selector>
           </div>
+        </div>
+        <div class="iq-form-row" ng-if="vm.dirtySourceControl.provider === 'bitbucket'">
+          <div class="iq-form-group" ng-if="!vm.isRootOrg">
+            <label for="editor-source-control-credentials-inherit" class="iq-label"><!--
+           -->Credentials
+            </label>
+            <fieldset class="iq-radio-group">
+              <iq-radio id="editor-source-control-credentials-inherit"
+                        model="vm.dirtySourceControl.credentialsInherit"
+                        value="true"
+                        is-disabled="vm.isUsernameRequiredOnNode()"
+                        tooltip="{{vm.isUsernameRequiredOnNode() ? 'Username and password cannot be inherited. No inheritable username defined.' : ''}}"
+                        tooltip-append-to-body="true">{{vm.usernameInheritText}}
+              </iq-radio>
+              <iq-radio id="editor-source-control-credentials-override"
+                        model="vm.dirtySourceControl.credentialsInherit"
+                        value="false"
+                        is-disabled="!vm.dirtySourceControl.provider">Override
+              </iq-radio>
+            </fieldset>
+          </div>
+          <div class="iq-form-row">
+            <div class="iq-form-group"
+                 ng-class="{'iq-form-group--indent': !vm.isRootOrg}">
+              <label for="editor-source-control-credentials-username" class="iq-label"><!--
+             -->Username
+              </label>
+              <input id="editor-source-control-credentials-username"
+                     type="text"
+                     autocomplete="off"
+                     class="iq-text-input"
+                     name="username"
+                     ng-model="vm.dirtySourceControl.username"
+                     ng-maxlength="255"
+                     clm-input
+                     ng-disabled="!vm.dirtySourceControl.provider || vm.dirtySourceControl.credentialsInherit"
+                     ng-required="(!vm.isRootOrg && !vm.dirtySourceControl.credentialsInherit) || vm.dirtySourceControl.token"
+                     messages="{required: 'A valid username and token are required'}">
+            </div>
+            <div class="iq-form-group">
+              <label for="editor-source-control-credentials-token" class="iq-label" ng-disabled="!vm.dirtySourceControl.provider"><!--
+             -->Access Token
+              </label>
+              <input id="editor-source-control-credentials-token"
+                     type="password"
+                     autocomplete="off"
+                     class="iq-text-input iq-text-input--long"
+                     name="token"
+                     ng-model="vm.dirtySourceControl.token"
+                     ng-maxlength="512"
+                     clm-input
+                     ng-disabled="vm.dirtySourceControl.credentialsInherit"
+                     ng-required="(!vm.isRootOrg && !vm.dirtySourceControl.credentialsInherit) || vm.dirtySourceControl.username"
+                     messages="{required: 'A valid username and token are required'}"/>
+            </div>
+          </div>
+        </div>
+        <div class="iq-form-row" ng-if="vm.dirtySourceControl.provider !== 'bitbucket'">
           <div class="iq-form-group">
             <label for="editor-source-control-token" class="iq-label" ng-disabled="!vm.dirtySourceControl.provider"><!--
            -->Access Token

@@ -36,6 +36,10 @@ public class PullRequestTask
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestTask.class);
 
+  public static final String DEFAULT_COMMITTER = "Nexus IQ";
+
+  public static final String DEFAULT_COMMITTER_EMAIL = "\"<>\"";
+
   private final GitClientFactory gitClientFactory;
 
   private final GitApiFactory gitApiFactory;

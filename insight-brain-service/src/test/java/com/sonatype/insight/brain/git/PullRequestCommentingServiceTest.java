@@ -47,7 +47,6 @@ import static com.sonatype.insight.brain.git.PullRequestCommentingService.APPLIC
 import static com.sonatype.insight.brain.git.PullRequestCommentingService.COMMIT_HISTORY_FETCH_COUNT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -330,9 +329,18 @@ public class PullRequestCommentingServiceTest
 
   @Test
   public void testOnApplicationEvaluation_GitLabUnsupported() throws IOException {
+    testUnsupported(SourceControlProvider.GITLAB);
+  }
+
+  @Test
+  public void testOnApplicationEvaluation_BitbucketUnsupported() throws IOException {
+    testUnsupported(SourceControlProvider.BITBUCKET);
+  }
+
+  private void testUnsupported(final SourceControlProvider sourceControlProvider) throws IOException {
     // given : app source control provider = GitLab
     PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
-        .withProvider(SourceControlProvider.GITLAB)
+        .withProvider(sourceControlProvider)
         .withGitRepositoryEffectivelyPrivateThrows(UnsupportedOperationException.class)
         .build();
 
@@ -347,7 +355,8 @@ public class PullRequestCommentingServiceTest
 
     // then : GitLab not supported yet
     verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
-    assertThatLogMessagesEqual(debug("GitLab not currently supported for pull request commenting"));
+    assertThatLogMessagesEqual(debug(
+        String.format("'%s' not currently supported for pull request commenting", sourceControlProvider.toString())));
   }
 
   @Test
@@ -379,7 +388,9 @@ public class PullRequestCommentingServiceTest
     assertThatLogMessagesEqual(debug(
         "obtained CommitInfo from SCM for commit 'sourceCommit' with 1 pull request(s) and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
-        debug("Repository is not private: http://github.com/testOrg/testRepo"));
+        debug(
+            "Repository is not valid for pull requests, ensure that it is private: " +
+                "http://github.com/testOrg/testRepo"));
   }
 
   @Test
@@ -666,7 +677,7 @@ public class PullRequestCommentingServiceTest
     private AsyncEventBus mockAsyncEventBus;
 
     @Mock
-    private PullRequestUtils mockPullRequestUtils;
+    private PullRequestRepositoryValidator mockPullRequestRepositoryValidator;
 
     @Mock
     private PolicyEvaluationDiffService mockPolicyEvaluationDiffService;
@@ -676,6 +687,8 @@ public class PullRequestCommentingServiceTest
     private String org = "testOrg";
 
     private String repo = "testRepo";
+
+    private String username = null;
 
     private String token = "testToken";
 
@@ -722,7 +735,8 @@ public class PullRequestCommentingServiceTest
 
       String repositoryUrl = String.format("http://%s.com/%s/%s", provider.toString(), org, repo);
       gitRepositoryInfo =
-          new GitRepositoryInfo(repositoryUrl, token, provider, baseBranch, enablePullRequests, enableStatusChecks);
+          new GitRepositoryInfo(repositoryUrl, username, token, provider, baseBranch, enablePullRequests,
+              enableStatusChecks);
       doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
 
       doReturn(mockGitApiClient).when(mockGitClientFactory).createApiClient(gitRepositoryInfo);
@@ -760,12 +774,12 @@ public class PullRequestCommentingServiceTest
           .createMarkup(any(), any(), any());
 
       if (gitRepositoryEffectivelyPrivateThrows != null) {
-        doThrow(UnsupportedOperationException.class).when(mockPullRequestUtils)
-            .isEffectivelyPrivate(eq(gitRepositoryInfo), eq(isGitRepositoryPrivate));
+        doThrow(UnsupportedOperationException.class).when(mockPullRequestRepositoryValidator)
+            .isRepoValidForPRs(eq(gitRepositoryInfo));
       }
       else {
-        doReturn(isGitRepositoryPrivate).when(mockPullRequestUtils)
-            .isEffectivelyPrivate(any(GitRepositoryInfo.class), anyBoolean());
+        doReturn(isGitRepositoryPrivate).when(mockPullRequestRepositoryValidator)
+            .isRepoValidForPRs(any(GitRepositoryInfo.class));
         commitInformation.setRepositoryPrivate(isGitRepositoryPrivate);
       }
 
@@ -779,7 +793,7 @@ public class PullRequestCommentingServiceTest
           mockPullRequestCommentingMetricsService,
           mockAsyncEventBus,
           testProductLicense,
-          mockPullRequestUtils,
+          mockPullRequestRepositoryValidator,
           mockPolicyEvaluationDiffService,
           getInsightConfig(featureFlagEnabled)
       );

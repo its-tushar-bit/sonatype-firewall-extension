@@ -161,7 +161,7 @@ public class PolicyAlertScmNotifier
 
       PullRequestRemediationDetails pullRequestRemediationDetails =
           new PullRequestRemediationDetails(entry.getKey(), nextVersion, branchName, entry.getValue(), app, scanId,
-              stage.getStageTypeId(), baseUrl.getConfigured());
+              stage.getStageTypeId(), baseUrl.getConfigured(), gitRepositoryInfo.provider);
 
       sourceControlTaskRunner.doPullRequestRemediation(pullRequestRemediationDetails);
     }

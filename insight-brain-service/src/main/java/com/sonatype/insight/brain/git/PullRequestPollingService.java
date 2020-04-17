@@ -57,7 +57,7 @@ public class PullRequestPollingService
 
   private final AsyncEventBus asyncEventBus;
 
-  private final PullRequestUtils pullRequestUtils;
+  private final PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
   @Inject
   public PullRequestPollingService(
@@ -67,7 +67,7 @@ public class PullRequestPollingService
       SourceControlUtils sourceControlUtils,
       GitClientFactory gitClientFactory,
       AsyncEventBus asyncEventBus,
-      PullRequestUtils pullRequestUtils)
+      PullRequestRepositoryValidator pullRequestRepositoryValidator)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -75,7 +75,7 @@ public class PullRequestPollingService
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
     this.asyncEventBus = asyncEventBus;
-    this.pullRequestUtils = pullRequestUtils;
+    this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
   }
 
   public void fetchAndSendPullRequestsForCommenting() throws IOException {
@@ -101,8 +101,9 @@ public class PullRequestPollingService
         GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
 
         if (null != gitRepositoryInfo) {
-          if (!pullRequestUtils.isEffectivelyPrivate(gitRepositoryInfo, pullRequest.isRepositoryPrivate())) {
-            log.debug("Repository is not private: {}", gitRepositoryInfo.repositoryUrl);
+          if (!pullRequestRepositoryValidator.isRepoValidForPRs(gitRepositoryInfo)) {
+            log.debug("Repository is not valid for pull requests, check that it is private: {}",
+                gitRepositoryInfo.repositoryUrl);
           }
           else {
             if (!isPullRequestForBaseBranch(pullRequest, gitRepositoryInfo)) {

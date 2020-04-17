@@ -25,10 +25,8 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.ProjectUri;
 import com.sonatype.nexus.scm.api.model.Status;
 import com.sonatype.nexus.scm.api.model.StatusRequest;
-import com.sonatype.nexus.scm.api.model.User;
 import com.sonatype.nexus.scm.github.dto.GithubStatus;
 import com.sonatype.nexus.scm.github.dto.GithubStatusRequest;
-import com.sonatype.nexus.scm.github.dto.GithubUser;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -86,8 +84,6 @@ public class GitApiServiceTest
   @Before
   public void setup() {
     application = tempEntity.newApplicationWithParent("app", "appId", "orgId");
-    User creator = new GithubUser();
-    creator.setUsername("foo");
     status = new GithubStatus();
   }
 

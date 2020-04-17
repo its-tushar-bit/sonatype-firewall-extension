@@ -197,10 +197,6 @@ public class SourceControlUtilsTest
     assertThat(sourceControlUtils.isScmEnabled(application.getId())).isFalse();
   }
 
-  //    return StringUtils.isNotBlank(gitRepositoryInfo.repositoryUrl)
-  //        && gitRepositoryInfo.provider != null
-  //        && StringUtils.isNotBlank(gitRepositoryInfo.token);
-
   @Test
   public void testIsScmEnabled_NoRepositoryUrl() {
     SourceControl sourceControl = new SourceControl.Builder().setOwnerId(application.getId()).build();
@@ -245,5 +241,29 @@ public class SourceControlUtilsTest
         .thenReturn(rootOrgSourceControl);
 
     assertThat(sourceControlUtils.isScmEnabled(application.getId())).isFalse();
+  }
+
+  @Test
+  public void testGetGitRepositoryInfo_RequiresUsername() {
+    // given: source control is setup for a provider that requires username, but does not set the username
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(application.getParentOwnerId())
+        .setRepositoryUrl(VALID_URL)
+        .setToken(TOKEN)
+        .setProvider(SourceControlProvider.BITBUCKET)
+        .setBaseBranch("base-branch")
+        .setEnablePullRequests(true)
+        .setEnableStatusChecks(true)
+        .build();
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId()))).thenReturn(sourceControl);
+
+    // expect: source control is not enabled
+    assertThat(sourceControlUtils.isScmEnabled(application.getId())).isFalse();
+
+    // given: we provide a username
+    sourceControl.setUsername("username");
+
+    // expect: source control is enabled
+    assertThat(sourceControlUtils.isScmEnabled(application.getId())).isTrue();
   }
 }

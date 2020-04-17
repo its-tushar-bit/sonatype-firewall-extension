@@ -111,7 +111,7 @@ public class PullRequestTaskTest
   private PullRequestTask pullRequestTask;
 
   public static final GitRepositoryInfo INFO =
-      new GitRepositoryInfo("localhost", "token", SourceControlProvider.GITHUB, "master", true, true);
+      new GitRepositoryInfo("localhost", null, "token", SourceControlProvider.GITHUB, "master", true, true);
 
   @Before
   public void setup() {
@@ -151,8 +151,8 @@ public class PullRequestTaskTest
     SourceControlConfig config = new SourceControlConfig();
     File sonatypeWorkDir = temporaryFolder.newFolder();
     config.setSonatypeWorkDir(sonatypeWorkDir);
-    configureExpectations(config, new GitRepositoryInfo("localhost", "token", SourceControlProvider.GITHUB, "d\\e/v_",
-        true, true));
+    configureExpectations(config, new GitRepositoryInfo("localhost", null, "token", SourceControlProvider.GITHUB,
+        "d\\e/v_", true, true));
 
     pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());
     pullRequestTask.run();
@@ -169,7 +169,7 @@ public class PullRequestTaskTest
     SourceControlConfig config = new SourceControlConfig();
     File sonatypeWorkDir = temporaryFolder.newFolder();
     config.setSonatypeWorkDir(sonatypeWorkDir);
-    configureExpectations(config, new GitRepositoryInfo("localhost", "token", SourceControlProvider.GITHUB,
+    configureExpectations(config, new GitRepositoryInfo("localhost", null, "token", SourceControlProvider.GITHUB,
         "branchname", true, true));
 
     String longName = StringUtils.repeat("long", 21);
@@ -190,7 +190,7 @@ public class PullRequestTaskTest
     SourceControlConfig config = new SourceControlConfig();
     File sonatypeWorkDir = temporaryFolder.newFolder();
     config.setSonatypeWorkDir(sonatypeWorkDir);
-    configureExpectations(config, new GitRepositoryInfo("localhost", "token", SourceControlProvider.GITHUB,
+    configureExpectations(config, new GitRepositoryInfo("localhost", null, "token", SourceControlProvider.GITHUB,
         StringUtils.repeat("long", 21) + "branchname", true, true));
 
     pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());

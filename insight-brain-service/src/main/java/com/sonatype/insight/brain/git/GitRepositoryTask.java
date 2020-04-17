@@ -30,10 +30,6 @@ public abstract class GitRepositoryTask
 {
   private static final Logger log = LoggerFactory.getLogger(GitRepositoryTask.class);
 
-  public static final String DEFAULT_COMMITTER = "Nexus IQ";
-
-  public static final String DEFAULT_COMMITTER_EMAIL = "<>";
-
   private static final int HASH_LENGTH = 6;
 
   private static final int PUBLIC_ID_LENGTH = 25;

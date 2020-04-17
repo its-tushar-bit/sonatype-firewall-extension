@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
@@ -63,7 +64,20 @@ public class PullRequestRemediationDetailsTest
   }
 
   @Test
-  public void testSecurityVulnerabilityReport() throws Exception {
+  public void testSecurityVulnerabilityReport_richHtml() throws Exception {
+    testSecurityVulnerabilityReport(SourceControlProvider.GITHUB,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport.md");
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_minimalHtml() throws Exception {
+    testSecurityVulnerabilityReport(SourceControlProvider.BITBUCKET,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_bitbucket.md");
+  }
+
+  private void testSecurityVulnerabilityReport(SourceControlProvider provider, String expectedResource)
+      throws Exception
+  {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("org.jooq", "jooq", "3.11.2");
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("foo", "bar", "baz");
 
@@ -71,17 +85,30 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, lookup(BaseUrl.class).getConfigured());
+            SCAN_ID, Stage.ID_BUILD, lookup(BaseUrl.class).getConfigured(), provider);
 
     assertThat(details.getTitle()).isEqualTo("Bump jooq to 3.11.3");
 
-    Path path = Paths.get(getClass().getResource("/PullRequestRemediationDetailsTest/VulnerabilityReport.md").toURI());
+    Path path = Paths.get(getClass().getResource(expectedResource).toURI());
     String expectedContent = new String(Files.readAllBytes(path));
     assertThat(details.getContents()).isEqualTo(expectedContent);
   }
 
   @Test
   public void testSecurityVulnerabilityReport_npmComponent() throws Exception {
+    testSecurityVulnerabilityReport_npmComponent(SourceControlProvider.GITHUB,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_npm.md");
+  }
+
+  @Test
+  public void testMinimalMarkdownSecurityVulnerabilityReport_npmComponent() throws Exception {
+    testSecurityVulnerabilityReport_npmComponent(SourceControlProvider.BITBUCKET,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_npm_bitbucket.md");
+  }
+
+  private void testSecurityVulnerabilityReport_npmComponent(SourceControlProvider provider,
+                                                           String expectedResultResource) throws Exception
+  {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("@sonatype/foo", "1.0");
 
     List<PolicyNotification> policyNotifications = new ArrayList<>();
@@ -102,12 +129,11 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "1.1", "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, lookup(BaseUrl.class).getConfigured());
+            SCAN_ID, Stage.ID_BUILD, lookup(BaseUrl.class).getConfigured(), provider);
 
     assertThat(details.getTitle()).isEqualTo("Bump @sonatype/foo to 1.1");
 
-    Path path = Paths
-        .get(getClass().getResource("/PullRequestRemediationDetailsTest/VulnerabilityReport_npm.md").toURI());
+    Path path = Paths.get(getClass().getResource(expectedResultResource).toURI());
     String expectedContent = new String(Files.readAllBytes(path));
     assertThat(details.getContents()).isEqualTo(expectedContent);
   }
@@ -120,10 +146,10 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, lookup(BaseUrl.class).getConfigured());
+            SCAN_ID, Stage.ID_BUILD, lookup(BaseUrl.class).getConfigured(), SourceControlProvider.GITHUB);
 
     assertThat(details.getContents().replace("\r\n", "\n"))
-        .startsWith("## :shield: Automated pull request to fix 1 Nexus IQ Policy Violation\n");
+        .startsWith("## :shield: Automated pull request: Nexus IQ found 1 Policy Violation\n");
   }
 
   /**

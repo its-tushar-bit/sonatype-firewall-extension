@@ -34,6 +34,8 @@ public class ApplicationSourceControlEditorTest
 
   private static final String REPOSITORY_URL = "https://a.com/b/c";
 
+  private static final String BITBUCKET_REPOSITORY_URL = "https://bitbucket.org/org/repo.git";
+
   private static final String SSH_REPOSITORY_URL = "ssh://a.com/b/c";
 
   @Override
@@ -125,6 +127,44 @@ public class ApplicationSourceControlEditorTest
   }
 
   @Test
+  public void testSourceControlEditor_bitbucketEmptySourceControlRootWithProviderAndToken() {
+    final String rootUsername = "rootusername";
+
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+
+    verifyStartNoSourceControl();
+
+    assertSourceControlDoesNotExist(rootOrganization.getId());
+    assertSourceControlDoesNotExist(organization.getId());
+    assertSourceControlDoesNotExist(application.getId());
+
+    tempEntity
+        .newSourceControl(rootOrganization.getId(), null, rootUsername, TOKEN, SourceControlProvider.BITBUCKET, true,
+            false, "master", null);
+
+    refresh();
+
+    assertSourceControlDoesNotExist(organization.getId());
+    assertSourceControlDoesNotExist(application.getId());
+
+    verifyStartWithSourceControl();
+    SourceControlEditorPage.advancedSettings().shouldNotBe(visible);
+    SourceControlEditorPage.advancedSettingsTree().click();
+    SourceControlEditorPage.advancedSettings().shouldBe(visible);
+    SourceControlEditorPage.token().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsToken().shouldBe(visible, disabled);
+    SourceControlEditorPage.credentialsUsername().shouldBe(visible, disabled);
+
+    SourceControlEditorPage.credentialsInheritRadio().label()
+        .shouldHave(text(String.format("Inherit from %s (%s)", rootOrganization.getName(), rootUsername)));
+    SourceControlEditorPage.credentialsInheritRadio().shouldBe(visible, enabled, selected);
+    SourceControlEditorPage.credentialsOverrideRadio().label().shouldHave(text("Override"));
+    SourceControlEditorPage.credentialsOverrideRadio().shouldBe(visible, enabled);
+    SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(selected);
+    SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
+  }
+
+  @Test
   public void testSourceControlEditor_EmptySourceControlRootWithProviderOrgWithToken() {
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
 
@@ -156,6 +196,45 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
 
     eyesWatcher.eyesCheck("Source Control Editor Default State With Provider and Inherited Token");
+  }
+
+  @Test
+  public void testSourceControlEditor_bitbucketEmptySourceControlRootWithProviderOrgWithToken() {
+    final String rootUsername = "rootusername";
+    final String orgUsername = "orguser";
+
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+
+    verifyStartNoSourceControl();
+
+    assertSourceControlDoesNotExist(rootOrganization.getId());
+    assertSourceControlDoesNotExist(organization.getId());
+    assertSourceControlDoesNotExist(application.getId());
+
+    tempEntity
+        .newSourceControl(rootOrganization.getId(), null, rootUsername, TOKEN, SourceControlProvider.BITBUCKET, true,
+            false, "master", null);
+    tempEntity.newSourceControl(organization.getId(), null, orgUsername, TOKEN, null, true, false, null, null);
+
+    refresh();
+
+    assertSourceControlDoesNotExist(application.getId());
+
+    verifyStartWithSourceControl();
+    SourceControlEditorPage.advancedSettings().shouldNotBe(visible);
+    SourceControlEditorPage.advancedSettingsTree().click();
+    SourceControlEditorPage.advancedSettings().shouldBe(visible);
+    SourceControlEditorPage.token().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsToken().shouldBe(visible, disabled);
+    SourceControlEditorPage.credentialsUsername().shouldBe(visible, disabled);
+
+    SourceControlEditorPage.credentialsInheritRadio().label()
+        .shouldHave(text(String.format("Inherit from %s (%s)", organization.getName(), orgUsername)));
+    SourceControlEditorPage.credentialsInheritRadio().shouldBe(visible, enabled, selected);
+    SourceControlEditorPage.credentialsOverrideRadio().label().shouldHave(text("Override"));
+    SourceControlEditorPage.credentialsOverrideRadio().shouldBe(visible, enabled);
+    SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(selected);
+    SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
   }
 
   @Test
@@ -252,6 +331,82 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
     SourceControlEditorPage.tokenInheritRadio().shouldBe(selected, enabled);
     SourceControlEditorPage.token().shouldBe(disabled);
+  }
+
+  @Test
+  public void testSourceControlEditor_bitbucketUpdateCredentials() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+    verifyStartNoSourceControl();
+    tempEntity
+        .newSourceControl(rootOrganization.getId(), null, null, null, SourceControlProvider.BITBUCKET, true,
+            false, "master", null);
+    refresh();
+
+    SourceControlEditorPage.credentialsOverrideRadio().shouldBe(selected);
+    SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(selected, enabled);
+    SourceControlEditorPage.credentialsToken().shouldBe(enabled);
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    assertToolTip("There are no changes to update.");
+
+    SourceControlEditorPage.credentialsToken().click();
+    SourceControlEditorPage.credentialsToken().setValue(TOKEN);
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    assertToolTip("There are no changes to update.");
+
+    SourceControlEditorPage.credentialsUsername().click();
+    SourceControlEditorPage.credentialsUsername().setValue("appuser");
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    assertToolTip("Unable to update: fields with invalid or missing data.");
+
+    SourceControlEditorPage.repositoryUrl().setValue(BITBUCKET_REPOSITORY_URL);
+    SourceControlEditorPage.saveButton().shouldBe(enabled);
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.advancedSettings().shouldNotBe(visible);
+    SourceControlEditorPage.advancedSettingsTree().click();
+    SourceControlEditorPage.advancedSettings().shouldBe(visible);
+
+    SourceControlEditorPage.credentialsOverrideRadio().shouldBe(selected);
+    SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(selected, enabled);
+    SourceControlEditorPage.repositoryUrl().shouldHave(value(BITBUCKET_REPOSITORY_URL));
+    SourceControlEditorPage.credentialsToken().shouldHave(value(FAKE_SECRET_KEY));
+
+    tempEntity.newSourceControl(organization.getId(), null, "orgUser", TOKEN, null, null, null, null, null);
+
+    refresh();
+
+    SourceControlEditorPage.advancedSettings().shouldNotBe(visible);
+    SourceControlEditorPage.advancedSettingsTree().click();
+    SourceControlEditorPage.advancedSettings().shouldBe(visible);
+
+    SourceControlEditorPage.credentialsOverrideRadio().shouldBe(selected);
+    SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(selected, disabled);
+    SourceControlEditorPage.repositoryUrl().shouldHave(value(BITBUCKET_REPOSITORY_URL));
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    assertToolTip("There are no changes to update.");
+
+    SourceControlEditorPage.credentialsInheritRadio().click();
+    SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(selected);
+    SourceControlEditorPage.credentialsInheritRadio().shouldBe(selected);
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"));
+    SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    assertToolTip("There are no changes to update.");
+    SourceControlEditorPage.deleteButton().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsToken().shouldHave(value(""));
+    SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(selected);
+    SourceControlEditorPage.credentialsInheritRadio().shouldBe(selected, enabled);
+    SourceControlEditorPage.credentialsToken().shouldBe(disabled);
   }
 
   @Test

@@ -44,6 +44,7 @@ import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.iq.manager.PullRequestCommand;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 
 import com.google.inject.Binder;
@@ -151,7 +152,7 @@ public class PolicyAlertScmNotifierAuditTest
     policyAlertScmNotifier.sendNotifications(application, SCAN_ID, new Stage(STAGE_ID), policyNotifications);
 
     // then we see executor was run to trigger our failure
-    verify(pullRequestExecutor, timeout(Duration.ofSeconds(1).toMillis())).execute(any());
+    verify(pullRequestExecutor, timeout(Duration.ofSeconds(2).toMillis())).execute(any());
 
     // and no audits events were created
     awaitLogEntries(AuditEvent.CREATE_PULL_REQUEST, 0);
@@ -200,7 +201,7 @@ public class PolicyAlertScmNotifierAuditTest
 
   private void givenGitRepositoryInfoAvailable() {
     final GitRepositoryInfo gitRepoInfo = new GitRepositoryInfo(
-        "url", "token", null, "master", false, false);
+        "url", null, "token", SourceControlProvider.GITHUB, "master", false, false);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepoInfo);
   }
 

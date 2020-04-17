@@ -32,15 +32,16 @@ public class GitClientFactory
   }
 
   public GitApiClient createApiClient(GitRepositoryInfo gitRepositoryInfo) {
-    Configuration configuration = new Configuration();
+    Configuration configuration = gitApiClientFactory.createConfiguration();
     String apiUrl = getClientUtils(gitRepositoryInfo.provider).getApiUrl(gitRepositoryInfo.repositoryUrl);
     insightProxy.contextualize(configuration, apiUrl);
     return gitApiClientFactory.getGitApiClient(
-        gitRepositoryInfo.provider, configuration, gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.token);
+        gitRepositoryInfo.provider, configuration, gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.username,
+        gitRepositoryInfo.token);
   }
 
   public GitGraphQlApiClient createGraphqlApiClient(GitRepositoryInfo gitRepositoryInfo) {
-    Configuration configuration = new Configuration();
+    Configuration configuration = gitApiClientFactory.createConfiguration();
 
     GitApiClientUtils gitApiClientUtils = gitApiClientFactory.getGitApiClientUtils(gitRepositoryInfo.provider);
     String graphqlApiUrl = gitApiClientUtils.getGraphQlApiUrl(gitRepositoryInfo.repositoryUrl);

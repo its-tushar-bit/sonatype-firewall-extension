@@ -7,6 +7,7 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -23,7 +24,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.git.PullRequestUtils.GITHUB_COM;
+import static com.sonatype.insight.brain.git.PullRequestRepositoryValidator.GITHUB_COM;
+import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,7 +34,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PullRequestUtilsTest
+public class PullRequestRepositoryValidatorTest
 {
   private static final String TEST_REPO_URL = "%s/sonatype/repo/";
 
@@ -42,15 +44,15 @@ public class PullRequestUtilsTest
   @Mock
   private GitApiClient gitApiClient;
 
-  private PullRequestUtils pullRequestUtils;
+  private PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
   private ListAppender<ILoggingEvent> listAppender;
 
   @Before
   public void setup() {
-    pullRequestUtils = new PullRequestUtils(gitClientFactory);
+    pullRequestRepositoryValidator = new PullRequestRepositoryValidator(gitClientFactory);
 
-    Logger log = (Logger) LoggerFactory.getLogger(PullRequestUtils.class);
+    Logger log = (Logger) LoggerFactory.getLogger(PullRequestRepositoryValidator.class);
     listAppender = new ListAppender<>();
     listAppender.start();
     log.addAppender(listAppender);
@@ -64,7 +66,7 @@ public class PullRequestUtilsTest
     gitRepositoryInfo.enablePullRequests = false;
 
     assertThat(
-        pullRequestUtils.isPullRequestAllowed(gitRepositoryInfo))
+        pullRequestRepositoryValidator.isRepoValidForPRs(gitRepositoryInfo))
         .isFalse();
 
     assertThat(listAppender.list.size()).isEqualTo(1);
@@ -77,9 +79,22 @@ public class PullRequestUtilsTest
   @Test
   public void isPullRequestAllowed_GitHubEnterpriseFlow() throws IOException {
     String repoName = String.format(TEST_REPO_URL, "https://NOTgithub.com/");
-    assertThat(pullRequestUtils
-        .isPullRequestAllowed(newGitRepositoryInfo(repoName, GITHUB)))
+    assertThat(pullRequestRepositoryValidator
+        .isRepoValidForPRs(newGitRepositoryInfo(repoName, GITHUB)))
         .isTrue();
+  }
+
+  @Test
+  public void isPullRequestAllowed_BitBucketFlow() throws IOException {
+    String repoName = String.format(TEST_REPO_URL, "https://foo.org/");
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(gitApiClient);
+
+    boolean[] isPrivateValues = {true, false};
+    for (boolean isPrivate: isPrivateValues) {
+      when(gitApiClient.isRepositoryPrivate()).thenReturn(isPrivate);
+      assertThat(pullRequestRepositoryValidator.isRepoValidForPRs(newGitRepositoryInfo(repoName, BITBUCKET)))
+          .isEqualTo(isPrivate);
+    }
   }
 
   @Test
@@ -90,7 +105,8 @@ public class PullRequestUtilsTest
     boolean[] isPrivateValues = {true, false};
     for (boolean isPrivate: isPrivateValues) {
       when(gitApiClient.isRepositoryPrivate()).thenReturn(isPrivate);
-      assertThat(pullRequestUtils.isPullRequestAllowed(newGitRepositoryInfo(repoName, GITHUB))).isEqualTo(isPrivate);
+      assertThat(pullRequestRepositoryValidator.isRepoValidForPRs(newGitRepositoryInfo(repoName, GITHUB)))
+          .isEqualTo(isPrivate);
     }
   }
 
@@ -99,8 +115,9 @@ public class PullRequestUtilsTest
     when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(gitApiClient);
     when(gitApiClient.isRepositoryPrivate()).thenThrow(new IOException());
 
-    assertThatExceptionOfType(IOException.class).isThrownBy(() ->
-        pullRequestUtils.isPullRequestAllowed(newGitRepositoryInfo(String.format(TEST_REPO_URL, GITHUB_COM), GITHUB))
+    assertThatExceptionOfType(UncheckedIOException.class).isThrownBy(() ->
+        pullRequestRepositoryValidator
+            .isRepoValidForPRs(newGitRepositoryInfo(String.format(TEST_REPO_URL, GITHUB_COM), GITHUB))
     );
   }
 
@@ -110,14 +127,16 @@ public class PullRequestUtilsTest
 
     // TODO replace test when we support GitLab for PRs
     assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
-      pullRequestUtils
-          .isPullRequestAllowed(newGitRepositoryInfo(repoName, GITLAB));
+      pullRequestRepositoryValidator
+          .isRepoValidForPRs(newGitRepositoryInfo(repoName, GITLAB));
     }).withMessage("'GITLAB' not supported yet");
   }
 
   private GitRepositoryInfo newGitRepositoryInfo(final String repoUrl, final SourceControlProvider provider) {
     boolean enablePullRequests = true;
     boolean enableStatusChecks = true;
-    return new GitRepositoryInfo(repoUrl, "token", provider, "baseBranch", enablePullRequests, enableStatusChecks);
+    String username = provider.requiresUsername() ? "username" : null;
+    return new GitRepositoryInfo(repoUrl, username, "token", provider, "baseBranch", enablePullRequests,
+        enableStatusChecks);
   }
 }

@@ -95,7 +95,7 @@ public class GitApiService
         event.commitHash, event.outcome, statusRequest.getState());
     try {
       Status status = gitApiClient.createStatus(event.commitHash, statusRequest);
-      log.debug("Status response: {}", status);
+      log.debug("Commit status response: {}", status);
     }
     catch (IOException e) {
       log.error("Failed to update status for applicationId: {}, repository: {}, commitHash: {}, " +

@@ -1,4 +1,4 @@
-## :shield: Automated pull request to fix ${threatList?size} Nexus IQ Policy Violation<#if (threatList?size > 1)>s</#if>
+## :shield: Automated pull request: Nexus IQ found ${threatList?size} Policy Violation<#if (threatList?size > 1)>s</#if>
 
 ### Description
 

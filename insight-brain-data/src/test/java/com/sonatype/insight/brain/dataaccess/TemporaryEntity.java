@@ -2133,7 +2133,7 @@ public class TemporaryEntity
   }
 
   public SourceControl newSourceControl(String ownerId, String repositoryUrl, Date pullRequestPollTime) {
-    return newSourceControl(ownerId, repositoryUrl, null, null, true, true, "master", pullRequestPollTime);
+    return newSourceControl(ownerId, repositoryUrl, null, null, null, true, true, "master", pullRequestPollTime);
   }
 
   public SourceControl newSourceControl(String ownerId,
@@ -2152,12 +2152,13 @@ public class TemporaryEntity
                                         Boolean enableStatusChecks,
                                         String baseBranch)
   {
-    return newSourceControl(applicationId, repositoryUrl, token, provider, enablePullRequests, enableStatusChecks,
+    return newSourceControl(applicationId, repositoryUrl, null, token, provider, enablePullRequests, enableStatusChecks,
         baseBranch, null);
   }
 
   public SourceControl newSourceControl(String applicationId,
                                         String repositoryUrl,
+                                        String username,
                                         String token,
                                         SourceControlProvider provider,
                                         Boolean enablePullRequests,
@@ -2169,6 +2170,7 @@ public class TemporaryEntity
         new SourceControl.Builder()
             .setOwnerId(applicationId)
             .setRepositoryUrl(repositoryUrl)
+            .setUsername(username)
             .setToken(token)
             .setProvider(provider)
             .setEnablePullRequests(enablePullRequests)

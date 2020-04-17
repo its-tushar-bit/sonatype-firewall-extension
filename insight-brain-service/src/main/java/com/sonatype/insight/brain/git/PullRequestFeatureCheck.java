@@ -36,19 +36,20 @@ public class PullRequestFeatureCheck
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestFeatureCheck.class);
 
-  private static final List<SourceControlProvider> SUPPORTED_PROVIDERS = ImmutableList.of(SourceControlProvider.GITHUB);
+  private static final List<SourceControlProvider> SUPPORTED_PROVIDERS =
+      ImmutableList.of(SourceControlProvider.GITHUB, SourceControlProvider.BITBUCKET);
 
   private final ProductLicense productLicense;
 
-  private final PullRequestUtils pullRequestUtils;
+  private final PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
   @Inject
   public PullRequestFeatureCheck(
       final ProductLicense productLicense,
-      final PullRequestUtils pullRequestUtils)
+      final PullRequestRepositoryValidator pullRequestRepositoryValidator)
   {
     this.productLicense = productLicense;
-    this.pullRequestUtils = pullRequestUtils;
+    this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
   }
 
   /**
@@ -78,7 +79,7 @@ public class PullRequestFeatureCheck
       return false;
     }
 
-    if (!pullRequestUtils.isPullRequestAllowed(gitRepoInfo)) {
+    if (!pullRequestRepositoryValidator.isRepoValidForPRs(gitRepoInfo)) {
       log.debug("Pull requests are not supported for application '{}' and repository '{}'",
           app.getId(), gitRepoInfo.repositoryUrl);
       return false;
@@ -106,14 +107,18 @@ public class PullRequestFeatureCheck
 
     // check for missing fields
     List<String> missingFields = new ArrayList<>();
-    if (isBlank(gitRepositoryInfo.token)) {
-      missingFields.add("Token");
+    if (gitRepositoryInfo.provider == null) {
+      missingFields.add("Provider");
     }
     if (isBlank(gitRepositoryInfo.repositoryUrl)) {
       missingFields.add("Repository URL");
     }
-    if (gitRepositoryInfo.provider == null) {
-      missingFields.add("Provider");
+    if (gitRepositoryInfo.provider != null && gitRepositoryInfo.provider.requiresUsername() &&
+        isBlank(gitRepositoryInfo.username)) {
+      missingFields.add("Username");
+    }
+    if (isBlank(gitRepositoryInfo.token)) {
+      missingFields.add("Token");
     }
     if (!missingFields.isEmpty()) {
       log.debug("Application has not been fully configured for pull requests. Missing: [{}]",

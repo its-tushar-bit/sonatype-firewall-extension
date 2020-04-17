@@ -597,6 +597,7 @@ CREATE TABLE source_control (
   source_control_id varchar(50) NOT NULL,
   owner_id varchar(50) NOT NULL,
   repository_url varchar(2048),
+  username varchar(256),
   token varchar(512),
   provider varchar(20),
   base_branch varchar(243),

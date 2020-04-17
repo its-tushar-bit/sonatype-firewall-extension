@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.test.LogOutput;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 
 import org.junit.Before;
@@ -212,12 +213,14 @@ public class PolicyAlertScmNotifierTest
   @Test
   public void test_invokePREngine() throws Exception {
     // given we have repository info for an application
+    GitRepositoryInfo githubRepositoryInfo =
+        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
-        .thenReturn(gitRepositoryInfo);
+        .thenReturn(githubRepositoryInfo);
 
     // and feature is enabled
     when(pullRequestFeatureCheck.isPullRequestFeatureSupported(
-        application, gitRepositoryInfo)).thenReturn(true);
+        application, githubRepositoryInfo)).thenReturn(true);
 
     // and there are suggested remediations
     ApiComponentRemediationDTO remediationDTO = buildRemediationDTOWithSuggestion();
@@ -228,7 +231,7 @@ public class PolicyAlertScmNotifierTest
     when(sourceControlTaskRunner.isFormatSupportedForPullRequestRemediation(any())).thenReturn(true);
 
     // and the branch doesn't already exist on the server
-    when(gitClientFactory.createApiClient(gitRepositoryInfo)).thenReturn(gitApiClient);
+    when(gitClientFactory.createApiClient(githubRepositoryInfo)).thenReturn(gitApiClient);
     String truncatedAppId = application.getId().substring(0, APP_ID_BRANCH_TRUNCATE_INDEX);
     when(gitApiClient.isBranchOnServer(truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1")).thenReturn(false);
 

@@ -78,6 +78,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.ownerId).isEqualTo(rootOrgSourcecontrol.getOwnerId());
     assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(dto.repositoryUrl).isNull();
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isNull();
     assertThat(dto.token.parentValue).isNull();
@@ -103,6 +106,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.ownerId).isEqualTo(rootOrgSourcecontrol.getOwnerId());
     assertThat(dto.provider).isNull();
     assertThat(dto.repositoryUrl).isNull();
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
     assertThat(dto.token.value).isNull();
     assertThat(dto.token.parentName).isNull();
     assertThat(dto.token.parentValue).isNull();
@@ -133,6 +139,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.ownerId).isEqualTo(orgSourceControl.getOwnerId());
     assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(dto.repositoryUrl).isNull();
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
@@ -160,6 +169,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.ownerId).isEqualTo(orgSourceControl.getOwnerId());
     assertThat(dto.provider).isNull();
     assertThat(dto.repositoryUrl).isNull();
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isNull();
     assertThat(dto.token.parentValue).isNull();
@@ -185,6 +197,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.ownerId).isEqualTo(org.getId());
     assertThat(dto.provider).isNull();
     assertThat(dto.repositoryUrl).isNull();
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
     assertThat(dto.token.value).isNull();
     assertThat(dto.token.parentName).isNull();
     assertThat(dto.token.parentValue).isNull();
@@ -212,6 +227,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.ownerId).isEqualTo(org.getId());
     assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(dto.repositoryUrl).isNull();
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
     assertThat(dto.token.value).isNull();
     assertThat(dto.token.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
@@ -244,6 +262,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.ownerId).isEqualTo(appSourceControl.getOwnerId());
     assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(dto.repositoryUrl).isEqualTo(VALID_URL);
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isEqualTo(parentOrg.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
@@ -267,6 +288,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.ownerId).isEqualTo(appSourceControl.getOwnerId());
     assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(dto.repositoryUrl).isEqualTo(VALID_URL);
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isEqualTo(parentOrg.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
@@ -297,6 +321,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.ownerId).isEqualTo(appSourceControl.getOwnerId());
     assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(dto.repositoryUrl).isEqualTo(VALID_URL);
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
@@ -326,6 +353,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.ownerId).isEqualTo(appSourceControl.getOwnerId());
     assertThat(dto.provider).isNull();
     assertThat(dto.repositoryUrl).isEqualTo(VALID_URL);
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isEqualTo(parentOrg.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
@@ -356,6 +386,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.ownerId).isEqualTo(app.getId());
     assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(dto.repositoryUrl).isNull();
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
     assertThat(dto.token.value).isNull();
     assertThat(dto.token.parentName).isEqualTo(parentOrg.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
@@ -383,6 +416,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.ownerId).isEqualTo(appSourceControl.getOwnerId());
     assertThat(dto.provider).isNull();
     assertThat(dto.repositoryUrl).isEqualTo(VALID_URL);
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isNull();
     assertThat(dto.token.parentValue).isNull();
@@ -410,6 +446,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.ownerId).isEqualTo(app.getId());
     assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(dto.repositoryUrl).isNull();
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
     assertThat(dto.token.value).isNull();
     assertThat(dto.token.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
@@ -437,6 +476,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.ownerId).isEqualTo(app.getId());
     assertThat(dto.provider).isNull();
     assertThat(dto.repositoryUrl).isNull();
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
     assertThat(dto.token.value).isNull();
     assertThat(dto.token.parentName).isEqualTo(parentOrg.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
@@ -462,6 +504,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.ownerId).isEqualTo(app.getId());
     assertThat(dto.provider).isNull();
     assertThat(dto.repositoryUrl).isNull();
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
     assertThat(dto.token.value).isNull();
     assertThat(dto.token.parentName).isNull();
     assertThat(dto.token.parentValue).isNull();

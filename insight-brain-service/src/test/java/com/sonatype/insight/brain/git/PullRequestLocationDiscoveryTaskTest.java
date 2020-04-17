@@ -87,7 +87,7 @@ public class PullRequestLocationDiscoveryTaskTest
   private List<ComponentIdentifier> identifierList;
 
   public static final GitRepositoryInfo INFO =
-      new GitRepositoryInfo("localhost", "token", SourceControlProvider.GITHUB, "master", true, true);
+      new GitRepositoryInfo("localhost", null, "token", SourceControlProvider.GITHUB, "master", true, true);
 
   @Before
   public void setup() {

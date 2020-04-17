@@ -154,6 +154,14 @@ public class ApiCompositeSourceControlService
 
     setProviderFromRootSourceControlIfPresent(dto, sourceControl, parentSourceControl, grandParentSourceControl);
 
+    dto.username = collateCompositeDTO(
+        sourceControl.getUsername(),
+        parentName,
+        parentSourceControl.getUsername(),
+        grandParentName,
+        grandParentSourceControl.getUsername()
+    );
+
     dto.token = collateCompositeDTO(
         sourceControl.getToken(),
         parentName,

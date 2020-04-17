@@ -295,6 +295,8 @@ public class SourceControlDAO
       throw new BadRequestException(
           "SourceControl ownerId '" + sourceControl.getOwnerId() + "' cannot be found");
     }
+
+    validateUsername(tx, sourceControl);
   }
 
   private void validateRepositoryUrl(final TransactionContext tx, final SourceControl sourceControl) {
@@ -302,23 +304,18 @@ public class SourceControlDAO
       throw new BadRequestException("SourceControl repositoryUrl is required for application");
     }
     try {
-      SourceControlProvider scmProvider;
-      if (sourceControl.getProvider() != null) {
-        scmProvider = sourceControl.getProvider();
-      }
-      else {
-        Application application = applicationDAO.getById(tx, sourceControl.getOwnerId());
-        scmProvider = getProviderFromOrganization(tx, application.getOrganizationId());
-        if (scmProvider == null) {
-          throw new BadRequestException("Cannot validate SourceControl repositoryUrl. " +
-              "The root organization source control provider is not set. " +
-              "Please configure the root organization source control provider");
-        }
-      }
-      gitApiClientFactory.getGitApiClientUtils(scmProvider).createProjectUri(sourceControl.getRepositoryUrl());
+      gitApiClientFactory.getGitApiClientUtils(getProvider(tx, sourceControl))
+          .createProjectUri(sourceControl.getRepositoryUrl());
     }
     catch (IllegalArgumentException e) {
       throw new BadRequestException("SourceControl repositoryUrl is invalid: " + e.getMessage(), e);
+    }
+  }
+
+  private void validateUsername(final TransactionContext tx, final SourceControl sourceControl) {
+    SourceControlProvider sourceControlProvider = getProvider(tx, sourceControl);
+    if (!sourceControlProvider.requiresUsername() && StringUtils.isNotEmpty(sourceControl.getUsername())) {
+      throw new BadRequestException("SourceControl provider '" + sourceControlProvider + "' does not allow username");
     }
   }
 
@@ -332,6 +329,31 @@ public class SourceControlDAO
 
   private boolean isForRootOrganization(final SourceControl sourceControl) {
     return ROOT_ORGANIZATION_ID.equals(sourceControl.getOwnerId());
+  }
+
+  private SourceControlProvider getProvider(
+      final TransactionContext tx,
+      final SourceControl sourceControl)
+  {
+    SourceControlProvider sourceControlProvider;
+    if (sourceControl.getProvider() != null) {
+      sourceControlProvider = sourceControl.getProvider();
+    }
+    else {
+      if (isForApplication(tx, sourceControl)) {
+        Application application = applicationDAO.getById(tx, sourceControl.getOwnerId());
+        sourceControlProvider = getProviderFromOrganization(tx, application.getOrganizationId());
+      }
+      else {
+        sourceControlProvider = getProviderFromOrganization(tx, sourceControl.getOwnerId());
+      }
+      if (sourceControlProvider == null) {
+        throw new BadRequestException("Cannot validate SourceControl repositoryUrl. " +
+            "The root organization source control provider is not set. " +
+            "Please configure the root organization source control provider");
+      }
+    }
+    return sourceControlProvider;
   }
 
   private SourceControlProvider getProviderFromOrganization(

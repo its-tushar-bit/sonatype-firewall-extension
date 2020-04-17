@@ -76,7 +76,7 @@ public class PullRequestCommentingService
 
   private final ProductLicense productLicense;
 
-  private final PullRequestUtils pullRequestUtils;
+  private final PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
   private final PolicyEvaluationDiffService policyEvaluationDiffService;
 
@@ -93,7 +93,7 @@ public class PullRequestCommentingService
       final PullRequestCommentingMetricsService pullRequestCommentingMetricsService,
       final AsyncEventBus asyncEventBus,
       final ProductLicense productLicense,
-      final PullRequestUtils pullRequestUtils,
+      final PullRequestRepositoryValidator pullRequestRepositoryValidator,
       final PolicyEvaluationDiffService policyEvaluationDiffService,
       final InsightConfig insightConfig)
   {
@@ -106,7 +106,7 @@ public class PullRequestCommentingService
     this.pullRequestCommentingMetricsService = pullRequestCommentingMetricsService;
     this.asyncEventBus = asyncEventBus;
     this.productLicense = productLicense;
-    this.pullRequestUtils = pullRequestUtils;
+    this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
     this.policyEvaluationDiffService = policyEvaluationDiffService;
     this.insightConfig = insightConfig;
   }
@@ -143,8 +143,8 @@ public class PullRequestCommentingService
         String applicationId = event.ownerId;
         GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
 
-        if (SourceControlProvider.GITLAB == gitRepositoryInfo.provider) {
-          log.debug("GitLab not currently supported for pull request commenting");
+        if (SourceControlProvider.GITHUB != gitRepositoryInfo.provider) {
+          log.debug("'{}' not currently supported for pull request commenting", gitRepositoryInfo.provider.toString());
         }
         else {
           PolicyEvaluation sourceCommitPolicyEvaluation = policyEvaluationDAO.getById(event.policyEvaluationId);
@@ -196,7 +196,7 @@ public class PullRequestCommentingService
     if (null == event.targetPolicyEvaluationId) {
       // we need to get and process the base branch commit history
       CommitInformation commitInfo = getCommitInfoFromScm(gitRepositoryInfo, event.commitHash);
-      if (!pullRequestUtils.isEffectivelyPrivate(gitRepositoryInfo, commitInfo.isRepositoryPrivate())) {
+      if (!pullRequestRepositoryValidator.isRepoValidForPRs(gitRepositoryInfo)) {
         log.debug("Repository is not private: {}", gitRepositoryInfo.repositoryUrl);
       }
       else {
@@ -425,8 +425,9 @@ public class PullRequestCommentingService
       GitRepositoryInfo gitRepositoryInfo,
       PolicyEvaluation sourceCommitPolicyEvaluation)
   {
-    if (!pullRequestUtils.isEffectivelyPrivate(gitRepositoryInfo, pullRequest.isRepositoryPrivate())) {
-      log.debug("Repository is not private: {}", gitRepositoryInfo.repositoryUrl);
+    if (!pullRequestRepositoryValidator.isRepoValidForPRs(gitRepositoryInfo)) {
+      log.debug("Repository is not valid for pull requests, ensure that it is private: {}",
+          gitRepositoryInfo.repositoryUrl);
       return false;
     }
 

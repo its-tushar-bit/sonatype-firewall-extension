@@ -100,7 +100,7 @@ class KeycloakServer
       }
       containerId = dockerClient.createContainer(ContainerConfig.builder() //
           .image(image) //
-          .env("KEYCLOAK_USER=" + USERNAME, "KEYCLOAK_PASSWORD=" + PASSWORD) //
+          .env("KEYCLOAK_USER=" + USERNAME, "KEYCLOAK_PASSWORD=" + PASSWORD, "DB_VENDOR=h2") //
           .hostConfig(HostConfig.builder() //
               .autoRemove(true) //
               .portBindings(Collections.singletonMap("8080/tcp", Arrays.asList(PortBinding.randomPort(null)))) //

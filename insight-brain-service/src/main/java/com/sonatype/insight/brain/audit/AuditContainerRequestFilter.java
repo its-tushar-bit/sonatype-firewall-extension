@@ -20,6 +20,7 @@ import javax.ws.rs.ext.Provider;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.Application;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -123,7 +124,7 @@ class AuditContainerRequestFilter
             setByApplicationId(ownerId);
           }
           else {
-            setByApplicationPublicId(ownerId);
+            setByApplicationAnyId(ownerId);
           }
         }
         break;
@@ -160,6 +161,14 @@ class AuditContainerRequestFilter
   private void setByApplicationPublicId(String applicationPublicId) {
     AuditData.get().setApplicationPublicId(applicationPublicId)
         .setApplication(applicationDAO.getByPublicId(applicationPublicId));
+  }
+
+  private void setByApplicationAnyId(String id) {
+    Application application = applicationDAO.getByPublicId(id);
+    if (application == null) {
+      application = applicationDAO.getById(id);
+    }
+    AuditData.get().setApplicationPublicId(id).setApplication(application);
   }
 
   private void setByOrganizationId(String organizationId) {

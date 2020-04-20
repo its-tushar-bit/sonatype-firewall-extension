@@ -1,5 +1,5 @@
 ###  🤔 Nexus IQ found <#if ( policiesViolatedCount > 1 )>policy violations<#else>a policy violation</#if> introduced by<#lt>
-### ${componentNameAndVersion}
+#### ${componentNameAndVersion}
 
 <#if suggestedVersion?has_content>
   :shield: **Bumping to version ${suggestedVersion}** will resolve <#if ( policiesViolatedCount > 1 )>these violations<#else>this violation</#if><#t>

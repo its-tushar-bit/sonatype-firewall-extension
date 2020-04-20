@@ -5,7 +5,8 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.util.concurrent.CountDownLatch;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Provider;
@@ -15,19 +16,19 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.test.LogOutput;
+import com.sonatype.nexus.iq.location.discovery.LocationDiscoveryExecutor;
+import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -46,6 +47,18 @@ public class SourceControlTaskRunnerTest
   @Mock
   private PullRequestRemediationDetails pullRequestRemediationDetails;
 
+  @Mock
+  private Provider<PullRequestLocationDiscoveryTask> locationDiscoveryTaskProvider;
+
+  @Mock
+  private PullRequestLocationDiscoveryTask locationDiscoveryTask;
+
+  @Mock
+  private LocationDiscoveryExecutor locationDiscoveryExecutor;
+
+  @Mock
+  private GitRepositoryInfo gitRepositoryInfo;
+
   //Subject
   private SourceControlTaskRunner sourceControlTaskRunner;
 
@@ -56,7 +69,9 @@ public class SourceControlTaskRunnerTest
 
   @Before
   public void setup() {
-    sourceControlTaskRunner = new SourceControlTaskRunner(pullRequestTaskProvider, pullRequestExecutor);
+    sourceControlTaskRunner =
+        new SourceControlTaskRunner(
+            pullRequestTaskProvider, pullRequestExecutor, locationDiscoveryTaskProvider, locationDiscoveryExecutor);
     Organization organization = tempEntity.newOrganization();
     application = tempEntity.newApplication("appname", "abc123", organization.getId());
   }
@@ -71,12 +86,6 @@ public class SourceControlTaskRunnerTest
     when(pullRequestRemediationDetails.getToBeRemediated())
         .thenReturn(ComponentIdentifier.createMavenCoordinates("grpid", "artid", "1.2.3"));
 
-    CountDownLatch finished = new CountDownLatch(1);
-    doAnswer(invocation -> {
-      finished.countDown();
-      return null;
-    }).when(pullRequestTask).run();
-
     // when
     sourceControlTaskRunner.doPullRequestRemediation(pullRequestRemediationDetails);
 
@@ -85,11 +94,6 @@ public class SourceControlTaskRunnerTest
       assertThat(logOutput).atInfoLevel().contains("Executing pull request task for [maven: {artifactId=artid," +
           " groupId=grpid, version=1.2.3}] on application with id [" + application.getId() + "]");
     });
-
-    ArgumentCaptor<PullRequestRemediationDetails> captor =
-        ArgumentCaptor.forClass(PullRequestRemediationDetails.class);
-    verify(pullRequestTask).init(captor.capture(), eq(pullRequestExecutor));
-    await().atMost(1, TimeUnit.SECONDS).until(() -> finished.getCount() == 0);
     verify(pullRequestTask).run();
   }
 
@@ -116,5 +120,28 @@ public class SourceControlTaskRunnerTest
 
     // then we see that the format is not supported
     assertThat(supported).isTrue();
+  }
+
+  @Test
+  public void testDoPullRequestLocationDiscovery() throws Exception {
+    // given
+    when(locationDiscoveryTaskProvider.get()).thenReturn(locationDiscoveryTask);
+    when(locationDiscoveryTask.call()).thenReturn(new LocationDiscoveryResult());
+
+    List<ComponentIdentifier> list = new LinkedList<>();
+    list.add(ComponentIdentifier.createMavenCoordinates("bar", "foo", "1.2"));
+
+    // when
+    LocationDiscoveryResult result =
+        sourceControlTaskRunner.doPullRequestLocationDiscovery(list, gitRepositoryInfo, "branch", application.getId());
+
+    // then we see the PR task executed
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+      assertThat(logOutput).atInfoLevel()
+          .contains("Executing location discovery task for 1 component(s) on application with id [" +
+              application.getId() + "]");
+    });
+    verify(locationDiscoveryTask).call();
+    assertThat(result).isNotNull();
   }
 }

@@ -35,6 +35,7 @@ public class GitClientFactory
     Configuration configuration = gitApiClientFactory.createConfiguration();
     String apiUrl = getClientUtils(gitRepositoryInfo.provider).getApiUrl(gitRepositoryInfo.repositoryUrl);
     insightProxy.contextualize(configuration, apiUrl);
+    // FIXME pass proper username, when available
     return gitApiClientFactory.getGitApiClient(
         gitRepositoryInfo.provider, configuration, gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.username,
         gitRepositoryInfo.token);

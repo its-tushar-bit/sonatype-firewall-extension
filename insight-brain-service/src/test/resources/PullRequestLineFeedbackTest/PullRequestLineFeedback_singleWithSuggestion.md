@@ -1,5 +1,5 @@
 ###  🤔 Nexus IQ found a policy violation introduced by
-### Test Component
+#### Test Component
 
 :shield: **Bumping to version 123** will resolve this violation (as of _Apr 01, 2020_)
 <p>

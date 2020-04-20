@@ -682,6 +682,9 @@ public class PullRequestCommentingServiceTest
     @Mock
     private PolicyEvaluationDiffService mockPolicyEvaluationDiffService;
 
+    @Mock
+    private PullRequestLineCommentingService pullRequestLineCommentingService;
+
     private boolean scmEnabled = true;
 
     private String org = "testOrg";
@@ -795,7 +798,8 @@ public class PullRequestCommentingServiceTest
           testProductLicense,
           mockPullRequestRepositoryValidator,
           mockPolicyEvaluationDiffService,
-          getInsightConfig(featureFlagEnabled)
+          getInsightConfig(featureFlagEnabled),
+          pullRequestLineCommentingService
       );
     }
 

@@ -1,5 +1,5 @@
 ###  🤔 Nexus IQ found policy violations introduced by
-### Test Component
+#### Test Component
 
 ⚠️ **No recommended versions** are available for this component (as of _Apr 01, 2020_)
 <p>

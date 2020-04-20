@@ -108,8 +108,8 @@ public class PullRequestPollingService
           else {
             if (!isPullRequestForBaseBranch(pullRequest, gitRepositoryInfo)) {
               PolicyEvaluation targetPolicyEvaluation = getLatestPolicyEvaluationForBaseBranch(applicationId);
-              createAndSendDiscoveredPullRequestEvent(applicationId, pullRequest.getNumber(), sourcePolicyEvaluation,
-                  targetPolicyEvaluation);
+              createAndSendDiscoveredPullRequestEvent(applicationId, pullRequest.getNumber(), pullRequest.getHead(),
+                  sourcePolicyEvaluation, targetPolicyEvaluation);
             }
             else {
               log.debug(
@@ -137,11 +137,13 @@ public class PullRequestPollingService
   private void createAndSendDiscoveredPullRequestEvent(
       String applicationId,
       int pullRequestNumber,
+      String branchName,
       PolicyEvaluation sourcePolicyEvaluation,
       PolicyEvaluation targetPolicyEvaluation)
   {
     DiscoveredPullRequestEvent event = new DiscoveredPullRequestEvent();
     event.applicationId = applicationId;
+    event.branchName = branchName;
     event.commitHash = sourcePolicyEvaluation.getCommitHash();
     event.policyEvaluationId = sourcePolicyEvaluation.getId();
     event.pullRequestNumber = pullRequestNumber;

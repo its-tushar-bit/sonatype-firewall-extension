@@ -82,6 +82,8 @@ public class PullRequestCommentingService
 
   private final InsightConfig insightConfig;
 
+  private final PullRequestLineCommentingService pullRequestLineCommentingService;
+
   @Inject
   public PullRequestCommentingService(
       final SourceControlUtils sourceControlUtils,
@@ -95,7 +97,8 @@ public class PullRequestCommentingService
       final ProductLicense productLicense,
       final PullRequestRepositoryValidator pullRequestRepositoryValidator,
       final PolicyEvaluationDiffService policyEvaluationDiffService,
-      final InsightConfig insightConfig)
+      final InsightConfig insightConfig,
+      final PullRequestLineCommentingService pullRequestLineCommentingService)
   {
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
@@ -109,6 +112,7 @@ public class PullRequestCommentingService
     this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
     this.policyEvaluationDiffService = policyEvaluationDiffService;
     this.insightConfig = insightConfig;
+    this.pullRequestLineCommentingService = pullRequestLineCommentingService;
   }
 
   @Override
@@ -166,7 +170,8 @@ public class PullRequestCommentingService
                   getLatestPolicyEvaluationReportForBaseBranch(applicationId);
 
               if (baseBranchPolicyEvaluation.isPresent()) {
-                doCreateOrUpdatePullRequestComment(applicationId, gitRepositoryInfo, pullRequest.getNumber(),
+                doCreateOrUpdatePullRequestComment(applicationId, gitRepositoryInfo,
+                    pullRequest.getNumber(), pullRequest.getHead(),
                     sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation.get(), existingPullRequestComment);
               }
               else {
@@ -220,7 +225,7 @@ public class PullRequestCommentingService
               .getByApplicationIdAndPullRequestIdWithoutComponent(applicationId, event.pullRequestNumber);
 
       doCreateOrUpdatePullRequestComment(applicationId, gitRepositoryInfo, event.pullRequestNumber,
-          sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation.get(), existingPullRequestComment);
+          event.branchName, sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation.get(), existingPullRequestComment);
     }
     else {
       log.warn(
@@ -245,6 +250,7 @@ public class PullRequestCommentingService
       String applicationId,
       GitRepositoryInfo gitRepositoryInfo,
       int pullRequestNumber,
+      String branchName,
       PolicyEvaluation sourceCommitPolicyEvaluation,
       PolicyEvaluation baseBranchPolicyEvaluation,
       SourceControlPullRequestComment existingPullRequestComment)
@@ -258,6 +264,13 @@ public class PullRequestCommentingService
             .createPolicyViolationDiff(baseBranchPolicyEvaluation, sourceCommitPolicyEvaluation);
         if (policyViolationDiff.isPresent() &&
             (existingPullRequestComment != null || policyViolationDiff.get().hasAppeared())) {
+
+          // line comment sub-flow
+          pullRequestLineCommentingService
+              .createPullRequestLineComments(policyViolationDiff.get().getAppeared(), gitRepositoryInfo,
+                  pullRequestNumber, branchName, sourceCommitPolicyEvaluation.getCommitHash(), applicationId,
+                  sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId());
+
           Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService
               .createMarkup(policyViolationDiff.get(), sourceCommitPolicyEvaluation,
                   baseBranchPolicyEvaluation);

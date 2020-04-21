@@ -80,15 +80,9 @@ public class RepositoryPolicyViolationDAO
   }
 
   public List<RepositoryPolicyViolation> getByRepositoryId(String repositoryId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByRepositoryId(tx, repositoryId);
-    }
-  }
-
-  private List<RepositoryPolicyViolation> getByRepositoryId(TransactionContext tx, String repositoryId) {
     String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
         " WHERE entity.repositoryId=?1";
-    return getList(tx, sQuery, repositoryId);
+    return getList(sQuery, repositoryId);
   }
 
   public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndNotWaived(final String repositoryId) {
@@ -122,12 +116,6 @@ public class RepositoryPolicyViolationDAO
     return repositoryPolicyViolations;
   }
 
-  public List<RepositoryPolicyViolation> getActiveByRepositoryId(String repositoryId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getActiveByRepositoryId(tx, repositoryId);
-    }
-  }
-
   public List<RepositoryPolicyViolation> getActiveByRepositoryId(TransactionContext tx, String repositoryId) {
     String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
         " WHERE entity.repositoryId=?1" + //
@@ -144,6 +132,12 @@ public class RepositoryPolicyViolationDAO
     long duration = System.currentTimeMillis() - start;
     if (duration > 1000) {
       log.debug("Deleted repository policy violation with id {} in {} ms.", entity.getId(), duration);
+    }
+  }
+
+  public List<RepositoryPolicyViolation> getByRepositoryIdAndPathname(String repositoryId, String pathname) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByRepositoryIdAndPathname(tx, repositoryId, pathname);
     }
   }
 

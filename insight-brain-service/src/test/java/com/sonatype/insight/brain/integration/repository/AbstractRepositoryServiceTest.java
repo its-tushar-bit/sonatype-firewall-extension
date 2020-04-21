@@ -447,7 +447,7 @@ public abstract class AbstractRepositoryServiceTest
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), before, after, after, repositoryComponent);
 
     RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndPathname(repository.getId(), pathname).get(0);
+        .getByRepositoryIdAndPathname(repository.getId(), pathname).get(0);
     assertPolicyViolation(repository.getId(), pathname, policy.getId(), policy.getName(), policy.getThreatLevel(),
         policy.getThreatCategory(), hash, componentIdentifier, before, after, policyViolation);
   }
@@ -499,7 +499,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositoryComponent.isQuarantined()).isTrue();
 
     RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndPathname(repository.getId(), pathname).get(0);
+        .getByRepositoryIdAndPathname(repository.getId(), pathname).get(0);
     assertPolicyViolation(repository.getId(), pathname, policy.getId(), policy.getName(), policy.getThreatLevel(),
         policy.getThreatCategory(), hash, componentIdentifier, timeBeforeEvaluation, timeAfterEvaluation,
         policyViolation);
@@ -518,7 +518,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isTrue();
 
     List<RepositoryPolicyViolation> currentRepositoryPolicyViolations = repositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndPathname(repository.getId(), pathname);
+        .getByRepositoryIdAndPathname(repository.getId(), pathname);
     assertThat(currentRepositoryPolicyViolations.isEmpty()).isTrue();
     repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname);
     assertThat(repositoryComponent.isQuarantined()).isTrue();
@@ -558,7 +558,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isFalse();
 
     List<RepositoryPolicyViolation> currentRepositoryPolicyViolations = repositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndPathname(repository.getId(), pathname);
+        .getByRepositoryIdAndPathname(repository.getId(), pathname);
     assertThat(currentRepositoryPolicyViolations.isEmpty()).isTrue();
 
     RepositoryComponent repositoryComponent = repositoryComponentDAO
@@ -593,7 +593,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositoryComponent.isQuarantined()).isFalse();
 
     RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndPathname(repository.getId(), pathname).get(0);
+        .getByRepositoryIdAndPathname(repository.getId(), pathname).get(0);
     assertPolicyViolation(repository.getId(), pathname, policy.getId(), policy.getName(), policy.getThreatLevel(),
         policy.getThreatCategory(), hash, componentIdentifier, timeBeforeEvaluation, after, policyViolation);
   }
@@ -650,7 +650,7 @@ public abstract class AbstractRepositoryServiceTest
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), before, after, after, repositoryComponent);
 
     RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndPathname(repository.getId(), pathname).get(0);
+        .getByRepositoryIdAndPathname(repository.getId(), pathname).get(0);
     assertPolicyViolation(repository.getId(), pathname, policy.getId(), policy.getName(), policy.getThreatLevel(),
         policy.getThreatCategory(), hash, componentIdentifier, before, after, policyViolation);
   }
@@ -978,7 +978,7 @@ public abstract class AbstractRepositoryServiceTest
           MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
 
       RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO
-          .getActiveByRepositoryIdAndPathname(repository.getId(), pathname).get(0);
+          .getByRepositoryIdAndPathname(repository.getId(), pathname).get(0);
       assertPolicyViolation(repository.getId(), pathname, policy.getId(), policy.getName(), policy.getThreatLevel(),
           policy.getThreatCategory(), hash, componentIdentifier, before, after, policyViolation);
     }

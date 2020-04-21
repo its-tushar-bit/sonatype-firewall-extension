@@ -157,8 +157,7 @@ public class PullRequestFeatureCheckTest
     ensureAppNotConfigured(gitRepositoryInfo, "Token");
   }
 
-  private void ensureAppNotConfigured(final GitRepositoryInfo gitRepositoryInfo, String missingFields)
-  {
+  private void ensureAppNotConfigured(final GitRepositoryInfo gitRepositoryInfo, String missingFields) {
     when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
 
     Application app = new Application(PUBLIC_ID, NAME, ORGANIZATION_ID);

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 import javax.inject.Inject;
@@ -77,7 +76,7 @@ public class PolicyAlertNotifierTest
   }
 
   @Test
-  public void test_Notification_SuccessfulAllNotifiers() throws IOException {
+  public void test_Notification_SuccessfulAllNotifiers() {
     Application app = tempEntity.newApplicationWithParent("test");
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-id");
     PolicyViolation violation = newPolicyViolationWantingAlerts(app, eval);
@@ -101,7 +100,7 @@ public class PolicyAlertNotifierTest
   }
 
   @Test
-  public void test_Notification_ExceptionsFromNotifiers() throws IOException {
+  public void test_Notification_ExceptionsFromNotifiers() {
     Application app = tempEntity.newApplicationWithParent("test");
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-id");
     PolicyViolation violation = newPolicyViolationWantingAlerts(app, eval);

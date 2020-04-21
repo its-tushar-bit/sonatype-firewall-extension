@@ -6,8 +6,6 @@
 
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
-
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -70,7 +68,7 @@ public class PullRequestFeatureCheckTest
   }
 
   @Test
-  public void testLicenseInvalid() throws IOException {
+  public void testLicenseInvalid() {
     when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(false);
 
     boolean result = pullRequestFeatureCheck.isPullRequestFeatureSupported(
@@ -82,7 +80,7 @@ public class PullRequestFeatureCheckTest
   }
 
   @Test
-  public void testApplicationNotConfigured() throws IOException {
+  public void testApplicationNotConfigured() {
     GitRepositoryInfo gitRepositoryInfo = newGitHubRepositoryInfo();
 
     gitRepositoryInfo.token = null;
@@ -122,7 +120,7 @@ public class PullRequestFeatureCheckTest
   }
 
   @Test
-  public void testProviderNotSupported() throws IOException {
+  public void testProviderNotSupported() {
     when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
 
     GitRepositoryInfo gitRepositoryInfo = newGitHubRepositoryInfo();
@@ -135,7 +133,7 @@ public class PullRequestFeatureCheckTest
   }
 
   @Test
-  public void testBitBucketSupported() throws IOException {
+  public void testBitBucketSupported() {
     GitRepositoryInfo gitRepositoryInfo = newBitBucketRepositoryInfo();
 
     when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
@@ -148,7 +146,7 @@ public class PullRequestFeatureCheckTest
   }
 
   @Test
-  public void testApplicationNotConfiguredBitbucket() throws IOException {
+  public void testApplicationNotConfiguredBitbucket() {
     GitRepositoryInfo gitRepositoryInfo = newBitBucketRepositoryInfo();
 
     gitRepositoryInfo.username = null;
@@ -160,7 +158,6 @@ public class PullRequestFeatureCheckTest
   }
 
   private void ensureAppNotConfigured(final GitRepositoryInfo gitRepositoryInfo, String missingFields)
-      throws IOException
   {
     when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
 
@@ -182,7 +179,7 @@ public class PullRequestFeatureCheckTest
   }
 
   @Test
-  public void testIsPullRequestAllowed() throws IOException {
+  public void testIsPullRequestAllowed() {
     GitRepositoryInfo gitRepositoryInfo = newGitHubRepositoryInfo();
 
     when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
@@ -202,7 +199,7 @@ public class PullRequestFeatureCheckTest
   }
 
   @Test
-  public void testHappyPath() throws IOException {
+  public void testHappyPath() {
     GitRepositoryInfo gitRepositoryInfo = newGitHubRepositoryInfo();
 
     when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);

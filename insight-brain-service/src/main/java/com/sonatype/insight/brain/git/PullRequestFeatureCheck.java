@@ -6,7 +6,6 @@
 
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,7 +61,6 @@ public class PullRequestFeatureCheck
    */
   public boolean isPullRequestFeatureSupported(
       final Application app, final GitRepositoryInfo gitRepoInfo)
-      throws IOException
   {
     if (!isLicenseValid()) {
       log.debug("Pull request feature is not supported for this license");

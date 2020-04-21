@@ -59,7 +59,7 @@ public class PullRequestRepositoryValidatorTest
   }
 
   @Test
-  public void isPullRequestAllowed_RepoDisabled() throws IOException {
+  public void isPullRequestAllowed_RepoDisabled() {
     String repoUrl = String.format(TEST_REPO_URL, GITHUB_COM);
 
     GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo(repoUrl, GITHUB);
@@ -77,7 +77,7 @@ public class PullRequestRepositoryValidatorTest
   }
 
   @Test
-  public void isPullRequestAllowed_GitHubEnterpriseFlow() throws IOException {
+  public void isPullRequestAllowed_GitHubEnterpriseFlow() {
     String repoName = String.format(TEST_REPO_URL, "https://NOTgithub.com/");
     assertThat(pullRequestRepositoryValidator
         .isRepoValidForPRs(newGitRepositoryInfo(repoName, GITHUB)))

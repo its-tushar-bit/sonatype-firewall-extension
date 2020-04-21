@@ -116,7 +116,7 @@ public class PolicyAlertScmNotifierAuditTest
   }
 
   @Test
-  public void testSendNotifications() throws IOException, GitException {
+  public void testSendNotifications() throws Exception {
     // given a pull request can execute successfully for a notification
     final PullRequestResult result = new PullRequestResult();
     result.setPullRequestUrl("my url");
@@ -228,7 +228,7 @@ public class PolicyAlertScmNotifierAuditTest
         any(), any(), any(), any(), eq(null), eq(null))).thenReturn(remediation);
   }
 
-  private void givenSourceControlIsEnabled() throws IOException {
+  private void givenSourceControlIsEnabled() {
     final SourceControlConfig sourceControlConfig = new SourceControlConfig();
     sourceControlConfig.setCloneDirectory("clone_dir");
     config.setSourceControl(sourceControlConfig);

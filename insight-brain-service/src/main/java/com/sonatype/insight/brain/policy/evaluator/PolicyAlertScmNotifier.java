@@ -107,7 +107,6 @@ public class PolicyAlertScmNotifier
       final String scanId,
       final Stage stage,
       final List<PolicyNotification> policyNotifications)
-      throws IOException
   {
     final GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
 

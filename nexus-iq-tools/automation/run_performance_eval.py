@@ -76,7 +76,7 @@ def parse_args():
                         help="IQ Tools jar", required=True)
     parser.add_argument("-lic", "--license", dest="iq_license", default=None,
                         help="IQ Server license", required=False)
-    parser.add_argument("--use-postgres", dest="use_postgres",
+    parser.add_argument("--upg", "--use-postgres", dest="use_postgres",
                         help="Determines if Postgres should be used."
                              " The connection details should be in the testing profile",
                         required=False, action="store_true")

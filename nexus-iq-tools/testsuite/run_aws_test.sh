@@ -5,10 +5,14 @@
 # "Sonatype" is a trademark of Sonatype, Inc.
 #
 
+set -x
+
+source run_aws_test.config
+
 CURRENT_TEST=$(ls -t | grep awsPerfRun | head -1)
 
 ./scripts/dirupload.sh $CURRENT_TEST;
-./scripts/run_remote.sh "cd /iqperf_eval/data/; ./test_execute.sh";
+./scripts/run_remote.sh "cd /iqperf_eval/data/; ./test_execute.sh $USE_POSTGRES $MIGRATE_H2_TO_POSTGRES";
 ./scripts/fetch_results.sh $CURRENT_TEST;
 
 cd $CURRENT_TEST;

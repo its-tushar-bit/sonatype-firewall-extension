@@ -24,6 +24,8 @@ awsPerfRun_*/
 override.tf
 .terraform
 terraform.tfvars
+nexus-iq-tools/testsuite/iqperf.auto.tfvars
+nexus-iq-tools/testsuite/run_aws_test.config
 
 # config file for tsc-based javascript editing plugins
 jsconfig.json

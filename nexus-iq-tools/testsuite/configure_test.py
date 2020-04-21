@@ -49,6 +49,14 @@ def parse_args():
                         help="Path to target URLs JSON.", required=True)
     parser.add_argument("-l", "--logback", default=None,
                         help="Path to custom Logback file.", required=False)
+    parser.add_argument("-cy", "--config-yaml", default=None, dest="config_yaml",
+                        help="Path to custom config.yml for IQ Server.", required=False)
+    parser.add_argument("--use-postgres", default=False, dest="use_postgres",
+                        help="Determines if Postgres should be used.", action='store_true', required=False)
+    parser.add_argument("--migrate-h2-to-postgres", dest="migrate_h2_to_postgres",
+                        help="Determines if the dataset in the testing profile is H2 and "
+                             "if it should be migrated to Postgres",
+                        required=False, action="store_true")
 
     parsed = parser.parse_args()
     log.debug(parsed)
@@ -58,18 +66,26 @@ def parse_args():
 def main():
     log.info("Automated performance test")
 
-    parsed = parse_args()
+    parsed_args = parse_args()
 
     workingDir = createWorkTemp()
 
-    shutil.copy(parsed.profile, os.path.join(workingDir))
-    shutil.copy(parsed.iq_server, os.path.join(workingDir))
-    shutil.copy(parsed.iq_tools, os.path.join(workingDir))
-    shutil.copy(parsed.iq_license, os.path.join(workingDir))
-    shutil.copy(parsed.automation, os.path.join(workingDir))
-    shutil.copy(parsed.urls, os.path.join(workingDir))
-    if parsed.logback:
-        shutil.copy(parsed.logback, os.path.join(workingDir))
+    shutil.copy(parsed_args.profile, os.path.join(workingDir))
+    shutil.copy(parsed_args.iq_server, os.path.join(workingDir))
+    shutil.copy(parsed_args.iq_tools, os.path.join(workingDir))
+    shutil.copy(parsed_args.iq_license, os.path.join(workingDir))
+    shutil.copy(parsed_args.automation, os.path.join(workingDir))
+    shutil.copy(parsed_args.urls, os.path.join(workingDir))
+    if parsed_args.logback:
+        shutil.copy(parsed_args.logback, os.path.join(workingDir))
+    if parsed_args.config_yaml:
+        shutil.copy(parsed_args.config_yaml, os.path.join(workingDir))
+
+    with open("iqperf.auto.tfvars", "w") as file:
+        file.write(("use_postgres = " + str(parsed_args.use_postgres).lower()))
+    with open("run_aws_test.config", "w") as file:
+        file.write(("USE_POSTGRES=" + str(parsed_args.use_postgres).lower() + "\n"))
+        file.write(("MIGRATE_H2_TO_POSTGRES=" + str(parsed_args.migrate_h2_to_postgres).lower() + "\n"))
 
     sys.exit(0)
 

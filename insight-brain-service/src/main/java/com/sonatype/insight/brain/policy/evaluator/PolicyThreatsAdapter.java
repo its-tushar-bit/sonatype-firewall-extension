@@ -63,7 +63,8 @@ public class PolicyThreatsAdapter
 
         if (!violation.isWaived()) {
           component.activeViolations.add(policyThreatsPolicyViolation);
-          if (violation.getThreatLevel() > component.policyThreatLevel || component.policyId == null) {
+          if (!violation.isGrandfathered() && (violation.getThreatLevel() > component.policyThreatLevel ||
+              component.policyId == null)) {
             component.policyId = violation.getPolicyId();
             component.policyName = violation.getPolicyName();
             component.policyThreatLevel = violation.getThreatLevel();

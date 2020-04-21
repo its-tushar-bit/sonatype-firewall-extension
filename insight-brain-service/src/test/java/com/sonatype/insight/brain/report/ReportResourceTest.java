@@ -805,8 +805,8 @@ public class ReportResourceTest
     assertThat(data.get("insecureArtifactCount").asInt()).isEqualTo(8);
     assertThat(data.get("securityCounts").toString()).isEqualTo("[0,4,0,0,2,13,15,2,0,1]");
 
-    assertThat(data.get("policyCounts").toString()).isEqualTo("[0,0,0,0,0,2,0,0,0,0,0]");
-    assertThat(data.get("policyComponentCount").asInt()).isEqualTo(2);
+    assertThat(data.get("policyCounts").toString()).isEqualTo("[2,0,0,0,0,0,0,0,0,0,0]");
+    assertThat(data.get("policyComponentCount").asInt()).isEqualTo(0);
     assertThat(data.get("grandfatheredPolicyViolationCount").asInt()).isEqualTo(2);
 
     assertThat(data.get("securityPunchCard").toString()).isEqualTo("[[4,11,3],[0,18,0],[0,12,0],[0,6,0],[0,6,0]]");

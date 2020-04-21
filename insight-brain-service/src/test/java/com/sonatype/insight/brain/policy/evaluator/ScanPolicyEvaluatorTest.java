@@ -1496,8 +1496,10 @@ public class ScanPolicyEvaluatorTest
     // Verify the data.json report file
     ReportEntry dataReportEntry = Report.getEntry(reportFile, Report.DATA_JSON_FILENAME);
     ObjectNode data = JsonUtils.parse(dataReportEntry.buf);
-    assertThat(data.get("policyCounts").toString()).isEqualTo("[0,0,0,0,0,3,0,0,0,0,0]");
-    assertThat(data.get("policyComponentCount").asInt()).isEqualTo(3);
+    // All three policy violations are grandfathered and so each of the three components has a policyThreatLevel of 0
+    assertThat(data.get("policyCounts").toString()).isEqualTo("[3,0,0,0,0,0,0,0,0,0,0]");
+    // Since each component has a policyThreatLevel of 0, there are 0 affected components
+    assertThat(data.get("policyComponentCount").asInt()).isEqualTo(0);
     assertThat(data.get("grandfatheredPolicyViolationCount").asInt()).isEqualTo(3);
   }
 

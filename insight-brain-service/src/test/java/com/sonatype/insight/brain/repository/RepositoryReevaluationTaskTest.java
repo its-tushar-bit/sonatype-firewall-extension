@@ -44,7 +44,6 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -173,15 +172,12 @@ public class RepositoryReevaluationTaskTest
     assertHasComponent(components, unknownComponent.getPathname(), MatchState.EXACT,
         IdentificationSource.SONATYPE.getId(), newIdentifier, false, timeBeforeReevaluation);
 
-    try (TransactionContext tx = repositoryPolicyViolationDAO.createTransactionContext()) {
-      List<RepositoryPolicyViolation> violations = repositoryPolicyViolationDAO.getActiveByRepositoryId(tx,
-          repository.getId());
-      assertThat(violations).hasSize(2);
-      assertHasViolation(violations, component.getPathname(), policy.getName(), policy.getThreatLevel(),
-          claimedIdentifier, false);
-      assertHasViolation(violations, unknownComponent.getPathname(), policy.getName(), policy.getThreatLevel(),
-          newIdentifier, true);
-    }
+    List<RepositoryPolicyViolation> violations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    assertThat(violations).hasSize(2);
+    assertHasViolation(violations, component.getPathname(), policy.getName(), policy.getThreatLevel(),
+        claimedIdentifier, false);
+    assertHasViolation(violations, unknownComponent.getPathname(), policy.getName(), policy.getThreatLevel(),
+        newIdentifier, true);
   }
 
   private static void assertHasViolation(List<RepositoryPolicyViolation> violations,

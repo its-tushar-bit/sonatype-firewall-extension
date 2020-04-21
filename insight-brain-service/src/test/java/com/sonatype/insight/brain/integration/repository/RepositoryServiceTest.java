@@ -97,7 +97,7 @@ public class RepositoryServiceTest
 
     // test that the policy violation is not persisted
     List<RepositoryPolicyViolation> policyViolations =
-        new RepositoryPolicyViolationDAO().getActiveByRepositoryId(repo.getId());
+        new RepositoryPolicyViolationDAO().getByRepositoryId(repo.getId());
     assertThat(policyViolations).isEmpty();
   }
 

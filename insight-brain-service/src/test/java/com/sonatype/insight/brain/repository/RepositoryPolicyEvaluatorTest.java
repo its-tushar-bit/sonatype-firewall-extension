@@ -207,7 +207,7 @@ public class RepositoryPolicyEvaluatorTest
     Date before2 = new Date();
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
     final Date after2 = new Date();
-    policyViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+    policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(policyViolations).hasSize(4);
     List<RepositoryPolicyViolation> newPolicyViolations =
         policyViolations.stream().filter(policyViolation -> policyViolation.getPolicyId().equals(newPolicy.getId()))
@@ -251,7 +251,7 @@ public class RepositoryPolicyEvaluatorTest
     Date before2 = new Date();
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
     Date after2 = new Date();
-    assertThat(repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId())).hasSize(0);
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(0);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.FIX, repository, before2, after2, policyViolations);
   }
 
@@ -282,8 +282,8 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
     final Date after1 = new Date();
     // ... yielding two active violations, both of which logged as new
-    List<RepositoryPolicyViolation> activeViolations = repositoryPolicyViolationDAO
-        .getActiveByRepositoryId(repository.getId());
+    List<RepositoryPolicyViolation> activeViolations =
+        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before1, after1, activeViolations);
     // ... and one logged as waived
@@ -301,7 +301,7 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
     final Date after2 = new Date();
     // ... yielding again two violations, none of which logged as new
-    activeViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+    activeViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before2, after2, Collections.emptyList());
     // ... but one logged as unwaived
@@ -343,7 +343,7 @@ public class RepositoryPolicyEvaluatorTest
 
     // ... yielding two active violations
     List<RepositoryPolicyViolation> activeViolations =
-        repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
 
     // ... and one as waived
@@ -362,7 +362,7 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
 
     // ... yielding again two violations
-    activeViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+    activeViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
 
     // ... and two ARE waived
@@ -388,7 +388,7 @@ public class RepositoryPolicyEvaluatorTest
 
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
 
-    activeViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+    activeViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
 
     // first violation is no longer waived
@@ -459,7 +459,7 @@ public class RepositoryPolicyEvaluatorTest
 
     // ... yielding one active/waived violation
     List<RepositoryPolicyViolation> policyViolations =
-        repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
 
     assertThat(policyViolations).hasSize(1);
 

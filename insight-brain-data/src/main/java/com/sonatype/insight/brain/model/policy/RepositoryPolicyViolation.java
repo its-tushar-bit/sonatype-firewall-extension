@@ -43,6 +43,15 @@ public class RepositoryPolicyViolation
   @Column(name = "waived")
   private boolean isWaived;
 
+  /**
+   * @deprecated Since 1.90, we don't save inactive repository policy violations anymore.
+   *             The existing inactive repository policy violations are cleaned up by InactiveRepositoryViolationCleaner
+   *             when the server starts. Since the cleanup is done asynchronously, we still need to filter out inactive
+   *             violations for some operations.
+   *             See https://issues.sonatype.org/browse/CLM-14555 for more details.
+   */
+  @Deprecated
+  @SuppressWarnings("PMD.UnusedPrivateField")
   @Column(name = "active")
   private boolean active = true;
 
@@ -99,26 +108,6 @@ public class RepositoryPolicyViolation
 
   public void setRepositoryId(String repositoryId) {
     this.repositoryId = repositoryId;
-  }
-
-  /**
-   * @deprecated by CLM-14555
-   *
-   * All records in RepositoryPolicyViolation will be active=true. active=false records will not be
-   * kept anymore. There should be no reason to check if a RepositoryPolicyViolation is active or not.
-   */
-  public boolean isActive() {
-    return active;
-  }
-
-  /**
-   * @deprecated by CLM-14555
-   *
-   * All records in RepositoryPolicyViolation will be active=true. active=false records will not be
-   * kept anymore. Do not set RepositoryPolicyViolation entities to active = false.
-   */
-  public void setActive(boolean active) {
-    this.active = active;
   }
 
   public String getPathname() {

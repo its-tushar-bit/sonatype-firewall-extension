@@ -624,6 +624,7 @@ INSERT INTO migration_tracker(migration_tracker_id) VALUES('root-organization');
 INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-drools-code', 2);
 INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-json', 1);
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('ignored-repository-components');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('inactive-repository-violations');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('mail-config');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('proxy-server-configuration');
 

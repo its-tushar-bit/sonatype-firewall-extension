@@ -1,0 +1,93 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.repository;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.model.MigrationTracker;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class InactiveRepositoryViolationCleanerTest
+    extends AbstractComponentTest
+{
+  @Inject
+  private InactiveRepositoryViolationCleaner inactiveRepositoryViolationCleaner;
+
+  private MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+
+  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+
+  @Test
+  public void testStart() throws Exception {
+    migrationTrackerDAO.deleteById(InactiveRepositoryViolationCleaner.MIGRATION_ID);
+    Repository repository = tempEntity.newRepository();
+    for (int i = 0; i < InactiveRepositoryViolationCleaner.BATCH_SIZE + 1; i++) {
+      newInactiveViolation(repository);
+    }
+    RepositoryPolicyViolation activeViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+
+    inactiveRepositoryViolationCleaner.start();
+
+    assertThat(inactiveRepositoryViolationCleaner.workerThread).isNotNull();
+    inactiveRepositoryViolationCleaner.workerThread.join(5000);
+    assertThat(repositoryPolicyViolationDAO.getById(activeViolation.getId())).isNotNull();
+    assertThat(getInactiveViolationCount(repository)).isEqualTo(0);
+    assertThat(migrationTrackerDAO.isTrackerPresent(InactiveRepositoryViolationCleaner.MIGRATION_ID)).isTrue();
+  }
+
+  @Test
+  public void testStart_AlreadyMigrated() throws Exception {
+    if (!migrationTrackerDAO.isTrackerPresent(InactiveRepositoryViolationCleaner.MIGRATION_ID)) {
+      migrationTrackerDAO.insert(new MigrationTracker(InactiveRepositoryViolationCleaner.MIGRATION_ID));
+    }
+    Repository repository = tempEntity.newRepository();
+    RepositoryPolicyViolation inactiveViolation = newInactiveViolation(repository);
+
+    inactiveRepositoryViolationCleaner.start();
+
+    assertThat(inactiveRepositoryViolationCleaner.workerThread).isNull();
+    assertThat(repositoryPolicyViolationDAO.getById(inactiveViolation.getId())).isNotNull();
+  }
+
+  private RepositoryPolicyViolation newInactiveViolation(Repository repository) throws SQLException {
+    RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement(
+            "UPDATE repository_policy_violation SET active=false WHERE repository_policy_violation_id=?")) {
+      connection.setAutoCommit(true);
+      preparedStatement.setString(1, repositoryPolicyViolation.getId());
+      int updated = preparedStatement.executeUpdate();
+      assertThat(updated).isEqualTo(1);
+    }
+    return repositoryPolicyViolation;
+  }
+
+  private int getInactiveViolationCount(Repository repository) throws SQLException {
+    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement(
+            "SELECT COUNT(*) FROM repository_policy_violation WHERE repository_id=? AND active=false")) {
+      preparedStatement.setString(1, repository.getId());
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        resultSet.next();
+        return resultSet.getInt(1);
+      }
+    }
+  }
+}

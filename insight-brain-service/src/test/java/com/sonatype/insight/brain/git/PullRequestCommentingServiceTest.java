@@ -31,9 +31,9 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
 import com.sonatype.nexus.scm.api.model.CommitInformation;
+import com.sonatype.nexus.scm.api.model.DefaultCommentResponse;
 import com.sonatype.nexus.scm.api.model.PullRequest;
 import com.sonatype.nexus.scm.api.model.PullRequestState;
-import com.sonatype.nexus.scm.github.dto.GithubCommentResponse;
 import com.sonatype.nexus.scm.github.dto.GithubPullRequest;
 import com.sonatype.nexus.scm.github.graphql.GitHubGraphQlClient;
 
@@ -911,7 +911,7 @@ public class PullRequestCommentingServiceTest
     }
 
     TestablePullRequestCommentingServiceBuilder withCommentResponseForPR(int pullRequestId, int commentId) {
-      CommentResponse commentResponse = new GithubCommentResponse();
+      CommentResponse commentResponse = new DefaultCommentResponse();
       commentResponse.setId(commentId);
       pullRequestCommentResponseMap.put(pullRequestId, commentResponse);
       return this;

@@ -25,7 +25,7 @@ import com.sonatype.nexus.iq.location.dto.PositionDiscoveryResult;
 import com.sonatype.nexus.iq.location.dto.RankedSourceLocation;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
-import com.sonatype.nexus.scm.github.dto.GithubCommentResponse;
+import com.sonatype.nexus.scm.api.model.DefaultCommentResponse;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -306,7 +306,7 @@ public class PullRequestLineCommentingServiceTest
         when(mockPullRequestFeedbackMarkupService.createLineMarkup(anyList(), any(), any()))
             .thenReturn(markup);
 
-        CommentResponse response = new GithubCommentResponse();
+        CommentResponse response = new DefaultCommentResponse();
         response.setId(scmId);
         when(mockGitApiClient.createPullRequestLineComment(anyInt(), anyString(), anyString(), anyString(), anyInt()))
             .thenReturn(response);

@@ -7,9 +7,11 @@ package com.sonatype.insight.brain.api.v2;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.ws.rs.DELETE;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
@@ -20,30 +22,27 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.codahale.metrics.annotation.Timed;
 
 /**
- * @since 1.90
+ * @since 1.70
  */
 @Named
 @Timed
-@Path(PublicApiPaths.POLICY_WAIVER_PATH)
-public class ApiPolicyWaiverResource
+@Path(PublicApiPaths.POLICY_VIOLATION_WAIVER_PATH)
+public class ApiPolicyViolationWaiverResource
 {
   private ApiPolicyWaiverService apiPolicyWaiverService;
 
-  static final String BY_POLICY_WAIVER_ID_PATH = "{policyWaiverId}";
-
   @Inject
-  public ApiPolicyWaiverResource(ApiPolicyWaiverService apiPolicyWaiverService) {
+  public ApiPolicyViolationWaiverResource(final ApiPolicyWaiverService apiPolicyWaiverService) {
     this.apiPolicyWaiverService = apiPolicyWaiverService;
   }
 
-  @DELETE
-  @Audited(AuditEvent.DELETE_WAIVER)
-  @Path(BY_POLICY_WAIVER_ID_PATH)
-  public void deletePolicyWaiver(
-      @PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerId,
-      @PathParam("policyWaiverId") String policyWaiverId)
+  @POST
+  @Consumes(MediaType.TEXT_PLAIN)
+  @Audited(AuditEvent.CREATE_WAIVER)
+  public void addPolicyWaiver(@PathParam("policyViolationId") String policyViolationId,
+                              @PathParam("ownerType") OwnerType ownerType,
+                              String comment)
   {
-    apiPolicyWaiverService.deletePolicyWaiver(ownerType, ownerId, policyWaiverId);
+    apiPolicyWaiverService.addPolicyWaiver(policyViolationId, ownerType, comment);
   }
 }

@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -75,29 +74,8 @@ public class PolicyWaiverResource
     policyWaiver.setId(null);
     policyWaiver.setOwnerId(internalOwnerId);
     new PolicyWaiverDAO().insert(policyWaiver);
-    auditPolicyWaiver(policyWaiver, false);
+    auditPolicyWaiver(policyWaiver);
     return policyWaiver;
-  }
-
-  @DELETE
-  @Path("{policyWaiverId}")
-  @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
-  @Audited(AuditEvent.DELETE_WAIVER)
-  public void deletePolicyWaiver(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-                                 @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
-                                 @PathParam("policyWaiverId") String policyWaiverId)
-  {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    PolicyWaiver policyWaiver = policyWaiverDAO.getByIdNotNull(policyWaiverId);
-    if (!internalOwnerId.equals(policyWaiver.getOwnerId())) {
-      throw new NotFoundException("Cannot find a policy waiver with ID " + policyWaiverId + " for " + ownerType
-          + " ID " + ownerId);
-    }
-
-    auditPolicyWaiver(policyWaiver, true);
-    policyWaiverDAO.delete(policyWaiver);
   }
 
   /**
@@ -244,10 +222,10 @@ public class PolicyWaiverResource
     public String policyName;
   }
 
-  private void auditPolicyWaiver(PolicyWaiver policyWaiver, boolean isDelete) {
+  private void auditPolicyWaiver(PolicyWaiver policyWaiver) {
     AuditData.get().setData("policyWaiverId", policyWaiver.getId())
         .setPolicy(new PolicyDAO().getByIdNotNull(policyWaiver.getPolicyId()))
-        .setComment(isDelete ? null : policyWaiver.getComment())
+        .setComment(policyWaiver.getComment())
         .setComponentHash(policyWaiver.getHash());
     if (policyWaiver.getConstraintFacts() != null) {
       AuditData.get().setData("policyConstraints",

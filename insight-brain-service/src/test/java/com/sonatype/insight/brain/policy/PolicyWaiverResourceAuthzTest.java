@@ -53,19 +53,6 @@ public class PolicyWaiverResourceAuthzTest
   }
 
   @Test
-  public void testDeletePolicyWaiver() throws Exception {
-    HttpRequest request = restRequest().path("{waiverId}");
-
-    grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
-    PolicyWaiver waiver = tempEntity.newWaiver("hash", policy.getId(), app.getId());
-    testAuthzDelete(request.parameter(OwnerType.APPLICATION, app.getPublicId(), waiver.getId()));
-
-    grantPermission(org.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
-    waiver = tempEntity.newWaiver("hash", policy.getId(), org.getId());
-    testAuthzDelete(request.parameter(OwnerType.ORGANIZATION, org.getId(), waiver.getId()));
-  }
-
-  @Test
   public void testGetPolicyWaiversByHash() throws Exception {
     HttpRequest request = restRequest().path("component/hash");
 

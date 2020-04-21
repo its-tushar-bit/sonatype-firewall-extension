@@ -95,75 +95,6 @@ public class PolicyWaiverResourceAuditTest
   }
 
   @Test
-  public void testDeletePolicyWaiver_Application() throws Exception {
-    Application application = tempEntity.newApplicationWithParent();
-    PolicyWaiver policyWaiver = savePolicyWaiver(application.getId());
-
-    restRequest(application).path(policyWaiver.getId()).delete();
-
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_WAIVER, null);
-    assertApplicationData(auditDTO, application);
-    assertPolicyWaiverData(auditDTO, policyWaiver, true);
-  }
-
-  @Test
-  public void testDeletePolicyWaiver_Organization() throws Exception {
-    Organization organization = tempEntity.newOrganization();
-    PolicyWaiver policyWaiver = savePolicyWaiver(organization.getId());
-
-    restRequest(organization).path(policyWaiver.getId()).delete();
-
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_WAIVER, null);
-    assertOrganizationData(auditDTO, organization);
-    assertPolicyWaiverData(auditDTO, policyWaiver, true);
-  }
-
-  @Test
-  public void testDeletePolicyWaiver_Repository() throws Exception {
-    Repository repository = tempEntity.newRepository();
-    PolicyWaiver policyWaiver = savePolicyWaiver(repository.getId());
-
-    restRequest(repository).path(policyWaiver.getId()).delete();
-
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_WAIVER, null);
-    assertRepositoryData(auditDTO, repository);
-    assertPolicyWaiverData(auditDTO, policyWaiver, true);
-  }
-
-  @Test
-  public void testDeletePolicyWaiver_RepositoryContainer() throws Exception {
-    PolicyWaiver policyWaiver = savePolicyWaiver(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-
-    restRequest(RepositoryContainer.SINGLETON).path(policyWaiver.getId()).delete();
-
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_WAIVER, null);
-    assertRepositoryContainerData(auditDTO);
-    assertPolicyWaiverData(auditDTO, policyWaiver, true);
-  }
-
-  @Test
-  public void testDeletePolicyWaiver_NullHashAndNullConstraintFacts() throws Exception {
-    Application application = tempEntity.newApplicationWithParent();
-    PolicyWaiver policyWaiver = tempEntity.newWaiver(null, policy.getId(), application.getId(), null, "comment");
-
-    restRequest(application).path(policyWaiver.getId()).delete();
-
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_WAIVER, null);
-    assertApplicationData(auditDTO, application);
-    assertPolicyWaiverData(auditDTO, policyWaiver, true);
-  }
-
-  @Test
-  public void testDeletePolicyWaiver_Unauthorized() throws Exception {
-    PolicyWaiver policyWaiver = savePolicyWaiver(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-
-    restRequest(RepositoryContainer.SINGLETON).with(unauthorizedUser()).path(policyWaiver.getId()).delete();
-
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_WAIVER, "unauthorized");
-    assertRepositoryContainerData(auditDTO);
-  }
-
-  @Test
   public void testGetPolicyWaiversByHash_Application() throws Exception {
     final Application application = tempEntity.newApplicationWithParent();
     restRequest(application).path("component", COMPONENT_HASH).get();
@@ -211,10 +142,6 @@ public class PolicyWaiverResourceAuditTest
     assertApplicationData(auditDTO, application);
   }
 
-  private PolicyWaiver savePolicyWaiver(String ownerId) {
-    return tempEntity.newWaiver(COMPONENT_HASH, policy.getId(), ownerId, constraintFacts(), "comment");
-  }
-
   private PolicyWaiver policyWaiver() {
     return policyWaiver(COMPONENT_HASH, constraintFacts());
   }
@@ -244,14 +171,14 @@ public class PolicyWaiverResourceAuditTest
   }
 
   private void assertPolicyWaiverData(AuditDTO auditDTO) {
-    assertPolicyWaiverData(auditDTO, policyWaiverDAO.getById((String) auditDTO.data.get("policyWaiverId")), false);
+    assertPolicyWaiverData(auditDTO, policyWaiverDAO.getById((String) auditDTO.data.get("policyWaiverId")));
   }
 
-  private void assertPolicyWaiverData(AuditDTO auditDTO, PolicyWaiver policyWaiver, boolean isDelete) {
+  private void assertPolicyWaiverData(AuditDTO auditDTO, PolicyWaiver policyWaiver) {
     assertCustomData(auditDTO, "policyId", policy.getId());
     assertCustomData(auditDTO, "policyName", policy.getName());
     assertCustomData(auditDTO, "policyWaiverId", policyWaiver.getId());
-    assertCustomData(auditDTO, "comment", isDelete ? null : policyWaiver.getComment());
+    assertCustomData(auditDTO, "comment", policyWaiver.getComment());
     assertCustomData(auditDTO, "componentHash", policyWaiver.getHash());
     if (policyWaiver.getConstraintFacts() == null) {
       assertCustomData(auditDTO, "policyConstraints", null);

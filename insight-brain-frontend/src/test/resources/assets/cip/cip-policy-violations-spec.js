@@ -519,7 +519,7 @@ describe('CIP Policy Waiver tests', function() {
       _viewScope.remove(_viewScope.waivers[0]);
       expect(_viewScope.confirmDelete).toEqual(_viewScope.waivers[0]);
 
-      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLM.path + 'rest/policyWaiver/application/bom1-12345678/id')).respond(200);
+      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLM.path + 'api/v2/policyWaivers/application/bom1-12345678/id')).respond(200);
       _viewScope.removeWaiver();
       $httpBackend.flush();
       expect(_viewScope.confirmDelete).toEqual(null);

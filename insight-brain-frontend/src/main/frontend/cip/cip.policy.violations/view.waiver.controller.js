@@ -38,7 +38,7 @@ export default function ViewWaiverController($scope, $http, OwnerContext, Select
     var waiver = $scope.confirmDelete;
     $scope.confirmDelete = null;
     $scope.appError = null;
-    $http['delete'](CLM.path + 'rest/policyWaiver/' + waiver.type + '/' + waiver.ownerId + '/' +
+    $http['delete'](CLM.path + 'api/v2/policyWaivers/' + waiver.type + '/' + waiver.ownerId + '/' +
             waiver.id).then(function() {
       $scope.$emit('reevaluate.component', waiver.hash ? { hash: waiver.hash } : null);
       $scope.waivers.splice($scope.waivers.indexOf(waiver), 1);

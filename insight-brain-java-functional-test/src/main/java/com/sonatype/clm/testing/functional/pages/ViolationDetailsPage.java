@@ -34,6 +34,10 @@ public class ViolationDetailsPage
     return new ViolationDetailsTile(childSelector("#violation-details-tile"));
   }
 
+  public PolicyViolationInfoTile policyViolationInfoTile() {
+    return new PolicyViolationInfoTile(childSelector("#policy-violation-info-tile"));
+  }
+
   public static class ViolationDetailsTile
       extends BasicElement<ViolationDetailsTile>
   {
@@ -96,6 +100,30 @@ public class ViolationDetailsPage
 
     public static Condition unused() {
       return Condition.cssClass("iq-violation-details__stage--unused");
+    }
+  }
+
+  public class PolicyViolationInfoTile
+      extends BasicElement<PolicyViolationInfoTile>
+  {
+    private PolicyViolationInfoTile(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement headerTitle() {
+      return child(".nx-tile-header__title");
+    }
+
+    public ElementsCollection reasons() {
+      return children("#policy-violation-reasons li");
+    }
+
+    public SelenideElement reason(int index) {
+      return child("#policy-violation-reasons li:nth-of-type(" + (index + 1) + ")");
+    }
+
+    public SelenideElement vulnerabilityDetailsHeader() {
+      return child(".nx-vulnerability-details .nx-h1");
     }
   }
 }

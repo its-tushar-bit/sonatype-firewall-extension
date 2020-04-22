@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationInfoTile;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -27,17 +28,19 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 
 public class ViolationDetailsTest
     extends AbstractFunctionalTest
 {
   private static Application application;
 
-  private static Policy policy;
+  private static PolicyViolation securityPolicyViolation;
 
-  private static PolicyViolation policyViolation;
+  private static PolicyViolation otherPolicyViolation;
 
   @BeforeClass
   public static void startup() {
@@ -49,7 +52,7 @@ public class ViolationDetailsTest
 
     Organization organization = staticTempEntity.newOrganization("Org 1");
     application = staticTempEntity.newApplication("App 1", "app1", organization.getId());
-    policy = staticTempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7);
+    Policy securityPolicy = staticTempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7);
 
     PolicyEvaluation policyEvaluation1 = staticTempEntity.newPolicyEvaluation(application.getId(),
         StageTypes.BUILD.getId(), "scan1", false, false, Date.from(twoDaysAgo));
@@ -60,13 +63,17 @@ public class ViolationDetailsTest
     PolicyEvaluation policyEvaluation3 = staticTempEntity.newPolicyEvaluation(application.getId(),
         StageTypes.OPERATE.getId(), "scan3", false, false, Date.from(oneDayAgo));
 
-    policyViolation = staticTempEntity.newPolicyViolation(policyEvaluation1, policy);
-    policyViolation.setActionTypeId(Action.ID_FAIL);
-    policyViolationDAO.update(policyViolation);
+    securityPolicyViolation = staticTempEntity.newPolicyViolation(policyEvaluation1, securityPolicy, "Group1",
+        "Artifact1", "Version1", "hash", "sonatype-2017-0507");
+    securityPolicyViolation.setActionTypeId(Action.ID_FAIL);
+    policyViolationDAO.update(securityPolicyViolation);
 
-    staticTempEntity.newPolicyViolation(policyEvaluation2, policy);
+    Policy otherPolicy = staticTempEntity.newPolicy();
+    otherPolicyViolation = staticTempEntity.newPolicyViolation(policyEvaluation1, otherPolicy);
 
-    PolicyViolation policyViolation3 = staticTempEntity.newPolicyViolation(policyEvaluation3, policy);
+    staticTempEntity.newPolicyViolation(policyEvaluation2, securityPolicy);
+
+    PolicyViolation policyViolation3 = staticTempEntity.newPolicyViolation(policyEvaluation3, securityPolicy);
     policyViolation3.setActionTypeId(Action.ID_WARN);
     policyViolationDAO.update(policyViolation3);
 
@@ -75,12 +82,13 @@ public class ViolationDetailsTest
   }
 
   @Before
-  public void openPage() {
-    refreshOrOpen(ViolationDetailsPage.url(policyViolation.getId()));
+  public void before() {
+    mockHdsResponseForVulnerabilityDetails();
   }
 
   @Test
   public void testDetails() {
+    refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
     ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
 
     eyesWatcher.eyesCheck();
@@ -114,23 +122,25 @@ public class ViolationDetailsTest
 
   @Test
   public void testStageLink() {
+    refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
     ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
 
     tile.stage(0).link().shouldHave(text("Build")).click();
     waitUntilUrl(ApplicationReportPage.url(application, "scan1"));
 
-    refreshOrOpen(ViolationDetailsPage.url(policyViolation.getId()));
+    refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
 
     tile.stage(2).link().shouldHave(text("Release")).click();
     waitUntilUrl(ApplicationReportPage.url(application, "scan2"));
 
-    refreshOrOpen(ViolationDetailsPage.url(policyViolation.getId()));
+    refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
     tile.stage(1).link().shouldNot(exist);
     tile.stage(3).link().should(exist);
   }
 
   @Test
   public void testPolicyOwnerLink() {
+    refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
     ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
 
     tile.policyOwner().click();
@@ -138,11 +148,40 @@ public class ViolationDetailsTest
   }
 
   @Test
+  public void testPolicyViolationInfoTile() {
+    refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
+    PolicyViolationInfoTile tile = new ViolationDetailsPage().policyViolationInfoTile();
+
+    tile.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint - Test Constraint"));
+    tile.reasons().shouldHaveSize(1);
+    tile.reason(0).shouldHave(exactText("sonatype-2017-0507"));
+    tile.vulnerabilityDetailsHeader().shouldBe(visible).shouldHave(exactText("VULNERABILITY ISSUE sonatype-2017-0507"));
+  }
+
+  @Test
+  public void testPolicyViolationInfoTile_OtherPolicyViolation() {
+    refreshOrOpen(ViolationDetailsPage.url(otherPolicyViolation.getId()));
+    PolicyViolationInfoTile tile = new ViolationDetailsPage().policyViolationInfoTile();
+
+    tile.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint - Constraint"));
+    tile.reasons().shouldHaveSize(1);
+    tile.reason(0).shouldHave(exactText("reason"));
+    tile.vulnerabilityDetailsHeader().shouldNotBe(visible);
+  }
+
+  @Test
   public void testBackButton() {
+    refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
 
     // for now, this is hard-coded to go to the dashboard
     violationDetailsPage.backButton().click();
     waitUntilUrl(DashboardPage.urlToViolations());
+  }
+
+  private void mockHdsResponseForVulnerabilityDetails() {
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails2.json"))
+        .atUri("rest/vulnerability/details/json/sonatype-2017-0507");
   }
 }

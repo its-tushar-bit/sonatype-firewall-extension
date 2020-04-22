@@ -35,7 +35,7 @@ describe('ViolationPageContainer', function() {
     state = {
       violationPage: {
         loading: false,
-        error: null
+        violationDetailsError: null
       },
       stages: {
         dashboard: {
@@ -55,13 +55,13 @@ describe('ViolationPageContainer', function() {
     let wrapper = shallow(vdom).dive();
 
     expect(wrapper).toHaveProp('loading', false);
-    expect(wrapper).toHaveProp('error', null);
+    expect(wrapper).toHaveProp('violationDetailsError', null);
 
     state = {
       ...state,
       violationPage: {
         loading: true,
-        error: 'foo'
+        violationDetailsError: 'foo'
       }
     };
 
@@ -70,7 +70,7 @@ describe('ViolationPageContainer', function() {
     wrapper = shallow(vdom).dive();
 
     expect(wrapper).toHaveProp('loading', true);
-    expect(wrapper).toHaveProp('error', 'foo');
+    expect(wrapper).toHaveProp('violationDetailsError', 'foo');
   });
 
   it('maps the stageTypes and error props from the dashboard stages to `stageTypes` and `stageTypesError`', () => {

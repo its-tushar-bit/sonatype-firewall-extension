@@ -9,6 +9,7 @@ import { always } from 'ramda';
 import * as enzymeUtils from '../enzymeUtils';
 import ViolationPage from '../../../main/frontend/violation/ViolationPage';
 import ViolationDetailsTile from '../../../main/frontend/violation/ViolationDetailsTile';
+import PolicyViolationInfoTile from '../../../main/frontend/violation/PolicyViolationInfoTile';
 import BackButton from '../../../main/frontend/react/BackButton';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 
@@ -78,13 +79,13 @@ describe('ViolationPage', function() {
     expect(getLoadWrapper({ violationDetails: {}, stageTypes: [], loading: true })).toHaveProp('loading', true);
   });
 
-  it('sets the LoadWrapper\'s error from the error and stageTypesError props', function() {
+  it('sets the LoadWrapper\'s error from the violationDetailsError and stageTypesError props', function() {
     const getLoadWrapper = props => getShallowComponent(props).find('.nx-page-main').find(LoadWrapper);
 
     expect(getLoadWrapper()).toHaveProp('error', undefined);
-    expect(getLoadWrapper({ error: 'foo' })).toHaveProp('error', 'foo');
+    expect(getLoadWrapper({ violationDetailsError: 'foo' })).toHaveProp('error', 'foo');
     expect(getLoadWrapper({ stageTypesError: 'foo' })).toHaveProp('error', 'foo');
-    expect(getLoadWrapper({ error: 'foo', stageTypesError: 'bar' })).toHaveProp('error', 'foo');
+    expect(getLoadWrapper({ violationDetailsError: 'foo', stageTypesError: 'bar' })).toHaveProp('error', 'foo');
   });
 
   it('calls loadViolation with the $state id param, and fetchStageTypes with the `dashboard` param, on first load', 
@@ -119,4 +120,21 @@ describe('ViolationPage', function() {
         expect(tile.prop('stageTypes')).toBe(stageTypes);
       }
   );
+
+  it('renders a PolicyViolationInfoTile within the LoadWrapper with correct props', function() {
+    const violationDetails = {},
+        vulnerabilityDetails = {},
+        tile = getShallowComponent({
+          violationDetails,
+          vulnerabilityDetails,
+          vulnerabilityDetailsError: 'Test Error',
+          vulnerabilityDetailsLoading: true
+        }).find(LoadWrapper).find(PolicyViolationInfoTile);
+
+    expect(tile).toExist();
+    expect(tile.prop('violationDetails')).toBe(violationDetails);
+    expect(tile.prop('vulnerabilityDetails')).toBe(vulnerabilityDetails);
+    expect(tile.prop('vulnerabilityDetailsError')).toBe('Test Error');
+    expect(tile.prop('vulnerabilityDetailsLoading')).toBe(true);
+  });
 });

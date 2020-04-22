@@ -97,29 +97,31 @@ export default function ViolationDetailsTile({ $state, violationDetails, stageTy
   );
 }
 
+export const violationDetailsPropTypes = {
+  policyName: PropTypes.string.isRequired,
+  policyThreatCategory: PropTypes.string.isRequired,
+  policyOwner: PropTypes.shape({
+    ownerName: PropTypes.string.isRequired,
+    ownerType: PropTypes.oneOf(keys(ownerIdTypeMap)).isRequired,
+    ownerId: PropTypes.string.isRequired,
+    ownerPublicId: PropTypes.string
+  }).isRequired,
+  threatLevel: PropTypes.number.isRequired,
+  openTime: PropTypes.number.isRequired,
+  stageData: PropTypes.objectOf(StageDisplay.propTypes.stageData.isRequired).isRequired,
+  applicationPublicId: PropTypes.string.isRequired,
+  organizationName: PropTypes.string.isRequired,
+  applicationName: PropTypes.string.isRequired,
+  displayName: PropTypes.object,
+  filenames: PropTypes.array
+};
+
 ViolationDetailsTile.propTypes = {
   $state: PropTypes.shape({
     get: PropTypes.func.isRequired,
     href: PropTypes.func.isRequired
   }).isRequired,
-  violationDetails: PropTypes.shape({
-    policyName: PropTypes.string.isRequired,
-    policyThreatCategory: PropTypes.string.isRequired,
-    policyOwner: PropTypes.shape({
-      ownerName: PropTypes.string.isRequired,
-      ownerType: PropTypes.oneOf(keys(ownerIdTypeMap)).isRequired,
-      ownerId: PropTypes.string.isRequired,
-      ownerPublicId: PropTypes.string
-    }).isRequired,
-    threatLevel: PropTypes.number.isRequired,
-    openTime: PropTypes.number.isRequired,
-    stageData: PropTypes.objectOf(StageDisplay.propTypes.stageData.isRequired).isRequired,
-    applicationPublicId: PropTypes.string.isRequired,
-    organizationName: PropTypes.string.isRequired,
-    applicationName: PropTypes.string.isRequired,
-    displayName: PropTypes.object,
-    filenames: PropTypes.array
-  }),
+  violationDetails: PropTypes.shape(violationDetailsPropTypes),
   stageTypes: PropTypes.arrayOf(PropTypes.shape({
     stageTypeId: PropTypes.string.isRequired,
     shortName: PropTypes.string.isRequired

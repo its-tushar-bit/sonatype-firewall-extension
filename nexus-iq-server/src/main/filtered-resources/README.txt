@@ -6,10 +6,9 @@ As of 1.17 CLM server is being renamed to Nexus IQ Server.
 System Requirements
 ===================
 
-Nexus IQ Server requires a Java 8 runtime. OpenJDK 8 is supported.  Prior to IQ Server release 55 (November 2018) Oracle Java 8 runtime update 45 as a minimum was supported.
+Since release 89 (April 2020), Nexus IQ Server supports Java 8 or Java 11 as a runtime.
 
-Internet Explorer 9+ or equivalent modern browsers from other vendors will be required for proper interaction with the web application.
-
+Internet Explorer 11+ or equivalent modern browsers from other vendors will be required for proper interaction with the web application.
 
 Running the Nexus IQ Server
 ===========================

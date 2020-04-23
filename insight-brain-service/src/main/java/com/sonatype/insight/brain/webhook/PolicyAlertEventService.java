@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.brain.webhook.PolicyAlertEvent.ApplicationSummary;
+import com.sonatype.insight.brain.webhook.dto.ApplicationSummary;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,13 +63,14 @@ public class PolicyAlertEventService
   public void postEvent(
       final PolicyEvaluation policyEvaluation, 
       final PolicyEvaluationResult policyEvaluationResult,
-      final String commitHash)
+      final String commitHash,
+      final Application application)
   {
     try {
       final ApplicationSummary applicationSummary = populateApplicationSummary(policyEvaluation);
       final ApplicationEvaluationEvent applicationEvaluationEvent =
           ApplicationEvaluationEventService
-              .buildEvent(policyEvaluation, policyEvaluationResult, commitHash, currentUser);
+              .buildEvent(policyEvaluation, policyEvaluationResult, commitHash, currentUser, application);
 
       // group by target
       Map<String, List<PolicyFact>> groupedAlerts = policyEvaluationResult.getAlerts().stream()

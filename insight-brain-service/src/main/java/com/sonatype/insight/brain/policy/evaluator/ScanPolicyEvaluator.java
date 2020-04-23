@@ -222,7 +222,8 @@ public class ScanPolicyEvaluator
 
     updateReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
 
-    postEvents(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations, commitHash);
+    postEvents(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations, commitHash,
+        application);
 
     return scanPolicyEvaluatorResults;
   }
@@ -719,12 +720,13 @@ public class ScanPolicyEvaluator
   private void postEvents(
       PolicyEvaluation policyEvaluation,
       List<PolicyViolation> policyViolations,
-      String commitHash)
+      String commitHash,
+      Application application)
   {
     PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(policyEvaluation, policyViolations,
         true);
-    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash);
-    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash);
+    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash, application);
+    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash, application);
   }
 
   @VisibleForTesting

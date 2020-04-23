@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.webhook;
 import java.util.Date;
 
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEvent;
+import com.sonatype.insight.brain.webhook.dto.ApplicationSummary;
 
 /**
  * @since 1.25.0
@@ -42,6 +43,11 @@ public class ApplicationEvaluationEvent
    * @since 1.67.0 
    */
   public String commitHash;
+
+  /**
+   * @since 1.91
+   */
+  public ApplicationSummary application = new ApplicationSummary();
 
   @Override
   public String toString() {

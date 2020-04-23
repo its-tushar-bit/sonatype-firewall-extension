@@ -19,6 +19,11 @@ public class ApplicationEvaluationPayload
 
   public static class ApplicationEvaluationDTO
   {
+    /**
+     * Since 1.91
+     */
+    public ApplicationSummary application = new ApplicationSummary();
+
     public String policyEvaluationId;
 
     public String stage;

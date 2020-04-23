@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.security.CurrentUser;
 
@@ -41,10 +42,12 @@ public class ApplicationEvaluationEventService
   public void postEvent(
       final PolicyEvaluation policyEvaluation,
       final PolicyEvaluationResult policyEvaluationResult,
-      final String commitHash)
+      final String commitHash,
+      final Application application)
   {
     try {
-      ApplicationEvaluationEvent event = buildEvent(policyEvaluation, policyEvaluationResult, commitHash, currentUser);
+      ApplicationEvaluationEvent event =
+          buildEvent(policyEvaluation, policyEvaluationResult, commitHash, currentUser, application);
       asyncEventBus.post(event);
     }
     catch (RuntimeException e) {
@@ -56,7 +59,8 @@ public class ApplicationEvaluationEventService
       final PolicyEvaluation policyEvaluation,
       final PolicyEvaluationResult policyEvaluationResult,
       final String commitHash, 
-      final CurrentUser currentUser)
+      final CurrentUser currentUser,
+      final Application application)
   {
     ApplicationEvaluationEvent event = new ApplicationEvaluationEvent();
     event.policyEvaluationId = policyEvaluation.getId();
@@ -71,6 +75,11 @@ public class ApplicationEvaluationEventService
     event.criticalComponentCount = policyEvaluationResult.getCriticalComponentCount();
     event.severeComponentCount = policyEvaluationResult.getSevereComponentCount();
     event.moderateComponentCount = policyEvaluationResult.getModerateComponentCount();
+
+    event.application.id = application.getId();
+    event.application.publicId = application.getPublicId();
+    event.application.name = application.getName();
+    event.application.organizationId = application.getOrganizationId();
 
     String outcome = ApplicationEvaluationEvent.ACTION_ID_NONE;
     for (PolicyAlert alert : policyEvaluationResult.getAlerts()) {

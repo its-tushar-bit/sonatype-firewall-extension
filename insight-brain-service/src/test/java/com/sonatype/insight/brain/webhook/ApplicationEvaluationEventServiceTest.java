@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -40,10 +41,11 @@ public class ApplicationEvaluationEventServiceTest
   public void testPostEvent() throws InterruptedException {
     final Date time = new Date();
 
+    Application application = tempEntity.newApplicationWithParent();
     final PolicyEvaluation policyEvaluation = new PolicyEvaluation();
     policyEvaluation.setId("policyEvaluationId");
     policyEvaluation.setStageTypeId("stageTypeId");
-    policyEvaluation.setApplicationId("applicationId");
+    policyEvaluation.setApplicationId(application.getId());
     policyEvaluation.setScanId("reportId");
     policyEvaluation.setTime(time);
 
@@ -56,7 +58,7 @@ public class ApplicationEvaluationEventServiceTest
     TestEventHandler<ApplicationEvaluationEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
     asyncEventBus.register(handler);
 
-    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, "commitHash");
+    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, "commitHash", application);
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     ApplicationEvaluationEvent event = handler.getEvent();
     assertThat(event).isNotNull();
@@ -72,20 +74,26 @@ public class ApplicationEvaluationEventServiceTest
     assertThat(event.initiator).isEqualTo(USERNAME);
     assertThat(event.reportId).isEqualTo("reportId");
     assertThat(event.commitHash).isEqualTo("commitHash");
+    assertThat(event.application.id).isEqualTo(application.getId());
+    assertThat(event.application.publicId).isEqualTo(application.getPublicId());
+    assertThat(event.application.name).isEqualTo(application.getName());
+    assertThat(event.application.organizationId).isEqualTo(application.getOrganizationId());
 
     asyncEventBus.unregister(handler);
   }
 
   @Test
   public void testPostEvent_CalculateNoneOutcome() throws InterruptedException {
+    final Application application = tempEntity.newApplicationWithParent();
     final PolicyEvaluation policyEvaluation = new PolicyEvaluation();
+    policyEvaluation.setApplicationId(application.getId());
     final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
 
     // No action provides a ACTION_ID_NONE outcome
     TestEventHandler<ApplicationEvaluationEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
     asyncEventBus.register(handler);
 
-    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, null);
+    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, null, application);
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     ApplicationEvaluationEvent event = handler.getEvent();
     assertThat(event.outcome).isEqualTo(ApplicationEvaluationEvent.ACTION_ID_NONE);
@@ -94,7 +102,9 @@ public class ApplicationEvaluationEventServiceTest
 
   @Test
   public void testPostEvent_CalculateWarnOutcome() throws InterruptedException {
+    final Application application = tempEntity.newApplicationWithParent();
     final PolicyEvaluation policyEvaluation = new PolicyEvaluation();
+    policyEvaluation.setApplicationId(application.getId());
     final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
 
     // Warn provides a ID_WARN outcome
@@ -104,7 +114,7 @@ public class ApplicationEvaluationEventServiceTest
     TestEventHandler<ApplicationEvaluationEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
     asyncEventBus.register(handler);
 
-    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, null);
+    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, null, application);
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     ApplicationEvaluationEvent event = handler.getEvent();
     assertThat(event.outcome).isEqualTo(Action.ID_WARN);
@@ -113,7 +123,9 @@ public class ApplicationEvaluationEventServiceTest
 
   @Test
   public void testPostEvent_CalculateFailOutcome() throws InterruptedException {
+    final Application application = tempEntity.newApplicationWithParent();
     final PolicyEvaluation policyEvaluation = new PolicyEvaluation();
+    policyEvaluation.setApplicationId(application.getId());
     final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
 
     // Fail and warn provides a ID_FAIL outcome
@@ -124,7 +136,7 @@ public class ApplicationEvaluationEventServiceTest
     TestEventHandler<ApplicationEvaluationEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
     asyncEventBus.register(handler);
 
-    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, null);
+    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, null, application);
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     ApplicationEvaluationEvent event = handler.getEvent();
     assertThat(event.outcome).isEqualTo(Action.ID_FAIL);
@@ -133,9 +145,10 @@ public class ApplicationEvaluationEventServiceTest
 
   @Test
   public void testPostEvent_HandlesRuntimeException() {
+    Application app = tempEntity.newApplicationWithParent();
     when(subject.getPrincipal()).thenThrow(new RuntimeException("testing"));
 
-    applicationEvaluationEventService.postEvent(new PolicyEvaluation(), new PolicyEvaluationResult(), null);
+    applicationEvaluationEventService.postEvent(new PolicyEvaluation(), new PolicyEvaluationResult(), null, app);
 
     verify(subject, atLeastOnce()).getPrincipal();
   }

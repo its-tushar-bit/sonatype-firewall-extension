@@ -40,9 +40,9 @@ import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.PolicyEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.RoleEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.TagEvent;
-import com.sonatype.insight.brain.webhook.PolicyAlertEvent.ApplicationSummary;
 import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload;
 import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload.ApplicationEvaluationDTO;
+import com.sonatype.insight.brain.webhook.dto.ApplicationSummary;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload.LicenseOverrideDTO;
 import com.sonatype.insight.brain.webhook.dto.PolicyAlertPayload;
@@ -126,6 +126,12 @@ public class WebhookDispatcherTest
     event.moderateComponentCount = 7;
     event.outcome = "outcome";
     event.reportId = "reportId";
+
+    event.application.id = "ownerId";
+    event.application.publicId = "app-public-id";
+    event.application.name = "app-name";
+    event.application.organizationId = "org-id";
+
     asyncEventBus.post(event);
 
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
@@ -154,6 +160,11 @@ public class WebhookDispatcherTest
     assertThat(applicationEvaluationDTO.moderateComponentCount).isEqualTo(7);
     assertThat(applicationEvaluationDTO.outcome).isEqualTo("outcome");
     assertThat(applicationEvaluationDTO.reportId).isEqualTo("reportId");
+
+    assertThat(applicationEvaluationDTO.application.id).isEqualTo("ownerId");
+    assertThat(applicationEvaluationDTO.application.publicId).isEqualTo("app-public-id");
+    assertThat(applicationEvaluationDTO.application.name).isEqualTo("app-name");
+    assertThat(applicationEvaluationDTO.application.organizationId).isEqualTo("org-id");
   }
 
   @Test

@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEvent;
+import com.sonatype.insight.brain.webhook.dto.ApplicationSummary;
 
 /**
  * @since 1.64.0
@@ -37,26 +38,5 @@ public class PolicyAlertEvent
         ", application=" + application +
         ", policyFacts=" + policyFacts +
         '}';
-  }
-
-  public static class ApplicationSummary
-  {
-    public String id;
-
-    public String publicId;
-
-    public String name;
-
-    public String organizationId;
-
-    @Override
-    public String toString() {
-      return "ApplicationSummary{" +
-          "id='" + id + '\'' +
-          ", publicId='" + publicId + '\'' +
-          ", name='" + name + '\'' +
-          ", organizationId='" + organizationId + '\'' +
-          '}';
-    }
   }
 }

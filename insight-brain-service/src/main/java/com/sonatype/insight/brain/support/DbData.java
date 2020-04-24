@@ -9,6 +9,7 @@ import java.util.AbstractMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -36,6 +37,7 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
@@ -43,8 +45,10 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerability
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.PasswordService;
 
+import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
 import static com.sonatype.insight.brain.hds.TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME;
@@ -105,6 +109,8 @@ class DbData
 
   private final PolicyMonitoringDAO policyMonitoringDAO;
 
+  private final SourceControlDAO sourceControlDAO;
+
   private final MigrationTrackerDAO migrationTrackerDAO;
 
   private final DataRetentionPolicyDAO dataRetentionPolicyDAO;
@@ -117,7 +123,7 @@ class DbData
          final OrganizationDAO organizationDAO,
          final ApplicationDAO applicationDAO,
          final ProprietaryConfigDAO proprietaryConfigDAO,
-         final UserDAO userDAO, 
+         final UserDAO userDAO,
          final PasswordService passwordService,
          final RoleDAO roleDAO,
          final RolePermissionDAO rolePermissionDAO,
@@ -138,7 +144,8 @@ class DbData
          final PolicyMonitoringDAO policyMonitoringDAO,
          final DataRetentionPolicyDAO dataRetentionPolicyDAO,
          final MigrationTrackerDAO migrationTrackerDAO,
-         final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
+         final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+         final SourceControlDAO sourceControlDAO)
   {
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
@@ -167,6 +174,7 @@ class DbData
     this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
+    this.sourceControlDAO = sourceControlDAO;
   }
 
   Entry<String, Object> getRepositoryManager() {
@@ -274,6 +282,12 @@ class DbData
     return wrapEntry("policyMonitoring", policyMonitoringDAO.getAll());
   }
 
+  Entry<String, Object> getSourceControl() {
+    List<SourceControl> sourceControls = sourceControlDAO.getAll();
+    sourceControls.forEach(sourceControl -> maskValueIfPresent(sourceControl.getToken(), sourceControl::setToken));
+    return wrapEntry("sourceControl", sourceControls);
+  }
+
   Entry<String, Object> getDataRetentionPolicy() {
     return wrapEntry("dataRetentionPolicy", dataRetentionPolicyDAO.getAll());
   }
@@ -305,5 +319,11 @@ class DbData
 
   private static Entry<String, Object> wrapEntry(final String entryName, final Object objectToPut) {
     return new AbstractMap.SimpleImmutableEntry<>(entryName, objectToPut);
+  }
+
+  private void maskValueIfPresent(final String value, final Consumer<String> setter) {
+    if (!Strings.isNullOrEmpty(value)) {
+      setter.accept(SystemInfo.MASK);
+    }
   }
 }

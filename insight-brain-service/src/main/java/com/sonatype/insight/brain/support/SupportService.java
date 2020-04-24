@@ -382,6 +382,7 @@ class SupportService
     addDbData(filesToZip, workDir, dbData.getLicenseThreatGroupLicense());
     addDbData(filesToZip, workDir, dbData.getPolicy());
     addDbData(filesToZip, workDir, dbData.getPolicyMonitoring());
+    addDbData(filesToZip, workDir, dbData.getSourceControl());
   }
 
   private void addDbData(final List<SupportFile> filesToZip,

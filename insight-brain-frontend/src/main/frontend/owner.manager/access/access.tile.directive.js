@@ -3,11 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './access.tile.directive.html';
+
 export default function AccessTile() {
   return {
     restrict: 'E',
     replace: true,
-    templateUrl: 'owner.manager/access/access.tile.directive.html',
+    template,
     controller: 'AccessTileController',
     controllerAs: 'vm',
     bindToController: true

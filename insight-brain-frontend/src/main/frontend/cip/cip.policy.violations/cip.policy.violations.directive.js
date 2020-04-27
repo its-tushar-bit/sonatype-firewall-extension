@@ -3,10 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './cip-policy-violations.html';
+
 /*global CLM */
 export default function cipPolicyViolationsDirective() {
   return {
-    templateUrl: CLM.assetsPath + 'cip/cip-policy-violations.html',
+    template,
     controllerAs: 'vm',
     controller: 'PolicyViolationsController'
   };

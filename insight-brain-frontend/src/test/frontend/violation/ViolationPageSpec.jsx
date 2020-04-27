@@ -4,10 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import * as PropTypes from 'prop-types';
 import { always } from 'ramda';
 
 import * as enzymeUtils from '../enzymeUtils';
-import ViolationPage from '../../../main/frontend/violation/ViolationPage';
 import ViolationDetailsTile from '../../../main/frontend/violation/ViolationDetailsTile';
 import PolicyViolationInfoTile from '../../../main/frontend/violation/PolicyViolationInfoTile';
 import BackButton from '../../../main/frontend/react/BackButton';
@@ -17,6 +17,10 @@ import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 function MaximizedContainer({ children }) {
   return <div>{children}</div>;
 }
+
+MaximizedContainer.propTypes = {
+  children: PropTypes.node
+};
 
 describe('ViolationPage', function() {
   let minimalProps,
@@ -32,8 +36,8 @@ describe('ViolationPage', function() {
           '../react/MaximizedContainer': MaximizedContainer
         }).default;
 
-    loadViolationSpy =jasmine.createSpy('loadViolation');
-    fetchStageTypesSpy =jasmine.createSpy('fetchStageTypes');
+    loadViolationSpy = jasmine.createSpy('loadViolation');
+    fetchStageTypesSpy = jasmine.createSpy('fetchStageTypes');
 
     minimalProps = {
       $state: {
@@ -88,7 +92,7 @@ describe('ViolationPage', function() {
     expect(getLoadWrapper({ violationDetailsError: 'foo', stageTypesError: 'bar' })).toHaveProp('error', 'foo');
   });
 
-  it('calls loadViolation with the $state id param, and fetchStageTypes with the `dashboard` param, on first load', 
+  it('calls loadViolation with the $state id param, and fetchStageTypes with the `dashboard` param, on first load',
       function() {
         getMountedComponent();
 

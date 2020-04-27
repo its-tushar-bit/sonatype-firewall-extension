@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './root.organization.migrate.modal.html';
+
 /*global angular, clmBuildTimestamp*/
 export default function RootOrganizationMigrateModalService(Modal) {
   var service = {
@@ -15,7 +17,7 @@ export default function RootOrganizationMigrateModalService(Modal) {
       backdrop: 'static',
       keyboard: false,
       controller: 'RootOrganizationMigrateModalController as vm',
-      templateUrl: 'root.organization.migrate/root.organization.migrate.modal.html?' + clmBuildTimestamp
+      template
     }).result;
   }
 

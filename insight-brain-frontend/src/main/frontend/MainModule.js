@@ -348,11 +348,11 @@ export const InitModule = angular.module('InitModule', [
       // make sure to cleanup event listeners
       $rootScope.$on('$destroy', function() {
         $rootScope.$broadcast('pageChangeAccepted');
-        $(window).unbind('beforeunload', unloadListener);
+        $($window).unbind('beforeunload', unloadListener);
       });
 
       // this causes the browser to notify the user that the page contains unsaved data
-      $(window).bind('beforeunload', unloadListener);
+      $($window).bind('beforeunload', unloadListener);
 
       // Try to fetch the current user in order to see if we are already logged in, but do not attempt
       // to initiate a login here (we might be on a page that doesn't require auth)

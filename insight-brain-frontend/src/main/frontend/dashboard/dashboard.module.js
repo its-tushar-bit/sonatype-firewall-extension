@@ -14,6 +14,8 @@ import storesModule from '../util/Stores';
 import dashboardReducer from './dashboardReducer';
 import ComponentModule from './ComponentController';
 import ComponentDisplayModule from '../ComponentDisplay/module';
+import template from './dashboard.view.html';
+import componentTemplate from './component.html';
 
 var dashboardModule = angular.module('dashboard.module',
     [
@@ -31,7 +33,7 @@ dashboardModule.config(['$stateProvider', '$urlRouterProvider', function($stateP
   $stateProvider.state('dashboard', {
     url: '/dashboard',
     abstract: true,
-    templateUrl: 'dashboard/dashboard.view.html?' + clmBuildTimestamp,
+    template,
     data: {
       title: 'Dashboard',
       crumb: 'Dashboard'
@@ -66,7 +68,7 @@ dashboardModule.config(['$stateProvider', '$urlRouterProvider', function($stateP
   }).state('dashboard.component', {
     url: '/component/{hash}',
     controller: 'componentController',
-    templateUrl: 'dashboard/component.html?' + clmBuildTimestamp,
+    template: componentTemplate,
     data: {
       crumb: 'Component Details'
     }

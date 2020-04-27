@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './proprietary.matchers.modal.html';
+
 export default function ProprietaryMatchersModal(Modal) {
   return {
     open: openModal
@@ -14,7 +16,7 @@ export default function ProprietaryMatchersModal(Modal) {
       backdrop: 'static',
       keyboard: false,
       controller: 'proprietary.matchers.modal.controller as vm',
-      templateUrl: CLM.assetsPath + 'cip/proprietary.matchers.modal.html',
+      template,
       resolve: {
         ownerAppId: function() {
           return ownerAppId;

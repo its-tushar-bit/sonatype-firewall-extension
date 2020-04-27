@@ -19,6 +19,11 @@ import {
 import LdapServerListController from './ldap.server.list.controller';
 import {LdapServerOrderingController, LdapServerOrderingModal} from './ldap.server.ordering.controller';
 
+import listTemplate from '../components/ldap.server.list.html';
+import editTemplate from '../components/ldap.html';
+import connectionTemplate from '../components/ldap-connection.html';
+import userMappingTemplate from '../components/ldap-usermapping.html';
+
 export default angular.module('ldap.module', [
   CLMLocationModule.name, resourceModule.name, 'ui.router', angularCommonModule.name, commonServicesModule.name,
   EditorToolsModule.name
@@ -38,7 +43,7 @@ function ldapModuleConfiguration($stateProvider) {
     url: '/ldap-servers',
     controller: 'ldap.server.list.controller',
     controllerAs: 'vm',
-    templateUrl: 'configuration/components/ldap.server.list.html?' + clmBuildTimestamp,
+    template: listTemplate,
     data: {
       title: 'LDAP Servers'
     },
@@ -50,7 +55,7 @@ function ldapModuleConfiguration($stateProvider) {
   }).state('edit-ldap', {
     url: '/ldap/edit/{ldapId}',
     controller: 'LdapConfigurationController',
-    templateUrl: 'configuration/components/ldap.html?' + clmBuildTimestamp,
+    template: editTemplate,
     data: {
       title: 'Edit LDAP Configuration'
     },
@@ -62,7 +67,7 @@ function ldapModuleConfiguration($stateProvider) {
   }).state('create-ldap', {
     url: '/ldap/create',
     controller: 'LdapConfigurationController',
-    templateUrl: 'configuration/components/ldap.html?' + clmBuildTimestamp,
+    template: editTemplate,
     data: {
       title: 'Create LDAP Configuration'
     },
@@ -73,10 +78,10 @@ function ldapModuleConfiguration($stateProvider) {
     }
   }).state('edit-ldap.connection', {
     controller: 'LdapConnectionController',
-    templateUrl: 'configuration/components/ldap-connection.html?' + clmBuildTimestamp
+    template: connectionTemplate
   }).state('edit-ldap.usermapping', {
     controller: 'LdapUsermappingController',
-    templateUrl: 'configuration/components/ldap-usermapping.html?' + clmBuildTimestamp
+    template: userMappingTemplate
   });
 }
 

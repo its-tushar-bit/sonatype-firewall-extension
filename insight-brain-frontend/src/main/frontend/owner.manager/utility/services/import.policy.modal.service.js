@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './import.policy.modal.html';
+
 export default
 function ImportPolicyModalService(Modal) {
   return {open: openModal};
@@ -11,7 +13,7 @@ function ImportPolicyModalService(Modal) {
     return Modal.open({
       backdrop: 'static',
       keyboard: false,
-      templateUrl: 'owner.manager/utility/services/import.policy.modal.html',
+      template,
       controller: 'import.policy.modal.controller as vm'
     }).result;
   }

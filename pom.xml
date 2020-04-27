@@ -1064,7 +1064,6 @@
               <!-- 3rd party contents (needs refinement to catch our stuff) -->
               <exclude>**/*.html</exclude> <!-- Don't repeat license in all templates as it'll end up in DOM -->
               <exclude>**/src/main/frontend/**/lib/**/*</exclude>
-              <exclude>insight-brain-frontend/src/main/resources/assets/version-graph/protovis*.js</exclude>
               <exclude>**/src/test/resources/**/*</exclude>
               <exclude>**/node_modules/**</exclude>
               <exclude>**/org/h2/**</exclude>

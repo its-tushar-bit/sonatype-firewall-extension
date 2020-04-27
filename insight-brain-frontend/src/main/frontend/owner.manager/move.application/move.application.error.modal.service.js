@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './move.application.error.modal.html';
 
 export default
 function MoveApplicationErrorModalService(Modal) {
@@ -16,7 +17,7 @@ function MoveApplicationErrorModalService(Modal) {
       backdrop: 'static',
       keyboard: false,
       controller: MoveApplicationErrorModalController,
-      templateUrl: 'owner.manager/move.application/move.application.error.modal.html',
+      template,
       resolve: {
         messages: function() {
           return messages;

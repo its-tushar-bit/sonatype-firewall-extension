@@ -3,10 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './cip-license-editor.html';
+
 /*global CLM */
 export default function CIPLicenseEditor() {
   return {
-    templateUrl: CLM.assetsPath + 'cip/cip-license-editor.html',
+    template,
     controllerAs: 'vm',
     controller: 'LicenseEditorController'
   };

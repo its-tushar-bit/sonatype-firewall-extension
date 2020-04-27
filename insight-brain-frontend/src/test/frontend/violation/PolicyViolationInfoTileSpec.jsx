@@ -48,7 +48,7 @@ describe('PolicyViolationInfoTile', function() {
   });
 
   it('renders LoadWrapper with error prop if vulnerabilityDetailsError is not null', function() {
-    const loadWrapper = getShallowComponent({ vulnerabilityDetailsError: 'Errr!'} ).find(LoadWrapper);
+    const loadWrapper = getShallowComponent({ vulnerabilityDetailsError: 'Errr!'}).find(LoadWrapper);
 
     expect(loadWrapper).toExist();
     expect(loadWrapper.prop('error')).toBe('Errr!');

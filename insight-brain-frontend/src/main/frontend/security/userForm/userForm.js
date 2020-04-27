@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './userForm.html';
+
 /* global angular, AngularUtils */
 export default {
   bindings: {
@@ -11,7 +13,7 @@ export default {
     onSave: '&',
     onCancel: '&'
   },
-  templateUrl: 'security/userForm/userForm.html?' + clmBuildTimestamp,
+  template,
   controllerAs: 'vm',
   controller: UserFormController
 };

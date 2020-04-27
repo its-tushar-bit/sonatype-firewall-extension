@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import deleteTemplate from './delete.application.category.error.modal.html';
+
 export default
 function CategoryEditorController($scope, $stateParams, Modal, TagStore, DeleteModalService,
                                   SameOwnerStateNavigationService, $q, PolicyTagStore, PolicyHierarchyStore,
@@ -37,7 +39,7 @@ function CategoryEditorController($scope, $stateParams, Modal, TagStore, DeleteM
         animation: false,
         backdrop: 'static',
         keyboard: false,
-        templateUrl: 'owner.manager/category/delete.application.category.error.modal.html',
+        template: deleteTemplate,
         scope: $scope
       });
     }

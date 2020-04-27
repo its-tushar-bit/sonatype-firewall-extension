@@ -75,6 +75,17 @@ import SameOwnerViewSref from './utility/same.owner.view.sref.directive';
 import PolicyViolationGrandfatheringModule from './policyViolationGrandfathering/module';
 import retentionModule from './retention/module';
 import sourceControlModule from './source.control/module';
+import viewTemplate from './state/owner.manager.view.html';
+import repoSummaryTemplate from './repositories/repositories.summary.view.html';
+import accessEditorTemplate from './access/access.editor.view.html';
+import summaryViewTemplate from './summary/owner.summary.view.html';
+import labelEditorTemplate from './label/label.editor.view.html';
+import policyEditorTemplate from './policy/policy.editor.view.html';
+import continuousMonitoringEditorTemplate from './policy/monitored.stage.editor.view.html';
+import proprietaryEditorTemplate from './policy/proprietary.config.editor.view.html';
+import ltgEditorTemplate from './license.threat.group/license.threat.group.editor.view.html';
+import categoryEditorTemplate from './category/category.editor.view.html';
+import appCategoryEditorTemplate from './category/application.category.editor.view.html';
 
 export default
 angular.module('owner.manager.module',
@@ -154,7 +165,7 @@ angular.module('owner.manager.module',
         $stateProvider.state('management', {
           url: '/management',
           abstract: true,
-          templateUrl: 'owner.manager/state/owner.manager.view.html?' + clmBuildTimestamp
+          template: viewTemplate
         }).state('management.view', {
           url: '/view',
           data: {
@@ -175,7 +186,7 @@ angular.module('owner.manager.module',
           },
           views: {
             '@management': {
-              templateUrl: 'owner.manager/repositories/repositories.summary.view.html?' + clmBuildTimestamp
+              template: repoSummaryTemplate
             }
           }
         }).state('management.edit.repositories', {
@@ -194,7 +205,7 @@ angular.module('owner.manager.module',
             '@management.edit': {
               controller: 'access.editor.controller',
               controllerAs: 'vm',
-              templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
+              template: accessEditorTemplate
             }
           }
         }).state('management.edit.repositories.edit-access', {
@@ -203,7 +214,7 @@ angular.module('owner.manager.module',
             '@management.edit': {
               controller: 'access.editor.controller',
               controllerAs: 'vm',
-              templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
+              template: accessEditorTemplate
             }
           }
         });
@@ -216,7 +227,7 @@ angular.module('owner.manager.module',
             },
             views: {
               '@management': {
-                templateUrl: 'owner.manager/summary/owner.summary.view.html?' + clmBuildTimestamp
+                template: summaryViewTemplate
               }
             }
           }).state('management.edit.' + ownerType.type, {
@@ -238,7 +249,7 @@ angular.module('owner.manager.module',
               '@management.edit': {
                 controller: 'label.editor.controller',
                 controllerAs: 'vm',
-                templateUrl: 'owner.manager/label/label.editor.view.html?' + clmBuildTimestamp
+                template: labelEditorTemplate
               }
             }
           }).state('management.edit.' + ownerType.type + '.create-label', {
@@ -250,7 +261,7 @@ angular.module('owner.manager.module',
               '@management.edit': {
                 controller: 'label.editor.controller',
                 controllerAs: 'vm',
-                templateUrl: 'owner.manager/label/label.editor.view.html?' + clmBuildTimestamp
+                template: labelEditorTemplate
               }
             }
           }).state('management.edit.' + ownerType.type + '.policy', {
@@ -264,7 +275,7 @@ angular.module('owner.manager.module',
               '@management': {
                 controller: 'policy.editor.controller',
                 controllerAs: 'vm',
-                templateUrl: 'owner.manager/policy/policy.editor.view.html?' + clmBuildTimestamp
+                template: policyEditorTemplate
               }
             }
           }).state('management.edit.' + ownerType.type + '.create-policy', {
@@ -278,7 +289,7 @@ angular.module('owner.manager.module',
               '@management': {
                 controller: 'policy.editor.controller',
                 controllerAs: 'vm',
-                templateUrl: 'owner.manager/policy/policy.editor.view.html?' + clmBuildTimestamp
+                template: policyEditorTemplate
               }
             }
           }).state('management.edit.' + ownerType.type + '.add-access', {
@@ -290,7 +301,7 @@ angular.module('owner.manager.module',
               '@management.edit': {
                 controller: 'access.editor.controller',
                 controllerAs: 'vm',
-                templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
+                template: accessEditorTemplate
               }
             }
           }).state('management.edit.' + ownerType.type + '.edit-access', {
@@ -302,7 +313,7 @@ angular.module('owner.manager.module',
               '@management.edit': {
                 controller: 'access.editor.controller',
                 controllerAs: 'vm',
-                templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
+                template: accessEditorTemplate
               }
             }
           }).state('management.edit.' + ownerType.type + '.violation-grandfathering-policy', {
@@ -324,7 +335,7 @@ angular.module('owner.manager.module',
               '@management.edit': {
                 controller: 'monitored.stage.editor.controller',
                 controllerAs: 'vm',
-                templateUrl: 'owner.manager/policy/monitored.stage.editor.view.html?' + clmBuildTimestamp
+                template: continuousMonitoringEditorTemplate
               }
             }
           }).state('management.edit.' + ownerType.type + '.proprietary-config-policy', {
@@ -336,7 +347,7 @@ angular.module('owner.manager.module',
               '@management.edit': {
                 controller: 'proprietary.config.editor.controller',
                 controllerAs: 'vm',
-                templateUrl: 'owner.manager/policy/proprietary.config.editor.view.html?' + clmBuildTimestamp
+                template: proprietaryEditorTemplate
               }
             }
           }).state('management.edit.' + ownerType.type + '.edit-license-threat-group', {
@@ -348,7 +359,7 @@ angular.module('owner.manager.module',
               '@management.edit': {
                 controller: 'license.threat.group.editor.controller',
                 controllerAs: 'vm',
-                templateUrl: 'owner.manager/license.threat.group/license.threat.group.editor.view.html?' +
+                template: ltgEditorTemplate,
                 clmBuildTimestamp
               }
             }
@@ -372,7 +383,7 @@ angular.module('owner.manager.module',
           },
           views: {
             '@management.edit': {
-              templateUrl: 'owner.manager/category/category.editor.view.html?' + clmBuildTimestamp,
+              template: categoryEditorTemplate,
               controller: 'category.editor.controller',
               controllerAs: 'vm'
             }
@@ -384,7 +395,7 @@ angular.module('owner.manager.module',
           },
           views: {
             '@management.edit': {
-              templateUrl: 'owner.manager/category/category.editor.view.html?' + clmBuildTimestamp,
+              template: categoryEditorTemplate,
               controller: 'category.editor.controller',
               controllerAs: 'vm'
             }
@@ -398,7 +409,7 @@ angular.module('owner.manager.module',
             '@management.edit': {
               controller: 'application.category.editor.controller',
               controllerAs: 'vm',
-              templateUrl: 'owner.manager/category/application.category.editor.view.html?' + clmBuildTimestamp
+              template: appCategoryEditorTemplate
             }
           }
         }).state('management.edit.organization.create-license-threat-group', {
@@ -410,8 +421,7 @@ angular.module('owner.manager.module',
             '@management.edit': {
               controller: 'license.threat.group.editor.controller',
               controllerAs: 'vm',
-              templateUrl: 'owner.manager/license.threat.group/license.threat.group.editor.view.html?' +
-              clmBuildTimestamp
+              template: ltgEditorTemplate
             }
           }
         }).state('management.edit.organization.edit-data-retention', {

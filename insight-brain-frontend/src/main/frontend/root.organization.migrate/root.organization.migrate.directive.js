@@ -3,10 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './root.organization.migrate.directive.html';
+
 /*global angular, clmBuildTimestamp, clmServerVersion*/
 export default function RootOrganizationMigrateDirective() {
   return {
-    templateUrl: 'root.organization.migrate/root.organization.migrate.directive.html?' + clmBuildTimestamp,
+    template,
     scope: {},
     controllerAs: 'vm',
     controller: [
@@ -21,19 +23,18 @@ export default function RootOrganizationMigrateDirective() {
         vm.majorMinorVersion = clmServerVersion.split('.').splice(0, 2).join('.');
 
         function doLoad() {
-          vm.migrationDone = ProductFeatures.isAvailable('root-org');
-          vm.migrationNeeded = ProductFeatures.isAvailable('root-org-migrate');
+          ProductFeatures.load().then(function() {
+            vm.migrationDone = ProductFeatures.isAvailable('root-org');
+            vm.migrationNeeded = ProductFeatures.isAvailable('root-org-migrate');
+          });
+
           PermissionService.isAuthorized(['WRITE'], true).then(function(permitted) {
             vm.permitted = permitted;
           });
         }
 
         function doMigrate() {
-          RootOrganizationMigrateModalService.openModal().then(function() {
-            ProductFeatures.load(true).then(function() {
-              doLoad();
-            });
-          });
+          RootOrganizationMigrateModalService.openModal().then(doLoad);
         }
 
         doLoad();

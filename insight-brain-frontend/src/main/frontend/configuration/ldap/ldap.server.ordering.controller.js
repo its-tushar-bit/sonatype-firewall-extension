@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './ldap.server.ordering.modal.html';
+
 /*global angular*/
 export function LdapServerOrderingController($scope, $http, LdapConfigurationStore, CLMLocation, Messages) {
   var vm = this,
@@ -126,7 +128,7 @@ export function LdapServerOrderingModal(Modal) {
         keyboard: false,
         controller: LdapServerOrderingController,
         controllerAs: 'vm',
-        templateUrl: 'configuration/ldap/ldap.server.ordering.modal.html'
+        template
       }).result;
     }
   };

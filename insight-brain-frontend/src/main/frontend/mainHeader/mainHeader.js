@@ -6,6 +6,7 @@
 import { faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch, faUserAlt }
   from '@fortawesome/pro-regular-svg-icons';
 import { save } from '../configuration/advancedSearch/advancedSearchConfigActions';
+import template from './mainHeader.html';
 
 /* global angular, clmServerVersion, clmBuildTimestamp */
 function MainHeaderController($rootScope, $state, $scope, ProductFeatures, PermissionService, CurrentUser,
@@ -112,7 +113,7 @@ MainHeaderController.$inject = [
 export default {
   controller: MainHeaderController,
   controllerAs: 'vm',
-  templateUrl: 'mainHeader/mainHeader.html?' + clmBuildTimestamp,
+  template,
   bindings: {
     productEdition: '@'
   }

@@ -115,7 +115,7 @@ describe('IqOrgAppPicker', function() {
       const newSelectedOrganizations = new Set(['fooOrg']);
       const expectedSelectedApplications = new Set(['fooApp1', 'fooApp2', 'barApp1']);
 
-      expect(onChangeSpy).toHaveBeenCalledWith( newSelectedOrganizations, expectedSelectedApplications);
+      expect(onChangeSpy).toHaveBeenCalledWith(newSelectedOrganizations, expectedSelectedApplications);
     });
   });
 

@@ -4,10 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, CLM */
+import template from './cip-label-editor.html';
 
 export default function CIPLabelEditor() {
   return {
-    templateUrl: CLM.assetsPath + 'cip/cip-label-editor.html',
+    template,
     controllerAs: 'vm',
     controller: 'LabelsController'
   };

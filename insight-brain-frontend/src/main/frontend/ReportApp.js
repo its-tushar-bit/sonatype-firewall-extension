@@ -5,6 +5,7 @@
  */
 /* global angular, clmBuildTimestamp */
 import reportViolationsModule from './report/ReportViolationsController';
+import template from './report/violations/report-list.html';
 
 export default angular.module('ReportModule',
     ['ui.router', reportViolationsModule.name],
@@ -12,7 +13,7 @@ export default angular.module('ReportModule',
       $urlRouterProvider.when('/reports', '/reports/violations');
       $stateProvider.state('violations', {
         url: '/reports/violations',
-        templateUrl: 'report/violations/report-list.html?' + clmBuildTimestamp,
+        template,
         controller: 'ReportViolationsController',
         controllerAs: 'vm',
         data: {

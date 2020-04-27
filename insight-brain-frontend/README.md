@@ -15,7 +15,7 @@
     * [ Requirements ](#requirements)
     * [ Workflow ](#workflow)
         * [ Setup ](#setup)
-        * [ Building and monitoring the front-end with Grunt ](#building-and-monitoring-the-front-end-with-grunt)
+        * [ Building and monitoring the front-end ](#building-and-monitoring-the-front-end)
         * [ Building and monitoring front-end assets outside the main bundle ](#building-and-monitoring-front-end-assets-outside-the-main-bundle)
         * [ Running tests for the main bundle ](#running-tests-for-the-main-bundle)
         * [ Running tests for assets outside the main bundle ](#running-tests-for-assets-outside-the-main-bundle)
@@ -28,7 +28,7 @@
 
 The following tools should be installed locally to enable front-end development:
 
-* **[Node.js](https://nodejs.org/)** is required to run GruntJS and npm.
+* **[Node.js](https://nodejs.org/)** is required to run webpack and npm.
     * The Maven build downloads its own copy of Node.  For best results, match the version used by Maven. Look for the `node.version` property in [insight-brain-frontend/pom.xml](./pom.xml).
     * Homebrew users can install via: `brew install node`
     * If you do a lot of front-end development and need to switch Node versions frequently, you might also consider using [Node Version Manager (nvm)](https://github.com/nvm-sh/nvm) as an alternative route to installation.
@@ -39,34 +39,29 @@ The following tools should be installed locally to enable front-end development:
     * To install an exact version: `npm install -g npm@<version>`
     * As with Node, you can gain more control over your npm installation(s) by using [nvm](https://github.com/nvm-sh/nvm).
 
-* The **[GruntJS](http://gruntjs.com/) CLI** is used for the front-end development workflow.
-    * To install via npm: `npm install -g grunt-cli` (may require root permissions)
-
 ### Workflow
 
 #### Setup
 
 First, [build](../readme.md#building) the `insight-brain` project and [deploy](../insight-brain-service/README.md#deploying-iq-server-locally) the server. You should deploy to port 8072. (For front-end development, we use webpack-dev-server. We have it configured to run on port 8070, and it will proxy to the server at 8072.)
 
-#### Building and monitoring the front-end with Grunt
+#### Building and monitoring the front-end
 
 Webpack will monitor your front-end assets and automatically compile them for you when you make changes. This allows for short feedback loops.
 
-With your back-end server running on port 8072, you can launch the front-end on port 8070 by running the default Grunt task, like so:
+With your back-end server running on port 8072, you can launch the front-end on port 8070 by running npm start task, like so:
 
-`grunt`
+`npm start`
 
 Note that when you navigate to `http://localhost:8070`, you will see a mostly-blank page with a link labelled "assets". This is normal; simply click the link to access the IQ Server login page.
 
 #### Building and monitoring front-end assets outside the main bundle
 
-The default Grunt task will build and monitor the **main** front-end bundle. There are some other bundles that get deployed with IQ, such as e.g. [`cip-loader.js`](./src/main/frontend/cip/cip-loader-index.js), which powers the legacy application report. (For a full list of bundles that are deployed, see: [`webpack.config.js`](./webpack.config.js))
+Under the default npm start task, webpack will build and monitor the **main** front-end bundle. There are some other bundles that get deployed with IQ, such as e.g. [`cip-loader.js`](./src/main/frontend/cip/cip-loader-index.js), which powers the legacy application report. (For a full list of bundles that are deployed, see: [`webpack.config.js`](./webpack.config.js))
 
-If you are developing these bundles, you'll want to use the following Grunt task:
- 
-`grunt develop-all`
+If you are developing these bundles, you'll want to use the following command:
 
-**Note:** There are some cases where even this command is not sufficient: for example, when editing files in `src/main/resources`. In this case, a full Maven rebuild is required in order to see the changes.
+`npm run start-all`
 
 #### Running tests for the main bundle
 
@@ -74,16 +69,16 @@ Unit tests are written using the [Jasmine](https://jasmine.github.io/) BDD frame
 
 To run all tests for the main IQ bundle in the CLI and see the results there, simply run the `test` task:
 
-`grunt test`
+`npm run test`
 
-You can also run tests in 'watch' mode and view the reports in your browser (we use the [Jasmine Webpack Plugin](https://www.npmjs.com/package/jasmine-webpack-plugin) for this). To do so, use the `bdd` task (note that you do NOT need a back-end server running):
+You can also run tests in 'watch' mode and view the reports in your browser (we use the [Jasmine Webpack Plugin](https://www.npmjs.com/package/jasmine-webpack-plugin) for this). To do so, use the `test-watch` task (note that you do NOT need a back-end server running):
 
-`grunt bdd`
+`npm run test-watch`
 
 You can then launch your browser, point it at `http://localhost:8235/`, and enjoy an interactive test runner environment. This means that as you make changes to your tests, the runner will automagically re-run your tests, and update the test report in the browser in real time.
- 
+
 In the browser, you can additionally filter the tests that you see by adding a matcher to the `spec` query param of the URL. For example, to execute all specs that begin with the word "dashboard", you would access the following URL:
- 
+
 `http://localhost:8235/?spec=dashboard`
 
 #### Running tests for assets outside the main bundle

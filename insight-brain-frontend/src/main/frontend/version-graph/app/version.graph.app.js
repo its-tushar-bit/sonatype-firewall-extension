@@ -8,6 +8,9 @@ import versionGraphModule from '../version.graph/version.graph.module';
 import ownerContext from './owner.context.service';
 import exceptionHandler from './exception.handler.factory';
 
+import pv from '../../lib/protovis/protovis.min';
+window.pv = window.pv || pv;
+
 /*global $, angular, Insight, Brain, clmEndpoint, window */
 (function () {
   'use strict';

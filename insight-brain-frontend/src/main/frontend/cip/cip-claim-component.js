@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { pick } from 'ramda';
+import claimComponentTemplate from './cip-claim-component.html';
 
 import legacyConfigurationModule from '../LegacyConfigurationModule';
 /* global angular, $, window, CLM, setTimeout, InsightDatatable, Insight, applicationId */
@@ -48,8 +49,7 @@ import legacyConfigurationModule from '../LegacyConfigurationModule';
           setTimeout(applyFocus, 100);
         }
 
-        var timestamp = (new Date()).getTime(), container = $('<div clm-include="\'' + CLM.assetsPath +
-            'cip/cip-claim-component.html\'"></div>');
+        var timestamp = (new Date()).getTime(), container = $(claimComponentTemplate);
         node.empty();
         container.appendTo(node);
 

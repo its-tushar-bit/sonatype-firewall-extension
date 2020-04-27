@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './select.application.contact.modal.html';
+
 export default
 function SelectApplicationContactService(Modal) {
   var service = {
@@ -15,7 +17,7 @@ function SelectApplicationContactService(Modal) {
       backdrop: 'static',
       keyboard: false,
       controller: 'select.application.contact.controller as vm',
-      templateUrl: 'owner.manager/summary/select.application.contact.modal.html',
+      template,
       resolve: {
         owner: function() {
           return owner;

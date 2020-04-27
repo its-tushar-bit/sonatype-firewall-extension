@@ -13,7 +13,7 @@ describe('brain.client.js', function() {
   describe('getSuggestedRemediationUrlForApplication', function() {
     it('can get the suggested remediation URL', function() {
       var appId = 'APPID';
-      expect(Brain.getSuggestedRemediationUrlForApplication(appId)).toEqual(
+      expect(Brain.getSuggestedRemediationUrlForApplication(appId)).toContain(
           '/api/v2/components/remediation/application/' + appId
         );
     });
@@ -22,7 +22,7 @@ describe('brain.client.js', function() {
   describe('getInternalApplicationIdUrlForApplicationId', function() {
     it('can get the suggested remediation URL', function() {
       var appId = 'APPID';
-      expect(Brain.getInternalApplicationIdUrlForApplicationId(appId)).toEqual(
+      expect(Brain.getInternalApplicationIdUrlForApplicationId(appId)).toContain(
           '/api/v2/applications?publicId=' + appId
       );
     });

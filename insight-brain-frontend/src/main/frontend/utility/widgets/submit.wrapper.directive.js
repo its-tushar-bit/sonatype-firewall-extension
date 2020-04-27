@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './submit.wrapper.directive.html';
 
 /**
  * Common handling of submit errors returned by the server.
@@ -19,7 +20,7 @@ export default function SubmitWrapper() {
     bindToController: true,
     controller: SubmitWrapperController,
     controllerAs: 'vm',
-    templateUrl: 'utility/widgets/submit.wrapper.directive.html',
+    template,
     scope: {
       error: '=submitWrapper',
       errorMessage: '=message',

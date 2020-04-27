@@ -40,16 +40,17 @@ describe('HttpInterceptors.js', function() {
             };
           }
         });
-        let sessionExpiredSpy = jasmine.createSpy();
-        $provide.value('$window', {
-          sessionExpired: sessionExpiredSpy,
-          top: {
-            sessionExpired: sessionExpiredSpy
-          },
-          location: {
-            assign: jasmine.createSpy()
-          }
-        });
+
+        const sessionExpiredSpy = jasmine.createSpy(),
+            $window = {
+              sessionExpired: sessionExpiredSpy,
+              location: {
+                assign: jasmine.createSpy()
+              }
+            };
+
+        $window.top = $window;
+        $provide.value('$window', $window);
       }
   ));
 

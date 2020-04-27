@@ -5,6 +5,8 @@
  */
 import { always } from 'ramda';
 
+import template from './delete.modal.service.html';
+
 export default function DeleteModalService(Modal) {
   var service = {
     deleteResource: DeleteResource,
@@ -18,7 +20,7 @@ export default function DeleteModalService(Modal) {
       backdrop: 'static',
       keyboard: false,
       controller: 'DeleteModalController as vm',
-      templateUrl: 'utility/services/delete.modal.service.html',
+      template,
       resolve: {
         resource: function() {
           return resource;
@@ -44,7 +46,7 @@ export default function DeleteModalService(Modal) {
       backdrop: 'static',
       keyboard: false,
       controller: 'DeleteModalController as vm',
-      templateUrl: 'utility/services/delete.modal.service.html',
+      template,
       resolve: {
         resource: angular.noop,
         resourceType: angular.noop,
@@ -84,7 +86,7 @@ export default function DeleteModalService(Modal) {
       backdrop: 'static',
       keyboard: false,
       controller: 'DeleteModalReduxController as vm',
-      templateUrl: 'utility/services/delete.modal.service.html',
+      template,
       resolve: {
         resourceType: angular.noop,
         resourceName: angular.noop,

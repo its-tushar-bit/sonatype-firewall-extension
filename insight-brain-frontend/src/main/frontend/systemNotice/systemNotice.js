@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './systemNotice.html';
+
 function systemNoticeController(systemNoticeService, $scope) {
   var vm = this;
 
@@ -22,7 +24,7 @@ function systemNoticeController(systemNoticeService, $scope) {
 systemNoticeController.$inject = ['systemNoticeService', '$scope'];
 
 export default {
-  templateUrl: 'systemNotice/systemNotice.html?' + clmBuildTimestamp,
+  template,
   controller: systemNoticeController,
   controllerAs: 'vm'
 };

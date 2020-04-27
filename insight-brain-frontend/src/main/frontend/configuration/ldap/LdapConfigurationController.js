@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import checkUserMappingTemplate from '../components/ldap-checkusermapping.html';
+import checkLoginTemplate from '../components/ldap-checklogin.html';
+
 /* global angular, clmBuildTimestamp */
 function showAlert(alerts, alert) {
   alerts.length = 0;
@@ -296,7 +299,7 @@ export function LdapUsermappingController($scope, Modal, $http, CLMContextLocati
     Modal.open({
       backdrop: 'static',
       scope: $scope,
-      templateUrl: 'configuration/components/ldap-checkusermapping.html?' + clmBuildTimestamp,
+      template: checkUserMappingTemplate,
       controller: 'LdapCheckUserMappingController',
       resolve: {
         users: function() {
@@ -334,7 +337,7 @@ export function LdapUsermappingController($scope, Modal, $http, CLMContextLocati
     Modal.open({
       backdrop: 'static',
       scope: $scope,
-      templateUrl: 'configuration/components/ldap-checklogin.html?' + clmBuildTimestamp,
+      template: checkLoginTemplate,
       controller: 'LdapCheckLoginController'
     }).result.then(function() {
       $scope.testInProgress = false;

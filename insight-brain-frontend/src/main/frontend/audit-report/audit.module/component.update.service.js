@@ -3,12 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import mainTemplate from './component.update.html';
+import optionalTemplate from './component.update.optional.html';
+
 export default function ComponentUpdateService(Modal) {
   return {
     reevaluate: function(componentKey, reevaluate) {
       if (componentKey) {
         Modal.open({
-          templateUrl: 'audit.module/component.update.html',
+          template: mainTemplate,
           controller: 'component.update.controller as vm',
           backdrop: 'static',
           keyboard: false,
@@ -24,7 +27,7 @@ export default function ComponentUpdateService(Modal) {
       }
       else {
         Modal.open({
-          templateUrl: 'audit.module/component.update.optional.html',
+          template: optionalTemplate,
           controller: 'component.update.optional.controller as vm',
           backdrop: 'static',
           keyboard: false

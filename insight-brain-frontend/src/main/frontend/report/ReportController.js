@@ -12,6 +12,8 @@ import CLMLocationModule from '../util/CLMLocation';
 import RepositoryReEvaluateModalController from './repository.reevaluate.modal.controller';
 import ReEvaluateModalService from './repository.reevaluate.service';
 import RepositoryReportController from './repository.report.controller';
+import appReportTemplate from './report/report.html';
+import repoReportTemplate from './report/repository.report.html';
 
 var reportModule = angular.module('Report',
     [CLMLocationModule.name, 'ui.router', angularCommonModule.name, commonServicesModule.name],
@@ -19,7 +21,7 @@ var reportModule = angular.module('Report',
       $stateProvider.state('report', {
         url: '/reports/{publicId}/{scanId}',
         controller: 'ReportController',
-        templateUrl: 'report/report/report.html?' + clmBuildTimestamp,
+        template: appReportTemplate,
         data: {
           title: 'Report'
         }
@@ -28,7 +30,7 @@ var reportModule = angular.module('Report',
         url: '/repository/{repositoryId}/result',
         controller: 'repository.report.controller',
         controllerAs: 'vm',
-        templateUrl: 'report/report/repository.report.html?' + clmBuildTimestamp,
+        template: repoReportTemplate,
         data: {
           title: 'Repository Results'
         }

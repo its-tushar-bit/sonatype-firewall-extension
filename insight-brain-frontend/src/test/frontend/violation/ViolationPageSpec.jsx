@@ -10,7 +10,6 @@ import { always } from 'ramda';
 import * as enzymeUtils from '../enzymeUtils';
 import ViolationDetailsTile from '../../../main/frontend/violation/ViolationDetailsTile';
 import PolicyViolationInfoTile from '../../../main/frontend/violation/PolicyViolationInfoTile';
-import BackButton from '../../../main/frontend/react/BackButton';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 
 // MaximizedContainer must be mocked because it depends on an angular service
@@ -28,12 +27,17 @@ describe('ViolationPage', function() {
       fetchStageTypesSpy,
       ViolationPage,
       getShallowComponent,
-      getMountedComponent;
+      getMountedComponent,
+      SidebarNavListContainerMock;
 
   beforeEach(function() {
+    SidebarNavListContainerMock = jasmine.createSpy('SidebarNavListContainerMock')
+        .and.returnValue(<div>NavList</div>);
+
     ViolationPage =
         require('inject-loader!../../../main/frontend/violation/ViolationPage')({
-          '../react/MaximizedContainer': MaximizedContainer
+          '../react/MaximizedContainer': MaximizedContainer,
+          '../sidebarNav/SidebarNavListContainer': SidebarNavListContainerMock
         }).default;
 
     loadViolationSpy = jasmine.createSpy('loadViolation');
@@ -65,8 +69,8 @@ describe('ViolationPage', function() {
     expect(component).toMatchSelector('#violation-page.nx-root-container');
   });
 
-  it('renders a BackButton using the supplied $state', function() {
-    expect(getShallowComponent().find(BackButton)).toHaveProp('$state', minimalProps.$state);
+  it('renders a SidebarNavListContainer using the supplied $state', function() {
+    expect(getShallowComponent().find(SidebarNavListContainerMock)).toHaveProp('$state', minimalProps.$state);
   });
 
   it('renders a LoadWrapper within the nx-page-main', function() {

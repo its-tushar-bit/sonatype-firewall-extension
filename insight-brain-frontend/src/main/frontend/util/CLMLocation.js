@@ -44,6 +44,10 @@ export function getActionStageUrl() {
   return `${getBaseUrl(window.location.href)}/rest/policy/stages?context=all`;
 }
 
+export function getNewestRisksUrl() {
+  return `${getBaseUrl(window.location.href)}/rest/dashboard/policy/newestRisks`;
+}
+
 export function getDashboardStageUrl() {
   return `${getBaseUrl(window.location.href)}/rest/policy/stages?context=dashboard`;
 }
@@ -245,9 +249,7 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
         return baseUrl.get() + '/rest/dashboard/export/applicationRisks';
       },
 
-      getNewestRisksUrl: function() {
-        return baseUrl.get() + '/rest/dashboard/policy/newestRisks';
-      },
+      getNewestRisksUrl,
 
       getNewestRisksExportUrl: function() {
         return baseUrl.get() + '/rest/dashboard/export/newestRisks';

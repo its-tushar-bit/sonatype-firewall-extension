@@ -18,7 +18,7 @@ function routes($stateProvider) {
         data: {
           title: 'Policy Violation'
         },
-        url: '/violation/{id}'
+        url: '/violation/{id}?type&sidebarReference&sidebarId'
       });
 }
 

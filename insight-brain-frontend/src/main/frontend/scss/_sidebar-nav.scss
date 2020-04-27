@@ -1,0 +1,16 @@
+.iq-threat-number--sidebar-nav {
+  font-size: inherit;
+  margin-left: 0;
+  margin-right: $nx-spacing-sm;
+}
+
+// This should be moved to the nx-list styles in RSC
+.nx-list--clickable {
+  .nx-list__item {
+    &.selected {
+      background-color: $iq-blue-light;
+      color: $nx-text-color;
+      pointer-events: none;
+    }
+  }
+}

@@ -2,6 +2,18 @@
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 @import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 
+.nx-page-scrollbar--violations-list {
+  overflow-y: hidden;
+}
+
+.nx-scrollable.nx-scrollable--violations-list {
+  max-height: 100%;
+
+  > ul {
+    margin-left: 0;
+  }
+}
+
 .iq-violation-details {
   .nx-tile-header__subtitle {
     @include container-horizontal;

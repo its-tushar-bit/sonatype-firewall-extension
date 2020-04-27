@@ -9,9 +9,11 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.Condition;
+
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class ViolationDetailsPage
     extends BasicElement<ViolationDetailsPage>
@@ -22,12 +24,63 @@ public class ViolationDetailsPage
     return BaseUrl.resolvePageUrl("/violation/{id}", violationId);
   }
 
+  public static String urlWithQueryParams(String violationId, String type, String sidebarReference) {
+    return BaseUrl.resolvePageUrl(
+        "/violation/{id}?type={type}&sidebarReference={sidebarReference}",
+        violationId,
+        type,
+        sidebarReference
+    );
+  }
+
   public ViolationDetailsPage() {
     super(ROOT);
   }
 
   public NxBackButton backButton() {
     return new NxBackButton(childSelector(".nx-page-sidebar"));
+  }
+
+  public SidebarNav sidebarNav() {
+    return new SidebarNav(childSelector("#sidebar-nav-list"));
+  }
+
+  public static class SidebarNav extends BasicElement<SidebarNav>
+  {
+    SidebarNav(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement sidebarNavTitle() {
+      return child("h4.nx-list__title");
+    }
+
+    public ElementsCollection sidebarNavItems() {
+      return children("li");
+    }
+
+    public SidebarNavListItem navItem(int index) {
+      return new SidebarNavListItem(childSelector("li", nthChild(index + 1)));
+    }
+  }
+
+  public static class SidebarNavListItem extends BasicElement<SidebarNavListItem>
+  {
+    SidebarNavListItem(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement threatBar() {
+      return child(".nx-threat-bar");
+    }
+
+    public SelenideElement threatNumberSpan() {
+      return child(".iq-threat-number.iq-threat-number--sidebar-nav");
+    }
+
+    public SelenideElement threatText() {
+      return child(".test-sidebar-nav-violation-policy-name");
+    }
   }
 
   public ViolationDetailsTile detailsTile() {

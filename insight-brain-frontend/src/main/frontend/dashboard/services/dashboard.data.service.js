@@ -10,7 +10,7 @@ import {
   translateApplicationsSortFields
 } from './sortFieldsUtils';
 
-const MAX_RESULTS = 100;
+export const MAX_RESULTS = 100;
 
 export default
 function dashboardDataService($http, $filter, CLMLocations, createRequest, ClassyBrew) {

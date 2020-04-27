@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 
 import LoadWrapper from '../react/LoadWrapper';
 import MaximizedContainer from '../react/MaximizedContainer';
-import BackButton from '../react/BackButton';
+import SidebarNavListContainer from '../sidebarNav/SidebarNavListContainer';
 import ViolationDetailsTile, { violationDetailsPropTypes } from './ViolationDetailsTile';
 import PolicyViolationInfoTile, { constraintViolationsPropType } from './PolicyViolationInfoTile';
 
@@ -37,9 +37,7 @@ export default function ViolationPage(props) {
 
   return (
     <MaximizedContainer id="violation-page" className="nx-root-container">
-      <aside className="nx-page-sidebar">
-        <BackButton $state={$state} stateName="dashboard.overview.violations"/>
-      </aside>
+      <SidebarNavListContainer $state={$state} />
       <div className="nx-page-main">
         <LoadWrapper error={error} loading={loading || !(violationDetails && stageTypes)}>
           <ViolationDetailsTile { ...({ $state, stageTypes, violationDetails }) } />

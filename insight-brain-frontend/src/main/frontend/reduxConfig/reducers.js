@@ -18,6 +18,7 @@ import proxyConfigReducer from '../configuration/proxy/proxyConfigReducer';
 import stagesReducer from '../stages/stagesReducer';
 import advancedSearchConfigReducer from '../configuration/advancedSearch/advancedSearchConfigReducer';
 import advancedSearchReducer from '../advancedSearch/advancedSearchReducer';
+import sidebarNavListReducer from '../sidebarNav/sidebarNavListReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -25,6 +26,7 @@ export default combineReducers({
   dashboard: dashboardReducer,
   manageFilters: manageFiltersReducer,
   dashboardFilter: dashboardFilterReducer,
+  sidebarNavList: sidebarNavListReducer,
   applicationReport: applicationReportReducer,
   user: userReducer,
   vulnerabilityDetailsModal: vulnerabilityDetailsModalReducer,

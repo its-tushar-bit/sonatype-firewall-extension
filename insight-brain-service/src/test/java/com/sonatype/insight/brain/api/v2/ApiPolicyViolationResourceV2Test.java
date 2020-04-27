@@ -80,6 +80,10 @@ public class ApiPolicyViolationResourceV2Test
     ApiConstraintViolationReasonDTO apiConstraintViolationReasonDTO = apiConstraintViolationDTO.reasons.get(0);
     assertThat(apiConstraintViolationReasonDTO.reason)
         .isEqualTo(pv1App1.getConstraintFacts().get(0).getConditionFacts().get(0).getReason());
+    assertThat(apiConstraintViolationReasonDTO.reference).isNotNull();
+    assertThat(apiConstraintViolationReasonDTO.reference.value)
+        .isEqualTo(pv1App1.getConstraintFacts().get(0).getConditionFacts().get(0).getReason());
+    assertThat(apiConstraintViolationReasonDTO.reference.type).isEqualTo("SECURITY_VULNERABILITY_REFID");
   }
 
   @Test

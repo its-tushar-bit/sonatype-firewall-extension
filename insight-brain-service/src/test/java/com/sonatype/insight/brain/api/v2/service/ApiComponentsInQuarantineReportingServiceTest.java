@@ -17,6 +17,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentsInQuarantineDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
@@ -238,10 +240,12 @@ public class ApiComponentsInQuarantineReportingServiceTest
   private String createConstraintFactsJsonAndReturn(Policy policy) {
     Constraint constraint = policy.getConstraints().get(0);
     Condition condition = constraint.getConditions().get(0);
+    TriggerReference triggerReference = new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "refId");
     ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(),
         constraint.getOperator().toString());
     constraintFact.addConditionFact(new ConditionFact("", 0, "", "random for condition "
-        + condition.getConditionTypeId()));
+        + condition.getConditionTypeId(), triggerReference));
+
     return JsonUtils.writeUnformatted(Collections.singleton(constraintFact));
   }
 
@@ -387,5 +391,8 @@ public class ApiComponentsInQuarantineReportingServiceTest
     assertThat(constraintViolationDTO.constraintName).isEqualTo(expectedConstraintFact.getConstraintName());
     assertThat(constraintViolationDTO.reasons.get(0).reason)
         .isEqualTo(expectedConstraintFact.getConditionFacts().get(0).getReason());
+    TriggerReference triggerReference = expectedConstraintFact.getConditionFacts().get(0).getReference();
+    assertThat(constraintViolationDTO.reasons.get(0).reference.type).isEqualTo(triggerReference.getType().toString());
+    assertThat(constraintViolationDTO.reasons.get(0).reference.value).isEqualTo(triggerReference.getValue());
   }
 }

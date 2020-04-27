@@ -778,11 +778,11 @@ public class PullRequestCommentingServiceTest
 
       if (gitRepositoryEffectivelyPrivateThrows != null) {
         doThrow(UnsupportedOperationException.class).when(mockPullRequestRepositoryValidator)
-            .isRepoValidForPRs(eq(gitRepositoryInfo));
+            .isPrivateOrInternalRepository(eq(gitRepositoryInfo));
       }
       else {
         doReturn(isGitRepositoryPrivate).when(mockPullRequestRepositoryValidator)
-            .isRepoValidForPRs(any(GitRepositoryInfo.class));
+            .isPrivateOrInternalRepository(any(GitRepositoryInfo.class));
         commitInformation.setRepositoryPrivate(isGitRepositoryPrivate);
       }
 

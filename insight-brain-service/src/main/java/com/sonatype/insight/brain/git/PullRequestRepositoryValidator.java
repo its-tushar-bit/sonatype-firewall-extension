@@ -49,7 +49,13 @@ class PullRequestRepositoryValidator
       log.debug("Pull requests have not been enabled for repository URL '{}'", gitRepositoryInfo.repositoryUrl);
       return false;
     }
+    return isPrivateOrInternalRepository(gitRepositoryInfo);
+  }
 
+  /**
+   * Returns {@code true} if a repository is private or it is internal-only (e.g. GitHub Enterprise)
+   */
+  public boolean isPrivateOrInternalRepository(final GitRepositoryInfo gitRepositoryInfo) {
     switch (gitRepositoryInfo.provider) {
       case GITHUB:
         return !isGitHubDotCom(gitRepositoryInfo) || isPrivateRepository(gitRepositoryInfo);

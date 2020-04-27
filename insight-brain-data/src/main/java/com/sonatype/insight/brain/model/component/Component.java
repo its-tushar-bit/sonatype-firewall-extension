@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -70,6 +71,8 @@ public class Component
   private HygieneRating hygieneRating;
 
   private ComponentIdentifier componentIdentifier;
+
+  private AnalyzerFeatures analyzerFeatures;
 
   public Component() {
   }
@@ -359,5 +362,13 @@ public class Component
 
   public void setHygieneRating(final HygieneRating hygieneRating) {
     this.hygieneRating = hygieneRating;
+  }
+
+  public AnalyzerFeatures getAnalyzerFeatures() {
+    return analyzerFeatures;
+  }
+
+  public void setAnalyzerFeatures(final AnalyzerFeatures analyzerFeatures) {
+    this.analyzerFeatures = analyzerFeatures;
   }
 }

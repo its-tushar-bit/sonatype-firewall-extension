@@ -17,6 +17,9 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.component.AnalysisSource;
+import com.sonatype.clm.dto.model.component.AnalysisType;
+import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -55,6 +58,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
@@ -66,6 +70,7 @@ import org.mockito.Mock;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.extractProperty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -149,6 +154,7 @@ public class RepositoryPolicyEvaluatorTest
     componentEvaluationData.catalogDate = System.currentTimeMillis();
     componentEvaluationData.securityVulnerabilities = securityVulnerabilities;
     componentEvaluationData.relativePopularity = relativePopularity;
+    componentEvaluationData.analyzerFeatures = new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.HASH, "client");
     return componentEvaluationData;
   }
 
@@ -198,7 +204,6 @@ public class RepositoryPolicyEvaluatorTest
         repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(policyViolations).hasSize(2);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before1, after1, policyViolations);
-
     policyViolationLoggerOutput.clear();
 
     // Add a new policy and evaluate again. Only the new policy violations should be logged.
@@ -213,6 +218,7 @@ public class RepositoryPolicyEvaluatorTest
         policyViolations.stream().filter(policyViolation -> policyViolation.getPolicyId().equals(newPolicy.getId()))
             .collect(Collectors.toList());
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before2, after2, newPolicyViolations);
+    assertRepositoryComponent(repository, 2);
   }
 
   @Test
@@ -253,6 +259,7 @@ public class RepositoryPolicyEvaluatorTest
     Date after2 = new Date();
     assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(0);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.FIX, repository, before2, after2, policyViolations);
+    assertRepositoryComponent(repository, 2);
   }
 
   @Test
@@ -314,6 +321,7 @@ public class RepositoryPolicyEvaluatorTest
         .filter(violation -> policy1.getId().equals(violation.getPolicyId())).collect(toList());
     assertThat(waivedViolations).hasSize(1);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, repository, before2, after2, waivedViolations);
+    assertRepositoryComponent(repository, 1);
   }
 
   @Test
@@ -543,5 +551,24 @@ public class RepositoryPolicyEvaluatorTest
     assertThat(repositoryPolicyViolation.getPolicyWaiverId()).isEqualTo(policyWaiver.getId());
     assertThat(repositoryPolicyViolation.getPolicyWaiverComment()).isEqualTo(policyWaiver.getComment());
     assertThat(repositoryPolicyViolation.getWaiveTime()).isEqualTo(waiveTime);
+  }
+
+  private void assertRepositoryComponent(final Repository repository, int size) {
+    List<RepositoryComponent> components = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    assertThat(components).hasSize(size);
+    AnalyzerFeatures analyzerFeatures = new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.HASH, "client");
+    assertThat(extractProperty("repositoryId").from(components)).containsOnly(repository.getId());
+    assertThat(extractProperty("identificationSourceId").from(components)).containsOnly("Sonatype");
+    assertThat(extractProperty("matchStateId").from(components)).containsOnly("exact");
+    assertThat(extractProperty("analyzerFeaturesJson").from(components))
+        .containsOnly(JsonUtils.format(analyzerFeatures));
+    if (size == 2) {
+      assertThat(extractProperty("pathname").from(components)).containsOnly("path0", "path1");
+      assertThat(extractProperty("hash").from(components)).containsOnly("h0", "h1");
+    }
+    else {
+      assertThat(extractProperty("pathname").from(components)).containsOnly("path0");
+      assertThat(extractProperty("hash").from(components)).containsOnly("h0");
+    }
   }
 }

@@ -60,6 +60,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -183,6 +184,7 @@ public class RepositoryPolicyEvaluator
         }
         Component component = augmentComponentDetails(repository, componentDetails);
         component.addPathname(componentEvaluationRequest.pathname);
+        component.setAnalyzerFeatures(componentEvaluationData.analyzerFeatures);
         components.add(component);
       }
     }
@@ -286,6 +288,7 @@ public class RepositoryPolicyEvaluator
           component.getComponentIdentifier(), component.getMatchState().getId(), component.getIdentificationSource()
               .getId(), evaluationTime);
       repositoryComponent.setQuarantineTime(quarantineTime);
+      repositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
       repositoryComponentDAO.insert(tx, repositoryComponent);
     }
     else {
@@ -294,6 +297,7 @@ public class RepositoryPolicyEvaluator
       repositoryComponent.setMatchStateId(component.getMatchState().getId());
       repositoryComponent.setIdentificationSourceId(component.getIdentificationSource().getId());
       repositoryComponent.setLastEvaluationTime(evaluationTime);
+      repositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
       repositoryComponentDAO.update(tx, repositoryComponent);
     }
     return repositoryComponent;

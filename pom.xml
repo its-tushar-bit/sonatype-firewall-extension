@@ -43,7 +43,7 @@
     <shiro.version>1.4.2</shiro.version>
     <keycloak.version>8.0.0</keycloak.version>
     <sisu-inject.version>0.3.4</sisu-inject.version>
-    <clm.dto.model.version>1.25.0-01</clm.dto.model.version>
+    <clm.dto.model.version>1.26.0-01</clm.dto.model.version>
     <jetty.version>9.4.28.v20200408</jetty.version>
     <dropwizard.version>1.3.23</dropwizard.version>
     <!-- The jersey.version must match the jersey version used by dropwizard -->

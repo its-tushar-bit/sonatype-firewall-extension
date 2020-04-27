@@ -490,6 +490,7 @@ CREATE TABLE repository_component (
   last_evaluation_time timestamp NOT NULL,
   quarantine_time timestamp,
   unquarantine_time timestamp,
+  analyzer_features_json varchar(1000), -- the analyzer features stored in json format
   CONSTRAINT repository_component_pk PRIMARY KEY (repository_component_id),
   CONSTRAINT repository_component_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
   CONSTRAINT repository_component_uk UNIQUE (repository_id, pathname)

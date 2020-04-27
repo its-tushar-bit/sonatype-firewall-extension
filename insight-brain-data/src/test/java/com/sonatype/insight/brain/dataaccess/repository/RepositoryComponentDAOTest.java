@@ -7,12 +7,16 @@ package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.Date;
 
+import com.sonatype.clm.dto.model.component.AnalysisSource;
+import com.sonatype.clm.dto.model.component.AnalysisType;
+import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +44,9 @@ public class RepositoryComponentDAOTest
     Date createTime = new Date();
     RepositoryComponent repositoryComponent = new RepositoryComponent(repository.getId(), "path", createTime, "hash",
         componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime);
+    String analyzerFeatures =
+        JsonUtils.format(new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.COORDINATE, "client"));
+    repositoryComponent.setAnalyzerFeaturesJson(analyzerFeatures);
     dao.insert(repositoryComponent);
     assertThat(repositoryComponent.getId()).isNotNull();
 
@@ -47,16 +54,20 @@ public class RepositoryComponentDAOTest
     repositoryComponent = dao.getById(repositoryComponent.getId());
     assertThat(repositoryComponent).isNotNull();
     assertRepositoryComponent(repository.getId(), "path", createTime, "hash", componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime, repositoryComponent);
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime, repositoryComponent,
+        analyzerFeatures);
 
     // Update
     Date updateTime = new Date();
     repositoryComponent.setLastEvaluationTime(updateTime);
+    analyzerFeatures = JsonUtils.format(new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.HASH, "client"));
+    repositoryComponent.setAnalyzerFeaturesJson(analyzerFeatures);
     dao.update(repositoryComponent);
     repositoryComponent = dao.getById(repositoryComponent.getId());
     assertThat(repositoryComponent).isNotNull();
     assertRepositoryComponent(repository.getId(), "path", createTime, "hash", componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), updateTime, repositoryComponent);
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), updateTime, repositoryComponent,
+        analyzerFeatures);
 
     // Delete
     dao.delete(repositoryComponent);
@@ -105,7 +116,8 @@ public class RepositoryComponentDAOTest
                                          String matchStateId,
                                          String identificationSourceId,
                                          Date lastEvaluationTime,
-                                         RepositoryComponent actual)
+                                         RepositoryComponent actual,
+                                         String analyzerFeatures)
   {
     assertThat(actual.getRepositoryId()).isEqualTo(repositoryId);
     assertThat(actual.getPathname()).isEqualTo(pathname);
@@ -115,6 +127,7 @@ public class RepositoryComponentDAOTest
     assertThat(actual.getMatchStateId()).isEqualTo(matchStateId);
     assertThat(actual.getIdentificationSourceId()).isEqualTo(identificationSourceId);
     assertThat(actual.getLastEvaluationTime()).isEqualTo(lastEvaluationTime);
+    assertThat(actual.getAnalyzerFeaturesJson()).isEqualTo(analyzerFeatures);
   }
 
   @Test

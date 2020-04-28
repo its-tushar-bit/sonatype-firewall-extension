@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPOutputStream;
 
 import javax.mail.Message;
 
@@ -56,11 +59,13 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -602,6 +607,52 @@ public class PolicyMonitorTest
     // Verify there are no temp scan files left behind.
     File[] scanFiles = insightWork.getScanDir(app.getId()).listFiles();
     assertThat(scanFiles).containsExactly(scanFile);
+  }
+
+  @Test
+  public void testApplicationMonitored_ThirdPartyScan() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("MonitoredApp", org.getId());
+    Stage stage = new Stage(ReleaseStageType.ID);
+
+    // Simulate first scan
+    String scanId1 = "PolicyMonitorTest_scanId";
+    tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId1);
+
+    createScanFileZip(app, scanId1, "scan/scan-third-party.xml");
+    createReportFile(app.getId(), scanId1, "/PolicyMonitorTest/report-third-party");
+
+    tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
+
+    String newScanId = "PolicyMonitorTest_scanId2";
+    mockScanReceiptAndReport(newScanId);
+    policyMonitor.run();
+
+    File reportFile = insightWork.getReportFile(app.getId(), newScanId);
+    assertThat(reportFile).isFile();
+    File parentDir = new File(reportFile.getParentFile() + "/report.cache");
+
+    assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME);
+    assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME);
+    assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME);
+  }
+
+  private File createScanFileZip(Application app, String scanId, final String fileName) throws Exception {
+    URL resource = getClass().getResource("/PolicyMonitorTest/" + fileName);
+    File scanXml = new File(resource.toURI());
+
+    File scanFile = insightWork.getScanFile(app.getId(), scanId);
+    Files.createDirectories(scanFile.getParentFile().toPath());
+
+    try (GZIPOutputStream gzipStream = new GZIPOutputStream(new FileOutputStream(scanFile))) {
+      FileUtils.copyFile(scanXml, gzipStream);
+    }
+    return scanFile;
+  }
+
+  private void assertThirdPartyFile(File parentDir, String fileName) {
+    File thirdPartyDataFile = new File(parentDir, fileName);
+    assertThat(thirdPartyDataFile).exists();
   }
 
   private File createScanFile(Application app, String scanId) {

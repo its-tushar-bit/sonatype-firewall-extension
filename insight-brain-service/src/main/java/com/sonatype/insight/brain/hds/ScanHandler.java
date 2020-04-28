@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.archive.RegexSelector;
 import com.sonatype.insight.scan.archive.Selector.Selection;
@@ -70,16 +70,17 @@ public class ScanHandler
 
   private final ApplicationDAO appDAO;
 
-  private final ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessor;
+  private final ThirdPartyScanService thirdPartyScanService;
 
   @Inject
-  public ScanHandler(InsightWork work,
-                     ScanUploader scanUploader,
-                     ScanReader scanReader,
-                     ScanWriterFactory scanWriterFactory,
-                     ProprietaryConfigService proprietaryConfigService,
-                     ApplicationDAO appDAO,
-                     ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessor)
+  public ScanHandler(
+      InsightWork work,
+      ScanUploader scanUploader,
+      ScanReader scanReader,
+      ScanWriterFactory scanWriterFactory,
+      ProprietaryConfigService proprietaryConfigService,
+      ApplicationDAO appDAO,
+      ThirdPartyScanService thirdPartyScanService)
   {
     this.work = work;
     this.scanUploader = scanUploader;
@@ -87,7 +88,7 @@ public class ScanHandler
     this.scanWriterFactory = scanWriterFactory;
     this.proprietaryConfigService = proprietaryConfigService;
     this.appDAO = appDAO;
-    this.thirdPartyScanResultsProcessor = thirdPartyScanResultsProcessor;
+    this.thirdPartyScanService = thirdPartyScanService;
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
@@ -117,20 +118,18 @@ public class ScanHandler
         tempScanFile = convertTwistlockScan(tempScanFile, app);
       }
 
-      String thirdPartyScanRequestId = null;
+      ScanReceipt scanReceipt;
       if (ClientScanType.SONATYPE_THIRD_PARTY.equals(clientScanType)) {
-        thirdPartyScanRequestId = thirdPartyScanResultsProcessor.handle(tempScanFile, telemetryData);
+        scanReceipt = thirdPartyScanService.filterAndUpload(tempScanFile, app, stageTypeId, telemetryData);
+      }
+      else {
+        scanReceipt = scanUploader.upload(tempScanFile, app, stageTypeId);
       }
 
-      ScanReceipt scanReceipt = scanUploader.upload(tempScanFile, app, stageTypeId);
       if (ClientScanType.EXPANDED_COVERAGE.equals(clientScanType)) {
         Files.delete(tempScanFile.toPath());
       }
       else {
-        if (thirdPartyScanRequestId != null) {
-          thirdPartyScanResultsProcessor.postHandle(scanReceipt.getScanId(), thirdPartyScanRequestId);
-        }
-
         File scanFile = work.getScanFile(app.getId(), scanReceipt.getScanId());
         FileUtils.rename(tempScanFile, scanFile);
       }

@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -56,10 +56,10 @@ public class ScanTaskStateTest
 
   private ProprietaryConfigService proprietaryConfigService = mock(ProprietaryConfigService.class);
 
-  private ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessor = mock(ThirdPartyScanResultsProcessor.class);
-  
+  private ThirdPartyScanService thirdPartyScanService = mock(ThirdPartyScanService.class);
+
   ScanTask task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner,
-      proprietaryConfigService, thirdPartyScanResultsProcessor);
+      proprietaryConfigService, thirdPartyScanService);
 
   TaskStateCapturer captureState = new TaskStateCapturer();
 

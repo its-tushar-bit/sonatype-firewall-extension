@@ -21,7 +21,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.archive.TFileUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -65,12 +65,12 @@ public class ScanHandlerTest
   private HdsClient hdsClient;
 
   @Mock
-  private ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessor;
+  private ThirdPartyScanService thirdPartyScanService;
 
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClient);
-    binder.bind(ThirdPartyScanResultsProcessor.class).toInstance(thirdPartyScanResultsProcessor);
+    binder.bind(ThirdPartyScanService.class).toInstance(thirdPartyScanService);
     super.configure(binder);
   }
 
@@ -117,7 +117,6 @@ public class ScanHandlerTest
   @Test
   public void testHandle_SonatypeThirdPartyScanType() throws Exception {
     Application app = tempEntity.newApplicationWithParent("test-app-id");
-    String scanRequestId = tempEntity.uuid();
     ScanReceipt scanReceipt = new ScanReceipt();
     String scanId = "test-scan-id";
     scanReceipt.setScanId(scanId);
@@ -125,17 +124,12 @@ public class ScanHandlerTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
-        anyMap()))
+    when(thirdPartyScanService.filterAndUpload(any(File.class), any(Application.class), eq(null), eq(null)))
         .thenReturn(scanReceipt);
-    when(thirdPartyScanResultsProcessor.handle(any(File.class), eq(null))).thenReturn(scanRequestId);
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY);
     assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
-    verify(thirdPartyScanResultsProcessor, times(1)).handle(any(File.class), eq(null));
-
-    ArgumentCaptor<String> scanIdCaptor = ArgumentCaptor.forClass(String.class);
-    verify(thirdPartyScanResultsProcessor, times(1)).postHandle(scanIdCaptor.capture(), eq(scanRequestId));
-    assertThat(scanIdCaptor.getValue()).isEqualTo(scanId);
+    verify(thirdPartyScanService, times(1))
+        .filterAndUpload(any(File.class), any(Application.class), eq(null), eq(null));
   }
 
   @Test

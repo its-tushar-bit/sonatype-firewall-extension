@@ -36,6 +36,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
+import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.pull.MXParser;
@@ -68,19 +69,18 @@ public class ThirdPartyScanResultsProcessor
       ThirdPartyFileDAO thirdPartyFileDAO,
       TelemetrySender telemetrySender)
   {
-    this.thirdPartyScanDAO = thirdPartyScanDAO;
-    this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.telemetrySender = telemetrySender;
+    this.thirdPartyFileDAO = thirdPartyFileDAO;
+    this.thirdPartyScanDAO = thirdPartyScanDAO;
   }
 
-  public String handle(final File scanFile, TelemetryData telemetryData) {
+  public String filterAndSaveData(File scanFile, File tempScanFile, File scanDir, TelemetryData telemetryData) {
     String scanRequestId = UUID.randomUUID().toString().replace("-", "");
     log.info("Processing third party content with scanRequestId: {}", scanRequestId);
-
     try {
-      File filteredFile = File.createTempFile("temp-", ".xml");
+      File filteredFile = FileUtils.createTempFile("tmp-", ".xml", scanDir);
       try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile));
-          OutputStream out = new FileOutputStream(filteredFile)) {
+           OutputStream out = new FileOutputStream(filteredFile)) {
 
         XmlPullParser parser = new MXParser();
         parser.setInput(new XmlStreamReader(gis));
@@ -94,22 +94,21 @@ public class ThirdPartyScanResultsProcessor
         }
         writer.flush();
         writer.close();
-        compressScanFile(filteredFile, scanFile);
+        compressScanFile(filteredFile, tempScanFile);
         log.info("Completed processing third party content in file {}", scanFile.getName());
+        return scanRequestId;
       }
       finally {
         filteredFile.delete();
       }
     }
     catch (Exception e) {
-      log.error("Error reading third party scan content from scan file", e);
+      throw new IllegalArgumentException("Error reading/processing third party scan content from scan file", e);
     }
-
-    return scanRequestId;
   }
 
   public void postHandle(String scanId, String scanRequestId) {
-    thirdPartyScanDAO.getByScanRequestId(scanRequestId).stream().forEach(thirdPartyScan -> {
+    thirdPartyScanDAO.getByScanRequestId(scanRequestId).forEach(thirdPartyScan -> {
       thirdPartyScan.setScanId(scanId);
       thirdPartyScanDAO.update(thirdPartyScan);
     });
@@ -158,7 +157,7 @@ public class ThirdPartyScanResultsProcessor
       XMLEventWriter writer,
       File scanFile,
       String scanRequestId,
-      TelemetryData telemetryData) throws Exception
+      TelemetryData telemetryData) throws XMLStreamException, IOException, XmlPullParserException
   {
     String contentType = parser.getAttributeValue(null, "contentType");
     if (contentType != null && thirdPartyItemContentTypes.contains(contentType)) {
@@ -186,7 +185,7 @@ public class ThirdPartyScanResultsProcessor
       Xpp3Dom itemElement,
       String contentElement,
       String contentType,
-      String scanRequestId) throws Exception
+      String scanRequestId)
   {
     String path = itemElement.getAttribute("path");
     String lastModified = itemElement.getAttribute("lastModified");

@@ -20,6 +20,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
@@ -39,6 +40,9 @@ import com.sonatype.nexus.iq.location.dto.PositionDiscoveryResult;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,12 +105,14 @@ public class PullRequestLineCommentingService
       final String sourcePolicyEvaluationId,
       final String basePolicyEvaluationId)
   {
+    if (!insightConfig.isExperimentalFeatureEnabled(LINE_COMMENT_FEATURE)) {
+      return Collections.emptyList();
+    }
+
     List<PullRequestLineCommentDTO> lineCommentList = Collections.emptyList();
-
-    if (insightConfig.isExperimentalFeatureEnabled(LINE_COMMENT_FEATURE) &&
-        violationList != null && !violationList.isEmpty()) {
-
-      try {
+    try {
+      deleteExistingLineCommentsIfExists(applicationId, gitRepositoryInfo, pullRequestId);
+      if (!CollectionUtils.isEmpty(violationList)) {
         // Find all potential source locations to comment on
         LocationDiscoveryResult locationDiscoveryResult =
             doLocationDiscovery(violationList, gitRepositoryInfo, branch, applicationId);
@@ -140,10 +146,11 @@ public class PullRequestLineCommentingService
           }
         }
       }
-      catch (Exception e) {
-        log.error("Cannot create PullRequest line comments", e);
-      }
     }
+    catch (Exception e) {
+      log.error("Cannot create PullRequest line comments", e);
+    }
+
     return lineCommentList;
   }
 
@@ -225,7 +232,7 @@ public class PullRequestLineCommentingService
       ComponentIdentifier componentIdentifier = lineCommentDTO.getComponentIdentifier();
       //Create the line comment body, if possible
       Optional<String> markupOptional = pullRequestFeedbackMarkupService.createLineMarkup(
-          lineCommentDTO.getPolicyViolations(), createNameAndVersion(componentIdentifier),
+          lineCommentDTO.getPolicyViolations(), ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString(),
           remediationVersionMap.get(componentIdentifier));
       markupOptional.ifPresent(lineCommentDTO::setMarkup);
     }
@@ -296,27 +303,39 @@ public class PullRequestLineCommentingService
   }
 
   /**
-   * Creates a display name for a component identifier
+   * Deletes all existing line comments for a given PR from the DB and SCM if they exists
+   *
+   * @param applicationId     The application the PR relates to
+   * @param gitRepositoryInfo The repository info the PR relates to
+   * @param pullRequestId     The pull request id
+   * @throws IOException
    */
-  private String createNameAndVersion(final ComponentIdentifier componentIdentifier) {
-    String name;
-    switch (componentIdentifier.getFormat()) {
-      case ComponentIdentifier.FORMAT_MAVEN:
-        name = componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID) + " : " +
-            componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID) + " : " +
-            componentIdentifier.get(ComponentIdentifier.VERSION);
-        break;
-      case ComponentIdentifier.FORMAT_NPM:
-        name = componentIdentifier.get(ComponentIdentifier.NPM_PACKAGE_ID) + " : " +
-            componentIdentifier.get(ComponentIdentifier.VERSION);
-        break;
-      case ComponentIdentifier.FORMAT_ANAME:
-        name = componentIdentifier.get(ComponentIdentifier.ANAME_NAME) + " : " +
-            componentIdentifier.get(ComponentIdentifier.VERSION);
-        break;
-      default:
-        name = componentIdentifier.toString();
+  private void deleteExistingLineCommentsIfExists(
+      final String applicationId,
+      final GitRepositoryInfo gitRepositoryInfo,
+      final int pullRequestId) throws IOException
+  {
+    List<SourceControlPullRequestComment> existingLineComments =
+        pullRequestCommentDAO.getByApplicationIdAndPullRequestIdWithComponents(applicationId, pullRequestId);
+
+    if (!existingLineComments.isEmpty()) {
+      GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
+      for (SourceControlPullRequestComment comment : existingLineComments) {
+        //Users can delete comments, which will result in 404 on delete, we should handle this and continue
+        try {
+          gitApiClient.deletePullRequestLineComment(comment.getPullRequestCommentId());
+          pullRequestCommentDAO.delete(comment);
+        }
+        catch (HttpResponseException e) {
+          if (HttpStatus.SC_NOT_FOUND == e.getStatusCode()) {
+            log.debug("Deleting pull request with id {} on application {} returned 404, skipping", pullRequestId,
+                applicationId);
+          }
+          else {
+            throw e;
+          }
+        }
+      }
     }
-    return name;
   }
 }

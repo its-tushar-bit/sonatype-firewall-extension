@@ -18,7 +18,7 @@ Simply change IQ source code and refresh the Component Gallery in the browser.
 
 ## Run gallery app
 ```
-grunt gallery
+npm run start-gallery
 ```
 
 Open the app in your browser: http://localhost:4040

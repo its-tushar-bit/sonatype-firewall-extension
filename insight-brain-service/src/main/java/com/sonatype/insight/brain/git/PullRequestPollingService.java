@@ -23,9 +23,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
-import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
-import com.sonatype.nexus.scm.api.GitGraphQlApiClient;
+import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import com.sonatype.nexus.scm.api.model.ProjectUri;
 import com.sonatype.nexus.scm.api.model.PullRequest;
 
@@ -189,50 +188,56 @@ public class PullRequestPollingService
         GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
         ProjectUri projectUri = gitApiClient.getProjectUri();
         String org = projectUri.getNamespace();
+        
+        // if a provider supports querying across the organization, we do not need a repo in context
+        String repo =
+            gitRepositoryInfo.provider.supportsOrganizationWidePullRequestQueries() ? null : projectUri.getProject();
+        
         String token = gitRepositoryInfo.token;
 
-        Date currentCutoffTime = pollingTracker.getCachedCutoffTime(org, gitRepositoryInfo.token,
+        Date currentCutoffTime = pollingTracker.getCachedCutoffTime(org, repo, gitRepositoryInfo.token,
             sourceControl.getPullRequestPollTime());
 
-        if (pollingTracker.visitAndCheckOrganizationWithToken(org, token)) {
-          // we've already used this org and token and any results for the given repo would have already come back;
+        if (pollingTracker.visitAndCheckKeyAlreadyUsed(org, repo, token)) {
+          // we've already used this key combination and any results for the given repo would have already come back;
           // so, we just need to advance the polling times for this repo
-          pollingTracker.onPullRequestProcessed(sourceControl.getId(), org, token, currentCutoffTime);
+          pollingTracker.onPullRequestProcessed(sourceControl.getId(), org, repo, token, currentCutoffTime);
         }
         else {
           try {
-            GitGraphQlApiClient graphqlApiClient = gitClientFactory.createGraphqlApiClient(gitRepositoryInfo);
+            PullRequestInfoProvider client = gitClientFactory.createPullRequestInfoClient(gitRepositoryInfo);
 
             Date now = new Date();
 
-            List<PullRequest> pullRequestsForOrg = graphqlApiClient.getPullRequestsSince(
+            List<PullRequest> pullRequestResults = client.getPullRequestsSince(
                 org,
                 currentCutoffTime.toInstant().atOffset(ZoneOffset.UTC),
                 PULL_REQUESTS_PER_MONITOR_CYCLE);
 
-            pullRequests.addAll(pullRequestsForOrg);
+            pullRequests.addAll(pullRequestResults);
 
-            if (pullRequestsForOrg.isEmpty()) {
-              pollingTracker.onPullRequestProcessed(sourceControl.getId(), org, token, now);
+            if (pullRequestResults.isEmpty()) {
+              pollingTracker.onPullRequestProcessed(sourceControl.getId(), org, repo, token, now);
             }
             else {
-              currentCutoffTime = pullRequestsForOrg.stream().map(PullRequest::getCreated).max(Date::compareTo).get();
-              pollingTracker.onPullRequestProcessed(sourceControl.getId(), org, token, currentCutoffTime);
+              currentCutoffTime = pullRequestResults.stream().map(PullRequest::getCreated).max(Date::compareTo).get();
+              pollingTracker.onPullRequestProcessed(sourceControl.getId(), org, repo, token, currentCutoffTime);
             }
 
             apiCallCount++;
-            log.debug("Fetched {} pull request(s) for org '{}' since {}", pullRequests.size(),
-                projectUri.getNamespace(), currentCutoffTime);
+            log.debug("Fetched {} pull request(s) for org '{}' and repo '{}' since {}", pullRequests.size(),
+                org, null == repo ? "none specified" : repo, currentCutoffTime); 
           }
           catch (Exception e) {
             String retryDelay = pollingTracker.onErrorProcessingPullRequests(sourceControl.getId());
-            log.error(String.format(
-                "Error fetching pull requests for org '%s', will retry in %s.  Please check that the" +
-                    " configured project url '%s' is correct, that it is for '%s' and that the API token is valid",
-                projectUri.getNamespace(),
+            log.error(
+                "Error fetching pull requests for org '{}' and repo '{}'; will retry in {}.  Please check that the" +
+                    " configured project url {} is correct, that it is for '{}' and that the API token is valid",
+                org,
+                null == repo ? "none specified" : repo,
                 retryDelay,
                 gitRepositoryInfo.repositoryUrl,
-                gitRepositoryInfo.provider), e);
+                gitRepositoryInfo.provider, e);
           }
         }
       }
@@ -248,7 +253,7 @@ public class PullRequestPollingService
     if (null == gitRepositoryInfo || null == gitRepositoryInfo.provider) {
       return false;
     }
-    if (SourceControlProvider.GITHUB != gitRepositoryInfo.provider) {
+    if (!gitRepositoryInfo.provider.supportsPullRequestCommenting()) {
       if (log.isDebugEnabled()) {
         log.debug("{} is not currently supported for pull request commenting",
             gitRepositoryInfo.provider.toString().toUpperCase());

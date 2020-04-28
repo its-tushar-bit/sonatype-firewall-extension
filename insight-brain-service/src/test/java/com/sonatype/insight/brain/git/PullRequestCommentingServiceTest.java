@@ -29,13 +29,13 @@ import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
+import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
 import com.sonatype.nexus.scm.api.model.CommitInformation;
 import com.sonatype.nexus.scm.api.model.DefaultCommentResponse;
 import com.sonatype.nexus.scm.api.model.PullRequest;
 import com.sonatype.nexus.scm.api.model.PullRequestState;
 import com.sonatype.nexus.scm.github.dto.GithubPullRequest;
-import com.sonatype.nexus.scm.github.graphql.GitHubGraphQlClient;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -659,7 +659,7 @@ public class PullRequestCommentingServiceTest
     private GitApiClient mockGitApiClient;
 
     @Mock
-    private GitHubGraphQlClient mockGitHubGraphQlClient;
+    private PullRequestInfoProvider mockPullRequestInfoProvider;
 
     @Mock
     private SourceControlPullRequestCommentDAO mockPullRequestCommentDAO;
@@ -749,9 +749,9 @@ public class PullRequestCommentingServiceTest
         doReturn(entry.getValue()).when(mockGitApiClient).updatePullRequestComment(eq(entry.getValue().getId()), any());
       }
 
-      doReturn(mockGitHubGraphQlClient).when(mockGitClientFactory).createGraphqlApiClient(gitRepositoryInfo);
+      doReturn(mockPullRequestInfoProvider).when(mockGitClientFactory).createPullRequestInfoClient(gitRepositoryInfo);
 
-      doReturn(commitInformation).when(mockGitHubGraphQlClient).getCommitInformationForCommit(
+      doReturn(commitInformation).when(mockPullRequestInfoProvider).getCommitInformationForCommit(
           eq(org), eq(repo), eq(sourceCommitHash), eq(baseBranch), eq(COMMIT_HISTORY_FETCH_COUNT),
           eq(APPLICATION_PULL_REQUEST_FETCH_COUNT));
 

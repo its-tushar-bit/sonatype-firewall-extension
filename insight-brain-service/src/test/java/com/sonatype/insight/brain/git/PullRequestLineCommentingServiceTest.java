@@ -25,6 +25,7 @@ import com.sonatype.nexus.iq.location.dto.DiffPosition;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.iq.location.dto.PositionDiscoveryResult;
 import com.sonatype.nexus.iq.location.dto.RankedSourceLocation;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
 import com.sonatype.nexus.scm.api.model.DefaultCommentResponse;
@@ -94,6 +95,7 @@ public class PullRequestLineCommentingServiceTest
   public void setup() {
     MockitoAnnotations.initMocks(this);
     super.setup();
+    when(gitRepositoryInfo.getProvider()).thenReturn(SourceControlProvider.GITHUB);
   }
 
   @Test

@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.nexus.scm.api.model.PullRequest;
 
+import com.google.common.base.Joiner;
 import org.apache.commons.collections4.CollectionUtils;
 
 import static java.lang.System.currentTimeMillis;
@@ -26,18 +27,20 @@ class PullRequestPollingTracker
 
   private static final long MS_PER_HOUR = MS_PER_MINUTE * 60;
 
+  // keep track of cutoff times at the appropriate level as multiple repos can share a token and we need to make sure
+  // the cutoff time keeps advancing
+  private static final Map<String, Date> keyCutoffTimes = new HashMap<>();
+  
+  private static final Joiner KEY_JOINER = Joiner.on("::").skipNulls();
+
   private final SourceControlDAO sourceControlDAO;
 
-  // keep track of cutoff times at the org-token level as multiple repos can share a token and we need to make sure
-  // the cutoff time keeps advancing
-  private static final Map<String, Date> orgTokenCutoffTimes = new HashMap<>();
-
-  // keep track of which repositories we've polled and which ones we haven't
+  // keep track of which repositories (by internal id) we've polled and which ones we haven't
   private final Set<String> repositoriesPolled = new HashSet<>();
 
-  // the org/api key (token) combo is really what drives our SCM pull request checks;  once we've checked a given pair
-  // for this polling cycle there is no need to check it again until the next polling cycle
-  private Set<String> orgTokensChecked = new HashSet<>();
+  // the org/repo/api key (token) combo is really what drives our SCM pull request checks;  once we've checked a given 
+  // combo for this polling cycle there is no need to check it again until the next polling cycle
+  private Set<String> alreadyCheckedKeys = new HashSet<>();
 
   PullRequestPollingTracker(SourceControlDAO sourceControlDAO) {
     this.sourceControlDAO = sourceControlDAO;
@@ -116,9 +119,16 @@ class PullRequestPollingTracker
     return result;
   }
 
-  void onPullRequestProcessed(String sourceControlId, String org, String token, Date time) {
-    updateSourceControl(sourceControlId, time, 0);
-    setCachedCutoffTime(org, token, time);
+  /**
+   * @param sourceControlId the internal ID of the sourceControl we are processing PRs for
+   * @param org   organization processing PRs
+   * @param repo  repo processing PRs, may be null if polling can take place organization wide
+   * @param token token used for processing PRs
+   * @param cutoffTime next time to use for polling cutoff  
+   */
+  void onPullRequestProcessed(String sourceControlId, String org, String repo, String token, Date cutoffTime) {
+    updateSourceControl(sourceControlId, cutoffTime, 0);
+    setCachedCutoffTime(org, repo, token, cutoffTime);
   }
 
   void onPullRequestProcessedForApplication(String applicationId, Date time) {
@@ -153,32 +163,32 @@ class PullRequestPollingTracker
     sourceControlDAO.initializePullRequestPollTimes();
   }
 
-  Date getCachedCutoffTime(String org, String token, Date defaultCutoffTime) {
-    String orgAndToken = makeKey(org, token);
-    return orgTokenCutoffTimes.computeIfAbsent(orgAndToken, k -> defaultCutoffTime);
+  Date getCachedCutoffTime(String org, String repo, String token, Date defaultCutoffTime) {
+    String key = makeKey(org, repo, token);
+    return keyCutoffTimes.computeIfAbsent(key, k -> defaultCutoffTime);
   }
 
-  private void setCachedCutoffTime(String org, String token, Date cutoffTime) {
-    String orgAndToken = makeKey(org, token);
-    orgTokenCutoffTimes.put(orgAndToken, cutoffTime);
+  private void setCachedCutoffTime(String org, String repo, String token, Date cutoffTime) {
+    String key = makeKey(org, repo, token);
+    keyCutoffTimes.put(key, cutoffTime);
   }
 
   /**
-   * (1) checks whether the given org/token pair has already been used and (2) marks it as having been used
+   * (1) checks whether the given org/repo/token pair has already been used and (2) marks it as having been used
    *
-   * @return true if this org/token pair has already been used; false otherwise
+   * @return true if this org/repo/token combination has already been used; false otherwise
    */
-  boolean visitAndCheckOrganizationWithToken(String org, String token) {
-    String orgAndToken = makeKey(org, token);
-    if (orgTokensChecked.contains(orgAndToken)) {
+  boolean visitAndCheckKeyAlreadyUsed(String org, String repo, String token) {
+    String key = makeKey(org, repo, token);
+    if (alreadyCheckedKeys.contains(key)) {
       return true;
     }
 
-    orgTokensChecked.add(orgAndToken);
+    alreadyCheckedKeys.add(key);
     return false;
   }
 
-  private String makeKey(String org, String token) {
-    return String.format("%s::%s", org, token);
+  private String makeKey(String org, String repo, String token) {
+    return KEY_JOINER.join(org, repo, token);
   }
 }

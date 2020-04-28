@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
-import com.sonatype.nexus.scm.api.GitGraphQlApiClient;
+import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import com.sonatype.nexus.scm.api.model.ProjectUri;
 import com.sonatype.nexus.scm.api.model.PullRequest;
 import com.sonatype.nexus.scm.common.SimpleProjectUri;
@@ -49,7 +49,7 @@ public class PullRequestPollingServiceTest
   private AsyncEventBus mockAsyncEventBus;
 
   @Mock
-  private GitGraphQlApiClient mockGitGraphQlApiClient;
+  private PullRequestInfoProvider mockClient;
 
   public PullRequestPollingServiceTest() {
     super(PullRequestPollingService.class);
@@ -91,7 +91,7 @@ public class PullRequestPollingServiceTest
     // then: event emitted
     verify(mockAsyncEventBus, never()).post(any());
     assertThatLogMessagesEqual(
-        debug("Fetched 1 pull request(s) for org 'org' since " + pullRequestCreateDate),
+        debug("Fetched 1 pull request(s) for org 'org' and repo 'none specified' since " + pullRequestCreateDate),
         debug("Policy evaluation not yet available for 'org/repo' pull request '10'"),
         debug("Pull request polling time updated for 'org/repo'")
     );
@@ -113,7 +113,7 @@ public class PullRequestPollingServiceTest
     // then: event emitted
     verify(mockAsyncEventBus, never()).post(any());
     assertThatLogMessagesEqual(
-        debug("Fetched 1 pull request(s) for org 'org' since " + pullRequestCreateDate),
+        debug("Fetched 1 pull request(s) for org 'org' and repo 'none specified' since " + pullRequestCreateDate),
         debug("application 'app1' pull request '10' is for the base branch, skipping commenting for this PR"),
         debug("Pull request polling time updated for 'org/repo'")
     );
@@ -135,7 +135,7 @@ public class PullRequestPollingServiceTest
     // then: event emitted
     verify(mockAsyncEventBus, times(1)).post(any());
     assertThatLogMessagesEqual(
-        debug("Fetched 1 pull request(s) for org 'org' since " + pullRequestCreateDate),
+        debug("Fetched 1 pull request(s) for org 'org' and repo 'none specified' since " + pullRequestCreateDate),
         info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
         debug("Pull request polling time updated for 'org/repo'")
     );
@@ -175,7 +175,7 @@ public class PullRequestPollingServiceTest
     // then: no events emitted
     verify(mockAsyncEventBus, never()).post(any());
     assertThatLogMessagesEqual(
-        debug("Fetched 1 pull request(s) for org 'org' since " + pullRequestCreateDate),
+        debug("Fetched 1 pull request(s) for org 'org' and repo 'none specified' since " + pullRequestCreateDate),
         debug("Repository is not valid for pull requests, check that it is private: https://domain.com/org/repo"),
         debug("Pull request polling time updated for 'org/repo'")
     );
@@ -192,7 +192,7 @@ public class PullRequestPollingServiceTest
         .withSourcePolicyEvaluation("app1", "spe1")
         .build();
     doThrow(new IOException("scm error"))
-        .when(mockGitGraphQlApiClient)
+        .when(mockClient)
         .getPullRequestsSince(any(String.class), any(OffsetDateTime.class),
             eq(PullRequestPollingService.PULL_REQUESTS_PER_MONITOR_CYCLE));
 
@@ -203,9 +203,9 @@ public class PullRequestPollingServiceTest
     verify(mockAsyncEventBus, never()).post(any());
     assertThatLogMessagesEqual(
         error(
-            "Error fetching pull requests for org 'org', will retry in 5 minutes.  Please check that the configured" +
-            " project url 'https://domain.com/org/repo' is correct, that it is for 'github'" +
-            " and that the API token is valid")
+            "Error fetching pull requests for org 'org' and repo 'none specified'; will retry in 5 minutes.  Please " +
+                "check that the configured project url https://domain.com/org/repo is correct, that it is for " +
+                "'github' and that the API token is valid")
     );
   }
 
@@ -252,7 +252,7 @@ public class PullRequestPollingServiceTest
       MockitoAnnotations.initMocks(this);
 
       doReturn(mockGitApiClient).when(mockGitClientFactory).createApiClient(gitRepositoryInfo);
-      doReturn(mockGitGraphQlApiClient).when(mockGitClientFactory).createGraphqlApiClient(gitRepositoryInfo);
+      doReturn(mockClient).when(mockGitClientFactory).createPullRequestInfoClient(gitRepositoryInfo);
 
       doReturn(sourceControl, (SourceControl) null).when(mockSourceControlDAO).getNextRepositoryToPoll();
       if (null != sourceControl) {
@@ -274,7 +274,7 @@ public class PullRequestPollingServiceTest
         doReturn(projectUri).when(mockGitApiClient).getProjectUri();
       }
 
-      doReturn(pullRequests).when(mockGitGraphQlApiClient)
+      doReturn(pullRequests).when(mockClient)
           .getPullRequestsSince(any(), any(OffsetDateTime.class), anyInt());
 
       if (thrownException != null) {

@@ -29,10 +29,9 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.GitApiClientFactory;
-import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
-import com.sonatype.nexus.scm.api.GitGraphQlApiClient;
+import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
 import com.sonatype.nexus.scm.api.model.Commit;
 import com.sonatype.nexus.scm.api.model.CommitInformation;
@@ -147,7 +146,7 @@ public class PullRequestCommentingService
         String applicationId = event.ownerId;
         GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
 
-        if (SourceControlProvider.GITHUB != gitRepositoryInfo.provider) {
+        if (!gitRepositoryInfo.provider.supportsPullRequestCommenting()) {
           log.debug("'{}' not currently supported for pull request commenting", gitRepositoryInfo.provider.toString());
         }
         else {
@@ -155,9 +154,7 @@ public class PullRequestCommentingService
           CommitInformation commitInfo = getCommitInfoFromScm(gitRepositoryInfo, event.commitHash);
 
           // the commit info contains not only the pull requests associated with the commit but also some recent
-          // commit history for the base branch (optimization that uses GraphQL to fetch multiple pieces of data and
-          // cut down on GitHub API load/potential rate limiting);  so, we tuck that info away first so we can make
-          // use of it later in this flow
+          // commit history for the base branch
           processBaseBranchCommitHistory(sourceCommitPolicyEvaluation, commitInfo.getCommits());
 
           for (PullRequest pullRequest : commitInfo.getPullRequests()) {
@@ -206,9 +203,7 @@ public class PullRequestCommentingService
       }
       else {
         // the commit info contains not only the pull requests associated with the commit but also some recent commit
-        // history for the base branch (optimization that uses GraphQL to fetch multiple pieces of data and cut down
-        // on GitHub API load/potential rate limiting);  so, we tuck that info away first so we can make use of it
-        // later in this flow
+        // history for the base branch
         processBaseBranchCommitHistory(sourceCommitPolicyEvaluation, commitInfo.getCommits());
 
         baseBranchPolicyEvaluation = getLatestPolicyEvaluationReportForBaseBranch(applicationId);
@@ -391,8 +386,8 @@ public class PullRequestCommentingService
     ProjectUri projectUri = gitApiClientUtils.createProjectUri(gitRepositoryInfo.repositoryUrl);
 
     try {
-      GitGraphQlApiClient graphqlApiClient = gitClientFactory.createGraphqlApiClient(gitRepositoryInfo);
-      result = graphqlApiClient.getCommitInformationForCommit(
+      PullRequestInfoProvider client = gitClientFactory.createPullRequestInfoClient(gitRepositoryInfo);
+      result = client.getCommitInformationForCommit(
           projectUri.getNamespace(),
           projectUri.getProject(),
           commitHash,

@@ -42,6 +42,34 @@ public class GitRepositoryInfo
 
   public SourceControlProvider provider;
 
+  public String getRepositoryUrl() {
+    return repositoryUrl;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public String getToken() {
+    return token;
+  }
+
+  public String getBaseBranch() {
+    return baseBranch;
+  }
+
+  public Boolean getEnablePullRequests() {
+    return enablePullRequests;
+  }
+
+  public Boolean getEnableStatusChecks() {
+    return enableStatusChecks;
+  }
+
+  public SourceControlProvider getProvider() {
+    return provider;
+  }
+
   public boolean isDataComplete() {
     return !(provider == null
         || StringUtils.isBlank(repositoryUrl)

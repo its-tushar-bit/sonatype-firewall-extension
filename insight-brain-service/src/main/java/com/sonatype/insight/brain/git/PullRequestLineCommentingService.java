@@ -105,7 +105,8 @@ public class PullRequestLineCommentingService
       final String sourcePolicyEvaluationId,
       final String basePolicyEvaluationId)
   {
-    if (!insightConfig.isExperimentalFeatureEnabled(LINE_COMMENT_FEATURE)) {
+    if (!insightConfig.isExperimentalFeatureEnabled(LINE_COMMENT_FEATURE) ||
+        !gitRepositoryInfo.getProvider().supportsPullRequestLineCommenting()) {
       return Collections.emptyList();
     }
 

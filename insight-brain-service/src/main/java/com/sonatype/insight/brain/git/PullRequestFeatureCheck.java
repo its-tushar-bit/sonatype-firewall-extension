@@ -17,9 +17,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.nexus.scm.SourceControlProvider;
 
-import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,9 +32,6 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 public class PullRequestFeatureCheck
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestFeatureCheck.class);
-
-  private static final List<SourceControlProvider> SUPPORTED_PROVIDERS =
-      ImmutableList.of(SourceControlProvider.GITHUB, SourceControlProvider.BITBUCKET);
 
   private final ProductLicense productLicense;
 
@@ -72,11 +67,11 @@ public class PullRequestFeatureCheck
       return false;
     }
 
-    if (!isProviderSupported(gitRepoInfo)) {
+    if (!gitRepoInfo.provider.supportsPullRequests()) {
       log.debug("Source provider '{}' is not supported", gitRepoInfo.provider);
       return false;
     }
-
+    
     if (!pullRequestRepositoryValidator.isRepoValidForPRs(gitRepoInfo)) {
       log.debug("Pull requests are not supported for application '{}' and repository '{}'",
           app.getId(), gitRepoInfo.repositoryUrl);
@@ -88,10 +83,6 @@ public class PullRequestFeatureCheck
 
   private boolean isLicenseValid() {
     return productLicense.hasFeature(LicensedFeature.AUTOMATION);
-  }
-
-  private boolean isProviderSupported(final GitRepositoryInfo gitRepoInfo) {
-    return gitRepoInfo != null && SUPPORTED_PROVIDERS.contains(gitRepoInfo.provider);
   }
 
   private boolean isApplicationConfiguredForPR(final GitRepositoryInfo gitRepositoryInfo) {

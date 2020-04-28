@@ -101,7 +101,7 @@ public class PullRequestPollingService
         GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
 
         if (null != gitRepositoryInfo) {
-          if (!pullRequestRepositoryValidator.isRepoValidForPRs(gitRepositoryInfo)) {
+          if (!pullRequestRepositoryValidator.isPrivateOrInternalRepository(gitRepositoryInfo)) {
             log.debug("Repository is not valid for pull requests, check that it is private: {}",
                 gitRepositoryInfo.repositoryUrl);
           }

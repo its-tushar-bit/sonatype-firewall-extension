@@ -279,11 +279,11 @@ public class PullRequestPollingServiceTest
 
       if (thrownException != null) {
         doThrow(UnsupportedOperationException.class).when(mockPullRequestRepositoryValidator)
-            .isRepoValidForPRs(eq(gitRepositoryInfo));
+            .isPrivateOrInternalRepository(eq(gitRepositoryInfo));
       }
       else {
         doReturn(isGitRepositoryPrivate).when(mockPullRequestRepositoryValidator)
-            .isRepoValidForPRs(eq(gitRepositoryInfo));
+            .isPrivateOrInternalRepository(eq(gitRepositoryInfo));
       }
 
       return new PullRequestPollingService(mockSourceControlDAO, mockPolicyEvaluationDAO, mockGitCommitHistoryService,

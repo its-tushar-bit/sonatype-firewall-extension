@@ -1061,6 +1061,7 @@
           <artifactId>license-maven-plugin</artifactId>
           <configuration>
             <excludes combine.children="append">
+              <exclude>**/doc/adr/**</exclude>
               <!-- 3rd party contents (needs refinement to catch our stuff) -->
               <exclude>**/*.html</exclude> <!-- Don't repeat license in all templates as it'll end up in DOM -->
               <exclude>**/src/main/frontend/**/lib/**/*</exclude>

@@ -50,8 +50,8 @@ public class OwnerSummaryTile
     return new PillButton(scrollContainer(), "#owner-policy-button");
   }
 
-  public PillButton labelsButton() {
-    return new PillButton(scrollContainer(), "#owner-comp-labels-button");
+  public PillButton labelsButtonInDropdown() {
+    return new PillButton(scrollContainer(), "#owner-comp-labels-button__dropdown");
   }
 
   public PillButton ltgsButton() {

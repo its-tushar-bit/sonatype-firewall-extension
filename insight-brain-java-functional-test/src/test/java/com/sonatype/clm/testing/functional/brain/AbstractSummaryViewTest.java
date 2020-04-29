@@ -144,7 +144,8 @@ public abstract class AbstractSummaryViewTest
     labelTile.labelLists().shouldHaveSize(1);
 
     // scroll to the labels tile
-    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
 
     TileSimpleList list = labelTile.labelList(0);
     list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
@@ -243,7 +244,8 @@ public abstract class AbstractSummaryViewTest
     labelTile.labelLists().shouldHaveSize(1);
 
     // scroll to the labels tile
-    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
 
     TileSimpleList list = labelTile.labelList(0);
     list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
@@ -467,7 +469,8 @@ public abstract class AbstractSummaryViewTest
     labelTile.labelLists().shouldHaveSize(hierarchySize);
 
     // scroll to the labels tile
-    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
       TileSimpleList list = labelTile.labelList(i);

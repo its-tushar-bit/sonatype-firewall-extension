@@ -80,17 +80,20 @@
 }
 
 .iq-report-list__violation-links .iq-threat-indicator {
+  box-sizing: border-box;
   font-size: 12px;
   height: 18px;
   line-height: 19px;
   margin-right: 1px;
-  width: 16px;
-  min-width: 0;
+  padding-right: 3px;
+  padding-left: 2px;
+  min-width: 16px;
 }
 
 .iq-report-list__report-age {
   @extend .truncate-ellipsis;
   display: block;
+  line-height: 14px;
 }
 
 .iq-table--report-list {

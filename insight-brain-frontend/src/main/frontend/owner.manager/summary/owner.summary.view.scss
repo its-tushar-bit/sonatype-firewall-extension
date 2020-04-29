@@ -44,8 +44,8 @@
 .iq-dropdown-menu--nav-pills {
   margin: 0;
   top: 42px;
-  left: -116px;
-  width: 70px;
+  left: -166px;
+  width: auto;
 
   .iq-nav-pills__pill {
     display: block;
@@ -92,9 +92,14 @@
 }
 
 @media (min-width: 1357px) {
+  .iq-nav-pills--owner {
+    .iq-nav-pills__pill:nth-child(6) {
+      display: none;
+    }
+  }
   .iq-dropdown-menu--nav-pills {
     .iq-nav-pills__pill {
-      &:first-child, &:nth-child(2) {
+      &:first-child {
         display: none;
       }
     }
@@ -115,19 +120,19 @@
   }
 }
 
-@media (max-width: 1167px) {
+@media (max-width: 1200px) {
   .iq-nav-pills__pill:nth-child(5) {
     display: none;
   }
 
   .iq-dropdown-menu--nav-pills {
-    .iq-nav-pills__pill:first-child {
+    .iq-nav-pills__pill:first-child, .iq-nav-pills__pill:nth-child(5) {
       display: block;
     }
   }
 
   .iq-dropdown-menu--nav-pills {
-    left: -157px;
+    left: -194px;
     width: auto;
   }
 }

@@ -62,7 +62,10 @@ function LicenseThreatGroupEditorController($scope, $q, $http, $stateParams, $st
     }
 
     $q.all(promises).then(function(results) {
-      vm.availableLicenses = results[0].data;
+      vm.availableLicenses = results[0].data.map(item => ({
+        ...item,
+        fullDisplayName: getFullDisplayName(item)
+      }));
 
       results[1].data.licenseThreatGroupsByOwner.forEach(function(owner) {
         owner.licenseThreatGroups.some(function(ltg, index) {
@@ -151,6 +154,7 @@ function LicenseThreatGroupEditorController($scope, $q, $http, $stateParams, $st
     return item.longDisplayName;
   }
 
+  const getFullDisplayName = ({shortDisplayName, longDisplayName}) => `(${shortDisplayName}) ${longDisplayName}`;
 }
 
 LicenseThreatGroupEditorController.$inject = [

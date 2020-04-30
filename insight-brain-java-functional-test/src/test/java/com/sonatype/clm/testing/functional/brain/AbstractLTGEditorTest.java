@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 
@@ -103,8 +105,14 @@ public abstract class AbstractLTGEditorTest
     assertThat(ltg.getThreatLevel()).isEqualTo(6);
     assertThat(includedLicenses).hasSize(3);
 
+    final String expectedLicenseDisplayFormat = "(%s) %s";
+    Function<License, String> formatLicenseForDisplay = license -> String
+        .format(expectedLicenseDisplayFormat, license.getShortDisplayName(), license.getLongDisplayName());
+
     List<String> includedLicensesLongDisplayNames = includedLicenses.stream()
-        .map(includedLicense -> licenseDAO.getById(includedLicense.getLicenseId()).getLongDisplayName()).sorted()
+        .map(includedLicense -> licenseDAO.getById(includedLicense.getLicenseId()))
+        .map(formatLicenseForDisplay)
+        .sorted()
         .collect(Collectors.toList());
 
     for (int i = 0; i < includedLicenses.size(); i++) {
@@ -127,14 +135,14 @@ public abstract class AbstractLTGEditorTest
 
     // no tooltip for short items
     picker.filter().val("Adobe");
-    picker.availableItem(0).shouldHave(exactText("Adobe")).hover();
+    picker.availableItem(0).shouldHave(exactText("(Adobe) Adobe")).hover();
     Tooltip.get().shouldNot(exist);
     picker.availableItem(0).click();
     picker.pickCheckedItemsButton().hover().click();
 
     // tooltip should exist for overflowing items
     picker.filter().val("AFL");
-    picker.availableItem(0).shouldHave(exactText("AFL-Style License Not Identifiable by Sonatype")).hover();
+    picker.availableItem(0).shouldHave(exactText("(AFL) AFL-Style License Not Identifiable by Sonatype")).hover();
     Tooltip.get().shouldHave(exactText("AFL-Style License Not Identifiable by Sonatype"));
 
     eyesWatcher.eyesCheck();
@@ -144,9 +152,9 @@ public abstract class AbstractLTGEditorTest
 
     // check tooltips in the picked column too
     picker.filter().clear();
-    picker.pickedItem(0).shouldHave(exactText("Adobe")).hover();
+    picker.pickedItem(0).shouldHave(exactText("(Adobe) Adobe")).hover();
     Tooltip.get().shouldNot(exist);
-    picker.pickedItem(1).shouldHave(exactText("AFL-Style License Not Identifiable by Sonatype")).hover();
+    picker.pickedItem(1).shouldHave(exactText("(AFL) AFL-Style License Not Identifiable by Sonatype")).hover();
     Tooltip.get().shouldHave(exactText("AFL-Style License Not Identifiable by Sonatype"));
   }
 

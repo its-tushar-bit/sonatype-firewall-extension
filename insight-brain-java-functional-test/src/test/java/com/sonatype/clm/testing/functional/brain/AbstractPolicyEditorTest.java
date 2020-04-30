@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.jira.JiraIssueType;
 import com.sonatype.insight.brain.jira.JiraProject;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.ComponentDataSourceFeature;
 import com.sonatype.insight.brain.model.component.HygieneRating;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
@@ -62,6 +63,7 @@ import com.sonatype.insight.brain.model.policy.conditions.AbstractConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.DataSourceFeatureConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
@@ -99,6 +101,8 @@ import static com.sonatype.clm.testing.functional.elements.ActionsSection.warnCl
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Color.dark_blue;
 import static com.sonatype.insight.brain.model.Color.dark_red;
+import static com.sonatype.insight.brain.model.policy.conditions.DataSourceFeatureConditionType.HAS_NO_SUPPORT_FOR;
+import static com.sonatype.insight.brain.model.policy.conditions.DataSourceFeatureConditionType.HAS_SUPPORT_FOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
@@ -175,7 +179,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraint.getName()).isEqualTo("New Constraint");
     assertThat(constraint.getOperator()).isEqualTo(LogicalOperator.OR);
 
-    assertThat(constraint.getConditions()).hasSize(23);
+    assertThat(constraint.getConditions()).hasSize(24);
     assertCondition(constraint.getConditions().get(0), AgeInDaysConditionType.ID, "older than",
         Integer.toString(3 * 365));
     assertCondition(constraint.getConditions().get(1), CoordinatesConditionType.ID, "match",
@@ -213,6 +217,8 @@ public abstract class AbstractPolicyEditorTest
     assertCondition(constraint.getConditions().get(21), PackageUrlConditionType.ID, "matches", "pkg:golang/*/*/*@*");
     assertCondition(constraint.getConditions().get(22), HygieneRatingConditionType.ID, "is not",
         HygieneRating.getById("4").getId());
+    assertCondition(constraint.getConditions().get(23), DataSourceFeatureConditionType.ID, HAS_NO_SUPPORT_FOR,
+        ComponentDataSourceFeature.getById("identity").getId());
 
     assertThat(newPolicy.getActions().get(Stage.ID_BUILD)).isEqualTo("warn");
 
@@ -1247,6 +1253,14 @@ public abstract class AbstractPolicyEditorTest
     hygieneRating.value().listItem(1).shouldHave(text("Laggard")).click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
+    newConstraint.addConditionButton().click();
+    DropdownConditionEditSection dataSourceCondition = newConstraint.dropdownCondition(23);
+    dataSourceCondition.type().chooseOption(conditionTypesOptionMap.get(DataSourceFeatureConditionType.class));
+    dataSourceCondition.operator().selectedItem().shouldHave(text(HAS_SUPPORT_FOR)).click();
+    dataSourceCondition.operator().listItem(1).shouldHave(text(HAS_NO_SUPPORT_FOR)).click();
+    dataSourceCondition.value().selectedItem().shouldHave(text("license")).click();
+    dataSourceCondition.value().listItem(1).shouldHave(text("identity")).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
     newConstraint.conditionUnsupportedMessages().shouldHaveSize(0);
   }
 

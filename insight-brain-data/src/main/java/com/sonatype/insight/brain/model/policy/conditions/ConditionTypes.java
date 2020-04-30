@@ -61,6 +61,9 @@ public class ConditionTypes
 
   public static final HygieneRatingConditionType HygieneRatingConditionType = new HygieneRatingConditionType();
 
+  public static final DataSourceFeatureConditionType
+      DataSourceFeatureConditionType = new DataSourceFeatureConditionType();
+
   static {
     // Don't add DeprecatedSecurityVulnerabilityConditionType
     add(AgeInDaysConditionType);
@@ -79,6 +82,7 @@ public class ConditionTypes
     add(RelativePopularityConditionType);
     add(SecurityVulnerabilitySeverityConditionType);
     add(SecurityVulnerabilityStatusConditionType);
+    add(DataSourceFeatureConditionType);
   }
 
   public static Collection<ConditionType> getAll() {

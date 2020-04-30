@@ -174,6 +174,14 @@ public class ExportEmbeddedDatabaseCommand
             else if (sql.startsWith("CREATE INDEX ")) {
               sql = sql.replaceFirst("(?<=CREATE INDEX )\"[^\"]+\"\\.", "");
             }
+            else if (sql.startsWith("CREATE UNIQUE INDEX ")) {
+              // unique constraints should be used instead, which will result in the creation of a unique index;
+              // having this CREATE UNIQUE INDEX statement in the sql could be an indication of a problem in H2
+              // where the auto-generated unique indexes can become abandoned (foreign key constraint created
+              // AFTER a unique constraint that uses that FK column and the unique constraint subsequently dropped)
+              log.debug("Database dump contains a CREATE UNIQUE INDEX statement which will be ignored.");
+              continue;
+            }
           }
         }
         catch (Exception e) {

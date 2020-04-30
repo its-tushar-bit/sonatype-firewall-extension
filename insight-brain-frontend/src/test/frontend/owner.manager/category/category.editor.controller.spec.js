@@ -207,7 +207,7 @@ describe('category.editor.controller.spec.js', function() {
     inject(function($stateParams) {
       if ($stateParams.categoryId) {
         categoryStorePayload.some(function(owner) {
-          owner.tags.some(function(tag) {
+          owner.applicationCategories.some(function(tag) {
             if (tag.id === $stateParams.categoryId) {
               mockCategoryStore.resolveGetById(tag);
               return true;
@@ -217,7 +217,7 @@ describe('category.editor.controller.spec.js', function() {
       }
     });
     categoryStorePayload.forEach(function(owner) {
-      owner.tags.forEach(function(cat) {
+      owner.applicationCategories.forEach(function(cat) {
         cat.$clone = jasmine.createSpy().and.returnValue(cat);
       });
     });

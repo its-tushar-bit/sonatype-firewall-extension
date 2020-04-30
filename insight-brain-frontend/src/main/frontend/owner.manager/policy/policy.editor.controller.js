@@ -129,7 +129,7 @@ function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchy
           startConcat = true;
         }
         if (startConcat) {
-          vm.categories = vm.categories.concat(owner.tags);
+          vm.categories = vm.categories.concat(owner.applicationCategories);
         }
       });
       vm.categories.forEach(function(category) {

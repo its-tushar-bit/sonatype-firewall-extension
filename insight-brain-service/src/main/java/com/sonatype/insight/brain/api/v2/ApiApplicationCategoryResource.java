@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.tag;
+package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
 
@@ -19,25 +19,27 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoryDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
-import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.tag.TagService;
 
 import com.codahale.metrics.annotation.Timed;
 
 @Named
 @Timed
-@Path(TagResource.RESOURCE_PATH)
+@Path(ApiApplicationCategoryResource.RESOURCE_PATH)
 /**
  * @since 1.9
  */
-public class TagResource
+public class ApiApplicationCategoryResource
 {
-  public static final String RESOURCE_PATH = "rest/tag/";
+  public static final String RESOURCE_PATH = PublicApiPaths.APPLICATION_CATEGORY_RESOURCE_PATH;
 
   public static final String USED_BY_APPLICATION_PATH = "application";
 
@@ -45,17 +47,19 @@ public class TagResource
 
   public static final String ORGANIZATION_PATH = "organization/{organizationId}";
 
+  public static final String ORGANIZATION_APPLICABLE_TAGS_PATH = "organization/{organizationId}/applicable";
+
   private final TagService service;
 
   @Inject
-  public TagResource(TagService service) {
+  public ApiApplicationCategoryResource(TagService service) {
     this.service = service;
   }
 
   @GET
   @Path(USED_BY_APPLICATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Tag> getTagsUsedByApplications() {
+  public List<ApiApplicationCategoryDTO> getTagsUsedByApplications() {
     return service.getTagsUsedByApplications();
   }
 
@@ -69,6 +73,15 @@ public class TagResource
   @GET
   @Path(ORGANIZATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  public List<ApiApplicationCategoryDTO> getTags(
+      @PathParam("organizationId") String organizationId)
+  {
+    return service.getTags(organizationId);
+  }
+
+  @GET
+  @Path(ORGANIZATION_APPLICABLE_TAGS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
   public ApplicableTags getApplicableTags(@PathParam("organizationId") String organizationId) {
     return service.getApplicableTags(OwnerType.ORGANIZATION, organizationId);
   }
@@ -76,7 +89,7 @@ public class TagResource
   @GET
   @Path(APPLICATION_PATH + "/applicable")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Tag> getApplicableTagsByApplicationPublicId(
+  public List<ApiApplicationCategoryDTO> getApplicableTagsByApplicationPublicId(
       @PathParam("applicationPublicId") String applicationPublicId)
   {
     return service.getApplicableTagsByApplicationPublicId(applicationPublicId);
@@ -101,7 +114,10 @@ public class TagResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_APPLICATION_CATEGORY)
-  public Tag addTag(@PathParam("organizationId") String organizationId, Tag tag) {
+  public ApiApplicationCategoryDTO addTag(
+      @PathParam("organizationId") String organizationId,
+      ApiApplicationCategoryDTO tag)
+  {
     return service.addTag(organizationId, tag);
   }
 
@@ -110,7 +126,10 @@ public class TagResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_APPLICATION_CATEGORY)
-  public Tag updateTag(@PathParam("organizationId") String organizationId, Tag tag) {
+  public ApiApplicationCategoryDTO updateTag(
+      @PathParam("organizationId") String organizationId,
+      ApiApplicationCategoryDTO tag)
+  {
     return service.updateTag(organizationId, tag);
   }
 
@@ -126,11 +145,11 @@ public class TagResource
     public TagsByOwner() {
     }
 
-    public TagsByOwner(Owner owner, List<Tag> tags) {
+    public TagsByOwner(Owner owner, List<ApiApplicationCategoryDTO> tags) {
       this.ownerId = owner.getPublicId();
       this.ownerName = owner.getName();
       this.ownerType = owner.getType();
-      this.tags = tags;
+      this.applicationCategories = tags;
     }
 
     public String ownerId;
@@ -139,12 +158,12 @@ public class TagResource
 
     public OwnerType ownerType;
 
-    public List<Tag> tags;
+    public List<ApiApplicationCategoryDTO> applicationCategories;
   }
 
   public static class ApplicableTags
   {
-    public List<TagsByOwner> tagsByOwner;
+    public List<TagsByOwner> applicationCategoriesByOwner;
   }
 
   public static class ApplicationTagsByOwner

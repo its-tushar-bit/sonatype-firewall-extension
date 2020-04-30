@@ -179,8 +179,14 @@ locationModule.factory('CLMContextLocations', [
         return CLMLocations.getCategoriesUrl(getServicePath(), getId(true));
       },
 
-      getTagsUrl: function() {
-        return baseUrl.get() + '/rest/tag/organization/' + getId();
+      getApplicableCategoriesUrl: function() {
+        let servicePath = getServicePath();
+        return CLMLocations.getCategoriesUrl(servicePath, getId(true))
+            + (servicePath === 'organization' ? '/applicable' : '');
+      },
+
+      getApplicationCategoriesUrl: function() {
+        return baseUrl.get() + '/api/v2/applicationCategories/organization/' + getId();
       },
 
       getPolicyTagUrl: function(policyId) {

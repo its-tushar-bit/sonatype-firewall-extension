@@ -247,20 +247,20 @@
         <div class="iq-tile-content">
           <div class="iq-list"
                ng-class="{'iq-list--clickable': !owner.parent}"
-               ng-if="!owner.parent || (owner.parent && owner.tags.length > 0)"
+               ng-if="!owner.parent || (owner.parent && owner.applicationCategories.length > 0)"
                ng-repeat="owner in vm.appCategoryOwners">
             <h4 class="iq-list__title" ng-if="!owner.parent">
               Local
             </h4>
-            <h4 class="iq-list__title" ng-if="owner.parent && owner.tags.length > 0">
+            <h4 class="iq-list__title" ng-if="owner.parent && owner.applicationCategories.length > 0">
               Inherited from {{owner.ownerName}}
             </h4>
-            <div class="iq-list__item iq-list__item--empty" ng-if="!owner.parent && owner.tags.length <= 0">
+            <div class="iq-list__item iq-list__item--empty" ng-if="!owner.parent && owner.applicationCategories.length <= 0">
               No application categories defined
             </div>
-            <ul ng-if="owner.tags.length > 0">
+            <ul ng-if="owner.applicationCategories.length > 0">
               <li class="iq-list__item"
-                  ng-repeat="category in owner.tags"
+                  ng-repeat="category in owner.applicationCategories"
                   ng-click="vm.editCategory(category.id, owner.parent)">
                 <i class="fa fa-chevron-right iq-pull-right" ng-if="!owner.parent"></i>
                 <span class="test-list-item-title">

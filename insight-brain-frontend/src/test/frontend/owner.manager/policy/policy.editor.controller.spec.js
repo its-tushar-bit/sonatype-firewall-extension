@@ -65,7 +65,7 @@ describe('policy.editor.controller.spec.js', function() {
         }
       };
 
-      mockCategoryOwners = TagResourceMockData.getTagsUrl(type, owner.id);
+      mockCategoryOwners = TagResourceMockData.getApplicationCategoriesUrl(type, owner.id);
       mockPolicyTags = TagResourceMockData.getPolicyTagUrl();
       spyOn(CLMContextLocations, 'isApplication').and.returnValue(isApp);
       spyOn(CLMContextLocations, 'getEntityId').and.returnValue(isApp ? owner.publicId : owner.id);
@@ -254,8 +254,8 @@ describe('policy.editor.controller.spec.js', function() {
       if (!isApp) {
         expect(vm.owner.name).toEqual(owner.name);
         expect(vm.categories.length).toBe(3);
-        var mockOrgCategories = mockCategoryOwners.tagsByOwner[0].tags;
-        var mockRootCategories = mockCategoryOwners.tagsByOwner[1].tags;
+        var mockOrgCategories = mockCategoryOwners.applicationCategoriesByOwner[0].applicationCategories;
+        var mockRootCategories = mockCategoryOwners.applicationCategoriesByOwner[1].applicationCategories;
 
         mockOrgCategories.forEach(function(category, index) {
           expect(vm.categories[index].name).toEqual(category.name);

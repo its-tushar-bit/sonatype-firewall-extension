@@ -15,10 +15,11 @@ var tagModule = angular.module('Tags', [CLMContextLocationModule.name, CLMLocati
 tagModule.service('TagStore', ['CachedHierarchyStore', 'CLMContextLocations', 'CLMLocations', '$http',
   function(CachedHierarchyStore, CLMContextLocations, CLMLocations, $http) {
     var tagStoreTemplate = {
-      getUrl: CLMContextLocations.getCategoriesUrl,
+      getUrl: CLMContextLocations.getApplicableCategoriesUrl,
+      crudUrl: CLMContextLocations.getCategoriesUrl,
       template: tagTemplate,
-      field: 'tagsByOwner',
-      storeField: 'tags',
+      field: 'applicationCategoriesByOwner',
+      storeField: 'applicationCategories',
       type: 'application category'
     };
     var tagStores = CachedHierarchyStore.get(tagStoreTemplate);

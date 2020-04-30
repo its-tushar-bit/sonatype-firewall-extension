@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model;
 
+import com.sonatype.insight.error.exception.BadRequestException;
+
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Color
@@ -86,6 +88,18 @@ public enum Color
         return true;
       default:
         return false;
+    }
+  }
+
+  public static Color convertColorStringToEnum(String color) {
+    if (color == null) {
+      return null;
+    }
+    try {
+      return Color.fromValue(color);
+    }
+    catch (IllegalArgumentException e) {
+      throw new BadRequestException("Unsupported color: " + color);
     }
   }
 }

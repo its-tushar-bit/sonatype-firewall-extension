@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.tag;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoryDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Color;
@@ -16,7 +18,10 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TagResourceAuditTest
+import static com.sonatype.insight.brain.tag.TagService.fromDTO;
+import static com.sonatype.insight.brain.tag.TagService.toDTO;
+
+public class ApiApplicationCategoryResourceAuditTest
     extends AbstractAuditTest
 {
   private Organization organization;
@@ -28,16 +33,16 @@ public class TagResourceAuditTest
 
   @Test
   public void testAddTag() throws Exception {
-    Tag tag = restRequest().body(tag()).post().getBody(Tag.class);
+    ApiApplicationCategoryDTO dto = restRequest().body(toDTO(tag())).post().getBody(ApiApplicationCategoryDTO.class);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION_CATEGORY, null);
     assertOrganizationData(auditDTO, organization);
-    assertTagData(auditDTO, tag);
+    assertTagData(auditDTO, fromDTO(dto, dto.organizationId));
   }
 
   @Test
   public void testAddTag_Unauthorized() throws Exception {
-    restRequest().with(unauthorizedUser()).body(tag()).post();
+    restRequest().with(unauthorizedUser()).body(toDTO(tag())).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION_CATEGORY, "unauthorized");
     assertOrganizationData(auditDTO, organization);
@@ -45,16 +50,17 @@ public class TagResourceAuditTest
 
   @Test
   public void testUpdateTag() throws Exception {
-    Tag tag = restRequest().body(tag(saveTag().getId())).put().getBody(Tag.class);
+    ApiApplicationCategoryDTO dto =
+        restRequest().body(toDTO(tag(saveTag().getId()))).put().getBody(ApiApplicationCategoryDTO.class);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_APPLICATION_CATEGORY, null);
     assertOrganizationData(auditDTO, organization);
-    assertTagData(auditDTO, tag);
+    assertTagData(auditDTO, fromDTO(dto, dto.organizationId));
   }
 
   @Test
   public void testUpdateTag_Unauthorized() throws Exception {
-    restRequest().with(unauthorizedUser()).body(tag(saveTag().getId())).put();
+    restRequest().with(unauthorizedUser()).body(toDTO(tag(saveTag().getId()))).put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_APPLICATION_CATEGORY, "unauthorized");
     assertOrganizationData(auditDTO, organization);
@@ -95,7 +101,8 @@ public class TagResourceAuditTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(TagResource.RESOURCE_PATH, TagResource.ORGANIZATION_PATH)
+    return super.restRequest()
+        .path(ApiApplicationCategoryResource.RESOURCE_PATH, ApiApplicationCategoryResource.ORGANIZATION_PATH)
         .parameter(organization.getId());
   }
 

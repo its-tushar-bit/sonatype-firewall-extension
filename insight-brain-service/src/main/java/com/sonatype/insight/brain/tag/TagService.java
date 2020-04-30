@@ -9,10 +9,16 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource.ApplicableTags;
+import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource.ApplicationTagsByOwner;
+import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource.AppliedTags;
+import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource.TagsByOwner;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoryDTO;
 import com.sonatype.insight.brain.audit.ApplicationCategoryAuditDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -23,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -33,10 +40,6 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.tag.TagResource.ApplicableTags;
-import com.sonatype.insight.brain.tag.TagResource.ApplicationTagsByOwner;
-import com.sonatype.insight.brain.tag.TagResource.AppliedTags;
-import com.sonatype.insight.brain.tag.TagResource.TagsByOwner;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -51,7 +54,7 @@ import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 /**
  * @since 1.9
  */
-class TagService
+public class TagService
 {
   private final ApplicationService applicationService;
 
@@ -93,7 +96,7 @@ class TagService
     this.managementEventService = managementEventService;
   }
 
-  public List<Tag> getTagsUsedByApplications() {
+  public List<ApiApplicationCategoryDTO> getTagsUsedByApplications() {
     List<Application> applications = applicationService.getApplications();
     Map<String, Tag> allTagsById = new LinkedHashMap<>();
 
@@ -104,49 +107,74 @@ class TagService
       }
     }
 
-    return new ArrayList<>(allTagsById.values());
+    return allTagsById.values().stream().map(TagService::toDTO).collect(Collectors.toList());
   }
 
   @Authorize(permission = Permission.READ)
-  public ApplicableTags getApplicableTags(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-                                          @AuthzContext(AuthzContext.Key.ID) String ownerId)
+  public ApplicableTags getApplicableTags(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     ApplicableTags tags = new ApplicableTags();
-    tags.tagsByOwner = new ArrayList<>();
+    tags.applicationCategoriesByOwner = new ArrayList<>();
     for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
-      tags.tagsByOwner.add(new TagsByOwner(owner, tagDAO.getByOrganizationId(owner.getId())));
+      TagsByOwner tagsByOwner = new TagsByOwner(owner,
+          tagDAO.getByOrganizationId(owner.getId()).stream().map(TagService::toDTO).collect(Collectors.toList()));
+      tags.applicationCategoriesByOwner.add(tagsByOwner);
     }
 
     return tags;
   }
 
+  @Authorize(permission = Permission.READ)
+  public List<ApiApplicationCategoryDTO> getTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String id) {
+    String internalOwnerId = IdUtils.getInternalOwnerId(OwnerType.ORGANIZATION, id);
+    List<ApiApplicationCategoryDTO> applicationCategoryList =
+        tagDAO.getByOrganizationId(internalOwnerId).stream().map(TagService::toDTO).collect(Collectors.toList());
+    return applicationCategoryList;
+  }
+
   @Authorize(permission = Permission.WRITE)
-  public Tag addTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId, Tag tag) {
-    tag.setId(null);
-    tag.setOrganizationId(organizationId);
+  public ApiApplicationCategoryDTO addTag(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId,
+      ApiApplicationCategoryDTO dto)
+  {
+    if (dto.id != null) {
+      throw new BadRequestException("ID must be null when creating an Application Category.");
+    }
+
+    validateOwnerId(organizationId, dto);
+
+    Tag tag = fromDTO(dto, organizationId);
     tagDAO.insert(tag);
 
     managementEventService.postEvent(CREATED, tag);
     auditApplicationCategory(tag);
 
-    return tag;
+    dto = toDTO(tag);
+    return dto;
   }
 
   @Authorize(permission = Permission.WRITE)
-  public Tag updateTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId, Tag tag) {
+  public ApiApplicationCategoryDTO updateTag(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId,
+      ApiApplicationCategoryDTO dto)
+  {
+    validateOwnerId(organizationId, dto);
+
+    Tag tag = fromDTO(dto, organizationId);
     if (!organizationId.equals(tagDAO.getByIdNotNull(tag.getId()).getOrganizationId())) {
       throw new NotFoundException(
           "Cannot find an application category with id " + tag.getId() + " for organization id " + organizationId);
     }
 
-    tag.setOrganizationId(organizationId);
     tagDAO.update(tag);
 
     managementEventService.postEvent(UPDATED, tag);
     auditApplicationCategory(tag);
 
-    return tag;
+    return toDTO(tag);
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -282,13 +310,14 @@ class TagService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<Tag> getApplicableTagsByApplicationPublicId(
+  public List<ApiApplicationCategoryDTO> getApplicableTagsByApplicationPublicId(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId)
   {
-    List<Tag> result = new ArrayList<>();
+    List<ApiApplicationCategoryDTO> result = new ArrayList<>();
     String organizationId = applicationDAO.getByPublicIdNotNull(applicationPublicId).getOrganizationId();
     while (organizationId != null) {
-      result.addAll(tagDAO.getByOrganizationId(organizationId));
+      List<Tag> tags = tagDAO.getByOrganizationId(organizationId);
+      result.addAll(tags.stream().map(TagService::toDTO).collect(Collectors.toList()));
       organizationId = organizationDAO.getById(organizationId).getParentOrganizationId();
     }
     return result;
@@ -307,5 +336,35 @@ class TagService
     AuditData.get().setData("applicationCategoryId", tag.getId()).setData("applicationCategoryName", tag.getName())
         .setData("applicationCategoryDescription", tag.getDescription())
         .setEnum("applicationCategoryColor", tag.getColor());
+  }
+
+  private void validateOwnerId(String organizationId, ApiApplicationCategoryDTO dto) {
+    if (dto.organizationId != null && !dto.organizationId.equals(organizationId)) {
+      throw new BadRequestException("Organization ID mismatch.");
+    }
+  }
+
+  public static ApiApplicationCategoryDTO toDTO(Tag tag) {
+    ApiApplicationCategoryDTO dto = new ApiApplicationCategoryDTO();
+
+    dto.id = tag.getId();
+    dto.name = tag.getName();
+    dto.description = tag.getDescription();
+    dto.organizationId = tag.getOrganizationId();
+    dto.color = tag.getColor().toValue();
+
+    return dto;
+  }
+
+  public static Tag fromDTO(ApiApplicationCategoryDTO dto, String organizationId) {
+    Tag tag = new Tag();
+
+    tag.setId(dto.id);
+    tag.setName(dto.name);
+    tag.setDescription(dto.description);
+    tag.setColor(Color.convertColorStringToEnum(dto.color));
+    tag.setOrganizationId(organizationId);
+
+    return tag;
   }
 }

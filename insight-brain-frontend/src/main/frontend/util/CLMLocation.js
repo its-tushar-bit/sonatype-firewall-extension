@@ -211,14 +211,15 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
         return this.getCategoriesUrl('organization', organizationId) + '/policy';
       },
       getCategoriesUrl: function(ownerType, ownerId) {
-        return baseUrl.get() + '/rest/tag/' + ownerType + '/' + encodeURIComponent(ownerId);
+        return baseUrl.get() + '/api/v2/applicationCategories/' + ownerType + '/' + encodeURIComponent(ownerId);
       },
 
       getApplicationTagUrl: function(applicationPublicId) {
         return baseUrl.get() + '/rest/appliedTag/application/' + encodeURIComponent(applicationPublicId);
       },
       getApplicableOrganizationTags: function(applicationPublicId) {
-        return baseUrl.get() + '/rest/tag/application/' + encodeURIComponent(applicationPublicId) + '/applicable';
+        return baseUrl.get() + '/api/v2/applicationCategories/application/' + encodeURIComponent(applicationPublicId) +
+            '/applicable';
       },
 
       getProductFeaturesUrl: function() {
@@ -256,7 +257,7 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       },
 
       getApplicationTagsUrl: function() {
-        return baseUrl.get() + '/rest/tag/application';
+        return baseUrl.get() + '/api/v2/applicationCategories/application';
       },
 
       getDashboardFilters: function() {

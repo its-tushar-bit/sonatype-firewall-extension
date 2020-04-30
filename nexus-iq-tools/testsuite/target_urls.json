@@ -18,7 +18,7 @@
       }
     },
     {
-      "url": "rest/tag/application",
+      "url": "api/v2/applicationCategories/application",
       "type": "GET",
       "repeat": {
         "ifLongerThan": "30",

@@ -349,20 +349,8 @@ public class LabelService
     label.setId(apiLabelDTO.id);
     label.setLabel(apiLabelDTO.label);
     label.setDescription(apiLabelDTO.description);
-    label.setColor(convertColorStringToEnum(apiLabelDTO.color));
+    label.setColor(Color.convertColorStringToEnum(apiLabelDTO.color));
     label.setOwnerId(ownerId);
     return label;
-  }
-
-  private Color convertColorStringToEnum(String color) {
-    if (color == null) {
-      return null;
-    }
-    try {
-      return Color.fromValue(color);
-    }
-    catch (IllegalArgumentException e) {
-      throw new BadRequestException("Unsupported color: " + color);
-    }
   }
 }

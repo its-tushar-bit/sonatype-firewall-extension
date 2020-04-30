@@ -94,4 +94,6 @@ public class PublicApiPaths
 
   public static final String LABEL_RESOURCE_PATH =
       API_VERSION_PATH_V2 + "labels/{ownerType: application|organization|repository}/{ownerId}";
+
+  public static final String APPLICATION_CATEGORY_RESOURCE_PATH = API_VERSION_PATH_V2 + "applicationCategories";
 }

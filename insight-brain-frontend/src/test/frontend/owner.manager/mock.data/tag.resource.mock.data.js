@@ -11,32 +11,29 @@ export default {
         description: 'Description 1',
         id: 'c824e5d5c20d48e4a202dec55e2905cd',
         name: 'Category 1',
-        nameLowercaseNoWhitespace: 'category1',
         organizationId: orgId || 'f3cea033acf84984ae08d9250db4aa7b'
       }, {
         color: 'blue',
         description: 'Description 2',
         id: 'cfe4d9c29b9a443d98c7e37669553eab',
         name: 'Category 2',
-        nameLowercaseNoWhitespace: 'category2',
         organizationId: orgId || 'f3cea033acf84984ae08d9250db4aa7b'
       }
     ];
   },
-  getTagsUrl: function(ownerType, ownerId, ownerName) {
+  getApplicationCategoriesUrl: function(ownerType, ownerId, ownerName) {
     return {
-      'tagsByOwner': [
+      'applicationCategoriesByOwner': [
         {
           'ownerId': ownerId || 'orgownerid',
           'ownerName': ownerName || 'orgname',
           'ownerType': ownerType || 'organization',
-          'tags': [
+          'applicationCategories': [
             {
               color: 'black',
               description: 'Description 1',
               id: 'appCategoryId_1',
               name: 'Category 1',
-              nameLowercaseNoWhitespace: 'category1',
               organizationId: 'orgownerid'
             },
             {
@@ -44,7 +41,6 @@ export default {
               description: 'Description 2',
               id: 'appCategoryId_2',
               name: 'Category 2',
-              nameLowercaseNoWhitespace: 'category2',
               organizationId: 'orgownerid'
             }
           ]
@@ -53,13 +49,12 @@ export default {
           'ownerId': 'rootorgownerid',
           'ownerName': 'rootorgname',
           'ownerType': 'organization',
-          'tags': [
+          'applicationCategories': [
             {
               color: 'red',
               description: 'Description 3',
               id: 'appCategoryId_3',
               name: 'Category 3',
-              nameLowercaseNoWhitespace: 'category3',
               organizationId: 'rootorgownerid'
             }
           ]
@@ -80,21 +75,18 @@ export default {
         description: 'Description 1',
         id: 'c824e5d5c20d48e4a202dec55e2905cd',
         name: 'Category 1',
-        nameLowercaseNoWhitespace: 'category1',
         organizationId: orgId || 'f3cea033acf84984ae08d9250db4aa7b'
       }, {
         color: 'blue',
         description: 'Description 2',
         id: 'cfe4d9c29b9a443d98c7e37669553eab',
         name: 'Category 2',
-        nameLowercaseNoWhitespace: 'category2',
         organizationId: orgId || 'f3cea033acf84984ae08d9250db4aa7b'
       }, {
         color: 'red',
         description: 'Description 2',
         id: 'cfe4d9c29b9a443d98c7e37669553eef',
         name: 'Category 2',
-        nameLowercaseNoWhitespace: 'category3',
         organizationId: orgId || 'f3cea033acf84984ae08d9250db4aa7b'
       }
     ];

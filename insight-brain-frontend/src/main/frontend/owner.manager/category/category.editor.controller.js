@@ -66,7 +66,7 @@ function CategoryEditorController($scope, $stateParams, Modal, TagStore, DeleteM
 
     $q.all(promises).then(function(results) {
       results[0].forEach(function(owner) {
-        vm.siblings = vm.siblings.concat(owner.tags);
+        vm.siblings = vm.siblings.concat(owner.applicationCategories);
       });
 
       //the first owner is the local one

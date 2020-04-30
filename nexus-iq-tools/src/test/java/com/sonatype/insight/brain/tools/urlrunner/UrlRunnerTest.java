@@ -110,7 +110,7 @@ public class UrlRunnerTest
   private PerfTestConfig getObjectBasicGet() {
     PerfTestConfig config = new PerfTestConfig();
     PerfTestConfig.TestUrl testUrl = new PerfTestConfig.TestUrl();
-    testUrl.setUrl("rest/tag/application");
+    testUrl.setUrl("api/v2/applicationCategories/application");
     testUrl.setType("GET");
     config.setUrls(Collections.singletonList(testUrl));
     return config;
@@ -119,7 +119,7 @@ public class UrlRunnerTest
   private PerfTestConfig getObjectBadGetUrl() {
     PerfTestConfig config = new PerfTestConfig();
     PerfTestConfig.TestUrl testUrl = new PerfTestConfig.TestUrl();
-    testUrl.setUrl("rest/tag/applicationn");
+    testUrl.setUrl("api/v2/applicationCategories/applicationn");
     testUrl.setType("GET");
     config.setUrls(Collections.singletonList(testUrl));
     return config;

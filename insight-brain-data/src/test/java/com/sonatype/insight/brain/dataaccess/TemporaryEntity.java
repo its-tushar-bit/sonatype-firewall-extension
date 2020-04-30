@@ -1132,6 +1132,7 @@ public class TemporaryEntity
       String applicationId,
       int pullRequestId,
       int pullRequestCommentId,
+      String contentHash,
       String sourcePolicyEvaluationId,
       String targetPolicyEvaluationId)
   {
@@ -1139,6 +1140,7 @@ public class TemporaryEntity
         applicationId,
         pullRequestId,
         pullRequestCommentId,
+        contentHash,
         sourcePolicyEvaluationId,
         targetPolicyEvaluationId
     );

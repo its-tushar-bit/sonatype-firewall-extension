@@ -40,11 +40,13 @@ public class SourceControlPullRequestCommentDAOTest
 
     int pullRequestId = 202001;
     int pullRequestCommentId = 1;
+    String contentHash = "contentHash";
 
     SourceControlPullRequestComment pullRequestComment = tempEntity.newSourceControlPullRequestComment(
         applicationId,
         pullRequestId,
         pullRequestCommentId,
+        contentHash,
         sourcePolicyEvaluation.getId(),
         targetPolicyEvaluation.getId()
     );
@@ -63,6 +65,7 @@ public class SourceControlPullRequestCommentDAOTest
     assertThat(fetchedPullRequestComment.getApplicationId()).isEqualTo(applicationId);
     assertThat(fetchedPullRequestComment.getPullRequestId()).isEqualTo(pullRequestId);
     assertThat(fetchedPullRequestComment.getPullRequestCommentId()).isEqualTo(pullRequestCommentId);
+    assertThat(fetchedPullRequestComment.getContentHash()).isEqualTo(contentHash);
     assertThat(fetchedPullRequestComment.getSourcePolicyEvaluationId()).isEqualTo(sourcePolicyEvaluation.getId());
     assertThat(fetchedPullRequestComment.getTargetPolicyEvaluationId()).isEqualTo(targetPolicyEvaluation.getId());
     assertThat(fetchedPullRequestComment.getCreateTime()).isEqualTo(pullRequestComment.getCreateTime());
@@ -114,6 +117,7 @@ public class SourceControlPullRequestCommentDAOTest
         applicationId,
         subjectPullRequestId,
         0,
+        "contentHash",
         sourcePolicyEvaluation.getId(),
         targetPolicyEvaluation.getId()
     );
@@ -193,6 +197,7 @@ public class SourceControlPullRequestCommentDAOTest
         applicationId,
         1,
         2,
+        "contentHash",
         "bogusPolicyEvalId",
         targetPolicyEvaluation.getId()
     ));
@@ -213,6 +218,7 @@ public class SourceControlPullRequestCommentDAOTest
         applicationId,
         1,
         2,
+        "contentHash",
         sourcePolicyEvaluation.getId(),
         "bogusPolicyEvalId"
     ));
@@ -235,6 +241,7 @@ public class SourceControlPullRequestCommentDAOTest
         "bogusAppId",
         1,
         2,
+        "contentHash",
         sourcePolicyEvaluation.getId(),
         targetPolicyEvaluation.getId()
     ));
@@ -258,8 +265,10 @@ public class SourceControlPullRequestCommentDAOTest
         .newPolicyEvaluation(applicationId, BuildStageType.ID, "sourceScan", "sourceCommit").getId();
     String targetPolicyEvalId = tempEntity
         .newPolicyEvaluation(applicationId, BuildStageType.ID, "targetScan", "targetCommit").getId();
-    tempEntity.newSourceControlPullRequestComment(applicationId, 1, 11, sourcePolicyEvalId, targetPolicyEvalId);
-    tempEntity.newSourceControlPullRequestComment(applicationId, 2, 22, sourcePolicyEvalId, targetPolicyEvalId);
+    tempEntity.newSourceControlPullRequestComment(applicationId, 1, 11, "contentHash1", 
+        sourcePolicyEvalId, targetPolicyEvalId);
+    tempEntity.newSourceControlPullRequestComment(applicationId, 2, 22, "contentHash2", 
+        sourcePolicyEvalId, targetPolicyEvalId);
 
     // when : fetch from populated table
     pullRequestComments = pullRequestCommentDAO.getByApplicationId(applicationId);
@@ -279,7 +288,8 @@ public class SourceControlPullRequestCommentDAOTest
     assertThat(pullRequestComments).isEmpty();
 
     // given : add data for 2nd app
-    tempEntity.newSourceControlPullRequestComment(app2.getId(), 3, 33, sourcePolicyEvalId, targetPolicyEvalId);
+    tempEntity.newSourceControlPullRequestComment(app2.getId(), 3, 33, "contentHash2", 
+        sourcePolicyEvalId, targetPolicyEvalId);
 
     // when : fetch for original app
     pullRequestComments = pullRequestCommentDAO.getByApplicationId(applicationId);

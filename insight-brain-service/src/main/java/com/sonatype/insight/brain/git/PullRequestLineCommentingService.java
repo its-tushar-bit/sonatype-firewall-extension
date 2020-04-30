@@ -7,12 +7,10 @@ package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -22,13 +20,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
-import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -54,15 +46,11 @@ public class PullRequestLineCommentingService
 
   static final String LINE_COMMENT_FEATURE = "prLineCommenting";
 
-  private static final String VERSION_KEY = "version";
-
   private final GitClientFactory gitClientFactory;
 
   private final SourceControlPullRequestCommentDAO pullRequestCommentDAO;
 
   private final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService;
-
-  private final ApiComponentRemediationService remediationService;
 
   private final SourceControlTaskRunner sourceControlTaskRunner;
 
@@ -75,7 +63,6 @@ public class PullRequestLineCommentingService
       final GitClientFactory gitClientFactory,
       final SourceControlPullRequestCommentDAO pullRequestCommentDAO,
       final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService,
-      final ApiComponentRemediationService remediationService,
       final SourceControlTaskRunner sourceControlTaskRunner,
       final PositionDiscoveryExecutor positionDiscoveryExecutor,
       final InsightConfig insightConfig)
@@ -83,7 +70,6 @@ public class PullRequestLineCommentingService
     this.gitClientFactory = gitClientFactory;
     this.pullRequestCommentDAO = pullRequestCommentDAO;
     this.pullRequestFeedbackMarkupService = pullRequestFeedbackMarkupService;
-    this.remediationService = remediationService;
     this.sourceControlTaskRunner = sourceControlTaskRunner;
     this.positionDiscoveryExecutor = positionDiscoveryExecutor;
     this.insightConfig = insightConfig;
@@ -98,6 +84,7 @@ public class PullRequestLineCommentingService
   public List<PullRequestLineCommentDTO> createPullRequestLineComments(
       final List<PolicyViolation> violationList,
       final GitRepositoryInfo gitRepositoryInfo,
+      final Map<ComponentIdentifier, String> remediationVersionMap,
       final int pullRequestId,
       final String branch,
       final String commitHash,
@@ -129,10 +116,6 @@ public class PullRequestLineCommentingService
 
             Map<ComponentIdentifier, List<DiffPosition>> diffPositionMap =
                 positionDiscoveryResult.getDiffPositionsByComponent();
-
-            //Fetch remediation information for the target component, if available
-            Map<ComponentIdentifier, String> remediationVersionMap =
-                getRemediationVersionMap(diffPositionMap.keySet(), applicationId);
 
             // Build a list of line comments to be created
             lineCommentList = buildLineCommentList(diffPositionMap, violationList);
@@ -266,41 +249,6 @@ public class PullRequestLineCommentingService
       }
     }
     return lineCommentDTOList;
-  }
-
-  /**
-   * Returns a map of component identifier and remediation versions for a given set of component identifiers.
-   * The map will contains entries only for the components for which a remediation version is found.
-   */
-  private Map<ComponentIdentifier, String> getRemediationVersionMap(
-      final Set<ComponentIdentifier> componentIdentifiers,
-      final String ownerId)
-  {
-    Map<ComponentIdentifier, String> remediationVersionMap = new HashMap<>();
-    for (ComponentIdentifier componentIdentifier : componentIdentifiers) {
-      Optional<String> suggestedVersion = getRemediationVersion(componentIdentifier, ownerId);
-      suggestedVersion.ifPresent(s -> remediationVersionMap.put(componentIdentifier, s));
-    }
-    return remediationVersionMap;
-  }
-
-  /**
-   * Gets remediation versions, if any,  for a given component identifier
-   */
-  private Optional<String> getRemediationVersion(final ComponentIdentifier componentIdentifier, final String ownerId) {
-    String nextVersion = null;
-    final ApiComponentDTOV2 componentDto = new ApiComponentDTOV2();
-    componentDto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
-    ApiComponentRemediationDTO remediationDTO = remediationService.getSuggestedRemediationForComponentNoAuth(
-        componentDto, OwnerType.APPLICATION, ownerId, null, null, null);
-    if (remediationDTO != null) {
-      List<ApiVersionChangeOptionDTO> versionChanges = remediationDTO.remediation.versionChanges;
-      if (!versionChanges.isEmpty()) {
-        nextVersion =
-            versionChanges.get(0).getData().getComponent().componentIdentifier.getCoordinates().get(VERSION_KEY);
-      }
-    }
-    return Optional.ofNullable(nextVersion);
   }
 
   /**

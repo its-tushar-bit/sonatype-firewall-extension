@@ -7,12 +7,16 @@ package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.SortedMap;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
@@ -81,7 +85,11 @@ public class PullRequestCommentingService
 
   private final InsightConfig insightConfig;
 
+  private final PullRequestCommentingRemediationService commentingRemediationService;
+  
   private final PullRequestLineCommentingService pullRequestLineCommentingService;
+  
+  private final Provider<PullRequestCommentingHashBuilder> hashBuilderProvider;
 
   @Inject
   public PullRequestCommentingService(
@@ -92,12 +100,14 @@ public class PullRequestCommentingService
       final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService,
       final GitCommitHistoryService gitCommitHistoryService,
       final PullRequestCommentingMetricsService pullRequestCommentingMetricsService,
+      final PullRequestCommentingRemediationService commentingRemediationService,
       final AsyncEventBus asyncEventBus,
       final ProductLicense productLicense,
       final PullRequestRepositoryValidator pullRequestRepositoryValidator,
       final PolicyEvaluationDiffService policyEvaluationDiffService,
       final InsightConfig insightConfig,
-      final PullRequestLineCommentingService pullRequestLineCommentingService)
+      final PullRequestLineCommentingService pullRequestLineCommentingService,
+      final Provider<PullRequestCommentingHashBuilder> hashBuilderProvider)
   {
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
@@ -106,12 +116,14 @@ public class PullRequestCommentingService
     this.pullRequestFeedbackMarkupService = pullRequestFeedbackMarkupService;
     this.gitCommitHistoryService = gitCommitHistoryService;
     this.pullRequestCommentingMetricsService = pullRequestCommentingMetricsService;
+    this.commentingRemediationService = commentingRemediationService;
     this.asyncEventBus = asyncEventBus;
     this.productLicense = productLicense;
     this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
     this.policyEvaluationDiffService = policyEvaluationDiffService;
     this.insightConfig = insightConfig;
     this.pullRequestLineCommentingService = pullRequestLineCommentingService;
+    this.hashBuilderProvider = hashBuilderProvider;
   }
 
   @Override
@@ -250,48 +262,85 @@ public class PullRequestCommentingService
       PolicyEvaluation baseBranchPolicyEvaluation,
       SourceControlPullRequestComment existingPullRequestComment)
   {
-    if (existingPullRequestComment == null ||
-        !existingPullRequestComment.getSourcePolicyEvaluationId().equals(sourceCommitPolicyEvaluation.getId()) ||
-        !existingPullRequestComment.getTargetPolicyEvaluationId().equals(baseBranchPolicyEvaluation.getId())) {
+    try {
+      Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff = policyEvaluationDiffService
+          .createPolicyViolationDiff(baseBranchPolicyEvaluation, sourceCommitPolicyEvaluation);
 
-      try {
-        Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff = policyEvaluationDiffService
-            .createPolicyViolationDiff(baseBranchPolicyEvaluation, sourceCommitPolicyEvaluation);
-        if (policyViolationDiff.isPresent() &&
-            (existingPullRequestComment != null || policyViolationDiff.get().hasAppeared())) {
+      if (policyViolationDiff.isPresent()) {
+        // retrieve suggested remediation map for components in the appeared violation list
+        SortedMap<ComponentIdentifier, String> remediationVersionMap = commentingRemediationService
+            .getRemediationVersionMap(policyViolationDiff.get().getAppeared(), applicationId);
+    
+        // calculate comment content hash
+        String contentHash = hashBuilderProvider.get().withPolicyViolationDiff(policyViolationDiff.get())
+            .withRemediationVersionMap(remediationVersionMap).generateHash();
 
-          // line comment sub-flow
-          pullRequestLineCommentingService
-              .createPullRequestLineComments(policyViolationDiff.get().getAppeared(), gitRepositoryInfo,
-                  pullRequestNumber, branchName, sourceCommitPolicyEvaluation.getCommitHash(), applicationId,
-                  sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId());
-
-          Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService
-              .createMarkup(policyViolationDiff.get(), sourceCommitPolicyEvaluation,
-                  baseBranchPolicyEvaluation);
-
-          if (policyEvaluationDiffMarkup.isPresent()) {
-            int commentId = createOrUpdateCommentInGitSCM(applicationId, gitRepositoryInfo, pullRequestNumber,
-                policyEvaluationDiffMarkup.get(), existingPullRequestComment);
-            recordCommentInDatabase(applicationId, pullRequestNumber, commentId, sourceCommitPolicyEvaluation.getId(),
-                baseBranchPolicyEvaluation.getId(), existingPullRequestComment);
+        if (existingPullRequestComment == null) { // new PR comment
+          if (policyViolationDiff.get().hasAppeared() || policyViolationDiff.get().hasCleared()) {
+            doCreateOrUpdateComments(applicationId, gitRepositoryInfo, pullRequestNumber, branchName,
+                sourceCommitPolicyEvaluation,
+                baseBranchPolicyEvaluation, existingPullRequestComment, policyViolationDiff, remediationVersionMap,
+                contentHash);
+          } 
+          else {
+            log.info("no added or cleared violations in policy evaluation diff, and no previous PR comments for " +
+                    "application '{}' pull request '{}'.", applicationId, pullRequestNumber);
+          }
+        } 
+        else { // existing PR comment
+          if (!contentHash.equals(existingPullRequestComment.getContentHash())) {
+            doCreateOrUpdateComments(applicationId, gitRepositoryInfo, pullRequestNumber, branchName,
+                sourceCommitPolicyEvaluation,
+                baseBranchPolicyEvaluation, existingPullRequestComment, policyViolationDiff, remediationVersionMap,
+                contentHash);
           }
           else {
-            log.info("generated feedback markup was empty for application '{}' pull request '{}'",
+            log.info("policy evaluations have not changed for application '{}' pull request '{}'.",
                 applicationId, pullRequestNumber);
-          }
-        }
-        else {
-          log.info("no added violations in policy eval diff, and no previous PR comments for application " +
-              "'{}' pull request '{}'.", applicationId, pullRequestNumber);
+          }  
         }
       }
-      catch (Exception e) {
-        log.error(e.getMessage(), e);
+      else {
+        log.info("unable to get the policy evaluation diff for application '{}' pull request '{}'.", 
+            applicationId, pullRequestNumber);
       }
     }
+    catch (Exception e) {
+      log.error(e.getMessage(), e);
+    }
+  }
+
+  private void doCreateOrUpdateComments(
+      final String applicationId,
+      final GitRepositoryInfo gitRepositoryInfo,
+      final int pullRequestNumber,
+      final String branchName,
+      final PolicyEvaluation sourceCommitPolicyEvaluation,
+      final PolicyEvaluation baseBranchPolicyEvaluation,
+      final SourceControlPullRequestComment existingPullRequestComment,
+      final Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff,
+      final Map<ComponentIdentifier, String> remediationVersionMap, 
+      final String contentHash) 
+      throws IOException
+  {
+    // line comment sub-flow
+    pullRequestLineCommentingService
+        .createPullRequestLineComments(policyViolationDiff.get().getAppeared(), gitRepositoryInfo, 
+            remediationVersionMap, pullRequestNumber, branchName, sourceCommitPolicyEvaluation.getCommitHash(), 
+            applicationId, sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId());
+
+    Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService
+        .createMarkup(policyViolationDiff.get(), sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation);
+
+    if (policyEvaluationDiffMarkup.isPresent()) {
+      int commentId = createOrUpdateCommentInGitSCM(applicationId, gitRepositoryInfo, pullRequestNumber,
+          policyEvaluationDiffMarkup.get(), existingPullRequestComment);
+      recordCommentInDatabase(applicationId, pullRequestNumber, commentId, contentHash, 
+          sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId(), existingPullRequestComment);
+    }
     else {
-      log.info("policy evaluations have not changed for '{}' pull request '{}'", applicationId, pullRequestNumber);
+      log.info("generated feedback markup was empty for application '{}' pull request '{}'",
+          applicationId, pullRequestNumber);
     }
   }
 
@@ -334,14 +383,15 @@ public class PullRequestCommentingService
       String applicationId,
       int pullRequestNumber,
       Integer commentId,
+      String contentHash,
       String sourcePolicyEvaluationId,
       String basePolicyEvaluationId,
       SourceControlPullRequestComment existingPullRequestComment)
   {
     if (existingPullRequestComment == null) {
       SourceControlPullRequestComment pullRequestComment =
-          new SourceControlPullRequestComment(applicationId, pullRequestNumber, commentId, sourcePolicyEvaluationId,
-              basePolicyEvaluationId);
+          new SourceControlPullRequestComment(applicationId, pullRequestNumber, commentId, contentHash, 
+              sourcePolicyEvaluationId, basePolicyEvaluationId);
       pullRequestCommentDAO.insert(pullRequestComment);
     }
     else {

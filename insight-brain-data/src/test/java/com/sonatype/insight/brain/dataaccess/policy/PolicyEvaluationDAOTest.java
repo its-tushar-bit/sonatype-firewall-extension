@@ -522,6 +522,7 @@ public class PolicyEvaluationDAOTest
         applicationId,
         1,
         2,
+        "contentHash",
         sourcePolicyEvaluation.getId(),
         targetPolicyEvaluation.getId()
     );

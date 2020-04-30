@@ -52,4 +52,8 @@ public class PolicyViolationDiff<T extends PolicyViolationComparable>
   public boolean hasAppeared() {
     return !appeared.isEmpty();
   }
+  
+  public boolean hasCleared() {
+    return !cleared.isEmpty();
+  }
 }

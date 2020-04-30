@@ -687,6 +687,7 @@ CREATE TABLE source_control_pull_request_comment
   target_policy_evaluation_id varchar(50) NOT NULL,
   create_time timestamp NOT NULL,
   update_time timestamp,
+  content_hash varchar(40),
   CONSTRAINT source_control_pull_request_comment_pk PRIMARY KEY (source_control_pull_request_comment_id),
   CONSTRAINT source_control_pull_request_app_component_pull_request_uk UNIQUE (application_id, component_hash, pull_request_id),
   CONSTRAINT source_control_pull_request_comment_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id),

@@ -57,12 +57,8 @@ describe('category.editor.controller.spec.js', function() {
       vm = $controller('category.editor.controller', {$scope: scope});
     });
     resolveLoad([
-      {
-        store: {
-          create: function() {
-          }
-        }, applicationCategories: [{id: 'a'}, {id: 'b'}]
-      }, {applicationCategories: [{id: 'c'}]}
+      {store: {create: function() {}}, applicationCategories: [{id: 'a'}, {id: 'b'}]},
+      {applicationCategories: [{id: 'c'}]}
     ]);
     $timeout.flush();
     expect(vm.siblings.length).toBe(3);

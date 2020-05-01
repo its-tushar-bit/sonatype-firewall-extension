@@ -373,7 +373,8 @@ describe('policy.editor.controller.spec.js', function() {
       const respondWithCategories = !expectError && (!isApp || policyStoreData.length > 1 &&
               any(propEq('id', policyId), policyStoreData[1].policies));
       if (respondWithCategories) {
-        $httpBackend.expectGET(CLMContextLocations.getCategoriesUrl()).respond(mockCategoryOwners);
+        $httpBackend.expectGET(CLMContextLocations.getCategoriesUrl() + isApp ? '' : '/applicable').respond(
+            mockCategoryOwners);
 
         if (policyId) {
           $httpBackend.expectGET(CLMContextLocations.getPolicyTagUrl(mockPolicy.id)).respond(mockPolicyTags);

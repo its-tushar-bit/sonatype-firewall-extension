@@ -28,7 +28,7 @@ describe('category.editor.controller.spec.js', function() {
       mockPolicyStore = StoreUtils().createMockStore('PolicyHierarchyStore'),
       mockPolicyTagStore = StoreUtils().createMockStore('PolicyTagStore'),
       mockCategory = ResourceUtils().createMockResource(),
-      mockOwner = {store: {create: function() {return 'stub';}}, tags: [mockCategory]};
+      mockOwner = {store: {create: function() {return 'stub';}}, applicationCategories: [mockCategory]};
 
   beforeEach(inject(function($rootScope, _$q_, _$timeout_) {
     scope = $rootScope.$new();
@@ -56,7 +56,14 @@ describe('category.editor.controller.spec.js', function() {
     inject(function($controller) {
       vm = $controller('category.editor.controller', {$scope: scope});
     });
-    resolveLoad([{store: {create: function() {}}, tags: [{id: 'a'}, {id: 'b'}]}, {tags: [{id: 'c'}]}]);
+    resolveLoad([
+      {
+        store: {
+          create: function() {
+          }
+        }, applicationCategories: [{id: 'a'}, {id: 'b'}]
+      }, {applicationCategories: [{id: 'c'}]}
+    ]);
     $timeout.flush();
     expect(vm.siblings.length).toBe(3);
     expect(vm.siblings[0].id).toBe('a');
@@ -74,7 +81,7 @@ describe('category.editor.controller.spec.js', function() {
 
     var spy = spyOn(mockDeleteService, 'deleteCustom').and.returnValue(deleteServiceResourceDefer.promise);
     mockCategory.id = 'testCatId';
-    mockCategoryStore.resolveGet([{tags: [{id: 'testCatId_neg'}, mockCategory]}]);
+    mockCategoryStore.resolveGet([{applicationCategories: [{id: 'testCatId_neg'}, mockCategory]}]);
     mockCategoryStore.resolveGetById(mockCategory);
     mockCategoryStore.resolveGetApplied({
       data: {
@@ -102,7 +109,7 @@ describe('category.editor.controller.spec.js', function() {
     inject(function($controller) {
       vm = $controller('category.editor.controller', {$scope: scope});
     });
-    resolveLoad([{store: {create: function() {}}, tags: []}]);
+    resolveLoad([{store: {create: function() {}}, applicationCategories: []}]);
     $timeout.flush();
     mockCategory.$new = true;
     vm.dirtyCategory = mockCategory;
@@ -138,7 +145,7 @@ describe('category.editor.controller.spec.js', function() {
       $scope: scope
     });
 
-    resolveLoad([{tags: [{id: '123'}, {id: '456'}]}]);
+    resolveLoad([{applicationCategories: [{id: '123'}, {id: '456'}]}]);
     $timeout.flush();
     expect(vm.dirtyCategory).toBeUndefined();
     expect(vm.loadError).toBeDefined();

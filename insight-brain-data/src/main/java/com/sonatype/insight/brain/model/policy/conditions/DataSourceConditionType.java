@@ -8,20 +8,20 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.ComponentDataSourceFeature;
+import com.sonatype.insight.brain.model.component.ComponentDataSource;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.policy.conditions.valuetype.DataSourceFeatureValueType;
+import com.sonatype.insight.brain.model.policy.conditions.valuetype.DataSourceValueType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.ImmutableList;
 
-public class DataSourceFeatureConditionType
+public class DataSourceConditionType
     extends AbstractComponentConditionType<String>
 {
-  public static final String ID = "DataSourceFeature";
+  public static final String ID = "DataSource";
 
   public static final String HAS_SUPPORT_FOR = "has support for";
 
@@ -52,7 +52,7 @@ public class DataSourceFeatureConditionType
   @Override
   public String explainCondition(final Condition condition) {
     return getName() + ' ' + condition.getOperator() + ' ' +
-        ComponentDataSourceFeature.getById(condition.getValue()).getId();
+        ComponentDataSource.getById(condition.getValue()).getId();
   }
 
   @Override
@@ -62,7 +62,7 @@ public class DataSourceFeatureConditionType
 
   @Override
   public String getValueTypeId() {
-    return DataSourceFeatureValueType.ID;
+    return DataSourceValueType.ID;
   }
 
   @Override
@@ -71,7 +71,7 @@ public class DataSourceFeatureConditionType
   {
     super.validateCondition(tx, condition, ownerId);
 
-    if (ComponentDataSourceFeature.getById(condition.getValue()) == null) {
+    if (ComponentDataSource.getById(condition.getValue()) == null) {
       throw new InvalidConditionException(condition, "Value not supported: " + condition.getValue());
     }
   }

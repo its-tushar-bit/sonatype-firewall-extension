@@ -7,13 +7,13 @@ package com.sonatype.insight.brain.model.policy.conditions.valuetype;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.model.component.ComponentDataSourceFeature;
+import com.sonatype.insight.brain.model.component.ComponentDataSource;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
 
-public class DataSourceFeatureValueType
-    implements ConditionValueType<ComponentDataSourceFeature>
+public class DataSourceValueType
+    implements ConditionValueType<ComponentDataSource>
 {
-  public static final String ID = "DataSourceFeatureValueType";
+  public static final String ID = "DataSourceValueType";
 
   @Override
   public String getId() {
@@ -22,7 +22,7 @@ public class DataSourceFeatureValueType
 
   @Override
   public String getDataType() {
-    return "DataSourceFeatureValue";
+    return "DataSourceValue";
   }
 
   @Override
@@ -31,8 +31,8 @@ public class DataSourceFeatureValueType
   }
 
   @Override
-  public List<ComponentDataSourceFeature> getAvailableValues() {
-    return ComponentDataSourceFeature.getAll();
+  public List<ComponentDataSource> getAvailableValues() {
+    return ComponentDataSource.getAll();
   }
 }
 

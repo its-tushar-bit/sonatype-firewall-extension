@@ -11,27 +11,27 @@ import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 
-public class ComponentDataSourceFeature
+public class ComponentDataSource
 {
   private final String id;
 
   private final String name;
 
-  private static Map<String, ComponentDataSourceFeature> all = ImmutableMap.of(
-      "license", new ComponentDataSourceFeature("license", "License"),
-      "identity", new ComponentDataSourceFeature("identity", "Identity")
+  private static Map<String, ComponentDataSource> all = ImmutableMap.of(
+      "license", new ComponentDataSource("license", "License"),
+      "identity", new ComponentDataSource("identity", "Identity")
   );
 
-  public ComponentDataSourceFeature(final String id, final String name) {
+  public ComponentDataSource(final String id, final String name) {
     this.id = id;
     this.name = name;
   }
 
-  public static ComponentDataSourceFeature getById(String id) {
+  public static ComponentDataSource getById(String id) {
     return all.get(id);
   }
 
-  public static List<ComponentDataSourceFeature> getAll() {
+  public static List<ComponentDataSource> getAll() {
     return new ArrayList<>(all.values());
   }
 
@@ -45,7 +45,7 @@ public class ComponentDataSourceFeature
 
   @Override
   public String toString() {
-    return "ComponentDataSourceFeature{" +
+    return "ComponentDataSource{" +
         "id='" + id + '\'' +
         ", name='" + name + '\'' +
         '}';

@@ -102,6 +102,7 @@ public class ApiPolicyViolationServiceV2
         apiPolicyViolationDTO.policyName = policyViolation.getPolicyName();
         apiPolicyViolationDTO.policyViolationId = policyViolation.getId();
         apiPolicyViolationDTO.threatLevel = policyViolation.getThreatLevel();
+        apiPolicyViolationDTO.openTime = policyViolation.getOpenTime();
         apiPolicyViolationDTO.reportUrl = UserInterfaceLinksResource.getReportUrl(application.getPublicId(),
             policyEvaluation.getScanId());
         apiPolicyViolationDTO.stageId = policyEvaluation.getStageTypeId();

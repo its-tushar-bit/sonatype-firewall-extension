@@ -58,7 +58,7 @@ describe('sidebarNavListReducer', function() {
   });
 
   describe('LOAD_SIDEBAR_NAV_LIST_REQUESTED action', function() {
-    it('sets the loading flag to true and sets only sidebar data from the payload on the state', function() {
+    it('sets the loading flag to true and sets only sidebar and contentType data from the payload on the state', () => {
       const initialState = {
         data: [],
         error: 'foo',
@@ -71,6 +71,7 @@ describe('sidebarNavListReducer', function() {
         payload: {
           sidebarId: 'sidebarId',
           sidebarReference: 'sidebarReference',
+          contentType: 'contentType',
           foo: 'bar'
         }
       });
@@ -80,6 +81,7 @@ describe('sidebarNavListReducer', function() {
         error: 'foo',
         sidebarId: 'sidebarId',
         sidebarReference: 'sidebarReference',
+        contentType: 'contentType',
         data: [],
         otherProp: 'asdf'
       });

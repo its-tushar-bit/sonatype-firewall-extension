@@ -38,9 +38,10 @@ function loadFailed(error, state) {
   return { ...state, loading: false, error };
 }
 
-function loadRequested({ sidebarReference, sidebarId }, state) {
+function loadRequested({ contentType, sidebarReference, sidebarId }, state) {
   return {
     ...state,
+    contentType,
     sidebarReference,
     sidebarId,
     loading: true

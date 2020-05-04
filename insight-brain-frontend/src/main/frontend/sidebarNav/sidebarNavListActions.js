@@ -26,13 +26,15 @@ export function loadSidebarNav({type = null, sidebarReference = null, sidebarId 
       return Promise.resolve();
     }
 
-    dispatch(loadSidebarNavListRequested({ sidebarReference, sidebarId }));
+    dispatch(loadSidebarNavListRequested({ contentType: type, sidebarReference, sidebarId }));
 
-    switch (type) {
-      case 'violation':
-        return loadViolations(dispatch, getState, sidebarReference, sidebarId);
-      default:
-        return dispatch(loadSidebarNavListFailed(`Unknown type: ${type}`));
+    if (type) {
+      switch (type) {
+        case 'violation':
+          return loadViolations(dispatch, getState, sidebarReference, sidebarId);
+        default:
+          return dispatch(loadSidebarNavListFailed(`Unknown type: ${type}`));
+      }
     }
   };
 }

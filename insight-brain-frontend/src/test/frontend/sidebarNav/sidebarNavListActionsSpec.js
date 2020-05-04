@@ -64,7 +64,11 @@ describe('sidebarNavListActions', function() {
 
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0].type).toEqual(LOAD_SIDEBAR_NAV_LIST_REQUESTED);
-      expect(store.getActions()[0].payload).toEqual({ sidebarReference: 'filter', sidebarId: '12345' });
+      expect(store.getActions()[0].payload).toEqual({
+        sidebarReference: 'filter',
+        sidebarId: '12345',
+        contentType: 'violation'
+      });
     });
 
     it('doesn\'t dispatch LOAD_SIDEBAR_NAV_LIST_REQUESTED if called with the same parameters', function() {
@@ -153,6 +157,19 @@ describe('sidebarNavListActions', function() {
       expect(store.getActions().length).toBe(2);
       expect(store.getActions()[0].type).toEqual(LOAD_SIDEBAR_NAV_LIST_REQUESTED);
       expect(store.getActions()[1].type).toEqual(LOAD_SIDEBAR_NAV_LIST_REQUESTED);
+    });
+
+    it('doesn\'t make an axios call or fail if type is null', function() {
+      spyOn(axios, 'post');
+
+      store.dispatch(loadSidebarNav({
+        type: null,
+        sidebarReference: 'filter',
+        sidebarId: '423'
+      }));
+
+      expect(store.getActions().length).toBe(1);
+      expect(axios.post).not.toHaveBeenCalled;
     });
 
     it('dispatches LOAD_SIDEBAR_NAV_LIST_FULFILLED with response data and metadata for violations', function(done) {

@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -196,5 +197,32 @@ public class AdvancedSearchPageTest
     page.previousPageButton().click();
     page.searchInput().shouldBe(value("itemType:POLICY"));
     page.currentPageInfo().shouldBe(text("Page 1 of 2"));
+  }
+
+  @Test
+  public void testHelpContainer() throws IOException {
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+
+    // Test initial state
+    page.helpContainerToggle().shouldBe(visible);
+    page.helpContainer().shouldNotBe(visible);
+
+    // Test toggle
+    page.helpContainerToggle().click();
+    page.helpContainer().shouldBe(visible);
+    page.helpContainerToggle().click();
+    page.helpContainer().shouldNotBe(visible);
+
+    // Test I can leave help open and it remains open when I come back
+    page.helpContainerToggle().click();
+    page.helpContainerToggle().shouldBe(visible);
+
+    refreshOrOpen(DashboardPage.url());
+    refreshOrOpen(AdvancedSearchPage.url());
+
+    page.helpContainer().shouldBe(visible);
   }
 }

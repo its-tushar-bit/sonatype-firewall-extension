@@ -66,4 +66,12 @@ public class AdvancedSearchPage
   public SelenideElement queryError() {
     return $("#advanced-search-query-error");
   }
+
+  public SelenideElement helpContainerToggle() {
+    return $("#advanced-search-help-container-toggle");
+  }
+
+  public SelenideElement helpContainer() {
+    return $("#advanced-search-help-container");
+  }
 }

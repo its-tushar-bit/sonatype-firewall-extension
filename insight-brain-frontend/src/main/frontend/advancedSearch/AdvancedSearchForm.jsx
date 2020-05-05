@@ -7,6 +7,7 @@
 import React, { Fragment } from 'react';
 import {NxButton, NxTextInput} from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
+import AdvancedSearchHelp from './AdvancedSearchHelp';
 
 export default function AdvancedSearchForm(props) {
   const {
@@ -77,6 +78,7 @@ export default function AdvancedSearchForm(props) {
           Search
         </NxButton>
       </form>
+      <AdvancedSearchHelp {...props} />
       <div className="nx-tile">
         <div className="nx-tile__actions">
           {

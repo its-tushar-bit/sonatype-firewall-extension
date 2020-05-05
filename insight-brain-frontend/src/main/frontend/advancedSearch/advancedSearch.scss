@@ -1,3 +1,36 @@
+.nx-container--advanced-search-help-container {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.nx-adv-search-help__toggle {
+  cursor: pointer;
+}
+
+.nx-icon--advanced-search-bulb {
+  color: $nx-grey-5;
+}
+
+.nx-adv-search-help__explanation {
+  display:inline-block;
+  margin-left:$nx-spacing-md;
+}
+
+.nx-adv-search-help__note {
+  color: $nx-grey-5;
+  margin-left: $nx-spacing-md;
+}
+
+.nx-adv-search-help__example {
+  background-color: $nx-off-white;
+  border: 1px solid $nx-grey-5;
+  cursor: pointer;
+  display:inline-block;
+  margin-left:$nx-spacing-md;
+  padding: $nx-spacing-xs;
+  user-select: all;
+}
+
 .nx-tile-content--adv-search-results {
   // we don't want the extra border on the first group
   &:not(:nth-child(2)) {

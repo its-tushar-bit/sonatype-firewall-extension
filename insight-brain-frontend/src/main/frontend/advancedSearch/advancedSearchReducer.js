@@ -14,7 +14,8 @@ import {
   ADVANCED_SEARCH_QUERY_REQUESTED,
   ADVANCED_SEARCH_QUERY_FULFILLED,
   ADVANCED_SEARCH_QUERY_FAILED,
-  ADVANCED_SEARCH_RESET_QUERY
+  ADVANCED_SEARCH_RESET_QUERY,
+  ADVANCED_SEARCH_TOGGLE_HELP
 } from './advancedSearchActions';
 import { pathSet } from '../util/jsUtil';
 
@@ -22,7 +23,8 @@ const initialState = {
   viewState: {
     loading: true,
     error: null,
-    waitingSearchResponse: false
+    waitingSearchResponse: false,
+    showHelp: false
   },
   configurationState: {
     isEnabled: true
@@ -135,6 +137,16 @@ function queryFailed(payload, state) {
   };
 }
 
+function toggleHelp(payload, state) {
+  return {
+    ...state,
+    viewState: {
+      ...state.viewState,
+      showHelp: !state.viewState.showHelp
+    }
+  };
+}
+
 const reducerActionMap = {
   [ADVANCED_SEARCH_LOAD_REQUESTED]: loadRequested,
   [ADVANCED_SEARCH_LOAD_FULFILLED]: loadFulfilled,
@@ -144,7 +156,8 @@ const reducerActionMap = {
   [ADVANCED_SEARCH_QUERY_REQUESTED]: queryRequested,
   [ADVANCED_SEARCH_QUERY_FULFILLED]: queryFulfilled,
   [ADVANCED_SEARCH_QUERY_FAILED]: queryFailed,
-  [ADVANCED_SEARCH_RESET_QUERY]: resetQuery
+  [ADVANCED_SEARCH_RESET_QUERY]: resetQuery,
+  [ADVANCED_SEARCH_TOGGLE_HELP]: toggleHelp
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

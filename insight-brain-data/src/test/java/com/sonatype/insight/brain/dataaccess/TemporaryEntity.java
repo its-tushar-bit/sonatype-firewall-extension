@@ -960,12 +960,26 @@ public class TemporaryEntity
   }
 
   public LdapConnection newLdapConnection(String ldapServerId, int port) {
+    return newLdapConnection(ldapServerId, port, LdapAuthenticationMethod.NONE, null);
+  }
+
+  public LdapConnection newLdapConnection(String ldapServerId, char[] systemPassword) {
+    return newLdapConnection(ldapServerId, 389, LdapAuthenticationMethod.SIMPLE, systemPassword);
+  }
+
+  public LdapConnection newLdapConnection(
+      String ldapServerId,
+      int port,
+      LdapAuthenticationMethod ldapAuthenticationMethod,
+      char[] systemPassword)
+  {
     LdapConnection ldapConnection = new LdapConnection();
     ldapConnection.setServerId(ldapServerId);
     ldapConnection.setProtocol(LdapProtocol.LDAP);
     ldapConnection.setHostname("localhost");
     ldapConnection.setPort(port);
-    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
+    ldapConnection.setAuthenticationMethod(ldapAuthenticationMethod);
+    ldapConnection.setSystemPassword(systemPassword);
     ldapConnection.setSystemUsername("system");
     ldapConnection.setSearchBase("dc=company,dc=com");
     ldapConnectionDAO.insert(ldapConnection);

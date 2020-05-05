@@ -195,10 +195,11 @@ describe('Tests for the LdapConfigurationController', function() {
   });
 
   describe('LdapConnectionController', function() {
-    var httpBackend, state;
+    var httpBackend, state, CLMContextLocations;
 
-    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMContextLocations) {
+    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, _CLMContextLocations_) {
       httpBackend = $httpBackend;
+      CLMContextLocations = _CLMContextLocations_;
 
       $state.current.name = 'edit-ldap.connection';
 
@@ -207,15 +208,22 @@ describe('Tests for the LdapConfigurationController', function() {
 
       scope.ldap = {id: '123'};
 
-      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
-          .respond({ serverId: scope.ldap.id });
+      scope.ldapConnectionEditor = {
+        'ldap-system-password': {
+          $dirty: false,
+          $setDirty: function () {
+            this.$dirty = true;
+          },
+          $setPristine: function () {
+            this.$dirty = false;
+          }
+        }
+      };
 
       $controller('LdapConnectionController', {
         $scope: scope,
         $state: state
       });
-
-      httpBackend.flush();
     }));
 
     afterEach(function() {
@@ -225,6 +233,9 @@ describe('Tests for the LdapConfigurationController', function() {
     });
 
     it('create/update/delete ldap connection', inject(function(CLMContextLocations) {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({ serverId: scope.ldap.id });
+      httpBackend.flush();
 
       // retrieve (empty configuration)
 
@@ -283,6 +294,9 @@ describe('Tests for the LdapConfigurationController', function() {
     }));
 
     it('displays confirmation dialog when navigating away from edited data', function() {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({serverId: scope.ldap.id});
+      httpBackend.flush();
 
       scope.ldapConn.username = 'new_name';
 
@@ -304,6 +318,10 @@ describe('Tests for the LdapConfigurationController', function() {
     });
 
     it('test connection', inject(function(CLMContextLocations) {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({serverId: scope.ldap.id});
+      httpBackend.flush();
+
       scope.ldapConn.protocol = 'LDAP';
       scope.ldapConn.hostname = 'example.com';
       scope.ldapConn.port = 389;
@@ -353,6 +371,10 @@ describe('Tests for the LdapConfigurationController', function() {
     }));
 
     it('set default protocol port', inject(function() {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({serverId: scope.ldap.id});
+      httpBackend.flush();
+
       // empty
       scope.ldapConn.protocol = 'LDAP';
       scope.ldapConn.port = undefined;
@@ -383,6 +405,151 @@ describe('Tests for the LdapConfigurationController', function() {
       scope.$apply();
       expect(scope.ldapConn.port).toBe(1);
     }));
+
+    it('does nothing to the password if the form is not ready', inject(function() {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({serverId: scope.ldap.id});
+      httpBackend.flush();
+
+      scope.ldapConn = undefined;
+      scope.clearOrRestorePasswordIfNeeded();
+      expect(scope.ldapConn).toBeUndefined();
+      expect(scope.ldapConnectionEditor['ldap-system-password'].$dirty).toBeFalsy();
+    }));
+
+    it('does nothing to the password if it is not an update', inject(function() {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({serverId: scope.ldap.id});
+      httpBackend.flush();
+
+      scope.ldapConn = {hostname: 'hostname', port: 389, systemPassword: 'password'};
+      scope.clearOrRestorePasswordIfNeeded();
+      expect(scope.ldapConn).toEqual({hostname: 'hostname', port: 389, systemPassword: 'password'});
+      expect(scope.ldapConnectionEditor['ldap-system-password'].$dirty).toBeFalsy();
+    }));
+
+    it('does nothing to the password if the user has updated it along with the hostname', inject(function() {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({serverId: scope.ldap.id, hostname: 'hostname', port: 389, systemPassword: '#~FAKE~PASSWORD~#'});
+      httpBackend.flush();
+
+      scope.ldapConn = {hostname: 'hostname1', port: 389, systemPassword: 'password'};
+      scope.clearOrRestorePasswordIfNeeded();
+      expect(scope.ldapConn).toEqual({hostname: 'hostname1', port: 389, systemPassword: 'password'});
+      expect(scope.ldapConnectionEditor['ldap-system-password'].$dirty).toBeFalsy();
+    }));
+
+    it('does nothing to the password if the user has updated it along with the port', inject(function() {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({serverId: scope.ldap.id, hostname: 'hostname', port: 389, systemPassword: '#~FAKE~PASSWORD~#'});
+      httpBackend.flush();
+
+      scope.ldapConn = {hostname: 'hostname', port: 3891, systemPassword: 'password'};
+      scope.clearOrRestorePasswordIfNeeded();
+      expect(scope.ldapConn).toEqual({hostname: 'hostname', port: 3891, systemPassword: 'password'});
+      expect(scope.ldapConnectionEditor['ldap-system-password'].$dirty).toBeFalsy();
+    }));
+
+    it('clears the password if the user has not updated it but has updated the hostname', inject(function() {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({serverId: scope.ldap.id, hostname: 'hostname', port: 389, systemPassword: '#~FAKE~PASSWORD~#'});
+      httpBackend.flush();
+
+      scope.ldapConn = {hostname: 'hostname1', port: 389, systemPassword: '#~FAKE~PASSWORD~#'};
+      scope.clearOrRestorePasswordIfNeeded();
+      expect(scope.ldapConn).toEqual({hostname: 'hostname1', port: 389, systemPassword: undefined});
+      expect(scope.ldapConnectionEditor['ldap-system-password'].$dirty).toBeTruthy();
+    }));
+
+    it('clears the password if the user has not updated it but has updated the port', inject(function() {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({serverId: scope.ldap.id, hostname: 'hostname', port: 389, systemPassword: '#~FAKE~PASSWORD~#'});
+      httpBackend.flush();
+
+      scope.ldapConn = {hostname: 'hostname', port: 3891, systemPassword: '#~FAKE~PASSWORD~#'};
+      scope.clearOrRestorePasswordIfNeeded();
+      expect(scope.ldapConn).toEqual({hostname: 'hostname', port: 3891, systemPassword: undefined});
+      expect(scope.ldapConnectionEditor['ldap-system-password'].$dirty).toBeTruthy();
+    }));
+
+    it('restores the password if it is undefined and the host and port are the same', inject(function() {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({serverId: scope.ldap.id, hostname: 'hostname', port: 389, systemPassword: '#~FAKE~PASSWORD~#'});
+      httpBackend.flush();
+
+      scope.ldapConn = {hostname: 'hostname', port: 389, systemPassword: undefined};
+      scope.ldapConnectionEditor['ldap-system-password'].$dirty = true;
+      scope.clearOrRestorePasswordIfNeeded();
+      expect(scope.ldapConn).toEqual({hostname: 'hostname', port: 389, systemPassword: '#~FAKE~PASSWORD~#'});
+      expect(scope.ldapConnectionEditor['ldap-system-password'].$dirty).toBeFalsy();
+    }));
+
+    it('does not show the password needs entry message if the form is not ready', inject(function() {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({serverId: scope.ldap.id});
+      httpBackend.flush();
+
+      scope.ldapConn = undefined;
+      expect(scope.shouldShowPasswordNeedsEntryMessage()).toBeFalsy();
+    }));
+
+    it('does not show the password needs entry message if it is not an update', inject(function() {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({serverId: scope.ldap.id});
+      httpBackend.flush();
+
+      scope.ldapConn = {hostname: 'hostname', port: 389, systemPassword: 'password'};
+      expect(scope.shouldShowPasswordNeedsEntryMessage()).toBeFalsy();
+    }));
+
+    it('does not show the password needs entry message if the hostname and port are the same', inject(function() {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({serverId: scope.ldap.id, hostname: 'hostname', port: 389, systemPassword: '#~FAKE~PASSWORD~#'});
+      httpBackend.flush();
+
+      scope.ldapConn = {hostname: 'hostname', port: 389, systemPassword: undefined};
+      expect(scope.shouldShowPasswordNeedsEntryMessage()).toBeFalsy();
+    }));
+
+    it('does not show the password needs entry message if the password and hostname are updated', inject(function() {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({serverId: scope.ldap.id, hostname: 'hostname', port: 389, systemPassword: '#~FAKE~PASSWORD~#'});
+      httpBackend.flush();
+
+      scope.ldapConn = {hostname: 'hostname1', port: 389, systemPassword: 'password'};
+      expect(scope.shouldShowPasswordNeedsEntryMessage()).toBeFalsy();
+    }));
+
+    it('does not show the password needs entry message if the password and port are updated', inject(function() {
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+          .respond({serverId: scope.ldap.id, hostname: 'hostname', port: 389, systemPassword: '#~FAKE~PASSWORD~#'});
+      httpBackend.flush();
+
+      scope.ldapConn = {hostname: 'hostname', port: 3891, systemPassword: 'password'};
+      expect(scope.shouldShowPasswordNeedsEntryMessage()).toBeFalsy();
+    }));
+
+    it('shows the password needs entry message if the hostname is updated and the password is undefined',
+        inject(function() {
+          httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+              .respond({serverId: scope.ldap.id, hostname: 'hostname', port: 389, systemPassword: '#~FAKE~PASSWORD~#'});
+          httpBackend.flush();
+
+          scope.ldapConn = {hostname: 'hostname1', port: 389, systemPassword: undefined};
+          expect(scope.shouldShowPasswordNeedsEntryMessage()).toBeTruthy();
+        })
+    );
+
+    it('shows the password needs entry message if the port is updated and the password is undefined',
+        inject(function() {
+          httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
+              .respond({serverId: scope.ldap.id, hostname: 'hostname', port: 389, systemPassword: '#~FAKE~PASSWORD~#'});
+          httpBackend.flush();
+
+          scope.ldapConn = {hostname: 'hostname', port: 3891, systemPassword: undefined};
+          expect(scope.shouldShowPasswordNeedsEntryMessage()).toBeTruthy();
+        })
+    );
   });
 
   describe('LdapUsermappingController', function() {

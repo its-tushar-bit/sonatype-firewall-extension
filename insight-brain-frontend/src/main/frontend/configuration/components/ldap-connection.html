@@ -25,7 +25,8 @@
              id="ldap-hostname"
              ng-model="ldapConn.hostname"
              required
-             type="text">
+             type="text"
+             ng-change="clearOrRestorePasswordIfNeeded()"/>
     </div>
     <div class="iq-form-group">
       <label class="iq-label" for="ldap-port">Port</label>
@@ -38,7 +39,8 @@
              type="number"
              min="1"
              max="65535"
-             placeholder="Integer between 1 to 65535"/>
+             placeholder="Integer between 1 to 65535"
+             ng-change="clearOrRestorePasswordIfNeeded()"/>
     </div>
     <div class="iq-form-group">
       <label class="iq-label" for="ldap-search-base">Search Base</label>
@@ -88,6 +90,11 @@
                ng-model="ldapConn.systemPassword"
                type="password"
                ng-required="ldapConn.authenticationMethod != 'NONE'">
+      </div>
+      <div id="ldap-password-needs-entry-message"
+           ng-show="shouldShowPasswordNeedsEntryMessage()"
+           class="iq-alert iq-alert--error">
+        The password must be given when updating the hostname or port for a connection that uses authentication.
       </div>
     </div>
     <h4 class="iq-tile__section-header">Timeouts</h4>

@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDA
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.HasLdapServerId;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
@@ -122,6 +123,7 @@ public class LdapService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   LdapConnection upsertLdapConnection(String ldapServerId, LdapConnection ldapConnection) {
     validateServerId(ldapServerId, ldapConnection);
+    ensureSameHostnamePortIfNeeded(ldapConnection);
     ldapConnection = upsertLdapConnection(ldapConnection);
     auditLdapConnection(ldapConnection);
     return ldapConnection;
@@ -154,6 +156,7 @@ public class LdapService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   LdapConnectionStatus testLdapConnection(String ldapServerId, LdapConnection ldapConnection) {
     validateServerId(ldapServerId, ldapConnection);
+    ensureSameHostnamePortIfNeeded(ldapConnection);
 
     try {
       newLdapQuery(restorePassword(ldapConnection), null).testConnection();
@@ -451,6 +454,24 @@ public class LdapService
       copy.setSystemPassword(passwordHandler.encryptPassword(ldapConnection.getSystemPassword()));
     }
     return copy;
+  }
+
+  private void ensureSameHostnamePortIfNeeded(LdapConnection givenLdapConnection) {
+    LdapConnection storedLdapConnection = ldapConnectionDAO.getById(givenLdapConnection.getId());
+    if (storedLdapConnection == null) {
+      return; // No existing connection i.e. an insert, so it doesn't matter what host/port is used
+    }
+    if (givenLdapConnection.getAuthenticationMethod().equals(LdapAuthenticationMethod.NONE)) {
+      return; // Not using a password, so it doesn't matter if host/port change
+    }
+    if (!Arrays.equals(FAKE_PASSWORD, givenLdapConnection.getSystemPassword())) {
+      return; // A password has been given (else we get FAKE_PASSWORD), so it doesn't matter if host/port change
+    }
+    if (!storedLdapConnection.getHostname().equals(givenLdapConnection.getHostname()) ||
+        storedLdapConnection.getPort() != givenLdapConnection.getPort()) {
+      throw new BadRequestException(
+          "The password must be given when updating the hostname or port for a connection that uses authentication.");
+    }
   }
 
   // Retry delay support

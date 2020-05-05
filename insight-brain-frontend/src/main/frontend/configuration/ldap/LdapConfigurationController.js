@@ -202,6 +202,44 @@ export function LdapConnectionController($scope, Modal, $http, CLMContextLocatio
     return $scope.ldapConn && !angular.equals(origLdapConn, $scope.ldapConn);
   };
 
+  $scope.clearOrRestorePasswordIfNeeded = function() {
+    if (!$scope.ldapConn) {
+      return; // Form isn't ready
+    }
+    if (!isUpdate()) {
+      return; // No existing connection i.e. an insert
+    }
+    if (isHostnameOrPortChanged()) {
+      if (angular.equals(origLdapConn.systemPassword, $scope.ldapConn.systemPassword)) {
+        $scope.ldapConn.systemPassword = undefined;
+        $scope.ldapConnectionEditor['ldap-system-password'].$setDirty();
+      }
+    }
+    else {
+      if ($scope.ldapConn.systemPassword === undefined) {
+        $scope.ldapConn.systemPassword = origLdapConn.systemPassword;
+        $scope.ldapConnectionEditor['ldap-system-password'].$setPristine();
+      }
+    }
+  };
+
+  $scope.shouldShowPasswordNeedsEntryMessage = function() {
+    if (!$scope.ldapConn) {
+      return false; // Form isn't ready
+    }
+    // Only show the message if the hostname or port are updated and they haven't started entering a password
+    return isUpdate() && isHostnameOrPortChanged() && $scope.ldapConn.systemPassword === undefined;
+  };
+
+  function isUpdate() {
+    return origLdapConn.hostname;
+  }
+
+  function isHostnameOrPortChanged() {
+    return !angular.equals(origLdapConn.hostname, $scope.ldapConn.hostname) ||
+        !angular.equals(origLdapConn.port, $scope.ldapConn.port);
+  }
+
   $scope.canSaveEdit = function() {
     return !$scope.ldapConnectionEditor.$invalid && $scope.isDirty();
   };

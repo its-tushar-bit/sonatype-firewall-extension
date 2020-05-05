@@ -1,22 +1,3 @@
-/* slight variations of our normal font face definitions, moving woff after truetype to workaround woff rendering issue in JavaFX browser on OSX (CLM-4922) */
-@font-face {
-  font-family: Proxima Nova Regular;
-  src: url('../fonts/proximanova-reg-webfont.ttf') format('truetype'),
-  url('../fonts/proximanova-reg-webfont.woff') format('woff');
-}
-@font-face {
-  font-family: Proxima Nova Bold;
-  font-weight: bold;
-  src: url('../fonts/proximanova-bold-webfont.ttf') format('truetype'),
-  url('../fonts/proximanova-bold-webfont.woff') format('woff');
-}
-@font-face {
-  font-family: Proxima Nova Semibold;
-  font-weight: bold;
-  src: url('../fonts/proximanova-sbold-webfont.ttf') format('truetype'),
-  url('../fonts/proximanova-sbold-webfont.woff') format('woff');
-}
-
 a {
   text-decoration: none
 }

@@ -1,51 +1,8 @@
 /*
- * Web Fonts from fontspring.com
- *
- * All OpenType features and all extended glyphs have been removed.
- * Fully installable fonts can be purchased at http://www.fontspring.com
- *
- * The fonts included in this stylesheet are subject to the End User License you purchased
- * from Fontspring. The fonts are protected under domestic and international trademark and
- * copyright law. You are prohibited from modifying, reverse engineering, duplicating, or
- * distributing this font software.
- *
- * (c) 2010-2012 Fontspring
- *
- *
- *
- *
- * The fonts included are copyrighted by the vendor listed below.
- *
- * Vendor:      Mark Simonson Studio
- * License URL: http://www.fontspring.com/fflicense/mark-simonson-studio
- *
- *
- */
-
-/*
   #Typography
 */
 
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
-
-@font-face {
-  font-family: Proxima Nova;
-  src: url('../fonts/proximanova-reg-webfont.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-}
-@font-face {
-  font-family: Proxima Nova;
-  src: url('../fonts/proximanova-bold-webfont.woff') format('woff');
-  font-weight: bold;
-  font-style: normal;
-}
-@font-face {
-  font-family: Proxima Nova;
-  src: url('../fonts/proximanova-sbold-webfont.woff') format('woff');
-  font-weight: 600;
-  font-style: normal;
-}
 
 // These are deprecated - use the mixins instead
 // will remove from here when all references have been removed

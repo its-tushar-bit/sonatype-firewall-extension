@@ -28,7 +28,7 @@ module.exports = function(config) {
 
     // test results reporter to use
     // possible values: 'dots', 'progress', plus those at https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['spec'],
+    reporters: ['spec', 'junit'],
 
     client: {
       // remove or switch to true to see console logging from the tests in the output
@@ -64,7 +64,13 @@ module.exports = function(config) {
 
     // Concurrency level
     // how many browser should be started simultaneous
-    concurrency: Infinity
+    concurrency: Infinity,
+
+    junitReporter: {
+      outputDir: 'target/karma-reports',
+      outputFile: 'jasmine.xml',
+      useBrowserName: false
+    }
 
   })
 }

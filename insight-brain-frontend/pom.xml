@@ -257,6 +257,17 @@
             </configuration>
           </execution>
           <execution>
+            <id>test-compile</id>
+            <phase>test-compile</phase>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <configuration>
+              <skip>${jasmine.tests.skip}</skip>
+              <arguments>run test-compile</arguments>
+            </configuration>
+          </execution>
+          <execution>
             <id>test</id>
             <phase>test</phase>
             <goals>
@@ -264,7 +275,7 @@
             </goals>
             <configuration>
               <skip>${jasmine.tests.skip}</skip>
-              <arguments>test</arguments>
+              <arguments>run karma</arguments>
             </configuration>
           </execution>
         </executions>

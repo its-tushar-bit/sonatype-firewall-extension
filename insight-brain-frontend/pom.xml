@@ -26,6 +26,9 @@
     <jasmine.version.graph.id>test-version-graph-assets</jasmine.version.graph.id>
     <jasmine.view.details.id>test-view-details-assets</jasmine.view.details.id>
     <jasmine.tests.skip>${skip.jasmine}</jasmine.tests.skip>
+    <sonar.sources>src/main/frontend</sonar.sources>
+    <sonar.exclusions>src/main/frontend/lib,src/main/frontend/audit-report/lib</sonar.exclusions>
+    <sonar.tests>src/test/frontend</sonar.tests>
   </properties>
 
   <build>

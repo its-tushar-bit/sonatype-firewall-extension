@@ -53,6 +53,12 @@ public class LicenseThreatGroupLicenseDAO
     }
   }
 
+  public List<LicenseThreatGroupLicense> getByLicenseThreatGroupIds(Set<String> licenseThreatGroupIds) {
+    String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
+        " WHERE entity.licenseThreatGroupId IN (?1)";
+    return getList(sQuery, licenseThreatGroupIds);
+  }
+
   @Override
   public void insert(TransactionContext tx, LicenseThreatGroupLicense entity) {
     new LicenseDAO().getByIdNotNull(entity.getLicenseId());

@@ -32,12 +32,14 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
@@ -662,19 +664,35 @@ public final class Report
     log.debug("saveReportEntry: {} in {} ms.", entryFileName, System.currentTimeMillis() - start);
   }
 
-  private static void writeLicenseThreatsToReportFile(final Application application, final File reportFile)
+  static void writeLicenseThreatsToReportFile(
+      final Application application,
+      final File reportFile)
       throws IOException
   {
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+    Map<String, Integer> threatLevelsBySimpleLicenseId =
+        new LicenseThreatGroupDAO().getLicenseThreatLevelsByApplication(application);
 
+    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     ObjectMapper mapper = new ObjectMapper();
-    ObjectNode licenseThreatsJson = mapper.createObjectNode();
     ObjectNode licenseTable = mapper.createObjectNode();
     for (MultiLicense multiLicense : multiLicenseDAO.getAll()) {
-      Integer threatLevel = multiLicenseDAO.getLicenseThreatLevelByApplicationAndMultiLicenseId(application,
-          multiLicense.getId());
+      Integer threatLevel = null;
+      for (License license : multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicense.getId())) {
+        Integer simpleLicenseThreatLevel = threatLevelsBySimpleLicenseId.get(license.getId());
+
+        if (simpleLicenseThreatLevel != null) {
+          if (threatLevel == null) {
+            threatLevel = simpleLicenseThreatLevel;
+          }
+          else {
+            threatLevel = Math.max(threatLevel, simpleLicenseThreatLevel);
+          }
+        }
+      }
       licenseTable.put(multiLicense.getShortDisplayName(), threatLevel);
     }
+
+    ObjectNode licenseThreatsJson = mapper.createObjectNode();
     licenseThreatsJson.set("aaData", licenseTable);
     saveReportEntry(reportFile, "licensethreats.json", licenseThreatsJson);
   }

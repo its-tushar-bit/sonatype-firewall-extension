@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
@@ -114,29 +113,6 @@ public class MultiLicenseDAO
     }
 
     return licenses;
-  }
-
-  public Integer getLicenseThreatLevelByApplicationAndMultiLicenseId(Application application, String multiLicenseId) {
-    final LicenseDAO licenseDAO = new LicenseDAO();
-    final Set<License> licenses = getLicensesByMultiLicenseIdNotNull(multiLicenseId);
-    Integer threatLevel = null;
-    for (License license : licenses) {
-      threatLevel = max(threatLevel, licenseDAO.getLicenseThreatLevelByOwnerAndLicenseId(application, license.getId()));
-    }
-    return threatLevel;
-  }
-
-  /**
-   * @since 1.6
-   */
-  private Integer max(Integer threatLevel1, Integer threatLevel2) {
-    if (threatLevel1 == null) {
-      return threatLevel2;
-    }
-    if (threatLevel2 == null) {
-      return threatLevel1;
-    }
-    return Math.max(threatLevel1, threatLevel2);
   }
 
   /**

@@ -5,21 +5,31 @@
  */
 package com.sonatype.insight.brain.report;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static com.sonatype.insight.brain.model.license.LicenseOverrideStatus.OVERRIDDEN;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +39,9 @@ public class ReportTest
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
   
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
+
   private Set<Integer> depths(Integer... depths) {
     return Sets.newHashSet(depths);
   }
@@ -111,5 +124,50 @@ public class ReportTest
     assertThat(bomJson).isNotEqualTo(bomJsonAugmented);
     assertThat(bomJsonAugmented.get("aaData").get(0).has("modified")).isFalse();
     assertThat(bomJsonAugmented.get("aaData").get(1).has("modified")).isTrue();
+  }
+
+  @Test
+  public void testWriteLicenseThreatsToReportFile() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newLicenseThreatGroup(app.getId(), "My group 1", 0, "Apache-2.0", "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(org.getId(), "My group 2", 5, "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(org.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
+
+    File reportFile = new File(tempDir.getRoot(), "test");
+
+    Report.writeLicenseThreatsToReportFile(app, reportFile);
+
+    File licenseThreatsFile = Report.getCacheFile(reportFile, "licensethreats.json");
+
+    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+    ContainerNode<?> licenseThreats = JsonUtils.parse(Files.readAllBytes(licenseThreatsFile.toPath()));
+    int countNotZero = 0;
+    @SuppressWarnings("unchecked")
+    Map<String, Integer> threatLevelsByMultiLicenseId = JsonUtils.asPojo(licenseThreats.get("aaData"), Map.class);
+    for (String multiLicenseShortName : threatLevelsByMultiLicenseId.keySet()) {
+      Set<String> simpleLicenseIds = multiLicenseDAO
+          .getLicensesByMultiLicenseIdNotNull(multiLicenseDAO.getByNameNotNull(multiLicenseShortName).getId()).stream()
+          .map(License::getId).collect(Collectors.toSet());
+      if (simpleLicenseIds.contains("GPL-3.0")) {
+        assertThat(threatLevelsByMultiLicenseId.get(multiLicenseShortName)).isEqualTo(9);
+        countNotZero++;
+      }
+      else if (simpleLicenseIds.contains("GPL-2.0")) {
+        assertThat(threatLevelsByMultiLicenseId.get(multiLicenseShortName)).isEqualTo(5);
+        countNotZero++;
+      }
+      else if (simpleLicenseIds.contains("Apache-2.0")) {
+        assertThat(threatLevelsByMultiLicenseId.get(multiLicenseShortName)).isEqualTo(0);
+        countNotZero++;
+      }
+      else {
+        assertThat(threatLevelsByMultiLicenseId.get(multiLicenseShortName))
+            .as("Threat for multi license %s", multiLicenseShortName)
+            .isNull();
+      }
+    }
+    assertThat(threatLevelsByMultiLicenseId).hasSize(multiLicenseDAO.getAll().size());
+    assertThat(countNotZero).isPositive();
   }
 }

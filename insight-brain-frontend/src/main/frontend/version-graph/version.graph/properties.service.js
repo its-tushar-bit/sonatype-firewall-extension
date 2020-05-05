@@ -24,6 +24,9 @@ export default function PropertiesService(Coordinates) {
     getIdentificationSource: function () {
       return properties.identificationSource;
     },
+    getStageId: function () {
+      return properties.stageId;
+    },
     reset: function () {
       properties = {};
     },
@@ -44,6 +47,9 @@ export default function PropertiesService(Coordinates) {
     },
     setIdentificationSource: function (identificationSource) {
       properties.identificationSource = identificationSource;
+    },
+    setStageId: function (stageId) {
+      properties.stageId = stageId;
     },
     isUnknown: function () {
       return (properties.matchState || '').toLowerCase() === 'unknown';

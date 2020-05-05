@@ -57,6 +57,7 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -895,7 +896,8 @@ public class ComponentInfoServiceTest
 
   private ComponentVersionInfoDTO testGetComponentVersionInfo_ReadPermission(
       final Owner owner,
-      final String ownerId) throws Exception
+      final String ownerId,
+      final String stageId) throws Exception
   {
     ComponentDetails hdsComponentDetails1 = newNamedComponentDetails(MAVEN_COORDINATES);
     long timestamp = DateTime.now().getMillis();
@@ -912,7 +914,7 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_COORDINATES);
 
     ComponentVersionInfoDTO dto = componentInfoService
-        .getComponentVersionInfo_ReadPermission(owner.getType(), ownerId, MAVEN_COORDINATES, null, null);
+        .getComponentVersionInfo_ReadPermission(owner.getType(), ownerId, MAVEN_COORDINATES, stageId, null, null);
 
     List<ComponentDetailsDTO> componentDetailsList = dto.allVersions;
 
@@ -939,13 +941,13 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetComponentVersionInfo_ReadPermission_Application() throws Exception {
+  public void testGetComponentVersionInfo_ReadPermission_Application_noStageId() throws Exception {
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "8"));
     Policy policy1 = new Policy("security-high", "Security-High");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    policy1.setAction(BuildStageType.ID, FailActionType.ID);
+    policy1.setAction(ReleaseStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     Constraint constraint2 = new Constraint("C2", "Constraint 2", LogicalOperator.AND);
@@ -953,11 +955,11 @@ public class ComponentInfoServiceTest
     Policy policy2 = new Policy("NonGpl2", "Non-GPL-2");
     policy2.setThreatLevel(6);
     policy2.addConstraint(constraint2);
-    policy2.setAction(BuildStageType.ID, WarnActionType.ID);
+    policy2.setAction(ReleaseStageType.ID, WarnActionType.ID);
     addPolicy(applicationPublicId, policy2);
 
     ComponentVersionInfoDTO dto = testGetComponentVersionInfo_ReadPermission(
-        application, application.getPublicId());
+        application, application.getPublicId(), null);
 
     List<ComponentDetailsDTO> componentDetailsList = dto.allVersions;
 
@@ -965,11 +967,60 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails1.policyMaxThreatLevelsByCategory)
         .isEqualTo(ImmutableMap.of(PolicyThreatCategory.SECURITY, 8, PolicyThreatCategory.LICENSE, 6));
     assertThat(componentDetails1.violatedPolicyCount).isEqualTo(2);
+    assertThat(componentDetails1.policyAlerts).hasSize(2);
+    // should use BuildStageType by default, so expected no alerts
+    assertThat(componentDetails1.policyAlerts.get(0).getActions()).hasSize(0);
+    assertThat(componentDetails1.policyAlerts.get(1).getActions()).hasSize(0);
 
     ComponentDetailsDTO componentDetails2 = componentDetailsList.get(1);
     assertThat(componentDetails2.policyMaxThreatLevelsByCategory)
         .isEqualTo(ImmutableMap.of(PolicyThreatCategory.LICENSE, 6));
     assertThat(componentDetails2.violatedPolicyCount).isEqualTo(1);
+    assertThat(componentDetails2.policyAlerts).hasSize(1);
+    // should use BuildStageType by default, so expected no alerts
+    assertThat(componentDetails2.policyAlerts.get(0).getActions()).hasSize(0);
+
+    assertThat(dto.remediation.versionChanges).isNotNull();
+    assertThat(dto.remediation.versionChanges).hasSize(0);
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_ReadPermission_Application_WithStageId() throws Exception {
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "8"));
+    Policy policy1 = new Policy("security-high", "Security-High");
+    policy1.setThreatLevel(8);
+    policy1.addConstraint(constraint1);
+    policy1.setAction(ReleaseStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, policy1);
+
+    Constraint constraint2 = new Constraint("C2", "Constraint 2", LogicalOperator.AND);
+    constraint2.addCondition(new Condition(LicenseConditionType.ID, "is not", "GPL-2.0")); // will hit both components
+    Policy policy2 = new Policy("NonGpl2", "Non-GPL-2");
+    policy2.setThreatLevel(6);
+    policy2.addConstraint(constraint2);
+    policy2.setAction(ReleaseStageType.ID, WarnActionType.ID);
+    addPolicy(applicationPublicId, policy2);
+
+    ComponentVersionInfoDTO dto = testGetComponentVersionInfo_ReadPermission(
+        application, application.getPublicId(), ReleaseStageType.ID);
+
+    List<ComponentDetailsDTO> componentDetailsList = dto.allVersions;
+
+    ComponentDetailsDTO componentDetails1 = componentDetailsList.get(0);
+    assertThat(componentDetails1.policyMaxThreatLevelsByCategory)
+        .isEqualTo(ImmutableMap.of(PolicyThreatCategory.SECURITY, 8, PolicyThreatCategory.LICENSE, 6));
+    assertThat(componentDetails1.violatedPolicyCount).isEqualTo(2);
+    assertThat(componentDetails1.policyAlerts).hasSize(2);
+    assertThat(componentDetails1.policyAlerts.get(0).getActions()).extracting("actionTypeId").contains("warn");
+    assertThat(componentDetails1.policyAlerts.get(1).getActions()).extracting("actionTypeId").contains("fail");
+
+    ComponentDetailsDTO componentDetails2 = componentDetailsList.get(1);
+    assertThat(componentDetails2.policyMaxThreatLevelsByCategory)
+        .isEqualTo(ImmutableMap.of(PolicyThreatCategory.LICENSE, 6));
+    assertThat(componentDetails2.violatedPolicyCount).isEqualTo(1);
+    assertThat(componentDetails2.policyAlerts).hasSize(1);
+    assertThat(componentDetails2.policyAlerts.get(0).getActions()).extracting("actionTypeId").contains("warn");
 
     assertThat(dto.remediation.versionChanges).isNotNull();
     assertThat(dto.remediation.versionChanges).hasSize(0);
@@ -977,7 +1028,7 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetComponentVersionInfo_ReadPermission_Repository() throws Exception {
-    ComponentVersionInfoDTO dto = testGetComponentVersionInfo_ReadPermission(repository, repository.getId());
+    ComponentVersionInfoDTO dto = testGetComponentVersionInfo_ReadPermission(repository, repository.getId(), null);
     assertThat(dto.remediation).isNull();
   }
 
@@ -1010,7 +1061,7 @@ public class ComponentInfoServiceTest
 
     ComponentVersionInfoDTO dto = componentInfoService
         .getComponentVersionInfo_ReadPermission(application.getType(), application.getPublicId(),
-            MAVEN_COORDINATES, identificationSource, scanId);
+            MAVEN_COORDINATES, null, identificationSource, scanId);
 
     List<ComponentDetailsDTO> componentDetailsList = dto.allVersions;
 

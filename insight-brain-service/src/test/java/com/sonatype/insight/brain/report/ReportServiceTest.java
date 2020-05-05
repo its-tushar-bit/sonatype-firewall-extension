@@ -171,12 +171,14 @@ public class ReportServiceTest
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getReportTitle()).isEqualTo("Build Report");
     assertThat(metadata.getReportTime()).isEqualTo(eval1.getTime());
+    assertThat(metadata.getStageId()).isEqualTo("build");
 
     // Verify Response for scan 2
     metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getReportTitle()).isEqualTo("Release Report");
     assertThat(metadata.getReportTime()).isEqualTo(eval2.getTime());
+    assertThat(metadata.getStageId()).isEqualTo("release");
 
     // Unknown scan id
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {

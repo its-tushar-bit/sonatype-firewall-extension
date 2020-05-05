@@ -264,7 +264,7 @@ public class ComponentInfoService
   {
     auditComponentAccess(componentIdentifier, null);
     return getComponentVersionInfoNoAuth(OwnerType.APPLICATION, applicationPublicId, componentIdentifier,
-        null, null);
+        null, null, null);
   }
 
   /**
@@ -299,11 +299,12 @@ public class ComponentInfoService
       @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.ID) final String ownerId,
       ComponentIdentifier componentIdentifier,
+      String stageId,
       String identificationSource,
       String scanId)
   {
     auditComponentAccess(componentIdentifier, null);
-    return getComponentVersionInfoNoAuth(ownerType, ownerId, componentIdentifier, identificationSource,
+    return getComponentVersionInfoNoAuth(ownerType, ownerId, componentIdentifier, stageId, identificationSource,
         scanId);
   }
 
@@ -336,7 +337,7 @@ public class ComponentInfoService
     }
     else {
       remediationDto = componentRemediationService.getSuggestedRemediation(componentIdentifier, componentDetailsDTOs,
-          ownerType, ownerId, null);
+          ownerType, ownerId, stageId);
     }
     return new ComponentVersionInfoDTO(componentDetailsDTOs, remediationDto);
   }

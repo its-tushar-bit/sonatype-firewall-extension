@@ -23,6 +23,8 @@ function CipModalController($ngRedux, $scope, applicationReportActions, Selected
     $onInit() {
       vm.unsubscribeFromReduxStore = $ngRedux.connect(mapStateToThis, applicationReportActions)(vm);
 
+      Properties.setStageId(vm.metadata.stageId);
+
       $scope.$watch('vm.selectedComponent', function(selectedComponent) {
         if (selectedComponent) {
           setupVersionGraphGlobalState(selectedComponent);

@@ -19,6 +19,8 @@ public class ReportMetadataDTO
 
   private Application application;
 
+  private String stageId;
+
   public boolean isExpandedCoverage() {
     return expandedCoverage;
   }
@@ -49,5 +51,13 @@ public class ReportMetadataDTO
 
   public void setApplication(final Application application) {
     this.application = application;
+  }
+
+  public String getStageId() {
+    return stageId;
+  }
+
+  public void setStageId(final String stageId) {
+    this.stageId = stageId;
   }
 }

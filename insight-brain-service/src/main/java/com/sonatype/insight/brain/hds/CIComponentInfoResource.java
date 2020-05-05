@@ -99,11 +99,12 @@ public class CIComponentInfoResource
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @QueryParam("stageId") String stageId,
       @QueryParam("identificationSource") String identificationSource,
       @QueryParam("scanId") String scanId)
   {
     return componentInfoService.getComponentVersionInfo_ReadPermission(ownerType, ownerId,
-        componentIdentifier, identificationSource, scanId);
+        componentIdentifier, stageId, identificationSource, scanId);
   }
 
   @GET

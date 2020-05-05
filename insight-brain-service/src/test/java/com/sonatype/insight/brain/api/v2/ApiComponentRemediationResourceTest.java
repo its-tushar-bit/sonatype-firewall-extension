@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Before;
@@ -119,6 +120,7 @@ public class ApiComponentRemediationResourceTest
   
   private void assertRemediationApplication(ApiComponentDTOV2 component) throws Exception {
     mockComponentSummary(MAVEN_COORDINATES_V1, ComponentSummary.create(true));
+    mockGetDependencies(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>()));
     createPolicyWithSecurityVulnerabilityConstraint(app.getId());
 
     ComponentDetails details1 = createComponentDetailsForSecurityViolation(MAVEN_COORDINATES_V1);
@@ -154,6 +156,7 @@ public class ApiComponentRemediationResourceTest
   }
   
   private void assertRemediationOrganization(final ApiComponentDTOV2 component) throws Exception {
+    mockGetDependencies(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>()));
     mockComponentSummary(MAVEN_COORDINATES_V1, ComponentSummary.create(true));
     Organization org = tempEntity.newOrganization("testOrg");
     createPolicyWithSecurityVulnerabilityConstraint(org.getId());

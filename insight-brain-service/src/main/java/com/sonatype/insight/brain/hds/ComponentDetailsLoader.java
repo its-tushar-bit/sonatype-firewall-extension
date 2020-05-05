@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -35,6 +36,8 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 
 import org.codehaus.plexus.util.StringUtils;
+
+import static com.sonatype.insight.IdentificationSource.isThirdPartyIdentificationSource;
 
 /**
  * Assists in loading data for the CIP.
@@ -122,7 +125,62 @@ public class ComponentDetailsLoader
 
   /**
    * Augments the supplied component details with local data like labels, license and security vulnerability overrides.
-   * The returned object is a transcript of the final component details suitable for policy evaluation.
+   * This overloaded method accepts a collection of ComponentDetails objects and
+   * calls another overloaded method that sets match state and identification source
+   * The returned list of Component objects is a transcript of the final component details
+   * suitable for policy evaluation.
+   *
+   * Purpose: This method is used by ComponentInfoService and ComponentRemediationService
+   * to additionally set match state and identification source prior to augmenting other details
+   *
+   * @param owner application owner
+   * @param componentDetailsList the list of ComponentDetails objects to be augmented
+   * @param matchState the MatchState to set
+   * @return List<Component> augmented list of Component objects
+   */
+  public List<Component> augmentComponentDetails(
+      Owner owner,
+      Collection<ComponentDetails> componentDetailsList,
+      String matchState)
+  {
+    List<Component> components = new ArrayList<>(componentDetailsList.size());
+    for (ComponentDetails componentDetails : componentDetailsList) {
+      components.add(augmentComponentDetails(owner, componentDetails, matchState));
+    }
+    return components;
+  }
+
+  /**
+   * Augments the supplied component details with local data like labels, license and security vulnerability overrides.
+   * This overloaded method sets match state to what is supplied or exact if not supplied and
+   * overrides identification source to SONATYPE if it is set to anything other than MANUAL or SONATYPE
+   * The returned Component object is a transcript of the final component details suitable for policy evaluation.
+   *
+   * Purpose: This method is used by ComponentInfoService and ComponentRemediationService
+   * to additionally set match state and identification source prior to augmenting other details
+   *
+   * @param owner application owner
+   * @param componentDetails the ComponentDetails object to be augmented
+   * @param matchState the MatchState to set
+   * @return Component augmented Component object
+   */
+  public Component augmentComponentDetails(Owner owner, ComponentDetails componentDetails, String matchState) {
+    componentDetails.setMatchState(StringUtils.isEmpty(matchState) ? MatchState.EXACT.getId() : matchState);
+    if (!isThirdPartyIdentificationSource(componentDetails.getIdentificationSource())) {
+      componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
+    }
+    return augmentComponentDetails(owner, componentDetails);
+  }
+
+  /**
+   * Augments the supplied component details with local data like labels, license and security vulnerability overrides.
+   * The returned Component object is a transcript of the final component details suitable for policy evaluation.
+   *
+   * Purpose: This method is used to augmenting basic details as indicated above
+   *
+   * @param owner application owner
+   * @param componentDetails the ComponentDetails object to be augmented
+   * @return Component augmented Component object
    */
   public Component augmentComponentDetails(Owner owner, ComponentDetails componentDetails) {
     ComponentDAO componentDAO = new ComponentDAO();

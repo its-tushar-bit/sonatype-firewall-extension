@@ -94,6 +94,9 @@ public class ComponentInfoServiceTest
   @Inject
   private ComponentInfoService componentInfoService;
 
+  @Inject
+  private ComponentDetailsLoader componentDetailsLoader;
+
   private String applicationPublicId = "ComponentInfoServiceTest";
 
   private Application application;
@@ -480,7 +483,8 @@ public class ComponentInfoServiceTest
 
     ComponentDetailsList componentDetailsList =
         componentInfoService.getComponentDetailsList(componentIdentifier1, null, null, null);
-    componentInfoService.augmentComponentDetails(componentDetailsList.getList(), MatchState.EXACT.getId(), application);
+    componentDetailsLoader.augmentComponentDetails(application, componentDetailsList.getList(),
+        MatchState.EXACT.getId());
 
     assertThat(componentDetailsList).isNotNull();
     assertThat(componentDetailsList.getList()).hasSize(3);

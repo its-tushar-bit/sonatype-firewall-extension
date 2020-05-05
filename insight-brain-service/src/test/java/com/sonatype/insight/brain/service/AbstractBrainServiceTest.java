@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.client.utils.Authentication;
+import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.mock.hds.HdsMockResponse;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -277,6 +278,10 @@ public abstract class AbstractBrainServiceTest
   {
     hdsRespondWith(componentSummary).atUri(UriBuilder.fromPath("rest/component/summary")
         .queryParam("componentIdentifier", URLEncoder.encode(toJson(componentIdentifier), "UTF-8")).build());
+  }
+
+  protected void mockGetDependencies(ComponentDependenciesDTO componentDependenciesDTO) {
+    hdsRespondWith(componentDependenciesDTO).atUri("rest/component/dependencies");
   }
 
   protected static void assertResponseStatus(final int expectedStatus, final HttpResponse response) {

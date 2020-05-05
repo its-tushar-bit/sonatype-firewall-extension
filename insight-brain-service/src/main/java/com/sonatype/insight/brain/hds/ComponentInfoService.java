@@ -17,7 +17,6 @@ import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -64,7 +63,6 @@ import com.sonatype.insight.brain.utils.LicenseUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -249,7 +247,7 @@ public class ComponentInfoService
     auditComponentAccess(identifier, null);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, null, null, null);
-    augmentComponentDetails(componentDetailsList.getList(), matchState, app);
+    componentDetailsLoader.augmentComponentDetails(app, componentDetailsList.getList(), matchState);
     return componentDetailsList;
   }
 
@@ -286,7 +284,7 @@ public class ComponentInfoService
     auditComponentAccess(componentIdentifier, null);
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentDetailsList componentDetailsList = getComponentDetailsList(componentIdentifier, owner, null, null);
-    augmentComponentDetails(componentDetailsList.getList(), matchState, owner);
+    componentDetailsLoader.augmentComponentDetails(owner, componentDetailsList.getList(), matchState);
     return componentDetailsList;
   }
 
@@ -355,7 +353,8 @@ public class ComponentInfoService
     List<ComponentDetails> componentDetailsList =
         getComponentDetailsList(componentIdentifier, owner, identificationSource, scanId).getList();
     // Fix match state to exact as there's no point propagating it to other versions.
-    List<Component> components = augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(), owner);
+    List<Component> components = componentDetailsLoader.augmentComponentDetails(owner, componentDetailsList,
+        MatchState.EXACT.getId());
 
     // Evaluate the policies and get the PolicyAlerts
     List<PolicyAlert> allPolicyAlerts = componentPolicyEvaluator
@@ -459,21 +458,6 @@ public class ComponentInfoService
         componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);
 
     return componentDetailsList;
-  }
-
-  List<Component> augmentComponentDetails(List<ComponentDetails> componentDetailsList,
-                                          String matchState,
-                                          Owner owner)
-  {
-    List<Component> components = new ArrayList<>(componentDetailsList.size());
-    for (ComponentDetails componentDetails : componentDetailsList) {
-      componentDetails.setMatchState(StringUtils.isEmpty(matchState) ? MatchState.EXACT.getId() : matchState);
-      if (!isThirdPartyIdentificationSource(componentDetails.getIdentificationSource())) {
-        componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
-      }
-      components.add(componentDetailsLoader.augmentComponentDetails(owner, componentDetails));
-    }
-    return components;
   }
 
   /**

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.hds;
 
 import java.util.Collections;
+import java.util.HashMap;
 
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
@@ -18,6 +19,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 
 import org.junit.Before;
 
@@ -57,6 +59,7 @@ public abstract class AbstractComponentInfoResourceAuditTest
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
     hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(httpRequest.getUrl()));
+    hdsRespondWith(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>())).atUri("rest/component/dependencies");
   }
 
   private void assertOwnerData(final AuditDTO auditDTO, final Owner owner) {

@@ -86,10 +86,12 @@ public class PullRequestCommentingService
   private final InsightConfig insightConfig;
 
   private final PullRequestCommentingRemediationService commentingRemediationService;
-  
+
   private final PullRequestLineCommentingService pullRequestLineCommentingService;
-  
+
   private final Provider<PullRequestCommentingHashBuilder> hashBuilderProvider;
+
+  private final List<PullRequestPostCommentAction> pullRequestPostCommentActionList;
 
   @Inject
   public PullRequestCommentingService(
@@ -107,7 +109,8 @@ public class PullRequestCommentingService
       final PolicyEvaluationDiffService policyEvaluationDiffService,
       final InsightConfig insightConfig,
       final PullRequestLineCommentingService pullRequestLineCommentingService,
-      final Provider<PullRequestCommentingHashBuilder> hashBuilderProvider)
+      final Provider<PullRequestCommentingHashBuilder> hashBuilderProvider,
+      final List<PullRequestPostCommentAction> pullRequestPostCommentActionList)
   {
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
@@ -124,6 +127,7 @@ public class PullRequestCommentingService
     this.insightConfig = insightConfig;
     this.pullRequestLineCommentingService = pullRequestLineCommentingService;
     this.hashBuilderProvider = hashBuilderProvider;
+    this.pullRequestPostCommentActionList = pullRequestPostCommentActionList;
   }
 
   @Override
@@ -248,13 +252,13 @@ public class PullRequestCommentingService
    * our DB, and pushes metrics
    */
   private void doCreateOrUpdatePullRequestComment(
-      String applicationId,
-      GitRepositoryInfo gitRepositoryInfo,
-      int pullRequestNumber,
-      String branchName,
-      PolicyEvaluation sourceCommitPolicyEvaluation,
-      PolicyEvaluation baseBranchPolicyEvaluation,
-      SourceControlPullRequestComment existingPullRequestComment)
+      final String applicationId,
+      final GitRepositoryInfo gitRepositoryInfo,
+      final int pullRequestNumber,
+      final String branchName,
+      final PolicyEvaluation sourceCommitPolicyEvaluation,
+      final PolicyEvaluation baseBranchPolicyEvaluation,
+      final SourceControlPullRequestComment existingPullRequestComment)
   {
     try {
       Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff = policyEvaluationDiffService
@@ -264,7 +268,7 @@ public class PullRequestCommentingService
         // retrieve suggested remediation map for components in the appeared violation list
         SortedMap<ComponentIdentifier, String> remediationVersionMap = commentingRemediationService
             .getRemediationVersionMap(policyViolationDiff.get().getAppeared(), applicationId);
-    
+
         // calculate comment content hash
         String contentHash = hashBuilderProvider.get().withPolicyViolationDiff(policyViolationDiff.get())
             .withRemediationVersionMap(remediationVersionMap).generateHash();
@@ -275,12 +279,12 @@ public class PullRequestCommentingService
                 sourceCommitPolicyEvaluation,
                 baseBranchPolicyEvaluation, existingPullRequestComment, policyViolationDiff, remediationVersionMap,
                 contentHash);
-          } 
+          }
           else {
             log.info("no added or cleared violations in policy evaluation diff, and no previous PR comments for " +
-                    "application '{}' pull request '{}'.", applicationId, pullRequestNumber);
+                "application '{}' pull request '{}'.", applicationId, pullRequestNumber);
           }
-        } 
+        }
         else { // existing PR comment
           if (!contentHash.equals(existingPullRequestComment.getContentHash())) {
             doCreateOrUpdateComments(applicationId, gitRepositoryInfo, pullRequestNumber, branchName,
@@ -291,11 +295,11 @@ public class PullRequestCommentingService
           else {
             log.info("policy evaluations have not changed for application '{}' pull request '{}'.",
                 applicationId, pullRequestNumber);
-          }  
+          }
         }
       }
       else {
-        log.info("unable to get the policy evaluation diff for application '{}' pull request '{}'.", 
+        log.info("unable to get the policy evaluation diff for application '{}' pull request '{}'.",
             applicationId, pullRequestNumber);
       }
     }
@@ -313,14 +317,14 @@ public class PullRequestCommentingService
       final PolicyEvaluation baseBranchPolicyEvaluation,
       final SourceControlPullRequestComment existingPullRequestComment,
       final Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff,
-      final Map<ComponentIdentifier, String> remediationVersionMap, 
-      final String contentHash) 
+      final Map<ComponentIdentifier, String> remediationVersionMap,
+      final String contentHash)
       throws IOException
   {
     // line comment sub-flow
     pullRequestLineCommentingService
-        .createPullRequestLineComments(policyViolationDiff.get().getAppeared(), gitRepositoryInfo, 
-            remediationVersionMap, pullRequestNumber, branchName, sourceCommitPolicyEvaluation.getCommitHash(), 
+        .createPullRequestLineComments(policyViolationDiff.get().getAppeared(), gitRepositoryInfo,
+            remediationVersionMap, pullRequestNumber, branchName, sourceCommitPolicyEvaluation.getCommitHash(),
             applicationId, sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId());
 
     Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService
@@ -329,8 +333,10 @@ public class PullRequestCommentingService
     if (policyEvaluationDiffMarkup.isPresent()) {
       int commentId = createOrUpdateCommentInGitSCM(applicationId, gitRepositoryInfo, pullRequestNumber,
           policyEvaluationDiffMarkup.get(), existingPullRequestComment);
-      recordCommentInDatabase(applicationId, pullRequestNumber, commentId, contentHash, 
+      recordCommentInDatabase(applicationId, pullRequestNumber, commentId, contentHash,
           sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId(), existingPullRequestComment);
+      invokePostCommentActions(gitRepositoryInfo, policyViolationDiff.get(),
+          sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation);
     }
     else {
       log.info("generated feedback markup was empty for application '{}' pull request '{}'",
@@ -507,6 +513,21 @@ public class PullRequestCommentingService
       return false;
     }
     return true;
+  }
+
+  /**
+   * Invoked after a comment has been created or updated
+   */
+  private void invokePostCommentActions(
+      final GitRepositoryInfo gitRepositoryInfo,
+      final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
+      final PolicyEvaluation sourceCommitPolicyEvaluation,
+      final PolicyEvaluation baseBranchPolicyEvaluation)
+  {
+    pullRequestPostCommentActionList.forEach(pullRequestPostCommentAction -> pullRequestPostCommentAction
+        .invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff,
+            sourceCommitPolicyEvaluation,
+            baseBranchPolicyEvaluation));
   }
 
   private boolean checkLicense() {

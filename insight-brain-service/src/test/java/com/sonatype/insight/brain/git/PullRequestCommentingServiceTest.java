@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -53,6 +55,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.times;
@@ -671,6 +674,41 @@ public class PullRequestCommentingServiceTest
     verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
   }
 
+  @Test
+  public void testPostCommentActionsInvoked() throws Exception {
+    // given : all the necessary pieces to create a PR comment with post comment actions
+    PullRequestPostCommentAction postAction1 = mock(PullRequestPostCommentAction.class);
+    PullRequestPostCommentAction postAction2 = mock(PullRequestPostCommentAction.class);
+    String commentText = "at least one new policy violation";
+    PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
+        .withDevBranchPullRequest("INT-2493-pr-commenting-immediate-flow", 14, "sourceCommit", "baseCommit")
+        .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
+        .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
+        .withPolicyEvaluationDiffMarkup(commentText)
+        .withCommentResponseForPR(14, 27)
+        .withAddedViolation(new PolicyViolation())
+        .expectApplicationId("app1")
+        .expectSourceCommit("sourceCommit")
+        .withPostCommentAction(postAction1)
+        .withPostCommentAction(postAction2)
+        .build();
+
+    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
+        .withApplicationId("app1")
+        .withPolicyEvaluationId("sourcePe")
+        .withCommitHash("sourceCommit")
+        .build();
+
+    // when : process event
+    commentingService.onApplicationEvaluation(event);
+
+    // then : post comment actions invoked
+    verify(postAction1, times(1)).invokeAction(any(GitClientFactory.class), any(GitRepositoryInfo.class),
+        any(PolicyViolationDiff.class), any(PolicyEvaluation.class), any(PolicyEvaluation.class));
+    verify(postAction2, times(1)).invokeAction(any(GitClientFactory.class), any(GitRepositoryInfo.class),
+        any(PolicyViolationDiff.class), any(PolicyEvaluation.class), any(PolicyEvaluation.class));
+  }
+
   private DiscoveredPullRequestEvent createDiscoveredPullRequestEvent(
       String applicationId,
       String sourcePolicyEvaluationId,
@@ -724,6 +762,8 @@ public class PullRequestCommentingServiceTest
 
     @Mock
     private PolicyEvaluationDiffService mockPolicyEvaluationDiffService;
+
+    private List<PullRequestPostCommentAction> pullRequestPostCommentActionList = new ArrayList<>();
 
     @Mock
     private PullRequestLineCommentingService pullRequestLineCommentingService;
@@ -859,7 +899,8 @@ public class PullRequestCommentingServiceTest
           mockPolicyEvaluationDiffService,
           getInsightConfig(featureFlagEnabled),
           pullRequestLineCommentingService,
-          mockHashBuilderProvider
+          mockHashBuilderProvider,
+          pullRequestPostCommentActionList
       );
     }
 
@@ -1012,6 +1053,13 @@ public class PullRequestCommentingServiceTest
 
     TestablePullRequestCommentingServiceBuilder withGeneratedContentHash(String contentHash) {
       this.contentHash = contentHash;
+      return this;
+    }
+
+    TestablePullRequestCommentingServiceBuilder withPostCommentAction(
+        final PullRequestPostCommentAction pullRequestPostCommentAction)
+    {
+      this.pullRequestPostCommentActionList.add(pullRequestPostCommentAction);
       return this;
     }
 

@@ -14,8 +14,6 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource.ApplicableTags;
-import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource.AppliedTags;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoryDTO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.InvalidTagException;
@@ -391,7 +389,7 @@ public class TagServiceTest
     Tag orgTag = tempEntity.newTag(org.getId(), "Org Tag");
     Tag parentTag = tempEntity.newTag(org.getParentOrganizationId(), "Root Tag");
 
-    ApplicableTags tags = tagService.getApplicableTags(OwnerType.ORGANIZATION, org.getId());
+    ApplicableTagsDTO tags = tagService.getApplicableTags(OwnerType.ORGANIZATION, org.getId());
     assertThat(tags.applicationCategoriesByOwner).hasSize(2);
 
     assertThat(tags.applicationCategoriesByOwner.get(0).applicationCategories).usingElementComparator(dtoComparator)
@@ -415,7 +413,7 @@ public class TagServiceTest
     ApplicationTag parentTag = tempEntity.newApplicationTag(application.getId(),
         tempEntity.newTag(org.getParentOrganizationId(), "Root Tag").getId());
 
-    AppliedTags tags = tagService.getAppliedTags(org.getId());
+    AppliedTagsDTO tags = tagService.getAppliedTags(org.getId());
     assertThat(tags.applicationTagsByOwner).hasSize(2);
 
     assertThat(tags.applicationTagsByOwner.get(0).applicationTags).usingElementComparator(byId)

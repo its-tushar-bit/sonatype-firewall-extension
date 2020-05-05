@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.tag;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource;
-import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource.ApplicableTags;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoryDTO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
@@ -39,7 +38,7 @@ public class ApiApplicationCategoryResourceTest
     // Get
     HttpResponse response = getApplicableTagsPath.get();
     assertResponseStatus(200, response);
-    ApplicableTags tags = response.getBody(ApplicableTags.class);
+    ApplicableTagsDTO tags = response.getBody(ApplicableTagsDTO.class);
     assertThat(tags).isNotNull();
     assertThat(tags.applicationCategoriesByOwner).hasSize(2);
     assertThat(tags.applicationCategoriesByOwner.get(0).applicationCategories).hasSize(0);
@@ -54,7 +53,7 @@ public class ApiApplicationCategoryResourceTest
     // Get
     response = getApplicableTagsPath.get();
     assertResponseStatus(200, response);
-    tags = response.getBody(ApplicableTags.class);
+    tags = response.getBody(ApplicableTagsDTO.class);
     assertThat(tags.applicationCategoriesByOwner).hasSize(2);
     assertThat(tags.applicationCategoriesByOwner.get(0).applicationCategories).hasSize(1);
     assertTag(fromDTO(dto, org.getId()),
@@ -70,7 +69,7 @@ public class ApiApplicationCategoryResourceTest
     // Get
     response = getApplicableTagsPath.get();
     assertResponseStatus(200, response);
-    tags = response.getBody(ApplicableTags.class);
+    tags = response.getBody(ApplicableTagsDTO.class);
     assertThat(tags).isNotNull();
     assertThat(tags.applicationCategoriesByOwner).hasSize(2);
     assertThat(tags.applicationCategoriesByOwner.get(0).applicationCategories).hasSize(1);
@@ -84,7 +83,7 @@ public class ApiApplicationCategoryResourceTest
     // Get
     response = getApplicableTagsPath.get();
     assertResponseStatus(200, response);
-    tags = response.getBody(ApplicableTags.class);
+    tags = response.getBody(ApplicableTagsDTO.class);
     assertThat(tags).isNotNull();
     assertThat(tags.applicationCategoriesByOwner).hasSize(2);
     assertThat(tags.applicationCategoriesByOwner.get(0).applicationCategories).hasSize(0);

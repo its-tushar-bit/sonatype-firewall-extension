@@ -14,10 +14,6 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource.ApplicableTags;
-import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource.ApplicationTagsByOwner;
-import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource.AppliedTags;
-import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource.TagsByOwner;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoryDTO;
 import com.sonatype.insight.brain.audit.ApplicationCategoryAuditDTO;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -111,15 +107,15 @@ public class TagService
   }
 
   @Authorize(permission = Permission.READ)
-  public ApplicableTags getApplicableTags(
+  public ApplicableTagsDTO getApplicableTags(
       @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-    ApplicableTags tags = new ApplicableTags();
+    ApplicableTagsDTO tags = new ApplicableTagsDTO();
     tags.applicationCategoriesByOwner = new ArrayList<>();
     for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
-      TagsByOwner tagsByOwner = new TagsByOwner(owner,
+      TagsByOwnerDTO tagsByOwner = new TagsByOwnerDTO(owner,
           tagDAO.getByOrganizationId(owner.getId()).stream().map(TagService::toDTO).collect(Collectors.toList()));
       tags.applicationCategoriesByOwner.add(tagsByOwner);
     }
@@ -198,12 +194,12 @@ public class TagService
   }
 
   @Authorize(permission = Permission.READ)
-  public AppliedTags getAppliedTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
-    AppliedTags entities = new AppliedTags();
+  public AppliedTagsDTO getAppliedTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
+    AppliedTagsDTO entities = new AppliedTagsDTO();
     entities.applicationTagsByOwner = new ArrayList<>();
     for (Owner owner : ownerDAO.walkHierarchy(organizationId)) {
-      ApplicationTagsByOwner appTags = new ApplicationTagsByOwner(owner, applicationTagDAO.getByOrganizationId(owner
-          .getId()));
+      ApplicationTagsByOwnerDTO appTags =
+          new ApplicationTagsByOwnerDTO(owner, applicationTagDAO.getByOrganizationId(owner.getId()));
       entities.applicationTagsByOwner.add(appTags);
     }
 

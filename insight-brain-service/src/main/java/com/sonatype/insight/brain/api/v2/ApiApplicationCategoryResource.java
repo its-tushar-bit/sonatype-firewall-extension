@@ -23,10 +23,10 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoryDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
+import com.sonatype.insight.brain.tag.ApplicableTagsDTO;
+import com.sonatype.insight.brain.tag.AppliedTagsDTO;
 import com.sonatype.insight.brain.tag.TagService;
 
 import com.codahale.metrics.annotation.Timed;
@@ -66,7 +66,7 @@ public class ApiApplicationCategoryResource
   @GET
   @Path(APPLICATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicableTags getApplicationApplicableTags(@PathParam("applicationPublicId") String applicationPublicId) {
+  public ApplicableTagsDTO getApplicationApplicableTags(@PathParam("applicationPublicId") String applicationPublicId) {
     return service.getApplicableTags(OwnerType.APPLICATION, applicationPublicId);
   }
 
@@ -82,7 +82,7 @@ public class ApiApplicationCategoryResource
   @GET
   @Path(ORGANIZATION_APPLICABLE_TAGS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicableTags getApplicableTags(@PathParam("organizationId") String organizationId) {
+  public ApplicableTagsDTO getApplicableTags(@PathParam("organizationId") String organizationId) {
     return service.getApplicableTags(OwnerType.ORGANIZATION, organizationId);
   }
 
@@ -98,7 +98,7 @@ public class ApiApplicationCategoryResource
   @GET
   @Path(ORGANIZATION_PATH + "/applied")
   @Produces(MediaType.APPLICATION_JSON)
-  public AppliedTags getAppliedTags(@PathParam("organizationId") String organizationId) {
+  public AppliedTagsDTO getAppliedTags(@PathParam("organizationId") String organizationId) {
     return service.getAppliedTags(organizationId);
   }
 
@@ -138,57 +138,5 @@ public class ApiApplicationCategoryResource
   @Audited(AuditEvent.DELETE_APPLICATION_CATEGORY)
   public void deleteTag(@PathParam("organizationId") String organizationId, @PathParam("tagId") String tagId) {
     service.deleteTag(organizationId, tagId);
-  }
-
-  public static class TagsByOwner
-  {
-    public TagsByOwner() {
-    }
-
-    public TagsByOwner(Owner owner, List<ApiApplicationCategoryDTO> tags) {
-      this.ownerId = owner.getPublicId();
-      this.ownerName = owner.getName();
-      this.ownerType = owner.getType();
-      this.applicationCategories = tags;
-    }
-
-    public String ownerId;
-
-    public String ownerName;
-
-    public OwnerType ownerType;
-
-    public List<ApiApplicationCategoryDTO> applicationCategories;
-  }
-
-  public static class ApplicableTags
-  {
-    public List<TagsByOwner> applicationCategoriesByOwner;
-  }
-
-  public static class ApplicationTagsByOwner
-  {
-    public ApplicationTagsByOwner() {
-    }
-
-    public ApplicationTagsByOwner(Owner owner, List<ApplicationTag> applicationTags) {
-      this.ownerId = owner.getPublicId();
-      this.ownerName = owner.getName();
-      this.ownerType = owner.getType();
-      this.applicationTags = applicationTags;
-    }
-
-    public String ownerId;
-
-    public String ownerName;
-
-    public OwnerType ownerType;
-
-    public List<ApplicationTag> applicationTags;
-  }
-
-  public static class AppliedTags
-  {
-    public List<ApplicationTagsByOwner> applicationTagsByOwner;
   }
 }

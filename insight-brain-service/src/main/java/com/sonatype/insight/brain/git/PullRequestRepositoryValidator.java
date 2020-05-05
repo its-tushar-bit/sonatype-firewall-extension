@@ -14,6 +14,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 
 import org.slf4j.Logger;
@@ -49,22 +50,22 @@ class PullRequestRepositoryValidator
       log.debug("Pull requests have not been enabled for repository URL '{}'", gitRepositoryInfo.repositoryUrl);
       return false;
     }
-    return isPrivateOrInternalRepository(gitRepositoryInfo);
+    if (!gitRepositoryInfo.provider.supportsPullRequests()) {
+      throw new UnsupportedOperationException(
+          String.format("'%s' not supported yet", gitRepositoryInfo.provider.name()));
+    }
+
+    return isInternalRepository(gitRepositoryInfo) || isPrivateRepository(gitRepositoryInfo);
   }
 
   /**
-   * Returns {@code true} if a repository is private or it is internal-only (e.g. GitHub Enterprise)
+   * Returns {@code true} if a repository is internal only (e.g. GitHub Enterprise)
    */
-  public boolean isPrivateOrInternalRepository(final GitRepositoryInfo gitRepositoryInfo) {
-    switch (gitRepositoryInfo.provider) {
-      case GITHUB:
-        return !isGitHubDotCom(gitRepositoryInfo) || isPrivateRepository(gitRepositoryInfo);
-      case BITBUCKET:
-        return isPrivateRepository(gitRepositoryInfo);
-      default:
-        throw new UnsupportedOperationException(
-            String.format("'%s' not supported yet", gitRepositoryInfo.provider.name()));
+  public boolean isInternalRepository(final GitRepositoryInfo gitRepositoryInfo) {
+    if (SourceControlProvider.GITHUB.equals(gitRepositoryInfo.provider)) {
+      return !isGitHubDotCom(gitRepositoryInfo);
     }
+    return false;
   }
 
   private boolean isPrivateRepository(final GitRepositoryInfo gitRepositoryInfo) {

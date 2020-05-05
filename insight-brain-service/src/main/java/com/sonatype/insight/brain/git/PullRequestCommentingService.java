@@ -210,16 +210,10 @@ public class PullRequestCommentingService
     if (null == event.targetPolicyEvaluationId) {
       // we need to get and process the base branch commit history
       CommitInformation commitInfo = getCommitInfoFromScm(gitRepositoryInfo, event.commitHash);
-      if (!pullRequestRepositoryValidator.isPrivateOrInternalRepository(gitRepositoryInfo)) {
-        log.debug("Repository is not private: {}", gitRepositoryInfo.repositoryUrl);
-      }
-      else {
-        // the commit info contains not only the pull requests associated with the commit but also some recent commit
-        // history for the base branch
-        processBaseBranchCommitHistory(sourceCommitPolicyEvaluation, commitInfo.getCommits());
-
-        baseBranchPolicyEvaluation = getLatestPolicyEvaluationReportForBaseBranch(applicationId);
-      }
+      // the commit info contains not only the pull requests associated with the commit but also some recent commit
+      // history for the base branch
+      processBaseBranchCommitHistory(sourceCommitPolicyEvaluation, commitInfo.getCommits());
+      baseBranchPolicyEvaluation = getLatestPolicyEvaluationReportForBaseBranch(applicationId);
     }
     else {
       baseBranchPolicyEvaluation = Optional.ofNullable(policyEvaluationDAO.getById(event.targetPolicyEvaluationId));
@@ -483,7 +477,8 @@ public class PullRequestCommentingService
       GitRepositoryInfo gitRepositoryInfo,
       PolicyEvaluation sourceCommitPolicyEvaluation)
   {
-    if (!pullRequestRepositoryValidator.isPrivateOrInternalRepository(gitRepositoryInfo)) {
+    if (!pullRequestRepositoryValidator.isInternalRepository(gitRepositoryInfo) &&
+        !pullRequest.isRepositoryPrivate()) {
       log.debug("Repository is not valid for pull requests, ensure that it is private: {}",
           gitRepositoryInfo.repositoryUrl);
       return false;

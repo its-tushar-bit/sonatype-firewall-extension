@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Arrays;
 
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -130,6 +131,34 @@ public class PullRequestRepositoryValidatorTest
       pullRequestRepositoryValidator
           .isRepoValidForPRs(newGitRepositoryInfo(repoName, GITLAB));
     }).withMessage("'GITLAB' not supported yet");
+  }
+
+  @Test
+  public void isInternalRepository_GitHubEnterpriseFlow() {
+    String repoName = String.format(TEST_REPO_URL, "https://NOTgithub.com/");
+    assertThat(pullRequestRepositoryValidator
+        .isInternalRepository(newGitRepositoryInfo(repoName, GITHUB)))
+        .isTrue();
+  }
+
+  @Test
+  public void isInternalRepository_GitHubCloudFlow() {
+    String repoName = String.format(TEST_REPO_URL, "https://github.com/");
+    assertThat(pullRequestRepositoryValidator
+        .isInternalRepository(newGitRepositoryInfo(repoName, GITHUB)))
+        .isFalse();
+  }
+
+  @Test
+  public void isInternalRepository_NotGithub() throws IOException {
+    String repoName = String.format(TEST_REPO_URL, "https://repo.com/");
+    Arrays.stream(SourceControlProvider.values())
+        .filter(sourceControlProvider -> sourceControlProvider != GITHUB)
+        .forEach(sourceControlProvider -> {
+          assertThat(pullRequestRepositoryValidator
+              .isInternalRepository(newGitRepositoryInfo(repoName, sourceControlProvider)))
+              .isFalse();
+        });
   }
 
   private GitRepositoryInfo newGitRepositoryInfo(final String repoUrl, final SourceControlProvider provider) {

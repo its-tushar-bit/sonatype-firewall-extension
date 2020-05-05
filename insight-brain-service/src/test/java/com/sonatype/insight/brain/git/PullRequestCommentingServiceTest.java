@@ -330,6 +330,44 @@ public class PullRequestCommentingServiceTest
   }
 
   @Test
+  public void testOnApplicationEvaluation_shouldCreateCommentNotPrivateButInternal() throws Exception {
+    // given : all the necessary pieces to create a PR comment
+    String commentText = "at least one new policy violation";
+    PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
+        .withDevBranchPullRequest("INT-2493-pr-commenting-immediate-flow", 14, "sourceCommit", "baseCommit")
+        .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
+        .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
+        .withPolicyEvaluationDiffMarkup(commentText)
+        .withCommentResponseForPR(14, 27)
+        .withAddedViolation(new PolicyViolation())
+        .expectApplicationId("app1")
+        .expectSourceCommit("sourceCommit")
+        .withGitRepositoryInternal(true)
+        .withGitRepositoryPrivate(false)
+        .build();
+
+    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
+        .withApplicationId("app1")
+        .withPolicyEvaluationId("sourcePe")
+        .withCommitHash("sourceCommit")
+        .build();
+
+    // when : process event
+    commentingService.onApplicationEvaluation(event);
+
+    // then : comment should be created
+    verify(mockPullRequestCommentingMetricsService, only()).onCommentCreated(eq("app1"), eq(14), eq(27));
+    assertThatLogMessagesEqual(
+        debug("obtained CommitInfo from SCM for commit 'sourceCommit' with 1 pull request(s) " +
+            "and 0 base branch commit(s)"),
+        debug("0 base branch commits to process for application 'app1'"),
+        info("pull request comment '27' created for application 'app1' pull request '14'"),
+        debug("comment text = " + commentText),
+        debug("pull request comment '27' for application 'app1' pull request '14' recorded in database")
+    );
+  }
+
+  @Test
   public void testOnApplicationEvaluation_GitLabUnsupported() throws Exception {
     testUnsupported(SourceControlProvider.GITLAB);
   }
@@ -372,6 +410,7 @@ public class PullRequestCommentingServiceTest
         .withPolicyEvaluationDiffMarkup(commentText)
         .withCommentResponseForPR(14, 25)
         .withGitRepositoryPrivate(false)
+        .withGitRepositoryInternal(false)
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
         .build();
@@ -733,6 +772,8 @@ public class PullRequestCommentingServiceTest
 
     private boolean isGitRepositoryPrivate = true;
 
+    private boolean isGitRepositoryInternal = false;
+
     private final Map<Integer, CommentResponse> pullRequestCommentResponseMap = new HashMap<>();
 
     private Class<? extends Exception> gitRepositoryEffectivelyPrivateThrows;
@@ -790,14 +831,14 @@ public class PullRequestCommentingServiceTest
 
       if (gitRepositoryEffectivelyPrivateThrows != null) {
         doThrow(UnsupportedOperationException.class).when(mockPullRequestRepositoryValidator)
-            .isPrivateOrInternalRepository(eq(gitRepositoryInfo));
+            .isInternalRepository(eq(gitRepositoryInfo));
       }
       else {
-        doReturn(isGitRepositoryPrivate).when(mockPullRequestRepositoryValidator)
-            .isPrivateOrInternalRepository(any(GitRepositoryInfo.class));
-        commitInformation.setRepositoryPrivate(isGitRepositoryPrivate);
+        doReturn(isGitRepositoryInternal).when(mockPullRequestRepositoryValidator)
+            .isInternalRepository(any(GitRepositoryInfo.class));
       }
-      
+      commitInformation.getPullRequests()
+          .forEach(pullRequest -> pullRequest.setRepositoryPrivate(isGitRepositoryPrivate));
       doReturn(mockHashBuilder).when(mockHashBuilderProvider).get();
       doReturn(mockHashBuilder).when(mockHashBuilder).withPolicyViolationDiff(any());
       doReturn(mockHashBuilder).when(mockHashBuilder).withRemediationVersionMap(any());
@@ -949,6 +990,11 @@ public class PullRequestCommentingServiceTest
 
     TestablePullRequestCommentingServiceBuilder withGitRepositoryPrivate(boolean isGitRepositoryPrivate) {
       this.isGitRepositoryPrivate = isGitRepositoryPrivate;
+      return this;
+    }
+
+    TestablePullRequestCommentingServiceBuilder withGitRepositoryInternal(boolean isGitRepositoryInternal) {
+      this.isGitRepositoryInternal = isGitRepositoryInternal;
       return this;
     }
 

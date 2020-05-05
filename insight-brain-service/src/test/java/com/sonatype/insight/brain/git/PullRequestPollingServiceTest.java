@@ -142,6 +142,30 @@ public class PullRequestPollingServiceTest
   }
 
   @Test
+  public void testFetchAndSendPullRequestsForCommenting_shouldPostEventNotPrivateButInternal() throws IOException {
+    // given: necessary ingredients to emit a discovered pull request event
+    Date pullRequestCreateDate = new Date(System.currentTimeMillis() - 1000);
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("app1", "org/repo", SourceControlProvider.GITHUB)
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch")
+        .withSourcePolicyEvaluation("app1", "spe1")
+        .withGitRepositoryPrivate(false)
+        .withGitRepositoryInternal(true)
+        .build();
+
+    // when: fetch and send
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: event emitted
+    verify(mockAsyncEventBus, times(1)).post(any());
+    assertThatLogMessagesEqual(
+        debug("Fetched 1 pull request(s) for org 'org' and repo 'none specified' since " + pullRequestCreateDate),
+        info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
+        debug("Pull request polling time updated for 'org/repo'")
+    );
+  }
+
+  @Test
   public void testFetchAndSendPullRequestsForCommenting_gitLabNotSupported() throws IOException {
     // given:
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
@@ -246,6 +270,8 @@ public class PullRequestPollingServiceTest
 
     private boolean isGitRepositoryPrivate = true;
 
+    private boolean isGitRepositoryInternal = false;
+
     private Class<? extends Exception> thrownException;
 
     PullRequestPollingService build() throws IOException {
@@ -279,12 +305,13 @@ public class PullRequestPollingServiceTest
 
       if (thrownException != null) {
         doThrow(UnsupportedOperationException.class).when(mockPullRequestRepositoryValidator)
-            .isPrivateOrInternalRepository(eq(gitRepositoryInfo));
+            .isInternalRepository(eq(gitRepositoryInfo));
       }
       else {
-        doReturn(isGitRepositoryPrivate).when(mockPullRequestRepositoryValidator)
-            .isPrivateOrInternalRepository(eq(gitRepositoryInfo));
+        doReturn(isGitRepositoryInternal).when(mockPullRequestRepositoryValidator)
+            .isInternalRepository(eq(gitRepositoryInfo));
       }
+      pullRequests.forEach(pullRequest -> pullRequest.setRepositoryPrivate(isGitRepositoryPrivate));
 
       return new PullRequestPollingService(mockSourceControlDAO, mockPolicyEvaluationDAO, mockGitCommitHistoryService,
           mockSourceControlUtils, mockGitClientFactory, mockAsyncEventBus, mockPullRequestRepositoryValidator);
@@ -340,6 +367,11 @@ public class PullRequestPollingServiceTest
 
     TestablePullRequestPollingServiceBuilder withGitRepositoryPrivate(boolean isGitRepositoryPrivate) {
       this.isGitRepositoryPrivate = isGitRepositoryPrivate;
+      return this;
+    }
+
+    TestablePullRequestPollingServiceBuilder withGitRepositoryInternal(boolean isGitRepositoryInternal) {
+      this.isGitRepositoryInternal = isGitRepositoryInternal;
       return this;
     }
   }

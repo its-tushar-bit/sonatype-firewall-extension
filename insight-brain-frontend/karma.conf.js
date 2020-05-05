@@ -28,7 +28,7 @@ module.exports = function(config) {
 
     // test results reporter to use
     // possible values: 'dots', 'progress', plus those at https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['spec', 'junit'],
+    reporters: ['spec', 'junit', 'coverage-istanbul'],
 
     client: {
       // remove or switch to true to see console logging from the tests in the output
@@ -65,6 +65,12 @@ module.exports = function(config) {
     // Concurrency level
     // how many browser should be started simultaneous
     concurrency: Infinity,
+
+    coverageIstanbulReporter: {
+      reports: ['text-summary', 'lcovonly'],
+      fixWebpackSourcePaths: true,
+      dir: 'target/coverage'
+    },
 
     junitReporter: {
       outputDir: 'target/karma-reports',

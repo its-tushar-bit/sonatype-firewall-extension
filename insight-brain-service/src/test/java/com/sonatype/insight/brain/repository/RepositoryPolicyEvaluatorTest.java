@@ -40,12 +40,15 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.ComponentDataSource;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -144,6 +147,22 @@ public class RepositoryPolicyEvaluatorTest
                                                                 List<SecurityVulnerability> securityVulnerabilities,
                                                                 Integer relativePopularity)
   {
+    AnalyzerFeatures analyzerFeatures = new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.HASH, "client");
+    return createComponentEvaluationData(componentIdentifier, hash, matchState, index, declaredLicenses,
+        observedLicenses, securityVulnerabilities, relativePopularity, analyzerFeatures);
+  }
+
+  private ComponentEvaluationData createComponentEvaluationData(
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      MatchState matchState,
+      int index,
+      Set<License> declaredLicenses,
+      Set<License> observedLicenses,
+      List<SecurityVulnerability> securityVulnerabilities,
+      Integer relativePopularity,
+      AnalyzerFeatures analyzerFeatures)
+  {
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.requestIndex = index;
     componentEvaluationData.hash = hash;
@@ -154,7 +173,7 @@ public class RepositoryPolicyEvaluatorTest
     componentEvaluationData.catalogDate = System.currentTimeMillis();
     componentEvaluationData.securityVulnerabilities = securityVulnerabilities;
     componentEvaluationData.relativePopularity = relativePopularity;
-    componentEvaluationData.analyzerFeatures = new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.HASH, "client");
+    componentEvaluationData.analyzerFeatures = analyzerFeatures;
     return componentEvaluationData;
   }
 
@@ -541,6 +560,48 @@ public class RepositoryPolicyEvaluatorTest
         .isNotNull();
     assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId()))
         .extracting(RepositoryPolicyViolation::getPathname).containsExactly(unignorableRequest.pathname);
+  }
+
+  @Test
+  public void testEvaluate_PolicyViolationLogger_metadata() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    createPolicyDataSourceFeature(repository);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    // Prepare request and mock the HDS request
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", "path1", "h1"));
+    hdsResult.components.add(createdComponentMetadata());
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    // Evaluate policies. All policy violations should be logged.
+    Date before1 = new Date();
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    final Date after1 = new Date();
+    List<RepositoryPolicyViolation> policyViolations =
+        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    assertThat(policyViolations).hasSize(1);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before1, after1, policyViolations);
+    policyViolationLoggerOutput.clear();
+  }
+
+  private void createPolicyDataSourceFeature(Repository repository) {
+    tempEntity.newPolicy(repository.getParentOwnerId(), 5, LogicalOperator.AND, new Condition(
+        DataSourceConditionType.ID, DataSourceConditionType.HAS_SUPPORT_FOR, ComponentDataSource.IDENTITY.getId()));
+  }
+
+  private ComponentEvaluationData createdComponentMetadata() {
+    return createComponentEvaluationData(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), "h1" ,
+        MatchState.EXACT, 0 /* index */, null /* declaredLicenseSet */, null /* observedLicenseSet */,
+        createSecurityVulnerabilities(), 1 /* popularity */, fromHds());
+  }
+
+  private AnalyzerFeatures fromHds() {
+    return new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.COORDINATE, "CLI", true, true, true);
   }
 
   private void assertViolationWaiverDetails(

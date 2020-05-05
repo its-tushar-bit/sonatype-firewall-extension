@@ -1043,9 +1043,13 @@ public class TemporaryEntity
   }
 
   public Policy newPolicy(Owner owner, int threatLevel, LogicalOperator conditionOperator, Condition... conditions) {
+    return newPolicy(owner.getId(), threatLevel, conditionOperator, conditions);
+  }
+
+  public Policy newPolicy(String ownerId, int threatLevel, LogicalOperator conditionOperator, Condition... conditions) {
     Policy policy = new Policy(null, uuid());
     policy.setThreatLevel(threatLevel);
-    policy.setOwnerId(owner.getId());
+    policy.setOwnerId(ownerId);
     policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     Constraint constraint = new Constraint(null, uuid(), conditionOperator);
     Arrays.stream(conditions).forEach(constraint::addCondition);

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.ComponentDataSource;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -57,7 +58,8 @@ public class DataSourceConditionType
 
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
-    return "TODO";
+    return getName() + ' ' + condition.getOperator() + ' '
+        + ComponentDataSource.getById(condition.getValue()).getName();
   }
 
   @Override
@@ -66,9 +68,7 @@ public class DataSourceConditionType
   }
 
   @Override
-  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
-      throws InvalidConditionException
-  {
+  public void validateCondition(TransactionContext tx, Condition condition, String ownerId) {
     super.validateCondition(tx, condition, ownerId);
 
     if (ComponentDataSource.getById(condition.getValue()) == null) {
@@ -78,7 +78,16 @@ public class DataSourceConditionType
 
   @Override
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
-    return false;
+    AnalyzerFeatures analyzerFeatures = component.getAnalyzerFeatures();
+    if (analyzerFeatures != null) {
+      boolean result = ComponentDataSource.IDENTITY.getId().contentEquals(value)
+          ? analyzerFeatures.isHasIdentity()
+          : analyzerFeatures.isHasLicense();
+      return HAS_SUPPORT_FOR.equals(operator) ? result : !result;
+    }
+    // True return when the component does not have metadata results, this is because is likely to be a component from
+    // an old report so it's assumed it has identity
+    return true;
   }
 
   @Override

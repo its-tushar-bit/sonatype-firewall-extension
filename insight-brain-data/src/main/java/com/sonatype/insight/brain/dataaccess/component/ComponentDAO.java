@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.ComponentInfo;
+import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
@@ -145,12 +146,30 @@ public class ComponentDAO
             }
           }
 
+          JsonNode analyzerFeaturesNode = componentJson.get("analyzerFeatures");
+          setAnalyzerFeatures(analyzerFeaturesNode, component);
+
           components.add(component);
         }
       }
     }
 
     return components;
+  }
+  
+  private void setAnalyzerFeatures(JsonNode analyzerFeaturesNode, Component component) {
+    try {
+      if (analyzerFeaturesNode != null) {
+        AnalyzerFeatures analyzerFeatures = JsonUtils.asPojo(analyzerFeaturesNode, AnalyzerFeatures.class);
+
+        if (analyzerFeatures != null) {
+          component.setAnalyzerFeatures(analyzerFeatures);
+        }
+      }
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   public static String getDisplayName(JsonNode componentNode) {

@@ -16,11 +16,13 @@ public class ComponentDataSource
   private final String id;
 
   private final String name;
+  
+  public static final ComponentDataSource LICENSE = new ComponentDataSource("license", "License");
 
-  private static Map<String, ComponentDataSource> all = ImmutableMap.of(
-      "license", new ComponentDataSource("license", "License"),
-      "identity", new ComponentDataSource("identity", "Identity")
-  );
+  public static final ComponentDataSource IDENTITY = new ComponentDataSource("identity", "Identity");
+
+  private static Map<String, ComponentDataSource> all =
+      ImmutableMap.of("license", LICENSE, "identity", IDENTITY);
 
   public ComponentDataSource(final String id, final String name) {
     this.id = id;

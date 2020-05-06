@@ -29,7 +29,7 @@
     <sonar.sources>src/main/frontend</sonar.sources>
     <sonar.exclusions>src/main/frontend/lib,src/main/frontend/audit-report/lib</sonar.exclusions>
     <sonar.tests>src/test/frontend</sonar.tests>
-    <sonar.nodejs.executable>node/node</sonar.nodejs.executable>
+    <sonar.nodejs.executable>${project.basedir}/node/node</sonar.nodejs.executable>
   </properties>
 
   <build>

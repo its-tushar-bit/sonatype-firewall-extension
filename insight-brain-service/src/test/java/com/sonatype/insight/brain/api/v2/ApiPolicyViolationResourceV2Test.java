@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
@@ -92,13 +93,15 @@ public class ApiPolicyViolationResourceV2Test
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     Policy orgPolicy = tempEntity.newPolicy(org);
-    PolicyEvaluation pe1App1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1", false, 
-        false, date);
+    PolicyEvaluation pe1App1 = tempEntity
+            .newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1", false, false, date);
     PolicyViolation pv1App1 = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
+    String fullPath = ApiPolicyViolationResourceV2.CROSS_STAGE_POLICY_VIOLATION_SUBPATH
+            + ApiPolicyViolationResourceV2.VIOLATIONID;
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
-        .path(ApiPolicyViolationResourceV2.CROSS_STAGE_POLICY_VIOLATION_SUBPATH)
+        .path(fullPath)
         .parameter(pv1App1.getId())
         .get();
 
@@ -111,5 +114,40 @@ public class ApiPolicyViolationResourceV2Test
     assertThat(resultDTO.displayName.toString()).isEqualTo("g1 : a1 : v1");
     assertThat(resultDTO.stageData.get(BuildStageType.ID)).extracting("mostRecentEvaluationTime", "mostRecentScanId")
         .containsExactly(date.getTime(), "scanId1App1");
+  }
+
+  @Test
+  public void testGetCrossStagePolicyViolationByConstituentId() throws Exception {
+    Date baseDate = new Date();
+    Date later = new Date(baseDate.getTime() + 1);
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Policy orgPolicy = tempEntity.newPolicy(org);
+    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1", false,
+            false, baseDate);
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
+    // Equivalent, opened while violation1 was still open
+    PolicyEvaluation evaluation2 = tempEntity
+            .newPolicyEvaluation(app.getId(), DevelopStageType.ID, "scanId2App1", false, false, later);
+    tempEntity.newPolicyViolation(evaluation2, orgPolicy, "g1", "a1", "v1", "h1", "r1");
+
+    HttpResponse response = restRequest()
+            .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
+            .path(ApiPolicyViolationResourceV2.CROSS_STAGE_POLICY_VIOLATION_SUBPATH)
+            .query("constituentId", violation1.getId())
+            .get();
+
+    assertResponseStatus(200, response);
+    ApiCrossStageViolationDTOV2 resultDTO = response.getBody(ApiCrossStageViolationDTOV2.class);
+    assertThat(resultDTO.policyViolationId).isEqualTo(violation1.getId());
+    assertThat(resultDTO.applicationPublicId).isEqualTo(app.getPublicId());
+    assertThat(resultDTO.applicationName).isEqualTo(app.getName());
+    assertThat(resultDTO.stageData).hasSize(2);
+    assertThat(resultDTO.stageData).containsOnlyKeys(BuildStageType.ID, DevelopStageType.ID);
+    assertThat(resultDTO.displayName.toString()).isEqualTo("g1 : a1 : v1");
+    assertThat(resultDTO.stageData.get(BuildStageType.ID)).extracting("mostRecentEvaluationTime", "mostRecentScanId")
+            .containsExactly(baseDate.getTime(), "scanId1App1");
+    assertThat(resultDTO.stageData.get(DevelopStageType.ID)).extracting("mostRecentEvaluationTime", "mostRecentScanId")
+            .containsExactly(baseDate.getTime() + 1, "scanId2App1");
   }
 }

@@ -116,7 +116,7 @@ public class PullRequestLocationDiscoveryTaskTest
     File sonatypeWorkDir = temporaryFolder.newFolder();
     config.setSonatypeWorkDir(sonatypeWorkDir);
 
-    File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-" + INFO.baseBranch + APP_HASH);
+    File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-" + BRANCH + APP_HASH);
     boolean success = targetDirectory.mkdirs();
     assertThat(success).isTrue();
 
@@ -141,7 +141,7 @@ public class PullRequestLocationDiscoveryTaskTest
     File sonatypeWorkDir = temporaryFolder.newFolder();
     config.setSonatypeWorkDir(sonatypeWorkDir);
 
-    File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-" + INFO.baseBranch + APP_HASH);
+    File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-" + BRANCH.toLowerCase() + APP_HASH);
     boolean success = targetDirectory.mkdirs();
     assertThat(success).isTrue();
 

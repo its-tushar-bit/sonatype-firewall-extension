@@ -92,7 +92,8 @@ public class PullRequestTask
       log.info("Pull request task initiated for application '{}'", applicationId);
       GitRepositoryInfo gitInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
 
-      checkoutDir = getCheckoutDirectory(pullRequestRemediationDetails.getApp().getPublicId(), applicationId, gitInfo);
+      checkoutDir = getCheckoutDirectory(pullRequestRemediationDetails.getApp().getPublicId(), applicationId, 
+          gitInfo.baseBranch);
 
       PullRequestCommand command = new PullRequestCommandBuilder()
           .withRepositoryDirectory(checkoutDir)

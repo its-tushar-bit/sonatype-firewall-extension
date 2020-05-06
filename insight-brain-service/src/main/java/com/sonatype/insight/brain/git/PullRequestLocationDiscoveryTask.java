@@ -87,7 +87,7 @@ public class PullRequestLocationDiscoveryTask
 
         String applicationPublicId = applicationDAO.getById(applicationId).getPublicId();
 
-        checkoutDir = getCheckoutDirectory(applicationPublicId, applicationId, gitRepositoryInfo);
+        checkoutDir = getCheckoutDirectory(applicationPublicId, applicationId, branch);
 
         LocationDiscoveryRequest request =
             new LocationDiscoveryRequest(componentIdentifiers, gitApiFactory.createGitApi(gitRepositoryInfo), branch,
@@ -98,7 +98,6 @@ public class PullRequestLocationDiscoveryTask
       }
       catch (Exception e) {
         log.error("Failed to execute pull request location discovery task, cleaning pull request directory", e);
-        cleanDirectory(checkoutDir);
       }
       catch (Throwable t) {
         // Try to log to stderr before trying the standard logging because the standard logging may not be operational
@@ -106,6 +105,9 @@ public class PullRequestLocationDiscoveryTask
         t.printStackTrace();
         log.error(t.getMessage(), t);
         System.exit(1);
+      }
+      finally {
+        cleanDirectory(checkoutDir);
       }
     }
     return result;

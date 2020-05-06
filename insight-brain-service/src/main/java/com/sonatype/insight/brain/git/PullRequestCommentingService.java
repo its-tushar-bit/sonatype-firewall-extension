@@ -396,6 +396,7 @@ public class PullRequestCommentingService
     }
     else {
       existingPullRequestComment.setPullRequestCommentId(commentId);
+      existingPullRequestComment.setContentHash(contentHash);
       existingPullRequestComment.setSourcePolicyEvaluationId(sourcePolicyEvaluationId);
       existingPullRequestComment.setTargetPolicyEvaluationId(basePolicyEvaluationId);
       pullRequestCommentDAO.update(existingPullRequestComment);

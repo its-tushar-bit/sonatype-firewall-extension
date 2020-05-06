@@ -14,7 +14,6 @@ import java.util.Locale;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 
 import com.google.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
@@ -57,11 +56,11 @@ public abstract class GitRepositoryTask
   protected File getCheckoutDirectory(
       final String applicationPublicId,
       final String applicationId,
-      final GitRepositoryInfo gitInfo)
+      final String branchName)
   {
     File checkoutDir = new File(
         insightConfig.getSourceControl().getCloneDirectory(),
-        toSafePathname(applicationPublicId, gitInfo.baseBranch, applicationId));
+        toSafePathname(applicationPublicId, branchName, applicationId));
 
     if (checkoutDir.exists()) {
       log.debug("Using existing directory for pull request task: {}", checkoutDir.getAbsolutePath());

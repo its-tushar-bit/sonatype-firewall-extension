@@ -26,6 +26,9 @@ import java.util.stream.StreamSupport;
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.SecurityVulnerabilityDetails;
+import com.sonatype.clm.dto.model.component.AnalysisSource;
+import com.sonatype.clm.dto.model.component.AnalysisType;
+import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -39,7 +42,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.scan.application.AnalyzerFeaturesDTO;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
@@ -84,7 +86,7 @@ public class ThirdPartyComponentDAOTest
   private final String hashApt = "683620ac905c1d32b58c";
 
   private final Map<String, ComponentIdentifier> testData = ImmutableMap.of(
-      hashGlibc, componentIdentifierFrom("debian-9", "glibc", "2.24-11+deb9u3"), 
+      hashGlibc, componentIdentifierFrom("debian-9", "glibc", "2.24-11+deb9u3"),
       hashApt, componentIdentifierFrom("debian-9", "apt", "1.4.8"));
 
   @Before
@@ -307,7 +309,9 @@ public class ThirdPartyComponentDAOTest
     final ReportEntry bomEntry = Report.getEntry(reportZip, "bom.json");
     assertThat(bomEntry).isNotNull();
 
-    JsonNode analyzerFeaturesDTO = JsonUtils.asTree(AnalyzerFeaturesDTO.fromThirdParty("test"));
+    AnalyzerFeatures analyzerFeatures =
+        new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "test", false, false, false);
+    JsonNode analyzerFeaturesDTO = JsonUtils.asTree(analyzerFeatures);
     JsonNode jsonNode = JsonUtils.parse(bomEntry.buf);
     final JsonNode aaDataNode = jsonNode.path("aaData");
 

@@ -26,6 +26,9 @@ import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.SecurityVulnerabilityDetails;
+import com.sonatype.clm.dto.model.component.AnalysisSource;
+import com.sonatype.clm.dto.model.component.AnalysisType;
+import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -43,7 +46,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.scan.application.AnalyzerFeaturesDTO;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -371,7 +373,8 @@ public class ThirdPartyComponentDAO
     if (bomNode.has("analyzerFeatures") && bomNode.get("analyzerFeatures").has("scanClient")) {
       scanClient = bomNode.get("analyzerFeatures").get("scanClient").asText();
     }
-    tpObjectNode.set("analyzerFeatures", JsonUtils.asTree(AnalyzerFeaturesDTO.fromThirdParty(scanClient)));
+    tpObjectNode.set("analyzerFeatures", JsonUtils.asTree(
+        new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, scanClient, false, false, false)));
 
     bomNode.fields().forEachRemaining(entry -> {
       if (!tpObjectNode.has(entry.getKey())) {

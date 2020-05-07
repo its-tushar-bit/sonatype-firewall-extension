@@ -74,4 +74,16 @@ public class AdvancedSearchPage
   public SelenideElement helpContainer() {
     return $("#advanced-search-help-container");
   }
+
+  public SelenideElement queryBuilderButton() {
+    return child("#advanced-search-query-builder-toggle-button");
+  }
+
+  public SelenideElement queryBuilderContainer() {
+    return child("#advanced-search-query-builder-container");
+  }
+
+  public SelenideElement prefixTagWithId(String id) {
+    return child("#advanced-search-query-builder-tag-" +  id);
+  }
 }

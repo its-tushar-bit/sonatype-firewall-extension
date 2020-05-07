@@ -21,6 +21,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.hidden;
@@ -224,5 +225,35 @@ public class AdvancedSearchPageTest
     refreshOrOpen(AdvancedSearchPage.url());
 
     page.helpContainer().shouldBe(visible);
+  }
+
+  @Test
+  public void testQueryBuilder() throws IOException {
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+
+    // initial state
+    page.queryBuilderContainer().shouldNotBe(visible);
+
+    // test toggle
+    page.queryBuilderButton().click();
+    page.queryBuilderContainer().shouldBe(visible);
+    page.queryBuilderButton().click();
+    page.queryBuilderContainer().shouldNotBe(visible);
+
+    // test add prefix using pills
+    page.queryBuilderButton().click();
+    page.prefixTagWithId("organizationId").shouldNotHave(cssClass("selected")).click();
+    // when I click on the pill it should get an additional class which fills the pill with green background
+    page.prefixTagWithId("organizationId").shouldHave(cssClass("selected"));
+    page.queryBuilderContainer().shouldBe(visible);  // query builder must remain open
+    page.searchInput().shouldHave(value("organizationId:"));
+
+    // test upon search query builder is closed
+    page.searchInput().sendKeys("ROOT*");
+    page.searchButton().click();
+    page.queryBuilderContainer().shouldNotBe(visible);
   }
 }

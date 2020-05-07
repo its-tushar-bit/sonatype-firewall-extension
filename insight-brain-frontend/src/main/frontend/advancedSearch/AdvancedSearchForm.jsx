@@ -4,10 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { Fragment } from 'react';
+import React, { Fragment, useState } from 'react';
 import {NxButton, NxTextInput} from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import AdvancedSearchHelp from './AdvancedSearchHelp';
+import AdvancedSearchCriteriaBuilder from './AdvancedSearchCriteriaBuilder';
 
 export default function AdvancedSearchForm(props) {
   const {
@@ -22,6 +23,10 @@ export default function AdvancedSearchForm(props) {
     }
   } = props;
 
+  const [showCriteriaBuilder, setShowCriteriaBuilder] = useState(false);
+
+  const inputFieldId = 'advanced-search-input';
+
   function queryInputOnChangeHandler(e) {
     setCurrentQuery(e);
     getQuerySuggestions();
@@ -31,6 +36,7 @@ export default function AdvancedSearchForm(props) {
     e.preventDefault();
     if (currentQuery) {
       searchFormSubmit();
+      setShowCriteriaBuilder(false);
     }
   }
 
@@ -55,7 +61,7 @@ export default function AdvancedSearchForm(props) {
       <form className="nx-form nx-form--simple nx-form--advanced-search"
             id="advanced-search-form"
             onSubmit={formOnSubmitHandler}>
-        <NxTextInput id="advanced-search-input"
+        <NxTextInput id={inputFieldId}
                      className="nx-text-input nx-text-input--advanced-search"
                      list="advanced-search-suggestions-list"
                      isPristine={currentQuery === ''}
@@ -78,6 +84,10 @@ export default function AdvancedSearchForm(props) {
           Search
         </NxButton>
       </form>
+      <AdvancedSearchCriteriaBuilder {...props}
+                                     inputFieldId={inputFieldId}
+                                     showCriteriaBuilder={showCriteriaBuilder}
+                                     setShowCriteriaBuilder={setShowCriteriaBuilder}/>
       <AdvancedSearchHelp {...props} />
       <div className="nx-tile">
         <div className="nx-tile__actions">

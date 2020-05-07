@@ -87,11 +87,11 @@ public class LicenseThreatGroupConditionTypeTest
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
+    componentDAO.loadLicenseThreatGroups(app, component1);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
+    componentDAO.loadLicenseThreatGroups(app, component2);
     components.add(component2);
 
     // Evaluate the policy
@@ -130,11 +130,11 @@ public class LicenseThreatGroupConditionTypeTest
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
+    componentDAO.loadLicenseThreatGroups(app, component1);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
+    componentDAO.loadLicenseThreatGroups(app, component2);
     components.add(component2);
 
     // Evaluate the policy
@@ -173,11 +173,11 @@ public class LicenseThreatGroupConditionTypeTest
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addObservedLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
+    componentDAO.loadLicenseThreatGroups(app, component1);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addObservedLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
+    componentDAO.loadLicenseThreatGroups(app, component2);
     components.add(component2);
 
     // Evaluate the policy
@@ -216,11 +216,11 @@ public class LicenseThreatGroupConditionTypeTest
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addObservedLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
+    componentDAO.loadLicenseThreatGroups(app, component1);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addObservedLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
+    componentDAO.loadLicenseThreatGroups(app, component2);
     components.add(component2);
 
     // Evaluate the policy
@@ -261,13 +261,13 @@ public class LicenseThreatGroupConditionTypeTest
     component1.addDeclaredLicenseId("Apache-2.0");
     component1.addObservedLicenseId("Apache-2.0");
     component1.addLicenseOverrideId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
+    componentDAO.loadLicenseThreatGroups(app, component1);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
     component2.addObservedLicenseId("GPL-2.0");
     component2.addLicenseOverrideId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
+    componentDAO.loadLicenseThreatGroups(app, component2);
     components.add(component2);
 
     // Evaluate the policy
@@ -308,13 +308,13 @@ public class LicenseThreatGroupConditionTypeTest
     component1.addDeclaredLicenseId("Apache-2.0");
     component1.addObservedLicenseId("Apache-2.0");
     component1.addLicenseOverrideId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
+    componentDAO.loadLicenseThreatGroups(app, component1);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
     component2.addObservedLicenseId("GPL-2.0");
     component2.addLicenseOverrideId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
+    componentDAO.loadLicenseThreatGroups(app, component2);
     components.add(component2);
 
     // Evaluate the policy
@@ -369,11 +369,11 @@ public class LicenseThreatGroupConditionTypeTest
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
+    componentDAO.loadLicenseThreatGroups(app, component1);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
+    componentDAO.loadLicenseThreatGroups(app, component2);
     components.add(component2);
 
     // Evaluate the policy
@@ -410,10 +410,10 @@ public class LicenseThreatGroupConditionTypeTest
 
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
+    componentDAO.loadLicenseThreatGroups(app, component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
+    componentDAO.loadLicenseThreatGroups(app, component2);
     List<Component> components = Lists.newArrayList(component1, component2);
 
     // Evaluate the policy
@@ -448,10 +448,10 @@ public class LicenseThreatGroupConditionTypeTest
 
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
+    componentDAO.loadLicenseThreatGroups(app, component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
+    componentDAO.loadLicenseThreatGroups(app, component2);
     List<Component> components = Lists.newArrayList(component1, component2);
 
     // Evaluate the policy
@@ -503,7 +503,7 @@ public class LicenseThreatGroupConditionTypeTest
     Component component = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component.addDeclaredLicenseId("Apache-2.0");
     component.addDeclaredLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component);
+    componentDAO.loadLicenseThreatGroups(app, component);
     List<Component> components = Collections.singletonList(component);
 
     // Evaluate the policy
@@ -539,7 +539,7 @@ public class LicenseThreatGroupConditionTypeTest
     Component component = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component.addDeclaredLicenseId("Apache-2.0");
     component.addDeclaredLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component);
+    componentDAO.loadLicenseThreatGroups(app, component);
     List<Component> components = Collections.singletonList(component);
 
     // Evaluate the policy
@@ -565,7 +565,7 @@ public class LicenseThreatGroupConditionTypeTest
     Component component = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component.addDeclaredLicenseId("Apache-2.0");
     component.addDeclaredLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component);
+    componentDAO.loadLicenseThreatGroups(app, component);
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, Collections.singletonList(component));

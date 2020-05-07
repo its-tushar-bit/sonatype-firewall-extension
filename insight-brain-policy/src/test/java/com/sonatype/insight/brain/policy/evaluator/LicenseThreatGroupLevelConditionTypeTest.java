@@ -167,11 +167,11 @@ public class LicenseThreatGroupLevelConditionTypeTest
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
+    componentDAO.loadLicenseThreatGroups(app, component1);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
+    componentDAO.loadLicenseThreatGroups(app, component2);
     components.add(component2);
 
     // Evaluate the policy

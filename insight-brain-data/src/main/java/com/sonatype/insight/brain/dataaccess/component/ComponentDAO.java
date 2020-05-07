@@ -274,7 +274,7 @@ public class ComponentDAO
 
     // Load license threat group data
     for (Component component : result) {
-      loadLicenseThreatGroups(application.getId(), component);
+      loadLicenseThreatGroups(application, component);
     }
 
     // Load label data
@@ -305,7 +305,7 @@ public class ComponentDAO
       loadLicenseOverride(owner, component);
       component.setDeclaredLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getDeclaredLicenseIds()));
       component.setObservedLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getObservedLicenseIds()));
-      loadLicenseThreatGroups(owner.getId(), component);
+      loadLicenseThreatGroups(owner, component);
     }
 
     if (componentInfo.getSecurityVulnerabilities() != null) {
@@ -327,7 +327,7 @@ public class ComponentDAO
     processJsonLicenseData(component, jsonLicenseNode);
     loadLicenseOverride(application, component);
 
-    loadLicenseThreatGroups(application.getId(), component);
+    loadLicenseThreatGroups(application, component);
 
     return component;
   }
@@ -339,7 +339,7 @@ public class ComponentDAO
     }
   }
 
-  public void loadLicenseThreatGroups(String ownerId, Component component) {
+  public void loadLicenseThreatGroups(Owner owner, Component component) {
     // Gather all license ids
     Set<String> licenseIds = new LinkedHashSet<>();
     if (component.isLicenseOverridden()) {
@@ -352,8 +352,8 @@ public class ComponentDAO
 
     Set<String> unassignedLicenseIds = new LinkedHashSet<>(licenseIds);
     // Gather all license threat groups from the application on up the organization hierarchy
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      loadLicenseThreatGroups(component, unassignedLicenseIds, licenseIds, owner.getId());
+    for (Owner anOwner : ownerDAO.walkHierarchy(owner)) {
+      loadLicenseThreatGroups(component, unassignedLicenseIds, licenseIds, anOwner.getId());
     }
 
     component.setUnassignedLicenseIds(unassignedLicenseIds);

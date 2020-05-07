@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.search;
 
-import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
@@ -20,15 +19,11 @@ import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
-import org.apache.lucene.analysis.standard.ClassicAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
-import org.apache.lucene.store.Directory;
 
 @Named
 @Singleton
@@ -50,10 +45,6 @@ public class LuceneComponents
     return new PerFieldAnalyzerWrapper(new LowerCaseKeywordAnalyzer(), fieldAnalyzers);
   }
 
-  Analyzer newAnalyzerForAutoCompletion() {
-    return new ClassicAnalyzer(CharArraySet.EMPTY_SET);
-  }
-
   public Function<String, Query> newQueryParser() {
     Map<String, PointsConfig> pointsConfigsByFieldName = new HashMap<>();
     pointsConfigsByFieldName.put(FieldIdentifier.POLICY_THREAT_LEVEL.label,
@@ -71,9 +62,5 @@ public class LuceneComponents
         throw new BadRequestException("The search query is invalid: " + e.getMessage(), e);
       }
     };
-  }
-
-  public AnalyzingInfixSuggester newSuggester(Directory suggesterDirectory) throws IOException {
-    return new AnalyzingInfixSuggester(suggesterDirectory, newAnalyzerForAutoCompletion());
   }
 }

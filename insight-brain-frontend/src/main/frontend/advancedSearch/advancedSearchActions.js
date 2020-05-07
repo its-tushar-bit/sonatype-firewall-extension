@@ -8,8 +8,7 @@ import axios from 'axios';
 import {noPayloadActionCreator, payloadParamActionCreator} from '../util/reduxUtil';
 import {
   getAdvancedSearchConfigUrl,
-  getAdvancedSearchUrl,
-  getAdvancedSearchQuerySuggesterUrl
+  getAdvancedSearchUrl
 } from '../util/CLMLocation';
 
 export const ADVANCED_SEARCH_LOAD_REQUESTED = 'ADVANCED_SEARCH_LOAD_REQUESTED';
@@ -39,23 +38,6 @@ export function load() {
         })
         .catch(error => {
           dispatch(loadFailed(error));
-        });
-  };
-}
-
-export const ADVANCED_SEARCH_QUERY_SUGGESTIONS_FULFILLED = 'ADVANCED_SEARCH_QUERY_SUGGESTIONS_FULFILLED';
-
-const advancedSearchQuerySuggestionsFulfilled = payloadParamActionCreator(ADVANCED_SEARCH_QUERY_SUGGESTIONS_FULFILLED);
-
-export function getQuerySuggestions() {
-  return function(dispatch, getState) {
-    const query = getState().advancedSearch.formState.currentQuery;
-    axios.get(getAdvancedSearchQuerySuggesterUrl(query))
-        .then(({data}) => {
-          // ignore delayed suggestions for previous query values
-          if (data.searchQuery === query) {
-            dispatch(advancedSearchQuerySuggestionsFulfilled(data));
-          }
         });
   };
 }

@@ -68,10 +68,6 @@ export function getAdvancedSearchUrl(query, page) {
   return `${getBaseUrl(window.location.href)}/api/experimental/search/advanced?search=${query}&page=${page}`;
 }
 
-export function getAdvancedSearchQuerySuggesterUrl(query) {
-  return `${getBaseUrl(window.location.href)}/api/experimental/search/advanced/suggester?search=${query}`;
-}
-
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {

@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
-import com.sonatype.insight.brain.search.results.SearchSuggestionResultDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 
@@ -39,7 +38,6 @@ public class ApiAdvancedSearchResourceTest
   public void beforeAndAfter() throws Exception {
     InsightWork insightWork = getCLMServer().getInstance(InsightWork.class);
     FileUtils.deleteDirectory(insightWork.getSearchIndexDir());
-    FileUtils.deleteDirectory(insightWork.getSearchSuggesterDir());
   }
 
   @Test
@@ -50,7 +48,6 @@ public class ApiAdvancedSearchResourceTest
     assertResponseStatus(204, response);
     InsightWork insightWork = getCLMServer().getInstance(InsightWork.class);
     assertIndexExists(insightWork.getSearchIndexDir());
-    assertIndexExists(insightWork.getSearchSuggesterDir());
   }
 
   @Test
@@ -69,20 +66,6 @@ public class ApiAdvancedSearchResourceTest
     assertThat(groupingByDTO.searchResultItemDTOS).hasSize(1);
     SearchResultItemDTO searchResultItemDTO = groupingByDTO.searchResultItemDTOS.get(0);
     assertThat(searchResultItemDTO.applicationId).isEqualTo(application.getId());
-  }
-
-  @Test
-  public void testAutoCompleteSearchQuery() throws Exception {
-    Application application = tempEntity.newApplicationWithParent();
-    restRequest().path(ApiAdvancedSearchResource.INDEX_PATH).post();
-    awaitIndexCompletion();
-
-    HttpResponse response = restRequest().path(ApiAdvancedSearchResource.SUGGESTER_PATH).query("search", "a").get();
-
-    assertResponseStatus(200, response);
-    SearchSuggestionResultDTO searchSuggestionResultDTO = response.getBody(SearchSuggestionResultDTO.class);
-    assertThat(searchSuggestionResultDTO.searchResultItems)
-        .containsOnlyOnce(FieldIdentifier.APPLICATION_ID.label + ":" + application.getId());
   }
 
   @Override

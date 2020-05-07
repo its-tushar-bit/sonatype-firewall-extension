@@ -128,49 +128,4 @@ public class SearchServiceTest
     assertThat(actualSearchCounts).usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(expectedSearchCounts);
     assertThat(telemetryData.getAttributes().get(TOTAL_SEARCHES)).isEqualTo(1L);
   }
-
-  @Test
-  public void testAutoCompleteSearchQuery_NoSearchSuggesterIndexDirectory() {
-    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> searchService.autoCompleteSearchQuery("query"))
-        .withMessageContaining("Index does not exist or is unreadable, please (re)create your index.");
-  }
-
-  @Test
-  public void testAutoCompleteSearchQuery_EmptySearchSuggesterIndexDirectory() throws Exception {
-    Files.createDirectories(insightWork.getSearchSuggesterDir().toPath());
-    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> searchService.autoCompleteSearchQuery("query"))
-        .withMessageContaining("Index does not exist or is unreadable, please (re)create your index.");
-  }
-
-  @Test
-  public void testFindStartOfLastClause() {
-    assertThat(SearchService.findStartOfLastClause("")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo:bar")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo:bar ")).isEqualTo(8);
-    assertThat(SearchService.findStartOfLastClause("foo:\"bar ")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo:\\\"bar ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:[bar ")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo:[bar] ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:[bar} ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:\\[bar ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:{bar ")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo:{bar} ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:{bar] ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:\\{bar ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:/bar ")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo:/bar/ ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:\\/bar ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo bar")).isEqualTo(4);
-    assertThat(SearchService.findStartOfLastClause("+b")).isEqualTo(1);
-    assertThat(SearchService.findStartOfLastClause("foo +b")).isEqualTo(5);
-    assertThat(SearchService.findStartOfLastClause("foo+b")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("-b")).isEqualTo(1);
-    assertThat(SearchService.findStartOfLastClause("foo -b")).isEqualTo(5);
-    assertThat(SearchService.findStartOfLastClause("foo-b")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("!b")).isEqualTo(1);
-    assertThat(SearchService.findStartOfLastClause("foo !b")).isEqualTo(5);
-    assertThat(SearchService.findStartOfLastClause("foo!b")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo (b")).isEqualTo(5);
-  }
 }

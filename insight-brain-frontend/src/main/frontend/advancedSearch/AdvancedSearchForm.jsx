@@ -14,9 +14,7 @@ export default function AdvancedSearchForm(props) {
   const {
     searchFormSubmit,
     setCurrentQuery,
-    getQuerySuggestions,
     currentQuery,
-    querySuggestions,
     searchResult: {
       page,
       totalNumberOfHits
@@ -29,7 +27,6 @@ export default function AdvancedSearchForm(props) {
 
   function queryInputOnChangeHandler(e) {
     setCurrentQuery(e);
-    getQuerySuggestions();
   }
 
   function formOnSubmitHandler(e) {
@@ -63,20 +60,9 @@ export default function AdvancedSearchForm(props) {
             onSubmit={formOnSubmitHandler}>
         <NxTextInput id={inputFieldId}
                      className="nx-text-input nx-text-input--advanced-search"
-                     list="advanced-search-suggestions-list"
                      isPristine={currentQuery === ''}
                      onChange={queryInputOnChangeHandler}
-                     value={currentQuery}
-                     placeholder="Start typing your query for suggestions"
-        />
-        <datalist id="advanced-search-suggestions-list">
-          {
-            querySuggestions &&
-            querySuggestions.map(suggestion => {
-              return <option key={suggestion} value={suggestion}/>;
-            })
-          }
-        </datalist>
+                     value={currentQuery}/>
         <NxButton id="advanced-search-button"
                   inline
                   variant="primary"
@@ -121,10 +107,8 @@ export default function AdvancedSearchForm(props) {
 AdvancedSearchForm.propTypes = {
   // actions
   setCurrentQuery: PropTypes.func.isRequired,
-  getQuerySuggestions: PropTypes.func.isRequired,
   searchFormSubmit: PropTypes.func.isRequired,
   // formState
-  querySuggestions: PropTypes.array,
   currentQuery: PropTypes.string.isRequired,
   searchResult: PropTypes.object,
   totalNumberOfHits: PropTypes.number

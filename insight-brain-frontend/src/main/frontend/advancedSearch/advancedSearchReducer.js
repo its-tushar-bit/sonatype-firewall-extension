@@ -9,7 +9,6 @@ import {
   ADVANCED_SEARCH_LOAD_FAILED,
   ADVANCED_SEARCH_LOAD_FULFILLED,
   ADVANCED_SEARCH_LOAD_REQUESTED,
-  ADVANCED_SEARCH_QUERY_SUGGESTIONS_FULFILLED,
   ADVANCED_SEARCH_SET_CURRENT_QUERY,
   ADVANCED_SEARCH_QUERY_REQUESTED,
   ADVANCED_SEARCH_QUERY_FULFILLED,
@@ -32,7 +31,6 @@ const initialState = {
   formState: {
     currentQuery: '',
     searchedQuery: '',
-    querySuggestions: [],
     searchResult: {
       page: 0,
       groupingByDTOS: [],
@@ -73,16 +71,6 @@ function loadFailed(payload, state) {
       ...state.viewState,
       loading: false,
       error: payload
-    }
-  };
-}
-
-function advancedSearchQuerySuggestionsFulfilled(payload, state) {
-  return {
-    ...state,
-    formState: {
-      ...state.formState,
-      querySuggestions: payload.searchResultItems
     }
   };
 }
@@ -151,7 +139,6 @@ const reducerActionMap = {
   [ADVANCED_SEARCH_LOAD_REQUESTED]: loadRequested,
   [ADVANCED_SEARCH_LOAD_FULFILLED]: loadFulfilled,
   [ADVANCED_SEARCH_LOAD_FAILED]: loadFailed,
-  [ADVANCED_SEARCH_QUERY_SUGGESTIONS_FULFILLED]: advancedSearchQuerySuggestionsFulfilled,
   [ADVANCED_SEARCH_SET_CURRENT_QUERY]: pathSet(['formState', 'currentQuery']),
   [ADVANCED_SEARCH_QUERY_REQUESTED]: queryRequested,
   [ADVANCED_SEARCH_QUERY_FULFILLED]: queryFulfilled,

@@ -114,6 +114,7 @@ public class InsightWork
   }
 
   /**
+   * @deprecated Will be removed once migration to delete the directory is implemented.
    * @since 1.88
    */
   public File getSearchSuggesterDir() {

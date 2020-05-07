@@ -90,7 +90,7 @@ public class OrganizationSummaryViewTest
 
   @Test
   public void testLTGTile_NoLocal() {
-    int hierarchySize = getHierarchySize(organization.getId());
+    int hierarchySize = getHierarchySize(organization);
 
     LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
     ltgTile.subHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(organization.getName()));

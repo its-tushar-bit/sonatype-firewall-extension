@@ -227,7 +227,7 @@ public class ApplicationSummaryViewTest
 
   @Test
   public void testLTGTile_NoLocal() {
-    int hierarchySize = getHierarchySize(application.getId());
+    int hierarchySize = getHierarchySize(application);
 
     LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
     ltgTile.subHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(application.getName()));

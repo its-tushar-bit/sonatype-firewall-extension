@@ -377,14 +377,14 @@ public class LicenseOverrideDAOTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
 
     // No Override Set
-    LicenseOverride override = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(application.getId(),
-        componentIdentifier);
+    LicenseOverride override =
+        licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(application, componentIdentifier);
     assertThat(override).isNull();
 
     // Set @ Root
     tempEntity.newLicenseOverride(organization.getParentOrganizationId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "ANTLR-PD");
-    override = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(application.getId(), componentIdentifier);
+    override = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(application, componentIdentifier);
     assertThat(override).isNotNull();
     assertLicenseOverride(organization.getParentOrganizationId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "ANTLR-PD", "testing", override);
@@ -392,7 +392,7 @@ public class LicenseOverrideDAOTest
     // Set @ Organization
     tempEntity.newLicenseOverride(organization.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN,
         "BSD-2-Clause");
-    override = new LicenseOverrideDAO().getAppliedByOwnerIdAndComponentIdentifier(application.getId(),
+    override = new LicenseOverrideDAO().getAppliedByOwnerIdAndComponentIdentifier(application,
         componentIdentifier);
     assertThat(override).isNotNull();
     assertLicenseOverride(organization.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "BSD-2-Clause",
@@ -402,7 +402,7 @@ public class LicenseOverrideDAOTest
     tempEntity.newLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN,
         "BSD-3-Clause");
 
-    override = new LicenseOverrideDAO().getAppliedByOwnerIdAndComponentIdentifier(application.getId(),
+    override = new LicenseOverrideDAO().getAppliedByOwnerIdAndComponentIdentifier(application,
         componentIdentifier);
     assertThat(override).isNotNull();
     assertLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "BSD-3-Clause",
@@ -412,7 +412,7 @@ public class LicenseOverrideDAOTest
     tempEntity.newLicenseOverride(repository.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN,
         "BSD-4-Clause");
 
-    override = new LicenseOverrideDAO().getAppliedByOwnerIdAndComponentIdentifier(repository.getId(),
+    override = new LicenseOverrideDAO().getAppliedByOwnerIdAndComponentIdentifier(repository,
         componentIdentifier);
     assertThat(override).isNotNull();
     assertLicenseOverride(repository.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "BSD-4-Clause",

@@ -167,14 +167,14 @@ public class ComponentInfoServiceTest
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("EPL-1.0", "UNSPECIFIED"));
     mockHdsGetComponentDetails(hdsComponentDetails);
     List<License> licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId,
-        MAVEN_COORDINATES, httpRequestMock).selectableLicenses;
+        MAVEN_COORDINATES, httpRequestMock, null, null).selectableLicenses;
     assertThat(licenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("EPL-1.0");
 
     // Verify that a versionless license is resolved to versioned licenses
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-UNSPECIFIED"));
     mockHdsGetComponentDetails(hdsComponentDetails);
     licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId, MAVEN_COORDINATES,
-        httpRequestMock).selectableLicenses;
+        httpRequestMock, null, null).selectableLicenses;
     assertThat(licenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("Apache-UNSPECIFIED", "Apache-1.0",
         "Apache-1.1", "Apache-2.0", "Apache-XML-Security-License");
 
@@ -183,7 +183,7 @@ public class ComponentInfoServiceTest
     hdsComponentDetails.setObservedLicenses(toLicenseSet("EPL-1.0", "GPL-2.0"));
     mockHdsGetComponentDetails(hdsComponentDetails);
     licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId, MAVEN_COORDINATES,
-        httpRequestMock).selectableLicenses;
+        httpRequestMock, null, null).selectableLicenses;
     assertThat(licenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("Apache-2.0", "EPL-1.0",
         "GPL-2.0");
   }
@@ -191,7 +191,7 @@ public class ComponentInfoServiceTest
   @Test
   public void testGetLicenses_NoComponentIdentifier() throws Exception {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      componentInfoService.getLicenses(null, null, null /* componentIdentifier */, httpRequestMock);
+      componentInfoService.getLicenses(null, null, null /* componentIdentifier */, httpRequestMock, null, null);
     }).withMessage("componentIdentifier is required");
   }
 
@@ -205,7 +205,7 @@ public class ComponentInfoServiceTest
       throws Exception
   {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      componentInfoService.getLicenses(ownerType, "bogusOwnerId", MAVEN_COORDINATES, httpRequestMock);
+      componentInfoService.getLicenses(ownerType, "bogusOwnerId", MAVEN_COORDINATES, httpRequestMock, null, null);
     }).withMessage(expectedErrMsgPrefix + "bogusOwnerId.");
   }
 
@@ -246,7 +246,7 @@ public class ComponentInfoServiceTest
     // Verify component without licenses
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES,
-        httpRequestMock);
+        httpRequestMock, null, null);
     assertThat(licenses.declaredlicenses).isEmpty();
     assertThat(licenses.observedlicenses).isEmpty();
     assertThat(licenses.effectiveLicenses).isEmpty();
@@ -263,7 +263,7 @@ public class ComponentInfoServiceTest
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0", "LGPL-2.0-MPL-1.1"));
     hdsComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0", "AFL-2.1-BSD-3-Clause"));
     mockHdsGetComponentDetails(hdsComponentDetails);
-    licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES, httpRequestMock);
+    licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES, httpRequestMock, null, null);
     assertLicenses(licenses.declaredlicenses, tuple("Apache-2.0", "Apache-2.0", 0), tuple("LGPL-2.0", "LGPL-2.0", 5),
         tuple("MPL-1.1", "MPL-1.1", 2));
     assertLicenses(licenses.observedlicenses, tuple("GPL-2.0", "GPL-2.0", 9), tuple("AFL-2.1", "AFL-2.1", 2),
@@ -300,7 +300,7 @@ public class ComponentInfoServiceTest
     hdsComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0", "AFL-2.1-BSD-3-Clause"));
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES,
-        httpRequestMock);
+        httpRequestMock, null, null);
     assertLicenses(licenses.declaredlicenses, tuple("Apache-2.0", "Apache-2.0", 0), tuple("LGPL-2.0", "LGPL-2.0", 5),
         tuple("MPL-1.1", "MPL-1.1", 2));
     assertLicenses(licenses.observedlicenses, tuple("GPL-2.0", "GPL-2.0", 9), tuple("AFL-2.1", "AFL-2.1", 2),
@@ -322,7 +322,7 @@ public class ComponentInfoServiceTest
     hdsComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0"));
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES,
-        httpRequestMock);
+        httpRequestMock, null, null);
     assertLicenses(licenses.declaredlicenses, tuple("Not-Declared", "Not Declared", 5));
     assertLicenses(licenses.observedlicenses, tuple("GPL-2.0", "GPL-2.0", 9));
     assertLicenses(licenses.effectiveLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
@@ -342,7 +342,7 @@ public class ComponentInfoServiceTest
     hdsComponentDetails.setObservedLicenses(toLicenseSet("No-Sources"));
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES,
-        httpRequestMock);
+        httpRequestMock, null, null);
     assertLicenses(licenses.declaredlicenses, tuple("GPL-2.0", "GPL-2.0", 9));
     assertLicenses(licenses.observedlicenses, tuple("No-Sources", "No Sources", 5));
     assertLicenses(licenses.effectiveLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
@@ -362,7 +362,7 @@ public class ComponentInfoServiceTest
     hdsComponentDetails.setObservedLicenses(toLicenseSet("No-Source-License"));
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES,
-        httpRequestMock);
+        httpRequestMock, null, null);
     assertLicenses(licenses.declaredlicenses, tuple("GPL-2.0", "GPL-2.0", 9));
     assertLicenses(licenses.observedlicenses, tuple("No-Source-License", "No Source License", 5));
     assertLicenses(licenses.effectiveLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
@@ -385,7 +385,7 @@ public class ComponentInfoServiceTest
     hdsComponentDetails.setObservedLicenses(toLicenseSet("No-Source-License"));
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES,
-        httpRequestMock);
+        httpRequestMock, null, null);
     assertLicenses(licenses.declaredlicenses, tuple("Not-Declared", "Not Declared", 5));
     assertLicenses(licenses.observedlicenses, tuple("No-Source-License", "No Source License", 5));
     assertLicenses(licenses.effectiveLicenses, tuple("Not-Declared", "Not Declared", 5),
@@ -409,7 +409,7 @@ public class ComponentInfoServiceTest
     hdsComponentDetails.setObservedLicenses(toLicenseSet("Not-Supported"));
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, NUGET_COORDINATES,
-        httpRequestMock);
+        httpRequestMock, null, null);
     assertLicenses(licenses.declaredlicenses, tuple("MIT", "MIT", 0));
     assertLicenses(licenses.observedlicenses, tuple("Not-Supported", "Not Supported", null));
     assertLicenses(licenses.effectiveLicenses, tuple("MIT", "MIT", 0));
@@ -436,7 +436,7 @@ public class ComponentInfoServiceTest
         hdsClientMock.relay(httpRequestMock, NamedComponentDetails.class, "rest/" + TOOL_NAME + "/componentDetails",
             queryParams)).thenThrow(new NotFoundException("test"));
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_COORDINATES,
-        httpRequestMock);
+        httpRequestMock, null, null);
     // if we got here, we are good, but let's do some sanity check
     assertThat(licenses.declaredlicenses).isEmpty();
     assertThat(licenses.observedlicenses).isEmpty();

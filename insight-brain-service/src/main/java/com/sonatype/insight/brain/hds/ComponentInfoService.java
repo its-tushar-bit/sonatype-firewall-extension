@@ -17,6 +17,7 @@ import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -459,20 +460,6 @@ public class ComponentInfoService
         componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);
 
     return componentDetailsList;
-  }
-
-  /**
-   * Returns the declared and observed licenses with their threat levels for a component.
-   * 
-   * @since 1.6
-   */
-  @Authorize(permission = Permission.READ)
-  public ComponentLicenses getLicenses(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
-                                       ComponentIdentifier componentIdentifier,
-                                       HttpServletRequest httpRequest) throws IOException
-  {
-    return getLicenses(ownerType, ownerId, componentIdentifier, httpRequest, null, null);
   }
 
   /**

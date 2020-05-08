@@ -10,7 +10,8 @@ import labsModule from '../../../main/frontend/labs/module';
 
 describe('sanitizeUrlService', function() {
   var sanitizeUrlService,
-      baseUrl;
+      baseUrl,
+      consoleWarnSpy;
 
   beforeEach(angular.mock.module(pendoModule.name, ownerManagerModule.name, dashboardModule.name, labsModule.name,
       function($provide, $stateProvider) {
@@ -24,14 +25,16 @@ describe('sanitizeUrlService', function() {
           abstract: true
         }).state('sanitizeUrlServiceSpecMockRoute.child', {
           url: '/sanitizeUrlServiceSpecMockRoute/{foo}'
+        }).state('sanitizeUrlServiceSpecMockQueryParamsRoute', {
+          url: '/sanitizeUrlServiceSpecMockQueryParamsRoute/{foo}?type&sidebarReference&sidebarId&bar'
         });
       }
   ));
 
   beforeEach(inject(function(_sanitizeUrlService_) {
     sanitizeUrlService = _sanitizeUrlService_;
-
     baseUrl = 'http://localhost:8070';
+    consoleWarnSpy = spyOn(console, 'warn');
   }));
 
   it('removes the baseUrl', function() {
@@ -78,12 +81,46 @@ describe('sanitizeUrlService', function() {
     expect(sanitizeUrlService.sanitize(url)).toBe('/assets/index.html#/asdf');
   });
 
-  it('includes hash query parameters', function() {
+  it('includes valueless hash query parameters', function() {
     const url = 'http://localhost:8070/assets/index.html#/sanitizeUrlServiceSpecMockRoute/asdf?queryParam',
         expectedHash = 'f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b',
         expectedUrl = `/assets/index.html#/sanitizeUrlServiceSpecMockRoute/${expectedHash}?queryParam`;
 
     expect(sanitizeUrlService.sanitize(url)).toBe(expectedUrl);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  it('obfuscates query parameters that need to be obfuscated', function() {
+    const url =
+            'http://localhost:8070/assets/index.html#/sanitizeUrlServiceSpecMockQueryParamsRoute/' +
+            'asdf?sidebarId=thisisagreatsidebar',
+        routeHash = 'f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b',
+        sidebarIdHash = '99c28420b8db9206bf8dcb10ff14dcbde8cc2b2160a9758b8eb9b695d05c1f50',
+        expectedUrl =
+            `/assets/index.html#/sanitizeUrlServiceSpecMockQueryParamsRoute/${routeHash}?sidebarId=${sidebarIdHash}`;
+
+    expect(sanitizeUrlService.sanitize(url)).toBe(expectedUrl);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not obfuscate query parameters that don\'t need to be obfuscated', function() {
+    const url =
+            'http://localhost:8070/assets/index.html#/sanitizeUrlServiceSpecMockQueryParamsRoute/asdf?type=violation',
+        expectedHash = 'f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b',
+        expectedUrl = `/assets/index.html#/sanitizeUrlServiceSpecMockQueryParamsRoute/${expectedHash}?type=violation`;
+
+    expect(sanitizeUrlService.sanitize(url)).toBe(expectedUrl);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not obfuscate query parameters that are unknown and warns in the console', function() {
+    const url = 'http://localhost:8070/assets/index.html#/sanitizeUrlServiceSpecMockQueryParamsRoute/asdf?bar=baz',
+        expectedHash = 'f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b',
+        expectedUrl = `/assets/index.html#/sanitizeUrlServiceSpecMockQueryParamsRoute/${expectedHash}?bar=baz`;
+
+    expect(sanitizeUrlService.sanitize(url)).toBe(expectedUrl);
+    expect(consoleWarnSpy)
+        .toHaveBeenCalledWith('Possible unobfuscated query param bar=baz detected in sanitizeUrlService');
   });
 
   it('passes through external URLs unchanged', function() {

@@ -4,9 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import hash from '../util/hash';
-import { zipWith } from 'ramda';
+import { mapObjIndexed, zipWith } from 'ramda';
+import { parse, stringify } from 'query-string';
 
 import ownerConstant from '../utility/services/owner.constant';
+
+// Any query parameters added that is customer generated or that indicates what components a customer is using
+// should be included in queryParamsToObfuscate. Any query parameters that are enums or contain generic information
+// should be added to queryParamsToShowInPlaintext
+const queryParamsToObfuscate = ['sidebarId'];
+const queryParamsToShowInPlaintext = ['type', 'sidebarReference'];
+
 /**
  * Provides a `sanitize` function that removes the baseUrl and any dynamic route parameters from URLs within the
  * main IQ app.  Not for use within the reports or other bundles.
@@ -15,7 +23,7 @@ import ownerConstant from '../utility/services/owner.constant';
 function sanitizeUrlService($urlService, baseUrlService) {
   /*
    * Recursive function to create a parameterized path from router state objects by tracing up the state
-   * parent heirarchy.
+   * parent hierarchy.
    * @param state the current router state object being examined
    * @param pathSoFar the path postfix built up so far from processing child states
    */
@@ -59,6 +67,25 @@ function sanitizeUrlService($urlService, baseUrlService) {
     }
   }
 
+  function returnHashQueryWithObfuscation(hashQuery) {
+    const obfuscateQueryValueIfNeeded = (val, key) => {
+      if (!val) {
+        // query parameter that has no value - http://foo.com?bar
+        return val;
+      }
+      if (queryParamsToShowInPlaintext.includes(key)) {
+        return val;
+      }
+      if (queryParamsToObfuscate.includes(key)) {
+        return hash(val);
+      }
+      console.warn(`Possible unobfuscated query param ${key}=${val} detected in sanitizeUrlService`);
+      return val;
+    };
+
+    return stringify(mapObjIndexed(obfuscateQueryValueIfNeeded, parse(hashQuery)));
+  }
+
   return {
     sanitize(url) {
       const baseUrl = baseUrlService.get(),
@@ -81,12 +108,9 @@ function sanitizeUrlService($urlService, baseUrlService) {
               hashParts = hash.split('/'),
               obfuscatedParts = zipWith(maybeObfuscateUrlPart, hashParts, parameterizedHashParts),
               obfuscatedHash = obfuscatedParts.join('/'),
-              obfuscatedHashWithQuery = hashQuery ? `${obfuscatedHash}?${hashQuery}` : obfuscatedHash;
-
-          if (hashQuery && hashQuery.indexOf('=') !== -1) {
-            // a warning for devs in the future in case we add a dynamic query part
-            console.warn('Possible unobfuscated dynamic URL part detected in sanitizeUrlService');
-          }
+              obfuscatedHashQuery = hashQuery && returnHashQueryWithObfuscation(hashQuery),
+              obfuscatedHashWithQuery =
+                  obfuscatedHashQuery ? `${obfuscatedHash}?${obfuscatedHashQuery}` : obfuscatedHash;
 
           return `${urlAfterBaseUrl}#${obfuscatedHashWithQuery}`;
         }

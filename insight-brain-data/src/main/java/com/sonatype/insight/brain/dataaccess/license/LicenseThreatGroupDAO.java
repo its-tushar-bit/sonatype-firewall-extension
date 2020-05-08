@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,6 +57,13 @@ public class LicenseThreatGroupDAO
         " WHERE licenseThreatGroup.id=licenseThreatGroupLicense.licenseThreatGroupId" + //
         " AND licenseThreatGroup.ownerId=?1 AND licenseThreatGroupLicense.licenseId=?2";
     return getList(sQuery, ownerId, licenseId);
+  }
+
+  public List<LicenseThreatGroup> getByIds(Set<String> licenseThreatGroupIds) {
+    String sQuery = "SELECT licenseThreatGroup" + //
+        " FROM LicenseThreatGroup licenseThreatGroup" + //
+        " WHERE licenseThreatGroup.id IN (?1)";
+    return getList(sQuery, licenseThreatGroupIds);
   }
 
   @Override
@@ -210,8 +216,7 @@ public class LicenseThreatGroupDAO
    * @since 1.91
    */
   public Map<String, Integer> getLicenseThreatLevelsByApplication(Application application) {
-    Set<String> ownerIds = new HashSet<>();
-    ownerDAO.walkHierarchy(application).forEach(owner -> ownerIds.add(owner.getId()));
+    Set<String> ownerIds = ownerDAO.getOwnerIds(application);
 
     Map<String, Integer> threatLevelsByLicenseThreatGroupId = getByOwnerIds(ownerIds).stream()
         .collect(Collectors.toMap(LicenseThreatGroup::getId, LicenseThreatGroup::getThreatLevel));

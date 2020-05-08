@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.component;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -35,7 +37,7 @@ import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -48,6 +50,8 @@ public class ComponentDAO
   private MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
 
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+
+  private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
   private LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
 
@@ -350,33 +354,25 @@ public class ComponentDAO
       licenseIds.addAll(component.getObservedLicenseIds());
     }
 
+    // Get all owner ids in the hierarchy.
+    Set<String> ownerIds = ownerDAO.getOwnerIds(owner);
+
+    // Add license ids by license threat group ids and
+    // determine licenses not assigned to any license threat group.
     Set<String> unassignedLicenseIds = new LinkedHashSet<>(licenseIds);
-    // Gather all license threat groups from the application on up the organization hierarchy
-    for (Owner anOwner : ownerDAO.walkHierarchy(owner)) {
-      loadLicenseThreatGroups(component, unassignedLicenseIds, licenseIds, anOwner.getId());
+    Set<String> licenseThreatGroupIds = new HashSet<>();
+    List<LicenseThreatGroupLicense> licenseThreatGroupLicenses =
+        licenseThreatGroupLicenseDAO.getByOwnerIdsAndLicenseIds(ownerIds, licenseIds);
+    for (LicenseThreatGroupLicense licenseThreatGroupLicense : licenseThreatGroupLicenses) {
+      component.addLicenseIdByThreatGroupId(licenseThreatGroupLicense.getLicenseId(),
+          licenseThreatGroupLicense.getLicenseThreatGroupId());
+      licenseThreatGroupIds.add(licenseThreatGroupLicense.getLicenseThreatGroupId());
+      unassignedLicenseIds.remove(licenseThreatGroupLicense.getLicenseId());
     }
-
     component.setUnassignedLicenseIds(unassignedLicenseIds);
-  }
 
-  private void loadLicenseThreatGroups(Component component,
-                                       Set<String> unassignedLicenseIds,
-                                       Set<String> licenseIds,
-                                       String ltgOwnerId)
-  {
-    for (String licenseId : licenseIds) {
-      List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(ltgOwnerId,
-          licenseId);
-
-      if (!licenseThreatGroups.isEmpty()) {
-        unassignedLicenseIds.remove(licenseId);
-
-        for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-          component.addLicenseThreatGroup(licenseThreatGroup);
-          component.addLicenseIdByThreatGroupId(licenseId, licenseThreatGroup.getId());
-        }
-      }
-    }
+    // Add license threat groups
+    licenseThreatGroupDAO.getByIds(licenseThreatGroupIds).forEach(component::addLicenseThreatGroup);
   }
 
   private Set<String> multiLicenseNamesToLicenseIds(List<String> multiLicenseNames) {

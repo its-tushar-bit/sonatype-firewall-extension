@@ -65,7 +65,7 @@ public class InsightConfig
 
   @NotNull
   @JsonProperty
-  private String cdnUrl = "http://cdn.sonatype.com/";
+  private String cdnUrl = "https://cdn.sonatype.com/";
 
   @NotNull
   @JsonProperty

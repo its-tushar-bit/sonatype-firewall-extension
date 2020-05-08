@@ -46,7 +46,7 @@ public class InsightConfigTest
   @Test
   public void testCdnUrl() {
     InsightConfig config = new InsightConfig();
-    assertThat(config.getCdnUrl()).isEqualTo("http://cdn.sonatype.com/");
+    assertThat(config.getCdnUrl()).isEqualTo("https://cdn.sonatype.com/");
     assertThat(config.isValidCdnUrl()).isTrue();
 
     config.setCdnUrl("https://clm.sonatype.com/");

@@ -36,7 +36,7 @@ export default function ViolationPage(props) {
   }
 
   return (
-    <MaximizedContainer id="violation-page" className="nx-root-container">
+    <MaximizedContainer id="violation-page" className="nx-page-content">
       <SidebarNavListContainer $state={$state} />
       <div className="nx-page-main">
         <LoadWrapper error={error} loading={loading || !(violationDetails && stageTypes)}>

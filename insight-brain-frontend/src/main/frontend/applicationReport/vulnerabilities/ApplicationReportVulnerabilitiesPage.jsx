@@ -23,7 +23,7 @@ export default class ApplicationReportVulnerabilitiesPage extends Component {
         'Re-evaluate in order to enable this page') || undefined;
 
     return (
-      <div id="application-report-vulnerabilities" className="nx-root-container">
+      <div id="application-report-vulnerabilities" className="nx-page-content">
         <div className="nx-page-main">
           <BackButton stateName="applicationReport.policy" $state={this.props.$state} />
           <LoadWrapper loading={!this.props.metadata || this.props.loading}

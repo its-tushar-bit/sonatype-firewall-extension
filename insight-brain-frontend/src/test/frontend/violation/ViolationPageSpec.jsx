@@ -62,11 +62,11 @@ describe('ViolationPage', function() {
     getMountedComponent = enzymeUtils.getMountedComponent(ViolationPage, minimalProps);
   });
 
-  it('renders a MaximizedContainer with the "violation-page" id and "nx-root-container" class', function() {
+  it('renders a MaximizedContainer with the "violation-page" id and "nx-page-content" class', function() {
     const component = getShallowComponent();
 
     expect(component).toMatchSelector(MaximizedContainer);
-    expect(component).toMatchSelector('#violation-page.nx-root-container');
+    expect(component).toMatchSelector('#violation-page.nx-page-content');
   });
 
   it('renders a SidebarNavListContainer using the supplied $state', function() {

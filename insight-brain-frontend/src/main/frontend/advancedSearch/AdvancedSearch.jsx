@@ -47,7 +47,7 @@ export default function AdvancedSearch(props) {
 
   return (
     <LoadWrapper loading={loading} error={error}>
-      <MaximizedContainer id="advanced-search-page" className="nx-root-container">
+      <MaximizedContainer id="advanced-search-page" className="nx-page-content">
         <div className="nx-page-main nx-page-main--advanced-search">
           {
             !isEnabled &&

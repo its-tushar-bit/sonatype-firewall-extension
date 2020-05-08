@@ -322,13 +322,14 @@ public class PullRequestCommentingService
       throws IOException
   {
     // line comment sub-flow
-    pullRequestLineCommentingService
+    List<PullRequestLineCommentDTO> pullRequestLineComments = pullRequestLineCommentingService
         .createPullRequestLineComments(policyViolationDiff.get().getAppeared(), gitRepositoryInfo,
             remediationVersionMap, pullRequestNumber, branchName, sourceCommitPolicyEvaluation.getCommitHash(),
             applicationId, sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId());
 
-    Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService
-        .createMarkup(policyViolationDiff.get(), sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation);
+    Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService.createMarkup(
+        policyViolationDiff.get(), remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber,
+        sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation);
 
     if (policyEvaluationDiffMarkup.isPresent()) {
       int commentId = createOrUpdateCommentInGitSCM(applicationId, gitRepositoryInfo, pullRequestNumber,

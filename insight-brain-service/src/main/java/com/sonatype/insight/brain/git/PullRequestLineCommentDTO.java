@@ -16,7 +16,7 @@ import com.sonatype.nexus.iq.location.dto.DiffPosition;
 /**
  * Holds information about a PR line comment as it is collected/used during the PR commenting flow
  */
-class PullRequestLineCommentDTO
+public class PullRequestLineCommentDTO
 {
   private ComponentIdentifier componentIdentifier;
 

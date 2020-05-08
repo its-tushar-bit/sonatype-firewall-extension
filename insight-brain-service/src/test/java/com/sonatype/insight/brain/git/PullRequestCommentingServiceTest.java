@@ -867,7 +867,7 @@ public class PullRequestCommentingServiceTest
           .createPolicyViolationDiff(basePolicyEvaluation, sourcePolicyEvaluation);
 
       doReturn(policyEvaluationDiffMarkup).when(mockPullRequestFeedbackMarkupService)
-          .createMarkup(any(), any(), any());
+          .createMarkup(any(), any(), any(), any(), anyInt(), any(), any());
 
       if (gitRepositoryEffectivelyPrivateThrows != null) {
         doThrow(UnsupportedOperationException.class).when(mockPullRequestRepositoryValidator)

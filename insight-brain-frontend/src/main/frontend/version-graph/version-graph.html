@@ -142,6 +142,10 @@
                 <td class="info-panel-heading">Selected Version:</td>
                 <td class="info-panel-heading">{{componentDetails.componentIdentifier.coordinates.version}}</td>
               </tr>
+              <tr id='artifactInfoComponentTypeRow'>
+                <td>Type:</td>
+                <td>{{componentDetails.componentIdentifier.format}}</td>
+              </tr>
               <tr ng-repeat='part in componentDetails.displayName.parts | namePart' id='artifactInfo-{{part.field}}' class='component-name'>
                 <td>{{part.field}}:</td>
                 <td>{{part.value}}</td>

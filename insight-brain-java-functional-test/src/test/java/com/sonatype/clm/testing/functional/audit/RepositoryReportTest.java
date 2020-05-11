@@ -380,6 +380,7 @@ public class RepositoryReportTest
     RepositoryReportPage.table().row(0).openCip();
 
     RepositoryReportPage.table().cipTab("Component Info").click();
+    VersionsCIP.componentType().shouldHave(text("maven"));
     VersionsCIP.groupId().shouldHave(text("critical"));
     VersionsCIP.artifactId().shouldHave(text("threat"));
     VersionsCIP.version().shouldHave(text("1.0"));

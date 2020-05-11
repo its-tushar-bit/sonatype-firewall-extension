@@ -73,6 +73,7 @@ public class VersionGraphNexusTest
 
     executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
 
+    VersionsCIP.componentType().shouldHave(text("maven"));
     VersionsCIP.groupId().shouldHave(text("javancss"));
     VersionsCIP.artifactId().shouldHave(text("javancss"));
     VersionsCIP.version().shouldHave(text("29.50"));
@@ -142,6 +143,7 @@ public class VersionGraphNexusTest
 
     executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
 
+    VersionsCIP.componentType().shouldHave(text("maven"));
     VersionsCIP.groupId().shouldHave(text("javancss"));
     VersionsCIP.artifactId().shouldHave(text("javancss"));
     VersionsCIP.version().shouldHave(text("29.50"));

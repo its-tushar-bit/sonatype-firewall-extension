@@ -86,8 +86,6 @@ public class IndexService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final ComponentDAO componentDAO;
-
   private final TagDAO tagDAO;
 
   private final LabelDAO labelDAO;
@@ -138,7 +136,6 @@ public class IndexService
       OrganizationDAO organizationDAO,
       ApplicationDAO applicationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
-      ComponentDAO componentDAO,
       TagDAO tagDAO,
       LabelDAO labelDAO,
       OwnerDAO ownerDAO,
@@ -151,7 +148,6 @@ public class IndexService
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.componentDAO = componentDAO;
     this.tagDAO = tagDAO;
     this.labelDAO = labelDAO;
     this.ownerDAO = ownerDAO;
@@ -394,7 +390,7 @@ public class IndexService
         return Collections.emptyList();
       }
 
-      return componentDAO.getAll(application, licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf)
+      return new ComponentDAO(application).getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf)
           .parallelStream().map(component -> buildApplicationComponentVulnerabilityDocuments(
               indexingContext,
               application,

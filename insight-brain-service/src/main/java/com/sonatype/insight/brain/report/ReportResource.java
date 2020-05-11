@@ -126,8 +126,6 @@ public class ReportResource
 
   private final ReleaseGraphService releaseGraphService;
 
-  private final ComponentDetailsLoader componentDetailsLoader;
-
   private final VersionService versionService;
   
   private final PdfGeneratorService pdfGeneratorService;
@@ -149,7 +147,6 @@ public class ReportResource
                         BaseUrl baseUrl,
                         ApiReportDataServiceV2 reportDataService,
                         ReleaseGraphService releaseGraphService,
-                        ComponentDetailsLoader componentDetailsLoader,
                         VersionService versionService,
                         PdfGeneratorService pdfGeneratorService)
   {
@@ -159,7 +156,6 @@ public class ReportResource
     this.baseUrl = baseUrl;
     this.reportDataService = reportDataService;
     this.releaseGraphService = releaseGraphService;
-    this.componentDetailsLoader = componentDetailsLoader;
     this.versionService = versionService;
     this.pdfGeneratorService = pdfGeneratorService;
   }
@@ -393,6 +389,8 @@ public class ReportResource
       }
 
       try (ZipFile reportZip = new ZipFile(reportFile)) {
+        ComponentDetailsLoader componentDetailsLoader = new ComponentDetailsLoader(app);
+
         for (Enumeration<? extends ZipEntry> en = reportZip.entries(); en.hasMoreElements();) {
           ZipEntry entry = en.nextElement();
           if (entry.isDirectory()) {
@@ -401,16 +399,16 @@ public class ReportResource
           if (!cipDetailsPath.isEmpty() && entry.getName().startsWith(cipDetailsPath)) {
             final NamedComponentDetails hdsDetails = JsonUtils.parse(reportZip.getInputStream(entry),
                 NamedComponentDetails.class);
-            NamedComponentDetails clmDetails = componentDetailsLoader.getComponentDetails(
-                hdsDetails.getComponentIdentifier(), hdsDetails.getHash(), hdsDetails.getMatchState(),
-                new ComponentDetailsLoader.HostedDataServicesSource()
-                {
-                  @Override
-                  public NamedComponentDetails getDetails() throws IOException {
-                    return hdsDetails;
-                  }
-                });
-            componentDetailsLoader.augmentComponentDetails(app, clmDetails);
+            NamedComponentDetails clmDetails =
+                ComponentDetailsLoader.getComponentDetails(hdsDetails.getComponentIdentifier(), hdsDetails.getHash(),
+                    hdsDetails.getMatchState(), new ComponentDetailsLoader.HostedDataServicesSource()
+                    {
+                      @Override
+                      public NamedComponentDetails getDetails() throws IOException {
+                        return hdsDetails;
+                      }
+                    });
+            componentDetailsLoader.augmentComponentDetails(clmDetails);
             clmDetails.setPolicyAlerts(getAlertsForComponent(clmDetails.getHash(), alerts));
             updater.add(dataPath + entry.getName(), clmDetails);
 
@@ -439,7 +437,7 @@ public class ReportResource
             final ComponentDetailsList list = JsonUtils.parse(reportZip.getInputStream(entry),
                 ComponentDetailsList.class);
             for (ComponentDetails details : list.getList()) {
-              componentDetailsLoader.augmentComponentDetails(app, details);
+              componentDetailsLoader.augmentComponentDetails(details);
             }
             updater.add(dataPath + entry.getName(), list);
           }

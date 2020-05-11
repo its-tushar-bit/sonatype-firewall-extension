@@ -92,8 +92,6 @@ public class RepositoryPolicyEvaluator
 
   private final FirewallQuarantineHdsClient quarantineHdsClient;
 
-  private final ComponentDetailsLoader componentDetailsLoader;
-
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
   
   private final FirewallIgnorePatternService firewallIgnorePatternService;
@@ -110,7 +108,6 @@ public class RepositoryPolicyEvaluator
                                    RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
                                    FirewallAuditHdsClient auditHdsClient,
                                    FirewallQuarantineHdsClient quarantineHdsClient,
-                                   ComponentDetailsLoader componentDetailsLoader,
                                    PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications,
                                    PolicyViolationLoggerFactory policyViolationLoggerFactory,
                                    FirewallIgnorePatternService firewallIgnorePatternService,
@@ -121,7 +118,6 @@ public class RepositoryPolicyEvaluator
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.auditHdsClient = auditHdsClient;
     this.quarantineHdsClient = quarantineHdsClient;
-    this.componentDetailsLoader = componentDetailsLoader;
     this.pendingRepositoryPolicyNotifications = pendingRepositoryPolicyNotifications;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.firewallIgnorePatternService = firewallIgnorePatternService;
@@ -153,6 +149,7 @@ public class RepositoryPolicyEvaluator
     Predicate<String> componentPathnameMatchesIgnorePattern =
         firewallIgnorePatternService.componentPathnameMatchesIgnorePattern(repository);
     List<Component> components = new ArrayList<>();
+    ComponentDetailsLoader componentDetailsLoader = new ComponentDetailsLoader(repository);
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationDataRequest componentEvaluationRequest =
           componentEvaluationDataRequestList.components.get(requestIndex);
@@ -176,13 +173,13 @@ public class RepositoryPolicyEvaluator
       }
       else {
         // Use the claimed component data if found
-        NamedComponentDetails componentDetails = componentDetailsLoader.getComponentDetailsLocally(
-            null /* componentIdentifier */, componentEvaluationData.hash);
+        NamedComponentDetails componentDetails = ComponentDetailsLoader
+            .getComponentDetailsLocally(null /* componentIdentifier */, componentEvaluationData.hash);
         if (componentDetails == null) {
           componentDetails = ComponentDetailsAdapter.convert(componentEvaluationData);
           componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
         }
-        Component component = augmentComponentDetails(repository, componentDetails);
+        Component component = componentDetailsLoader.augmentComponentDetails(componentDetails);
         component.addPathname(componentEvaluationRequest.pathname);
         component.setAnalyzerFeatures(componentEvaluationData.analyzerFeatures);
         components.add(component);
@@ -442,10 +439,6 @@ public class RepositoryPolicyEvaluator
       }
     }
     return null;
-  }
-
-  private Component augmentComponentDetails(Repository repository, NamedComponentDetails componentDetails) {
-    return componentDetailsLoader.augmentComponentDetails(repository, componentDetails);
   }
 
   private ComponentEvaluationDataList getComponentDetailsFromHds(

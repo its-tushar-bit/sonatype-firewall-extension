@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.ComponentCategory;
@@ -59,6 +58,12 @@ public class ComponentDAO
 
   private OwnerDAO ownerDAO = new OwnerDAO();
 
+  private final Owner owner;
+
+  public ComponentDAO(Owner owner) {
+    this.owner = owner;
+  }
+
   private void processJsonLicenseData(Component component, JsonNode jsonLicenseData) {
     List<String> declaredLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("declaredLicenses"));
     component.setDeclaredLicenseIds(multiLicenseNamesToLicenseIds(declaredLicenseNames));
@@ -66,7 +71,7 @@ public class ComponentDAO
     component.setObservedLicenseIds(multiLicenseNamesToLicenseIds(observedLicenseNames));
   }
 
-  private void loadLicenseOverride(Owner owner, Component component) {
+  private void loadLicenseOverride(Component component) {
     LicenseOverride licenseOverride =
         licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(owner, component.getComponentIdentifier());
 
@@ -76,7 +81,7 @@ public class ComponentDAO
     }
   }
 
-  private void loadSVOverrides(Owner owner, Component component) {
+  private void loadSVOverrides(Component component) {
     List<SecurityVulnerabilityOverride> overrides = securityVulnerabilityOverrideDAO.getByOwnerIdAndHash(owner.getId(),
         component.getHash());
     for (SecurityVulnerabilityOverride override : overrides) {
@@ -191,11 +196,7 @@ public class ComponentDAO
    * WARNING! This method is used by the PolicyEvaluationMigrator to load data for migration, so it must remain
    * compatible with the data format(s) and source(s) at the time the PolicyEvaluationMigrator was introduced.
    */
-  public List<Component> getAll(Application application,
-                                final byte[] licenseData,
-                                final byte[] securityData,
-                                final byte[] bomData)
-  {
+  public List<Component> getAll(final byte[] licenseData, final byte[] securityData, final byte[] bomData) {
     // Load bom data
     List<Component> bomComponents = getAll(bomData);
 
@@ -233,7 +234,7 @@ public class ComponentDAO
           if (components != null) {
             for (Component component : components) {
               processJsonLicenseData(component, jsonLicenseNode);
-              loadLicenseOverride(application, component);
+              loadLicenseOverride(component);
             }
           }
         }
@@ -278,18 +279,18 @@ public class ComponentDAO
 
     // Load license threat group data
     for (Component component : result) {
-      loadLicenseThreatGroups(application, component);
+      loadLicenseThreatGroups(component);
     }
 
     // Load label data
     ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
     for (Component component : result) {
-      loadComponentLabels(application.getId(), component, componentLabelDAO);
+      loadComponentLabels(component, componentLabelDAO);
     }
     return result;
   }
 
-  public Component getComponent(Owner owner, ComponentInfo componentInfo) {
+  public Component getComponent(ComponentInfo componentInfo) {
     Component component = new Component();
 
     component.setHash(componentInfo.getHash());
@@ -306,44 +307,44 @@ public class ComponentDAO
     }
 
     if (component.getComponentIdentifier() != null) {
-      loadLicenseOverride(owner, component);
+      loadLicenseOverride(component);
       component.setDeclaredLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getDeclaredLicenseIds()));
       component.setObservedLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getObservedLicenseIds()));
-      loadLicenseThreatGroups(owner, component);
+      loadLicenseThreatGroups(component);
     }
 
     if (componentInfo.getSecurityVulnerabilities() != null) {
       for (com.sonatype.clm.dto.model.SecurityVulnerability sv : componentInfo.getSecurityVulnerabilities()) {
         component.addSecurityVulnerability(new SecurityVulnerability(sv.getSource(), sv.getRefId(), sv.getSeverity()));
       }
-      loadSVOverrides(owner, component);
+      loadSVOverrides(component);
     }
 
-    loadComponentLabels(owner.getId(), component, new ComponentLabelDAO());
+    loadComponentLabels(component, new ComponentLabelDAO());
 
     return component;
   }
 
-  public Component getComponent(Application application, JsonNode jsonLicenseNode) {
+  public Component getComponent(JsonNode jsonLicenseNode) {
 
     Component component = new Component();
     component.setComponentIdentifier(ComponentIdentifierAdapter.getComponentIdentifier(jsonLicenseNode));
     processJsonLicenseData(component, jsonLicenseNode);
-    loadLicenseOverride(application, component);
+    loadLicenseOverride(component);
 
-    loadLicenseThreatGroups(application, component);
+    loadLicenseThreatGroups(component);
 
     return component;
   }
 
-  private void loadComponentLabels(String ownerId, Component component, ComponentLabelDAO componentLabelDAO) {
-    List<ComponentLabel> componentLabels = componentLabelDAO.getByOwnerIdAndHash(ownerId, component.getHash());
+  private void loadComponentLabels(Component component, ComponentLabelDAO componentLabelDAO) {
+    List<ComponentLabel> componentLabels = componentLabelDAO.getByOwnerIdAndHash(owner.getId(), component.getHash());
     for (ComponentLabel componentLabel : componentLabels) {
       component.addLabelId(componentLabel.getLabelId());
     }
   }
 
-  public void loadLicenseThreatGroups(Owner owner, Component component) {
+  public void loadLicenseThreatGroups(Component component) {
     // Gather all license ids
     Set<String> licenseIds = new LinkedHashSet<>();
     if (component.isLicenseOverridden()) {

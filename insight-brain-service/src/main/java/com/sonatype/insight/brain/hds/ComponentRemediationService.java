@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -73,20 +74,16 @@ public class ComponentRemediationService
 
   private final HdsClient hdsClient;
 
-  private final ComponentDetailsLoader componentDetailsLoader;
-
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
   @Inject
   public ComponentRemediationService(
       TelemetrySender telemetrySender,
       HdsClient hdsClient,
-      ComponentDetailsLoader componentDetailsLoader,
       ComponentPolicyEvaluator componentPolicyEvaluator)
   {
     this.telemetrySender = telemetrySender;
     this.hdsClient = hdsClient;
-    this.componentDetailsLoader = componentDetailsLoader;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
   }
 
@@ -212,8 +209,8 @@ public class ComponentRemediationService
 
     // evaluate flattened dependencies
     // Fix match state to exact as there's no point propagating it to other versions.
-    List<Component> components = componentDetailsLoader.augmentComponentDetails(owner, componentDetailsList,
-        MatchState.EXACT.getId());
+    List<Component> components =
+        new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId());
     Map<PackageUrlIdentifier, List<PolicyAlert>> policyAlertsByComponent =
         evaluateAndGetPolicyAlertsByComponent(owner.getId(), stage, components);
 

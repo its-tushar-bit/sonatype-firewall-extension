@@ -80,8 +80,6 @@ public class ComponentInfoService
 
   private final HdsClient hdsClient;
 
-  private final ComponentDetailsLoader componentDetailsLoader;
-
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
   private final ComponentRemediationService componentRemediationService;
@@ -93,13 +91,11 @@ public class ComponentInfoService
   @Inject
   public ComponentInfoService(
       HdsClient hdsClient,
-      ComponentDetailsLoader componentDetailsLoader,
       ComponentPolicyEvaluator componentPolicyEvaluator,
       ComponentRemediationService componentRemediationService,
       ThirdPartyComponentDAO thirdPartyComponentDAO)
   {
     this.hdsClient = hdsClient;
-    this.componentDetailsLoader = componentDetailsLoader;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.componentRemediationService = componentRemediationService;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
@@ -178,7 +174,7 @@ public class ComponentInfoService
       componentDetails = createEmptyComponentDetails(hash, identifier);
     }
 
-    Component component = componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
+    Component component = new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
     component.setProprietary(proprietary);
 
     // Evaluate the policies
@@ -196,7 +192,7 @@ public class ComponentInfoService
                                                            final ComponentIdentifier identifier,
                                                            final HttpServletRequest httpRequest) throws IOException
   {
-    return componentDetailsLoader.getComponentDetails(identifier, hash, matchState,
+    return ComponentDetailsLoader.getComponentDetails(identifier, hash, matchState,
         new ComponentDetailsLoader.HostedDataServicesSource()
         {
           @Override
@@ -248,7 +244,7 @@ public class ComponentInfoService
     auditComponentAccess(identifier, null);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, null, null, null);
-    componentDetailsLoader.augmentComponentDetails(app, componentDetailsList.getList(), matchState);
+    new ComponentDetailsLoader(app).augmentComponentDetails(componentDetailsList.getList(), matchState);
     return componentDetailsList;
   }
 
@@ -285,7 +281,7 @@ public class ComponentInfoService
     auditComponentAccess(componentIdentifier, null);
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentDetailsList componentDetailsList = getComponentDetailsList(componentIdentifier, owner, null, null);
-    componentDetailsLoader.augmentComponentDetails(owner, componentDetailsList.getList(), matchState);
+    new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList.getList(), matchState);
     return componentDetailsList;
   }
 
@@ -355,8 +351,8 @@ public class ComponentInfoService
     List<ComponentDetails> componentDetailsList =
         getComponentDetailsList(componentIdentifier, owner, identificationSource, scanId).getList();
     // Fix match state to exact as there's no point propagating it to other versions.
-    List<Component> components = componentDetailsLoader.augmentComponentDetails(owner, componentDetailsList,
-        MatchState.EXACT.getId());
+    List<Component> components =
+        new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId());
 
     // Evaluate the policies and get the PolicyAlerts
     List<PolicyAlert> allPolicyAlerts = componentPolicyEvaluator
@@ -492,7 +488,7 @@ public class ComponentInfoService
       componentDetails = getComponentDetailsFromHDS(null, null, componentIdentifier, httpRequest);
     }
 
-    componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
+    new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
     result.declaredlicenses = getLicensesWithThreatLevels(owner, componentDetails.getDeclaredLicenses());
     result.observedlicenses = getLicensesWithThreatLevels(owner, componentDetails.getObservedLicenses());
     result.effectiveLicenses = getLicensesWithThreatLevels(owner, componentDetails.getEffectiveLicenses());
@@ -524,7 +520,7 @@ public class ComponentInfoService
 
     ComponentDetails componentDetails =
         getComponentDetails(null, hash, componentIdentifier, httpRequest, owner, identificationSource, scanId);
-    componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
+    new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
     return new ComponentSecurityVulnerabilities(componentDetails.getSecurityVulnerabilities());
   }
 

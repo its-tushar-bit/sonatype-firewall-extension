@@ -14,9 +14,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
@@ -36,15 +33,18 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 
 import org.codehaus.plexus.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.IdentificationSource.isThirdPartyIdentificationSource;
 
 /**
  * Assists in loading data for the CIP.
  */
-@Named
 public class ComponentDetailsLoader
 {
+  private static final Logger log = LoggerFactory.getLogger(ComponentDetailsLoader.class);
+
   /**
    * Hook to get the details from the HDS.
    */
@@ -56,25 +56,24 @@ public class ComponentDetailsLoader
     NamedComponentDetails getDetails() throws IOException;
   }
 
-  private final LicenseDAO licenseDAO;
+  private final LicenseDAO licenseDAO = new LicenseDAO();
 
-  private final HashComponentIdentifierDAO hashComponentIdentifierDAO;
+  private static final HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
 
-  @Inject
-  public ComponentDetailsLoader(LicenseDAO licenseDAO,
-                                HashComponentIdentifierDAO hashComponentIdentifierDAO)
-  {
-    this.licenseDAO = licenseDAO;
-    this.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
+  private final Owner owner;
+
+  public ComponentDetailsLoader(Owner owner) {
+    this.owner = owner;
   }
 
   /**
    * Gets component details without CLM-specific vulnerability or license augmentation.
    */
-  public NamedComponentDetails getComponentDetails(ComponentIdentifier componentIdentifier,
-                                                   String hash,
-                                                   String matchState,
-                                                   HostedDataServicesSource hdsSource) throws IOException
+  public static NamedComponentDetails getComponentDetails(
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      String matchState,
+      HostedDataServicesSource hdsSource) throws IOException
   {
     NamedComponentDetails componentDetails = getComponentDetailsLocally(componentIdentifier, hash);
 
@@ -95,7 +94,7 @@ public class ComponentDetailsLoader
     return componentDetails;
   }
 
-  public NamedComponentDetails getComponentDetailsLocally(ComponentIdentifier componentIdentifier, String hash) {
+  public static NamedComponentDetails getComponentDetailsLocally(ComponentIdentifier componentIdentifier, String hash) {
     NamedComponentDetails componentDetails = null;
 
     // Look among claimed components first
@@ -133,20 +132,23 @@ public class ComponentDetailsLoader
    * Purpose: This method is used by ComponentInfoService and ComponentRemediationService
    * to additionally set match state and identification source prior to augmenting other details
    *
-   * @param owner application owner
    * @param componentDetailsList the list of ComponentDetails objects to be augmented
    * @param matchState the MatchState to set
    * @return List<Component> augmented list of Component objects
    */
   public List<Component> augmentComponentDetails(
-      Owner owner,
       Collection<ComponentDetails> componentDetailsList,
       String matchState)
   {
+    long start = System.currentTimeMillis();
+
     List<Component> components = new ArrayList<>(componentDetailsList.size());
     for (ComponentDetails componentDetails : componentDetailsList) {
-      components.add(augmentComponentDetails(owner, componentDetails, matchState));
+      components.add(augmentComponentDetails(componentDetails, matchState));
     }
+
+    log.debug("Augmented component details for {} components in {} ms.", componentDetailsList.size(),
+        System.currentTimeMillis() - start);
     return components;
   }
 
@@ -159,17 +161,16 @@ public class ComponentDetailsLoader
    * Purpose: This method is used by ComponentInfoService and ComponentRemediationService
    * to additionally set match state and identification source prior to augmenting other details
    *
-   * @param owner application owner
    * @param componentDetails the ComponentDetails object to be augmented
    * @param matchState the MatchState to set
    * @return Component augmented Component object
    */
-  public Component augmentComponentDetails(Owner owner, ComponentDetails componentDetails, String matchState) {
+  public Component augmentComponentDetails(ComponentDetails componentDetails, String matchState) {
     componentDetails.setMatchState(StringUtils.isEmpty(matchState) ? MatchState.EXACT.getId() : matchState);
     if (!isThirdPartyIdentificationSource(componentDetails.getIdentificationSource())) {
       componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
     }
-    return augmentComponentDetails(owner, componentDetails);
+    return augmentComponentDetails(componentDetails);
   }
 
   /**
@@ -178,13 +179,12 @@ public class ComponentDetailsLoader
    *
    * Purpose: This method is used to augmenting basic details as indicated above
    *
-   * @param owner application owner
    * @param componentDetails the ComponentDetails object to be augmented
    * @return Component augmented Component object
    */
-  public Component augmentComponentDetails(Owner owner, ComponentDetails componentDetails) {
-    ComponentDAO componentDAO = new ComponentDAO();
-    Component component = componentDAO.getComponent(owner, componentDetails);
+  public Component augmentComponentDetails(ComponentDetails componentDetails) {
+    ComponentDAO componentDAO = new ComponentDAO(owner);
+    Component component = componentDAO.getComponent(componentDetails);
 
     // Use CLM data to populate the component details
     for (String licenseId : component.getLicenseOverrideIds()) {

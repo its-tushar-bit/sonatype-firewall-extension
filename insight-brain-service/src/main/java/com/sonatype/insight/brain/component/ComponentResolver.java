@@ -33,15 +33,12 @@ import org.slf4j.LoggerFactory;
  */
 public class ComponentResolver
 {
-  private final ComponentDAO componentDAO;
-
   private final ThirdPartyComponentDAO thirdPartyComponentDAO;
 
   private static final Logger log = LoggerFactory.getLogger(ComponentResolver.class);
 
   @Inject
-  public ComponentResolver(final ComponentDAO componentDAO, final ThirdPartyComponentDAO thirdPartyComponentDAO) {
-    this.componentDAO = componentDAO;
+  public ComponentResolver(final ThirdPartyComponentDAO thirdPartyComponentDAO) {
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
   }
 
@@ -53,7 +50,7 @@ public class ComponentResolver
       final File reportFile)
   {
     // Load data about components
-    final List<Component> components = componentDAO.getAll(application, licenseData, securityData, bomData);
+    final List<Component> components = new ComponentDAO(application).getAll(licenseData, securityData, bomData);
     identifyThirdPartyComponents(components, reportFile);
     return components;
   }

@@ -27,7 +27,6 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
-import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
@@ -64,9 +63,6 @@ public class RepositoryReevaluationTaskTest
   private RepositoryReevaluationTask task;
 
   private Repository repository;
-
-  @Inject
-  private ComponentDetailsLoader componentDetailsLoader;
 
   @Inject
   private ComponentPolicyEvaluator componentPolicyEvaluator;
@@ -149,7 +145,7 @@ public class RepositoryReevaluationTaskTest
         eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH))).thenReturn(firewallIgnorePatterns);
 
     task = new RepositoryReevaluationTask(repository, new RepositoryPolicyEvaluator(componentPolicyEvaluator,
-        repositoryComponentDAO, repositoryPolicyViolationDAO, auditHdsClient, null, componentDetailsLoader,
+        repositoryComponentDAO, repositoryPolicyViolationDAO, auditHdsClient, null,
         pendingRepositoryPolicyNotifications, policyViolationLoggerFactory, firewallIgnorePatternService,
         repositoryComponentDeleteService), executorService, activeReevaluations);
     createHdsResponse();

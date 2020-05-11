@@ -233,7 +233,7 @@ public class ReportServiceTest
   }
 
   @Test
-  public void testApplyThirdPartyData() throws Exception {
+  public void testIncludeThirdPartyData() throws Exception {
     final File reportZip = zipReportDir("/ReportServiceTest/report");
 
     ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();

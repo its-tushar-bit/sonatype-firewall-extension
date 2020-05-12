@@ -256,7 +256,7 @@ public class PdfGenerator
           applicationCompositionReport);
 
       // Add title and dates
-      float titleAndDatesStartY = addTitleAndDates(contentStream, "Policy Violations", MARGIN,
+      float titleAndDatesStartY = addTitleAndDates(contentStream, pageRec, "Policy Violations", MARGIN,
           headerLeftStartY - sonatypeFontStyle.getFontDescent() - titleFontStyle.getFontAscent());
 
       // Add violations summary
@@ -388,7 +388,7 @@ public class PdfGenerator
     PDRectangle pageRec = page.getCropBox();
     try (PDPageContentStream contentStream = new PDPageContentStream(pdf, page)) {
       // Add title and dates
-      float titleAndDatesStartY = addTitleAndDates(contentStream, "Vulnerabilities", MARGIN,
+      float titleAndDatesStartY = addTitleAndDates(contentStream, pageRec, "Vulnerabilities", MARGIN,
           pageRec.getHeight() - MARGIN - titleFontStyle.getFontHeight());
 
       // Add security issues table
@@ -465,7 +465,7 @@ public class PdfGenerator
     PDRectangle pageRec = page.getCropBox();
     try (PDPageContentStream contentStream = new PDPageContentStream(pdf, page)) {
       // Add title and dates
-      float titleAndDatesStartY = addTitleAndDates(contentStream, "Licenses", MARGIN,
+      float titleAndDatesStartY = addTitleAndDates(contentStream, pageRec, "Licenses", MARGIN,
           pageRec.getHeight() - MARGIN - titleFontStyle.getFontHeight());
 
       // Add licenses table
@@ -551,7 +551,7 @@ public class PdfGenerator
     PDRectangle pageRec = page.getCropBox();
     try (PDPageContentStream contentStream = new PDPageContentStream(pdf, page)) {
       // Add title and dates
-      float titleAndDatesStartY = addTitleAndDates(contentStream, "Component BOM", MARGIN,
+      float titleAndDatesStartY = addTitleAndDates(contentStream, pageRec, "Component BOM", MARGIN,
           pageRec.getHeight() - MARGIN - titleFontStyle.getFontHeight());
 
       // Add components summary
@@ -620,6 +620,7 @@ public class PdfGenerator
 
   private float addTitleAndDates(
       PDPageContentStream contentStream,
+      PDRectangle pageRec,
       String sectionName,
       float startX,
       float startY) throws IOException
@@ -646,7 +647,21 @@ public class PdfGenerator
     float analyzedOnDateStartX = analyzedOnDescriptorStartX + dateDescriptorFontStyle.getStringWidth(analyzedOn);
     float analyzedOnDateStartY = analyzedOnDescriptorStartY;
     addText(contentStream, analyzedOnDateStartX, analyzedOnDateStartY, dateFontStyle, analyzedOnDateTime);
+
+    addCommitHash(contentStream, pageRec, createdOnDescriptorStartY);
+
     return analyzedOnDateStartY;
+  }
+
+  private void addCommitHash(PDPageContentStream contentStream, PDRectangle pageRec, float startY) throws IOException {
+    if (policyData.commitHash != null) {
+      String commitLabel = "Commit: ";
+      float commitHashStartY = startY;
+      float commitHashStartX = pageRec.getUpperRightX() - MARGIN - dateFontStyle.getStringWidth(policyData.commitHash);
+      addText(contentStream, commitHashStartX, commitHashStartY, dateFontStyle, policyData.commitHash);
+      commitHashStartX -= dateDescriptorFontStyle.getStringWidth(commitLabel);
+      addText(contentStream, commitHashStartX, commitHashStartY, dateDescriptorFontStyle, commitLabel);
+    }
   }
 
   private void addPageNumbers() throws IOException {

@@ -140,6 +140,7 @@ public class ApiReportDataServiceV2
     ReportMetadataDTO metadata = reportService.getReportMetadataNoAuth(applicationPublicId, scanId);
     data.reportTime = metadata.getReportTime();
     data.reportTitle = metadata.getReportTitle();
+    data.commitHash = metadata.getCommitHash();
     data.application = getApplicationMetadata(metadata.getApplication());
     data.counts = getReportCounts(countsEntry.buf);
     data.components = getComponents(bomEntry.buf, policyThreats);

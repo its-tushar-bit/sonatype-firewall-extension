@@ -105,7 +105,7 @@ public class ApiReportDataServiceV2Test
     app = tempEntity.newApplicationWithParent("app-id");
     scanId = "scan-id";
     reportFile = makeReportFile();
-    policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId);
+    policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId, "the-commit-hash");
   }
 
   private void assertLicenses(List<ApiLicenseDTO> licenses, String... multiLicenseIds) {
@@ -197,6 +197,7 @@ public class ApiReportDataServiceV2Test
     // metadata
     assertThat(data.reportTime).isEqualTo(policyEvaluation.getTime());
     assertThat(data.reportTitle).isEqualTo("Release Report");
+    assertThat(data.commitHash).isEqualTo(policyEvaluation.getCommitHash());
     assertThat(data.application.id).isEqualTo(app.getId());
     assertThat(data.application.publicId).isEqualTo("app-id");
     assertThat(data.application.name).isEqualTo(app.getName());

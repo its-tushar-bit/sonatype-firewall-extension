@@ -155,6 +155,7 @@ public class ReportServiceTest
   public void testGetReportMetadata() throws Exception {
     final String scanId1 = "ScanId1";
     final String scanId2 = "ScanId2";
+    String commitHash = "0b1bbd94b2edbacd441f170ecd59a178e334868f";
 
     // ReportResource.getReport requires a report.zip to exist when evaluations exist
     createReportFile(app.getId(), scanId1, zipReportDir("/ReportResourceTest/report-expanded_coverage_false"));
@@ -162,7 +163,7 @@ public class ReportServiceTest
     createReportFile(app.getId(), scanId2, zipReportDir("/ReportResourceTest/report"));
 
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId1);
-    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId2);
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId2, commitHash);
 
     ReportService reportService = createReportService();
 
@@ -172,6 +173,7 @@ public class ReportServiceTest
     assertThat(metadata.getReportTitle()).isEqualTo("Build Report");
     assertThat(metadata.getReportTime()).isEqualTo(eval1.getTime());
     assertThat(metadata.getStageId()).isEqualTo("build");
+    assertThat(metadata.getCommitHash()).isNull();
 
     // Verify Response for scan 2
     metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
@@ -179,6 +181,7 @@ public class ReportServiceTest
     assertThat(metadata.getReportTitle()).isEqualTo("Release Report");
     assertThat(metadata.getReportTime()).isEqualTo(eval2.getTime());
     assertThat(metadata.getStageId()).isEqualTo("release");
+    assertThat(metadata.getCommitHash()).isEqualTo(commitHash);
 
     // Unknown scan id
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {

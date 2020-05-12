@@ -16,5 +16,6 @@
   "copyleftLicenseCount" : 4,
   "knownArtifactCount" : 62,
   "totalArtifactCount" : 64,
-  "weakcopyleftLicenseCount" : 8
+  "weakcopyleftLicenseCount" : 8,
+  "commitHash" : "0b1bbd94b2edbacd441f170ecd59a178e334868f"
 }

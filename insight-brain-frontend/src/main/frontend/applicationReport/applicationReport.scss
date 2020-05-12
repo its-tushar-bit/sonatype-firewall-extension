@@ -41,6 +41,10 @@ $iq-application-report-vulnerability-threat-level-width: 62px;
   .iq-back-button {
     margin-bottom: $iq-spacing-sm;
   }
+
+  .nx-page-title__description--application-report {
+    max-width: 700px;
+  }
 }
 
 .iq-dropdown--application-results-options {

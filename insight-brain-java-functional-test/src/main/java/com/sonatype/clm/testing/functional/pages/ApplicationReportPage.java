@@ -49,7 +49,11 @@ public class ApplicationReportPage
   }
 
   public SelenideElement reportDate() {
-    return child(".nx-page-title .nx-page-title__description");
+    return child("#application-report-time");
+  }
+
+  public SelenideElement commitHash() {
+    return child("#application-report-commit");
   }
 
   public SelenideElement reevaluateButton() {

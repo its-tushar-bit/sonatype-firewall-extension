@@ -46,8 +46,13 @@
       </div>
     </div>
     <h1 class="nx-h1">{{vm.metadata.application.name}} {{vm.metadata.reportTitle}}</h1>
-    <div class="nx-page-title__description visual-testing-ignore">
-      {{vm.metadata.reportTime | date: 'yyyy-MM-dd HH:mm:ss UTCZ'}}
+    <div class="nx-page-title__description nx-page-title__description--application-report visual-testing-ignore">
+      <span id="application-report-time">
+        {{vm.metadata.reportTime | date: 'yyyy-MM-dd HH:mm:ss UTCZ'}}
+      </span>
+      <span id="application-report-commit" ng-if="vm.metadata.commitHash">
+        &mdash; Commit {{vm.metadata.commitHash}}
+      </span>
     </div>
   </div>
   <div class="iq-tile iq-tile--indicators">

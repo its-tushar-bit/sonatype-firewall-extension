@@ -21,6 +21,8 @@ public class ReportMetadataDTO
 
   private String stageId;
 
+  private String commitHash;
+
   public boolean isExpandedCoverage() {
     return expandedCoverage;
   }
@@ -59,5 +61,13 @@ public class ReportMetadataDTO
 
   public void setStageId(final String stageId) {
     this.stageId = stageId;
+  }
+
+  public String getCommitHash() {
+    return commitHash;
+  }
+
+  public void setCommitHash(String commitHash) {
+    this.commitHash = commitHash;
   }
 }

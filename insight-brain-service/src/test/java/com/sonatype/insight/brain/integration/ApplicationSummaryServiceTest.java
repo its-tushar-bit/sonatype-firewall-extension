@@ -48,11 +48,11 @@ public class ApplicationSummaryServiceTest
   private TestProductLicense testProductLicense;
 
   @Mock
-  private TelemetrySender telementrySenderMock;
+  private TelemetrySender telemetrySenderMock;
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(telementrySenderMock);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     super.configure(binder);
   }
 
@@ -137,17 +137,17 @@ public class ApplicationSummaryServiceTest
     String appPublicId = "NoSuchAppPublicID";
 
     service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
-    verifyNoInteractions(telementrySenderMock);
+    verifyNoInteractions(telemetrySenderMock);
 
     Application app = tempEntity.newApplicationWithParent();
     service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "test_client_user_agent");
-    verifyNoInteractions(telementrySenderMock);
+    verifyNoInteractions(telemetrySenderMock);
   }
 
   @Test
   public void testVerifyOrCreateApplication_TelemetryData_AutomaticApplicationCreationEnabled() throws Exception {
     final InvocationOnMock[] invocation = new InvocationOnMock[1];
-    doAnswer(x -> invocation[0] = x).when(telementrySenderMock).send(any(TelemetryData.class),
+    doAnswer(x -> invocation[0] = x).when(telemetrySenderMock).send(any(TelemetryData.class),
         eq("test_client_user_agent"));
 
     Organization org = tempEntity.newOrganization();
@@ -164,7 +164,7 @@ public class ApplicationSummaryServiceTest
     service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
     Date after = new Date();
     assertTelemetryData(invocation[0], before, after, true);
-    clearInvocations(telementrySenderMock);
+    clearInvocations(telemetrySenderMock);
 
     // The app exists, but it doesn't have any evaluations. We expect telemetry data that says the app was not created
     // automatically.
@@ -172,13 +172,13 @@ public class ApplicationSummaryServiceTest
     service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
     after = new Date();
     assertTelemetryData(invocation[0], before, after, false);
-    clearInvocations(telementrySenderMock);
+    clearInvocations(telemetrySenderMock);
 
     // The app exists and it has evaluations. We don't expect any telemetry data.
     Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");
     service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "test_client_user_agent");
-    verifyNoInteractions(telementrySenderMock);
+    verifyNoInteractions(telemetrySenderMock);
   }
 
   @Test

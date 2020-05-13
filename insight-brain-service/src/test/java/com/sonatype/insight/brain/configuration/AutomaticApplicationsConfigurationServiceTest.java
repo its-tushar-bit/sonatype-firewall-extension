@@ -39,11 +39,11 @@ public class AutomaticApplicationsConfigurationServiceTest
   private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
 
   @Mock
-  private TelemetrySender telementrySenderMock;
+  private TelemetrySender telemetrySenderMock;
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(telementrySenderMock);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     super.configure(binder);
   }
 
@@ -64,7 +64,7 @@ public class AutomaticApplicationsConfigurationServiceTest
   @Test
   public void testUpdate_TelemetryEventsAreSent() throws Exception {
     final InvocationOnMock[] invocation = new InvocationOnMock[1];
-    doAnswer(x -> invocation[0] = x).when(telementrySenderMock).send(any(TelemetryData.class));
+    doAnswer(x -> invocation[0] = x).when(telemetrySenderMock).send(any(TelemetryData.class));
     Organization org1 = tempEntity.newOrganization();
     Organization org2 = tempEntity.newOrganization();
 
@@ -75,11 +75,11 @@ public class AutomaticApplicationsConfigurationServiceTest
     assertTelemetryEvent(invocation[0], TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION,
         AutomaticApplicationsConfigurationService.AUTO_APP_CREATION_ENABLED_TELEMETRY_ATTR,
         before, after, true);
-    clearInvocations(telementrySenderMock);
+    clearInvocations(telemetrySenderMock);
 
     // No changes to Auto App Creation enablement - a telemetry event should NOT be sent
     service.update(new AutomaticApplicationsConfiguration(true, org2.getId()));
-    verifyNoMoreInteractions(telementrySenderMock);
+    verifyNoMoreInteractions(telemetrySenderMock);
 
     // Disable Auto App Creation - a telemetry event should be sent
     before = new Date();
@@ -88,11 +88,11 @@ public class AutomaticApplicationsConfigurationServiceTest
     assertTelemetryEvent(invocation[0], TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION,
         AutomaticApplicationsConfigurationService.AUTO_APP_CREATION_ENABLED_TELEMETRY_ATTR,
         before, after, false);
-    clearInvocations(telementrySenderMock);
+    clearInvocations(telemetrySenderMock);
 
     // No changes to Auto App Creation enablement - a telemetry event should NOT be sent
     service.update(new AutomaticApplicationsConfiguration(false, org1.getId()));
-    verifyNoMoreInteractions(telementrySenderMock);
+    verifyNoMoreInteractions(telemetrySenderMock);
   }
 
   private void assertTelemetryEvent(

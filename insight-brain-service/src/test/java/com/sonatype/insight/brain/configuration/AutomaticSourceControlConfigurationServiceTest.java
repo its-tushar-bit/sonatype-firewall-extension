@@ -36,11 +36,11 @@ public class AutomaticSourceControlConfigurationServiceTest
   private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
 
   @Mock
-  private TelemetrySender telementrySenderMock;
+  private TelemetrySender telemetrySenderMock;
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(telementrySenderMock);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     super.configure(binder);
   }
 
@@ -58,7 +58,7 @@ public class AutomaticSourceControlConfigurationServiceTest
   @Test
   public void testUpdate_TelemetryEventsAreSent() throws Exception {
     final InvocationOnMock[] invocation = new InvocationOnMock[1];
-    doAnswer(x -> invocation[0] = x).when(telementrySenderMock).send(any(TelemetryData.class));
+    doAnswer(x -> invocation[0] = x).when(telemetrySenderMock).send(any(TelemetryData.class));
 
     // make sure it is false first
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
@@ -70,11 +70,11 @@ public class AutomaticSourceControlConfigurationServiceTest
     assertTelemetryEvent(invocation[0], TelemetryPurpose.AUTOMATIC_ONBOARDING,
         AutomaticSourceControlConfigurationService.AUTO_SCM_CONFIGURATION_ENABLED_TELEMETRY_ATTR,
         before, after, true);
-    clearInvocations(telementrySenderMock);
+    clearInvocations(telemetrySenderMock);
 
     // No changes to Auto SCM state - a telemetry event should NOT be sent
     service.update(new AutomaticSourceControlConfiguration(true));
-    verifyNoMoreInteractions(telementrySenderMock);
+    verifyNoMoreInteractions(telemetrySenderMock);
 
     // Disable Auto SCM - a telemetry event should be sent
     before = new Date();
@@ -83,11 +83,11 @@ public class AutomaticSourceControlConfigurationServiceTest
     assertTelemetryEvent(invocation[0], TelemetryPurpose.AUTOMATIC_ONBOARDING,
         AutomaticSourceControlConfigurationService.AUTO_SCM_CONFIGURATION_ENABLED_TELEMETRY_ATTR,
         before, after, false);
-    clearInvocations(telementrySenderMock);
+    clearInvocations(telemetrySenderMock);
 
     // No changes to Auto SCM state - a telemetry event should NOT be sent
     service.update(new AutomaticSourceControlConfiguration(false));
-    verifyNoMoreInteractions(telementrySenderMock);
+    verifyNoMoreInteractions(telemetrySenderMock);
   }
 
   private void assertTelemetryEvent(

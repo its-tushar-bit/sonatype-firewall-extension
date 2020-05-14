@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportConstraintViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
-import com.sonatype.insight.brain.component.ComponentResolver;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -79,21 +78,17 @@ public class ApiReportDataServiceV2
 
   private final ApiSecurityDataAdapter securityDataAdapter;
 
-  private final ComponentResolver componentResolver;
-
   @Inject
   public ApiReportDataServiceV2(
       ApplicationDAO appDAO,
       ReportService reportService,
       ApiLicenseDataAdapter licenseDataAdapter,
-      ApiSecurityDataAdapter securityDataAdapter,
-      ComponentResolver componentResolver)
+      ApiSecurityDataAdapter securityDataAdapter)
   {
     this.appDAO = appDAO;
     this.reportService = reportService;
     this.licenseDataAdapter = licenseDataAdapter;
     this.securityDataAdapter = securityDataAdapter;
-    this.componentResolver = componentResolver;
   }
 
   @Authorize(permission = Permission.READ)
@@ -277,8 +272,7 @@ public class ApiReportDataServiceV2
       throw new BadRequestException("The report with ID " + scanId + " contains no component data.");
     }
 
-    List<Component> components =
-        componentResolver.getComponents(app, licenseEntry.buf, securityEntry.buf, bomEntry.buf, reportFile);
+    List<Component> components = new ComponentDAO(app).getAll(licenseEntry.buf, securityEntry.buf, bomEntry.buf);
 
     ApiReportRawDataDTOV2 data = new ApiReportRawDataDTOV2();
     for (Component comp : components) {

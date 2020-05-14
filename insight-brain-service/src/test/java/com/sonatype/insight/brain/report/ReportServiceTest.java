@@ -11,17 +11,29 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.AnalysisSource;
+import com.sonatype.clm.dto.model.component.AnalysisType;
+import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -37,7 +49,10 @@ import com.sonatype.insight.brain.thirdparty.ThirdPartyHealthCheckReportSecurity
 import com.sonatype.insight.brain.thirdparty.ThirdPartyLicenseRowDTO;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.ImmutableMap;
 import de.schlichtherle.truezip.file.TFile;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -120,6 +135,107 @@ public class ReportServiceTest
     assertThat(report.getName()).isEqualTo("report.zip");
     verify(reportDownloader).downloadReport(eq(scanId), any(File.class), eq(2100), eq(5));
     verify(thirdPartyDataServiceSpy).deleteByScanId(eq(scanId));
+  }
+
+  @Test
+  public void testFetchReport_ThirdPartyDataMatchesUnknownComponents() throws Exception {
+    MockReportDownloader mockReportDownloader = new MockReportDownloader();
+    mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report-with-third-party-data");
+    reportDownloader = mockReportDownloader.getMock();
+    ReportService reportService = createReportService();
+
+    File reportFile = reportService.fetchReport(app, scanId);
+
+    // Verify bom.json
+    ComponentDAO componentDAO = new ComponentDAO(app);
+    ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
+    ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
+    ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
+    List<Component> components =
+        componentDAO.getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf);
+    assertThat(components).hasSize(3);
+    assertComponent(components.get(0), "964cd74171f427720480",
+        ComponentIdentifier.createMavenCoordinates("apache-httpclient", "commons-httpclient", "3.1", "", "jar"),
+        "test/commons-httpclient-3.1.jar", IdentificationSource.SONATYPE);
+    assertThat(components.get(0).getAnalyzerFeatures()).isEqualToComparingFieldByField(
+        new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.HASH, "cli", true, true, true));
+    assertComponent(components.get(1), "37b3ce40791bc2dd8068",
+        new ComponentIdentifier("debian-9", ImmutableMap.of("name", "glibc", "version", "2.24-11+deb9u3")),
+        "dependency:/test/clair-scanner-output.json/glibc:2.24-11+deb9u3", IdentificationSource.CLAIR);
+    assertThat(components.get(1).getAnalyzerFeatures()).isEqualToComparingFieldByField(
+        new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "cli", false, false, false));
+    assertComponent(components.get(2), "cf085cd08ee27334c573",
+        ComponentIdentifier.createPypiCoordinates("altgraph", "0.10.2", null, null),
+        "dependency:/pkg:pypi\\altgraph@0.10.2", IdentificationSource.getOrMake("cyclonedx"));
+    assertThat(components.get(2).getAnalyzerFeatures()).isEqualToComparingFieldByField(
+        new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "cli", false, false, false));
+
+    // Verify security.json
+    assertSecurityVulnerability(components.get(0), "cve", "CVE-2012-5783", 5.8F,
+        "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-5783");
+    assertSecurityVulnerability(components.get(1), "CVE", "CVE-2017-16997", 10.0F,
+        "https://security-tracker.debian.org/tracker/CVE-2017-16997");
+    assertSecurityVulnerability(components.get(2), "NVD", "CVE-2018-7489", 9.8F,
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-7489");
+
+    // Verify licenses.json
+    assertLicenses(components.get(0), Collections.singleton("Apache-2.0"), Collections.singleton("No-Sources"));
+    assertLicenses(components.get(1), Collections.singleton("UNSPECIFIED"), Collections.emptySet());
+    assertLicenses(components.get(2), Collections.singleton("GPL-2.0"), Collections.emptySet());
+
+    // Verify summary.json
+    ReportEntry summaryReportEntry = Report.getEntry(reportFile, "summary.json");
+    JsonNode summaryJsonNode = JsonUtils.parse(summaryReportEntry.buf);
+    assertThat(summaryJsonNode.path("knownArtifactCount").asInt()).isEqualTo(3);
+
+    // Verify data.json
+    ReportEntry dataReportEntry = Report.getEntry(reportFile, Report.DATA_JSON_FILENAME);
+    JsonNode dataJsonNode = JsonUtils.parse(dataReportEntry.buf);
+    assertThat(dataJsonNode.path("exactlyMatchedComponentCount").asInt()).isEqualTo(3);
+    assertThat(dataJsonNode.path("knownArtifactCount").asInt()).isEqualTo(3);
+    assertThat(dataJsonNode.path("securityCounts"))
+        .isEqualTo(JsonUtils.asTree(new int[]{1, 1, 0, 0, 0, 1, 0, 0, 0, 0}));
+  }
+
+  private void assertLicenses(
+      Component component,
+      Set<String> declaredLicenseIds,
+      Set<String> observedLicenseIds)
+  {
+    assertThat(component.getDeclaredLicenseIds()).isEqualTo(declaredLicenseIds);
+    assertThat(component.getObservedLicenseIds()).isEqualTo(observedLicenseIds);
+    assertThat(component.getLicenseThreatGroups()).isNotEmpty();
+  }
+
+  private void assertSecurityVulnerability(
+      Component component,
+      String source,
+      String refId,
+      float severity,
+      String url)
+  {
+    assertThat(component.getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability securityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertThat(securityVulnerability.getSource()).isEqualTo(source);
+    assertThat(securityVulnerability.getRefId()).isEqualTo(refId);
+    assertThat(securityVulnerability.getSeverity()).isEqualTo(severity);
+    assertThat(securityVulnerability.getUrl()).isEqualTo(url);
+  }
+
+  private void assertComponent(
+      Component component,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      String pathname,
+      IdentificationSource identificationSource)
+  {
+    assertThat(component.getHash()).isEqualTo(hash);
+    assertThat(component.getComponentIdentifier()).isEqualTo(componentIdentifier);
+    assertThat(component.getDisplayName())
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
+    assertThat(component.getPathnames()).isEqualTo(Collections.singletonList(pathname));
+    assertThat(component.getIdentificationSource()).isEqualTo(identificationSource);
+    assertThat(component.getMatchState()).isEqualTo(MatchState.EXACT);
   }
 
   @Test

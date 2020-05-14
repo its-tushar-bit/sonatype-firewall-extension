@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.thirdparty;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -40,12 +39,15 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentCha
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.HealthCheckReportRowDTO;
+import com.sonatype.insight.scan.HealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -128,22 +130,6 @@ public class ThirdPartyComponentDAO
       log.error("error attempting to read third party data from report {}", reportFile.getAbsolutePath(), e);
     }
     return reportData;
-  }
-
-  public void applyIdentifiedComponentUpdates(
-      final List<ThirdPartyReportComponentDTO> thirdPartyDTOs,
-      final File reportFile)
-  {
-    try {
-      if (!thirdPartyDTOs.isEmpty()) {
-        updateBom(thirdPartyDTOs, reportFile);
-        updateSummaryCounts(reportFile, thirdPartyDTOs.size());
-        updateDataCounts(reportFile, thirdPartyDTOs);
-      }
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
   }
 
   /**
@@ -289,79 +275,62 @@ public class ThirdPartyComponentDAO
     return license;
   }
 
-  private void updateSummaryCounts(final File reportFile, final int thirdPartyComponentCount)
-      throws IOException
+  public void updateReport(
+      ContainerNode<?> bomJsonData,
+      ContainerNode<?> licensesJsonData,
+      ContainerNode<?> securityJsonData,
+      ContainerNode<?> dataJson,
+      ContainerNode<?> summaryJsonData,
+      File reportFile)
   {
-    String filename = "summary.json";
-    final ObjectNode summary = loadJson(Report.getEntry(reportFile, filename).buf);
-    long knownArtifactCount = summary.path("knownArtifactCount").asLong(0);
+    int knownArtifactCount = summaryJsonData.path("knownArtifactCount").asInt();
+    int exactlyMatchedComponentCount = dataJson.path("exactlyMatchedComponentCount").asInt();
 
-    summary.put("knownArtifactCount", knownArtifactCount + thirdPartyComponentCount);
-    Report.putEntry(reportFile, filename, JsonUtils.generate(summary));
-  }
-
-  private void updateDataCounts(
-      final File reportFile,
-      final List<ThirdPartyReportComponentDTO> thirdPartyDTOs)
-      throws IOException
-  {
-    String filename = "data.json";
-    final ObjectNode summary = loadJson(Report.getEntry(reportFile, filename).buf);
-    long knownArtifactCount = summary.path("knownArtifactCount").asLong(0);
-    long exactlyMatchedComponentCount = summary.path("exactlyMatchedComponentCount").asLong(0);
-
-    summary.put("knownArtifactCount", knownArtifactCount + thirdPartyDTOs.size());
-    summary.put("exactlyMatchedComponentCount", exactlyMatchedComponentCount + thirdPartyDTOs.size());
-    int[] updatedSecurityCounts = getUpdatedSecurityCounts(thirdPartyDTOs, summary.get("securityCounts"));
-    Report.fill(summary.putArray("securityCounts"), updatedSecurityCounts);
-    Report.putEntry(reportFile, filename, JsonUtils.generate(summary));
-  }
-
-  private int[] getUpdatedSecurityCounts(
-      final List<ThirdPartyReportComponentDTO> thirdPartyDTOs,
-      JsonNode securityCountsNode)
-  {
-    int[] securityCounts = new int[10];
-    if (securityCountsNode != null && securityCountsNode.size() > 0) {
-      try {
-        securityCounts = JsonUtils.asPojo(securityCountsNode, int[].class);
-      }
-      catch (IOException e) {
-        log.error("Error parsing securityCountsNode from data.json", e);
-      }
-    }
-    for (ThirdPartyReportComponentDTO thirdPartyDTO : thirdPartyDTOs) {
-      for (ThirdPartyHealthCheckReportSecurityRowDTO securityRow : thirdPartyDTO.securityRows) {
-        if (securityRow.score != null) {
-          Report.updateSecurityCounts(securityRow.score.doubleValue(), securityCounts);
+    Map<String, ThirdPartyReportComponentDTO> thirdPartyReportComponentDataByHash = null;
+    ArrayNode bomArray = (ArrayNode) bomJsonData.get("aaData");
+    for (int i = 0; i < bomArray.size(); i++) {
+      JsonNode bomNode = bomArray.get(i);
+      String matchStateString = bomNode.get("matchState").asText();
+      MatchState matchState = MatchState.getById(matchStateString);
+      if (MatchState.UNKNOWN.equals(matchState)) {
+        if (thirdPartyReportComponentDataByHash == null) {
+          thirdPartyReportComponentDataByHash = getData(reportFile);
         }
-      }
-    }
-    return securityCounts;
-  }
-
-  private void updateBom(
-      final List<ThirdPartyReportComponentDTO> thirdPartyDTOs,
-      final File reportFile) throws IOException
-  {
-    List<ThirdPartyBillOfMaterialsRowDTO> thirdPartyIdentifiedComponents =
-        thirdPartyDTOs.stream().map(thirdPartyDTO -> thirdPartyDTO.bomRow).collect(Collectors.toList());
-    final ContainerNode<?> bom = JsonUtils.parse(Report.getEntry(reportFile, "bom.json").buf);
-    final ArrayNode bomArray = (ArrayNode) bom.get("aaData");
-    final ArrayNode thirdPartyBomArray = MAPPER.valueToTree(thirdPartyIdentifiedComponents);
-
-    for (JsonNode tpNode : thirdPartyBomArray) {
-      for (int i = 0; i < bomArray.size(); i++) {
-        final JsonNode bomNode = bomArray.get(i);
-        if (tpNode.path("hash").asText().equals(bomNode.path("hash").asText())) {
+        String hash = JsonUtils.getNullableString(bomNode.get("hash"));
+        ThirdPartyReportComponentDTO thirdPartyReportComponentDTO = thirdPartyReportComponentDataByHash.get(hash);
+        if (thirdPartyReportComponentDTO != null) {
+          JsonNode tpNode = MAPPER.valueToTree(thirdPartyReportComponentDTO.bomRow);
           mergeNodes(bomNode, tpNode);
           bomArray.set(i, tpNode);
-          break;
+          knownArtifactCount++;
+          exactlyMatchedComponentCount++;
+
+          // Security vulnerabilities
+          if (!thirdPartyReportComponentDTO.securityRows.isEmpty()) {
+            ArrayNode securityJsonArray = (ArrayNode) securityJsonData.get("aaData");
+            for (ThirdPartyHealthCheckReportSecurityRowDTO securityRowDTO : thirdPartyReportComponentDTO.securityRows) {
+              securityJsonArray.add(JsonUtils.asTree(convert(securityRowDTO)));
+            }
+          }
+          
+          // Licenses
+          if (!thirdPartyReportComponentDTO.licensesRow.declaredLicenses.isEmpty()) {
+            ArrayNode licenseJsonArray = (ArrayNode) licensesJsonData.get("aaData");
+            HealthCheckReportRowDTO licenseDTO =
+                new HealthCheckReportRowDTO(thirdPartyReportComponentDTO.componentIdentifier, hash);
+            licenseDTO.declaredLicenses = thirdPartyReportComponentDTO.licensesRow.declaredLicenses.stream()
+                .map(license -> license.name).collect(Collectors.toSet());
+            licenseJsonArray.add(JsonUtils.asTree(licenseDTO));
+          }
         }
       }
     }
 
-    Report.putEntry(reportFile, "bom.json", JsonUtils.generate(JsonUtils.aaData(bomArray)));
+    ObjectNode dataObjectNode = (ObjectNode) dataJson;
+    dataObjectNode.put("exactlyMatchedComponentCount", exactlyMatchedComponentCount);
+    dataObjectNode.put("knownArtifactCount", knownArtifactCount);
+
+    ((ObjectNode) summaryJsonData).put("knownArtifactCount", knownArtifactCount);
   }
 
   private void mergeNodes(final JsonNode bomNode, final JsonNode tpNode) {
@@ -433,6 +402,17 @@ public class ThirdPartyComponentDAO
         new SecurityVulnerability(secRow.reference, secRow.source, secRow.score, secRow.description);
     securityVulnerability.setUrl(secRow.url);
     return securityVulnerability;
+  }
+
+  private HealthCheckReportSecurityRowDTO convert(ThirdPartyHealthCheckReportSecurityRowDTO securityRow) {
+    HealthCheckReportSecurityRowDTO result =
+        new HealthCheckReportSecurityRowDTO(securityRow.componentIdentifier, securityRow.hash);
+    result.source = securityRow.source;
+    result.reference = securityRow.reference;
+    result.score = securityRow.score;
+    result.url = securityRow.url;
+    result.summary = securityRow.description;
+    return result;
   }
 
   public ApiComponentRemediationValueDTO getSuggestedRemmediation(

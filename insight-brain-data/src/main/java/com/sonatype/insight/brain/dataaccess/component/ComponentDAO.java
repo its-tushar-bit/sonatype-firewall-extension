@@ -108,7 +108,7 @@ public class ComponentDAO
           final MatchState matchState = MatchState.getById(matchStateString);
           final String identificationSourceString = JsonUtils.getNullableString(componentJson
               .get("identificationSource"));
-          final IdentificationSource identificationSource = IdentificationSource.getById(identificationSourceString);
+          final IdentificationSource identificationSource = IdentificationSource.getOrMake(identificationSourceString);
           final boolean proprietary = componentJson.get("proprietary").booleanValue();
           String hash = JsonUtils.getNullableString(componentJson.get("hash"));
 

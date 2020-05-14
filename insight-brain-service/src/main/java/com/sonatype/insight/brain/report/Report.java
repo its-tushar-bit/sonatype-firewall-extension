@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.report;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -45,6 +46,7 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -147,6 +149,20 @@ public final class Report
     return new ReportEntry(reportEntry.name, reportEntry.time, augmentedIndexHtmlContent.getBytes("UTF-8"));
   }
 
+  private static int[] getSecurityCounts(ObjectNode dataJson) {
+    int[] securityCounts = new int[10];
+    JsonNode securityCountsNode = dataJson.get("securityCounts");
+    if (securityCountsNode != null && !securityCountsNode.isEmpty()) {
+      try {
+        securityCounts = JsonUtils.asPojo(securityCountsNode, int[].class);
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+    return securityCounts;
+  }
+
   static void applyChanges(final Application application, final File reportFile)
       throws IOException
   {
@@ -176,7 +192,8 @@ public final class Report
     Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = parseDependencyDepths(JsonUtils.parse(extractEntry(
         reportFile, "dependencies.json").buf));
 
-    final int[] securityCounts = new int[10];
+    final ObjectNode data = JsonUtils.parse(getEntry(reportFile, DATA_JSON_FILENAME).buf);
+    final int[] securityCounts = getSecurityCounts(data);
     final int[] licenseCounts = new int[11];
 
     int insecureArtifactCount = 0;
@@ -238,7 +255,6 @@ public final class Report
     saveReportEntry(reportFile, "partialmatched.json", partialMatched);
     writeLicenseThreatsToReportFile(application, reportFile);
 
-    final ObjectNode data = JsonUtils.parse(getEntry(reportFile, DATA_JSON_FILENAME).buf);
     fill(data.putArray("securityCounts"), securityCounts);
     data.put("insecureArtifactCount", insecureArtifactCount);
     fill(data.putArray("effectiveLicenseCounts"), licenseCounts);
@@ -599,12 +615,18 @@ public final class Report
 
     Map<String, HashComponentIdentifier> claimedComponentsByHash =
         applyClaimedComponents(bomJsonData, dataJson, summaryJsonData);
+
+    // must start from un-edited data
+    ContainerNode<?> licensesJsonData = loadReportEntry(reportFile, LICENSES_JSON_FILENAME);
+    ContainerNode<?> securityJsonData = loadReportEntry(reportFile, SECURITY_JSON_FILENAME);
+    ThirdPartyComponentDAO thirdPartyComponentDAO = new ThirdPartyComponentDAO(null);
+    thirdPartyComponentDAO.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData,
+        reportFile);
+
     Set<ComponentIdentifier> componentIdentifiers = fixBomComponentIdentifiers(bomJsonData);
     saveReportEntry(reportFile, DATA_JSON_FILENAME, dataJson);
     saveReportEntry(reportFile, "summary.json", summaryJsonData);
 
-    // Must start from un-edited license data.
-    ContainerNode<?> licensesJsonData = loadReportEntry(reportFile, LICENSES_JSON_FILENAME);
     fixComponentIdentifiers(licensesJsonData, componentIdentifiers);
     Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = applyLicenseOverrides(licensesJsonData,
         application);
@@ -617,8 +639,6 @@ public final class Report
     augmentModified(componentIdentifiersWithLicenseOverrides, bomJsonData);
     saveReportEntry(reportFile, BOM_JSON_FILENAME, bomJsonData);
 
-    // must start from un-edited data
-    ContainerNode<?> securityJsonData = loadReportEntry(reportFile, SECURITY_JSON_FILENAME);
     fixComponentIdentifiers(securityJsonData, componentIdentifiers);
     applySecurityVulnerabilityOverrides(securityJsonData, application);
     saveReportEntry(reportFile, SECURITY_JSON_FILENAME, securityJsonData);

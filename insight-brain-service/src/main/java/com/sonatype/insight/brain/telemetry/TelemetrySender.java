@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -24,6 +26,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
 
+import io.dropwizard.lifecycle.Managed;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.ByteArrayBody;
@@ -37,6 +40,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class TelemetrySender
+    implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(TelemetrySender.class);
 
@@ -45,6 +49,10 @@ public class TelemetrySender
   private final VersionService versionService;
 
   private final TelemetryId telemetryId;
+
+  private final BlockingQueue<TelemetrySubmission> submissions = new LinkedBlockingQueue<>();
+
+  private TelemetrySubmitter submitter;
 
   private static final String MULTIPART_FILE_NAME = "file";
 
@@ -67,6 +75,22 @@ public class TelemetrySender
     this.telemetryId = telemetryId;
   }
 
+  @Override
+  public void start() {
+    if (submitter == null) {
+      submitter = new TelemetrySubmitter();
+      submitter.start();
+    }
+  }
+
+  @Override
+  public void stop() {
+    if (submitter != null) {
+      submitter.interrupt();
+      submitter = null;
+    }
+  }
+
   public void send(TelemetryData telemetryData) {
     send(telemetryData, null /* clientUserAgent */);
   }
@@ -84,11 +108,7 @@ public class TelemetrySender
       return;
     }
     try {
-      TelemetryHeader telemetryHeader = createHeader();
-      byte[] zipData = createZip(telemetryHeader, telemetryData);
-      ContentBody fileBody = new ByteArrayBody(zipData, ZIP_FILENAME);
-      HttpEntity httpEntity = MultipartEntityBuilder.create().addPart(MULTIPART_FILE_NAME, fileBody).build();
-      client.post(RESOURCE_PATH, httpEntity, clientUserAgent);
+      submissions.add(new TelemetrySubmission(createZip(createHeader(), telemetryData), clientUserAgent));
     }
     catch (Exception e) {
       log.debug("Failed to send telemetry.", e);
@@ -112,6 +132,53 @@ public class TelemetrySender
       zipOutput.write(JsonUtils.generate(telemetryData));
       zipOutput.finish();
       return bos.toByteArray();
+    }
+  }
+
+  static class TelemetrySubmission
+  {
+    final byte[] zipData;
+
+    final String clientUserAgent;
+
+    TelemetrySubmission(byte[] zipData, String clientUserAgent) {
+      this.zipData = zipData;
+      this.clientUserAgent = clientUserAgent;
+    }
+  }
+
+  class TelemetrySubmitter
+      extends Thread
+  {
+    TelemetrySubmitter() {
+      setName(getClass().getSimpleName());
+      setDaemon(true);
+    }
+
+    @Override
+    public void run() {
+      while (true) {
+        try {
+          TelemetrySubmission submission = submissions.take();
+          ContentBody fileBody = new ByteArrayBody(submission.zipData, ZIP_FILENAME);
+          HttpEntity httpEntity = MultipartEntityBuilder.create().addPart(MULTIPART_FILE_NAME, fileBody).build();
+          client.post(RESOURCE_PATH, httpEntity, submission.clientUserAgent);
+        }
+        catch (InterruptedException e) {
+          // interrupt is our signal to quit
+          return;
+        }
+        catch (Exception e) {
+          log.debug("Failed to send telemetry.", e);
+        }
+        catch (Throwable t) {
+          // Try to log to stderr before trying the standard logging because the standard logging may not be operational
+          // at this point.
+          t.printStackTrace();
+          log.error(t.getMessage(), t);
+          System.exit(2);
+        }
+      }
     }
   }
 }

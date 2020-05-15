@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
@@ -32,6 +33,7 @@ import org.junit.Test;
 
 import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 public class UserInterfaceLinksResourceTest
     extends AbstractResourceTest
@@ -183,6 +185,7 @@ public class UserInterfaceLinksResourceTest
       final Map<ByteArrayDataSource, Integer> responses)
       throws MessagingException, IOException
   {
+    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(responses).isNotEmpty());
     return getTelemetryItems(responses).stream()
         .collect(groupingBy(telemetryItem -> telemetryItem.getTelemetryPurposes().get(0)));
   }

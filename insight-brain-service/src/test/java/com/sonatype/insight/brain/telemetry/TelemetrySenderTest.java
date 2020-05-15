@@ -40,6 +40,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class TelemetrySenderTest
     extends AbstractComponentTest
@@ -68,20 +71,20 @@ public class TelemetrySenderTest
   }
 
   @Test
-  public void testSend_Empty() {
-    final InvocationOnMock[] invocation = new InvocationOnMock[1];
-    doAnswer(x -> invocation[0] = x).when(mockHdsClient)
-        .post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
+  public void testSend_Empty() throws Exception {
+    telemetrySender.start();
 
     telemetrySender.send(Collections.emptyList());
 
-    assertThat(invocation[0]).isNull();
+    Thread.sleep(1000);
+    verifyNoInteractions(mockHdsClient);
   }
 
   @Test
   public void testSend() throws Exception {
-    final InvocationOnMock[] invocation = new InvocationOnMock[1];
+    telemetrySender.start();
 
+    final InvocationOnMock[] invocation = new InvocationOnMock[1];
     doAnswer(x -> invocation[0] = x).when(mockHdsClient)
         .post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
 
@@ -89,9 +92,9 @@ public class TelemetrySenderTest
 
     Date expectedMinCreateTime = new Date();
     telemetrySender.send(telemetryDataSend);
-    assertThat(TelemetrySender.RESOURCE_PATH).isEqualTo(invocation[0].getArguments()[0]);
     Date expectedMaxCreateTime = new Date();
 
+    verify(mockHdsClient, timeout(10000)).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
     HttpEntity httpEntity = (HttpEntity) invocation[0].getArguments()[1];
     ByteArrayDataSource multipartDataSource = new ByteArrayDataSource(httpEntity.getContent(), "multipart/form-data");
     MimeMultipart multipart = new MimeMultipart(multipartDataSource);
@@ -132,24 +135,26 @@ public class TelemetrySenderTest
 
   @Test
   public void testSend_ExceptionsAreHandled() throws Exception {
+    telemetrySender.start();
+
     RuntimeException exception = new RuntimeException();
     doThrow(exception).when(mockHdsClient).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
 
     telemetrySender.send(new TelemetryData(TelemetryPurpose.HIERARCHY_METRICS));
 
+    verify(mockHdsClient, timeout(10000)).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
     assertThat(logOutput).atDebugLevel().contains("Failed to send telemetry.", exception);
   }
 
   @Test
   public void testSend_ClientUserAgent() throws Exception {
+    telemetrySender.start();
+
     String clientUserAgent = "test_client_user_agent";
-    final InvocationOnMock[] invocation = new InvocationOnMock[1];
-    doAnswer(x -> invocation[0] = x).when(mockHdsClient).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class),
-        eq(clientUserAgent));
 
     telemetrySender.send(new TelemetryData(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION), clientUserAgent);
 
-    // If invocation[0] is not null, then the mock was called with the right client user agent value.
-    assertThat(invocation[0]).isNotNull();
+    verify(mockHdsClient, timeout(10000)).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class),
+        eq(clientUserAgent));
   }
 }

@@ -120,9 +120,9 @@ public class LicenseThreatGroupLicenseDAO
     return getList(sQuery);
   }
 
-  public List<LicenseThreatGroupLicense> getByOwnerIdsAndLicenseIds(Set<String> ownerIds, Set<String> licenseIds) {
+  public List<LicenseThreatGroupLicense> getByOwnerIds(Set<String> ownerIds) {
     String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
-        " WHERE entity.ownerId IN (?1) AND entity.licenseId IN (?2)";
-    return getList(sQuery, ownerIds, licenseIds);
+        " WHERE entity.ownerId IN (?1)";
+    return getList(sQuery, ownerIds);
   }
 }

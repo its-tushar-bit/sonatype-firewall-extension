@@ -233,7 +233,7 @@ public class LicenseThreatGroupDAO
     return threatLevelsByLicenseId;
   }
 
-  private List<LicenseThreatGroup> getByOwnerIds(Collection<String> ownerIds) {
+  public List<LicenseThreatGroup> getByOwnerIds(Collection<String> ownerIds) {
     String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
         " WHERE entity.ownerId IN (?1)";
     return getList(sQuery, ownerIds);

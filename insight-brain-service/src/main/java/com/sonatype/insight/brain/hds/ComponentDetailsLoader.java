@@ -60,10 +60,10 @@ public class ComponentDetailsLoader
 
   private static final HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
 
-  private final Owner owner;
+  private final ComponentDAO componentDAO;
 
   public ComponentDetailsLoader(Owner owner) {
-    this.owner = owner;
+    componentDAO = new ComponentDAO(owner);
   }
 
   /**
@@ -183,7 +183,6 @@ public class ComponentDetailsLoader
    * @return Component augmented Component object
    */
   public Component augmentComponentDetails(ComponentDetails componentDetails) {
-    ComponentDAO componentDAO = new ComponentDAO(owner);
     Component component = componentDAO.getComponent(componentDetails);
 
     // Use CLM data to populate the component details

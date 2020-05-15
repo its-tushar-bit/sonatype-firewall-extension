@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -74,6 +75,8 @@ public class ComponentDAO
 
   private Map<ComponentIdentifier, LicenseOverride> licenseOverridesByComponentIdentifier;
 
+  private Map<String, Collection<ComponentLabel>> componentLabelsByHash;
+
   public ComponentDAO(Owner owner) {
     this.owner = owner;
   }
@@ -110,6 +113,16 @@ public class ComponentDAO
       }
     }
     return licenseOverridesByComponentIdentifier;
+  }
+
+  private Map<String, Collection<ComponentLabel>> getComponentLabels() {
+    if (componentLabelsByHash == null) {
+      componentLabelsByHash = new HashMap<>();
+      for (ComponentLabel componentLabel : new ComponentLabelDAO().getByOwnerIds(getOwnerIds())) {
+        componentLabelsByHash.computeIfAbsent(componentLabel.getHash(), hash -> new ArrayList<>()).add(componentLabel);
+      }
+    }
+    return componentLabelsByHash;
   }
 
   private void processJsonLicenseData(Component component, JsonNode jsonLicenseData) {
@@ -343,9 +356,8 @@ public class ComponentDAO
     }
 
     // Load label data
-    ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
     for (Component component : result) {
-      loadComponentLabels(component, componentLabelDAO);
+      loadComponentLabels(component);
     }
     return result;
   }
@@ -380,7 +392,7 @@ public class ComponentDAO
       loadSVOverrides(component);
     }
 
-    loadComponentLabels(component, new ComponentLabelDAO());
+    loadComponentLabels(component);
 
     return component;
   }
@@ -397,8 +409,9 @@ public class ComponentDAO
     return component;
   }
 
-  private void loadComponentLabels(Component component, ComponentLabelDAO componentLabelDAO) {
-    List<ComponentLabel> componentLabels = componentLabelDAO.getByOwnerIdAndHash(owner.getId(), component.getHash());
+  private void loadComponentLabels(Component component) {
+    Collection<ComponentLabel> componentLabels =
+        getComponentLabels().getOrDefault(component.getHash(), Collections.emptyList());
     for (ComponentLabel componentLabel : componentLabels) {
       component.addLabelId(componentLabel.getLabelId());
     }

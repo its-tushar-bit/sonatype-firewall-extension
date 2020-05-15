@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.label;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -94,6 +95,12 @@ public class ComponentLabelDAO
     String sQuery = "SELECT entity FROM ComponentLabel entity" + //
         " WHERE entity.ownerId=?1 AND entity.hash=?2 AND entity.labelId=?3";
     return get(tx, sQuery, ownerId, hash, labelId);
+  }
+
+  public List<ComponentLabel> getByOwnerIds(Collection<String> ownerIds) {
+    final String sQuery = "SELECT label FROM ComponentLabel label" + //
+        " WHERE label.ownerId IN (?1)";
+    return getList(sQuery, ownerIds);
   }
 
   /**

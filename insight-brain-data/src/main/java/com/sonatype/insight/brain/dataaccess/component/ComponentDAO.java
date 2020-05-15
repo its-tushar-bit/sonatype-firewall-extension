@@ -75,6 +75,8 @@ public class ComponentDAO
 
   private Map<ComponentIdentifier, LicenseOverride> licenseOverridesByComponentIdentifier;
 
+  private Map<String, Collection<SecurityVulnerabilityOverride>> securityVulnerabilityOverridesByHash;
+
   private Map<String, Collection<ComponentLabel>> componentLabelsByHash;
 
   public ComponentDAO(Owner owner) {
@@ -125,6 +127,17 @@ public class ComponentDAO
     return componentLabelsByHash;
   }
 
+  private Map<String, Collection<SecurityVulnerabilityOverride>> getSecurityVulnerabilityOverrides() {
+    if (securityVulnerabilityOverridesByHash == null) {
+      securityVulnerabilityOverridesByHash = new HashMap<>();
+      for (SecurityVulnerabilityOverride override : securityVulnerabilityOverrideDAO.getByOwnerId(owner.getId())) {
+        securityVulnerabilityOverridesByHash.computeIfAbsent(override.getHash(), hash -> new ArrayList<>())
+            .add(override);
+      }
+    }
+    return securityVulnerabilityOverridesByHash;
+  }
+
   private void processJsonLicenseData(Component component, JsonNode jsonLicenseData) {
     List<String> declaredLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("declaredLicenses"));
     component.setDeclaredLicenseIds(multiLicenseNamesToLicenseIds(declaredLicenseNames));
@@ -155,8 +168,8 @@ public class ComponentDAO
   }
 
   private void loadSVOverrides(Component component) {
-    List<SecurityVulnerabilityOverride> overrides = securityVulnerabilityOverrideDAO.getByOwnerIdAndHash(owner.getId(),
-        component.getHash());
+    Collection<SecurityVulnerabilityOverride> overrides =
+        getSecurityVulnerabilityOverrides().getOrDefault(component.getHash(), Collections.emptyList());
     for (SecurityVulnerabilityOverride override : overrides) {
       for (SecurityVulnerability sv : component.getSecurityVulnerabilities()) {
         if (sv.getSource().equals(override.getSource()) && sv.getRefId().equals(override.getReferenceId())) {

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -65,17 +66,19 @@ public class ComponentDAO
 
   private final Owner owner;
 
-  private Set<String> ownerIds;
+  private List<String> ownerIds;
 
   private Map<String, LicenseThreatGroup> licenseThreatGroupsById;
 
   private Collection<LicenseThreatGroupLicense> licenseThreatGroupLicenses;
 
+  private Map<ComponentIdentifier, LicenseOverride> licenseOverridesByComponentIdentifier;
+
   public ComponentDAO(Owner owner) {
     this.owner = owner;
   }
 
-  private Set<String> getOwnerIds() {
+  private List<String> getOwnerIds() {
     if (ownerIds == null) {
       ownerIds = ownerDAO.getOwnerIds(owner);
     }
@@ -97,6 +100,18 @@ public class ComponentDAO
     return licenseThreatGroupLicenses;
   }
 
+  private Map<ComponentIdentifier, LicenseOverride> getLicenseOverrides() {
+    if (licenseOverridesByComponentIdentifier == null) {
+      licenseOverridesByComponentIdentifier = new HashMap<>();
+      for (String ownerId : getOwnerIds()) {
+        for (LicenseOverride licenseOverride : licenseOverrideDAO.getByOwnerId(ownerId)) {
+          licenseOverridesByComponentIdentifier.putIfAbsent(licenseOverride.getComponentIdentifier(), licenseOverride);
+        }
+      }
+    }
+    return licenseOverridesByComponentIdentifier;
+  }
+
   private void processJsonLicenseData(Component component, JsonNode jsonLicenseData) {
     List<String> declaredLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("declaredLicenses"));
     component.setDeclaredLicenseIds(multiLicenseNamesToLicenseIds(declaredLicenseNames));
@@ -105,9 +120,21 @@ public class ComponentDAO
   }
 
   private void loadLicenseOverride(Component component) {
-    LicenseOverride licenseOverride =
-        licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(owner, component.getComponentIdentifier());
-
+    ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
+    LicenseOverride licenseOverride = getLicenseOverrides().get(componentIdentifier);
+    if (componentIdentifier.isMaven()) {
+      // for Maven components, there can still be legacy license overrides that only use the GAV coordinates
+      ComponentIdentifier legacyComponentIdentifier = new ComponentIdentifier(ComponentIdentifier.FORMAT_MAVEN,
+          ComponentIdentifierAdapter.toGavOnlyCoordinates(componentIdentifier.getCoordinates()));
+      LicenseOverride legacyLicenseOverride = getLicenseOverrides().get(legacyComponentIdentifier);
+      if (licenseOverride == null) {
+        licenseOverride = legacyLicenseOverride;
+      }
+      else if (legacyLicenseOverride != null && getOwnerIds()
+          .indexOf(legacyLicenseOverride.getOwnerId()) < getOwnerIds().indexOf(licenseOverride.getOwnerId())) {
+        licenseOverride = legacyLicenseOverride;
+      }
+    }
     if (licenseOverride != null) {
       component.setLicenseOverrideStatus(licenseOverride.getStatus());
       component.setLicenseOverrideIds(licenseOverride.getLicenseIds());

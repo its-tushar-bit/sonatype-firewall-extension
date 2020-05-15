@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -120,7 +121,7 @@ public class LicenseThreatGroupLicenseDAO
     return getList(sQuery);
   }
 
-  public List<LicenseThreatGroupLicense> getByOwnerIds(Set<String> ownerIds) {
+  public List<LicenseThreatGroupLicense> getByOwnerIds(Collection<String> ownerIds) {
     String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
         " WHERE entity.ownerId IN (?1)";
     return getList(sQuery, ownerIds);

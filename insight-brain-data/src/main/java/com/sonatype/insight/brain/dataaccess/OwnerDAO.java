@@ -6,11 +6,9 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -182,11 +180,11 @@ public class OwnerDAO
   }
 
   /**
-   * Returns the ids of all the owners up in the hierarchy for the specified owner.
-   * It includes the id of the input owner.
+   * Returns the ids of all the owners up in the hierarchy for the specified owner, starting with the id of the input
+   * owner.
    */
-  public Set<String> getOwnerIds(Owner owner) {
-    Set<String> ownerIds = new HashSet<>();
+  public List<String> getOwnerIds(Owner owner) {
+    List<String> ownerIds = new ArrayList<>();
     walkHierarchy(owner).forEach(anOwner -> ownerIds.add(anOwner.getId()));
     return ownerIds;
   }

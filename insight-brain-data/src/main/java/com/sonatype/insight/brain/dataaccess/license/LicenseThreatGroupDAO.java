@@ -216,7 +216,7 @@ public class LicenseThreatGroupDAO
    * @since 1.91
    */
   public Map<String, Integer> getLicenseThreatLevelsByApplication(Application application) {
-    Set<String> ownerIds = ownerDAO.getOwnerIds(application);
+    Collection<String> ownerIds = ownerDAO.getOwnerIds(application);
 
     Map<String, Integer> threatLevelsByLicenseThreatGroupId = getByOwnerIds(ownerIds).stream()
         .collect(Collectors.toMap(LicenseThreatGroup::getId, LicenseThreatGroup::getThreatLevel));

@@ -138,13 +138,13 @@ public class ComponentLabelDAOTest
     ComponentLabelDAO dao = new ComponentLabelDAO();
 
     // sanity check
-    List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHashWithHierarchy(applicationId, hash);
     assertThat(componentLabels).isEmpty();
 
     dao.insert(new ComponentLabel(application.getOrganizationId(), orgLabel.getId(), hash));
     dao.insert(new ComponentLabel(applicationId, appLabel.getId(), hash));
 
-    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    componentLabels = dao.getByOwnerIdAndHashWithHierarchy(applicationId, hash);
     assertThat(componentLabels).hasSize(2);
 
     assertComponentLabel(appLabel, componentLabels.get(0));

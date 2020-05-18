@@ -439,7 +439,8 @@ public class RepositoryReportTest
     RepositoryReportPage.waitForComponentUpdater();
 
     // label persisted
-    assertThat(new ComponentLabelDAO().getByOwnerIdAndHash(repo.getId(), criticalComponentHash)).hasSize(2);
+    assertThat(new ComponentLabelDAO().getByOwnerIdAndHashWithHierarchy(repo.getId(), criticalComponentHash))
+        .hasSize(2);
 
     // new table row for the policy violation
     RepositoryReportPage.filter().allViolations().click();
@@ -460,7 +461,7 @@ public class RepositoryReportTest
     RemoveLabelModal.root().should(disappear);
 
     // backend check that it was removed
-    List<ComponentLabel> appliedLabels = new ComponentLabelDAO().getByOwnerIdAndHash(repo.getId(),
+    List<ComponentLabel> appliedLabels = new ComponentLabelDAO().getByOwnerIdAndHashWithHierarchy(repo.getId(),
         criticalComponentHash);
     assertThat(appliedLabels).extracting(ComponentLabel::getLabelId).containsExactlyInAnyOrder(elJunko.getId());
 

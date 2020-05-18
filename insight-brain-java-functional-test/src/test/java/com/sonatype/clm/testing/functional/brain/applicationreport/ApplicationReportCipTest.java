@@ -586,7 +586,7 @@ public class ApplicationReportCipTest
     AddLabelModal.root().shouldBe(hidden);
 
     // label persisted
-    assertThat(new ComponentLabelDAO().getByOwnerIdAndHash(app.getId(), JAVANCSS_HASH)).hasSize(2);
+    assertThat(new ComponentLabelDAO().getByOwnerIdAndHashWithHierarchy(app.getId(), JAVANCSS_HASH)).hasSize(2);
 
     // Check new policy violation was added
     evaluator.reevaluatePolicy();
@@ -609,7 +609,8 @@ public class ApplicationReportCipTest
     RemoveLabelModal.root().should(disappear);
 
     // backend check that it was removed
-    List<ComponentLabel> appliedLabels = new ComponentLabelDAO().getByOwnerIdAndHash(app.getId(), JAVANCSS_HASH);
+    List<ComponentLabel> appliedLabels =
+        new ComponentLabelDAO().getByOwnerIdAndHashWithHierarchy(app.getId(), JAVANCSS_HASH);
     assertThat(appliedLabels).extracting(ComponentLabel::getLabelId).containsExactlyInAnyOrder(elMagnifico.getId());
 
     // Check new policy violation is gone

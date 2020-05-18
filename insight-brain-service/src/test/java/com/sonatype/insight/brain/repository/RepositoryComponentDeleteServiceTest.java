@@ -87,6 +87,10 @@ public class RepositoryComponentDeleteServiceTest
     tempEntity.newWaiver(component.getHash(), policy.getId(), repository.getId());
     tempEntity.newComponentLabel(component, label);
 
+    // same component label as above just at a higher org level, must be kept
+    ComponentLabel componentLabel1 =
+        tempEntity.newComponentLabel(Organization.ROOT_ORGANIZATION_ID, label.getId(), component.getHash());
+
     // We do not want to delete any policy violations or waivers that reside in other repositories
     // or unrelated to our unknown component, but reference the same policy.
     Repository repo2 = tempEntity.newRepository("rm2", "r2", repositoryFormat);
@@ -105,7 +109,7 @@ public class RepositoryComponentDeleteServiceTest
 
     assertThat(getPolicyWaiverIdsOf(policy)).containsOnly(waiver2.getId());
 
-    assertThat(getComponentLabelIds(label)).containsOnly(componentLabel2.getId());
+    assertThat(getComponentLabelIds(label)).containsOnly(componentLabel1.getId(), componentLabel2.getId());
   }
 
   @Test

@@ -46,10 +46,13 @@ public class ComponentLabelDAO
     return getList(tx, sQuery, labelId, ownerIds);
   }
 
-  public List<ComponentLabel> getByOwnerIdAndHash(String ownerId, String hash) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByOwnerIdAndHash(tx, ownerId, hash);
+  public List<ComponentLabel> getByOwnerIdAndHashWithHierarchy(String ownerId, String hash) {
+    List<ComponentLabel> labels = new ArrayList<>();
+    OwnerDAO ownerDAO = new OwnerDAO();
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+      labels.addAll(getByOwnerIdAndHash(owner.getId(), hash));
     }
+    return labels;
   }
 
   public List<ComponentLabel> getByOwnerId(String ownerId) {
@@ -64,16 +67,16 @@ public class ComponentLabelDAO
     return getList(tx, sQuery, ownerId);
   }
 
+  public List<ComponentLabel> getByOwnerIdAndHash(String ownerId, String hash) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIdAndHash(tx, ownerId, hash);
+    }
+  }
+
   public List<ComponentLabel> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {
     final String sQuery = "SELECT label FROM ComponentLabel label" + //
         " WHERE label.ownerId=?1 AND label.hash=?2";
-
-    List<ComponentLabel> labels = new ArrayList<>();
-    OwnerDAO ownerDAO = new OwnerDAO();
-    for (Owner owner : ownerDAO.walkHierarchy(tx, ownerId)) {
-      labels.addAll(getList(tx, sQuery, owner.getId(), hash));
-    }
-    return labels;
+    return getList(tx, sQuery, ownerId, hash);
   }
 
   /**

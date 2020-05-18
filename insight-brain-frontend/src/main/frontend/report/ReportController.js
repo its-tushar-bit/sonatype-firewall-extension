@@ -68,7 +68,7 @@ reportModule.controller('ReportController', ['$scope', '$state', '$http', '$q', 
 reportModule.directive('expandableIframe', function() {
   return {
     template: '<iframe ng-src="{{url}}" width="100%" height="1000px" border="0" frameborder="0" scrolling="yes" ' +
-        'style="overflow:auto;"/>',
+        'style="overflow:auto;"></iframe>',
     scope: {
       url: '=expandableIframe'
     },

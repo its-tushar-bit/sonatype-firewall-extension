@@ -8,7 +8,7 @@
   <div class="nx-page-title iq-page-title">
     <div class="iq-page-title__actions">
       <button id="reevaluate-button" class="iq-btn iq-btn--tertiary" ng-click="vm.reevaluateReport()">
-        <i class="fa fa-refresh fa-fw"/>Re-Evaluate Report
+        <i class="fa fa-refresh fa-fw"></i>Re-Evaluate Report
       </button>
       <div class="iq-dropdown dropdown iq-dropdown--application-results-options" id="options-dropdown">
         <button class="btn dropdown-toggle btn-tertiary" type="button" id="options-menu" data-toggle="dropdown">
@@ -20,11 +20,11 @@
                class="btn iq-btn--dropdown"
                target="_blank"
                ng-href="{{::vm.getReportPdfDownloadUrl()}}">
-              <i class="fa fa-file-pdf-o fa-fw"/>Generate PDF
+              <i class="fa fa-file-pdf-o fa-fw"></i>Generate PDF
             </a>
             <div class="divider"></div>
             <a id="raw-data-link" class="link iq-dropdown-menu__link" ui-sref="^.rawData">
-              <i class="fa fa-file fa-fw"/>View raw data
+              <i class="fa fa-file fa-fw"></i>View raw data
             </a>
             <a id="report-vulnerabilities-list-link"
                class="link iq-dropdown-menu__link"
@@ -34,12 +34,12 @@
                tooltip="{{vm.vulnerabilitiesPageEnabled ? undefined :
                  'Reevaluate the report in order to enable Vulnerabilities view'}}"
                tooltip-append-to-body="true">
-              <i class="fa fa-file fa-fw"/>View vulnerabilities
+              <i class="fa fa-file fa-fw"></i>View vulnerabilities
             </a>
             <a id="old-report-link"
                class="link iq-dropdown-menu__link"
                ui-sref="report({ publicId: vm.reportParameters.appId, scanId: vm.reportParameters.scanId })">
-              <i class="fa fa-file fa-fw"/>View legacy report
+              <i class="fa fa-file fa-fw"></i>View legacy report
             </a>
           </div>
         </div>

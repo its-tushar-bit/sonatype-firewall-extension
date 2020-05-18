@@ -15,7 +15,7 @@ function configureRoutes($stateProvider) {
         abstract: true,
         url: '/labs',
         template: `<div id="labs" class="iq-body-container iq-body-container--single-pane">
-          <ui-view/>
+          <ui-view></ui-view>
         </div>`
       })
       .state('labs.successMetrics', {

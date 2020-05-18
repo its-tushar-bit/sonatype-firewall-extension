@@ -21,8 +21,9 @@ export default function LoadWrapper() {
                 '<div ng-if="!vm.error && !vm.isLoading()">' + // ng-if is important for intial-value
                   '<div ng-transclude></div>' +
                 '</div>' +
-                '<div load-error="vm.error" reload="vm.reload()" message="vm.errorMessage" can-retry="vm.canRetry"/>' +
-              '</div>',
+                '<div load-error="vm.error" reload="vm.reload()" message="vm.errorMessage" can-retry="vm.canRetry">' +
+                '</div>' +
+            '</div>',
     scope: {
       error: '=loadWrapper',
       errorMessage: '=message',

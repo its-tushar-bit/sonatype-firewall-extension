@@ -46,7 +46,7 @@ export default function FormMaskDirective($parse) {
             targetElement = attachToBody ? $('body') : element;
 
         // open mask
-        maskElement = $('<div class="form-mask"/>');
+        maskElement = $('<div class="form-mask"></div>');
 
         if (maskMessage) {
           msgElement = $('<div class="form-mask-msg"><h3><i class="fa fa-circle-o-notch fa-spin"></i> ' +

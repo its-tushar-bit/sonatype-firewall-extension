@@ -11,6 +11,8 @@ import { pathSet } from '../../../main/frontend/util/jsUtil';
 
 describe('ViolationDetailsTile', function() {
   let timeAgoMock,
+      mockDate,
+      dateCreatorMock,
       getOwnerImageUrlMock,
       ViolationDetailsTile,
       stateGetMock,
@@ -27,6 +29,9 @@ describe('ViolationDetailsTile', function() {
         qualifier: (timeAgoCallCounter % 2 ? 'weeks' : 'days') + ' ago'
       };
     });
+
+    mockDate = new Date();
+    dateCreatorMock = spyOn(window, 'Date').and.returnValue(mockDate);
 
     getOwnerImageUrlMock = jasmine.createSpy('getOwnerImageUrl').and.returnValue('/rest/icon');
     stateGetMock = jasmine.createSpy('$state.get').and.returnValue('theState');
@@ -45,15 +50,15 @@ describe('ViolationDetailsTile', function() {
           ownerId: '1234'
         },
         threatLevel: 8,
-        openTime: 42,
+        openTime: '2020-03-02T16:53:33.263Z',
         stageData: {
           build: {
-            mostRecentEvaluationTime: 1000,
+            mostRecentEvaluationTime: '2020-03-04T16:53:33.263Z',
             mostRecentScanId: 'scan2',
             actionTypeId: null
           },
           'stage-release': {
-            mostRecentEvaluationTime: 999,
+            mostRecentEvaluationTime: '2020-03-03T16:53:33.263Z',
             mostRecentScanId: 'scan1',
             actionTypeId: 'fail'
           }
@@ -189,7 +194,8 @@ describe('ViolationDetailsTile', function() {
     it('contains a dt and a dd with the first reported time displayed in relative terms', function() {
       const component = getShallowComponent().find('.iq-violation-details__first-reported');
 
-      expect(timeAgoMock).toHaveBeenCalledWith(42);
+      expect(dateCreatorMock).toHaveBeenCalledWith('2020-03-02T16:53:33.263Z');
+      expect(timeAgoMock).toHaveBeenCalledWith(mockDate);
       expect(component.find('dt')).toExist();
       expect(component.find('dd')).toHaveText('1 weeks ago');
     });
@@ -199,7 +205,8 @@ describe('ViolationDetailsTile', function() {
     it('contains a dt and a dd with the highest mostRecentEvaluationTime time displayed in relative terms', function() {
       const component = getShallowComponent().find('.iq-violation-details__last-reported');
 
-      expect(timeAgoMock).toHaveBeenCalledWith(1000);
+      expect(dateCreatorMock).toHaveBeenCalledWith('2020-03-04T16:53:33.263Z');
+      expect(timeAgoMock).toHaveBeenCalledWith(mockDate);
       expect(component.find('dt')).toExist();
       expect(component.find('dd')).toHaveText('2 days ago');
     });

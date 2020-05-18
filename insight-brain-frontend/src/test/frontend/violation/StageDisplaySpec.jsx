@@ -13,10 +13,14 @@ describe('StageDisplay', function() {
       stateGetMock,
       stateHrefMock,
       minimalProps,
+      dateCreatorMock,
+      mockDate,
       getShallowComponent;
 
   beforeEach(function() {
+    mockDate = new Date();
     terseAgoMock = jasmine.createSpy('terseAgo').and.returnValue('5d');
+    dateCreatorMock = spyOn(window, 'Date').and.returnValue(mockDate);
     stateGetMock = jasmine.createSpy('$state.get').and.returnValue('theState');
     stateHrefMock = jasmine.createSpy('$state.href').and.returnValue('#/foo');
     minimalProps = {
@@ -40,7 +44,7 @@ describe('StageDisplay', function() {
     expect(getShallowComponent()).toMatchSelector('span.iq-violation-details__stage');
     expect(getShallowComponent({
       stageData: {
-        mostRecentEvaluationTime: 0,
+        mostRecentEvaluationTime: '2020-05-07T16:53:33.263Z',
         mostRecentScanId: 'scan1',
         actionTypeId: null
       }
@@ -66,7 +70,7 @@ describe('StageDisplay', function() {
     const getComponentWithData = (props, actionTypeId = null) => getShallowComponent({
       ...props,
       stageData: {
-        mostRecentEvaluationTime: 50000,
+        mostRecentEvaluationTime: '2020-05-07T16:53:33.263Z',
         mostRecentScanId: 'scan1',
         actionTypeId
       }
@@ -82,7 +86,8 @@ describe('StageDisplay', function() {
 
       expect(stateGetMock).toHaveBeenCalledWith('applicationReport');
       expect(stateHrefMock).toHaveBeenCalledWith('theState', { publicId: 'app1', scanId: 'scan1' });
-      expect(terseAgoMock).toHaveBeenCalledWith(50000);
+      expect(dateCreatorMock).toHaveBeenCalledWith('2020-05-07T16:53:33.263Z');
+      expect(terseAgoMock).toHaveBeenCalledWith(mockDate);
 
       expect(link).toHaveProp('href', '#/foo');
       expect(link).toHaveText('Build 5d');

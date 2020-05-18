@@ -265,15 +265,12 @@ public class ApiCrossStageViolationService
     dto.openTime = policyViolations.stream()
         .map(PolicyViolation::getOpenTime)
         .min(DATE_COMPARATOR)
-        .get()
-        .getTime();
+        .get();
 
-    Date maxFixTime = policyViolations.stream()
+    dto.fixTime = policyViolations.stream()
         .map(PolicyViolation::getFixOrWaiveTime)
         // can't use max here because it doesn't like nulls
         .reduce(new Date(0), (d1, d2) -> DATE_COMPARATOR.compare(d1, d2) > 0 ? d1 : d2);
-
-    dto.fixTime = maxFixTime == null ? null : maxFixTime.getTime();
 
     dto.stageData = policyEvaluations.stream()
         .collect(Collectors.toMap(
@@ -292,7 +289,7 @@ public class ApiCrossStageViolationService
   {
     ApiCrossStageViolationDTOV2.StageData stageData = new ApiCrossStageViolationDTOV2.StageData();
 
-    stageData.mostRecentEvaluationTime = policyEvaluation.getTime().getTime();
+    stageData.mostRecentEvaluationTime = policyEvaluation.getTime();
     stageData.mostRecentScanId = policyEvaluation.getScanId();
     stageData.actionTypeId = policyViolation.getActionTypeId();
 

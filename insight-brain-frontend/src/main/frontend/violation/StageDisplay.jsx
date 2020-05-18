@@ -7,6 +7,7 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import { faExclamationCircle, faExclamationTriangle, faSquare } from '@fortawesome/free-solid-svg-icons';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+
 import { terseAgo } from '../util/CommonServices';
 
 const iconByActionTypeId = {
@@ -26,7 +27,7 @@ export default function StageDisplay({ $state, stageType, stageData, application
           publicId: applicationPublicId,
           scanId: mostRecentScanId
         }),
-        displayTime = terseAgo(mostRecentEvaluationTime);
+        displayTime = terseAgo(new Date(mostRecentEvaluationTime));
 
     return (
       <span className="iq-violation-details__stage">
@@ -54,7 +55,7 @@ StageDisplay.propTypes = {
     shortName: PropTypes.string.isRequired
   }).isRequired,
   stageData: PropTypes.shape({
-    mostRecentEvaluationTime: PropTypes.number.isRequired,
+    mostRecentEvaluationTime: PropTypes.string.isRequired,
     mostRecentScanId: PropTypes.string.isRequired,
     actionTypeId: PropTypes.oneOf(['fail', 'warn', null])
   }),

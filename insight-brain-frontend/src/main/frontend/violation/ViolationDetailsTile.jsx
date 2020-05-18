@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { keys, map, max, prop, reduce, values } from 'ramda';
+import { compose, keys, map, max, prop, reduce, values } from 'ramda';
 import classnames from 'classnames';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
 
@@ -29,8 +29,11 @@ export default function ViolationDetailsTile({ $state, violationDetails, stageTy
       threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
       threatLevelClassName = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`),
 
-      openTime = timeAgo(violationDetails.openTime),
-      mostRecentEvaluationTimes = map(prop('mostRecentEvaluationTime'), values(violationDetails.stageData)),
+      parseISODate = (time) => new Date(time),
+      openTime = timeAgo(parseISODate(violationDetails.openTime)),
+
+      parseRecentEvaluationTimes = compose(parseISODate, prop('mostRecentEvaluationTime')),
+      mostRecentEvaluationTimes = map(parseRecentEvaluationTimes, values(violationDetails.stageData)),
       mostRecentEvaluationTimestamp = reduce(max, 0, mostRecentEvaluationTimes),
       mostRecentEvaluationTime = timeAgo(mostRecentEvaluationTimestamp),
 
@@ -107,7 +110,7 @@ export const violationDetailsPropTypes = {
     ownerPublicId: PropTypes.string
   }).isRequired,
   threatLevel: PropTypes.number.isRequired,
-  openTime: PropTypes.number.isRequired,
+  openTime: PropTypes.string.isRequired,
   stageData: PropTypes.objectOf(StageDisplay.propTypes.stageData.isRequired).isRequired,
   applicationPublicId: PropTypes.string.isRequired,
   organizationName: PropTypes.string.isRequired,

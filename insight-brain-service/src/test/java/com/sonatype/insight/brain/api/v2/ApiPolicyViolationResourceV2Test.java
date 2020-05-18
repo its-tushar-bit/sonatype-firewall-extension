@@ -113,7 +113,7 @@ public class ApiPolicyViolationResourceV2Test
     assertThat(resultDTO.stageData).containsOnlyKeys(BuildStageType.ID);
     assertThat(resultDTO.displayName.toString()).isEqualTo("g1 : a1 : v1");
     assertThat(resultDTO.stageData.get(BuildStageType.ID)).extracting("mostRecentEvaluationTime", "mostRecentScanId")
-        .containsExactly(date.getTime(), "scanId1App1");
+        .containsExactly(date, "scanId1App1");
   }
 
   @Test
@@ -146,8 +146,8 @@ public class ApiPolicyViolationResourceV2Test
     assertThat(resultDTO.stageData).containsOnlyKeys(BuildStageType.ID, DevelopStageType.ID);
     assertThat(resultDTO.displayName.toString()).isEqualTo("g1 : a1 : v1");
     assertThat(resultDTO.stageData.get(BuildStageType.ID)).extracting("mostRecentEvaluationTime", "mostRecentScanId")
-            .containsExactly(baseDate.getTime(), "scanId1App1");
+            .containsExactly(baseDate, "scanId1App1");
     assertThat(resultDTO.stageData.get(DevelopStageType.ID)).extracting("mostRecentEvaluationTime", "mostRecentScanId")
-            .containsExactly(baseDate.getTime() + 1, "scanId2App1");
+            .containsExactly(new Date(baseDate.getTime() + 1), "scanId2App1");
   }
 }

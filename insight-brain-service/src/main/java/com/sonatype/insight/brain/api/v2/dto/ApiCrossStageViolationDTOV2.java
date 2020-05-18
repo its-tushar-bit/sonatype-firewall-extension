@@ -5,12 +5,15 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import java.util.Date;
 import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.insight.brain.utils.ISODateSerializer;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 public class ApiCrossStageViolationDTOV2
     extends ApiPolicyViolationDTOV2
@@ -21,9 +24,11 @@ public class ApiCrossStageViolationDTOV2
 
   public String organizationName;
 
-  public long openTime;
+  @JsonSerialize(using = ISODateSerializer.class)
+  public Date openTime;
 
-  public Long fixTime;
+  @JsonSerialize(using = ISODateSerializer.class)
+  public Date fixTime;
 
   public String hash;
 
@@ -42,7 +47,8 @@ public class ApiCrossStageViolationDTOV2
 
   public static class StageData
   {
-    public long mostRecentEvaluationTime;
+    @JsonSerialize(using = ISODateSerializer.class)
+    public Date mostRecentEvaluationTime;
 
     public String mostRecentScanId;
 

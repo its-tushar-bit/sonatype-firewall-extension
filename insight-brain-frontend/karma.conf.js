@@ -68,7 +68,6 @@ module.exports = function(config) {
 
     coverageIstanbulReporter: {
       reports: ['text-summary', 'lcovonly'],
-      fixWebpackSourcePaths: true,
       dir: 'target/coverage'
     },
 

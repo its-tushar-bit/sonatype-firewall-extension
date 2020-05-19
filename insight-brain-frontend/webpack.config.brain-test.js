@@ -34,7 +34,12 @@ module.exports = {
         test: /\.jsx?$/,
         include: /src[\/\\]main[\/\\]frontend/,
         exclude: /[\/\\]lib[\/\\]/,
-        use: { loader: 'istanbul-instrumenter-loader' }
+        use: {
+          loader: 'istanbul-instrumenter-loader',
+          options: {
+            esModules: true
+          }
+        }
       },
       {
         test: /\.jsx?$/,

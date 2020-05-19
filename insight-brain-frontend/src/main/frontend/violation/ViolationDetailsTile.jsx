@@ -64,7 +64,7 @@ export default function ViolationDetailsTile({ $state, violationDetails, stageTy
         <ViolationDetailsSubtitle { ...violationDetails } />
       </div>
       <div className="nx-tile-content nx-grid-row">
-        <dl className="iq-read-only nx-grid-col nx-grid-col--33 iq-violation-details__left-details">
+        <dl className="iq-read-only nx-grid-col iq-violation-details__left-details">
           <div className="iq-violation-details__threat-level">
             <dt>Threat Level</dt>
             <dd className={threatLevelClassName}>{threatLevel}</dd>

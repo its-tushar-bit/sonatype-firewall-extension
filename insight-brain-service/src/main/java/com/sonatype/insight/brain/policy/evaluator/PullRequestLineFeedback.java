@@ -110,7 +110,7 @@ public class PullRequestLineFeedback
       final String baseUrl,
       final String suggestedVersion)
   {
-    int threatLevel = violations.get(0).getThreatLevel();
+    int threatLevel = getHighestThreatLevel(violations);
     String threatColor = PullRequestFeedbackDetails.getColorForThreatLevel(threatLevel);
     return ImmutableMap.<String, Object>builder()
         .put("componentNameAndVersion", displayName)

@@ -133,7 +133,7 @@ public class PullRequestLineFeedbackTest
   private static List<PolicyViolation> defaultPolicyViolations(int count) {
     final List<PolicyViolation> policyViolations = new ArrayList<>();
     for (int i = 0; i < count; i++) {
-      policyViolations.add(defaultPolicyViolation(i));
+      policyViolations.add(defaultPolicyViolation(i + 1));
     }
     return policyViolations;
   }
@@ -145,7 +145,7 @@ public class PullRequestLineFeedbackTest
 
     PolicyEvaluation evaluation = new PolicyEvaluation();
     PolicyViolation policyViolation =
-        new PolicyViolation(evaluation, "policy_" + number, "Policy " + number, 10 - number,
+        new PolicyViolation(evaluation, "policy_" + number, "Policy " + number, number,
             PolicyThreatCategory.OTHER, "H", ComponentIdentifier.createMavenCoordinates("G", "A", "V"),
             Collections.singletonList(constraintFact), "filename");
 

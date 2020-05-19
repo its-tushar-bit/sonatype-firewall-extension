@@ -9,15 +9,15 @@
 
 Threat (of 10) | Policy | Violation Details
 --- | --- | --- |
-10 | Policy 0 | <b>Constraint 0:</b><ul><li>Match state was 'Exact'</li></ul>
-9 | Policy 1 | <b>Constraint 1:</b><ul><li>Match state was 'Exact'</li></ul>
-8 | Policy 2 | <b>Constraint 2:</b><ul><li>Match state was 'Exact'</li></ul>
-7 | Policy 3 | <b>Constraint 3:</b><ul><li>Match state was 'Exact'</li></ul>
-6 | Policy 4 | <b>Constraint 4:</b><ul><li>Match state was 'Exact'</li></ul>
+10 | Policy 10 | <b>Constraint 10:</b><ul><li>Match state was 'Exact'</li></ul>
+9 | Policy 9 | <b>Constraint 9:</b><ul><li>Match state was 'Exact'</li></ul>
+8 | Policy 8 | <b>Constraint 8:</b><ul><li>Match state was 'Exact'</li></ul>
+7 | Policy 7 | <b>Constraint 7:</b><ul><li>Match state was 'Exact'</li></ul>
+6 | Policy 6 | <b>Constraint 6:</b><ul><li>Match state was 'Exact'</li></ul>
 5 | Policy 5 | <b>Constraint 5:</b><ul><li>Match state was 'Exact'</li></ul>
-4 | Policy 6 | <b>Constraint 6:</b><ul><li>Match state was 'Exact'</li></ul>
-3 | Policy 7 | <b>Constraint 7:</b><ul><li>Match state was 'Exact'</li></ul>
-2 | Policy 8 | <b>Constraint 8:</b><ul><li>Match state was 'Exact'</li></ul>
-1 | Policy 9 | <b>Constraint 9:</b><ul><li>Match state was 'Exact'</li></ul>
+4 | Policy 4 | <b>Constraint 4:</b><ul><li>Match state was 'Exact'</li></ul>
+3 | Policy 3 | <b>Constraint 3:</b><ul><li>Match state was 'Exact'</li></ul>
+2 | Policy 2 | <b>Constraint 2:</b><ul><li>Match state was 'Exact'</li></ul>
+1 | Policy 1 | <b>Constraint 1:</b><ul><li>Match state was 'Exact'</li></ul>
 
 </details>

@@ -33,6 +33,13 @@ module.exports = function(config) {
     client: {
       // remove or switch to true to see console logging from the tests in the output
       captureConsole: false,
+
+      jasmine: {
+        // the tests for the bundles outside of the main bundle depend on a bunch of global mutable state and
+        // are unfortunately quite fragile. They are known to run correctly when run in alphabetical order, but
+        // not necessarily in random order.
+        random: false
+      }
     },
 
 

@@ -24,36 +24,32 @@ window.CLM = {
   assetsPath : '../'
 };
 
-(function () {
-  'use strict';
+function init($rootScope, ComponentUpdateService, pendoService) {
+  $rootScope.$on('reevaluate.component', function (event, componentKey) {
+    ComponentUpdateService.reevaluate(componentKey, true);
+  });
+  $rootScope.$on('reload.component', function (event, componentKey) {
+    ComponentUpdateService.reevaluate(componentKey, false);
+  });
+  pendoService.start();
+}
+init.$inject = ['$rootScope', 'component.update.service', 'pendoService'];
 
-  function init($rootScope, ComponentUpdateService, pendoService) {
-    $rootScope.$on('reevaluate.component', function (event, componentKey) {
-      ComponentUpdateService.reevaluate(componentKey, true);
-    });
-    $rootScope.$on('reload.component', function (event, componentKey) {
-      ComponentUpdateService.reevaluate(componentKey, false);
-    });
-    pendoService.start();
-  }
-  init.$inject = ['$rootScope', 'component.update.service', 'pendoService'];
+function config($compileProvider) {
+  $compileProvider.debugInfoEnabled(angularDebug);
+}
+config.$inject = ['$compileProvider'];
 
-  function config($compileProvider) {
-    $compileProvider.debugInfoEnabled(angularDebug);
-  }
-  config.$inject = ['$compileProvider'];
-
-  angular.module('audit',
-      ['AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation',
-        auditReportPendoModule.name, componentInformationPanelModule.name, legacyConfigurationModule.name,
-        componentsModule.name, reduxConfigModule.name])
-      .controller('audit.summary.controller', auditSummaryController)
-      .directive('auditThreat', auditThreatDirective)
-      .service('OwnerContext', ownerContextService)
-      .directive('repositoryViolationTableFilter', repositoryViolationTableFilterDirective)
-      .controller('component.update.controller', componentUpdateController)
-      .controller('component.update.optional.controller', componentUpdateOptionalController)
-      .service('component.update.service', componentUpdateService)
-      .run(init)
-      .config(config);
-}());
+export default angular.module('audit',
+    ['AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation',
+      auditReportPendoModule.name, componentInformationPanelModule.name, legacyConfigurationModule.name,
+      componentsModule.name, reduxConfigModule.name])
+    .controller('audit.summary.controller', auditSummaryController)
+    .directive('auditThreat', auditThreatDirective)
+    .service('OwnerContext', ownerContextService)
+    .directive('repositoryViolationTableFilter', repositoryViolationTableFilterDirective)
+    .controller('component.update.controller', componentUpdateController)
+    .controller('component.update.optional.controller', componentUpdateOptionalController)
+    .service('component.update.service', componentUpdateService)
+    .run(init)
+    .config(config);

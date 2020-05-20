@@ -101,7 +101,7 @@ window.SpecUtil = {
    * This is used to test components connected to redux store.
    * Just add this in the beginning of your test:
    *
-   *    beforeEach(module(function($provide) {
+   *    beforeEach(angular.mock.module(function($provide) {
    *      SpecUtil.mockNgRedux($provide);
    *    }));
    *

@@ -63,11 +63,11 @@ If you are developing these bundles, you'll want to use the following command:
 
 `npm run start-all`
 
-#### Running tests for the main bundle
+#### Running tests
 
 Unit tests are written using the [Jasmine](https://jasmine.github.io/) BDD framework.
 
-To run all tests for the main IQ bundle in the CLI and see the results there, simply run the `test` task:
+To run all JavaScript unit tests in the CLI and see the results there, simply run the `test` task:
 
 `npm run test`
 
@@ -80,20 +80,6 @@ You can then launch your browser, point it at `http://localhost:8235/`, and enjo
 In the browser, you can additionally filter the tests that you see by adding a matcher to the `spec` query param of the URL. For example, to execute all specs that begin with the word "dashboard", you would access the following URL:
 
 `http://localhost:8235/?spec=dashboard`
-
-#### Running tests for assets outside the main bundle
-
-To run tests for [bundles outside the main bundle](#building-and-monitoring-front-end-assets-outside-the-main-bundle), use the jasmine-maven-plugin. Here are some examples:
-
-`mvn phantomjs:install jasmine:test -Ptest-cip`  (for testing the [`cip-loader`](./src/main/frontend/cip/cip-loader-index.js) bundle)
-
-`mvn phantomjs:install jasmine:test -Ptest-audit`  (for testing the [`audit-report`](./src/main/frontend/audit-report/audit-report-index.js) bundle)
-
-(These are just a couple of examples; see [the pom](./pom.xml) for the list of tests that can be run with jasmine-maven-plugin.)
-
-Tests run using jamine-maven-plugin can also be run in 'watch' mode, as follows (runs on port 8234):
-
-`mvn jasmine:bdd -Ptest-cip` (for testing the [`cip-loader`](./src/main/frontend/cip/cip-loader-index.js) bundle)
 
 #### Re-installing packages with npm
 

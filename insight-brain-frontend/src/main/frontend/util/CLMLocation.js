@@ -77,7 +77,7 @@ export function getOrganizationsUrl() {
 }
 
 export function getApplicationTagsUrl() {
-  return `${getBaseUrl(window.location.href)}/rest/tag/application`;
+  return `${getBaseUrl(window.location.href)}/api/v2/applicationCategories/application`;
 }
 
 export function getDashboardFilters() {
@@ -277,10 +277,6 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
 
       getNewestRisksExportUrl: function() {
         return baseUrl.get() + '/rest/dashboard/export/newestRisks';
-      },
-
-      getApplicationTagsUrl: function() {
-        return baseUrl.get() + '/api/v2/applicationCategories/application';
       },
 
       getDashboardFilters,

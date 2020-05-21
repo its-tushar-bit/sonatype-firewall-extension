@@ -170,6 +170,48 @@ public class ApiSourceControlServiceTest
         "https://github.com/org/b", "https://github.com/org/a");
   }
 
+  @Test
+  public void testAddOrUpdateSourceControl_ContextPath() {
+    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
+        "https://github.com/context/org/a", "https://github.com/context/org/a");
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_CustomPort()  {
+    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
+        "https://github.com:123/context/org/a", "https://github.com:123/context/org/a");
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_DuplicateAccountNme() {
+    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
+        "https://org@github.com/org/a", "https://org@github.com/org/a");
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_DifferentDuplicateAccountName() {
+    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
+        "ssh://git@github.com/org/a/", "https://github.com/org/a/");
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_ImplicitSshProtocol() {
+    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
+        "git@github.com:org/a.git", "https://github.com/org/a.git");
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_ExplicitSshProtocol() {
+    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
+        "ssh://git@github.com/org/a.git", "https://github.com/org/a.git");
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_HttpsWithGitExtension() {
+    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
+        "https://org@github.com/org/a.git", "https://org@github.com/org/a.git");
+  }
+
   private void testAddOrUpdateSourceControl_AutomaticSourceControl(
       boolean enabled,
       String initialUrl,
@@ -542,8 +584,8 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testGetSourceControlByOwnerDecrypted() {
-    final SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token").build();
+    final SourceControl sourceControl = new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL)
+        .setToken("token").build();
     sourceControlService.encryptToken(sourceControl);
     tempEntity.newSourceControl(sourceControl.getOwnerId(), sourceControl.getRepositoryUrl(), sourceControl.getToken(),
         sourceControl.getProvider());
@@ -551,6 +593,7 @@ public class ApiSourceControlServiceTest
         sourceControlService.getSourceControlByOwnerDecrypted(app.getId());
     assertThat(sourceControlByApplicationId.getOwnerId()).isEqualTo(app.getId());
     assertThat(sourceControlByApplicationId.getRepositoryUrl()).isEqualTo(VALID_URL);
+    assertThat(sourceControlByApplicationId.getUsername()).isNull();
     assertThat(sourceControlByApplicationId.getToken()).isEqualTo(TOKEN);
     assertThat(sourceControlByApplicationId.getProvider()).isNull();
   }

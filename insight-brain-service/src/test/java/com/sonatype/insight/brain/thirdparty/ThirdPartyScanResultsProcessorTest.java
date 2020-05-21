@@ -53,6 +53,7 @@ import org.mockito.Mock;
 import org.xmlunit.assertj.XmlAssert;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -93,35 +94,38 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_EmptyItemElement() throws Exception {
     File scanFile = getScanFile("scan-with-empty-item-data.xml");
-    thirdPartyScanResultsProcessorSpy.handle(scanFile, null);
+    File tempScanFile = tempDir.newFile();
+
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null);
     verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class));
-    assertEmptyItemElement(scanFile);
+    assertEmptyItemElement(tempScanFile);
   }
-  
+
   @Test
   public void testHandle_thirdPartyWithOtherContent() throws Exception {
     File scanFile = getScanFile("scan-thirdparty-and-other-content.xml");
+    File tempScanFile = tempDir.newFile();
 
-    thirdPartyScanResultsProcessorSpy.handle(scanFile, null);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null);
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(any(ItemContentType.class));
-    assertXml(scanFile, "scan-thirdparty-and-other-content-expected.xml");
+    assertXml(tempScanFile, "scan-thirdparty-and-other-content-expected.xml");
   }
 
   @Test
   public void testHandle_sbom_api() throws Exception {
     File scanFile = getScanFile("sbom/scan-with-sbom-data-api.xml");
+    File tempScanFile = tempDir.newFile();
 
-    String scanRequestId = thirdPartyScanResultsProcessorSpy.handle(scanFile, null);
-    assertThat(scanRequestId).isNotBlank();
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SBOM));
-    assertFilteredThirdPartyScanContentFile(scanFile, ItemContentType.SBOM, true, 2);
+    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 2);
   }
 
   @Test
   public void testHandle_sbom_api_TelemetryData() throws Exception {
     File scanFile = getScanFile("sbom/scan-with-sbom-data-api.xml");
     TelemetryData telemetryData = buildThirdPartyScanTelemetryData();
-    thirdPartyScanResultsProcessorSpy.handle(scanFile, telemetryData);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), telemetryData);
     verify(telemetrySender).send(telemetryData);
     assertTelemetryData(telemetryData, "SBOM");
   }
@@ -129,32 +133,33 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_sbom_cli() throws Exception {
     File scanFile = getScanFile("sbom/scan-with-sbom-data-cli.xml");
+    File tempScanFile = tempDir.newFile();
 
-    String scanRequestId = thirdPartyScanResultsProcessorSpy.handle(scanFile, null);
-    assertThat(scanRequestId).isNotBlank();
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null);
+
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(eq(ItemContentType.SBOM));
-    assertFilteredThirdPartyScanContentFile(scanFile, ItemContentType.SBOM, true, 2);
+    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 2);
   }
 
   @Test
   public void testHandle_sbomUsingSameSbomFileRepeatedContent() throws Exception {
     File scanFile = getScanFile("sbom/scan-with-sbom-repeated-content.xml");
-    String scanRequestId = thirdPartyScanResultsProcessorSpy.handle(scanFile, null);
 
-    assertThat(scanRequestId).isNotBlank();
+    File tempScanFile = tempDir.newFile();
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null);
+
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(any(ItemContentType.class));
-    assertFilteredThirdPartyScanContentFile(scanFile, ItemContentType.SBOM, true, 2);
+    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 2);
   }
 
   @Test
   public void testHandle_InvalidJson() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-data-invalid-json.xml");
     String scanId = tempEntity.uuid();
-    String scanRequestId = thirdPartyScanResultsProcessorSpy.handle(scanFile, null);
-    assertThat(scanRequestId).isNotNull();
+    String scanRequestId =
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null);
     thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
 
-    assertThat(scanRequestId).isNotBlank();
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(any(ItemContentType.class));
 
     List<ThirdPartyFile> thirdPartyFiles = thirdPartyFileDAO.getByScanId(scanId);
@@ -166,7 +171,7 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_ClairScanner_TelemetryData() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-repeated-content.xml");
     TelemetryData telemetryData = buildThirdPartyScanTelemetryData();
-    thirdPartyScanResultsProcessorSpy.handle(scanFile, telemetryData);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), telemetryData);
     verify(telemetrySender, times(2)).send(telemetryData);
     assertTelemetryData(telemetryData, "CLAIR_SCANNER");
   }
@@ -174,16 +179,15 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_ClairScanner() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-data.xml");
-
     String scanId = tempEntity.uuid();
 
-    String scanRequestId = thirdPartyScanResultsProcessorSpy.handle(scanFile, null);
-    assertThat(scanRequestId).isNotNull();
+    File tempScanFile = tempDir.newFile();
+    String scanRequestId =
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null);
     thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
 
-    assertThat(scanRequestId).isNotBlank();
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(eq(ItemContentType.CLAIR_SCANNER));
-    assertFilteredThirdPartyScanContentFile(scanFile, ItemContentType.CLAIR_SCANNER, false, 3);
+    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.CLAIR_SCANNER, false, 3);
 
     List<ThirdPartyFile> thirdPartyFileList = thirdPartyFileDAO.getByScanId(scanId);
     assertThirdPartyFile(thirdPartyFileList, 2, "clair-scanner-out/clair-scanner-output.json",
@@ -195,13 +199,13 @@ public class ThirdPartyScanResultsProcessorTest
     File scanFile = getScanFile("scan-with-clair-scanner-repeated-content.xml");
     String scanId = tempEntity.uuid();
 
-    String scanRequestId = thirdPartyScanResultsProcessorSpy.handle(scanFile, null);
-    assertThat(scanRequestId).isNotNull();
+    File tempScanFile = tempDir.newFile();
+    String scanRequestId =
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null);
     thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
 
-    assertThat(scanRequestId).isNotBlank();
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(any(ItemContentType.class));
-    assertFilteredThirdPartyScanContentFile(scanFile, ItemContentType.CLAIR_SCANNER, false, 3);
+    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.CLAIR_SCANNER, false, 3);
 
     assertThat(scanId).isNotNull();
     List<ThirdPartyFile> thirdPartyFileList = thirdPartyFileDAO.getByScanId(scanId);
@@ -209,56 +213,25 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   @Test
-  public void testHandle_ClairScannerUsingSameClairFileMultipleTimes() throws Exception {
-    File scanFile1 = getScanFile("scan-with-clair-scanner-for-multiple-times.xml");
-
-    String scandId1 = tempEntity.uuid();
-
-    File scanFile2 = new File(tempDir.newFolder(), scanFile1.getName());
-    FileUtils.copyFile(scanFile1, scanFile2);
-
-    String scanRequestId1 = thirdPartyScanResultsProcessorSpy.handle(scanFile1, null);
-    assertThat(scanRequestId1).isNotNull();
-    String scanRequestId2 = thirdPartyScanResultsProcessorSpy.handle(scanFile2, null);
-    assertThat(scanRequestId2).isNotNull();
-
-    thirdPartyScanResultsProcessorSpy.postHandle(scandId1, scanRequestId1);
-
-    assertThat(scanRequestId1).isNotBlank();
-    assertThat(scanRequestId2).isNotBlank();
-    verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(any(ItemContentType.class));
-    assertFilteredThirdPartyScanContentFile(scanFile2, ItemContentType.CLAIR_SCANNER, false, 3);
-
-    List<ThirdPartyFile> thirdPartyFiles = thirdPartyFileDAO.getByScanId(scandId1);
-    assertThat(thirdPartyFiles).hasSize(1);
-    assertThirdPartyFile(thirdPartyFiles, 1, "clair-scanner-output.json");
-  }
-
-  @Test
   public void testHandle_ClairCorruptFile() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-data-corrupted.xml");
-    String scanRequestId = thirdPartyScanResultsProcessorSpy.handle(scanFile, null);
-
-    assertThat(scanRequestId).isNotBlank();
-    verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class));
-    assertThat(thirdPartyScanDAO.getByScanRequestId(scanRequestId)).isEmpty();
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
+      thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null);
+    }).withMessage("Error reading/processing third party scan content from scan file");
   }
 
   @Test
   public void testHandle_corruptSbomFile() throws Exception {
     File scanFile = getScanFile("sbom/scan-with-sbom-data-corrupted.xml");
-    String scanRequestId = thirdPartyScanResultsProcessorSpy.handle(scanFile, null);
-
-    assertThat(scanRequestId).isNotBlank();
-    verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class));
-    assertThat(thirdPartyScanDAO.getByScanRequestId(scanRequestId)).isEmpty();
-    assertLogOutput("Error reading third party scan content from scan file");
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
+      thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null);
+    }).withMessage("Error reading/processing third party scan content from scan file");
   }
 
   @Test
   public void testHandle_noSbomContent() throws Exception {
     File scanFile = getScanFile("sbom/scan-with-empty-sbom-content.xml");
-    thirdPartyScanResultsProcessorSpy.handle(scanFile, null);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null);
     verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class));
   }
 
@@ -300,17 +273,17 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_NoThirdPartyContent() throws Exception {
     File scanFile = getScanFile("scan-without-thirdparty-content.xml");
-    thirdPartyScanResultsProcessorSpy.handle(scanFile, null);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null);
     verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class));
   }
 
   @Test
   public void testHandle_InvalidFile() throws Exception {
     File scanFile = getScanFile("empty-scan.xml");
-    thirdPartyScanResultsProcessorSpy.handle(scanFile, null);
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
+      thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null);
+    }).withMessage("Error reading/processing third party scan content from scan file");
     verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class));
-
-    assertLogOutput("Error reading third party scan content from scan file");
   }
 
   private void assertLogOutput(final String message) {

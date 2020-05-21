@@ -190,11 +190,13 @@ function setAvailable(state, payload) {
   // populate categories owner
   const categoriesWithOwner = payload.categories.map(category => {
     const relatedOrg = findOrgById(category.organizationId);
+    // we will want to sort app categories by nameLowercase
+    category.nameLowercase = category.name.toLocaleLowerCase('en-US');
     return relatedOrg ? {...category, owner: relatedOrg.name} : category;
   });
 
   // the "uncategorized applications" category should always be first, so we need to sort the rest of them here
-  const sortedCategories = sortBy(prop('nameLowercaseNoWhitespace'), categoriesWithOwner);
+  const sortedCategories = sortBy(prop('nameLowercase'), categoriesWithOwner);
 
   // add "uncategorized applications" Category
   const categories = [uncategorizedCategory, ...sortedCategories];

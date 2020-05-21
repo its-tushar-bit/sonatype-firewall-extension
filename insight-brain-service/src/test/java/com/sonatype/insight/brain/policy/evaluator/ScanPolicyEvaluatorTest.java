@@ -61,6 +61,7 @@ import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType
 import com.sonatype.insight.brain.model.policy.conditions.ComponentCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
@@ -1496,8 +1497,10 @@ public class ScanPolicyEvaluatorTest
     // Verify the data.json report file
     ReportEntry dataReportEntry = Report.getEntry(reportFile, Report.DATA_JSON_FILENAME);
     ObjectNode data = JsonUtils.parse(dataReportEntry.buf);
-    assertThat(data.get("policyCounts").toString()).isEqualTo("[0,0,0,0,0,3,0,0,0,0,0]");
-    assertThat(data.get("policyComponentCount").asInt()).isEqualTo(3);
+    // All three policy violations are grandfathered and so each of the three components has a policyThreatLevel of 0
+    assertThat(data.get("policyCounts").toString()).isEqualTo("[3,0,0,0,0,0,0,0,0,0,0]");
+    // Since each component has a policyThreatLevel of 0, there are 0 affected components
+    assertThat(data.get("policyComponentCount").asInt()).isEqualTo(0);
     assertThat(data.get("grandfatheredPolicyViolationCount").asInt()).isEqualTo(3);
   }
 
@@ -1709,11 +1712,13 @@ public class ScanPolicyEvaluatorTest
     Condition packageUrlCondition = new Condition(PackageUrlConditionType.ID, "matches", "pkg:maven/*/*@*");
     Condition componentCategoryCondition = new Condition(ComponentCategoryConditionType.ID, "is not", "113");
     Condition hygieneCondition = new Condition(HygieneRatingConditionType.ID, "is not", "1");
+    Condition dataSourceCondition = new Condition(DataSourceConditionType.ID, "has support for", "identity");
+
     List<Condition> conditions = Arrays.asList(ageCondition, coordinatesCondition, identificationSourceCondition,
         labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,
         licenseThreatGroupLevelCondition, matchStateCondition, proprietaryCondition, relativePopularityCondition,
         securityVulnerabilitySeverityCondition, securityVulnerabilityStatusCondition, packageUrlCondition,
-        componentCategoryCondition, hygieneCondition);
+        componentCategoryCondition, hygieneCondition, dataSourceCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
     try {
       Set<String> expectedConditionTypeIds = ConditionTypes.getAll().stream().map(ConditionType::getId)

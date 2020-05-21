@@ -23,6 +23,11 @@ public class SourceControlConfig
   private String gitImplementation;
 
   /**
+   * Purge window for PR comment records in days
+   */
+  private Integer prCommentPurgeWindow;
+
+  /**
    * @since 1.83
    */
   private String gitExecutable;
@@ -68,5 +73,13 @@ public class SourceControlConfig
 
   public void setGitExecutable(final String gitExecutable) {
     this.gitExecutable = gitExecutable;
+  }
+
+  public Integer getPrCommentPurgeWindow() {
+    return prCommentPurgeWindow;
+  }
+
+  public void setPrCommentPurgeWindow(final Integer prCommentPurgeWindow) {
+    this.prCommentPurgeWindow = prCommentPurgeWindow;
   }
 }

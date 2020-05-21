@@ -33,8 +33,6 @@ public class ComponentDAOTest
 {
   private static final String COMP_HASH = "12345678901234567890";
 
-  private ComponentDAO componentDAO = new ComponentDAO();
-
   private LabelDAO labelDAO = new LabelDAO();
 
   private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
@@ -100,7 +98,7 @@ public class ComponentDAOTest
     matchedComponent.addObservedLicenseId("MIT");
     matchedComponent
         .addSecurityVulnerability(new com.sonatype.clm.dto.model.SecurityVulnerability("12345", "osvdb", 4f));
-    Component component = componentDAO.getComponent(application, matchedComponent);
+    Component component = new ComponentDAO(application).getComponent(matchedComponent);
     assertThat(component).isNotNull();
     assertThat(component.getHash()).isEqualTo(matchedComponent.getHash());
     assertThat(component.getComponentIdentifier()).isEqualTo(matchedComponent.getComponentIdentifier());
@@ -124,7 +122,7 @@ public class ComponentDAOTest
     MatchedComponent matchedComponent = new MatchedComponent();
     matchedComponent.setHash(COMP_HASH);
     matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
-    Component component = componentDAO.getComponent(application, matchedComponent);
+    Component component = new ComponentDAO(application).getComponent(matchedComponent);
     assertThat(component).isNotNull();
     assertThat(component.getLicenseOverrideIds()).isEmpty();
 
@@ -135,7 +133,7 @@ public class ComponentDAOTest
     LicenseOverride orgLicenseOverride = new LicenseOverride(organization.getId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My comment");
     licenseOverrideDAO.insert(orgLicenseOverride);
-    component = componentDAO.getComponent(application, matchedComponent);
+    component = new ComponentDAO(application).getComponent(matchedComponent);
     assertThat(component).isNotNull();
     assertThat(component.getLicenseOverrideIds()).containsExactlyInAnyOrder("GPL-3.0");
 
@@ -143,7 +141,37 @@ public class ComponentDAOTest
     LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment");
     licenseOverrideDAO.insert(appLicenseOverride);
-    component = componentDAO.getComponent(application, matchedComponent);
+    component = new ComponentDAO(application).getComponent(matchedComponent);
+    assertThat(component).isNotNull();
+    assertThat(component.getLicenseOverrideIds()).containsExactlyInAnyOrder("GPL-2.0");
+  }
+
+  @Test
+  public void testGetComponent_LegacyLicenseOverride() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent
+        .setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+    Component component = new ComponentDAO(application).getComponent(matchedComponent);
+    assertThat(component).isNotNull();
+    assertThat(component.getLicenseOverrideIds()).isEmpty();
+
+    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    // New-style override at org level
+    ComponentIdentifier componentIdentifier = matchedComponent.getComponentIdentifier();
+    LicenseOverride orgLicenseOverride = new LicenseOverride(organization.getId(), componentIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My comment");
+    licenseOverrideDAO.insert(orgLicenseOverride);
+    component = new ComponentDAO(application).getComponent(matchedComponent);
+    assertThat(component).isNotNull();
+    assertThat(component.getLicenseOverrideIds()).containsExactlyInAnyOrder("GPL-3.0");
+
+    // Legacy override at app level
+    LicenseOverride appLicenseOverride =
+        new LicenseOverride(application.getId(), ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"),
+            LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment");
+    licenseOverrideDAO.insert(appLicenseOverride);
+    component = new ComponentDAO(application).getComponent(matchedComponent);
     assertThat(component).isNotNull();
     assertThat(component.getLicenseOverrideIds()).containsExactlyInAnyOrder("GPL-2.0");
   }
@@ -155,7 +183,7 @@ public class ComponentDAOTest
     matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
     matchedComponent.addDeclaredLicenseId("Apache-2.0-GPL-2.0");
     matchedComponent.addDeclaredLicenseId("Apache-2.0-GPL-3.0");
-    Component component = componentDAO.getComponent(application, matchedComponent);
+    Component component = new ComponentDAO(application).getComponent(matchedComponent);
     assertThat(component).isNotNull();
     assertThat(component.getDeclaredLicenseIds()).containsExactlyInAnyOrder("Apache-2.0", "GPL-2.0", "GPL-3.0");
     assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1", "My group 2", "My group 3");
@@ -168,7 +196,7 @@ public class ComponentDAOTest
     matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
     matchedComponent.addObservedLicenseId("Apache-2.0-GPL-2.0");
     matchedComponent.addObservedLicenseId("Apache-2.0-GPL-3.0");
-    Component component = componentDAO.getComponent(application, matchedComponent);
+    Component component = new ComponentDAO(application).getComponent(matchedComponent);
     assertThat(component).isNotNull();
     assertThat(component.getObservedLicenseIds()).containsExactlyInAnyOrder("Apache-2.0", "GPL-2.0", "GPL-3.0");
     assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1", "My group 2", "My group 3");

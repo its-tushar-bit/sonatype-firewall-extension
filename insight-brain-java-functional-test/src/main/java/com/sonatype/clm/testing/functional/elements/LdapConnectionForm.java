@@ -63,6 +63,10 @@ public class LdapConnectionForm
     return child("#ldap-system-password");
   }
 
+  public SelenideElement passwordNeedsEntryMessage() {
+    return child("#ldap-password-needs-entry-message");
+  }
+
   public SelenideElement systemUsername() {
     return child("#ldap-system-username");
   }

@@ -212,6 +212,7 @@ public class IndexServiceTest
     verify(telemetrySenderMock).send(telemetryDataCaptor.capture());
     TelemetryData telemetryData = telemetryDataCaptor.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.ADVANCED_SEARCH_INDEXING);
+    assertThat(telemetryData.getAttributes()).containsEntry(IndexService.SEARCH_INDEX_REINDEX, true);
     assertThat((Long) telemetryData.getAttributes().get(IndexService.SEARCH_INDEX_DURATION_SECONDS))
         .isGreaterThanOrEqualTo(0).isLessThanOrEqualTo(duration);
     assertThat((Long) telemetryData.getAttributes().get(IndexService.SEARCH_INDEX_SIZE_BYTES)).isEqualTo(size);

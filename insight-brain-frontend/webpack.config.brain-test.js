@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+const webpack = require('webpack');
 const path = require('path');
 const JasmineWebpackPlugin = require('jasmine-webpack-plugin');
 const transformObjectRestSpread = require('babel-plugin-transform-object-rest-spread');
@@ -17,12 +18,29 @@ module.exports = {
     path: outputPath,
     filename: 'test-bundle.js'
   },
-  plugins: [new JasmineWebpackPlugin()],
+  plugins: [
+    new webpack.DefinePlugin({
+      CLM_BUILD_TIMESTAMP: 0,
+      CLM_SERVER_VERSION: '1'
+    }),
+    new JasmineWebpackPlugin()
+  ],
   resolve: {
     extensions: ['.js', '.jsx']
   },
   module: {
     rules: [
+      {
+        test: /\.jsx?$/,
+        include: /src[\/\\]main[\/\\]frontend/,
+        exclude: /[\/\\]lib[\/\\]/,
+        use: {
+          loader: 'istanbul-instrumenter-loader',
+          options: {
+            esModules: true
+          }
+        }
+      },
       {
         test: /\.jsx?$/,
         exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib[\/\\](protovis|Base64)/,

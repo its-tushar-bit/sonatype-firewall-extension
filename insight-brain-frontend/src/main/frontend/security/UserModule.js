@@ -17,26 +17,16 @@ import userForm from './userForm/userForm';
 import telemetryServiceModule from '../services/telemetryService';
 import userActions from '../user/userActions';
 import userReducer from '../user/userReducer';
+import userListTemplate from './user-list.html';
+import userCreateTemplate from './user-create.html';
+import administratorsTemplate from '../policy/components/app-security/app-security.html';
 
 export const SecurityModule = angular.module('SecurityModule',
     ['ui.router', angularCommonModule.name, ApplicationSecurityModule.name, permissionServiceModule.name],
     ['$stateProvider', function($stateProvider) {
       $stateProvider.state('administrators', {
         url: '/administrators',
-        template: `<div authorization-wrapper="isAuthorized">
-                     <div class="iq-body-container iq-body-container--single-pane" maximize-container-height>
-                       <div class="iq-tile iq-tile--sys-prefs">
-                         <div class="iq-tile-header">
-                           <div class="iq-tile-header__title">
-                             <h2>Administrators</h2>
-                           </div>
-                         </div>
-                         <div class="iq-tile-content" 
-                              ng-include="'policy/components/app-security/app-security.html?${clmBuildTimestamp}'">
-                         </div>
-                       </div>
-                     </div>
-                   </div>`,
+        template: administratorsTemplate,
         data: {
           title: 'Administrators'
         },
@@ -56,7 +46,7 @@ export const UserModule = angular.module('UserModule', ['ui.router', SecurityMod
           $stateProvider.state('users', {
             url: '/users',
             controller: 'UserListController',
-            templateUrl: 'security/user-list.html?' + clmBuildTimestamp,
+            template: userListTemplate,
             data: {
               title: 'Users',
               crumb: 'Users'
@@ -69,7 +59,7 @@ export const UserModule = angular.module('UserModule', ['ui.router', SecurityMod
           }).state('users.create', {
             // NOTE This is currently only used for adding new users - editing users is done using an inline form
             url: '/_new_',
-            templateUrl: 'security/user-create.html?' + clmBuildTimestamp,
+            template: userCreateTemplate,
             data: {
               title: 'New User',
               crumb: 'New User'

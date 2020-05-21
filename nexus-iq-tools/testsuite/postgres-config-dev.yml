@@ -1,0 +1,47 @@
+hdsUrl: https://clm.sonatype.com/
+#hdsUrl: "http://localhost:8080/"
+
+baseUrl: http://localhost:8070
+
+consentToUpgradeToVersion_1_45: true
+
+enableDefaultPasswordWarning: false
+
+logging:
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: DEBUG
+  loggers:
+    "com.sonatype.insight.scan": INFO
+    "eu.medsea.mimeutil.MimeUtil2": INFO
+    "org.apache.http": INFO
+    "org.apache.http.wire": ERROR
+    "org.eclipse.birt.report.engine.layout.pdf.font.FontConfigReader": WARN
+    "org.eclipse.jetty": INFO
+    "org.springframework.jdbc.datasource.init.ResourceDatabasePopulator": INFO
+    "org.apache.commons.beanutils.converters": INFO
+    "org.apache.shiro": INFO
+    "com.sonatype.insight.audit":
+      appenders:
+      - type: console
+    "com.sonatype.insight.policy.violation":
+      appenders:
+        - type: console
+  appenders:
+    - type: console
+      logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
+
+# This is made explicit in order to make it overridable on the command line.  When doing frontend dev work,
+# webpack-dev-server runs on port 8070 and the dropwizard app should be moved to port 8072 by specifying
+# the -Ddw.server.applicationConnectors[0].port=8072 system property (or modifying this file)
+server:
+  applicationConnectors:
+    - type: http
+      port: 8070
+
+database:
+  type: postgresql
+  hostname: localhost
+  port: 5432
+  name: postgres
+  username: postgres
+  password: postgres

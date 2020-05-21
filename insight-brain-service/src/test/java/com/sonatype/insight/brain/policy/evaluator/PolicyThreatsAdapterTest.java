@@ -290,7 +290,7 @@ public class PolicyThreatsAdapterTest
   private void assertPolicyThreatsComponent(PolicyThreats.Component component, PolicyViolation violation) {
     assertThat(component.hash).isEqualTo(violation.getHash());
     assertThat(component.componentIdentifier).isEqualTo(violation.getComponentIdentifier());
-    if (!violation.isWaived()) {
+    if (violation.isActive()) {
       assertThat(component.policyId).isEqualTo(violation.getPolicyId());
       assertThat(component.policyName).isEqualTo(violation.getPolicyName());
       assertThat(component.policyThreatLevel).isEqualTo(violation.getThreatLevel());

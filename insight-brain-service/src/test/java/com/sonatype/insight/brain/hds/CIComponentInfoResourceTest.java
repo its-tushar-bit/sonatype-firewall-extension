@@ -136,7 +136,7 @@ public class CIComponentInfoResourceTest
     assertThat(responseDto.remediation.versionChanges).hasSize(1);
     ApiVersionChangeOptionDTO versionChangeDTO = responseDto.remediation.versionChanges.get(0);
     assertThat(versionChangeDTO.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
-    assertThat(versionChangeDTO.getData().getComponent().packageUrl).isEqualTo("pkg:debian/glibc@2.24-11%2Bdeb9u3");
+    assertThat(versionChangeDTO.getData().getComponent().packageUrl).isEqualTo("pkg:debian/glibc@2.24-11%2Bdeb9u4");
   }
 
   @Test

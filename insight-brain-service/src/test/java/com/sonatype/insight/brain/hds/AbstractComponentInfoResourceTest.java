@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.hds;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -187,6 +189,7 @@ public abstract class AbstractComponentInfoResourceTest
     hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
     HttpRequest request = allVersionsRequest(getOwnerId(), MAVEN_COORDINATES);
     hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(request.getUrl()));
+    hdsRespondWith(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>())).atUri("rest/component/dependencies");
 
     HttpResponse response = request.get();
     assertResponseStatus(200, response);

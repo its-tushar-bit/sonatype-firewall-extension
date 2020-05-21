@@ -10,7 +10,7 @@
   <parent>
     <groupId>com.sonatype.insight.brain</groupId>
     <artifactId>insight-brain</artifactId>
-    <version>1.89.0-SNAPSHOT</version>
+    <version>1.92.0-SNAPSHOT</version>
   </parent>
   <artifactId>insight-brain-java-functional-test</artifactId>
 
@@ -20,7 +20,7 @@
     <it.includes>**/*Test.*</it.includes>
     <selenide.driverManagerEnabled>false</selenide.driverManagerEnabled>
     <selenide.timeout>4000</selenide.timeout>
-    <docker.image.version>3.141.59-yttrium</docker.image.version>
+    <docker.image.version>3.141.59-20200409</docker.image.version>
     <docker.image>standalone-chrome:${docker.image.version}</docker.image>
     <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
   </properties>
@@ -292,7 +292,7 @@
                     <artifactItem>
                       <groupId>org.chromium</groupId>
                       <artifactId>chromedriver</artifactId>
-                      <version>79.0.3945.36</version>
+                      <version>81.0.4044.69</version>
                       <classifier>${chromedriver.classifier}</classifier>
                       <type>zip</type>
                     </artifactItem>

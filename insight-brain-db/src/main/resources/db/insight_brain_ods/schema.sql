@@ -490,6 +490,7 @@ CREATE TABLE repository_component (
   last_evaluation_time timestamp NOT NULL,
   quarantine_time timestamp,
   unquarantine_time timestamp,
+  analyzer_features_json varchar(1000), -- the analyzer features stored in json format
   CONSTRAINT repository_component_pk PRIMARY KEY (repository_component_id),
   CONSTRAINT repository_component_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
   CONSTRAINT repository_component_uk UNIQUE (repository_id, pathname)
@@ -597,6 +598,7 @@ CREATE TABLE source_control (
   source_control_id varchar(50) NOT NULL,
   owner_id varchar(50) NOT NULL,
   repository_url varchar(2048),
+  username varchar(256),
   token varchar(512),
   provider varchar(20),
   base_branch varchar(243),
@@ -623,6 +625,7 @@ INSERT INTO migration_tracker(migration_tracker_id) VALUES('root-organization');
 INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-drools-code', 2);
 INSERT INTO migration_tracker(migration_tracker_id, version) VALUES('policy-json', 1);
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('ignored-repository-components');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('inactive-repository-violations');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('mail-config');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('proxy-server-configuration');
 
@@ -684,13 +687,14 @@ CREATE TABLE source_control_pull_request_comment
   target_policy_evaluation_id varchar(50) NOT NULL,
   create_time timestamp NOT NULL,
   update_time timestamp,
+  content_hash varchar(40),
   CONSTRAINT source_control_pull_request_comment_pk PRIMARY KEY (source_control_pull_request_comment_id),
-  CONSTRAINT source_control_pull_request_app_component_pull_request_uk UNIQUE (application_id, component_hash, pull_request_id),
   CONSTRAINT source_control_pull_request_comment_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id),
   CONSTRAINT source_control_pull_request_source_policy_eval_fk FOREIGN KEY (source_policy_evaluation_id)
       REFERENCES policy_evaluation(policy_evaluation_id),
   CONSTRAINT source_control_pull_request_target_policy_eval_fk FOREIGN KEY (target_policy_evaluation_id)
-      REFERENCES policy_evaluation(policy_evaluation_id)
+      REFERENCES policy_evaluation(policy_evaluation_id),
+  CONSTRAINT source_control_pull_request_comment_uk UNIQUE (application_id, component_hash, pull_request_id)
 );
 
 -- Since 1.86
@@ -703,7 +707,7 @@ CREATE TABLE source_control_default_branch_commit_history (
   create_time timestamp NOT NULL,
   update_time timestamp,
   CONSTRAINT source_control_default_branch_commit_history_pk PRIMARY KEY (source_control_default_branch_commit_history_id),
-  CONSTRAINT source_control_default_branch_commit_history_app_commit_uk UNIQUE (application_id, commit_hash),
   CONSTRAINT source_control_default_branch_commit_history_application_fk FOREIGN KEY (application_id) REFERENCES application (application_id),
-  CONSTRAINT source_control_default_branch_commit_history_policy_eval_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id)
+  CONSTRAINT source_control_default_branch_commit_history_policy_eval_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id),
+  CONSTRAINT source_control_default_branch_commit_history_uk UNIQUE (application_id, commit_hash)
 );

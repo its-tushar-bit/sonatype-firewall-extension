@@ -22,14 +22,12 @@ export default {
             'id': '6be0f524314245c7aded40b3d4ac8112',
             'ownerId': 'b6b265d098db41b7aabb3687a3235be7',
             'label': 'App Component Label',
-            'labelLowercase': 'app component label',
             'description': 'Description',
             'color': 'light-purple'
           }, {
             'id': 'a8c63510015f4a4fadb52f4cfcd653ef',
             'ownerId': 'ROOT_ORGANIZATION_ID',
             'label': 'Root Org Label',
-            'labelLowercase': 'root org label',
             'description': 'Bleh Bleh Blah 1',
             'color': 'dark-green'
           }

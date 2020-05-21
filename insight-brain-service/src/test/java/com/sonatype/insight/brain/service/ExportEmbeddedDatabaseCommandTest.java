@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
@@ -188,7 +189,8 @@ public class ExportEmbeddedDatabaseCommandTest
           while (tables.next()) {
             String tableName = tables.getString(3);
             List<TableRow> tableRows = new ArrayList<>();
-            tablesBySchema.get(schemaName).put(tableName, tableRows);
+            // for postgresql unquoted names are always folded to lower case e.g. QRTZ_TRIGGERS > qrtz_triggers
+            tablesBySchema.get(schemaName).put(tableName.toLowerCase(Locale.ROOT), tableRows);
             Set<String> primaryKeys = getPrimaryKeys(metadata, schemaName, tableName);
             try (Statement query = connection.createStatement();
                 ResultSet rows = query.executeQuery("SELECT * FROM " + schemaName + "." + tableName)) {

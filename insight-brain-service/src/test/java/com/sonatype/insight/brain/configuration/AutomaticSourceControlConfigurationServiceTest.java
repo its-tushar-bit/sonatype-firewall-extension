@@ -10,23 +10,20 @@ import java.util.Date;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
-import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
-import org.apache.http.HttpEntity;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 
-import static com.sonatype.insight.brain.configuration.AutomaticApplicationsConfigurationServiceTest.assertTelemetryEvent;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class AutomaticSourceControlConfigurationServiceTest
@@ -38,11 +35,12 @@ public class AutomaticSourceControlConfigurationServiceTest
   @Inject
   private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
 
-  private HdsClient mockHdsClient = mock(HdsClient.class);
+  @Mock
+  private TelemetrySender telemetrySenderMock;
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(HdsClient.class).toInstance(mockHdsClient);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     super.configure(binder);
   }
 
@@ -60,8 +58,7 @@ public class AutomaticSourceControlConfigurationServiceTest
   @Test
   public void testUpdate_TelemetryEventsAreSent() throws Exception {
     final InvocationOnMock[] invocation = new InvocationOnMock[1];
-    doAnswer(x -> invocation[0] = x).when(mockHdsClient).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class),
-        eq(null));
+    doAnswer(x -> invocation[0] = x).when(telemetrySenderMock).send(any(TelemetryData.class));
 
     // make sure it is false first
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
@@ -73,11 +70,11 @@ public class AutomaticSourceControlConfigurationServiceTest
     assertTelemetryEvent(invocation[0], TelemetryPurpose.AUTOMATIC_ONBOARDING,
         AutomaticSourceControlConfigurationService.AUTO_SCM_CONFIGURATION_ENABLED_TELEMETRY_ATTR,
         before, after, true);
-    clearInvocations(mockHdsClient);
+    clearInvocations(telemetrySenderMock);
 
     // No changes to Auto SCM state - a telemetry event should NOT be sent
     service.update(new AutomaticSourceControlConfiguration(true));
-    verifyNoMoreInteractions(mockHdsClient);
+    verifyNoMoreInteractions(telemetrySenderMock);
 
     // Disable Auto SCM - a telemetry event should be sent
     before = new Date();
@@ -86,11 +83,24 @@ public class AutomaticSourceControlConfigurationServiceTest
     assertTelemetryEvent(invocation[0], TelemetryPurpose.AUTOMATIC_ONBOARDING,
         AutomaticSourceControlConfigurationService.AUTO_SCM_CONFIGURATION_ENABLED_TELEMETRY_ATTR,
         before, after, false);
-    clearInvocations(mockHdsClient);
+    clearInvocations(telemetrySenderMock);
 
     // No changes to Auto SCM state - a telemetry event should NOT be sent
     service.update(new AutomaticSourceControlConfiguration(false));
-    verifyNoMoreInteractions(mockHdsClient);
+    verifyNoMoreInteractions(telemetrySenderMock);
+  }
+
+  private void assertTelemetryEvent(
+      InvocationOnMock invocation,
+      TelemetryPurpose telemetryPurpose, String telemetryAttr,
+      Date before, Date after, boolean expected)
+      throws Exception
+  {
+    TelemetryData telemetryData = (TelemetryData) invocation.getArgument(0);
+    assertThat(telemetryData.getPurpose()).isEqualTo(telemetryPurpose);
+    assertThat(telemetryData.getAttributes()).hasSize(1).containsEntry(telemetryAttr, String.valueOf(expected));
+    assertThat(telemetryData.getTimestamp()).isGreaterThanOrEqualTo(before.getTime())
+        .isLessThanOrEqualTo(after.getTime());
   }
 
   @Test

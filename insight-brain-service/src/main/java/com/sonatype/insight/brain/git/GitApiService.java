@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -95,9 +93,9 @@ public class GitApiService
         event.commitHash, event.outcome, statusRequest.getState());
     try {
       Status status = gitApiClient.createStatus(event.commitHash, statusRequest);
-      log.debug("Status response: {}", status);
+      log.debug("Commit status response: {}", status);
     }
-    catch (IOException e) {
+    catch (Exception e) {
       log.error("Failed to update status for applicationId: {}, repository: {}, commitHash: {}, " +
               "triggered by policyEvaluationId: {}",
           event.ownerId, gitRepositoryInfo.repositoryUrl, event.commitHash, event.policyEvaluationId, e);

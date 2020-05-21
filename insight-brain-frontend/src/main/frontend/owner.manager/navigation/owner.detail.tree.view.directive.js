@@ -3,11 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './owner.detail.tree.view.directive.html';
+
 export default function OwnerDetailTreeViewDirective() {
   return {
     controller: 'OwnerDetailTreeViewController',
     controllerAs: 'vm',
-    templateUrl: 'owner.manager/navigation/owner.detail.tree.view.directive.html'
+    template
   };
 }
 OwnerDetailTreeViewDirective.$inject = [];

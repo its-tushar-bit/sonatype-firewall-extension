@@ -8,8 +8,7 @@ import axios from 'axios';
 import {noPayloadActionCreator, payloadParamActionCreator} from '../util/reduxUtil';
 import {
   getAdvancedSearchConfigUrl,
-  getAdvancedSearchUrl,
-  getAdvancedSearchQuerySuggesterUrl
+  getAdvancedSearchUrl
 } from '../util/CLMLocation';
 
 export const ADVANCED_SEARCH_LOAD_REQUESTED = 'ADVANCED_SEARCH_LOAD_REQUESTED';
@@ -22,13 +21,13 @@ const loadFailed = payloadParamActionCreator(ADVANCED_SEARCH_LOAD_FAILED);
 
 export function load() {
   return function(dispatch, getState) {
-    const formState = getState().advancedSearch.formState;
+    const advancedSearchState = getState().advancedSearch;
 
     // When the user navigates to any other page and comes to Advanced Search, we want to retain the state
     // For example, you search for CVE-2016-* and on page 3 click on a link and you use browsers BACK button
     // we want to let users continue going through search results.
     // But there is no need to retain the page if there was a query error, better present a fresh search page.
-    if (!formState.queryError && formState.currentQuery) {
+    if (!advancedSearchState.formState.queryError && !advancedSearchState.viewState.loading) {
       return;
     }
 
@@ -39,23 +38,6 @@ export function load() {
         })
         .catch(error => {
           dispatch(loadFailed(error));
-        });
-  };
-}
-
-export const ADVANCED_SEARCH_QUERY_SUGGESTIONS_FULFILLED = 'ADVANCED_SEARCH_QUERY_SUGGESTIONS_FULFILLED';
-
-const advancedSearchQuerySuggestionsFulfilled = payloadParamActionCreator(ADVANCED_SEARCH_QUERY_SUGGESTIONS_FULFILLED);
-
-export function getQuerySuggestions() {
-  return function(dispatch, getState) {
-    const query = getState().advancedSearch.formState.currentQuery;
-    axios.get(getAdvancedSearchQuerySuggesterUrl(query))
-        .then(({data}) => {
-          // ignore delayed suggestions for previous query values
-          if (data.searchQuery === query) {
-            dispatch(advancedSearchQuerySuggestionsFulfilled(data));
-          }
         });
   };
 }
@@ -91,5 +73,13 @@ export function searchFormSubmit(pageIncrement) {
         .catch(error => {
           dispatch(queryFailed(error));
         });
+  };
+}
+
+export const ADVANCED_SEARCH_TOGGLE_HELP = 'ADVANCED_SEARCH_TOGGLE_HELP';
+
+export function toggleHelp() {
+  return function(dispatch) {
+    dispatch(noPayloadActionCreator(ADVANCED_SEARCH_TOGGLE_HELP)());
   };
 }

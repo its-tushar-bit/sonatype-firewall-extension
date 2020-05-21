@@ -41,7 +41,7 @@ public class GitApiFactoryTest
   @Mock
   private SourceControlConfig sourceControlConfig;
 
-  private final GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("localhost", "token",
+  private final GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("localhost", null, "token",
       SourceControlProvider.GITHUB, "master", true, true);
 
   private GitApiFactory gitApiFactory;

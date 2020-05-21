@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 public class GitRepositoryInfo
 {
   public GitRepositoryInfo(final String repositoryUrl,
+                           final String username,
                            final String token,
                            final SourceControlProvider provider,
                            final String baseBranch,
@@ -19,6 +20,7 @@ public class GitRepositoryInfo
                            final Boolean enableStatusChecks)
   {
     this.repositoryUrl = repositoryUrl;
+    this.username = username;
     this.token = token;
     this.baseBranch = baseBranch;
     this.enablePullRequests = enablePullRequests;
@@ -27,6 +29,8 @@ public class GitRepositoryInfo
   }
 
   public String repositoryUrl;
+
+  public String username;
 
   public String token;
 
@@ -38,10 +42,39 @@ public class GitRepositoryInfo
 
   public SourceControlProvider provider;
 
+  public String getRepositoryUrl() {
+    return repositoryUrl;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public String getToken() {
+    return token;
+  }
+
+  public String getBaseBranch() {
+    return baseBranch;
+  }
+
+  public Boolean getEnablePullRequests() {
+    return enablePullRequests;
+  }
+
+  public Boolean getEnableStatusChecks() {
+    return enableStatusChecks;
+  }
+
+  public SourceControlProvider getProvider() {
+    return provider;
+  }
+
   public boolean isDataComplete() {
-    return !(StringUtils.isBlank(token)
+    return !(provider == null
         || StringUtils.isBlank(repositoryUrl)
-        || provider == null
+        || StringUtils.isBlank(token)
+        || (provider.requiresUsername() && StringUtils.isBlank(username))
         || enablePullRequests == null
         || enableStatusChecks == null);
   }

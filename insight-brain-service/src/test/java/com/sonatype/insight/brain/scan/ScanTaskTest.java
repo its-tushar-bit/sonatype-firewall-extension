@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -62,11 +62,11 @@ public class ScanTaskTest
 
   private ProprietaryConfigService proprietaryConfigService = mock(ProprietaryConfigService.class);
 
-  private ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessor = mock(ThirdPartyScanResultsProcessor.class);
+  private ThirdPartyScanService thirdPartyScanService = mock(ThirdPartyScanService.class);
 
   private ScanTask task =
       new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner, proprietaryConfigService,
-          thirdPartyScanResultsProcessor);
+           thirdPartyScanService);
 
   private Application app = newApp("public-app-id");
 
@@ -102,8 +102,8 @@ public class ScanTaskTest
     when(uploader.upload(eq(tmpScanFile), eq(app), anyString())).thenReturn(scanReceipt);
     ScanResult scanResult = new ScanResult(tmpScanFile, false);
     when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq(null))).thenReturn(scanResult);
-    when(thirdPartyScanResultsProcessor.handle(any(File.class), any(TelemetryData.class)))
-        .thenReturn("scan-request-id");
+    when(thirdPartyScanService.filterAndUpload(any(File.class), eq(app), any(String.class), any(TelemetryData.class)))
+        .thenReturn(scanReceipt);
   }
 
   private static Stage match(Stage stage) {
@@ -221,7 +221,7 @@ public class ScanTaskTest
   @Test
   public void testRun_processThirdPartyScanResults() throws Exception {
     File scanBinary = new File("any");
-    when(thirdPartyScanResultsProcessor.handle(scanBinary, null)).thenReturn("scan-request-id");
+    when(thirdPartyScanService.filterAndUpload(scanBinary, app, stage.getStageTypeId(), null)).thenReturn(scanReceipt);
     task.init(app, scanBinary, bundleFilename, stage, false, "agent", "ui");
     when(scanner.scan(any(File.class), any(String.class), any(File.class), eq(null)))
         .thenReturn(new ScanResult(scanBinary, true));
@@ -229,8 +229,7 @@ public class ScanTaskTest
     when(uploader.upload(any(File.class), eq(app), anyString())).thenReturn(scanReceipt);
     task.run();
     ArgumentCaptor<TelemetryData> arg = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(thirdPartyScanResultsProcessor).handle(eq(scanBinary), arg.capture());
-    verify(thirdPartyScanResultsProcessor).postHandle(any(String.class), any(String.class));
+    verify(thirdPartyScanService).filterAndUpload(eq(scanBinary), eq(app), eq(stage.getStageTypeId()), arg.capture());
 
     TelemetryData telemetryData = arg.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);

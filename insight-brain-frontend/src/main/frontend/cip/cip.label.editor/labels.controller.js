@@ -36,7 +36,7 @@ export default function LabelsController($q, $http, $scope, LabelModification, S
     var promises = [];
     promises.push($http.get(CLM.path + 'rest/label/component/' + OwnerContext.ownerType + '/' +
         OwnerContext.ownerId + '/' + SelectedComponent.get().hash));
-    promises.push($http.get(CLM.path + 'rest/label/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId +
+    promises.push($http.get(CLM.path + 'api/v2/labels/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId +
         '/applicable'));
 
     $q.all(promises).then(function(results) {

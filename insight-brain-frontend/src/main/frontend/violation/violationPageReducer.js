@@ -4,31 +4,68 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createReducerFromActionMap, propSetConst } from '../util/reduxUtil';
-import { LOAD_VIOLATION_REQUESTED, LOAD_VIOLATION_FULFILLED, LOAD_VIOLATION_FAILED } from './violationPageActions';
+import {
+  LOAD_VIOLATION_REQUESTED,
+  LOAD_VIOLATION_FULFILLED,
+  LOAD_VIOLATION_FAILED,
+  LOAD_VULNERABILITY_DETAILS_REQUESTED,
+  LOAD_VULNERABILITY_DETAILS_FULFILLED,
+  LOAD_VULNERABILITY_DETAILS_FAILED
+} from './violationPageActions';
 
 const initialState = Object.freeze({
   violationDetails: null,
   loading: false,
-  error: null
+  violationDetailsError: null,
+  vulnerabilityDetailsLoading: false,
+  vulnerabilityDetails: null,
+  vulnerabilityDetailsError: null
 });
 
 const reducerActionMap = {
-  [LOAD_VIOLATION_REQUESTED]: propSetConst('loading', true),
-  [LOAD_VIOLATION_FULFILLED]: loadFulfilled,
-  [LOAD_VIOLATION_FAILED]: loadFailed
+  [LOAD_VIOLATION_REQUESTED]: loadViolationRequested,
+  [LOAD_VIOLATION_FULFILLED]: loadViolationFulfilled,
+  [LOAD_VIOLATION_FAILED]: loadViolationFailed,
+  [LOAD_VULNERABILITY_DETAILS_REQUESTED]: propSetConst('vulnerabilityDetailsLoading', true),
+  [LOAD_VULNERABILITY_DETAILS_FULFILLED]: loadVulnerabilityDetailsFulfilled,
+  [LOAD_VULNERABILITY_DETAILS_FAILED]: loadVulnerabilityDetailsFailed
 };
 
-function loadFulfilled(payload, state) {
+function loadViolationRequested() {
+  return {
+    ...initialState,
+    loading: true
+  };
+}
+
+function loadViolationFulfilled(payload, state) {
   return {
     ...state,
     loading: false,
-    error: null,
+    violationDetailsError: null,
     violationDetails: payload
   };
 }
 
-function loadFailed(payload, state) {
-  return { ...state, loading: false, error: payload };
+function loadViolationFailed(payload, state) {
+  return { ...state, loading: false, violationDetailsError: payload };
+}
+
+function loadVulnerabilityDetailsFulfilled(payload, state) {
+  return {
+    ...state,
+    vulnerabilityDetailsLoading: false,
+    vulnerabilityDetailsError: null,
+    vulnerabilityDetails: payload
+  };
+}
+
+function loadVulnerabilityDetailsFailed(payload, state) {
+  return {
+    ...state,
+    vulnerabilityDetailsLoading: false,
+    vulnerabilityDetailsError: payload
+  };
 }
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

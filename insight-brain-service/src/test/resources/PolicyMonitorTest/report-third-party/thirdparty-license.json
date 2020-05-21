@@ -1,0 +1,37 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "debian-9",
+      "coordinates" : {
+        "name" : "glibc",
+        "version" : "2.24-11+deb9u3"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "37b3ce40791bc2dd8068",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "debian-9",
+      "coordinates" : {
+        "name" : "glibc",
+        "version" : "3.5.5"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "d7ae928e7ff92b8d27ce",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  } ]
+}

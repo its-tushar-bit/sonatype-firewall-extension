@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.tag;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -39,13 +40,13 @@ public class TagServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetTags_Unauthorized() throws Exception {
+  public void testGetApplicableTags_Unauthorized() throws Exception {
     login();
     tagService.getApplicableTags(OwnerType.ORGANIZATION, org.getId());
   }
 
   @Test
-  public void testGetTags_Authorized() throws Exception {
+  public void testGetApplicableTags_Authorized() throws Exception {
     grantReadPermission(org.getId());
     tagService.getApplicableTags(OwnerType.ORGANIZATION, org.getId());
   }
@@ -54,28 +55,28 @@ public class TagServiceAuthzTest
   public void testAddTag_Unauthorized() throws Exception {
     grantReadPermission(org.getId());
     Tag tag = new Tag(org.getId(), "name", "description", Color.yellow);
-    tagService.addTag(org.getId(), tag);
+    tagService.addTag(org.getId(), TagService.toDTO(tag));
   }
 
   @Test
   public void testAddTag_Authorized() throws Exception {
     grantWritePermission(org.getId());
     Tag tag = new Tag(org.getId(), "name", "description", Color.yellow);
-    tagService.addTag(org.getId(), tag);
+    tagService.addTag(org.getId(), TagService.toDTO(tag));
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testUpdateTag_Unauthorized() throws Exception {
     grantReadPermission(org.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
-    tagService.updateTag(org.getId(), tag);
+    tagService.updateTag(org.getId(), TagService.toDTO(tag));
   }
 
   @Test
   public void testUpdateTag_Authorized() throws Exception {
     grantWritePermission(org.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
-    tagService.updateTag(org.getId(), tag);
+    tagService.updateTag(org.getId(), TagService.toDTO(tag));
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -186,7 +187,8 @@ public class TagServiceAuthzTest
     Tag tag2 = tempEntity.newTag(organization2.getId());
     tempEntity.newApplicationTag(application2.getId(), tag2.getId());
 
-    List<Tag> allTags = tagService.getTagsUsedByApplications();
+    List<Tag> allTags = tagService.getTagsUsedByApplications().stream()
+        .map(dto -> TagService.fromDTO(dto, dto.organizationId)).collect(Collectors.toList());
     assertThat(allTags).extracting(Tag::getId).containsExactly(tag1.getId());
   }
 
@@ -205,5 +207,22 @@ public class TagServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testUpdateApplicationUpdateTags_Unauthenticated() throws Exception {
     tagService.updateApplicationTags(app.getPublicId(), Collections.emptyList());
+  }
+
+  @Test
+  public void testGetTags_Authorized() throws Exception {
+    grantReadPermission(org.getId());
+    tagService.getTags(org.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetTags_Unauthorized() throws Exception {
+    login();
+    tagService.getTags(org.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetTags_Unauthenticated() throws Exception {
+    tagService.getTags(org.getId());
   }
 }

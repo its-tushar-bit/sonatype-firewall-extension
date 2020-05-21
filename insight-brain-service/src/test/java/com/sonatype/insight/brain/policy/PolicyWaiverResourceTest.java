@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.policy;
 
 import java.util.Collections;
 import java.util.LinkedList;
-import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpRequest;
@@ -25,7 +24,6 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource.AppliedWaivers;
@@ -46,32 +44,32 @@ public class PolicyWaiverResourceTest
   }
 
   @Test
-  public void testCRUD_Application() throws Exception {
+  public void testCRU_Application() throws Exception {
     String appPublicId = "PolicyWaiverResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
     String constraintFactsJson = JsonUtils.writeUnformatted(Collections.singletonList(new ConstraintFact()));
 
-    testCRUD(OwnerType.APPLICATION, appPublicId, application.getId(), constraintFactsJson);
+    testCRU(OwnerType.APPLICATION, appPublicId, application.getId(), constraintFactsJson);
   }
 
   @Test
-  public void testCRUD_Organization() throws Exception {
+  public void testCRU_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("PolicyWaiverResourceTest");
     String constraintFactsJson = JsonUtils.writeUnformatted(Collections.singletonList(new ConstraintFact()));
 
-    testCRUD(OwnerType.ORGANIZATION, organization.getId(), organization.getId(), constraintFactsJson);
+    testCRU(OwnerType.ORGANIZATION, organization.getId(), organization.getId(), constraintFactsJson);
   }
 
   @Test
-  public void testCRUD_Repository() throws Exception {
+  public void testCRU_Repository() throws Exception {
     Repository repository = tempEntity.newRepository("foo");
     String constraintFactsJson = JsonUtils.writeUnformatted(Collections.singletonList(new ConstraintFact()));
 
-    testCRUD(OwnerType.REPOSITORY, repository.getId(), repository.getId(), constraintFactsJson);
+    testCRU(OwnerType.REPOSITORY, repository.getId(), repository.getId(), constraintFactsJson);
   }
 
   @Test
-  public void testCRUD_NullConstraintFacts() throws Exception {
+  public void testCRU_NullConstraintFacts() throws Exception {
     String appPublicId = "PolicyWaiverResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
     String policyId = createPolicy(application.getId()).getId();
@@ -82,7 +80,7 @@ public class PolicyWaiverResourceTest
     assertThat(response.getBodyText()).isEqualTo("Policy waiver must have constraint facts.");
   }
 
-  private void testCRUD(OwnerType ownerType, String ownerPublicId, String ownerId, String constraintFactsJson)
+  private void testCRU(OwnerType ownerType, String ownerPublicId, String ownerId, String constraintFactsJson)
       throws Exception
   {
     String policyId = createPolicy(ownerId).getId();
@@ -105,44 +103,6 @@ public class PolicyWaiverResourceTest
     assertThat(policyWaivers.waiversByOwner).hasSize(1);
     assertThat(policyWaivers.waiversByOwner.get(0).waivers).hasSize(1);
     assertPolicyWaiverDTO(policyId, ownerPublicId, "My comment", policyWaivers.waiversByOwner.get(0).waivers.get(0));
-
-    // Delete
-    response = restRequest(ownerType, ownerPublicId).path(policyWaiver.getId()).delete();
-    assertResponseStatus(204, response);
-
-    // Get
-    response = restRequest(ownerType, ownerPublicId).path("component", policyWaiver.getHash()).get();
-    assertResponseStatus(200, response);
-    policyWaivers = response.getBody(AppliedWaivers.class);
-    assertThat(policyWaivers).isNotNull();
-    assertThat(policyWaivers.waiversByOwner).isEmpty();
-  }
-
-  @Test
-  public void testDelete_OwnerIdMismatch_Application() throws Exception {
-    String appPublicId1 = "PolicyWaiverResourceTest_AppId1";
-    Application application1 = tempEntity.newApplicationWithParent(appPublicId1);
-    String appPublicId2 = "PolicyWaiverResourceTest_AppId2";
-    tempEntity.newApplicationWithParent(appPublicId2);
-
-    testDelete_OwnerIdMismatch(OwnerType.APPLICATION, appPublicId1, application1.getId(), appPublicId2);
-  }
-
-  @Test
-  public void testDelete_OwnerIdMismatch_Organization() throws Exception {
-    Organization organization1 = tempEntity.newOrganization("PolicyWaiverResourceTest1");
-    Organization organization2 = tempEntity.newOrganization("PolicyWaiverResourceTest2");
-
-    testDelete_OwnerIdMismatch(OwnerType.ORGANIZATION, organization1.getId(), organization1.getId(),
-        organization2.getId());
-  }
-
-  @Test
-  public void testDelete_OwnerIdMismatch_Repository() throws Exception {
-    Repository repository1 = tempEntity.newRepository("PolicyWaiverResourceTest1");
-    Repository repository2 = tempEntity.newRepository("PolicyWaiverResourceTest2");
-
-    testDelete_OwnerIdMismatch(OwnerType.REPOSITORY, repository1.getId(), repository1.getId(), repository2.getId());
   }
 
   private void assertWaiversByOwner(Owner owner, String policyId, String waiverComment, WaiversByOwner actual) {
@@ -251,66 +211,6 @@ public class PolicyWaiverResourceTest
     AppliedWaivers waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner).hasSize(1);
     assertWaiversByOwner(app, policy.getId(), "Test Comment", waivers.waiversByOwner.get(0));
-  }
-
-  private void testDelete_OwnerIdMismatch(OwnerType ownerType,
-                                          String ownerPublicId1,
-                                          String ownerId1,
-                                          String ownerPublicId2) throws Exception
-  {
-    String policyId = createPolicy(ownerId1).getId();
-
-    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */,
-        Collections.singletonList(new ConstraintFact("id", "name", "operator")), "My comment");
-    HttpResponse response = restRequest(ownerType, ownerPublicId1).body(policyWaiver).post();
-    assertResponseStatus(200, response);
-    policyWaiver = response.getBody(PolicyWaiver.class);
-
-    response = restRequest(ownerType, ownerPublicId2).path(policyWaiver.getId()).delete();
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo(
-        "Cannot find a policy waiver with ID " + policyWaiver.getId() + " for " + ownerType + " ID " + ownerPublicId2);
-    // Verify that the policy waiver was not deleted
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(ownerId1);
-    assertThat(policyWaivers).hasSize(1);
-    assertPolicyWaiver(policyId, ownerId1, "My comment", policyWaivers.get(0));
-  }
-
-  @Test
-  public void testDelete_Nonexistent_Application() throws Exception {
-    String appPublicId = "PolicyWaiverResourceTest_AppId";
-    tempEntity.newApplicationWithParent(appPublicId);
-
-    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).path("YettiId").delete();
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Cannot find a policy waiver with ID YettiId.");
-  }
-
-  @Test
-  public void testDelete_Nonexistent_Organization() throws Exception {
-    Organization organization = tempEntity.newOrganization("PolicyWaiverResourceTest");
-
-    HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).path("YettiId").delete();
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Cannot find a policy waiver with ID YettiId.");
-  }
-
-  @Test
-  public void testDelete_Nonexistent_Repository() throws Exception {
-    Repository repository = tempEntity.newRepository("PolicyWaiverResourceTest");
-
-    HttpResponse response = restRequest(OwnerType.REPOSITORY, repository.getId()).path("YettiId").delete();
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Cannot find a policy waiver with ID YettiId.");
-  }
-
-  @Test
-  public void testDelete_Nonexistent_RepositoryContainer() throws Exception {
-    HttpResponse response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.SINGLETON.getId()).path(
-        "YettiId").delete();
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Cannot find a policy waiver with ID YettiId.");
   }
 
   private void assertPolicyWaiverDTO(String policyId, String ownerId, String comment, PolicyWaiverDTO actual) {

@@ -19,12 +19,13 @@ public class OrganizationSelector
   protected static final String REPLACEMENT_KEY = "{organizationId}";
 
   protected String buildOrgsByMostEvalsQuery(DbUtilParameters params, boolean limit) {
+    String stageClause = getStageClause("peval.stage_type_id", params);
     String query = "" //
         + "SELECT app.organization_id, count(peval.policy_evaluation_id) AS stage_evals," //
         + " (SELECT count(*) FROM application appx WHERE appx.organization_id = app.organization_id) AS app_count" //
         + " FROM policy_evaluation peval, application app" //
         + " WHERE peval.application_id = app.application_id" //
-        + " AND " + getStageClause("peval.stage_type_id", params) //
+        + ( stageClause != null ? " AND " + stageClause : " " ) //
         + " GROUP BY (app.organization_id)" //
         + " ORDER BY stage_evals DESC" //
         + (limit ? " LIMIT " + params.getMaxOrganizations() : "");

@@ -28,11 +28,11 @@ public abstract class AbstractComponentConditionType<T>
 
   public final boolean evaluateCondition(Component component, String operator, T value) {
     /*
-     * Only interested in facts about known components, or facts about match state and proprietary state of unknown
-     * components.
+     * Only interested in facts about known components, or facts about match state, proprietary state and data source
+     * of unknown components.
      */
     if (MatchState.UNKNOWN == component.getMatchState() && !(this instanceof MatchStateConditionType)
-        && !(this instanceof ProprietaryConditionType)) {
+        && !(this instanceof ProprietaryConditionType) && !(this instanceof DataSourceConditionType)) {
       return false;
     }
     return internalEvaluateCondition(component, operator, value);

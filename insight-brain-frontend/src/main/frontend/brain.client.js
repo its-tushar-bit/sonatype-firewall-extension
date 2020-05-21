@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-var clmBuildTimestamp = '<%= config.buildTimestamp %>';
+var clmBuildTimestamp = CLM_BUILD_TIMESTAMP;
 /*global window, $ */
 /*jslint plusplus:true */
 (function() {

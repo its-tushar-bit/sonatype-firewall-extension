@@ -42,7 +42,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO.getErrMsgMissingRepo;
 import static com.sonatype.insight.brain.integration.repository.FirewallMigrationService.PROTOCOL_V1;
 import static com.sonatype.insight.brain.model.license.LicenseOverrideStatus.OVERRIDDEN;
@@ -272,16 +271,13 @@ public class FirewallMigrationServiceTest
           now.minusMinutes(generatedRepositoryData.components.size()).toDate());
       for (int i = 0; i < generatedRepositoryData.components.size(); i++) {
         RepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(repository.getId(), 5,
-            component.getPathname(), true, true, Action.ID_FAIL, policy.getId(), policy.getName(),
+            component.getPathname(), true, Action.ID_FAIL, policy.getId(), policy.getName(),
             component.getComponentIdentifier(), component.getLastEvaluationTime());
         generatedRepositoryData.violations.add(violation);
       }
       generatedRepositoryData.components.add(component);
     }
 
-    generatedRepositoryData.violations.add(tempEntity.newRepositoryPolicyViolation(repository.getId(), 5,
-        "migrated/deleted/component", false, false, Action.ID_FAIL, policy.getId(), policy.getName(),
-        createMavenCoordinates("migration", "deleted", "1"), now.minusHours(1).toDate()));
     generatedRepositoryData.policyWaivers.add(tempEntity.newWaiver("hash", policy.getId(), repository.getId()));
     generatedRepositoryData.licenseOverrides.add(tempEntity.newLicenseOverride(repository.getId(),
         generatedRepositoryData.components.get(0).getComponentIdentifier(), OVERRIDDEN, "Apache-2.0"));
@@ -368,7 +364,6 @@ public class FirewallMigrationServiceTest
 
   private final Comparator<RepositoryPolicyViolation> violationComparatorIgnoringIds = Comparator //
       .comparing(RepositoryPolicyViolation::getPathname) //
-      .thenComparing(RepositoryPolicyViolation::isActive) //
       .thenComparing(RepositoryPolicyViolation::getTime) //
       .thenComparing(RepositoryPolicyViolation::getPolicyId) //
       .thenComparing(RepositoryPolicyViolation::getPolicyName) //

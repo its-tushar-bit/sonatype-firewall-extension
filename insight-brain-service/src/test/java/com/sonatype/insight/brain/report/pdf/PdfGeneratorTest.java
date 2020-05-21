@@ -262,6 +262,63 @@ public class PdfGeneratorTest
   }
 
   @Test
+  public void testCountPolicyViolations_ExcludesWaivedAndGrandfathered() {
+    ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
+    ApiReportComponentPolicyViolationsDTOV2 component = new ApiReportComponentPolicyViolationsDTOV2();
+    ApiReportPolicyViolationDTOV2 violation = new ApiReportPolicyViolationDTOV2();
+    component.violations.add(violation);
+    ApiReportPolicyViolationDTOV2 waivedViolation = new ApiReportPolicyViolationDTOV2();
+    waivedViolation.waived = true;
+    component.violations.add(waivedViolation);
+    ApiReportPolicyViolationDTOV2 grandfatheredViolation = new ApiReportPolicyViolationDTOV2();
+    grandfatheredViolation.grandfathered = true;
+    component.violations.add(grandfatheredViolation);
+    policyData.components.add(component);
+
+    assertThat(new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2()).countPolicyViolations(0, 10))
+        .isEqualTo(1);
+  }
+
+  @Test
+  public void testCountAffectedComponents() {
+    ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
+    ApiReportComponentPolicyViolationsDTOV2 component1 = new ApiReportComponentPolicyViolationsDTOV2();
+    ApiReportPolicyViolationDTOV2 violation = new ApiReportPolicyViolationDTOV2();
+    violation.policyThreatLevel = 2;
+    component1.violations.add(violation);
+    ApiReportComponentPolicyViolationsDTOV2 component2 = new ApiReportComponentPolicyViolationsDTOV2();
+    ApiReportPolicyViolationDTOV2 violation2 = new ApiReportPolicyViolationDTOV2();
+    violation2.policyThreatLevel = 10;
+    component2.violations.add(violation2);
+    policyData.components.add(component1);
+    policyData.components.add(component2);
+
+    assertThat(new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2()).countAffectedComponents())
+        .isEqualTo(2);
+  }
+
+  @Test
+  public void testCountAffectedComponents_ExcludesComponentsWithOnlyLowThreatOrWaivedOrGrandfatheredViolations() {
+    ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
+    ApiReportComponentPolicyViolationsDTOV2 component = new ApiReportComponentPolicyViolationsDTOV2();
+    ApiReportPolicyViolationDTOV2 violation = new ApiReportPolicyViolationDTOV2();
+    violation.policyThreatLevel = 1;
+    component.violations.add(violation);
+    ApiReportPolicyViolationDTOV2 waivedViolation = new ApiReportPolicyViolationDTOV2();
+    waivedViolation.policyThreatLevel = 9;
+    waivedViolation.waived = true;
+    component.violations.add(waivedViolation);
+    ApiReportPolicyViolationDTOV2 grandfatheredViolation = new ApiReportPolicyViolationDTOV2();
+    grandfatheredViolation.policyThreatLevel = 9;
+    grandfatheredViolation.grandfathered = true;
+    component.violations.add(grandfatheredViolation);
+    policyData.components.add(component);
+
+    assertThat(new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2()).countAffectedComponents())
+        .isEqualTo(0);
+  }
+
+  @Test
   public void testGetLicensesString_Empty() {
     assertThat(getLicenseText(new ApiLicenseDataDTOV2())).isEmpty();
   }
@@ -367,6 +424,29 @@ public class PdfGeneratorTest
     List<Row> rows = policyViolationsTable.getRows();
     assertThat(rows.subList(1, rows.size())).extracting(row -> ((TextCell) row.getCells().get(4)).getText())
         .containsExactly("comp111", "comp112", "comp121", "comp122", "comp211", "comp212", "comp221", "comp222");
+  }
+
+  @Test
+  public void testCreatePolicyViolationsTableData_ExcludesWaivedAndGrandfathered() {
+    ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
+    ApiReportComponentPolicyViolationsDTOV2 component = new ApiReportComponentPolicyViolationsDTOV2();
+    ApiReportPolicyViolationDTOV2 violation = new ApiReportPolicyViolationDTOV2();
+    violation.policyName = "policyName1";
+    component.violations.add(violation);
+    ApiReportPolicyViolationDTOV2 waivedViolation = new ApiReportPolicyViolationDTOV2();
+    waivedViolation.policyName = "policyName2";
+    waivedViolation.waived = true;
+    component.violations.add(waivedViolation);
+    ApiReportPolicyViolationDTOV2 grandfatheredViolation = new ApiReportPolicyViolationDTOV2();
+    grandfatheredViolation.policyName = "policyName3";
+    grandfatheredViolation.grandfathered = true;
+    component.violations.add(grandfatheredViolation);
+    policyData.components.add(component);
+
+    PdfGenerator pdfGenerator = new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2());
+
+    assertThat(pdfGenerator.createPolicyViolationsTableData()).extracting(row -> row.policyName)
+        .containsExactly(violation.policyName);
   }
 
   @Test

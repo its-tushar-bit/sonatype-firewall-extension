@@ -15,6 +15,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class SourceControlPullRequestCommentDAO
     extends AbstractOperationalSqlDAO<SourceControlPullRequestComment>
 {
+  private static final int DELETE_BATCH_SIZE = 100;
+
   private static final String SELECT_ENTITY = "SELECT entity FROM SourceControlPullRequestComment entity ";
 
   @Override
@@ -149,5 +151,20 @@ public class SourceControlPullRequestCommentDAO
   public void update(final TransactionContext tx, final SourceControlPullRequestComment pullRequestComment) {
     pullRequestComment.setUpdateTime(new Date());
     super.update(tx, pullRequestComment);
+  }
+
+  public int deleteAllBeforeDate(final Date cutoffDate) {
+    String sQuery = "SELECT entity.id FROM SourceControlPullRequestComment entity" +
+        " WHERE entity.updateTime < ?1 OR (entity.updateTime is null AND entity.createTime < ?2)";
+    int deletedRows = 0;
+    while (true) {
+      List<String> ids =
+          new Query<String>(sQuery, cutoffDate, cutoffDate).setMaxResults(DELETE_BATCH_SIZE).getList();
+      if (ids.isEmpty()) {
+        return deletedRows;
+      }
+      deletedRows += createQuery("DELETE FROM SourceControlPullRequestComment entity WHERE entity.id IN (?1)", ids)
+          .executeUpdate();
+    }
   }
 }

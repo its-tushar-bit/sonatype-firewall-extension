@@ -1,7 +1,7 @@
 {
   "aaData" : [ {
     "componentIdentifier" : {
-      "format" : "debian",
+      "format" : "debian-9",
       "coordinates" : {
         "name" : "glibc",
         "version" : "2.24-11+deb9u3"
@@ -24,7 +24,7 @@
     "description" : "description CVE-2017-16997"
   }, {
     "componentIdentifier" : {
-      "format" : "debian",
+      "format" : "debian-9",
       "coordinates" : {
         "name" : "glibc",
         "version" : "2.24-11+deb9u3"
@@ -43,7 +43,7 @@
     "cvssVectorSource" : null,
     "matchState" : "exact",
     "proprietary" : false,
-    "fixedVersion" : "",
+    "fixedVersion" : "3.47-32+deb9u1",
     "description" : "description CVE-2018-1000001"
   }, {
     "componentIdentifier" : {

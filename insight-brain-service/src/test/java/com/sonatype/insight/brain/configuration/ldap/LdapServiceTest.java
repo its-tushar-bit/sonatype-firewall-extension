@@ -663,6 +663,97 @@ public class LdapServiceTest
   }
 
   @Test
+  public void testTestLdapConnection_FakePasswordSameHostAndSamePort() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = tempEntity.newLdapConnection(ldapServer.getId(), PortAllocator.nextFreePort(),
+        LdapAuthenticationMethod.SIMPLE, passwordHandler.encryptPassword(testLdapServer1.getSystemUserPassword()));
+    ldapConnection.setSearchBase(null);
+    ldapConnection.setSystemUsername(testLdapServer1.getSystemUserDN());
+    ldapConnection.setSystemPassword(LdapService.FAKE_PASSWORD);
+    testLdapServer1.setAuthenticationSimple();
+    startLdapServer(testLdapServer1, ldapConnection);
+
+    LdapConnectionStatus ldapConnectionStatus = ldapService.testLdapConnection(ldapServer.getId(), ldapConnection);
+
+    assertThat(ldapConnectionStatus.getStatus()).as(ldapConnectionStatus.getMessage())
+        .isEqualTo(LdapConnectionStatus.Status.OK);
+  }
+
+  @Test
+  public void testTestLdapConnection_GivenPasswordDifferentHostAndSamePort() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = tempEntity.newLdapConnection(ldapServer.getId(), PortAllocator.nextFreePort(),
+        LdapAuthenticationMethod.SIMPLE, passwordHandler.encryptPassword(testLdapServer1.getSystemUserPassword()));
+    ldapConnection.setSearchBase(null);
+    ldapConnection.setSystemUsername(testLdapServer1.getSystemUserDN());
+    ldapConnection.setSystemPassword(testLdapServer1.getSystemUserPassword());
+    testLdapServer1.setAuthenticationSimple();
+    startLdapServer(testLdapServer1, ldapConnection);
+    ldapConnection.setHostname(ldapConnection.getHostname() + "different");
+
+    LdapConnectionStatus ldapConnectionStatus = ldapService.testLdapConnection(ldapServer.getId(), ldapConnection);
+
+    // Bogus host so we expect a failure
+    assertThat(ldapConnectionStatus.getStatus()).as(ldapConnectionStatus.getMessage())
+        .isEqualTo(LdapConnectionStatus.Status.FAILURE);
+  }
+
+  @Test
+  public void testTestLdapConnection_GivenPasswordSameHostAndDifferentPort() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = tempEntity.newLdapConnection(ldapServer.getId(), PortAllocator.nextFreePort(),
+        LdapAuthenticationMethod.SIMPLE, passwordHandler.encryptPassword(testLdapServer1.getSystemUserPassword()));
+    ldapConnection.setSearchBase(null);
+    ldapConnection.setSystemUsername(testLdapServer1.getSystemUserDN());
+    ldapConnection.setSystemPassword(testLdapServer1.getSystemUserPassword());
+    testLdapServer1.setAuthenticationSimple();
+    startLdapServer(testLdapServer1, ldapConnection);
+    ldapConnection.setPort(ldapConnection.getPort() + 10);
+
+    LdapConnectionStatus ldapConnectionStatus = ldapService.testLdapConnection(ldapServer.getId(), ldapConnection);
+
+    // Bogus port so we expect a failure
+    assertThat(ldapConnectionStatus.getStatus()).as(ldapConnectionStatus.getMessage())
+        .isEqualTo(LdapConnectionStatus.Status.FAILURE);
+  }
+
+  @Test
+  public void testTestLdapConnection_FakePasswordDifferentHostAndSamePort() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = tempEntity.newLdapConnection(ldapServer.getId(), PortAllocator.nextFreePort(),
+        LdapAuthenticationMethod.SIMPLE, passwordHandler.encryptPassword(testLdapServer1.getSystemUserPassword()));
+    ldapConnection.setSearchBase(null);
+    ldapConnection.setSystemUsername(testLdapServer1.getSystemUserDN());
+    ldapConnection.setSystemPassword(LdapService.FAKE_PASSWORD);
+    testLdapServer1.setAuthenticationSimple();
+    startLdapServer(testLdapServer1, ldapConnection);
+    ldapConnection.setHostname(ldapConnection.getHostname() + "different");
+
+    assertThatThrownBy(() -> ldapService.testLdapConnection(ldapServer.getId(), ldapConnection))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage(
+            "The password must be given when updating the hostname or port for a connection that uses authentication.");
+  }
+
+  @Test
+  public void testTestLdapConnection_FakePasswordSameHostAndDifferentPort() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = tempEntity.newLdapConnection(ldapServer.getId(), PortAllocator.nextFreePort(),
+        LdapAuthenticationMethod.SIMPLE, passwordHandler.encryptPassword(testLdapServer1.getSystemUserPassword()));
+    ldapConnection.setSearchBase(null);
+    ldapConnection.setSystemUsername(testLdapServer1.getSystemUserDN());
+    ldapConnection.setSystemPassword(LdapService.FAKE_PASSWORD);
+    testLdapServer1.setAuthenticationSimple();
+    startLdapServer(testLdapServer1, ldapConnection);
+    ldapConnection.setPort(ldapConnection.getPort() + 10);
+
+    assertThatThrownBy(() -> ldapService.testLdapConnection(ldapServer.getId(), ldapConnection))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage(
+            "The password must be given when updating the hostname or port for a connection that uses authentication.");
+  }
+
+  @Test
   public void testTestLdapUserMapping() throws Exception {
     LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server1");
     LdapConnection ldapConnection1 = createLdapConnection(ldapServer1);
@@ -1726,6 +1817,75 @@ public class LdapServiceTest
     assertThatThrownBy(() -> {
       ldapService.upsertLdapConnection("fake LDAP server id", ldapConnection);
     }).isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
+  }
+
+  @Test
+  public void testUpsertLdapConnection_Update_FakePasswordSameHostAndSamePort() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection expectedLdapConnection =
+        tempEntity.newLdapConnection(ldapServer.getId(), passwordHandler.encryptPassword("password".toCharArray()));
+    expectedLdapConnection.setSystemPassword(LdapService.FAKE_PASSWORD);
+    // Change something other than hostname and port to make sure the update works
+    int expectedRetryDelay = expectedLdapConnection.getRetryDelay() + 10;
+    expectedLdapConnection.setRetryDelay(expectedRetryDelay);
+
+    LdapConnection updatedLdapConnection = ldapService.upsertLdapConnection(ldapServer.getId(), expectedLdapConnection);
+
+    assertThat(updatedLdapConnection.getRetryDelay()).isEqualTo(expectedRetryDelay);
+  }
+
+  @Test
+  public void testUpsertLdapConnection_Update_GivenPasswordDifferentHostAndSamePort() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection expectedLdapConnection =
+        tempEntity.newLdapConnection(ldapServer.getId(), passwordHandler.encryptPassword("password".toCharArray()));
+    expectedLdapConnection.setHostname(expectedLdapConnection.getHostname() + "different");
+
+    LdapConnection updatedLdapConnection = ldapService.upsertLdapConnection(ldapServer.getId(), expectedLdapConnection);
+
+    assertThat(updatedLdapConnection.getHostname()).isEqualTo(expectedLdapConnection.getHostname());
+    assertThat(updatedLdapConnection.getPort()).isEqualTo(expectedLdapConnection.getPort());
+  }
+
+  @Test
+  public void testUpsertLdapConnection_Update_GivenPasswordSameHostAndDifferentPort() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection expectedLdapConnection =
+        tempEntity.newLdapConnection(ldapServer.getId(), passwordHandler.encryptPassword("password".toCharArray()));
+    expectedLdapConnection.setPort(expectedLdapConnection.getPort() + 10);
+
+    LdapConnection updatedLdapConnection = ldapService.upsertLdapConnection(ldapServer.getId(), expectedLdapConnection);
+
+    assertThat(updatedLdapConnection.getHostname()).isEqualTo(expectedLdapConnection.getHostname());
+    assertThat(updatedLdapConnection.getPort()).isEqualTo(expectedLdapConnection.getPort());
+  }
+
+  @Test
+  public void testUpsertLdapConnection_Update_FakePasswordDifferentHostAndSamePort() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection expectedLdapConnection =
+        tempEntity.newLdapConnection(ldapServer.getId(), passwordHandler.encryptPassword("password".toCharArray()));
+    expectedLdapConnection.setSystemPassword(LdapService.FAKE_PASSWORD);
+    expectedLdapConnection.setHostname(expectedLdapConnection.getHostname() + "different");
+
+    assertThatThrownBy(() -> ldapService.upsertLdapConnection(ldapServer.getId(), expectedLdapConnection))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage(
+            "The password must be given when updating the hostname or port for a connection that uses authentication.");
+  }
+
+  @Test
+  public void testUpsertLdapConnection_Update_FakePasswordSameHostAndDifferentPort() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection expectedLdapConnection =
+        tempEntity.newLdapConnection(ldapServer.getId(), passwordHandler.encryptPassword("password".toCharArray()));
+    expectedLdapConnection.setSystemPassword(LdapService.FAKE_PASSWORD);
+    expectedLdapConnection.setPort(expectedLdapConnection.getPort() + 10);
+
+    assertThatThrownBy(() -> ldapService.upsertLdapConnection(ldapServer.getId(), expectedLdapConnection))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage(
+            "The password must be given when updating the hostname or port for a connection that uses authentication.");
   }
 
   @Test

@@ -102,7 +102,7 @@ public class InsightWork
   /**
    * @since 1.88
    */
-  private File getSearchDir() {
+  public File getSearchDir() {
     return new File(insightConfig.getSonatypeWork(), "search");
   }
 
@@ -111,12 +111,5 @@ public class InsightWork
    */
   public File getSearchIndexDir() {
     return new File(getSearchDir(), "index");
-  }
-
-  /**
-   * @since 1.88
-   */
-  public File getSearchSuggesterDir() {
-    return new File(getSearchDir(), "suggester");
   }
 }

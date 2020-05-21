@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -132,6 +133,9 @@ public class PdfGenerator
   private static final char GRANDFATHERED_SYMBOL = '\uf1da';
 
   private final String baseUrl;
+
+  private final Predicate<ApiReportPolicyViolationDTOV2> isActiveViolation =
+      violation -> !violation.waived && !violation.grandfathered;
 
   private ApiReportPolicyDataDTOV2 policyData;
 
@@ -252,7 +256,7 @@ public class PdfGenerator
           applicationCompositionReport);
 
       // Add title and dates
-      float titleAndDatesStartY = addTitleAndDates(contentStream, "Policy Violations", MARGIN,
+      float titleAndDatesStartY = addTitleAndDates(contentStream, pageRec, "Policy Violations", MARGIN,
           headerLeftStartY - sonatypeFontStyle.getFontDescent() - titleFontStyle.getFontAscent());
 
       // Add violations summary
@@ -278,8 +282,7 @@ public class PdfGenerator
       addText(contentStream, violationsTextStartX, violationsTextStartY, summaryHeaderFontStyle, violationsText);
       float affectedComponentsStartX = violationsTextStartX;
       float affectedComponentsStartY = criticalStartY;
-      long affectedComponents = policyData.components.stream().filter(component -> component.violations.stream()
-          .anyMatch(violation -> violation.policyThreatLevel >= 2)).count();
+      long affectedComponents = countAffectedComponents();
       String affectingText = "Affecting " + affectedComponents + " components";
       addText(contentStream, affectedComponentsStartX, affectedComponentsStartY, summaryFontStyle, affectingText);
 
@@ -359,10 +362,14 @@ public class PdfGenerator
     return tableBuilder.build();
   }
 
-  private List<PolicyViolationsTableRow> createPolicyViolationsTableData() {
+  // Visible for testing
+  List<PolicyViolationsTableRow> createPolicyViolationsTableData() {
     List<PolicyViolationsTableRow> policyViolationsTableRows = new ArrayList<>();
     for (ApiReportComponentPolicyViolationsDTOV2 component : policyData.components) {
       for (ApiReportPolicyViolationDTOV2 violation : component.violations) {
+        if (!isActiveViolation.test(violation)) {
+          continue;
+        }
         PolicyViolationsTableRow policyViolationsTableRow = new PolicyViolationsTableRow();
         policyViolationsTableRow.threatLevel = violation.policyThreatLevel;
         policyViolationsTableRow.policyName = violation.policyName;
@@ -381,7 +388,7 @@ public class PdfGenerator
     PDRectangle pageRec = page.getCropBox();
     try (PDPageContentStream contentStream = new PDPageContentStream(pdf, page)) {
       // Add title and dates
-      float titleAndDatesStartY = addTitleAndDates(contentStream, "Vulnerabilities", MARGIN,
+      float titleAndDatesStartY = addTitleAndDates(contentStream, pageRec, "Vulnerabilities", MARGIN,
           pageRec.getHeight() - MARGIN - titleFontStyle.getFontHeight());
 
       // Add security issues table
@@ -458,7 +465,7 @@ public class PdfGenerator
     PDRectangle pageRec = page.getCropBox();
     try (PDPageContentStream contentStream = new PDPageContentStream(pdf, page)) {
       // Add title and dates
-      float titleAndDatesStartY = addTitleAndDates(contentStream, "Licenses", MARGIN,
+      float titleAndDatesStartY = addTitleAndDates(contentStream, pageRec, "Licenses", MARGIN,
           pageRec.getHeight() - MARGIN - titleFontStyle.getFontHeight());
 
       // Add licenses table
@@ -544,7 +551,7 @@ public class PdfGenerator
     PDRectangle pageRec = page.getCropBox();
     try (PDPageContentStream contentStream = new PDPageContentStream(pdf, page)) {
       // Add title and dates
-      float titleAndDatesStartY = addTitleAndDates(contentStream, "Component BOM", MARGIN,
+      float titleAndDatesStartY = addTitleAndDates(contentStream, pageRec, "Component BOM", MARGIN,
           pageRec.getHeight() - MARGIN - titleFontStyle.getFontHeight());
 
       // Add components summary
@@ -613,6 +620,7 @@ public class PdfGenerator
 
   private float addTitleAndDates(
       PDPageContentStream contentStream,
+      PDRectangle pageRec,
       String sectionName,
       float startX,
       float startY) throws IOException
@@ -639,7 +647,21 @@ public class PdfGenerator
     float analyzedOnDateStartX = analyzedOnDescriptorStartX + dateDescriptorFontStyle.getStringWidth(analyzedOn);
     float analyzedOnDateStartY = analyzedOnDescriptorStartY;
     addText(contentStream, analyzedOnDateStartX, analyzedOnDateStartY, dateFontStyle, analyzedOnDateTime);
+
+    addCommitHash(contentStream, pageRec, createdOnDescriptorStartY);
+
     return analyzedOnDateStartY;
+  }
+
+  private void addCommitHash(PDPageContentStream contentStream, PDRectangle pageRec, float startY) throws IOException {
+    if (policyData.commitHash != null) {
+      String commitLabel = "Commit: ";
+      float commitHashStartY = startY;
+      float commitHashStartX = pageRec.getUpperRightX() - MARGIN - dateFontStyle.getStringWidth(policyData.commitHash);
+      addText(contentStream, commitHashStartX, commitHashStartY, dateFontStyle, policyData.commitHash);
+      commitHashStartX -= dateDescriptorFontStyle.getStringWidth(commitLabel);
+      addText(contentStream, commitHashStartX, commitHashStartY, dateDescriptorFontStyle, commitLabel);
+    }
   }
 
   private void addPageNumbers() throws IOException {
@@ -675,9 +697,17 @@ public class PdfGenerator
 
   // Visible for testing
   long countPolicyViolations(int minThreatLevel, int maxThreatLevel) {
-    return policyData.components.stream().flatMap(component -> component.violations.stream()).filter(
-        violation -> violation.policyThreatLevel >= minThreatLevel && violation.policyThreatLevel <= maxThreatLevel)
+    return policyData.components.stream().flatMap(component -> component.violations.stream())
+        .filter(isActiveViolation)
+        .filter(violation -> violation.policyThreatLevel >= minThreatLevel
+            && violation.policyThreatLevel <= maxThreatLevel)
         .count();
+  }
+
+  // Visible for testing
+  long countAffectedComponents() {
+    return policyData.components.stream().filter(component -> component.violations.stream()
+        .anyMatch(violation -> isActiveViolation.test(violation) && violation.policyThreatLevel >= 2)).count();
   }
 
   private TableDrawer createTableDrawer(PDPageContentStream contentStream, float tableStartY, Table table) {

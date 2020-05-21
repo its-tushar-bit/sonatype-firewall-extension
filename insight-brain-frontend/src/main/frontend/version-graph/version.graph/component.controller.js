@@ -23,7 +23,8 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
       if (coordinates && coordinates.appId && !Properties.isUnknown()) {
         $http.get(Brain[clmEndpoint.type].getComponentListUrl(OwnerContext.ownerType, OwnerContext.ownerId,
             Coordinates.getFormat(), Properties.getHash(), Properties.getMatchState(), Properties.getProprietary(),
-            Coordinates.get(), Properties.getPathname(), Properties.getIdentificationSource(), OwnerContext.scanId))
+            Coordinates.get(), Properties.getPathname(), Properties.getIdentificationSource(), OwnerContext.scanId,
+            Properties.getStageId()))
             .then(function(response) {
               $scope.componentDetailsList = response.data.allVersions || response.data.list || response.data;
               for (var i = 0; i < $scope.componentDetailsList.length; i++) {
@@ -46,6 +47,11 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
       $.each(remediation.versionChanges, function(index, item) {
         $scope.suggestedRemediations.set(item.type,
             item.data.component.componentIdentifier);
+        
+        if(item.data.component.thirdParty){
+          $scope.suggestedRemediations.set(item.data.component.componentIdentifier.coordinates.version,
+                  item.data.component.thirdParty);
+        }
       });
     }
   }
@@ -162,6 +168,23 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
     }
     return $scope.suggestedRemediations.get(type).coordinates.version;
   }
+  
+  $scope.isThirdPartyRemediation = function() {  
+    if (!$scope.suggestedRemediations || $scope.suggestedRemediations.size == 0) {
+      return false;
+    }
+
+    let remediation = $scope.suggestedRemediations.get(NEXT_NO_VIOLATIONS);
+    if(!remediation){
+      return false;
+    }
+
+    let version = remediation.coordinates.version;
+    if(!version){
+      return false;
+    }
+    return $scope.suggestedRemediations.get(version); 
+  };
 }
 
 function isNotDependency(pathName) {

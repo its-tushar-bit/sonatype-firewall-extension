@@ -19,6 +19,8 @@ public class DiscoveredPullRequestEvent
 
   public String commitHash;
 
+  public String branchName;
+
   public int pullRequestNumber;
 
   public String targetPolicyEvaluationId;

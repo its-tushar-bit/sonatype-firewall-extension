@@ -20,7 +20,7 @@ export default function RootOrganizationMigrateModalController(Messages, Organiz
   vm.majorMinorVersion = clmServerVersion.split('.').splice(0, 2).join('.');
 
   function selectTemplate() {
-    var orgId = vm.migrateSelection === 'selectOrganization' ? vm.organization.id : null,
+    const orgId = vm.migrateSelection === 'selectOrganization' ? vm.organization : null,
         url = CLMLocations.getRootOrganizationConfigMigrationUrl(orgId);
     delete vm.error;
     $http.post(url).then(function() {

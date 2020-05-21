@@ -70,7 +70,7 @@ public class PolicyAlertEventServiceTest
     TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
     asyncEventBus.register(handler);
 
-    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, "commitHash");
+    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, "commitHash", application);
 
     // policyAlertEvent is posted
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
@@ -103,7 +103,7 @@ public class PolicyAlertEventServiceTest
     TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
     asyncEventBus.register(handler);
 
-    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, null);
+    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, null, application);
 
     // no event is posted
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isFalse();
@@ -119,7 +119,7 @@ public class PolicyAlertEventServiceTest
     TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
     asyncEventBus.register(handler);
 
-    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, null);
+    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, null, application);
 
     // events for target1 are grouped into a single event
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
@@ -139,7 +139,7 @@ public class PolicyAlertEventServiceTest
     TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(3));
     asyncEventBus.register(handler);
 
-    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, null);
+    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, null, application);
 
     // 3 events are received
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();

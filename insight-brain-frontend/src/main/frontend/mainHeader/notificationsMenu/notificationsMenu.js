@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { faInbox } from '@fortawesome/pro-regular-svg-icons';
+import template from './notificationsMenu.html';
 
 function NotificationsController($scope, $http, $sce, CLMLocations, timeAgoService, Messages) {
 
@@ -75,5 +76,5 @@ NotificationsController.$inject = ['$scope', '$http', '$sce', 'CLMLocations', 't
 export default {
   controller: NotificationsController,
   controllerAs: 'vm',
-  templateUrl: 'mainHeader/notificationsMenu/notificationsMenu.html?' + clmBuildTimestamp
+  template
 };

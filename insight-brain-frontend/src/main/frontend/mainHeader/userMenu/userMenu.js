@@ -7,6 +7,7 @@ import { pick } from 'ramda';
 import modalWrapperTemplate from './userDetailsModalWrapper.html';
 import { faUserAlt } from '@fortawesome/pro-regular-svg-icons';
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
+import template from './userMenu.html';
 
 function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, Modal, messages, pendoService, actions) {
   var vm = this;
@@ -98,7 +99,7 @@ UserMenuController.$inject = [
 ];
 
 export default {
-  templateUrl: 'mainHeader/userMenu/userMenu.html?' + clmBuildTimestamp,
+  template,
   controller: UserMenuController,
   controllerAs: 'vm'
 };

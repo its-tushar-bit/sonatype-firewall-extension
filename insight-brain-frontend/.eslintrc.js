@@ -10,7 +10,8 @@ module.exports = {
   "env": {
     "browser": true,
     "node": true,
-    "jasmine": true
+    "jasmine": true,
+    "es6": true
   },
   "globals": {
     "angular": false,

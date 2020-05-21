@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, clmBuildTimestamp */
+import roleListTemplate from './role-list.html';
+import roleEditorTemplate from './role-editor.html';
 
 import resourceModule from '../Resource';
 import CLMLocationModule from '../util/CLMLocation';
@@ -18,7 +20,7 @@ const module = angular.module('RoleModule', [
     $stateProvider.state('roles', {
       url: '/roles',
       controller: 'RoleListController',
-      templateUrl: 'security/role-list.html?' + clmBuildTimestamp,
+      template: roleListTemplate,
       data: {
         title: 'Roles',
         crumb: 'Roles'
@@ -39,7 +41,7 @@ const module = angular.module('RoleModule', [
     }).state('roles.editor', {
       url: '/{roleId}',
       controller: 'RoleEditorController',
-      templateUrl: 'security/role-editor.html?' + clmBuildTimestamp,
+      template: roleEditorTemplate,
       data: {
         title: 'Role Editor',
         crumb: 'Editor'

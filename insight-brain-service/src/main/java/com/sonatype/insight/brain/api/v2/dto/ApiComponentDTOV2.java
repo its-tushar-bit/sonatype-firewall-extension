@@ -21,4 +21,7 @@ public class ApiComponentDTOV2
 
   @JsonInclude(Include.NON_NULL)
   public Boolean proprietary = false;
+
+  @JsonInclude(Include.NON_NULL)
+  public Boolean thirdParty;
 }

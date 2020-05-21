@@ -312,7 +312,7 @@ public class PolicyEvaluateServiceTest
     lookup(InsightConfig.class).setBaseUrl(serverUrl);
     Map<String, Object> model = emailer.createPolicyMailModel(app, scanId, StageTypes.BUILD, policyFacts, 8);
     assertThat(model.get("policyFacts")).isEqualTo(policyFacts);
-    assertThat(model.get("cdnUrl")).isEqualTo("http://cdn.sonatype.com/");
+    assertThat(model.get("cdnUrl")).isEqualTo("https://cdn.sonatype.com/");
     assertThat(model.get("detailedReportUrl"))
         .isEqualTo(serverUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId));
     assertThat(model.get("policyThreatRedCount")).isEqualTo(18);

@@ -11,8 +11,6 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Provider;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
@@ -26,7 +24,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
-import com.sonatype.insight.brain.git.PullRequestTask;
+import com.sonatype.insight.brain.git.SourceControlTaskRunner;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -38,7 +36,7 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.test.LogOutput;
-import com.sonatype.nexus.iq.manager.PullRequestExecutor;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 
 import org.junit.Before;
@@ -83,13 +81,7 @@ public class PolicyAlertScmNotifierTest
   private BaseUrl baseUrl;
 
   @Mock
-  Provider<PullRequestTask> provider;
-
-  @Mock
-  PullRequestTask pullRequestTask;
-
-  @Mock
-  PullRequestExecutor pullRequestExecutor;
+  SourceControlTaskRunner sourceControlTaskRunner;
 
   @Mock
   SourceControlUtils sourceControlUtils;
@@ -105,7 +97,7 @@ public class PolicyAlertScmNotifierTest
   public void setup() throws Exception {
     scmNotifier = new PolicyAlertScmNotifier(pullRequestFeatureCheck,
         remediationService, new PolicyAlertSourceCodeOrganizer(), gitClientFactory,
-        baseUrl, pullRequestExecutor, provider, sourceControlUtils);
+        baseUrl, sourceControlUtils, sourceControlTaskRunner);
     Organization organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(NAME, PUBLIC_ID, organization.getId());
   }
@@ -166,7 +158,7 @@ public class PolicyAlertScmNotifierTest
         any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
         eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(emptyRemediationDTO);
 
-    when(pullRequestExecutor.isSupportedFormat(any())).thenReturn(true);
+    when(sourceControlTaskRunner.isFormatSupportedForPullRequestRemediation(any())).thenReturn(true);
 
     // when we send policy notifications
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
@@ -191,7 +183,7 @@ public class PolicyAlertScmNotifierTest
     // and feature is enabled
     when(pullRequestFeatureCheck.isPullRequestFeatureSupported(
         application, gitRepositoryInfo)).thenReturn(true);
-    when(pullRequestExecutor.isSupportedFormat(any())).thenReturn(true);
+    when(sourceControlTaskRunner.isFormatSupportedForPullRequestRemediation(any())).thenReturn(true);
 
     // and there are suggested remediations
     ApiComponentRemediationDTO remediationDTO = buildRemediationDTOWithSuggestion();
@@ -221,12 +213,14 @@ public class PolicyAlertScmNotifierTest
   @Test
   public void test_invokePREngine() throws Exception {
     // given we have repository info for an application
+    GitRepositoryInfo githubRepositoryInfo =
+        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
-        .thenReturn(gitRepositoryInfo);
+        .thenReturn(githubRepositoryInfo);
 
     // and feature is enabled
     when(pullRequestFeatureCheck.isPullRequestFeatureSupported(
-        application, gitRepositoryInfo)).thenReturn(true);
+        application, githubRepositoryInfo)).thenReturn(true);
 
     // and there are suggested remediations
     ApiComponentRemediationDTO remediationDTO = buildRemediationDTOWithSuggestion();
@@ -234,37 +228,32 @@ public class PolicyAlertScmNotifierTest
         any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
         eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(remediationDTO);
 
-    when(pullRequestExecutor.isSupportedFormat(any())).thenReturn(true);
+    when(sourceControlTaskRunner.isFormatSupportedForPullRequestRemediation(any())).thenReturn(true);
 
     // and the branch doesn't already exist on the server
-    when(gitClientFactory.createApiClient(gitRepositoryInfo)).thenReturn(gitApiClient);
+    when(gitClientFactory.createApiClient(githubRepositoryInfo)).thenReturn(gitApiClient);
     String truncatedAppId = application.getId().substring(0, APP_ID_BRANCH_TRUNCATE_INDEX);
     when(gitApiClient.isBranchOnServer(truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1")).thenReturn(false);
 
     String branchName = truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1";
     when(gitApiClient.isBranchOnServer(branchName)).thenReturn(false);
     when(baseUrl.getConfigured()).thenReturn("foo");
-    when(provider.get()).thenReturn(pullRequestTask);
+
     CountDownLatch finished = new CountDownLatch(1);
     doAnswer(invocation -> {
       finished.countDown();
       return null;
-    }).when(pullRequestTask).run();
+    }).when(sourceControlTaskRunner).doPullRequestRemediation(any());
 
     // when we send policy notifications
     scmNotifier.sendNotifications(application,"scanId", new Stage("build"),  buildPolicyNotifications());
 
     // then we see the PR engine run for the component
-    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-      assertThat(logOutput).atInfoLevel().contains("Executing pull request task for [maven: {artifactId=Package1," +
-          " groupId=groupid, version=1.2.3}] on application with id [" + application.getId() + "]");
-    });
+    await().atMost(5, TimeUnit.SECONDS).until( () -> finished.getCount() == 0);
 
     ArgumentCaptor<PullRequestRemediationDetails> captor =
         ArgumentCaptor.forClass(PullRequestRemediationDetails.class);
-    verify(pullRequestTask).init(captor.capture(), eq(pullRequestExecutor));
-    await().atMost(1, TimeUnit.SECONDS).until( () -> finished.getCount() == 0);
-    verify(pullRequestTask).run();
+    verify(sourceControlTaskRunner).doPullRequestRemediation(captor.capture());
     assertThat(captor.getValue().getToBeRemediated())
         .isEqualTo(ComponentIdentifier.createMavenCoordinates("groupid", "Package1", "1.2.3"));
     assertThat(captor.getValue().getRemediatedVersion()).isEqualTo("2.0.1");

@@ -12,13 +12,8 @@ describe('mainModuleSpec', function() {
   var scope, telemetryServiceMock, pendoServiceMock;
 
   beforeEach(angular.mock.module(InitModule.name, function($provide, $stateProvider) {
-    $provide.service('$window', function() {
-      return {
-        location: {
-          href: 'http://blah'
-        }
-      };
-    });
+    // mock the window using anything on which events can be dispatched
+    $provide.value('$window', document.createElement('div'));
 
     telemetryServiceMock = jasmine.createSpyObj('gettingStartedUsageTelemetryService', ['submitData']);
     $provide.service('gettingStartedUsageTelemetryService', function() {
@@ -67,7 +62,6 @@ describe('mainModuleSpec', function() {
           $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
           $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(
               ['dashboard', 'allow-external-hyperlinks']);
-          $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
 
           initService.start();
           expect($state.go).not.toHaveBeenCalled();
@@ -145,7 +139,6 @@ describe('mainModuleSpec', function() {
           $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
           $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
           $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
-          $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
 
           initService.start();
           $httpBackend.flush();
@@ -168,7 +161,6 @@ describe('mainModuleSpec', function() {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
-      $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
     }));
 
     it('fires "REDIRECTED" telemetry event', inject(function(initService, $state) {
@@ -184,15 +176,16 @@ describe('mainModuleSpec', function() {
   });
 
   describe('on beforeunload event', function() {
-    let $httpBackend;
+    let $httpBackend,
+        $window;
 
-    beforeEach(inject(function(_$httpBackend_, CLMLocations) {
+    beforeEach(inject(function(_$httpBackend_, CLMLocations, _$window_) {
       $httpBackend = _$httpBackend_;
+      $window = _$window_;
 
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
-      $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
     }));
 
     it('fires synchronous "DEPARTED" telemetry event if current page is gettingStarted',
@@ -201,7 +194,7 @@ describe('mainModuleSpec', function() {
           $httpBackend.flush();
           $state.current.name = 'gettingStarted';
           scope.$digest();
-          window.dispatchEvent(new Event('beforeunload'));
+          $window.dispatchEvent(new Event('beforeunload'));
           expect(telemetryServiceMock.submitData).toHaveBeenCalledWith('DEPARTED', null, true);
         })
     );
@@ -209,7 +202,7 @@ describe('mainModuleSpec', function() {
     it('does not fire "DEPARTED" telemetry event if current page is not gettingStarted', inject(function(initService) {
       initService.start();
       $httpBackend.flush();
-      window.dispatchEvent(new Event('beforeunload'));
+      $window.dispatchEvent(new Event('beforeunload'));
       expect(telemetryServiceMock.submitData).not.toHaveBeenCalled();
     }));
   });
@@ -231,7 +224,6 @@ describe('mainModuleSpec', function() {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
-      $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
 
       initService.start();
 
@@ -244,7 +236,6 @@ describe('mainModuleSpec', function() {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
-      $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
 
       initService.start();
 

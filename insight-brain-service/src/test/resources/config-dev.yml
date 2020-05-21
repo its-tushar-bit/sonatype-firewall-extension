@@ -11,6 +11,7 @@ logging:
   # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
   level: DEBUG
   loggers:
+    "com.sonatype.insight.brain.git.PullRequestPollingScheduler": INFO
     "com.sonatype.insight.scan": INFO
     "eu.medsea.mimeutil.MimeUtil2": INFO
     "org.apache.http": INFO

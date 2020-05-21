@@ -38,10 +38,10 @@ public class PullRequestPollingTrackerTest
   private static final long MS_PER_MINUTE = 60_000;
 
   @Mock
-  SourceControlDAO sourceControlDAO;
+  private SourceControlDAO sourceControlDAO;
 
   // test subject
-  PullRequestPollingTracker pollingTracker;
+  private PullRequestPollingTracker pollingTracker;
 
   @Before
   public void before() {
@@ -114,15 +114,35 @@ public class PullRequestPollingTrackerTest
     sourceControl.setPullRequestErrorCount(3);
 
     // when: update poll times called
-    pollingTracker.onPullRequestProcessed(sourceControlId, "org", "token", date);
+    pollingTracker.onPullRequestProcessed(sourceControlId, "org", "repo", "token", date);
 
     // then: verify dates and error count
     verify(sourceControlDAO, times(1)).updatePollTimeAndErrorCounts(sourceControl.getId(), date, 0);
 
     // and: cutoff time is correct
     Date cutoff = new Date(System.currentTimeMillis() - (1000 * 60 * 60 * 24));
-    assertThat(pollingTracker.getCachedCutoffTime("org", "token", cutoff)).isAfter(cutoff);
-    assertThat(pollingTracker.getCachedCutoffTime("org2", "token2", cutoff)).isEqualTo(cutoff);
+    assertThat(pollingTracker.getCachedCutoffTime("org", "repo", "token", cutoff)).isAfter(cutoff);
+    assertThat(pollingTracker.getCachedCutoffTime("org2", "repo", "token2", cutoff)).isEqualTo(cutoff);
+  }
+
+  @Test
+  public void testOnPullRequestProcessed_withNullRepo() {
+    // given: source control entry with initial values
+    Date date = new Date();
+    String sourceControlId = "sc1";
+    SourceControl sourceControl = createSourceControl(sourceControlId);
+    sourceControl.setPullRequestErrorCount(3);
+
+    // when: update poll times called
+    pollingTracker.onPullRequestProcessed(sourceControlId, "org", null, "token", date);
+
+    // then: verify dates and error count
+    verify(sourceControlDAO, times(1)).updatePollTimeAndErrorCounts(sourceControl.getId(), date, 0);
+
+    // and: cutoff time is correct
+    Date cutoff = new Date(System.currentTimeMillis() - (1000 * 60 * 60 * 24));
+    assertThat(pollingTracker.getCachedCutoffTime("org", null, "token", cutoff)).isAfter(cutoff);
+    assertThat(pollingTracker.getCachedCutoffTime("org2", null, "token2", cutoff)).isEqualTo(cutoff);
   }
 
   @Test
@@ -187,15 +207,30 @@ public class PullRequestPollingTrackerTest
   }
 
   @Test
-  public void testVisitAndCheckOrganizationWithToken() {
-    // when: visit and org/token combo for first time
-    boolean visited = pollingTracker.visitAndCheckOrganizationWithToken("org", "token");
+  public void testVisitAndCheckKeyAlreadyUsed() {
+    // when: visit and key combo used for first time
+    boolean visited = pollingTracker.visitAndCheckKeyAlreadyUsed("org", "repo","token");
 
     // then: shouldn't have been visited yet
     assertThat(visited).isFalse();
 
     // when: visit again
-    visited = pollingTracker.visitAndCheckOrganizationWithToken("org", "token");
+    visited = pollingTracker.visitAndCheckKeyAlreadyUsed("org", "repo", "token");
+
+    // then: should indicate was visited already
+    assertThat(visited).isTrue();
+  }
+
+  @Test
+  public void testVisitAndCheckKeyAlreadyUsed_withNullRepo() {
+    // when: visit and key combo used for first time
+    boolean visited = pollingTracker.visitAndCheckKeyAlreadyUsed("org", null, "token");
+
+    // then: shouldn't have been visited yet
+    assertThat(visited).isFalse();
+
+    // when: visit again
+    visited = pollingTracker.visitAndCheckKeyAlreadyUsed("org", null, "token");
 
     // then: should indicate was visited already
     assertThat(visited).isTrue();

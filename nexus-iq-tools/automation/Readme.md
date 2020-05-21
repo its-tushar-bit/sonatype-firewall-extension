@@ -23,3 +23,20 @@
   * If the dataset targeted is on S3, environment variables or credentials files must be configured
   * Execute like this from within the automation folder:
     * ```pipenv run python run_performance_eval.py -p sample-profile.json -iq ../../insight-brain-service/target/insight-brain-service-*-SNAPSHOT-server.jar -tools ../target/nexus-iq-tools-*-SNAPSHOT.jar```
+  * To use Postgres use something like this:
+    * ```--use-postgres -p /path/to/test-profile.json -iq /path/to/insight-brain-service-server.jar -tools /path/to/nexus-iq-tools.jar -lic /path/to/license.lic```
+    * The test profile must contain the connection details for Postgres in the following form:
+        ```json
+        {
+            "iq_data": {},
+            "iq_server": {},
+            "iq_tools": {},
+            "postgres": {
+                "hostname": "localhost",
+                "port": 5432,
+                "username": "postgres",
+                "password": "postgres",
+                "database": "postgres"
+            }
+        }
+        ```

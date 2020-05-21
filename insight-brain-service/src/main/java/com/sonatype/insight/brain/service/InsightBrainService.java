@@ -219,6 +219,11 @@ public class InsightBrainService
 
     super.run(configuration, environment);
 
+    bootApplicationLifecycle();
+  }
+
+  // Visible for testing
+  void bootApplicationLifecycle() throws Exception {
     getInstance(ApplicationLifecycle.class).boot();
   }
 
@@ -377,6 +382,8 @@ public class InsightBrainService
     }
     log.debug("HDS URL: {}", config.getHdsUrl());
     log.debug("Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless());
+    log.debug("Features flags: {}", config.getFeatures());
+    log.debug("Experimental features flags: {}", config.getExperimentalFeatures());
   }
 
   private void addServletFilter(Environment env, Class<? extends Filter> filterType, String... urlPatterns) {

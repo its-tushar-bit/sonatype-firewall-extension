@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './owner.editor.service.html';
+
 export default
 function OwnerEditorService(Modal) {
   return {
@@ -12,7 +14,7 @@ function OwnerEditorService(Modal) {
         backdrop: 'static',
         keyboard: false,
         controller: 'owner.editor.controller as vm',
-        templateUrl: 'owner.manager/summary/owner.editor.service.html',
+        template,
         resolve: {
           owner: function() {
             return owner;

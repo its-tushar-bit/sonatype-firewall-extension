@@ -36,8 +36,8 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
-import com.sonatype.insight.brain.component.ComponentResolver;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -127,8 +127,6 @@ public class ScanPolicyEvaluator
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
-  private final ComponentResolver componentResolver;
-
   private final SourceControlUtils sourceControlUtils;
 
   @Inject
@@ -144,7 +142,6 @@ public class ScanPolicyEvaluator
       final PolicyViolationPersistenceLocks policyViolationPersistenceLocks,
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
       final ProductLicense productLicense,
-      final ComponentResolver componentResolver,
       final SourceControlUtils sourceControlUtils)
   {
     this.work = insightWork;
@@ -158,7 +155,6 @@ public class ScanPolicyEvaluator
     this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.productLicense = productLicense;
-    this.componentResolver = componentResolver;
     this.sourceControlUtils = sourceControlUtils;
   }
 
@@ -197,8 +193,8 @@ public class ScanPolicyEvaluator
     }
 
     // Load data about components
-    final List<Component> components = componentResolver.getComponents(application, licenseReportEntry.buf,
-        securityReportEntry.buf, bomReportEntry.buf, reportFile);
+    final List<Component> components =
+        new ComponentDAO(application).getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf);
 
     sendApplicationStageComponentCounts(application.getId(), stage.getStageTypeId(), components);
 
@@ -222,7 +218,8 @@ public class ScanPolicyEvaluator
 
     updateReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
 
-    postEvents(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations, commitHash);
+    postEvents(scanPolicyEvaluatorResults.evaluation, scanPolicyEvaluatorResults.activeViolations, commitHash,
+        application);
 
     return scanPolicyEvaluatorResults;
   }
@@ -719,12 +716,13 @@ public class ScanPolicyEvaluator
   private void postEvents(
       PolicyEvaluation policyEvaluation,
       List<PolicyViolation> policyViolations,
-      String commitHash)
+      String commitHash,
+      Application application)
   {
     PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(policyEvaluation, policyViolations,
         true);
-    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash);
-    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash);
+    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash, application);
+    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash, application);
   }
 
   @VisibleForTesting

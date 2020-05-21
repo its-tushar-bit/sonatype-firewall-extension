@@ -59,20 +59,23 @@ describe('application.category.tile.controller.org.spec.js', function() {
 
     if (isOrg) {
       it('Properly Loading Applicable Categories and Org Name', inject(function(CLMContextLocations) {
-        var mockAppCategoryOwners = TagResourceMockData.getTagsUrl();
+        var mockAppCategoryOwners = TagResourceMockData.getApplicationCategoriesUrl();
 
-        $httpBackend.expectGET(CLMContextLocations.getTagsUrl()).respond(mockAppCategoryOwners);
+        $httpBackend.expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable').respond(
+            mockAppCategoryOwners);
         $httpBackend.flush();
 
-        expect(vm.ownerName).toEqual(mockAppCategoryOwners.tagsByOwner[0].ownerName);
-        expect(vm.appCategoryOwners.length).toEqual(mockAppCategoryOwners.tagsByOwner.length);
+        expect(vm.ownerName).toEqual(mockAppCategoryOwners.applicationCategoriesByOwner[0].ownerName);
+        expect(vm.appCategoryOwners.length).toEqual(mockAppCategoryOwners.applicationCategoriesByOwner.length);
         vm.appCategoryOwners.forEach(function(owner, index) {
-          expect(angular.equals(owner.tags, mockAppCategoryOwners.tagsByOwner[index].tags)).toBeTruthy();
+          expect(angular.equals(owner.applicationCategories,
+              mockAppCategoryOwners.applicationCategoriesByOwner[index].applicationCategories)).toBeTruthy();
         });
       }));
 
       it('Missing Categories', inject(function(CLMContextLocations) {
-        $httpBackend.expectGET(CLMContextLocations.getTagsUrl()).respond(400, 'Bad Request');
+        $httpBackend.expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable').respond(400,
+            'Bad Request');
         $httpBackend.flush();
 
         expect(vm.error).toBeDefined();
@@ -81,17 +84,20 @@ describe('application.category.tile.controller.org.spec.js', function() {
       }));
 
       it('Reloads on broadcasted owner summary reload event', inject(function(CLMContextLocations) {
-        $httpBackend.expectGET(CLMContextLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
+        $httpBackend.expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable').respond(
+            TagResourceMockData.getApplicationCategoriesUrl());
         $httpBackend.flush();
 
         $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
-        $httpBackend.expectGET(CLMContextLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
+        $httpBackend.expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable').respond(
+            TagResourceMockData.getApplicationCategoriesUrl());
         $httpBackend.flush();
       }));
 
       it('Updates Owner name on broadcasted updated owner event', inject(function(CLMContextLocations) {
-        $httpBackend.expectGET(CLMContextLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
+        $httpBackend.expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable').respond(
+            TagResourceMockData.getApplicationCategoriesUrl());
         $httpBackend.flush();
 
         expect(vm.ownerName).not.toEqual('Bob');

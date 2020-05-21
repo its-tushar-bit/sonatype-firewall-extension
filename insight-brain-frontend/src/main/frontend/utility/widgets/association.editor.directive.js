@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './association.editor.directive.html';
+
 export default function AssociationEditor() {
   return {
     restrict: 'E',
@@ -16,7 +18,7 @@ export default function AssociationEditor() {
       disabled: '=?ngDisabled'
     },
     replace: true,
-    templateUrl: 'utility/widgets/association.editor.directive.html',
+    template,
     controller: AssociationEditorController,
     controllerAs: 'vm',
     bindToController: true

@@ -13,13 +13,13 @@
 
 #infoPanelArtifactTable tbody {
   color: #333333;
-  font-family: Arial, sans-serif;
+  font-family: Open Sans, sans-serif;
   font-size: 12px;
 }
 
 #version-graph-container {
   color: #333333;
-  font-family: Arial, sans-serif;
+  font-family: Open Sans, sans-serif;
 }
 
 .version-graph-container-text {
@@ -35,7 +35,7 @@
 
 /* "View Details" and "Migrate" buttons had faint button text on MacOS w/out the font-family below. */
 #infoPanelArtifactTable .btn {
-  font-family: Arial, sans-serif;
+  font-family: Open Sans, sans-serif;
   /* These buttons are in the table footer, and are not tbody children. font-size is inherited from Bootstrap. */
 }
 
@@ -216,12 +216,12 @@ form.form-horizontal .control-label {
 #add-proprietary-matchers-modal label .optional {
   font-style: italic;
   color: #575757;
-  font-family: Proxima Nova Regular, sans-serif;
+  font-family: Open Sans, sans-serif;
 }
 
 #add-proprietary-matchers-modal label .note {
   display: block;
-  font-family: Proxima Nova Regular, sans-serif;
+  font-family: Open Sans, sans-serif;
   font-size: 14px;
 }
 

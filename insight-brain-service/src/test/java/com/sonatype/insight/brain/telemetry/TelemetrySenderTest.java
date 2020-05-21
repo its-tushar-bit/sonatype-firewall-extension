@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -20,13 +19,12 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.version.VersionService;
-import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Binder;
 import org.apache.http.HttpEntity;
@@ -40,6 +38,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class TelemetrySenderTest
     extends AbstractComponentTest
@@ -56,9 +57,6 @@ public class TelemetrySenderTest
   @Inject
   private TelemetryId telemetryId;
 
-  @Inject
-  private HierarchyMetricsTelemetryCollector telemetryCollector;
-
   private HdsClient mockHdsClient = mock(HdsClient.class);
 
   @Override
@@ -68,30 +66,31 @@ public class TelemetrySenderTest
   }
 
   @Test
-  public void testSend_Empty() {
-    final InvocationOnMock[] invocation = new InvocationOnMock[1];
-    doAnswer(x -> invocation[0] = x).when(mockHdsClient)
-        .post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
+  public void testSend_Empty() throws Exception {
+    telemetrySender.start();
 
     telemetrySender.send(Collections.emptyList());
 
-    assertThat(invocation[0]).isNull();
+    Thread.sleep(1000);
+    verifyNoInteractions(mockHdsClient);
   }
 
   @Test
   public void testSend() throws Exception {
-    final InvocationOnMock[] invocation = new InvocationOnMock[1];
+    telemetrySender.start();
 
+    final InvocationOnMock[] invocation = new InvocationOnMock[1];
     doAnswer(x -> invocation[0] = x).when(mockHdsClient)
         .post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
 
-    TelemetryData telemetryDataSend = telemetryCollector.collectData();
+    TelemetryData telemetryDataSend = new TelemetryData(TelemetryPurpose.DATABASE);
+    telemetryDataSend.put("test-key", "test-value");
 
     Date expectedMinCreateTime = new Date();
     telemetrySender.send(telemetryDataSend);
-    assertThat(TelemetrySender.RESOURCE_PATH).isEqualTo(invocation[0].getArguments()[0]);
     Date expectedMaxCreateTime = new Date();
 
+    verify(mockHdsClient, timeout(10000)).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
     HttpEntity httpEntity = (HttpEntity) invocation[0].getArguments()[1];
     ByteArrayDataSource multipartDataSource = new ByteArrayDataSource(httpEntity.getContent(), "multipart/form-data");
     MimeMultipart multipart = new MimeMultipart(multipartDataSource);
@@ -100,12 +99,11 @@ public class TelemetrySenderTest
     assertThat(TelemetrySender.ZIP_FILENAME).isEqualTo(filename);
 
     try (ZipInputStream zipInputStream = new ZipInputStream(bodyPart.getInputStream())) {
-      byte[] buffer = new byte[1024];
+      ObjectMapper json = new ObjectMapper().disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
 
       ZipEntry zipEntryHeader = zipInputStream.getNextEntry();
       assertThat(zipEntryHeader.getName()).isEqualTo(TelemetrySender.HEADER_ENTRY_NAME);
-      zipInputStream.read(buffer);
-      TelemetryHeader telemetryHeaderReceived = JsonUtils.parse(buffer, TelemetryHeader.class);
+      TelemetryHeader telemetryHeaderReceived = json.readValue(zipInputStream, TelemetryHeader.class);
       assertThat(telemetryHeaderReceived.getCreateTime()).isAfterOrEqualTo(expectedMinCreateTime)
           .isBeforeOrEqualTo(expectedMaxCreateTime);
       assertThat(telemetryHeaderReceived.getTelemetryId()).isEqualTo(telemetryId.getId());
@@ -115,41 +113,36 @@ public class TelemetrySenderTest
 
       ZipEntry zipEntryData = zipInputStream.getNextEntry();
       assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);
-      zipInputStream.read(buffer);
-      List<TelemetryData> telemetryDataReceived =
-          new ObjectMapper().readValue(buffer, new TypeReference<List<TelemetryData>>() { });
+      TelemetryData[] telemetryDataReceived = json.readValue(zipInputStream, TelemetryData[].class);
       assertThat(telemetryDataReceived).hasSize(1);
-      TelemetryData telemetryData = telemetryDataReceived.get(0);
-      assertThat(telemetryData.getAttributes())
-          .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS, "0")
-          .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_APPS, "0")
-          .containsEntry(HierarchyMetricsTelemetryCollector.MAX_APPS_PER_ORG, "0")
-          .containsEntry(HierarchyMetricsTelemetryCollector.MIN_APPS_PER_ORG, "0")
-          .containsEntry(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG, "0");
+      TelemetryData telemetryData = telemetryDataReceived[0];
+      assertThat(telemetryData.getAttributes()).isEqualTo(telemetryDataSend.getAttributes());
       assertThat(telemetryData.getTimestamp()).isEqualTo(telemetryDataSend.getTimestamp());
     }
   }
 
   @Test
   public void testSend_ExceptionsAreHandled() throws Exception {
+    telemetrySender.start();
+
     RuntimeException exception = new RuntimeException();
     doThrow(exception).when(mockHdsClient).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
 
     telemetrySender.send(new TelemetryData(TelemetryPurpose.HIERARCHY_METRICS));
 
+    verify(mockHdsClient, timeout(10000)).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
     assertThat(logOutput).atDebugLevel().contains("Failed to send telemetry.", exception);
   }
 
   @Test
   public void testSend_ClientUserAgent() throws Exception {
+    telemetrySender.start();
+
     String clientUserAgent = "test_client_user_agent";
-    final InvocationOnMock[] invocation = new InvocationOnMock[1];
-    doAnswer(x -> invocation[0] = x).when(mockHdsClient).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class),
-        eq(clientUserAgent));
 
     telemetrySender.send(new TelemetryData(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION), clientUserAgent);
 
-    // If invocation[0] is not null, then the mock was called with the right client user agent value.
-    assertThat(invocation[0]).isNotNull();
+    verify(mockHdsClient, timeout(10000)).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class),
+        eq(clientUserAgent));
   }
 }

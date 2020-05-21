@@ -32,13 +32,17 @@
               policies, labels, license threat groups, tags, and policy monitoring but not security settings.
             </iq-radio>
             <div id="migrate-organization-wrapper" class="iq-form-group">
-              <select id="migrate-organization"
-                      ng-required="vm.migrateSelection == 'selectOrganization'"
-                      ng-model="vm.organization"
-                      ng-disabled="vm.migrateSelection !== 'selectOrganization'"
-                      ng-options="organization.name for organization in vm.organizations">
-                <option value="" selected>-- Select Organization --</option>
-              </select>
+              <dropdown-selector id="migrate-organization"
+                                 name="migrate-organization"
+                                 ng-required="vm.migrateSelection === 'selectOrganization'"
+                                 ng-model="vm.organization"
+                                 ng-disabled="vm.migrateSelection !== 'selectOrganization'"
+                                 clm-input
+                                 empty-option-string="-- Select Organization --"
+                                 options="vm.organizations"
+                                 option-name-param="name"
+                                 option-value-param="id">
+              </dropdown-selector>
             </div>
             <iq-radio id="empty-root-radio-button" model="vm.migrateSelection" value="'none'"><!--
               -->Creating an empty Root Organization. This choice is discouraged because once the Root Organization is

@@ -30,6 +30,7 @@ public class ConditionValueTypes
     allConditionValueTypes.add(new MatchStateValueType());
     allConditionValueTypes.add(new PercentageValueType());
     allConditionValueTypes.add(new SecurityVulnerabilityStatusValueType());
+    allConditionValueTypes.add(new DataSourceValueType());
     return allConditionValueTypes;
   }
 }

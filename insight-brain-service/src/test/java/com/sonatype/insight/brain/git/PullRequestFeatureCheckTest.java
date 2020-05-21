@@ -6,8 +6,6 @@
 
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
-
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -40,6 +38,8 @@ public class PullRequestFeatureCheckTest
 
   private static final String ORGANIZATION_ID = "sonatype";
 
+  private static final String USERNAME = "username";
+
   private static final String TOKEN = "token";
 
   private static final String BASE_BRANCH = "master";
@@ -56,7 +56,7 @@ public class PullRequestFeatureCheckTest
   private ProductLicense productLicense;
 
   @Mock
-  private PullRequestUtils pullRequestUtils;
+  private PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
   @Rule
   public LogOutput logOutput = new LogOutput(PullRequestFeatureCheck.class);
@@ -64,15 +64,15 @@ public class PullRequestFeatureCheckTest
   @Before
   public void setup() {
     pullRequestFeatureCheck =
-        new PullRequestFeatureCheck(productLicense, pullRequestUtils);
+        new PullRequestFeatureCheck(productLicense, pullRequestRepositoryValidator);
   }
 
   @Test
-  public void testLicenseInvalid() throws IOException {
+  public void testLicenseInvalid() {
     when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(false);
 
     boolean result = pullRequestFeatureCheck.isPullRequestFeatureSupported(
-        new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), newGitRepositoryInfo());
+        new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), newGitHubRepositoryInfo());
 
     assertThat(result).isFalse();
     assertThat(logOutput).atDebugLevel().contains(
@@ -80,8 +80,8 @@ public class PullRequestFeatureCheckTest
   }
 
   @Test
-  public void testApplicationNotConfigured() throws IOException {
-    GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo();
+  public void testApplicationNotConfigured() {
+    GitRepositoryInfo gitRepositoryInfo = newGitHubRepositoryInfo();
 
     gitRepositoryInfo.token = null;
     ensureAppNotConfigured(gitRepositoryInfo, "Token");
@@ -113,17 +113,17 @@ public class PullRequestFeatureCheckTest
     gitRepositoryInfo.token = null;
     gitRepositoryInfo.provider = null;
     gitRepositoryInfo.repositoryUrl = null;
-    ensureAppNotConfigured(gitRepositoryInfo, "Token, Repository URL, Provider");
+    ensureAppNotConfigured(gitRepositoryInfo, "Provider, Repository URL, Token");
     logOutput.clear();
 
     ensureAppNotConfigured(null, null);
   }
 
   @Test
-  public void testProviderNotSupported() throws IOException {
+  public void testProviderNotSupported() {
     when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
 
-    GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo();
+    GitRepositoryInfo gitRepositoryInfo = newGitHubRepositoryInfo();
     gitRepositoryInfo.provider = SourceControlProvider.GITLAB;
     boolean result = pullRequestFeatureCheck
         .isPullRequestFeatureSupported(new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), gitRepositoryInfo);
@@ -132,9 +132,32 @@ public class PullRequestFeatureCheckTest
     assertThat(logOutput).atDebugLevel().contains("Source provider 'gitlab' is not supported");
   }
 
-  private void ensureAppNotConfigured(final GitRepositoryInfo gitRepositoryInfo, String missingFields)
-      throws IOException
-  {
+  @Test
+  public void testBitBucketSupported() {
+    GitRepositoryInfo gitRepositoryInfo = newBitBucketRepositoryInfo();
+
+    when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
+    when(pullRequestRepositoryValidator.isRepoValidForPRs(eq(gitRepositoryInfo))).thenReturn(true);
+
+    boolean result = pullRequestFeatureCheck
+        .isPullRequestFeatureSupported(new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), gitRepositoryInfo);
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void testApplicationNotConfiguredBitbucket() {
+    GitRepositoryInfo gitRepositoryInfo = newBitBucketRepositoryInfo();
+
+    gitRepositoryInfo.username = null;
+    gitRepositoryInfo.token = null;
+    ensureAppNotConfigured(gitRepositoryInfo, "Username, Token");
+
+    gitRepositoryInfo.username = "Username";
+    ensureAppNotConfigured(gitRepositoryInfo, "Token");
+  }
+
+  private void ensureAppNotConfigured(final GitRepositoryInfo gitRepositoryInfo, String missingFields) {
     when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
 
     Application app = new Application(PUBLIC_ID, NAME, ORGANIZATION_ID);
@@ -151,15 +174,15 @@ public class PullRequestFeatureCheckTest
           .contains(String
               .format("Application has not been fully configured for pull requests. Missing: [%s]", missingFields));
     }
-    verify(pullRequestUtils, never()).isPullRequestAllowed(Mockito.any(GitRepositoryInfo.class));
+    verify(pullRequestRepositoryValidator, never()).isRepoValidForPRs(Mockito.any(GitRepositoryInfo.class));
   }
 
   @Test
-  public void testIsPullRequestAllowed() throws IOException {
-    GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo();
+  public void testIsPullRequestAllowed() {
+    GitRepositoryInfo gitRepositoryInfo = newGitHubRepositoryInfo();
 
     when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
-    when(pullRequestUtils.isPullRequestAllowed(eq(gitRepositoryInfo))).thenReturn(false);
+    when(pullRequestRepositoryValidator.isRepoValidForPRs(eq(gitRepositoryInfo))).thenReturn(false);
 
     final Application app = new Application(PUBLIC_ID, NAME, ORGANIZATION_ID);
     app.setId(APP_ID);
@@ -175,11 +198,11 @@ public class PullRequestFeatureCheckTest
   }
 
   @Test
-  public void testHappyPath() throws IOException {
-    GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo();
+  public void testHappyPath() {
+    GitRepositoryInfo gitRepositoryInfo = newGitHubRepositoryInfo();
 
     when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
-    when(pullRequestUtils.isPullRequestAllowed(eq(gitRepositoryInfo))).thenReturn(true);
+    when(pullRequestRepositoryValidator.isRepoValidForPRs(eq(gitRepositoryInfo))).thenReturn(true);
 
     boolean result = pullRequestFeatureCheck.isPullRequestFeatureSupported(
         new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), gitRepositoryInfo);
@@ -188,8 +211,13 @@ public class PullRequestFeatureCheckTest
     assertThat(logOutput).atAnyLevel().isEmpty();
   }
 
-  private GitRepositoryInfo newGitRepositoryInfo() {
-    return new GitRepositoryInfo(REPO_URL, TOKEN, SourceControlProvider.GITHUB,
+  private GitRepositoryInfo newGitHubRepositoryInfo() {
+    return new GitRepositoryInfo(REPO_URL, null, TOKEN, SourceControlProvider.GITHUB,
+        BASE_BRANCH, DEFAULT_ENABLE_PR, DEFAULT_ENABLE_STATUS_CHECKS);
+  }
+
+  private GitRepositoryInfo newBitBucketRepositoryInfo() {
+    return new GitRepositoryInfo(REPO_URL, USERNAME, TOKEN, SourceControlProvider.BITBUCKET,
         BASE_BRANCH, DEFAULT_ENABLE_PR, DEFAULT_ENABLE_STATUS_CHECKS);
   }
 }

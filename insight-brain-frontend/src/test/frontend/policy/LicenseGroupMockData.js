@@ -112,3 +112,5 @@ var LicenseGroupMockData = {
     };
   }
 };
+
+export default LicenseGroupMockData;

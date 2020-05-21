@@ -17,6 +17,9 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.component.AnalysisSource;
+import com.sonatype.clm.dto.model.component.AnalysisType;
+import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -37,12 +40,15 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.ComponentDataSource;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -55,6 +61,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
@@ -66,6 +73,7 @@ import org.mockito.Mock;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.extractProperty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -139,6 +147,22 @@ public class RepositoryPolicyEvaluatorTest
                                                                 List<SecurityVulnerability> securityVulnerabilities,
                                                                 Integer relativePopularity)
   {
+    AnalyzerFeatures analyzerFeatures = new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.HASH, "client");
+    return createComponentEvaluationData(componentIdentifier, hash, matchState, index, declaredLicenses,
+        observedLicenses, securityVulnerabilities, relativePopularity, analyzerFeatures);
+  }
+
+  private ComponentEvaluationData createComponentEvaluationData(
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      MatchState matchState,
+      int index,
+      Set<License> declaredLicenses,
+      Set<License> observedLicenses,
+      List<SecurityVulnerability> securityVulnerabilities,
+      Integer relativePopularity,
+      AnalyzerFeatures analyzerFeatures)
+  {
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.requestIndex = index;
     componentEvaluationData.hash = hash;
@@ -149,6 +173,7 @@ public class RepositoryPolicyEvaluatorTest
     componentEvaluationData.catalogDate = System.currentTimeMillis();
     componentEvaluationData.securityVulnerabilities = securityVulnerabilities;
     componentEvaluationData.relativePopularity = relativePopularity;
+    componentEvaluationData.analyzerFeatures = analyzerFeatures;
     return componentEvaluationData;
   }
 
@@ -198,7 +223,6 @@ public class RepositoryPolicyEvaluatorTest
         repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(policyViolations).hasSize(2);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before1, after1, policyViolations);
-
     policyViolationLoggerOutput.clear();
 
     // Add a new policy and evaluate again. Only the new policy violations should be logged.
@@ -207,12 +231,13 @@ public class RepositoryPolicyEvaluatorTest
     Date before2 = new Date();
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
     final Date after2 = new Date();
-    policyViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+    policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(policyViolations).hasSize(4);
     List<RepositoryPolicyViolation> newPolicyViolations =
         policyViolations.stream().filter(policyViolation -> policyViolation.getPolicyId().equals(newPolicy.getId()))
             .collect(Collectors.toList());
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before2, after2, newPolicyViolations);
+    assertRepositoryComponent(repository, 2);
   }
 
   @Test
@@ -251,8 +276,9 @@ public class RepositoryPolicyEvaluatorTest
     Date before2 = new Date();
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
     Date after2 = new Date();
-    assertThat(repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId())).hasSize(0);
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(0);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.FIX, repository, before2, after2, policyViolations);
+    assertRepositoryComponent(repository, 2);
   }
 
   @Test
@@ -282,8 +308,8 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
     final Date after1 = new Date();
     // ... yielding two active violations, both of which logged as new
-    List<RepositoryPolicyViolation> activeViolations = repositoryPolicyViolationDAO
-        .getActiveByRepositoryId(repository.getId());
+    List<RepositoryPolicyViolation> activeViolations =
+        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before1, after1, activeViolations);
     // ... and one logged as waived
@@ -301,7 +327,7 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
     final Date after2 = new Date();
     // ... yielding again two violations, none of which logged as new
-    activeViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+    activeViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before2, after2, Collections.emptyList());
     // ... but one logged as unwaived
@@ -314,6 +340,7 @@ public class RepositoryPolicyEvaluatorTest
         .filter(violation -> policy1.getId().equals(violation.getPolicyId())).collect(toList());
     assertThat(waivedViolations).hasSize(1);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, repository, before2, after2, waivedViolations);
+    assertRepositoryComponent(repository, 1);
   }
 
   @Test
@@ -343,7 +370,7 @@ public class RepositoryPolicyEvaluatorTest
 
     // ... yielding two active violations
     List<RepositoryPolicyViolation> activeViolations =
-        repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
 
     // ... and one as waived
@@ -362,7 +389,7 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
 
     // ... yielding again two violations
-    activeViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+    activeViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
 
     // ... and two ARE waived
@@ -388,7 +415,7 @@ public class RepositoryPolicyEvaluatorTest
 
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
 
-    activeViolations = repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+    activeViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
 
     // first violation is no longer waived
@@ -436,7 +463,7 @@ public class RepositoryPolicyEvaluatorTest
 
     RepositoryPolicyViolation existingPolicyViolation = tempEntity
         .newRepositoryPolicyViolation(repositoryComponent.getRepositoryId(), policy.getThreatLevel(),
-            repositoryComponent.getPathname(), "hash", Collections.singletonList(constraintFact), true, true, null,
+            repositoryComponent.getPathname(), "hash", Collections.singletonList(constraintFact), true, null,
             policy.getId(), policy.getName(), repositoryComponent.getComponentIdentifier(), 
             repositoryComponent.getTime(), null, null, null);
 
@@ -459,7 +486,7 @@ public class RepositoryPolicyEvaluatorTest
 
     // ... yielding one active/waived violation
     List<RepositoryPolicyViolation> policyViolations =
-        repositoryPolicyViolationDAO.getActiveByRepositoryId(repository.getId());
+        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
 
     assertThat(policyViolations).hasSize(1);
 
@@ -535,6 +562,48 @@ public class RepositoryPolicyEvaluatorTest
         .extracting(RepositoryPolicyViolation::getPathname).containsExactly(unignorableRequest.pathname);
   }
 
+  @Test
+  public void testEvaluate_PolicyViolationLogger_metadata() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    createPolicyDataSourceFeature(repository);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    // Prepare request and mock the HDS request
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", "path1", "h1"));
+    hdsResult.components.add(createdComponentMetadata());
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    // Evaluate policies. All policy violations should be logged.
+    Date before1 = new Date();
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    final Date after1 = new Date();
+    List<RepositoryPolicyViolation> policyViolations =
+        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    assertThat(policyViolations).hasSize(1);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before1, after1, policyViolations);
+    policyViolationLoggerOutput.clear();
+  }
+
+  private void createPolicyDataSourceFeature(Repository repository) {
+    tempEntity.newPolicy(repository.getParentOwnerId(), 5, LogicalOperator.AND, new Condition(
+        DataSourceConditionType.ID, DataSourceConditionType.HAS_SUPPORT_FOR, ComponentDataSource.IDENTITY.getId()));
+  }
+
+  private ComponentEvaluationData createdComponentMetadata() {
+    return createComponentEvaluationData(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), "h1" ,
+        MatchState.EXACT, 0 /* index */, null /* declaredLicenseSet */, null /* observedLicenseSet */,
+        createSecurityVulnerabilities(), 1 /* popularity */, fromHds());
+  }
+
+  private AnalyzerFeatures fromHds() {
+    return new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.COORDINATE, "CLI", true, true, true);
+  }
+
   private void assertViolationWaiverDetails(
       RepositoryPolicyViolation repositoryPolicyViolation,
       PolicyWaiver policyWaiver,
@@ -543,5 +612,24 @@ public class RepositoryPolicyEvaluatorTest
     assertThat(repositoryPolicyViolation.getPolicyWaiverId()).isEqualTo(policyWaiver.getId());
     assertThat(repositoryPolicyViolation.getPolicyWaiverComment()).isEqualTo(policyWaiver.getComment());
     assertThat(repositoryPolicyViolation.getWaiveTime()).isEqualTo(waiveTime);
+  }
+
+  private void assertRepositoryComponent(final Repository repository, int size) {
+    List<RepositoryComponent> components = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    assertThat(components).hasSize(size);
+    AnalyzerFeatures analyzerFeatures = new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.HASH, "client");
+    assertThat(extractProperty("repositoryId").from(components)).containsOnly(repository.getId());
+    assertThat(extractProperty("identificationSourceId").from(components)).containsOnly("Sonatype");
+    assertThat(extractProperty("matchStateId").from(components)).containsOnly("exact");
+    assertThat(extractProperty("analyzerFeaturesJson").from(components))
+        .containsOnly(JsonUtils.format(analyzerFeatures));
+    if (size == 2) {
+      assertThat(extractProperty("pathname").from(components)).containsOnly("path0", "path1");
+      assertThat(extractProperty("hash").from(components)).containsOnly("h0", "h1");
+    }
+    else {
+      assertThat(extractProperty("pathname").from(components)).containsOnly("path0");
+      assertThat(extractProperty("hash").from(components)).containsOnly("h0");
+    }
   }
 }

@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.query.SearchService;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
-import com.sonatype.insight.brain.search.results.SearchSuggestionResultDTO;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -40,8 +39,6 @@ public class ApiAdvancedSearchResource
   private final IndexService indexService;
 
   static final String INDEX_PATH = "index";
-
-  static final String SUGGESTER_PATH = "suggester";
 
   @Inject
   public ApiAdvancedSearchResource(SearchService searchService, IndexService indexService) {
@@ -64,12 +61,5 @@ public class ApiAdvancedSearchResource
   @Path(INDEX_PATH)
   public void createSearchIndexAsync() {
     indexService.createSearchIndexAsync();
-  }
-
-  @GET
-  @Path(SUGGESTER_PATH)
-  @Produces(MediaType.APPLICATION_JSON)
-  public SearchSuggestionResultDTO autoCompleteSearchQuery(@QueryParam("search") String searchQuery) {
-    return searchService.autoCompleteSearchQuery(searchQuery);
   }
 }

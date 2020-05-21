@@ -70,13 +70,16 @@ export default function SourceControlService($http, CLMLocations) {
   }
 
   function getProviderTypes() {
-    return [{name: 'GitHub', value: 'github'}, {name: 'GitLab', value: 'gitlab'}];
+    return [
+      {name: 'GitHub', value: 'github'}, {name: 'GitLab', value: 'gitlab'}, {name: 'Bitbucket', value: 'bitbucket'}
+    ];
   }
 
 }
 
 function getDataFromSourceControl(ownerType, ownerId, sourceControl) {
   let data = {
+    'username': sourceControl.username,
     'token': sourceControl.token,
     'baseBranch': sourceControl.baseBranch,
     'enablePullRequests': sourceControl.enablePullRequests,

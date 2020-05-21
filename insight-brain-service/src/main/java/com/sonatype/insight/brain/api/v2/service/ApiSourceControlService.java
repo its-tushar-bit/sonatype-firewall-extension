@@ -362,7 +362,6 @@ public class ApiSourceControlService
     ADD,
     UPDATE,
     DELETE,
-    ADD_OR_UPDATE,
-    GET_BY_OWNER_ID_WITH_INHERITANCE,
+    ADD_OR_UPDATE
   }
 }

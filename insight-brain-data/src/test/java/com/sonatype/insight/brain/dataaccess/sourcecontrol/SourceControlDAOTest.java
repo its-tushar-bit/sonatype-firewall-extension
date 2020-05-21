@@ -222,7 +222,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testInsert_RepositoryUrlForOrganization() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(org.getId()).setRepositoryUrl(VALID_URL).setToken("token").build();
     assertThatThrownBy(() ->
@@ -274,7 +274,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testInsert_InvalidUrl() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl("https://not valid").setToken("token")
             .build();
@@ -305,7 +305,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testInsert_DuplicateRepositoryUrlAllowed() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     Application baz = tempEntity.newApplicationWithParent("baz");
     tempEntity.newSourceControl(baz.getId(), VALID_URL, "bar", null);
     sourceControlDAO
@@ -315,7 +315,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_MissingOwnerId() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
         tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", null);
     sourceControl.setOwnerId(null);
@@ -326,7 +326,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_MissingRepositoryUrlForApplication() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     SourceControl sourceControl = tempEntity.newSourceControl(
         app.getId(), VALID_URL, "bar", null);
     sourceControl.setRepositoryUrl(null);
@@ -337,6 +337,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_RepositoryUrlForOrganization() {
+    createRootOrgWithGitHubProvider();
     SourceControl sourceControl = tempEntity.newSourceControl(
         org.getId(), null, "bar", null);
     sourceControl.setRepositoryUrl(VALID_URL);
@@ -347,7 +348,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_InvalidUrl() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
         tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", null);
     sourceControl.setRepositoryUrl("https://not valid");
@@ -358,7 +359,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_DuplicateRepositoryUrlAllowed() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     Application baz = tempEntity.newApplicationWithParent();
     Application foo = tempEntity.newApplicationWithParent();
     tempEntity.newSourceControl(baz.getId(), VALID_URL, "bar", null);
@@ -370,10 +371,10 @@ public class SourceControlDAOTest
 
   @Test
   public void testCRUD() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("bar")
-            .setBaseBranch("base/branch").setEnablePullRequests(true)
+        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL)
+            .setToken("bar").setBaseBranch("base/branch").setEnablePullRequests(true)
             .setEnableStatusChecks(true).build();
 
     assertThat(sourceControl.getId()).isNull();
@@ -383,6 +384,7 @@ public class SourceControlDAOTest
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
     assertThat(sourceControl.getOwnerId()).isEqualTo(app.getId());
     assertThat(sourceControl.getRepositoryUrl()).isEqualTo(VALID_URL);
+    assertThat(sourceControl.getUsername()).isNull();
     assertThat(sourceControl.getToken()).isEqualTo("bar");
     assertThat(sourceControl.getBaseBranch()).isEqualTo("base/branch");
     assertThat(sourceControl.getEnablePullRequests()).isTrue();
@@ -395,6 +397,7 @@ public class SourceControlDAOTest
     sourceControlDAO.update(sourceControl);
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
+    assertThat(sourceControl.getUsername()).isNull();
     assertThat(sourceControl.getToken()).isEqualTo("baz");
     assertThat(sourceControl.getBaseBranch()).isEqualTo("another");
     assertThat(sourceControl.getEnablePullRequests()).isFalse();
@@ -406,6 +409,8 @@ public class SourceControlDAOTest
 
   @Test
   public void testCRUD_Organization() {
+    createRootOrgWithGitHubProvider();
+
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(org.getId()).setToken("bar")
             .setEnablePullRequests(true).setEnableStatusChecks(true)
@@ -417,6 +422,7 @@ public class SourceControlDAOTest
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
     assertThat(sourceControl.getOwnerId()).isEqualTo(org.getId());
+    assertThat(sourceControl.getUsername()).isNull();
     assertThat(sourceControl.getToken()).isEqualTo("bar");
     assertThat(sourceControl.getBaseBranch()).isEqualTo("base/branch");
     assertThat(sourceControl.getEnablePullRequests()).isTrue();
@@ -429,6 +435,7 @@ public class SourceControlDAOTest
     sourceControlDAO.update(sourceControl);
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
+    assertThat(sourceControl.getUsername()).isNull();
     assertThat(sourceControl.getToken()).isEqualTo("baz");
     assertThat(sourceControl.getBaseBranch()).isEqualTo("another");
     assertThat(sourceControl.getEnablePullRequests()).isFalse();
@@ -440,7 +447,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testPullRequestConfigsCanBeNull() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("bar")
             .build();
@@ -465,7 +472,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testGetAll() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     assertThat(sourceControlDAO.getAll()).hasSize(1);
     Application app2 = tempEntity.newApplicationWithParent("bar");
     tempEntity.newSourceControl(app.getId(), VALID_URL, "token", null);
@@ -479,7 +486,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testInsert_ProviderFromOrganization() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     tempEntity.newSourceControl(app.getOrganizationId(), null, "token", null);
     sourceControlDAO.insert(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).build());
@@ -503,7 +510,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_ProviderFromRootOrganization() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("TOKEN").build();
     sourceControlDAO.insert(sourceControl);
@@ -514,7 +521,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_ProviderNotAvailable() {
-    SourceControl root = createRootOrgWithProvider();
+    SourceControl root = createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("TOKEN")
             .build();
@@ -528,7 +535,7 @@ public class SourceControlDAOTest
 
   @Test
   public void test_getAllForApplications() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     // create a few sample entries
     SourceControl scApp1 = buildAppSourceControl(app.getId(), 1, null);
     sourceControlDAO.insert(scApp1);
@@ -593,7 +600,7 @@ public class SourceControlDAOTest
 
   @Test
   public void test_getCountOfApplicationsWithPREnabled_enabledAtOrgAndApp() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     // create SCM entries for organizations, with PR enabled flag set
     Organization orgNullPrs = tempEntity.newOrganization();
     Organization orgNoPrs = tempEntity.newOrganization();
@@ -710,7 +717,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_RootOrgWithoutProvider() {
-    SourceControl sourceControl = createRootOrgWithProvider();
+    SourceControl sourceControl = createRootOrgWithGitHubProvider();
     sourceControl.setProvider(null);
     assertThatThrownBy(() -> sourceControlDAO.update(sourceControl))
         .isInstanceOf(BadRequestException.class)
@@ -728,7 +735,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_OrganizationWithProvider() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     SourceControl sourceControl = tempEntity.newSourceControl(org.getId(), null, "token", null);
     sourceControl.setProvider(SourceControlProvider.GITHUB);
     assertThatThrownBy(() -> sourceControlDAO.update(sourceControl))
@@ -747,7 +754,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdate_ApplicationWithProvider() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, null, null);
     sourceControl.setProvider(SourceControlProvider.GITHUB);
     assertThatThrownBy(() -> sourceControlDAO.update(sourceControl))
@@ -757,7 +764,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testUpdatePollTimeAndErrorCounts() {
-    createRootOrgWithProvider();
+    createRootOrgWithGitHubProvider();
     SourceControl scApp1 = buildAppSourceControl(app.getId(), 1, true);
     sourceControlDAO.insert(scApp1);
 
@@ -769,7 +776,7 @@ public class SourceControlDAOTest
     assertThat(scApp1.getPullRequestErrorCount()).isEqualTo(5);
   }
 
-  private SourceControl createRootOrgWithProvider() {
+  private SourceControl createRootOrgWithGitHubProvider() {
     return tempEntity.newSourceControl(org.getParentOrganizationId(), null, null, SourceControlProvider.GITHUB);
   }
 

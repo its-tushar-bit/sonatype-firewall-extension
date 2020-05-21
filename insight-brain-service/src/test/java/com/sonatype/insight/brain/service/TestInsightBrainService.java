@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PasswordService;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -279,12 +280,20 @@ public class TestInsightBrainService
 
     super.run(config, env);
 
+    getInstance(TaskScheduler.class).disableForTesting = true;
     getInstance(PolicyMonitorScheduler.class).disableForTesting = true;
     getInstance(PullRequestPollingScheduler.class).disableForTesting = true;
     getInstance(ScanFileCleaner.class).disableForTesting = true;
     getInstance(PolicyEvaluateService.class).disablePollingIntervalForTesting = true;
     getInstance(HdsProductNotificationService.class).disableCacheForTesting = true;
     getInstance(FirewallIgnorePatternService.class).disableCacheForTesting = true;
+
+    getInstance(ApplicationLifecycle.class).boot();
+  }
+
+  @Override
+  void bootApplicationLifecycle() {
+    // noop
   }
 
   public void stop() throws Exception {

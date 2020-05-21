@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
 @import "results/cipModal/cipModal";
 @import "rawData/applicationReportRawData";
 
@@ -27,6 +32,18 @@ $iq-application-report-vulnerability-threat-level-width: 62px;
 
   .iq-spinner__wrapper {
     padding: 8px;
+  }
+
+  .iq-form-group legend {
+    border-bottom: 1px solid $iq-grey-4;
+  }
+
+  .iq-back-button {
+    margin-bottom: $iq-spacing-sm;
+  }
+
+  .nx-page-title__description--application-report {
+    max-width: 700px;
   }
 }
 

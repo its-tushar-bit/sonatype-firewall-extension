@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.security;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
+import com.sonatype.insight.brain.NetworkingHelper;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -35,21 +36,23 @@ public class CurrentUserTest
     when(request.getHeader(eq(CurrentUser.XFF_HEADER))).thenReturn("");
     assertThat(currentUser.getIP(request)).isNull();
 
-    when(request.getHeader(eq(CurrentUser.XFF_HEADER))).thenReturn("{unknown}, 127.0.0.1, {unknown1}");
-    assertThat(currentUser.getIP(request)).isEqualTo("127.0.0.1");
-
-    // IPs that start with "[" are considered IPv6, so this is a special case
-    when(request.getHeader(eq(CurrentUser.XFF_HEADER))).thenReturn("[missing], 127.0.0.1, {unknown}");
-    assertThat(currentUser.getIP(request)).isEqualTo("127.0.0.1");
-
     when(request.getHeader(eq(CurrentUser.XFF_HEADER))).thenReturn(null);
     when(request.getRemoteAddr()).thenReturn("127.0.0.1");
     assertThat(currentUser.getIP(request)).isEqualTo("127.0.0.1");
+
+    NetworkingHelper.assumeDnsResolutionIsNormal();
 
     when(request.getHeader(eq(CurrentUser.XFF_HEADER))).thenReturn("{unknown}");
     assertThat(currentUser.getIP(request)).isEqualTo("127.0.0.1");
 
     when(request.getHeader(eq(CurrentUser.XFF_HEADER))).thenReturn("[missing]");
+    assertThat(currentUser.getIP(request)).isEqualTo("127.0.0.1");
+
+    when(request.getHeader(eq(CurrentUser.XFF_HEADER))).thenReturn("{unknown}, 127.0.0.1, {unknown1}");
+    assertThat(currentUser.getIP(request)).isEqualTo("127.0.0.1");
+
+    // IPs that start with "[" are considered IPv6, so this is a special case
+    when(request.getHeader(eq(CurrentUser.XFF_HEADER))).thenReturn("[missing], 127.0.0.1, {unknown}");
     assertThat(currentUser.getIP(request)).isEqualTo("127.0.0.1");
   }
 
@@ -58,6 +61,9 @@ public class CurrentUserTest
     assertThat(CurrentUser.resolveIP((String[]) null)).isNull();
     assertThat(CurrentUser.resolveIP((String) null)).isNull();
     assertThat(CurrentUser.resolveIP(new String[0])).isNull();
+
+    NetworkingHelper.assumeDnsResolutionIsNormal();
+
     assertThat(CurrentUser.resolveIP("{unknown}", "127.0.0.1", "{unknown1}")).isEqualTo("127.0.0.1");
     // IPs that start with "[" are considered IPv6, so this is a special case
     assertThat(CurrentUser.resolveIP("[missing]", "127.0.0.1", "{unknown}")).isEqualTo("127.0.0.1");

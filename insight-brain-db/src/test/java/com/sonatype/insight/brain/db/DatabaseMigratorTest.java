@@ -6,12 +6,18 @@
 package com.sonatype.insight.brain.db;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipFile;
 
 import javax.sql.DataSource;
 
 import com.sonatype.insight.db.DatabaseConfig;
 
+import com.google.common.io.Resources;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 import org.springframework.jdbc.datasource.init.ScriptStatementFailedException;
@@ -109,7 +115,7 @@ public class DatabaseMigratorTest
   @Test
   public void testMigrate_RunsPostIncrementalMigrators() throws Exception {
     File databaseDir = tempDir.newFolder();
-    copyDatabase(databaseDir,  getClass().getSimpleName() + "/PostIncrementalMigrator");
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/PostIncrementalMigrator");
     File databaseVersionFile = getDatabaseVersionFile(databaseDir, "test");
     int desiredVersion = 12;
     assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo(String.valueOf(desiredVersion - 2));
@@ -128,7 +134,7 @@ public class DatabaseMigratorTest
   @Test
   public void testMigrate_ZipBackups() throws Exception {
     File databaseDir = tempDir.newFolder();
-    copyDatabase(databaseDir,  getClass().getSimpleName() + "/ZipBackupTest");
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/ZipBackupTest");
 
     String dbName = "test";
     File backupDir = tempDir.newFolder();
@@ -224,6 +230,24 @@ public class DatabaseMigratorTest
   @Test
   public void testMigrate_NewThirdPartyScansDatabase_PopulatesVersion() throws Exception {
     testMigrate_NewDatabase_PopulatesVersion(ThirdPartyScansProvider.ID, 1);
+  }
+
+  @Test
+  public void testNoUniqueIndexesDefined() throws IOException {
+    URL url = Resources.getResource("db/insight_brain_ods/schema.sql");
+    assertThat(url).isNotNull();
+
+    List<String> filesChecked = new ArrayList<>();
+    for (File file : new File(url.getFile()).getParentFile().listFiles()) {
+      if (file.isFile()) {
+        filesChecked.add(file.getName());
+        // we should be using a unique constraint (which will result in an auto-generated unique index) rather than
+        // explicitly creating a unique index ourselves;
+        assertThat(FileUtils.fileRead(file, StandardCharsets.UTF_8.name())).as("error in %s", file.getName())
+            .doesNotContain("CREATE UNIQUE INDEX ");
+      }
+    }
+    assertThat(filesChecked).isNotEmpty();
   }
 
   private void testMigrate_NewDatabase_PopulatesVersion(String databaseName, int initialVersion) throws Exception {

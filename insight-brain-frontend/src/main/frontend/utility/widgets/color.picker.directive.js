@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './color.picker.directive.html';
 function ColorPickerController() {
   var vm = this;
 
@@ -17,7 +18,7 @@ export default function ColorPicker() {
     scope: {
       ngModel: '='
     },
-    templateUrl: 'utility/widgets/color.picker.directive.html',
+    template,
     controller: ColorPickerController,
     controllerAs: 'vm',
     bindToController: true,

@@ -133,7 +133,7 @@ public class PullRequestLineFeedbackTest
   private static List<PolicyViolation> defaultPolicyViolations(int count) {
     final List<PolicyViolation> policyViolations = new ArrayList<>();
     for (int i = 0; i < count; i++) {
-      policyViolations.add(defaultPolicyViolation(i));
+      policyViolations.add(defaultPolicyViolation(i + 1));
     }
     return policyViolations;
   }
@@ -144,9 +144,10 @@ public class PullRequestLineFeedbackTest
     constraintFact.addConditionFact(conditionFact);
 
     PolicyEvaluation evaluation = new PolicyEvaluation();
-    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policy_" + number, "Policy " + number, 0,
-        PolicyThreatCategory.OTHER, "H", ComponentIdentifier.createMavenCoordinates("G", "A", "V"),
-        Collections.singletonList(constraintFact), "filename");
+    PolicyViolation policyViolation =
+        new PolicyViolation(evaluation, "policy_" + number, "Policy " + number, number,
+            PolicyThreatCategory.OTHER, "H", ComponentIdentifier.createMavenCoordinates("G", "A", "V"),
+            Collections.singletonList(constraintFact), "filename");
 
     return policyViolation;
   }
@@ -163,6 +164,6 @@ public class PullRequestLineFeedbackTest
   }
 
   private String removeDateFromOutput(final String value) {
-    return value.replaceAll("as of _.*", "");
+    return value.trim().replaceAll("as of _.*", "");
   }
 }

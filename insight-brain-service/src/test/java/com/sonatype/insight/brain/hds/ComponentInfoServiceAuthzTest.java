@@ -228,42 +228,42 @@ public class ComponentInfoServiceAuthzTest
   public void testGetLicensesApplication_Authorized() throws Exception {
     configureHdsClientMock();
     grantReadPermission(app.getId());
-    componentInfoService
-        .getLicenses(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
+    componentInfoService.getLicenses(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER,
+        null /* httpRequest */, null, null);
   }
 
   @Test
   public void testGetLicensesRepository_Authorized() throws Exception {
     configureHdsClientMock();
     grantReadPermission(repository.getId());
-    componentInfoService
-        .getLicenses(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
+    componentInfoService.getLicenses(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER,
+        null /* httpRequest */, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetLicensesApplication_Unauthorized() throws Exception {
     login();
-    componentInfoService
-        .getLicenses(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
+    componentInfoService.getLicenses(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER,
+        null /* httpRequest */, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetLicensesRepository_Unauthorized() throws Exception {
     login();
-    componentInfoService
-        .getLicenses(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
+    componentInfoService.getLicenses(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER,
+        null /* httpRequest */, null, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetLicensesApplication_Unauthenticated() throws Exception {
-    componentInfoService
-        .getLicenses(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
+    componentInfoService.getLicenses(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER,
+        null /* httpRequest */, null, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetLicensesRepository_Unauthenticated() throws Exception {
-    componentInfoService
-        .getLicenses(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
+    componentInfoService.getLicenses(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER,
+        null /* httpRequest */, null, null);
   }
 
   @Test
@@ -314,7 +314,7 @@ public class ComponentInfoServiceAuthzTest
     configureHdsClientMock();
     grantReadPermission(owner.getId());
     componentInfoService
-        .getComponentVersionInfo_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER, null, null);
+        .getComponentVersionInfo_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER, null, null, null);
   }
 
   @Test
@@ -332,7 +332,7 @@ public class ComponentInfoServiceAuthzTest
   {
     login();
     componentInfoService.getComponentVersionInfo_ReadPermission(owner.getType(), ownerId,
-        COMPONENT_IDENTIFIER, null, null);
+        COMPONENT_IDENTIFIER, null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -349,7 +349,7 @@ public class ComponentInfoServiceAuthzTest
                                                                                     final String ownerId)
   {
     componentInfoService.getComponentVersionInfo_ReadPermission(owner.getType(), ownerId,
-        COMPONENT_IDENTIFIER, null, null);
+        COMPONENT_IDENTIFIER, null, null, null);
   }
 
   @Test(expected = UnauthenticatedException.class)

@@ -27,7 +27,10 @@ describe('violationPageReducer', function() {
       const newState = reducer(undefined, action);
       expect(newState.violationDetails).toBe(null);
       expect(newState.loading).toBe(false);
-      expect(newState.error).toBe(null);
+      expect(newState.violationDetailsError).toBe(null);
+      expect(newState.vulnerabilityDetailsLoading).toBe(false);
+      expect(newState.vulnerabilityDetails).toBe(null);
+      expect(newState.vulnerabilityDetailsError).toBe(null);
     });
 
     it('is immutable', function() {
@@ -49,17 +52,20 @@ describe('violationPageReducer', function() {
       }).toThrowError(TypeError);
 
       expect(() => {
-        state.error = 'Broke';
+        state.violationDetailsError = 'Broke';
       }).toThrowError(TypeError);
     });
   });
 
   describe('LOAD_VIOLATION_REQUESTED action', function() {
-    it('sets the loading flag to true', function() {
+    it('resets to default state and sets the loading flag to true', function() {
       const initialState = {
         violationDetails: {},
-        error: 'foo',
+        violationDetailsError: 'foo',
         loading: false,
+        vulnerabilityDetailsLoading: true,
+        vulnerabilityDetails: {},
+        vulnerabilityDetailsError: 'bla',
         otherProp: 'asdf'
       };
 
@@ -67,19 +73,21 @@ describe('violationPageReducer', function() {
 
       expect(newState).toEqual({
         loading: true,
-        error: 'foo',
-        violationDetails: {},
-        otherProp: 'asdf'
+        violationDetailsError: null,
+        violationDetails: null,
+        vulnerabilityDetailsLoading: false,
+        vulnerabilityDetails: null,
+        vulnerabilityDetailsError: null
       });
     });
   });
 
   describe('LOAD_VIOLATION_FULFILLED', function() {
-    it('unsets loading and error and sets violationDetails to the payload', function() {
+    it('unsets loading and violationDetailsError and sets violationDetails to the payload', function() {
       const initialState = {
         violationDetails: {},
-        error: 'baz',
-        loading: false,
+        violationDetailsError: 'baz',
+        loading: true,
         otherProp: 'asdf'
       };
 
@@ -90,7 +98,7 @@ describe('violationPageReducer', function() {
 
       expect(newState).toEqual({
         loading: false,
-        error: null,
+        violationDetailsError: null,
         violationDetails: { foo: 'bar' },
         otherProp: 'asdf'
       });
@@ -98,10 +106,10 @@ describe('violationPageReducer', function() {
   });
 
   describe('LOAD_VIOLATION_FAILED', function() {
-    it('unsets the loading flag and sets the error to the payload', function() {
+    it('unsets the loading flag and sets the violationDetailsError to the payload', function() {
       const initialState = {
         violationDetails: null,
-        error: null,
+        violationDetailsError: null,
         loading: true,
         otherProp: 'asdf'
       };
@@ -113,8 +121,78 @@ describe('violationPageReducer', function() {
 
       expect(newState).toEqual({
         loading: false,
-        error: 'ERRRRRRRRRRRRRRRRR',
+        violationDetailsError: 'ERRRRRRRRRRRRRRRRR',
         violationDetails: null,
+        otherProp: 'asdf'
+      });
+    });
+  });
+
+  describe('LOAD_VULNERABILITY_DETAILS_REQUESTED action', function() {
+    it('sets vulnerabilityDetailsLoading flag to true', function() {
+      const initialState = {
+        violationDetails: {},
+        loading: false,
+        violationDetailsError: 'foo',
+        vulnerabilityDetailsLoading: false,
+        otherProp: 'asdf'
+      };
+
+      const newState = reducer(initialState, { type: 'LOAD_VULNERABILITY_DETAILS_REQUESTED' });
+
+      expect(newState).toEqual({
+        violationDetails: {},
+        loading: false,
+        violationDetailsError: 'foo',
+        vulnerabilityDetailsLoading: true,
+        otherProp: 'asdf'
+      });
+    });
+  });
+
+  describe('LOAD_VULNERABILITY_DETAILS_FULFILLED', function() {
+    it('unsets vulnerabilityDetailsError and vulnerabilityDetailsLoading and sets vulnerabilityDetails to the payload',
+        function() {
+          const initialState = {
+            vulnerabilityDetails: {},
+            vulnerabilityDetailsError: 'baz',
+            vulnerabilityDetailsLoading: true,
+            otherProp: 'asdf'
+          };
+
+          const newState = reducer(initialState, {
+            type: 'LOAD_VULNERABILITY_DETAILS_FULFILLED',
+            payload: { foo: 'bar' }
+          });
+
+          expect(newState).toEqual({
+            vulnerabilityDetailsLoading: false,
+            vulnerabilityDetailsError: null,
+            vulnerabilityDetails: { foo: 'bar' },
+            otherProp: 'asdf'
+          });
+        }
+    );
+  });
+
+  describe('LOAD_VULNERABILITY_DETAILS_FAILED', function() {
+    it('unsets vulnerabilityDetailsLoading flag and sets the vulnerabilityDetailsError to the payload', function() {
+      const initialState = {
+        vulnerabilityDetailsLoading: true,
+        vulnerabilityDetails: null,
+        vulnerabilityDetailsError: null,
+        otherProp: 'asdf'
+      };
+
+      const newState = reducer(initialState, {
+        type: 'LOAD_VULNERABILITY_DETAILS_FAILED',
+        payload: 'ERRRRRRRRRRRRRRRRR'
+      });
+
+      expect(newState).toEqual({
+        vulnerabilityDetailsLoading: false,
+        vulnerabilityDetailsError: 'ERRRRRRRRRRRRRRRRR',
+        vulnerabilityDetails: null,
         otherProp: 'asdf'
       });
     });

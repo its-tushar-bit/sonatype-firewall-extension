@@ -56,6 +56,19 @@ def list_s3(target_bucket, role_arn=None):
     return bucket, keys
 
 
+def download_database_data(bucket_name, dataset_size, destination_file_path, is_postgres=False):
+    s3 = boto3.resource("s3")
+    bucket = s3.Bucket(bucket_name)
+    if is_postgres:
+        prefix = "testing/" + dataset_size + "/postgres"
+    else:
+        prefix = "testing/" + dataset_size + "/h2"
+    last_s3_object = None
+    for s3_object in bucket.objects.filter(Prefix=prefix):
+        last_s3_object = s3_object
+    bucket.download_file(last_s3_object.key, destination_file_path)
+
+
 def main():
     bucket, keys = list_s3('iq-datasets')
     log.info(keys)

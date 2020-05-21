@@ -16,9 +16,25 @@ public class DbUtilParameters
 
   private Exception error;
 
+  @Parameter(names = {"--postgres"}, description = "Flag whose existence determines if the database engine is Postgres")
+  private boolean postgres;
+
   // required
-  @Parameter(names = { "-db", "--database" }, description = "Path to h2 ods db file.", required = true)
-  private File targetDatabase;
+  @Parameter(names = { "-db", "--database" },
+      description = "Path to h2 db file: e.g. ~/test/ods.h2.db, or name of the Postgres database.", required = true)
+  private String database;
+
+  @Parameter(names = {"-user", "--db-user"}, description = "db username")
+  private String dbUser = "sa";
+
+  @Parameter(names = {"-pass", "--db-password"}, description = "db password")
+  private String dbPassword = "";
+
+  @Parameter(names = {"-h", "--hostname"}, description = "Hostname of Postgres server")
+  private String hostname;
+
+  @Parameter(names = {"-p", "--port"}, description = "Port of Postgres server")
+  private int port;
 
   // strongly suggested
   @Parameter(names = { "-u", "--urls" }, description = "Path to file containing target URL templates.")
@@ -125,12 +141,32 @@ public class DbUtilParameters
     return generateTemplate;
   }
 
-  public File getTargetDatabase() {
-    return targetDatabase;
+  public boolean isPostgres() {
+    return postgres;
+  }
+
+  public String getDatabase() {
+    return database;
   }
 
   public File getUrls() {
     return urls;
+  }
+
+  public String getDbUser() {
+    return dbUser;
+  }
+
+  public String getDbPassword() {
+    return dbPassword;
+  }
+
+  public String getHostname() {
+    return hostname;
+  }
+
+  public int getPort() {
+    return port;
   }
 
   // limits

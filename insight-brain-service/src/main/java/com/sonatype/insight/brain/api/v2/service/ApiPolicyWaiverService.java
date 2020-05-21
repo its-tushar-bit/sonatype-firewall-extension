@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -42,9 +43,23 @@ public class ApiPolicyWaiverService
 
   private final TelemetrySender telemetrySender;
 
+  private final PolicyWaiverDAO policyWaiverDAO;
+
+  private final PolicyDAO policyDAO;
+
+  private final ApplicationDAO applicationDAO;
+
   @Inject
-  public ApiPolicyWaiverService(TelemetrySender telemetrySender) {
+  public ApiPolicyWaiverService(
+      TelemetrySender telemetrySender,
+      PolicyWaiverDAO policyWaiverDAO,
+      PolicyDAO policyDAO,
+      ApplicationDAO applicationDAO)
+  {
     this.telemetrySender = telemetrySender;
+    this.policyWaiverDAO = policyWaiverDAO;
+    this.policyDAO = policyDAO;
+    this.applicationDAO = applicationDAO;
   }
 
   public void addPolicyWaiver(final String policyViolationId,
@@ -61,10 +76,10 @@ public class ApiPolicyWaiverService
     switch (ownerType) {
       case APPLICATION:
         ownerId = policyViolation.getApplicationId();
-        AuditData.get().setData("applicationId", ownerId).setApplication(new ApplicationDAO().getById(ownerId));
+        AuditData.get().setData("applicationId", ownerId).setApplication(applicationDAO.getById(ownerId));
         break;
       case ORGANIZATION:
-        ownerId = new ApplicationDAO().getByIdNotNull(policyViolation.getApplicationId()).getOrganizationId();
+        ownerId = applicationDAO.getByIdNotNull(policyViolation.getApplicationId()).getOrganizationId();
         AuditData.get().setData("organizationId", ownerId).setOrganization(new OrganizationDAO().getById(ownerId));
         break;
       default:
@@ -86,18 +101,40 @@ public class ApiPolicyWaiverService
         new PolicyWaiver(policyViolation.getHash(), policyViolation.getPolicyId(), ownerId, comment);
     policyWaiver.setConstraintFactsJson(policyViolation.getConstraintFactsJson());
 
-    new PolicyWaiverDAO().insert(policyWaiver);
+    policyWaiverDAO.insert(policyWaiver);
     auditPolicyWaiver(policyWaiver);
     sendTelemetry(ownerType, ownerId);
   }
 
+  public void deletePolicyWaiver(OwnerType ownerType, String ownerId, String policyWaiverId) {
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    deletePolicyWaiverWithAuthzCheck(ownerType, internalOwnerId, policyWaiverId);
+  }
+
+  @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
+  void deletePolicyWaiverWithAuthzCheck(
+      @AuthzContext(Key.TYPE) OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
+      String policyWaiverId)
+  {
+    PolicyWaiver policyWaiver = policyWaiverDAO.getByIdNotNull(policyWaiverId);
+    if (!internalOwnerId.equals(policyWaiver.getOwnerId())) {
+      throw new NotFoundException("Cannot find a policy waiver with ID " + policyWaiverId + " for " + ownerType
+          + " with ID " + internalOwnerId);
+    }
+    auditPolicyWaiver(policyWaiver);
+    policyWaiverDAO.delete(policyWaiver);
+  }
+
   private void auditPolicyWaiver(PolicyWaiver policyWaiver) {
     AuditData.get().setData("policyWaiverId", policyWaiver.getId())
-        .setPolicy(new PolicyDAO().getByIdNotNull(policyWaiver.getPolicyId()))
+        .setPolicy(policyDAO.getByIdNotNull(policyWaiver.getPolicyId()))
         .setComment(policyWaiver.getComment())
         .setComponentHash(policyWaiver.getHash());
-    AuditData.get().setData("policyConstraints",
-        policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
+    if (policyWaiver.getConstraintFacts() != null) {
+      AuditData.get().setData("policyConstraints",
+          policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
+    }
   }
 
   private void sendTelemetry(OwnerType ownerType, String ownerId) {

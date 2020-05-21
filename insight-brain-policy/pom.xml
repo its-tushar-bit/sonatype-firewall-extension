@@ -11,7 +11,7 @@
   <parent>
     <artifactId>insight-brain</artifactId>
     <groupId>com.sonatype.insight.brain</groupId>
-    <version>1.89.0-SNAPSHOT</version>
+    <version>1.92.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>insight-brain-policy</artifactId>
@@ -26,6 +26,11 @@
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-data</artifactId>
       <type>test-jar</type>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.sonatype.clm</groupId>
+      <artifactId>com.sonatype.clm.dto.model</artifactId>
     </dependency>
 
     <dependency>

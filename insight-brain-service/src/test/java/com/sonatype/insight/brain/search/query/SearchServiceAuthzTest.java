@@ -27,12 +27,6 @@ public class SearchServiceAuthzTest
     searchService.searchIndex("query", 1, 1);
   }
 
-  @Test
-  public void testAutoCompleteSearchQuery_Unauthenticated() throws Exception {
-    createIndex();
-    searchService.autoCompleteSearchQuery("query");
-  }
-
   private void createIndex() throws Exception {
     grantConfigureSystemPermission();
     indexService.createSearchIndex();

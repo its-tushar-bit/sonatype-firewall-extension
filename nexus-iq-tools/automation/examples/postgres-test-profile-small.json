@@ -1,0 +1,37 @@
+{
+    "iq_data": {
+        "dataset": "small",
+        "data_path": "S3://iq-perf-datasets"
+    },
+    "iq_server": {
+        "run_server" : {
+            "params" : ["server", "../examples/postgres-config-dev.yml"],
+            "java_opts" : ["-Xms16g", "-Xmx16g", "-XX:+UseG1GC", "-Ddw.dbCacheSizePercent=50"]
+        },
+        "export-embedded-db": {
+            "params" : [],
+            "java_opts" : []
+        }
+    },
+    "iq_tools": {
+        "shift_db" : {
+            "params" : [],
+            "java_opts" : ["-Xms16g", "-Xmx16g"]
+        },
+        "generate_urls" : {
+            "params" : ["-u", "../examples/target_urls.json"],
+            "java_opts" : ["-Xms16g", "-Xmx16g"]
+        },
+        "run_test" : {
+            "params" : [],
+            "java_opts" : ["-Xms1024m", "-Xmx2048m", "-Dlogback.configurationFile=../examples/logback.xml"]
+        }
+    },
+    "postgres": {
+        "hostname": "localhost",
+        "port": 5432,
+        "username": "postgres",
+        "password": "postgres",
+        "database": "postgres"
+    }
+}

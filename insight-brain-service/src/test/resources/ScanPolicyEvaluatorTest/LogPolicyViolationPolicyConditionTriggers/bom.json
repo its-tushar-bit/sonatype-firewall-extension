@@ -24,6 +24,14 @@
     "lastModifiedTime" : 1549542000000,
     "lastModifiedEntryTime" : 1187431150000,
     "website" : null,
-    "hygieneRating" : { "id" : "4", "label" : "Laggard"}
+    "hygieneRating" : { "id" : "4", "label" : "Laggard"},
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    }
   } ]
 }

@@ -14,7 +14,7 @@ export default function LabelAddController($scope, label, SelectedComponent, Own
   //they accept, update the server
   $scope.accept = function() {
     const parts = $scope.label.selectedOwner.split('$$'),
-        payload = pick(['color', 'label', 'id', 'description', 'labelLowercase', 'ownerId'], label);
+        payload = pick(['color', 'label', 'id', 'description', 'ownerId'], label);
 
     $scope.labelSaving = true;
     $scope.labelAddError = null;
@@ -36,7 +36,7 @@ export default function LabelAddController($scope, label, SelectedComponent, Own
     };
     $scope.labelOwners = [];
 
-    $http.get(CLM.path + 'rest/label/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId + '/applicable/context/' +
+    $http.get(CLM.path + 'api/v2/labels/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId + '/applicable/context/' +
         label.id).then(function(response) {
       $scope.labelLoading = false;
       function processItem(item) {

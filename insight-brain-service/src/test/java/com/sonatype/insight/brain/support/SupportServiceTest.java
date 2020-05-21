@@ -260,7 +260,8 @@ public class SupportServiceTest
         "license",
         "licenseThreatGroupLicense",
         "policy",
-        "policyMonitoring"
+        "policyMonitoring",
+        "sourceControl"
     };
     final File[] expectedFiles = createExpectedFiles(workDir, basenames);
     assertThat(workDir.listFiles()).containsExactlyInAnyOrder(expectedFiles);

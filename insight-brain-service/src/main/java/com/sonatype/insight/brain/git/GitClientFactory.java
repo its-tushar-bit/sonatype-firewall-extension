@@ -16,7 +16,7 @@ import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
-import com.sonatype.nexus.scm.api.GitGraphQlApiClient;
+import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 
 @Named
 @Singleton
@@ -32,22 +32,24 @@ public class GitClientFactory
   }
 
   public GitApiClient createApiClient(GitRepositoryInfo gitRepositoryInfo) {
-    Configuration configuration = new Configuration();
+    Configuration configuration = gitApiClientFactory.createConfiguration();
     String apiUrl = getClientUtils(gitRepositoryInfo.provider).getApiUrl(gitRepositoryInfo.repositoryUrl);
     insightProxy.contextualize(configuration, apiUrl);
     return gitApiClientFactory.getGitApiClient(
-        gitRepositoryInfo.provider, configuration, gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.token);
+        gitRepositoryInfo.provider, configuration, gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.username,
+        gitRepositoryInfo.token);
   }
 
-  public GitGraphQlApiClient createGraphqlApiClient(GitRepositoryInfo gitRepositoryInfo) {
-    Configuration configuration = new Configuration();
+  public PullRequestInfoProvider createPullRequestInfoClient(GitRepositoryInfo gitRepositoryInfo) {
+    Configuration configuration = gitApiClientFactory.createConfiguration();
 
     GitApiClientUtils gitApiClientUtils = gitApiClientFactory.getGitApiClientUtils(gitRepositoryInfo.provider);
-    String graphqlApiUrl = gitApiClientUtils.getGraphQlApiUrl(gitRepositoryInfo.repositoryUrl);
+    String graphqlApiUrl = gitApiClientUtils.getPullRequestInfoProviderUrl(gitRepositoryInfo.repositoryUrl);
     insightProxy.contextualize(configuration, graphqlApiUrl);
 
-    return gitApiClientFactory.getGitGraphQlApiClient(
-        gitRepositoryInfo.provider, configuration, gitRepositoryInfo.token);
+    return gitApiClientFactory
+        .getPullRequestInfoClient(gitRepositoryInfo.provider, configuration, gitRepositoryInfo.username,
+            gitRepositoryInfo.token, gitRepositoryInfo.repositoryUrl);
   }
 
   private GitApiClientUtils getClientUtils(final SourceControlProvider provider) {

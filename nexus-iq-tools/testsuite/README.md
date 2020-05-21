@@ -19,7 +19,7 @@ To provision an ec2 instance and execute a performance evaluation for IQ, you'll
 
 1. [Terraform](https://www.terraform.io/) (version v0.12)
 2. AWS CLI (available via brew)
-3. python
+3. Python
 4. bash shell
 
 ### AWS CLI
@@ -74,8 +74,10 @@ So make sure one of them works. More details here: https://www.terraform.io/docs
 ## Running Performance Test
 
 1. Configure test inputs:
-   * `./configure_test.py -iq ../../insight-brain-service/target/insight-brain-service-*-server.jar -tools ../target/nexus-iq-tools-*-SNAPSHOT.jar -auto ../target/nexus-iq-tools-*-automation.zip -lic /path/to/*lifecycle*.lic`
+   * `./configure_test.py -iq ../../insight-brain-service/target/insight-brain-service-*-server.jar -tools ../target/nexus-iq-tools-*-SNAPSHOT.jar -auto ../target/nexus-iq-tools-*-automation.zip -lic /path/to/*lifecycle*.lic -u /path/to/target_urls.json`
    * confirm creation of a folder starting with `awsPerfRun_`
+   * add the `--use-postgres` flag to enable Postgres
+   * use `./configure_test.py -h` to find more about other parameters
 2. Initialize terraform with `terraform init`
    * note: this only needs to be done for first run or to update terraform
 3. Bootstrap your node with `terraform apply`

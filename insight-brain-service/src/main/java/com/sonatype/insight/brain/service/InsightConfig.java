@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 import javax.validation.Valid;
@@ -64,7 +65,7 @@ public class InsightConfig
 
   @NotNull
   @JsonProperty
-  private String cdnUrl = "http://cdn.sonatype.com/";
+  private String cdnUrl = "https://cdn.sonatype.com/";
 
   @NotNull
   @JsonProperty
@@ -255,6 +256,40 @@ public class InsightConfig
    */
   @JsonProperty
   private SourceControlConfig sourceControl = new SourceControlConfig();
+
+  /**
+   * This section will be used for features that are enabled by default. If nothing is specified, or the feature flag is
+   * set to {@code true}, the feature is enabled. To disable it, explicitly set it to {@code false}.
+   * <p>
+   * For example:
+   * <pre>
+   * # features are enabled by default - set to false if you want to disable them
+   * features:
+   *   prCommenting: false
+   * }
+   * </pre>
+   *
+   * @since 1.90
+   */
+  @JsonProperty
+  private Map<String, Boolean> features;
+
+  /**
+   * This section will be used for experimental features, which are disabled by default. If nothing is specified, or the
+   * feature flag is set to {@code false}, the feature is disabled. To enable it, explicitly set it to {@code true}.
+   * <p>
+   * For example:
+   * <pre>
+   * # features are disabled by default - set to true if you want to enable them
+   * experimentalFeatures:
+   *   prLineCommenting: true
+   * }
+   * </pre>
+   *
+   * @since 1.90
+   */
+  @JsonProperty
+  private Map<String, Boolean> experimentalFeatures;
 
   public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
@@ -690,6 +725,54 @@ public class InsightConfig
     }
     else {
       this.sourceControl = sourceControl;
+    }
+  }
+
+  public Map<String, Boolean> getFeatures() {
+    return features;
+  }
+
+  public boolean isFeatureEnabled(String feature) {
+    return features == null || !features.containsKey(feature) || features.containsKey(feature) && features.get(feature);
+  }
+
+  public boolean isFeatureEnabled(Feature feature) {
+    return isFeatureEnabled(feature.flag);
+  }
+
+  public void setFeatures(final Map<String, Boolean> features) {
+    this.features = features;
+  }
+
+  public Map<String, Boolean> getExperimentalFeatures() {
+    return experimentalFeatures;
+  }
+
+  public boolean isExperimentalFeatureEnabled(String feature) {
+    return experimentalFeatures != null && experimentalFeatures.containsKey(feature) &&
+        experimentalFeatures.get(feature);
+  }
+
+  public boolean isExperimentalFeatureEnabled(Feature feature) {
+    return isExperimentalFeatureEnabled(feature.flag);
+  }
+
+  public void setExperimentalFeatures(final Map<String, Boolean> experimentalFeatures) {
+    this.experimentalFeatures = experimentalFeatures;
+  }
+
+  public enum Feature
+  {
+    PR_COMMENTING("prCommenting");
+
+    private String flag;
+
+    Feature(final String flag) {
+      this.flag = flag;
+    }
+
+    public String getFlag() {
+      return flag;
     }
   }
 }

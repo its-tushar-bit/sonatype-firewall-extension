@@ -155,9 +155,14 @@
 }
 
 .waivers-column {
-  width: 150px;
+  width: 155px;
 }
 
 .table .waivers-column {
   vertical-align: middle;
+}
+
+.component-waiver-comment {
+  max-width: 250px;
+  word-wrap: break-word;
 }

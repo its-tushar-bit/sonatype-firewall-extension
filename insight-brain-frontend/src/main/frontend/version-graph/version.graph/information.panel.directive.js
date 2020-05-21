@@ -3,10 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from '../version-graph.html';
 
 export default function cipVersionGraph($window) {
   return {
-    templateUrl: $window.CLM.assetsPath + 'version-graph/version-graph.html',
+    template,
     controllerAs: 'vm',
     controller: 'CIPController',
     scope: true

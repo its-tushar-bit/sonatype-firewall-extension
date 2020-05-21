@@ -11,12 +11,16 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.search.index.IndexService;
+import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics.SearchCount;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.google.inject.Binder;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES;
 import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES_BY_FIELD_NAME;
@@ -31,20 +35,37 @@ public class AdvancedSearchTelemetryCollectorTest
   @Inject
   private AdvancedSearchTelemetryMetrics metrics;
 
-  @Test
-  public void testCollectData_TelemetryPurpose() {
-    metrics.addSearch(new HashSet<>(Arrays.asList("foo")));
-    TelemetryData telemetryData = collector.collectData();
+  @Inject
+  private IndexService indexService;
 
-    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.ADVANCED_SEARCH);
+  @Mock
+  private VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
+
+  @Mock
+  private TelemetrySender telemetrySenderMock;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(VulnerabilityDescriptionFetcher.class).toInstance(vulnerabilityDescriptionFetcher);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    super.configure(binder);
   }
 
   @Test
-  public void testCollectData() {
-    metrics.addSearch(new HashSet<>(Arrays.asList("foo")));
-    metrics.addSearch(new HashSet<>(Arrays.asList("foo")));
-    TelemetryData telemetryData = collector.collectData();
+  public void testCollectAllData_NoData() {
+    assertThat(collector.collectAllData()).isEmpty();
+  }
 
+  @Test
+  public void testCollectAllData_SearchData() {
+    metrics.addSearch(new HashSet<>(Arrays.asList("foo")));
+    metrics.addSearch(new HashSet<>(Arrays.asList("foo")));
+
+    List<TelemetryData> allTelemetryData = collector.collectAllData();
+    assertThat(allTelemetryData).hasSize(1);
+
+    TelemetryData telemetryData = allTelemetryData.get(0);
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.ADVANCED_SEARCH);
     @SuppressWarnings("unchecked")
     List<SearchCount> actualSearchCounts =
         (List<SearchCount>) telemetryData.getAttributes().get(TOTAL_SEARCHES_BY_FIELD_NAME);
@@ -56,7 +77,16 @@ public class AdvancedSearchTelemetryCollectorTest
   }
 
   @Test
-  public void testCollectData_NoData() {
-    assertThat(collector.collectData()).isNull();
+  public void testCollectAllData_IndexData() throws Exception {
+    indexService.createSearchIndex();
+
+    List<TelemetryData> allTelemetryData = collector.collectAllData();
+    assertThat(allTelemetryData).hasSize(1);
+
+    TelemetryData telemetryData = allTelemetryData.get(0);
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.ADVANCED_SEARCH_INDEXING);
+    assertThat(telemetryData.getAttributes())
+        .containsEntry(IndexService.SEARCH_INDEX_SIZE_BYTES, indexService.getIndexSize())
+        .containsEntry(IndexService.SEARCH_INDEX_REINDEX, false);
   }
 }

@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -20,6 +21,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.hidden;
@@ -196,5 +198,62 @@ public class AdvancedSearchPageTest
     page.previousPageButton().click();
     page.searchInput().shouldBe(value("itemType:POLICY"));
     page.currentPageInfo().shouldBe(text("Page 1 of 2"));
+  }
+
+  @Test
+  public void testHelpContainer() throws IOException {
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+
+    // Test initial state
+    page.helpContainerToggle().shouldBe(visible);
+    page.helpContainer().shouldNotBe(visible);
+
+    // Test toggle
+    page.helpContainerToggle().click();
+    page.helpContainer().shouldBe(visible);
+    page.helpContainerToggle().click();
+    page.helpContainer().shouldNotBe(visible);
+
+    // Test I can leave help open and it remains open when I come back
+    page.helpContainerToggle().click();
+    page.helpContainerToggle().shouldBe(visible);
+
+    refreshOrOpen(DashboardPage.url());
+    refreshOrOpen(AdvancedSearchPage.url());
+
+    page.helpContainer().shouldBe(visible);
+  }
+
+  @Test
+  public void testQueryBuilder() throws IOException {
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+
+    // initial state
+    page.queryBuilderContainer().shouldNotBe(visible);
+
+    // test toggle
+    page.queryBuilderButton().click();
+    page.queryBuilderContainer().shouldBe(visible);
+    page.queryBuilderButton().click();
+    page.queryBuilderContainer().shouldNotBe(visible);
+
+    // test add prefix using pills
+    page.queryBuilderButton().click();
+    page.prefixTagWithId("organizationId").shouldNotHave(cssClass("selected")).click();
+    // when I click on the pill it should get an additional class which fills the pill with green background
+    page.prefixTagWithId("organizationId").shouldHave(cssClass("selected"));
+    page.queryBuilderContainer().shouldBe(visible);  // query builder must remain open
+    page.searchInput().shouldHave(value("organizationId:"));
+
+    // test upon search query builder is closed
+    page.searchInput().sendKeys("ROOT*");
+    page.searchButton().click();
+    page.queryBuilderContainer().shouldNotBe(visible);
   }
 }

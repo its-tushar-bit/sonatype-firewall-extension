@@ -1,3 +1,74 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+.nx-page-main--advanced-search {
+  position: relative;
+}
+
+.nx-container--advanced-search-help-container {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.nx-adv-search-help__toggle {
+  cursor: pointer;
+}
+
+.nx-icon--advanced-search-bulb {
+  color: $nx-grey-5;
+}
+
+.nx-adv-search-help__explanation {
+  display:inline-block;
+  margin-left:$nx-spacing-md;
+}
+
+.nx-adv-search-help__note {
+  color: $nx-grey-5;
+  margin-left: $nx-spacing-md;
+}
+
+.nx-adv-search-help__example {
+  background-color: $nx-off-white;
+  border: 1px solid $nx-grey-5;
+  cursor: pointer;
+  display:inline-block;
+  margin-left:$nx-spacing-md;
+  padding: $nx-spacing-xs;
+  user-select: all;
+}
+
+.nx-adv-search__query-builder {
+  background: $nx-off-white;
+  border: 1px solid #c1c1c1;
+  box-shadow: 0 2px 5px 0 $nx-grey-5;
+  color: #575757;
+  padding: $nx-spacing-md;
+  position: absolute;
+  width: 1000px;
+  z-index: $iq-form-mask-zindex;
+}
+
+.nx-adv-search__query-group {
+  display: flow-root;
+}
+
+.nx-tag {
+  border: solid $nx-grey-5 1px;
+  border-radius:$nx-spacing-sm;
+  cursor: pointer;
+  display: inline-block;
+  margin-bottom: $nx-spacing-sm;
+  margin-left: $nx-spacing-md;
+  padding: $nx-spacing-xxs $nx-spacing-xxs $nx-spacing-xxs $nx-spacing-sm;
+
+  &.selected {
+    background: $nx-light-green;
+  }
+}
+
 .nx-tile-content--adv-search-results {
   // we don't want the extra border on the first group
   &:not(:nth-child(2)) {

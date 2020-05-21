@@ -93,7 +93,7 @@ public class SuccessMetricsChartsTest
   private static final DateTime twoMonthsAgo = threeMonthsAgo.plusDays(30);
 
   private static final DateTime oneMonthAgo = twoMonthsAgo.plusDays(30);
-  
+
   private final String browserName = System.getProperty("browser");
 
   private static String successMetricsChartsPageUrl;
@@ -321,7 +321,7 @@ public class SuccessMetricsChartsTest
     ViolationTrendTile.fixedBarTooltip.shouldNotBe(visible);
 
     allViolationsDeltaPlot.bar(3).hover();
-    eyesWatcher.eyesCheck();
+    eyesWatcher.eyesCheck(true);
 
     verifyPlotTooltips(allViolationsDeltaPlot, new String[][]{
         new String[]{"0", "0", "0", "0"},
@@ -402,8 +402,8 @@ public class SuccessMetricsChartsTest
 
       SelenideElement plotBar = plot.bar(i);
       plotBar.hover();
-      // For whatever reason the firefox driver misses the hover point when the violation column has 0 violations and 
-      // the height of the rectangle is set to 0. The cursor is placed just to the left of the first column. To work 
+      // For whatever reason the firefox driver misses the hover point when the violation column has 0 violations and
+      // the height of the rectangle is set to 0. The cursor is placed just to the left of the first column. To work
       // around this we nudge the cursor over a bit to roughly the center of the hover point so that the hover kicks in.
       if ("firefox".equals(browserName) && plotBar.getAttribute("height").equals("0")) {
         new Actions(WebDriverRunner.getAndCheckWebDriver()).moveByOffset((i * 10) + 5, 0).perform();
@@ -435,7 +435,7 @@ public class SuccessMetricsChartsTest
     ViolationsByCategoryTile.description().shouldHave(text("Open violations over the past 12 weeks by policy type."));
 
     ViolationsByCategoryTile.chart().shouldBe(visible);
-    eyesWatcher.eyesCheck();
+    eyesWatcher.eyesCheck(true);
 
     ElementsCollection points = ViolationsByCategoryTile.points();
     points.shouldHaveSize(12 * 5); // 8 weeks times four categories plus totals

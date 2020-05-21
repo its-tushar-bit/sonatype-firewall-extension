@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,7 +32,6 @@ import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
-import com.sonatype.insight.brain.search.results.SearchSuggestionResultDTO;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -48,12 +46,8 @@ import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHits.Relation;
-import org.apache.lucene.search.suggest.Lookup;
-import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.FSDirectory;
 import org.codehaus.plexus.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.*;
 
@@ -64,12 +58,8 @@ import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdenti
 @Singleton
 public class SearchService
 {
-  private static final Logger log = LoggerFactory.getLogger(SearchService.class);
-
   private static final String NO_INDEX_ERROR_MESSAGE =
       "Index does not exist or is unreadable, please (re)create your index.";
-
-  private static final int MAX_SUGGESTIONS = 10;
 
   private final InsightWork insightWork;
 
@@ -185,87 +175,6 @@ public class SearchService
       AuditData.get().setData("resultRecordCount", resultIndex - startIndex - 1);
       return searchResultDTO;
     }
-  }
-
-  public SearchSuggestionResultDTO autoCompleteSearchQuery(String searchQuery) {
-    Path searchSuggesterIndexPath = insightWork.getSearchSuggesterDir().toPath();
-    validateIndex(searchSuggesterIndexPath);
-
-    if (searchQuery == null) {
-      searchQuery = "";
-    }
-
-    SearchSuggestionResultDTO searchResultDTO = new SearchSuggestionResultDTO();
-    searchResultDTO.searchQuery = searchQuery;
-
-    // the suggestion index contains only single field queries, to provide suggestions for more complex queries, we cut
-    // off the initial clauses of the query and do auto-completion on the last clause 
-    int lastClauseStart = findStartOfLastClause(searchQuery);
-    String lastClause = searchQuery.substring(lastClauseStart);
-    String searchProlog = searchQuery.substring(0, lastClauseStart);
-
-    if (lastClause.isEmpty()) {
-      Stream.of(FieldIdentifier.values()) //
-          .filter(field -> !FieldIdentifier.COMPONENT_COORDINATE.equals(field)) //
-          .map(field -> field.label) //
-          .sorted() //
-          .forEach(field -> searchResultDTO.searchResultItems.add(searchProlog + field + ':'));
-    }
-    else {
-      try (FSDirectory suggesterFile = FSDirectory.open(searchSuggesterIndexPath);
-            AnalyzingInfixSuggester suggester = luceneComponents.newSuggester(suggesterFile)) {
-        // try strict lookup first, matching all tokens from search query
-        List<Lookup.LookupResult> results =
-            suggester.lookup(lastClause, Collections.emptySet(), MAX_SUGGESTIONS, true, false);
-        if (results.isEmpty()) {
-          // fallback to more lenient lookup, matching on any token
-          results = suggester.lookup(lastClause, Collections.emptySet(), MAX_SUGGESTIONS, false, false);
-        }
-        for (Lookup.LookupResult result : results) {
-          searchResultDTO.searchResultItems.add(searchProlog + result.key);
-        }
-        searchResultDTO.searchResultItems.remove(searchQuery);
-      }
-      catch (IOException e) {
-        log.error(e.getMessage(), e);
-      }
-    }
-
-    return searchResultDTO;
-  }
-
-  static int findStartOfLastClause(String searchQuery) {
-    int result = 0;
-    boolean inPhrase = false;
-    boolean inRange = false;
-    boolean inRegex = false;
-    for (int i = 0, n = searchQuery.length(); i < n; i++) {
-      char c = searchQuery.charAt(i);
-      if (c == '\\') {
-        i++;
-      }
-      else if (c == '"') {
-        inPhrase = !inPhrase;
-      }
-      else if (c == '[' || c == '{') {
-        inRange = true;
-      }
-      else if (c == ']' || c == '}') {
-        inRange = false;
-      }
-      else if (c == '/') {
-        inRegex = !inRegex;
-      }
-      else if (!inPhrase && !inRange && !inRegex) {
-        if (c == ' ') {
-          result = i + 1;
-        }
-        else if (i == result && (c == '+' || c == '-' || c == '!' || c == '(')) {
-          result = i + 1;
-        }
-      }
-    }
-    return result;
   }
 
   private void validateIndex(Path indexPath) {

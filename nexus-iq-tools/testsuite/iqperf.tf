@@ -62,20 +62,23 @@ resource "aws_instance" "perftest" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo yum install -y java-1.8.0",
-      "sudo yum install -y python3",
-      "sudo pip3 install pipenv",
-      "sudo yum install -y emacs-nox",
-    ]
-  }
-
-  provisioner "remote-exec" {
-    inline = [
       "export NVMEDRIVE=$(sudo fdisk -l | grep dev | egrep \"GB|GiB\" | awk '{ print $3 \" \" $2 }' | sort -nr | head -n 1 | awk '{ print $2 }' | sed 's/://')",
       "sudo mkdir -p /iqperf_eval/{files,data}",
       "sudo mkfs.ext4 -E nodiscard $NVMEDRIVE",
       "sudo mount $NVMEDRIVE /iqperf_eval/data/",
       "sudo chown -R ec2-user:ec2-user /iqperf_eval/",
+    ]
+  }
+
+  provisioner "file" {
+    source = "./scripts/provision.sh"
+    destination = "/iqperf_eval/provision.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /iqperf_eval/provision.sh",
+      "sudo /iqperf_eval/provision.sh ${var.use_postgres}",
     ]
   }
 

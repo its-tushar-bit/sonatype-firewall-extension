@@ -198,16 +198,6 @@ public class LuceneComponentsTest
   }
 
   @Test
-  public void testNewAnalyzerForAutoCompletion() {
-    Analyzer analyzer = luceneComponents.newAnalyzerForAutoCompletion();
-    assertThat(tokens(analyzer, "", "componentHash:12345678901234567890")).containsExactly("componenthash",
-        "12345678901234567890");
-    assertThat(tokens(analyzer, "", "componentHash:abcdefABCDEFabcdefAB")).containsExactly("componenthash",
-        "abcdefabcdefabcdefab");
-    assertThat(tokens(analyzer, "", "componentName:\"Foo Bar\"")).containsExactly("componentname", "foo", "bar");
-  }
-
-  @Test
   public void testNewQueryParser_DefaultField() {
     assertThat(luceneComponents.newQueryParser().apply("value"))
         .isEqualTo(new TermQuery(new Term(FieldIdentifier.VULNERABILITY_ID.label, "value")));

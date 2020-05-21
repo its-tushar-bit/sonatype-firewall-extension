@@ -5,11 +5,17 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -51,6 +57,13 @@ public class LicenseThreatGroupDAO
         " WHERE licenseThreatGroup.id=licenseThreatGroupLicense.licenseThreatGroupId" + //
         " AND licenseThreatGroup.ownerId=?1 AND licenseThreatGroupLicense.licenseId=?2";
     return getList(sQuery, ownerId, licenseId);
+  }
+
+  public List<LicenseThreatGroup> getByIds(Set<String> licenseThreatGroupIds) {
+    String sQuery = "SELECT licenseThreatGroup" + //
+        " FROM LicenseThreatGroup licenseThreatGroup" + //
+        " WHERE licenseThreatGroup.id IN (?1)";
+    return getList(sQuery, licenseThreatGroupIds);
   }
 
   @Override
@@ -194,5 +207,35 @@ public class LicenseThreatGroupDAO
   public List<LicenseThreatGroup> getAll() {
     String sQuery = "SELECT entity FROM LicenseThreatGroup entity";
     return getList(sQuery);
+  }
+
+  /**
+   * Returns a map of threat levels by (simple) license id for the specified application.
+   * The threat levels are determined from the License Threat Groups in the app/org hierarchy.
+   * 
+   * @since 1.91
+   */
+  public Map<String, Integer> getLicenseThreatLevelsByApplication(Application application) {
+    Collection<String> ownerIds = ownerDAO.getOwnerIds(application);
+
+    Map<String, Integer> threatLevelsByLicenseThreatGroupId = getByOwnerIds(ownerIds).stream()
+        .collect(Collectors.toMap(LicenseThreatGroup::getId, LicenseThreatGroup::getThreatLevel));
+
+    Map<String, Integer> threatLevelsByLicenseId = new HashMap<>();
+    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+    for (LicenseThreatGroupLicense licenseThreatGroupLicense : licenseThreatGroupLicenseDAO
+        .getByLicenseThreatGroupIds(threatLevelsByLicenseThreatGroupId.keySet())) {
+      String licenseId = licenseThreatGroupLicense.getLicenseId();
+      threatLevelsByLicenseId.merge(licenseId,
+          threatLevelsByLicenseThreatGroupId.get(licenseThreatGroupLicense.getLicenseThreatGroupId()), Math::max);
+    }
+
+    return threatLevelsByLicenseId;
+  }
+
+  public List<LicenseThreatGroup> getByOwnerIds(Collection<String> ownerIds) {
+    String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
+        " WHERE entity.ownerId IN (?1)";
+    return getList(sQuery, ownerIds);
   }
 }

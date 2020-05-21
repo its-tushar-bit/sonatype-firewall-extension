@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
 //Policy View/Editor Constraint Styles
 
 .iq-policy-constraint {
@@ -110,7 +115,7 @@ $policy-condition-left-margin: 8px;
 }
 
 .iq-policy-editor-condition--operator dropdown-selector {
-  width: 140px;
+  width: 165px;
 }
 
 .iq-policy-editor-condition--value {

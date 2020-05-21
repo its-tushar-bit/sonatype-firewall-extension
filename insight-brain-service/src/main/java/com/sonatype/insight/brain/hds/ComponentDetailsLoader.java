@@ -7,14 +7,12 @@ package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -35,13 +33,18 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 
 import org.codehaus.plexus.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.IdentificationSource.isThirdPartyIdentificationSource;
 
 /**
  * Assists in loading data for the CIP.
  */
-@Named
 public class ComponentDetailsLoader
 {
+  private static final Logger log = LoggerFactory.getLogger(ComponentDetailsLoader.class);
+
   /**
    * Hook to get the details from the HDS.
    */
@@ -53,25 +56,24 @@ public class ComponentDetailsLoader
     NamedComponentDetails getDetails() throws IOException;
   }
 
-  private final LicenseDAO licenseDAO;
+  private final LicenseDAO licenseDAO = new LicenseDAO();
 
-  private final HashComponentIdentifierDAO hashComponentIdentifierDAO;
+  private static final HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
 
-  @Inject
-  public ComponentDetailsLoader(LicenseDAO licenseDAO,
-                                HashComponentIdentifierDAO hashComponentIdentifierDAO)
-  {
-    this.licenseDAO = licenseDAO;
-    this.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
+  private final ComponentDAO componentDAO;
+
+  public ComponentDetailsLoader(Owner owner) {
+    componentDAO = new ComponentDAO(owner);
   }
 
   /**
    * Gets component details without CLM-specific vulnerability or license augmentation.
    */
-  public NamedComponentDetails getComponentDetails(ComponentIdentifier componentIdentifier,
-                                                   String hash,
-                                                   String matchState,
-                                                   HostedDataServicesSource hdsSource) throws IOException
+  public static NamedComponentDetails getComponentDetails(
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      String matchState,
+      HostedDataServicesSource hdsSource) throws IOException
   {
     NamedComponentDetails componentDetails = getComponentDetailsLocally(componentIdentifier, hash);
 
@@ -92,7 +94,7 @@ public class ComponentDetailsLoader
     return componentDetails;
   }
 
-  public NamedComponentDetails getComponentDetailsLocally(ComponentIdentifier componentIdentifier, String hash) {
+  public static NamedComponentDetails getComponentDetailsLocally(ComponentIdentifier componentIdentifier, String hash) {
     NamedComponentDetails componentDetails = null;
 
     // Look among claimed components first
@@ -122,11 +124,66 @@ public class ComponentDetailsLoader
 
   /**
    * Augments the supplied component details with local data like labels, license and security vulnerability overrides.
-   * The returned object is a transcript of the final component details suitable for policy evaluation.
+   * This overloaded method accepts a collection of ComponentDetails objects and
+   * calls another overloaded method that sets match state and identification source
+   * The returned list of Component objects is a transcript of the final component details
+   * suitable for policy evaluation.
+   *
+   * Purpose: This method is used by ComponentInfoService and ComponentRemediationService
+   * to additionally set match state and identification source prior to augmenting other details
+   *
+   * @param componentDetailsList the list of ComponentDetails objects to be augmented
+   * @param matchState the MatchState to set
+   * @return List<Component> augmented list of Component objects
    */
-  public Component augmentComponentDetails(Owner owner, ComponentDetails componentDetails) {
-    ComponentDAO componentDAO = new ComponentDAO();
-    Component component = componentDAO.getComponent(owner, componentDetails);
+  public List<Component> augmentComponentDetails(
+      Collection<ComponentDetails> componentDetailsList,
+      String matchState)
+  {
+    long start = System.currentTimeMillis();
+
+    List<Component> components = new ArrayList<>(componentDetailsList.size());
+    for (ComponentDetails componentDetails : componentDetailsList) {
+      components.add(augmentComponentDetails(componentDetails, matchState));
+    }
+
+    log.debug("Augmented component details for {} components in {} ms.", componentDetailsList.size(),
+        System.currentTimeMillis() - start);
+    return components;
+  }
+
+  /**
+   * Augments the supplied component details with local data like labels, license and security vulnerability overrides.
+   * This overloaded method sets match state to what is supplied or exact if not supplied and
+   * overrides identification source to SONATYPE if it is set to anything other than MANUAL or SONATYPE
+   * The returned Component object is a transcript of the final component details suitable for policy evaluation.
+   *
+   * Purpose: This method is used by ComponentInfoService and ComponentRemediationService
+   * to additionally set match state and identification source prior to augmenting other details
+   *
+   * @param componentDetails the ComponentDetails object to be augmented
+   * @param matchState the MatchState to set
+   * @return Component augmented Component object
+   */
+  public Component augmentComponentDetails(ComponentDetails componentDetails, String matchState) {
+    componentDetails.setMatchState(StringUtils.isEmpty(matchState) ? MatchState.EXACT.getId() : matchState);
+    if (!isThirdPartyIdentificationSource(componentDetails.getIdentificationSource())) {
+      componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
+    }
+    return augmentComponentDetails(componentDetails);
+  }
+
+  /**
+   * Augments the supplied component details with local data like labels, license and security vulnerability overrides.
+   * The returned Component object is a transcript of the final component details suitable for policy evaluation.
+   *
+   * Purpose: This method is used to augmenting basic details as indicated above
+   *
+   * @param componentDetails the ComponentDetails object to be augmented
+   * @return Component augmented Component object
+   */
+  public Component augmentComponentDetails(ComponentDetails componentDetails) {
+    Component component = componentDAO.getComponent(componentDetails);
 
     // Use CLM data to populate the component details
     for (String licenseId : component.getLicenseOverrideIds()) {

@@ -33,6 +33,10 @@ public class VersionsCIP
     return root().find("#infoPanelArtifactTable");
   }
 
+  public static SelenideElement componentType() {
+    return artifactTable().find("#artifactInfoComponentTypeRow td:last-child");
+  }
+
   public static SelenideElement groupId() {
     return root().find("#artifactInfo-Group");
   }

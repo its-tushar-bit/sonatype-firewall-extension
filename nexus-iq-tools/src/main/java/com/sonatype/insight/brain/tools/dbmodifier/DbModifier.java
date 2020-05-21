@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.tools.dbmodifier;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -20,25 +19,17 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DbModifier
+public abstract class DbModifier
 {
   private static final Logger log = LoggerFactory.getLogger(DbModifier.class);
 
-  private final File databaseFile;
+  protected final String username;
 
-  private final String schemaName;
-
-  private final String dbConnectionString;
-
-  private final String username;
-
-  private final String password;
+  protected final String password;
 
   // visible for testing
   static class TableAndColumns
@@ -58,31 +49,15 @@ public class DbModifier
     Timestamp max;
   }
 
-  // visible for testing
-  DbModifier(final File file,
-             final String dbConnectionString,
-             final String username,
-             final String password,
-             final String schemaName)
-  {
-    this.databaseFile = file;
-    this.dbConnectionString = dbConnectionString + ";SCHEMA=" + schemaName;
+  protected DbModifier(final String username, final String password) {
     this.username = username;
     this.password = password;
-    this.schemaName = schemaName;
   }
 
-  public DbModifier(final File file, final String username, final String password, final String schemaName) {
-    this(file, getDbConnectionString(file), username, password, schemaName);
-  }
+  protected abstract String getConnectionString();
 
-  private Connection getConnection() throws SQLException {
-    return DriverManager.getConnection(dbConnectionString, username, password);
-  }
-
-  private static String getDbConnectionString(final File file) {
-    return "jdbc:h2:" + file.getAbsolutePath() +
-        ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE";
+  protected Connection getConnection() throws SQLException {
+    return DriverManager.getConnection(getConnectionString(), username, password);
   }
 
   public void shiftToDate(final LocalDate maxDate) {
@@ -120,12 +95,7 @@ public class DbModifier
   }
 
   private void runUpdateQuery(TableAndColumns tableAndColumns, int numDays) {
-    final String table = tableAndColumns.table;
-    String sql = "UPDATE " + table + " SET ";
-    sql += tableAndColumns.columns.stream()
-        .map(column -> "\"" + column + "\" = DATEADD('day', " + numDays + ", \"" + column + "\")")
-        .collect(Collectors.joining(", "));
-    sql += ";";
+    String sql = getRunUpdateQuerySQL(tableAndColumns, numDays);
 
     log.info("Executing SQL: {}", sql);
     long start = System.currentTimeMillis();
@@ -138,6 +108,8 @@ public class DbModifier
       throw new RuntimeException(e);
     }
   }
+
+  protected abstract String getRunUpdateQuerySQL(TableAndColumns tableAndColumns, int numDays);
 
   /**
    * @return null if no timestamp values set in db
@@ -180,13 +152,7 @@ public class DbModifier
     return timestamps.stream().max(sortOrder).orElse(null);
   }
 
-  private String getMaxOrMinSql(final TableAndColumns tableAndColumns, boolean isMax) {
-    String sql = "SELECT ";
-    Function<String, String> toColumnExpression = columnName -> (isMax ? "MAX(" : "MIN(") + columnName + ")";
-    sql += tableAndColumns.columns.stream().map(toColumnExpression).collect(Collectors.joining(", "));
-    sql += " FROM " + tableAndColumns.table;
-    return sql;
-  }
+  protected abstract String getMaxOrMinSql(final TableAndColumns tableAndColumns, boolean isMax);
 
   private List<Timestamp> retrieveTimestamps(final String maxOrMinSql) {
     long start = System.currentTimeMillis();
@@ -241,30 +207,19 @@ public class DbModifier
     return tablesList;
   }
 
-  private String getSqlForTimestampColumns(final String tableName) {
-    return "SELECT COLUMN_NAME FROM \"INFORMATION_SCHEMA\".\"COLUMNS\" WHERE TABLE_SCHEMA = '" + schemaName +
-        "' AND TABLE_NAME = '" + tableName + "' AND TYPE_NAME = 'TIMESTAMP'";
-  }
+  protected abstract String getSqlForTimestampColumns(final String tableName);
 
-  public void compact() {
-    try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
-      statement.execute("SHUTDOWN COMPACT");
-    }
-    catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
+  public abstract void compact();
 
   public void scrub(boolean rebuild, boolean keepFiles) {
-    DbScrubber.scrubDb(dbConnectionString, rebuild, keepFiles, username, password);
+    DbScrubber.scrubDb(getConnectionString(), rebuild, keepFiles, username, password);
   }
 
   // visible for testing
   List<String> getAllTables() {
     long start = System.currentTimeMillis();
     List<String> tableNames = new ArrayList<>();
-    String getTablesSql =
-        "SELECT TABLE_NAME from \"INFORMATION_SCHEMA\".\"TABLES\" where TABLE_SCHEMA = '" + schemaName + "'";
+    String getTablesSql = getAllTablesSQL();
     try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
       ResultSet resultSet = statement.executeQuery(getTablesSql);
       while (resultSet.next()) {
@@ -278,49 +233,7 @@ public class DbModifier
     }
   }
 
-  public String dbVersion() {
-    String dbVersion = dbVersionFromDatabase();
-    if (dbVersion == null) {
-      dbVersion = dbVersionFromFile();
-    }
-    if (dbVersion == null) {
-      dbVersion = "-1";
-    }
-    return dbVersion;
-  }
+  protected abstract String getAllTablesSQL();
 
-  private String dbVersionFromDatabase() {
-    try (Connection connection = getConnection()) {
-      try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(
-          "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" + schemaName +
-              "' AND TABLE_NAME = 'schema_version'")) {
-        if (!result.next()) {
-          return null;
-        }
-      }
-      try (Statement statement = connection.createStatement(); ResultSet result = statement
-          .executeQuery("SELECT * FROM " + schemaName + ".schema_version")) {
-        if (result.next()) {
-          return String.valueOf(result.getInt("schema_version"));
-        }
-      }
-    }
-    catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-    return null;
-  }
-
-  private String dbVersionFromFile() {
-    File databaseVersionFile = new File(databaseFile.getAbsolutePath() + ".ver");
-    if (databaseVersionFile.exists()) {
-      try {
-        return FileUtils.fileRead(databaseVersionFile, "UTF-8").trim();
-      }
-      catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
-    return null;
-  }
+  public abstract String dbVersion();
 }

@@ -30,6 +30,7 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   vm.originalSourceControl = {};
   vm.providerTypes = SourceControlService.getProviderTypes();
   vm.providerTypesMap = SourceControlService.getProviderTypesMap();
+  vm.isUsernameRequiredOnNode = isUsernameRequiredOnNode;
   vm.isAccessTokenRequiredOnNode = isAccessTokenRequiredOnNode;
   vm.showAdvanced = undefined;
   vm.toggleShowAdvanced = toggleShowAdvanced;
@@ -37,6 +38,7 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   vm.canCollapseAdvanced = canCollapseAdvanced;
   vm.statusChecksInheritText = undefined;
   vm.enablePullRequestsInheritText = undefined;
+  vm.usernameInheritText = undefined;
   vm.baseBranchInheritText = undefined;
   vm.isPullRequestsSupported = isPullRequestsSupported;
   vm.getPullRequestsNotAvailableMessage = getPullRequestsNotAvailableMessage;
@@ -46,6 +48,7 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   vm.showSshUrlInfo = false;
   vm.isSshUrl = isSshUrl;
   vm.checkUrlFormat = checkUrlFormat;
+  vm.providersSupportingPullRequests = ['github', 'bitbucket'];
 
   /**
    * Matches any absolute HTTP(S) and SSH URL as per RFC 3986
@@ -108,6 +111,12 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
     return SourceControlService.getCompositeSourceControlRecord(vm.ownerType, vm.ownerId).then(function(result) {
       let compositeSourceControl = typeof result !== 'undefined' && result !== null ? result : {};
       vm.dirtySourceControl = compositeSourceControlToModel(compositeSourceControl);
+      vm.dirtySourceControl.usernameInherit = vm.dirtySourceControl.usernameInherit
+          && !isUsernameRequiredOnNode() && vm.dirtySourceControl.provider === 'bitbucket';
+      vm.dirtySourceControl.credentialsInherit = vm.dirtySourceControl.usernameInherit
+          && !isUsernameRequiredOnNode();
+      vm.usernameInheritText = getInheritText(vm.dirtySourceControl.usernameInheritFrom,
+          vm.dirtySourceControl.usernameInheritedValue);
       vm.dirtySourceControl.tokenInherit = vm.dirtySourceControl.tokenInherit && !isAccessTokenRequiredOnNode();
       vm.originalSourceControl = angular.copy(vm.dirtySourceControl);
       vm.shouldShowAccessTokenWarning = isAccessTokenRequiredOnNode() && vm.dirtySourceControl.token === null;
@@ -158,9 +167,7 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   function isDirty() {
     let original = modelToSourceControl(vm.originalSourceControl);
     let dirty = modelToSourceControl(vm.dirtySourceControl);
-    return (original !== dirty && !angular.equals(original, dirty))
-        || vm.dirtySourceControl.baseBranchInherit !== vm.originalSourceControl.baseBranchInherit
-        || vm.dirtySourceControl.tokenInherit !== vm.originalSourceControl.tokenInherit;
+    return (original !== dirty && !angular.equals(original, dirty));
   }
 
   function compositeSourceControlToModel(compositeSourceControl) {
@@ -170,6 +177,11 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
     model.id = compositeSourceControl.id;
     model.provider = compositeSourceControl.provider;
     model.repositoryUrl = compositeSourceControl.repositoryUrl;
+
+    model.username = compositeSourceControl.username.value;
+    model.usernameInherit = compositeSourceControl.username.value === null && !vm.isRootOrg;
+    model.usernameInheritFrom = compositeSourceControl.username.parentName;
+    model.usernameInheritedValue = compositeSourceControl.username.parentValue;
 
     model.token = compositeSourceControl.token.value;
     model.tokenInherit = compositeSourceControl.token.value === null && !vm.isRootOrg;
@@ -210,11 +222,20 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
       sourceControl.repositoryUrl = model.repositoryUrl;
     }
 
-    if (!model.tokenInherit || (vm.isRootOrg && model.token)) {
-      sourceControl.token = model.token === '' ? null : model.token;
+    sourceControl.username = null;
+    sourceControl.token = null;
+    if (model.provider === 'bitbucket') {
+      // bitbucket uses 'credentials' to gather username & password. They both move as a single block
+      if ((!model.credentialsInherit || vm.isRootOrg) && (model.token && model.username)) {
+        sourceControl.username = model.username;
+        sourceControl.token = model.token;
+      }
     }
     else {
-      sourceControl.token = null;
+      // username only supported in Bitbucket
+      if (!model.tokenInherit || (vm.isRootOrg && model.token)) {
+        sourceControl.token = model.token === '' ? null : model.token;
+      }
     }
 
     if (!model.baseBranchInherit || (vm.isRootOrg && model.baseBranch)) {
@@ -228,6 +249,10 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
 
   function isAccessTokenRequiredOnNode() {
     return vm.isApp && !vm.dirtySourceControl.tokenInheritFrom;
+  }
+
+  function isUsernameRequiredOnNode() {
+    return vm.isApp && !vm.dirtySourceControl.usernameInheritFrom && vm.dirtySourceControl.provider === 'bitbucket';
   }
 
   function toggleShowAdvanced() {
@@ -252,6 +277,7 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
 
   function canCollapseAdvanced() {
     return vm.isApp && (vm.dirtySourceControl.tokenInherit || vm.dirtySourceControl.token)
+        && ((vm.dirtySourceControl.usernameInherit || vm.dirtySourceControl.username) || vm.provider !== 'bitbucket')
         && (vm.dirtySourceControl.baseBranchInherit || vm.dirtySourceControl.baseBranch);
   }
 
@@ -274,7 +300,8 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   }
 
   function isPullRequestsSupported() {
-    return (!vm.dirtySourceControl.provider || vm.dirtySourceControl.provider === 'github') && vm.isAutomationSupported;
+    return (!vm.dirtySourceControl.provider ||
+        vm.providersSupportingPullRequests.includes(vm.dirtySourceControl.provider)) && vm.isAutomationSupported;
   }
 
   function getPullRequestsNotAvailableMessage() {

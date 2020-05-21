@@ -23,8 +23,8 @@ public class RootOrgMigrateModal
     return new IqRadio($("#empty-root-radio-button"));
   }
 
-  public static SelenideElement organizationSelect() {
-    return $("#migrate-organization");
+  public static Dropdown organizationSelect() {
+    return new Dropdown("#migrate-organization");
   }
 
   public static SelenideElement continueButton() {

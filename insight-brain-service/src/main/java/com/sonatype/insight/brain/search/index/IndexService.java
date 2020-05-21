@@ -7,17 +7,15 @@ package com.sonatype.insight.brain.search.index;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -47,9 +45,7 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.search.LuceneComponents;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
-import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
-import com.sonatype.insight.brain.search.iterator.FieldIterator;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -58,18 +54,10 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.slf4j.Logger;
@@ -86,14 +74,9 @@ public class IndexService
 {
   static final String SEARCH_INDEX_DURATION_SECONDS = "search_index_duration_seconds";
 
-  static final String SEARCH_INDEX_SIZE_BYTES = "search_index_size_bytes";
+  public static final String SEARCH_INDEX_SIZE_BYTES = "search_index_size_bytes";
 
-  private static final ImmutableSet<String> SUGGESTER_FIELDS_TO_IGNORE = ImmutableSet.of(
-          FieldIdentifier.POLICY_THREAT_LEVEL.label,
-          FieldIdentifier.VULNERABILITY_SEVERITY.label,
-          FieldIdentifier.COMPONENT_LABEL_DESCRIPTION.label, 
-          FieldIdentifier.VULNERABILITY_DESCRIPTION.label, 
-          FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION.label);
+  public static final String SEARCH_INDEX_REINDEX = "search_index_reindex";
 
   private static final Logger log = LoggerFactory.getLogger(IndexService.class);
 
@@ -102,8 +85,6 @@ public class IndexService
   private final ApplicationDAO applicationDAO;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
-
-  private final ComponentDAO componentDAO;
 
   private final TagDAO tagDAO;
 
@@ -155,7 +136,6 @@ public class IndexService
       OrganizationDAO organizationDAO,
       ApplicationDAO applicationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
-      ComponentDAO componentDAO,
       TagDAO tagDAO,
       LabelDAO labelDAO,
       OwnerDAO ownerDAO,
@@ -168,7 +148,6 @@ public class IndexService
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.componentDAO = componentDAO;
     this.tagDAO = tagDAO;
     this.labelDAO = labelDAO;
     this.ownerDAO = ownerDAO;
@@ -224,12 +203,9 @@ public class IndexService
   public void createSearchIndex() throws IOException {
     log.info("creating search index...");
     long start = System.currentTimeMillis();
-    long totalIndexSize = 0;
 
     Path indexPath = insightWork.getSearchIndexDir().toPath();
-    Path suggesterPath = insightWork.getSearchSuggesterDir().toPath();
     Files.createDirectories(indexPath);
-    Files.createDirectories(suggesterPath);
 
     IndexWriterConfig indexWriterConfig = new IndexWriterConfig(luceneComponents.newAnalyzerForSearch());
     indexWriterConfig.setOpenMode(OpenMode.CREATE);
@@ -276,94 +252,28 @@ public class IndexService
       log.info("policy indexing complete");
       indexWriter.commit();
       log.info("all indexing complete");
-      totalIndexSize += getDirectorySize(directory);
-    }
-
-    // write to search-suggester dir
-    try (IndexReader sourceIndexReader = DirectoryReader.open(FSDirectory.open(indexPath));
-        FSDirectory suggesterFile = FSDirectory.open(suggesterPath);
-        AnalyzingInfixSuggester suggester = luceneComponents.newSuggester(suggesterFile)) {
-      log.info("started building suggester");
-      Function<String, Query> queryParser = luceneComponents.newQueryParser();
-      IndexSearcher indexSearcher = new IndexSearcher(sourceIndexReader);
-      try (IndexReader indexReader = indexSearcher.getIndexReader()) {
-        long maxId = indexReader.maxDoc();
-        Set<String> searchKeys = new HashSet<>();
-        searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[0 TO 4}");
-        searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[4 TO 7}");
-        searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[7 TO 9}");
-        searchKeys.add(FieldIdentifier.VULNERABILITY_SEVERITY + ":[9 TO 10]");
-        searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":0");
-        searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":1");
-        searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":[2 TO 3]");
-        searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":[4 TO 7]");
-        searchKeys.add(FieldIdentifier.POLICY_THREAT_LEVEL + ":[8 TO 10]");
-        for (int i = 0; i < maxId; i++) {
-          Document doc = indexSearcher.doc(i);
-          searchKeys.addAll(getDocFieldValues(doc, queryParser));
-        }
-        suggester.build(new FieldIterator(searchKeys.iterator()));
-        suggester.commit();
-        log.info("completed building suggester");
-      }
-      totalIndexSize += getDirectorySize(suggesterFile);
     }
 
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.ADVANCED_SEARCH_INDEXING);
     telemetryData.put(SEARCH_INDEX_DURATION_SECONDS, (System.currentTimeMillis() - start) / 1000);
-    telemetryData.put(SEARCH_INDEX_SIZE_BYTES, totalIndexSize);
+    telemetryData.put(SEARCH_INDEX_SIZE_BYTES, getIndexSize());
+    telemetryData.put(SEARCH_INDEX_REINDEX, true);
     telemetrySender.send(telemetryData);
 
     log.info("index creation exit");
   }
 
-  private long getDirectorySize(Directory directory) throws IOException {
-    long bytes = 0;
-    for (String filename : directory.listAll()) {
-      bytes += directory.fileLength(filename);
-    }
-    return bytes;
-  }
-
-  private Set<String> getDocFieldValues(Document doc, Function<String, Query> queryParser) {
-    Set<String> docFieldValues = new HashSet<>();
-
-    for (IndexableField field : doc) {
-      String suggestion = toSuggestion(field, queryParser);
-      if (suggestion != null) {
-        docFieldValues.add(suggestion);
+  public long getIndexSize() {
+    try (Directory indexDir = FSDirectory.open(insightWork.getSearchIndexDir().toPath())) {
+      long bytes = 0;
+      for (String filename : indexDir.listAll()) {
+        bytes += indexDir.fileLength(filename);
       }
+      return bytes;
     }
-
-    return docFieldValues;
-  }
-
-  private String toSuggestion(IndexableField field, Function<String, Query> queryParser) {
-    String fieldName = field.name();
-    if (SUGGESTER_FIELDS_TO_IGNORE.contains(fieldName)) {
-      return null;
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
     }
-    String fieldValue = field.stringValue();
-    if (fieldValue == null) {
-      return null;
-    }
-    if (field.numericValue() == null && isQuotingRequired(fieldName, fieldValue, queryParser)) {
-      fieldValue = quoteValue(fieldValue);
-    }
-    return fieldName + ':' + fieldValue;
-  }
-
-  private boolean isQuotingRequired(String fieldName, String fieldValue, Function<String, Query> queryParser) {
-    try {
-      return !(queryParser.apply(fieldName + ':' + fieldValue) instanceof TermQuery);
-    }
-    catch (Exception e) {
-      return true;
-    }
-  }
-
-  private static String quoteValue(String fieldValue) {
-    return '"' + fieldValue.replace("\\", "\\\\").replace("\"", "\\\"") + '"';
   }
 
   private static void addDocsWithException(IndexWriter writer, List<Document> docs) {
@@ -475,12 +385,12 @@ public class IndexService
       }
       ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
       ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
-      ReportEntry bomReportEntry = Report.getEntry(reportFile, "bom.json");
+      ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
       if (licenseReportEntry == null || securityReportEntry == null || bomReportEntry == null) {
         return Collections.emptyList();
       }
 
-      return componentDAO.getAll(application, licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf)
+      return new ComponentDAO(application).getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf)
           .parallelStream().map(component -> buildApplicationComponentVulnerabilityDocuments(
               indexingContext,
               application,

@@ -253,7 +253,14 @@ class ContextResolver
           }
           return resolverForOrganizationId.resolveContextIds(id);
         case REPOSITORY:
-          return resolverForRepositoryId.resolveContextIds(get(parameters, Key.ID, String.class));
+          String repositoryId;
+          if (parameters.get(Key.INTERNAL_ID) != null) {
+            repositoryId = get(parameters, Key.INTERNAL_ID, String.class);
+          }
+          else {
+            repositoryId = get(parameters, Key.ID, String.class);
+          }
+          return resolverForRepositoryId.resolveContextIds(repositoryId);
         case GLOBAL:
           return GLOBAL_CONTEXT;
         case REPOSITORY_CONTAINER:

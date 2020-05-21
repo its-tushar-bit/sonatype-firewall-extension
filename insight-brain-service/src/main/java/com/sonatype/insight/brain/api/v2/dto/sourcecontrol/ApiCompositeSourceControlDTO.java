@@ -15,6 +15,8 @@ public class ApiCompositeSourceControlDTO
 
   public String provider;
 
+  public ApiCompositeValueDTO<String> username = new ApiCompositeValueDTO<>();
+
   public ApiCompositeValueDTO<String> token = new ApiCompositeValueDTO<>();
 
   public ApiCompositeValueDTO<String> baseBranch = new ApiCompositeValueDTO<>();

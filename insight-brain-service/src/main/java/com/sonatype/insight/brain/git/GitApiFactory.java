@@ -47,16 +47,16 @@ public class GitApiFactory
     String gitExecutable = sourceControlConfig.getGitExecutable();
     if (gitImplFromConfig != null) {
       if (gitImplFromConfig.equalsIgnoreCase(JGIT)) {
-        return new JGitApi(gitInfo.repositoryUrl, gitInfo.token);
+        return new JGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username);
       }
       else if (gitImplFromConfig.equalsIgnoreCase(NATIVE_GIT)) {
         if (!isNativeGitAvailable(gitExecutable)) {
           String messageSuffix = gitExecutable != null ? "at configured path: " + gitExecutable : "on the path";
           log.warn("System is configured to use native git, but the git executable was not found {}. Defaulting to " +
               "use {} implementation", messageSuffix, JGIT);
-          return new JGitApi(gitInfo.repositoryUrl, gitInfo.token);
+          return new JGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username);
         }
-        return new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token, gitExecutable);
+        return new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username, gitExecutable);
       }
       else {
         log.error("Unknown option '{}' for configuration 'sourceControl.gitImplementation'. Available options: {}, {}",
@@ -65,8 +65,8 @@ public class GitApiFactory
     }
 
     return isNativeGitAvailable(gitExecutable) ?
-        new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token, gitExecutable) :
-        new JGitApi(gitInfo.repositoryUrl, gitInfo.token);
+        new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username, gitExecutable) :
+        new JGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username);
   }
 
   /**

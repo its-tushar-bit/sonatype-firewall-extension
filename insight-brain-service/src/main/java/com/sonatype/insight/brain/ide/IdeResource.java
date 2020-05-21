@@ -121,8 +121,7 @@ public class IdeResource
     IdeMatchedComponent ideComponent = getComponent(matchedComponent);
     if (ideComponent.getWaitDelta() == null
         && (!"unknown".equals(ideComponent.getMatchState()) || !ideComponent.isSimpleMatch())) {
-      ComponentDAO componentDAO = new ComponentDAO();
-      Component component = componentDAO.getComponent(app, matchedComponent);
+      Component component = new ComponentDAO(app).getComponent(matchedComponent);
       component.setProprietary(proprietary);
       List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(applicationId, new Stage(DevelopStageType.ID),
           Collections.singletonList(component));

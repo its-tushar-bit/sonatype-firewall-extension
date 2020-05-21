@@ -20,9 +20,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportConstraintConditionDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportConstraintViolationDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -36,6 +36,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.assertj.core.groups.Tuple;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -104,7 +105,7 @@ public class ApiReportDataServiceV2Test
     app = tempEntity.newApplicationWithParent("app-id");
     scanId = "scan-id";
     reportFile = makeReportFile();
-    policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId);
+    policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId, "the-commit-hash");
   }
 
   private void assertLicenses(List<ApiLicenseDTO> licenses, String... multiLicenseIds) {
@@ -196,6 +197,7 @@ public class ApiReportDataServiceV2Test
     // metadata
     assertThat(data.reportTime).isEqualTo(policyEvaluation.getTime());
     assertThat(data.reportTitle).isEqualTo("Release Report");
+    assertThat(data.commitHash).isEqualTo(policyEvaluation.getCommitHash());
     assertThat(data.application.id).isEqualTo(app.getId());
     assertThat(data.application.publicId).isEqualTo("app-id");
     assertThat(data.application.name).isEqualTo(app.getName());
@@ -278,6 +280,18 @@ public class ApiReportDataServiceV2Test
     ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId);
     assertThat(data.components).hasSize(2);
     assertThat(data.components.get(0).violations).isEmpty();
+    assertThat(data.components.get(1).violations).isEmpty();
+  }
+
+  @Test
+  public void testGetPolicyViolationsData_NoAllViolations() throws Exception {
+    makeReport("report-1");
+    populatePolicyThreats("report-1", "policythreats-noallviolations.json");
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId);
+    assertThat(data.components).hasSize(2);
+    assertThat(data.components.get(0).violations).extracting(v -> v.policyId, v -> v.waived)
+        .containsExactlyInAnyOrder(new Tuple("644a8c0052eb42b2829d6f9fcaba7ea3", false),
+            new Tuple("6430b4c764314ac6aee439ad1c045ad1", true), new Tuple("6430b4c764314ac6aee439ad1c045ad1", true));
     assertThat(data.components.get(1).violations).isEmpty();
   }
 }

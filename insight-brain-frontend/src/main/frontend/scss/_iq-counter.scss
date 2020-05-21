@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
 .iq-counter {
   @include semi-bold();
 
@@ -8,7 +13,7 @@
   display: inline-block;
   font-size: 11px;
   height: 16px;
-  line-height: 18px; // used for vertical alignment
+  line-height: 16px; // used for vertical alignment
   margin-left: 8px;
   padding: 0 4px;
   text-align: center;

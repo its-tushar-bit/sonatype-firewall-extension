@@ -22,13 +22,12 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
+import com.sonatype.nexus.scm.api.access.control.ExclusiveAccessRequestTimeoutException;
 import com.sonatype.nexus.scm.api.model.ProjectUri;
 import com.sonatype.nexus.scm.api.model.Status;
 import com.sonatype.nexus.scm.api.model.StatusRequest;
-import com.sonatype.nexus.scm.api.model.User;
 import com.sonatype.nexus.scm.github.dto.GithubStatus;
 import com.sonatype.nexus.scm.github.dto.GithubStatusRequest;
-import com.sonatype.nexus.scm.github.dto.GithubUser;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -36,6 +35,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -86,8 +86,6 @@ public class GitApiServiceTest
   @Before
   public void setup() {
     application = tempEntity.newApplicationWithParent("app", "appId", "orgId");
-    User creator = new GithubUser();
-    creator.setUsername("foo");
     status = new GithubStatus();
   }
 
@@ -165,6 +163,28 @@ public class GitApiServiceTest
     gitApiService.maybeRespond(event);
 
     verify(mockGitApiClient, never()).createStatus(any(), any());
+  }
+
+  @Test
+  public void testMaybeRespondToApplicationEvaluationEvent_ClientThrowsException() throws IOException {
+    // given : api client setup to throw an exception when createStatus invoked
+    ProjectUri projectUri = setupPolicyEvaluation(ApplicationEvaluationEvent.ACTION_ID_NONE);
+    StatusRequest statusRequest = createStatusRequest("success");
+    doReturn(mockGitApiClient).when(mockGitClientFactory).createApiClient(any());
+    doReturn(projectUri).when(mockGitApiClient).getProjectUri();
+    doReturn(statusRequest).when(mockGitApiClient).createStatusRequest(any(), any(), any(), any());
+    doReturn("http://localhost:8070/").when(mockBaseUrl).get();
+    doReturn(sourceControl).when(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getId());
+    when(mockGitApiClient.createStatus(any(), any())).thenThrow(ExclusiveAccessRequestTimeoutException.class);
+
+    // when : application evaluation event sent we expect that the api service will handle the exception generated
+    //        internally and not put it back on the event bus
+    try {
+      gitApiService.maybeRespond(event);
+    }
+    catch (Exception e) {
+      fail("Unexpected exception from gitApiService : " + e.getMessage());
+    }
   }
 
   private void assertApplicationEvaluationOutcome(

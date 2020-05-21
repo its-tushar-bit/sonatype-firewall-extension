@@ -50,6 +50,9 @@ public class SourceControlPullRequestComment
   @Column(name = "update_time")
   private Date updateTime;
 
+  @Column(name = "content_hash")
+  private String contentHash;
+
   public SourceControlPullRequestComment() {
 
   }
@@ -61,12 +64,14 @@ public class SourceControlPullRequestComment
       String applicationId,
       int pullRequestId,
       int pullRequestCommentId,
+      String contentHash,
       String sourcePolicyEvaluationId,
       String targetPolicyEvaluationId)
   {
     this.applicationId = applicationId;
     this.pullRequestId = pullRequestId;
     this.pullRequestCommentId = pullRequestCommentId;
+    this.contentHash = contentHash; 
     this.sourcePolicyEvaluationId = sourcePolicyEvaluationId;
     this.targetPolicyEvaluationId = targetPolicyEvaluationId;
     this.createTime = new Date();
@@ -84,7 +89,7 @@ public class SourceControlPullRequestComment
       String sourcePolicyEvaluationId,
       String targetPolicyEvaluationId)
   {
-    this(applicationId, pullRequestId, pullRequestCommentId, sourcePolicyEvaluationId, targetPolicyEvaluationId);
+    this(applicationId, pullRequestId, pullRequestCommentId, null, sourcePolicyEvaluationId, targetPolicyEvaluationId);
     this.componentHash = componentHash;
   }
 
@@ -167,6 +172,15 @@ public class SourceControlPullRequestComment
 
   public SourceControlPullRequestComment setUpdateTime(final Date updateTime) {
     this.updateTime = updateTime;
+    return this;
+  }
+
+  public String getContentHash() {
+    return contentHash;
+  }
+
+  public SourceControlPullRequestComment setContentHash(final String contentHash) {
+    this.contentHash = contentHash;
     return this;
   }
 }

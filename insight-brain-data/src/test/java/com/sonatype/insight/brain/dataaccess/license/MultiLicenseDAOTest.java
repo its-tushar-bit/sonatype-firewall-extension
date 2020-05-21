@@ -64,27 +64,6 @@ public class MultiLicenseDAOTest
     assertThat(multiLicenses).isNotEmpty();
   }
 
-  @Test
-  public void testGetLicenseThreatLevelByApplicationAndMultiLicenseId() {
-    tempEntity.newLicenseThreatGroup(applicationId, "My group 1", 0, "Apache-2.0");
-    tempEntity.newLicenseThreatGroup(organization.getId(), "My group 2", 5, "GPL-2.0");
-    tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
-
-    MultiLicenseDAO dao = new MultiLicenseDAO();
-    Collection<MultiLicense> multiLicenses = dao.getAll();
-
-    for (MultiLicense multiLicense : multiLicenses) {
-      Integer threat = dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, multiLicense.getId());
-      if (threat != null) {
-        assertThat(threat).isBetween(0, 10);
-      }
-    }
-
-    assertThat(dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "Apache-2.0")).isEqualTo(0);
-    assertThat(dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "GPL-2.0")).isEqualTo(5);
-    assertThat(dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "GPL-3.0")).isEqualTo(9);
-  }
-
   @Test(expected = NotFoundException.class)
   public void testGetLicensesByMultiLicenseIdNotFound() {
     MultiLicenseDAO dao = new MultiLicenseDAO();

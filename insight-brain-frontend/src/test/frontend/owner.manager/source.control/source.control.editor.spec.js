@@ -78,6 +78,11 @@ describe('source.control.editor.spec', function() {
 
   describe('root organization', function() {
     const compositeSourceControl = {
+      username: {
+        value: null,
+        parentName: null,
+        parentValue: null
+      },
       token: {
         value: null,
         parentName: null,
@@ -105,6 +110,11 @@ describe('source.control.editor.spec', function() {
     };
 
     const sourceControlModel = {
+      usernameInherit: false,
+      credentialsInherit: false,
+      username: null,
+      usernameInheritFrom: null,
+      usernameInheritedValue: null,
       tokenInherit: false,
       token: null,
       tokenInheritFrom: null,
@@ -133,7 +143,8 @@ describe('source.control.editor.spec', function() {
       mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.getProviderTypesMap.and.returnValue({
         'github': 'GitHub',
-        'gitlab': 'GitLab'
+        'gitlab': 'GitLab',
+        'bitbucket': 'Bitbucket'
       });
       mockOrganizationStore.getById.and.callFake(function(id) {
         return id === ROOT_ORGANIZATION_ID ? getByIdDeferred.promise : null;
@@ -279,6 +290,7 @@ describe('source.control.editor.spec', function() {
 
         const expectedSourceControlForSave = {
           provider: 'github',
+          username: null,
           token: null,
           ownerId: ROOT_ORGANIZATION_ID,
           id: null,
@@ -323,6 +335,7 @@ describe('source.control.editor.spec', function() {
 
         const expectedSourceControlForSave = {
           provider: 'gitlab',
+          username: null,
           token: null,
           ownerId: ROOT_ORGANIZATION_ID,
           id: 'ID',
@@ -369,6 +382,7 @@ describe('source.control.editor.spec', function() {
       it('returns an error for unsuccessful save', function() {
         const expectedSourceControlForSave = {
           provider: 'gitlab',
+          username: null,
           token: null,
           ownerId: ROOT_ORGANIZATION_ID,
           id: 'ID',
@@ -602,6 +616,18 @@ describe('source.control.editor.spec', function() {
         expect(vm.isPullRequestsSupported()).toBeFalsy();
       });
 
+      it('should return true if licence supports automation and provider is bitbucket', function() {
+        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControl);
+
+        $scope.$digest();
+        expect(vm.isPullRequestsSupported()).toBeTruthy();
+
+        vm.dirtySourceControl.provider = 'bitbucket';
+        expect(vm.isPullRequestsSupported()).toBeTruthy();
+      });
+
       it('should return false if licence does not support automation', function() {
         getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
         loadProductFeaturesDefer.resolve({});
@@ -619,7 +645,7 @@ describe('source.control.editor.spec', function() {
     });
 
     describe('getPullRequestsNotAvailableMessage', function() {
-      it('should return message for gitlab if licence supports automation', function() {
+      it('should return message for provider if licence supports automation', function() {
         getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
@@ -629,6 +655,9 @@ describe('source.control.editor.spec', function() {
 
         vm.dirtySourceControl.provider = 'gitlab';
         expect(vm.getPullRequestsNotAvailableMessage()).toEqual('This feature is not currently supported for GitLab');
+
+        vm.dirtySourceControl.provider = 'bitbucket';
+        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('');
       });
 
       it('should return licencing message if licence does not support automation', function() {
@@ -648,7 +677,7 @@ describe('source.control.editor.spec', function() {
     });
 
     describe('isProviderSpecifiedAndPullRequestsSupported', function() {
-      it('should return true for github if licence supports automation', function() {
+      it('should return true for provider if licence supports automation', function() {
         getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
@@ -658,6 +687,9 @@ describe('source.control.editor.spec', function() {
 
         vm.dirtySourceControl.provider = 'gitlab';
         expect(vm.isProviderSpecifiedAndPullRequestsSupported()).toBeFalsy();
+
+        vm.dirtySourceControl.provider = 'bitbucket';
+        expect(vm.isProviderSpecifiedAndPullRequestsSupported()).toBeTruthy();
 
         vm.dirtySourceControl.provider = null;
         expect(vm.isProviderSpecifiedAndPullRequestsSupported()).toBeFalsy();
@@ -801,6 +833,11 @@ describe('source.control.editor.spec', function() {
 
   describe('organization', function() {
     const compositeSourceControl = {
+      username: {
+        value: null,
+        parentName: null,
+        parentValue: null
+      },
       token: {
         value: null,
         parentName: null,
@@ -828,6 +865,11 @@ describe('source.control.editor.spec', function() {
     };
 
     const sourceControlModel = {
+      usernameInherit: false,
+      credentialsInherit: false,
+      username: null,
+      usernameInheritFrom: null,
+      usernameInheritedValue: null,
       tokenInherit: true,
       token: null,
       tokenInheritFrom: null,
@@ -971,6 +1013,11 @@ describe('source.control.editor.spec', function() {
       it('creates a new entry if source control is not configured', function() {
 
         const retrievedSourceControlModel = {
+          credentialsInherit: false,
+          usernameInherit: false,
+          username: null,
+          usernameInheritFrom: null,
+          usernameInheritedValue: null,
           tokenInherit: true,
           token: null,
           tokenInheritFrom: null,
@@ -991,6 +1038,11 @@ describe('source.control.editor.spec', function() {
         };
 
         const retrievedCompositeSourceControl = {
+          username: {
+            value: null,
+            parentName: null,
+            parentValue: null
+          },
           token: {
             value: null,
             parentName: null,
@@ -1018,6 +1070,7 @@ describe('source.control.editor.spec', function() {
         };
 
         const savedSourceControl = {
+          username: null,
           token: null,
           baseBranch: null,
           ownerId: SUB_ORGANIZATION_ID,
@@ -1061,6 +1114,7 @@ describe('source.control.editor.spec', function() {
       it('updates the existing entry if source control is configured', function() {
 
         const savedSourceControl = {
+          username: null,
           token: null,
           ownerId: SUB_ORGANIZATION_ID,
           id: 'ID',
@@ -1106,6 +1160,7 @@ describe('source.control.editor.spec', function() {
 
       it('returns an error for unsuccessful save', function() {
         const savedSourceControl = {
+          username: null,
           token: null,
           ownerId: SUB_ORGANIZATION_ID,
           id: 'ID',
@@ -1182,7 +1237,7 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true when changes have been applied to tokenInherit', function() {
+      it('returns true when changes have been applied to tokenInherit only after token has changed', function() {
         getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
@@ -1195,6 +1250,43 @@ describe('source.control.editor.spec', function() {
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
         vm.dirtySourceControl.tokenInherit = false;
+
+        expect(vm.isDirty()).toBeFalsy();
+
+        vm.dirtySourceControl.token = 'new_token';
+
+        expect(vm.isDirty()).toBeTruthy();
+      });
+
+      it('returns true for bitbucket when changes have been applied to credentials and inherit is false', function() {
+        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.provider = 'bitbucket';
+        compositeSourceControlCopy.credentialsInherit = true;
+        compositeSourceControlCopy.usernameInherit = true;
+        getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+        let sourceControlModelCopy = angular.copy(sourceControlModel);
+        sourceControlModelCopy.provider = 'bitbucket';
+        sourceControlModelCopy.credentialsInherit = true;
+        sourceControlModelCopy.usernameInherit = true;
+
+        $scope.$digest();
+
+        expect(vm.ownerName).toEqual('subOrganizationName');
+        expect(vm.loadError).toBeUndefined();
+        expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
+        expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
+
+        // user selects to override credentials but only provide token (not username)
+        vm.dirtySourceControl.credentialsInherit = false;
+        vm.dirtySourceControl.token = 'new_token';
+
+        expect(vm.isDirty()).toBeFalsy();
+
+        // both username & token are provided
+        vm.dirtySourceControl.username = 'new_user';
 
         expect(vm.isDirty()).toBeTruthy();
       });
@@ -1444,6 +1536,13 @@ describe('source.control.editor.spec', function() {
 
   describe('application', function() {
     const compositeSourceControl = {
+      usernameInheritedValue: null,
+      credentialsInherit: false,
+      username: {
+        value: null,
+        parentName: null,
+        parentValue: null
+      },
       token: {
         value: null,
         parentName: null,
@@ -1471,6 +1570,11 @@ describe('source.control.editor.spec', function() {
     };
 
     const sourceControlModel = {
+      credentialsInherit: false,
+      usernameInheritedValue: null,
+      usernameInherit: false,
+      username: null,
+      usernameInheritFrom: null,
       tokenInherit: false,
       token: null,
       tokenInheritFrom: null,
@@ -1615,6 +1719,11 @@ describe('source.control.editor.spec', function() {
       it('creates a new entry if source control is not configured', function() {
 
         const retrievedSourceControlModel = {
+          usernameInheritedValue: null,
+          credentialsInherit: false,
+          usernameInherit: false,
+          username: null,
+          usernameInheritFrom: null,
           tokenInherit: false,
           token: null,
           tokenInheritFrom: null,
@@ -1635,6 +1744,11 @@ describe('source.control.editor.spec', function() {
         };
 
         const retrievedCompositeSourceControl = {
+          username: {
+            value: null,
+            parentName: null,
+            parentValue: null
+          },
           token: {
             value: null,
             parentName: null,
@@ -1662,6 +1776,7 @@ describe('source.control.editor.spec', function() {
         };
 
         const savedSourceControl = {
+          username: null,
           token: null,
           repositoryUrl: REPOSITORY_URL,
           baseBranch: null,
@@ -1707,6 +1822,7 @@ describe('source.control.editor.spec', function() {
       it('updates the existing entry if source control is configured', function() {
 
         const savedSourceControl = {
+          username: null,
           token: null,
           ownerId: APPLICATION_ID,
           id: 'ID',
@@ -1756,6 +1872,7 @@ describe('source.control.editor.spec', function() {
       it('updates the existing entry if source control is configured - ssh url', function() {
 
         const saveSourceControl = {
+          username: null,
           token: null,
           ownerId: APPLICATION_ID,
           id: 'ID',
@@ -1804,6 +1921,7 @@ describe('source.control.editor.spec', function() {
 
       it('returns an error for unsuccessful save', function() {
         const savedSourceControl = {
+          username: null,
           token: null,
           ownerId: APPLICATION_ID,
           id: 'ID',
@@ -1902,7 +2020,7 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true when changes have been applied to tokenInherit', function() {
+      it('returns true when changes have been applied to tokenInherit only after token has changed', function() {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.value = null;
         compositeSourceControlCopy.token.parentName = 'Root Organization';
@@ -1925,6 +2043,54 @@ describe('source.control.editor.spec', function() {
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
 
         vm.dirtySourceControl.tokenInherit = false;
+
+        expect(vm.isDirty()).toBeFalsy();
+
+        vm.dirtySourceControl.token = 'new_token';
+
+        expect(vm.isDirty()).toBeTruthy();
+      });
+
+      it('returns true for bitbucket when changes have been applied to credentials and inherit is false', function() {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.provider = 'bitbucket';
+        compositeSourceControlCopy.token.value = null;
+        compositeSourceControlCopy.token.parentName = 'Root Organization';
+        compositeSourceControlCopy.token.parentValue = 'TOKEN';
+        compositeSourceControlCopy.username.value = null;
+        compositeSourceControlCopy.username.parentName = 'Root Organization';
+        compositeSourceControlCopy.username.parentValue = 'username';
+
+        let sourceControlModelCopy = angular.copy(sourceControlModel);
+        sourceControlModelCopy.provider = 'bitbucket';
+        sourceControlModelCopy.credentialsInherit = true;
+        sourceControlModelCopy.token = null;
+        sourceControlModelCopy.tokenInherit = true;
+        sourceControlModelCopy.tokenInheritFrom = 'Root Organization';
+        sourceControlModelCopy.username = null;
+        sourceControlModelCopy.usernameInherit = true;
+        sourceControlModelCopy.usernameInheritedValue = 'username';
+        sourceControlModelCopy.usernameInheritFrom = 'Root Organization';
+
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+        $scope.$digest();
+
+        expect(vm.ownerName).toEqual('applicationName');
+        expect(vm.loadError).toBeUndefined();
+        expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
+        expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
+
+        // user selects to override credentials but only provide token (not username)
+        vm.dirtySourceControl.credentialsInherit = false;
+        vm.dirtySourceControl.token = 'new_token';
+
+        expect(vm.isDirty()).toBeFalsy();
+
+        // both username & token are provided
+        vm.dirtySourceControl.username = 'new_user';
 
         expect(vm.isDirty()).toBeTruthy();
       });
@@ -2113,6 +2279,59 @@ describe('source.control.editor.spec', function() {
       });
     });
 
+    describe('isUsernameRequiredOnNode', function() {
+      it('should return true if username cannot be inherited on bitbucket', function() {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.provider = 'bitbucket';
+
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+        $scope.$digest();
+        expect(vm.isUsernameRequiredOnNode()).toBeTruthy();
+      });
+
+      it('should return false if username can be inherited on bitbucket', function() {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.token.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.username.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.provider = 'bitbucket';
+
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+        $scope.$digest();
+        expect(vm.isUsernameRequiredOnNode()).toBeFalsy();
+      });
+
+      it('should return true if username is not specified on bitbucket', function() {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.provider = 'bitbucket';
+
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+        $scope.$digest();
+        expect(vm.isUsernameRequiredOnNode()).toBeTruthy();
+      });
+
+      it('should return true if username is specified, on bitbucket', function() {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.username.value = 'TOKEN';
+        compositeSourceControlCopy.provider = 'bitbucket';
+
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+        $scope.$digest();
+        expect(vm.isUsernameRequiredOnNode()).toBeTruthy();
+      });
+    });
+
     describe('showAdvanced', function() {
       it('should return true if token cannot be inherited', function() {
         getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
@@ -2145,6 +2364,64 @@ describe('source.control.editor.spec', function() {
 
         $scope.$digest();
         expect(vm.showAdvanced).toBeFalsy();
+      });
+
+      it('should return false if username and token are specified and provider is bitbucket', function() {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.token.value = 'TOKEN';
+        compositeSourceControlCopy.username.value = 'username';
+        compositeSourceControlCopy.provider = 'bitbucket';
+
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+        $scope.$digest();
+        expect(vm.showAdvanced).toBeFalsy();
+      });
+
+      it('should return true if username is specified, token is null and provider is bitbucket', function() {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.username.value = 'username';
+        compositeSourceControlCopy.token.value = null;
+        compositeSourceControlCopy.provider = 'bitbucket';
+
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+        $scope.$digest();
+        expect(vm.showAdvanced).toBeTruthy();
+      });
+
+      it('should return false if username, token are inherited and provider is bitbucket', function() {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.username.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.username.parentValue = 'parentuser';
+        compositeSourceControlCopy.provider = 'bitbucket';
+        compositeSourceControlCopy.token.parentName = 'Root Organization';
+        compositeSourceControlCopy.token.parentValue = 'TOKEN';
+
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+        $scope.$digest();
+        expect(vm.showAdvanced).toBeFalsy();
+      });
+
+      it('should return true if username (but not token) is inherited and provider is bitbucket', function() {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.username.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.username.parentValue = 'parentuser';
+        compositeSourceControlCopy.provider = 'bitbucket';
+
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+        $scope.$digest();
+        expect(vm.showAdvanced).toBeTruthy();
       });
     });
 

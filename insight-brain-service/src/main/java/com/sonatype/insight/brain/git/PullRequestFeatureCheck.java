@@ -6,7 +6,6 @@
 
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,9 +17,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.nexus.scm.SourceControlProvider;
 
-import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,19 +33,17 @@ public class PullRequestFeatureCheck
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestFeatureCheck.class);
 
-  private static final List<SourceControlProvider> SUPPORTED_PROVIDERS = ImmutableList.of(SourceControlProvider.GITHUB);
-
   private final ProductLicense productLicense;
 
-  private final PullRequestUtils pullRequestUtils;
+  private final PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
   @Inject
   public PullRequestFeatureCheck(
       final ProductLicense productLicense,
-      final PullRequestUtils pullRequestUtils)
+      final PullRequestRepositoryValidator pullRequestRepositoryValidator)
   {
     this.productLicense = productLicense;
-    this.pullRequestUtils = pullRequestUtils;
+    this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
   }
 
   /**
@@ -61,7 +56,6 @@ public class PullRequestFeatureCheck
    */
   public boolean isPullRequestFeatureSupported(
       final Application app, final GitRepositoryInfo gitRepoInfo)
-      throws IOException
   {
     if (!isLicenseValid()) {
       log.debug("Pull request feature is not supported for this license");
@@ -73,12 +67,12 @@ public class PullRequestFeatureCheck
       return false;
     }
 
-    if (!isProviderSupported(gitRepoInfo)) {
+    if (!gitRepoInfo.provider.supportsPullRequests()) {
       log.debug("Source provider '{}' is not supported", gitRepoInfo.provider);
       return false;
     }
-
-    if (!pullRequestUtils.isPullRequestAllowed(gitRepoInfo)) {
+    
+    if (!pullRequestRepositoryValidator.isRepoValidForPRs(gitRepoInfo)) {
       log.debug("Pull requests are not supported for application '{}' and repository '{}'",
           app.getId(), gitRepoInfo.repositoryUrl);
       return false;
@@ -89,10 +83,6 @@ public class PullRequestFeatureCheck
 
   private boolean isLicenseValid() {
     return productLicense.hasFeature(LicensedFeature.AUTOMATION);
-  }
-
-  private boolean isProviderSupported(final GitRepositoryInfo gitRepoInfo) {
-    return gitRepoInfo != null && SUPPORTED_PROVIDERS.contains(gitRepoInfo.provider);
   }
 
   private boolean isApplicationConfiguredForPR(final GitRepositoryInfo gitRepositoryInfo) {
@@ -106,14 +96,18 @@ public class PullRequestFeatureCheck
 
     // check for missing fields
     List<String> missingFields = new ArrayList<>();
-    if (isBlank(gitRepositoryInfo.token)) {
-      missingFields.add("Token");
+    if (gitRepositoryInfo.provider == null) {
+      missingFields.add("Provider");
     }
     if (isBlank(gitRepositoryInfo.repositoryUrl)) {
       missingFields.add("Repository URL");
     }
-    if (gitRepositoryInfo.provider == null) {
-      missingFields.add("Provider");
+    if (gitRepositoryInfo.provider != null && gitRepositoryInfo.provider.requiresUsername() &&
+        isBlank(gitRepositoryInfo.username)) {
+      missingFields.add("Username");
+    }
+    if (isBlank(gitRepositoryInfo.token)) {
+      missingFields.add("Token");
     }
     if (!missingFields.isEmpty()) {
       log.debug("Application has not been fully configured for pull requests. Missing: [{}]",

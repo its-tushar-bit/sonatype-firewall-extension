@@ -228,6 +228,7 @@ pipeline {
     stage ('Compare with previous release') {
       steps {
         dir('nexus-iq-tools/testsuite') {
+          // TODO: the S3 sorted order can break in the future when it reaches more digits
           sh '''
               aws sts assume-role --role-arn arn:aws:iam::960315589060:role/ZionJenkins \
                   --role-session-name perf_session --external-id perf_id > temp_role.json
@@ -235,9 +236,15 @@ pipeline {
               export AWS_ACCESS_KEY_ID=`jq -r .Credentials.AccessKeyId temp_role.json`
               export AWS_SECRET_ACCESS_KEY=`jq -r .Credentials.SecretAccessKey temp_role.json`
               export AWS_SESSION_TOKEN=`jq -r .Credentials.SessionToken temp_role.json`
+              ALL_RELEASE_TAGS=$(aws s3 ls s3://iq-perf-results/releases/ | grep release | sed 's/.*\\(release.*\\)\\//\\1/')
+              for line in $ALL_RELEASE_TAGS; do
+                if [ "$line" = "$RELEASE_TAG" ]; then
+                  break
+                else
+                  PREVIOUS_RELEASE_TAG="$line"
+                fi
+              done
               set -x
-              CURRENT_COMMIT_HASH=$(git rev-parse HEAD)
-              PREVIOUS_RELEASE_TAG=$(git describe --tags --abbrev=0 --match 'release*' $CURRENT_COMMIT_HASH)
               aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$PREVIOUS_RELEASE_TAG-small.out" "$PREVIOUS_RELEASE_TAG-small.out"
               aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$PREVIOUS_RELEASE_TAG-medium.out" "$PREVIOUS_RELEASE_TAG-medium.out"
               aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$PREVIOUS_RELEASE_TAG-large.out" "$PREVIOUS_RELEASE_TAG-large.out"

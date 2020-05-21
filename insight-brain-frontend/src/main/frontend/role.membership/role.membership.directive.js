@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './role.membership.view.html';
+
 export default function RoleMembershipDirective() {
   return {
     scope: {
@@ -15,7 +17,7 @@ export default function RoleMembershipDirective() {
       isDirty: '='
     },
     restrict: 'E',
-    templateUrl: 'role.membership/role.membership.view.html',
+    template,
     controller: 'role.membership.controller',
     controllerAs: 'vm',
     transclude: true,

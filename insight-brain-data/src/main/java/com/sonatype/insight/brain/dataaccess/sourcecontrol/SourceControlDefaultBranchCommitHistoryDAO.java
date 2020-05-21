@@ -15,6 +15,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class SourceControlDefaultBranchCommitHistoryDAO
     extends AbstractOperationalSqlDAO<SourceControlDefaultBranchCommitHistory>
 {
+  private static final int DELETE_BATCH_SIZE = 100;
+
   private static final String SELECT_ENTITY = "SELECT entity FROM SourceControlDefaultBranchCommitHistory entity ";
 
   @Override
@@ -128,5 +130,21 @@ public class SourceControlDefaultBranchCommitHistoryDAO
   {
     defaultBranchCommitHistory.setUpdateTime(new Date());
     super.update(tx, defaultBranchCommitHistory);
+  }
+
+  public int deleteAllBeforeDate(final Date cutoffDate) {
+    String sQuery = "SELECT entity.id FROM SourceControlDefaultBranchCommitHistory entity" +
+        " WHERE entity.updateTime < ?1 OR (entity.updateTime is null AND entity.createTime < ?2)";
+    int deletedRows = 0;
+    while (true) {
+      List<String> ids =
+          new Query<String>(sQuery, cutoffDate, cutoffDate).setMaxResults(DELETE_BATCH_SIZE).getList();
+      if (ids.isEmpty()) {
+        return deletedRows;
+      }
+      deletedRows +=
+          createQuery("DELETE FROM SourceControlDefaultBranchCommitHistory entity WHERE entity.id IN (?1)", ids)
+              .executeUpdate();
+    }
   }
 }

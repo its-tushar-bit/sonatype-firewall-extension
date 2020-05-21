@@ -150,7 +150,7 @@ public class ComponentLabelResourceTest
     // we post a rest request with the public id but verify using app.getId()
     setComponentLabelAndVerify(OwnerType.APPLICATION, app.getPublicId(), appLabel, app.getId());
     List<ComponentLabel> componentLabels = componentLabelDAO
-        .getByOwnerIdAndHash(app.getOrganizationId(), componentHash);
+        .getByOwnerIdAndHashWithHierarchy(app.getOrganizationId(), componentHash);
     assertThat(componentLabels).isEmpty();
   }
 
@@ -215,7 +215,8 @@ public class ComponentLabelResourceTest
     HttpResponse response = restRequest(ownerType, requestOwnerId, componentHash).body(labelToAdd).post();
     assertResponseStatus(204, response);
 
-    List<ComponentLabel> componentLabels = componentLabelDAO.getByOwnerIdAndHash(ownerIdToVerify, componentHash);
+    List<ComponentLabel> componentLabels =
+        componentLabelDAO.getByOwnerIdAndHashWithHierarchy(ownerIdToVerify, componentHash);
     assertThat(componentLabels).isNotNull();
     assertThat(componentLabels).hasSize(1);
     assertThat(componentLabels.get(0).getLabelId()).isEqualTo(labelToAdd.getId());

@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -33,6 +34,8 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER;
+import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
@@ -50,6 +53,8 @@ public class ApiPolicyWaiverServiceTest
   private Application app;
 
   private Organization org;
+
+  private final PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
 
   @Mock
   private TelemetrySender telemetrySenderMock;
@@ -103,6 +108,74 @@ public class ApiPolicyWaiverServiceTest
         apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.REPOSITORY, "waiver comment")
     ).isInstanceOf(IllegalStateException.class)
         .hasMessage("Unknown owner type: repository");
+  }
+
+  @Test
+  public void testDeletePolicyWaiver_Application() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
+
+    apiPolicyWaiverService.deletePolicyWaiver(OwnerType.APPLICATION, application.getId(), policyWaiver.getId());
+
+    assertThat(policyWaiverDAO.getById(policyWaiver.getId())).isNull();
+  }
+
+  @Test
+  public void testDeletePolicyWaiver_Application_UsePublicId() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
+
+    apiPolicyWaiverService.deletePolicyWaiver(OwnerType.APPLICATION, application.getPublicId(), policyWaiver.getId());
+
+    assertThat(policyWaiverDAO.getById(policyWaiver.getId())).isNull();
+  }
+
+  @Test
+  public void testDeletePolicyWaiver_Organization() {
+    Organization organization = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(organization);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), organization.getId());
+
+    apiPolicyWaiverService.deletePolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), policyWaiver.getId());
+
+    assertThat(policyWaiverDAO.getById(policyWaiver.getId())).isNull();
+  }
+
+  @Test
+  public void testDeletePolicyWaiver_Repository() {
+    Repository repository = tempEntity.newRepository();
+    Policy policy = tempEntity.newPolicy();
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), repository.getId());
+
+    apiPolicyWaiverService.deletePolicyWaiver(OwnerType.REPOSITORY, repository.getId(), policyWaiver.getId());
+
+    assertThat(policyWaiverDAO.getById(policyWaiver.getId())).isNull();
+  }
+
+  @Test
+  public void testDeletePolicyWaiver_RepositoryContainer() {
+    Policy policy = tempEntity.newPolicy();
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), REPOSITORY_CONTAINER_ID);
+
+    apiPolicyWaiverService.deletePolicyWaiver(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, policyWaiver.getId());
+
+    assertThat(policyWaiverDAO.getById(policyWaiver.getId())).isNull();
+  }
+
+  @Test
+  public void testDeletePolicyWaiver_OwnerIdMismatch() {
+    Application application = tempEntity.newApplicationWithParent();
+    Organization organization = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
+
+    assertThatThrownBy(() -> apiPolicyWaiverService
+        .deletePolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), policyWaiver.getId()))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessage("Cannot find a policy waiver with ID " + policyWaiver.getId() + " for " + OwnerType.ORGANIZATION +
+            " with ID " + organization.getId());
   }
 
   private void assertPolicyWaiver(String ownerId, String comment) {

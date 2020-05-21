@@ -1,0 +1,93 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "debian-9",
+      "coordinates" : {
+        "name" : "glibc",
+        "version" : "3.5.5"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "glibc:3.5.5" ],
+    "pathnames" : [ "dependency:/clair-scanner-output.json/glibc:3.5.5" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d7ae928e7ff92b8d27ce",
+    "relativePopularity" : null,
+    "createTime" : 1587400833527,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Clair",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "packageUrl" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "name",
+        "value" : "glibc"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "3.5.5"
+      } ]
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "debian-9",
+      "coordinates" : {
+        "name" : "glibc",
+        "version" : "2.24-11+deb9u3"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "glibc:2.24-11+deb9u3" ],
+    "pathnames" : [ "dependency:/clair-scanner-output.json/glibc:2.24-11+deb9u3" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "37b3ce40791bc2dd8068",
+    "relativePopularity" : null,
+    "createTime" : 1587400833527,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Clair",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "packageUrl" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "name",
+        "value" : "glibc"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "2.24-11+deb9u3"
+      } ]
+    }
+  } ]
+}

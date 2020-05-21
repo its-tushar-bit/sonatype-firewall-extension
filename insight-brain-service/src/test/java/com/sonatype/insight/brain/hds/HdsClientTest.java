@@ -29,6 +29,7 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.NetworkingHelper;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -393,6 +394,7 @@ public class HdsClientTest
 
   @Test
   public void testTransformUnknownHost() throws Exception {
+    NetworkingHelper.assumeDnsResolutionIsNormal();
     config.setHdsUrl("http://an.unresolvable.hostname/");
     initClient();
     assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {

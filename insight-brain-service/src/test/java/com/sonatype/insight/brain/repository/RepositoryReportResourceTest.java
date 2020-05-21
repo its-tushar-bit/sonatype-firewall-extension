@@ -117,7 +117,7 @@ public class RepositoryReportResourceTest
   public void testGetPolicyThreats() throws Exception {
     Repository repository = tempEntity.newRepository();
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "dir/path");
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, repositoryComponent.getPathname(), false, true,
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, repositoryComponent.getPathname(), false,
         "policyId1", "policyName1", repositoryComponent.getComponentIdentifier());
 
     HttpResponse response = restPolicyThreatRequest(repository.getId(), repositoryComponent.getPathname()).get();

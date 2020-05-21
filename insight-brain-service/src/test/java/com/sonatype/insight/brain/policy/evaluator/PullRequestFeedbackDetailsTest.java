@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -33,7 +35,10 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.nexus.iq.location.dto.DiffPosition;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -65,6 +70,14 @@ public class PullRequestFeedbackDetailsTest
   private PolicyEvaluation defaultBranchPolicyEvaluation;
 
   private PolicyViolationDiff<PolicyViolation> diff;
+  
+  private Map<ComponentIdentifier, String> remediationVersionMap;
+
+  private List<PullRequestLineCommentDTO> pullRequestLineComments;
+  
+  private GitRepositoryInfo gitRepositoryInfo;
+  
+  private int pullRequestNumber = 10;
 
   private ReportEntry bomEntry;
 
@@ -102,7 +115,8 @@ public class PullRequestFeedbackDetailsTest
     //when
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            app, lookup(BaseUrl.class).getConfigured());
+            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app, 
+            lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_Added.md");
@@ -119,7 +133,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            app,
+            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
@@ -138,7 +152,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            app,
+            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
@@ -157,7 +171,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            app,
+            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
@@ -182,12 +196,13 @@ public class PullRequestFeedbackDetailsTest
     //when
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            app, lookup(BaseUrl.class).getConfigured());
+            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app, 
+            lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents has singular violation in heading
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
-    assertThat(contents.get()).startsWith("###  \uD83E\uDD14 Nexus IQ found a policy violation");
+    assertThat(contents.get()).startsWith("### :thinking: Nexus IQ found a policy violation");
   }
 
   @Test
@@ -205,14 +220,14 @@ public class PullRequestFeedbackDetailsTest
     //when
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            app, lookup(BaseUrl.class).getConfigured());
+            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app, 
+            lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents has singular violation in heading
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
     assertThat(contents.get())
-        .contains("#### \uD83D\uDE03\uD83C\uDFC6 Nice work! Nexus IQ determined that you fixed an outstanding" +
-            " policy violation");
+        .contains("### :sunglasses: Nexus IQ determined that you fixed an outstanding policy violation:");
   }
 
   @Test
@@ -223,7 +238,8 @@ public class PullRequestFeedbackDetailsTest
     //when
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            app, lookup(BaseUrl.class).getConfigured());
+            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app, 
+            lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents is not available
     final Optional<String> contents = details.renderTemplateAndGetContents();
@@ -237,7 +253,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestFeedbackDetails(null, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff, app,
+        new PullRequestFeedbackDetails(null, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured()));
   }
 
@@ -249,7 +266,8 @@ public class PullRequestFeedbackDetailsTest
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, null,
-            app, lookup(BaseUrl.class).getConfigured()));
+            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app, 
+            lookup(BaseUrl.class).getConfigured()));
   }
 
   @Test
@@ -260,7 +278,8 @@ public class PullRequestFeedbackDetailsTest
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            null, lookup(BaseUrl.class).getConfigured()));
+            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, null, 
+            lookup(BaseUrl.class).getConfigured()));
   }
 
   @Test
@@ -272,7 +291,8 @@ public class PullRequestFeedbackDetailsTest
     //when
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            app, lookup(BaseUrl.class).getConfigured()).renderTemplateAndGetContents());
+            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app, 
+            lookup(BaseUrl.class).getConfigured()).renderTemplateAndGetContents());
   }
 
   @Test
@@ -282,7 +302,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestFeedbackDetails(bomEntry, null, defaultBranchPolicyEvaluation, diff, app,
+        new PullRequestFeedbackDetails(bomEntry, null, defaultBranchPolicyEvaluation, diff, remediationVersionMap,
+            pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured()));
   }
 
@@ -293,15 +314,16 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, null, diff, app,
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, null, diff, remediationVersionMap,
+            pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured()));
   }
 
   @Test
   public void testGetComponentFeedbackList_noComponents() {
     // when
-    final List<Map<String, Object>> result = PullRequestFeedbackDetails.getComponentFeedbackList(new HashMap<>(),
-        config.getBaseUrl());
+    final List<Map<String, Object>> result = PullRequestFeedbackDetails.getNewComponentFeedbackList(new HashMap<>(),
+        remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, config.getBaseUrl());
 
     // then
     assertThat(result).isEmpty();
@@ -315,8 +337,8 @@ public class PullRequestFeedbackDetailsTest
     componentMap.put("NAME", Collections.singletonList(diff.getAppeared().get(0)));
     componentMap.put("NAME_EMPTY", Collections.emptyList());
     // when
-    final List<Map<String, Object>> result = PullRequestFeedbackDetails.getComponentFeedbackList(componentMap,
-        config.getBaseUrl());
+    final List<Map<String, Object>> result = PullRequestFeedbackDetails.getNewComponentFeedbackList(componentMap,
+        remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, config.getBaseUrl());
 
     // then
     assertThat(result).hasSize(2);
@@ -448,6 +470,22 @@ public class PullRequestFeedbackDetailsTest
     //setup diff
     diff = policyEvaluationDiffService.createPolicyViolationDiff(defaultBranchPolicyEvaluation,
         featureBranchPolicyEvaluation).get();
+    
+    //setup remediationVersionMap
+    remediationVersionMap = new HashMap<>();
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("com.h2database", "h2", "1.4.190", "", "jar");
+    remediationVersionMap.put(ci, "1.4.200");
+
+    //setup pullRequestLineComments
+    pullRequestLineComments = new ArrayList<>();
+    PullRequestLineCommentDTO lineCommentDTO = new PullRequestLineCommentDTO(ci, new DiffPosition("path", 1, 1, 1));
+    lineCommentDTO.setScmId(12345);
+    pullRequestLineComments.add(lineCommentDTO);
+
+    //setup gitRepositoryInfo
+    gitRepositoryInfo =
+        new GitRepositoryInfo("https://github.com/sonatype/enhanced-commit-information", "user", "token",
+            SourceControlProvider.GITHUB, "master", false, true);
 
     //setup bom report entry
     bomEntry = reportService.getBomForPolicyEvaluation(featureBranchPolicyEvaluation);

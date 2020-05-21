@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
-import com.sonatype.nexus.scm.api.GitGraphQlApiClient;
+import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import com.sonatype.nexus.scm.api.model.ProjectUri;
 import com.sonatype.nexus.scm.api.model.PullRequest;
 import com.sonatype.nexus.scm.common.SimpleProjectUri;
@@ -49,7 +49,7 @@ public class PullRequestPollingServiceTest
   private AsyncEventBus mockAsyncEventBus;
 
   @Mock
-  private GitGraphQlApiClient mockGitGraphQlApiClient;
+  private PullRequestInfoProvider mockClient;
 
   public PullRequestPollingServiceTest() {
     super(PullRequestPollingService.class);
@@ -91,7 +91,7 @@ public class PullRequestPollingServiceTest
     // then: event emitted
     verify(mockAsyncEventBus, never()).post(any());
     assertThatLogMessagesEqual(
-        debug("Fetched 1 pull request(s) for org 'org' since " + pullRequestCreateDate),
+        debug("Fetched 1 pull request(s) for org 'org' and repo 'none specified' since " + pullRequestCreateDate),
         debug("Policy evaluation not yet available for 'org/repo' pull request '10'"),
         debug("Pull request polling time updated for 'org/repo'")
     );
@@ -113,7 +113,7 @@ public class PullRequestPollingServiceTest
     // then: event emitted
     verify(mockAsyncEventBus, never()).post(any());
     assertThatLogMessagesEqual(
-        debug("Fetched 1 pull request(s) for org 'org' since " + pullRequestCreateDate),
+        debug("Fetched 1 pull request(s) for org 'org' and repo 'none specified' since " + pullRequestCreateDate),
         debug("application 'app1' pull request '10' is for the base branch, skipping commenting for this PR"),
         debug("Pull request polling time updated for 'org/repo'")
     );
@@ -135,7 +135,31 @@ public class PullRequestPollingServiceTest
     // then: event emitted
     verify(mockAsyncEventBus, times(1)).post(any());
     assertThatLogMessagesEqual(
-        debug("Fetched 1 pull request(s) for org 'org' since " + pullRequestCreateDate),
+        debug("Fetched 1 pull request(s) for org 'org' and repo 'none specified' since " + pullRequestCreateDate),
+        info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
+        debug("Pull request polling time updated for 'org/repo'")
+    );
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_shouldPostEventNotPrivateButInternal() throws IOException {
+    // given: necessary ingredients to emit a discovered pull request event
+    Date pullRequestCreateDate = new Date(System.currentTimeMillis() - 1000);
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("app1", "org/repo", SourceControlProvider.GITHUB)
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch")
+        .withSourcePolicyEvaluation("app1", "spe1")
+        .withGitRepositoryPrivate(false)
+        .withGitRepositoryInternal(true)
+        .build();
+
+    // when: fetch and send
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: event emitted
+    verify(mockAsyncEventBus, times(1)).post(any());
+    assertThatLogMessagesEqual(
+        debug("Fetched 1 pull request(s) for org 'org' and repo 'none specified' since " + pullRequestCreateDate),
         info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
         debug("Pull request polling time updated for 'org/repo'")
     );
@@ -175,8 +199,8 @@ public class PullRequestPollingServiceTest
     // then: no events emitted
     verify(mockAsyncEventBus, never()).post(any());
     assertThatLogMessagesEqual(
-        debug("Fetched 1 pull request(s) for org 'org' since " + pullRequestCreateDate),
-        debug("Repository is not private: https://domain.com/org/repo"),
+        debug("Fetched 1 pull request(s) for org 'org' and repo 'none specified' since " + pullRequestCreateDate),
+        debug("Repository is not valid for pull requests, check that it is private: https://domain.com/org/repo"),
         debug("Pull request polling time updated for 'org/repo'")
     );
   }
@@ -192,7 +216,7 @@ public class PullRequestPollingServiceTest
         .withSourcePolicyEvaluation("app1", "spe1")
         .build();
     doThrow(new IOException("scm error"))
-        .when(mockGitGraphQlApiClient)
+        .when(mockClient)
         .getPullRequestsSince(any(String.class), any(OffsetDateTime.class),
             eq(PullRequestPollingService.PULL_REQUESTS_PER_MONITOR_CYCLE));
 
@@ -203,9 +227,9 @@ public class PullRequestPollingServiceTest
     verify(mockAsyncEventBus, never()).post(any());
     assertThatLogMessagesEqual(
         error(
-            "Error fetching pull requests for org 'org', will retry in 5 minutes.  Please check that the configured" +
-            " project url 'https://domain.com/org/repo' is correct, that it is for 'github'" +
-            " and that the API token is valid")
+            "Error fetching pull requests for org 'org' and repo 'none specified'; will retry in 5 minutes.  Please " +
+                "check that the configured project url https://domain.com/org/repo is correct, that it is for " +
+                "'github' and that the API token is valid")
     );
   }
 
@@ -230,7 +254,7 @@ public class PullRequestPollingServiceTest
     private GitApiClient mockGitApiClient;
 
     @Mock
-    private PullRequestUtils mockPullRequestUtils;
+    private PullRequestRepositoryValidator mockPullRequestRepositoryValidator;
 
     private SourceControl sourceControl;
 
@@ -246,13 +270,15 @@ public class PullRequestPollingServiceTest
 
     private boolean isGitRepositoryPrivate = true;
 
+    private boolean isGitRepositoryInternal = false;
+
     private Class<? extends Exception> thrownException;
 
     PullRequestPollingService build() throws IOException {
       MockitoAnnotations.initMocks(this);
 
       doReturn(mockGitApiClient).when(mockGitClientFactory).createApiClient(gitRepositoryInfo);
-      doReturn(mockGitGraphQlApiClient).when(mockGitClientFactory).createGraphqlApiClient(gitRepositoryInfo);
+      doReturn(mockClient).when(mockGitClientFactory).createPullRequestInfoClient(gitRepositoryInfo);
 
       doReturn(sourceControl, (SourceControl) null).when(mockSourceControlDAO).getNextRepositoryToPoll();
       if (null != sourceControl) {
@@ -274,20 +300,21 @@ public class PullRequestPollingServiceTest
         doReturn(projectUri).when(mockGitApiClient).getProjectUri();
       }
 
-      doReturn(pullRequests).when(mockGitGraphQlApiClient)
+      doReturn(pullRequests).when(mockClient)
           .getPullRequestsSince(any(), any(OffsetDateTime.class), anyInt());
 
       if (thrownException != null) {
-        doThrow(UnsupportedOperationException.class).when(mockPullRequestUtils)
-            .isEffectivelyPrivate(eq(gitRepositoryInfo), eq(isGitRepositoryPrivate));
+        doThrow(UnsupportedOperationException.class).when(mockPullRequestRepositoryValidator)
+            .isInternalRepository(eq(gitRepositoryInfo));
       }
       else {
-        doReturn(isGitRepositoryPrivate).when(mockPullRequestUtils)
-            .isEffectivelyPrivate(eq(gitRepositoryInfo), eq(isGitRepositoryPrivate));
+        doReturn(isGitRepositoryInternal).when(mockPullRequestRepositoryValidator)
+            .isInternalRepository(eq(gitRepositoryInfo));
       }
+      pullRequests.forEach(pullRequest -> pullRequest.setRepositoryPrivate(isGitRepositoryPrivate));
 
       return new PullRequestPollingService(mockSourceControlDAO, mockPolicyEvaluationDAO, mockGitCommitHistoryService,
-          mockSourceControlUtils, mockGitClientFactory, mockAsyncEventBus, mockPullRequestUtils);
+          mockSourceControlUtils, mockGitClientFactory, mockAsyncEventBus, mockPullRequestRepositoryValidator);
     }
 
     private List<SourceControl> buildSourceControlList() {
@@ -304,9 +331,10 @@ public class PullRequestPollingServiceTest
         SourceControlProvider provider)
     {
       String url = "https://domain.com/" + orgAndRepoName;
-      sourceControl = new SourceControl(applicationId, url, "token", provider, true, true, "master");
+      String username = provider.requiresUsername() ? "username" : null;
+      sourceControl = new SourceControl(applicationId, url, username, "token", provider, true, true, "master");
       sourceControl.setPullRequestPollTime(new Date());
-      gitRepositoryInfo = new GitRepositoryInfo(url, "token", provider, "master", true, true);
+      gitRepositoryInfo = new GitRepositoryInfo(url, username, "token", provider, "master", true, true);
       this.orgAndRepoName = orgAndRepoName;
       return this;
     }
@@ -339,6 +367,11 @@ public class PullRequestPollingServiceTest
 
     TestablePullRequestPollingServiceBuilder withGitRepositoryPrivate(boolean isGitRepositoryPrivate) {
       this.isGitRepositoryPrivate = isGitRepositoryPrivate;
+      return this;
+    }
+
+    TestablePullRequestPollingServiceBuilder withGitRepositoryInternal(boolean isGitRepositoryInternal) {
+      this.isGitRepositoryInternal = isGitRepositoryInternal;
       return this;
     }
   }

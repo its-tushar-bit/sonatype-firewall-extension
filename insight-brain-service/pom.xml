@@ -10,7 +10,7 @@
   <parent>
     <groupId>com.sonatype.insight.brain</groupId>
     <artifactId>insight-brain</artifactId>
-    <version>1.89.0-SNAPSHOT</version>
+    <version>1.92.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>insight-brain-service</artifactId>
@@ -312,6 +312,32 @@
       <groupId>org.apache.lucene</groupId>
       <artifactId>lucene-suggest</artifactId>
       <version>${lucene.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.quartz-scheduler</groupId>
+      <artifactId>quartz</artifactId>
+      <version>2.3.2</version>
+      <exclusions>
+        <!-- connection pooling is already provided elsewhere -->
+        <exclusion>
+          <groupId>com.mchange</groupId>
+          <artifactId>c3p0</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.mchange</groupId>
+          <artifactId>mchange-commons-java</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.zaxxer</groupId>
+          <artifactId>HikariCP-java7</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -707,6 +733,7 @@
                 <include>**/Zipper*</include>
                 <include>**/EmbeddedLdapServer*</include>
                 <include>**/TestLdapServer*</include>
+                <include>**/NetworkingHelper*</include>
               </includes>
             </configuration>
           </execution>

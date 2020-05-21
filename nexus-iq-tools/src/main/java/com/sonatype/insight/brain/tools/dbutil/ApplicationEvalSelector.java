@@ -25,11 +25,12 @@ public class ApplicationEvalSelector
   protected static final String SCAN_REPLACEMENT_KEY = "{scanId}";
 
   protected String buildMostViolationsAppQuery(DbUtilParameters params, boolean limit) {
+    String stageClause = getStageClause("pol.stage_type_id", params);
     String queryApps = "" //
         + "SELECT app.application_id," //
         + " (SELECT count(*)" //
         + " FROM insight_brain_ods.policy_violation pol WHERE pol.application_id = app.application_id" //
-        + " AND " + getStageClause("pol.stage_type_id", params) //
+        + ( stageClause != null ? " AND " + stageClause : " " ) //
         + " ) AS total_violations" //
         + " FROM insight_brain_ods.application app" //
         + " ORDER BY total_violations DESC, application_id ASC" //
@@ -38,12 +39,13 @@ public class ApplicationEvalSelector
   }
 
   protected String buildEvalDetailsQuery(DbUtilParameters params, boolean limit) {
+    String stageClause = getStageClause("eval.stage_type_id", params);
     String appEvalDetails = "" //
         + "SELECT app.public_id,"
         + " eval.application_id, eval.policy_evaluation_id, eval.scan_id, eval.stage_type_id, eval.time" //
         + " FROM insight_brain_ods.policy_evaluation eval, insight_brain_ods.application app" //
         + " WHERE eval.application_id = app.application_id" //
-        + " AND " + getStageClause("eval.stage_type_id", params) //
+        + ( stageClause != null ? " AND " + stageClause : " " ) //
         + " AND app.application_id = '" + APPLICATION_REPLACEMENT_KEY + "'" //
         + " ORDER BY eval.time DESC" //
         + (limit ? " LIMIT " + params.getMaxEvaluations() : "");

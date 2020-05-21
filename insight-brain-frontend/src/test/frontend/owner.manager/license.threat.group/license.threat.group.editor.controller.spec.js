@@ -48,16 +48,25 @@ describe('license.threat.group.editor.controller.spec.js', function() {
         return deleteServiceResourceDefer.promise;
       }
     };
+
+    prepareBackendServices();
   }));
+
+  const prepareBackendServices = () => {
+    $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
+    $httpBackend.whenGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
+        .respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
+  };
+
+  const flushBackendServices = () => {
+    $httpBackend.flush();
+    $timeout.flush();
+  };
 
   it('Creates new on load', inject(function($controller) {
     vm = $controller('license.threat.group.editor.controller', {$scope: scope});
 
-    $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
-    $httpBackend.whenGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
-        .respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
-    $httpBackend.flush();
-    $timeout.flush();
+    flushBackendServices();
 
     expect(vm.dirtyLTG).toBeDefined();
     expect(vm.dirtyLTG.$new).toBe(true);
@@ -66,11 +75,7 @@ describe('license.threat.group.editor.controller.spec.js', function() {
   it('Captures siblings', inject(function($controller) {
     vm = $controller('license.threat.group.editor.controller', {$scope: scope});
 
-    $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
-    $httpBackend.whenGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
-        .respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
-    $timeout.flush();
-    $httpBackend.flush();
+    flushBackendServices();
 
     expect(vm.siblings.length).toBe(1);
     expect(vm.siblings).toContain(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl()
@@ -81,11 +86,7 @@ describe('license.threat.group.editor.controller.spec.js', function() {
     vm = $controller('license.threat.group.editor.controller', {$scope: scope});
     spyOn(vm, 'isLTGDirty').and.returnValue(true);
 
-    $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
-    $httpBackend.whenGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
-        .respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
-    $timeout.flush();
-    $httpBackend.flush();
+    flushBackendServices();
 
     mockLTG.$new = true;
     mockLTG.licenses = [];
@@ -117,13 +118,9 @@ describe('license.threat.group.editor.controller.spec.js', function() {
     mockLTG.id = '456';
     mockLTG.licenses = [];
 
-    $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
-    $httpBackend.whenGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
-        .respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
     mockLicenseGroupStore.resolveGet([mockLTG, {id: '123'}]);
 
-    $timeout.flush();
-    $httpBackend.flush();
+    flushBackendServices();
 
     expect(vm.dirtyLTG.$clone).toHaveBeenCalled();
     expect(vm.dirtyLTG.id).toBe('456');
@@ -133,13 +130,8 @@ describe('license.threat.group.editor.controller.spec.js', function() {
     vm = $controller('license.threat.group.editor.controller',
         {$scope: scope, $stateParams: {licenseThreatGroupId: '456'}});
 
-    $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
-    $httpBackend.whenGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
-        .respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
     mockLicenseGroupStore.resolveGet([{id: '123'}, {id: '124'}]);
-
-    $timeout.flush();
-    $httpBackend.flush();
+    flushBackendServices();
 
     expect(vm.dirtyLTG).toBeUndefined();
     expect(vm.loadError).toBe('Unable to locate License Threat Group.');
@@ -148,12 +140,7 @@ describe('license.threat.group.editor.controller.spec.js', function() {
   it('Unsuccessful save sets error message', inject(function($controller) {
     vm = $controller('license.threat.group.editor.controller', {$scope: scope});
 
-    $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
-    $httpBackend.whenGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
-        .respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
-
-    $timeout.flush();
-    $httpBackend.flush();
+    flushBackendServices();
 
     mockLTG.licenses = [];
     mockLTG.isDirty = function() {
@@ -182,15 +169,10 @@ describe('license.threat.group.editor.controller.spec.js', function() {
       DeleteModalService: mockDeleteService
     });
 
-    $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
-    $httpBackend.whenGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
-        .respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
-
     mockLTG.id = '1';
     mockLTG.licenses = [];
     mockLicenseGroupStore.resolveGet([mockLTG]);
-    $timeout.flush();
-    $httpBackend.flush();
+    flushBackendServices();
 
     vm.deleteLTG();
     deleteServiceResourceDefer.resolve();
@@ -211,15 +193,10 @@ describe('license.threat.group.editor.controller.spec.js', function() {
 
     vm.isApp = true;
 
-    $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
-    $httpBackend.whenGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
-        .respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
-
     mockLTG.id = '1';
     mockLTG.licenses = [];
     mockLicenseGroupStore.resolveGet([mockLTG]);
-    $timeout.flush();
-    $httpBackend.flush();
+    flushBackendServices();
 
     vm.deleteLTG();
     deleteServiceResourceDefer.resolve();
@@ -234,31 +211,38 @@ describe('license.threat.group.editor.controller.spec.js', function() {
     vm = $controller('license.threat.group.editor.controller',
         {$scope: scope, $stateParams: {licenseThreatGroupId: '1'}});
 
-    $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
-    $httpBackend.whenGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
-        .respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
-
     mockLTG.id = '1';
     mockLTG.licenses = licenses;
     mockLicenseGroupStore.resolveGet([mockLTG]);
-    $timeout.flush();
-    $httpBackend.flush();
+    flushBackendServices();
 
     // All licenses should be picked
     vm.availableLicenses.forEach(function(license) {
       expect(license.picked).toBeTruthy();
     });
+
+  }));
+
+  it('Adds display name to the licenses on load', inject(function($controller) {
+    vm = $controller('license.threat.group.editor.controller', {$scope: scope});
+
+    flushBackendServices();
+
+    const displayNames = vm.availableLicenses.map(license => license.fullDisplayName);
+    const expectedDisplayNames = [
+      '(AAL) Attribution Assurance License',
+      '(Adobe) Adobe',
+      '(Adobe-AFM) Adobe-AFM'
+    ];
+    expect(displayNames).toEqual(expectedDisplayNames);
   }));
 
   describe('Page Changes', function() {
     beforeEach(inject(function($controller) {
       vm = $controller('license.threat.group.editor.controller', {$scope: scope});
 
-      $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
-      $httpBackend.whenGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
-          .respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
-      $httpBackend.flush();
-      $timeout.flush();
+      prepareBackendServices();
+      flushBackendServices();
 
       vm.dirtyLTG = mockLTG;
     }));

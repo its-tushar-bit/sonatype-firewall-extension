@@ -144,7 +144,8 @@ public abstract class AbstractSummaryViewTest
     labelTile.labelLists().shouldHaveSize(1);
 
     // scroll to the labels tile
-    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
 
     TileSimpleList list = labelTile.labelList(0);
     list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
@@ -153,7 +154,7 @@ public abstract class AbstractSummaryViewTest
 
   public void testAccessTile_no_local_access() {
 
-    int hierarchySize = getHierarchySize(currentOwner.getId());
+    int hierarchySize = getHierarchySize(currentOwner);
     AccessTile accessTile = OwnerSummaryPage.accessTile();
     accessTile.subHeader().shouldBe(visible).shouldHave(AccessTile.subHeaderText(currentOwner.getName()));
     accessTile.newButton().shouldBe(visible, enabled);
@@ -179,7 +180,7 @@ public abstract class AbstractSummaryViewTest
   }
 
   private void testPolicyTile_no_policies() {
-    int hierarchySize = getHierarchySize(currentOwner.getId());
+    int hierarchySize = getHierarchySize(currentOwner);
 
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
     policyTile.subHeader().shouldBe(visible).shouldHave(PolicyTile.subHeaderText(currentOwner.getName()));
@@ -243,7 +244,8 @@ public abstract class AbstractSummaryViewTest
     labelTile.labelLists().shouldHaveSize(1);
 
     // scroll to the labels tile
-    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
 
     TileSimpleList list = labelTile.labelList(0);
     list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
@@ -268,7 +270,7 @@ public abstract class AbstractSummaryViewTest
   }
 
   private void testLTGTile_Local(List<LicenseThreatGroup> locaLTGs) {
-    int hierarchySize = getHierarchySize(currentOwner.getId());
+    int hierarchySize = getHierarchySize(currentOwner);
 
     LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
     ltgTile.ltgLists().shouldHaveSize(hierarchySize);
@@ -317,7 +319,7 @@ public abstract class AbstractSummaryViewTest
 
   private void testAccessTile_Local(User testUser) {
 
-    int hierarchySize = getHierarchySize(currentOwner.getId());
+    int hierarchySize = getHierarchySize(currentOwner);
     AccessTile accessTile = OwnerSummaryPage.accessTile();
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
@@ -355,7 +357,7 @@ public abstract class AbstractSummaryViewTest
 
   private void testPolicyTile_Local(List<Policy> localPolicies) {
 
-    int hierarchySize = getHierarchySize(currentOwner.getId());
+    int hierarchySize = getHierarchySize(currentOwner);
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
     policyTile.policyLists().shouldHaveSize(hierarchySize);
 
@@ -467,7 +469,8 @@ public abstract class AbstractSummaryViewTest
     labelTile.labelLists().shouldHaveSize(hierarchySize);
 
     // scroll to the labels tile
-    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
       TileSimpleList list = labelTile.labelList(i);
@@ -599,7 +602,7 @@ public abstract class AbstractSummaryViewTest
 
   private void testAccessTile_Inherited(User testUser, List<Owner> parentOwners) {
 
-    int hierarchySize = getHierarchySize(currentOwner.getId());
+    int hierarchySize = getHierarchySize(currentOwner);
     AccessTile accessTile = OwnerSummaryPage.accessTile();
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
@@ -813,9 +816,9 @@ public abstract class AbstractSummaryViewTest
     policyElement.column(4).shouldHave(PolicyTileListElement.CHEVRON);
   }
 
-  protected int getHierarchySize(String ownerId) {
+  protected int getHierarchySize(Owner owner) {
     int hierarchySize = 0;
-    Iterator<Owner> iterator = new OwnerDAO().walkHierarchy(ownerId).iterator();
+    Iterator<Owner> iterator = new OwnerDAO().walkHierarchy(owner).iterator();
 
     for (; iterator.hasNext(); ++hierarchySize) {
       iterator.next();

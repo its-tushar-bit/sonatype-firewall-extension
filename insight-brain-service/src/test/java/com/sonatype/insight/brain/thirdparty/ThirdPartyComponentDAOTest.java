@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -19,30 +18,22 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.SecurityVulnerabilityDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
-import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.report.Report;
-import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.scan.application.AnalyzerFeaturesDTO;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Rule;
@@ -53,10 +44,8 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
 
-import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromJsonNode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.util.Lists.emptyList;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -82,8 +71,8 @@ public class ThirdPartyComponentDAOTest
   private final String hashApt = "683620ac905c1d32b58c";
 
   private final Map<String, ComponentIdentifier> testData = ImmutableMap.of(
-      hashGlibc, componentIdentifierFrom("debian:9", "glibc", "2.24-11+deb9u3"),
-      hashApt, componentIdentifierFrom("debian:9", "apt", "1.4.8"));
+      hashGlibc, componentIdentifierFrom("debian-9", "glibc", "2.24-11+deb9u3"),
+      hashApt, componentIdentifierFrom("debian-9", "apt", "1.4.8"));
 
   @Before
   public void before() {
@@ -103,7 +92,7 @@ public class ThirdPartyComponentDAOTest
     assertThat(data.get(hashGlibc).bomRow.matchState).isEqualTo(MatchState.EXACT.toString());
 
     assertThat(data.get(hashGlibc).securityRows).hasSize(2);
-    assertThat(data.get(hashApt).securityRows).hasSize(1);
+    assertThat(data.get(hashApt).securityRows).hasSize(6);
 
     assertThat(data.get(hashGlibc).licensesRow).isNotNull();
     assertThat(data.get(hashGlibc).licensesRow.declaredLicenses).hasSize(1);
@@ -112,7 +101,8 @@ public class ThirdPartyComponentDAOTest
 
     assertThat(data.get(hashGlibc).securityRows.stream().map(s -> s.reference))
         .containsExactlyInAnyOrder("CVE-2017-16997", "CVE-2018-1000001");
-    assertThat(data.get(hashApt).securityRows.stream().map(s -> s.reference)).containsOnly("CVE-2019-3462");
+    assertThat(data.get(hashApt).securityRows.stream().map(s -> s.reference)).containsOnly("CVE-2019-3462",
+        "CVE-2017-1000409", "CVE-2017-1000410", "CVE-2018-6485", "CVE-2019-9169", "CVE-2017-16997");
 
     assertThat(data.get(hashGlibc).licensesRow.declaredLicenses.equals(new TreeSet<>(Arrays.asList("Apache-2.0"))));
     assertThat(
@@ -140,19 +130,6 @@ public class ThirdPartyComponentDAOTest
   @Test
   public void testGetData_NullFile() {
     assertThat(dao.getData(null)).isNull();
-  }
-
-  @Test
-  public void testApplyThirdPartyComponentSummary() throws Exception {
-    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
-    final Map<String, ThirdPartyReportComponentDTO> data = dao.getData(reportZip);
-
-    dao.applyIdentifiedComponentUpdates(new ArrayList<>(data.values()), reportZip);
-
-    assertSummaryCountsUpdated(reportZip, 3);
-    assertDataCountsUpdated(reportZip, 3);
-    assertUpdatedBom(reportZip);
-    assertSecurityCounts(reportZip, new int[]{2, 0, 2, 1, 0, 0, 0, 0, 0, 0});
   }
 
   @Test
@@ -300,50 +277,66 @@ public class ThirdPartyComponentDAOTest
     return secResults.stream().filter(sv -> sv.getRefId().equals(cve)).findFirst();
   }
 
-  private void assertUpdatedBom(final File reportZip) throws IOException {
-    final ReportEntry bomEntry = Report.getEntry(reportZip, "bom.json");
-    assertThat(bomEntry).isNotNull();
+  @Test
+  public void testGetSuggestedRemmediation() {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
+    String scanId = "scanId";
+    String appId = "appId";
+    when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
 
-    JsonNode analyzerFeaturesDTO = JsonUtils.asTree(AnalyzerFeaturesDTO.fromThirdParty("test"));
-    JsonNode jsonNode = JsonUtils.parse(bomEntry.buf);
-    final JsonNode aaDataNode = jsonNode.path("aaData");
+    Map<String, String> coordinates = new HashMap<>();
+    coordinates.put(ComponentIdentifier.VERSION, "2.24-11+deb9u3");
+    coordinates.put("name", "glibc");
 
-    for (JsonNode node : aaDataNode) {
-      Stream.of(hashGlibc, hashApt).forEach(hash -> {
-        if (hash.equals(node.path("hash").asText())) {
-          final String displayName = pathNameFromDisplayName(hash);
-          final List<String> pathNames = getArrayValues(node, "pathnames");
-          final List<String> fileNames = getArrayValues(node, "filenames");
-          final String displayNameWithoutSpaces = displayName.replaceAll("\\s", "");
-          assertThat(pathNames).containsExactly("dependency:/clair-scanner-output.json/" + displayNameWithoutSpaces);
-          assertThat(fileNames).containsExactly(displayNameWithoutSpaces);
-          assertThat(nodeDisplayName(node)).isEqualTo(displayName);
-          assertThat(node.get("analyzerFeatures")).isEqualTo(analyzerFeaturesDTO);
-        }
-      });
-    }
-  }
+    ComponentIdentifier current = new ComponentIdentifier("debian-9", coordinates);
 
-  private String nodeDisplayName(final JsonNode node) {
-    return fromJsonNode((ObjectNode) node).toString();
-  }
+    final ApiComponentRemediationValueDTO suggestedRemediation = dao.getSuggestedRemmediation(appId, current, scanId);
 
-  private List<String> getArrayValues(final JsonNode node, final String fieldName) {
-    return StreamSupport.stream(node.get(fieldName).spliterator(), false).map(JsonNode::textValue)
-        .collect(Collectors.toList());
-  }
+    assertThat(suggestedRemediation).isNotNull();
 
-  private String pathNameFromDisplayName(final String hash) {
-    return ComponentDisplayNameUtil.fromIdentifier(testData.get(hash)).toString();
+    ApiComponentDTOV2 remediation =
+        suggestedRemediation.versionChanges.stream().map(change -> change.getData().getComponent()).findFirst().get();
+
+    assertThat(remediation.packageUrl).isEqualTo("pkg:debian-9/glibc@2.24-12%2Bdeb9u4");
+    assertThat(remediation.thirdParty).isTrue();
   }
 
   @Test
-  public void testApplyThirdPartyComponentSummary_NoUpdateForEmptyList() throws Exception {
+  public void testgetSuggestedRemmediation_notFoundComponent() {
     final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
-    dao.applyIdentifiedComponentUpdates(emptyList(), reportZip);
+    String scanId = "scanId";
+    String appId = "appId";
+    when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
 
-    assertSummaryCountsUpdated(reportZip, 1); // non-third party component only
-    assertDataCountsUpdated(reportZip, 1);
+    Map<String, String> coordinates = new HashMap<>();
+    coordinates.put(ComponentIdentifier.VERSION, "1.4.7");
+    coordinates.put("name", "apt");
+
+    ComponentIdentifier current = new ComponentIdentifier("debian-9", coordinates);
+
+    final ApiComponentRemediationValueDTO suggestedRemediation = dao.getSuggestedRemmediation(appId, current, scanId);
+
+    assertThat(suggestedRemediation).isNotNull();
+    assertThat(suggestedRemediation.versionChanges).isEmpty();
+  }
+
+  @Test
+  public void testgetSuggestedRemmediation_emptyFixedVersion() {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/report");
+    String scanId = "scanId";
+    String appId = "appId";
+    when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
+
+    Map<String, String> coordinates = new HashMap<>();
+    coordinates.put(ComponentIdentifier.VERSION, "1.4.8");
+    coordinates.put("name", "apt");
+
+    ComponentIdentifier current = new ComponentIdentifier("debian-9", coordinates);
+
+    final ApiComponentRemediationValueDTO suggestedRemediation = dao.getSuggestedRemmediation(appId, current, scanId);
+
+    assertThat(suggestedRemediation).isNotNull();
+    assertThat(suggestedRemediation.versionChanges).isEmpty();
   }
 
   private void assertThirdPartyComponentResult(final ComponentDetails component) {
@@ -396,24 +389,5 @@ public class ThirdPartyComponentDAOTest
     catch (IOException | URISyntaxException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private void assertDataCountsUpdated(final File reportZip, final int expected) throws IOException {
-    final ReportEntry entry = Report.getEntry(reportZip, "data.json");
-    JsonNode jsonNode = JsonUtils.parse(entry.buf);
-    assertThat(jsonNode.path("exactlyMatchedComponentCount").asInt()).isEqualTo(expected);
-    assertThat(jsonNode.path("knownArtifactCount").asInt()).isEqualTo(expected);
-  }
-
-  private void assertSummaryCountsUpdated(final File reportZip, final int expected) throws IOException {
-    final ReportEntry entry = Report.getEntry(reportZip, "summary.json");
-    JsonNode jsonNode = JsonUtils.parse(entry.buf);
-    assertThat(jsonNode.path("knownArtifactCount").asInt()).isEqualTo(expected);
-  }
-
-  private void assertSecurityCounts(final File reportZip, final int[] expected) throws IOException {
-    final ReportEntry entry = Report.getEntry(reportZip, "data.json");
-    JsonNode jsonNode = JsonUtils.parse(entry.buf);
-    assertThat(JsonUtils.asPojo(jsonNode.path("securityCounts"), int[].class)).isEqualTo(expected);
   }
 }

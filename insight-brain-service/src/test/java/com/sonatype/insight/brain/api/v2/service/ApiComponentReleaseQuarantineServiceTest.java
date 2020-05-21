@@ -250,7 +250,7 @@ public class ApiComponentReleaseQuarantineServiceTest
       final String action)
   {
     return tempEntity.newRepositoryPolicyViolation(repositoryComponent.getRepositoryId(), threatLevel,
-        repositoryComponent.getPathname(), waived, true, action, policy.getId(), policy.getName(),
+        repositoryComponent.getPathname(), waived, action, policy.getId(), policy.getName(),
         repositoryComponent.getComponentIdentifier());
   }
 

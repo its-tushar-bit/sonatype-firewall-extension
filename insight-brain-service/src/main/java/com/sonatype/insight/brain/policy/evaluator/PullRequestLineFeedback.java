@@ -19,6 +19,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import freemarker.template.Template;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Constructs a pull request line comment from the given values
@@ -26,6 +28,8 @@ import freemarker.template.Template;
 public class PullRequestLineFeedback
     extends PullRequestDetailsBase
 {
+  private static Logger log = LoggerFactory.getLogger(PullRequestLineFeedback.class);
+
   private static Template lineFeedbackTemplate;
 
   private final List<PolicyViolation> violations;
@@ -63,11 +67,16 @@ public class PullRequestLineFeedback
    *
    * @return An optional variable containing the Markdown-formatted contents of the Pull Request Line Comment, will be
    * empty if no new violations or no components available
-   * @throws IOException
    */
-  public Optional<String> renderTemplateAndGetContents() throws IOException {
-    final String contents = constructContents();
-    return contents.equals("") ? Optional.empty() : Optional.of(contents);
+  public Optional<String> renderTemplateAndGetContents() {
+    String contents = null;
+    try {
+      contents = constructContents();
+    }
+    catch (IOException e) {
+      log.debug("Cannot create PR line comment content", e);
+    }
+    return Optional.ofNullable(contents);
   }
 
   /**
@@ -101,8 +110,12 @@ public class PullRequestLineFeedback
       final String baseUrl,
       final String suggestedVersion)
   {
+    int threatLevel = getHighestThreatLevel(violations);
+    String threatColor = PullRequestFeedbackDetails.getColorForThreatLevel(threatLevel);
     return ImmutableMap.<String, Object>builder()
         .put("componentNameAndVersion", displayName)
+        .put("threatLevel", threatLevel)
+        .put("threatColor", threatColor)
         .put("policiesViolated", getPoliciesViolatedMap(violations, baseUrl))
         .put("suggestedVersion", suggestedVersion == null ? "" : suggestedVersion)
         .put("policiesViolatedCount", violations.size())

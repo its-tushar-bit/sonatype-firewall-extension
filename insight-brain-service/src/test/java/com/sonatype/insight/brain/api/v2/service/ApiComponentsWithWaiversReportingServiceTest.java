@@ -15,6 +15,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationBaseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
@@ -127,16 +129,19 @@ public class ApiComponentsWithWaiversReportingServiceTest
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
 
+    TriggerReference triggerReference =
+        new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "triggerReference refId");
+
     ConstraintFact constraintFact1 =
         new ConstraintFact("constraintFact1", "aa c", "OR");
     constraintFact1.addConditionFact(new ConditionFact("MatchState", 0,
-        "Match State is exact", "Match State was exact"));
+        "Match State is exact", "Match State was exact", triggerReference));
     List<ConstraintFact> constraintFacts1 = Arrays.asList(constraintFact1);
 
     ConstraintFact constraintFact2 =
         new ConstraintFact("constraintFact2", "aa c", "OR");
     constraintFact2.addConditionFact(new ConditionFact("MatchState", 0,
-        "Match State is exact", "Match State was exact"));
+        "Match State is exact", "Match State was exact", triggerReference));
     List<ConstraintFact> constraintFacts2 = Arrays.asList(constraintFact2);
 
     // Waived active policy violations and their corresponding waivers
@@ -151,28 +156,28 @@ public class ApiComponentsWithWaiversReportingServiceTest
         constraintFacts1, "Some comments here4");
 
     RepositoryPolicyViolation waivedViolation1 = tempEntity.newRepositoryPolicyViolation(
-        repo1.getId(), 6, "pathName1", "hash1", constraintFacts1, true, true,
+        repo1.getId(), 6, "pathName1", "hash1", constraintFacts1, true,
         "actionId1", policy1.getId(), policy1.getName(), componentIdentifier1, date,
         policyWaiver1.getId(), policyWaiver1.getComment(), date);
 
     RepositoryPolicyViolation waivedViolation2 = tempEntity.newRepositoryPolicyViolation(
-        repo1.getId(), 7, "pathName2", "hash1", constraintFacts2, true, true,
+        repo1.getId(), 7, "pathName2", "hash1", constraintFacts2, true,
         "actionId2", policy1.getId(), policy1.getName(), componentIdentifier1, date,
         policyWaiver2.getId(), policyWaiver2.getComment(), date);
 
     RepositoryPolicyViolation waivedViolation3 = tempEntity.newRepositoryPolicyViolation(
-        repo2.getId(), 8, "pathName3", "hash3", constraintFacts1, true, true,
+        repo2.getId(), 8, "pathName3", "hash3", constraintFacts1, true,
         "actionId3", policy2.getId(), policy2.getName(), componentIdentifier1, date,
         policyWaiver3.getId(), policyWaiver3.getComment(), date);
 
     RepositoryPolicyViolation waivedViolation4 = tempEntity.newRepositoryPolicyViolation(
-        repo1.getId(), 9, "pathName4", "hash4", constraintFacts1, true, true,
+        repo1.getId(), 9, "pathName4", "hash4", constraintFacts1, true,
         "actionId4", policy1.getId(), policy1.getName(), componentIdentifier2, date,
         policyWaiver4.getId(), policyWaiver4.getComment(), date);
 
     // Non-waived active violation - should not be returned
     tempEntity.newRepositoryPolicyViolation(repo1.getId(), 2, "pathName5", "hash5", constraintFacts1,
-        false, true, "actionId5", policy1.getId(), policy1.getName(), componentIdentifier1, date, null, null, null);
+        false, "actionId5", policy1.getId(), policy1.getName(), componentIdentifier1, date, null, null, null);
 
     ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
     assertThat(result.applicationWaivers).hasSize(0);
@@ -199,11 +204,11 @@ public class ApiComponentsWithWaiversReportingServiceTest
     List<ApiWaivedPolicyViolationDTO> waivedPolicyViolationDTOs =
         apiComponentPolicyViolationDTO1.waivedPolicyViolations;
     assertThat(waivedPolicyViolationDTOs).hasSize(2);
-    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation1);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation1, true);
     assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(0).policyWaiver, policyWaiver1, OwnerType.REPOSITORY.toString(),
         repo1.getName());
 
-    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(1), waivedViolation2);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(1), waivedViolation2, true);
     assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(1).policyWaiver, policyWaiver2, OwnerType.REPOSITORY.toString(),
         repo1.getName());
 
@@ -211,7 +216,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     assertComponentDTOV2(apiComponentPolicyViolationDTO2.component, waivedViolation4);
     waivedPolicyViolationDTOs = apiComponentPolicyViolationDTO2.waivedPolicyViolations;
     assertThat(waivedPolicyViolationDTOs).hasSize(1);
-    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation4);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation4, true);
     assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(0).policyWaiver, policyWaiver4, OwnerType.REPOSITORY.toString(),
         repo1.getName());
 
@@ -233,7 +238,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     assertComponentDTOV2(apiComponentPolicyViolationDTO1.component, waivedViolation3);
     waivedPolicyViolationDTOs = apiComponentPolicyViolationDTO1.waivedPolicyViolations;
     assertThat(waivedPolicyViolationDTOs).hasSize(1);
-    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation3);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation3, true);
     assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(0).policyWaiver, policyWaiver3,
         ScopeOwnerUtils.SCOPE_OWNER_TYPE_REPOSITORY_CONTAINER, "All Repositories");
   }
@@ -244,14 +249,16 @@ public class ApiComponentsWithWaiversReportingServiceTest
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ConstraintFact constraintFact1 =
         new ConstraintFact("constraintFact1", "aa c", "OR");
+    TriggerReference triggerReference =
+        new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "triggerReference refId");
     constraintFact1.addConditionFact(new ConditionFact("MatchState", 0,
-        "Match State is exact", "Match State was exact"));
+        "Match State is exact", "Match State was exact", triggerReference));
     List<ConstraintFact> constraintFacts1 = Arrays.asList(constraintFact1);
 
     // Waived active policy violations and their corresponding waivers
     RepositoryPolicyViolation waivedViolation1 =
         tempEntity.newRepositoryPolicyViolation(repo1.getId(), 6, "pathName1", "hash1", constraintFacts1,
-            true, true, "actionId1", policy1.getId(), policy1.getName(), componentIdentifier1, date,
+            true, "actionId1", policy1.getId(), policy1.getName(), componentIdentifier1, date,
             "deletedPolicyWaiverId", "test waive", date);
 
     ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
@@ -277,7 +284,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     List<ApiWaivedPolicyViolationDTO> waivedPolicyViolationDTOs =
         apiComponentPolicyViolationDTO1.waivedPolicyViolations;
     assertThat(waivedPolicyViolationDTOs).hasSize(1);
-    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation1);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation1, true);
     assertThat(waivedPolicyViolationDTOs.get(0).policyWaiver.policyWaiverId).isNull();
     assertThat(waivedPolicyViolationDTOs.get(0).policyWaiver.createTime).isNull();
     assertThat(waivedPolicyViolationDTOs.get(0).policyWaiver.comment)
@@ -289,8 +296,10 @@ public class ApiComponentsWithWaiversReportingServiceTest
     Date date = new Date();
     ConstraintFact constraintFact1 =
         new ConstraintFact("constraintFact1", "aa c", "OR");
+    TriggerReference triggerReference =
+        new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "triggerReference refId");
     constraintFact1.addConditionFact(new ConditionFact("MatchState", 0,
-        "Match State is exact", "Match State was exact"));
+        "Match State is exact", "Match State was exact", triggerReference));
     List<ConstraintFact> constraintFacts1 = Arrays.asList(constraintFact1);
 
     // Waived active policy violations and their corresponding waivers
@@ -298,7 +307,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
         constraintFacts1, "Some comments here");
     RepositoryPolicyViolation waivedViolation =
         tempEntity.newRepositoryPolicyViolation(repo1.getId(), 6, "tomcat/catalina/5.5.15/catalina-5.5.15.jar",
-            "hash1", constraintFacts1, true, true, "actionId1", policy1.getId(), policy1.getName(),
+            "hash1", constraintFacts1, true, "actionId1", policy1.getId(), policy1.getName(),
             null, date, policyWaiver.getId(), "test waive", date);
 
     ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
@@ -327,14 +336,23 @@ public class ApiComponentsWithWaiversReportingServiceTest
     List<ApiWaivedPolicyViolationDTO> waivedPolicyViolationDTOs =
         apiComponentPolicyViolationDTO.waivedPolicyViolations;
     assertThat(waivedPolicyViolationDTOs).hasSize(1);
-    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTOs.get(0), waivedViolation, true);
     assertPolicyWaiverDTO(waivedPolicyViolationDTOs.get(0).policyWaiver, policyWaiver, OwnerType.REPOSITORY.toString(),
         repo1.getName());
   }
 
   @Test
   public void testGetComponentsWithWaivers_Applications() {
-    PolicyWaiver policyWaiver1 = tempEntity.newWaiver("h1", policy1.getId(), app1.getId(), "Some comments here");
+    TriggerReference triggerReference =
+        new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "triggerReference refId");
+    ConstraintFact constraintFact1 =
+        new ConstraintFact("constraintFact1", "aa c", "OR");
+    constraintFact1.addConditionFact(new ConditionFact("MatchState", 0,
+        "Match State is exact", "Match State was exact", triggerReference));
+    List<ConstraintFact> constraintFacts1 = Arrays.asList(constraintFact1);
+
+    PolicyWaiver policyWaiver1 =
+        tempEntity.newWaiver("h1", policy1.getId(), app1.getId(), constraintFacts1,  "Some comments here");
     PolicyWaiver policyWaiver2 = tempEntity.newWaiver("h2", policy1.getId(), app1.getId(), "Some comments here2");
     PolicyWaiver policyWaiver3 = tempEntity.newWaiver("h3", policy1.getId(), app1.getId(), "Some comments here3");
     PolicyWaiver policyWaiver4 =
@@ -371,7 +389,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
 
     assertThat(componentPolicyViolationDTO.waivedPolicyViolations).hasSize(1);
     ApiWaivedPolicyViolationDTO waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
-    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation1);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation1, false);
 
     assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver1, OwnerType.APPLICATION.toString(),
         app1.getName());
@@ -384,7 +402,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
 
     assertThat(componentPolicyViolationDTO.waivedPolicyViolations).hasSize(1);
     waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
-    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation2);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation2, false);
 
     assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver2, OwnerType.APPLICATION.toString(),
         app1.getName());
@@ -400,7 +418,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
 
     assertThat(componentPolicyViolationDTO.waivedPolicyViolations).hasSize(1);
     waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
-    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation3);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation3, false);
 
     assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver3, OwnerType.APPLICATION.toString(),
         app1.getName());
@@ -417,7 +435,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
 
     assertThat(componentPolicyViolationDTO.waivedPolicyViolations).hasSize(1);
     waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
-    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation4);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation4, false);
 
     assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver4,
         ScopeOwnerUtils.SCOPE_OWNER_TYPE_ROOT_ORGANIZATION, "Root Organization");
@@ -450,7 +468,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
 
     assertThat(componentPolicyViolationDTO.waivedPolicyViolations).hasSize(1);
     ApiWaivedPolicyViolationDTO waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
-    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation1);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation1, false);
 
     assertThat(waivedPolicyViolationDTO.policyWaiver.policyWaiverId).isNull();
     assertThat(waivedPolicyViolationDTO.policyWaiver.createTime).isNull();
@@ -478,7 +496,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     assertComponentDTOV2(componentPolicyViolationDTO.component, waivedViolation1);
     assertThat(componentPolicyViolationDTO.waivedPolicyViolations).hasSize(1);
     ApiWaivedPolicyViolationDTO waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
-    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation1);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation1, false);
     assertThat(waivedPolicyViolationDTO.policyWaiver.policyWaiverId).isEqualTo(policyWaiver1.getId());
     assertThat(waivedPolicyViolationDTO.policyWaiver.createTime).isEqualTo(policyWaiver1.getCreateTime());
     assertThat(waivedPolicyViolationDTO.policyWaiver.isObsolete).isTrue();
@@ -513,7 +531,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     assertThat(componentPolicyViolationDTO.waivedPolicyViolations).hasSize(1);
 
     ApiWaivedPolicyViolationDTO waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
-    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation1);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, waivedViolation1, false);
     assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver1, OwnerType.APPLICATION.toString(),
         app1.getName());
     assertApplicationWaiverDTO(applicationWaiverDTO, app1);
@@ -522,9 +540,12 @@ public class ApiComponentsWithWaiversReportingServiceTest
   @Test
   public void testGetComponentsWithWaivers_FormatFilter() {
     Date date = new Date();
+
+    TriggerReference triggerReference =
+        new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "triggerReference refId");
     ConstraintFact constraintFact1 = new ConstraintFact("constraintFact1", "aa c", "OR");
     constraintFact1.addConditionFact(
-        new ConditionFact("MatchState", 0, "Match State is exact", "Match State was exact"));
+        new ConditionFact("MatchState", 0, "Match State is exact", "Match State was exact", triggerReference));
 
     List<ConstraintFact> constraintFacts1 = Arrays.asList(constraintFact1);
 
@@ -542,7 +563,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     tempEntity.newWaivedPolicyViolation(app2PolicyEvaluationOperate, policy1, null, "h2", policyWaiver2);
     tempEntity.newWaivedPolicyViolation(app1PolicyEvaluationBuild, policy1, mavenComponentId, "h3", policyWaiver3);
     tempEntity.newRepositoryPolicyViolation(repo1.getId(), 6, "tomcat/catalina/5.5.15/catalina-5.5.15.jar",
-        "h4", constraintFacts1, true, true, "actionId1", policy1.getId(), policy1.getName(),
+        "h4", constraintFacts1, true, "actionId1", policy1.getId(), policy1.getName(),
         mavenComponentId, date, policyWaiver4.getId(), "repo waive", date);
 
     ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
@@ -566,7 +587,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     assertThat(componentPolicyViolationDTO.waivedPolicyViolations).hasSize(1);
 
     ApiWaivedPolicyViolationDTO waivedPolicyViolationDTO = componentPolicyViolationDTO.waivedPolicyViolations.get(0);
-    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, anameViolation);
+    assertWaivedPolicyViolationDTO(waivedPolicyViolationDTO, anameViolation, false);
     assertPolicyWaiverDTO(waivedPolicyViolationDTO.policyWaiver, policyWaiver1, OwnerType.APPLICATION.toString(),
         app1.getName());
     assertApplicationWaiverDTO(applicationWaiverDTO, app1);
@@ -583,7 +604,8 @@ public class ApiComponentsWithWaiversReportingServiceTest
 
   private void assertWaivedPolicyViolationDTO(
       ApiWaivedPolicyViolationDTO waivedPolicyViolationDTO,
-      AbstractPolicyViolation policyViolation)
+      AbstractPolicyViolation policyViolation,
+      boolean shouldHaveTriggerReference)
   {
     assertThat(waivedPolicyViolationDTO.policyId).isEqualTo(policyViolation.getPolicyId());
     assertThat(waivedPolicyViolationDTO.policyName).isEqualTo(policyViolation.getPolicyName());
@@ -600,6 +622,15 @@ public class ApiComponentsWithWaiversReportingServiceTest
     ApiConstraintViolationReasonDTO apiConstraintViolationReasonDTO = apiConstraintViolationDTO.reasons.get(0);
     assertThat(apiConstraintViolationReasonDTO.reason)
         .isEqualTo(policyViolation.getConstraintFacts().get(0).getConditionFacts().get(0).getReason());
+    if (shouldHaveTriggerReference) {
+      TriggerReference triggerReference =
+          policyViolation.getConstraintFacts().get(0).getConditionFacts().get(0).getReference();
+      assertThat(apiConstraintViolationReasonDTO.reference.value).isEqualTo(triggerReference.getValue());
+      assertThat(apiConstraintViolationReasonDTO.reference.type).isEqualTo(triggerReference.getType().toString());
+    }
+    else {
+      assertThat(apiConstraintViolationReasonDTO.reference).isNull();
+    }
   }
 
   private void assertPolicyWaiverDTO(

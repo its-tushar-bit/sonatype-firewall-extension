@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { keys, map, max, prop, reduce, values } from 'ramda';
+import { compose, keys, map, max, prop, reduce, values } from 'ramda';
 import classnames from 'classnames';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
 
@@ -29,8 +29,11 @@ export default function ViolationDetailsTile({ $state, violationDetails, stageTy
       threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
       threatLevelClassName = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`),
 
-      openTime = timeAgo(violationDetails.openTime),
-      mostRecentEvaluationTimes = map(prop('mostRecentEvaluationTime'), values(violationDetails.stageData)),
+      parseISODate = (time) => new Date(time),
+      openTime = timeAgo(parseISODate(violationDetails.openTime)),
+
+      parseRecentEvaluationTimes = compose(parseISODate, prop('mostRecentEvaluationTime')),
+      mostRecentEvaluationTimes = map(parseRecentEvaluationTimes, values(violationDetails.stageData)),
       mostRecentEvaluationTimestamp = reduce(max, 0, mostRecentEvaluationTimes),
       mostRecentEvaluationTime = timeAgo(mostRecentEvaluationTimestamp),
 
@@ -61,7 +64,7 @@ export default function ViolationDetailsTile({ $state, violationDetails, stageTy
         <ViolationDetailsSubtitle { ...violationDetails } />
       </div>
       <div className="nx-tile-content nx-grid-row">
-        <dl className="iq-read-only nx-grid-col nx-grid-col--33 iq-violation-details__left-details">
+        <dl className="iq-read-only nx-grid-col iq-violation-details__left-details">
           <div className="iq-violation-details__threat-level">
             <dt>Threat Level</dt>
             <dd className={threatLevelClassName}>{threatLevel}</dd>
@@ -97,29 +100,31 @@ export default function ViolationDetailsTile({ $state, violationDetails, stageTy
   );
 }
 
+export const violationDetailsPropTypes = {
+  policyName: PropTypes.string.isRequired,
+  policyThreatCategory: PropTypes.string.isRequired,
+  policyOwner: PropTypes.shape({
+    ownerName: PropTypes.string.isRequired,
+    ownerType: PropTypes.oneOf(keys(ownerIdTypeMap)).isRequired,
+    ownerId: PropTypes.string.isRequired,
+    ownerPublicId: PropTypes.string
+  }).isRequired,
+  threatLevel: PropTypes.number.isRequired,
+  openTime: PropTypes.string.isRequired,
+  stageData: PropTypes.objectOf(StageDisplay.propTypes.stageData.isRequired).isRequired,
+  applicationPublicId: PropTypes.string.isRequired,
+  organizationName: PropTypes.string.isRequired,
+  applicationName: PropTypes.string.isRequired,
+  displayName: PropTypes.object,
+  filenames: PropTypes.array
+};
+
 ViolationDetailsTile.propTypes = {
   $state: PropTypes.shape({
     get: PropTypes.func.isRequired,
     href: PropTypes.func.isRequired
   }).isRequired,
-  violationDetails: PropTypes.shape({
-    policyName: PropTypes.string.isRequired,
-    policyThreatCategory: PropTypes.string.isRequired,
-    policyOwner: PropTypes.shape({
-      ownerName: PropTypes.string.isRequired,
-      ownerType: PropTypes.oneOf(keys(ownerIdTypeMap)).isRequired,
-      ownerId: PropTypes.string.isRequired,
-      ownerPublicId: PropTypes.string
-    }).isRequired,
-    threatLevel: PropTypes.number.isRequired,
-    openTime: PropTypes.number.isRequired,
-    stageData: PropTypes.objectOf(StageDisplay.propTypes.stageData.isRequired).isRequired,
-    applicationPublicId: PropTypes.string.isRequired,
-    organizationName: PropTypes.string.isRequired,
-    applicationName: PropTypes.string.isRequired,
-    displayName: PropTypes.object,
-    filenames: PropTypes.array
-  }),
+  violationDetails: PropTypes.shape(violationDetailsPropTypes),
   stageTypes: PropTypes.arrayOf(PropTypes.shape({
     stageTypeId: PropTypes.string.isRequired,
     shortName: PropTypes.string.isRequired

@@ -41,6 +41,9 @@ public class SourceControl
   @Column(name = "repository_url")
   private String repositoryUrl;
 
+  @Column(name = "username")
+  private String username;
+
   @Column(name = "token")
   private String token;
 
@@ -66,16 +69,19 @@ public class SourceControl
   public SourceControl() {
   }
 
-  public SourceControl(final String ownerId,
-                       final String repositoryUrl,
-                       final String token,
-                       final SourceControlProvider provider,
-                       final Boolean enablePullRequests,
-                       final Boolean enableStatusChecks,
-                       final String baseBranch)
+  public SourceControl(
+      final String ownerId,
+      final String repositoryUrl,
+      final String username,
+      final String token,
+      final SourceControlProvider provider,
+      final Boolean enablePullRequests,
+      final Boolean enableStatusChecks,
+      final String baseBranch)
   {
     this.ownerId = ownerId;
     this.repositoryUrl = repositoryUrl;
+    this.username = username;
     this.token = token;
     this.provider = provider;
     this.enablePullRequests = enablePullRequests;
@@ -107,6 +113,14 @@ public class SourceControl
 
   public void setRepositoryUrl(final String repositoryUrl) {
     this.repositoryUrl = repositoryUrl;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(final String username) {
+    this.username = username;
   }
 
   public String getToken() {
@@ -171,6 +185,8 @@ public class SourceControl
 
     private String repositoryUrl;
 
+    private String username;
+
     private String token;
 
     private SourceControlProvider provider;
@@ -190,6 +206,11 @@ public class SourceControl
 
     public Builder setRepositoryUrl(final String repositoryUrl) {
       this.repositoryUrl = repositoryUrl;
+      return this;
+    }
+
+    public Builder setUsername(final String username) {
+      this.username = username;
       return this;
     }
 
@@ -224,8 +245,8 @@ public class SourceControl
     }
 
     public SourceControl build() {
-      SourceControl sourceControl =  new SourceControl(ownerId, repositoryUrl, token, provider, enablePullRequests,
-          enableStatusChecks, baseBranch);
+      SourceControl sourceControl = new SourceControl(ownerId, repositoryUrl, username, token, provider,
+          enablePullRequests, enableStatusChecks, baseBranch);
       sourceControl.setPullRequestPollTime(pullRequestPollTime);
       return sourceControl;
     }

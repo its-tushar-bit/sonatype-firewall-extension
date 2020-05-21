@@ -11,9 +11,11 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -22,6 +24,15 @@ public class ReportServiceAuthzTest
 {
   @Inject
   private ReportService reportService;
+
+  @Mock
+  private ReportDownloader reportDownloaderMock;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(ReportDownloader.class).toInstance(reportDownloaderMock);
+    super.configure(binder);
+  }
 
   @Test
   public void testGetReportMetadata_Authorized() throws Exception {

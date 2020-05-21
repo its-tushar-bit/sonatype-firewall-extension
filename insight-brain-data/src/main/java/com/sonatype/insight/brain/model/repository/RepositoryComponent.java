@@ -59,6 +59,9 @@ public class RepositoryComponent
   @Column(name = "unquarantine_time")
   private Date unquarantineTime;
 
+  @Column(name = "analyzer_features_json")
+  private String analyzerFeaturesJson;
+
   public RepositoryComponent() {
   }
 
@@ -174,5 +177,13 @@ public class RepositoryComponent
 
   public void setPathname(String pathname) {
     this.pathname = pathname;
+  }
+
+  public String getAnalyzerFeaturesJson() {
+    return analyzerFeaturesJson;
+  }
+
+  public void setAnalyzerFeaturesJson(final String analyzerFeaturesJson) {
+    this.analyzerFeaturesJson = analyzerFeaturesJson;
   }
 }

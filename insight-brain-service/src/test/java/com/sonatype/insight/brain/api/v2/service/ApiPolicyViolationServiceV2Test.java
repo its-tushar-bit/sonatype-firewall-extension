@@ -178,6 +178,8 @@ public class ApiPolicyViolationServiceV2Test
     assertThat(apiPolicyViolationDTO.component.hash).isEqualTo(policyViolation.getHash());
     assertThat(apiPolicyViolationDTO.component.proprietary)
         .isEqualTo(appPolicyData.applicationComponent.isProprietary());
+    assertThat(apiPolicyViolationDTO.openTime).isEqualTo(policyViolation.getOpenTime());
+
     if (policyViolation.getComponentIdentifier() != null) {
       assertThat(apiPolicyViolationDTO.component.componentIdentifier.toComponentIdentifier())
           .isEqualTo(policyViolation.getComponentIdentifier());

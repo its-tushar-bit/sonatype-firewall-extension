@@ -21,22 +21,41 @@ public class StageComponentSelector
 
   protected static final String COMPONENT_HASH_REPLACEMENT_KEY = "{componentHash}";
 
-  private String violationStateExclusions(DbUtilParameters params) {
-    String exclusions = "";
-    exclusions += params.excludeOpen() ? " AND (waive_time IS NOT NULL OR fix_time IS NOT NULL)" : "";
-    exclusions += params.excludeWaived() ? " AND waive_time IS NULL" : "";
-    exclusions += params.excludeFixed() ? " AND fix_time IS NULL" : "";
+  private List<String> violationStateExclusions(DbUtilParameters params) {
+    List<String> exclusions = new ArrayList<>();
+    if (params.excludeOpen()) {
+      exclusions.add("(waive_time IS NOT NULL OR fix_time IS NOT NULL)");
+    }
+    if (params.excludeWaived()) {
+      exclusions.add("waive_time IS NULL");
+    }
+    if (params.excludeFixed()) {
+      exclusions.add("fix_time IS NULL");
+    }
     return exclusions;
   }
 
   @Override
   protected Map<String, List<String>> loadSelections(Connection connection, DbUtilParameters params) throws Exception {
+    List<String> whereClauseList = new ArrayList<>();
+    String stageClause = getStageClause("stage_type_id", params);
+    whereClauseList.add(stageClause);
+    whereClauseList.addAll(violationStateExclusions(params));
+    StringBuilder whereClause = new StringBuilder();
+    for (String condition : whereClauseList) {
+      if (condition != null) {
+        if (whereClause.length() == 0) {
+          whereClause.append(" WHERE ").append(condition);
+        }
+        else {
+          whereClause.append(" AND ").append(condition);
+        }
+      }
+    }
 
     String hashListQuery = "" //
         + "SELECT hash, count(hash) AS vcount FROM policy_violation" //
-        + " WHERE " //
-        + getStageClause("stage_type_id", params) //
-        + violationStateExclusions(params) //
+        + whereClause //
         + " GROUP BY (hash)" //
         + " ORDER BY vcount DESC" //
         + " LIMIT " + params.getMaxComponents();
@@ -44,7 +63,7 @@ public class StageComponentSelector
     String distinctQuery = "" //
         + "SELECT DISTINCT stage_type_id, hash FROM application_component" //
         + " WHERE hash = {hashId}" //
-        + " AND " + getStageClause("stage_type_id", params) //
+        + ( stageClause != null ? " AND " + stageClause : " " ) //
         + " ORDER BY stage_type_id" //
         + " LIMIT " + params.getMaxComponents();
 

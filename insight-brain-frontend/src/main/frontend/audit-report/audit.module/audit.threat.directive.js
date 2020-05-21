@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, Slick, $, clmBuildTimestamp, Insight, ComponentInformationPanelPlugin, Brain */
+import template from './audit.threat.directive.html';
+
 var encoder = $('<div></div>');
 function encodeHtml(text) {
   return encoder.text(text).html();
@@ -184,7 +186,7 @@ function createTable(data, $scope) {
 
 export default function auditThreat() {
   return {
-    templateUrl : 'audit/audit.threat.directive.html?' + clmBuildTimestamp,
+    template,
     controllerAs: 'vm',
     controller : ['$scope', 'OwnerContext', '$http', function ($scope, OwnerContext, $http) {
       var vm = this;

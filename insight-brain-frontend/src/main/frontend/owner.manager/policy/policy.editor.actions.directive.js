@@ -3,9 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './policy.editor.actions.directive.html';
+
 export default function PolicyEditorActionsDirective() {
   return {
-    templateUrl: 'owner.manager/policy/policy.editor.actions.directive.html',
+    template,
     controller: 'policy.editor.actions.controller',
     controllerAs: 'vm',
     scope: {

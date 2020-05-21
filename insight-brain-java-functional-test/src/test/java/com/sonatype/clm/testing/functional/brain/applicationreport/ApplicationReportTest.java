@@ -124,6 +124,7 @@ public class ApplicationReportTest
     reportPage.shouldBe(visible);
     reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
     reportPage.reportDate().shouldHave(text(policyEvaluationTimeStr));
+    reportPage.commitHash().shouldHave(text(policyEvaluation.getCommitHash()));
 
     reportPage.policyTypeFilterWarning().shouldNot(exist);
 

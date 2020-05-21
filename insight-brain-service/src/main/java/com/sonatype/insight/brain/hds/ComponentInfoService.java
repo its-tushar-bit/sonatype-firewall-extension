@@ -64,7 +64,6 @@ import com.sonatype.insight.brain.utils.LicenseUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,8 +80,6 @@ public class ComponentInfoService
 
   private final HdsClient hdsClient;
 
-  private final ComponentDetailsLoader componentDetailsLoader;
-
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
   private final ComponentRemediationService componentRemediationService;
@@ -94,13 +91,11 @@ public class ComponentInfoService
   @Inject
   public ComponentInfoService(
       HdsClient hdsClient,
-      ComponentDetailsLoader componentDetailsLoader,
       ComponentPolicyEvaluator componentPolicyEvaluator,
       ComponentRemediationService componentRemediationService,
       ThirdPartyComponentDAO thirdPartyComponentDAO)
   {
     this.hdsClient = hdsClient;
-    this.componentDetailsLoader = componentDetailsLoader;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.componentRemediationService = componentRemediationService;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
@@ -179,7 +174,7 @@ public class ComponentInfoService
       componentDetails = createEmptyComponentDetails(hash, identifier);
     }
 
-    Component component = componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
+    Component component = new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
     component.setProprietary(proprietary);
 
     // Evaluate the policies
@@ -197,7 +192,7 @@ public class ComponentInfoService
                                                            final ComponentIdentifier identifier,
                                                            final HttpServletRequest httpRequest) throws IOException
   {
-    return componentDetailsLoader.getComponentDetails(identifier, hash, matchState,
+    return ComponentDetailsLoader.getComponentDetails(identifier, hash, matchState,
         new ComponentDetailsLoader.HostedDataServicesSource()
         {
           @Override
@@ -249,7 +244,7 @@ public class ComponentInfoService
     auditComponentAccess(identifier, null);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, null, null, null);
-    augmentComponentDetails(componentDetailsList.getList(), matchState, app);
+    new ComponentDetailsLoader(app).augmentComponentDetails(componentDetailsList.getList(), matchState);
     return componentDetailsList;
   }
 
@@ -266,7 +261,7 @@ public class ComponentInfoService
   {
     auditComponentAccess(componentIdentifier, null);
     return getComponentVersionInfoNoAuth(OwnerType.APPLICATION, applicationPublicId, componentIdentifier,
-        null, null);
+        null, null, null);
   }
 
   /**
@@ -286,7 +281,7 @@ public class ComponentInfoService
     auditComponentAccess(componentIdentifier, null);
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentDetailsList componentDetailsList = getComponentDetailsList(componentIdentifier, owner, null, null);
-    augmentComponentDetails(componentDetailsList.getList(), matchState, owner);
+    new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList.getList(), matchState);
     return componentDetailsList;
   }
 
@@ -301,11 +296,12 @@ public class ComponentInfoService
       @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.ID) final String ownerId,
       ComponentIdentifier componentIdentifier,
+      String stageId,
       String identificationSource,
       String scanId)
   {
     auditComponentAccess(componentIdentifier, null);
-    return getComponentVersionInfoNoAuth(ownerType, ownerId, componentIdentifier, identificationSource,
+    return getComponentVersionInfoNoAuth(ownerType, ownerId, componentIdentifier, stageId, identificationSource,
         scanId);
   }
 
@@ -331,9 +327,15 @@ public class ComponentInfoService
     List<ComponentDetailsDTO> componentDetailsDTOs = getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId,
         componentIdentifier, stageId, identificationSource, scanId);
 
-    ApiComponentRemediationValueDTO remediationDto = componentRemediationService.getSuggestedRemediation(
-        componentIdentifier, componentDetailsDTOs, ownerType, ownerId, null);
-
+    ApiComponentRemediationValueDTO remediationDto;
+    if (IdentificationSource.isThirdPartyIdentificationSource(identificationSource)) {
+      Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+      remediationDto = thirdPartyComponentDAO.getSuggestedRemmediation(owner.getId(), componentIdentifier, scanId);
+    }
+    else {
+      remediationDto = componentRemediationService.getSuggestedRemediation(componentIdentifier, componentDetailsDTOs,
+          ownerType, ownerId, stageId);
+    }
     return new ComponentVersionInfoDTO(componentDetailsDTOs, remediationDto);
   }
 
@@ -349,7 +351,8 @@ public class ComponentInfoService
     List<ComponentDetails> componentDetailsList =
         getComponentDetailsList(componentIdentifier, owner, identificationSource, scanId).getList();
     // Fix match state to exact as there's no point propagating it to other versions.
-    List<Component> components = augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(), owner);
+    List<Component> components =
+        new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId());
 
     // Evaluate the policies and get the PolicyAlerts
     List<PolicyAlert> allPolicyAlerts = componentPolicyEvaluator
@@ -455,35 +458,6 @@ public class ComponentInfoService
     return componentDetailsList;
   }
 
-  List<Component> augmentComponentDetails(List<ComponentDetails> componentDetailsList,
-                                          String matchState,
-                                          Owner owner)
-  {
-    List<Component> components = new ArrayList<>(componentDetailsList.size());
-    for (ComponentDetails componentDetails : componentDetailsList) {
-      componentDetails.setMatchState(StringUtils.isEmpty(matchState) ? MatchState.EXACT.getId() : matchState);
-      if (!isThirdPartyIdentificationSource(componentDetails.getIdentificationSource())) {
-        componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
-      }
-      components.add(componentDetailsLoader.augmentComponentDetails(owner, componentDetails));
-    }
-    return components;
-  }
-
-  /**
-   * Returns the declared and observed licenses with their threat levels for a component.
-   * 
-   * @since 1.6
-   */
-  @Authorize(permission = Permission.READ)
-  public ComponentLicenses getLicenses(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
-                                       ComponentIdentifier componentIdentifier,
-                                       HttpServletRequest httpRequest) throws IOException
-  {
-    return getLicenses(ownerType, ownerId, componentIdentifier, httpRequest, null, null);
-  }
-
   /**
    *
    * @since 1.76
@@ -514,7 +488,7 @@ public class ComponentInfoService
       componentDetails = getComponentDetailsFromHDS(null, null, componentIdentifier, httpRequest);
     }
 
-    componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
+    new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
     result.declaredlicenses = getLicensesWithThreatLevels(owner, componentDetails.getDeclaredLicenses());
     result.observedlicenses = getLicensesWithThreatLevels(owner, componentDetails.getObservedLicenses());
     result.effectiveLicenses = getLicensesWithThreatLevels(owner, componentDetails.getEffectiveLicenses());
@@ -546,7 +520,7 @@ public class ComponentInfoService
 
     ComponentDetails componentDetails =
         getComponentDetails(null, hash, componentIdentifier, httpRequest, owner, identificationSource, scanId);
-    componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
+    new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
     return new ComponentSecurityVulnerabilities(componentDetails.getSecurityVulnerabilities());
   }
 

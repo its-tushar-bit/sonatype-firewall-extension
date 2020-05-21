@@ -34,3 +34,6 @@ variable "duration" {
   default = "60"
 }
 
+variable "use_postgres" {
+  default = false
+}

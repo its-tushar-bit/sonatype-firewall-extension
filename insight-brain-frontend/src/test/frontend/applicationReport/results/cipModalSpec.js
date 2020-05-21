@@ -25,11 +25,19 @@ describe('cipModal', function() {
           $scope: scope
         });
         scope.vm = vm;
+        vm.metadata = {
+          stageId: 'test-stage-id'
+        };
+        spyOn(Properties, 'setStageId');
         vm.$onInit();
       }
   ));
 
   describe('$onInit()', function() {
+
+    it('calls Properties.setStageId', function() {
+      expect(Properties.setStageId).toHaveBeenCalledWith('test-stage-id');
+    });
 
     describe('vm.selectedComponent watcher', function() {
       let component;

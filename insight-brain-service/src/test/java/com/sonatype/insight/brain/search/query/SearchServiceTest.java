@@ -56,12 +56,18 @@ public class SearchServiceTest
         .withMessageContaining("Index does not exist or is unreadable, please (re)create your index.");
   }
 
+  private TelemetryData collectSearchTelemetry() {
+    return advancedSearchTelemetryCollector.collectAllData().stream()
+        .filter(telemetryData -> TelemetryPurpose.ADVANCED_SEARCH.equals(telemetryData.getPurpose())).findAny()
+        .orElse(null);
+  }
+
   @Test
   public void testSearchIndex_Telemetry() throws Exception {
     indexService.createSearchIndex();
     searchService.searchIndex("organizationName:org1 itemType:it2", 1, 0);
     searchService.searchIndex("itemType:it1", 1, 0);
-    TelemetryData telemetryData = advancedSearchTelemetryCollector.collectData();
+    TelemetryData telemetryData = collectSearchTelemetry();
 
     @SuppressWarnings("unchecked")
     List<SearchCount> actualSearchCounts =
@@ -79,7 +85,7 @@ public class SearchServiceTest
   public void testSearchIndex_TelemetryNotAddedWhenPagingThroughResults() throws Exception {
     indexService.createSearchIndex();
     searchService.searchIndex("itemType:it1", 10, 1);
-    TelemetryData telemetryData = advancedSearchTelemetryCollector.collectData();
+    TelemetryData telemetryData = collectSearchTelemetry();
 
     assertThat(telemetryData).isNull();
   }
@@ -92,7 +98,7 @@ public class SearchServiceTest
       searchService.searchIndex("invalidFieldName:value", 1, 0);
     });
 
-    TelemetryData telemetryData = advancedSearchTelemetryCollector.collectData();
+    TelemetryData telemetryData = collectSearchTelemetry();
 
     @SuppressWarnings("unchecked")
     List<SearchCount> actualSearchCounts =
@@ -110,7 +116,7 @@ public class SearchServiceTest
   public void testSearchIndex_TelemetryDuplicateFieldNamesInQueryAreIgnored() throws Exception {
     indexService.createSearchIndex();
     searchService.searchIndex("itemType:it1 itemType:it2", 1, 0);
-    TelemetryData telemetryData = advancedSearchTelemetryCollector.collectData();
+    TelemetryData telemetryData = collectSearchTelemetry();
 
     @SuppressWarnings("unchecked")
     List<SearchCount> actualSearchCounts =
@@ -121,50 +127,5 @@ public class SearchServiceTest
     assertThat(telemetryData.getAttributes()).containsOnlyKeys(TOTAL_SEARCHES, TOTAL_SEARCHES_BY_FIELD_NAME);
     assertThat(actualSearchCounts).usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(expectedSearchCounts);
     assertThat(telemetryData.getAttributes().get(TOTAL_SEARCHES)).isEqualTo(1L);
-  }
-
-  @Test
-  public void testAutoCompleteSearchQuery_NoSearchSuggesterIndexDirectory() {
-    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> searchService.autoCompleteSearchQuery("query"))
-        .withMessageContaining("Index does not exist or is unreadable, please (re)create your index.");
-  }
-
-  @Test
-  public void testAutoCompleteSearchQuery_EmptySearchSuggesterIndexDirectory() throws Exception {
-    Files.createDirectories(insightWork.getSearchSuggesterDir().toPath());
-    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> searchService.autoCompleteSearchQuery("query"))
-        .withMessageContaining("Index does not exist or is unreadable, please (re)create your index.");
-  }
-
-  @Test
-  public void testFindStartOfLastClause() {
-    assertThat(SearchService.findStartOfLastClause("")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo:bar")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo:bar ")).isEqualTo(8);
-    assertThat(SearchService.findStartOfLastClause("foo:\"bar ")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo:\\\"bar ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:[bar ")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo:[bar] ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:[bar} ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:\\[bar ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:{bar ")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo:{bar} ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:{bar] ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:\\{bar ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:/bar ")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo:/bar/ ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo:\\/bar ")).isEqualTo(10);
-    assertThat(SearchService.findStartOfLastClause("foo bar")).isEqualTo(4);
-    assertThat(SearchService.findStartOfLastClause("+b")).isEqualTo(1);
-    assertThat(SearchService.findStartOfLastClause("foo +b")).isEqualTo(5);
-    assertThat(SearchService.findStartOfLastClause("foo+b")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("-b")).isEqualTo(1);
-    assertThat(SearchService.findStartOfLastClause("foo -b")).isEqualTo(5);
-    assertThat(SearchService.findStartOfLastClause("foo-b")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("!b")).isEqualTo(1);
-    assertThat(SearchService.findStartOfLastClause("foo !b")).isEqualTo(5);
-    assertThat(SearchService.findStartOfLastClause("foo!b")).isEqualTo(0);
-    assertThat(SearchService.findStartOfLastClause("foo (b")).isEqualTo(5);
   }
 }

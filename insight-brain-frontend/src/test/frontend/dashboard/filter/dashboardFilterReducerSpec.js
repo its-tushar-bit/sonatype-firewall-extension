@@ -142,13 +142,11 @@ describe('dashboardFilterReducer', function() {
               id: 'tagId1',
               organizationId: 'orgId1',
               name: 'TagOne',
-              nameLowercaseNoWhitespace: 'tagone',
               description: 'Tag One Description'
             }, {
               id: 'tagId2',
               organizationId: 'orgId2',
               name: 'TagTwo',
-              nameLowercaseNoWhitespace: 'tagtwo',
               description: 'Tag Two Description'
             }
           ],

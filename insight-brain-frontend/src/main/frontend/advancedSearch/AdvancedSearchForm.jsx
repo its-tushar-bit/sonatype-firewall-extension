@@ -4,32 +4,36 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { Fragment } from 'react';
+import React, { Fragment, useState } from 'react';
 import {NxButton, NxTextInput} from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
+import AdvancedSearchHelp from './AdvancedSearchHelp';
+import AdvancedSearchCriteriaBuilder from './AdvancedSearchCriteriaBuilder';
 
 export default function AdvancedSearchForm(props) {
   const {
     searchFormSubmit,
     setCurrentQuery,
-    getQuerySuggestions,
     currentQuery,
-    querySuggestions,
     searchResult: {
       page,
       totalNumberOfHits
     }
   } = props;
 
+  const [showCriteriaBuilder, setShowCriteriaBuilder] = useState(false);
+
+  const inputFieldId = 'advanced-search-input';
+
   function queryInputOnChangeHandler(e) {
     setCurrentQuery(e);
-    getQuerySuggestions();
   }
 
   function formOnSubmitHandler(e) {
     e.preventDefault();
     if (currentQuery) {
       searchFormSubmit();
+      setShowCriteriaBuilder(false);
     }
   }
 
@@ -54,22 +58,11 @@ export default function AdvancedSearchForm(props) {
       <form className="nx-form nx-form--simple nx-form--advanced-search"
             id="advanced-search-form"
             onSubmit={formOnSubmitHandler}>
-        <NxTextInput id="advanced-search-input"
+        <NxTextInput id={inputFieldId}
                      className="nx-text-input nx-text-input--advanced-search"
-                     list="advanced-search-suggestions-list"
                      isPristine={currentQuery === ''}
                      onChange={queryInputOnChangeHandler}
-                     value={currentQuery}
-                     placeholder="Start typing your query for suggestions"
-        />
-        <datalist id="advanced-search-suggestions-list">
-          {
-            querySuggestions &&
-            querySuggestions.map(suggestion => {
-              return <option key={suggestion} value={suggestion}/>;
-            })
-          }
-        </datalist>
+                     value={currentQuery}/>
         <NxButton id="advanced-search-button"
                   inline
                   variant="primary"
@@ -77,6 +70,11 @@ export default function AdvancedSearchForm(props) {
           Search
         </NxButton>
       </form>
+      <AdvancedSearchCriteriaBuilder {...props}
+                                     inputFieldId={inputFieldId}
+                                     showCriteriaBuilder={showCriteriaBuilder}
+                                     setShowCriteriaBuilder={setShowCriteriaBuilder}/>
+      <AdvancedSearchHelp {...props} />
       <div className="nx-tile">
         <div className="nx-tile__actions">
           {
@@ -109,10 +107,8 @@ export default function AdvancedSearchForm(props) {
 AdvancedSearchForm.propTypes = {
   // actions
   setCurrentQuery: PropTypes.func.isRequired,
-  getQuerySuggestions: PropTypes.func.isRequired,
   searchFormSubmit: PropTypes.func.isRequired,
   // formState
-  querySuggestions: PropTypes.array,
   currentQuery: PropTypes.string.isRequired,
   searchResult: PropTypes.object,
   totalNumberOfHits: PropTypes.number

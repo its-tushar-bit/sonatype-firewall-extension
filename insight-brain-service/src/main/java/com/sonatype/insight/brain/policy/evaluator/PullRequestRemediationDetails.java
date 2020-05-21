@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.utils.TemplateUtils;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
@@ -51,7 +52,9 @@ public class PullRequestRemediationDetails
   private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
       .ofPattern("yyyy-MM-dd HH:mm:ss O").withLocale(Locale.ENGLISH);
 
-  private static Template policyThreatsTemplate;
+  private static Template policyThreatsMDEmbeddedHtmlTemplate;
+
+  private static Template policyThreatsMDMinimalTemplate;
 
   private final Application app;
 
@@ -70,12 +73,14 @@ public class PullRequestRemediationDetails
   private final String stage;
 
   static {
-    String templateName = "pullrequest-threats.ftl";
     try {
-      policyThreatsTemplate = TemplateUtils.createFreemarkerConfig().getTemplate(templateName);
+      policyThreatsMDEmbeddedHtmlTemplate =
+          TemplateUtils.createFreemarkerConfig().getTemplate("pullrequest-threats.ftl");
+      policyThreatsMDMinimalTemplate =
+          TemplateUtils.createFreemarkerConfig().getTemplate("pullrequest-minimal-markdown-threats.ftl");
     }
     catch (IOException e) {
-      log.error("Error loading {}: {}", templateName, e.getMessage(), e);
+      log.error("Error loading threats template: {}", e.getMessage(), e);
     }
   }
 
@@ -86,10 +91,16 @@ public class PullRequestRemediationDetails
                                        final Application app,
                                        final String scanId,
                                        final String stage,
-                                       final String baseUrl) throws IOException
+                                       final String baseUrl,
+                                       final SourceControlProvider provider) throws IOException
   {
-    if (policyThreatsTemplate == null) {
-      throw new IOException("Unable to construct PullRequestRemediationDetails: no template available");
+    if (policyThreatsMDEmbeddedHtmlTemplate == null) {
+      throw new IOException(
+          "Unable to construct PullRequestRemediationDetails: rich Markdown template is unavailable");
+    }
+    if (policyThreatsMDMinimalTemplate == null) {
+      throw new IOException(
+          "Unable to construct PullRequestRemediationDetails: minimal Markdown template is unavailable");
     }
 
     this.toBeRemediated = toBeRemediated;
@@ -99,7 +110,7 @@ public class PullRequestRemediationDetails
     this.app = app;
     this.scanId = scanId;
     this.stage = stage;
-    this.contents = constructContents(notifications, baseUrl);
+    this.contents = constructContents(notifications, baseUrl, provider);
   }
 
   public String getTitle() {
@@ -143,7 +154,8 @@ public class PullRequestRemediationDetails
 
   private String constructContents(
       final List<PolicyNotification> notifications,
-      final String baseUrl) throws IOException
+      final String baseUrl,
+      final SourceControlProvider provider) throws IOException
   {
     List<Map<String, Object>> threatList = notifications.stream()
         .map(policyNotification -> ImmutableMap.<String, Object>builder()
@@ -167,7 +179,7 @@ public class PullRequestRemediationDetails
         .put("baseIqUrl", baseUrl)
         .build();
 
-    return TemplateUtils.render(policyThreatsTemplate, model);
+    return TemplateUtils.render(getPolicyTemplate(provider), model);
   }
 
   /**
@@ -240,5 +252,16 @@ public class PullRequestRemediationDetails
   private String constructMavenSearchUrl(Map<String, String> coordinates) {
     return MessageFormat.format("https://search.maven.org/artifact/{0}/{1}/{2}/jar",
         coordinates.get(MAVEN_GROUP_ID), coordinates.get(MAVEN_ARTIFACT_ID), coordinates.get(VERSION));
+  }
+
+  private Template getPolicyTemplate(SourceControlProvider provider) {
+    switch (provider) {
+      case GITHUB:
+        return policyThreatsMDEmbeddedHtmlTemplate;
+      case BITBUCKET:
+        return policyThreatsMDMinimalTemplate;
+      default:
+        throw new IllegalStateException("No template defined for provider: " + provider);
+    }
   }
 }

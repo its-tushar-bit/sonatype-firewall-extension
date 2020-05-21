@@ -17,6 +17,8 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.SystemRunnable;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -42,6 +44,8 @@ public class PullRequestPollingScheduler
 
   private ScheduledExecutorService scheduledExecutorService;
 
+  private final InsightConfig insightConfig;
+
   private final int pullRequestMonitoringIntervalSeconds;
 
   private final int pullRequestMonitoringDelaySeconds;
@@ -50,31 +54,37 @@ public class PullRequestPollingScheduler
 
   @Inject
   public PullRequestPollingScheduler(
-      PullRequestPollingService pullRequestPollingService,
-      ProductLicense productLicense)
+      final PullRequestPollingService pullRequestPollingService,
+      final ProductLicense productLicense,
+      final InsightConfig insightConfig)
   {
-    this.pullRequestPollingService = pullRequestPollingService;
-    this.productLicense = productLicense;
-    pullRequestMonitoringDelaySeconds = PULL_REQUEST_MONITORING_DELAY_SECONDS;
-    pullRequestMonitoringIntervalSeconds = PULL_REQUEST_MONITORING_INTERVAL_SECONDS;
+    this(pullRequestPollingService, productLicense, insightConfig, PULL_REQUEST_MONITORING_DELAY_SECONDS,
+        PULL_REQUEST_MONITORING_INTERVAL_SECONDS);
   }
 
   @VisibleForTesting
   PullRequestPollingScheduler(
       PullRequestPollingService pullRequestPollingService,
       ProductLicense productLicense,
+      final InsightConfig insightConfig,
       int pullRequestMonitoringDelaySeconds,
       int pullRequestMonitoringIntervalSeconds)
   {
     this.pullRequestPollingService = pullRequestPollingService;
     this.productLicense = productLicense;
+    this.insightConfig = insightConfig;
     this.pullRequestMonitoringDelaySeconds = pullRequestMonitoringDelaySeconds;
     this.pullRequestMonitoringIntervalSeconds = pullRequestMonitoringIntervalSeconds;
   }
 
   @Override
   public void start() throws Exception {
-    startPullRequestMonitoring();
+    if (insightConfig.isFeatureEnabled(Feature.PR_COMMENTING)) {
+      startPullRequestMonitoring();
+    }
+    else {
+      log.info("Pull request commenting feature is disabled; Pull request polling scheduler is not started.");
+    }
   }
 
   @Override

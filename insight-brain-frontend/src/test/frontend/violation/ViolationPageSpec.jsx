@@ -4,12 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import * as PropTypes from 'prop-types';
 import { always } from 'ramda';
 
 import * as enzymeUtils from '../enzymeUtils';
-import ViolationPage from '../../../main/frontend/violation/ViolationPage';
 import ViolationDetailsTile from '../../../main/frontend/violation/ViolationDetailsTile';
-import BackButton from '../../../main/frontend/react/BackButton';
+import PolicyViolationInfoTile from '../../../main/frontend/violation/PolicyViolationInfoTile';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 
 // MaximizedContainer must be mocked because it depends on an angular service
@@ -17,22 +17,31 @@ function MaximizedContainer({ children }) {
   return <div>{children}</div>;
 }
 
+MaximizedContainer.propTypes = {
+  children: PropTypes.node
+};
+
 describe('ViolationPage', function() {
   let minimalProps,
       loadViolationSpy,
       fetchStageTypesSpy,
       ViolationPage,
       getShallowComponent,
-      getMountedComponent;
+      getMountedComponent,
+      SidebarNavListContainerMock;
 
   beforeEach(function() {
+    SidebarNavListContainerMock = jasmine.createSpy('SidebarNavListContainerMock')
+        .and.returnValue(<div>NavList</div>);
+
     ViolationPage =
         require('inject-loader!../../../main/frontend/violation/ViolationPage')({
-          '../react/MaximizedContainer': MaximizedContainer
+          '../react/MaximizedContainer': MaximizedContainer,
+          '../sidebarNav/SidebarNavListContainer': SidebarNavListContainerMock
         }).default;
 
-    loadViolationSpy =jasmine.createSpy('loadViolation');
-    fetchStageTypesSpy =jasmine.createSpy('fetchStageTypes');
+    loadViolationSpy = jasmine.createSpy('loadViolation');
+    fetchStageTypesSpy = jasmine.createSpy('fetchStageTypes');
 
     minimalProps = {
       $state: {
@@ -53,15 +62,15 @@ describe('ViolationPage', function() {
     getMountedComponent = enzymeUtils.getMountedComponent(ViolationPage, minimalProps);
   });
 
-  it('renders a MaximizedContainer with the "violation-page" id and "nx-root-container" class', function() {
+  it('renders a MaximizedContainer with the "violation-page" id and "nx-page-content" class', function() {
     const component = getShallowComponent();
 
     expect(component).toMatchSelector(MaximizedContainer);
-    expect(component).toMatchSelector('#violation-page.nx-root-container');
+    expect(component).toMatchSelector('#violation-page.nx-page-content');
   });
 
-  it('renders a BackButton using the supplied $state', function() {
-    expect(getShallowComponent().find(BackButton)).toHaveProp('$state', minimalProps.$state);
+  it('renders a SidebarNavListContainer using the supplied $state', function() {
+    expect(getShallowComponent().find(SidebarNavListContainerMock)).toHaveProp('$state', minimalProps.$state);
   });
 
   it('renders a LoadWrapper within the nx-page-main', function() {
@@ -78,16 +87,16 @@ describe('ViolationPage', function() {
     expect(getLoadWrapper({ violationDetails: {}, stageTypes: [], loading: true })).toHaveProp('loading', true);
   });
 
-  it('sets the LoadWrapper\'s error from the error and stageTypesError props', function() {
+  it('sets the LoadWrapper\'s error from the violationDetailsError and stageTypesError props', function() {
     const getLoadWrapper = props => getShallowComponent(props).find('.nx-page-main').find(LoadWrapper);
 
     expect(getLoadWrapper()).toHaveProp('error', undefined);
-    expect(getLoadWrapper({ error: 'foo' })).toHaveProp('error', 'foo');
+    expect(getLoadWrapper({ violationDetailsError: 'foo' })).toHaveProp('error', 'foo');
     expect(getLoadWrapper({ stageTypesError: 'foo' })).toHaveProp('error', 'foo');
-    expect(getLoadWrapper({ error: 'foo', stageTypesError: 'bar' })).toHaveProp('error', 'foo');
+    expect(getLoadWrapper({ violationDetailsError: 'foo', stageTypesError: 'bar' })).toHaveProp('error', 'foo');
   });
 
-  it('calls loadViolation with the $state id param, and fetchStageTypes with the `dashboard` param, on first load', 
+  it('calls loadViolation with the $state id param, and fetchStageTypes with the `dashboard` param, on first load',
       function() {
         getMountedComponent();
 
@@ -119,4 +128,21 @@ describe('ViolationPage', function() {
         expect(tile.prop('stageTypes')).toBe(stageTypes);
       }
   );
+
+  it('renders a PolicyViolationInfoTile within the LoadWrapper with correct props', function() {
+    const violationDetails = {},
+        vulnerabilityDetails = {},
+        tile = getShallowComponent({
+          violationDetails,
+          vulnerabilityDetails,
+          vulnerabilityDetailsError: 'Test Error',
+          vulnerabilityDetailsLoading: true
+        }).find(LoadWrapper).find(PolicyViolationInfoTile);
+
+    expect(tile).toExist();
+    expect(tile.prop('violationDetails')).toBe(violationDetails);
+    expect(tile.prop('vulnerabilityDetails')).toBe(vulnerabilityDetails);
+    expect(tile.prop('vulnerabilityDetailsError')).toBe('Test Error');
+    expect(tile.prop('vulnerabilityDetailsLoading')).toBe(true);
+  });
 });

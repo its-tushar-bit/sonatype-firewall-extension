@@ -47,7 +47,8 @@ public class ApiCompositeSourceControlResourceTest
     app = tempEntity.newApplicationWithParent();
     org = tempEntity.newOrganization();
     rootOrgSourceControl = tempEntity
-        .newSourceControl(ROOT_ORGANIZATION_ID, null, "TOKEN", SourceControlProvider.GITHUB, null, null, "BASE_BRANCH");
+        .newSourceControl(ROOT_ORGANIZATION_ID, null, null, "TOKEN", SourceControlProvider.GITHUB, null, null,
+            "BASE_BRANCH", null);
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
   }
 
@@ -69,6 +70,9 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.ownerId).isEqualTo(rootOrgSourceControl.getOwnerId());
     assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(result.repositoryUrl).isNull();
+    assertThat(result.username.value).isNull();
+    assertThat(result.username.parentName).isNull();
+    assertThat(result.username.parentValue).isNull();
     assertThat(result.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(result.token.parentName).isNull();
     assertThat(result.token.parentValue).isNull();
@@ -98,6 +102,9 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.ownerId).isEqualTo(rootOrgSourceControl.getOwnerId());
     assertThat(result.provider).isNull();
     assertThat(result.repositoryUrl).isNull();
+    assertThat(result.username.value).isNull();
+    assertThat(result.username.parentName).isNull();
+    assertThat(result.username.parentValue).isNull();
     assertThat(result.token.value).isNull();
     assertThat(result.token.parentName).isNull();
     assertThat(result.token.parentValue).isNull();
@@ -115,7 +122,7 @@ public class ApiCompositeSourceControlResourceTest
   @Test
   public void testGetCompositeSourceControlByOwner_Organization() throws Exception {
     final SourceControl orgSourceControl =
-        tempEntity.newSourceControl(org.getId(), null, "TOKEN", null, false, null, null);
+        tempEntity.newSourceControl(org.getId(), null, null, "TOKEN", null, false, null, null, null);
 
     final HttpResponse response = restRequest()
         .path(ApiCompositeSourceControlResource.BY_OWNER)
@@ -128,6 +135,9 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.ownerId).isEqualTo(orgSourceControl.getOwnerId());
     assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(result.repositoryUrl).isNull();
+    assertThat(result.username.value).isNull();
+    assertThat(result.username.parentName).isNull();
+    assertThat(result.username.parentValue).isNull();
     assertThat(result.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(result.token.parentName).isEqualTo(rootOrganization.getName());
     assertThat(result.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
@@ -147,7 +157,7 @@ public class ApiCompositeSourceControlResourceTest
     final Organization parentOrg = organizationDAO.getById(app.getOrganizationId());
     tempEntity.newSourceControl(parentOrg.getId(), null, "TOKEN", null, false, null, null);
     final SourceControl appSourceControl =
-        tempEntity.newSourceControl(app.getId(), VALID_URL, "TOKEN", null, null, true, null);
+        tempEntity.newSourceControl(app.getId(), VALID_URL, null, "TOKEN", null, null, true, null, null);
 
     final HttpResponse response = restRequest()
         .path(ApiCompositeSourceControlResource.BY_OWNER)
@@ -160,6 +170,9 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.ownerId).isEqualTo(appSourceControl.getOwnerId());
     assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(result.repositoryUrl).isEqualTo(VALID_URL);
+    assertThat(result.username.value).isNull();
+    assertThat(result.username.parentName).isNull();
+    assertThat(result.username.parentValue).isNull();
     assertThat(result.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(result.token.parentName).isEqualTo(parentOrg.getName());
     assertThat(result.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
@@ -187,6 +200,9 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.ownerId).isEqualTo(app.getId());
     assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(result.repositoryUrl).isNull();
+    assertThat(result.username.value).isNull();
+    assertThat(result.username.parentName).isNull();
+    assertThat(result.username.parentValue).isNull();
     assertThat(result.token.value).isNull();
     assertThat(result.token.parentName).isEqualTo(rootOrganization.getName());
     assertThat(result.token.parentValue).isEqualTo(FAKE_SECRET_KEY);

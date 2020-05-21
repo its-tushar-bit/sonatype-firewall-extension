@@ -60,6 +60,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -91,8 +92,6 @@ public class RepositoryPolicyEvaluator
 
   private final FirewallQuarantineHdsClient quarantineHdsClient;
 
-  private final ComponentDetailsLoader componentDetailsLoader;
-
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
   
   private final FirewallIgnorePatternService firewallIgnorePatternService;
@@ -109,7 +108,6 @@ public class RepositoryPolicyEvaluator
                                    RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
                                    FirewallAuditHdsClient auditHdsClient,
                                    FirewallQuarantineHdsClient quarantineHdsClient,
-                                   ComponentDetailsLoader componentDetailsLoader,
                                    PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications,
                                    PolicyViolationLoggerFactory policyViolationLoggerFactory,
                                    FirewallIgnorePatternService firewallIgnorePatternService,
@@ -120,7 +118,6 @@ public class RepositoryPolicyEvaluator
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.auditHdsClient = auditHdsClient;
     this.quarantineHdsClient = quarantineHdsClient;
-    this.componentDetailsLoader = componentDetailsLoader;
     this.pendingRepositoryPolicyNotifications = pendingRepositoryPolicyNotifications;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.firewallIgnorePatternService = firewallIgnorePatternService;
@@ -152,6 +149,7 @@ public class RepositoryPolicyEvaluator
     Predicate<String> componentPathnameMatchesIgnorePattern =
         firewallIgnorePatternService.componentPathnameMatchesIgnorePattern(repository);
     List<Component> components = new ArrayList<>();
+    ComponentDetailsLoader componentDetailsLoader = new ComponentDetailsLoader(repository);
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationDataRequest componentEvaluationRequest =
           componentEvaluationDataRequestList.components.get(requestIndex);
@@ -175,14 +173,15 @@ public class RepositoryPolicyEvaluator
       }
       else {
         // Use the claimed component data if found
-        NamedComponentDetails componentDetails = componentDetailsLoader.getComponentDetailsLocally(
-            null /* componentIdentifier */, componentEvaluationData.hash);
+        NamedComponentDetails componentDetails = ComponentDetailsLoader
+            .getComponentDetailsLocally(null /* componentIdentifier */, componentEvaluationData.hash);
         if (componentDetails == null) {
           componentDetails = ComponentDetailsAdapter.convert(componentEvaluationData);
           componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
         }
-        Component component = augmentComponentDetails(repository, componentDetails);
+        Component component = componentDetailsLoader.augmentComponentDetails(componentDetails);
         component.addPathname(componentEvaluationRequest.pathname);
+        component.setAnalyzerFeatures(componentEvaluationData.analyzerFeatures);
         components.add(component);
       }
     }
@@ -286,6 +285,7 @@ public class RepositoryPolicyEvaluator
           component.getComponentIdentifier(), component.getMatchState().getId(), component.getIdentificationSource()
               .getId(), evaluationTime);
       repositoryComponent.setQuarantineTime(quarantineTime);
+      repositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
       repositoryComponentDAO.insert(tx, repositoryComponent);
     }
     else {
@@ -294,6 +294,7 @@ public class RepositoryPolicyEvaluator
       repositoryComponent.setMatchStateId(component.getMatchState().getId());
       repositoryComponent.setIdentificationSourceId(component.getIdentificationSource().getId());
       repositoryComponent.setLastEvaluationTime(evaluationTime);
+      repositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
       repositoryComponentDAO.update(tx, repositoryComponent);
     }
     return repositoryComponent;
@@ -307,12 +308,11 @@ public class RepositoryPolicyEvaluator
                                        RepositoryPolicyViolationLogger policyViolationLogger)
   {
     String pathname = component.getPathnames().get(0);
-    // Update the current RepositoryPolicyViolations for this component
+    // Delete the current RepositoryPolicyViolations for this component
     List<RepositoryPolicyViolation> oldPolicyViolations =
         repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(tx, repository.getId(), pathname);
     for (RepositoryPolicyViolation policyViolation : oldPolicyViolations) {
-      policyViolation.setActive(false);
-      repositoryPolicyViolationDAO.update(tx, policyViolation);
+      repositoryPolicyViolationDAO.delete(tx, policyViolation);
     }
     // Insert new RepositoryPolicyViolations for this component
     List<RepositoryPolicyViolation> newPolicyViolations = new ArrayList<>();
@@ -439,10 +439,6 @@ public class RepositoryPolicyEvaluator
       }
     }
     return null;
-  }
-
-  private Component augmentComponentDetails(Repository repository, NamedComponentDetails componentDetails) {
-    return componentDetailsLoader.augmentComponentDetails(repository, componentDetails);
   }
 
   private ComponentEvaluationDataList getComponentDetailsFromHds(

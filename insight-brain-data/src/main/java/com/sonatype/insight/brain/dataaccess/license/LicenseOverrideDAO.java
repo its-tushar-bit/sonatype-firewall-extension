@@ -49,11 +49,12 @@ public class LicenseOverrideDAO
    *
    * @since 1.17
    */
-  public LicenseOverride getAppliedByOwnerIdAndComponentIdentifier(String ownerId,
-                                                                   ComponentIdentifier componentIdentifier)
+  public LicenseOverride getAppliedByOwnerIdAndComponentIdentifier(
+      Owner owner,
+      ComponentIdentifier componentIdentifier)
   {
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      LicenseOverride override = getByOwnerIdAndComponentIdentifier(owner.getId(), componentIdentifier);
+    for (Owner anOwner : ownerDAO.walkHierarchy(owner)) {
+      LicenseOverride override = getByOwnerIdAndComponentIdentifier(anOwner.getId(), componentIdentifier);
       if (override != null) {
         return override;
       }

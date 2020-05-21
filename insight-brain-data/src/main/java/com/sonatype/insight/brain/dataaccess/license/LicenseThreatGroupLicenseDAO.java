@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -51,6 +52,12 @@ public class LicenseThreatGroupLicenseDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByLicenseThreatGroupId(tx, licenseThreatGroupId);
     }
+  }
+
+  public List<LicenseThreatGroupLicense> getByLicenseThreatGroupIds(Set<String> licenseThreatGroupIds) {
+    String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
+        " WHERE entity.licenseThreatGroupId IN (?1)";
+    return getList(sQuery, licenseThreatGroupIds);
   }
 
   @Override
@@ -112,5 +119,11 @@ public class LicenseThreatGroupLicenseDAO
   public List<LicenseThreatGroupLicense> getAll() {
     String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity";
     return getList(sQuery);
+  }
+
+  public List<LicenseThreatGroupLicense> getByOwnerIds(Collection<String> ownerIds) {
+    String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
+        " WHERE entity.ownerId IN (?1)";
+    return getList(sQuery, ownerIds);
   }
 }

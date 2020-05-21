@@ -210,7 +210,7 @@ public class RepositoryReportTest
 
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, CRITICAL_IDENTIFIER);
 
-    tempEntity.newRepositoryPolicyViolation(component.getRepositoryId(), 10, component.getPathname(), false, true,
+    tempEntity.newRepositoryPolicyViolation(component.getRepositoryId(), 10, component.getPathname(), false,
         extremelyBadPolicy.getId(), extremelyBadPolicy.getName(), component.getComponentIdentifier());
     criticalComponentHash = component.getHash();
 
@@ -380,6 +380,7 @@ public class RepositoryReportTest
     RepositoryReportPage.table().row(0).openCip();
 
     RepositoryReportPage.table().cipTab("Component Info").click();
+    VersionsCIP.componentType().shouldHave(text("maven"));
     VersionsCIP.groupId().shouldHave(text("critical"));
     VersionsCIP.artifactId().shouldHave(text("threat"));
     VersionsCIP.version().shouldHave(text("1.0"));
@@ -438,7 +439,8 @@ public class RepositoryReportTest
     RepositoryReportPage.waitForComponentUpdater();
 
     // label persisted
-    assertThat(new ComponentLabelDAO().getByOwnerIdAndHash(repo.getId(), criticalComponentHash)).hasSize(2);
+    assertThat(new ComponentLabelDAO().getByOwnerIdAndHashWithHierarchy(repo.getId(), criticalComponentHash))
+        .hasSize(2);
 
     // new table row for the policy violation
     RepositoryReportPage.filter().allViolations().click();
@@ -459,7 +461,7 @@ public class RepositoryReportTest
     RemoveLabelModal.root().should(disappear);
 
     // backend check that it was removed
-    List<ComponentLabel> appliedLabels = new ComponentLabelDAO().getByOwnerIdAndHash(repo.getId(),
+    List<ComponentLabel> appliedLabels = new ComponentLabelDAO().getByOwnerIdAndHashWithHierarchy(repo.getId(),
         criticalComponentHash);
     assertThat(appliedLabels).extracting(ComponentLabel::getLabelId).containsExactlyInAnyOrder(elJunko.getId());
 
@@ -522,7 +524,7 @@ public class RepositoryReportTest
     // Verify repository policy violation and policy waiver both contain the correct content
     List<RepositoryPolicyViolation> repositoryPolicyViolations = new RepositoryPolicyViolationDAO()
         .getByRepositoryId(repo.getId());
-    assertThat(repositoryPolicyViolations).hasSize(4);
+    assertThat(repositoryPolicyViolations).hasSize(2);
 
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(repo.getId());
     assertThat(policyWaivers).hasSize(1);
@@ -795,7 +797,7 @@ public class RepositoryReportTest
             policy.getId(), policy.getConstraints().get(0).getId(), Collections.emptyList() /* conditionTriggers */)));
 
     RepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(component.getRepositoryId(),
-        policy.getThreatLevel(), component.getPathname(), false, true, policy.getId(), policy.getName(),
+        policy.getThreatLevel(), component.getPathname(), false, policy.getId(), policy.getName(),
         component.getComponentIdentifier());
 
     violation.setConstraintFacts(Collections.singletonList(constraintFact));

@@ -91,7 +91,7 @@ public class RepositoryPolicyViolationDAOTest
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, pathname, null);
 
     final String policyIdSecond = "policyId2";
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, false, true, policyIdSecond,
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, false, policyIdSecond,
         "policyName2", null);
 
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, null);
@@ -119,7 +119,7 @@ public class RepositoryPolicyViolationDAOTest
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, pathname, null);
 
     final String policyIdSecond = "policyId2";
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, false, true, policyIdSecond,
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, false, policyIdSecond,
         "policyName2", null);
 
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, null);

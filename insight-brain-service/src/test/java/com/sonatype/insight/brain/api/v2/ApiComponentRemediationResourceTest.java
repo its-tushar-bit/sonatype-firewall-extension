@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Before;
@@ -78,8 +79,7 @@ public class ApiComponentRemediationResourceTest
   @Test
   public void testSuggestedRemediation_Application_ThirdParty_WithViolation() throws Exception {
     createPolicyWithSecurityVulnerabilityConstraint(org.getId());
-    // for third party data we have no way of knowing the any remediation versions, so this will return 0 elements
-    testSuggestedRemediation_Application_ThirdParty(0);
+    testSuggestedRemediation_Application_ThirdParty(1);
   }
 
   private void testSuggestedRemediation_Application_ThirdParty(final int expectedRemediationVersionsCount)
@@ -87,7 +87,7 @@ public class ApiComponentRemediationResourceTest
   {
     final String scanId = "ScanId";
     createReportFile(app.getId(), scanId, "/ApiComponentRemediationResourceTest/report");
-    final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian", "glibc", "2.24-11+deb9u3");
+    final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian-9", "glibc", "2.24-11+deb9u3");
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(tpComponentIdentifier, null);
 
     String identificationSource = IdentificationSource.CLAIR.getId();
@@ -105,6 +105,10 @@ public class ApiComponentRemediationResourceTest
     assertThat(result).isNotNull();
     assertThat(result.remediation.versionChanges)
         .hasSize(expectedRemediationVersionsCount);
+
+    ApiVersionChangeOptionDTO versionChangeDTO = result.remediation.versionChanges.get(0);
+    assertThat(versionChangeDTO.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    assertThat(versionChangeDTO.getData().getComponent().packageUrl).isEqualTo("pkg:debian-9/glibc@3.47-32%2Bdeb9u1");
   }
 
   @Test
@@ -116,6 +120,7 @@ public class ApiComponentRemediationResourceTest
   
   private void assertRemediationApplication(ApiComponentDTOV2 component) throws Exception {
     mockComponentSummary(MAVEN_COORDINATES_V1, ComponentSummary.create(true));
+    mockGetDependencies(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>()));
     createPolicyWithSecurityVulnerabilityConstraint(app.getId());
 
     ComponentDetails details1 = createComponentDetailsForSecurityViolation(MAVEN_COORDINATES_V1);
@@ -151,6 +156,7 @@ public class ApiComponentRemediationResourceTest
   }
   
   private void assertRemediationOrganization(final ApiComponentDTOV2 component) throws Exception {
+    mockGetDependencies(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>()));
     mockComponentSummary(MAVEN_COORDINATES_V1, ComponentSummary.create(true));
     Organization org = tempEntity.newOrganization("testOrg");
     createPolicyWithSecurityVulnerabilityConstraint(org.getId());

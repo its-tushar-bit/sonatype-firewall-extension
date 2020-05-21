@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.label;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -45,10 +46,13 @@ public class ComponentLabelDAO
     return getList(tx, sQuery, labelId, ownerIds);
   }
 
-  public List<ComponentLabel> getByOwnerIdAndHash(String ownerId, String hash) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByOwnerIdAndHash(tx, ownerId, hash);
+  public List<ComponentLabel> getByOwnerIdAndHashWithHierarchy(String ownerId, String hash) {
+    List<ComponentLabel> labels = new ArrayList<>();
+    OwnerDAO ownerDAO = new OwnerDAO();
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+      labels.addAll(getByOwnerIdAndHash(owner.getId(), hash));
     }
+    return labels;
   }
 
   public List<ComponentLabel> getByOwnerId(String ownerId) {
@@ -63,16 +67,16 @@ public class ComponentLabelDAO
     return getList(tx, sQuery, ownerId);
   }
 
+  public List<ComponentLabel> getByOwnerIdAndHash(String ownerId, String hash) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIdAndHash(tx, ownerId, hash);
+    }
+  }
+
   public List<ComponentLabel> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {
     final String sQuery = "SELECT label FROM ComponentLabel label" + //
         " WHERE label.ownerId=?1 AND label.hash=?2";
-
-    List<ComponentLabel> labels = new ArrayList<>();
-    OwnerDAO ownerDAO = new OwnerDAO();
-    for (Owner owner : ownerDAO.walkHierarchy(tx, ownerId)) {
-      labels.addAll(getList(tx, sQuery, owner.getId(), hash));
-    }
-    return labels;
+    return getList(tx, sQuery, ownerId, hash);
   }
 
   /**
@@ -94,6 +98,12 @@ public class ComponentLabelDAO
     String sQuery = "SELECT entity FROM ComponentLabel entity" + //
         " WHERE entity.ownerId=?1 AND entity.hash=?2 AND entity.labelId=?3";
     return get(tx, sQuery, ownerId, hash, labelId);
+  }
+
+  public List<ComponentLabel> getByOwnerIds(Collection<String> ownerIds) {
+    final String sQuery = "SELECT label FROM ComponentLabel label" + //
+        " WHERE label.ownerId IN (?1)";
+    return getList(sQuery, ownerIds);
   }
 
   /**

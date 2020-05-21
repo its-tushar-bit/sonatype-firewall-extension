@@ -314,6 +314,66 @@ public class RootOrganizationSourceControlEditorTest
   }
 
   @Test
+  public void testSourceControlEditor_bitbucketShowCredentialsFeature() {
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB, true, true, "master");
+
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartWithSourceControl();
+    SourceControlEditorPage.provider().chooseOption(new Option(2, "Bitbucket"));
+
+    eyesWatcher.eyesCheck("Source Control Editor Bitbucket Default State");
+
+    SourceControlEditorPage.pullRequestsDisableRadio().shouldBe(visible);
+    SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsUsername().shouldBe(visible);
+    SourceControlEditorPage.credentialsToken().shouldBe(visible);
+    SourceControlEditorPage.token().shouldNotBe(visible);
+    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+    SourceControlEditorPage.credentialsUsername().setValue("myusername");
+    SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.deleteButton().shouldBe(visible);
+    SourceControlEditorPage.credentialsToken().shouldHave(value(FAKE_SECRET_KEY));
+    assertSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.BITBUCKET);
+  }
+
+  @Test
+  public void testSourceControlEditor_bitbucketRequiresCredentials() {
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB, true, true, "master");
+
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartWithSourceControl();
+    SourceControlEditorPage.provider().chooseOption(new Option(2, "Bitbucket"));
+
+    SourceControlEditorPage.pullRequestsDisableRadio().shouldBe(visible);
+    SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsUsername().shouldBe(visible);
+    SourceControlEditorPage.credentialsToken().shouldBe(visible);
+    SourceControlEditorPage.token().shouldNotBe(visible);
+
+    // do NOT set the value in username, leave token filled from previous setting
+    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+
+    // clear token and username, submit is enabled
+    SourceControlEditorPage.credentialsToken().setValue("");
+    SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    // fill username only
+    SourceControlEditorPage.credentialsUsername().setValue("myusername");
+    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+
+    // fill username & token
+    SourceControlEditorPage.credentialsToken().setValue(TOKEN);
+    SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
+  }
+
+  @Test
   public void testSourceControlEditor_LicensingAwareNotificationOnly() {
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
     setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);

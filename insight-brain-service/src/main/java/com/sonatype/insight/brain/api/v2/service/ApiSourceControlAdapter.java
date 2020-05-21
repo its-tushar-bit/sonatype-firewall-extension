@@ -27,6 +27,7 @@ public class ApiSourceControlAdapter
     apiSourceControlDTO.id = sourceControl.getId();
     apiSourceControlDTO.ownerId = sourceControl.getOwnerId();
     apiSourceControlDTO.repositoryUrl = sourceControl.getRepositoryUrl();
+    apiSourceControlDTO.username = sourceControl.getUsername();
     apiSourceControlDTO.token = sourceControl.getToken();
     apiSourceControlDTO.provider = sourceControl.getProvider() == null ? null : sourceControl.getProvider().toString();
     apiSourceControlDTO.baseBranch = sourceControl.getBaseBranch();
@@ -54,10 +55,10 @@ public class ApiSourceControlAdapter
       return null;
     }
 
-    SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(dto.ownerId).setRepositoryUrl(dto.repositoryUrl).setToken(dto.token)
-            .setProvider(getSourceControlProvider(dto.provider)).setEnablePullRequests(dto.enablePullRequests)
-            .setEnableStatusChecks(dto.enableStatusChecks).setBaseBranch(dto.baseBranch).build();
+    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(dto.ownerId)
+        .setRepositoryUrl(dto.repositoryUrl).setUsername(dto.username).setToken(dto.token)
+        .setProvider(getSourceControlProvider(dto.provider)).setEnablePullRequests(dto.enablePullRequests)
+        .setEnableStatusChecks(dto.enableStatusChecks).setBaseBranch(dto.baseBranch).build();
     return sourceControl;
   }
 }

@@ -32,12 +32,16 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME;
 
 /**
  * @since 1.8
@@ -59,13 +63,17 @@ public class PolicyMonitor
 
   private final AuditRecorder auditRecorder;
 
+  private final ThirdPartyScanService thirdPartyScanService;
+
   @Inject
-  public PolicyMonitor(InsightWork work,
-                       ScanUploader uploader,
-                       ScanPolicyEvaluator scanPolicyEvaluator,
-                       PolicyAlertNotifier policyAlertNotifier,
-                       ProductLicense productLicense,
-                       AuditRecorder auditRecorder)
+  public PolicyMonitor(
+      InsightWork work,
+      ScanUploader uploader,
+      ScanPolicyEvaluator scanPolicyEvaluator,
+      PolicyAlertNotifier policyAlertNotifier,
+      ProductLicense productLicense,
+      AuditRecorder auditRecorder,
+      ThirdPartyScanService thirdPartyScanService)
   {
     this.work = work;
     this.uploader = uploader;
@@ -73,6 +81,7 @@ public class PolicyMonitor
     this.policyAlertNotifier = policyAlertNotifier;
     this.productLicense = productLicense;
     this.auditRecorder = auditRecorder;
+    this.thirdPartyScanService = thirdPartyScanService;
   }
 
   public void run() {
@@ -157,7 +166,9 @@ public class PolicyMonitor
     String newScanId = null;
     try {
       cloneScanFile(tempScanFile, app, lastPrimaryPolicyEvaluation);
-      newScanId = uploadScan(tempScanFile, app, policyMonitoring.getStageTypeId());
+      boolean hasThirdPartyContent = hasThirdPartyScanContent(lastPrimaryPolicyEvaluation.getApplicationId(),
+          lastPrimaryPolicyEvaluation.getScanId());
+      newScanId = uploadScan(tempScanFile, app, policyMonitoring.getStageTypeId(), hasThirdPartyContent);
     }
     catch (Exception e) {
       try {
@@ -208,14 +219,31 @@ public class PolicyMonitor
     while (true);
   }
 
-  private String uploadScan(File tempScanFile, Application app, String stageTypeId)
+  private String uploadScan(File tempScanFile, Application app, String stageTypeId, boolean hasThirdPartyContent)
       throws IOException, InterruptedException
   {
-    ScanReceipt scanReceipt = uploader.upload(tempScanFile, app, stageTypeId);
+    ScanReceipt scanReceipt;
+    if (hasThirdPartyContent) {
+      scanReceipt = thirdPartyScanService.filterAndUpload(tempScanFile, app, stageTypeId, null);
+    }
+    else {
+      scanReceipt = uploader.upload(tempScanFile, app, stageTypeId);
+    }
     scanReceipt.waitForReport();
     String scanId = scanReceipt.getScanId();
     Files.move(tempScanFile.toPath(), work.getScanFile(app.getId(), scanId).toPath());
 
     return scanId;
+  }
+
+  private boolean hasThirdPartyScanContent(String appId, String scanId) {
+    try {
+      File file = work.getReportFile(appId, scanId);
+      return Report.getEntry(file, THIRD_PARTY_BOM_JSON_FILENAME) != null;
+    }
+    catch (IOException e) {
+      log.debug("effort fetching report data for app id {} scan id {}", appId, scanId);
+      return false;
+    }
   }
 }

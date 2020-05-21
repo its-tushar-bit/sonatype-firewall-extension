@@ -48,8 +48,8 @@ public class SourceControlUtils
     }
 
     GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo(sourceControl.getRepositoryUrl(), sourceControl.getToken(), sourceControl.getProvider(),
-            sourceControl.getBaseBranch(), sourceControl.getEnablePullRequests(),
+        new GitRepositoryInfo(sourceControl.getRepositoryUrl(), sourceControl.getUsername(), sourceControl.getToken(),
+            sourceControl.getProvider(), sourceControl.getBaseBranch(), sourceControl.getEnablePullRequests(),
             sourceControl.getEnableStatusChecks());
 
     if (!gitRepositoryInfo.isDataComplete()) {
@@ -93,9 +93,11 @@ public class SourceControlUtils
     if (gitRepositoryInfo == null) {
       return false;
     }
-    return StringUtils.isNotBlank(gitRepositoryInfo.repositoryUrl)
-        && gitRepositoryInfo.provider != null
-        && StringUtils.isNotBlank(gitRepositoryInfo.token);
+    return gitRepositoryInfo.provider != null
+        && StringUtils.isNotBlank(gitRepositoryInfo.repositoryUrl)
+        && StringUtils.isNotBlank(gitRepositoryInfo.token)
+        && (!gitRepositoryInfo.provider.requiresUsername() || StringUtils.isNotBlank(gitRepositoryInfo.username))
+        ;
   }
 
   private void populateGitRepositoryInformationFromOrganization(
@@ -113,6 +115,10 @@ public class SourceControlUtils
 
     if (gitRepositoryInfo.enablePullRequests == null) {
       gitRepositoryInfo.enablePullRequests = orgSourceControl.getEnablePullRequests();
+    }
+
+    if (Strings.isNullOrEmpty(gitRepositoryInfo.username)) {
+      gitRepositoryInfo.username = orgSourceControl.getUsername();
     }
 
     if (Strings.isNullOrEmpty(gitRepositoryInfo.token)) {

@@ -9,31 +9,50 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class PolicySelector
     extends AbstractSelector
 {
   protected static final String REPLACEMENT_KEY = "{policyId}";
 
-  private String violationStateExclusions(DbUtilParameters params) {
-    String exclusions = "";
-    exclusions += params.excludeOpen() ? " AND (waive_time IS NOT NULL OR fix_time IS NOT NULL)" : "";
-    exclusions += params.excludeWaived() ? " AND waive_time IS NULL" : "";
-    exclusions += params.excludeFixed() ? " AND fix_time IS NULL" : "";
+  private List<String> violationStateExclusions(DbUtilParameters params) {
+    List<String> exclusions = new ArrayList<>();
+    if (params.excludeOpen()) {
+      exclusions.add("(waive_time IS NOT NULL OR fix_time IS NOT NULL)");
+    }
+    if (params.excludeWaived()) {
+      exclusions.add("waive_time IS NULL");
+    }
+    if (params.excludeFixed()) {
+      exclusions.add("fix_time IS NULL");
+    }
     return exclusions;
   }
 
   @Override
   protected Map<String, List<String>> loadSelections(Connection connection, DbUtilParameters params) throws Exception {
+    List<String> whereClauseList = new ArrayList<>();
+    whereClauseList.add(getStageClause("stage_type_id", params));
+    whereClauseList.addAll(violationStateExclusions(params));
+    StringBuilder whereClause = new StringBuilder();
+    for (String condition : whereClauseList) {
+      if (condition != null) {
+        if (whereClause.length() == 0) {
+          whereClause.append(" WHERE ").append(condition);
+        }
+        else {
+          whereClause.append(" AND ").append(condition);
+        }
+      }
+    }
 
     String query = "" //
         + "SELECT policy_id, count(policy_violation_id) AS total_violations" //
         + " FROM policy_violation" //
-        + " WHERE " + getStageClause("stage_type_id", params) //
-        + violationStateExclusions(params) //
+        + whereClause //
         + " GROUP BY (policy_id)" //
         + " ORDER BY total_violations DESC" //
         + " LIMIT " + params.getMaxPolicies();

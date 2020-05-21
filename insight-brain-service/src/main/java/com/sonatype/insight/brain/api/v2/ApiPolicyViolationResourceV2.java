@@ -34,7 +34,9 @@ import com.codahale.metrics.annotation.Timed;
 @Path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
 public class ApiPolicyViolationResourceV2
 {
-  public static final String CROSS_STAGE_POLICY_VIOLATION_SUBPATH = "crossStage/{violationId}";
+  public static final String CROSS_STAGE_POLICY_VIOLATION_SUBPATH = "crossStage";
+
+  public static final String VIOLATIONID = "/{violationId}";
 
   private ApiPolicyViolationServiceV2 apiPolicyViolationService;
 
@@ -61,7 +63,7 @@ public class ApiPolicyViolationResourceV2
    * @since 1.86.0
    */
   @GET
-  @Path(CROSS_STAGE_POLICY_VIOLATION_SUBPATH)
+  @Path(CROSS_STAGE_POLICY_VIOLATION_SUBPATH + VIOLATIONID)
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EXPORT_POLICY_VIOLATIONS)
@@ -69,5 +71,16 @@ public class ApiPolicyViolationResourceV2
       @PathParam("violationId") final String violationId)
   {
     return apiCrossStageViolationService.getCrossStageViolationById(violationId);
+  }
+
+  @GET
+  @Path(CROSS_STAGE_POLICY_VIOLATION_SUBPATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.EXPORT_POLICY_VIOLATIONS)
+  public ApiCrossStageViolationDTOV2 getCrossStagePolicyViolationByConstituentId(
+      @QueryParam("constituentId") final String constituentId)
+  {
+    return apiCrossStageViolationService.getCrossStageViolationByConstituentId(constituentId);
   }
 }

@@ -178,4 +178,14 @@ public class OwnerDAO
       dataRetentionPolicyDAO.delete(tx, dataRetentionPolicy);
     }
   }
+
+  /**
+   * Returns the ids of all the owners up in the hierarchy for the specified owner, starting with the id of the input
+   * owner.
+   */
+  public List<String> getOwnerIds(Owner owner) {
+    List<String> ownerIds = new ArrayList<>();
+    walkHierarchy(owner).forEach(anOwner -> ownerIds.add(anOwner.getId()));
+    return ownerIds;
+  }
 }

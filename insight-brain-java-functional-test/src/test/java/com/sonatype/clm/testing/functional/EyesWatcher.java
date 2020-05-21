@@ -43,7 +43,7 @@ public class EyesWatcher
 
       // Set only once per Jenkins job. Note, we set the batch name to null if we are building for a pr - the github
       // integration takes care of this. We are making some assumptions here since there is no easy way atm to know if
-      // there is a pr associated with the branch that is under test (parameterized builds aren't available for the 
+      // there is a pr associated with the branch that is under test (parameterized builds aren't available for the
       // brain just yet). For local testing (no batchId) we use the branch name.
       batch = new BatchInfo(batchId == null ? localBranchName : null);
       if (batchId != null) { // no need to set the id for local testing
@@ -94,18 +94,25 @@ public class EyesWatcher
     eyesCheck(null);
   }
 
+  public void eyesCheck(boolean ignoreDisplacements) {
+    eyesCheck(null, ignoreDisplacements);
+  }
+
+  public void eyesCheck(String tag) {
+    eyesCheck(tag, false);
+  }
+
   /**
    * Convenience method for performing the applitools validation. This method also adds an ignore region for the iq
    * version number. Additionally, the validation call is configured to ignore cursors.
    *
    * @param tag or step name of the validation
    */
-  public void eyesCheck(String tag) {
-    // Since Applitools SDK 3.29 a bug was introduced in the SDK where calling eyes.check results in a 
-    // NullPointerException when visual testing is disabled. This is a workaround that allows us to upgrade.
+  public void eyesCheck(String tag, boolean ignoreDisplacements) {
     if (eyes.getIsDisabled()) {
       return;
     }
+
     WebDriver remoteDriver = WebDriverRunner.getAndCheckWebDriver();
 
     // Unwrap the the driver if needed to get the remote driver which is required by applitools.
@@ -121,7 +128,7 @@ public class EyesWatcher
       settings = settings.ignore(element);
     }
 
-    eyes.check(tag, settings);
+    eyes.check(tag, settings.ignoreDisplacements(ignoreDisplacements));
   }
 
   private static boolean isMaster() {

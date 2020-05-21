@@ -368,12 +368,10 @@ public abstract class AbstractRepositoryService
           .newLogger(new Date(), repository);
       try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
         tx.begin();
-        // Mark all violations for this component as inactive.
         for (RepositoryPolicyViolation policyViolation : repositoryPolicyViolationDAO
             .getActiveByRepositoryIdAndPathname(tx, repositoryComponent.getRepositoryId(),
                 repositoryComponent.getPathname())) {
-          policyViolation.setActive(false);
-          repositoryPolicyViolationDAO.update(tx, policyViolation);
+          repositoryPolicyViolationDAO.delete(tx, policyViolation);
           repositoryPolicyViolationLogger.add(PolicyViolationLogEvent.FIX, policyViolation);
         }
         repositoryComponentDAO.delete(tx, repositoryComponent);

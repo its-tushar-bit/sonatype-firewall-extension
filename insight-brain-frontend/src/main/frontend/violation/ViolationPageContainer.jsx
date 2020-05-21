@@ -14,7 +14,14 @@ function mapStateToProps({ stages, violationPage }) {
   const stageData = stages.dashboard;
 
   return {
-    ...pick(['loading', 'error', 'violationDetails'], violationPage),
+    ...pick([
+      'loading',
+      'violationDetailsError',
+      'violationDetails',
+      'vulnerabilityDetailsLoading',
+      'vulnerabilityDetails',
+      'vulnerabilityDetailsError'
+    ], violationPage),
     stageTypes: stageData.stageTypes,
     stageTypesError: stageData.error
   };

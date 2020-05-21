@@ -49,7 +49,12 @@ public abstract class AbstractSelector
       excludedStages.add(quote(StageTypes.STAGE_RELEASE.getId()));
     }
 
-    String clauseTemp = "{field} NOT IN ({clauseList})";
-    return clauseTemp.replace("{field}", stageField).replace("{clauseList}", String.join(",", excludedStages));
+    if (!excludedStages.isEmpty()) {
+      String clauseTemp = "{field} NOT IN ({clauseList})";
+      return clauseTemp.replace("{field}", stageField).replace("{clauseList}", String.join(",", excludedStages));
+    }
+    else {
+      return null;
+    }
   }
 }

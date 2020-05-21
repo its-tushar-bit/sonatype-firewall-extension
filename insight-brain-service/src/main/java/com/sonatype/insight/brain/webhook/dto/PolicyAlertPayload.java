@@ -20,20 +20,9 @@ public class PolicyAlertPayload
 {
   public ApplicationEvaluationDTO applicationEvaluation = new ApplicationEvaluationDTO();
 
-  public ApplicationSummaryDTO application = new ApplicationSummaryDTO();
+  public ApplicationSummary application = new ApplicationSummary();
 
   public List<PolicyAlertDTO> policyAlerts = new ArrayList<>();
-
-  public static class ApplicationSummaryDTO
-  {
-    public String id;
-
-    public String publicId;
-
-    public String name;
-
-    public String organizationId;
-  }
 
   public static class PolicyAlertDTO
   {

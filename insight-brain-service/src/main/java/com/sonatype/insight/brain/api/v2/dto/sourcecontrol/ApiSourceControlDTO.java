@@ -13,6 +13,8 @@ public class ApiSourceControlDTO
 
   public String repositoryUrl;
 
+  public String username;
+
   public String token;
 
   public String provider;

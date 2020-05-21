@@ -219,13 +219,11 @@ public class RepositoryServiceTest extends AbstractComponentTest
     String pathname = "path1";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     RepositoryPolicyViolation repositoryPolicyViolation1 = tempEntity
-        .newRepositoryPolicyViolation(repository.getId(), 8, pathname, false, true, "policyId1", "policyName1",
+        .newRepositoryPolicyViolation(repository.getId(), 8, pathname, false, "policyId1", "policyName1",
             componentIdentifier);
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 7, pathname, true, true, "policyId2", "policyName2",
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 7, pathname, true, "policyId2", "policyName2",
         componentIdentifier);
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, pathname, false, false, "policyId3", "policyName3",
-        componentIdentifier);
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path4", false, true, Action.ID_FAIL, "policyId4",
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path4", false, Action.ID_FAIL, "policyId4",
         "policyName4", componentIdentifier);
 
     repositoryPolicyViolation1.setConstraintFacts(Collections.singletonList(new ConstraintFact("id", "name", "op")));

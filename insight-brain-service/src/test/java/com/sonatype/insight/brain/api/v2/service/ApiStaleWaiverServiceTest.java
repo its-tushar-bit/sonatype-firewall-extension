@@ -108,15 +108,15 @@ public class ApiStaleWaiverServiceTest
 
     // waived policy violations
     tempEntity.newRepositoryPolicyViolation(
-        repo.getId(), 6, "pathName1", "hash1", constraintFacts1, true, true,
+        repo.getId(), 6, "pathName1", "hash1", constraintFacts1, true,
         "actionId1", policy.getId(), policy.getName(), componentIdentifier, date,
         policyWaiver1.getId(), policyWaiver1.getComment(), date);
     tempEntity.newRepositoryPolicyViolation(
-        repo.getId(), 7, "pathName2", "hash2", constraintFacts2, true, true,
+        repo.getId(), 7, "pathName2", "hash2", constraintFacts2, true,
         "actionId2", policy.getId(), policy.getName(), componentIdentifier, date,
         policyWaiver2.getId(), policyWaiver2.getComment(), date);
     tempEntity.newRepositoryPolicyViolation(
-        repo.getId(), 7, "pathName3", "hash3", constraintFacts2, true, true,
+        repo.getId(), 7, "pathName3", "hash3", constraintFacts2, true,
         "actionId2", policy.getId(), policy.getName(), componentIdentifier, date,
         policyWaiver3.getId(), policyWaiver3.getComment(), date);
 
@@ -165,7 +165,7 @@ public class ApiStaleWaiverServiceTest
         constraintFacts1, "Some comments here1");
 
     RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(
-        repo.getId(), 6, "pathName1", "hash1", constraintFacts1, true, true,
+        repo.getId(), 6, "pathName1", "hash1", constraintFacts1, true,
         "actionId1", policy.getId(), policy.getName(), componentIdentifier, date,
         policyWaiver.getId(), policyWaiver.getComment(), date);
     repositoryPolicyViolationDAO.delete(repositoryPolicyViolation);
@@ -190,7 +190,7 @@ public class ApiStaleWaiverServiceTest
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", policy.getId(), repo.getId(),
         constraintFacts1, "Some comments here1");
     tempEntity.newRepositoryPolicyViolation(
-        repo.getId(), 6, "pathName1", "hash1", constraintFacts1, true, true,
+        repo.getId(), 6, "pathName1", "hash1", constraintFacts1, true,
         "actionId1", policy.getId(), policy.getName(), componentIdentifier, date,
         policyWaiver.getId(), policyWaiver.getComment(), date);
 
@@ -579,7 +579,7 @@ public class ApiStaleWaiverServiceTest
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), "h1", appWaiver);
 
     tempEntity.newRepositoryPolicyViolation(
-        repo.getId(), 6, "pathName1", "hash1", constraintFacts1, true, true,
+        repo.getId(), 6, "pathName1", "hash1", constraintFacts1, true,
         "actionId1", policy.getId(), policy.getName(), componentIdentifier, date,
         repoWaiver.getId(), repoWaiver.getComment(), date);
 
@@ -605,7 +605,7 @@ public class ApiStaleWaiverServiceTest
     tempEntity.newWaiver("h2", policy.getId(), RepositoryContainer.REPOSITORY_CONTAINER_ID, "repo waiver");
 
     tempEntity.newRepositoryPolicyViolation(
-        repo.getId(), 6, "pathName1", "hash1", constraintFacts1, true, true,
+        repo.getId(), 6, "pathName1", "hash1", constraintFacts1, true,
         "actionId1", policy.getId(), policy.getName(), componentIdentifier, date,
         legacyWaiverId, legacyWaiverComment, legacyWaiverDate);
 

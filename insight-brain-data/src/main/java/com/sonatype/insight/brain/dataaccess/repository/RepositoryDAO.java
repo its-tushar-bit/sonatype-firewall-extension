@@ -130,18 +130,15 @@ public class RepositoryDAO
   }
 
   /**
-   * If the repository is disabled, then delete all components in this repository and set all policy violations as
-   * inactive.
+   * If the repository is disabled, delete all components and all active policy violations in this repository.
    */
   private void onDisable(TransactionContext tx, Repository repository) {
     Repository existingRepository = getById(tx, repository.getId());
     if (existingRepository.isEnabled()) {
-      // Mark all violations for this repository as inactive.
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
       for (RepositoryPolicyViolation policyViolation : repositoryPolicyViolationDAO.getActiveByRepositoryId(tx,
           repository.getId())) {
-        policyViolation.setActive(false);
-        repositoryPolicyViolationDAO.update(tx, policyViolation);
+        repositoryPolicyViolationDAO.delete(tx, policyViolation);
       }
 
       deleteRepositoryComponents(tx, repository);

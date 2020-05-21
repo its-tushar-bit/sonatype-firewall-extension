@@ -38,7 +38,7 @@ class IqUtil(object):
         log.info("finished run_iq_jar")
 
     def start_iq(self, profile_params=[], profile_opts=[], outputToFile=True):
-        startupString = "org.eclipse.jetty.server.Server: Started @"
+        startupString = ".+org.eclipse.jetty.server.Server.+Started.+"
         work_dir_opt = "-Ddw.sonatypeWork=" + self.sonatype_work_dir
         profile_opts.append(work_dir_opt)
 
@@ -49,11 +49,11 @@ class IqUtil(object):
             consoleOut = self.get_console_out_filename()
             self.outfile = open(consoleOut, 'w')
             log.info("IQ started with console output directed to file: {}.".format(os.path.realpath(consoleOut)))
-            self._iq_thread, self.iq_proc = exec_jar(self.iq_jar, self.working_dir, profile_params, profile_opts, startupString,
-                                                     outputTo=self.outfile, returnThread=True)
+            self._iq_thread, self.iq_proc = exec_jar(self.iq_jar, self.working_dir, profile_params, profile_opts,
+                                                     startupString, outputTo=self.outfile, returnThread=True)
         else:
-            self._iq_thread, self.iq_proc = exec_jar(self.iq_jar, self.working_dir, profile_params, profile_opts, startupString,
-                                                     returnThread=True)
+            self._iq_thread, self.iq_proc = exec_jar(self.iq_jar, self.working_dir, profile_params, profile_opts,
+                                                     startupString, returnThread=True)
         log.info("iq started, running")
 
     def stop_iq(self):
@@ -61,3 +61,19 @@ class IqUtil(object):
         terminate_thread(self._iq_thread, self.iq_proc)
         log.info("iq stopped")
         self.outfile.close()
+
+    def export_embedded_db(self, dump_file_path: str, java_opts: list = None, params: list = None):
+        if java_opts is None:
+            java_opts = []
+        if params is None:
+            params = []
+        console_output_path = self.get_console_out_filename()
+        log.info("Exporting H2 database for Postgres. The IQ console output is directed to the file: {}."
+                 .format(os.path.realpath(console_output_path)))
+        java_opts.extend(["-Ddw.sonatypeWork=" + self.sonatype_work_dir])
+        params = ["export-embedded-db", "--dump-file", dump_file_path] + params
+        with open(console_output_path, "w") as output_file:
+            iq_thread, iq_proc = exec_jar(self.iq_jar, self.working_dir, params=params, javaopts=java_opts,
+                     terminateOnOutput="Completed export to", outputTo=output_file, returnThread=True)
+            if iq_proc.returncode != 0:
+                raise Exception("Return code is different from 0")

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.support;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -15,17 +16,20 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsService;
 
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.hds.TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_MANAGEMENT;
+import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
 import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -65,6 +69,42 @@ public class DbDataTest
     tempEntity.newWebhook(Collections.singleton(POLICY_MANAGEMENT));
 
     assertThat(getWebhook().getSecretKey()).isNull();
+  }
+
+  @Test
+  public void testGetSourceControl_maskToken() {
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, "user", "token", BITBUCKET, true, true,
+        "base_branch", new Date());
+
+    @SuppressWarnings({"unchecked"})
+    List<SourceControl> sourceControls = (List<SourceControl>) dbData.getSourceControl().getValue();
+
+    assertThat(sourceControls).hasOnlyOneElementSatisfying(sourceControl ->
+        assertThat(sourceControl.getToken()).isEqualTo(SystemInfo.MASK));
+  }
+
+  @Test
+  public void testGetSourceControl_tokenEmpty() {
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, "user", "", BITBUCKET, true, true,
+        "base_branch", new Date());
+
+    @SuppressWarnings({"unchecked"})
+    List<SourceControl> sourceControls = (List<SourceControl>) dbData.getSourceControl().getValue();
+
+    assertThat(sourceControls).hasOnlyOneElementSatisfying(sourceControl ->
+        assertThat(sourceControl.getToken()).isEqualTo(""));
+  }
+
+  @Test
+  public void testGetSourceControl_tokenNull() {
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, "user", null, BITBUCKET, true, true,
+        "base_branch", new Date());
+
+    @SuppressWarnings({"unchecked"})
+    List<SourceControl> sourceControls = (List<SourceControl>) dbData.getSourceControl().getValue();
+
+    assertThat(sourceControls).hasOnlyOneElementSatisfying(sourceControl ->
+        assertThat(sourceControl.getToken()).isNull());
   }
 
   @Test

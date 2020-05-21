@@ -19,6 +19,8 @@ import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.LdapConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
+import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
@@ -29,6 +31,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.security.PasswordHandler;
 
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
@@ -48,6 +51,9 @@ public class LdapConfigurationTest
   public TestLdapServer testLdapServer = new TestLdapServer();
 
   private LdapServer ldapServer;
+
+  private static final PasswordHandler passwordHandler =
+      testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
 
   @BeforeClass
   public static void startup() {
@@ -176,6 +182,71 @@ public class LdapConfigurationTest
     serverListPage.ldapServerList().elements().shouldHaveSize(0);
     serverListPage.ldapServerList().emptyDescriptor().shouldBe(visible);
     assertThat(new LdapServerDAO().getById(ldapServer.getId())).isNull();
+  }
+
+  @Test
+  public void testHostOrPortUpdateWithAuthentication_RequiresPasswordEntry() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    tempEntity.newLdapConnection(ldapServer.getId(), passwordHandler.encryptPassword("password".toCharArray()));
+    refreshOrOpen(LdapServerListPage.url());
+
+    LdapServerListPage serverListPage = new LdapServerListPage();
+    serverListPage.ldapServerList().elements().last().click();
+    waitUntilUrl(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
+    LdapConfigurationPage.root().should(appear);
+
+    LdapConnectionForm ldapConnectionForm = LdapConfigurationPage.ldapConnectionForm();
+    String originalHost = ldapConnectionForm.hostname().getValue();
+    String originalPort = ldapConnectionForm.port().getValue();
+
+    // Initial state - default password should be cleared if hostname/port are updated and restored if they are reverted
+    ScrollUtil.awaitEndOfScrolling(ldapConnectionForm.systemPassword().should(exist).scrollIntoView(true));
+    assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(String.valueOf(LdapService.FAKE_PASSWORD));
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldNotBe(visible);
+
+    // Update the hostname
+    ldapConnectionForm.hostname().setValue(originalHost + "1");
+    ldapConnectionForm.systemPassword().shouldBe(empty);
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldBe(visible);
+
+    // Revert the hostname
+    ldapConnectionForm.hostname().setValue(originalHost);
+    assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(String.valueOf(LdapService.FAKE_PASSWORD));
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldNotBe(visible);
+
+    // Update the port
+    ldapConnectionForm.port().setValue(ldapConnectionForm.port().getValue() + "1");
+    ldapConnectionForm.systemPassword().shouldBe(empty);
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldBe(visible);
+
+    // Revert the port
+    ldapConnectionForm.port().setValue(originalPort);
+    assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(String.valueOf(LdapService.FAKE_PASSWORD));
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldNotBe(visible);
+
+    // User enters a password - password should not be updated if hostname or port are updated/reverted
+    String password = "password";
+    ldapConnectionForm.systemPassword().setValue(password);
+
+    // Update the hostname
+    ldapConnectionForm.hostname().setValue(originalHost + "1");
+    assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(password);
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldNotBe(visible);
+
+    // Revert the hostname
+    ldapConnectionForm.hostname().setValue(originalHost);
+    assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(password);
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldNotBe(visible);
+
+    // Update the port
+    ldapConnectionForm.port().setValue(ldapConnectionForm.port().getValue() + "1");
+    assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(password);
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldNotBe(visible);
+
+    // Revert the port
+    ldapConnectionForm.port().setValue(originalPort);
+    assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(password);
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldNotBe(visible);
   }
 
   private void testFormValidation() {

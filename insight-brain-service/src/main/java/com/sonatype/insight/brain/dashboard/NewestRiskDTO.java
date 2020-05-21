@@ -36,6 +36,8 @@ public class NewestRiskDTO implements CsvWritable
 
   public String policyName;
 
+  public String policyViolationId;
+
   public String hash;
 
   public ComponentDisplayName displayName;
@@ -45,9 +47,9 @@ public class NewestRiskDTO implements CsvWritable
   public String filename;
 
   public String stageTypeId;
-  
+
   public String actionTypeId;
-  
+
   public String scanId;
 
   public long lastOccurrenceTime;

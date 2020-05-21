@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import checkUserMappingTemplate from '../components/ldap-checkusermapping.html';
+import checkLoginTemplate from '../components/ldap-checklogin.html';
+
 /* global angular, clmBuildTimestamp */
 function showAlert(alerts, alert) {
   alerts.length = 0;
@@ -199,6 +202,44 @@ export function LdapConnectionController($scope, Modal, $http, CLMContextLocatio
     return $scope.ldapConn && !angular.equals(origLdapConn, $scope.ldapConn);
   };
 
+  $scope.clearOrRestorePasswordIfNeeded = function() {
+    if (!$scope.ldapConn) {
+      return; // Form isn't ready
+    }
+    if (!isUpdate()) {
+      return; // No existing connection i.e. an insert
+    }
+    if (isHostnameOrPortChanged()) {
+      if (angular.equals(origLdapConn.systemPassword, $scope.ldapConn.systemPassword)) {
+        $scope.ldapConn.systemPassword = undefined;
+        $scope.ldapConnectionEditor['ldap-system-password'].$setDirty();
+      }
+    }
+    else {
+      if ($scope.ldapConn.systemPassword === undefined) {
+        $scope.ldapConn.systemPassword = origLdapConn.systemPassword;
+        $scope.ldapConnectionEditor['ldap-system-password'].$setPristine();
+      }
+    }
+  };
+
+  $scope.shouldShowPasswordNeedsEntryMessage = function() {
+    if (!$scope.ldapConn) {
+      return false; // Form isn't ready
+    }
+    // Only show the message if the hostname or port are updated and they haven't started entering a password
+    return isUpdate() && isHostnameOrPortChanged() && $scope.ldapConn.systemPassword === undefined;
+  };
+
+  function isUpdate() {
+    return origLdapConn.hostname;
+  }
+
+  function isHostnameOrPortChanged() {
+    return !angular.equals(origLdapConn.hostname, $scope.ldapConn.hostname) ||
+        !angular.equals(origLdapConn.port, $scope.ldapConn.port);
+  }
+
   $scope.canSaveEdit = function() {
     return !$scope.ldapConnectionEditor.$invalid && $scope.isDirty();
   };
@@ -296,7 +337,7 @@ export function LdapUsermappingController($scope, Modal, $http, CLMContextLocati
     Modal.open({
       backdrop: 'static',
       scope: $scope,
-      templateUrl: 'configuration/components/ldap-checkusermapping.html?' + clmBuildTimestamp,
+      template: checkUserMappingTemplate,
       controller: 'LdapCheckUserMappingController',
       resolve: {
         users: function() {
@@ -334,7 +375,7 @@ export function LdapUsermappingController($scope, Modal, $http, CLMContextLocati
     Modal.open({
       backdrop: 'static',
       scope: $scope,
-      templateUrl: 'configuration/components/ldap-checklogin.html?' + clmBuildTimestamp,
+      template: checkLoginTemplate,
       controller: 'LdapCheckLoginController'
     }).result.then(function() {
       $scope.testInProgress = false;

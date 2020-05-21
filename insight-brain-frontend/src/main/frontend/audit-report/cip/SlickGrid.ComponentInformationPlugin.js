@@ -64,7 +64,7 @@
       matchedOnly: true
     }];
 
-    this.node = this.compile('<div component-information-panel tabs="tabs"/>')(cipScope);
+    this.node = this.compile('<div component-information-panel tabs="tabs"></div>')(cipScope);
     this.node.appendTo(grid.getCanvasNode());
   };
 

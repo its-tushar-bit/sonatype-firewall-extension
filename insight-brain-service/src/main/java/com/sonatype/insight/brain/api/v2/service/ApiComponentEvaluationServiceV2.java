@@ -78,8 +78,6 @@ public class ApiComponentEvaluationServiceV2
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
-  private final ComponentDetailsLoader componentDetailsLoader;
-
   private final ApiComponentDetailsAdapter componentDetailsAdapter;
 
   private final InsightWork work;
@@ -90,7 +88,6 @@ public class ApiComponentEvaluationServiceV2
   public ApiComponentEvaluationServiceV2(final ApplicationDAO applicationDAO,
                                          final ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2,
                                          final ComponentPolicyEvaluator componentPolicyEvaluator,
-                                         final ComponentDetailsLoader componentDetailsLoader,
                                          final ApiComponentDetailsAdapter componentDetailsAdapter,
                                          final InsightWork work,
                                          final ErrorResponseGenerator errorResponseGenerator)
@@ -98,7 +95,6 @@ public class ApiComponentEvaluationServiceV2
     this.applicationDAO = applicationDAO;
     this.apiComponentDetailsServiceV2 = apiComponentDetailsServiceV2;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
-    this.componentDetailsLoader = componentDetailsLoader;
     this.componentDetailsAdapter = componentDetailsAdapter;
     this.work = work;
     this.errorResponseGenerator = errorResponseGenerator;
@@ -215,17 +211,18 @@ public class ApiComponentEvaluationServiceV2
       evaluationResultDTO.applicationId = application.getId();
 
       try {
+        ComponentDetailsLoader componentDetailsLoader = new ComponentDetailsLoader(application);
         List<ComponentEvaluationData> componentEvaluationDataList = apiComponentDetailsServiceV2
             .getComponentDetailsListFromHds(evaluationRequestDTO, PURPOSE_EVALUATION);
         for (ComponentEvaluationData componentEvaluationData : componentEvaluationDataList) {
           NamedComponentDetails componentDetails = ComponentDetailsAdapter.convert(componentEvaluationData);
           // use the claimed component data if found
-          NamedComponentDetails localComponentDetails = componentDetailsLoader.getComponentDetailsLocally(
-              componentDetails.getComponentIdentifier(), componentDetails.getHash());
+          NamedComponentDetails localComponentDetails = ComponentDetailsLoader
+              .getComponentDetailsLocally(componentDetails.getComponentIdentifier(), componentDetails.getHash());
           if (localComponentDetails != null) {
             componentDetails = localComponentDetails;
           }
-          Component component = componentDetailsLoader.augmentComponentDetails(application, componentDetails);
+          Component component = componentDetailsLoader.augmentComponentDetails(componentDetails);
           augmentSecurityVulnerabilities(component, componentEvaluationData.securityVulnerabilities);
           ApiComponentDTOV2 componentDTO = evaluationRequestDTO.components.get(componentEvaluationData.requestIndex);
           component.setProprietary(componentDTO.proprietary);

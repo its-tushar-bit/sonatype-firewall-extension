@@ -6,6 +6,8 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.CLM;
+import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
 import com.sonatype.clm.testing.functional.elements.RootOrgMigrate;
 import com.sonatype.clm.testing.functional.elements.RootOrgMigrateModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -64,11 +66,11 @@ public class RootOrgMigrateTest
     RootOrgMigrateModal.selectOrgRadioButton().shouldBe(Condition.selected);
     RootOrgMigrateModal.continueButton().shouldBe(Condition.disabled);
 
-    RootOrgMigrateModal.organizationSelect().shouldBe(Condition.enabled).selectOption(ORG_NAME);
+    RootOrgMigrateModal.organizationSelect().shouldBe(Condition.enabled).chooseOption(new Option(0, ORG_NAME));
     RootOrgMigrateModal.continueButton().shouldBe(Condition.enabled);
 
     RootOrgMigrateModal.blankRootRadioButton().click();
-    RootOrgMigrateModal.organizationSelect().shouldBe(Condition.disabled);
+    RootOrgMigrateModal.organizationSelect().shouldHave(CLM.DISABLED);
 
     RootOrgMigrateModal.cancelButton().click();
     RootOrgMigrateModal.root().shouldBe(hidden);
@@ -105,7 +107,7 @@ public class RootOrgMigrateTest
     RootOrgMigrateModal.selectOrgRadioButton().shouldBe(Condition.selected);
     RootOrgMigrateModal.continueButton().shouldBe(Condition.disabled);
 
-    RootOrgMigrateModal.organizationSelect().shouldBe(visible).selectOption(ORG_NAME);
+    RootOrgMigrateModal.organizationSelect().shouldBe(Condition.enabled).chooseOption(new Option(0, ORG_NAME));
     RootOrgMigrateModal.continueButton().shouldBe(Condition.enabled).click();
 
     RootOrgMigrateModal.root().shouldBe(hidden);

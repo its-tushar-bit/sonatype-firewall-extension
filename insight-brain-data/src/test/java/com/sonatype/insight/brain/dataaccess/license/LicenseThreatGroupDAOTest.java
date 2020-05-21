@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.Locale;
+import java.util.Map;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -462,6 +463,21 @@ public class LicenseThreatGroupDAOTest
     assertThatThrownBy(() -> {
       licenseThreatGroupDAO.getByIdNotNull("fake id");
     }).isInstanceOf(NotFoundException.class).hasMessage("Cannot find a license threat group with ID fake id.");
+  }
+
+  @Test
+  public void testGetLicenseThreatLevelsByApplication() {
+    tempEntity.newLicenseThreatGroup(applicationId, "My group 1", 0, "Apache-2.0", "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(organization.getId(), "My group 2", 5, "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
+
+    Map<String, Integer> threatLevelsByLicenseId =
+        licenseThreatGroupDAO.getLicenseThreatLevelsByApplication(application);
+
+    assertThat(threatLevelsByLicenseId.get("Apache-2.0")).isEqualTo(0);
+    assertThat(threatLevelsByLicenseId.get("GPL-2.0")).isEqualTo(5);
+    assertThat(threatLevelsByLicenseId.get("GPL-3.0")).isEqualTo(9);
+    assertThat(threatLevelsByLicenseId).hasSize(3);
   }
 
   private void assertUpdateLicenseThreatGroupWithDuplicateName(final String ownerId,

@@ -26,7 +26,10 @@ public class PublicApiPaths
 
   public static final String POLICY_VIOLATION_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "policyViolations";
 
-  public static final String POLICY_WAIVER_PATH =
+  public static final String POLICY_WAIVER_PATH = API_VERSION_PATH_V2 +
+      "policyWaivers/{ownerType: application|organization|repository|repository_container}/{ownerId}";
+
+  public static final String POLICY_VIOLATION_WAIVER_PATH =
       API_VERSION_PATH_V2 + "policyWaiver/{policyViolationId}/{ownerType: application|organization}";
 
   public static final String SEARCH_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "search/component";
@@ -88,4 +91,9 @@ public class PublicApiPaths
   public static final String CLAIM_PATH_V2 = API_VERSION_PATH_V2 + "claim/components";
 
   public static final String ADVANCED_SEARCH_RESOURCE_PATH = EXPERIMENTAL_PATH + "search/advanced";
+
+  public static final String LABEL_RESOURCE_PATH =
+      API_VERSION_PATH_V2 + "labels/{ownerType: application|organization|repository}/{ownerId}";
+
+  public static final String APPLICATION_CATEGORY_RESOURCE_PATH = API_VERSION_PATH_V2 + "applicationCategories";
 }

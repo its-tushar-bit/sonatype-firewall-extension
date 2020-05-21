@@ -5,28 +5,52 @@
  */
 const webpack = require('webpack');
 const path = require('path');
+const fs = require('fs');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CSSSplitPlugin = require('css-split-webpack-plugin').default;
 const StyleLintPlugin = require('stylelint-webpack-plugin');
 const transformObjectRestSpread = require('babel-plugin-transform-object-rest-spread');
 const transformJsx = require('babel-plugin-transform-react-jsx');
 const transformRuntime = require('babel-plugin-transform-runtime');
+const DOMParser = require('xmldom').DOMParser;
 
+const CopyPlugin = require('copy-webpack-plugin');
 const CopyModulesPlugin = require('copy-modules-webpack-plugin');
 
 const webpackOutputPath = 'assets';
 const webpackOutputDir = path.resolve(__dirname, 'target/classes', webpackOutputPath);
+
+function extractFromPom(nodeName) {
+  const doc = new DOMParser().parseFromString(fs.readFileSync('pom.xml', 'utf-8'));
+  const node = doc.documentElement.getElementsByTagName(nodeName)[0];
+  return node.firstChild.nodeValue;
+}
 
 /**
  * Create a webpack config for the given paths and options
  * @param entryPath path to the javascript entry file for this config, relative to src/main/frontend
  * @param outputPath path to the javascript output file, relative to the assets dir
  * @param cssOutputPath path to the css output file, relative to the assets dir
- * @param env webpack environment object, expected to contain 'production' and 'clmServerVersion' properties
+ * @param env webpack environment object, expected to contain 'production' property
  * @param externals configuration object to use on the `externals` property
  */
 function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
+
+  function transformCopiedFile(content) {
+    let contentStr = content.toString();
+
+    for (let key in buildConstants) {
+      contentStr = contentStr.replace(new RegExp(key, 'g'), buildConstants[key]);
+    }
+
+    return Buffer.from(contentStr);
+  }
+
   const production = env.production,
+      buildConstants = {
+        CLM_BUILD_TIMESTAMP: new Date().getTime(),
+        CLM_SERVER_VERSION: JSON.stringify(extractFromPom('version'))
+      },
       extractSass = new ExtractTextPlugin({ filename: cssOutputPath }),
       getCssPlugins = () => [
         extractSass,
@@ -41,11 +65,26 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
           includePackageJsons: true
         })
       ],
+      copyPluginFromGlobs = [
+        { from: '**/index.html', transform: true },
+        { from: 'version-graph/**/viewdetails.html', transform: true },
+        { from: 'version-graph/version-graph.html', transform: true },
+        { from: 'version-graph/details.html', transform: true },
+        { from: 'version-graph/**/version-graph-*.*', transform: true },
+        { from: 'version-graph/**/viewdetails-*.*', transform: true },
+        { from: 'cip/cip-claim-component.html', transform: true },
+        { from: 'brain.client.js', transform: true },
+        { from: 'reports.*', transform: true },
+        { from: 'configuration/license/eula.html', transform: false },
+        { from: '**/*.{ttf,woff,png,svg,gif,jpg,ico}', transform: false }
+      ],
       plugins = [
-        new webpack.DefinePlugin({
-          CLM_BUILD_TIMESTAMP: new Date().getTime(),
-          CLM_SERVER_VERSION: JSON.stringify(env.clmServerVersion)
-        }),
+        new CopyPlugin(copyPluginFromGlobs.map(({ from, transform }) => ({
+          from,
+          to: path.join(__dirname, 'target/classes/assets'),
+          transform: transform ? transformCopiedFile : null
+        }))),
+        new webpack.DefinePlugin(buildConstants),
         new StyleLintPlugin({ syntax: 'scss' })
       ].concat(
           cssOutputPath ? getCssPlugins() : [],

@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './move.application.modal.html';
 
 export default
 function MoveApplicationModalService(Modal) {
@@ -16,7 +17,7 @@ function MoveApplicationModalService(Modal) {
       backdrop: 'static',
       keyboard: false,
       controller: 'move.application.modal.controller as vm',
-      templateUrl: 'owner.manager/move.application/move.application.modal.html',
+      template,
       resolve: {
         currentApplication: function() {
           return application;

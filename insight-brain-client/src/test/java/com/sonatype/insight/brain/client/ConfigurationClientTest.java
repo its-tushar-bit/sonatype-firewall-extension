@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.NetworkingHelper;
 import com.sonatype.insight.brain.client.ConfigurationClient.Context;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -65,6 +66,7 @@ public class ConfigurationClientTest
 
   @Test
   public void testValidateConfiguration_BadHost() throws Exception {
+    NetworkingHelper.assumeDnsResolutionIsNormal();
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerUrl("http://1234.bad.host.1234.com/");
     assertThatExceptionOfType(IOException.class).isThrownBy(() -> {
@@ -101,6 +103,7 @@ public class ConfigurationClientTest
 
   @Test
   public void testValidateConfiguration_BadProxyHost() throws Exception {
+    NetworkingHelper.assumeDnsResolutionIsNormal();
     Configuration config = getCLMServer().getClientConfiguration();
     config.setProxy("1234.bad.host.1234.com");
     assertThatExceptionOfType(IOException.class).isThrownBy(() -> {

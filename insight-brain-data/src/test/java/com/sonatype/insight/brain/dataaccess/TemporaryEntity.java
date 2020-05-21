@@ -30,6 +30,8 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
@@ -958,12 +960,26 @@ public class TemporaryEntity
   }
 
   public LdapConnection newLdapConnection(String ldapServerId, int port) {
+    return newLdapConnection(ldapServerId, port, LdapAuthenticationMethod.NONE, null);
+  }
+
+  public LdapConnection newLdapConnection(String ldapServerId, char[] systemPassword) {
+    return newLdapConnection(ldapServerId, 389, LdapAuthenticationMethod.SIMPLE, systemPassword);
+  }
+
+  public LdapConnection newLdapConnection(
+      String ldapServerId,
+      int port,
+      LdapAuthenticationMethod ldapAuthenticationMethod,
+      char[] systemPassword)
+  {
     LdapConnection ldapConnection = new LdapConnection();
     ldapConnection.setServerId(ldapServerId);
     ldapConnection.setProtocol(LdapProtocol.LDAP);
     ldapConnection.setHostname("localhost");
     ldapConnection.setPort(port);
-    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
+    ldapConnection.setAuthenticationMethod(ldapAuthenticationMethod);
+    ldapConnection.setSystemPassword(systemPassword);
     ldapConnection.setSystemUsername("system");
     ldapConnection.setSearchBase("dc=company,dc=com");
     ldapConnectionDAO.insert(ldapConnection);
@@ -1027,9 +1043,13 @@ public class TemporaryEntity
   }
 
   public Policy newPolicy(Owner owner, int threatLevel, LogicalOperator conditionOperator, Condition... conditions) {
+    return newPolicy(owner.getId(), threatLevel, conditionOperator, conditions);
+  }
+
+  public Policy newPolicy(String ownerId, int threatLevel, LogicalOperator conditionOperator, Condition... conditions) {
     Policy policy = new Policy(null, uuid());
     policy.setThreatLevel(threatLevel);
-    policy.setOwnerId(owner.getId());
+    policy.setOwnerId(ownerId);
     policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     Constraint constraint = new Constraint(null, uuid(), conditionOperator);
     Arrays.stream(conditions).forEach(constraint::addCondition);
@@ -1130,6 +1150,7 @@ public class TemporaryEntity
       String applicationId,
       int pullRequestId,
       int pullRequestCommentId,
+      String contentHash,
       String sourcePolicyEvaluationId,
       String targetPolicyEvaluationId)
   {
@@ -1137,6 +1158,7 @@ public class TemporaryEntity
         applicationId,
         pullRequestId,
         pullRequestCommentId,
+        contentHash,
         sourcePolicyEvaluationId,
         targetPolicyEvaluationId
     );
@@ -1273,8 +1295,15 @@ public class TemporaryEntity
     Condition condition = constraint.getConditions().get(0);
     ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(), constraint
         .getOperator().name());
-    ConditionFact conditionFact = new ConditionFact(condition.getConditionTypeId(), 0 /* conditionIndex */, "summary",
+    String conditionTypeId = condition.getConditionTypeId();
+    ConditionFact conditionFact = new ConditionFact(conditionTypeId, 0 /* conditionIndex */, "summary",
         reason);
+
+    if (conditionTypeId.equals("SecurityVulnerabilitySeverity")) {
+      TriggerReference triggerReference = new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, reason);
+      conditionFact.setReference(triggerReference);
+    }
+
     constraintFact.addConditionFact(conditionFact);
 
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy, hash, componentIdentifier,
@@ -1625,30 +1654,29 @@ public class TemporaryEntity
                                                                 boolean waived,
                                                                 ComponentIdentifier componentIdentifier)
   {
-    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, waived, true, "policyId", "policyName",
+    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, waived, "policyId", "policyName",
         componentIdentifier);
   }
 
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, String pathname) {
-    return newRepositoryPolicyViolation(repositoryId, 5 /* threatLevel */, pathname, false, true, "policyId",
+    return newRepositoryPolicyViolation(repositoryId, 5 /* threatLevel */, pathname, false, "policyId",
         "policyName", null /* componentIdentifier */);
   }
 
   public RepositoryPolicyViolation newRepositoryPolicyViolation(RepositoryComponent component, String policyId) {
     return newRepositoryPolicyViolation(component.getRepositoryId(), 5 /* threatLevel */, component.getPathname(),
-        false, true, policyId, "policyName", null /* componentIdentifier */);
+        false, policyId, "policyName", null /* componentIdentifier */);
   }
 
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId,
                                                                 int threatLevel,
                                                                 String pathname,
                                                                 boolean isWaived,
-                                                                boolean isActive,
                                                                 String policyId,
                                                                 String policyName,
                                                                 ComponentIdentifier componentIdentifier)
   {
-    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, isWaived, isActive, null, policyId,
+    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, isWaived, null, policyId,
         policyName, componentIdentifier);
   }
 
@@ -1656,13 +1684,12 @@ public class TemporaryEntity
                                                                 int threatLevel,
                                                                 String pathname,
                                                                 boolean isWaived,
-                                                                boolean isActive,
                                                                 String actionId,
                                                                 String policyId,
                                                                 String policyName,
                                                                 ComponentIdentifier componentIdentifier)
   {
-    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, isWaived, isActive, actionId, policyId,
+    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, isWaived, actionId, policyId,
         policyName, componentIdentifier, new Date());
   }
 
@@ -1670,7 +1697,6 @@ public class TemporaryEntity
                                                                 int threatLevel,
                                                                 String pathname,
                                                                 boolean isWaived,
-                                                                boolean isActive,
                                                                 String actionId,
                                                                 String policyId,
                                                                 String policyName,
@@ -1683,7 +1709,6 @@ public class TemporaryEntity
             + "\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"summary\":\"Match State is exact\","
             + "\"reason\":\"Match State was exact\"}]}]" /* constraintFacts */);
     policyViolation.setWaived(isWaived);
-    policyViolation.setActive(isActive);
     policyViolation.setActionTypeId(actionId);
     repositoryPolicyViolationDAO.insert(policyViolation);
     return policyViolation;
@@ -1696,7 +1721,6 @@ public class TemporaryEntity
       String hash,
       List<ConstraintFact> constraintFacts,
       boolean isWaived,
-      boolean isActive,
       String actionId,
       String policyId,
       String policyName,
@@ -1709,7 +1733,6 @@ public class TemporaryEntity
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, time, policyId,
         policyName, threatLevel, PolicyThreatCategory.LICENSE, hash, componentIdentifier, constraintFacts);
     policyViolation.setWaived(isWaived);
-    policyViolation.setActive(isActive);
     policyViolation.setActionTypeId(actionId);
     policyViolation.setPolicyWaiverId(policyWaiverId);
     policyViolation.setPolicyWaiverComment(policyWaiverComment);
@@ -1725,7 +1748,7 @@ public class TemporaryEntity
                                                                 String actionId)
   {
     return newRepositoryPolicyViolation(component.getRepositoryId(), threatLevel, component.getPathname(), isWaived,
-        true, actionId, uuid(), policyName, component.getComponentIdentifier());
+        actionId, uuid(), policyName, component.getComponentIdentifier());
   }
 
   public RepositoryPolicyViolation newRepositoryPolicyViolation(RepositoryPolicyViolation repositoryPolicyViolation) {
@@ -2130,7 +2153,7 @@ public class TemporaryEntity
   }
 
   public SourceControl newSourceControl(String ownerId, String repositoryUrl, Date pullRequestPollTime) {
-    return newSourceControl(ownerId, repositoryUrl, null, null, true, true, "master", pullRequestPollTime);
+    return newSourceControl(ownerId, repositoryUrl, null, null, null, true, true, "master", pullRequestPollTime);
   }
 
   public SourceControl newSourceControl(String ownerId,
@@ -2149,12 +2172,13 @@ public class TemporaryEntity
                                         Boolean enableStatusChecks,
                                         String baseBranch)
   {
-    return newSourceControl(applicationId, repositoryUrl, token, provider, enablePullRequests, enableStatusChecks,
+    return newSourceControl(applicationId, repositoryUrl, null, token, provider, enablePullRequests, enableStatusChecks,
         baseBranch, null);
   }
 
   public SourceControl newSourceControl(String applicationId,
                                         String repositoryUrl,
+                                        String username,
                                         String token,
                                         SourceControlProvider provider,
                                         Boolean enablePullRequests,
@@ -2166,6 +2190,7 @@ public class TemporaryEntity
         new SourceControl.Builder()
             .setOwnerId(applicationId)
             .setRepositoryUrl(repositoryUrl)
+            .setUsername(username)
             .setToken(token)
             .setProvider(provider)
             .setEnablePullRequests(enablePullRequests)

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { faQuestionCircle } from '@fortawesome/pro-regular-svg-icons';
+import template from './helpMenu.html';
 
 /* global clmServerVersion */
 function HelpMenuController() {
@@ -17,5 +18,5 @@ function HelpMenuController() {
 export default {
   controller: HelpMenuController,
   controllerAs: 'vm',
-  templateUrl: 'mainHeader/helpMenu/helpMenu.html?' + clmBuildTimestamp
+  template
 };

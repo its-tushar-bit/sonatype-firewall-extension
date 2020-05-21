@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
@@ -89,7 +89,7 @@ class ScanTask
 
   private final ProprietaryConfigService proprietaryConfigService;
 
-  private final ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessor;
+  private final ThirdPartyScanService thirdPartyScanService;
 
   private final String id;
 
@@ -118,14 +118,15 @@ class ScanTask
   private volatile long touched;
 
   @Inject
-  public ScanTask(Scanner scanner,
-                  ScanUploader uploader,
-                  ScanPolicyEvaluator scanPolicyEvaluator,
-                  PolicyAlertNotifier policyAlertNotifier,
-                  InsightWork work,
-                  FileCleaner fileCleaner,
-                  ProprietaryConfigService proprietaryConfigService,
-                  ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessor)
+  public ScanTask(
+      Scanner scanner,
+      ScanUploader uploader,
+      ScanPolicyEvaluator scanPolicyEvaluator,
+      PolicyAlertNotifier policyAlertNotifier,
+      InsightWork work,
+      FileCleaner fileCleaner,
+      ProprietaryConfigService proprietaryConfigService,
+      ThirdPartyScanService thirdPartyScanService)
   {
     this.scanner = scanner;
     this.uploader = uploader;
@@ -134,8 +135,8 @@ class ScanTask
     this.work = work;
     this.fileCleaner = fileCleaner;
     this.proprietaryConfigService = proprietaryConfigService;
+    this.thirdPartyScanService = thirdPartyScanService;
     id = UUID.randomUUID().toString().replace("-", "");
-    this.thirdPartyScanResultsProcessor = thirdPartyScanResultsProcessor;
   }
 
   /**
@@ -215,19 +216,19 @@ class ScanTask
           app.getPublicId());
       ScanResult scanResult = scanner.scan(binFile, filename, work.getScanDir(app.getId()), proprietaryConfig);
 
-      String thirdPartyScanRequestId = null;
-      if (scanResult != null && scanResult.hasThirdPartyScanContent()) {
-        thirdPartyScanRequestId = thirdPartyScanResultsProcessor.handle(scanResult.getScanFile(),
-            buildThirdPartyScanTelemetryData(appPublicId, stage, scanType, userAgent));
-      }
       // upload the scan
       state = State.UPLOADING_SCAN;
 
-      ScanReceipt scanReceipt = uploader.upload(scanResult.getScanFile(), app, stage.getStageTypeId());
+      ScanReceipt scanReceipt;
+      if (scanResult != null && scanResult.hasThirdPartyScanContent()) {
+        scanReceipt = thirdPartyScanService.filterAndUpload(scanResult.getScanFile(), app, stage.getStageTypeId(),
+            buildThirdPartyScanTelemetryData(appPublicId, stage, scanType, userAgent));
+      }
+      else {
+        scanReceipt = uploader.upload(scanResult.getScanFile(), app, stage.getStageTypeId());
+      }
+
       if (StringUtils.isNotBlank(scanReceipt.getScanId())) {
-        if (thirdPartyScanRequestId != null) {
-          thirdPartyScanResultsProcessor.postHandle(scanReceipt.getScanId(), thirdPartyScanRequestId);
-        }
         FileUtils.rename(scanResult.getScanFile(), work.getScanFile(app.getId(), scanReceipt.getScanId()));
       }
 

@@ -120,7 +120,7 @@ public class InsightBrainServiceTest
         responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
       }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
     });
-    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(7));
+    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(8));
     Date expectedMaxCreateTime = new Date();
     Collection<TelemetryData> allTelemetryData =
         assertTelemetry(responses, expectedMinCreateTime, expectedMaxCreateTime);
@@ -164,6 +164,9 @@ public class InsightBrainServiceTest
         case ROLE_USAGE:
           assertThat(telemetryDataReceived.getAttributes()).isNotEmpty();
           break;
+        case RUNTIME_ENVIRONMENT:
+          assertThat(telemetryDataReceived.getAttributes()).isNotEmpty();
+          break;
         default:
           fail("Unexpected telemetry purpose: " + telemetryPurpose);
           break;
@@ -171,7 +174,8 @@ public class InsightBrainServiceTest
     }
     assertThat(telemetryPurposes).containsOnly(TelemetryPurpose.HIERARCHY_METRICS,
         TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE, TelemetryPurpose.CONFIGURATION_PROPERTIES,
-        TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS, TelemetryPurpose.ROLE_USAGE);
+        TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS, TelemetryPurpose.ROLE_USAGE,
+        TelemetryPurpose.RUNTIME_ENVIRONMENT);
   }
 
   private Collection<TelemetryData> assertTelemetry(
@@ -247,7 +251,7 @@ public class InsightBrainServiceTest
     TelemetryScheduler telemetryScheduler = getCLMServer().getInstance(TelemetryScheduler.class);
     responses.clear();
     telemetryScheduler.getTelemetryRunnable().run();
-    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(8));
+    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(9));
     Date expectedMaxCreateTime = new Date();
     Collection<TelemetryData> allTelemetryData =
         assertTelemetry(responses, expectedMinCreateTime, expectedMaxCreateTime);
@@ -392,5 +396,29 @@ public class InsightBrainServiceTest
         return InsightBrainService.class.getResource("/InsightBrainServiceTest/config-with-https-sni.yml").getFile();
       }
     });
+  }
+
+  @Test
+  @ManualServerInit
+  public void testFeatures() throws Exception {
+    initServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+      }
+
+      @Override
+      public String getConfigFilePath() {
+        return InsightBrainService.class
+            .getResource("/InsightBrainServiceTest/config-with-feature-flags.yml").getFile();
+      }
+    });
+    InsightConfig config = getCLMServer().getConfiguration();
+    assertThat(config.isFeatureEnabled("unspecifiedFeature")).isTrue();
+    assertThat(config.isFeatureEnabled("enabledFeature")).isTrue();
+    assertThat(config.isFeatureEnabled("disabledFeature")).isFalse();
+    assertThat(config.isExperimentalFeatureEnabled("unspecifiedExperimentalFeature")).isFalse();
+    assertThat(config.isExperimentalFeatureEnabled("enabledExperimentalFeature")).isTrue();
+    assertThat(config.isExperimentalFeatureEnabled("disabledExperimentalFeature")).isFalse();
   }
 }

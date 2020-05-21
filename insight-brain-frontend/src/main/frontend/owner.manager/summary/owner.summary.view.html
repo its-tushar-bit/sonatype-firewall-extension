@@ -66,7 +66,7 @@
                  tooltip="{{vm.isGrandfatheringSupported ? undefined : 'Policy Violation Grandfathering is not supported by your license'}}"
                  ng-class="{'disabled': !vm.isGrandfatheringSupported}"
                  class="iq-btn iq-btn--dropdown">
-                <i class="fa fa-history"/>Revoke All Grandfathered
+                <i class="fa fa-history"></i>Revoke All Grandfathered
               </a>
               <div ng-if="vm.isApp" class="divider"></div>
               <a ng-if="vm.isApp"
@@ -127,11 +127,6 @@
              ng-href="">
             Component configuration
           </a>
-        </li><!--
-     --><li class="iq-nav-pills__pill">
-          <a data-toggle="pill" id="owner-comp-labels-button" data-target="#owner-pill-comp-labels" ng-href="">
-            Component labels
-          </a>
         </li>
       </ul>
       <div class="iq-dropdown dropdown iq-pull-right iq-dropdown--nav-pills" id="nav-pill-dropdown">
@@ -144,14 +139,14 @@
         <ul class="dropdown-menu iq-dropdown-menu iq-dropdown-menu--nav-pills nav nav-pills iq-nav-pills">
           <li class="iq-nav-pills__pill">
             <a data-toggle="pill"
-               id="owner-component-configuration-button"
+               id="owner-component-configuration-button__dropdown"
                data-target="#owner-pill-component-configuration"
                ng-href="">
               Component configuration
             </a>
           </li>
           <li class="iq-nav-pills__pill">
-            <a data-toggle="pill" id="owner-comp-labels-button" data-target="#owner-pill-comp-labels" ng-href="">
+            <a data-toggle="pill" id="owner-comp-labels-button__dropdown" data-target="#owner-pill-comp-labels" ng-href="">
               Component labels
             </a>
           </li>
@@ -252,20 +247,20 @@
         <div class="iq-tile-content">
           <div class="iq-list"
                ng-class="{'iq-list--clickable': !owner.parent}"
-               ng-if="!owner.parent || (owner.parent && owner.tags.length > 0)"
+               ng-if="!owner.parent || (owner.parent && owner.applicationCategories.length > 0)"
                ng-repeat="owner in vm.appCategoryOwners">
             <h4 class="iq-list__title" ng-if="!owner.parent">
               Local
             </h4>
-            <h4 class="iq-list__title" ng-if="owner.parent && owner.tags.length > 0">
+            <h4 class="iq-list__title" ng-if="owner.parent && owner.applicationCategories.length > 0">
               Inherited from {{owner.ownerName}}
             </h4>
-            <div class="iq-list__item iq-list__item--empty" ng-if="!owner.parent && owner.tags.length <= 0">
+            <div class="iq-list__item iq-list__item--empty" ng-if="!owner.parent && owner.applicationCategories.length <= 0">
               No application categories defined
             </div>
-            <ul ng-if="owner.tags.length > 0">
+            <ul ng-if="owner.applicationCategories.length > 0">
               <li class="iq-list__item"
-                  ng-repeat="category in owner.tags"
+                  ng-repeat="category in owner.applicationCategories"
                   ng-click="vm.editCategory(category.id, owner.parent)">
                 <i class="fa fa-chevron-right iq-pull-right" ng-if="!owner.parent"></i>
                 <span class="test-list-item-title">

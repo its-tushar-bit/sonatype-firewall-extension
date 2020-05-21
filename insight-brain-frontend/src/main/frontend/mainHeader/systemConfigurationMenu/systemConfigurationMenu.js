@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { faCog } from '@fortawesome/pro-regular-svg-icons';
+import template from './systemConfigurationMenu.html';
 
 function SystemConfigurationMenuController($state) {
   var vm = this;
@@ -15,7 +16,7 @@ function SystemConfigurationMenuController($state) {
 SystemConfigurationMenuController.$inject = ['$state'];
 
 export default {
-  templateUrl: 'mainHeader/systemConfigurationMenu/systemConfigurationMenu.html?' + clmBuildTimestamp,
+  template,
   controller: SystemConfigurationMenuController,
   controllerAs: 'vm',
   bindings: {

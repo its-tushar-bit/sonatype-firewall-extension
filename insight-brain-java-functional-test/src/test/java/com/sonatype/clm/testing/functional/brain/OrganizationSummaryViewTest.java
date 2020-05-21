@@ -90,7 +90,7 @@ public class OrganizationSummaryViewTest
 
   @Test
   public void testLTGTile_NoLocal() {
-    int hierarchySize = getHierarchySize(organization.getId());
+    int hierarchySize = getHierarchySize(organization);
 
     LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
     ltgTile.subHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(organization.getName()));
@@ -145,7 +145,9 @@ public class OrganizationSummaryViewTest
     FormMask.seeAndWaitForDismissal();
 
     // scroll to the labels tile
-    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
+
     LabelTile labelTile = OwnerSummaryPage.labelTile();
     labelTile.labelList(0);
     TileSimpleList list = labelTile.labelList(0);

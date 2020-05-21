@@ -81,15 +81,15 @@ locationModule.factory('CLMContextLocations', [
 
     return {
       getLabelsUrl: function() {
-        return baseUrl.get() + '/rest/label/' + getServicePathWithId();
+        return baseUrl.get() + '/api/v2/labels/' + getServicePathWithId();
       },
 
       getApplicableLabelsUrl: function() {
-        return baseUrl.get() + '/rest/label/' + getServicePathWithId() + '/applicable';
+        return baseUrl.get() + '/api/v2/labels/' + getServicePathWithId() + '/applicable';
       },
 
       getDeleteLabelsUrl: function(label) {
-        return baseUrl.get() + '/rest/label/' + getServicePathWithId() + '/' + encodeURIComponent(label.id);
+        return baseUrl.get() + '/api/v2/labels/' + getServicePathWithId() + '/' + encodeURIComponent(label.id);
       },
 
       getLicenseGroupsUrl: function(ownerId, ownerType) {
@@ -179,8 +179,14 @@ locationModule.factory('CLMContextLocations', [
         return CLMLocations.getCategoriesUrl(getServicePath(), getId(true));
       },
 
-      getTagsUrl: function() {
-        return baseUrl.get() + '/rest/tag/organization/' + getId();
+      getApplicableCategoriesUrl: function() {
+        let servicePath = getServicePath();
+        return CLMLocations.getCategoriesUrl(servicePath, getId(true))
+            + (servicePath === 'organization' ? '/applicable' : '');
+      },
+
+      getApplicationCategoriesUrl: function() {
+        return baseUrl.get() + '/api/v2/applicationCategories/organization/' + getId();
       },
 
       getPolicyTagUrl: function(policyId) {

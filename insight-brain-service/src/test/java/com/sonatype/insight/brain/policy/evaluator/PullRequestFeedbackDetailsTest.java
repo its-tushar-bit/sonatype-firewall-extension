@@ -75,8 +75,10 @@ public class PullRequestFeedbackDetailsTest
 
   private List<PullRequestLineCommentDTO> pullRequestLineComments;
   
-  private GitRepositoryInfo gitRepositoryInfo;
-  
+  private GitRepositoryInfo githubGitRepositoryInfo;
+
+  private GitRepositoryInfo bitbucketGitRepositoryInfo;
+
   private int pullRequestNumber = 10;
 
   private ReportEntry bomEntry;
@@ -115,7 +117,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app, 
+            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
@@ -126,6 +128,24 @@ public class PullRequestFeedbackDetailsTest
   }
 
   @Test
+  public void testPullRequestFeedback_addedOnly_noEmbeddedHtml() throws Exception {
+    //setup test data
+    setupTestData();
+
+    //when
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
+            lookup(BaseUrl.class).getConfigured());
+
+    //then assert that created contents match expected
+    final String expectedContent = readResource("PullRequestFeedback_Added_noEmbeddedHtml.md");
+    final Optional<String> contents = details.renderTemplateAndGetContents();
+    assertThat(contents).isNotEmpty();
+    assertThat(removeInlineDateFromOutput(contents.get())).isEqualTo(removeInlineDateFromOutput(expectedContent));
+  }
+
+  @Test
   public void testPullRequestFeedback_clearedOnly() throws Exception {
     //setup test data
     setupTestData("/PullRequestFeedbackDetailsTest/to-report", "/PullRequestFeedbackDetailsTest/from-report");
@@ -133,7 +153,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app,
+            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
@@ -141,6 +161,24 @@ public class PullRequestFeedbackDetailsTest
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
     assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
+  }
+
+  @Test
+  public void testPullRequestFeedback_clearedOnly_noEmbeddedHtml() throws Exception {
+    //setup test data
+    setupTestData("/PullRequestFeedbackDetailsTest/to-report", "/PullRequestFeedbackDetailsTest/from-report");
+
+    //when
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
+            lookup(BaseUrl.class).getConfigured());
+
+    //then assert that created contents match expected
+    final String expectedContent = readResource("PullRequestFeedback_Cleared_noEmbeddedHtml.md");
+    final Optional<String> contents = details.renderTemplateAndGetContents();
+    assertThat(contents).isNotEmpty();
+    assertThat(removeInlineDateFromOutput(contents.get())).isEqualTo(removeInlineDateFromOutput(expectedContent));
   }
 
   @Test
@@ -152,7 +190,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app,
+            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
@@ -160,6 +198,25 @@ public class PullRequestFeedbackDetailsTest
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
     assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
+  }
+
+  @Test
+  public void testPullRequestFeedback_addedAndCleared_noEmbeddedHtml() throws Exception {
+    //setup test data
+    setupTestData();
+    diff.getCleared().addAll(diff.getAppeared());
+
+    //when
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
+            lookup(BaseUrl.class).getConfigured());
+
+    //then assert that created contents match expected
+    final String expectedContent = readResource("PullRequestFeedback_AddedAndCleared_noEmbeddedHtml.md");
+    final Optional<String> contents = details.renderTemplateAndGetContents();
+    assertThat(contents).isNotEmpty();
+    assertThat(removeInlineDateFromOutput(contents.get())).isEqualTo(removeInlineDateFromOutput(expectedContent));
   }
 
   @Test
@@ -171,7 +228,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app,
+            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
@@ -179,6 +236,25 @@ public class PullRequestFeedbackDetailsTest
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
     assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
+  }
+
+  @Test
+  public void testPullRequestFeedback_noAddedOrCleared_noEmbeddedHtml() throws Exception {
+    //setup test data
+    setupTestData();
+    diff.getAppeared().clear();
+
+    //when
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
+            lookup(BaseUrl.class).getConfigured());
+
+    //then assert that created contents match expected
+    final String expectedContent = readResource("PullRequestFeedback_NoAddedOrCleared_noEmbeddedHtml.md");
+    final Optional<String> contents = details.renderTemplateAndGetContents();
+    assertThat(contents).isNotEmpty();
+    assertThat(removeInlineDateFromOutput(contents.get())).isEqualTo(removeInlineDateFromOutput(expectedContent));
   }
 
   @Test
@@ -196,7 +272,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app, 
+            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents has singular violation in heading
@@ -220,7 +296,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app, 
+            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents has singular violation in heading
@@ -238,7 +314,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app, 
+            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents is not available
@@ -254,7 +330,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(null, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app,
+            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured()));
   }
 
@@ -266,7 +342,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, null,
-            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app, 
+            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured()));
   }
 
@@ -278,7 +354,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, null, 
+            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, null,
             lookup(BaseUrl.class).getConfigured()));
   }
 
@@ -291,7 +367,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app, 
+            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured()).renderTemplateAndGetContents());
   }
 
@@ -303,7 +379,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(bomEntry, null, defaultBranchPolicyEvaluation, diff, remediationVersionMap,
-            pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app,
+            pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured()));
   }
 
@@ -315,7 +391,7 @@ public class PullRequestFeedbackDetailsTest
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, null, diff, remediationVersionMap,
-            pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, app,
+            pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured()));
   }
 
@@ -323,7 +399,8 @@ public class PullRequestFeedbackDetailsTest
   public void testGetComponentFeedbackList_noComponents() {
     // when
     final List<Map<String, Object>> result = PullRequestFeedbackDetails.getNewComponentFeedbackList(new HashMap<>(),
-        remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, config.getBaseUrl());
+        remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber,
+        config.getBaseUrl());
 
     // then
     assertThat(result).isEmpty();
@@ -338,7 +415,8 @@ public class PullRequestFeedbackDetailsTest
     componentMap.put("NAME_EMPTY", Collections.emptyList());
     // when
     final List<Map<String, Object>> result = PullRequestFeedbackDetails.getNewComponentFeedbackList(componentMap,
-        remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, config.getBaseUrl());
+        remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber,
+        config.getBaseUrl());
 
     // then
     assertThat(result).hasSize(2);
@@ -450,6 +528,10 @@ public class PullRequestFeedbackDetailsTest
     return value.replaceAll("\\*\\*Date\\*\\*:\\ .*", "");
   }
 
+  private String removeInlineDateFromOutput(final String value) {
+    return value.replaceAll("\\*\\*Date\\*\\*: [^\\\\]*\\\\n", "");
+  }
+
   private void setupTestData() throws IOException, URISyntaxException {
     setupTestData("/PullRequestFeedbackDetailsTest/from-report", "/PullRequestFeedbackDetailsTest/to-report");
   }
@@ -483,9 +565,13 @@ public class PullRequestFeedbackDetailsTest
     pullRequestLineComments.add(lineCommentDTO);
 
     //setup gitRepositoryInfo
-    gitRepositoryInfo =
-        new GitRepositoryInfo("https://github.com/sonatype/enhanced-commit-information", "user", "token",
-            SourceControlProvider.GITHUB, "master", false, true);
+    githubGitRepositoryInfo =
+        new GitRepositoryInfo("https://github.com/sonatype/enhanced-commit-information", null, "token",
+            SourceControlProvider.GITHUB, "master", true, true);
+
+    bitbucketGitRepositoryInfo =
+        new GitRepositoryInfo("https://bitbucket.com/scm/sonatype/enhanced-commit-information", "user", "token",
+            SourceControlProvider.BITBUCKET, "master", true, true);
 
     //setup bom report entry
     bomEntry = reportService.getBomForPolicyEvaluation(featureBranchPolicyEvaluation);

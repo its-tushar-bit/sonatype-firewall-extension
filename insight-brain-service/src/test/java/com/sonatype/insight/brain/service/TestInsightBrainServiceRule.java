@@ -119,6 +119,9 @@ public class TestInsightBrainServiceRule
   }
 
   public <T> T getInstance(Class<T> type) {
+    if (brain.getInjector() == null) {
+      return null;
+    }
     return brain.getInstance(type);
   }
 

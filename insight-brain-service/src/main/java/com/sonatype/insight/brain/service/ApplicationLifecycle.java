@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.version.VersionService;
 
 import io.dropwizard.lifecycle.Managed;
@@ -48,6 +49,8 @@ public class ApplicationLifecycle
 
   private final ComponentCategoryUpdater componentCategoryUpdater;
 
+  private final TaskScheduler taskScheduler;
+
   @Inject
   public ApplicationLifecycle(
       InsightConfig configuration,
@@ -57,7 +60,8 @@ public class ApplicationLifecycle
       DefaultLicenseDataUpdater licenseDataUpdater,
       VersionService versionService,
       AuditRecorder auditRecorder,
-      ComponentCategoryUpdater componentCategoryUpdater)
+      ComponentCategoryUpdater componentCategoryUpdater,
+      TaskScheduler taskScheduler)
   {
     this.configuration = configuration;
     this.licenseManager = licenseManager;
@@ -67,6 +71,7 @@ public class ApplicationLifecycle
     this.versionService = versionService;
     this.auditRecorder = auditRecorder;
     this.componentCategoryUpdater = componentCategoryUpdater;
+    this.taskScheduler = taskScheduler;
   }
 
   public void boot() throws Exception {
@@ -74,6 +79,7 @@ public class ApplicationLifecycle
 
     dataMigrator.migrate();
 
+    taskScheduler.start();
     licenseManager.loadLicense();
     // If a license is not installed and the config has a license file path, then try to install it from there.
     licenseManager.installLicenseIfUnlicensed(configuration.getLicenseFile());

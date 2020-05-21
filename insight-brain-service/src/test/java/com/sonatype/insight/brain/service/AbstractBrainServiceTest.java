@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -196,6 +197,10 @@ public abstract class AbstractBrainServiceTest
       testCLMServer.getHdsServer().reset();
       if (installLicense) {
         installLicense();
+      }
+      TaskScheduler taskScheduler = testCLMServer.getCLMServer().getInstance(TaskScheduler.class);
+      if (taskScheduler != null) {
+        taskScheduler.stop();
       }
     }
   }

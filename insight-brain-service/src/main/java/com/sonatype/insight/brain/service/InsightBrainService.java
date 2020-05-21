@@ -219,6 +219,11 @@ public class InsightBrainService
 
     super.run(configuration, environment);
 
+    bootApplicationLifecycle();
+  }
+
+  // Visible for testing
+  void bootApplicationLifecycle() throws Exception {
     getInstance(ApplicationLifecycle.class).boot();
   }
 

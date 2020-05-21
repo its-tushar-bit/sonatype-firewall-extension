@@ -73,7 +73,7 @@ Threat (of 10) | Policy | Violation Details
 ### Nexus IQ Report Detail
 **Application**: TEST APP
 **Organization**: TEST ORG
-
+**Date**: 2020-06-21 09:15:32 UTC
 **PR Branch**: Release Stage - [Full Report](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/toScanId)
 **Default Branch**: Build Stage - [Full Report](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/fromScanId)
 

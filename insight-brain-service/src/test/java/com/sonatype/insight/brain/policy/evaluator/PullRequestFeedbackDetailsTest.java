@@ -13,10 +13,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -40,6 +42,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.iq.location.dto.DiffPosition;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -97,11 +100,20 @@ public class PullRequestFeedbackDetailsTest
 
   private Application app;
 
+  private TimeZone initialTimezone;
+
   @Before
   public void before() {
     config.setBaseUrl("http://localhost:1122");
     tempEntity.newOrganizationWithSpecificId(ORG_ID, ORG_NAME);
     app = tempEntity.newApplicationWithSpecificId(APP_INTERNAL_ID, APP_NAME, APP_PUBLIC_ID, ORG_ID);
+    initialTimezone = TimeZone.getDefault();
+    TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+  }
+
+  @After
+  public void after() {
+    TimeZone.setDefault(initialTimezone);
   }
 
   private String readResource(String resourceName) throws Exception {
@@ -124,7 +136,7 @@ public class PullRequestFeedbackDetailsTest
     final String expectedContent = readResource("PullRequestFeedback_Added.md");
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
-    assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
+    assertThat(contents.get()).isEqualTo(expectedContent);
   }
 
   @Test
@@ -142,7 +154,7 @@ public class PullRequestFeedbackDetailsTest
     final String expectedContent = readResource("PullRequestFeedback_Added_noEmbeddedHtml.md");
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
-    assertThat(removeInlineDateFromOutput(contents.get())).isEqualTo(removeInlineDateFromOutput(expectedContent));
+    assertThat(contents.get()).isEqualTo(expectedContent);
   }
 
   @Test
@@ -160,7 +172,7 @@ public class PullRequestFeedbackDetailsTest
     final String expectedContent = readResource("PullRequestFeedback_Cleared.md");
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
-    assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
+    assertThat(contents.get()).isEqualTo(expectedContent);
   }
 
   @Test
@@ -178,7 +190,7 @@ public class PullRequestFeedbackDetailsTest
     final String expectedContent = readResource("PullRequestFeedback_Cleared_noEmbeddedHtml.md");
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
-    assertThat(removeInlineDateFromOutput(contents.get())).isEqualTo(removeInlineDateFromOutput(expectedContent));
+    assertThat(contents.get()).isEqualTo(expectedContent);
   }
 
   @Test
@@ -206,7 +218,7 @@ public class PullRequestFeedbackDetailsTest
     final String expectedContent = readResource("PullRequestFeedback_AddedAndCleared.md");
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
-    assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
+    assertThat(contents.get()).isEqualTo(expectedContent);
   }
 
   @Test
@@ -225,7 +237,7 @@ public class PullRequestFeedbackDetailsTest
     final String expectedContent = readResource("PullRequestFeedback_AddedAndCleared_noEmbeddedHtml.md");
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
-    assertThat(removeInlineDateFromOutput(contents.get())).isEqualTo(removeInlineDateFromOutput(expectedContent));
+    assertThat(contents.get()).isEqualTo(expectedContent);
   }
 
   @Test
@@ -244,7 +256,7 @@ public class PullRequestFeedbackDetailsTest
     final String expectedContent = readResource("PullRequestFeedback_NoAddedOrCleared.md");
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
-    assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
+    assertThat(contents.get()).isEqualTo(expectedContent);
   }
 
   @Test
@@ -263,7 +275,7 @@ public class PullRequestFeedbackDetailsTest
     final String expectedContent = readResource("PullRequestFeedback_NoAddedOrCleared_noEmbeddedHtml.md");
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
-    assertThat(removeInlineDateFromOutput(contents.get())).isEqualTo(removeInlineDateFromOutput(expectedContent));
+    assertThat(contents.get()).isEqualTo(expectedContent);
   }
 
   @Test
@@ -533,14 +545,6 @@ public class PullRequestFeedbackDetailsTest
     assertThat(result).isEmpty();
   }
 
-  private String removeDateFromOutput(final String value) {
-    return value.replaceAll("\\*\\*Date\\*\\*:\\ .*", "");
-  }
-
-  private String removeInlineDateFromOutput(final String value) {
-    return value.replaceAll("\\*\\*Date\\*\\*: [^\\\\]*\\\\n", "");
-  }
-
   private void setupTestData() throws IOException, URISyntaxException {
     setupTestData("/PullRequestFeedbackDetailsTest/from-report", "/PullRequestFeedbackDetailsTest/to-report");
   }
@@ -557,6 +561,7 @@ public class PullRequestFeedbackDetailsTest
     //setup evaluations
     defaultBranchPolicyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID);
     featureBranchPolicyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID);
+    featureBranchPolicyEvaluation.setTime(new GregorianCalendar(2020, 5, 21, 9, 15, 32).getTime());
 
     //setup diff
     diff = policyEvaluationDiffService.createPolicyViolationDiff(defaultBranchPolicyEvaluation,

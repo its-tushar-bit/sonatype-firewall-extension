@@ -13,6 +13,7 @@ import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.db.H2DatabaseEngine;
 
 import org.apache.openjpa.lib.jdbc.JDBCListener;
 import org.slf4j.Logger;
@@ -31,6 +32,8 @@ public class OperationalDataStoreProvider
   private static DataSource dataSource;
 
   private static DatabaseConfig databaseConfig;
+
+  private static Boolean isDatabaseEmbedded;
 
   private static EntityManagerFactory entityManagerFactory;
 
@@ -60,6 +63,8 @@ public class OperationalDataStoreProvider
 
     OperationalDataStoreProvider.databaseConfig = databaseConfig;
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
+    isDatabaseEmbedded = H2DatabaseEngine.class.equals(DataSourceFactory.getDatabaseEngine(dataSource).getClass());
+
     if (migrateDatabase) {
       new DatabaseMigrator().migrate(databaseConfig, ID, dataSource, currentVersion -> {
         if (currentVersion < MINIMUM_DATABASE_VERSION) {
@@ -121,6 +126,11 @@ public class OperationalDataStoreProvider
     dataSource = null;
     entityManagerFactory = null;
     databaseConfig = null;
+    isDatabaseEmbedded = null;
     isInitialized = false;
+  }
+
+  public static boolean isDatabaseEmbedded() {
+    return isDatabaseEmbedded;
   }
 }

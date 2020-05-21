@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQThreatIndicators;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -34,6 +35,30 @@ public class ReportListPage
   {
     public ReportListRow(String... selectors) {
       super(selectors);
+    }
+
+    public SelenideElement applicationName() {
+      return child(".tm-report-list-application");
+    }
+
+    public Tooltip applicationNameTooltip() {
+      return new Tooltip(".report-application-name-tooltip");
+    }
+
+    public SelenideElement contactName() {
+      return child(".iq-cell--contact");
+    }
+
+    public Tooltip contactNameTooltip() {
+      return new Tooltip(".report-contact-name-tooltip");
+    }
+
+    public SelenideElement organizationName() {
+      return child(".tm-report-list-organization");
+    }
+
+    public Tooltip organizationNameTooltip() {
+      return new Tooltip(".report-organization-name-tooltip");
     }
 
     public SelenideElement buildReportLink() {

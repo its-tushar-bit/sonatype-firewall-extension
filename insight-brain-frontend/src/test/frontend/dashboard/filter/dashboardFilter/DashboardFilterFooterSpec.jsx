@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { NxTooltip, NxButton } from '@sonatype/react-shared-components';
+import { NxButton } from '@sonatype/react-shared-components';
 
 import DashboardFilterFooter from
   '../../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilterFooter';
@@ -101,7 +101,7 @@ describe('DashboardFilter footer', function() {
   describe('Apply button onClick handler', function() {
     let onApplyCurrentFilter;
     beforeEach(function() {
-      onApplyCurrentFilter = jasmine.createSpy('onApplyCurrentFilter')
+      onApplyCurrentFilter = jasmine.createSpy('onApplyCurrentFilter');
     });
 
     it('calls onApplyCurrentFilter callback if filters are dirty', function() {
@@ -151,7 +151,7 @@ describe('DashboardFilter footer', function() {
   describe('Save button onClick handler', function() {
     let setDisplaySaveFilterModal;
     beforeEach(function() {
-      setDisplaySaveFilterModal = jasmine.createSpy('setDisplaySaveFilterModal')
+      setDisplaySaveFilterModal = jasmine.createSpy('setDisplaySaveFilterModal');
     });
 
     it('calls setDisplaySaveFilterModal callback if filters are not dirty', function() {

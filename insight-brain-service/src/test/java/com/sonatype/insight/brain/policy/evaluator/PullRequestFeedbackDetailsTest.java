@@ -185,7 +185,16 @@ public class PullRequestFeedbackDetailsTest
   public void testPullRequestFeedback_addedAndCleared() throws Exception {
     //setup test data
     setupTestData();
-    diff.getCleared().addAll(diff.getAppeared());
+    // create cleared policy violation that does not exist in the bom file
+    PolicyViolation existingViolation = diff.getAppeared().get(0);
+    PolicyViolation policyViolation = new PolicyViolation();
+    policyViolation.setHash("12345678abcd12345678");
+    policyViolation.setComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("org.group.fixed", "fixed-artifact", "1.0"));
+    policyViolation.setConstraintFacts(existingViolation.getConstraintFacts());
+    policyViolation.setPolicyId(existingViolation.getPolicyId());
+    policyViolation.setPolicyName(existingViolation.getPolicyName());
+    diff.getCleared().add(policyViolation);
 
     //when
     final PullRequestFeedbackDetails details =

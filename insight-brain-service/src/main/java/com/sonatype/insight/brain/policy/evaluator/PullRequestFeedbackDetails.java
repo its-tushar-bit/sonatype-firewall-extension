@@ -154,7 +154,7 @@ public class PullRequestFeedbackDetails
    */
   private String constructContents() throws IOException {
     //Create a map from component hash to display name
-    final Map<String, String> componentDisplayNamesMap = getDisplayNamesMapFromBom();
+    final Map<String, String> componentDisplayNamesMap = createDisplayNamesMap();
     if (componentDisplayNamesMap.isEmpty()) {
       return "";
     }
@@ -199,11 +199,12 @@ public class PullRequestFeedbackDetails
   }
 
   /**
-   * Gets the display names for all components in the BOM
+   * Gets the display names for all components in the BOM and components in the cleared policy violations section
+   * (some of them may not be included in the BOM).
    *
    * @return Returns a map with the component hash as the key and the component display name as the value
    */
-  Map<String, String> getDisplayNamesMapFromBom() {
+  Map<String, String> createDisplayNamesMap() {
     final Map<String, String> componentDisplayNamesMap = new HashMap<>();
     JsonNode bomJson = loadJson();
     if (bomJson != null) {
@@ -214,6 +215,17 @@ public class PullRequestFeedbackDetails
           final String hash = JsonUtils.getNullableString(jsonNode.get("hash"));
           componentDisplayNamesMap.put(hash, ComponentDisplayNameUtil.fromJsonNode((ObjectNode) jsonNode).toString());
         });
+      }
+    }
+    if (diff.hasCleared()) {
+      // add mappings for the components from the cleared violations section; some may not be included in the bom file
+      List<PolicyViolation> cleared = diff.getCleared();
+      for (PolicyViolation violation : cleared) {
+        String hash = violation.getHash();
+        if (violation.getComponentIdentifier() != null && !componentDisplayNamesMap.containsKey(hash)) {
+          componentDisplayNamesMap.put(hash,
+              ComponentDisplayNameUtil.fromIdentifier(violation.getComponentIdentifier()).toString());
+        }
       }
     }
     return componentDisplayNamesMap;

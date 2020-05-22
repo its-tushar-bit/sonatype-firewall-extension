@@ -45,7 +45,10 @@ public class LabelDAO
   }
 
   public List<Label> getByOwnerId(TransactionContext tx, String ownerId) {
-    return getByOwnerId(tx, ownerId, false);
+    final String sQuery = "SELECT label FROM Label label" + //
+        " WHERE label.ownerId=?1" + //
+        " ORDER BY label.labelLowercase";
+    return getList(tx, sQuery, ownerId);
   }
 
   public List<Label> getByOwnerIdWithHierarchy(String ownerId) {
@@ -55,22 +58,9 @@ public class LabelDAO
   }
 
   public List<Label> getByOwnerIdWithHierarchy(TransactionContext tx, String ownerId) {
-    return getByOwnerId(tx, ownerId, true);
-  }
-
-  /**
-   * @param inherit if {@code true} the returned list will include labels inherited from organization hierarchy.
-   */
-  private List<Label> getByOwnerId(TransactionContext tx, String ownerId, boolean inherit) {
-    final String sQuery = "SELECT label FROM Label label" + //
-        " WHERE label.ownerId=?1" + //
-        " ORDER BY label.labelLowercase";
     final List<Label> labels = new ArrayList<>();
     for (Owner owner : ownerDAO.walkHierarchy(tx, ownerId)) {
-      labels.addAll(getList(tx, sQuery, owner.getId()));
-      if (!inherit) {
-        break;
-      }
+      labels.addAll(getByOwnerId(tx, owner.getId()));
     }
     return labels;
   }

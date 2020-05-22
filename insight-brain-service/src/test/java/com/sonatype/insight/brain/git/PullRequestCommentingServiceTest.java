@@ -28,8 +28,10 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
@@ -51,7 +53,6 @@ import static com.sonatype.insight.brain.git.PullRequestCommentingService.COMMIT
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -65,7 +66,7 @@ public class PullRequestCommentingServiceTest
     extends VerifiableLoggingTestBase
 {
   @Mock
-  private PullRequestCommentingMetricsService mockPullRequestCommentingMetricsService;
+  private TelemetrySender mockTelemetrySender;
 
   public PullRequestCommentingServiceTest() {
     super(PullRequestCommentingService.class);
@@ -107,7 +108,7 @@ public class PullRequestCommentingServiceTest
         debug("License does not support SourceControl automation features"));
 
     // and : processing stops there
-    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
+    verify(mockTelemetrySender, never()).send((TelemetryData) any());
   }
 
   @Test
@@ -126,7 +127,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment was not created
-    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
+    verify(mockTelemetrySender, never()).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         debug("no commit hash : skipping PR commenting for application 'app1' with policy evaluation 'pe1'"));
   }
@@ -148,7 +149,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment was not created
-    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
+    verify(mockTelemetrySender, never()).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         debug("scm disabled : skipping PR commenting for application 'app1' with policy evaluation 'pe1'"));
   }
@@ -192,7 +193,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment not created due to PR being for base branch
-    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
+    verify(mockTelemetrySender, never()).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'commit456' with 1 pull request(s) and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
@@ -226,7 +227,6 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment not created due to PR already having a comment from us
-    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'commit456' with 1 pull request(s) and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
@@ -256,7 +256,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment not created due to no base branch policy eval to compare to
-    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
+    verify(mockTelemetrySender, never()).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'commit456' with 1 pull request(s) and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
@@ -286,7 +286,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment not created due to no meaningful policy eval diff
-    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
+    verify(mockTelemetrySender, never()).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'sourceCommit' with 1 pull request(s) " +
             "and 0 base branch commit(s)"),
@@ -321,7 +321,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment should be created
-    verify(mockPullRequestCommentingMetricsService, only()).onCommentCreated(eq("app1"), eq(14), eq(27));
+    verify(mockTelemetrySender, only()).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'sourceCommit' with 1 pull request(s) " +
             "and 0 base branch commit(s)"),
@@ -359,7 +359,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comment should be created
-    verify(mockPullRequestCommentingMetricsService, only()).onCommentCreated(eq("app1"), eq(14), eq(27));
+    verify(mockTelemetrySender, only()).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'sourceCommit' with 1 pull request(s) " +
             "and 0 base branch commit(s)"),
@@ -397,7 +397,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : GitLab not supported yet
-    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
+    verify(mockTelemetrySender, never()).send((TelemetryData) any());
     assertThatLogMessagesEqual(debug(
         String.format("'%s' not currently supported for pull request commenting", sourceControlProvider.toString())));
   }
@@ -428,7 +428,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then
-    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
+    verify(mockTelemetrySender, never()).send((TelemetryData) any());
     assertThatLogMessagesEqual(debug(
         "obtained CommitInfo from SCM for commit 'sourceCommit' with 1 pull request(s) and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
@@ -467,8 +467,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comments should be created for those PR's with matching head commits
-    verify(mockPullRequestCommentingMetricsService, times(1)).onCommentCreated(eq(applicationId), eq(14), eq(28));
-    verify(mockPullRequestCommentingMetricsService, times(1)).onCommentCreated(eq(applicationId), eq(16), eq(32));
+    verify(mockTelemetrySender, times(2)).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'sourceCommit' with 4 pull request(s) " +
             "and 0 base branch commit(s)"),
@@ -518,8 +517,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : comments should be created for those PR's with matching head commits
-    verify(mockPullRequestCommentingMetricsService, times(1)).onCommentCreated(eq(applicationId), eq(14), eq(42));
-    verify(mockPullRequestCommentingMetricsService, times(1)).onCommentCreated(eq(applicationId), eq(16), eq(48));
+    verify(mockTelemetrySender, times(2)).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'sourceCommit' with 4 pull request(s) " +
             "and 0 base branch commit(s)"),
@@ -552,7 +550,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onDiscoveredPullRequest(event);
 
     // then : comment should be created
-    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
+    verify(mockTelemetrySender, never()).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         debug(
             "obtained CommitInfo from SCM for commit 'sourceCommit' with 1 pull request(s) and 0 base branch commit(s)"
@@ -588,7 +586,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onDiscoveredPullRequest(event);
 
     // then : comment should be created
-    verify(mockPullRequestCommentingMetricsService, only()).onCommentUpdated(eq(applicationId), eq(20), eq(25));
+    verify(mockTelemetrySender, only()).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         info("pull request comment '25' updated for application 'app1' pull request '20'"),
         debug("comment text = at least one new policy violation"),
@@ -615,7 +613,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onDiscoveredPullRequest(event);
 
     // then : comment should be created
-    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
+    verify(mockTelemetrySender, never()).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         info("policy evaluations have not changed for application 'app1' pull request '20'.")
     );
@@ -646,7 +644,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onDiscoveredPullRequest(event);
 
     // then : comment should be created
-    verify(mockPullRequestCommentingMetricsService, only()).onCommentCreated(eq(applicationId), eq(20), eq(25));
+    verify(mockTelemetrySender, only()).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         info("pull request comment '25' created for application 'app1' pull request '20'"),
         debug("comment text = " + commentText),
@@ -671,7 +669,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : no comment should be created
-    verify(mockPullRequestCommentingMetricsService, never()).onCommentCreated(anyString(), anyInt(), anyInt());
+    verify(mockTelemetrySender, never()).send((TelemetryData) any());
   }
 
   @Test
@@ -867,7 +865,7 @@ public class PullRequestCommentingServiceTest
           .createPolicyViolationDiff(basePolicyEvaluation, sourcePolicyEvaluation);
 
       doReturn(policyEvaluationDiffMarkup).when(mockPullRequestFeedbackMarkupService)
-          .createMarkup(any(), any(), any(), any(), anyInt(), any(), any());
+          .createMarkup(any(), any(), any(), any(), anyInt(), any(), any(), any());
 
       if (gitRepositoryEffectivelyPrivateThrows != null) {
         doThrow(UnsupportedOperationException.class).when(mockPullRequestRepositoryValidator)
@@ -891,7 +889,7 @@ public class PullRequestCommentingServiceTest
           mockPolicyEvaluationDAO,
           mockPullRequestFeedbackMarkupService,
           mockGitCommitHistoryService,
-          mockPullRequestCommentingMetricsService,
+          mockTelemetrySender,
           mockPullRequestCommentingRemediationService,
           mockAsyncEventBus,
           testProductLicense,

@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
 
 @Named
 @Singleton
@@ -58,7 +59,8 @@ public class PullRequestFeedbackMarkupService
       GitRepositoryInfo gitRepositoryInfo,
       int pullRequestNumber, 
       PolicyEvaluation sourceCommitPolicyEvaluation,
-      PolicyEvaluation baseBranchPolicyEvaluation) throws IOException
+      PolicyEvaluation baseBranchPolicyEvaluation,
+      PullRequestCommentTelemetry telemetry) throws IOException
   {
     ReportEntry reportEntry = reportService.getBomForPolicyEvaluation(sourceCommitPolicyEvaluation);
     Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getApplicationId());
@@ -67,7 +69,11 @@ public class PullRequestFeedbackMarkupService
             policyViolationDiff, remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber,
             application, baseUrl.getConfigured());
 
-    return details.renderTemplateAndGetContents();
+    Optional<String> optionalString = details.renderTemplateAndGetContents();
+    telemetry.newViolationsComponentCount = details.getNewViolationsComponentCount();
+    telemetry.clearedViolationsComponentCount = details.getClearedViolationsComponentCount();
+
+    return optionalString;
   }
 
   /**

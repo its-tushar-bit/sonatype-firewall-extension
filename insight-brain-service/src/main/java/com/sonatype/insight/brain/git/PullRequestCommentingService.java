@@ -20,6 +20,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
@@ -30,8 +31,12 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
@@ -49,6 +54,10 @@ import io.dropwizard.lifecycle.Managed;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry.ACTION_CREATED;
+import static com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry.ACTION_UPDATED;
+import static com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry.PULL_REQUEST_COMMENT_TELEMETRY;
 
 @Named
 @Singleton
@@ -73,7 +82,7 @@ public class PullRequestCommentingService
 
   private final GitCommitHistoryService gitCommitHistoryService;
 
-  private final PullRequestCommentingMetricsService pullRequestCommentingMetricsService;
+  private final TelemetrySender telemetrySender;
 
   private final AsyncEventBus asyncEventBus;
 
@@ -101,7 +110,7 @@ public class PullRequestCommentingService
       final PolicyEvaluationDAO policyEvaluationDAO,
       final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService,
       final GitCommitHistoryService gitCommitHistoryService,
-      final PullRequestCommentingMetricsService pullRequestCommentingMetricsService,
+      final TelemetrySender telemetrySender,
       final PullRequestCommentingRemediationService commentingRemediationService,
       final AsyncEventBus asyncEventBus,
       final ProductLicense productLicense,
@@ -118,7 +127,7 @@ public class PullRequestCommentingService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.pullRequestFeedbackMarkupService = pullRequestFeedbackMarkupService;
     this.gitCommitHistoryService = gitCommitHistoryService;
-    this.pullRequestCommentingMetricsService = pullRequestCommentingMetricsService;
+    this.telemetrySender = telemetrySender;
     this.commentingRemediationService = commentingRemediationService;
     this.asyncEventBus = asyncEventBus;
     this.productLicense = productLicense;
@@ -321,19 +330,22 @@ public class PullRequestCommentingService
       final String contentHash)
       throws IOException
   {
+    PullRequestCommentTelemetry telemetry = new PullRequestCommentTelemetry(applicationId, pullRequestNumber);
+
     // line comment sub-flow
     List<PullRequestLineCommentDTO> pullRequestLineComments = pullRequestLineCommentingService
         .createPullRequestLineComments(policyViolationDiff.get().getAppeared(), gitRepositoryInfo,
             remediationVersionMap, pullRequestNumber, branchName, sourceCommitPolicyEvaluation.getCommitHash(),
             applicationId, sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId());
+    telemetry.lineCommentCount = pullRequestLineComments.size();
 
     Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService.createMarkup(
         policyViolationDiff.get(), remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber,
-        sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation);
+        sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, telemetry);
 
     if (policyEvaluationDiffMarkup.isPresent()) {
       int commentId = createOrUpdateCommentInGitSCM(applicationId, gitRepositoryInfo, pullRequestNumber,
-          policyEvaluationDiffMarkup.get(), existingPullRequestComment);
+          policyEvaluationDiffMarkup.get(), existingPullRequestComment, telemetry);
       recordCommentInDatabase(applicationId, pullRequestNumber, commentId, contentHash,
           sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId(), existingPullRequestComment);
       invokePostCommentActions(gitRepositoryInfo, policyViolationDiff.get(),
@@ -353,7 +365,8 @@ public class PullRequestCommentingService
       GitRepositoryInfo gitRepositoryInfo,
       int pullRequestNumber,
       String commentText,
-      SourceControlPullRequestComment existingPullRequestComment)
+      SourceControlPullRequestComment existingPullRequestComment,
+      PullRequestCommentTelemetry telemetry)
       throws IOException
   {
     CommentResponse commentResponse = null;
@@ -363,7 +376,7 @@ public class PullRequestCommentingService
       commentResponse = gitApiClient.createPullRequestComment(pullRequestNumber, commentText);
       log.info("pull request comment '{}' created for application '{}' pull request '{}'",
           commentResponse.getId(), applicationId, pullRequestNumber);
-      pullRequestCommentingMetricsService.onCommentCreated(applicationId, pullRequestNumber, commentResponse.getId());
+      telemetry.action = ACTION_CREATED;
     }
     else {
       int pullRequestCommentId = existingPullRequestComment.getPullRequestCommentId();
@@ -371,10 +384,20 @@ public class PullRequestCommentingService
           gitApiClient.updatePullRequestComment(pullRequestCommentId, commentText);
       log.info("pull request comment '{}' updated for application '{}' pull request '{}'",
           commentResponse.getId(), applicationId, pullRequestNumber);
-      pullRequestCommentingMetricsService.onCommentUpdated(applicationId, pullRequestNumber, pullRequestCommentId);
+      telemetry.action = ACTION_UPDATED;
     }
+    telemetry.commentId = commentResponse.getId();
+    sendTelemetry(telemetry);
+
     log.debug("comment text = {}", commentText);
     return commentResponse.getId();
+  }
+
+  private void sendTelemetry(final PullRequestCommentTelemetry telemetry) {
+    telemetry.applicationId = HdsClientAnalytics.obfuscate(telemetry.applicationId);
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_COMMENT);
+    telemetryData.put(PULL_REQUEST_COMMENT_TELEMETRY, telemetry);
+    telemetrySender.send(telemetryData);
   }
 
   /**

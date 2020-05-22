@@ -90,6 +90,10 @@ public class PullRequestFeedbackDetails
 
   private final String baseUrl;
 
+  private int newViolationsComponentCount;
+
+  private int clearedViolationsComponentCount;
+
   static {
     try {
       policyViolationDiffMDEmbeddedHtmlTemplate =
@@ -165,12 +169,14 @@ public class PullRequestFeedbackDetails
     //Get a map containing the PR feedback for each of the components
     final List<Map<String, Object>> newComponentFeedbackList = getNewComponentFeedbackList(componentPolicyViolationsMap,
         remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, baseUrl);
+    newViolationsComponentCount = newComponentFeedbackList.size();
 
     final Map<String, List<PolicyViolation>> fixedComponentPolicyViolationsMap = diff.hasCleared() ? 
         getComponentPolicyViolationsMap(diff.getCleared(), componentDisplayNamesMap) : Collections.emptyMap();
     //Get a map containing the PR feedback for each of the components
     final List<Map<String, Object>> fixedComponentFeedbackList = 
         getFixedComponentFeedbackList(fixedComponentPolicyViolationsMap, baseUrl);
+    clearedViolationsComponentCount = fixedComponentFeedbackList.size();
 
     //Get a map containing all model values to be used in the template
     final Map<String, Object> modelMap =
@@ -392,6 +398,14 @@ public class PullRequestFeedbackDetails
         .put("fixedPolicyViolationsCount", fixedComponentFeedbackList.size())
         .put("threatColorArray", THREAT_COLOR_ARRAY)
         .build();
+  }
+
+  public int getNewViolationsComponentCount() {
+    return newViolationsComponentCount;
+  }
+
+  public int getClearedViolationsComponentCount() {
+    return clearedViolationsComponentCount;
   }
 
   // package visibility for PR Line Feedback access

@@ -51,7 +51,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.Applica
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
 import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
-import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -359,11 +358,12 @@ public class ApiComponentsWithWaiversReportingService
     waivedPolicyViolationDTO.threatLevel = policyViolation.getThreatLevel();
     waivedPolicyViolationDTO.constraintViolations = policyViolationAdapter.convert(policyViolation);
 
-    ApiPolicyWaiverDTO policyWaiverDTO = new ApiPolicyWaiverDTO();
+    ApiPolicyWaiverDTO policyWaiverDTO;
     String policyWaiverId = policyViolation.getPolicyWaiverId();
     final PolicyWaiver policyWaiver = policyWaiverId != null ? policyWaiverDao.getById(policyWaiverId) : null;
 
     if (policyWaiver == null) {
+      policyWaiverDTO = new ApiPolicyWaiverDTO();
       policyWaiverDTO.isObsolete = true;
       policyWaiverDTO.comment = POLICY_WAIVER_NOT_FOUND_MSG;
     }
@@ -373,11 +373,11 @@ public class ApiComponentsWithWaiversReportingService
       Owner waiverOwner = StreamSupport.stream(ownerDAO.walkHierarchy(ownerId).spliterator(), false)
           .filter(owner -> owner.getId().equals(policyWaiver.getOwnerId())).findFirst().orElse(null);
       if (waiverOwner != null) {
-        addOwnerInfoToPolicyWaiverDTO(policyWaiverDTO, waiverOwner);
+        policyWaiverDTO = ApiPolicyWaiverDTO.toDto(policyWaiver, waiverOwner);
         policyWaiverDTO.isObsolete = false;
-        policyWaiverDTO.comment = policyWaiver.getComment();
       }
       else {
+        policyWaiverDTO = new ApiPolicyWaiverDTO();
         policyWaiverDTO.isObsolete = true;
         policyWaiverDTO.comment = POLICY_WAIVER_OWNER_NOT_IN_SCOPE_MSG;
       }
@@ -389,15 +389,6 @@ public class ApiComponentsWithWaiversReportingService
     waivedPolicyViolationDTO.policyWaiver = policyWaiverDTO;
 
     return waivedPolicyViolationDTO;
-  }
-
-  private void addOwnerInfoToPolicyWaiverDTO(
-      final ApiPolicyWaiverDTO policyWaiverDTO,
-      final Owner owner)
-  {
-    policyWaiverDTO.scopeOwnerId = owner.getId();
-    policyWaiverDTO.scopeOwnerType = ScopeOwnerUtils.getScopeOwnerType(owner.getType(), owner.getId());
-    policyWaiverDTO.scopeOwnerName = owner.getName();
   }
 
   private ApiPolicyViolationStageDTO buildPolicyViolationStageDTO(

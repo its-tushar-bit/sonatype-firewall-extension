@@ -5,13 +5,19 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -45,5 +51,15 @@ public class ApiPolicyWaiverResource
       @PathParam("policyWaiverId") String policyWaiverId)
   {
     apiPolicyWaiverService.deletePolicyWaiver(ownerType, ownerId, policyWaiverId);
+  }
+
+  @GET
+  @Audited(AuditEvent.VIEW_WAIVER)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<ApiPolicyWaiverDTO> getPolicyWaivers(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId)
+  {
+    return apiPolicyWaiverService.getPolicyWaivers(ownerType, ownerId);
   }
 }

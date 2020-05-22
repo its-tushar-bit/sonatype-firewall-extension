@@ -8,9 +8,11 @@ package com.sonatype.insight.brain.security;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -193,5 +195,51 @@ public class ContextResolverTest
     parameters.put(AuthzContext.Key.TYPE, OwnerType.REPOSITORY_CONTAINER);
     assertThat(resolver.resolveContextIds(parameters)).containsExactly(RepositoryContainer.REPOSITORY_CONTAINER_ID,
         Organization.ROOT_ORGANIZATION_ID, MembershipMapping.GLOBAL_CONTEXT_ID);
+  }
+
+  @Test
+  public void testResolveContextIds_Owner_RootOrganization() {
+    Map<AuthzContext.Key, Object> parameters = new HashMap<>();
+    Owner owner = new OrganizationDAO().getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    parameters.put(AuthzContext.Key.OWNER, owner);
+    assertThat(resolver.resolveContextIds(parameters)).containsExactly(Organization.ROOT_ORGANIZATION_ID,
+        MembershipMapping.GLOBAL_CONTEXT_ID);
+  }
+
+  @Test
+  public void testResolveContextIds_Owner_Organization() {
+    Map<AuthzContext.Key, Object> parameters = new HashMap<>();
+    Owner owner = tempEntity.newOrganization();
+    parameters.put(AuthzContext.Key.OWNER, owner);
+    assertThat(resolver.resolveContextIds(parameters)).containsExactly(owner.getId(), Organization.ROOT_ORGANIZATION_ID,
+        MembershipMapping.GLOBAL_CONTEXT_ID);
+  }
+
+  @Test
+  public void testResolveContextIds_Owner_Application() {
+    Map<AuthzContext.Key, Object> parameters = new HashMap<>();
+    Owner owner = tempEntity.newApplicationWithParent();
+    parameters.put(AuthzContext.Key.OWNER, owner);
+    assertThat(resolver.resolveContextIds(parameters)).containsExactly(owner.getId(), owner.getParentOwnerId(),
+        Organization.ROOT_ORGANIZATION_ID, MembershipMapping.GLOBAL_CONTEXT_ID);
+  }
+
+  @Test
+  public void testResolveContextIds_Owner_RepositoryContainer() {
+    Map<AuthzContext.Key, Object> parameters = new HashMap<>();
+    Owner owner = RepositoryContainer.SINGLETON;
+    parameters.put(AuthzContext.Key.OWNER, owner);
+    assertThat(resolver.resolveContextIds(parameters)).containsExactly(RepositoryContainer.REPOSITORY_CONTAINER_ID,
+        Organization.ROOT_ORGANIZATION_ID, MembershipMapping.GLOBAL_CONTEXT_ID);
+  }
+
+  @Test
+  public void testResolveContextIds_Owner_Repository() {
+    Map<AuthzContext.Key, Object> parameters = new HashMap<>();
+    Owner owner = tempEntity.newRepository();
+    parameters.put(AuthzContext.Key.OWNER, owner);
+    assertThat(resolver.resolveContextIds(parameters)).containsExactly(owner.getId(),
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, Organization.ROOT_ORGANIZATION_ID,
+        MembershipMapping.GLOBAL_CONTEXT_ID);
   }
 }

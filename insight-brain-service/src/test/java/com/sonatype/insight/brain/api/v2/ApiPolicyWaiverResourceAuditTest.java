@@ -158,6 +158,96 @@ public class ApiPolicyWaiverResourceAuditTest
     assertRepositoryContainerData(auditDTO);
   }
 
+  @Test
+  public void testGetPolicyWaivers_Application() throws Exception {
+    ConditionFact conditionFact = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID, 0, "foo", "bar");
+    conditionFact.setTriggerJson("{\"conditionIndex\":1,\"trigger\":{\"refId\":\"1234\",\"severity\":5.7}}");
+    ConstraintFact constraintFact = new ConstraintFact("id", "name", LogicalOperator.AND.toString());
+    constraintFact.addConditionFact(conditionFact);
+
+    PolicyWaiver policyWaiver =
+        tempEntity.newWaiver("0b", policy.getId(), app.getId(), Collections.singletonList(constraintFact));
+
+    restRequest().parameter(OwnerType.APPLICATION, app.getId()).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_WAIVER, null);
+    assertPolicyWaiverData(auditDTO, policyWaiver);
+    assertApplicationData(auditDTO, app);
+  }
+
+  @Test
+  public void testGetPolicyWaivers_Application_Unauthorized() throws Exception {
+    restRequest().parameter(OwnerType.APPLICATION, app.getId()).with(unauthorizedUser()).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_WAIVER, "unauthorized");
+    assertApplicationData(auditDTO, app);
+  }
+
+  @Test
+  public void testGetPolicyWaivers_Organization() throws Exception {
+    ConditionFact conditionFact = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID, 0, "foo", "bar");
+    conditionFact.setTriggerJson("{\"conditionIndex\":1,\"trigger\":{\"refId\":\"1234\",\"severity\":5.7}}");
+    ConstraintFact constraintFact = new ConstraintFact("id", "name", LogicalOperator.AND.toString());
+    constraintFact.addConditionFact(conditionFact);
+
+    PolicyWaiver policyWaiver =
+        tempEntity.newWaiver("0b", policy.getId(), org.getId(), Collections.singletonList(constraintFact));
+
+    restRequest().parameter(OwnerType.ORGANIZATION, org.getId()).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_WAIVER, null);
+    assertPolicyWaiverData(auditDTO, policyWaiver);
+    assertOrganizationData(auditDTO, org);
+  }
+
+  @Test
+  public void testGetPolicyWaivers_Organization_Unauthorized() throws Exception {
+    restRequest().parameter(OwnerType.ORGANIZATION, org.getId()).with(unauthorizedUser()).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_WAIVER, "unauthorized");
+    assertOrganizationData(auditDTO, org);
+  }
+
+  @Test
+  public void testGetPolicyWaivers_Repository() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), repository.getId());
+
+    restRequest().parameter(OwnerType.REPOSITORY, repository.getId()).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_WAIVER, null);
+    assertPolicyWaiverData(auditDTO, policyWaiver);
+    assertRepositoryData(auditDTO, repository);
+  }
+
+  @Test
+  public void testGetPolicyWaivers_Repository_Unauthorized() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    restRequest().parameter(OwnerType.REPOSITORY, repository.getId()).with(unauthorizedUser()).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_WAIVER, "unauthorized");
+    assertRepositoryData(auditDTO, repository);
+  }
+
+  @Test
+  public void testGetPolicyWaivers_RepositoryContainer() throws Exception {
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), REPOSITORY_CONTAINER_ID);
+
+    restRequest().parameter(OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, policyWaiver.getId()).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_WAIVER, null);
+    assertPolicyWaiverData(auditDTO, policyWaiver);
+    assertRepositoryContainerData(auditDTO);
+  }
+
+  @Test
+  public void testGetPolicyWaivers_RepositoryContainer_Unauthorized() throws Exception {
+    restRequest().parameter(OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID).with(unauthorizedUser()).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_WAIVER, "unauthorized");
+    assertRepositoryContainerData(auditDTO);
+  }
+
   private void assertPolicyWaiverData(AuditDTO auditDTO, PolicyWaiver policyWaiver) {
     assertCustomData(auditDTO, "policyId", policyWaiver.getPolicyId());
     assertCustomData(auditDTO, "policyName", policy.getName());

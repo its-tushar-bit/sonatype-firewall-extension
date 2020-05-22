@@ -37,6 +37,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import freemarker.template.Template;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Constructs a pull request comment given a policy violation diff
@@ -44,7 +46,29 @@ import org.apache.commons.lang3.StringUtils;
 public class PullRequestFeedbackDetails
     extends PullRequestDetailsBase
 {
-  private static Template policyViolationDiffTemplate;
+  private static final Logger log = LoggerFactory.getLogger(PullRequestFeedbackDetails.class);
+
+  private static final String LIGHT_BLUE = "97cbee";
+
+  private static final String DARK_BLUE = "006bbf";
+
+  private static final String YELLOW = "f5c648";
+
+  private static final String ORANGE = "f4861d";
+
+  private static final String RED = "bc012f";
+
+  private static final String[] THREAT_COLOR_ARRAY = new String[]{
+      LIGHT_BLUE, // 0
+      DARK_BLUE, // 1
+      YELLOW, YELLOW, // 2 - 3
+      ORANGE, ORANGE, ORANGE, ORANGE, // 4 - 7
+      RED, RED, RED // 8 - 10
+  };
+
+  private static Template policyViolationDiffMDEmbeddedHtmlTemplate;
+
+  private static Template policyViolationDiffMDMinimalHtmlTemplate;
 
   private final Application app;
 
@@ -65,6 +89,22 @@ public class PullRequestFeedbackDetails
   private final int pullRequestNumber;
 
   private final String baseUrl;
+
+  private int newViolationsComponentCount;
+
+  private int clearedViolationsComponentCount;
+
+  static {
+    try {
+      policyViolationDiffMDEmbeddedHtmlTemplate =
+          TemplateUtils.createFreemarkerConfig().getTemplate("pullrequest-feedback-violations.ftl");
+      policyViolationDiffMDMinimalHtmlTemplate =
+          TemplateUtils.createFreemarkerConfig().getTemplate("pullrequest-feedback-minimal-markdown-violations.ftl");
+    }
+    catch (IOException e) {
+      log.error("Error loading threats template: {}", e.getMessage(), e);
+    }
+  }
 
   public PullRequestFeedbackDetails(
       final ReportEntry bomReportEntry,
@@ -96,14 +136,7 @@ public class PullRequestFeedbackDetails
     this.app = app;
     this.pullRequestNumber = pullRequestNumber;
     this.baseUrl = baseUrl;
-  }
-
-  private static synchronized Template getPolicyViolationDiffTemplate() throws IOException {
-    if (policyViolationDiffTemplate == null) {
-      policyViolationDiffTemplate =
-          TemplateUtils.createFreemarkerConfig().getTemplate("pullrequest-feedback-violations.ftl");
-    }
-    return policyViolationDiffTemplate;
+    Preconditions.checkNotNull(gitRepositoryInfo.provider, "provider is required and cannot be null");
   }
 
   /**
@@ -125,7 +158,7 @@ public class PullRequestFeedbackDetails
    */
   private String constructContents() throws IOException {
     //Create a map from component hash to display name
-    final Map<String, String> componentDisplayNamesMap = getDisplayNamesMapFromBom();
+    final Map<String, String> componentDisplayNamesMap = createDisplayNamesMap();
     if (componentDisplayNamesMap.isEmpty()) {
       return "";
     }
@@ -136,18 +169,27 @@ public class PullRequestFeedbackDetails
     //Get a map containing the PR feedback for each of the components
     final List<Map<String, Object>> newComponentFeedbackList = getNewComponentFeedbackList(componentPolicyViolationsMap,
         remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, baseUrl);
+    newViolationsComponentCount = newComponentFeedbackList.size();
 
     final Map<String, List<PolicyViolation>> fixedComponentPolicyViolationsMap = diff.hasCleared() ? 
         getComponentPolicyViolationsMap(diff.getCleared(), componentDisplayNamesMap) : Collections.emptyMap();
     //Get a map containing the PR feedback for each of the components
     final List<Map<String, Object>> fixedComponentFeedbackList = 
         getFixedComponentFeedbackList(fixedComponentPolicyViolationsMap, baseUrl);
+    clearedViolationsComponentCount = fixedComponentFeedbackList.size();
 
     //Get a map containing all model values to be used in the template
     final Map<String, Object> modelMap =
         getModelMap(newComponentFeedbackList, fixedComponentFeedbackList, baseUrl);
 
-    return TemplateUtils.render(getPolicyViolationDiffTemplate(), modelMap);
+    return TemplateUtils.render(getPolicyTemplate(), modelMap);
+  }
+
+  private Template getPolicyTemplate() {
+    if (gitRepositoryInfo.provider.supportsEmbeddedHtmlInMarkdown()) {
+      return policyViolationDiffMDEmbeddedHtmlTemplate;
+    }
+    return policyViolationDiffMDMinimalHtmlTemplate;
   }
   
   private Map<String, List<PolicyViolation>> getComponentPolicyViolationsMap(
@@ -163,11 +205,12 @@ public class PullRequestFeedbackDetails
   }
 
   /**
-   * Gets the display names for all components in the BOM
+   * Gets the display names for all components in the BOM and components in the cleared policy violations section
+   * (some of them may not be included in the BOM).
    *
    * @return Returns a map with the component hash as the key and the component display name as the value
    */
-  Map<String, String> getDisplayNamesMapFromBom() {
+  Map<String, String> createDisplayNamesMap() {
     final Map<String, String> componentDisplayNamesMap = new HashMap<>();
     JsonNode bomJson = loadJson();
     if (bomJson != null) {
@@ -178,6 +221,17 @@ public class PullRequestFeedbackDetails
           final String hash = JsonUtils.getNullableString(jsonNode.get("hash"));
           componentDisplayNamesMap.put(hash, ComponentDisplayNameUtil.fromJsonNode((ObjectNode) jsonNode).toString());
         });
+      }
+    }
+    if (diff.hasCleared()) {
+      // add mappings for the components from the cleared violations section; some may not be included in the bom file
+      List<PolicyViolation> cleared = diff.getCleared();
+      for (PolicyViolation violation : cleared) {
+        String hash = violation.getHash();
+        if (violation.getComponentIdentifier() != null && !componentDisplayNamesMap.containsKey(hash)) {
+          componentDisplayNamesMap.put(hash,
+              ComponentDisplayNameUtil.fromIdentifier(violation.getComponentIdentifier()).toString());
+        }
       }
     }
     return componentDisplayNamesMap;
@@ -339,35 +393,30 @@ public class PullRequestFeedbackDetails
         .put("detailedDefaultBranchReportUrl", baseUrl +
             UserInterfaceLinksResource.getReportUrl(app.getPublicId(), defaultBranchEvaluation.getScanId()))
         .put("baseIqUrl", baseUrl)
-        .put("policiesViolatedCount", newComponentFeedbackList.size())
+        .put("policiesViolatedCount",
+            newComponentFeedbackList.stream().mapToInt(item -> ((List<?>) item.get("policiesViolated")).size()).sum()
+        )
         .put("fixedComponentList", fixedComponentFeedbackList)
-        .put("fixedPolicyViolationsCount", fixedComponentFeedbackList.size())
-        .put("threatColorArray", threatColorArray)
+        .put("fixedPolicyViolationsCount",
+            fixedComponentFeedbackList.stream().mapToInt(item -> ((List<?>) item.get("policiesViolated")).size()).sum()
+        )
+        .put("threatColorArray", THREAT_COLOR_ARRAY)
         .build();
   }
 
-  private static final String LIGHT_BLUE = "97cbee";
+  public int getNewViolationsComponentCount() {
+    return newViolationsComponentCount;
+  }
 
-  private static final String DARK_BLUE = "006bbf";
+  public int getClearedViolationsComponentCount() {
+    return clearedViolationsComponentCount;
+  }
 
-  private static final String YELLOW = "f5c648";
-
-  private static final String ORANGE = "f4861d";
-
-  private static final String RED = "bc012f";
-
-  static String[] threatColorArray = new String[]{
-      LIGHT_BLUE, // 0
-      DARK_BLUE, // 1
-      YELLOW, YELLOW, // 2 - 3
-      ORANGE, ORANGE, ORANGE, ORANGE, // 4 - 7
-      RED, RED, RED // 8 - 10
-  };
-  
+  // package visibility for PR Line Feedback access
   static String getColorForThreatLevel(final int threatLevel) {
     if (threatLevel < 0 || threatLevel > 10) {
-      return threatColorArray[0];
+      return THREAT_COLOR_ARRAY[0];
     }
-    return threatColorArray[threatLevel];
+    return THREAT_COLOR_ARRAY[threatLevel];
   }
 }

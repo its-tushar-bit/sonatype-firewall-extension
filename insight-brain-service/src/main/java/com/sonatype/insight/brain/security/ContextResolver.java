@@ -227,6 +227,9 @@ class ContextResolver
         case REPOSITORY:
           Repository repository = get(parameters, AuthzContext.Key.REPOSITORY, Repository.class);
           return resolverForRepository.resolveContextIds(repository);
+        case OWNER:
+          Owner owner = get(parameters, AuthzContext.Key.OWNER, Owner.class);
+          return resolveContextIdsForOwner(owner);
         default:
           throw new IllegalArgumentException("Cannot resolve context from " + parameters);
       }

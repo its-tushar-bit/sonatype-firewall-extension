@@ -88,7 +88,12 @@ public @interface AuthzContext
     /**
      * The ID of an existing repository.
      */
-    REPOSITORY_ID;
+    REPOSITORY_ID,
+    
+    /**
+     * An {@link Owner} entity.
+     */
+    OWNER
   }
 
   /**

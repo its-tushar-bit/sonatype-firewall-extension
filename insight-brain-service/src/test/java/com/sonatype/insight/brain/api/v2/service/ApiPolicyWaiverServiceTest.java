@@ -11,6 +11,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
@@ -176,6 +177,110 @@ public class ApiPolicyWaiverServiceTest
         .isInstanceOf(NotFoundException.class)
         .hasMessage("Cannot find a policy waiver with ID " + policyWaiver.getId() + " for " + OwnerType.ORGANIZATION +
             " with ID " + organization.getId());
+  }
+
+  @Test
+  public void testGetPolicyWaivers_Application() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), application.getId(), "comment");
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        apiPolicyWaiverService.getPolicyWaivers(OwnerType.APPLICATION, application.getId());
+
+    assertThat(policyWaiverDtoList).hasSize(1);
+    ApiPolicyWaiverDTO actual = policyWaiverDtoList.get(0);
+    assertThat(actual.policyWaiverId).isEqualTo(policyWaiver.getId());
+    assertThat(actual.comment).isEqualTo(policyWaiver.getComment());
+    assertThat(actual.createTime).isEqualTo(policyWaiver.getCreateTime());
+    assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
+    assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
+    assertThat(actual.scopeOwnerId).isEqualTo(application.getId());
+    assertThat(actual.scopeOwnerName).isEqualTo(application.getName());
+    assertThat(actual.scopeOwnerType).isEqualTo("application");
+  }
+
+  @Test
+  public void testGetPolicyWaivers_Application_UsePublicId() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), application.getId(), "comment");
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        apiPolicyWaiverService.getPolicyWaivers(OwnerType.APPLICATION, application.getPublicId());
+
+    assertThat(policyWaiverDtoList).hasSize(1);
+    ApiPolicyWaiverDTO actual = policyWaiverDtoList.get(0);
+    assertThat(actual.policyWaiverId).isEqualTo(policyWaiver.getId());
+    assertThat(actual.comment).isEqualTo(policyWaiver.getComment());
+    assertThat(actual.createTime).isEqualTo(policyWaiver.getCreateTime());
+    assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
+    assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
+    assertThat(actual.scopeOwnerId).isEqualTo(application.getId());
+    assertThat(actual.scopeOwnerName).isEqualTo(application.getName());
+    assertThat(actual.scopeOwnerType).isEqualTo("application");
+  }
+
+  @Test
+  public void testGetPolicyWaivers_Organization() {
+    Organization organization = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(organization);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), organization.getId(), "comment");
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        apiPolicyWaiverService.getPolicyWaivers(OwnerType.ORGANIZATION, organization.getId());
+
+    assertThat(policyWaiverDtoList).hasSize(1);
+    ApiPolicyWaiverDTO actual = policyWaiverDtoList.get(0);
+    assertThat(actual.policyWaiverId).isEqualTo(policyWaiver.getId());
+    assertThat(actual.comment).isEqualTo(policyWaiver.getComment());
+    assertThat(actual.createTime).isEqualTo(policyWaiver.getCreateTime());
+    assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
+    assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
+    assertThat(actual.scopeOwnerId).isEqualTo(organization.getId());
+    assertThat(actual.scopeOwnerName).isEqualTo(organization.getName());
+    assertThat(actual.scopeOwnerType).isEqualTo("organization");
+  }
+
+  @Test
+  public void testGetPolicyWaivers_Repository() {
+    Repository repository = tempEntity.newRepository();
+    Policy policy = tempEntity.newPolicy();
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), repository.getId(), "comment");
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        apiPolicyWaiverService.getPolicyWaivers(OwnerType.REPOSITORY, repository.getId());
+
+    assertThat(policyWaiverDtoList).hasSize(1);
+    ApiPolicyWaiverDTO actual = policyWaiverDtoList.get(0);
+    assertThat(actual.policyWaiverId).isEqualTo(policyWaiver.getId());
+    assertThat(actual.comment).isEqualTo(policyWaiver.getComment());
+    assertThat(actual.createTime).isEqualTo(policyWaiver.getCreateTime());
+    assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
+    assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
+    assertThat(actual.scopeOwnerId).isEqualTo(repository.getId());
+    assertThat(actual.scopeOwnerName).isEqualTo(repository.getName());
+    assertThat(actual.scopeOwnerType).isEqualTo("repository");
+  }
+
+  @Test
+  public void testGetPolicyWaivers_RepositoryContainer() {
+    Policy policy = tempEntity.newPolicy();
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), REPOSITORY_CONTAINER_ID, "comment");
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        apiPolicyWaiverService.getPolicyWaivers(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID);
+
+    assertThat(policyWaiverDtoList).hasSize(1);
+    ApiPolicyWaiverDTO actual = policyWaiverDtoList.get(0);
+    assertThat(actual.policyWaiverId).isEqualTo(policyWaiver.getId());
+    assertThat(actual.comment).isEqualTo(policyWaiver.getComment());
+    assertThat(actual.createTime).isEqualTo(policyWaiver.getCreateTime());
+    assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
+    assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
+    assertThat(actual.scopeOwnerId).isEqualTo(REPOSITORY_CONTAINER_ID);
+    assertThat(actual.scopeOwnerName).isEqualTo("All Repositories");
+    assertThat(actual.scopeOwnerType).isEqualTo("all_repositories");
   }
 
   private void assertPolicyWaiver(String ownerId, String comment) {

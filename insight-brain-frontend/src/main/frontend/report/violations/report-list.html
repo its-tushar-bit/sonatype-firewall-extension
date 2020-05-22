@@ -60,18 +60,33 @@
                    vs-repeat
                    vs-scroll-parent=".iq-scrollable">
               <tr ng-repeat="application in vm.applications" class="iq-table-row">
-                <td class="tm-report-list-application iq-cell">
+                <td class="tm-report-list-application iq-cell"
+                    iq-tooltip
+                    tooltip-text="{{::application.name}}"
+                    tooltip-attach-to-body="true"
+                    tooltip-class="report-application-name-tooltip"
+                    tooltip-only-on-overflow="true">
                   <img ng-src="../rest/application/icon/{{::vm.encodeURIComponent(application.publicId)}}"
                        class="image-thumbnail"/><!--
                -->{{::application.name}}
                 </td><!--
-             --><td class="iq-cell iq-cell--contact">
+             --><td class="iq-cell iq-cell--contact"
+                    iq-tooltip
+                    tooltip-text="{{::application.contact.displayName || application.contact.internalName}}"
+                    tooltip-attach-to-body="true"
+                    tooltip-class="report-contact-name-tooltip"
+                    tooltip-only-on-overflow="true">
                   <span ng-if="application.contact.error">
                     <i class="icon-warning-sign" tooltip="{{::application.contact.error}}" tooltip-placement="left"></i>
                   </span>
                   <span>{{::application.contact.displayName || application.contact.internalName}}</span>
                 </td><!--
-             --><td class="tm-report-list-organization iq-cell">
+             --><td class="tm-report-list-organization iq-cell"
+                    iq-tooltip
+                    tooltip-text="{{::application.organizationName}}"
+                    tooltip-attach-to-body="true"
+                    tooltip-class="report-organization-name-tooltip"
+                    tooltip-only-on-overflow="true">
                   {{::application.organizationName}}
                 </td><!--
              --><td ng-repeat="stage in vm.stages | filterReportColumns"

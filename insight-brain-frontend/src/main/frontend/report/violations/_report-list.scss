@@ -170,3 +170,7 @@
 #no-reports-message a.link {
   @extend %link;
 }
+
+.report-organization-name-tooltip, .report-application-name-tooltip {
+  word-wrap: break-word;
+}

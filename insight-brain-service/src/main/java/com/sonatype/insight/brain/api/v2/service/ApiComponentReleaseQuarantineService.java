@@ -227,12 +227,8 @@ public class ApiComponentReleaseQuarantineService
     waivedPolicyViolationDTO.threatLevel = policyViolation.getThreatLevel();
     waivedPolicyViolationDTO.constraintViolations = policyViolationAdapter.convert(policyViolation);
 
-    ApiPolicyWaiverDTO policyWaiverDTO = new ApiPolicyWaiverDTO();
-
+    ApiPolicyWaiverDTO policyWaiverDTO = ApiPolicyWaiverDTO.toDto(policyWaiver, null);
     policyWaiverDTO.isObsolete = false;
-    policyWaiverDTO.policyWaiverId = policyWaiver.getId();
-    policyWaiverDTO.comment = policyWaiver.getComment();
-    policyWaiverDTO.createTime = policyWaiver.getCreateTime();
 
     waivedPolicyViolationDTO.policyWaiver = policyWaiverDTO;
 

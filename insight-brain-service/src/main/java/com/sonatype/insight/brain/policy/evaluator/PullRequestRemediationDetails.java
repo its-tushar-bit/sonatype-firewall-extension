@@ -255,13 +255,9 @@ public class PullRequestRemediationDetails
   }
 
   private Template getPolicyTemplate(SourceControlProvider provider) {
-    switch (provider) {
-      case GITHUB:
-        return policyThreatsMDEmbeddedHtmlTemplate;
-      case BITBUCKET:
-        return policyThreatsMDMinimalTemplate;
-      default:
-        throw new IllegalStateException("No template defined for provider: " + provider);
+    if (provider.supportsEmbeddedHtmlInMarkdown()) {
+      return policyThreatsMDEmbeddedHtmlTemplate;
     }
+    return policyThreatsMDMinimalTemplate;
   }
 }

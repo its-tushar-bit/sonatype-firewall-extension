@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.PolicyEvaluationRequiredException;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -795,7 +796,7 @@ public class ApiStaleWaiverServiceTest
             MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), staleEvaluationTime);
 
     // remove component from repo
-    tempEntity.deleteRepositoryComponent(repositoryComponent);
+    new RepositoryComponentDAO().delete(repositoryComponent);
 
     List<ApiStaleWaiverDTO> staleRepositoryWaivers = apiStaleWaiverService.getStaleWaivers();
     assertThat(staleRepositoryWaivers).hasSize(1);

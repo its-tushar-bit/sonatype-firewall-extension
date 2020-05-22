@@ -25,7 +25,12 @@ public class IdUtils
   public static Owner getOwnerNotNull(final OwnerType ownerType, final String ownerId) {
     switch (ownerType) {
       case APPLICATION:
-        return new ApplicationDAO().getByPublicIdNotNull(ownerId);
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        Application application = applicationDAO.getByPublicId(ownerId);
+        if (application != null) {
+          return application;
+        }
+        return applicationDAO.getByIdNotNull(ownerId);
       case ORGANIZATION:
         return new OrganizationDAO().getByIdNotNull(ownerId);
       case REPOSITORY:

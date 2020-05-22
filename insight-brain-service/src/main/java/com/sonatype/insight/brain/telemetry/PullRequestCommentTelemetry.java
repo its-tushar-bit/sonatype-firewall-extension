@@ -16,16 +16,26 @@ public class PullRequestCommentTelemetry
 
   public static final String ACTION_UPDATED = "updated";
 
-  public String id;
+  public String applicationId;
+
+  public int prNumber;
+
+  public int commentId;
 
   public String action;
+
+  public int newViolationsComponentCount;
+
+  public int clearedViolationsComponentCount;
+
+  public int lineCommentCount;
 
   public PullRequestCommentTelemetry() {
     // for deserialization
   }
 
-  public PullRequestCommentTelemetry(String id, String action) {
-    this.id = id;
-    this.action = action;
+  public PullRequestCommentTelemetry(final String applicationId, final int prNumber) {
+    this.applicationId = applicationId;
+    this.prNumber = prNumber;
   }
 }

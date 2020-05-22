@@ -30,6 +30,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.visible;
 
 public class ReportListTest
@@ -38,8 +39,6 @@ public class ReportListTest
   public static final String BUILD_SCAN_ID = "BUILD_SCAN_ID";
 
   public static final String STAGE_SCAN_ID = "STAGE_SCAN_ID";
-
-  public static final String RELEASE_SCAN_ID = "RELEASE_SCAN_ID";
 
   public Application app;
 
@@ -55,9 +54,11 @@ public class ReportListTest
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
     PolicyImportExport policyImportExport = new PolicyImportExport();
 
-    Organization org = tempEntity.newOrganization();
+    Organization org = tempEntity.newOrganization("ApplicationReportTestOrgWithAReallyLongName");
     policyImportExport.importOrganization(org, referencePolicies);
-    app = tempEntity.newApplication("ApplicationReportTest", "ApplicationReportTest", org.getId());
+    tempEntity.newUser("user1", "reallylongfirst", "even longer last name junior senior", "a@a.com");
+    app = tempEntity.newApplication("ApplicationReportTestWithAReallyLongName",
+        "ApplicationReportTestWithAReallyLongName", org.getId(), "user1");
     URL zippedLargeReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
     URL zippedSmallReport = ReportHelper.zipReport("/canned-reports/small-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
@@ -73,6 +74,27 @@ public class ReportListTest
     stageBuild.evaluatePolicy();
 
     refreshOrOpen(ReportListPage.url());
+  }
+
+  @Test
+  public void testTooltips() {
+    ReportListRow firstRow = ReportListPage.firstRow();
+    firstRow.shouldBe(visible);
+
+    firstRow.applicationNameTooltip().shouldNot(exist);
+    firstRow.applicationName().hover();
+    firstRow.applicationNameTooltip().should(exist);
+    firstRow.applicationNameTooltip().shouldHave(exactText("ApplicationReportTestWithAReallyLongName"));
+
+    firstRow.contactNameTooltip().shouldNot(exist);
+    firstRow.contactName().hover();
+    firstRow.contactNameTooltip().should(exist);
+    firstRow.contactNameTooltip().shouldHave(exactText("reallylongfirst even longer last name junior senior"));
+
+    firstRow.organizationNameTooltip().shouldNot(exist);
+    firstRow.organizationName().hover();
+    firstRow.organizationNameTooltip().should(exist);
+    firstRow.organizationNameTooltip().shouldHave(exactText("ApplicationReportTestOrgWithAReallyLongName"));
   }
 
   @Test

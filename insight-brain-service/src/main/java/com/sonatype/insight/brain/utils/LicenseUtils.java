@@ -25,7 +25,8 @@ public class LicenseUtils
     LicenseWithThreatLevel licenseWithThreatLevel = new LicenseWithThreatLevel();
     licenseWithThreatLevel.license = new com.sonatype.clm.dto.model.License(license.getId(),
         license.getShortDisplayName());
-    licenseWithThreatLevel.threatLevel = licenseDAO.getLicenseThreatLevelByOwnerAndLicenseId(owner, license.getId());
+    licenseWithThreatLevel.threatLevel =
+        licenseDAO.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(owner, license.getId());
     return licenseWithThreatLevel;
   }
 }

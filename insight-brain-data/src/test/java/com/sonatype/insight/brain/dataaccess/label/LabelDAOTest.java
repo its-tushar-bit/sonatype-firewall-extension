@@ -476,18 +476,29 @@ public class LabelDAOTest
   }
 
   @Test
-  public void testGetByOwnerId_inheritedLabels() {
+  public void testGetByOwnerId() {
+    LabelDAO labelDAO = new LabelDAO();
+
+    tempEntity.newLabel(organization.getParentOrganizationId(), "parent-org-label");
+    Label label2 = tempEntity.newLabel(organization.getId(), "org-label");
+    Label label3 = tempEntity.newLabel(applicationId, "app-label");
+
+    assertLabels(Arrays.asList(label3), labelDAO.getByOwnerId(applicationId));
+
+    assertLabels(Arrays.asList(label2), labelDAO.getByOwnerId(organization.getId()));
+  }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy() {
     LabelDAO labelDAO = new LabelDAO();
 
     Label label1 = tempEntity.newLabel(organization.getParentOrganizationId(), "parent-org-label");
     Label label2 = tempEntity.newLabel(organization.getId(), "org-label");
     Label label3 = tempEntity.newLabel(applicationId, "app-label");
 
-    assertLabels(Arrays.asList(label3), labelDAO.getByOwnerId(applicationId, false));
-    assertLabels(Arrays.asList(label1, label2, label3), labelDAO.getByOwnerId(applicationId, true));
+    assertLabels(Arrays.asList(label1, label2, label3), labelDAO.getByOwnerIdWithHierarchy(applicationId));
 
-    assertLabels(Arrays.asList(label2), labelDAO.getByOwnerId(organization.getId(), false));
-    assertLabels(Arrays.asList(label1, label2), labelDAO.getByOwnerId(organization.getId(), true));
+    assertLabels(Arrays.asList(label1, label2), labelDAO.getByOwnerIdWithHierarchy(organization.getId()));
   }
 
   @Test

@@ -50,7 +50,7 @@ public class LicenseDAOTest
   }
 
   @Test
-  public void testGetLicenseThreatLevelByOwnerAndLicenseId() {
+  public void testGetLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy() {
     tempEntity.newLicenseThreatGroup(applicationId, "My group 1", 0, "Apache-2.0");
     tempEntity.newLicenseThreatGroup(organization.getId(), "My group 2", 5, "GPL-2.0");
     tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
@@ -59,14 +59,14 @@ public class LicenseDAOTest
     Collection<License> licenses = dao.getAll();
 
     for (License license : licenses) {
-      Integer threat = dao.getLicenseThreatLevelByOwnerAndLicenseId(application, license.getId());
+      Integer threat = dao.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(application, license.getId());
       if (threat != null) {
         assertThat(threat).isBetween(0, 10);
       }
     }
 
-    assertThat(dao.getLicenseThreatLevelByOwnerAndLicenseId(application, "Apache-2.0")).isEqualTo(0);
-    assertThat(dao.getLicenseThreatLevelByOwnerAndLicenseId(application, "GPL-2.0")).isEqualTo(5);
-    assertThat(dao.getLicenseThreatLevelByOwnerAndLicenseId(application, "GPL-3.0")).isEqualTo(9);
+    assertThat(dao.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(application, "Apache-2.0")).isEqualTo(0);
+    assertThat(dao.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(application, "GPL-2.0")).isEqualTo(5);
+    assertThat(dao.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(application, "GPL-3.0")).isEqualTo(9);
   }
 }

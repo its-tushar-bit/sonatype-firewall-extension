@@ -477,7 +477,7 @@ public final class Report
     while (iterLicenseData.hasNext()) {
       ObjectNode licenseJsonNode = (ObjectNode) iterLicenseData.next();
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
-      LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(
+      LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(
           application, componentIdentifier);
       if (licenseOverride != null) {
         licenseOverrideCount++;
@@ -537,7 +537,7 @@ public final class Report
 
     int licenseOverrideCount = 0;
     for (HashComponentIdentifier hashComponentIdentifier : hashComponentIdentifiers) {
-      LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(
+      LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(
           application, hashComponentIdentifier.getComponentIdentifier());
       if (licenseOverride != null) {
         licenseOverrideCount++;

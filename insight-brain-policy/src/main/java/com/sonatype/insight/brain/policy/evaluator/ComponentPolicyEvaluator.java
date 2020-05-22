@@ -85,7 +85,7 @@ public class ComponentPolicyEvaluator
   }
 
   public PolicyResults evaluate(String ownerId, Stage stage, List<Component> components, boolean forMonitoring) {
-    List<Policy> policies = new PolicyDAO().getApplicableByOwnerId(ownerId);
+    List<Policy> policies = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(ownerId);
     return evaluate(ownerId, stage, policies, components, forMonitoring);
   }
 

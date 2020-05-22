@@ -121,7 +121,7 @@ public class PolicyResource
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     // Get all applicable policies
-    List<Policy> policies = new PolicyDAO().getApplicableByOwnerId(ownerId);
+    List<Policy> policies = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(ownerId);
 
     // Init the result structure
     PolicyTagDAO policyTagDAO = new PolicyTagDAO();

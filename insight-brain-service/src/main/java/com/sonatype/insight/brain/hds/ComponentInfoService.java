@@ -367,7 +367,7 @@ public class ComponentInfoService
     }
 
     // All policies that were part of this evaluation, indexed by id
-    Map<String, Policy> policiesById = new PolicyDAO().getApplicableByOwnerId(owner.getId()).stream()
+    Map<String, Policy> policiesById = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(owner.getId()).stream()
         .collect(Collectors.toMap(Policy::getId, Function.identity()));
 
     List<ComponentDetailsDTO> componentDetailsDTOs = new ArrayList<>(componentDetailsList.size());

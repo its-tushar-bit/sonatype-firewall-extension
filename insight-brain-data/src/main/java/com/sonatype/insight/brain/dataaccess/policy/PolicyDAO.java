@@ -199,13 +199,13 @@ public class PolicyDAO
     return UUID.randomUUID().toString().replace("-", "");
   }
 
-  public List<Policy> getApplicableByOwnerId(String ownerId) {
+  public List<Policy> getApplicableByOwnerIdWithHierarchy(String ownerId) {
     try (TransactionContext tx = policyInternalDAO.createTransactionContext()) {
-      return getApplicableByOwnerId(tx, ownerId);
+      return getApplicableByOwnerIdWithHierarchy(tx, ownerId);
     }
   }
 
-  public List<Policy> getApplicableByOwnerId(TransactionContext tx, String ownerId) {
+  public List<Policy> getApplicableByOwnerIdWithHierarchy(TransactionContext tx, String ownerId) {
     List<Policy> result = new ArrayList<>();
 
     Set<String> tagIds = new HashSet<>();

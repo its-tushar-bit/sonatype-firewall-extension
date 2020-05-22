@@ -48,6 +48,6 @@ public class LabelValueType
   @Override
   public List<Label> getAvailableValues() {
     final LabelDAO labelDAO = new LabelDAO();
-    return tx != null ? labelDAO.getByOwnerId(tx, ownerId, true) : labelDAO.getByOwnerId(ownerId, true);
+    return tx != null ? labelDAO.getByOwnerIdWithHierarchy(tx, ownerId) : labelDAO.getByOwnerIdWithHierarchy(ownerId);
   }
 }

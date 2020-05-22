@@ -132,7 +132,7 @@ public class LicenseDAO
   /**
    * @since 1.6
    */
-  public Integer getLicenseThreatLevelByOwnerAndLicenseId(final Owner owner, String licenseId) {
+  public Integer getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(final Owner owner, String licenseId) {
     final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
     Integer threatLevel = null;
     for (final Owner currentOwner : ownerDAO.walkHierarchy(owner)) {

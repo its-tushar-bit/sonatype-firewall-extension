@@ -101,7 +101,7 @@ public class LabelService
       @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId,
       boolean inherit)
   {
-    List<Label> labels = labelDAO.getByOwnerId(ownerId, inherit);
+    List<Label> labels = inherit ? labelDAO.getByOwnerIdWithHierarchy(ownerId) : labelDAO.getByOwnerId(ownerId);
     List<ApiLabelDTO> labelDTOs = labels.stream().map(label -> toDTO(label, ownerType)).collect(Collectors.toList());
 
     if (inherit) {

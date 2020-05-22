@@ -49,7 +49,7 @@ public class LicenseOverrideDAO
    *
    * @since 1.17
    */
-  public LicenseOverride getAppliedByOwnerIdAndComponentIdentifier(
+  public LicenseOverride getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(
       Owner owner,
       ComponentIdentifier componentIdentifier)
   {

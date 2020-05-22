@@ -8,6 +8,12 @@
  * Please list the location in the app of any changes
  */
 
+.nx-list {
+  ul, ol {
+    margin-left: 0;
+  }
+}
+
 // These styles appear in the System Preferences pages and are required because of Bootstrap accordion styles
 .iq-list,
 .iq-list--clickable {

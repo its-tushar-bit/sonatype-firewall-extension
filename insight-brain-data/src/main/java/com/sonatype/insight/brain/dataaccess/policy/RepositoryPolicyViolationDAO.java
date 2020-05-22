@@ -13,17 +13,12 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * @since 1.17
  */
 public class RepositoryPolicyViolationDAO
     extends AbstractOperationalSqlDAO<RepositoryPolicyViolation>
 {
-  private static final Logger log = LoggerFactory.getLogger(RepositoryPolicyViolationDAO.class);
-
   @Override
   protected RepositoryPolicyViolation getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
@@ -124,14 +119,35 @@ public class RepositoryPolicyViolationDAO
   }
 
   @Override
-  public void delete(RepositoryPolicyViolation entity) {
-    long start = System.currentTimeMillis();
-
+  public final void delete(RepositoryPolicyViolation entity) {
+    // WARNING: Don't add any business logic to this method because, for performance reasons,
+    // we bypass this method when deleting all policy violations for a repository.
+    // See https://issues.sonatype.org/browse/CLM-15648 for details
     super.delete(entity);
+  }
 
-    long duration = System.currentTimeMillis() - start;
-    if (duration > 1000) {
-      log.debug("Deleted repository policy violation with id {} in {} ms.", entity.getId(), duration);
+  @Override
+  public final void delete(TransactionContext tx, RepositoryPolicyViolation entity) {
+    // WARNING: Don't add any business logic to this method because, for performance reasons,
+    // we bypass this method when deleting all policy violations for a repository.
+    // See https://issues.sonatype.org/browse/CLM-15648 for details
+    super.delete(tx, entity);
+  }
+
+  public void deleteByRepositoryId(TransactionContext tx, String repositoryId) {
+    if (isDatabaseEmbedded()) {
+      // We do not enroll the deletions in the transaction on purpose.
+      // This improves performance and keeps db operations (including commits) reasonably short, which means other
+      // concurrent db operations are blocked for shorter periods of time (H2 is single threaded).
+      // See https://issues.sonatype.org/browse/CLM-15648 for details
+      getByRepositoryId(repositoryId).forEach(this::delete);
+    }
+    else {
+      // For performance reasons, we bypass the standard delete (per entity) method here.
+      // We cannot do this for H2 until we upgrade to a multi-threaded H2 version.
+      // See https://issues.sonatype.org/browse/CLM-15648 for details
+      String sQuery = "DELETE FROM RepositoryPolicyViolation entity WHERE entity.repositoryId=?1";
+      createQuery(sQuery, repositoryId).executeUpdate(tx);
     }
   }
 

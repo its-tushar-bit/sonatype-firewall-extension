@@ -11,9 +11,13 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.Test;
 
@@ -126,5 +130,43 @@ public class RepositoryPolicyViolationDAOTest
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 2, pathname, null);
 
     assertThat(dao.getCount()).isEqualTo(4);
+  }
+
+  @Test
+  public void testDeleteByRepositoryId_H2() {
+    assertThat(dao.isDatabaseEmbedded()).isTrue();
+
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "pathname1", null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "pathname2", null);
+
+    dao.deleteByRepositoryId(null /* TransactionContext */, repository.getId());
+
+    assertThat(dao.getByRepositoryId(repository.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDeleteByRepositoryId_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+
+    try (PostgresServer postgres = new PostgresServer()) {
+      // Create a postgres ODS database
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+
+      assertThat(dao.isDatabaseEmbedded()).isFalse();
+
+      tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "pathname1", null);
+      tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "pathname2", null);
+
+      try (TransactionContext tx = dao.createTransactionContext()) {
+        tx.begin();
+        dao.deleteByRepositoryId(tx, repository.getId());
+        tx.commit();
+      }
+
+      assertThat(dao.getByRepositoryId(repository.getId())).isEmpty();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
   }
 }

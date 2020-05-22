@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -463,6 +465,29 @@ public class LicenseThreatGroupDAOTest
     assertThatThrownBy(() -> {
       licenseThreatGroupDAO.getByIdNotNull("fake id");
     }).isInstanceOf(NotFoundException.class).hasMessage("Cannot find a license threat group with ID fake id.");
+  }
+
+  @Test
+  public void testGetLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy() {
+    tempEntity.newLicenseThreatGroup(applicationId, "My group 1", 0, "Apache-2.0");
+    tempEntity.newLicenseThreatGroup(organization.getId(), "My group 2", 5, "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
+
+    Collection<License> licenses = new LicenseDAO().getAll();
+    for (License license : licenses) {
+      Integer threat =
+          licenseThreatGroupDAO.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(application, license.getId());
+      if (threat != null) {
+        assertThat(threat).isBetween(0, 10);
+      }
+    }
+
+    assertThat(licenseThreatGroupDAO.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(application, "Apache-2.0"))
+        .isEqualTo(0);
+    assertThat(licenseThreatGroupDAO.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(application, "GPL-2.0"))
+        .isEqualTo(5);
+    assertThat(licenseThreatGroupDAO.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(application, "GPL-3.0"))
+        .isEqualTo(9);
   }
 
   @Test

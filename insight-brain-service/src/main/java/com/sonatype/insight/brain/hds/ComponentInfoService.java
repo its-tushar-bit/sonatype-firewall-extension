@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -76,6 +77,8 @@ public class ComponentInfoService
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
   private LicenseDAO licenseDAO = new LicenseDAO();
+
+  private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
   private final HdsClient hdsClient;
 
@@ -584,7 +587,7 @@ public class ComponentInfoService
     LicenseWithThreatLevel licenseWithThreatLevel = new LicenseWithThreatLevel();
     licenseWithThreatLevel.license = new License(license.getId(), license.getShortDisplayName());
     licenseWithThreatLevel.threatLevel =
-        licenseDAO.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(owner, license.getId());
+        licenseThreatGroupDAO.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(owner, license.getId());
     return licenseWithThreatLevel;
   }
 

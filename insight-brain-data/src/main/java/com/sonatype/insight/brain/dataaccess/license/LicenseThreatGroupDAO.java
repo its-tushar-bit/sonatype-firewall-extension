@@ -210,6 +210,33 @@ public class LicenseThreatGroupDAO
   }
 
   /**
+   * @since 1.6
+   */
+  public Integer getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(Owner owner, String licenseId) {
+    Integer threatLevel = null;
+    for (Owner currentOwner : ownerDAO.walkHierarchy(owner)) {
+      List<LicenseThreatGroup> licenseThreatGroups = getByOwnerIdAndLicenseId(currentOwner.getId(), licenseId);
+      threatLevel = max(threatLevel, licenseThreatGroups);
+    }
+    return threatLevel;
+  }
+
+  /**
+   * @since 1.6
+   */
+  private Integer max(Integer threatLevel, List<LicenseThreatGroup> licenseThreatGroups) {
+    for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
+      if (threatLevel == null) {
+        threatLevel = licenseThreatGroup.getThreatLevel();
+      }
+      else {
+        threatLevel = Math.max(threatLevel, licenseThreatGroup.getThreatLevel());
+      }
+    }
+    return threatLevel;
+  }
+
+  /**
    * Returns a map of threat levels by (simple) license id for the specified application.
    * The threat levels are determined from the License Threat Groups in the app/org hierarchy.
    * 

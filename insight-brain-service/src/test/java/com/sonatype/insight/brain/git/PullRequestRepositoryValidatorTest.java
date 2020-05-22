@@ -150,7 +150,7 @@ public class PullRequestRepositoryValidatorTest
   }
 
   @Test
-  public void isInternalRepository_NotGithub() throws IOException {
+  public void isInternalRepository_NotGithub() {
     String repoName = String.format(TEST_REPO_URL, "https://repo.com/");
     Arrays.stream(SourceControlProvider.values())
         .filter(sourceControlProvider -> sourceControlProvider != GITHUB)

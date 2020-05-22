@@ -393,9 +393,13 @@ public class PullRequestFeedbackDetails
         .put("detailedDefaultBranchReportUrl", baseUrl +
             UserInterfaceLinksResource.getReportUrl(app.getPublicId(), defaultBranchEvaluation.getScanId()))
         .put("baseIqUrl", baseUrl)
-        .put("policiesViolatedCount", newComponentFeedbackList.size())
+        .put("policiesViolatedCount",
+            newComponentFeedbackList.stream().mapToInt(item -> ((List<?>) item.get("policiesViolated")).size()).sum()
+        )
         .put("fixedComponentList", fixedComponentFeedbackList)
-        .put("fixedPolicyViolationsCount", fixedComponentFeedbackList.size())
+        .put("fixedPolicyViolationsCount",
+            fixedComponentFeedbackList.stream().mapToInt(item -> ((List<?>) item.get("policiesViolated")).size()).sum()
+        )
         .put("threatColorArray", THREAT_COLOR_ARRAY)
         .build();
   }

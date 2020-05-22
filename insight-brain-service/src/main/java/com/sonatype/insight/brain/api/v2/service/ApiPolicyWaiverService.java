@@ -5,18 +5,24 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -104,6 +110,26 @@ public class ApiPolicyWaiverService
     policyWaiverDAO.insert(policyWaiver);
     auditPolicyWaiver(policyWaiver);
     sendTelemetry(ownerType, ownerId);
+  }
+
+  public List<ApiPolicyWaiverDTO> getPolicyWaivers(OwnerType ownerType, String ownerId) {
+    return getPolicyWaiversWithAuthzCheck(IdUtils.getOwnerNotNull(ownerType, ownerId));
+  }
+
+  @Authorize(permission = Permission.READ)
+  List<ApiPolicyWaiverDTO> getPolicyWaiversWithAuthzCheck(
+      @AuthzContext(Key.OWNER) Owner owner)
+  {
+    List<ApiPolicyWaiverDTO> apiPolicyWaiverDTOS = new ArrayList<>();
+
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(owner.getId());
+    policyWaivers.forEach(policyWaiver -> apiPolicyWaiverDTOS.add(ApiPolicyWaiverDTO.toDto(policyWaiver, owner)));
+
+    try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.VIEW_WAIVER, true)) {
+      policyWaivers.forEach(this::auditPolicyWaiver);
+    }
+
+    return apiPolicyWaiverDTOS;
   }
 
   public void deletePolicyWaiver(OwnerType ownerType, String ownerId, String policyWaiverId) {

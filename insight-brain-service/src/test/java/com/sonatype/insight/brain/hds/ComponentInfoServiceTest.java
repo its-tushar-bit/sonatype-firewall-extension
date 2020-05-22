@@ -194,7 +194,7 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetLicenses_BadOwnerId() throws Exception {
-    testGetLicenses_BadOwnerId(OwnerType.APPLICATION, "Could not find an application with public ID ");
+    testGetLicenses_BadOwnerId(OwnerType.APPLICATION, "Could not find an application with ID ");
     testGetLicenses_BadOwnerId(OwnerType.REPOSITORY, "Cannot find a repository with ID ");
   }
 

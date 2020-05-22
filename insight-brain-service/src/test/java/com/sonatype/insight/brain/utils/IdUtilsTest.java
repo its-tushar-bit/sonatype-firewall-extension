@@ -59,6 +59,13 @@ public class IdUtilsTest
   }
 
   @Test
+  public void testGetOwnerNotNull_ApplicationInternalId() {
+    final Application owner = tempEntity.newApplication(tempEntity.newOrganization().getId());
+    final Owner actual = IdUtils.getOwnerNotNull(owner.getType(), owner.getId());
+    assertOwnerEqual(owner, actual);
+  }
+
+  @Test
   public void testGetInternalOwnerId_Global() {
     String id = IdUtils.getInternalOwnerId(OwnerType.GLOBAL, null /* ownerId */);
     assertThat(id).isEqualTo(MembershipMapping.GLOBAL_CONTEXT_ID);

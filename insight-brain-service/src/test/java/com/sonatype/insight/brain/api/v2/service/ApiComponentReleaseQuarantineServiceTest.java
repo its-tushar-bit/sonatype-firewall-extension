@@ -313,6 +313,8 @@ public class ApiComponentReleaseQuarantineServiceTest
       ApiPolicyWaiverDTO policyWaiverDTO,
       PolicyWaiver waiver)
   {
+    assertThat(policyWaiverDTO.hash).isEqualTo(waiver.getHash());
+    assertThat(policyWaiverDTO.policyId).isEqualTo(waiver.getPolicyId());
     assertThat(policyWaiverDTO.comment).isEqualTo(waiver.getComment());
     assertThat(policyWaiverDTO.createTime).isEqualTo(waiver.getCreateTime());
     assertThat(policyWaiverDTO.policyWaiverId).isEqualTo(waiver.getId());

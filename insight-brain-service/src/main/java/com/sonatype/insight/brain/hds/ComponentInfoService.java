@@ -60,7 +60,6 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.brain.utils.LicenseUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -569,13 +568,24 @@ public class ComponentInfoService
         Set<com.sonatype.insight.brain.model.license.License> licenses = multiLicenseDAO
             .getLicensesByMultiLicenseIdNotNull(multiLicense.getLicenseId());
         for (com.sonatype.insight.brain.model.license.License license : licenses) {
-          LicenseWithThreatLevel licenseWithThreatLevel = LicenseUtils.getLicenseWithThreatLevel(owner, license);
+          LicenseWithThreatLevel licenseWithThreatLevel = getLicenseWithThreatLevel(owner, license);
           result.add(licenseWithThreatLevel);
         }
       }
     }
 
     return result;
+  }
+
+  private LicenseWithThreatLevel getLicenseWithThreatLevel(
+      Owner owner,
+      com.sonatype.insight.brain.model.license.License license)
+  {
+    LicenseWithThreatLevel licenseWithThreatLevel = new LicenseWithThreatLevel();
+    licenseWithThreatLevel.license = new License(license.getId(), license.getShortDisplayName());
+    licenseWithThreatLevel.threatLevel =
+        licenseDAO.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(owner, license.getId());
+    return licenseWithThreatLevel;
   }
 
   /**

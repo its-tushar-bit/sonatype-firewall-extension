@@ -43,8 +43,8 @@ Please read our [contribution rules and guidelines](contributing.md).
 This week's rotating reviewers are:
 
 <!-- rotating-reviewers-begin -->
-* [@Koray Tugay](https://github.com/koraytugay)
-* [@Guillermo Varela](https://github.com/guillermo-varela)
+* [@Ross Pokorny](https://github.com/rpokorny)
+* [@Kasun Ranawaka](https://github.com/kakumara)
 <!-- rotating-reviewers-end -->
 
 # Working with insight-brain #

@@ -249,6 +249,39 @@ public class PolicyViolationDAO
     }
   }
 
+  @Override
+  public final void delete(PolicyViolation entity) {
+    // WARNING: Don't add any business logic to this method because, for performance reasons,
+    // we bypass this method when deleting all policy violations for an application.
+    // See https://issues.sonatype.org/browse/CLM-15648 for details
+    super.delete(entity);
+  }
+
+  @Override
+  public final void delete(TransactionContext tx, PolicyViolation entity) {
+    // WARNING: Don't add any business logic to this method because, for performance reasons,
+    // we bypass this method when deleting all policy violations for an application.
+    // See https://issues.sonatype.org/browse/CLM-15648 for details
+    super.delete(tx, entity);
+  }
+
+  public void deleteByApplicationId(TransactionContext tx, String appId) {
+    if (isDatabaseEmbedded()) {
+      // We do not enroll the deletions in the transaction on purpose.
+      // This improves performance and keeps db operations (including commits) reasonably short, which means other
+      // concurrent db operations are blocked for shorter periods of time (H2 is single threaded).
+      // See https://issues.sonatype.org/browse/CLM-15648 for details
+      getByApplicationId(appId).forEach(this::delete);
+    }
+    else {
+      // For performance reasons, we bypass the standard delete (per entity) method here.
+      // We cannot do this for H2 until we upgrade to a multi-threaded H2 version.
+      // See https://issues.sonatype.org/browse/CLM-15648 for details
+      String sQuery = "DELETE FROM PolicyViolation entity WHERE entity.applicationId=?1";
+      createQuery(sQuery, appId).executeUpdate(tx);
+    }
+  }
+
   public long getCount() {
     String sQuery = "SELECT COUNT(entity) FROM PolicyViolation entity";
     return getSingle(Long.class, sQuery);

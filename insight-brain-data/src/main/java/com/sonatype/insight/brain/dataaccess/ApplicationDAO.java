@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -265,13 +264,14 @@ public class ApplicationDAO
   public void delete(TransactionContext tx, Application application) {
     long start = System.currentTimeMillis();
 
-    // Cascade to policy violations (like policy evaluations, deleted outside of transaction for performance)
+    // For H2, we do not enroll the policy violation and evaluation deletions in the transaction on purpose.
+    // This improves performance and keeps db operations (including commits) reasonably short, which means other
+    // concurrent db operations are blocked for shorter periods of time (H2 is single threaded).
     // Since non-transactional, we delete violations first such that no violations without corresponding evaluation
     // are left behind in case of a failure.
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    for (PolicyViolation policyViolation : policyViolationDAO.getByApplicationId(application.getId())) {
-      policyViolationDAO.delete(policyViolation);
-    }
+
+    // Cascade to policy violations
+    new PolicyViolationDAO().deleteByApplicationId(tx, application.getId());
 
     // Cascade to policy evaluations
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();

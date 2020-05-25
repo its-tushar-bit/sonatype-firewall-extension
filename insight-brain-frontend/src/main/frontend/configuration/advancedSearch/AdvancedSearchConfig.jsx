@@ -51,7 +51,7 @@ export default function AdvancedSearchConfig(props) {
   useEffect(load, []);
 
   const reIndexingModal = (
-    <NxModal id="advanced-search-re-indexing-modal">
+    <NxModal id="advanced-search-re-indexing-modal" onClose={closeReIndexModal}>
       <header className="nx-modal-header">
         <h2 className="nx-h2">Re-Indexing</h2>
       </header>

@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -60,7 +61,6 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.brain.utils.LicenseUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -77,6 +77,8 @@ public class ComponentInfoService
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
   private LicenseDAO licenseDAO = new LicenseDAO();
+
+  private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
   private final HdsClient hdsClient;
 
@@ -367,7 +369,7 @@ public class ComponentInfoService
     }
 
     // All policies that were part of this evaluation, indexed by id
-    Map<String, Policy> policiesById = new PolicyDAO().getApplicableByOwnerId(owner.getId()).stream()
+    Map<String, Policy> policiesById = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(owner.getId()).stream()
         .collect(Collectors.toMap(Policy::getId, Function.identity()));
 
     List<ComponentDetailsDTO> componentDetailsDTOs = new ArrayList<>(componentDetailsList.size());
@@ -569,13 +571,24 @@ public class ComponentInfoService
         Set<com.sonatype.insight.brain.model.license.License> licenses = multiLicenseDAO
             .getLicensesByMultiLicenseIdNotNull(multiLicense.getLicenseId());
         for (com.sonatype.insight.brain.model.license.License license : licenses) {
-          LicenseWithThreatLevel licenseWithThreatLevel = LicenseUtils.getLicenseWithThreatLevel(owner, license);
+          LicenseWithThreatLevel licenseWithThreatLevel = getLicenseWithThreatLevel(owner, license);
           result.add(licenseWithThreatLevel);
         }
       }
     }
 
     return result;
+  }
+
+  private LicenseWithThreatLevel getLicenseWithThreatLevel(
+      Owner owner,
+      com.sonatype.insight.brain.model.license.License license)
+  {
+    LicenseWithThreatLevel licenseWithThreatLevel = new LicenseWithThreatLevel();
+    licenseWithThreatLevel.license = new License(license.getId(), license.getShortDisplayName());
+    licenseWithThreatLevel.threatLevel =
+        licenseThreatGroupDAO.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(owner, license.getId());
+    return licenseWithThreatLevel;
   }
 
   /**

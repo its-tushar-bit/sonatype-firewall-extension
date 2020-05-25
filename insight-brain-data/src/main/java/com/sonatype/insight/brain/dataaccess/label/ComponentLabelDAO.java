@@ -145,7 +145,7 @@ public class ComponentLabelDAO
     if (label.getOwnerId().equals(ownerId)) {
       return true;
     }
-    for (Label applicable : labelDAO.getByOwnerId(tx, ownerId, true)) {
+    for (Label applicable : labelDAO.getByOwnerIdWithHierarchy(tx, ownerId)) {
       if (applicable.getId().equals(label.getId())) {
         return true;
       }

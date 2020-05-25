@@ -200,7 +200,7 @@ public class ScanPolicyEvaluator
 
     // Evaluate the policies
     String appId = application.getId();
-    List<Policy> policies = new PolicyDAO().getApplicableByOwnerId(appId);
+    List<Policy> policies = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(appId);
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, policies, components, forMonitoring);
 
     PolicyViolationTelemetryCollector telemetryCollector

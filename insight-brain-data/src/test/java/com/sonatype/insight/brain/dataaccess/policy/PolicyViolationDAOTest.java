@@ -16,6 +16,8 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -25,6 +27,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.Test;
 
@@ -774,5 +777,49 @@ public class PolicyViolationDAOTest
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
     assertThat(dao.getCount()).isEqualTo(2);
+  }
+
+  @Test
+  public void testDeleteByApplicationId_H2() {
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    assertThat(dao.isDatabaseEmbedded()).isTrue();
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan");
+    Policy policy = tempEntity.newPolicy(application);
+    tempEntity.newPolicyViolation(policyEvaluation, policy);
+    tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    dao.deleteByApplicationId(null /* TransactionContext */, applicationId);
+
+    assertThat(dao.getByApplicationId(applicationId)).isEmpty();
+  }
+
+  @Test
+  public void testDeleteByApplicationId_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+
+    try (PostgresServer postgres = new PostgresServer()) {
+      // Create a postgres ODS database
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+
+      PolicyViolationDAO dao = new PolicyViolationDAO();
+      assertThat(dao.isDatabaseEmbedded()).isFalse();
+
+      PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan");
+      Policy policy = tempEntity.newPolicy(application);
+      tempEntity.newPolicyViolation(policyEvaluation, policy);
+      tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+      try (TransactionContext tx = dao.createTransactionContext()) {
+        tx.begin();
+        dao.deleteByApplicationId(tx, applicationId);
+        tx.commit();
+      }
+
+      assertThat(dao.getByApplicationId(applicationId)).isEmpty();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
   }
 }

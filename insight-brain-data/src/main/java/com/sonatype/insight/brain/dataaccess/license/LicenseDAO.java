@@ -13,10 +13,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.License;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -34,8 +31,6 @@ public class LicenseDAO
   private static volatile Map<String, License> licensesById = null;
 
   private static volatile Map<String, License> licensesByName = null;
-
-  private static final OwnerDAO ownerDAO = new OwnerDAO();
 
   @Override
   public License getById(TransactionContext tx, String id) {
@@ -127,35 +122,5 @@ public class LicenseDAO
       throw new NotFoundException("A license with name '" + name + "' does not exist.");
     }
     return license;
-  }
-
-  /**
-   * @since 1.6
-   */
-  public Integer getLicenseThreatLevelByOwnerAndLicenseId(final Owner owner, String licenseId) {
-    final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-    Integer threatLevel = null;
-    for (final Owner currentOwner : ownerDAO.walkHierarchy(owner)) {
-      List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(
-          currentOwner.getId(), licenseId);
-      threatLevel = max(threatLevel, licenseThreatGroups);
-    }
-
-    return threatLevel;
-  }
-
-  /**
-   * @since 1.6
-   */
-  private Integer max(Integer threatLevel, List<LicenseThreatGroup> licenseThreatGroups) {
-    for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-      if (threatLevel == null) {
-        threatLevel = licenseThreatGroup.getThreatLevel();
-      }
-      else {
-        threatLevel = Math.max(threatLevel, licenseThreatGroup.getThreatLevel());
-      }
-    }
-    return threatLevel;
   }
 }

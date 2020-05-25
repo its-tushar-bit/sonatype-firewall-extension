@@ -108,7 +108,7 @@ export default function MailConfig(props) {
   );
 
   const modal = (
-    <NxModal id="mail-config-delete-modal">
+    <NxModal id="mail-config-delete-modal" onClose={() => setShowDeleteModal(false)}>
       <header className="nx-modal-header">
         <h2 className="nx-h2">Delete Email Configuration?</h2>
       </header>

@@ -349,7 +349,7 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testGetApplicableByOwnerId() {
+  public void testGetApplicableByOwnerIdWithHierarchy() {
     String policyNameRootOrg = "RootOrganizationPolicy";
     tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, policyNameRootOrg);
     String policyNameOrg = "OrganizationPolicy";
@@ -358,24 +358,24 @@ public class PolicyDAOTest
     tempEntity.newPolicy(application.getId(), policyNameApp);
 
     // Check app level
-    List<Policy> policies = policyDAO.getApplicableByOwnerId(application.getId());
+    List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(application.getId());
     assertThat(policies).extracting(Policy::getName).containsExactly(policyNameApp, policyNameOrg, policyNameRootOrg);
 
     // Check repo level
-    policies = policyDAO.getApplicableByOwnerId(repository.getId());
+    policies = policyDAO.getApplicableByOwnerIdWithHierarchy(repository.getId());
     assertThat(policies).extracting(Policy::getName).containsExactly(policyNameRootOrg);
 
     // Check org level
-    policies = policyDAO.getApplicableByOwnerId(organization.getId());
+    policies = policyDAO.getApplicableByOwnerIdWithHierarchy(organization.getId());
     assertThat(policies).extracting(Policy::getName).containsExactly(policyNameOrg, policyNameRootOrg);
 
     // Check root org level
-    policies = policyDAO.getApplicableByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    policies = policyDAO.getApplicableByOwnerIdWithHierarchy(Organization.ROOT_ORGANIZATION_ID);
     assertThat(policies).extracting(Policy::getName).containsExactly(policyNameRootOrg);
   }
 
   @Test
-  public void testGetApplicableByOwnerId_WithTags() {
+  public void testGetApplicableByOwnerIdWithHierarchy_WithTags() {
     Policy policyOrg1 = tempEntity.newPolicy(organization.getId(), "policyOrg1");
     Policy policyOrg2 = tempEntity.newPolicy(organization.getId(), "policyOrg2");
     Policy policyRootOrg1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policyRootOrg1");
@@ -390,22 +390,22 @@ public class PolicyDAOTest
     tempEntity.newApplicationTag(application.getId(), tag2.getId());
 
     // For apps, must retrieve only the org policies that match the tags associated with the app
-    List<Policy> policies = policyDAO.getApplicableByOwnerId(application.getId());
+    List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(application.getId());
     assertThat(policies).extracting(Policy::getName).containsExactly("policyOrg2", "policyRootOrg2");
 
     // For repositories, must retrieve only the org policies that don't have any tags
-    policies = policyDAO.getApplicableByOwnerId(repository.getId());
+    policies = policyDAO.getApplicableByOwnerIdWithHierarchy(repository.getId());
     assertThat(policies).isEmpty();
 
     // For orgs, must retrieve all org policies, regardless of the tags associated with them
-    policies = policyDAO.getApplicableByOwnerId(organization.getId());
+    policies = policyDAO.getApplicableByOwnerIdWithHierarchy(organization.getId());
     assertThat(policies).extracting(Policy::getName).containsExactly("policyOrg1", "policyOrg2", "policyRootOrg1",
         "policyRootOrg2");
   }
 
   @Test
-  public void testGetApplicableByOwnerId_UnknownOwnerId() {
-    assertThat(policyDAO.getApplicableByOwnerId("unknown-owner-id")).isEmpty();
+  public void testGetApplicableByOwnerIdWithHierarchy_UnknownOwnerId() {
+    assertThat(policyDAO.getApplicableByOwnerIdWithHierarchy("unknown-owner-id")).isEmpty();
   }
 
   @Test

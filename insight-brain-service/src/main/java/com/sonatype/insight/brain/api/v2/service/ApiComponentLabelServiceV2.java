@@ -76,7 +76,7 @@ public class ApiComponentLabelServiceV2
   }
 
   private Label getLabel(OwnerType ownerType, final String internalOwnerId, final String labelName) {
-    List<Label> labels = labelDAO.getByOwnerId(internalOwnerId, true);
+    List<Label> labels = labelDAO.getByOwnerIdWithHierarchy(internalOwnerId);
     for (Label label : labels) {
       if (label.getLabel().equalsIgnoreCase(labelName)) {
         return label;

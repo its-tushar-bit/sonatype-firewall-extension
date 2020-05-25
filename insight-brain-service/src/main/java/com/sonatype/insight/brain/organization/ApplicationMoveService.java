@@ -330,8 +330,8 @@ public class ApplicationMoveService
         oldOwnersById.put(owner.getId(), owner);
         oldLtgs.addAll(ltgDAO.getByOwnerId(tx, owner.getId()));
       }
-      oldPolicies = policyDAO.getApplicableByOwnerId(tx, application.getId());
-      oldLabels = labelDAO.getByOwnerId(tx, application.getId(), true);
+      oldPolicies = policyDAO.getApplicableByOwnerIdWithHierarchy(tx, application.getId());
+      oldLabels = labelDAO.getByOwnerIdWithHierarchy(tx, application.getId());
       oldTags = tagDAO.getByApplicationId(tx, application.getId());
     }
 

@@ -21,7 +21,7 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     return new TransactionContext(entityManagerFactory.createEntityManager());
   }
 
-  protected boolean isDatabaseEmbedded() {
+  public boolean isDatabaseEmbedded() {
     return OperationalDataStoreProvider.isDatabaseEmbedded();
   }
 }

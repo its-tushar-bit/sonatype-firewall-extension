@@ -86,7 +86,7 @@ export default function ProxyConfig(props) {
   }
 
   const deleteModal = (
-    <NxModal id="proxy-config-delete-modal">
+    <NxModal id="proxy-config-delete-modal" onClose={() => setShowDeleteModal(false)}>
       <header className="nx-modal-header">
         <h2 className="nx-h2">Delete Proxy Configuration?</h2>
       </header>

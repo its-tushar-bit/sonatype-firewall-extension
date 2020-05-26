@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { Fragment, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from '../../react/LoadWrapper';
 import MaximizedContainer from '../../react/MaximizedContainer';
@@ -85,9 +85,9 @@ export default function AdvancedSearchConfig(props) {
   return (
     isAuthorized ? <LoadWrapper loading={loading} error={error}>
       <MaximizedContainer id="advanced-search-config-page-container"
-                          className="iq-body-container iq-body-container--single-pane">
-        <div id="advanced-search-config" className="iq-tile iq-tile--sys-prefs">
-          <Fragment>
+                          className="nx-page-content">
+        <div className="nx-page-main">
+          <div id="advanced-search-config" className="iq-tile iq-tile--sys-prefs">
             <div className="iq-tile-header">
               <div className="iq-tile-header__title">
                 <h2>Advanced Search</h2>
@@ -172,7 +172,7 @@ export default function AdvancedSearchConfig(props) {
                 </div>
               </form>
             </div>
-          </Fragment>
+          </div>
         </div>
         {
           showReIndexModal && reIndexingModal

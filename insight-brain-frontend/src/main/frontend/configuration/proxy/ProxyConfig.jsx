@@ -188,39 +188,41 @@ export default function ProxyConfig(props) {
 
   return (
     <LoadWrapper loading={loading}>
-      <MaximizedContainer id="proxy-config-container" className="iq-body-container iq-body-container--single-pane">
-        <div id="proxy-configuration" className="iq-tile iq-tile--sys-prefs">
-          {isAuthorized &&
-            <Fragment>
-              <div className="iq-tile-header">
-                <div className="iq-tile-header__title">
-                  <h2>Proxy</h2>
+      <MaximizedContainer id="proxy-config-container" className="nx-page-content">
+        <div className="nx-page-main">
+          <div id="proxy-configuration" className="iq-tile iq-tile--sys-prefs">
+            {isAuthorized &&
+              <Fragment>
+                <div className="iq-tile-header">
+                  <div className="iq-tile-header__title">
+                    <h2>Proxy</h2>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <p>
-                  To use a Proxy Server for outbound requests, configure it here.
-                </p>
-                {/* This page is accessible without a license, so that users can configure their Proxy Servers */}
-                {/* before attempting to install a license. If they are accessing this page without a license */}
-                {/* most likely they want to navigate to license install page next. */}
-                {!licensed &&
-                  <p id="proxy-config-product-license-navigation">
-                    Continue installing your license <a href={productLicenseUrl}>here.</a>
+                <div>
+                  <p>
+                    To use a Proxy Server for outbound requests, configure it here.
                   </p>
-                }
-                {submitMaskState !== null &&
-                  <NxStatefulSubmitMask success={submitMaskState} message={submitMaskMessage}/>}
-                {form}
-              </div>
-            </Fragment>
-          }
-          {!isAuthorized &&
-            <NxErrorAlert id="proxy-config-insufficient-permissions-error">
-              <strong>Error</strong> It appears you do not have permission to access this page.
-              If you believe this to be incorrect please contact your administrator.
-            </NxErrorAlert>
-          }
+                  {/* This page is accessible without a license, so that users can configure their Proxy Servers */}
+                  {/* before attempting to install a license. If they are accessing this page without a license */}
+                  {/* most likely they want to navigate to license install page next. */}
+                  {!licensed &&
+                    <p id="proxy-config-product-license-navigation">
+                      Continue installing your license <a href={productLicenseUrl}>here.</a>
+                    </p>
+                  }
+                  {submitMaskState !== null &&
+                    <NxStatefulSubmitMask success={submitMaskState} message={submitMaskMessage}/>}
+                  {form}
+                </div>
+              </Fragment>
+            }
+            {!isAuthorized &&
+              <NxErrorAlert id="proxy-config-insufficient-permissions-error">
+                <strong>Error</strong> It appears you do not have permission to access this page.
+                If you believe this to be incorrect please contact your administrator.
+              </NxErrorAlert>
+            }
+          </div>
         </div>
       </MaximizedContainer>
     </LoadWrapper>

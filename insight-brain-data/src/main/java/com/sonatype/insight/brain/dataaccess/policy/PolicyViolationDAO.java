@@ -234,18 +234,28 @@ public class PolicyViolationDAO
   }
 
   public int deleteFixedByApplicationIdAndDate(String applicationId, Date fixedBefore) {
-    String sQuery = "SELECT entity.id FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId = ?1 AND entity.fixTime < ?2";
-    // Deleting a potentially huge number of records from H2 in one shot consumes a lot of heap and blocks any other
-    // database operation for a long time. To avoid this, we split the entire delete up into smaller batches.
-    int deletedRows = 0;
-    while (true) {
-      List<String> ids =
-          new Query<String>(sQuery, applicationId, fixedBefore).setMaxResults(DELETE_BATCH_SIZE).getList();
-      if (ids.isEmpty()) {
-        return deletedRows;
+    // For performance reasons, we bypass the standard delete (per entity) method here.
+    if (isDatabaseEmbedded()) {
+      // Deleting a potentially huge number of records from H2 in one shot consumes a lot of heap and blocks any other
+      // database operation for a long time. To avoid this, we split the entire delete up into smaller batches.
+      // See https://issues.sonatype.org/browse/CLM-15723 for details
+      String sQuery = "SELECT entity.id FROM PolicyViolation entity" + //
+          " WHERE entity.applicationId = ?1 AND entity.fixTime < ?2";
+      int deletedRows = 0;
+      while (true) {
+        List<String> ids =
+            new Query<String>(sQuery, applicationId, fixedBefore).setMaxResults(DELETE_BATCH_SIZE).getList();
+        if (ids.isEmpty()) {
+          return deletedRows;
+        }
+        deletedRows += createQuery("DELETE FROM PolicyViolation entity WHERE entity.id IN (?1)", ids).executeUpdate();
       }
-      deletedRows += createQuery("DELETE FROM PolicyViolation entity WHERE entity.id IN (?1)", ids).executeUpdate();
+    }
+    else {
+      // We cannot do this for H2 until we upgrade to a multi-threaded H2 version.
+      // See https://issues.sonatype.org/browse/CLM-15723 for details
+      return createQuery("DELETE FROM PolicyViolation entity WHERE entity.applicationId = ?1 AND entity.fixTime < ?2",
+          applicationId, fixedBefore).executeUpdate();
     }
   }
 

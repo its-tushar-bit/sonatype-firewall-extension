@@ -731,35 +731,58 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testDeleteFixedByApplicationIdAndDate() {
+  public void testDeleteFixedByApplicationIdAndDate_H2() {
+    testDeleteFixedByApplicationIdAndDate(true);
+  }
+
+  @Test
+  public void testDeleteFixedByApplicationIdAndDate_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+
+    try (PostgresServer postgres = new PostgresServer()) {
+      // Create a postgres ODS database
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+
+      testDeleteFixedByApplicationIdAndDate(false);
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testDeleteFixedByApplicationIdAndDate(boolean isDatabaseEmbedded) {
     PolicyViolationDAO dao = new PolicyViolationDAO();
+    assertThat(dao.isDatabaseEmbedded()).isEqualTo(isDatabaseEmbedded);
+
+    Application app = tempEntity.newApplicationWithParent();
+
     Policy policy = tempEntity.newPolicy();
     PolicyEvaluation evaluation0 = tempEntity.newPolicyEvaluation(tempEntity.newApplicationWithParent().getId(),
         BuildStageType.ID, "scan-1", new Date(System.currentTimeMillis() - 900));
     PolicyViolation violation0 = tempEntity.newPolicyViolation(evaluation0, policy);
     violation0.setFixTime(evaluation0.getTime());
     dao.update(violation0);
-    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1",
+    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-1",
         new Date(System.currentTimeMillis() - 900));
     for (int i = 0; i < PolicyViolationDAO.DELETE_BATCH_SIZE + 2; i++) {
       tempEntity.newPolicyViolation(evaluation1, policy);
     }
-    PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-2",
+    PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-2",
         new Date(System.currentTimeMillis() - 500));
-    for (PolicyViolation violation : dao.getByApplicationId(applicationId)) {
+    for (PolicyViolation violation : dao.getByApplicationId(app.getId())) {
       violation.setFixTime(evaluation2.getTime());
       dao.update(violation);
     }
     PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation2, policy);
     PolicyViolation violation2 = tempEntity.newPolicyViolation(evaluation2, policy);
-    PolicyEvaluation evaluation3 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-3");
+    PolicyEvaluation evaluation3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-3");
     violation2.setFixTime(evaluation3.getTime());
     dao.update(violation2);
 
-    int deletedRows = dao.deleteFixedByApplicationIdAndDate(applicationId, evaluation3.getTime());
+    int deletedRows = dao.deleteFixedByApplicationIdAndDate(app.getId(), evaluation3.getTime());
 
     assertThat(deletedRows).isEqualTo(PolicyViolationDAO.DELETE_BATCH_SIZE + 2);
-    assertThat(dao.getByApplicationId(applicationId))
+    assertThat(dao.getByApplicationId(app.getId()))
         .usingElementComparator(Comparator.comparing(PolicyViolation::getId))
         .containsExactlyInAnyOrder(violation1, violation2);
     assertThat(dao.getById(violation0.getId())).isNotNull();

@@ -743,18 +743,18 @@ public class ApplicationDAOTest
     Tag tag = tempEntity.newTag(organization.getId());
 
     ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
-    ApplicationTag appTag = new ApplicationTag(applicationId, tag.getId());
+    ApplicationTag appTag = new ApplicationTag(application.getId(), tag.getId());
     appTagDAO.insert(appTag);
 
     applicationDAO.delete(application);
 
-    assertThat(appTagDAO.getByApplicationId(applicationId)).isEmpty();
+    assertThat(appTagDAO.getByApplicationId(application.getId())).isEmpty();
   }
 
   @Test
   public void testCascadeDeleteToApplicationComponents() {
-    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(applicationId, BuildStageType.ID,
-        "hash", ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
+    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
+        BuildStageType.ID, "hash", ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
 
     applicationDAO.delete(application);
 

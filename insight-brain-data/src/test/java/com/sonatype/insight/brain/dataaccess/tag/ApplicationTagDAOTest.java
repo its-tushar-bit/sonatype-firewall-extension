@@ -38,14 +38,14 @@ public class ApplicationTagDAOTest
   @Test
   public void testCRUD() throws Exception {
     // Create
-    ApplicationTag appTag = new ApplicationTag(applicationId, tag.getId());
+    ApplicationTag appTag = new ApplicationTag(application.getId(), tag.getId());
     dao.insert(appTag);
     assertThat(appTag.getId()).isNotNull();
 
     // Get
     appTag = dao.getById(appTag.getId());
     assertThat(appTag).isNotNull();
-    assertAppTag(applicationId, tag.getId(), appTag);
+    assertAppTag(application.getId(), tag.getId(), appTag);
 
     // Update
     Tag newTag = tempEntity.newTag(organization.getId());
@@ -53,7 +53,7 @@ public class ApplicationTagDAOTest
     dao.update(appTag);
     appTag = dao.getById(appTag.getId());
     assertThat(appTag).isNotNull();
-    assertAppTag(applicationId, newTag.getId(), appTag);
+    assertAppTag(application.getId(), newTag.getId(), appTag);
 
     // Delete
     dao.delete(appTag);
@@ -90,9 +90,9 @@ public class ApplicationTagDAOTest
 
   @Test
   public void testGetByApplicationIdAndTagId() throws Exception {
-    tempEntity.newApplicationTag(applicationId, tag.getId());
-    ApplicationTag appTag = dao.getByApplicationIdAndTagId(applicationId, tag.getId());
-    assertAppTag(applicationId, tag.getId(), appTag);
+    tempEntity.newApplicationTag(application.getId(), tag.getId());
+    ApplicationTag appTag = dao.getByApplicationIdAndTagId(application.getId(), tag.getId());
+    assertAppTag(application.getId(), tag.getId(), appTag);
   }
 
   private void assertAppTag(String appId, String tagId, ApplicationTag actual) {

@@ -35,7 +35,7 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
     String commitHash = "commit";
     Date commitTime = new Date();
     SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory = tempEntity
-        .newSourceControlDefaultBranchCommitHistory(applicationId, commitHash, commitTime, null);
+        .newSourceControlDefaultBranchCommitHistory(application.getId(), commitHash, commitTime, null);
 
     // when : fetch by ID
     SourceControlDefaultBranchCommitHistory fetchedCommitHistory =
@@ -43,7 +43,7 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
 
     // then : entry exists
     assertThat(fetchedCommitHistory).isNotNull();
-    assertThat(fetchedCommitHistory.getApplicationId()).isEqualTo(applicationId);
+    assertThat(fetchedCommitHistory.getApplicationId()).isEqualTo(application.getId());
     assertThat(fetchedCommitHistory.getCommitHash()).isEqualTo(commitHash);
     assertThat(fetchedCommitHistory.getPolicyEvaluationId()).isNull();
     assertThat(fetchedCommitHistory.getCommitTime()).isEqualTo(commitTime);
@@ -52,7 +52,7 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
 
     // when : update the entry to add in the policy evaluation
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(
-        applicationId, BuildStageType.ID, "scan", commitHash);
+        application.getId(), BuildStageType.ID, "scan", commitHash);
     fetchedCommitHistory.setPolicyEvaluationId(policyEvaluation.getId());
     // make sure update time should be after create time
     Thread.sleep(10);
@@ -60,11 +60,11 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
 
     // when : fetch by app id and policy eval ID
     fetchedCommitHistory = defaultBranchCommitHistoryDAO.getByApplicationIdAndPolicyEvaluationId(
-        applicationId, policyEvaluation.getId());
+        application.getId(), policyEvaluation.getId());
 
     // then : we get the same entry, only updated
     assertThat(fetchedCommitHistory).isNotNull();
-    assertThat(fetchedCommitHistory.getApplicationId()).isEqualTo(applicationId);
+    assertThat(fetchedCommitHistory.getApplicationId()).isEqualTo(application.getId());
     assertThat(fetchedCommitHistory.getCommitHash()).isEqualTo(commitHash);
     assertThat(fetchedCommitHistory.getPolicyEvaluationId()).isEqualTo(policyEvaluation.getId());
     assertThat(fetchedCommitHistory.getCommitTime()).isEqualTo(commitTime);
@@ -72,11 +72,12 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
     assertThat(fetchedCommitHistory.getUpdateTime()).isAfter(fetchedCommitHistory.getCreateTime());
 
     // when : fetch by app id and commit hash
-    fetchedCommitHistory = defaultBranchCommitHistoryDAO.getByApplicationIdAndCommitHash(applicationId, commitHash);
+    fetchedCommitHistory =
+        defaultBranchCommitHistoryDAO.getByApplicationIdAndCommitHash(application.getId(), commitHash);
 
     // then : again, got same entry
     assertThat(fetchedCommitHistory).isNotNull();
-    assertThat(fetchedCommitHistory.getApplicationId()).isEqualTo(applicationId);
+    assertThat(fetchedCommitHistory.getApplicationId()).isEqualTo(application.getId());
     assertThat(fetchedCommitHistory.getCommitHash()).isEqualTo(commitHash);
     assertThat(fetchedCommitHistory.getPolicyEvaluationId()).isEqualTo(policyEvaluation.getId());
     assertThat(fetchedCommitHistory.getCommitTime()).isEqualTo(commitTime);
@@ -94,24 +95,26 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
   @Test
   public void testGetByApplicationIdForLatestCommitWithPolicyEvaluation() {
     // given : several commit history entries with and without associated policy violations
-    String policyEvaluationId1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan1", "commit1")
+    String policyEvaluationId1 =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan1", "commit1")
         .getId();
     SourceControlDefaultBranchCommitHistory oldestCommitWithEval =
         tempEntity.newSourceControlDefaultBranchCommitHistory(
-            applicationId, "commit1", createTime(-60), policyEvaluationId1);
+            application.getId(), "commit1", createTime(-60), policyEvaluationId1);
 
-    String policyEvaluationId2 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan2", "commit2")
+    String policyEvaluationId2 =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan2", "commit2")
         .getId();
     SourceControlDefaultBranchCommitHistory newestCommitWithEval =
         tempEntity.newSourceControlDefaultBranchCommitHistory(
-            applicationId, "commit2", createTime(-30), policyEvaluationId2);
+            application.getId(), "commit2", createTime(-30), policyEvaluationId2);
 
     SourceControlDefaultBranchCommitHistory middleCommitNoEval = tempEntity.newSourceControlDefaultBranchCommitHistory(
-        applicationId, "commit3", createTime(-45), null);
+        application.getId(), "commit3", createTime(-45), null);
 
     // when : fetch latest commit with eval
     SourceControlDefaultBranchCommitHistory fetchedCommitHistory =
-        defaultBranchCommitHistoryDAO.getByApplicationIdForLatestCommitWithPolicyEvaluation(applicationId);
+        defaultBranchCommitHistoryDAO.getByApplicationIdForLatestCommitWithPolicyEvaluation(application.getId());
 
     // then : should be the newest entry
     assertThat(fetchedCommitHistory.getId()).isEqualTo(newestCommitWithEval.getId());
@@ -119,18 +122,19 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
     // when : remove newest entry and refetch
     defaultBranchCommitHistoryDAO.delete(fetchedCommitHistory);
     fetchedCommitHistory = defaultBranchCommitHistoryDAO.getByApplicationIdForLatestCommitWithPolicyEvaluation(
-        applicationId);
+        application.getId());
 
     // then : should skip middle entry (has no policy eval) and fetch the oldest one
     assertThat(fetchedCommitHistory.getId()).isEqualTo(oldestCommitWithEval.getId());
 
     // when : update the middle entry to have a policy eval and refetch
-    String policyEvaluationId3 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan3", "commit3")
+    String policyEvaluationId3 =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan3", "commit3")
         .getId();
     middleCommitNoEval.setPolicyEvaluationId(policyEvaluationId3);
     defaultBranchCommitHistoryDAO.update(middleCommitNoEval);
     fetchedCommitHistory = defaultBranchCommitHistoryDAO.getByApplicationIdForLatestCommitWithPolicyEvaluation(
-        applicationId);
+        application.getId());
 
     // then : middle entry should be the one returned as it's now the newest with a policy eval
     assertThat(fetchedCommitHistory.getId()).isEqualTo(middleCommitNoEval.getId());
@@ -139,12 +143,16 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
   @Test
   public void testDeleteByPolicyEvaluationId() {
     // given : commit history linked to policy evaluations
-    String policyEvaluationId = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan", "commit1")
+    String policyEvaluationId =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan", "commit1")
         .getId();
-    String policyEvaluationId2 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan", "commit2")
+    String policyEvaluationId2 =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan", "commit2")
         .getId();
-    tempEntity.newSourceControlDefaultBranchCommitHistory(applicationId, "commit1", new Date(), policyEvaluationId);
-    tempEntity.newSourceControlDefaultBranchCommitHistory(applicationId, "commit2", new Date(), policyEvaluationId2);
+    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit1", new Date(),
+        policyEvaluationId);
+    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit2", new Date(),
+        policyEvaluationId2);
 
     // when : delete using the policy evaluation ID
     defaultBranchCommitHistoryDAO.deleteByPolicyEvaluationId(policyEvaluationId);
@@ -160,36 +168,37 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
   public void testDeleteByApplicationIdBeforeCommitTime() {
     // given : a set of commit history entries, some linked to a policy evaluation, some not, and some for a different
     //         application
-    String policyEvaluationId = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan", "commit1")
+    String policyEvaluationId =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan", "commit1")
         .getId();
     tempEntity.newSourceControlDefaultBranchCommitHistory(
-        applicationId, "commit1", createTime(-75), policyEvaluationId);
-    tempEntity.newSourceControlDefaultBranchCommitHistory(applicationId, "commit2", createTime(-70), null);
-    tempEntity.newSourceControlDefaultBranchCommitHistory(applicationId, "commit3", createTime(-90), null);
+        application.getId(), "commit1", createTime(-75), policyEvaluationId);
+    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit2", createTime(-70), null);
+    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit3", createTime(-90), null);
     Date cutoffDateTime = createTime(-30);
-    tempEntity.newSourceControlDefaultBranchCommitHistory(applicationId, "commit4", cutoffDateTime, null);
-    tempEntity.newSourceControlDefaultBranchCommitHistory(applicationId, "commit5", createTime(-20), null);
-    tempEntity.newSourceControlDefaultBranchCommitHistory(applicationId, "commit6", createTime(-220), null);
+    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit4", cutoffDateTime, null);
+    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit5", createTime(-20), null);
+    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit6", createTime(-220), null);
     Application app2 = tempEntity.newApplication("app2", organization.getId());
     tempEntity.newSourceControlDefaultBranchCommitHistory(app2.getId(), "commit7", createTime(-180), null);
     tempEntity.newSourceControlDefaultBranchCommitHistory(app2.getId(), "commit8", createTime(-120), null);
 
     // when : fetch all entries for first application
     List<SourceControlDefaultBranchCommitHistory> commitHistoryList =
-        defaultBranchCommitHistoryDAO.getByApplicationIdSortedByDateDesc(applicationId);
+        defaultBranchCommitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
     // then : all entries for given app and count is correct
     assertThat(commitHistoryList.size()).isEqualTo(6);
-    commitHistoryList.forEach(entry -> assertThat(entry.getApplicationId()).isEqualTo(applicationId));
+    commitHistoryList.forEach(entry -> assertThat(entry.getApplicationId()).isEqualTo(application.getId()));
 
     // when : delete entries for first application older than cutoff date
-    defaultBranchCommitHistoryDAO.deleteByApplicationIdBeforeCommitTime(applicationId, cutoffDateTime);
+    defaultBranchCommitHistoryDAO.deleteByApplicationIdBeforeCommitTime(application.getId(), cutoffDateTime);
 
     // then : history older than cutoff time not in results for first application
-    commitHistoryList = defaultBranchCommitHistoryDAO.getByApplicationIdSortedByDateDesc(applicationId);
+    commitHistoryList = defaultBranchCommitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
     assertThat(commitHistoryList.size()).isEqualTo(2);
     commitHistoryList.forEach(entry -> {
-      assertThat(entry.getApplicationId()).isEqualTo(applicationId);
+      assertThat(entry.getApplicationId()).isEqualTo(application.getId());
       assertThat(entry.getCommitTime()).isAfterOrEqualTo(cutoffDateTime);
     });
 
@@ -211,7 +220,7 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
 
     // when : try to insert with invalid policy eval ID
     thrown = catchThrowable(() -> tempEntity.newSourceControlDefaultBranchCommitHistory(
-        applicationId, "commit", new Date(), "bogusPolicyEvaluationId"));
+        application.getId(), "commit", new Date(), "bogusPolicyEvaluationId"));
 
     // then : expecting exception
     assertThat(thrown).hasStackTraceContaining(
@@ -219,7 +228,7 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
 
     // when : try to insert with missing commit
     thrown = catchThrowable(() -> tempEntity.newSourceControlDefaultBranchCommitHistory(
-        applicationId, null, new Date(), null));
+        application.getId(), null, new Date(), null));
 
     // then : expecting exception
     assertThat(thrown).hasStackTraceContaining("NULL not allowed for column \"commit_hash\"");
@@ -230,11 +239,11 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
     // given : a commit history entry
     String commitHash = "commit";
     Date commitTime = new Date();
-    tempEntity.newSourceControlDefaultBranchCommitHistory(applicationId, commitHash, commitTime, null);
+    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), commitHash, commitTime, null);
 
     // when : insert a duplicate commit history (same app and commit)
     Throwable thrown = catchThrowable(() -> tempEntity.newSourceControlDefaultBranchCommitHistory(
-        applicationId, commitHash, commitTime, null));
+        application.getId(), commitHash, commitTime, null));
 
     // then : exception thrown due to duplicate
     assertThat(thrown).hasCauseInstanceOf(EntityExistsException.class);
@@ -244,7 +253,7 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
   public void testUpdate_invalidPolicyEvaluationReference() {
     // given : a commit history entry without a policy eval reference
     SourceControlDefaultBranchCommitHistory commitHistory = tempEntity.newSourceControlDefaultBranchCommitHistory(
-        applicationId, "commit", new Date(), null);
+        application.getId(), "commit", new Date(), null);
 
     // when : try to update with an invalid policy eval reference
     commitHistory.setPolicyEvaluationId("bogusPolicyEvaluationId");

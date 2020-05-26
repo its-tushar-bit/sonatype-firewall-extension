@@ -22,7 +22,7 @@ public class PolicyMonitoringDAOTest
   public void testCRUD() throws Exception {
     PolicyMonitoringDAO dao = new PolicyMonitoringDAO();
 
-    String ownerId = applicationId;
+    String ownerId = application.getId();
     String stageTypeId = Stage.ID_RELEASE;
 
     // Create
@@ -61,7 +61,7 @@ public class PolicyMonitoringDAOTest
   public void testAddDuplicate() throws Exception {
     PolicyMonitoringDAO dao = new PolicyMonitoringDAO();
 
-    String ownerId = applicationId;
+    String ownerId = application.getId();
     PolicyMonitoring policyMonitoring1 = new PolicyMonitoring(ownerId, Stage.ID_RELEASE);
     dao.insert(policyMonitoring1);
 
@@ -76,7 +76,7 @@ public class PolicyMonitoringDAOTest
   public void testSet_Insert() {
     PolicyMonitoringDAO dao = new PolicyMonitoringDAO();
 
-    String ownerId = applicationId;
+    String ownerId = application.getId();
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(ownerId, Stage.ID_RELEASE);
     dao.set(policyMonitoring);
     assertThat(policyMonitoring.getId()).isNotNull();
@@ -90,7 +90,7 @@ public class PolicyMonitoringDAOTest
   public void testSet_Update() {
     PolicyMonitoringDAO dao = new PolicyMonitoringDAO();
 
-    String ownerId = applicationId;
+    String ownerId = application.getId();
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(ownerId, Stage.ID_RELEASE);
     dao.insert(policyMonitoring);
     assertThat(policyMonitoring.getId()).isNotNull();

@@ -30,13 +30,13 @@ public class ProprietaryConfigDAOTest
     // Create
     List<String> packages = Collections.singletonList("foo");
     List<String> regexes = Collections.singletonList("bar");
-    ProprietaryConfig config = new ProprietaryConfig(applicationId, packages, regexes);
+    ProprietaryConfig config = new ProprietaryConfig(application.getId(), packages, regexes);
     dao.insert(config);
     assertThat(config.getId()).isNotNull();
 
     // Read
     config = dao.getById(config.getId());
-    assertProprietaryConfig(applicationId, packages, regexes, config);
+    assertProprietaryConfig(application.getId(), packages, regexes, config);
 
     // Update
     packages = Collections.singletonList("foo.updated");
@@ -45,7 +45,7 @@ public class ProprietaryConfigDAOTest
 
     // Read
     config = dao.getById(config.getId());
-    assertProprietaryConfig(applicationId, packages, regexes, config);
+    assertProprietaryConfig(application.getId(), packages, regexes, config);
 
     // Delete
     dao.delete(config);
@@ -56,25 +56,25 @@ public class ProprietaryConfigDAOTest
 
   @Test
   public void testInsert_Duplicate() {
-    tempEntity.newProprietaryConfig(applicationId);
+    tempEntity.newProprietaryConfig(application.getId());
 
-    ProprietaryConfig config1 = new ProprietaryConfig(applicationId, null /* packages */, null /* regexes */);
+    ProprietaryConfig config1 = new ProprietaryConfig(application.getId(), null /* packages */, null /* regexes */);
     assertThatThrownBy(() -> {
       dao.insert(config1);
     }).isInstanceOf(BadRequestException.class)
-        .hasMessage("A proprietary config already exists for owner id " + applicationId);
+        .hasMessage("A proprietary config already exists for owner id " + application.getId());
   }
 
   @Test
   public void testUpdate_Duplicate() {
-    tempEntity.newProprietaryConfig(applicationId);
+    tempEntity.newProprietaryConfig(application.getId());
     ProprietaryConfig config1 = tempEntity.newProprietaryConfig(organization.getId());
 
-    config1.setOwnerId(applicationId);
+    config1.setOwnerId(application.getId());
     assertThatThrownBy(() -> {
       dao.update(config1);
     }).isInstanceOf(BadRequestException.class)
-        .hasMessage("A proprietary config already exists for owner id " + applicationId);
+        .hasMessage("A proprietary config already exists for owner id " + application.getId());
   }
 
   private void assertProprietaryConfig(String applicationId,
@@ -91,7 +91,7 @@ public class ProprietaryConfigDAOTest
   public void testInsert_InvalidRegex() {
     for (String regex : ProprietaryConfigDAO.REGEX_BLACK_LIST) {
       List<String> regexes = Arrays.asList(regex);
-      ProprietaryConfig config = new ProprietaryConfig(applicationId, null /* packages */, regexes);
+      ProprietaryConfig config = new ProprietaryConfig(application.getId(), null /* packages */, regexes);
       assertThatThrownBy(() -> {
         dao.insert(config);
       }).isInstanceOf(InvalidProprietaryConfigRegexException.class)
@@ -102,7 +102,7 @@ public class ProprietaryConfigDAOTest
   @Test(expected = InvalidProprietaryConfigRegexException.class)
   public void testInsert_InvalidRegexStar() {
     List<String> regexes = Arrays.asList("*");
-    ProprietaryConfig config = new ProprietaryConfig(applicationId, null /* packages */, regexes);
+    ProprietaryConfig config = new ProprietaryConfig(application.getId(), null /* packages */, regexes);
     dao.insert(config);
   }
 
@@ -110,13 +110,13 @@ public class ProprietaryConfigDAOTest
   public void testInsert_InvalidRegexNull() {
     List<String> regexes = new ArrayList<>();
     regexes.add(null);
-    ProprietaryConfig config = new ProprietaryConfig(applicationId, null /* packages */, regexes);
+    ProprietaryConfig config = new ProprietaryConfig(application.getId(), null /* packages */, regexes);
     dao.insert(config);
   }
 
   @Test
   public void testUpdate_InvalidRegex() {
-    ProprietaryConfig config = tempEntity.newProprietaryConfig(applicationId);
+    ProprietaryConfig config = tempEntity.newProprietaryConfig(application.getId());
 
     for (String regex : ProprietaryConfigDAO.REGEX_BLACK_LIST) {
       List<String> regexes = Arrays.asList(regex);
@@ -130,7 +130,7 @@ public class ProprietaryConfigDAOTest
 
   @Test(expected = InvalidProprietaryConfigRegexException.class)
   public void testUpdate_InvalidRegexStar() {
-    ProprietaryConfig config = tempEntity.newProprietaryConfig(applicationId);
+    ProprietaryConfig config = tempEntity.newProprietaryConfig(application.getId());
 
     List<String> regexes = Arrays.asList("*");
     config.setRegexes(regexes);
@@ -139,7 +139,7 @@ public class ProprietaryConfigDAOTest
 
   @Test(expected = InvalidProprietaryConfigRegexException.class)
   public void testUpdate_InvalidRegexNull() {
-    ProprietaryConfig config = tempEntity.newProprietaryConfig(applicationId);
+    ProprietaryConfig config = tempEntity.newProprietaryConfig(application.getId());
 
     List<String> regexes = new ArrayList<>();
     regexes.add(null);

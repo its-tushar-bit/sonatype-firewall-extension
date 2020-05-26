@@ -27,16 +27,18 @@ public class OwnerDAOTest
     for (Owner owner : ownerDAO.walkHierarchy(application)) {
       ownersIds.add(owner.getId());
     }
-    assertThat(ownersIds).containsExactly(applicationId, organization.getId(), organization.getParentOrganizationId());
+    assertThat(ownersIds).containsExactly(application.getId(), organization.getId(),
+        organization.getParentOrganizationId());
   }
 
   @Test
   public void testWalkHierarchy_ApplicationId() {
     List<String> ownersIds = new ArrayList<>();
-    for (Owner owner : ownerDAO.walkHierarchy(applicationId)) {
+    for (Owner owner : ownerDAO.walkHierarchy(application.getId())) {
       ownersIds.add(owner.getId());
     }
-    assertThat(ownersIds).containsExactly(applicationId, organization.getId(), organization.getParentOrganizationId());
+    assertThat(ownersIds).containsExactly(application.getId(), organization.getId(),
+        organization.getParentOrganizationId());
   }
 
   @Test

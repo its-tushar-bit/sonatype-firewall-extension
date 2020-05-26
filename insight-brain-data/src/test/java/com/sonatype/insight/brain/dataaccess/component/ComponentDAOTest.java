@@ -39,7 +39,7 @@ public class ComponentDAOTest
 
   @Before
   public void createLTGs() {
-    tempEntity.newLicenseThreatGroup(applicationId, "My group 1", 1, "Apache-2.0");
+    tempEntity.newLicenseThreatGroup(application.getId(), "My group 1", 1, "Apache-2.0");
     tempEntity.newLicenseThreatGroup(organization.getId(), "My group 2", 5, "GPL-2.0");
     tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
   }
@@ -81,11 +81,11 @@ public class ComponentDAOTest
 
   @Test
   public void testGetComponent() {
-    Label appLabel = new Label(applicationId, "red");
+    Label appLabel = new Label(application.getId(), "red");
     labelDAO.insert(appLabel);
     Label orgLabel = new Label(application.getOrganizationId(), "blue");
     labelDAO.insert(orgLabel);
-    componentLabelDAO.insert(new ComponentLabel(applicationId, appLabel.getId(), COMP_HASH));
+    componentLabelDAO.insert(new ComponentLabel(application.getId(), appLabel.getId(), COMP_HASH));
     componentLabelDAO.insert(new ComponentLabel(application.getOrganizationId(), orgLabel.getId(), COMP_HASH));
 
     MatchedComponent matchedComponent = new MatchedComponent();

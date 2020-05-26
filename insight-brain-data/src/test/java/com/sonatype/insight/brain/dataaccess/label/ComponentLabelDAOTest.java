@@ -39,7 +39,7 @@ public class ComponentLabelDAOTest
     Label label = newLabel("label", application.getOrganizationId());
 
     ComponentLabelDAO dao = new ComponentLabelDAO();
-    ComponentLabel compLabel = new ComponentLabel(applicationId, label.getId(), hash);
+    ComponentLabel compLabel = new ComponentLabel(application.getId(), label.getId(), hash);
     dao.insert(compLabel);
 
     compLabel = dao.getById(compLabel.getId());
@@ -58,31 +58,31 @@ public class ComponentLabelDAOTest
 
   @Test
   public void testGetByOwnerIdAndHashAndLabelId() {
-    Label label = newLabel("label", applicationId);
+    Label label = newLabel("label", application.getId());
 
     ComponentLabelDAO dao = new ComponentLabelDAO();
-    ComponentLabel compLabel = new ComponentLabel(applicationId, label.getId(), hash);
+    ComponentLabel compLabel = new ComponentLabel(application.getId(), label.getId(), hash);
     dao.insert(compLabel);
-    ComponentLabel entity = dao.getByOwnerIdAndHashAndLabelId(applicationId, hash, label.getId());
+    ComponentLabel entity = dao.getByOwnerIdAndHashAndLabelId(application.getId(), hash, label.getId());
     assertThat(entity).isNotNull();
     assertThat(entity.getId()).isEqualTo(compLabel.getId());
   }
 
   @Test
   public void testInsertDuplicate() {
-    Label label = newLabel("label", applicationId);
+    Label label = newLabel("label", application.getId());
 
     ComponentLabelDAO dao = new ComponentLabelDAO();
-    dao.insert(new ComponentLabel(applicationId, label.getId(), hash));
+    dao.insert(new ComponentLabel(application.getId(), label.getId(), hash));
     assertThatThrownBy(() -> {
-      dao.insert(new ComponentLabel(applicationId, label.getId(), hash));
+      dao.insert(new ComponentLabel(application.getId(), label.getId(), hash));
     }).isInstanceOf(BadRequestException.class)
         .hasMessage("The label 'label' is already applied to the component ababababab.");
   }
 
   @Test
   public void testInsertNonApplicable() {
-    Label label = newLabel("label", applicationId);
+    Label label = newLabel("label", application.getId());
 
     ComponentLabelDAO dao = new ComponentLabelDAO();
     ComponentLabel compLabel = new ComponentLabel(application.getOrganizationId(), label.getId(), hash);
@@ -94,11 +94,11 @@ public class ComponentLabelDAOTest
 
   @Test
   public void testUpdateDuplicate() {
-    Label label = newLabel("label", applicationId);
+    Label label = newLabel("label", application.getId());
 
     ComponentLabelDAO dao = new ComponentLabelDAO();
-    dao.insert(new ComponentLabel(applicationId, label.getId(), hash));
-    ComponentLabel compLabel = new ComponentLabel(applicationId, label.getId(), hash + "0");
+    dao.insert(new ComponentLabel(application.getId(), label.getId(), hash));
+    ComponentLabel compLabel = new ComponentLabel(application.getId(), label.getId(), hash + "0");
     dao.insert(compLabel);
     compLabel.setHash(hash);
     assertThatThrownBy(() -> {
@@ -109,10 +109,10 @@ public class ComponentLabelDAOTest
 
   @Test
   public void testUpdateNonApplicable() {
-    Label label = newLabel("label", applicationId);
+    Label label = newLabel("label", application.getId());
 
     ComponentLabelDAO dao = new ComponentLabelDAO();
-    ComponentLabel compLabel = new ComponentLabel(applicationId, label.getId(), hash);
+    ComponentLabel compLabel = new ComponentLabel(application.getId(), label.getId(), hash);
     dao.insert(compLabel);
     compLabel.setOwnerId(application.getOrganizationId());
     assertThatThrownBy(() -> {
@@ -138,13 +138,13 @@ public class ComponentLabelDAOTest
     ComponentLabelDAO dao = new ComponentLabelDAO();
 
     // sanity check
-    List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHashWithHierarchy(applicationId, hash);
+    List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHashWithHierarchy(application.getId(), hash);
     assertThat(componentLabels).isEmpty();
 
     dao.insert(new ComponentLabel(application.getOrganizationId(), orgLabel.getId(), hash));
-    dao.insert(new ComponentLabel(applicationId, appLabel.getId(), hash));
+    dao.insert(new ComponentLabel(application.getId(), appLabel.getId(), hash));
 
-    componentLabels = dao.getByOwnerIdAndHashWithHierarchy(applicationId, hash);
+    componentLabels = dao.getByOwnerIdAndHashWithHierarchy(application.getId(), hash);
     assertThat(componentLabels).hasSize(2);
 
     assertComponentLabel(appLabel, componentLabels.get(0));

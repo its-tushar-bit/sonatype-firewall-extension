@@ -195,10 +195,8 @@
               <tr id='artifactHygieneRating' ng-if='componentDetails.hygieneRating'>
                 <td>Hygiene Rating:</td>
                 <td>
-                  <i class='fa' ng-class="{
-                    'fa-trophy cip-color-exemplar': componentDetails.hygieneRating.id === 1,
-                    'fa-warning cip-color-laggard': componentDetails.hygieneRating.id === 4
-                  }"></i>
+                  <i class='fa fa-trophy cip-color-exemplar' ng-if='componentDetails.hygieneRating.id === 1'></i>
+                  <i class='fa fa-trophy cip-color-laggard' ng-if='componentDetails.hygieneRating.id === 4'></i>
                   {{componentDetails.hygieneRating.label}}
                 </td>
               </tr>

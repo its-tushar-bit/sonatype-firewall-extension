@@ -34,7 +34,7 @@ public class ApplicationComponentDAOTest
   public void testCRUD() throws Exception {
     // Create
     Date now = new Date();
-    ApplicationComponent appComponent = new ApplicationComponent(applicationId, BuildStageType.ID, now, "hash",
+    ApplicationComponent appComponent = new ApplicationComponent(application.getId(), BuildStageType.ID, now, "hash",
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), MatchState.EXACT.getId(),
         IdentificationSource.SONATYPE.getId(), true /* proprietary */, null /* pathnames */);
     dao.insert(appComponent);
@@ -43,7 +43,7 @@ public class ApplicationComponentDAOTest
     // Get
     appComponent = dao.getById(appComponent.getId());
     assertThat(appComponent).isNotNull();
-    assertApplicationComponent(applicationId, BuildStageType.ID, now, "hash",
+    assertApplicationComponent(application.getId(), BuildStageType.ID, now, "hash",
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), MatchState.EXACT.getId(),
         IdentificationSource.SONATYPE.getId(), true /* proprietary */, null /* pathnames */, appComponent);
 

@@ -84,7 +84,7 @@ describe('mainHeaderSpec', function() {
     expect(vm.isSuccessMetricsEnabled).toBe(false);
   });
 
-  it('properly loads on enabled full text search', function() {
+  it('properly loads on enabled advanced search', function() {
     vm.$onInit();
     loginDeferred.resolve();
     isAdvancedSearchEnabledDeferred.resolve(true);
@@ -93,7 +93,7 @@ describe('mainHeaderSpec', function() {
     expect(vm.isAdvancedSearchEnabled).toBe(true);
   });
 
-  it('properly loads on disabled full text search', function() {
+  it('properly loads on disabled advanced search', function() {
     vm.$onInit();
     loginDeferred.resolve();
     isAdvancedSearchEnabledDeferred.resolve(false);
@@ -102,7 +102,7 @@ describe('mainHeaderSpec', function() {
     expect(vm.isAdvancedSearchEnabled).toBe(false);
   });
 
-  it('does not load success metrics, full text search, permissions, or features until after login', function() {
+  it('does not load success metrics, advanced search, permissions, or features until after login', function() {
     vm.$onInit();
 
     isSuccessMetricsEnabledDeferred.reject('disabled');

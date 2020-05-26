@@ -154,8 +154,11 @@ public class RepositoryPolicyViolationDAOTest
 
       assertThat(dao.isDatabaseEmbedded()).isFalse();
 
+      repository = tempEntity.newRepository();
+
       tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "pathname1", null);
       tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "pathname2", null);
+      assertThat(dao.getByRepositoryId(repository.getId())).hasSize(2);
 
       try (TransactionContext tx = dao.createTransactionContext()) {
         tx.begin();

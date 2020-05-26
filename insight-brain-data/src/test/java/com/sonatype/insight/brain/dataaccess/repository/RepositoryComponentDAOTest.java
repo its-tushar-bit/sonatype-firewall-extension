@@ -192,8 +192,10 @@ public class RepositoryComponentDAOTest
 
       assertThat(dao.isDatabaseEmbedded()).isFalse();
 
+      repository = tempEntity.newRepository();
       tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
       tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
+      assertThat(dao.getByRepositoryId(repository.getId())).hasSize(2);
 
       try (TransactionContext tx = dao.createTransactionContext()) {
         tx.begin();

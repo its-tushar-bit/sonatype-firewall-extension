@@ -502,6 +502,7 @@ public class RootOrganizationConfigMigratorTest
       odsDatabaseConfig.setPassword("");
       odsDatabaseConfig.setMaxConnections(50);
       OperationalDataStoreProvider.init(odsDatabaseConfig, false);
+      before();
       // Create an organization only to make it look like this is not a fresh install (that would not require a
       // migration).
       tempEntity.newOrganization();
@@ -542,6 +543,7 @@ public class RootOrganizationConfigMigratorTest
       config.setDatabase(new com.sonatype.insight.brain.service.DatabaseConfig());
       // Create a postgres ODS database
       OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      before();
       // Create an organization only to make it look like this is not a fresh install (that would not require a
       // migration).
       tempEntity.newOrganization();

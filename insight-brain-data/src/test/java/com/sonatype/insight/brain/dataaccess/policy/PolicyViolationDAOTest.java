@@ -805,10 +805,14 @@ public class PolicyViolationDAOTest
       PolicyViolationDAO dao = new PolicyViolationDAO();
       assertThat(dao.isDatabaseEmbedded()).isFalse();
 
+      application = tempEntity.newApplicationWithParent();
+      applicationId = application.getId();
+
       PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan");
       Policy policy = tempEntity.newPolicy(application);
       tempEntity.newPolicyViolation(policyEvaluation, policy);
       tempEntity.newPolicyViolation(policyEvaluation, policy);
+      assertThat(dao.getByApplicationId(applicationId)).hasSize(2);
 
       try (TransactionContext tx = dao.createTransactionContext()) {
         tx.begin();

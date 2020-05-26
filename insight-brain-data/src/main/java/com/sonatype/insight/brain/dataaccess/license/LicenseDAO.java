@@ -61,7 +61,8 @@ public class LicenseDAO
     return license;
   }
 
-  void load() {
+  // Visible for test
+  public void load() {
     synchronized (this.getClass()) {
       long start = System.currentTimeMillis();
 

@@ -25,9 +25,6 @@ import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.SecurityVulnerabilityDetails;
-import com.sonatype.clm.dto.model.component.AnalysisSource;
-import com.sonatype.clm.dto.model.component.AnalysisType;
-import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -337,13 +334,7 @@ public class ThirdPartyComponentDAO
     final ObjectNode tpObjectNode = (ObjectNode) tpNode;
     tpObjectNode.replace("filenames", bomNode.get("filenames"));
     tpObjectNode.replace("pathnames", bomNode.get("pathnames"));
-
-    String scanClient = null;
-    if (bomNode.has("analyzerFeatures") && bomNode.get("analyzerFeatures").has("scanClient")) {
-      scanClient = bomNode.get("analyzerFeatures").get("scanClient").asText();
-    }
-    tpObjectNode.set("analyzerFeatures", JsonUtils.asTree(
-        new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, scanClient, false, false, false)));
+    tpObjectNode.replace("analyzerFeatures", bomNode.get("analyzerFeatures"));
 
     bomNode.fields().forEachRemaining(entry -> {
       if (!tpObjectNode.has(entry.getKey())) {

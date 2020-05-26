@@ -1,7 +1,7 @@
 ### :thinking: Nexus IQ found a policy violation introduced by:
 
 <details open>
-  <summary title="Threat Level: 1 of 10"><img alt="T1" src="https://placehold.it/4x12/006bbf/000000?text=+"> 
+  <summary title="Threat Level: 1 of 10"><img alt="T1" src="http://cdn.sonatype.com/iq-for-scm/1.0/dark-blue-bar.png">
     <b>1&nbsp;&nbsp;&nbsp; Test Component</b></summary>
 <p></p>
 

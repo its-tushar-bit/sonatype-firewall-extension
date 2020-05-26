@@ -1,7 +1,7 @@
 ### :thinking: Nexus IQ found policy violations introduced by:
 
 <details open>
-  <summary title="Threat Level: 10 of 10"><img alt="T10" src="https://placehold.it/4x12/bc012f/000000?text=+"> 
+  <summary title="Threat Level: 10 of 10"><img alt="T10" src="http://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png">
     <b>10&nbsp;&nbsp;&nbsp; Test Component</b></summary>
 <p></p>
 

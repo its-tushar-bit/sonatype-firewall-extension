@@ -3,9 +3,9 @@
 
 <#list componentList as component>
 <details>
-  <#assign threatColor="${threatColorArray[component.highestThreatLevel]}">
+  <#assign threatImage="${threatImageArray[component.highestThreatLevel]}">
   <summary title="Threat Level: ${component.highestThreatLevel} of 10"><#t>
-    <img alt="T${component.highestThreatLevel}" src="https://placehold.it/4x12/${threatColor}/000000?text=+"> <#lt>
+    <img alt="T${component.highestThreatLevel}" src="http://cdn.sonatype.com/iq-for-scm/1.0/${threatImage}"> <#lt>
     <b>${component.highestThreatLevel}<#if ( component.highestThreatLevel < 10 )>&nbsp;</#if>&nbsp;&nbsp; ${component.componentNameAndVersion}</b><#t>
     <#if component.lineCommentLink?has_content> - <a href="${component.lineCommentLink}">line comment</a></#if><#t>
   </summary><#lt>
@@ -44,7 +44,6 @@ ${policy.threatLevel} | ${policy.name} | <#list policy.constraints as constraint
 
 <#list fixedComponentList as component>
 <details>
-  <#assign threatColor="${threatColorArray[component.highestThreatLevel]}">
   <summary title="Threat Level: ${component.highestThreatLevel} of 10">:white_check_mark: <#t>
     <b>&nbsp; ${component.componentNameAndVersion}</b></summary><#lt>
   <p></p><#lt>

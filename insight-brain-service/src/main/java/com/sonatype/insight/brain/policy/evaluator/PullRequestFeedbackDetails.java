@@ -48,22 +48,22 @@ public class PullRequestFeedbackDetails
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestFeedbackDetails.class);
 
-  private static final String LIGHT_BLUE = "97cbee";
+  private static final String LIGHT_BLUE_BAR = "light-blue-bar.png";
 
-  private static final String DARK_BLUE = "006bbf";
+  private static final String DARK_BLUE_BAR = "dark-blue-bar.png";
 
-  private static final String YELLOW = "f5c648";
+  private static final String YELLOW_BAR = "yellow-bar.png";
 
-  private static final String ORANGE = "f4861d";
+  private static final String ORANGE_BAR = "orange-bar.png";
 
-  private static final String RED = "bc012f";
+  private static final String RED_BAR = "red-bar.png";
 
-  private static final String[] THREAT_COLOR_ARRAY = new String[]{
-      LIGHT_BLUE, // 0
-      DARK_BLUE, // 1
-      YELLOW, YELLOW, // 2 - 3
-      ORANGE, ORANGE, ORANGE, ORANGE, // 4 - 7
-      RED, RED, RED // 8 - 10
+  private static final String[] THREAT_IMAGE_ARRAY = new String[]{
+      LIGHT_BLUE_BAR, // 0
+      DARK_BLUE_BAR, // 1
+      YELLOW_BAR, YELLOW_BAR, // 2 - 3
+      ORANGE_BAR, ORANGE_BAR, ORANGE_BAR, ORANGE_BAR, // 4 - 7
+      RED_BAR, RED_BAR, RED_BAR // 8 - 10
   };
 
   private static Template policyViolationDiffMDEmbeddedHtmlTemplate;
@@ -400,7 +400,7 @@ public class PullRequestFeedbackDetails
         .put("fixedPolicyViolationsCount",
             fixedComponentFeedbackList.stream().mapToInt(item -> ((List<?>) item.get("policiesViolated")).size()).sum()
         )
-        .put("threatColorArray", THREAT_COLOR_ARRAY)
+        .put("threatImageArray", THREAT_IMAGE_ARRAY)
         .build();
   }
 
@@ -413,10 +413,10 @@ public class PullRequestFeedbackDetails
   }
 
   // package visibility for PR Line Feedback access
-  static String getColorForThreatLevel(final int threatLevel) {
+  static String getImageForThreatLevel(final int threatLevel) {
     if (threatLevel < 0 || threatLevel > 10) {
-      return THREAT_COLOR_ARRAY[0];
+      return THREAT_IMAGE_ARRAY[0];
     }
-    return THREAT_COLOR_ARRAY[threatLevel];
+    return THREAT_IMAGE_ARRAY[threatLevel];
   }
 }

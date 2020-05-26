@@ -32,8 +32,9 @@ export function getTestMailUrl(mailRecipient) {
   return `${getBaseUrl(window.location.href)}/api/v2/config/mail/test/${encodeURIComponent(mailRecipient)}`;
 }
 
-export function getViolationDetailsUrl(violationId) {
-  return `${getBaseUrl(window.location.href)}/api/v2/policyViolations/crossStage/${encodeURIComponent(violationId)}`;
+export function getViolationDetailsUrl(constituentViolationId) {
+  return `${getBaseUrl(window.location.href)}/api/v2/policyViolations/crossStage/?constituentId=` +
+      encodeURIComponent(constituentViolationId);
 }
 
 export function getProxyConfigUrl() {

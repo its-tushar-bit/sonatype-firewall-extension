@@ -30,8 +30,13 @@ import com.sonatype.insight.brain.service.InsightWork;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.quartz.JobBuilder;
+import org.quartz.JobExecutionContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class ReportPurgerTest
     extends AbstractComponentTest
@@ -219,5 +224,18 @@ public class ReportPurgerTest
         assertThat(zipEntryPath).doesNotExist();
       }
     }
+  }
+
+  @Test
+  public void testDisallowConcurrentExecution() {
+    assertThat(JobBuilder.newJob(ReportPurger.class).build().isConcurrentExectionDisallowed()).isTrue();
+  }
+
+  @Test
+  public void testExecute_QuartzJob() {
+    ReportPurger reportPurgerSpy = spy(reportPurger);
+    JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
+    reportPurgerSpy.execute(mockJobExecutionContext);
+    verify(reportPurgerSpy).purgeReports();
   }
 }

@@ -305,7 +305,7 @@ class ScrubberInsertMods
     insertModMap.put(h2OdsTable("webhook_event_type"), truncate);
     insertModMap.put(h2OdsTable("system_notice"), truncate);
     insertModMap.put(h2OdsTable("system_configuration_property"), truncate);
-    // user spacial
+    // user special
     insertModMap
         .put(h2OdsTable("user"), tableMod("username:user", "password:user", "first_name", "last_name", "email"));
     insertModMap.put(h2OdsTable("membership_mapping"), tableModFiltered("member_type", "'USER'", "member_name:user"));

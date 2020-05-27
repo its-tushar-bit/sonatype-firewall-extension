@@ -32,10 +32,6 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>com.github.klieber</groupId>
-        <artifactId>phantomjs-maven-plugin</artifactId>
-      </plugin>
-      <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
         <executions>
@@ -89,35 +85,6 @@
         </executions>
       </plugin>
     </plugins>
-
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>com.github.klieber</groupId>
-                    <artifactId>phantomjs-maven-plugin</artifactId>
-                    <versionRange>[0.1,)</versionRange>
-                    <goals>
-                      <goal>install</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
   </build>
 
   <profiles>

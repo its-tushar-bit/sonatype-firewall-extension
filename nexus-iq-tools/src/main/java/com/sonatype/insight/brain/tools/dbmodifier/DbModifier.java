@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.tools.dbmodifier;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -212,7 +213,8 @@ public abstract class DbModifier
   public abstract void compact();
 
   public void scrub(boolean rebuild, boolean keepFiles) {
-    DbScrubber.scrubDb(getConnectionString(), rebuild, keepFiles, username, password);
+    File workDir = new File(".");
+    DbScrubber.scrubDb(getConnectionString(), username, password, rebuild, keepFiles, workDir);
   }
 
   // visible for testing

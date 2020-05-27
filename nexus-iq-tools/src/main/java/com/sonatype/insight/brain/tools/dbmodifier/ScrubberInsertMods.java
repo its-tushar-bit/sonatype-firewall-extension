@@ -324,7 +324,8 @@ class ScrubberInsertMods
     insertModMap.put(h2OdsTable("policy_waiver"), tableMod("comment"));
     insertModMap.put(h2OdsTable("repository"), tableMod("public_id"));
     insertModMap.put(h2OdsTable("repository_component"), tableMod("pathname:path"));
-    insertModMap.put(h2OdsTable("repository_policy_violation"), tableMod("pathname:path", "policy_name"));
+    insertModMap.put(h2OdsTable("repository_policy_violation"),
+        tableMod("pathname:path", "policy_name", "policy_waiver_comment"));
     insertModMap.put(h2OdsTable("sv_override"), tableMod("comment"));
     insertModMap.put(h2OdsTable("tag"), tableMod("name", "description"));
   }

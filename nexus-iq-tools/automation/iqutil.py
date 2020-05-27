@@ -4,7 +4,7 @@
 # Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
 # "Sonatype" is a trademark of Sonatype, Inc.
 
-from jarexec import exec_jar, terminate_thread
+from jarexec import exec_jar, terminate_process_and_thread
 import logging
 import os
 
@@ -32,12 +32,13 @@ class IqUtil(object):
     def cycle_iq(self, profile_params=[], profile_opts=[], outputToFile=True):
         """start IQ server and then exit once started"""
 
+        log.info("Start and stop IQ Server")
         self.start_iq(profile_params, profile_opts, outputToFile)
         self.stop_iq()
-
-        log.info("finished run_iq_jar")
+        log.info("Start and stop IQ Server done")
 
     def start_iq(self, profile_params=[], profile_opts=[], outputToFile=True):
+        log.info("Start IQ Server")
         startupString = ".+org.eclipse.jetty.server.Server.+Started.+"
         work_dir_opt = "-Ddw.sonatypeWork=" + self.sonatype_work_dir
         profile_opts.append(work_dir_opt)
@@ -48,18 +49,19 @@ class IqUtil(object):
         if outputToFile:
             consoleOut = self.get_console_out_filename()
             self.outfile = open(consoleOut, 'w')
-            log.info("IQ started with console output directed to file: {}.".format(os.path.realpath(consoleOut)))
-            self._iq_thread, self.iq_proc = exec_jar(self.iq_jar, self.working_dir, profile_params, profile_opts,
-                                                     startupString, outputTo=self.outfile, returnThread=True)
+            log.info("IQ Server output redirected to file: {}.".format(os.path.realpath(consoleOut)))
+            self._iq_thread, self.iq_proc = exec_jar(self.iq_jar, self.working_dir, profile_params,
+                                                     profile_opts, wait_line_pattern=startupString,
+                                                     output_file=self.outfile)
         else:
-            self._iq_thread, self.iq_proc = exec_jar(self.iq_jar, self.working_dir, profile_params, profile_opts,
-                                                     startupString, returnThread=True)
-        log.info("iq started, running")
+            self._iq_thread, self.iq_proc = exec_jar(self.iq_jar, self.working_dir, profile_params,
+                                                     profile_opts, wait_line_pattern=startupString)
+        log.info("IQ Server started")
 
     def stop_iq(self):
-        log.info("stopping iq...")
-        terminate_thread(self._iq_thread, self.iq_proc)
-        log.info("iq stopped")
+        log.info("Stop IQ Server")
+        terminate_process_and_thread(self.iq_proc, self._iq_thread)
+        log.info("IQ Server stopped")
         self.outfile.close()
 
     def export_embedded_db(self, dump_file_path: str, java_opts: list = None, params: list = None):
@@ -73,7 +75,5 @@ class IqUtil(object):
         java_opts.extend(["-Ddw.sonatypeWork=" + self.sonatype_work_dir])
         params = ["export-embedded-db", "--dump-file", dump_file_path] + params
         with open(console_output_path, "w") as output_file:
-            iq_thread, iq_proc = exec_jar(self.iq_jar, self.working_dir, params=params, javaopts=java_opts,
-                     terminateOnOutput="Completed export to", outputTo=output_file, returnThread=True)
-            if iq_proc.returncode != 0:
-                raise Exception("Return code is different from 0")
+            exec_jar(self.iq_jar, self.working_dir, params=params, javaopts=java_opts,
+                     output_file=output_file)

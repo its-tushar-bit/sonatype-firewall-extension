@@ -10,7 +10,6 @@ import logging
 
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 
 def role_arn_to_session(**args):

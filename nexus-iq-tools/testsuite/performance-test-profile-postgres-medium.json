@@ -1,6 +1,6 @@
 {
     "iq_data": {
-        "dataset": "small",
+        "dataset": "medium",
         "data_path": "S3://iq-perf-datasets"
     },
     "iq_server": {

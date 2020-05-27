@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/usr/bin/env python3
 
 # Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
 # Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
@@ -24,16 +24,16 @@ from iqutil import IqUtil
 from toolsutil import IqToolsUtil
 
 
-logging.basicConfig(level=logging.INFO)
-
-logging.root.name = "PERF_AUTOMATION"
-log = logging.getLogger()
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s %(levelname)s [%(threadName)s] %(name)s - %(message)s",
+                    datefmt="%Y-%m-%dT%H:%M:%S%z", stream=sys.stdout)
+log = logging.getLogger(__name__)
 
 sonatype_work_dir = "perf_run_work"
 
 
 def main():
-    log.info("Automated performance test")
+    log.info("Run Performance Evaluation started")
 
     parsed_args = parse_args()
 
@@ -56,7 +56,7 @@ def main():
 
     buildUrlTemplate(test_profile, iq_tools_util, iq_server_util, False, parsed_args.use_postgres)
 
-    prepare_iq_server_and_execute_test(test_profile, iq_server_util, iq_tools_util)
+    run_iq_server_and_execute_test(test_profile, iq_server_util, iq_tools_util)
 
     record_output(test_profile)
 
@@ -76,7 +76,7 @@ def parse_args():
                         help="IQ Tools jar", required=True)
     parser.add_argument("-lic", "--license", dest="iq_license", default=None,
                         help="IQ Server license", required=False)
-    parser.add_argument("--upg", "--use-postgres", dest="use_postgres",
+    parser.add_argument("--use-postgres", dest="use_postgres",
                         help="Determines if Postgres should be used."
                              " The connection details should be in the testing profile",
                         required=False, action="store_true")
@@ -94,6 +94,7 @@ def parse_args():
 
 def read_profile(profile):
     profile_data = {}
+    log.info("Reading profile: %s", profile)
     with open(profile, encoding='utf-8') as profile_file:
         profile_data = json.load(profile_file)
 
@@ -108,20 +109,30 @@ def create_temporary_working_directory():
 
 
 def prepare_working_directory(parsed_args, test_profile, working_directory, iq_server_util: IqUtil):
-    copy_iq_server(parsed_args.iq_server, working_directory)
-    copy_iq_tools(parsed_args.iq_tools, working_directory)
+    log.info("Prepare working environment")
+    copy_iq_server_and_iq_tools_jars(parsed_args.iq_server, parsed_args.iq_tools, working_directory)
     copy_and_restore_database(parsed_args, test_profile, working_directory, iq_server_util)
-    log.info('files copied')
+
+
+def copy_iq_server_and_iq_tools_jars(iqBin, iqToolsBin, workingDir):
+    log.info("Copy Jars (%s, %s) to %s", iqBin, iqToolsBin, workingDir)
+    shutil.copy(iqBin,  workingDir)
+    shutil.copy(iqToolsBin,  workingDir)
 
 
 def copy_and_restore_database(parsed_args, test_profile, workingDir, iq_server_util: IqUtil):
+    log.info("Copy and restore database")
     if parsed_args.use_postgres:
+        log.info("Use PostgreSQL database")
+
         if parsed_args.migrate_h2_to_postgres:
             copy_h2_zip_and_extract(test_profile, workingDir)
 
+            log.info("Generate and update H2 schemas")
             params, opts = get_params_and_opts(test_profile, 'iq_server', 'run_server')
             iq_server_util.cycle_iq(["server"], opts)
 
+            log.info("Migrate H2 database to PostgreSQL")
             params, opts = get_params_and_opts(test_profile, "iq_server", "export-embedded-db")
             iq_server_util.export_embedded_db("postgres-data.sql", java_opts=opts, params=params)
             file = workingDir + "/postgres-data.sql"
@@ -133,6 +144,8 @@ def copy_and_restore_database(parsed_args, test_profile, workingDir, iq_server_u
             dbzip.extractall(workingDir)
             dbzip.close()
             file = glob.glob(workingDir + "/postgres_*")[0]
+
+        log.info("Restore database with file: %s", file)
         my_env = os.environ.copy()
         my_env["PGCLIENTENCODING"] = "UTF8"
         my_env["PGPASSWORD"] = test_profile["postgres"]["password"]
@@ -141,11 +154,10 @@ def copy_and_restore_database(parsed_args, test_profile, workingDir, iq_server_u
                         "--port", str(test_profile["postgres"]["port"]),
                         "--username", test_profile["postgres"]["username"],
                         "--dbname", test_profile["postgres"]["database"],
-                        "-f", file], env=my_env)
-        if completed_process.returncode != 0:
-            raise Exception("Return code is different from 0")
+                        "-f", file], env=my_env, check=True)
 
     else:
+        log.info("Use H2 database")
         copy_h2_zip_and_extract(test_profile, workingDir)
 
 
@@ -156,12 +168,13 @@ def copy_h2_zip_and_extract(test_profile, workingDir):
         bucket_name = test_profile['iq_data']['data_path'].split('://')[1]
         dataset_size = test_profile['iq_data']['dataset']
         target = os.path.join(workingDir, "h2-data.zip")
+        log.info("Download %s database from %s S3 bucket to %s", dataset_size,
+                 bucket_name, target)
         s3util.download_database_data(bucket_name, dataset_size, target)
     else:
         target = copyDbLocal(dbPath, test_profile['iq_data']['dataset'], workingDir)
-    log.info("copy {} dataset".format(test_profile['iq_data']['dataset']))
-    log.info("target: "+target)
 
+    log.info("database file: " + target)
     perf_work = os.path.join(workingDir, sonatype_work_dir)
     os.mkdir(perf_work)
     dbzip = zipfile.ZipFile(target, 'r')
@@ -183,6 +196,8 @@ def download_postgres_data_from_s3(test_profile, working_directory):
     bucket_name = test_profile['iq_data']['data_path'].split('://')[1]
     dataset_size = test_profile['iq_data']['dataset']
     destination_file_path = os.path.join(working_directory, "postgres-data.sql.zip")
+    log.info("Download %s database from %s S3 bucket to %s", dataset_size,
+             bucket_name, destination_file_path)
     s3util.download_database_data(bucket_name, dataset_size, destination_file_path, is_postgres=True)
     return destination_file_path
 
@@ -196,6 +211,7 @@ def getDbVersionFromFilename(filename):
 
 
 def copyDbLocal(dbPath, dataset, workingDir):
+    log.info("Copy local %s database from %s to %s", dataset, dbPath, workingDir)
     target = None
     for root, dirs, files in os.walk(dbPath):
         if os.path.basename(root) != dataset:
@@ -213,24 +229,15 @@ def copyDbLocal(dbPath, dataset, workingDir):
     return target
 
 
-def copy_iq_server(iqBin, workingDir):
-    shutil.copy(iqBin,  workingDir)
-
-
-def copy_iq_tools(iqToolsBin, workingDir):
-    shutil.copy(iqToolsBin,  workingDir)
-
-
 def prepare_database(parsed_args, test_profile, iq_server_util, iq_tools_util):
+    log.info("Prepare database")
     if not parsed_args.migrate_h2_to_postgres:
         migrateDb(test_profile, iq_tools_util, iq_server_util, False, parsed_args.use_postgres)
 
     shiftDb(test_profile, iq_tools_util, iq_server_util, False, parsed_args.use_postgres)
-    log.info('shift done')
 
     if not parsed_args.use_postgres:
         compactDb(test_profile, iq_tools_util, iq_server_util, False, parsed_args.use_postgres)
-        log.info('compact done')
 
 
 def statsdec(func):
@@ -244,7 +251,7 @@ def statsdec(func):
         res.elapsed = res.end - res.start
         if not use_postgres:
             res.db_info_after = reportDbInfo(util, iq_running)
-        log.info("{}: start: {}  end: {}  elapsed: {}sec".format(func.__name__, res.start, res.end, res.elapsed))
+        log.info("Stats for {}: start: {}  end: {}  elapsed: {}sec".format(func.__name__, res.start, res.end, res.elapsed))
 
         profile['results'][func.__name__] = res
         return res.payload
@@ -271,9 +278,9 @@ def reportDbInfo(tools_util, iq_running=False):
 def migrateDb(testProfile, tools_util, iq_util, iq_running, use_postgres):
     "start / stop iq against dataset. report size before/after."
     "capture before/after version"
+    log.info("Generate and update schemas")
     params, opts = get_params_and_opts(testProfile, 'iq_server', 'run_server')
     iq_util.cycle_iq(params, opts)
-    log.info('database schemas update done')
 
 
 def get_params_and_opts(testProfile: dict, util: str, key: str) -> Tuple[list, list]:
@@ -285,6 +292,7 @@ def get_params_and_opts(testProfile: dict, util: str, key: str) -> Tuple[list, l
 @statsdec
 def shiftDb(testProfile, tools_util, iq_util, iq_running, use_postgres):
     "shift db to current date if specified by test profile. report size before/after"
+    log.info('Shift database time columns to the current date')
     params, opts = get_params_and_opts(testProfile, 'iq_tools', 'shift_db')
     if use_postgres:
         params = params + get_postgres_parameters_for_iq_tools(testProfile)
@@ -302,49 +310,49 @@ def get_postgres_parameters_for_iq_tools(test_profile):
 @statsdec
 def compactDb(testProfile, tools_util, iq_util, iq_running, use_postgres):
     "start iq with compact command.  report size before/after"
+    log.info("Compact H2 database")
     tools_util.compact_db()
 
 
 @statsdec
 def buildUrlTemplate(testProfile, tools_util, iq_util, iq_running, use_postgres):
     "call jar against shifted db with optional config & custom params"
+    log.info("Build URL template")
     params, opts = get_params_and_opts(testProfile, 'iq_tools', 'generate_urls')
     if use_postgres:
         params = params + get_postgres_parameters_for_iq_tools(testProfile)
     tools_util.generate_urls(profile_params=params, profile_opts=opts)
-    log.info('template build done')
 
 
-def prepare_iq_server_and_execute_test(test_profile, iq_server_util, iq_tools_util):
-    # *** start Iq - return once iq reports as started
+def run_iq_server_and_execute_test(test_profile, iq_server_util, iq_tools_util):
+    log.info('Run IQ Server and execute test')
+
+    log.info("Run IQ Server")
     params, opts = get_params_and_opts(test_profile, 'iq_server', 'run_server')
     iq_server_util.start_iq(params, opts)
-    log.info('iq started... about to test')
 
-    # *** run test
     execute_test(test_profile, iq_tools_util, iq_server_util, True, False)
-    log.info('tests done')
 
-    # *** stop Iq
+    log.info("Stop IQ Server")
     iq_server_util.stop_iq()
-    log.info('iq stopped')
 
 
 @statsdec
 def execute_test(testProfile, tools_util, iq_util, iq_running, use_postgres):
     "start iq in one thread, execute url runner in another"
+    log.info("Execute test")
     params, opts = get_params_and_opts(testProfile, 'iq_tools', 'run_test')
     return tools_util.run_test(params, opts)
 
 
 def record_output(testProfile):
-    log.info('record output')
+    log.info('Record output')
     targetOut = 'perf_results-{}.out'.format(time.strftime("%Y%m%d-%H%M%S"))
     with open(targetOut, "w", newline='') as outfile:
         for method in testProfile['results']:
             write_result(outfile, method, testProfile['results'][method])
 
-    log.info("results output to: {}".format(os.path.abspath(targetOut)))
+    log.info("Results output to: {}".format(os.path.abspath(targetOut)))
 
 
 def write_result(outfile, method, res):
@@ -363,6 +371,7 @@ def write_result(outfile, method, res):
 
 def clean(workingDir):
     "remove temp files and directories"
+    log.info("Clean directory: %s", workingDir)
     shutil.rmtree(workingDir, True)
 
 

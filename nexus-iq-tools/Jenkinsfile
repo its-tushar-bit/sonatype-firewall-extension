@@ -22,6 +22,10 @@ pipeline {
     LICENSE_FILE_PATH = credentials('2019-sonatype-internal-nxrm-firewall-lifecycle-1000-users')
   }
 
+  parameters {
+    choice(name: 'DATABASE_TYPE', choices: ['H2', 'PostgreSQL'], description: 'Defines the database engine to be used')
+  }
+
   tools {
     jdk 'Java 8'
   }
@@ -30,6 +34,10 @@ pipeline {
 
     stage('Build') {
       steps {
+        script {
+          currentBuild.displayName = "#${BUILD_NUMBER} - ${DATABASE_TYPE}"
+        }
+
         withMaven(jdk: 'Java 8', maven: 'M3', mavenSettingsConfig: 'private-settings.xml',
             options: [ artifactsPublisher(disabled: true), junitPublisher(disabled: true) ]) {
           sh '''
@@ -44,14 +52,21 @@ pipeline {
       steps {
         dir('nexus-iq-tools/testsuite') {
           sh '''
+              PROFILE="performance-test-profile-small.json"
+              EXTRA_PARAMETERS=""
+              if [ "$DATABASE_TYPE" = "PostgreSQL" ]; then
+                PROFILE="performance-test-profile-postgres-small.json"
+                EXTRA_PARAMETERS="--use-postgres --config-yaml postgres-config-dev.yml"
+              fi
               python3 configure_test.py \
-                  -p performance-test-profile-small.json \
+                  -p $PROFILE \
                   -iq $WORKSPACE/insight-brain-service/target/insight-brain-service-*-server.jar \
                   -tools $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
                   -auto $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*-automation.zip \
                   -lic $LICENSE_FILE_PATH \
                   -u target_urls.json \
-                  -l logback.xml
+                  -l logback.xml \
+                  $EXTRA_PARAMETERS
               ln -s $(ls -t | grep awsPerfRun | head -1) smallAWSPerfRun
              '''
           withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
@@ -79,6 +94,7 @@ pipeline {
       steps {
         dir('nexus-iq-tools/testsuite') {
           sh './run_aws_test.sh'
+          archiveArtifacts artifacts: 'smallAWSPerfRun/perf_results*', fingerprint: true
         }
       }
       post {
@@ -98,14 +114,21 @@ pipeline {
       steps {
         dir('nexus-iq-tools/testsuite') {
           sh '''
+              PROFILE="performance-test-profile-medium.json"
+              EXTRA_PARAMETERS=""
+              if [ "$DATABASE_TYPE" = "PostgreSQL" ]; then
+                PROFILE="performance-test-profile-postgres-medium.json"
+                EXTRA_PARAMETERS="--use-postgres --config-yaml postgres-config-dev.yml"
+              fi
               python3 configure_test.py \
-                  -p performance-test-profile-medium.json \
+                  -p $PROFILE \
                   -iq $WORKSPACE/insight-brain-service/target/insight-brain-service-*-server.jar \
                   -tools $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
                   -auto $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*-automation.zip \
                   -lic $LICENSE_FILE_PATH \
                   -u target_urls.json \
-                  -l logback.xml
+                  -l logback.xml \
+                  $EXTRA_PARAMETERS
               ln -s $(ls -t | grep awsPerfRun | head -1) mediumAWSPerfRun
              '''
           withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
@@ -133,6 +156,7 @@ pipeline {
       steps {
         dir('nexus-iq-tools/testsuite') {
           sh './run_aws_test.sh'
+          archiveArtifacts artifacts: 'mediumAWSPerfRun/perf_results*', fingerprint: true
         }
       }
       post {
@@ -152,14 +176,21 @@ pipeline {
       steps {
         dir('nexus-iq-tools/testsuite') {
           sh '''
+              PROFILE="performance-test-profile-large.json"
+              EXTRA_PARAMETERS=""
+              if [ "$DATABASE_TYPE" = "PostgreSQL" ]; then
+                PROFILE="performance-test-profile-postgres-large.json"
+                EXTRA_PARAMETERS="--use-postgres --config-yaml postgres-config-dev.yml"
+              fi
               python3 configure_test.py \
-                  -p performance-test-profile-large.json \
+                  -p $PROFILE \
                   -iq $WORKSPACE/insight-brain-service/target/insight-brain-service-*-server.jar \
                   -tools $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
                   -auto $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*-automation.zip \
                   -lic $LICENSE_FILE_PATH \
                   -u target_urls.json \
-                  -l logback.xml
+                  -l logback.xml \
+                  $EXTRA_PARAMETERS
               ln -s $(ls -t | grep awsPerfRun | head -1) largeAWSPerfRun
              '''
           withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
@@ -187,6 +218,7 @@ pipeline {
       steps {
         dir('nexus-iq-tools/testsuite') {
           sh './run_aws_test.sh'
+          archiveArtifacts artifacts: 'largeAWSPerfRun/perf_results*', fingerprint: true
         }
       }
       post {
@@ -222,26 +254,29 @@ pipeline {
                 fi
               done
               set -x
-              aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$PREVIOUS_RELEASE_TAG-small.out" "$PREVIOUS_RELEASE_TAG-small.out"
-              aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$PREVIOUS_RELEASE_TAG-medium.out" "$PREVIOUS_RELEASE_TAG-medium.out"
-              aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$PREVIOUS_RELEASE_TAG-large.out" "$PREVIOUS_RELEASE_TAG-large.out"
+              aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$DATABASE_TYPE/$PREVIOUS_RELEASE_TAG-$DATABASE_TYPE-small.out" \
+                  "$PREVIOUS_RELEASE_TAG-$DATABASE_TYPE-small.out"
+              aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$DATABASE_TYPE/$PREVIOUS_RELEASE_TAG-$DATABASE_TYPE-medium.out" \
+                  "$PREVIOUS_RELEASE_TAG-$DATABASE_TYPE-medium.out"
+              aws s3 cp "s3://iq-perf-results/releases/$PREVIOUS_RELEASE_TAG/$DATABASE_TYPE/$PREVIOUS_RELEASE_TAG-$DATABASE_TYPE-large.out" \
+                  "$PREVIOUS_RELEASE_TAG-$DATABASE_TYPE-large.out"
 
               cp smallAWSPerfRun/perf_results* "zzz-feature-small.out"
               java -jar -Dlogback.configurationFile="$(pwd)/logback.xml" \
                   $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
-                  resultdiff "$PREVIOUS_RELEASE_TAG-small.out" "zzz-feature-small.out" | tee temp.out
+                  resultdiff "$PREVIOUS_RELEASE_TAG-$DATABASE_TYPE-small.out" "zzz-feature-small.out" | tee temp.out
               python3 resultdiff_validator.py -f temp.out
 
               cp mediumAWSPerfRun/perf_results* "zzz-feature-medium.out"
               java -jar -Dlogback.configurationFile="$(pwd)/logback.xml" \
                   $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
-                  resultdiff "$PREVIOUS_RELEASE_TAG-medium.out" "zzz-feature-medium.out" | tee temp.out
+                  resultdiff "$PREVIOUS_RELEASE_TAG-$DATABASE_TYPE-medium.out" "zzz-feature-medium.out" | tee temp.out
               python3 resultdiff_validator.py -f temp.out
 
               cp largeAWSPerfRun/perf_results* "zzz-feature-large.out"
               java -jar -Dlogback.configurationFile="$(pwd)/logback.xml" \
                   $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
-                  resultdiff "$PREVIOUS_RELEASE_TAG-large.out" "zzz-feature-large.out" | tee temp.out
+                  resultdiff "$PREVIOUS_RELEASE_TAG-$DATABASE_TYPE-large.out" "zzz-feature-large.out" | tee temp.out
               python3 resultdiff_validator.py -f temp.out
              '''
         }

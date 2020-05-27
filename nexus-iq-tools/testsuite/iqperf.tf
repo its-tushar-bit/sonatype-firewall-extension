@@ -16,6 +16,10 @@ data "aws_availability_zones" "available" {
   blacklisted_names = ["us-east-1e"] # this zone doesn't support "m5d.2xlarge" at the moment of writing this comment
 }
 
+data "http" "current_ip" {
+  url = "https://ipv4.icanhazip.com"
+}
+
 resource "random_integer" "az_index" {
   min = 0
   max = length(data.aws_availability_zones.available.names) - 1
@@ -183,7 +187,7 @@ resource "aws_security_group" "ec2" {
     protocol  = "tcp"
 
     cidr_blocks = [
-      "0.0.0.0/0",
+      "${chomp(data.http.current_ip.body)}/32",
     ]
   }
 

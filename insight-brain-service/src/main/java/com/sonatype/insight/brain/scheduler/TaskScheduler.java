@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -136,13 +137,17 @@ public class TaskScheduler
     }
   }
 
-  public void scheduleDailyTask(Class<? extends Job> jobClass, String name, int hour) {
+  public void scheduleDailyTask(Class<? extends Job> jobClass, String name, LocalTime localTime) {
+    CronScheduleBuilder schedule = CronScheduleBuilder.dailyAtHourAndMinute(localTime.getHour(), localTime.getMinute())
+        .withMisfireHandlingInstructionDoNothing();
+
     JobDetail job = JobBuilder.newJob(jobClass) //
         .withIdentity(name) //
         .build();
+
     Trigger trigger = TriggerBuilder.newTrigger() //
         .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
-        .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(hour, 0).withMisfireHandlingInstructionDoNothing()) //
+        .withSchedule(schedule) //
         .build();
     scheduleTask(job, trigger);
   }

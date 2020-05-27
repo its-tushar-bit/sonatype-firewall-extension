@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.scheduler;
 
 import java.net.InetAddress;
 import java.sql.Connection;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -184,7 +185,7 @@ public class TaskSchedulerTest
     String name = "TestJob";
     Scheduler scheduler = taskScheduler.createScheduler();
 
-    taskScheduler.scheduleDailyTask(TestJob.class, name, 1);
+    taskScheduler.scheduleDailyTask(TestJob.class, name, LocalTime.of(1, 0));
 
     JobKey jobKey = JobKey.jobKey(name);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -207,7 +208,7 @@ public class TaskSchedulerTest
     scheduler.start();
 
     String name = "TestJob";
-    taskScheduler.scheduleDailyTask(TestJob.class, name, ZonedDateTime.now().plusHours(1).getHour());
+    taskScheduler.scheduleDailyTask(TestJob.class, name, LocalTime.now().plusHours(1));
     scheduler.triggerJob(JobKey.jobKey(name));
 
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(testJobListener.isExecuted()).isTrue());
@@ -219,21 +220,21 @@ public class TaskSchedulerTest
   @Test
   public void testGetNextExecutionTime() {
     String name = "TestJob";
-    ZonedDateTime now = ZonedDateTime.now();
+    ZonedDateTime now = ZonedDateTime.now().withSecond(0).withNano(0);
     taskScheduler.createScheduler();
-    taskScheduler.scheduleDailyTask(TestJob.class, name, now.plusHours(1).getHour());
+    taskScheduler.scheduleDailyTask(TestJob.class, name, LocalTime.of(now.plusHours(1).getHour(), now.getMinute()));
 
     Date nextExecutionTime = taskScheduler.getNextExecutionTime(name);
 
     ZonedDateTime nextExecution = ZonedDateTime.ofInstant(nextExecutionTime.toInstant(), ZoneId.systemDefault());
-    assertThat(nextExecution).isEqualTo(now.plusHours(1).withMinute(0).withSecond(0).withNano(0));
+    assertThat(nextExecution).isEqualTo(now.plusHours(1));
   }
 
   @Test
   public void testUnscheduleTask() throws Exception {
     String name = "TestJob";
     Scheduler scheduler = taskScheduler.createScheduler();
-    taskScheduler.scheduleDailyTask(TestJob.class, name, 1);
+    taskScheduler.scheduleDailyTask(TestJob.class, name, LocalTime.of(1, 0));
     JobKey jobKey = JobKey.jobKey(name);
     TriggerKey triggerKey = TriggerKey.triggerKey(jobKey.getName(), jobKey.getGroup());
     assertThat(scheduler.getJobDetail(jobKey)).isNotNull();

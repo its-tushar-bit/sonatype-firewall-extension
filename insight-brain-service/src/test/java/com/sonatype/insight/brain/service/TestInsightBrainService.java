@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.product.notifications.HdsProductNotificationSe
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PasswordService;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -282,6 +283,7 @@ public class TestInsightBrainService
 
     getInstance(TaskScheduler.class).disableForTesting = true;
     getInstance(PolicyMonitorScheduler.class).disableForTesting = true;
+    getInstance(SuccessMetricsPurger.class).disableForTesting = true;
     getInstance(PullRequestPollingScheduler.class).disableForTesting = true;
     getInstance(ScanFileCleaner.class).disableForTesting = true;
     getInstance(PolicyEvaluateService.class).disablePollingIntervalForTesting = true;

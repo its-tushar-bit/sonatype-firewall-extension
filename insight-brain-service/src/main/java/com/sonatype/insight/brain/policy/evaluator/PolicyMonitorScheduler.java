@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.time.LocalTime;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -52,7 +54,7 @@ public class PolicyMonitorScheduler
       return;
     }
     taskScheduler.scheduleDailyTask(PolicyMonitoringTask.class, PolicyMonitoringTask.NAME,
-        config.getPolicyMonitoringHour());
+        LocalTime.of(config.getPolicyMonitoringHour(), 0));
     log.info("Next Policy Monitor execution scheduled for {}",
         taskScheduler.getNextExecutionTime(PolicyMonitoringTask.NAME));
   }

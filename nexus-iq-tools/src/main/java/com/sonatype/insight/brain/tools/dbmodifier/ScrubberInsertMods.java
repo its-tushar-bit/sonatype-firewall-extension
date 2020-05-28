@@ -305,6 +305,10 @@ class ScrubberInsertMods
     insertModMap.put(h2OdsTable("webhook_event_type"), truncate);
     insertModMap.put(h2OdsTable("system_notice"), truncate);
     insertModMap.put(h2OdsTable("system_configuration_property"), truncate);
+    insertModMap.put(h2OdsTable("mail_configuration"), truncate);
+    insertModMap.put(h2OdsTable("proxy_server_configuration"), truncate);
+    insertModMap.put(h2OdsTable("saml_configuration"), truncate);
+    insertModMap.put(h2OdsTable("user_token"), truncate);
     // user special
     insertModMap
         .put(h2OdsTable("user"), tableMod("username:user", "password:user", "first_name", "last_name", "email"));

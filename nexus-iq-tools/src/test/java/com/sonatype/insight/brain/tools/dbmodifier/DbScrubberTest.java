@@ -14,8 +14,11 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.security.UserToken;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
@@ -52,6 +55,32 @@ public class DbScrubberTest
   }
 
   @Test
+  public void testScrubDB_Table_mail_configuration() throws Exception {
+    MailConfiguration mailConfiguration = tempEntity.newMailConfiguration("testUsername", "testPassword".toCharArray());
+
+    DbScrubber.scrubDb(IN_MEMORY_DB_CONNECTION_STRING, //
+        "sa" /* username */, //
+        "" /* password */, //
+        false /* rebuild */, true /* keepFiles */, tempDir.getRoot());
+
+    assertThat(getSqlDumpContent()).contains(mailConfiguration.getId(), "testUsername");
+    assertThat(getScrubbedSqlContent()).doesNotContain(mailConfiguration.getId(), "testUsername");
+  }
+
+  @Test
+  public void testScrubDB_Table_proxy_server_configuration() throws Exception {
+    tempEntity.setProxyServerConfiguration("testHostname", 1234);
+
+    DbScrubber.scrubDb(IN_MEMORY_DB_CONNECTION_STRING, //
+        "sa" /* username */, //
+        "" /* password */, //
+        false /* rebuild */, true /* keepFiles */, tempDir.getRoot());
+
+    assertThat(getSqlDumpContent()).contains("testHostname");
+    assertThat(getScrubbedSqlContent()).doesNotContain("testHostname");
+  }
+
+  @Test
   public void testScrubDB_Table_repository_policy_violation() throws Exception {
     RepositoryPolicyViolation repositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(tempEntity.newRepository().getId(), 5, "testPathname", true,
@@ -66,6 +95,35 @@ public class DbScrubberTest
 
     assertThat(getSqlDumpContent()).contains("testPathname", "testPolicyName", "testPolicyWaiverComment");
     assertThat(getScrubbedSqlContent()).doesNotContain("testPathname", "testPolicyName", "testPolicyWaiverComment");
+  }
+
+  @Test
+  public void testScrubDB_Table_saml_configuration() throws Exception {
+    SamlConfiguration samlConfiguration =
+        tempEntity.newSamlConfiguration("testIdentityProviderMetadataXml", "testEntityId");
+
+    DbScrubber.scrubDb(IN_MEMORY_DB_CONNECTION_STRING, //
+        "sa" /* username */, //
+        "" /* password */, //
+        false /* rebuild */, true /* keepFiles */, tempDir.getRoot());
+
+    assertThat(getSqlDumpContent()).contains(samlConfiguration.getId(), "testIdentityProviderMetadataXml",
+        "testEntityId");
+    assertThat(getScrubbedSqlContent()).doesNotContain(samlConfiguration.getId(), "testIdentityProviderMetadataXml",
+        "testEntityId");
+  }
+
+  @Test
+  public void testScrubDB_Table_user_token() throws Exception {
+    UserToken userToken = tempEntity.newUserToken("testUsername", "testRealmId");
+
+    DbScrubber.scrubDb(IN_MEMORY_DB_CONNECTION_STRING, //
+        "sa" /* username */, //
+        "" /* password */, //
+        false /* rebuild */, true /* keepFiles */, tempDir.getRoot());
+
+    assertThat(getSqlDumpContent()).contains(userToken.getId(), "testUsername", "testRealmId");
+    assertThat(getScrubbedSqlContent()).doesNotContain(userToken.getId(), "testUsername", "testRealmId");
   }
 
   @Test

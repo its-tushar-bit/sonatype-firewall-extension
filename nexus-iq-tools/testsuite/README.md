@@ -56,8 +56,8 @@ export TF_VAR_build_key=`whoami`
 # owner allows ops to contact the creator of the environment
 # set this to your own email address
 export TF_VAR_owner=`git config user.email`
-# set this to how many minutes the environment must live for tracking purposes; if omitted, it will default to 60 minutes
-export TF_VAR_duration=60
+# set this to how many minutes the environment must live for tracking purposes; if omitted, it will default to 120 minutes
+export TF_VAR_duration=120
 # set the role assumed for the development environment
 export TF_VAR_assume_role_arn='arn:aws:iam::960315589060:role/admin'
 ```

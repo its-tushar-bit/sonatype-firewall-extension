@@ -5,18 +5,10 @@
 # "Sonatype" is a trademark of Sonatype, Inc.
 #
 
-set -x;
+set -e
+set -x
 
-EXTRA_PARAMETERS=""
-
-USE_POSTGRES="$1"
-if $USE_POSTGRES; then
-  EXTRA_PARAMETERS="--use-postgres"
-fi
-MIGRATE_H2_TO_POSTGRES="$2"
-if $MIGRATE_H2_TO_POSTGRES; then
-  EXTRA_PARAMETERS="$EXTRA_PARAMETERS --migrate-h2-to-postgres"
-fi
+EXTRA_PARAMETERS="$*"
 
 cd $(ls -t | grep aws | head -1)
 
@@ -26,7 +18,13 @@ cd automation/
 
 pipenv --python /usr/bin/python3 sync
 
-pipenv run python run_performance_eval.py -p ../performance-test-profile-*.json -iq ../insight-brain-service-*.jar -tools ../nexus-iq-tools-*.jar -lic $(pwd)/../*.lic -k $EXTRA_PARAMETERS
+pipenv run python run_performance_eval.py \
+    -p ../performance-test-profile-*.json \
+    -iq ../insight-brain-service-*.jar \
+    -tools ../nexus-iq-tools-*.jar \
+    -lic $(pwd)/../*.lic \
+    -k \
+    $EXTRA_PARAMETERS
 
 cd perfTemp_*; tar cvJf ../../results.tar.xz ../../performance-test-profile-*.json ../*.out *.{log,out,txt,json}; cd ..;
 

@@ -19,8 +19,6 @@ public abstract class AbstractDbDAOTest
 
   protected Application application;
 
-  protected String applicationId;
-
   protected Organization organization;
 
   protected Repository repository;
@@ -30,7 +28,6 @@ public abstract class AbstractDbDAOTest
     organization = tempEntity.newOrganization("AbstractDbDAOTest");
     application = tempEntity.newApplication("AbstractDbDAOTest-AppName", "AbstractDbDAOTest-AppPublicId",
         organization.getId());
-    applicationId = application.getId();
     repository = tempEntity.newRepository();
   }
 }

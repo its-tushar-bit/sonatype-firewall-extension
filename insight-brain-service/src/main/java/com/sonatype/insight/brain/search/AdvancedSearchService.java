@@ -41,7 +41,7 @@ public class AdvancedSearchService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void setStatus(AdvancedSearchStatusDTO statusDTO) {
     AuditData.get().setData("advancedSearch", statusDTO.isEnabled ? "enabled" : "disabled");
-    log.info("Opting {} experimental Full Text Search.", statusDTO.isEnabled ? "in to" : "out of");
+    log.info("Opting {} experimental Advanced Search.", statusDTO.isEnabled ? "in to" : "out of");
 
     String status = Boolean.toString(statusDTO.isEnabled);
     dao.update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, status));

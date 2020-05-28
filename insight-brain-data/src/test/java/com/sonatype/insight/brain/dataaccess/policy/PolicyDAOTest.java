@@ -50,7 +50,7 @@ public class PolicyDAOTest
     // Create a policy, but don't insert it
     Policy policy = new Policy();
     policy.setName("test policy");
-    policy.setOwnerId(applicationId);
+    policy.setOwnerId(application.getId());
     policy.addConstraint(newConstraint(null, "Constraint"));
     policy.setId("yeti");
 
@@ -64,18 +64,18 @@ public class PolicyDAOTest
   public void testInsert_NameNotUnique() throws Exception {
     // Add a policy
     String policyName = "Test Policy";
-    tempEntity.newPolicy(applicationId, policyName);
+    tempEntity.newPolicy(application.getId(), policyName);
 
     // Add another policy with the same name
     assertThatThrownBy(() -> {
-      tempEntity.newPolicy(applicationId, policyName);
+      tempEntity.newPolicy(application.getId(), policyName);
     }
     ).isInstanceOf(InvalidPolicyException.class)
         .hasMessage("A policy with name '" + policyName + "' already exists");
 
     // Add another policy with a case-/whitespace-equivalent name
     assertThatThrownBy(() -> {
-      tempEntity.newPolicy(applicationId, "testpolicy");
+      tempEntity.newPolicy(application.getId(), "testpolicy");
     }).isInstanceOf(InvalidPolicyException.class)
         .hasMessage("A policy with name '" + policyName + "' already exists");
   }
@@ -136,9 +136,9 @@ public class PolicyDAOTest
   public void testUpdate_NameNotUnique() throws Exception {
     // Add two policies
     String policyName1 = "Test Policy 1";
-    Policy policy1 = tempEntity.newPolicy(applicationId, policyName1);
+    Policy policy1 = tempEntity.newPolicy(application.getId(), policyName1);
     String policyName2 = "Test Policy 2";
-    tempEntity.newPolicy(applicationId, policyName2);
+    tempEntity.newPolicy(application.getId(), policyName2);
 
     // Update a policy with the same name
     policyDAO.update(policy1);
@@ -196,7 +196,7 @@ public class PolicyDAOTest
   public void testInsert_GeneratesConstraintIds() throws Exception {
     Policy policy = new Policy();
     policy.setName("Test Policy");
-    policy.setOwnerId(applicationId);
+    policy.setOwnerId(application.getId());
 
     Constraint constraint1 = newConstraint(null, "Constraint without ID");
     policy.addConstraint(constraint1);
@@ -212,7 +212,7 @@ public class PolicyDAOTest
     assertThat(constraint2.getId()).isNotNull();
     assertThat(constraint2.getId()).isNotEqualTo(constraintId);
 
-    List<Policy> policies = policyDAO.getByOwnerId(applicationId);
+    List<Policy> policies = policyDAO.getByOwnerId(application.getId());
     assertThat(policies).hasSize(1);
     assertPolicy(policy, policies.get(0));
   }
@@ -237,7 +237,7 @@ public class PolicyDAOTest
     assertThat(constraint2.getId()).isNotNull();
     assertThat(constraint2.getId()).isNotEqualTo(constraintId);
 
-    List<Policy> policies = policyDAO.getByOwnerId(applicationId);
+    List<Policy> policies = policyDAO.getByOwnerId(application.getId());
     assertThat(policies).hasSize(1);
     assertPolicy(policy, policies.get(0));
   }
@@ -245,10 +245,10 @@ public class PolicyDAOTest
   @Test
   public void testCRUD() throws Exception {
     // Add
-    Policy policy = tempEntity.newPolicy(applicationId);
+    Policy policy = tempEntity.newPolicy(application.getId());
 
     // Get
-    List<Policy> policies = policyDAO.getByOwnerId(applicationId);
+    List<Policy> policies = policyDAO.getByOwnerId(application.getId());
     assertThat(policies).hasSize(1);
     assertPolicy(policy, policies.get(0));
 
@@ -256,12 +256,12 @@ public class PolicyDAOTest
     policy.setName("Test Policy updated");
     policyDAO.update(policy);
 
-    policies = policyDAO.getByOwnerId(applicationId);
+    policies = policyDAO.getByOwnerId(application.getId());
     assertThat(policies).hasSize(1);
     assertPolicy(policy, policies.get(0));
 
     // Get
-    policies = policyDAO.getByOwnerId(applicationId);
+    policies = policyDAO.getByOwnerId(application.getId());
     assertThat(policies).hasSize(1);
     assertPolicy(policy, policies.get(0));
 
@@ -269,7 +269,7 @@ public class PolicyDAOTest
     policyDAO.delete(policy);
 
     // Get
-    policies = policyDAO.getByOwnerId(applicationId);
+    policies = policyDAO.getByOwnerId(application.getId());
     assertThat(policies).isEmpty();
   }
 
@@ -277,14 +277,14 @@ public class PolicyDAOTest
   public void testInsert_NullName() throws Exception {
     String name = null;
     assertThatThrownBy(() -> {
-      tempEntity.newPolicy(applicationId, name);
+      tempEntity.newPolicy(application.getId(), name);
     }).isInstanceOf(InvalidPolicyException.class).hasMessage("The policy name is required.");
   }
 
   @Test
   public void testUpdate_NullName() throws Exception {
     // Add a policy
-    Policy policy = tempEntity.newPolicy(applicationId);
+    Policy policy = tempEntity.newPolicy(application.getId());
 
     // Update the policy
     policy.setName(null);
@@ -295,15 +295,15 @@ public class PolicyDAOTest
 
   @Test
   public void testDeleteByOwnerId() throws Exception {
-    tempEntity.newPolicy(applicationId);
-    assertThat(policyDAO.getByOwnerId(applicationId)).hasSize(1);
+    tempEntity.newPolicy(application.getId());
+    assertThat(policyDAO.getByOwnerId(application.getId())).hasSize(1);
 
     try (TransactionContext tx = new PolicyInternalDAO().createTransactionContext()) {
       tx.begin();
-      policyDAO.deleteByOwnerId(tx, applicationId);
+      policyDAO.deleteByOwnerId(tx, application.getId());
       tx.commit();
     }
-    assertThat(policyDAO.getByOwnerId(applicationId)).isEmpty();
+    assertThat(policyDAO.getByOwnerId(application.getId())).isEmpty();
   }
 
   private static void assertPolicy(final Policy expected, final Policy actual) {
@@ -410,7 +410,7 @@ public class PolicyDAOTest
 
   @Test
   public void testDelete_CascadesToPolicyWaivers() throws Exception {
-    Policy policy = tempEntity.newPolicy(applicationId);
+    Policy policy = tempEntity.newPolicy(application.getId());
 
     tempEntity.newWaiver(policy.getId(), "ownerId");
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
@@ -424,7 +424,7 @@ public class PolicyDAOTest
 
   @Test
   public void testDelete_CascadesToPolicyTags() throws Exception {
-    Policy policy = tempEntity.newPolicy(applicationId);
+    Policy policy = tempEntity.newPolicy(application.getId());
 
     Tag tag = tempEntity.newTag(organization.getId());
     tempEntity.newPolicyTag(policy.getId(), tag.getId());
@@ -440,7 +440,8 @@ public class PolicyDAOTest
   @Test
   public void testDelete_DoesNotCascadeToPolicyViolations() {
     Policy policy = tempEntity.newPolicy(application);
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scanid");
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "scanid");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     assertThat(policyViolationDAO.getByApplicationId(policyEvaluation.getApplicationId())).hasSize(1);

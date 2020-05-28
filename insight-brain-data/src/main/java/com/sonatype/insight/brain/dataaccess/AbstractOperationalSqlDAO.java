@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import javax.persistence.EntityManagerFactory;
-
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
@@ -14,11 +12,9 @@ import com.sonatype.insight.model.HasStringId;
 public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     extends AbstractSqlDAO<T>
 {
-  private EntityManagerFactory entityManagerFactory = OperationalDataStoreProvider.getJPAEntityManagerFactory();
-
   @Override
   public TransactionContext createTransactionContext() {
-    return new TransactionContext(entityManagerFactory.createEntityManager());
+    return new TransactionContext(OperationalDataStoreProvider.getJPAEntityManagerFactory().createEntityManager());
   }
 
   public boolean isDatabaseEmbedded() {

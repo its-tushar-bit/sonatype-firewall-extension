@@ -111,11 +111,11 @@ public class PullRequestLineFeedback
       final String suggestedVersion)
   {
     int threatLevel = getHighestThreatLevel(violations);
-    String threatColor = PullRequestFeedbackDetails.getColorForThreatLevel(threatLevel);
+    String threatImage = PullRequestFeedbackDetails.getImageForThreatLevel(threatLevel);
     return ImmutableMap.<String, Object>builder()
         .put("componentNameAndVersion", displayName)
         .put("threatLevel", threatLevel)
-        .put("threatColor", threatColor)
+        .put("threatImage", threatImage)
         .put("policiesViolated", getPoliciesViolatedMap(violations, baseUrl))
         .put("suggestedVersion", suggestedVersion == null ? "" : suggestedVersion)
         .put("policiesViolatedCount", violations.size())

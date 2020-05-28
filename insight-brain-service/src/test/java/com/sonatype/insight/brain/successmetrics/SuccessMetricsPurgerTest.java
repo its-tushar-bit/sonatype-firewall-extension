@@ -27,8 +27,11 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
+import org.quartz.JobBuilder;
+import org.quartz.JobExecutionContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 public class SuccessMetricsPurgerTest
     extends AbstractComponentTest
@@ -137,5 +140,18 @@ public class SuccessMetricsPurgerTest
             namedViolations.get(app3.getId() + "-fixed2"), //
             namedViolations.get(app3.getId() + "-fixed3"), //
             namedViolations.get(app3.getId() + "-fixed4"));
+  }
+
+  @Test
+  public void testDisallowConcurrentExecution() {
+    assertThat(JobBuilder.newJob(SuccessMetricsPurger.class).build().isConcurrentExectionDisallowed()).isTrue();
+  }
+
+  @Test
+  public void testExecute_QuartzJob() {
+    SuccessMetricsPurger successMetricsPurgerSpy = spy(successMetricsPurger);
+    JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
+    successMetricsPurgerSpy.execute(mockJobExecutionContext);
+    verify(successMetricsPurgerSpy).purgeSuccessMetrics();
   }
 }

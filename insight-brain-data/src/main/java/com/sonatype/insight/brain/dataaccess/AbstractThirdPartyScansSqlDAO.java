@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import javax.persistence.EntityManagerFactory;
-
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
@@ -14,10 +12,8 @@ import com.sonatype.insight.model.HasStringId;
 public abstract class AbstractThirdPartyScansSqlDAO<T extends HasStringId>
     extends AbstractSqlDAO<T>
 {
-  private EntityManagerFactory entityManagerFactory = ThirdPartyScansProvider.getJPAEntityManagerFactory();
-
   @Override
   public TransactionContext createTransactionContext() {
-    return new TransactionContext(entityManagerFactory.createEntityManager());
+    return new TransactionContext(ThirdPartyScansProvider.getJPAEntityManagerFactory().createEntityManager());
   }
 }

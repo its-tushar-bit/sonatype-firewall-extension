@@ -5,17 +5,11 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -28,18 +22,24 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
-import com.sonatype.insight.brain.security.SystemRunnable;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.dropwizard.lifecycle.Managed;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
+@DisallowConcurrentExecution
 public class SuccessMetricsPurger
-    implements Managed
+    implements Managed, Job
 {
+  public static final String NAME = "SuccessMetricsPurger";
+
   private static final Logger log = LoggerFactory.getLogger(SuccessMetricsPurger.class);
 
   private final DataRetentionPolicyDAO dataRetentionPolicyDAO;
@@ -50,54 +50,54 @@ public class SuccessMetricsPurger
 
   private final PolicyViolationDAO policyViolationDAO;
 
-  private ScheduledExecutorService executor;
+  private final TaskScheduler taskScheduler;
+
+  public boolean disableForTesting;
 
   @Inject
   public SuccessMetricsPurger(
       DataRetentionPolicyDAO dataRetentionPolicyDAO,
       ApplicationDAO applicationDAO,
       OwnerDAO ownerDAO,
-      PolicyViolationDAO policyViolationDAO)
+      PolicyViolationDAO policyViolationDAO,
+      TaskScheduler taskScheduler)
   {
     this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
     this.applicationDAO = applicationDAO;
     this.ownerDAO = ownerDAO;
     this.policyViolationDAO = policyViolationDAO;
-  }
-
-  private ScheduledExecutorService newExecutor() {
-    ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat(getClass().getSimpleName() + "-%d")
-        .setDaemon(true).setPriority(Thread.MIN_PRIORITY).build();
-    return new ScheduledThreadPoolExecutor(1, threadFactory);
+    this.taskScheduler = taskScheduler;
   }
 
   @Override
   public void start() {
-    executor = newExecutor();
-    // NOTE: Using daily (instead of monthly) period to ensure timely purge after enabling purging
-    Duration period = Duration.ofDays(1);
-    Duration initialDelay = Duration.between(LocalTime.now(), LocalTime.of(1, 30));
-    while (initialDelay.isNegative()) {
-      initialDelay = initialDelay.plusDays(1);
+    if (disableForTesting) {
+      return;
     }
-    Runnable purgeTask = new SystemRunnable(() -> {
-      try {
-        purgeSuccessMetrics();
-      }
-      catch (RuntimeException e) {
-        log.warn("Failed to purge obsolete success metrics", e);
-      }
-    });
-    executor.scheduleAtFixedRate(purgeTask, initialDelay.toMillis(), period.toMillis(), TimeUnit.MILLISECONDS);
-    log.debug("Scheduled periodic purging of obsolete success metrics for {}", LocalDateTime.now().plus(initialDelay));
+    taskScheduler.scheduleDailyTask(SuccessMetricsPurger.class, NAME, LocalTime.of(1, 30));
+    Date nextExecutionTime = taskScheduler.getNextExecutionTime(NAME);
+    log.debug("Scheduled periodic purging of obsolete success metrics for {}", nextExecutionTime);
   }
 
   @Override
   public void stop() {
-    if (executor != null) {
-      executor.shutdown();
-      executor = null;
-      log.debug("Stopped periodic purging of obsolete success metrics");
+    // noop
+  }
+
+  @Override
+  public void execute(JobExecutionContext context) {
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
+      purgeSuccessMetrics();
+    }
+    catch (Exception e) {
+      log.error("Success Metrics Purging error: {}", e.getMessage(), e);
+    }
+    catch (Throwable t) {
+      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
+      // at this point.
+      t.printStackTrace();
+      log.error(t.getMessage(), t);
+      System.exit(1);
     }
   }
 

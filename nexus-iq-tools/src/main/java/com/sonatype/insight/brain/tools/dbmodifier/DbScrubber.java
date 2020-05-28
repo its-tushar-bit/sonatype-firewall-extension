@@ -12,7 +12,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,18 +29,29 @@ import static com.sonatype.insight.brain.tools.dbmodifier.ScrubberInsertMods.scr
 
 public class DbScrubber
 {
+  static final String SQL_FILENAME_PREFIX = "dbmod_tmp-scrub-backup";
+
+  static final String SCRUBBED_SQL_FILENAME_SUFFIX = ".scrubbed.sql";
+
   private static final Logger log = LoggerFactory.getLogger(DbScrubber.class);
 
-  static void scrubDb(String dbConnectionString, boolean rebuild, boolean keepFiles, String username, String password) {
-    List<String> workingFiles = new ArrayList<>();
+  static void scrubDb(
+      String dbConnectionString,
+      String username,
+      String password,
+      boolean rebuild,
+      boolean keepFiles,
+      File workDir)
+  {
+    List<File> workingFiles = new ArrayList<>();
     try {
       log.info("Start: db scrub");
       String timestamp = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.ENGLISH).format(new Date());
-      String outFile = "dbmod_tmp-scrub-backup." + timestamp + ".sql";
+      File outFile = new File(workDir, SQL_FILENAME_PREFIX + "." + timestamp + ".sql");
       workingFiles.add(outFile);
       dumpDbToSql(outFile, dbConnectionString, username, password);
 
-      String scrubbedFile = makeScrubFileName(outFile);
+      File scrubbedFile = new File(makeScrubFileName(outFile));
       workingFiles.add(scrubbedFile);
       scrubSqlBackup(outFile, scrubbedFile);
 
@@ -49,8 +59,10 @@ public class DbScrubber
         String rebuildDb = "./ods_scrubbed_" + timestamp;
         String rebuildDbUrl =
             "jdbc:h2:" + rebuildDb + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE";
-        String[] rebuildParams =
-            new String[]{"-url", rebuildDbUrl, "-user", username, "-password", password, "-script", scrubbedFile};
+        String[] rebuildParams = new String[]{//
+            "-url", rebuildDbUrl, //
+            "-user", username, "-password", password, //
+            "-script", scrubbedFile.getAbsolutePath()};
         long start = System.currentTimeMillis();
         log.info("Starting rebuild to: " + rebuildDb);
         RunScript.main(rebuildParams);
@@ -69,8 +81,8 @@ public class DbScrubber
     }
   }
 
-  private static void cleanup(List<String> fileNames) {
-    fileNames.stream().map(Paths::get).filter(Files::exists).forEach(path -> {
+  private static void cleanup(List<File> files) {
+    files.stream().map(File::toPath).filter(Files::exists).forEach(path -> {
       try {
         Files.delete(path);
       }
@@ -80,12 +92,18 @@ public class DbScrubber
     });
   }
 
-  private static void dumpDbToSql(String outFile, String dbConnectionString, String username, String password)
+  private static void dumpDbToSql(
+      File outFile,
+      String dbConnectionString,
+      String username,
+      String password)
       throws SQLException
   {
-    String[] params = new String[]{
-        "-url", dbConnectionString, "-user", username, "-password", password, "-script", outFile, "-options", "SIMPLE"
-    };
+    String[] params = new String[]{//
+        "-url", dbConnectionString, //
+        "-user", username, "-password", password, //
+        "-script", outFile.getAbsolutePath(), //
+        "-options", "SIMPLE"};
     Script.main(params);
     log.info("Exported to: " + outFile);
   }
@@ -116,23 +134,24 @@ public class DbScrubber
     return new String[]{comment, nextLine};
   }
 
-  private static String makeScrubFileName(String sqlFile) {
-    return sqlFile.toLowerCase(Locale.ENGLISH).endsWith(".sql") ?
-        sqlFile.substring(0, sqlFile.length() - 4) + ".scrubbed.sql"
-        : sqlFile + ".scrubbed.sql";
+  private static String makeScrubFileName(File sqlFile) {
+    String sqlFileName = sqlFile.getAbsolutePath();
+    return sqlFileName.toLowerCase(Locale.ENGLISH).endsWith(".sql")
+        ? sqlFileName.substring(0, sqlFileName.length() - 4) + SCRUBBED_SQL_FILENAME_SUFFIX
+        : sqlFileName + SCRUBBED_SQL_FILENAME_SUFFIX;
   }
 
-  private static void scrubSqlBackup(String sqlFile, String scrubbedFile) throws IOException {
+  private static void scrubSqlBackup(File sqlFile, File scrubbedFile) throws IOException {
     long start = System.currentTimeMillis();
-    log.info("Scrubbing sql backup file at: " + new File(sqlFile).getAbsolutePath());
+    log.info("Scrubbing sql backup file at: " + sqlFile.getAbsolutePath());
 
-    log.info("Scrubbed sql ouput to: " + new File(scrubbedFile).getAbsolutePath());
+    log.info("Scrubbed sql ouput to: " + scrubbedFile.getAbsolutePath());
 
-    ScriptReader scriptReader = new ScriptReader(new FileReader(sqlFile));
     int processedCount = 0;
     int insertCount = 0;
     int scrubErrors = 0;
-    try (PrintWriter scrubbedOut = new PrintWriter(new BufferedWriter(new FileWriter(scrubbedFile)))) {
+    try (ScriptReader scriptReader = new ScriptReader(new FileReader(sqlFile));
+        PrintWriter scrubbedOut = new PrintWriter(new BufferedWriter(new FileWriter(scrubbedFile)))) {
       String sql;
       while ((sql = scriptReader.readStatement()) != null) {
         String[] lines = splitComments(sql);
@@ -155,9 +174,6 @@ public class DbScrubber
           }
         }
       }
-    }
-    finally {
-      scriptReader.close();
     }
     log.info("Lines processed: " + processedCount);
     log.info("Insert lines: " + insertCount);

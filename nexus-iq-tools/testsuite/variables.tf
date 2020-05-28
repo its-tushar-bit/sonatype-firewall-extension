@@ -31,7 +31,7 @@ variable "build_key" {
 
 # will auto-shutdown after the specified duration in minutes
 variable "duration" {
-  default = "60"
+  default = "120"
 }
 
 variable "use_postgres" {

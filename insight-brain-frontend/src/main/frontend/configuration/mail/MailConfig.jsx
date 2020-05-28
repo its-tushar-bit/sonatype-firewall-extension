@@ -4,21 +4,21 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { useEffect, Fragment } from 'react';
+import React, {Fragment, useEffect} from 'react';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { faTrashAlt } from '@fortawesome/pro-regular-svg-icons';
+import {faTrashAlt} from '@fortawesome/pro-regular-svg-icons';
 import {
   NxButton,
   NxCheckbox,
   NxErrorAlert,
+  NxFontAwesomeIcon,
+  NxInfoAlert,
   NxModal,
+  NxStatefulSubmitMask,
   NxTextInput,
   NxTooltip,
-  NxWarningAlert,
-  NxInfoAlert,
-  NxStatefulSubmitMask,
-  NxFontAwesomeIcon
+  NxWarningAlert
 } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../react/LoadWrapper';
 import MaximizedContainer from '../../react/MaximizedContainer';
@@ -252,34 +252,37 @@ export default function MailConfig(props) {
 
   return (
     <LoadWrapper loading={loading}>
-      <MaximizedContainer id="mail-config-page-container" className="iq-body-container iq-body-container--single-pane">
-        <div id="email-configuration" className="iq-tile iq-tile--sys-prefs">
-          {isAuthorized &&
-            <Fragment>
-              <div className="iq-tile-header">
-                <div className="iq-tile-header__title">
-                  <h2>Email</h2>
+      <MaximizedContainer id="mail-config-page-container" className="nx-page-content">
+        <div className="nx-page-main">
+          <div id="email-configuration" className="iq-tile iq-tile--sys-prefs">
+            {isAuthorized &&
+              <Fragment>
+                <div className="iq-tile-header">
+                  <div className="iq-tile-header__title">
+                    <h2>Email</h2>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <p>
-                  To receive email notifications for events enter the details of your SMTP Server here.
-                  For further details see the <a className={'iq-external-link'}
-                                                 href='http://links.sonatype.com/products/nxiq/doc/email-configuration'>
-                  documentation.&nbsp;<i className="fa fa-external-link fa-fw"/></a>
-                </p>
-                {submitMaskState !== null &&
+                <div>
+                  <p>
+                    To receive email notifications for events enter the details of your SMTP Server here.
+                    For further details see
+                    the <a className={'iq-external-link'}
+                           href='http://links.sonatype.com/products/nxiq/doc/email-configuration'>
+                    documentation.&nbsp;<i className="fa fa-external-link fa-fw"/></a>
+                  </p>
+                  {submitMaskState !== null &&
                   <NxStatefulSubmitMask success={submitMaskState} message={submitMaskMessage} />}
-                {form}
-              </div>
-            </Fragment>
-          }
-          {!isAuthorized &&
-            <NxErrorAlert id="email-config-insufficient-permissions-error">
-              <strong>Error</strong> It appears you do not have permission to access this page.
-              If you believe this to be incorrect please contact your administrator.
-            </NxErrorAlert>
-          }
+                  {form}
+                </div>
+              </Fragment>
+            }
+            {!isAuthorized &&
+              <NxErrorAlert id="email-config-insufficient-permissions-error">
+                <strong>Error</strong> It appears you do not have permission to access this page.
+                If you believe this to be incorrect please contact your administrator.
+              </NxErrorAlert>
+            }
+          </div>
         </div>
       </MaximizedContainer>
     </LoadWrapper>

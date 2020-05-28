@@ -280,8 +280,9 @@ public class PolicyWaiverDAOTest
   @Test
   public void testDeleteDoesNotCascadeToWaivedPolicyViolation() {
     Policy policy = tempEntity.newPolicy(application);
-    PolicyWaiver policyWaiver = tempEntity.newWaiver("ababababab", policy.getId(), applicationId);
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("ababababab", policy.getId(), application.getId());
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID,
         "PolicyWaiverDAOTest");
     PolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy, policyWaiver);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();

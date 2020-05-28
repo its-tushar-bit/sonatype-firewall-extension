@@ -6,7 +6,7 @@
     "iq_server": {
         "run_server" : {
             "params" : ["server", "../../postgres-config-dev.yml"],
-            "java_opts" : ["-Xms16g", "-Xmx16g", "-XX:+UseG1GC", "-Ddw.dbCacheSizePercent=50"]
+            "java_opts" : ["-Xms8g", "-Xmx8g", "-XX:+UseG1GC"]
         }
     },
     "iq_tools": {

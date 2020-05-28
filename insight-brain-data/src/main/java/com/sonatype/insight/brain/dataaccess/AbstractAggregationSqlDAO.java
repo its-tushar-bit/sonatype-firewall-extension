@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import javax.persistence.EntityManagerFactory;
-
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
@@ -17,10 +15,8 @@ import com.sonatype.insight.model.HasStringId;
 public abstract class AbstractAggregationSqlDAO<T extends HasStringId>
     extends AbstractSqlDAO<T>
 {
-  private EntityManagerFactory entityManagerFactory = AggregationDataStoreProvider.getJPAEntityManagerFactory();
-
   @Override
   public TransactionContext createTransactionContext() {
-    return new TransactionContext(entityManagerFactory.createEntityManager());
+    return new TransactionContext(AggregationDataStoreProvider.getJPAEntityManagerFactory().createEntityManager());
   }
 }

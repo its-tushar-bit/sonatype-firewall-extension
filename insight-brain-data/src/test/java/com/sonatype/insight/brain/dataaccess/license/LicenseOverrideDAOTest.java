@@ -91,7 +91,7 @@ public class LicenseOverrideDAOTest
 
   @Test
   public void testCRUD_Application() throws Exception {
-    testCRUD(applicationId);
+    testCRUD(application.getId());
   }
 
   @Test
@@ -107,7 +107,7 @@ public class LicenseOverrideDAOTest
   @Test
   public void testCommentTooLong() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
-    LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OPEN,
+    LicenseOverride override = new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OPEN,
         (String) null, StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE + 1));
     assertThatThrownBy(() -> {
       dao.insert(override);
@@ -126,13 +126,13 @@ public class LicenseOverrideDAOTest
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
     assertThatThrownBy(() -> {
-      dao.insert(new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
+      dao.insert(new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
           "FataMorganaId", "My comment"));
     }).isInstanceOf(NotFoundException.class).hasMessage("A license with ID 'FataMorganaId' does not exist.");
 
     assertThatThrownBy(() -> {
-      dao.insert(new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.SELECTED, "FataMorganaId",
-          "My comment"));
+      dao.insert(new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.SELECTED,
+          "FataMorganaId", "My comment"));
     }).isInstanceOf(NotFoundException.class).hasMessage("A license with ID 'FataMorganaId' does not exist.");
   }
 
@@ -140,7 +140,8 @@ public class LicenseOverrideDAOTest
   public void testInvalidLicenseId_Update() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
-    LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
+    LicenseOverride override =
+        new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
         "Apache-2.0", "My comment");
     dao.insert(override);
 
@@ -160,7 +161,7 @@ public class LicenseOverrideDAOTest
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
     for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
-      LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, status,
+      LicenseOverride override = new LicenseOverride(application.getId(), MAVEN_COORDINATES, status,
           (String) null /* licenseId */, "My comment");
       switch (status) {
         case ACKNOWLEDGED:
@@ -185,7 +186,7 @@ public class LicenseOverrideDAOTest
   @Test
   public void testNullLicenseId_Update() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
-    LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OPEN,
+    LicenseOverride override = new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OPEN,
         (String) null /* licenseId */, "My comment");
     dao.insert(override);
 
@@ -215,7 +216,7 @@ public class LicenseOverrideDAOTest
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
     for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
-      LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, status, "Apache-2.0",
+      LicenseOverride override = new LicenseOverride(application.getId(), MAVEN_COORDINATES, status, "Apache-2.0",
           "My comment");
       switch (status) {
         case ACKNOWLEDGED:
@@ -239,7 +240,8 @@ public class LicenseOverrideDAOTest
   @Test
   public void testNotNullLicenseId_Update() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
-    LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
+    LicenseOverride override =
+        new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
         "Apache-2.0", "My comment");
     dao.insert(override);
 
@@ -266,7 +268,7 @@ public class LicenseOverrideDAOTest
   @Test
   public void testUniqueValidation() {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
-    LicenseOverride override = tempEntity.newLicenseOverride(applicationId, MAVEN_COORDINATES,
+    LicenseOverride override = tempEntity.newLicenseOverride(application.getId(), MAVEN_COORDINATES,
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
 
     assertThatThrownBy(() -> {
@@ -279,18 +281,18 @@ public class LicenseOverrideDAOTest
   public void testGetByOwnerIdAndComponentIdentifier_MavenGav() {
     ComponentIdentifier gavIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentIdentifier gavecIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(applicationId, gavIdentifier,
+    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(application.getId(), gavIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
 
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
     // Find by GAVEC
-    LicenseOverride foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, gavecIdentifier);
+    LicenseOverride foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(application.getId(), gavecIdentifier);
     assertThat(foundLicenseOverride).isNotNull();
     assertThat(foundLicenseOverride.getId()).isEqualTo(licenseOverride.getId());
 
     // Find by GAV
-    foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, gavIdentifier);
+    foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(application.getId(), gavIdentifier);
     assertThat(foundLicenseOverride).isNotNull();
     assertThat(foundLicenseOverride.getId()).isEqualTo(licenseOverride.getId());
   }
@@ -299,25 +301,25 @@ public class LicenseOverrideDAOTest
   public void testGetByOwnerIdAndComponentIdentifier_MavenGavec() {
     ComponentIdentifier gavIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentIdentifier gavecIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(applicationId, gavecIdentifier,
+    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(application.getId(), gavecIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
 
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
     // Find by GAVEC
-    LicenseOverride foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, gavecIdentifier);
+    LicenseOverride foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(application.getId(), gavecIdentifier);
     assertThat(foundLicenseOverride).isNotNull();
     assertThat(foundLicenseOverride.getId()).isEqualTo(licenseOverride.getId());
 
     // Find by GAV
-    foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, gavIdentifier);
+    foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(application.getId(), gavIdentifier);
     assertThat(foundLicenseOverride).isNull();
   }
 
   @Test
   public void testGetByComponentIdentifier_MavenGavecAndGav() {
     ComponentIdentifier gavIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    LicenseOverride gavLicenseOverride = tempEntity.newLicenseOverride(applicationId, gavIdentifier,
+    LicenseOverride gavLicenseOverride = tempEntity.newLicenseOverride(application.getId(), gavIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "Apache-1.0");
 
     ComponentIdentifier gavecIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
@@ -344,12 +346,12 @@ public class LicenseOverrideDAOTest
   @Test
   public void testGetByOwnerIdAndComponentIdentifier_Nuget() {
     ComponentIdentifier nugetIdentifier = ComponentIdentifier.createNugetCoordinates("p", "v");
-    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(applicationId, nugetIdentifier,
+    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(application.getId(), nugetIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
 
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
-    LicenseOverride foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, nugetIdentifier);
+    LicenseOverride foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(application.getId(), nugetIdentifier);
     assertThat(foundLicenseOverride).isNotNull();
     assertThat(foundLicenseOverride.getId()).isEqualTo(licenseOverride.getId());
   }
@@ -362,13 +364,13 @@ public class LicenseOverrideDAOTest
     Set<String> licenseIds = new HashSet<>(Arrays.asList("Apache-1.0", "Apache-2.0"));
     String comment = null;
 
-    LicenseOverride licenseOverride = new LicenseOverride(applicationId, componentIdentifier, status, licenseIds,
+    LicenseOverride licenseOverride = new LicenseOverride(application.getId(), componentIdentifier, status, licenseIds,
         comment);
     dao.insert(licenseOverride);
     assertThat(licenseOverride.getId()).isNotNull();
     licenseOverride = dao.getById(licenseOverride.getId());
     assertThat(licenseOverride).isNotNull();
-    assertLicenseOverride(applicationId, componentIdentifier, status, licenseIds, comment, licenseOverride);
+    assertLicenseOverride(application.getId(), componentIdentifier, status, licenseIds, comment, licenseOverride);
   }
 
   @Test

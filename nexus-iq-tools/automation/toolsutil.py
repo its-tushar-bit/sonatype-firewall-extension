@@ -30,13 +30,17 @@ class IqToolsUtil(object):
         if outputFile:
             targetOut = os.path.join(self.working_dir, outputFile)
             with open(targetOut, "w") as outfile:
-                exec_jar(self.iq_tools_jar, self.working_dir, params, javaopts=javaopts, outputTo=outfile)
+                exec_jar(self.iq_tools_jar, self.working_dir, params, javaopts=javaopts,
+                         output_file=outfile)
         else:
             exec_jar(self.iq_tools_jar, self.working_dir, params, javaopts=javaopts)
 
     def shift_db(self, datestring=None, profile_params=[], profile_opts=[]):
         params = ['dbmod', '-db', self.database, '-info'] + profile_params
-        self.run_tools_jar(params, "tools-shift-info.out", profile_opts)
+
+        database_info_path = "tools-shift-info.out"
+        log.info("Query database information and store it in %s", database_info_path)
+        self.run_tools_jar(params, database_info_path, profile_opts)
 
         params = ['dbmod', '-db', self.database] + profile_params
         if not datestring:

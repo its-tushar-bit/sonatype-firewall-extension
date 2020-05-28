@@ -64,7 +64,7 @@ public class LicenseThreatGroupDAOTest
 
   @Test
   public void testCRUD_Application() throws Exception {
-    testCRUD(applicationId);
+    testCRUD(application.getId());
   }
 
   @Test
@@ -78,14 +78,14 @@ public class LicenseThreatGroupDAOTest
 
     // Create
     LicenseThreatGroup group = new LicenseThreatGroup();
-    group.setOwnerId(applicationId);
+    group.setOwnerId(application.getId());
     group.setName("My group");
     group.setThreatLevel(4);
     licenseThreatGroupDAO.insert(group);
     assertThat(group.getId()).isNotNull();
 
     LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
-    licenseThreatGroupLicense.setOwnerId(applicationId);
+    licenseThreatGroupLicense.setOwnerId(application.getId());
     licenseThreatGroupLicense.setLicenseThreatGroupId(group.getId());
     licenseThreatGroupLicense.setLicenseId("UNSPECIFIED");
     licenseThreatGroupLicenseDAO.insert(licenseThreatGroupLicense);
@@ -100,10 +100,10 @@ public class LicenseThreatGroupDAOTest
   @Test
   public void testInsertLTGInApplication_ClashesWithApplication() throws Exception {
     // Add a group
-    tempEntity.newLicenseThreatGroup(applicationId, "My group", 4);
+    tempEntity.newLicenseThreatGroup(application.getId(), "My group", 4);
 
     // Add another group with the same name
-    LicenseThreatGroup group = newLicenseThreatGroup(applicationId, "mygroup");
+    LicenseThreatGroup group = newLicenseThreatGroup(application.getId(), "mygroup");
     assertThatThrownBy(() -> {
       licenseThreatGroupDAO.insert(group);
     }).isInstanceOf(InvalidLicenseThreatGroupException.class)
@@ -116,13 +116,13 @@ public class LicenseThreatGroupDAOTest
     tempEntity.newLicenseThreatGroup(organization.getId(), "My group", 4);
 
     // Add another group with a case-/whitespace-equivalent name at application level
-    assertInsertLicenseThreatGroupWithDuplicateName(applicationId, "My group", organization);
+    assertInsertLicenseThreatGroupWithDuplicateName(application.getId(), "My group", organization);
   }
 
   @Test
   public void testInsertLTGInOrganization_ClashesWithApplication() throws Exception {
     // Add a group to the application
-    tempEntity.newLicenseThreatGroup(applicationId, "My group", 4);
+    tempEntity.newLicenseThreatGroup(application.getId(), "My group", 4);
 
     // Add another group with a case-/whitespace-equivalent name at organization level
     assertInsertLicenseThreatGroupWithDuplicateName(organization.getId(), "My group", application);
@@ -136,13 +136,13 @@ public class LicenseThreatGroupDAOTest
     tempEntity.newLicenseThreatGroup(parentOrganization.getId(), "My group", 4);
 
     // Add another group with a case-/whitespace-equivalent name at application level
-    assertInsertLicenseThreatGroupWithDuplicateName(applicationId, "My group", parentOrganization);
+    assertInsertLicenseThreatGroupWithDuplicateName(application.getId(), "My group", parentOrganization);
   }
 
   @Test
   public void testInsertLTGInParentOrganization_ClashesWithApplication() throws Exception {
     // Add a group to the application
-    tempEntity.newLicenseThreatGroup(applicationId, "My group", 4);
+    tempEntity.newLicenseThreatGroup(application.getId(), "My group", 4);
 
     // Add another group with a case-/whitespace-equivalent name at parent owner level
     assertInsertLicenseThreatGroupWithDuplicateName(organization.getParentOrganizationId(), "My group", application);
@@ -171,15 +171,15 @@ public class LicenseThreatGroupDAOTest
   @Test
   public void testUpdateLTGInApplication_ClashesWithApplication() throws Exception {
     // Add a group
-    LicenseThreatGroup group1 = tempEntity.newLicenseThreatGroup(applicationId, "My group 1", 4);
+    LicenseThreatGroup group1 = tempEntity.newLicenseThreatGroup(application.getId(), "My group 1", 4);
 
     // Add another group
-    LicenseThreatGroup group2 = tempEntity.newLicenseThreatGroup(applicationId, "My group 2", 4);
+    LicenseThreatGroup group2 = tempEntity.newLicenseThreatGroup(application.getId(), "My group 2", 4);
 
     // Update without changing the name
     group2.setThreatLevel(6);
     licenseThreatGroupDAO.update(group2);
-    assertLicenseThreatGroup(applicationId, "My group 2", 6, group2);
+    assertLicenseThreatGroup(application.getId(), "My group 2", 6, group2);
 
     // Update with a conflicting name
     group2.setName(group1.getName());
@@ -195,9 +195,9 @@ public class LicenseThreatGroupDAOTest
     LicenseThreatGroup group1 = tempEntity.newLicenseThreatGroup(organization.getId(), "My group 1", 4);
 
     // Add another group to the application
-    LicenseThreatGroup group2 = tempEntity.newLicenseThreatGroup(applicationId, "My group 2", 4);
+    LicenseThreatGroup group2 = tempEntity.newLicenseThreatGroup(application.getId(), "My group 2", 4);
 
-    assertUpdateLicenseThreatGroupWithDuplicateName(applicationId, group2, group1.getName(), organization);
+    assertUpdateLicenseThreatGroupWithDuplicateName(application.getId(), group2, group1.getName(), organization);
   }
 
   @Test
@@ -206,7 +206,7 @@ public class LicenseThreatGroupDAOTest
     LicenseThreatGroup group1 = tempEntity.newLicenseThreatGroup(organization.getId(), "My group 1", 4);
 
     // Add another group to the application
-    LicenseThreatGroup group2 = tempEntity.newLicenseThreatGroup(applicationId, "My group 2", 4);
+    LicenseThreatGroup group2 = tempEntity.newLicenseThreatGroup(application.getId(), "My group 2", 4);
 
     assertUpdateLicenseThreatGroupWithDuplicateName(organization.getId(), group1, group2.getName(), application);
   }
@@ -219,9 +219,9 @@ public class LicenseThreatGroupDAOTest
     LicenseThreatGroup group1 = tempEntity.newLicenseThreatGroup(parentOrganization.getId(), "My group 1", 4);
 
     // Add another group to the application
-    LicenseThreatGroup group2 = tempEntity.newLicenseThreatGroup(applicationId, "My group 2", 4);
+    LicenseThreatGroup group2 = tempEntity.newLicenseThreatGroup(application.getId(), "My group 2", 4);
 
-    assertUpdateLicenseThreatGroupWithDuplicateName(applicationId, group2, group1.getName(), parentOrganization);
+    assertUpdateLicenseThreatGroupWithDuplicateName(application.getId(), group2, group1.getName(), parentOrganization);
   }
 
   @Test
@@ -232,7 +232,7 @@ public class LicenseThreatGroupDAOTest
     LicenseThreatGroup group1 = tempEntity.newLicenseThreatGroup(parentOrganizationId, "My group 1", 4);
 
     // Add another group to the application
-    LicenseThreatGroup group2 = tempEntity.newLicenseThreatGroup(applicationId, "My group 2", 4);
+    LicenseThreatGroup group2 = tempEntity.newLicenseThreatGroup(application.getId(), "My group 2", 4);
 
     assertUpdateLicenseThreatGroupWithDuplicateName(parentOrganizationId, group1, group2.getName(), application);
   }
@@ -267,7 +267,7 @@ public class LicenseThreatGroupDAOTest
   @Test
   public void testInsertInvalidThreatLevel() throws Exception {
     LicenseThreatGroup group = new LicenseThreatGroup();
-    group.setOwnerId(applicationId);
+    group.setOwnerId(application.getId());
     group.setName("My group");
     group.setThreatLevel(-1);
     assertThatThrownBy(() -> {
@@ -286,7 +286,7 @@ public class LicenseThreatGroupDAOTest
   @Test
   public void testUpdateInvalidThreatLevel() throws Exception {
     LicenseThreatGroup group = new LicenseThreatGroup();
-    group.setOwnerId(applicationId);
+    group.setOwnerId(application.getId());
     group.setName("My group");
     group.setThreatLevel(1);
     licenseThreatGroupDAO.insert(group);
@@ -314,21 +314,21 @@ public class LicenseThreatGroupDAOTest
   public void testNameIsCaseAndWhitespaceInsensitive() {
     String name = "test string With Case and Whitespace";
 
-    LicenseThreatGroup group = new LicenseThreatGroup(applicationId, name, 5);
+    LicenseThreatGroup group = new LicenseThreatGroup(application.getId(), name, 5);
     licenseThreatGroupDAO.insert(group);
 
     assertThat(group.getName()).isEqualTo(name);
     assertThat(group.getNameLowercaseNoWhitespace()).isEqualTo("teststringwithcaseandwhitespace");
 
     String name1 = "TEST String      With    cASE and      whitespace";
-    LicenseThreatGroup group1 = licenseThreatGroupDAO.getByOwnerIdAndName(applicationId, name1);
+    LicenseThreatGroup group1 = licenseThreatGroupDAO.getByOwnerIdAndName(application.getId(), name1);
     assertThat(group1).isNotNull();
     assertThat(group1.getId()).isEqualTo(group.getId());
   }
 
   @Test
   public void testValidateEmptyName_Insert() {
-    LicenseThreatGroup group = new LicenseThreatGroup(applicationId, " ", 5);
+    LicenseThreatGroup group = new LicenseThreatGroup(application.getId(), " ", 5);
     assertThatThrownBy(() -> {
       licenseThreatGroupDAO.insert(group);
     }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
@@ -336,7 +336,7 @@ public class LicenseThreatGroupDAOTest
 
   @Test
   public void testValidateEmptyName_Update() {
-    LicenseThreatGroup group = new LicenseThreatGroup(applicationId, "testValidateEmptyName", 5);
+    LicenseThreatGroup group = new LicenseThreatGroup(application.getId(), "testValidateEmptyName", 5);
     assertThat(group.getNameLowercaseNoWhitespace()).isEqualTo("testvalidateemptyname");
     licenseThreatGroupDAO.insert(group);
 
@@ -350,7 +350,7 @@ public class LicenseThreatGroupDAOTest
   @Test
   public void testValidateNameInvalidChars_Insert() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      LicenseThreatGroup group = new LicenseThreatGroup(applicationId, name, 5);
+      LicenseThreatGroup group = new LicenseThreatGroup(application.getId(), name, 5);
       assertThatThrownBy(() -> {
         licenseThreatGroupDAO.insert(group);
       }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
@@ -359,7 +359,7 @@ public class LicenseThreatGroupDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Update() {
-    LicenseThreatGroup group = new LicenseThreatGroup(applicationId, "testValidateNameInvalidChars", 5);
+    LicenseThreatGroup group = new LicenseThreatGroup(application.getId(), "testValidateNameInvalidChars", 5);
     licenseThreatGroupDAO.insert(group);
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       group.setName(name);
@@ -372,13 +372,13 @@ public class LicenseThreatGroupDAOTest
   @Test
   public void testValidateNameValidChars_Insert() {
     for (String name : NameHelperTest.VALID_NAMES) {
-      tempEntity.newLicenseThreatGroup(applicationId, name, 5);
+      tempEntity.newLicenseThreatGroup(application.getId(), name, 5);
     }
   }
 
   @Test
   public void testValidateNameValidChars_Update() {
-    LicenseThreatGroup group = tempEntity.newLicenseThreatGroup(applicationId, "a", 5);
+    LicenseThreatGroup group = tempEntity.newLicenseThreatGroup(application.getId(), "a", 5);
     for (String name : NameHelperTest.VALID_NAMES) {
       group.setName(name);
       licenseThreatGroupDAO.update(group);
@@ -388,7 +388,7 @@ public class LicenseThreatGroupDAOTest
   @Test
   public void testValidateNameSpaces_Insert() {
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      LicenseThreatGroup group = new LicenseThreatGroup(applicationId, name, 5);
+      LicenseThreatGroup group = new LicenseThreatGroup(application.getId(), name, 5);
       assertThatThrownBy(() -> {
         licenseThreatGroupDAO.insert(group);
       }).isInstanceOf(InvalidNameException.class)
@@ -398,7 +398,7 @@ public class LicenseThreatGroupDAOTest
 
   @Test
   public void testValidateNameSpaces_Update() {
-    LicenseThreatGroup group = new LicenseThreatGroup(applicationId, "testValidateNameSpaces", 5);
+    LicenseThreatGroup group = new LicenseThreatGroup(application.getId(), "testValidateNameSpaces", 5);
     licenseThreatGroupDAO.insert(group);
 
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
@@ -412,7 +412,7 @@ public class LicenseThreatGroupDAOTest
 
   @Test
   public void testValidateNullName_Insert() {
-    LicenseThreatGroup group = new LicenseThreatGroup(applicationId, null /* name */, 5);
+    LicenseThreatGroup group = new LicenseThreatGroup(application.getId(), null /* name */, 5);
     assertThatThrownBy(() -> {
       licenseThreatGroupDAO.insert(group);
     }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
@@ -420,7 +420,7 @@ public class LicenseThreatGroupDAOTest
 
   @Test
   public void testValidateNullName_Update() {
-    LicenseThreatGroup group = new LicenseThreatGroup(applicationId, "testValidateNullName", 5);
+    LicenseThreatGroup group = new LicenseThreatGroup(application.getId(), "testValidateNullName", 5);
     assertThat(group.getNameLowercaseNoWhitespace()).isEqualTo("testvalidatenullname");
     licenseThreatGroupDAO.insert(group);
 
@@ -435,7 +435,7 @@ public class LicenseThreatGroupDAOTest
   public void testValidateNameLength_Insert() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
 
-    LicenseThreatGroup group = new LicenseThreatGroup(applicationId, name + "a", 5);
+    LicenseThreatGroup group = new LicenseThreatGroup(application.getId(), name + "a", 5);
     assertThatThrownBy(() -> {
       licenseThreatGroupDAO.insert(group);
     }).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
@@ -448,7 +448,7 @@ public class LicenseThreatGroupDAOTest
   public void testValidateNameLength_Update() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
 
-    LicenseThreatGroup group = new LicenseThreatGroup(applicationId, "testValidateNameLengthUpdate", 5);
+    LicenseThreatGroup group = new LicenseThreatGroup(application.getId(), "testValidateNameLengthUpdate", 5);
     licenseThreatGroupDAO.insert(group);
 
     group.setName(name + "a");
@@ -469,7 +469,7 @@ public class LicenseThreatGroupDAOTest
 
   @Test
   public void testGetLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy() {
-    tempEntity.newLicenseThreatGroup(applicationId, "My group 1", 0, "Apache-2.0");
+    tempEntity.newLicenseThreatGroup(application.getId(), "My group 1", 0, "Apache-2.0");
     tempEntity.newLicenseThreatGroup(organization.getId(), "My group 2", 5, "GPL-2.0");
     tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
 
@@ -492,7 +492,7 @@ public class LicenseThreatGroupDAOTest
 
   @Test
   public void testGetLicenseThreatLevelsByApplication() {
-    tempEntity.newLicenseThreatGroup(applicationId, "My group 1", 0, "Apache-2.0", "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(application.getId(), "My group 1", 0, "Apache-2.0", "GPL-2.0");
     tempEntity.newLicenseThreatGroup(organization.getId(), "My group 2", 5, "GPL-2.0");
     tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
 

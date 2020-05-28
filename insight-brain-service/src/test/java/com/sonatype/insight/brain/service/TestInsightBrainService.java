@@ -20,9 +20,11 @@ import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
+import com.sonatype.insight.brain.report.ReportPurger;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PasswordService;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -282,6 +284,8 @@ public class TestInsightBrainService
 
     getInstance(TaskScheduler.class).disableForTesting = true;
     getInstance(PolicyMonitorScheduler.class).disableForTesting = true;
+    getInstance(SuccessMetricsPurger.class).disableForTesting = true;
+    getInstance(ReportPurger.class).disableForTesting = true;
     getInstance(PullRequestPollingScheduler.class).disableForTesting = true;
     getInstance(ScanFileCleaner.class).disableForTesting = true;
     getInstance(PolicyEvaluateService.class).disablePollingIntervalForTesting = true;

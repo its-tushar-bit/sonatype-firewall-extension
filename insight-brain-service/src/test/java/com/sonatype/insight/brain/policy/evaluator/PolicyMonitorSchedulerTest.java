@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.time.LocalTime;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.policy.PolicyMonitoringTask;
@@ -61,7 +63,7 @@ public class PolicyMonitorSchedulerTest
     policyMonitorScheduler.start();
 
     verify(taskSchedulerMock).scheduleDailyTask(PolicyMonitoringTask.class, PolicyMonitoringTask.NAME,
-        insightConfig.getPolicyMonitoringHour());
+        LocalTime.of(insightConfig.getPolicyMonitoringHour(), 0));
   }
 
   @Test
@@ -71,7 +73,7 @@ public class PolicyMonitorSchedulerTest
     policyMonitorScheduler.productLicenseChanged();
 
     verify(taskSchedulerMock).scheduleDailyTask(PolicyMonitoringTask.class, PolicyMonitoringTask.NAME,
-        insightConfig.getPolicyMonitoringHour());
+        LocalTime.of(insightConfig.getPolicyMonitoringHour(), 0));
   }
 
   @Test

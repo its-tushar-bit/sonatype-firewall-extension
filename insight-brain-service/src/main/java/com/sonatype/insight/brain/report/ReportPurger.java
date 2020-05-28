@@ -10,9 +10,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -25,10 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -48,11 +42,14 @@ import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.security.SystemRunnable;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightWork;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.dropwizard.lifecycle.Managed;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,9 +59,12 @@ import static java.util.stream.Collectors.toSet;
 
 @Named
 @Singleton
+@DisallowConcurrentExecution
 public class ReportPurger
-    implements Managed
+    implements Managed, Job
 {
+  public static final String NAME = "ReportPurger";
+
   private static class TrashBucket
   {
     private static final int MAX_COUNT = 5000;
@@ -103,7 +103,9 @@ public class ReportPurger
 
   private final List<String> contextIds;
 
-  private ScheduledExecutorService executor;
+  private final TaskScheduler taskScheduler;
+
+  public boolean disableForTesting;
 
   @Inject
   public ReportPurger(
@@ -111,50 +113,51 @@ public class ReportPurger
       DataRetentionPolicyDAO dataRetentionPolicyDAO,
       ApplicationDAO applicationDAO,
       OwnerDAO ownerDAO,
-      PolicyEvaluationDAO policyEvaluationDAO)
+      PolicyEvaluationDAO policyEvaluationDAO,
+      TaskScheduler taskScheduler)
   {
     this.work = work;
     this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
     this.applicationDAO = applicationDAO;
     this.ownerDAO = ownerDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
+    this.taskScheduler = taskScheduler;
     contextIds = Stream
         .concat(StageTypes.getAll().stream().map(StageType::getId).filter(stageId -> !Stage.ID_PROXY.equals(stageId)),
             Stream.of(DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING))
         .collect(toList());
   }
 
-  private ScheduledExecutorService newExecutor() {
-    ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("ReportPurger-%d").setDaemon(true).build();
-    return new ScheduledThreadPoolExecutor(1, threadFactory);
-  }
-
   @Override
   public void start() {
-    executor = newExecutor();
-    Duration period = Duration.ofDays(1);
-    Duration initialDelay = Duration.between(LocalTime.now(), LocalTime.of(1, 0));
-    while (initialDelay.isNegative()) {
-      initialDelay = initialDelay.plus(period);
+    if (disableForTesting) {
+      return;
     }
-    Runnable purgeTask = new SystemRunnable(() -> {
-      try {
-        purgeReports();
-      }
-      catch (RuntimeException e) {
-        log.warn("Failed to purge obsolete reports", e);
-      }
-    });
-    executor.scheduleAtFixedRate(purgeTask, initialDelay.toMillis(), period.toMillis(), TimeUnit.MILLISECONDS);
-    log.debug("Scheduled periodic purging of obsolete reports for {}", LocalDateTime.now().plus(initialDelay));
+
+    taskScheduler.scheduleDailyTask(ReportPurger.class, NAME, LocalTime.of(1, 0));
+    Date nextExecutionTime = taskScheduler.getNextExecutionTime(NAME);
+    log.debug("Scheduled periodic purging of obsolete reports for {}", nextExecutionTime);
   }
 
   @Override
   public void stop() {
-    if (executor != null) {
-      executor.shutdown();
-      executor = null;
-      log.debug("Stopped periodic purging of obsolete reports");
+    // no-op
+  }
+
+  @Override
+  public void execute(JobExecutionContext context) {
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
+      purgeReports();
+    }
+    catch (Exception e) {
+      log.error("Report Purging error: {}", e.getMessage(), e);
+    }
+    catch (Throwable t) {
+      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
+      // at this point.
+      t.printStackTrace();
+      log.error(t.getMessage(), t);
+      System.exit(1);
     }
   }
 

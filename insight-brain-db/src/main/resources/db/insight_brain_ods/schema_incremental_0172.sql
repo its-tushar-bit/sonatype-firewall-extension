@@ -1,3 +1,4 @@
+-- since 1.92
 -- copied from https://github.com/quartz-scheduler/quartz/blob/v2.3.2/quartz-core/src/main/resources/org/quartz/impl/jdbcjobstore/tables_postgres.sql
 
 CREATE TABLE QRTZ_JOB_DETAILS

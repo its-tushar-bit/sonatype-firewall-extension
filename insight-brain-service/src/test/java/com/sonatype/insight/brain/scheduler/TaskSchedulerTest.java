@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
-import java.net.InetAddress;
 import java.sql.Connection;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -139,7 +138,7 @@ public class TaskSchedulerTest
       assertThat(connection.getSchema()).isEqualTo(OperationalDataStoreProvider.ID);
     }
     assertThat(scheduler.getSchedulerName()).startsWith("QuartzScheduler");
-    assertThat(scheduler.getSchedulerInstanceId()).startsWith(InetAddress.getLocalHost().getHostName());
+    assertThat(scheduler.getSchedulerInstanceId()).isNotNull();
     assertThat(scheduler.getMetaData().getThreadPoolClass()).isEqualTo(SimpleThreadPool.class);
     assertThat(scheduler.getMetaData().getJobStoreClass()).isEqualTo(JobStoreTX.class);
   }

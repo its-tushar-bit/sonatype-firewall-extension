@@ -9,6 +9,7 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -36,7 +37,6 @@ import org.quartz.impl.jdbcjobstore.HSQLDBDelegate;
 import org.quartz.impl.jdbcjobstore.InvalidConfigurationException;
 import org.quartz.impl.jdbcjobstore.JobStoreTX;
 import org.quartz.impl.jdbcjobstore.PostgreSQLDelegate;
-import org.quartz.simpl.SimpleInstanceIdGenerator;
 import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
 import org.quartz.spi.ThreadPool;
@@ -108,7 +108,7 @@ public class TaskScheduler
   Scheduler createScheduler() {
     try {
       DBConnectionManager.getInstance().addConnectionProvider(DATA_SOURCE_NAME, new QuartzConnectionProvider());
-      String schedulerInstanceId = new SimpleInstanceIdGenerator().generateInstanceId();
+      String schedulerInstanceId = UUID.randomUUID().toString().replace("-", "");
       ThreadPool threadPool = createThreadPool();
       // This reuses the schedulerName and schedulerInstanceId for the Scheduler, ThreadPool, and JobStore
       DirectSchedulerFactory.getInstance()

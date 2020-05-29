@@ -9,31 +9,35 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.security.Permission;
+import java.time.LocalTime;
 import java.util.Date;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.test.LogOutput;
 
+import com.google.inject.Binder;
 import org.joda.time.DateTimeConstants;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.quartz.JobBuilder;
+import org.quartz.JobExecutionContext;
+import org.slf4j.MDC;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class ScanFileCleanerTest
     extends AbstractComponentTest
@@ -51,28 +55,36 @@ public class ScanFileCleanerTest
   @Inject
   private InsightWork insightWork;
 
+  @Mock
+  private TaskScheduler taskSchedulerMock;
+
   @After
   public void resetSecurityManager() {
     System.setSecurityManager(ORIGINAL_SECURITY_MANAGER);
   }
 
-  @Test
-  public void testStartServer() {
-    scanFileCleaner = spy(scanFileCleaner);
-    ScheduledExecutorService mockExecutor = mock(ScheduledExecutorService.class);
-    when(scanFileCleaner.newExecutor()).thenReturn(mockExecutor);
-    scanFileCleaner.start();
-    verify(mockExecutor).schedule(any(Runnable.class), anyLong(), eq(TimeUnit.MILLISECONDS));
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
   }
 
   @Test
-  public void testStopServer() {
-    scanFileCleaner = spy(scanFileCleaner);
-    ScheduledExecutorService mockExecutor = mock(ScheduledExecutorService.class);
-    when(scanFileCleaner.newExecutor()).thenReturn(mockExecutor);
+  public void testStartServer_NoMarkerFile() {
+    assertThat(scanFileCleaner.getMarkerFile()).doesNotExist();
     scanFileCleaner.start();
-    scanFileCleaner.stop();
-    verify(mockExecutor).shutdown();
+
+    verify(taskSchedulerMock).scheduleOneTimeTask(ScanFileCleaner.class, ScanFileCleaner.NAME, LocalTime.of(23, 0));
+  }
+
+  @Test
+  public void testStartServer_MarkerFile() throws Exception {
+    insightWork.getWorkDir().toPath().resolve("obsoletescanfiles-cleaned").toFile().createNewFile();
+    assertThat(scanFileCleaner.getMarkerFile()).isRegularFile();
+
+    scanFileCleaner.start();
+
+    verifyNoInteractions(taskSchedulerMock);
   }
 
   @Test
@@ -219,5 +231,25 @@ public class ScanFileCleanerTest
     scanFileCleaner.deleteScanFiles();
 
     assertThat(scanFileCleaner.getMarkerFile()).isRegularFile();
+  }
+
+  @Test
+  public void testDisallowConcurrentExecution() {
+    assertThat(JobBuilder.newJob(ScanFileCleaner.class).build().isConcurrentExectionDisallowed()).isTrue();
+  }
+
+  @Test
+  public void testExecute() throws Exception {
+    ScanFileCleaner scanFileCleanerSpy = spy(scanFileCleaner);
+    doAnswer(invocationOnMock -> {
+      assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
+      return null;
+    }).when(scanFileCleanerSpy).deleteScanFiles();
+
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
+      scanFileCleanerSpy.execute(mock(JobExecutionContext.class));
+    }
+
+    verify(scanFileCleanerSpy).deleteScanFiles();
   }
 }

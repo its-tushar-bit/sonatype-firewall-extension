@@ -25,6 +25,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.quartz.CronTrigger;
+import org.quartz.DailyTimeIntervalTrigger;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionException;
@@ -243,6 +244,28 @@ public class TaskSchedulerTest
 
     assertThat(scheduler.getJobDetail(jobKey)).isNull();
     assertThat(scheduler.getTrigger(triggerKey)).isNull();
+  }
+
+  @Test
+  public void testScheduleOneTimeTask() throws Exception {
+    Scheduler scheduler = taskScheduler.createScheduler();
+    Date now = new Date();
+
+    taskScheduler.scheduleOneTimeTask(TestJob.class, TestJob.NAME, LocalTime.of(23, 0));
+
+    JobKey jobKey = JobKey.jobKey(TestJob.NAME);
+    JobDetail job = scheduler.getJobDetail(jobKey);
+    assertThat(job).isNotNull();
+    assertThat(job.getJobClass()).isEqualTo(TestJob.class);
+    assertThat(job.requestsRecovery()).isFalse();
+    Trigger trigger = scheduler.getTrigger(TriggerKey.triggerKey(jobKey.getName(), jobKey.getGroup()));
+    assertThat(trigger).isInstanceOf(DailyTimeIntervalTrigger.class);
+    DailyTimeIntervalTrigger dailyTimeIntervalTrigger = (DailyTimeIntervalTrigger) trigger;
+    assertThat(dailyTimeIntervalTrigger.getMisfireInstruction())
+        .isEqualTo(DailyTimeIntervalTrigger.MISFIRE_INSTRUCTION_DO_NOTHING);
+    Date nextFireTime = dailyTimeIntervalTrigger.getNextFireTime();
+    assertThat(nextFireTime).isAfterOrEqualTo(now);
+    assertThat(nextFireTime).hasHourOfDay(23);
   }
 
   private JobDetail createJobDetail() {

@@ -1,55 +1,66 @@
-<#if ( policiesViolatedCount > 0 )>
-### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>multiple policy violations<#else>a policy violation</#if> introduced by this PR:\n\n<#t>
+<#if ( policiesViolatedCount > 0 )><#t>
+### :thinking_face: Nexus IQ found <#if ( policiesViolatedCount > 1 )>multiple policy violations<#else>a policy violation</#if> introduced by this PR:
+
+&#8192;<#-- spacer -->
+
 <#list componentList as component>
-  #### ${component.componentNameAndVersion}\n\n<#t>
+  #### ${component.componentNameAndVersion}<#lt>
+
   <#if component.suggestedVersion?has_content>
-    :shield: **Bumping to version ${component.suggestedVersion}** will resolve <#if ( component.policiesViolated?size > 1 )>these violations<#else>this violation</#if>\n<#t>
+    :shield: **Bumping to version ${component.suggestedVersion}** will resolve <#if ( component.policiesViolated?size > 1 )>these violations<#else>this violation</#if><#lt>
   <#else>
-    :warning: No recommended versions are available for this component\n<#t>
+    :warning: No recommended versions are available for this component<#lt>
   </#if>
-\n<#t>
-| **Threat (of 10)** | **Policy** | **Violation Details** |\n<#t>
-| --- | --- | --- |\n<#t>
-<#list component.policiesViolated as policy>
-    | ${policy.threatLevel} | ${policy.name} | <#t>
-    <#list policy.constraints as constraint><#t>
-      **${constraint.constraintName}:** <#t>
-      <#list constraint.conditions as condition>${condition}. </#list><#t>
-    </#list> |\n<#t>
-</#list><#t>
-\n\n  ‌\n\n<#t>
+  <#lt>
+
+  | **Threat (of 10)** | **Policy** | **Violation Details** |<#lt>
+  | --- | --- | --- |<#lt>
+  <#list component.policiesViolated as policy>
+      | ${policy.threatLevel} | ${policy.name} | <#t>
+      <#list policy.constraints as constraint><#t>
+        **${constraint.constraintName}:** <#t>
+        <#list constraint.conditions as condition>${condition}. </#list><#t>
+      </#list> |<#lt>
+  </#list><#t>
+
+  &#8192;<#-- spacer --><#lt>
+
 </#list><#t>
 <#else>
-  ### :smiley: All Clear! Nexus IQ didn't find any policy violations introduced by this PR   \n<#t>
-  Well done. The committed code does not violate any of your organization's Nexus IQ policies.   \n<#t>
-  \n<#t>
+  ### :smiley: All Clear! Nexus IQ didn't find any policy violations introduced by this PR<#lt>
+
+  Well done. The committed code does not violate any of your organization's Nexus IQ policies.<#lt>
 </#if>
-<#t>
+
+&#8192;<#-- spacer -->
+
 <#if ( fixedPolicyViolationsCount > 0 )>
----\n<#t>
-### :sunglasses: Nexus IQ determined that you fixed <#if ( fixedPolicyViolationsCount > 1 )>outstanding policy violations<#else>an outstanding policy violation</#if>:\n<#t>
-\n<#t>
+---<#lt>
+### :sunglasses: Nexus IQ determined that you fixed <#if ( fixedPolicyViolationsCount > 1 )>outstanding policy violations<#else>an outstanding policy violation</#if>:
+
 <#list fixedComponentList as component>
-#### :white_check_mark: ${component.componentNameAndVersion}\n\n<#t>
-| **Threat (of 10)** | **Policy** | **Violation Details** |\n<#t>
-| --- | --- | --- |\n<#t>
-<#list component.policiesViolated as policy><#t>
-  | ${policy.threatLevel} | ${policy.name} | <#t>
-    <#list policy.constraints as constraint><#t>
-      **${constraint.constraintName}:** <#t>
-        <#list constraint.conditions as condition>${condition}. </#list><#t>
-    </#list> |\n<#t>
-</#list><#t>
-\n\n  ‌\n\n<#t>
-</#list><#t>
+  #### :white_check_mark: ${component.componentNameAndVersion}<#lt>
+
+  | **Threat (of 10)** | **Policy** | **Violation Details** |<#lt>
+  | --- | --- | --- |<#lt>
+  <#list component.policiesViolated as policy><#t>
+    | ${policy.threatLevel} | ${policy.name} | <#t>
+      <#list policy.constraints as constraint><#t>
+        **${constraint.constraintName}:** <#t>
+          <#list constraint.conditions as condition>${condition}. </#list><#t>
+      </#list> |<#lt>
+  </#list>
+
+  &#8192;<#-- spacer --><#lt>
+
+</#list>
 </#if>
-\n\n<#t>
-### Nexus IQ Report Details\n<#t>
-**Application**: ${applicationName}   \n<#t><#-- 3 spaces with a \n renders as a br -->
-**Organization**: ${organizationName}   \n<#t>
-**Date**: ${date}\n<#t>
-\n<#t>
-**PR Branch**: ${featureBranchStage} Stage - [Full Report](${detailedFeatureBranchReportUrl})   \n<#t>
-**Default Branch**: ${defaultBranchStage} Stage - [Full Report](${detailedDefaultBranchReportUrl})\n<#t>
-\n<#t>
+### Nexus IQ Report Details<#lt>
+**Application**: ${applicationName}   <#lt><#-- 3 spaces before a newline renders as a br -->
+**Organization**: ${organizationName}   <#lt>
+**Date**: ${date}<#lt>
+
+**PR Branch**: ${featureBranchStage} Stage - [Full Report](${detailedFeatureBranchReportUrl})   <#lt>
+**Default Branch**: ${defaultBranchStage} Stage - [Full Report](${detailedDefaultBranchReportUrl})<#lt>
+
 [Give feedback](https://community.sonatype.com/t/user-feedback-github-pr-reviews/3811)<#t>

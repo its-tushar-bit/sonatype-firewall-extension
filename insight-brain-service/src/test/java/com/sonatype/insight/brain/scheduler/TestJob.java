@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.inject.Named;
 
 import org.quartz.Job;
@@ -18,7 +20,7 @@ public class TestJob
 
   private static volatile boolean shouldThrowException;
 
-  private static volatile boolean executionFinished;
+  private static AtomicInteger executions = new AtomicInteger();
 
   @Override
   public void execute(JobExecutionContext context) {
@@ -28,7 +30,7 @@ public class TestJob
       }
     }
     finally {
-      executionFinished = true;
+      executions.incrementAndGet();
     }
   }
 
@@ -36,12 +38,12 @@ public class TestJob
     TestJob.shouldThrowException = shouldThrowException;
   }
 
-  public static boolean isExecutionFinished() {
-    return executionFinished;
+  public static int getExecutions() {
+    return executions.get();
   }
 
   public static void reset() {
     shouldThrowException = false;
-    executionFinished = false;
+    executions.set(0);
   }
 }

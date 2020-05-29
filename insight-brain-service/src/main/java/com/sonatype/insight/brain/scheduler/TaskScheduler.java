@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import java.time.Duration;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Date;
@@ -30,6 +31,7 @@ import org.quartz.JobDetail;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.SimpleScheduleBuilder;
 import org.quartz.TimeOfDay;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
@@ -164,6 +166,20 @@ public class TaskScheduler
             .startingDailyAt(TimeOfDay.hourAndMinuteOfDay(localTime.getHour(), localTime.getMinute())) //
             .withRepeatCount(0) //
             .withMisfireHandlingInstructionDoNothing()) //
+        .build();
+    scheduleTask(job, trigger);
+  }
+
+  public void schedulePeriodicTask(Class<? extends Job> jobClass, String name, Duration interval) {
+    JobDetail job = JobBuilder.newJob(jobClass) //
+        .withIdentity(name) //
+        .build();
+    Trigger trigger = TriggerBuilder.newTrigger() //
+        .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
+        .withSchedule(SimpleScheduleBuilder.simpleSchedule() //
+            .withIntervalInMilliseconds(interval.toMillis()) //
+            .repeatForever() //
+            .withMisfireHandlingInstructionIgnoreMisfires()) //
         .build();
     scheduleTask(job, trigger);
   }

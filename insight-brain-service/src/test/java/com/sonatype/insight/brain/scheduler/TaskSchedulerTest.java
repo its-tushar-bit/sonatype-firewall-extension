@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.scheduler;
 
 import java.sql.Connection;
+import java.time.Duration;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -31,6 +32,7 @@ import org.quartz.JobDetail;
 import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
+import org.quartz.SimpleTrigger;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.TriggerKey;
@@ -149,9 +151,9 @@ public class TaskSchedulerTest
     Scheduler scheduler = taskScheduler.createScheduler();
 
     scheduler.scheduleJob(createJobDetail(), createTrigger());
-    assertThat(TestJob.isExecutionFinished()).isFalse();
+    assertThat(TestJob.getExecutions()).isEqualTo(0);
     scheduler.start();
-    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(TestJob.isExecutionFinished()).isTrue());
+    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(TestJob.getExecutions()).isEqualTo(1));
   }
 
   @Test
@@ -211,7 +213,7 @@ public class TaskSchedulerTest
     taskScheduler.scheduleDailyTask(TestJob.class, name, LocalTime.now().plusHours(1));
     scheduler.triggerJob(JobKey.jobKey(name));
 
-    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(testJobListener.isExecuted()).isTrue());
+    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(testJobListener.getExecutions()).isEqualTo(1));
     JobExecutionException jobExecutionException = testJobListener.getJobExecutionException();
     assertThat(jobExecutionException).hasStackTraceContaining(TestJob.NAME + " exception");
     assertThat(isTaskScheduled(scheduler, name)).isTrue();
@@ -266,6 +268,45 @@ public class TaskSchedulerTest
     Date nextFireTime = dailyTimeIntervalTrigger.getNextFireTime();
     assertThat(nextFireTime).isAfterOrEqualTo(now);
     assertThat(nextFireTime).hasHourOfDay(23);
+  }
+
+  @Test
+  public void testSchedulePeriodicTask() throws Exception {
+    Scheduler scheduler = taskScheduler.createScheduler();
+    int intervalMillis = 10000;
+
+    taskScheduler.schedulePeriodicTask(TestJob.class, TestJob.NAME, Duration.ofMillis(intervalMillis));
+
+    JobKey jobKey = JobKey.jobKey(TestJob.NAME);
+    JobDetail job = scheduler.getJobDetail(jobKey);
+    assertThat(job).isNotNull();
+    assertThat(job.getJobClass()).isEqualTo(TestJob.class);
+    assertThat(job.requestsRecovery()).isFalse();
+    Trigger trigger = scheduler.getTrigger(TriggerKey.triggerKey(jobKey.getName(), jobKey.getGroup()));
+    assertThat(trigger).isInstanceOf(SimpleTrigger.class);
+    SimpleTrigger simpleTrigger = (SimpleTrigger) trigger;
+    assertThat(simpleTrigger.getMisfireInstruction())
+        .isEqualTo(SimpleTrigger.MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY);
+    assertThat(simpleTrigger.getRepeatCount()).isEqualTo(SimpleTrigger.REPEAT_INDEFINITELY);
+    assertThat(simpleTrigger.getRepeatInterval()).isEqualTo(intervalMillis);
+  }
+
+  @Test
+  public void testSchedulePeriodicTask_RefireAfterError() throws Exception {
+    Scheduler scheduler = taskScheduler.createScheduler();
+    TestJob.setShouldThrowException(true);
+    TestJobListener testJobListener = new TestJobListener();
+    scheduler.getListenerManager().addJobListener(testJobListener);
+
+    taskScheduler.schedulePeriodicTask(TestJob.class, TestJob.NAME, Duration.ofSeconds(1));
+
+    scheduler.start();
+    await().atMost(10, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(testJobListener.getExecutions()).isGreaterThan(1));
+    assertThat(TestJob.getExecutions()).isGreaterThan(1);
+    JobExecutionException jobExecutionException = testJobListener.getJobExecutionException();
+    assertThat(jobExecutionException).hasStackTraceContaining(TestJob.NAME + " exception");
+    assertThat(isTaskScheduled(scheduler, TestJob.NAME)).isTrue();
   }
 
   private JobDetail createJobDetail() {

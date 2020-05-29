@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.utils.AbstractHttpClientTest;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
-import com.sonatype.insight.test.networking.SslProperties;
 
 import com.google.common.net.HttpHeaders;
 import org.eclipse.jetty.server.NetworkConnector;
@@ -44,10 +43,6 @@ import static org.mockito.Mockito.when;
 public class HdsClientProxyTest
     extends AbstractHttpClientTest
 {
-  static {
-    SslProperties.use();
-  }
-
   @Inject
   private PasswordHandler passwordHandler;
 

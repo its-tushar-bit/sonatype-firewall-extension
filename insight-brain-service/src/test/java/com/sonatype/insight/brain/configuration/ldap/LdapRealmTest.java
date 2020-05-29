@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.configuration.ldap;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.SslSettings;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
@@ -53,6 +54,9 @@ public class LdapRealmTest
 
   @Rule
   public TestLdapServer testLdapServer = new TestLdapServer();
+
+  @Rule
+  public SslSettings sslSettings = new SslSettings();
 
   @Inject
   private LdapService ldapService;
@@ -230,6 +234,7 @@ public class LdapRealmTest
   }
 
   private LdapRealmTest withSsl() {
+    sslSettings.use();
     protocol = LdapProtocol.LDAPS;
     return this;
   }

@@ -17,8 +17,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.test.networking.SslProperties;
-
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.proxy.ConnectHandler;
 import org.eclipse.jetty.security.ConstraintMapping;
@@ -45,10 +43,6 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 public class HdsMockServer
 {
-  static {
-    SslProperties.use();
-  }
-
   private int httpPort = 0;
 
   private int httpsPort = -1;

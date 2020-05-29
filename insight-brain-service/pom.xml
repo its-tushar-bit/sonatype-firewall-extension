@@ -734,6 +734,7 @@
                 <include>**/EmbeddedLdapServer*</include>
                 <include>**/TestLdapServer*</include>
                 <include>**/NetworkingHelper*</include>
+                <include>**/SslSettings*</include>
               </includes>
             </configuration>
           </execution>

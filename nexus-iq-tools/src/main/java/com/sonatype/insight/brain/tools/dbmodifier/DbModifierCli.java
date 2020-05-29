@@ -24,7 +24,7 @@ public final class DbModifierCli
 
   private static final String H2_DATABASE_SUFFIX = ".h2.db";
 
-  @Parameter(names = {"--postgres"}, description = "Flag whose existence determines if the database engine is Postgres")
+  @Parameter(names = {"--postgres"}, description = "Flag to enable Postgres")
   private boolean isPostgres;
 
   @Parameter(names = {"-db", "--database"},

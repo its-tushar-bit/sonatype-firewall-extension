@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
 import java.util.zip.ZipEntry;
@@ -33,6 +34,7 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -131,7 +133,9 @@ public class TelemetrySenderTest
     telemetrySender.send(new TelemetryData(TelemetryPurpose.HIERARCHY_METRICS));
 
     verify(mockHdsClient, timeout(10000)).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
-    assertThat(logOutput).atDebugLevel().contains("Failed to send telemetry.", exception);
+    await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
+      assertThat(logOutput).atDebugLevel().contains("Failed to send telemetry.", exception);
+    });
   }
 
   @Test

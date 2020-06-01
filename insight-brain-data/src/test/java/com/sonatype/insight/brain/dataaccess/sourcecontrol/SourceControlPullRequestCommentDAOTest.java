@@ -41,14 +41,12 @@ public class SourceControlPullRequestCommentDAOTest
 
     int pullRequestId = 202001;
     int pullRequestCommentId = 1;
-    int pullRequestCommentVersion = 2;
     String contentHash = "contentHash";
 
     SourceControlPullRequestComment pullRequestComment = tempEntity.newSourceControlPullRequestComment(
         application.getId(),
         pullRequestId,
         pullRequestCommentId,
-        pullRequestCommentVersion,
         contentHash,
         sourcePolicyEvaluation.getId(),
         targetPolicyEvaluation.getId()
@@ -68,7 +66,6 @@ public class SourceControlPullRequestCommentDAOTest
     assertThat(fetchedPullRequestComment.getApplicationId()).isEqualTo(application.getId());
     assertThat(fetchedPullRequestComment.getPullRequestId()).isEqualTo(pullRequestId);
     assertThat(fetchedPullRequestComment.getPullRequestCommentId()).isEqualTo(pullRequestCommentId);
-    assertThat(fetchedPullRequestComment.getPullRequestCommentVersion()).isEqualTo(pullRequestCommentVersion);
     assertThat(fetchedPullRequestComment.getContentHash()).isEqualTo(contentHash);
     assertThat(fetchedPullRequestComment.getSourcePolicyEvaluationId()).isEqualTo(sourcePolicyEvaluation.getId());
     assertThat(fetchedPullRequestComment.getTargetPolicyEvaluationId()).isEqualTo(targetPolicyEvaluation.getId());
@@ -104,7 +101,6 @@ public class SourceControlPullRequestCommentDAOTest
 
     final int subjectPullRequestId = 1;
     final int lineCommentCount = 10;
-    final int pullRequestCommentVersion = 2;
 
     for (int commentId = 1; commentId <= lineCommentCount; commentId++) {
       tempEntity.newSourceControlPullRequestCommentForLine(
@@ -112,7 +108,6 @@ public class SourceControlPullRequestCommentDAOTest
           "hash" + commentId,
           subjectPullRequestId,
           commentId,
-          pullRequestCommentVersion,
           sourcePolicyEvaluation.getId(),
           targetPolicyEvaluation.getId()
       );
@@ -123,7 +118,6 @@ public class SourceControlPullRequestCommentDAOTest
         application.getId(),
         subjectPullRequestId,
         0,
-        pullRequestCommentVersion,
         "contentHash",
         sourcePolicyEvaluation.getId(),
         targetPolicyEvaluation.getId()
@@ -139,7 +133,6 @@ public class SourceControlPullRequestCommentDAOTest
           "hash" + commentId,
           additionalPullRequestId,
           commentId,
-          pullRequestCommentVersion,
           sourcePolicyEvaluation.getId(),
           targetPolicyEvaluation.getId()
       );
@@ -156,7 +149,6 @@ public class SourceControlPullRequestCommentDAOTest
       assertThat(comment.getApplicationId()).isEqualTo(application.getId());
       assertThat(comment.getPullRequestId()).isEqualTo(subjectPullRequestId);
       assertThat(comment.getComponentHash()).isEqualTo("hash" + comment.getPullRequestCommentId());
-      assertThat(comment.getPullRequestCommentVersion()).isEqualTo(pullRequestCommentVersion);
       assertThat(commentIdSet).doesNotContain(comment.getPullRequestCommentId());
       commentIdSet.add(comment.getPullRequestCommentId());
     });
@@ -208,7 +200,6 @@ public class SourceControlPullRequestCommentDAOTest
         application.getId(),
         1,
         2,
-        3,
         "contentHash",
         "bogusPolicyEvalId",
         targetPolicyEvaluation.getId()
@@ -230,7 +221,6 @@ public class SourceControlPullRequestCommentDAOTest
         application.getId(),
         1,
         2,
-        3,
         "contentHash",
         sourcePolicyEvaluation.getId(),
         "bogusPolicyEvalId"
@@ -254,7 +244,6 @@ public class SourceControlPullRequestCommentDAOTest
         "bogusAppId",
         1,
         2,
-        3,
         "contentHash",
         sourcePolicyEvaluation.getId(),
         targetPolicyEvaluation.getId()
@@ -280,9 +269,9 @@ public class SourceControlPullRequestCommentDAOTest
         .newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit").getId();
     String targetPolicyEvalId = tempEntity
         .newPolicyEvaluation(application.getId(), BuildStageType.ID, "targetScan", "targetCommit").getId();
-    tempEntity.newSourceControlPullRequestComment(application.getId(), 1, 11, 111, "contentHash1",
+    tempEntity.newSourceControlPullRequestComment(application.getId(), 1, 11, "contentHash1",
         sourcePolicyEvalId, targetPolicyEvalId);
-    tempEntity.newSourceControlPullRequestComment(application.getId(), 2, 22, 222, "contentHash2",
+    tempEntity.newSourceControlPullRequestComment(application.getId(), 2, 22, "contentHash2",
         sourcePolicyEvalId, targetPolicyEvalId);
 
     // when : fetch from populated table
@@ -303,7 +292,7 @@ public class SourceControlPullRequestCommentDAOTest
     assertThat(pullRequestComments).isEmpty();
 
     // given : add data for 2nd app
-    tempEntity.newSourceControlPullRequestComment(app2.getId(), 3, 33, 333, "contentHash2",
+    tempEntity.newSourceControlPullRequestComment(app2.getId(), 3, 33, "contentHash2", 
         sourcePolicyEvalId, targetPolicyEvalId);
 
     // when : fetch for original app

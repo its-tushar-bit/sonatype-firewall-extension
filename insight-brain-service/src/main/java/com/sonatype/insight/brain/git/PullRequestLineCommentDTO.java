@@ -30,8 +30,6 @@ public class PullRequestLineCommentDTO
 
   private Integer scmId;
 
-  private Integer scmVersion;
-
   // Component hash;
   private String hash;
 
@@ -93,14 +91,6 @@ public class PullRequestLineCommentDTO
 
   public void setScmId(final Integer scmId) {
     this.scmId = scmId;
-  }
-
-  public Integer getScmVersion() {
-    return scmVersion;
-  }
-
-  public void setScmVersion(final Integer scmVersion) {
-    this.scmVersion = scmVersion;
   }
 
   public void setHash(final String hash) {

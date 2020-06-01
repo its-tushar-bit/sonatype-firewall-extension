@@ -212,7 +212,7 @@ public class PullRequestCommentingServiceTest
         .withPolicyEvaluationDiffMarkup(commentText)
         .expectApplicationId("app1")
         .withCommentForPullRequest(7, 27, "content-hash")
-        .withCommentResponseForPR(7, 27, 84)
+        .withCommentResponseForPR(7, 27)
         .withGeneratedContentHash("new-content-hash")
         .expectSourceCommit("commit456")
         .build();
@@ -230,7 +230,7 @@ public class PullRequestCommentingServiceTest
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'commit456' with 1 pull request(s) and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
-        info("pull request comment '27' with version '84' updated for application 'app1' pull request '7'"),
+        info("pull request comment '27' updated for application 'app1' pull request '7'"),
         debug("comment text = at least one new policy violation"),
         debug("pull request comment '27' for application 'app1' pull request '7' recorded in database")
     );
@@ -305,7 +305,7 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponseForPR(14, 27, null)
+        .withCommentResponseForPR(14, 27)
         .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
@@ -341,7 +341,7 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponseForPR(14, 27, null)
+        .withCommentResponseForPR(14, 27)
         .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
@@ -411,7 +411,7 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponseForPR(14, 25, null)
+        .withCommentResponseForPR(14, 25)
         .withGitRepositoryPrivate(false)
         .withGitRepositoryInternal(false)
         .expectApplicationId("app1")
@@ -450,8 +450,8 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponseForPR(14, 28, null)
-        .withCommentResponseForPR(16, 32, null)
+        .withCommentResponseForPR(14, 28)
+        .withCommentResponseForPR(16, 32)
         .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
@@ -500,8 +500,8 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponseForPR(14, 42, null)
-        .withCommentResponseForPR(16, 48, null)
+        .withCommentResponseForPR(14, 42)
+        .withCommentResponseForPR(16, 48)
         .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
@@ -573,7 +573,7 @@ public class PullRequestCommentingServiceTest
         .withBasePolicyEvaluation("basePe", "baseCommit", applicationId)
         .withPolicyEvaluationDiffMarkup(commentText)
         .expectApplicationId(applicationId)
-        .withCommentResponseForPR(20, 25, null)
+        .withCommentResponseForPR(20, 25)
         .withCommentForPullRequest(20, 25, "content-hash", "sourcePe-0", "basePe")
         .withGeneratedContentHash("new-content-hash")
         .expectSourceCommit("sourceCommit")
@@ -631,7 +631,7 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponseForPR(20, 25, null)
+        .withCommentResponseForPR(20, 25)
         .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
@@ -683,7 +683,7 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponseForPR(14, 27, null)
+        .withCommentResponseForPR(14, 27)
         .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
@@ -1015,14 +1015,9 @@ public class PullRequestCommentingServiceTest
       return this;
     }
 
-    TestablePullRequestCommentingServiceBuilder withCommentResponseForPR(
-        int pullRequestId,
-        int commentId,
-        Integer commentVersion)
-    {
+    TestablePullRequestCommentingServiceBuilder withCommentResponseForPR(int pullRequestId, int commentId) {
       CommentResponse commentResponse = new DefaultCommentResponse();
       commentResponse.setId(commentId);
-      commentResponse.setVersion(commentVersion);
       pullRequestCommentResponseMap.put(pullRequestId, commentResponse);
       return this;
     }

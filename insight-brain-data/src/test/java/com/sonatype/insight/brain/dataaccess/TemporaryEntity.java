@@ -1150,7 +1150,6 @@ public class TemporaryEntity
       String applicationId,
       int pullRequestId,
       int pullRequestCommentId,
-      Integer pullRequestCommentVersion,
       String contentHash,
       String sourcePolicyEvaluationId,
       String targetPolicyEvaluationId)
@@ -1159,7 +1158,6 @@ public class TemporaryEntity
         applicationId,
         pullRequestId,
         pullRequestCommentId,
-        pullRequestCommentVersion,
         contentHash,
         sourcePolicyEvaluationId,
         targetPolicyEvaluationId
@@ -1173,7 +1171,6 @@ public class TemporaryEntity
       String componentHash,
       int pullRequestId,
       int pullRequestCommentId,
-      Integer pullRequestCommentVersion,
       String sourcePolicyEvaluationId,
       String targetPolicyEvaluationId)
   {
@@ -1182,7 +1179,6 @@ public class TemporaryEntity
         componentHash,
         pullRequestId,
         pullRequestCommentId,
-        pullRequestCommentVersion,
         sourcePolicyEvaluationId,
         targetPolicyEvaluationId
     );

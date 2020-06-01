@@ -26,6 +26,10 @@ function RetentionTileController(CLMContextLocations, $scope, EventNameConstant,
     error: undefined,
 
     load() {
+      if (!vm.isOrganization) {
+        return;
+      }
+
       vm.error = undefined;
       const promises = [];
       promises.push(OrganizationStore.getById(CLMContextLocations.getEntityId()));

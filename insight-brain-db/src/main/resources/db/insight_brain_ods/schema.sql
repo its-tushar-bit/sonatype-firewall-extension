@@ -683,6 +683,7 @@ CREATE TABLE source_control_pull_request_comment
   component_hash varchar(20),
   pull_request_id int NOT NULL,
   pull_request_comment_id int NOT NULL,
+  pull_request_comment_version int default NULL,
   source_policy_evaluation_id varchar(50) NOT NULL,
   target_policy_evaluation_id varchar(50) NOT NULL,
   create_time timestamp NOT NULL,

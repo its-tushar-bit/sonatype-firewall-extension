@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -143,11 +144,22 @@ public class PullRequestLineFeedbackTest
     final ConstraintFact constraintFact = constraintFact("constraint_" + number, "Constraint " + number, "OR");
     constraintFact.addConditionFact(conditionFact);
 
+    List<ConstraintFact> constraintFactList;
     PolicyEvaluation evaluation = new PolicyEvaluation();
+    if (number == 5) { // add a little variance
+      ConstraintFact constraintFact2 = constraintFact("constraint_5.1", "Constraint 5.1", "OR");
+      constraintFact2.addConditionFact(conditionFact);
+      constraintFactList = new LinkedList<>();
+      constraintFactList.add(constraintFact);
+      constraintFactList.add(constraintFact2);
+    }
+    else {
+      constraintFactList = Collections.singletonList(constraintFact);
+    }
     PolicyViolation policyViolation =
         new PolicyViolation(evaluation, "policy_" + number, "Policy " + number, number,
             PolicyThreatCategory.OTHER, "H", ComponentIdentifier.createMavenCoordinates("G", "A", "V"),
-            Collections.singletonList(constraintFact), "filename");
+            constraintFactList, "filename");
 
     return policyViolation;
   }

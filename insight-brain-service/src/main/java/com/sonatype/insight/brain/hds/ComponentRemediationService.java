@@ -131,22 +131,22 @@ public class ComponentRemediationService
             telemetryAttributes.put(OPTION_NEXT_NO_VIOLATIONS_ATTR, String.valueOf(true));
           });
 
+      // nonFailingVersions will be empty if stage is not specified
+      // and we won't add non-failing/non-failing with dependencies remedies.
+      List<ComponentIdentifier> nonFailingVersions = (stageId == null) ?
+          Collections.emptyList() :
+          nonFailingVersions(currentIndex, allVersions);
+
+      // find first non failing version
+      nonFailingVersions.stream()
+          .findFirst()
+          .ifPresent(identifier -> {
+            componentRemediationDto.versionChanges.add(
+                createVersionChangeOption(identifier, ApiVersionChangeOptionType.NEXT_NON_FAILING));
+            telemetryAttributes.put(OPTION_NEXT_NON_FAILING_ATTR, String.valueOf(true));
+          });
+
       if (includeAdvancedStrategies) {
-        // nonFailingVersions will be empty if stage is not specified
-        // and we won't add non-failing/non-failing with dependencies remedies.
-        List<ComponentIdentifier> nonFailingVersions = (stageId == null) ?
-            Collections.emptyList() :
-            nonFailingVersions(currentIndex, allVersions);
-
-        // find first non failing version
-        nonFailingVersions.stream()
-            .findFirst()
-            .ifPresent(identifier -> {
-              componentRemediationDto.versionChanges.add(
-                  createVersionChangeOption(identifier, ApiVersionChangeOptionType.NEXT_NON_FAILING));
-              telemetryAttributes.put(OPTION_NEXT_NON_FAILING_ATTR, String.valueOf(true));
-            });
-
         // non-violating/non-failing with dependencies
         Collection<PackageUrlIdentifier> nonFailingVersionsPurls = nonFailingVersions.stream()
             .map(PackageUrlIdentifier::fromComponentIdentifier)

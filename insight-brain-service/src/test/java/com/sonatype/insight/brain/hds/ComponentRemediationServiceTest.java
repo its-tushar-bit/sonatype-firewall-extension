@@ -290,7 +290,8 @@ public class ComponentRemediationServiceTest
         allVersions, org.getType(), org.getId(), DevelopStageType.ID, false);
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3.packageUrl));
-    assertThat(dto.versionChanges).hasSize(1);
+    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V2.packageUrl));
+    assertThat(dto.versionChanges).hasSize(2);
   }
 
   /**
@@ -327,7 +328,8 @@ public class ComponentRemediationServiceTest
         allVersions, org.getType(), org.getId(), DevelopStageType.ID, false);
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3.packageUrl));
-    assertThat(dto.versionChanges).hasSize(1);
+    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V2.packageUrl));
+    assertThat(dto.versionChanges).hasSize(2);
   }
 
   /*

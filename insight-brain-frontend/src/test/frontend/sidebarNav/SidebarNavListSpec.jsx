@@ -35,13 +35,13 @@ describe('SidebarNavList', function() {
     gotoNewVulnerabilitySpy = jasmine.createSpy('gotoNewVulnerability');
 
     minimalProps = {
+      stateParams: {
+        id: '123456',
+        sidebarId: 'foo',
+        type: 'violation',
+        sidebarReference: 'filter'
+      },
       $state: {
-        params: {
-          id: '123456',
-          sidebarId: 'foo',
-          type: 'violation',
-          sidebarReference: 'filter'
-        },
         get: always({
           data: {
             title: 'asdf'
@@ -66,7 +66,7 @@ describe('SidebarNavList', function() {
   });
 
   it('renders an aside component with the "nx-page-sidebar" class', function() {
-    expect(getShallowComponent()).toMatchSelector('aside.nx-page-sidebar');
+    expect(getShallowComponent()).toMatchSelector('aside.nx-page-scrollbar--violations-list');
   });
 
   it('renders a BackButton using the supplied $state and stateName', function() {
@@ -83,25 +83,25 @@ describe('SidebarNavList', function() {
     expect(backButtonComponent).not.toExist();
   });
 
-  it('renders a LoadWrapper within the nx-page-sidebar', function() {
-    expect(getShallowComponent().find('.nx-page-sidebar').find(LoadWrapper)).toExist();
+  it('renders a LoadWrapper', function() {
+    expect(getShallowComponent().find(LoadWrapper)).toExist();
   });
 
   it('sets the LoadWrapper\'s loading flag based on the loading prop', function() {
-    const getLoadWrapper = props => getShallowComponent(props).find('.nx-page-sidebar').find(LoadWrapper);
+    const getLoadWrapper = props => getShallowComponent(props).find(LoadWrapper);
 
     expect(getLoadWrapper({ loading: false })).toHaveProp('loading', false);
     expect(getLoadWrapper({ loading: true })).toHaveProp('loading', true);
   });
 
   it('sets the LoadWrapper\'s error flag based on the error prop', function() {
-    const getLoadWrapper = props => getShallowComponent(props).find('.nx-page-sidebar').find(LoadWrapper);
+    const getLoadWrapper = props => getShallowComponent(props).find(LoadWrapper);
 
     expect(getLoadWrapper({ error: 'error' })).toHaveProp('error', 'error');
     expect(getLoadWrapper({ error: null })).toHaveProp('error', null);
   });
 
-  it('calls loadViolation with the value of the $state params object on first load', function() {
+  it('calls loadViolation with the value of the stateParams object on first load', function() {
     getMountedComponent();
 
     expect(loadSidebarNavSpy).toHaveBeenCalledWith({
@@ -112,7 +112,7 @@ describe('SidebarNavList', function() {
     });
   });
 
-  it('calls loadViolation if the sidebarId, sidebarReference or type on the $state param object changes', function() {
+  it('calls loadViolation if the sidebarId, sidebarReference or type on the stateParams object changes', function() {
     const component = getMountedComponent();
 
     expect(loadSidebarNavSpy).toHaveBeenCalledTimes(1);
@@ -124,14 +124,12 @@ describe('SidebarNavList', function() {
     });
 
     component.setProps({
-      $state: {
-        ...minimalProps.$state,
-        params: {
-          id: '123456',
-          sidebarId: 'bar',
-          type: 'violation',
-          sidebarReference: 'filter'
-        }
+      ...minimalProps,
+      stateParams: {
+        id: '123456',
+        sidebarId: 'bar',
+        type: 'violation',
+        sidebarReference: 'filter'
       }
     });
     expect(loadSidebarNavSpy).toHaveBeenCalledTimes(2);
@@ -143,14 +141,12 @@ describe('SidebarNavList', function() {
     });
 
     component.setProps({
-      $state: {
-        ...minimalProps.$state,
-        params: {
-          id: '123456',
-          sidebarId: 'bar',
-          type: 'newViolation',
-          sidebarReference: 'filter'
-        }
+      ...minimalProps,
+      stateParams: {
+        id: '123456',
+        sidebarId: 'bar',
+        type: 'newViolation',
+        sidebarReference: 'filter'
       }
     });
     expect(loadSidebarNavSpy).toHaveBeenCalledTimes(3);
@@ -162,14 +158,12 @@ describe('SidebarNavList', function() {
     });
 
     component.setProps({
-      $state: {
-        ...minimalProps.$state,
-        params: {
-          id: '123456',
-          sidebarId: 'bar',
-          type: 'newViolation',
-          sidebarReference: 'newFilter'
-        }
+      ...minimalProps,
+      stateParams: {
+        id: '123456',
+        sidebarId: 'bar',
+        type: 'newViolation',
+        sidebarReference: 'newFilter'
       }
     });
     expect(loadSidebarNavSpy).toHaveBeenCalledTimes(4);
@@ -207,7 +201,7 @@ describe('SidebarNavList', function() {
   });
 
   it('renders the correct div and h4 elements within the LoadWrapper', function() {
-    const getLoadWrapper = props => getShallowComponent(props).find('.nx-page-sidebar').find(LoadWrapper);
+    const getLoadWrapper = props => getShallowComponent(props).find(LoadWrapper);
 
     const wrappingDiv = getLoadWrapper().find('div');
     expect(wrappingDiv).toMatchSelector('.nx-list');
@@ -219,7 +213,7 @@ describe('SidebarNavList', function() {
   });
 
   it('properly renders a SidebarNavViolationList component if the contentType is violations', function() {
-    const getLoadWrapper = props => getShallowComponent(props).find('.nx-page-sidebar').find(LoadWrapper);
+    const getLoadWrapper = props => getShallowComponent(props).find(LoadWrapper);
     const data = [{
       policyViolationId: 'aaa',
       threatLevel: 1,

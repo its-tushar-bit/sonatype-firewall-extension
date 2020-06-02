@@ -8,21 +8,47 @@ import * as PropTypes from 'prop-types';
 import NxThreatBar from '@sonatype/react-shared-components/components/NxThreatBar/NxThreatBar';
 import classnames from 'classnames';
 
+import { MAXIMIZE_HEIGHT_TIMEOUT, UPDATE_DIMENSIONS_TIMEOUT } from '../util/AngularCommon';
+
 export default function SidebarNavViolationList(props) {
   const {
     currentViolationId,
     violations,
-    onClick
+    onClick,
+    scrollToSelection
   } = props;
 
+  // wait time should be bigger than whatever MaximizedContainer takes
+  const SCROLL_TIMEOUT = MAXIMIZE_HEIGHT_TIMEOUT + UPDATE_DIMENSIONS_TIMEOUT + 100;
+
+  // Have to access `useRef` and `useEffect` through the React object due to testing limitations
+  const selectedElementRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (scrollToSelection) {
+      const timeoutId = setTimeout(() => {
+        if (selectedElementRef && selectedElementRef.current) {
+          selectedElementRef.current.scrollIntoView();
+        }
+      }, SCROLL_TIMEOUT, 'sidebar-nav'); // supply a flag so we can identify this call in tests
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    }
+  });
+
+  const isItemSelected = (item) => item.policyViolationId === currentViolationId;
+
   const listClass = (item) => classnames('nx-list__item', {
-    selected: item.policyViolationId === currentViolationId
+    selected: isItemSelected(item)
   });
 
   const listItems = violations.map((item) =>
     <li key = {item.policyViolationId}
         onClick={() => onClick(item.policyViolationId)}
-        className={listClass(item)}>
+        className={listClass(item)}
+        ref={isItemSelected(item) ? selectedElementRef : null}>
       <NxThreatBar policyThreatLevel={item.threatLevel}></NxThreatBar>
       <span className="iq-threat-number iq-threat-number--sidebar-nav">{item.threatLevel}</span>
       <span className="test-sidebar-nav-violation-policy-name">{item.policyName}</span>
@@ -45,5 +71,6 @@ SidebarNavViolationList.propTypes = {
         threatLevel: PropTypes.number.isRequired
       })
   ),
-  onClick: PropTypes.func.isRequired
+  onClick: PropTypes.func.isRequired,
+  scrollToSelection: PropTypes.bool.isRequired
 };

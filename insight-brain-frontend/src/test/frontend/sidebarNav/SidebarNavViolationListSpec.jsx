@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import React from 'react';
+import { mount } from 'enzyme';
 import * as enzymeUtils from '../enzymeUtils';
 
 describe('SidebarNavViolationList', function() {
@@ -20,6 +22,7 @@ describe('SidebarNavViolationList', function() {
     minimalProps = {
       currentViolationId: 'aaa',
       onClick: onClickSpy,
+      scrollToSelection: false,
       violations: [{
         policyViolationId: 'aaa',
         threatLevel: 1,
@@ -82,5 +85,81 @@ describe('SidebarNavViolationList', function() {
     let wrappingList = getShallowComponent({ violations }).find('ul');
     expect(wrappingList.childAt(0)).toHaveClassName('selected');
     expect(wrappingList.childAt(1)).not.toHaveClassName('selected');
+  });
+
+  describe('scrollBehavior', function() {
+    let container;
+
+    beforeEach(function() {
+      container = document.createElement('div');
+      document.body.appendChild(container);
+    });
+
+    afterEach(function() {
+      if (container) {
+        document.body.removeChild(container);
+        container = null;
+      }
+    });
+
+    it('scrolls to selection if `scrollToSelection` is true', function(done) {
+      const violations = [{
+        policyViolationId: 'aaa',
+        threatLevel: 1,
+        policyName: 'fooName'
+      }, {
+        policyViolationId: 'bbb',
+        threatLevel: 2,
+        policyName: 'barName'
+      }];
+
+      spyOn(window, 'setTimeout').and.callFake((...params) => {
+        const [callback, time, flag] = params;
+        // use the flag to differentiate all the calls to `setTimeout`
+        if (flag === 'sidebar-nav') {
+          expect(typeof callback).toEqual('function');
+          expect(time).toEqual(220);
+          const selectedItem = container.querySelector('.nx-list__item.selected');
+          expect(selectedItem).not.toBeNull();
+          const scrollSpy = spyOn(selectedItem, 'scrollIntoView');
+          callback();
+          expect(scrollSpy).toHaveBeenCalled();
+          done();
+        }
+      });
+
+      const props = {
+        ...minimalProps,
+        violations,
+        scrollToSelection: true
+      };
+      /**
+       * have to mount the component to a container
+       * so that it still exists by the time the timeout mock executes
+       */
+      mount(<SidebarNavViolationList {...props} />, { attachTo: container });
+    });
+
+    it('does not executes timeout if `scrollToSelection` is false', function() {
+      const violations = [{
+        policyViolationId: 'aaa',
+        threatLevel: 1,
+        policyName: 'fooName'
+      }, {
+        policyViolationId: 'bbb',
+        threatLevel: 2,
+        policyName: 'barName'
+      }];
+
+      spyOn(window, 'setTimeout').and.callThrough();
+
+      const props = {
+        ...minimalProps,
+        violations,
+        scrollToSelection: false
+      };
+      mount(<SidebarNavViolationList {...props} />, { attachTo: container });
+      expect(window.setTimeout).not.toHaveBeenCalled();
+    });
   });
 });

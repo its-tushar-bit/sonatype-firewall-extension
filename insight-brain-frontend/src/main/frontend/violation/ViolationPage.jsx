@@ -7,10 +7,9 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 
 import LoadWrapper from '../react/LoadWrapper';
-import MaximizedContainer from '../react/MaximizedContainer';
-import SidebarNavListContainer from '../sidebarNav/SidebarNavListContainer';
 import ViolationDetailsTile, { violationDetailsPropTypes } from './ViolationDetailsTile';
 import PolicyViolationInfoTile, { constraintViolationsPropType } from './PolicyViolationInfoTile';
+import MaximizedContainer from '../react/MaximizedContainer';
 
 export default function ViolationPage(props) {
   const {
@@ -36,19 +35,16 @@ export default function ViolationPage(props) {
   }
 
   return (
-    <MaximizedContainer id="violation-page" className="nx-page-content">
-      <SidebarNavListContainer $state={$state} />
-      <div className="nx-page-main">
-        <LoadWrapper error={error} loading={loading || !(violationDetails && stageTypes)}>
-          <ViolationDetailsTile { ...({ $state, stageTypes, violationDetails }) } />
-          <PolicyViolationInfoTile {...({
-            violationDetails,
-            vulnerabilityDetails,
-            vulnerabilityDetailsError,
-            vulnerabilityDetailsLoading
-          })}/>
-        </LoadWrapper>
-      </div>
+    <MaximizedContainer id="violation-page">
+      <LoadWrapper error={error} loading={loading || !(violationDetails && stageTypes)}>
+        <ViolationDetailsTile { ...({ $state, stageTypes, violationDetails }) } />
+        <PolicyViolationInfoTile {...({
+          violationDetails,
+          vulnerabilityDetails,
+          vulnerabilityDetailsError,
+          vulnerabilityDetailsLoading
+        })}/>
+      </LoadWrapper>
     </MaximizedContainer>
   );
 }

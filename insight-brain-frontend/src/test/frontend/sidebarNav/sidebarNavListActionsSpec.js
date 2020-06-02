@@ -25,7 +25,7 @@ describe('sidebarNavListActions', function() {
       const stateGoSpy = spyOn(RouterActions, 'stateGo');
 
       gotoNewVulnerability(id);
-      expect(stateGoSpy).toHaveBeenCalledWith('violation', { id });
+      expect(stateGoSpy).toHaveBeenCalledWith('sidebarView.violation', { id });
     });
   });
 
@@ -69,94 +69,6 @@ describe('sidebarNavListActions', function() {
         sidebarId: '12345',
         contentType: 'violation'
       });
-    });
-
-    it('doesn\'t dispatch LOAD_SIDEBAR_NAV_LIST_REQUESTED if called with the same parameters', function() {
-      spyOn(axios, 'get').and.returnValue(Promise.resolve());
-      store = SpecUtil.mockReduxStore(initialState);
-
-      const stateParams = {
-        type: 'violation',
-        sidebarReference: 'filter',
-        sidebarId: '333'
-      };
-      store.dispatch(loadSidebarNav(stateParams));
-
-      expect(store.getActions().length).toBe(0);
-    });
-
-    it('doesn\'t dispatch LOAD_SIDEBAR_NAV_LIST_REQUESTED if sidebarId is undefined on the state.params', function() {
-      spyOn(axios, 'get').and.returnValue(Promise.resolve());
-      store = SpecUtil.mockReduxStore({
-        dashboardFilter: {
-          appliedFilter: 'dashboardAppliedFilter'
-        },
-        dashboard: {
-          violations: {
-            sortFields: ['firstOccurrenceTime']
-          }
-        },
-        sidebarNavList: {
-          sidebarId: null,
-          sidebarReference: 'filter'
-        }
-      });
-
-      const stateParams = {
-        type: 'violation',
-        sidebarReference: 'filter',
-        sidebarId: undefined
-      };
-      store.dispatch(loadSidebarNav(stateParams));
-
-      expect(store.getActions().length).toBe(0);
-    });
-
-    it('dispatches LOAD_SIDEBAR_NAV_LIST_REQUESTED if called with a different sidebarReference', function() {
-      spyOn(axios, 'get').and.returnValue(Promise.resolve());
-      store = SpecUtil.mockReduxStore(initialState);
-
-      const stateParams = {
-        type: 'violation',
-        sidebarId: '555',
-        sidebarReference: 'sidebarReferenceFilter'
-      };
-      store.dispatch(loadSidebarNav(stateParams));
-
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[0].type).toEqual(LOAD_SIDEBAR_NAV_LIST_REQUESTED);
-      expect(store.getActions()[1].type).toEqual(LOAD_SIDEBAR_NAV_LIST_FAILED);
-
-      stateParams.sidebarReference = 'newSidebarReferenceFilter';
-      store.dispatch(loadSidebarNav(stateParams));
-
-      expect(store.getActions().length).toBe(4);
-      expect(store.getActions()[0].type).toEqual(LOAD_SIDEBAR_NAV_LIST_REQUESTED);
-      expect(store.getActions()[1].type).toEqual(LOAD_SIDEBAR_NAV_LIST_FAILED);
-      expect(store.getActions()[2].type).toEqual(LOAD_SIDEBAR_NAV_LIST_REQUESTED);
-      expect(store.getActions()[3].type).toEqual(LOAD_SIDEBAR_NAV_LIST_FAILED);
-    });
-
-    it('dispatches LOAD_SIDEBAR_NAV_LIST_REQUESTED if called with a different sidebarId', function() {
-      spyOn(axios, 'get').and.returnValue(Promise.resolve());
-      store = SpecUtil.mockReduxStore(initialState);
-
-      const stateParams = {
-        type: 'violation',
-        sidebarReference: 'filter',
-        sidebarId: '555'
-      };
-      store.dispatch(loadSidebarNav(stateParams));
-
-      expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toEqual(LOAD_SIDEBAR_NAV_LIST_REQUESTED);
-
-      stateParams.sidebarId = '999';
-      store.dispatch(loadSidebarNav(stateParams));
-
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[0].type).toEqual(LOAD_SIDEBAR_NAV_LIST_REQUESTED);
-      expect(store.getActions()[1].type).toEqual(LOAD_SIDEBAR_NAV_LIST_REQUESTED);
     });
 
     it('doesn\'t make an axios call or fail if type is null', function() {

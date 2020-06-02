@@ -38,11 +38,11 @@ public class ViolationDetailsPage
   }
 
   public NxBackButton backButton() {
-    return new NxBackButton(childSelector(".nx-page-sidebar"));
+    return new NxBackButton(".nx-page-sidebar");
   }
 
   public SidebarNav sidebarNav() {
-    return new SidebarNav(childSelector("#sidebar-nav-list"));
+    return new SidebarNav("#sidebar-nav-list");
   }
 
   public static class SidebarNav extends BasicElement<SidebarNav>

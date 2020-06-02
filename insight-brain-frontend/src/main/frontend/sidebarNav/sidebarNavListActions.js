@@ -16,16 +16,8 @@ export const LOAD_SIDEBAR_NAV_LIST_REQUESTED = 'LOAD_SIDEBAR_NAV_LIST_REQUESTED'
 export const LOAD_SIDEBAR_NAV_LIST_FULFILLED = 'LOAD_SIDEBAR_NAV_LIST_FULFILLED';
 export const LOAD_SIDEBAR_NAV_LIST_FAILED = 'LOAD_SIDEBAR_NAV_LIST_FAILED';
 
-function sidebarNavDoesNotNeedLoading(state, sidebarReference, sidebarId) {
-  return sidebarId === state.sidebarNavList.sidebarId && sidebarReference === state.sidebarNavList.sidebarReference;
-}
-
 export function loadSidebarNav({type = null, sidebarReference = null, sidebarId = null}) {
   return function(dispatch, getState) {
-    if (sidebarNavDoesNotNeedLoading(getState(), sidebarReference, sidebarId)) {
-      return Promise.resolve();
-    }
-
     dispatch(loadSidebarNavListRequested({ contentType: type, sidebarReference, sidebarId }));
 
     if (type) {
@@ -66,7 +58,7 @@ function loadViolations(dispatch, getState, sidebarReference) {
 }
 
 export function gotoNewVulnerability(id) {
-  return stateGo('violation', { id });
+  return stateGo('sidebarView.violation', { id });
 }
 
 const loadSidebarNavListRequested = payloadParamActionCreator(LOAD_SIDEBAR_NAV_LIST_REQUESTED);

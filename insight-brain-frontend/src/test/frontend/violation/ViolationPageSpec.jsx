@@ -27,17 +27,12 @@ describe('ViolationPage', function() {
       fetchStageTypesSpy,
       ViolationPage,
       getShallowComponent,
-      getMountedComponent,
-      SidebarNavListContainerMock;
+      getMountedComponent;
 
   beforeEach(function() {
-    SidebarNavListContainerMock = jasmine.createSpy('SidebarNavListContainerMock')
-        .and.returnValue(<div>NavList</div>);
-
     ViolationPage =
         require('inject-loader!../../../main/frontend/violation/ViolationPage')({
-          '../react/MaximizedContainer': MaximizedContainer,
-          '../sidebarNav/SidebarNavListContainer': SidebarNavListContainerMock
+          '../react/MaximizedContainer': MaximizedContainer
         }).default;
 
     loadViolationSpy = jasmine.createSpy('loadViolation');
@@ -62,23 +57,19 @@ describe('ViolationPage', function() {
     getMountedComponent = enzymeUtils.getMountedComponent(ViolationPage, minimalProps);
   });
 
-  it('renders a MaximizedContainer with the "violation-page" id and "nx-page-content" class', function() {
+  it('renders a MaximizedContainer with the "violation-page" id', function() {
     const component = getShallowComponent();
 
     expect(component).toMatchSelector(MaximizedContainer);
-    expect(component).toMatchSelector('#violation-page.nx-page-content');
+    expect(component).toMatchSelector('#violation-page');
   });
 
-  it('renders a SidebarNavListContainer using the supplied $state', function() {
-    expect(getShallowComponent().find(SidebarNavListContainerMock)).toHaveProp('$state', minimalProps.$state);
-  });
-
-  it('renders a LoadWrapper within the nx-page-main', function() {
-    expect(getShallowComponent().find('.nx-page-main').find(LoadWrapper)).toExist();
+  it('renders a LoadWrapper within the page', function() {
+    expect(getShallowComponent().find(LoadWrapper)).toExist();
   });
 
   it('sets the LoadWrapper\'s loading flag based on the loading, violationDetails, and stageTypes props', function() {
-    const getLoadWrapper = props => getShallowComponent(props).find('.nx-page-main').find(LoadWrapper);
+    const getLoadWrapper = props => getShallowComponent(props).find(LoadWrapper);
 
     expect(getLoadWrapper()).toHaveProp('loading', true);
     expect(getLoadWrapper({ violationDetails: {} })).toHaveProp('loading', true);
@@ -88,7 +79,7 @@ describe('ViolationPage', function() {
   });
 
   it('sets the LoadWrapper\'s error from the violationDetailsError and stageTypesError props', function() {
-    const getLoadWrapper = props => getShallowComponent(props).find('.nx-page-main').find(LoadWrapper);
+    const getLoadWrapper = props => getShallowComponent(props).find(LoadWrapper);
 
     expect(getLoadWrapper()).toHaveProp('error', undefined);
     expect(getLoadWrapper({ violationDetailsError: 'foo' })).toHaveProp('error', 'foo');

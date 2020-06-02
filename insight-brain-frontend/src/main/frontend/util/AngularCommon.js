@@ -8,6 +8,9 @@ import CommonServicesModule from './CommonServices';
 
 export let maximizeHeightServiceInstance;
 
+export const MAXIMIZE_HEIGHT_TIMEOUT = 20;
+export const UPDATE_DIMENSIONS_TIMEOUT = 100;
+
 var angularCommon = angular.module('AngularCommon',
     [CommonServicesModule.name, 'ui.bootstrap', 'ngSanitize', 'vs-repeat']);
 
@@ -690,7 +693,7 @@ angularCommon.service('maximizeHeightService', ['$timeout', '$window', '$rootSco
               minHeight: 0
             });
             timerId = updateDimensionsTimerId || timerId;
-          }, 20);
+          }, MAXIMIZE_HEIGHT_TIMEOUT);
         }
 
         $rootScope.$on('recalculateContainerHeights', debounce);
@@ -749,7 +752,7 @@ angularCommon.service('maximizeHeightService', ['$timeout', '$window', '$rootSco
         else if (document.body.contains(element[0])) {
           return $timeout(function () {
             me.updateDimensions(element, options);
-          }, 100);
+          }, UPDATE_DIMENSIONS_TIMEOUT);
         }
       }
     };
@@ -769,7 +772,7 @@ angularCommon.directive('maximizeHeight', ['$timeout', '$window', 'maximizeHeigh
         }
         timerId = $timeout(function() {
           timerId = maximizeHeightService.updateDimensions(element) || timerId;
-        }, 20);
+        }, MAXIMIZE_HEIGHT_TIMEOUT);
       }
 
       scope.$on('$destroy', function() {
@@ -779,7 +782,7 @@ angularCommon.directive('maximizeHeight', ['$timeout', '$window', 'maximizeHeigh
         $($window).unbind('resize', debounce);
       });
 
-      $timeout(debounce, 100);
+      $timeout(debounce, UPDATE_DIMENSIONS_TIMEOUT);
       $($window).resize(debounce);
 
     };

@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.nexus.iq.manager.PullRequestCommand;
@@ -78,6 +77,8 @@ public class PullRequestTask
   {
     this.pullRequestRemediationDetails = pullRequestRemediationDetails;
     this.pullRequestExecutor = pullRequestExecutor;
+    applicationId = pullRequestRemediationDetails.getApp().getId();
+    gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
   }
 
   @Override
@@ -88,16 +89,14 @@ public class PullRequestTask
     }
     File checkoutDir = null;
     try {
-      String applicationId = pullRequestRemediationDetails.getApp().getId();
       log.info("Pull request task initiated for application '{}'", applicationId);
-      GitRepositoryInfo gitInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
 
-      checkoutDir = getCheckoutDirectory(pullRequestRemediationDetails.getApp().getPublicId(), applicationId, 
-          gitInfo.baseBranch);
+      checkoutDir = getCheckoutDirectory(pullRequestRemediationDetails.getApp().getPublicId(), applicationId,
+          gitRepositoryInfo.baseBranch);
 
       PullRequestCommand command = new PullRequestCommandBuilder()
           .withRepositoryDirectory(checkoutDir)
-          .withBaseBranch(gitInfo.baseBranch)
+          .withBaseBranch(gitRepositoryInfo.baseBranch)
           .withPullRequestBranchName(pullRequestRemediationDetails.getPullRequestBranchName())
           .withCommitMessage(pullRequestRemediationDetails.getTitle())
           .withCommitter(DEFAULT_COMMITTER)
@@ -106,8 +105,8 @@ public class PullRequestTask
           .withPullRequestTitle(pullRequestRemediationDetails.getTitle())
           .withRemediationTarget(pullRequestRemediationDetails.getToBeRemediated())
           .withRemediationVersion(pullRequestRemediationDetails.getRemediatedVersion())
-          .withGitApiClient(gitClientFactory.createApiClient(gitInfo))
-          .withGitApi(gitApiFactory.createGitApi(gitInfo))
+          .withGitApiClient(gitClientFactory.createApiClient(gitRepositoryInfo))
+          .withGitApi(gitApiFactory.createGitApi(gitRepositoryInfo))
           .build();
 
       PullRequestResult result = pullRequestExecutor.execute(command);

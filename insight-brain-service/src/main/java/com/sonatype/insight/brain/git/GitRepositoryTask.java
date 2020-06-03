@@ -14,6 +14,8 @@ import java.util.Locale;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.nexus.iq.concurrency.ResourceAware;
 
 import com.google.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +28,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * Base class for tasks that involve repository cloning and SCM interactions.
  */
 public abstract class GitRepositoryTask
+    implements ResourceAware
 {
   private static final Logger log = LoggerFactory.getLogger(GitRepositoryTask.class);
 
@@ -37,9 +40,17 @@ public abstract class GitRepositoryTask
 
   private static final String PATH_REGEX = "[^a-z0-9\\-]";
 
+  private static final String DEFAULT_RESOURCE_ID = "DEFAULT_RESOURCE_ID";
+
   private final FileCleaner fileCleaner;
 
   private final InsightConfig insightConfig;
+
+  protected String applicationId;
+
+  protected GitRepositoryInfo gitRepositoryInfo;
+
+  private String resourceId;
 
   @Inject
   public GitRepositoryTask(
@@ -127,6 +138,20 @@ public abstract class GitRepositoryTask
     catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException("Unable to create SHA1 hash for checkout directory.", e);
     }
+  }
+
+  @Override
+  public String getResourceId() {
+    if (resourceId == null) {
+      if (gitRepositoryInfo != null) {
+        String repositoryUrl = gitRepositoryInfo.getRepositoryUrl();
+        if (StringUtils.isNotEmpty(repositoryUrl)) {
+          resourceId = repositoryUrl;
+        }
+      }
+      resourceId = DEFAULT_RESOURCE_ID;
+    }
+    return resourceId;
   }
 }
 

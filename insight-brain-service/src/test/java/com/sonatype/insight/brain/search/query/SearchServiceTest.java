@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
-import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector;
@@ -34,7 +33,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES;
 import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES_BY_FIELD_NAME;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -158,7 +157,8 @@ public class SearchServiceTest
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
         .map(searchResultItemDTO -> searchResultItemDTO.applicationId)
         .collect(toList());
-    assertThat(applicationIds).containsOnly(application.getId()); }
+    assertThat(applicationIds).containsOnly(application.getId());
+  }
 
   @Test
   public void testSearchIndex_AllPermittedApplicationsReturned() throws IOException {

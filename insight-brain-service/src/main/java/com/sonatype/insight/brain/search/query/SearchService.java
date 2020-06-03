@@ -25,6 +25,8 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.search.LuceneComponents;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
@@ -32,6 +34,8 @@ import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -40,10 +44,15 @@ import com.sonatype.insight.error.exception.ConflictException;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHits.Relation;
 import org.apache.lucene.store.FSDirectory;
@@ -67,15 +76,23 @@ public class SearchService
 
   private final AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics;
 
+  private final PermissionService permissionService;
+
+  private final CurrentUser currentUser;
+
   @Inject
   public SearchService(
       InsightWork insightWork,
       LuceneComponents luceneComponents,
-      AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics)
+      AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics,
+      PermissionService permissionService,
+      CurrentUser currentUser)
   {
     this.insightWork = insightWork;
     this.luceneComponents = luceneComponents;
     this.advancedSearchTelemetryMetrics = advancedSearchTelemetryMetrics;
+    this.permissionService = permissionService;
+    this.currentUser = currentUser;
   }
 
   public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page) throws IOException {
@@ -122,8 +139,10 @@ public class SearchService
         throw new BadRequestException("The search query contains invalid field names: " + invalidFieldNames);
       }
 
+      Query queryWithPermissions = appendAllowedApplicationsAndOrganizationsToQuery(query);
+
       // Passing 0 to IndexSearcher#search throws IllegalArgumentException with 'numHits must be > 0'
-      TopDocs topDocs = indexSearcher.search(query, Math.max(1, indexReader.maxDoc()));
+      TopDocs topDocs = indexSearcher.search(queryWithPermissions, Math.max(1, indexReader.maxDoc()));
       ScoreDoc[] scoreDocs = topDocs.scoreDocs;
 
       List<Document> documents = new ArrayList<>();
@@ -300,5 +319,27 @@ public class SearchService
     String policyThreatLevel = document.get(POLICY_THREAT_LEVEL.label);
     searchResultItemDTO.policyThreatLevel = policyThreatLevel == null ? null : Integer.valueOf(policyThreatLevel);
     return searchResultItemDTO;
+  }
+
+  private Query appendAllowedApplicationsAndOrganizationsToQuery(Query query) {
+    Set<String> contextIdsWithReadPermission =
+        permissionService.getContextIdsForUserWithPermission(currentUser.getUserPrincipal(), Permission.READ);
+
+    if (contextIdsWithReadPermission.contains(MembershipMapping.GLOBAL_CONTEXT_ID)) {
+      return query;
+    }
+
+    Builder allowedContextIdsQueryBuilder = new Builder();
+    for (String contextId : contextIdsWithReadPermission) {
+      allowedContextIdsQueryBuilder.add(new TermQuery(new Term(APPLICATION_ID.label, contextId)), Occur.SHOULD);
+      allowedContextIdsQueryBuilder.add(new TermQuery(new Term(ORGANIZATION_ID.label, contextId)), Occur.SHOULD);
+    }
+
+    BooleanQuery allowedContextIdsAndUserQueryConcat =
+        new Builder()
+            .add(allowedContextIdsQueryBuilder.build(), Occur.MUST)
+            .add(query, Occur.MUST).build();
+
+    return allowedContextIdsAndUserQueryConcat;
   }
 }

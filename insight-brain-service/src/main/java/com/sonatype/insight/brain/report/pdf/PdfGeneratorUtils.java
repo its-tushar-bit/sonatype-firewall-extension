@@ -79,8 +79,10 @@ final class PdfGeneratorUtils
     if (textHeight > rectangleHeight) {
       rectangleHeight = textHeight;
     }
+
     drawRectangle(pdPageContentStream, x, y, rectangleWidth, rectangleHeight, rectangleColor);
-    addText(pdPageContentStream, x + (rectangleWidth / 2) - (textWidth / 2), y + (rectangleHeight - textHeight) / 2,
+    addText(pdPageContentStream, x + (rectangleWidth / 2) - (textWidth / 2),
+        y + (rectangleHeight - textHeight),
         fontStyle, text);
     return rectangleWidth;
   }

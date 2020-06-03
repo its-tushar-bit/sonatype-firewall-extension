@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -53,7 +54,6 @@ import org.vandeseer.easytable.structure.Table.TableBuilder;
 import org.vandeseer.easytable.structure.cell.AbstractCell;
 import org.vandeseer.easytable.structure.cell.TextCell;
 import org.vandeseer.easytable.structure.cell.TextCell.TextCellBuilder;
-import org.vandeseer.easytable.structure.cell.paragraph.Hyperlink;
 import org.vandeseer.easytable.structure.cell.paragraph.ParagraphCell;
 import org.vandeseer.easytable.structure.cell.paragraph.ParagraphCell.Paragraph;
 import org.vandeseer.easytable.structure.cell.paragraph.ParagraphCell.Paragraph.ParagraphBuilder;
@@ -61,6 +61,9 @@ import org.vandeseer.easytable.structure.cell.paragraph.ParagraphCell.ParagraphC
 import org.vandeseer.easytable.structure.cell.paragraph.StyledText;
 import rst.pdfbox.layout.text.FontDescriptor;
 import rst.pdfbox.layout.text.TextSequenceUtil;
+import rst.pdfbox.layout.text.annotations.AnnotatedStyledText;
+import rst.pdfbox.layout.text.annotations.Annotations;
+import rst.pdfbox.layout.text.annotations.Annotations.HyperlinkAnnotation.LinkStyle;
 import rst.pdfbox.layout.util.Pair;
 import rst.pdfbox.layout.util.WordBreakerFactory;
 import rst.pdfbox.layout.util.WordBreakers;
@@ -110,7 +113,7 @@ public class PdfGenerator
 
   private static final int SUMMARY_IMAGE_SIZE = 20;
 
-  private static final int DEFAULT_FONT_SIZE = 10;
+  private static final int DEFAULT_FONT_SIZE = 8;
 
   private static final int HEADER_FONT_SIZE = 20;
 
@@ -118,7 +121,9 @@ public class PdfGenerator
 
   private static final int GRANDFATHERED_SYMBOL_FONT_SIZE = 25;
 
-  private static final int THREAT_LEVEL_FONT_SIZE = 12;
+  private static final int THREAT_LEVEL_FONT_SIZE = 10;
+
+  private static final int SUMMARY_PADDING = 4;
 
   private static final Color DEFAULT_FONT_COLOR = Color.BLACK;
 
@@ -208,26 +213,26 @@ public class PdfGenerator
 
   // Visible for testing
   void initFontStyles(PDDocument pdf) {
-    PDType0Font proximanova = loadPDType0Font(pdf, "proximanova-reg-webfont.ttf");
-    PDType0Font proximanovaSemibold = loadPDType0Font(pdf, "proximanova-sbold-webfont.ttf");
-    PDType0Font proximanovaBold = loadPDType0Font(pdf, "proximanova-bold-webfont.ttf");
+    PDType0Font regularFont = loadPDType0Font(pdf, "OpenSans-Regular.ttf");
+    PDType0Font semiBoldFont = loadPDType0Font(pdf, "OpenSans-SemiBold.ttf");
+    PDType0Font boldFont = loadPDType0Font(pdf, "OpenSans-Bold.ttf");
     PDType0Font fontawesome = loadPDType0Font(pdf, "fontawesome-webfont.ttf");
 
-    sonatypeFontStyle = new FontStyle(proximanova, HEADER_FONT_SIZE, DEFAULT_FONT_COLOR);
-    applicationCompositionReportFontStyle = new FontStyle(proximanova, HEADER_FONT_SIZE,
+    sonatypeFontStyle = new FontStyle(regularFont, HEADER_FONT_SIZE, DEFAULT_FONT_COLOR);
+    applicationCompositionReportFontStyle = new FontStyle(regularFont, HEADER_FONT_SIZE,
         APPLICATION_COMPOSITION_REPORT_COLOR);
-    titleFontStyle = new FontStyle(proximanova, TITLE_FONT_SIZE, DEFAULT_FONT_COLOR);
-    dateDescriptorFontStyle = new FontStyle(proximanova, DEFAULT_FONT_SIZE, DATE_DESCRIPTOR_COLOR);
-    dateFontStyle = new FontStyle(proximanova, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
-    summaryHeaderFontStyle = new FontStyle(proximanovaBold, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
-    summaryFontStyle = new FontStyle(proximanova, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
+    titleFontStyle = new FontStyle(regularFont, TITLE_FONT_SIZE, DEFAULT_FONT_COLOR);
+    dateDescriptorFontStyle = new FontStyle(regularFont, DEFAULT_FONT_SIZE, DATE_DESCRIPTOR_COLOR);
+    dateFontStyle = new FontStyle(regularFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
+    summaryHeaderFontStyle = new FontStyle(boldFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
+    summaryFontStyle = new FontStyle(regularFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
     grandfatheredFontStyle = new FontStyle(fontawesome, GRANDFATHERED_SYMBOL_FONT_SIZE, DEFAULT_FONT_COLOR);
-    tableRowHeaderFontStyle = new FontStyle(proximanovaSemibold, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
-    tableRowFontStyle = new FontStyle(proximanova, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
+    tableRowHeaderFontStyle = new FontStyle(semiBoldFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
+    tableRowFontStyle = new FontStyle(regularFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
     rectangleFontStyle = new FontStyle(summaryFontStyle.getFont(), 14f, Color.WHITE);
-    threatLevelFontStyle = new FontStyle(proximanovaSemibold, THREAT_LEVEL_FONT_SIZE, DEFAULT_FONT_COLOR);
-    declaredLicensesFontStyle = new FontStyle(proximanovaBold, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
-    observedLicensesFontStyle = new FontStyle(proximanova, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
+    threatLevelFontStyle = new FontStyle(semiBoldFont, THREAT_LEVEL_FONT_SIZE, DEFAULT_FONT_COLOR);
+    declaredLicensesFontStyle = new FontStyle(boldFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
+    observedLicensesFontStyle = new FontStyle(regularFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
   }
 
   private void setDocumentMetadata() {
@@ -265,7 +270,8 @@ public class PdfGenerator
       long moderate = countPolicyViolations(2, 3);
       long total = critical + severe + moderate;
       float criticalStartX = MARGIN;
-      float criticalStartY = titleAndDatesStartY - dateDescriptorFontStyle.getFontDescent() - SUMMARY_IMAGE_SIZE;
+      float criticalStartY = titleAndDatesStartY - dateDescriptorFontStyle.getFontDescent() - SUMMARY_IMAGE_SIZE
+          - SUMMARY_PADDING;
       float criticalWidth = drawRectangleWithText(contentStream, criticalStartX, criticalStartY, SUMMARY_IMAGE_SIZE,
           SUMMARY_IMAGE_SIZE, ThreatLevelColor.get(8), rectangleFontStyle, String.valueOf(critical));
       float severeStartX = criticalStartX + criticalWidth + PADDING;
@@ -309,7 +315,8 @@ public class PdfGenerator
       // Add policy violations table
       Table table = createPolicyViolationsTable(page);
       TableDrawer tableDrawer =
-          createTableDrawer(contentStream, criticalStartY - summaryFontStyle.getFontDescent(), table);
+          createTableDrawer(contentStream, criticalStartY - summaryFontStyle.getFontDescent()
+              - SUMMARY_PADDING, table);
 
       // End policy violations section
       pdf.addPage(page);
@@ -394,7 +401,8 @@ public class PdfGenerator
       // Add security issues table
       Table table = createSecurityIssuesTable(page);
       TableDrawer tableDrawer =
-          createTableDrawer(contentStream, titleAndDatesStartY - dateDescriptorFontStyle.getFontDescent(), table);
+          createTableDrawer(contentStream, titleAndDatesStartY - dateDescriptorFontStyle.getFontDescent()
+              - SUMMARY_PADDING, table);
 
       // End security issues section
       pdf.addPage(page);
@@ -436,10 +444,15 @@ public class PdfGenerator
     if (baseUrl == null) {
       return cellBuilder(vulnerabilityId).build();
     }
-    return paragraphCellBuilder().paragraph(Paragraph.builder()
-        .append(Hyperlink.builder().text(vulnerabilityId)
-            .url(baseUrl + UserInterfaceLinksResource.getVulnerabilityDetailsUrl(vulnerabilityId)).build())
-        .build()).build();
+
+    String url = baseUrl + UserInterfaceLinksResource.getVulnerabilityDetailsUrl(vulnerabilityId);
+    Annotations.HyperlinkAnnotation hyperlink = new Annotations.HyperlinkAnnotation(url, LinkStyle.none);
+    AnnotatedStyledText annotatedStyledText =
+        new AnnotatedStyledText(vulnerabilityId, tableRowFontStyle.getFontSize(), tableRowFontStyle.getFont(),
+            Color.BLUE, 0f, Collections.singleton(hyperlink));
+    Paragraph paragraph = Paragraph.builder().build();
+    paragraph.getWrappedParagraph().add(annotatedStyledText);
+    return paragraphCellBuilder().paragraph(paragraph).build();
   }
 
   private List<SecurityIssuesTableRow> createSecurityIssuesTableData() {
@@ -471,7 +484,8 @@ public class PdfGenerator
       // Add licenses table
       Table table = createLicensesTable(page);
       TableDrawer tableDrawer =
-          createTableDrawer(contentStream, titleAndDatesStartY - dateDescriptorFontStyle.getFontDescent(), table);
+          createTableDrawer(contentStream, titleAndDatesStartY - dateDescriptorFontStyle.getFontDescent()
+              - SUMMARY_PADDING, table);
 
       // End licenses section
       pdf.addPage(page);
@@ -561,7 +575,8 @@ public class PdfGenerator
               MatchState.SIMILAR.getName().equalsIgnoreCase(component.matchState)).count();
       long componentPercentIdentified = Math.round(100.0d * totalMatched / totalComponents);
       float donutChartStartX = MARGIN;
-      float donutChartStartY = titleAndDatesStartY - DONUT_CHART_SIZE - dateDescriptorFontStyle.getFontDescent();
+      float donutChartStartY = titleAndDatesStartY - DONUT_CHART_SIZE - dateDescriptorFontStyle.getFontDescent()
+          - SUMMARY_PADDING;
       IdentifiedPercentDonutChart identifiedPercentDonutChart =
           new IdentifiedPercentDonutChart(componentPercentIdentified);
       drawChart(pdf, contentStream, donutChartStartX, donutChartStartY, DONUT_CHART_SIZE, DONUT_CHART_SIZE,
@@ -578,7 +593,8 @@ public class PdfGenerator
       // Add bom table
       Table table = createBomTable(page);
       TableDrawer tableDrawer =
-          createTableDrawer(contentStream, donutChartStartY - summaryFontStyle.getFontDescent(), table);
+          createTableDrawer(contentStream, donutChartStartY - summaryFontStyle.getFontDescent()
+              - SUMMARY_PADDING, table);
 
       // End bom section
       pdf.addPage(page);

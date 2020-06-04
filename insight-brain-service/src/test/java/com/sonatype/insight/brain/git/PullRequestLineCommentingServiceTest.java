@@ -101,7 +101,9 @@ public class PullRequestLineCommentingServiceTest
   @Test
   public void testCreatePullRequestLineComments_oneComment() throws Exception {
     // given:
-    PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder().build();
+    PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
+        .withCommentVersion(85)
+        .build();
 
     // when: try to create line comments
     List<PullRequestLineCommentDTO> lineComments = service.createPullRequestLineComments(getViolationList(1),
@@ -113,6 +115,7 @@ public class PullRequestLineCommentingServiceTest
     assertThat(lineComments).isNotEmpty();
     assertThat(lineComments.size()).isEqualTo(1);
     assertThat(lineComments.get(0).getScmId()).isEqualTo(scmId);
+    assertThat(lineComments.get(0).getScmVersion()).isEqualTo(85);
     assertThat(lineComments.get(0).getMarkup()).isEqualTo(markupContent);
   }
 
@@ -337,6 +340,8 @@ public class PullRequestLineCommentingServiceTest
 
     private int existingLineCommentsCount = 0;
 
+    private Integer commentVersion = null;
+
     PullRequestLineCommentingService build() throws Exception {
       MockitoAnnotations.initMocks(this);
 
@@ -377,6 +382,7 @@ public class PullRequestLineCommentingServiceTest
 
         CommentResponse response = new DefaultCommentResponse();
         response.setId(scmId);
+        response.setVersion(commentVersion);
         when(mockGitApiClient.createPullRequestLineComment(anyInt(), anyString(), anyString(), anyString(), anyInt()))
             .thenReturn(response);
 
@@ -384,7 +390,7 @@ public class PullRequestLineCommentingServiceTest
           List<SourceControlPullRequestComment> existingLineComments = new ArrayList<>(existingLineCommentsCount);
           for (int i = 0; i < existingLineCommentsCount; i++) {
             SourceControlPullRequestComment sourceControlPullRequestComment =
-                new SourceControlPullRequestComment(applicationId, "componentHash" + i, pullRequestId, i, "", "");
+                new SourceControlPullRequestComment(applicationId, "componentHash" + i, pullRequestId, i, 1, "", "");
             existingLineComments.add(sourceControlPullRequestComment);
           }
           when(mockPullRequestCommentDAO.getByApplicationIdAndPullRequestIdWithComponents(applicationId, pullRequestId))
@@ -429,6 +435,11 @@ public class PullRequestLineCommentingServiceTest
 
     TestablePullRequestLineCommentingServiceBuilder withExistingLineComments(int existingLineCommentsCount) {
       this.existingLineCommentsCount = existingLineCommentsCount;
+      return this;
+    }
+
+    TestablePullRequestLineCommentingServiceBuilder withCommentVersion(Integer commentVersion) {
+      this.commentVersion = commentVersion;
       return this;
     }
 

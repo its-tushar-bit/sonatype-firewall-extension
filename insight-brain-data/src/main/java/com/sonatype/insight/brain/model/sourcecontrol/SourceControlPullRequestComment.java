@@ -38,6 +38,9 @@ public class SourceControlPullRequestComment
   @Column(name = "pull_request_comment_id")
   private int pullRequestCommentId;
 
+  @Column(name = "pull_request_comment_version")
+  private Integer pullRequestCommentVersion;
+
   @Column(name = "source_policy_evaluation_id")
   private String sourcePolicyEvaluationId;
 
@@ -64,6 +67,7 @@ public class SourceControlPullRequestComment
       String applicationId,
       int pullRequestId,
       int pullRequestCommentId,
+      Integer pullRequestCommentVersion,
       String contentHash,
       String sourcePolicyEvaluationId,
       String targetPolicyEvaluationId)
@@ -71,6 +75,7 @@ public class SourceControlPullRequestComment
     this.applicationId = applicationId;
     this.pullRequestId = pullRequestId;
     this.pullRequestCommentId = pullRequestCommentId;
+    this.pullRequestCommentVersion = pullRequestCommentVersion;
     this.contentHash = contentHash; 
     this.sourcePolicyEvaluationId = sourcePolicyEvaluationId;
     this.targetPolicyEvaluationId = targetPolicyEvaluationId;
@@ -86,10 +91,12 @@ public class SourceControlPullRequestComment
       String componentHash,
       int pullRequestId,
       int pullRequestCommentId,
+      Integer pullRequestCommentVersion,
       String sourcePolicyEvaluationId,
       String targetPolicyEvaluationId)
   {
-    this(applicationId, pullRequestId, pullRequestCommentId, null, sourcePolicyEvaluationId, targetPolicyEvaluationId);
+    this(applicationId, pullRequestId, pullRequestCommentId, pullRequestCommentVersion, null, sourcePolicyEvaluationId,
+        targetPolicyEvaluationId);
     this.componentHash = componentHash;
   }
 
@@ -136,6 +143,15 @@ public class SourceControlPullRequestComment
 
   public SourceControlPullRequestComment setPullRequestCommentId(final int pullRequestCommentId) {
     this.pullRequestCommentId = pullRequestCommentId;
+    return this;
+  }
+
+  public Integer getPullRequestCommentVersion() {
+    return pullRequestCommentVersion;
+  }
+
+  public SourceControlPullRequestComment setPullRequestCommentVersion(final Integer pullRequestCommentVersion) {
+    this.pullRequestCommentVersion = pullRequestCommentVersion;
     return this;
   }
 

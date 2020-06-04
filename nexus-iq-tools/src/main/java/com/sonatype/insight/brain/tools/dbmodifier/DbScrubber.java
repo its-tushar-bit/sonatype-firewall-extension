@@ -43,17 +43,19 @@ public class DbScrubber
       boolean keepFiles,
       File workDir)
   {
+    long start = System.currentTimeMillis();
+
     List<File> workingFiles = new ArrayList<>();
     try {
       log.info("Start: db scrub");
       String timestamp = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.ENGLISH).format(new Date());
-      File outFile = new File(workDir, SQL_FILENAME_PREFIX + "." + timestamp + ".sql");
-      workingFiles.add(outFile);
-      dumpDbToSql(outFile, dbConnectionString, username, password);
+      File sqlDumpFile = new File(workDir, SQL_FILENAME_PREFIX + "." + timestamp + ".sql");
+      workingFiles.add(sqlDumpFile);
+      dumpDbToSql(sqlDumpFile, dbConnectionString, username, password);
 
-      File scrubbedFile = new File(makeScrubFileName(outFile));
-      workingFiles.add(scrubbedFile);
-      scrubSqlBackup(outFile, scrubbedFile);
+      File scrubbedSqlFile = new File(makeScrubFileName(sqlDumpFile));
+      workingFiles.add(scrubbedSqlFile);
+      scrubSqlBackup(sqlDumpFile, scrubbedSqlFile);
 
       if (rebuild) {
         String rebuildDb = "./ods_scrubbed_" + timestamp;
@@ -62,13 +64,15 @@ public class DbScrubber
         String[] rebuildParams = new String[]{//
             "-url", rebuildDbUrl, //
             "-user", username, "-password", password, //
-            "-script", scrubbedFile.getAbsolutePath()};
-        long start = System.currentTimeMillis();
-        log.info("Starting rebuild to: " + rebuildDb);
+            "-script", scrubbedSqlFile.getAbsolutePath()};
+        long startRebuild = System.currentTimeMillis();
+        log.info("Starting rebuild to '{}'", rebuildDb);
         RunScript.main(rebuildParams);
-        log.info("Rebuild complete.");
-        log.info("Elapsed: " + (System.currentTimeMillis() - start) + "ms");
+        log.info("Rebuilt to '{}' in {} ms", rebuildDb, System.currentTimeMillis() - startRebuild);
       }
+    }
+    catch (RuntimeException e) {
+      throw e;
     }
     catch (Exception e) {
       throw new RuntimeException(e);
@@ -77,7 +81,7 @@ public class DbScrubber
       if (!keepFiles) {
         cleanup(workingFiles);
       }
-      log.info("Complete: db scrub");
+      log.info("Complete: db scrub in {} ms", System.currentTimeMillis() - start);
     }
   }
 
@@ -87,7 +91,7 @@ public class DbScrubber
         Files.delete(path);
       }
       catch (IOException ioex) {
-        log.error("Failed to delete file: " + path, ioex);
+        log.error("Failed to delete file '{}'", path, ioex);
       }
     });
   }
@@ -99,13 +103,17 @@ public class DbScrubber
       String password)
       throws SQLException
   {
+    long start = System.currentTimeMillis();
+    log.info("Exporting db to '{}'", outFile.getAbsolutePath());
+
     String[] params = new String[]{//
         "-url", dbConnectionString, //
         "-user", username, "-password", password, //
         "-script", outFile.getAbsolutePath(), //
         "-options", "SIMPLE"};
     Script.main(params);
-    log.info("Exported to: " + outFile);
+
+    log.info("Exported db to '{}' in {} ms", outFile.getAbsolutePath(), System.currentTimeMillis() - start);
   }
 
   private static String filterInserts(String sql) {
@@ -143,9 +151,9 @@ public class DbScrubber
 
   private static void scrubSqlBackup(File sqlFile, File scrubbedFile) throws IOException {
     long start = System.currentTimeMillis();
-    log.info("Scrubbing sql backup file at: " + sqlFile.getAbsolutePath());
+    log.info("Scrubbing sql backup file '{}'", sqlFile.getAbsolutePath());
 
-    log.info("Scrubbed sql ouput to: " + scrubbedFile.getAbsolutePath());
+    log.info("Writing scrubbed sql to '{}'", scrubbedFile.getAbsolutePath());
 
     int processedCount = 0;
     int insertCount = 0;
@@ -156,28 +164,36 @@ public class DbScrubber
       while ((sql = scriptReader.readStatement()) != null) {
         String[] lines = splitComments(sql);
         for (String line : lines) {
-          processedCount++;
-          String insert = filterInserts(line);
-
-          if (insert != null) {
-            SQLLine sqlLine = InputParser.parseInput(insert);
-            if (!"ERROR".equals(sqlLine.table)) {
-              scrubInputLine(sqlLine).forEach(scrubbedOut::println);
-              insertCount++;
+          try {
+            processedCount++;
+            String insertSqlString = filterInserts(line);
+            if (insertSqlString != null) {
+              SQLLine sqlLine = InputParser.parseInput(insertSqlString);
+              if (sqlLine != null) {
+                scrubInputLine(sqlLine).forEach(scrubbedOut::println);
+                insertCount++;
+              }
+              else {
+                scrubErrors++;
+              }
             }
             else {
-              scrubErrors++;
+              scrubbedOut.println(line.trim() + ";");
+            }
+            if (processedCount % 1000000 == 0) {
+              log.info("   Lines processed: {}", processedCount);
             }
           }
-          else {
-            scrubbedOut.println(line.trim() + ";");
+          catch (Exception e) {
+            log.error("Failed while processing line:\n{}", line);
+            throw e;
           }
         }
       }
     }
-    log.info("Lines processed: " + processedCount);
-    log.info("Insert lines: " + insertCount);
-    log.info("Errors: " + scrubErrors);
-    log.info("Elapsed: " + (System.currentTimeMillis() - start) + "ms");
+    log.info("Lines processed: {}", processedCount);
+    log.info("Insert lines: {}", insertCount);
+    log.info("Errors: {}", scrubErrors);
+    log.info("Scrubbed in {} ms", System.currentTimeMillis() - start);
   }
 }

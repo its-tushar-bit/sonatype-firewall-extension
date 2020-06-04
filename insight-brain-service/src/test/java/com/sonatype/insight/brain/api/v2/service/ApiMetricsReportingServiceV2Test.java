@@ -58,39 +58,39 @@ public class ApiMetricsReportingServiceV2Test
   public FakeDateRule fakeDateRule = new FakeDateRule();
 
   @Test
-  public void testGetMetrics_NullQuery() {
+  public void testValidate_NullQuery() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getMetrics(null);
+      service.validate(null);
     }).withMessage("Request parameters must be defined");
   }
 
   @Test
-  public void testGetMetrics_NullTimePeriod() {
+  public void testValidate_NullTimePeriod() {
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(null, "2018-02", "2018-02",
         Collections.emptySet(), Collections.emptySet());
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getMetrics(queryDTO);
+      service.validate(queryDTO);
     }).withMessage("timePeriod must be defined");
   }
 
   @Test
-  public void testGetMetrics_NullFirstTimePeriod() {
+  public void testValidate_NullFirstTimePeriod() {
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, null, "2018-02",
         Collections.emptySet(), Collections.emptySet());
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getMetrics(queryDTO);
+      service.validate(queryDTO);
     }).withMessage("firstTimePeriod must be defined");
   }
 
   @Test
-  public void testGetMetrics_LastTimePeriodBeforeFirst() {
+  public void testValidate_LastTimePeriodBeforeFirst() {
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2018-03", "2018-02",
         Collections.emptySet(), Collections.emptySet());
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getMetrics(queryDTO);
+      service.validate(queryDTO);
     }).withMessage("lastTimePeriod must not be before firstTimePeriod");
   }
 
@@ -327,36 +327,6 @@ public class ApiMetricsReportingServiceV2Test
         );
 
     assertDTO(actualDTO, expectedDTO);
-  }
-
-  @Test
-  public void testGetFlattenedMetrics_NullTimePeriod() {
-    ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(null, "2018-02", "2018-02",
-        Collections.emptySet(), Collections.emptySet());
-
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getFlattenedMetrics(queryDTO);
-    }).withMessage("timePeriod must be defined");
-  }
-
-  @Test
-  public void testGetFlattenedMetrics_NullFirstTimePeriod() {
-    ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, null, "2018-02",
-        Collections.emptySet(), Collections.emptySet());
-
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getFlattenedMetrics(queryDTO);
-    }).withMessage("firstTimePeriod must be defined");
-  }
-
-  @Test
-  public void testGetFlattenedMetrics_LastTimePeriodBeforeFirst() {
-    ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2018-03", "2018-02",
-        Collections.emptySet(), Collections.emptySet());
-
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getFlattenedMetrics(queryDTO);
-    }).withMessage("lastTimePeriod must not be before firstTimePeriod");
   }
 
   @Test
